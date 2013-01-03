@@ -6,7 +6,7 @@
  * @Copyright(c) 2012, FAT
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
  * @version -
- * @updated 2012/12/29
+ * @updated 2013/01/04
  * @author FAT  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
  * Note: 
@@ -57,8 +57,8 @@
 			if( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ){ return this ; }
 			if( location.protocol != this.protocol || location.host != this.host ){ return this ; }
 			if( location.pathname == this.pathname && location.search == this.search && location.hash != this.hash ){ return this ; }
-
-			ajax.call( this , this.href ,  location.pathname  == this.pathname ? false : true ) ;
+			
+			ajax.call( this , this.href ,  location.pathname == this.pathname ? false : true , event.data ) ;
 			
 			event.preventDefault() ;
 			
@@ -71,7 +71,7 @@
 			.unbind( [ 'popstate' , setting.gns , setting.ns ].join( '.' ) )
 			.bind( [ 'popstate' , setting.gns , setting.ns ].join( '.' ) , setting , function( event )
 			{
-				ajax.call( this , location.href , false )
+				ajax.call( this , location.href , false , event.data )
 				
 			} ) ;
 			
@@ -90,7 +90,7 @@
 			return ( 'replaceState' in window.history ) && ( window.history[ 'replaceState' ] != null ) ;
 		}
 		
-		function ajax( url , register )
+		function ajax( url , register , setting )
 		{
 			var
 			html ,
@@ -123,6 +123,7 @@
 							XMLHttpRequest = arg1 ;
 							textStatus = arg2 ;
 							errorThrown = arg3 ;
+							
 							setting.fnError.apply( context , [ setting.parameters , XMLHttpRequest , textStatus , errorThrown ] ) ;
 						}
 					}
@@ -133,11 +134,16 @@
 			(
 				function()
 				{
-					if( jQuery( setting.area , html ).length && jQuery( setting.area ).length )
+					var
+					areas = setting.area.split( ',' ) ,
+					len1 = jQuery( setting.area ).length ,
+					len2 = jQuery( setting.area , html ).length ;
+					
+					if( len1 && len2 && len1 == len2 )
 					{
 						if( register )
 						{
-							history.pushState( null , window.opera || userAgent.indexOf( 'opera' ) != -1 ? title : document.title , url ) ;
+							history.pushState( null , window.opera || ( 'userAgent' in window && userAgent.indexOf( 'opera' ) != -1 ) ? title : document.title , url ) ;
 							
 							isNaN( setting.scrollTop ) ? null : jQuery( 'html, body' ).scrollTop( parseInt( setting.scrollTop ) ) ;
 							isNaN( setting.scrollLeft ) ? null : jQuery( 'html, body' ).scrollLeft( parseInt( setting.scrollLeft ) ) ;
@@ -146,7 +152,7 @@
 						}
 						
 						document.title = title ;
-						jQuery( setting.area ).html( jQuery( setting.area , html ).html() ) ;
+						for( var i = 0 ; i < areas.length ; i++ ){ jQuery( areas[ i ] ).html( jQuery( areas[ i ] , html ).html() ) ; }
 						
 						setting.callback.apply( context , [ setting.parameters ] ) ;
 						
