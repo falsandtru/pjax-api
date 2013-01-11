@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.02
- * @updated 2013/01/11
+ * @version 1.03
+ * @updated 2013/01/12
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
  * Note: 
@@ -26,8 +26,8 @@
  * 	scrollTop: null,
  * 	scrollLeft: null,
  * 	callback: callback,
- * 	fnFail: fnFail,
- * 	timeout: 5000,
+ * 	callbacks: {when: {fail: fail}},
+ * 	ajax: {timeout: 5000},
  * 	wait: 100
  * });
  *
@@ -36,7 +36,7 @@
  * 	if(window._gaq){_gaq.push(['_trackPageview']);}
  * }
  *
- * function fnFail(params, XMLHttpRequest)
+ * function fail(params, XMLHttpRequest)
  * {
  * 	//alert('ajax cancel.\n' + XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText) ;
  * 	location.href = this.href ;
@@ -62,25 +62,23 @@
 			link : 'a[href^="/"]:not([target])[href$="/"] , a[href^="/"]:not([target])[href$=".html"] , a[href^="/"]:not([target])[href$=".htm"] , a[href^="/"]:not([target])[href$=".php"]' ,
 			scrollTop : 0 ,
 			scrollLeft : 0 ,
-			fnBefore : function(){} ,
+			ajax : {} ,
 			callback : function(){} ,
-			fnSuccess : function(){} ,
-			fnError : function(){} ,
-			fnDone : function(){} ,
-			fnFail : function(){} ,
-			fnAfter : function(){} ,
+			callbacks : {} ,
 			parameter : [] ,
-			timeout: null ,
 			wait : 0
 		} ,
-		setting = jQuery.extend( {} , defaults , options ) ;
+		settings = jQuery.extend( {} , defaults , options ) ;
+		
+		settings.ajax = options.ajax ;
+		settings.callbacks = options.callbacks ;
 		
 		
 		if( !supportPushState() ){ return this ; }
 		
 		jQuery( this )
-		.undelegate( setting.link , [ 'click' , setting.gns , setting.ns ].join( '.' ) )
-		.delegate( setting.link , [ 'click' , setting.gns , setting.ns ].join( '.' ) , setting , function( event )
+		.undelegate( settings.link , [ 'click' , settings.gns , settings.ns ].join( '.' ) )
+		.delegate( settings.link , [ 'click' , settings.gns , settings.ns ].join( '.' ) , settings , function( event )
 		{
 			if( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ){ return this ; }
 			if( location.protocol != this.protocol || location.host != this.host ){ return this ; }
@@ -96,8 +94,8 @@
 		setTimeout( function()
 		{
 			jQuery( window )
-			.unbind( [ 'popstate' , setting.gns , setting.ns ].join( '.' ) )
-			.bind( [ 'popstate' , setting.gns , setting.ns ].join( '.' ) , setting , function( event )
+			.unbind( [ 'popstate' , settings.gns , settings.ns ].join( '.' ) )
+			.bind( [ 'popstate' , settings.gns , settings.ns ].join( '.' ) , settings , function( event )
 			{
 				ajax.call( this , location.href , false , event.data )
 				
@@ -118,7 +116,7 @@
 			return ( 'replaceState' in window.history ) && ( window.history[ 'replaceState' ] != null ) ;
 		}
 		
-		function ajax( url , register , setting )
+		function ajax( url , register , settings )
 		{
 			var
 			html ,
@@ -128,44 +126,47 @@
 			errorThrown ,
 			context = this ;
 			
-			setting.fnBefore.apply( context , setting.parameter.fnBefore ) ;
+			fire.apply( context , [ settings.callbacks.before , [ settings.parameter ] ] ) ;
 			
 			jQuery
 			.when
 			(
 				jQuery.ajax
 				(
-					{
-						url : url ,
-						cache : false ,
-						timeout : setting.timeout ,
-						success : function( data )
+					jQuery.extend
+					(
+						{} ,
+						settings.ajax ,
 						{
-							html = data ;
-							title = jQuery( html ).filter( 'title' ).text() ;
-							
-							setting.fnSuccess.apply( context , [ setting.parameter , html ] ) ;
-						} ,
-						error : function( arg1 , arg2 , arg3 )
-						{
-							XMLHttpRequest = arg1 ;
-							textStatus = arg2 ;
-							errorThrown = arg3 ;
-							
-							setting.fnError.apply( context , [ setting.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
+							url : url ,
+							success : function( data )
+							{
+								html = data ;
+								title = jQuery( html ).filter( 'title' ).text() ;
+								
+								fire.apply( context , [ settings.callbacks.ajax.success , [ settings.parameter , html ] ] ) ;
+							} ,
+							error : function( arg1 , arg2 , arg3 )
+							{
+								XMLHttpRequest = arg1 ;
+								textStatus = arg2 ;
+								errorThrown = arg3 ;
+								
+								fire.apply( context , [ settings.callbacks.ajax.error , [ settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ] ) ;
+							}
 						}
-					}
+					)
 				) ,
-				wait( setting.wait )
+				wait( settings.wait )
 			)
 			.done
 			(
 				function()
 				{
 					var
-					areas = setting.area.split( ',' ) ,
-					len1 = jQuery( setting.area ).length ,
-					len2 = jQuery( setting.area , html ).length ;
+					areas = settings.area.split( ',' ) ,
+					len1 = jQuery( settings.area ).length ,
+					len2 = jQuery( settings.area , html ).length ;
 					
 					if( len1 && len2 && len1 == len2 )
 					{
@@ -173,32 +174,41 @@
 						{
 							history.pushState( null , window.opera || ( 'userAgent' in window && userAgent.indexOf( 'opera' ) != -1 ) ? title : document.title , url ) ;
 							
-							( isNaN( setting.scrollTop ) || setting.scrollTop == null ) ? null : jQuery( 'html, body' ).scrollTop( parseInt( setting.scrollTop ) ) ;
-							( isNaN( setting.scrollLeft ) || setting.scrollLeft == null ) ? null : jQuery( 'html, body' ).scrollLeft( parseInt( setting.scrollLeft ) ) ;
+							( isNaN( settings.scrollTop ) || settings.scrollTop == null ) ? null : jQuery( 'html, body' ).scrollTop( parseInt( settings.scrollTop ) ) ;
+							( isNaN( settings.scrollLeft ) || settings.scrollLeft == null ) ? null : jQuery( 'html, body' ).scrollLeft( parseInt( settings.scrollLeft ) ) ;
 							
 						}
 						
 						document.title = title ;
 						for( var i = 0 ; i < areas.length ; i++ ){ jQuery( areas[ i ] ).html( jQuery( areas[ i ] , html ).html() ) ; }
 						
-						setting.callback.apply( context , [ setting.parameter ] ) ;
+						fire.apply( context , [ settings.callback , [ settings.parameter ] ] ) ;
 						
 						} else {
 						location.href = url ;
 						
 					}
 					
-					setting.fnDone.apply( context , [ setting.parameter ] ) ;
+					fire.apply( context , [ settings.callbacks.when.done , [ settings.parameter ] ] ) ;
 				}
 			)
 			.fail
 			(
-				function(){ setting.fnFail.apply( context , [ setting.parameter , XMLHttpRequest , textStatus , errorThrown  ] ) ; }
+				function()
+				{
+					fire.apply( context , [ settings.callbacks.when.fail , [ settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ] ) ;
+				}
 			)
 			.always
 			(
-				function(){ setting.fnAfter.apply( context , [ setting.parameter ] ) ; }
+				function()
+				{
+					fire.apply( context , [ settings.callbacks.when.always , [ settings.parameter ] ] ) ;
+				}
 			) ;
+			
+			fire.apply( context , [ settings.callbacks.after , [ settings.parameter ] ] ) ;
+			
 		}
 		
 		function wait( ms )
@@ -209,6 +219,11 @@
 				dfd.resolve() ;
 			} , ms ) ;
 			return dfd.promise() ;
+		}
+		
+		function fire( fn , params )
+		{
+			if(typeof fn == 'function'){ fn.apply( this , params ) ; }
 		}
 		
 		
