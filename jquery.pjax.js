@@ -3,11 +3,11 @@
  * pjax
  * 
  * ---
- * @Copyright(c) 2012, FAT
+ * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version -
- * @updated 2013/01/04
- * @author FAT  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
+ * @version 1.02
+ * @updated 2013/01/11
+ * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
  * Note: 
  * 
@@ -16,13 +16,40 @@
  * @jquery 1.7.2
  * 
  * $.pjax({area: 'div.pjax:not(.no-pjax)'});
+ *
+ * or
+ *
+ * $('div.pjaxLinkArea').pjax(
+ * {
+ * 	area: 'div.pjax:not(.no-pjax)',
+ * 	link: 'a.pjaxLinks',
+ * 	scrollTop: null,
+ * 	scrollLeft: null,
+ * 	callback: callback,
+ * 	fnFail: fnFail,
+ * 	timeout: 5000,
+ * 	wait: 100
+ * });
+ *
+ * function callback()
+ * {
+ * 	if(window._gaq){_gaq.push(['_trackPageview']);}
+ * }
+ *
+ * function fnFail(params, XMLHttpRequest)
+ * {
+ * 	//alert('ajax cancel.\n' + XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText) ;
+ * 	location.href = this.href ;
+ * }
  * 
  */
 
 ( function( $ )
 {
+	
 	jQuery.fn.pjax	= pjax ;
 	jQuery.pjax			= pjax ;
+	
 	function pjax( options )
 	{
 		if(typeof this == 'function'){ return arguments.callee.apply( jQuery( window ) , arguments ) ; }
@@ -42,7 +69,8 @@
 			fnDone : function(){} ,
 			fnFail : function(){} ,
 			fnAfter : function(){} ,
-			parameters : {} ,
+			parameter : [] ,
+			timeout: null ,
 			wait : 0
 		} ,
 		setting = jQuery.extend( {} , defaults , options ) ;
@@ -100,7 +128,7 @@
 			errorThrown ,
 			context = this ;
 			
-			setting.fnBefore.apply( context , setting.parameters.fnBefore ) ;
+			setting.fnBefore.apply( context , setting.parameter.fnBefore ) ;
 			
 			jQuery
 			.when
@@ -116,7 +144,7 @@
 							html = data ;
 							title = jQuery( html ).filter( 'title' ).text() ;
 							
-							setting.fnSuccess.apply( context , [ setting.parameters , html ] ) ;
+							setting.fnSuccess.apply( context , [ setting.parameter , html ] ) ;
 						} ,
 						error : function( arg1 , arg2 , arg3 )
 						{
@@ -124,7 +152,7 @@
 							textStatus = arg2 ;
 							errorThrown = arg3 ;
 							
-							setting.fnError.apply( context , [ setting.parameters , XMLHttpRequest , textStatus , errorThrown ] ) ;
+							setting.fnError.apply( context , [ setting.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
 						}
 					}
 				) ,
@@ -145,32 +173,31 @@
 						{
 							history.pushState( null , window.opera || ( 'userAgent' in window && userAgent.indexOf( 'opera' ) != -1 ) ? title : document.title , url ) ;
 							
-							isNaN( setting.scrollTop ) ? null : jQuery( 'html, body' ).scrollTop( parseInt( setting.scrollTop ) ) ;
-							isNaN( setting.scrollLeft ) ? null : jQuery( 'html, body' ).scrollLeft( parseInt( setting.scrollLeft ) ) ;
+							( isNaN( setting.scrollTop ) || setting.scrollTop == null ) ? null : jQuery( 'html, body' ).scrollTop( parseInt( setting.scrollTop ) ) ;
+							( isNaN( setting.scrollLeft ) || setting.scrollLeft == null ) ? null : jQuery( 'html, body' ).scrollLeft( parseInt( setting.scrollLeft ) ) ;
 							
-							if( window._gaq ){ _gaq.push( [ '_trackPageview' ] ) ; }
 						}
 						
 						document.title = title ;
 						for( var i = 0 ; i < areas.length ; i++ ){ jQuery( areas[ i ] ).html( jQuery( areas[ i ] , html ).html() ) ; }
 						
-						setting.callback.apply( context , [ setting.parameters ] ) ;
+						setting.callback.apply( context , [ setting.parameter ] ) ;
 						
 						} else {
 						location.href = url ;
 						
 					}
 					
-					setting.fnDone.apply( context , [ setting.parameters ] ) ;
+					setting.fnDone.apply( context , [ setting.parameter ] ) ;
 				}
 			)
 			.fail
 			(
-				function(){ setting.fnFail.apply( context , [ setting.parameters ] ) ; }
+				function(){ setting.fnFail.apply( context , [ setting.parameter , XMLHttpRequest , textStatus , errorThrown  ] ) ; }
 			)
 			.always
 			(
-				function(){ setting.fnAfter.apply( context , [ setting.parameters ] ) ; }
+				function(){ setting.fnAfter.apply( context , [ setting.parameter ] ) ; }
 			) ;
 		}
 		
