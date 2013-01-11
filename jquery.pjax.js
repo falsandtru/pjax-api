@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.04
+ * @version 1.1.2
  * @updated 2013/01/12
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
@@ -15,30 +15,34 @@
  * Example:
  * @jquery 1.7.2
  * 
- * $.pjax({area: 'div.pjax:not(.no-pjax)'});
+ * $.pjax( { area : 'div.pjax:not(.no-pjax)' } ) ;
  *
  * or
  *
- * $('div.pjaxLinkArea').pjax(
+ * $( 'div.pjaxLinkArea' ).pjax(
  * {
- * 	area: 'div.pjax:not(.no-pjax)',
- * 	link: 'a.pjaxLinks',
- * 	scrollTop: null,
- * 	scrollLeft: null,
- * 	callback: callback,
- * 	callbacks: {when: {fail: fail}},
- * 	ajax: {timeout: 5000},
- * 	wait: 100
- * });
+ * 	area : 'div.pjax:not(.no-pjax)' ,
+ * 	link : 'a.pjaxLinks' ,
+ * 	scrollTop : null ,
+ * 	scrollLeft : null ,
+ * 	callback : callback ,
+ * 	callbacks : { when : { fail : fail } } ,
+ * 	ajax :
+ * 	{
+ * 		beforeSend : function( xhr ){ xhr.overrideMimeType( "text/html;charset=UTF-8" ) ; },
+ * 		timeout : 5000
+ * 	} ,
+ * 	wait : 100
+ * }) ;
  *
  * function callback()
  * {
- * 	if(window._gaq){_gaq.push(['_trackPageview']);}
+ * 	if( window._gaq ){ _gaq.push( ['_trackPageview'] ) ; }
  * }
  *
  * function fail(params, XMLHttpRequest)
  * {
- * 	//alert('ajax cancel.\n' + XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText) ;
+ * 	//alert( 'ajax cancel.\n' + XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText ) ;
  * 	location.href = this.href ;
  * }
  * 
@@ -64,7 +68,7 @@
 			scrollLeft : 0 ,
 			ajax : {} ,
 			callback : function(){} ,
-			callbacks : {} ,
+			callbacks : { ajax : {} , when : {} } ,
 			parameter : [] ,
 			wait : 0
 		} ,
@@ -116,14 +120,15 @@
 		function ajax( url , register , settings )
 		{
 			var
-			html ,
-			title ,
+			data ,
+			dataType ,
 			XMLHttpRequest ,
 			textStatus ,
 			errorThrown ,
+			title ,
 			context = this ;
 			
-			fire.apply( context , [ settings.callbacks.before , [ settings.parameter ] ] ) ;
+			fire( settings.callbacks.before , context , [ settings.parameter ] ) ;
 			
 			jQuery
 			.when
@@ -136,12 +141,14 @@
 						settings.ajax ,
 						{
 							url : url ,
-							success : function( data )
+							success : function( arg1 , arg2 )
 							{
-								html = data ;
-								title = jQuery( html ).filter( 'title' ).text() ;
+								data = arg1 ;
+								dataType = arg2 ;
 								
-								fire.apply( context , [ settings.callbacks.ajax.success , [ settings.parameter , html ] ] ) ;
+								title = jQuery( data ).filter( 'title' ).text() ;
+								
+								fire( settings.callbacks.ajax.success , context , [ settings.parameter , data , dataType ] ) ;
 							} ,
 							error : function( arg1 , arg2 , arg3 )
 							{
@@ -149,7 +156,14 @@
 								textStatus = arg2 ;
 								errorThrown = arg3 ;
 								
-								fire.apply( context , [ settings.callbacks.ajax.error , [ settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ] ) ;
+								fire( settings.callbacks.ajax.error , context , [ settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
+							} ,
+							complete : function( arg1 , arg2 )
+							{
+								XMLHttpRequest = arg1 ;
+								textStatus = arg2 ;
+								
+								fire( settings.callbacks.ajax.complete , context , [ settings.parameter , XMLHttpRequest , textStatus ] ) ;
 							}
 						}
 					)
@@ -163,7 +177,7 @@
 					var
 					areas = settings.area.split( ',' ) ,
 					len1 = jQuery( settings.area ).length ,
-					len2 = jQuery( settings.area , html ).length ;
+					len2 = jQuery( settings.area , data ).length ;
 					
 					if( len1 && len2 && len1 == len2 )
 					{
@@ -177,34 +191,34 @@
 						}
 						
 						document.title = title ;
-						for( var i = 0 ; i < areas.length ; i++ ){ jQuery( areas[ i ] ).html( jQuery( areas[ i ] , html ).html() ) ; }
+						for( var i = 0 ; i < areas.length ; i++ ){ jQuery( areas[ i ] ).html( jQuery( areas[ i ] , data ).html() ) ; }
 						
-						fire.apply( context , [ settings.callback , [ settings.parameter ] ] ) ;
+						fire( settings.callback , context , [ settings.parameter ] ) ;
 						
 						} else {
 						location.href = url ;
 						
 					}
 					
-					fire.apply( context , [ settings.callbacks.when.done , [ settings.parameter ] ] ) ;
+					fire( settings.callbacks.when.done , context , [ settings.parameter , data , dataType ] ) ;
 				}
 			)
 			.fail
 			(
 				function()
 				{
-					fire.apply( context , [ settings.callbacks.when.fail , [ settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ] ) ;
+					fire( settings.callbacks.when.fail , context , [ settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
 				}
 			)
 			.always
 			(
 				function()
 				{
-					fire.apply( context , [ settings.callbacks.when.always , [ settings.parameter ] ] ) ;
+					fire( settings.callbacks.when.always , context , [ settings.parameter , XMLHttpRequest , textStatus ] ) ;
 				}
 			) ;
 			
-			fire.apply( context , [ settings.callbacks.after , [ settings.parameter ] ] ) ;
+			fire( settings.callbacks.after , context, [ settings.parameter , XMLHttpRequest , textStatus ] ) ;
 			
 		}
 		
@@ -218,9 +232,9 @@
 			return dfd.promise() ;
 		}
 		
-		function fire( fn , params )
+		function fire( fn , context , params )
 		{
-			if( typeof fn == 'function' ){ fn.apply( this , params ) ; }
+			if( typeof fn == 'function' ){ fn.apply( context , params ) ; }
 		}
 		
 		
