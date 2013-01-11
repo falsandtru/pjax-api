@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.03
+ * @version 1.04
  * @updated 2013/01/12
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
@@ -52,7 +52,7 @@
 	
 	function pjax( options )
 	{
-		if(typeof this == 'function'){ return arguments.callee.apply( jQuery( window ) , arguments ) ; }
+		if( typeof this == 'function' ){ return arguments.callee.apply( jQuery( window ) , arguments ) ; }
 		var
 		defaults=
 		{
@@ -68,10 +68,7 @@
 			parameter : [] ,
 			wait : 0
 		} ,
-		settings = jQuery.extend( {} , defaults , options ) ;
-		
-		settings.ajax = options.ajax ;
-		settings.callbacks = options.callbacks ;
+		settings = jQuery.extend( true , {} , defaults , options ) ;
 		
 		
 		if( !supportPushState() ){ return this ; }
@@ -223,7 +220,7 @@
 		
 		function fire( fn , params )
 		{
-			if(typeof fn == 'function'){ fn.apply( this , params ) ; }
+			if( typeof fn == 'function' ){ fn.apply( this , params ) ; }
 		}
 		
 		
