@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.1.2
- * @updated 2013/01/12
+ * @version 1.1.3
+ * @updated 2013/01/13
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
  * Note: 
@@ -29,7 +29,7 @@
  * 	callbacks : { when : { fail : fail } } ,
  * 	ajax :
  * 	{
- * 		beforeSend : function( xhr ){ xhr.overrideMimeType( "text/html;charset=UTF-8" ) ; },
+ * 		beforeSend : function( xhr ){ xhr.overrideMimeType( 'text/html;charset=UTF-8' ) ; },
  * 		timeout : 5000
  * 	} ,
  * 	wait : 100
@@ -56,7 +56,7 @@
 	
 	function pjax( options )
 	{
-		if( typeof this == 'function' ){ return arguments.callee.apply( jQuery( window ) , arguments ) ; }
+		if( typeof this === 'function' ){ return arguments.callee.apply( jQuery( window ) , arguments ) ; }
 		var
 		defaults=
 		{
@@ -82,10 +82,10 @@
 		.delegate( settings.link , [ 'click' , settings.gns , settings.ns ].join( '.' ) , settings , function( event )
 		{
 			if( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ){ return this ; }
-			if( location.protocol != this.protocol || location.host != this.host ){ return this ; }
-			if( location.pathname == this.pathname && location.search == this.search && location.hash != this.hash ){ return this ; }
+			if( location.protocol !== this.protocol || location.host !== this.host ){ return this ; }
+			if( location.pathname === this.pathname && location.search === this.search && location.hash !== this.hash ){ return this ; }
 			
-			ajax.call( this , this.href ,  location.pathname == this.pathname ? false : true , event.data ) ;
+			ajax.call( this , this.href ,  location.pathname === this.pathname ? false : true , event.data ) ;
 			
 			event.preventDefault() ;
 			
@@ -109,12 +109,12 @@
 		
 		function supportPushState()
 		{
-			return ( 'pushState' in window.history ) && ( window.history[ 'pushState' ] != null ) ;
+			return ( 'pushState' in window.history ) && ( window.history[ 'pushState' ] !== null ) ;
 		}
 		
 		function supportReplaceState()
 		{
-			return ( 'replaceState' in window.history ) && ( window.history[ 'replaceState' ] != null ) ;
+			return ( 'replaceState' in window.history ) && ( window.history[ 'replaceState' ] !== null ) ;
 		}
 		
 		function ajax( url , register , settings )
@@ -179,14 +179,14 @@
 					len1 = jQuery( settings.area ).length ,
 					len2 = jQuery( settings.area , data ).length ;
 					
-					if( len1 && len2 && len1 == len2 )
+					if( len1 && len2 && len1 === len2 )
 					{
 						if( register )
 						{
-							history.pushState( null , window.opera || ( 'userAgent' in window && userAgent.indexOf( 'opera' ) != -1 ) ? title : document.title , url ) ;
+							history.pushState( null , window.opera || ( 'userAgent' in window && userAgent.indexOf( 'opera' ) !== -1 ) ? title : document.title , url ) ;
 							
-							( isNaN( settings.scrollTop ) || settings.scrollTop == null ) ? null : jQuery( 'html, body' ).scrollTop( parseInt( settings.scrollTop ) ) ;
-							( isNaN( settings.scrollLeft ) || settings.scrollLeft == null ) ? null : jQuery( 'html, body' ).scrollLeft( parseInt( settings.scrollLeft ) ) ;
+							settings.scrollTop === null ? null : jQuery( 'html, body' ).scrollTop( parseInt( settings.scrollTop ) ) ;
+							settings.scrollLeft === null ? null : jQuery( 'html, body' ).scrollLeft( parseInt( settings.scrollLeft ) ) ;
 							
 						}
 						
@@ -234,7 +234,7 @@
 		
 		function fire( fn , context , params )
 		{
-			if( typeof fn == 'function' ){ fn.apply( context , params ) ; }
+			if( typeof fn === 'function' ){ fn.apply( context , params ) ; }
 		}
 		
 		
