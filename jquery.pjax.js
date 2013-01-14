@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.1.3
- * @updated 2013/01/13
+ * @version 1.2.0
+ * @updated 2013/01/15
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
  * Note: 
@@ -26,12 +26,14 @@
  * 	scrollTop : null ,
  * 	scrollLeft : null ,
  * 	callback : callback ,
- * 	callbacks : { when : { fail : fail } } ,
- * 	ajax :
+ * 	callbacks :
  * 	{
- * 		beforeSend : function( xhr ){ xhr.overrideMimeType( 'text/html;charset=UTF-8' ) ; },
- * 		timeout : 5000
- * 	} ,
+ * 		ajax :
+ * 		{
+ * 			beforeSend : function( arg , XMLHttpRequest ){ XMLHttpRequest.overrideMimeType( 'text/html;charset=UTF-8' ) ; }
+ * 			error : error
+ * 		}
+ * 	}
  * 	wait : 100
  * }) ;
  *
@@ -40,10 +42,9 @@
  * 	if( window._gaq ){ _gaq.push( ['_trackPageview'] ) ; }
  * }
  *
- * function fail(params, XMLHttpRequest)
+ * function error( arg , XMLHttpRequest )
  * {
- * 	//alert( 'ajax cancel.\n' + XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText ) ;
- * 	location.href = this.href ;
+ * 	alert( 'pjax cancel.\n' + XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText ) ;
  * }
  * 
  */
@@ -56,7 +57,7 @@
 	
 	function pjax( options )
 	{
-		if( typeof this === 'function' ){ return arguments.callee.apply( jQuery( window ) , arguments ) ; }
+		if( typeof this === 'function' ){ return arguments.callee.apply( jQuery( document ) , arguments ) ; }
 		var
 		defaults=
 		{
@@ -68,9 +69,14 @@
 			scrollLeft : 0 ,
 			ajax : {} ,
 			callback : function(){} ,
-			callbacks : { ajax : {} , when : {} } ,
-			parameter : [] ,
-			wait : 0
+			callbacks :
+			{
+				ajax : { dataFilter: function( arg , data ){ return data ; } } ,
+				update : {}
+			} ,
+			parameter : undefined ,
+			wait : 0 ,
+			fallback : true
 		} ,
 		settings = jQuery.extend( true , {} , defaults , options ) ;
 		
@@ -102,8 +108,7 @@
 				
 			} ) ;
 			
-		} , 100 ) ;
-		
+		} , ( 'userAgent' in window && userAgent.indexOf( 'chrome' ) !== -1 ) ? 200 : 100 ) ;
 		
 		/* function */
 		
@@ -141,6 +146,19 @@
 						settings.ajax ,
 						{
 							url : url ,
+							beforeSend : function( arg1 )
+							{
+								XMLHttpRequest = arg1 ;
+								
+								fire( settings.callbacks.ajax.beforeSend , context , [ settings.parameter , XMLHttpRequest ] ) ;
+							} ,
+							dataFilter : function( arg1 , arg2 )
+							{
+								data = arg1 ;
+								dataType = arg2 ;
+								
+								return fire( settings.callbacks.ajax.dataFilter , context , [ settings.parameter , data , dataType ] ) ;
+							} ,
 							success : function( arg1 , arg2 )
 							{
 								data = arg1 ;
@@ -157,6 +175,7 @@
 								errorThrown = arg3 ;
 								
 								fire( settings.callbacks.ajax.error , context , [ settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
+								settings.fallback ? fallback( context , true ) : null ;
 							} ,
 							complete : function( arg1 , arg2 )
 							{
@@ -193,37 +212,34 @@
 						document.title = title ;
 						for( var i = 0 ; i < areas.length ; i++ ){ jQuery( areas[ i ] ).html( jQuery( areas[ i ] , data ).html() ) ; }
 						
-						fire( settings.callback , context , [ settings.parameter ] ) ;
+						fire( settings.callback , context , [ settings.parameter , data , dataType ] ) ;
+						fire( settings.callbacks.update.success , context , [ settings.parameter , data , dataType ] ) ;
 						
 						} else {
-						location.href = url ;
+							
+						fire( settings.callbacks.update.error , context , [ settings.parameter , data , dataType ] ) ;
+						settings.fallback ? fallback( context , false ) : null ;
 						
 					}
 					
-					fire( settings.callbacks.when.done , context , [ settings.parameter , data , dataType ] ) ;
+					fire( settings.callbacks.update.complete , context , [ settings.parameter , data , dataType ] ) ;
+					
 				}
 			)
-			.fail
-			(
-				function()
-				{
-					fire( settings.callbacks.when.fail , context , [ settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
-				}
-			)
+			.fail()
 			.always
 			(
 				function()
 				{
-					fire( settings.callbacks.when.always , context , [ settings.parameter , XMLHttpRequest , textStatus ] ) ;
+					fire( settings.callbacks.after , context, [ settings.parameter , XMLHttpRequest , textStatus ] ) ;
 				}
-			) ;
-			
-			fire( settings.callbacks.after , context, [ settings.parameter , XMLHttpRequest , textStatus ] ) ;
-			
+			)
 		}
 		
 		function wait( ms )
 		{
+			if( !ms ){ return }
+			
 			var dfd = jQuery.Deferred() ;
 			setTimeout( function()
 			{
@@ -232,9 +248,19 @@
 			return dfd.promise() ;
 		}
 		
-		function fire( fn , context , params )
+		function fire( fn , context , args )
 		{
-			if( typeof fn === 'function' ){ fn.apply( context , params ) ; }
+			if( typeof fn === 'function' ){ return fn.apply( context , args ) ; }
+		}
+		
+		function fallback( context , reload )
+		{
+			if( context.href !== undefined )
+			{
+				location = context.href ;
+				}else if( reload ){
+				location = location.href ;
+			}
 		}
 		
 		
