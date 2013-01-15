@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.2.0
- * @updated 2013/01/15
+ * @version 1.2.1
+ * @updated 2013/01/16
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
  * Note: 
@@ -62,7 +62,7 @@
 		defaults=
 		{
 			gns : 'pjax' ,
-			ns : 'default' ,
+			ns : undefined ,
 			area : undefined ,
 			link : 'a[href^="/"]:not([target])[href$="/"] , a[href^="/"]:not([target])[href$=".html"] , a[href^="/"]:not([target])[href$=".htm"] , a[href^="/"]:not([target])[href$=".php"]' ,
 			scrollTop : 0 ,
@@ -83,9 +83,11 @@
 		
 		if( !supportPushState() ){ return this ; }
 		
+		settings.ns = [ settings.gns + ( settings.ns === undefined ? '' : ':' + settings.ns ) ].join( '.' ) ;
+		
 		jQuery( this )
-		.undelegate( settings.link , [ 'click' , settings.gns , settings.ns ].join( '.' ) )
-		.delegate( settings.link , [ 'click' , settings.gns , settings.ns ].join( '.' ) , settings , function( event )
+		.undelegate( settings.link , [ 'click' , settings.ns ].join( '.' ) )
+		.delegate( settings.link , [ 'click' , settings.ns ].join( '.' ) , settings , function( event )
 		{
 			if( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ){ return this ; }
 			if( location.protocol !== this.protocol || location.host !== this.host ){ return this ; }
@@ -101,8 +103,8 @@
 		setTimeout( function()
 		{
 			jQuery( window )
-			.unbind( [ 'popstate' , settings.gns , settings.ns ].join( '.' ) )
-			.bind( [ 'popstate' , settings.gns , settings.ns ].join( '.' ) , settings , function( event )
+			.unbind( [ 'popstate' , settings.ns ].join( '.' ) )
+			.bind( [ 'popstate' , settings.ns ].join( '.' ) , settings , function( event )
 			{
 				ajax.call( this , location.href , false , event.data )
 				
