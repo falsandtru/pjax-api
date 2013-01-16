@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.2.2
+ * @version 1.3.0
  * @updated 2013/01/16
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
@@ -71,7 +71,7 @@
 			callback : function(){} ,
 			callbacks :
 			{
-				ajax : { dataFilter: function( arg , data ){ return data ; } } ,
+				ajax : { dataFilter: function( event , arg , data ){ return data ; } } ,
 				update : {}
 			} ,
 			parameter : undefined ,
@@ -103,7 +103,7 @@
 			if( location.protocol !== this.protocol || location.host !== this.host ){ return this ; }
 			if( location.pathname === this.pathname && location.search === this.search && location.hash !== this.hash ){ return this ; }
 			
-			ajax.call( this , this.href ,  location.pathname === this.pathname ? false : true , event.data ) ;
+			ajax.apply( this , [ event , this.href ,  location.pathname === this.pathname ? false : true , event.data ] ) ;
 			
 			event.preventDefault() ;
 		} ) ;
@@ -115,8 +115,7 @@
 			.unbind( settings.nss.popstate )
 			.bind( settings.nss.popstate , settings , function( event )
 			{
-				ajax.call( this , location.href , false , event.data )
-				
+				ajax.apply( this , [ event , location.href , false , event.data ] ) ;
 			} ) ;
 		} , 100 ) ;
 		
@@ -132,8 +131,9 @@
 			return ( 'replaceState' in window.history ) && ( window.history[ 'replaceState' ] !== null ) ;
 		}
 		
-		function ajax( url , register , settings )
+		function ajax( event , url , register , settings )
 		{
+			console.log(event)
 			var
 			data ,
 			dataType ,
@@ -143,11 +143,12 @@
 			title ,
 			context = this ;
 			
-			fire( settings.callbacks.before , context , [ settings.parameter ] ) ;
+			fire( settings.callbacks.before , context , [ event , settings.parameter ] ) ;
 			
 			jQuery
 			.when
 			(
+				wait( settings.wait ) ,
 				jQuery.ajax
 				(
 					jQuery.extend
@@ -160,14 +161,14 @@
 							{
 								XMLHttpRequest = arg1 ;
 								
-								fire( settings.callbacks.ajax.beforeSend , context , [ settings.parameter , XMLHttpRequest ] ) ;
+								fire( settings.callbacks.ajax.beforeSend , context , [ event , settings.parameter , XMLHttpRequest ] ) ;
 							} ,
 							dataFilter : function( arg1 , arg2 )
 							{
 								data = arg1 ;
 								dataType = arg2 ;
 								
-								return fire( settings.callbacks.ajax.dataFilter , context , [ settings.parameter , data , dataType ] ) ;
+								return fire( settings.callbacks.ajax.dataFilter , context , [ event , settings.parameter , data , dataType ] ) ;
 							} ,
 							success : function( arg1 , arg2 )
 							{
@@ -176,7 +177,7 @@
 								
 								title = jQuery( data ).filter( 'title' ).text() ;
 								
-								fire( settings.callbacks.ajax.success , context , [ settings.parameter , data , dataType ] ) ;
+								fire( settings.callbacks.ajax.success , context , [ event , settings.parameter , data , dataType ] ) ;
 							} ,
 							error : function( arg1 , arg2 , arg3 )
 							{
@@ -184,7 +185,7 @@
 								textStatus = arg2 ;
 								errorThrown = arg3 ;
 								
-								fire( settings.callbacks.ajax.error , context , [ settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
+								fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
 								settings.fallback ? fallback( context , true ) : null ;
 							} ,
 							complete : function( arg1 , arg2 )
@@ -192,12 +193,11 @@
 								XMLHttpRequest = arg1 ;
 								textStatus = arg2 ;
 								
-								fire( settings.callbacks.ajax.complete , context , [ settings.parameter , XMLHttpRequest , textStatus ] ) ;
+								fire( settings.callbacks.ajax.complete , context , [ event , settings.parameter , XMLHttpRequest , textStatus ] ) ;
 							}
 						}
 					)
-				) ,
-				wait( settings.wait )
+				)
 			)
 			.done
 			(
@@ -221,18 +221,18 @@
 						document.title = title ;
 						for( var i = 0 ; i < areas.length ; i++ ){ jQuery( areas[ i ] ).html( jQuery( areas[ i ] , data ).html() ) ; }
 						
-						fire( settings.callback , context , [ settings.parameter , data , dataType ] ) ;
-						fire( settings.callbacks.update.success , context , [ settings.parameter , data , dataType ] ) ;
+						fire( settings.callback , context , [ event , settings.parameter , data , dataType ] ) ;
+						fire( settings.callbacks.update.success , context , [ event , settings.parameter , data , dataType ] ) ;
 						
 						} else {
 							
-						fire( settings.callbacks.update.error , context , [ settings.parameter , data , dataType ] ) ;
+						fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType ] ) ;
 						settings.fallback ? fallback( context , false ) : null ;
 						
 						return ;
 					}
 					
-					fire( settings.callbacks.update.complete , context , [ settings.parameter , data , dataType ] ) ;
+					fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType ] ) ;
 				}
 			)
 			.fail()
@@ -240,7 +240,7 @@
 			(
 				function()
 				{
-					fire( settings.callbacks.after , context, [ settings.parameter , XMLHttpRequest , textStatus ] ) ;
+					fire( settings.callbacks.after , context, [ event , settings.parameter ] ) ;
 				}
 			)
 		}
