@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.2.1
+ * @version 1.2.2
  * @updated 2013/01/16
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
@@ -83,11 +83,21 @@
 		
 		if( !supportPushState() ){ return this ; }
 		
-		settings.ns = [ settings.gns + ( settings.ns === undefined ? '' : ':' + settings.ns ) ].join( '.' ) ;
+		jQuery.extend
+		(
+			settings ,
+			{
+				nss :
+				{
+					click : [ 'click' , settings.gns + ( settings.ns === undefined ? '' : ':' + settings.ns ) ].join( '.' ) ,
+					popstate : [ 'popstate' , settings.gns + ( settings.ns === undefined ? '' : ':' + settings.ns ) ].join( '.' )
+				}
+			}
+		)
 		
 		jQuery( this )
-		.undelegate( settings.link , [ 'click' , settings.ns ].join( '.' ) )
-		.delegate( settings.link , [ 'click' , settings.ns ].join( '.' ) , settings , function( event )
+		.undelegate( settings.link , settings.nss.click )
+		.delegate( settings.link , settings.nss.click , settings , function( event )
 		{
 			if( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ){ return this ; }
 			if( location.protocol !== this.protocol || location.host !== this.host ){ return this ; }
@@ -96,21 +106,19 @@
 			ajax.call( this , this.href ,  location.pathname === this.pathname ? false : true , event.data ) ;
 			
 			event.preventDefault() ;
-			
 		} ) ;
 		
 		
 		setTimeout( function()
 		{
 			jQuery( window )
-			.unbind( [ 'popstate' , settings.ns ].join( '.' ) )
-			.bind( [ 'popstate' , settings.ns ].join( '.' ) , settings , function( event )
+			.unbind( settings.nss.popstate )
+			.bind( settings.nss.popstate , settings , function( event )
 			{
 				ajax.call( this , location.href , false , event.data )
 				
 			} ) ;
-			
-		} , ( 'userAgent' in window && userAgent.indexOf( 'chrome' ) !== -1 ) ? 200 : 100 ) ;
+		} , 100 ) ;
 		
 		/* function */
 		
@@ -208,7 +216,6 @@
 							
 							settings.scrollTop === null ? null : jQuery( 'html, body' ).scrollTop( parseInt( settings.scrollTop ) ) ;
 							settings.scrollLeft === null ? null : jQuery( 'html, body' ).scrollLeft( parseInt( settings.scrollLeft ) ) ;
-							
 						}
 						
 						document.title = title ;
@@ -222,10 +229,10 @@
 						fire( settings.callbacks.update.error , context , [ settings.parameter , data , dataType ] ) ;
 						settings.fallback ? fallback( context , false ) : null ;
 						
+						return ;
 					}
 					
 					fire( settings.callbacks.update.complete , context , [ settings.parameter , data , dataType ] ) ;
-					
 				}
 			)
 			.fail()
@@ -261,7 +268,7 @@
 			{
 				location = context.href ;
 				}else if( reload ){
-				location = location.href ;
+				location.reload() ;
 			}
 		}
 		
