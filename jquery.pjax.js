@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.3.0
- * @updated 2013/01/16
+ * @version 1.3.1
+ * @updated 2013/01/17
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
  * Note: 
@@ -133,7 +133,6 @@
 		
 		function ajax( event , url , register , settings )
 		{
-			console.log(event)
 			var
 			data ,
 			dataType ,
