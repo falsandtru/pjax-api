@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.3.2
+ * @version 1.3.3
  * @updated 2013/03/08
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
@@ -212,13 +212,16 @@
 						if( register )
 						{
 							history.pushState( null , window.opera || ( 'userAgent' in window && userAgent.indexOf( 'opera' ) !== -1 ) ? title : document.title , url ) ;
-							
-							settings.scrollTop === null ? null : jQuery( 'html, body' ).scrollTop( parseInt( settings.scrollTop ) ).animate( { scrollTop:  parseInt( settings.scrollTop ) } , '1' ) ;
-							settings.scrollLeft === null ? null : jQuery( 'html, body' ).scrollLeft( parseInt( settings.scrollLeft ) ).animate( { scrollLeft:  parseInt( settings.scrollLeft ) } , '1' ) ;
 						}
 						
 						document.title = title ;
 						for( var i = 0 ; i < areas.length ; i++ ){ jQuery( areas[ i ] ).html( jQuery( areas[ i ] , data ).html() ) ; }
+						
+						if( register )
+						{
+							settings.scrollTop === null ? null : jQuery( window ).scrollTop( parseInt( settings.scrollTop ) ) ;
+							settings.scrollLeft === null ? null : jQuery( window ).scrollLeft( parseInt( settings.scrollLeft ) ) ;
+						}
 						
 						fire( settings.callback , context , [ event , settings.parameter , data , dataType ] ) ;
 						fire( settings.callbacks.update.success , context , [ event , settings.parameter , data , dataType ] ) ;
