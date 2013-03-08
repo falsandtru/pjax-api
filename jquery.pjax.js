@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.3.4
- * @updated 2013/03/08
+ * @version 1.3.5
+ * @updated 2013/03/09
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
  * Note: 
@@ -147,7 +147,7 @@
 			jQuery
 			.when
 			(
-				wait( settings.wait ) ,
+				wait( event , settings.wait ) ,
 				jQuery.ajax
 				(
 					jQuery.extend
@@ -200,7 +200,7 @@
 			)
 			.done
 			(
-				function()
+				function( event )
 				{
 					var
 					areas = settings.area.split( ',' ) ,
@@ -216,13 +216,13 @@
 						document.title = title ;
 						for( var i = 0 ; i < areas.length ; i++ ){ jQuery( areas[ i ] ).html( jQuery( areas[ i ] , data ).html() ) ; }
 						
-						register ? window.scrollTo( scrollX , scrollY ) : null ;
+						register && event.type === 'click' ? window.scrollTo( scrollX , scrollY ) : null ;
 						
 						fire( settings.callback , context , [ event , settings.parameter , data , dataType ] ) ;
 						fire( settings.callbacks.update.success , context , [ event , settings.parameter , data , dataType ] ) ;
 						
 						} else {
-							
+						
 						fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType ] ) ;
 						settings.fallback ? fallback( context , false ) : null ;
 						
@@ -242,14 +242,14 @@
 			)
 		}
 		
-		function wait( ms )
+		function wait( event , ms )
 		{
 			if( !ms ){ return }
 			
 			var dfd = jQuery.Deferred() ;
 			setTimeout( function()
 			{
-				dfd.resolve() ;
+				dfd.resolve( event ) ;
 			} , ms ) ;
 			return dfd.promise() ;
 		}
