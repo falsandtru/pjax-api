@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.3.3
+ * @version 1.3.4
  * @updated 2013/03/08
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
@@ -204,24 +204,19 @@
 				{
 					var
 					areas = settings.area.split( ',' ) ,
+					scrollX = settings.scrollLeft === null ? jQuery( window ).scrollLeft() : parseInt( settings.scrollLeft ) ,
+					scrollY = settings.scrollTop === null ? jQuery( window ).scrollTop() : parseInt( settings.scrollTop ) ,
 					len1 = jQuery( settings.area ).length ,
 					len2 = jQuery( settings.area , data ).length ;
 					
 					if( len1 && len2 && len1 === len2 )
 					{
-						if( register )
-						{
-							history.pushState( null , window.opera || ( 'userAgent' in window && userAgent.indexOf( 'opera' ) !== -1 ) ? title : document.title , url ) ;
-						}
+						register ? history.pushState( null , window.opera || ( 'userAgent' in window && userAgent.indexOf( 'opera' ) !== -1 ) ? title : document.title , url ) : null ;
 						
 						document.title = title ;
 						for( var i = 0 ; i < areas.length ; i++ ){ jQuery( areas[ i ] ).html( jQuery( areas[ i ] , data ).html() ) ; }
 						
-						if( register )
-						{
-							settings.scrollTop === null ? null : jQuery( window ).scrollTop( parseInt( settings.scrollTop ) ) ;
-							settings.scrollLeft === null ? null : jQuery( window ).scrollLeft( parseInt( settings.scrollLeft ) ) ;
-						}
+						register ? window.scrollTo( scrollX , scrollY ) : null ;
 						
 						fire( settings.callback , context , [ event , settings.parameter , data , dataType ] ) ;
 						fire( settings.callbacks.update.success , context , [ event , settings.parameter , data , dataType ] ) ;
