@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.3.1
- * @updated 2013/01/17
+ * @version 1.3.2
+ * @updated 2013/03/08
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
  * Note: 
@@ -213,8 +213,8 @@
 						{
 							history.pushState( null , window.opera || ( 'userAgent' in window && userAgent.indexOf( 'opera' ) !== -1 ) ? title : document.title , url ) ;
 							
-							settings.scrollTop === null ? null : jQuery( 'html, body' ).scrollTop( parseInt( settings.scrollTop ) ) ;
-							settings.scrollLeft === null ? null : jQuery( 'html, body' ).scrollLeft( parseInt( settings.scrollLeft ) ) ;
+							settings.scrollTop === null ? null : jQuery( 'html, body' ).scrollTop( parseInt( settings.scrollTop ) ).animate( { scrollTop:  parseInt( settings.scrollTop ) } , '1' ) ;
+							settings.scrollLeft === null ? null : jQuery( 'html, body' ).scrollLeft( parseInt( settings.scrollLeft ) ).animate( { scrollLeft:  parseInt( settings.scrollLeft ) } , '1' ) ;
 						}
 						
 						document.title = title ;
