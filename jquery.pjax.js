@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.3.5
+ * @version 1.3.6
  * @updated 2013/03/09
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
@@ -235,7 +235,7 @@
 			.fail()
 			.always
 			(
-				function()
+				function( event )
 				{
 					fire( settings.callbacks.after , context, [ event , settings.parameter ] ) ;
 				}
