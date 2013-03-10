@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.3.6
- * @updated 2013/03/09
+ * @version 1.3.7
+ * @updated 2013/03/10
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
  * Note: 
@@ -147,7 +147,7 @@
 			jQuery
 			.when
 			(
-				wait( event , settings.wait ) ,
+				wait( settings.wait ) ,
 				jQuery.ajax
 				(
 					jQuery.extend
@@ -200,7 +200,7 @@
 			)
 			.done
 			(
-				function( event )
+				function()
 				{
 					var
 					areas = settings.area.split( ',' ) ,
@@ -235,21 +235,21 @@
 			.fail()
 			.always
 			(
-				function( event )
+				function()
 				{
 					fire( settings.callbacks.after , context, [ event , settings.parameter ] ) ;
 				}
 			)
 		}
 		
-		function wait( event , ms )
+		function wait( ms )
 		{
 			if( !ms ){ return }
 			
 			var dfd = jQuery.Deferred() ;
 			setTimeout( function()
 			{
-				dfd.resolve( event ) ;
+				dfd.resolve() ;
 			} , ms ) ;
 			return dfd.promise() ;
 		}
