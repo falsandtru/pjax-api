@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.3.7
- * @updated 2013/03/10
+ * @version 1.4.0
+ * @updated 2013/03/25
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
  * Note: 
@@ -58,6 +58,8 @@
 	function pjax( options )
 	{
 		if( typeof this === 'function' ){ return arguments.callee.apply( jQuery( document ) , arguments ) ; }
+		if( !supportPushState() ){ return this ; }
+		
 		var
 		defaults=
 		{
@@ -65,6 +67,7 @@
 			ns : undefined ,
 			area : undefined ,
 			link : 'a[href^="/"]:not([target])[href$="/"] , a[href^="/"]:not([target])[href$=".html"] , a[href^="/"]:not([target])[href$=".htm"] , a[href^="/"]:not([target])[href$=".php"]' ,
+			form : undefined ,
 			scrollTop : 0 ,
 			scrollLeft : 0 ,
 			ajax : {} ,
@@ -80,34 +83,49 @@
 		} ,
 		settings = jQuery.extend( true , {} , defaults , options ) ;
 		
-		
-		if( !supportPushState() ){ return this ; }
-		
 		jQuery.extend
 		(
+			true ,
 			settings ,
 			{
 				nss :
 				{
 					click : [ 'click' , settings.gns + ( settings.ns === undefined ? '' : ':' + settings.ns ) ].join( '.' ) ,
+					submit : [ 'submit' , settings.gns + ( settings.ns === undefined ? '' : ':' + settings.ns ) ].join( '.' ) ,
 					popstate : [ 'popstate' , settings.gns + ( settings.ns === undefined ? '' : ':' + settings.ns ) ].join( '.' )
 				}
 			}
-		)
+		) ;
 		
-		jQuery( this )
-		.undelegate( settings.link , settings.nss.click )
-		.delegate( settings.link , settings.nss.click , settings , function( event )
+		switch( true )
 		{
-			if( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ){ return this ; }
-			if( location.protocol !== this.protocol || location.host !== this.host ){ return this ; }
-			if( location.pathname === this.pathname && location.search === this.search && location.hash !== this.hash ){ return this ; }
-			
-			ajax.apply( this , [ event , this.href ,  location.pathname === this.pathname ? false : true , event.data ] ) ;
-			
-			event.preventDefault() ;
-		} ) ;
-		
+			case settings.form !== undefined :
+				jQuery( this )
+				.undelegate( settings.form , settings.nss.submit )
+				.delegate( settings.form , settings.nss.submit , settings , function( event )
+				{
+					var
+					path = jQuery( event.target ).prop( 'action' ).replace( /^.+\/\/[^\/]+/ , '' ) ;
+					
+					ajax.apply( this , [ event , path ,  location.pathname === path ? false : true , event.data ] ) ;
+					
+					event.preventDefault() ;
+				} ) ;
+				break ;
+				
+			case settings.link !== undefined :
+				jQuery( this )
+				.undelegate( settings.link , settings.nss.click )
+				.delegate( settings.link , settings.nss.click , settings , function( event )
+				{
+					if( !check.apply( this , [ event ] ) ){ return this ; }
+					
+					ajax.apply( this , [ event , this.href ,  location.pathname === this.pathname ? false : true , event.data ] ) ;
+					
+					event.preventDefault() ;
+				} ) ;
+				break ;
+		}
 		
 		setTimeout( function()
 		{
@@ -126,9 +144,13 @@
 			return ( 'pushState' in window.history ) && ( window.history[ 'pushState' ] !== null ) ;
 		}
 		
-		function supportReplaceState()
+		function check()
 		{
-			return ( 'replaceState' in window.history ) && ( window.history[ 'replaceState' ] !== null ) ;
+			if( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ){ return false ; }
+			if( location.protocol !== this.protocol || location.host !== this.host ){ return false ; }
+			if( location.pathname === this.pathname && location.search === this.search && location.hash !== this.hash ){ return false ; }
+			
+			return true ;
 		}
 		
 		function ajax( event , url , register , settings )
@@ -140,7 +162,31 @@
 			textStatus ,
 			errorThrown ,
 			title ,
-			context = this ;
+			context = this ,
+			query = [] ,
+			request = {} ;
+			
+			if( event.type.toLowerCase() === 'submit' )
+			{
+				jQuery( event.target ).find( 'input[name] , textarea[name]' ).each(function(index, element){ request[ element.name ] = element.value ; });
+				
+				jQuery.extend
+				(
+					true ,
+					settings ,
+					{
+						ajax :
+						{
+							type : jQuery( event.target ).prop( 'method' ).toUpperCase() ,
+							data : request
+						}
+					}
+				) ;
+				
+				url = url.replace( /\?[\S]*/ , '' )
+				for( var i in request ){ query.push( encodeURI( i + '=' + request[ i ] ) ) ; }
+				if( settings.ajax.type === 'GET' ){ url += '?' + query.join( '&' ) ; }
+			}
 			
 			fire( settings.callbacks.before , context , [ event , settings.parameter ] ) ;
 			
@@ -152,6 +198,7 @@
 				(
 					jQuery.extend
 					(
+						true ,
 						{} ,
 						settings.ajax ,
 						{
