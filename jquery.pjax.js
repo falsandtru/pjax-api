@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.4.0
+ * @version 1.4.1
  * @updated 2013/03/25
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
@@ -118,7 +118,7 @@
 				.undelegate( settings.link , settings.nss.click )
 				.delegate( settings.link , settings.nss.click , settings , function( event )
 				{
-					if( !check.apply( this , [ event ] ) ){ return this ; }
+					if( !check( this , event ) ){ return this ; }
 					
 					ajax.apply( this , [ event , this.href ,  location.pathname === this.pathname ? false : true , event.data ] ) ;
 					
@@ -144,11 +144,11 @@
 			return ( 'pushState' in window.history ) && ( window.history[ 'pushState' ] !== null ) ;
 		}
 		
-		function check()
+		function check( context , event )
 		{
 			if( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ){ return false ; }
-			if( location.protocol !== this.protocol || location.host !== this.host ){ return false ; }
-			if( location.pathname === this.pathname && location.search === this.search && location.hash !== this.hash ){ return false ; }
+			if( location.protocol !== context.protocol || location.host !== context.host ){ return false ; }
+			if( location.pathname === context.pathname && location.search === context.search && location.hash !== context.hash ){ return false ; }
 			
 			return true ;
 		}
