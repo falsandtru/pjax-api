@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.4.2
+ * @version 1.4.3
  * @updated 2013/03/26
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
@@ -66,7 +66,17 @@
 			gns : 'pjax' ,
 			ns : undefined ,
 			area : undefined ,
-			link : 'a[href^="/"]:not([target])[href$="/"] , a[href^="/"]:not([target])[href$=".html"] , a[href^="/"]:not([target])[href$=".htm"] , a[href^="/"]:not([target])[href$=".php"]' ,
+			link :
+			[
+				'a:not([target])[href^="/"][href$="/"]' ,
+				'a:not([target])[href^="/"][href*="/?"]' ,
+				'a:not([target])[href^="/"][href*="/#"]' ,
+				'a:not([target])[href^="/"][href$=".html"]' , 
+				'a:not([target])[href^="/"][href$=".htm"]' , 
+				'a:not([target])[href^="/"][href$=".php"]' ,
+				'a:not([target])[href^="/"][href*=".php?"]' ,
+				'a:not([target])[href^="/"][href*=".php#"]'
+			].join() ,
 			form : undefined ,
 			scrollTop : 0 ,
 			scrollLeft : 0 ,
