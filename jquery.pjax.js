@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.4.1
- * @updated 2013/03/25
+ * @version 1.4.2
+ * @updated 2013/03/26
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
  * Note: 
@@ -74,7 +74,7 @@
 			callback : function(){} ,
 			callbacks :
 			{
-				ajax : { dataFilter: function( event , arg , data ){ return data ; } } ,
+				ajax : {} ,
 				update : {}
 			} ,
 			parameter : undefined ,
@@ -164,11 +164,40 @@
 			title ,
 			context = this ,
 			query = [] ,
-			request = {} ;
+			request = {} ,
+			callbacks =
+			{
+				beforeSend : function( arg1 )
+				{
+					XMLHttpRequest = arg1 ;
+					
+					fire( settings.callbacks.ajax.beforeSend , context , [ event , settings.parameter , XMLHttpRequest ] ) ;
+				} ,
+				dataFilter : function( arg1 , arg2 )
+				{
+					data = arg1 ;
+					dataType = arg2 ;
+					
+					return fire( settings.callbacks.ajax.dataFilter , context , [ event , settings.parameter , data , dataType ] ) ;
+				} ,
+				complete : function( arg1 , arg2 )
+				{
+					XMLHttpRequest = arg1 ;
+					textStatus = arg2 ;
+					
+					fire( settings.callbacks.ajax.complete , context , [ event , settings.parameter , XMLHttpRequest , textStatus ] ) ;
+				}
+			} ;
+			
+			for( var i in callbacks )
+			{
+				if( i in settings.callbacks.ajax ){ continue ; }
+				delete callbacks[ i ] ;
+			}
 			
 			if( event.type.toLowerCase() === 'submit' )
 			{
-				jQuery( event.target ).find( 'input[name] , textarea[name]' ).each(function(index, element){ request[ element.name ] = element.value ; });
+				jQuery( event.target ).find( 'input[name] , textarea[name]' ).each( function( index , element ){ request[ element.name ] = element.value ; } ) ;
 				
 				jQuery.extend
 				(
@@ -201,21 +230,9 @@
 						true ,
 						{} ,
 						settings.ajax ,
+						callbacks ,
 						{
 							url : url ,
-							beforeSend : function( arg1 )
-							{
-								XMLHttpRequest = arg1 ;
-								
-								fire( settings.callbacks.ajax.beforeSend , context , [ event , settings.parameter , XMLHttpRequest ] ) ;
-							} ,
-							dataFilter : function( arg1 , arg2 )
-							{
-								data = arg1 ;
-								dataType = arg2 ;
-								
-								return fire( settings.callbacks.ajax.dataFilter , context , [ event , settings.parameter , data , dataType ] ) ;
-							} ,
 							success : function( arg1 , arg2 )
 							{
 								data = arg1 ;
@@ -233,13 +250,6 @@
 								
 								fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
 								settings.fallback ? fallback( context , true ) : null ;
-							} ,
-							complete : function( arg1 , arg2 )
-							{
-								XMLHttpRequest = arg1 ;
-								textStatus = arg2 ;
-								
-								fire( settings.callbacks.ajax.complete , context , [ event , settings.parameter , XMLHttpRequest , textStatus ] ) ;
 							}
 						}
 					)
