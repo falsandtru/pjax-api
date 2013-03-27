@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.4.3
- * @updated 2013/03/26
+ * @version 1.4.4
+ * @updated 2013/03/27
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
  * Note: 
@@ -66,17 +66,7 @@
 			gns : 'pjax' ,
 			ns : undefined ,
 			area : undefined ,
-			link :
-			[
-				'a:not([target])[href^="/"][href$="/"]' ,
-				'a:not([target])[href^="/"][href*="/?"]' ,
-				'a:not([target])[href^="/"][href*="/#"]' ,
-				'a:not([target])[href^="/"][href$=".html"]' , 
-				'a:not([target])[href^="/"][href$=".htm"]' , 
-				'a:not([target])[href^="/"][href$=".php"]' ,
-				'a:not([target])[href^="/"][href*=".php?"]' ,
-				'a:not([target])[href^="/"][href*=".php#"]'
-			].join() ,
+			link : 'a:not([target])[href^="/"]' ,
 			form : undefined ,
 			scrollTop : 0 ,
 			scrollLeft : 0 ,
@@ -128,9 +118,12 @@
 				.undelegate( settings.link , settings.nss.click )
 				.delegate( settings.link , settings.nss.click , settings , function( event )
 				{
-					if( !check( this , event ) ){ return this ; }
+					if( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ){ return this ; }
+					if( location.protocol !== this.protocol || location.host !== this.host ){ return this ; }
+					if( location.pathname === this.pathname && location.search === this.search && location.hash !== this.hash ){ return this ; }
+					if( location.pathname + location.search + location.hash === this.pathname + this.search + this.hash ){ event.preventDefault() ; return this ; }
 					
-					ajax.apply( this , [ event , this.href ,  location.pathname === this.pathname ? false : true , event.data ] ) ;
+					ajax.apply( this , [ event , this.href , true , event.data ] ) ;
 					
 					event.preventDefault() ;
 				} ) ;
@@ -152,15 +145,6 @@
 		function supportPushState()
 		{
 			return ( 'pushState' in window.history ) && ( window.history[ 'pushState' ] !== null ) ;
-		}
-		
-		function check( context , event )
-		{
-			if( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ){ return false ; }
-			if( location.protocol !== context.protocol || location.host !== context.host ){ return false ; }
-			if( location.pathname === context.pathname && location.search === context.search && location.hash !== context.hash ){ return false ; }
-			
-			return true ;
 		}
 		
 		function ajax( event , url , register , settings )
@@ -243,14 +227,13 @@
 						callbacks ,
 						{
 							url : url ,
-							success : function( arg1 , arg2 )
+							success : function( arg1 , arg2 , arg3 )
 							{
 								data = arg1 ;
 								dataType = arg2 ;
+								XMLHttpRequest = arg3 ;
 								
-								title = jQuery( data ).filter( 'title' ).text() ;
-								
-								fire( settings.callbacks.ajax.success , context , [ event , settings.parameter , data , dataType ] ) ;
+								fire( settings.callbacks.ajax.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) ;
 							} ,
 							error : function( arg1 , arg2 , arg3 )
 							{
@@ -269,31 +252,40 @@
 			(
 				function()
 				{
-					var
-					areas = settings.area.split( ',' ) ,
-					scrollX = settings.scrollLeft === null ? jQuery( window ).scrollLeft() : parseInt( settings.scrollLeft ) ,
-					scrollY = settings.scrollTop === null ? jQuery( window ).scrollTop() : parseInt( settings.scrollTop ) ,
-					len1 = jQuery( settings.area ).length ,
-					len2 = jQuery( settings.area , data ).length ;
-					
-					if( len1 && len2 && len1 === len2 )
+					try
 					{
-						register ? history.pushState( null , window.opera || ( 'userAgent' in window && userAgent.indexOf( 'opera' ) !== -1 ) ? title : document.title , url ) : null ;
+						if( XMLHttpRequest.getResponseHeader( 'Content-Type' ).indexOf( 'text/html' ) === -1 ){ throw null ; }
 						
-						document.title = title ;
-						for( var i = 0 ; i < areas.length ; i++ ){ jQuery( areas[ i ] ).html( jQuery( areas[ i ] , data ).html() ) ; }
+						var
+						title = jQuery( data ).filter( 'title' ).text() ,
+						areas = settings.area.split( ',' ) ,
+						scrollX = settings.scrollLeft === null ? jQuery( window ).scrollLeft() : parseInt( settings.scrollLeft ) ,
+						scrollY = settings.scrollTop === null ? jQuery( window ).scrollTop() : parseInt( settings.scrollTop ) ,
+						len1 = jQuery( settings.area ).length ,
+						len2 = jQuery( settings.area , data ).length ;
 						
-						register && event.type === 'click' ? window.scrollTo( scrollX , scrollY ) : null ;
-						
-						fire( settings.callback , context , [ event , settings.parameter , data , dataType ] ) ;
-						fire( settings.callbacks.update.success , context , [ event , settings.parameter , data , dataType ] ) ;
-						
-						} else {
-						
+						if( len1 === len2 )
+						{
+							register ? history.pushState( null , window.opera || ( 'userAgent' in window && userAgent.indexOf( 'opera' ) !== -1 ) ? title : document.title , url ) : null ;
+							
+							document.title = title ;
+							for( var i = 0 ; i < areas.length ; i++ ){ jQuery( areas[ i ] ).html( jQuery( areas[ i ] , data ).html() ) ; }
+							
+							register && event.type === 'click' ? window.scrollTo( scrollX , scrollY ) : null ;
+							
+							fire( settings.callbacks.update.success , context , [ event , settings.parameter , data , dataType ] ) ;
+							fire( settings.callback , context , [ event , settings.parameter , data , dataType ] ) ;
+						}
+						else
+						{
+							fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType ] ) ;
+							settings.fallback ? fallback( context , false ) : null ;
+						}
+					}
+					catch( err )
+					{
 						fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType ] ) ;
 						settings.fallback ? fallback( context , false ) : null ;
-						
-						return ;
 					}
 					
 					fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType ] ) ;
@@ -331,7 +323,9 @@
 			if( context.href !== undefined )
 			{
 				location = context.href ;
-				}else if( reload ){
+			}
+			else if( reload )
+			{
 				location.reload() ;
 			}
 		}
