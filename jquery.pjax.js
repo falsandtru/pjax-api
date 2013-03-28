@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.5.1
+ * @version 1.5.2
  * @updated 2013/03/28
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
@@ -354,7 +354,7 @@
 								
 							fire( settings.callbacks.update.before , context , [ event , settings.parameter , data , dataType ] ) ;
 							
-							if( len1 === len2 )
+							if( len1 && len1 === len2 )
 							{
 								register ? history.pushState( null , window.opera || ( 'userAgent' in window && userAgent.indexOf( 'opera' ) !== -1 ) ? title : document.title , url ) : null ;
 								
@@ -508,7 +508,7 @@
 											
 										fire( settings.callbacks.update.before , context , [ event , settings.parameter , data , dataType ] ) ;
 										
-										if( len1 === len2 )
+										if( len1 && len1 === len2 )
 										{
 											register ? history.pushState( null , window.opera || ( 'userAgent' in window && userAgent.indexOf( 'opera' ) !== -1 ) ? title : document.title , url ) : null ;
 											
