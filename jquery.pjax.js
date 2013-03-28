@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.5.0
+ * @version 1.5.1
  * @updated 2013/03/28
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
@@ -74,11 +74,7 @@
 			callback : function(){} ,
 			callbacks : { ajax : {} , update : { title : {} , content : {} , css : {} , script : {} } } ,
 			parameter : undefined ,
-			load :
-			{
-				css : false ,
-				script : false ,
-			} ,
+			load : { css : false , script : false } ,
 			wait : 0 ,
 			fallback : true
 		} ,
@@ -127,10 +123,7 @@
 			.undelegate( settings.form , settings.nss.submit )
 			.delegate( settings.form , settings.nss.submit , settings , function( event )
 			{
-				var
-				path = jQuery( event.target ).prop( 'action' ).replace( /^.+\/\/[^\/]+/ , '' ) ;
-				
-				ajax.apply( this , [ event , path ,  location.pathname === path ? false : true , event.data ] ) ;
+				ajax.apply( this , [ event , jQuery( event.target ).prop( 'action' ) , true , event.data ] ) ;
 				
 				event.preventDefault() ;
 			} ) ;
@@ -168,7 +161,7 @@
 			title ,
 			context = this ,
 			query = [] ,
-			request = {} ,
+			request = [] ,
 			callbacks =
 			{
 				beforeSend : function( arg1 )
@@ -199,9 +192,43 @@
 				delete callbacks[ i ] ;
 			}
 			
-			if( event.type.toLowerCase() === 'submit' )
+			POPSTATE :
 			{
-				jQuery( event.target ).find( 'input[name] , textarea[name]' ).each( function( index , element ){ request[ element.name ] = element.value ; } ) ;
+				if( event.type.toLowerCase() !== 'popstate' ){ break POPSTATE ;}
+				
+				GET :
+				{
+					query = url.match( /\?[\S]*/ ) ;
+					if( query === null ){ break GET ; }
+					query = query[ 0 ].slice( 1 ).split( '&' ) ;
+					request = [] ;
+					for( var i = 0 ; i < query.length ; i++ )
+					{
+						request[ i ] = 0 ; // cannot null, undefined, {}
+						request[ i ][ query[ i ].split( '=' )[ 0 ] ] = query[ i ].split( '=' )[ 1 ] ;
+					}
+					
+					jQuery.extend
+					(
+						true ,
+						settings ,
+						{
+							ajax :
+							{
+								type : 'GET' ,
+								data : request
+							}
+						}
+					) ;
+				}
+			}
+			
+			SUBMIT :
+			{
+				if( event.type.toLowerCase() !== 'submit' ){ break SUBMIT ;}
+				
+				url = url.replace( /\?[\S]*/ , '' )
+				request = jQuery( event.target ).serializeArray() ;
 				
 				jQuery.extend
 				(
@@ -216,9 +243,13 @@
 					}
 				) ;
 				
-				url = url.replace( /\?[\S]*/ , '' )
-				for( var i in request ){ query.push( encodeURI( i + '=' + request[ i ] ) ) ; }
-				if( settings.ajax.type === 'GET' ){ url += '?' + query.join( '&' ) ; }
+				GET :
+				{
+					if( settings.ajax.type !== 'GET' ){ break GET ;}
+					
+					for( var i = 0 ; i < request.length ; i++ ){ query.push( encodeURIComponent( request[ i ].name ) + '=' + encodeURIComponent( request[ i ].value ) ) ; }
+					url += '?' + query.join( '&' ) ;
+				}
 			}
 			
 			fire( settings.callbacks.before , context , [ event , settings.parameter ] ) ;
@@ -311,7 +342,6 @@
 						{
 							if( XMLHttpRequest.getResponseHeader( 'Content-Type' ).indexOf( 'text/html' ) === -1 ){ throw null ; }
 							
-							//console.log( jQuery( data ))
 							var
 							title = jQuery( data ).filter( 'title' ).text() ,
 							css = jQuery( data ).filter( 'link[rel="stylesheet"], style' ) ,
@@ -365,7 +395,7 @@
 										(
 											jQuery( 'style' ).filter( function()
 											{
-												if( this.innerHTML === css[ i ].innerHTML )
+												if( this.innerHTML.replace(/^\s+|\s+$|\n/gm,'') === css[ i ].innerHTML.replace(/^\s+|\s+$|\n/gm,'') )
 												{
 													jQuery.data( this , settings.nss.data ) ? jQuery.data( this , settings.nss.data , false ) : null ;
 													return true ;
@@ -375,7 +405,6 @@
 										){ continue ; }
 										jQuery.data( jQuery( 'head' ).append( jQuery( css[ i ].outerHTML ) ).children( ':last-child' ).get( 0 ) , settings.nss.data , false ) ;
 									}
-									
 									jQuery( 'link[rel="stylesheet"], style' ).filter( function(){ return jQuery.data( this , settings.nss.data ) ; } ).remove() ;
 									
 									fire( settings.callbacks.update.css.after , context , [ event , settings.parameter , data , dataType ] ) ;
@@ -467,7 +496,6 @@
 									{
 										if( XMLHttpRequest.getResponseHeader( 'Content-Type' ).indexOf( 'text/html' ) === -1 ){ throw null ; }
 										
-										//console.log( jQuery( data ))
 										var
 										title = jQuery( data ).filter( 'title' ).text() ,
 										css = jQuery( data ).filter( 'link[rel="stylesheet"], style' ) ,
@@ -521,7 +549,7 @@
 													(
 														jQuery( 'style' ).filter( function()
 														{
-															if( this.innerHTML === css[ i ].innerHTML )
+															if( this.innerHTML.replace(/^\s+|\s+$|\n/gm,'') === css[ i ].innerHTML.replace(/^\s+|\s+$|\n/gm,'') )
 															{
 																jQuery.data( this , settings.nss.data ) ? jQuery.data( this , settings.nss.data , false ) : null ;
 																return true ;
@@ -531,7 +559,6 @@
 													){ continue ; }
 													jQuery.data( jQuery( 'head' ).append( jQuery( css[ i ].outerHTML ) ).children( ':last-child' ).get( 0 ) , settings.nss.data , false ) ;
 												}
-												
 												jQuery( 'link[rel="stylesheet"], style' ).filter( function(){ return jQuery.data( this , settings.nss.data ) ; } ).remove() ;
 												
 												fire( settings.callbacks.update.css.after , context , [ event , settings.parameter , data , dataType ] ) ;
