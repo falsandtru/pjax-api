@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.4.5
+ * @version 1.5.0
  * @updated 2013/03/28
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
@@ -72,12 +72,13 @@
 			scrollLeft : 0 ,
 			ajax : {} ,
 			callback : function(){} ,
-			callbacks :
-			{
-				ajax : {} ,
-				update : {}
-			} ,
+			callbacks : { ajax : {} , update : { title : {} , content : {} , css : {} , script : {} } } ,
 			parameter : undefined ,
+			load :
+			{
+				css : false ,
+				script : false ,
+			} ,
 			wait : 0 ,
 			fallback : true
 		} ,
@@ -92,60 +93,69 @@
 				{
 					click : [ 'click' , settings.gns + ( settings.ns === undefined ? '' : ':' + settings.ns ) ].join( '.' ) ,
 					submit : [ 'submit' , settings.gns + ( settings.ns === undefined ? '' : ':' + settings.ns ) ].join( '.' ) ,
-					popstate : [ 'popstate' , settings.gns + ( settings.ns === undefined ? '' : ':' + settings.ns ) ].join( '.' )
+					popstate : [ 'popstate' , settings.gns + ( settings.ns === undefined ? '' : ':' + settings.ns ) ].join( '.' ) ,
+					data : settings.gns + ( settings.ns === undefined ? '' : '.' + settings.ns )
 				}
 			}
 		) ;
 		
-		switch( true )
+		delegate_click :
 		{
-			case settings.form !== undefined :
-				jQuery( this )
-				.undelegate( settings.form , settings.nss.submit )
-				.delegate( settings.form , settings.nss.submit , settings , function( event )
-				{
-					var
-					path = jQuery( event.target ).prop( 'action' ).replace( /^.+\/\/[^\/]+/ , '' ) ;
-					
-					ajax.apply( this , [ event , path ,  location.pathname === path ? false : true , event.data ] ) ;
-					
-					event.preventDefault() ;
-				} ) ;
-				break ;
-				
-			case settings.link !== undefined :
-				jQuery( this )
-				.undelegate( settings.link , settings.nss.click )
-				.delegate( settings.link , settings.nss.click , settings , function( event )
-				{
-					if( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ){ return this ; }
-					if( location.protocol !== this.protocol || location.host !== this.host ){ return this ; }
-					if( location.pathname === this.pathname && location.search === this.search && location.hash !== this.hash ){ return this ; }
-					if( location.pathname + location.search + location.hash === this.pathname + this.search + this.hash ){ event.preventDefault() ; return this ; }
-					
-					ajax.apply( this , [ event , this.href , true , event.data ] ) ;
-					
-					event.preventDefault() ;
-				} ) ;
-				break ;
-		}
-		
-		setTimeout( function()
-		{
-			jQuery( window )
-			.unbind( settings.nss.popstate )
-			.bind( settings.nss.popstate , settings , function( event )
+			if( settings.link === undefined ){ break delegate_click ;}
+			if( settings.form !== undefined ){ break delegate_click ;}
+			
+			jQuery( this )
+			.undelegate( settings.link , settings.nss.click )
+			.delegate( settings.link , settings.nss.click , settings , function( event )
 			{
-				ajax.apply( this , [ event , location.href , false , event.data ] ) ;
+				if( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ){ return this ; }
+				if( location.protocol !== this.protocol || location.host !== this.host ){ return this ; }
+				if( location.pathname === this.pathname && location.search === this.search && location.hash !== this.hash ){ return this ; }
+				if( location.pathname + location.search + location.hash === this.pathname + this.search + this.hash ){ event.preventDefault() ; return this ; }
+				
+				ajax.apply( this , [ event , this.href , true , event.data ] ) ;
+				
+				event.preventDefault() ;
 			} ) ;
-		} , 100 ) ;
+		} // label: delegate_click
+		
+		delegate_submit :
+		{
+			if( settings.form === undefined ){ break delegate_submit ;}
+			
+			jQuery( this )
+			.undelegate( settings.form , settings.nss.submit )
+			.delegate( settings.form , settings.nss.submit , settings , function( event )
+			{
+				var
+				path = jQuery( event.target ).prop( 'action' ).replace( /^.+\/\/[^\/]+/ , '' ) ;
+				
+				ajax.apply( this , [ event , path ,  location.pathname === path ? false : true , event.data ] ) ;
+				
+				event.preventDefault() ;
+			} ) ;
+		} // label: delegate_submit
+		
+		bind_popstate :
+		{
+			setTimeout( function()
+			{
+				jQuery( window )
+				.unbind( settings.nss.popstate )
+				.bind( settings.nss.popstate , settings , function( event )
+				{
+					ajax.apply( this , [ event , location.href , false , event.data ] ) ;
+				} ) ;
+			} , 100 ) ;
+		} // label: bind_popstate
+		
 		
 		/* function */
 		
 		function supportPushState()
 		{
 			return ( 'pushState' in window.history ) && ( window.history[ 'pushState' ] !== null ) ;
-		}
+		} // function: supportPushState
 		
 		function ajax( event , url , register , settings )
 		{
@@ -213,7 +223,7 @@
 			
 			fire( settings.callbacks.before , context , [ event , settings.parameter ] ) ;
 			
-			switch(jQuery().jquery)
+			switch( jQuery().jquery )
 			{
 				case '1.0':
 				case '1.0.4':
@@ -230,88 +240,208 @@
 				case '1.4.2':
 				case '1.4.3':
 				case '1.4.4':
+					ajax_legacy() ;
+					break ;
 				case '1.5':
-				jQuery.ajax
-				(
-					jQuery.extend
-					(
-						true ,
-						{} ,
-						settings.ajax ,
-						callbacks ,
-						{
-							url : url ,
-							success : function( arg1 , arg2 , arg3 )
-							{
-								data = arg1 ;
-								dataType = arg2 ;
-								XMLHttpRequest = arg3 ;
-								
-								fire( settings.callbacks.ajax.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) ;
-								
-				if(XMLHttpRequest.status===200)
-				{
-					try
-					{
-						if( XMLHttpRequest.getResponseHeader( 'Content-Type' ).indexOf( 'text/html' ) === -1 ){ throw null ; }
-						
-						var
-						title = jQuery( data ).filter( 'title' ).text() ,
-						areas = settings.area.split( ',' ) ,
-						scrollX = settings.scrollLeft === null ? jQuery( window ).scrollLeft() : parseInt( settings.scrollLeft ) ,
-						scrollY = settings.scrollTop === null ? jQuery( window ).scrollTop() : parseInt( settings.scrollTop ) ,
-						len1 = jQuery( settings.area ).length ,
-						len2 = jQuery( settings.area , data ).length ;
-						
-						if( len1 === len2 )
-						{
-							register ? history.pushState( null , window.opera || ( 'userAgent' in window && userAgent.indexOf( 'opera' ) !== -1 ) ? title : document.title , url ) : null ;
-							
-							document.title = title ;
-							for( var i = 0 ; i < areas.length ; i++ ){ jQuery( areas[ i ] ).html( jQuery( areas[ i ] , data ).html() ) ; }
-							
-							register && event.type === 'click' ? window.scrollTo( scrollX , scrollY ) : null ;
-							
-							fire( settings.callbacks.update.success , context , [ event , settings.parameter , data , dataType ] ) ;
-							fire( settings.callback , context , [ event , settings.parameter , data , dataType ] ) ;
-						}
-						else
-						{
-							fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType ] ) ;
-							settings.fallback ? fallback( context , false ) : null ;
-						}
-					}
-					catch( err )
-					{
-						fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType ] ) ;
-						settings.fallback ? fallback( context , false ) : null ;
-					}
-					
-					fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType ] ) ;
-				}
-							} ,
-							error : function( arg1 , arg2 , arg3 )
-							{
-								XMLHttpRequest = arg1 ;
-								textStatus = arg2 ;
-								errorThrown = arg3 ;
-								
-								fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
-								settings.fallback ? fallback( context , true ) : null ;
-							}
-						}
-					)
-				)
-				
-					fire( settings.callbacks.after , context, [ event , settings.parameter ] ) ;
-				
-				return ;
+				case '1.5.1':
+				case '1.5.2':
+				case '1.6':
+				case '1.6.1':
+				case '1.6.2':
+				case '1.6.3':
+				case '1.6.4':
+				case '1.7':
+				case '1.7.1':
+				case '1.7.2':
+				case '1.8':
+				case '1.8.1':
+				case '1.8.2':
+				case '1.8.3':
+				case '1.9':
+				case '1.9.1':
+				default :
+					ajax_regular() ;
+					break ;
 			}
 			
-			jQuery
-			.when
-			(
-				wait( settings.wait ) ,
+			
+			/* ajax function */
+			
+			function ajax_regular(){
+				jQuery
+				.when
+				(
+					wait( settings.wait ) ,
+					jQuery.ajax
+					(
+						jQuery.extend
+						(
+							true ,
+							{} ,
+							settings.ajax ,
+							callbacks ,
+							{
+								url : url ,
+								success : function( arg1 , arg2 , arg3 )
+								{
+									data = arg1 ;
+									dataType = arg2 ;
+									XMLHttpRequest = arg3 ;
+									
+									fire( settings.callbacks.ajax.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) ;
+								} ,
+								error : function( arg1 , arg2 , arg3 )
+								{
+									XMLHttpRequest = arg1 ;
+									textStatus = arg2 ;
+									errorThrown = arg3 ;
+									
+									fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
+									settings.fallback ? fallback( context , true ) : null ;
+								}
+							}
+						)
+					)
+				)
+				.done
+				(
+					function()
+					{
+						try
+						{
+							if( XMLHttpRequest.getResponseHeader( 'Content-Type' ).indexOf( 'text/html' ) === -1 ){ throw null ; }
+							
+							//console.log( jQuery( data ))
+							var
+							title = jQuery( data ).filter( 'title' ).text() ,
+							css = jQuery( data ).filter( 'link[rel="stylesheet"], style' ) ,
+							script = jQuery( data ).filter( 'script' ) ,
+							areas = settings.area.split( ',' ) ,
+							scrollX = settings.scrollLeft === null ? jQuery( window ).scrollLeft() : parseInt( settings.scrollLeft ) ,
+							scrollY = settings.scrollTop === null ? jQuery( window ).scrollTop() : parseInt( settings.scrollTop ) ,
+							len1 = jQuery( settings.area ).length ,
+							len2 = jQuery( settings.area , data ).length ;
+								
+							fire( settings.callbacks.update.before , context , [ event , settings.parameter , data , dataType ] ) ;
+							
+							if( len1 === len2 )
+							{
+								register ? history.pushState( null , window.opera || ( 'userAgent' in window && userAgent.indexOf( 'opera' ) !== -1 ) ? title : document.title , url ) : null ;
+								
+								/* title */
+								fire( settings.callbacks.update.title.before , context , [ event , settings.parameter , data , dataType ] ) ;
+								document.title = title ;
+								fire( settings.callbacks.update.title.after , context , [ event , settings.parameter , data , dataType ] ) ;
+								
+								/* content */
+								fire( settings.callbacks.update.content.before , context , [ event , settings.parameter , data , dataType ] ) ;
+								for( var i = 0 ; i < areas.length ; i++ ){ jQuery( areas[ i ] ).html( jQuery( areas[ i ] , data ).html() ) ; }
+								fire( settings.callbacks.update.content.after , context , [ event , settings.parameter , data , dataType ] ) ;
+								
+								/* css */
+								css :
+								{
+									if( !settings.load.css ){ break css ; }
+									
+									fire( settings.callbacks.update.css.before , context , [ event , settings.parameter , data , dataType ] ) ;
+									
+									jQuery( 'link[rel="stylesheet"], style' ).filter( function(){ return !jQuery.data( this , settings.nss.data , true ) ; } ) ;
+									for( var i = 0 ; i < css.length ; i++ )
+									{
+										if
+										(
+											jQuery( 'link[rel="stylesheet"]' ).filter( function()
+											{
+												if( this.href === css[ i ].href )
+												{
+													jQuery.data( this , settings.nss.data ) ? jQuery.data( this , settings.nss.data , false ) : null ;
+													return true ;
+												}
+												return false ;
+											} ).length
+										){ continue ; }
+										
+										if
+										(
+											jQuery( 'style' ).filter( function()
+											{
+												if( this.innerHTML === css[ i ].innerHTML )
+												{
+													jQuery.data( this , settings.nss.data ) ? jQuery.data( this , settings.nss.data , false ) : null ;
+													return true ;
+												}
+												return false ;
+											} ).length
+										){ continue ; }
+										jQuery.data( jQuery( 'head' ).append( jQuery( css[ i ].outerHTML ) ).children( ':last-child' ).get( 0 ) , settings.nss.data , false ) ;
+									}
+									
+									jQuery( 'link[rel="stylesheet"], style' ).filter( function(){ return jQuery.data( this , settings.nss.data ) ; } ).remove() ;
+									
+									fire( settings.callbacks.update.css.after , context , [ event , settings.parameter , data , dataType ] ) ;
+								} // label: css
+								
+								/* script */
+								script :
+								{
+									if( !settings.load.script ){ break script ; }
+									
+									fire( settings.callbacks.update.script.before , context , [ event , settings.parameter , data , dataType ] ) ;
+									
+									for( var i = 0 ; i < script.length ; i++ )
+									{
+										if
+										(
+											jQuery( 'script[src]' ).filter( function()
+											{
+												if( this.src === script[ i ].src )
+												{
+													return true ;
+												}
+												return false ;
+											} ).length
+										){ continue ; }
+										jQuery.data( jQuery( 'head' ).append( jQuery( script[ i ].outerHTML ) ).children( ':last-child' ).get( 0 ) , settings.nss.data , false ) ;
+									}
+									
+									fire( settings.callbacks.update.script.after , context , [ event , settings.parameter , data , dataType ] ) ;
+								} // label: script
+								
+								register && event.type === 'click' ? window.scrollTo( scrollX , scrollY ) : null ;
+								
+								fire( settings.callbacks.update.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) ;
+								fire( settings.callback , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) ;
+							}
+							else
+							{
+								fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType ] ) ;
+								settings.fallback ? fallback( context , false ) : null ;
+							}
+						
+							fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType ] ) ;
+							fire( settings.callbacks.update.after , context , [ event , settings.parameter , data , dataType ] ) ;
+						}
+						catch( err )
+						{
+							fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType ] ) ;
+							settings.fallback ? fallback( context , false ) : null ;
+						}
+					}
+				)
+				.fail()
+				.always
+				(
+					function()
+					{
+						fire( settings.callbacks.after , context, [ event , settings.parameter ] ) ;
+					}
+				) ;
+			} // function: ajax_regular
+			
+			/* + legacy support */
+			function ajax_legacy()
+			{
+				/* + when */
 				jQuery.ajax
 				(
 					jQuery.extend
@@ -329,6 +459,131 @@
 								XMLHttpRequest = arg3 ;
 								
 								fire( settings.callbacks.ajax.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) ;
+								
+								if( XMLHttpRequest.status === 200 )
+								{
+									/* + done */
+									try
+									{
+										if( XMLHttpRequest.getResponseHeader( 'Content-Type' ).indexOf( 'text/html' ) === -1 ){ throw null ; }
+										
+										//console.log( jQuery( data ))
+										var
+										title = jQuery( data ).filter( 'title' ).text() ,
+										css = jQuery( data ).filter( 'link[rel="stylesheet"], style' ) ,
+										script = jQuery( data ).filter( 'script' ) ,
+										areas = settings.area.split( ',' ) ,
+										scrollX = settings.scrollLeft === null ? jQuery( window ).scrollLeft() : parseInt( settings.scrollLeft ) ,
+										scrollY = settings.scrollTop === null ? jQuery( window ).scrollTop() : parseInt( settings.scrollTop ) ,
+										len1 = jQuery( settings.area ).length ,
+										len2 = jQuery( settings.area , data ).length ;
+											
+										fire( settings.callbacks.update.before , context , [ event , settings.parameter , data , dataType ] ) ;
+										
+										if( len1 === len2 )
+										{
+											register ? history.pushState( null , window.opera || ( 'userAgent' in window && userAgent.indexOf( 'opera' ) !== -1 ) ? title : document.title , url ) : null ;
+											
+											/* title */
+											fire( settings.callbacks.update.title.before , context , [ event , settings.parameter , data , dataType ] ) ;
+											document.title = title ;
+											fire( settings.callbacks.update.title.after , context , [ event , settings.parameter , data , dataType ] ) ;
+											
+											/* content */
+											fire( settings.callbacks.update.content.before , context , [ event , settings.parameter , data , dataType ] ) ;
+											for( var i = 0 ; i < areas.length ; i++ ){ jQuery( areas[ i ] ).html( jQuery( areas[ i ] , data ).html() ) ; }
+											fire( settings.callbacks.update.content.after , context , [ event , settings.parameter , data , dataType ] ) ;
+											
+											/* css */
+											css :
+											{
+												if( !settings.load.css ){ break css ; }
+												
+												fire( settings.callbacks.update.css.before , context , [ event , settings.parameter , data , dataType ] ) ;
+												
+												jQuery( 'link[rel="stylesheet"], style' ).filter( function(){ return !jQuery.data( this , settings.nss.data , true ) ; } ) ;
+												for( var i = 0 ; i < css.length ; i++ )
+												{
+													if
+													(
+														jQuery( 'link[rel="stylesheet"]' ).filter( function()
+														{
+															if( this.href === css[ i ].href )
+															{
+																jQuery.data( this , settings.nss.data ) ? jQuery.data( this , settings.nss.data , false ) : null ;
+																return true ;
+															}
+															return false ;
+														} ).length
+													){ continue ; }
+													
+													if
+													(
+														jQuery( 'style' ).filter( function()
+														{
+															if( this.innerHTML === css[ i ].innerHTML )
+															{
+																jQuery.data( this , settings.nss.data ) ? jQuery.data( this , settings.nss.data , false ) : null ;
+																return true ;
+															}
+															return false ;
+														} ).length
+													){ continue ; }
+													jQuery.data( jQuery( 'head' ).append( jQuery( css[ i ].outerHTML ) ).children( ':last-child' ).get( 0 ) , settings.nss.data , false ) ;
+												}
+												
+												jQuery( 'link[rel="stylesheet"], style' ).filter( function(){ return jQuery.data( this , settings.nss.data ) ; } ).remove() ;
+												
+												fire( settings.callbacks.update.css.after , context , [ event , settings.parameter , data , dataType ] ) ;
+											} // label: css
+											
+											/* script */
+											script :
+											{
+												if( !settings.load.script ){ break script ; }
+												
+												fire( settings.callbacks.update.script.before , context , [ event , settings.parameter , data , dataType ] ) ;
+												
+												for( var i = 0 ; i < script.length ; i++ )
+												{
+													if
+													(
+														jQuery( 'script[src]' ).filter( function()
+														{
+															if( this.src === script[ i ].src )
+															{
+																return true ;
+															}
+															return false ;
+														} ).length
+													){ continue ; }
+													jQuery.data( jQuery( 'head' ).append( jQuery( script[ i ].outerHTML ) ).children( ':last-child' ).get( 0 ) , settings.nss.data , false ) ;
+												}
+												
+												fire( settings.callbacks.update.script.after , context , [ event , settings.parameter , data , dataType ] ) ;
+											} // label: script
+											
+											register && event.type === 'click' ? window.scrollTo( scrollX , scrollY ) : null ;
+											
+											fire( settings.callbacks.update.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) ;
+											fire( settings.callback , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) ;
+										}
+										else
+										{
+											fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType ] ) ;
+											settings.fallback ? fallback( context , false ) : null ;
+										}
+									
+										fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType ] ) ;
+										fire( settings.callbacks.update.after , context , [ event , settings.parameter , data , dataType ] ) ;
+									}
+									catch( err )
+									{
+										fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType ] ) ;
+										settings.fallback ? fallback( context , false ) : null ;
+									}
+									/* - done */
+								}
 							} ,
 							error : function( arg1 , arg2 , arg3 )
 							{
@@ -342,59 +597,12 @@
 						}
 					)
 				)
-			)
-			.done
-			(
-				function()
-				{
-					try
-					{
-						if( XMLHttpRequest.getResponseHeader( 'Content-Type' ).indexOf( 'text/html' ) === -1 ){ throw null ; }
-						
-						var
-						title = jQuery( data ).filter( 'title' ).text() ,
-						areas = settings.area.split( ',' ) ,
-						scrollX = settings.scrollLeft === null ? jQuery( window ).scrollLeft() : parseInt( settings.scrollLeft ) ,
-						scrollY = settings.scrollTop === null ? jQuery( window ).scrollTop() : parseInt( settings.scrollTop ) ,
-						len1 = jQuery( settings.area ).length ,
-						len2 = jQuery( settings.area , data ).length ;
-						
-						if( len1 === len2 )
-						{
-							register ? history.pushState( null , window.opera || ( 'userAgent' in window && userAgent.indexOf( 'opera' ) !== -1 ) ? title : document.title , url ) : null ;
-							
-							document.title = title ;
-							for( var i = 0 ; i < areas.length ; i++ ){ jQuery( areas[ i ] ).html( jQuery( areas[ i ] , data ).html() ) ; }
-							
-							register && event.type === 'click' ? window.scrollTo( scrollX , scrollY ) : null ;
-							
-							fire( settings.callbacks.update.success , context , [ event , settings.parameter , data , dataType ] ) ;
-							fire( settings.callback , context , [ event , settings.parameter , data , dataType ] ) ;
-						}
-						else
-						{
-							fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType ] ) ;
-							settings.fallback ? fallback( context , false ) : null ;
-						}
-					}
-					catch( err )
-					{
-						fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType ] ) ;
-						settings.fallback ? fallback( context , false ) : null ;
-					}
-					
-					fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType ] ) ;
-				}
-			)
-			.fail()
-			.always
-			(
-				function()
-				{
-					fire( settings.callbacks.after , context, [ event , settings.parameter ] ) ;
-				}
-			)
-		}
+				/* - when */
+				
+				fire( settings.callbacks.after , context, [ event , settings.parameter ] ) ;
+			} // function: ajax_legacy
+			/* - legacy support */
+		} // function: ajax
 		
 		function wait( ms )
 		{
@@ -405,13 +613,13 @@
 			{
 				dfd.resolve() ;
 			} , ms ) ;
-			return dfd.promise() ;
-		}
+			return dfd.promise() ; // function: wait
+		} // function: wait
 		
 		function fire( fn , context , args )
 		{
 			if( typeof fn === 'function' ){ return fn.apply( context , args ) ; }
-		}
+		} // function: fire
 		
 		function fallback( context , reload )
 		{
@@ -423,11 +631,8 @@
 			{
 				location.reload() ;
 			}
-		}
+		} // function: fallback
 		
-		
-		/* return */
-		
-		return this ;
-	}
+		return this ; // function: pjax
+	} // function: pjax
 } )( jQuery )
