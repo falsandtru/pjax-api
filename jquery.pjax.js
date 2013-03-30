@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.5.3
- * @updated 2013/03/28
+ * @version 1.5.4
+ * @updated 2013/03/31
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
  * Note: 
@@ -99,8 +99,8 @@
 		
 		delegate_click :
 		{
-			if( settings.link === undefined ){ break delegate_click ;}
-			if( settings.form !== undefined ){ break delegate_click ;}
+			if( settings.link === undefined ){ break delegate_click ; }
+			if( settings.form !== undefined ){ break delegate_click ; }
 			
 			jQuery( this )
 			.undelegate( settings.link , settings.nss.click )
@@ -119,13 +119,13 @@
 		
 		delegate_submit :
 		{
-			if( settings.form === undefined ){ break delegate_submit ;}
+			if( settings.form === undefined ){ break delegate_submit ; }
 			
 			jQuery( this )
 			.undelegate( settings.form , settings.nss.submit )
 			.delegate( settings.form , settings.nss.submit , settings , function( event )
 			{
-				ajax.apply( this , [ event , jQuery( event.target ).prop( 'action' ) , true , event.data ] ) ;
+				ajax.apply( this , [ event , jQuery( event.target ).attr( 'action' ) , true , event.data ] ) ;
 				
 				event.preventDefault() ;
 			} ) ;
@@ -200,14 +200,14 @@
 				
 				GET :
 				{
-					query = url.match( /\?[\S]*/ ) ;
-					if( query === null ){ break GET ; }
+					query = url.match( /\?[^\s]*/ ) ;
+					if( query === null || query[ 0 ] === '?' ){ break GET ; }
 					query = query[ 0 ].slice( 1 ).split( '&' ) ;
 					request = [] ;
 					for( var i = 0 ; i < query.length ; i++ )
 					{
 						request[ i ] = 0 ; // cannot null, undefined, {}
-						request[ i ][ query[ i ].split( '=' )[ 0 ] ] = query[ i ].split( '=' )[ 1 ] ;
+						request[ i ][ decodeURIComponent( query[ i ].split( '=' )[ 0 ] ) ] = decodeURIComponent( query[ i ].split( '=' )[ 1 ] ) ;
 					}
 					
 					jQuery.extend
@@ -229,8 +229,7 @@
 			{
 				if( event.type.toLowerCase() !== 'submit' ){ break SUBMIT ;}
 				
-				url = url.replace( /\?[\S]*/ , '' )
-				request = jQuery( event.target ).serializeArray() ;
+				url = url.replace( /\?[^\s]*/ , '' ) ;
 				
 				jQuery.extend
 				(
@@ -239,8 +238,8 @@
 					{
 						ajax :
 						{
-							type : jQuery( event.target ).prop( 'method' ).toUpperCase() ,
-							data : request
+							type : jQuery( event.target ).attr( 'method' ).toUpperCase() ,
+							data : jQuery( event.target ).serializeArray()
 						}
 					}
 				) ;
@@ -249,8 +248,7 @@
 				{
 					if( settings.ajax.type !== 'GET' ){ break GET ;}
 					
-					for( var i = 0 ; i < request.length ; i++ ){ query.push( encodeURIComponent( request[ i ].name ) + '=' + encodeURIComponent( request[ i ].value ) ) ; }
-					url += '?' + query.join( '&' ) ;
+					url += '?' + jQuery( event.target ).serialize() ;
 				}
 			}
 			
@@ -356,7 +354,7 @@
 								
 							fire( settings.callbacks.update.before , context , [ event , settings.parameter , data , dataType ] ) ;
 							
-							if( len1 === len2 )
+							if( len1 && len1 === len2 )
 							{
 								register ? history.pushState( null , window.opera || ( 'userAgent' in window && userAgent.indexOf( 'opera' ) !== -1 ) ? title : document.title , url ) : null ;
 								
@@ -510,7 +508,7 @@
 											
 										fire( settings.callbacks.update.before , context , [ event , settings.parameter , data , dataType ] ) ;
 										
-										if( len1 === len2 )
+										if( len1 && len1 === len2 )
 										{
 											register ? history.pushState( null , window.opera || ( 'userAgent' in window && userAgent.indexOf( 'opera' ) !== -1 ) ? title : document.title , url ) : null ;
 											
@@ -531,7 +529,7 @@
 												
 												fire( settings.callbacks.update.css.before , context , [ event , settings.parameter , data , dataType ] ) ;
 												
-												jQuery( 'link[rel="stylesheet"], style' ).filter( function(){ return !jQuery.data( this , settings.nss.data , true ) ; } ) ;
+												jQuery( 'link[rel="stylesheet"], style' ).filter( function(){ return jQuery.data( this , settings.nss.data , true ) ; } ) ;
 												for( var i = 0 ; i < css.length ; i++ )
 												{
 													if
