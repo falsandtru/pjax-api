@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.5.4
- * @updated 2013/03/31
+ * @version 1.5.5
+ * @updated 2013/04/01
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
  * Note: 
@@ -90,7 +90,8 @@
 					click : [ 'click' , settings.gns + ( settings.ns === undefined ? '' : ':' + settings.ns ) ].join( '.' ) ,
 					submit : [ 'submit' , settings.gns + ( settings.ns === undefined ? '' : ':' + settings.ns ) ].join( '.' ) ,
 					popstate : [ 'popstate' , settings.gns + ( settings.ns === undefined ? '' : ':' + settings.ns ) ].join( '.' ) ,
-					data : settings.gns + ( settings.ns === undefined ? '' : '.' + settings.ns )
+					data : settings.gns + ( settings.ns === undefined ? '' : '.' + settings.ns ) ,
+					requestHeader : [ 'X' , settings.gns.replace( /^(\w)/ , function( $1 ){ return $1.toUpperCase() ; } ) ].join( '-' )
 				}
 			}
 		) ;
@@ -166,12 +167,6 @@
 			request = [] ,
 			callbacks =
 			{
-				beforeSend : function( arg1 )
-				{
-					XMLHttpRequest = arg1 ;
-					
-					fire( settings.callbacks.ajax.beforeSend , context , [ event , settings.parameter , XMLHttpRequest ] ) ;
-				} ,
 				dataFilter : function( arg1 , arg2 )
 				{
 					data = arg1 ;
@@ -313,6 +308,17 @@
 							callbacks ,
 							{
 								url : url ,
+								beforeSend : function( arg1 )
+								{
+									XMLHttpRequest = arg1 ;
+									
+									XMLHttpRequest.setRequestHeader( settings.nss.requestHeader , 'true' ) ;
+									XMLHttpRequest.setRequestHeader( settings.nss.requestHeader + '-Area' , settings.area ) ;
+									XMLHttpRequest.setRequestHeader( settings.nss.requestHeader + '-CSS' , settings.load.css ) ;
+									XMLHttpRequest.setRequestHeader( settings.nss.requestHeader + '-Script' , settings.load.script ) ;
+									
+									fire( settings.callbacks.ajax.beforeSend , context , [ event , settings.parameter , XMLHttpRequest ] ) ;
+								} ,
 								success : function( arg1 , arg2 , arg3 )
 								{
 									data = arg1 ;
@@ -350,8 +356,8 @@
 							scrollX = settings.scrollLeft === null ? jQuery( window ).scrollLeft() : parseInt( settings.scrollLeft ) ,
 							scrollY = settings.scrollTop === null ? jQuery( window ).scrollTop() : parseInt( settings.scrollTop ) ,
 							len1 = jQuery( settings.area ).length ,
-							len2 = jQuery( settings.area , data ).length ;
-								
+							len2 = jQuery( settings.area , data ).add( jQuery( data ).filter( settings.area ) ).length ;
+							
 							fire( settings.callbacks.update.before , context , [ event , settings.parameter , data , dataType ] ) ;
 							
 							if( len1 && len1 === len2 )
@@ -365,7 +371,7 @@
 								
 								/* content */
 								fire( settings.callbacks.update.content.before , context , [ event , settings.parameter , data , dataType ] ) ;
-								for( var i = 0 ; i < areas.length ; i++ ){ jQuery( areas[ i ] ).html( jQuery( areas[ i ] , data ).html() ) ; }
+								for( var i = 0 ; i < areas.length ; i++ ){ jQuery( areas[ i ] ).html( jQuery( areas[ i ] , data ).add( jQuery( data ).filter( areas[ i ] ) ).html() ) ; }
 								fire( settings.callbacks.update.content.after , context , [ event , settings.parameter , data , dataType ] ) ;
 								
 								/* css */
@@ -481,6 +487,17 @@
 						callbacks ,
 						{
 							url : url ,
+							beforeSend : function( arg1 )
+							{
+								XMLHttpRequest = arg1 ;
+								
+								XMLHttpRequest.setRequestHeader( settings.nss.requestHeader , 'true' ) ;
+								XMLHttpRequest.setRequestHeader( settings.nss.requestHeader + '-Area' , settings.area ) ;
+								XMLHttpRequest.setRequestHeader( settings.nss.requestHeader + '-CSS' , settings.load.css ) ;
+								XMLHttpRequest.setRequestHeader( settings.nss.requestHeader + '-Script' , settings.load.script ) ;
+								
+								fire( settings.callbacks.ajax.beforeSend , context , [ event , settings.parameter , XMLHttpRequest ] ) ;
+							} ,
 							success : function( arg1 , arg2 , arg3 )
 							{
 								data = arg1 ;
@@ -504,7 +521,7 @@
 										scrollX = settings.scrollLeft === null ? jQuery( window ).scrollLeft() : parseInt( settings.scrollLeft ) ,
 										scrollY = settings.scrollTop === null ? jQuery( window ).scrollTop() : parseInt( settings.scrollTop ) ,
 										len1 = jQuery( settings.area ).length ,
-										len2 = jQuery( settings.area , data ).length ;
+										len2 = jQuery( settings.area , data ).add( jQuery( data ).filter( settings.area ) ).length ;
 											
 										fire( settings.callbacks.update.before , context , [ event , settings.parameter , data , dataType ] ) ;
 										
@@ -519,7 +536,7 @@
 											
 											/* content */
 											fire( settings.callbacks.update.content.before , context , [ event , settings.parameter , data , dataType ] ) ;
-											for( var i = 0 ; i < areas.length ; i++ ){ jQuery( areas[ i ] ).html( jQuery( areas[ i ] , data ).html() ) ; }
+											for( var i = 0 ; i < areas.length ; i++ ){ jQuery( areas[ i ] ).html( jQuery( areas[ i ] , data ).add( jQuery( data ).filter( areas[ i ] ) ).html() ) ; }
 											fire( settings.callbacks.update.content.after , context , [ event , settings.parameter , data , dataType ] ) ;
 											
 											/* css */
