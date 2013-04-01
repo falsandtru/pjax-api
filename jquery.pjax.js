@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.5.5
- * @updated 2013/04/01
+ * @version 1.5.6
+ * @updated 2013/04/02
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
  * Note: 
@@ -195,28 +195,9 @@
 				
 				GET :
 				{
-					query = url.match( /\?[^\s]*/ ) ;
 					if( query === null || query[ 0 ] === '?' ){ break GET ; }
-					query = query[ 0 ].slice( 1 ).split( '&' ) ;
-					request = [] ;
-					for( var i = 0 ; i < query.length ; i++ )
-					{
-						request[ i ] = 0 ; // cannot null, undefined, {}
-						request[ i ][ decodeURIComponent( query[ i ].split( '=' )[ 0 ] ) ] = decodeURIComponent( query[ i ].split( '=' )[ 1 ] ) ;
-					}
 					
-					jQuery.extend
-					(
-						true ,
-						settings ,
-						{
-							ajax :
-							{
-								type : 'GET' ,
-								data : request
-							}
-						}
-					) ;
+					settings.ajax.type = 'GET' ;
 				}
 			}
 			
@@ -225,25 +206,20 @@
 				if( event.type.toLowerCase() !== 'submit' ){ break SUBMIT ;}
 				
 				url = url.replace( /\?[^\s]*/ , '' ) ;
-				
-				jQuery.extend
-				(
-					true ,
-					settings ,
-					{
-						ajax :
-						{
-							type : jQuery( event.target ).attr( 'method' ).toUpperCase() ,
-							data : jQuery( event.target ).serializeArray()
-						}
-					}
-				) ;
+				settings.ajax.type = jQuery( event.target ).attr( 'method' ).toUpperCase() ;
 				
 				GET :
 				{
 					if( settings.ajax.type !== 'GET' ){ break GET ;}
 					
 					url += '?' + jQuery( event.target ).serialize() ;
+				}
+				
+				POST :
+				{
+					if( settings.ajax.type !== 'POST' ){ break POST ;}
+					
+					settings.ajax.data = jQuery( event.target ).serializeArray() ;
 				}
 			}
 			
