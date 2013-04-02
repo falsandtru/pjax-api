@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.5.7
+ * @version 1.5.8
  * @updated 2013/04/02
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * ---
@@ -72,7 +72,7 @@
 			scrollLeft : 0 ,
 			ajax : {} ,
 			callback : function(){} ,
-			callbacks : { ajax : {} , update : { title : {} , content : {} , css : {} , script : {} } } ,
+			callbacks : { ajax : {} , update : { url : {} , title : {} , content : {} , css : {} , script : {} } } ,
 			parameter : undefined ,
 			load : { css : false , script : false } ,
 			wait : 0 ,
@@ -346,24 +346,36 @@
 								
 								if( len1 === 0 || len1 !== len2 ){ throw new Error() ; }
 								
-								register ? history.pushState( null , window.opera || ( 'userAgent' in window && userAgent.indexOf( 'opera' ) !== -1 ) ? title : document.title , url ) : null ;
+								/* url */
+								UPDATE_URL :
+								{
+									if( fire( settings.callbacks.update.url.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){ break UPDATE_URL ; }
+									register ? history.pushState( null , window.opera || ( 'userAgent' in window && userAgent.indexOf( 'opera' ) !== -1 ) ? title : document.title , url ) : null ;
+								}
+								if( fire( settings.callbacks.update.url.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){ break UPDATE ; }
 								
 								/* title */
-								if( fire( settings.callbacks.update.title.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){  ; }
-								document.title = title ;
-								if( fire( settings.callbacks.update.title.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){  ; }
+								UPDATE_TITLE :
+								{
+									if( fire( settings.callbacks.update.title.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){ break UPDATE_TITLE ; }
+									document.title = title ;
+								}
+								if( fire( settings.callbacks.update.title.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){ break UPDATE ; }
 								
 								/* content */
-								if( fire( settings.callbacks.update.content.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){  ; }
-								for( var i = 0 ; i < areas.length ; i++ ){ jQuery( areas[ i ] ).html( jQuery( areas[ i ] , data ).add( jQuery( data ).filter( areas[ i ] ) ).html() ) ; }
-								if( fire( settings.callbacks.update.content.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){  ; }
+								UPDATE_CONTENT :
+								{
+									if( fire( settings.callbacks.update.content.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){ break UPDATE_CONTENT ; }
+									for( var i = 0 ; i < areas.length ; i++ ){ jQuery( areas[ i ] ).html( jQuery( areas[ i ] , data ).add( jQuery( data ).filter( areas[ i ] ) ).html() ) ; }
+								}
+								if( fire( settings.callbacks.update.content.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){ break UPDATE ; }
 								
 								/* css */
-								css :
+								UPDATE_CSS :
 								{
-									if( !settings.load.css ){ break css ; }
+									if( !settings.load.css ){ break UPDATE_CSS ; }
 									
-									if( fire( settings.callbacks.update.css.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){  ; }
+									if( fire( settings.callbacks.update.css.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){ break UPDATE_CSS ; }
 									
 									jQuery( 'link[rel="stylesheet"], style' ).filter( function(){ return !jQuery.data( this , settings.nss.data , true ) ; } ) ;
 									for( var i = 0 ; i < css.length ; i++ )
@@ -397,15 +409,15 @@
 									}
 									jQuery( 'link[rel="stylesheet"], style' ).filter( function(){ return jQuery.data( this , settings.nss.data ) ; } ).remove() ;
 									
-									if( fire( settings.callbacks.update.css.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){  ; }
+									if( fire( settings.callbacks.update.css.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){ break UPDATE ; }
 								} // label: css
 								
 								/* script */
-								script :
+								UPDATE_SCRIPT :
 								{
-									if( !settings.load.script ){ break script ; }
+									if( !settings.load.script ){ break UPDATE_SCRIPT ; }
 									
-									if( fire( settings.callbacks.update.script.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){  ; }
+									if( fire( settings.callbacks.update.script.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){ break UPDATE_SCRIPT ; }
 									
 									for( var i = 0 ; i < script.length ; i++ )
 									{
@@ -423,14 +435,14 @@
 										jQuery.data( jQuery( 'head' ).append( jQuery( script[ i ].outerHTML ) ).children( ':last-child' ).get( 0 ) , settings.nss.data , false ) ;
 									}
 									
-									if( fire( settings.callbacks.update.script.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){  ; }
+									if( fire( settings.callbacks.update.script.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){ break UPDATE ; }
 								} // label: script
 								
 								register && event.type === 'click' ? window.scrollTo( scrollX , scrollY ) : null ;
 								
-								if( fire( settings.callbacks.update.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){  ; }
-								if( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){  ; }
-								if( fire( settings.callback , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){  ; }
+								if( fire( settings.callbacks.update.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){ break UPDATE ; }
+								if( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){ break UPDATE ; }
+								if( fire( settings.callback , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){ break UPDATE ; }
 							}
 							catch( err )
 							{
@@ -502,24 +514,36 @@
 										
 										if( len1 === 0 || len1 !== len2 ){ throw new Error() ; }
 										
-										register ? history.pushState( null , window.opera || ( 'userAgent' in window && userAgent.indexOf( 'opera' ) !== -1 ) ? title : document.title , url ) : null ;
+										/* url */
+										UPDATE_URL :
+										{
+											if( fire( settings.callbacks.update.url.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){ break UPDATE_URL ; }
+											register ? history.pushState( null , window.opera || ( 'userAgent' in window && userAgent.indexOf( 'opera' ) !== -1 ) ? title : document.title , url ) : null ;
+										}
+										if( fire( settings.callbacks.update.url.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){ break UPDATE ; }
 										
 										/* title */
-										if( fire( settings.callbacks.update.title.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){  ; }
-										document.title = title ;
-										if( fire( settings.callbacks.update.title.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){  ; }
+										UPDATE_TITLE :
+										{
+											if( fire( settings.callbacks.update.title.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){ break UPDATE_TITLE ; }
+											document.title = title ;
+										}
+										if( fire( settings.callbacks.update.title.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){ break UPDATE ; }
 										
 										/* content */
-										if( fire( settings.callbacks.update.content.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){  ; }
-										for( var i = 0 ; i < areas.length ; i++ ){ jQuery( areas[ i ] ).html( jQuery( areas[ i ] , data ).add( jQuery( data ).filter( areas[ i ] ) ).html() ) ; }
-										if( fire( settings.callbacks.update.content.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){  ; }
+										UPDATE_CONTENT :
+										{
+											if( fire( settings.callbacks.update.content.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){ break UPDATE_CONTENT ; }
+											for( var i = 0 ; i < areas.length ; i++ ){ jQuery( areas[ i ] ).html( jQuery( areas[ i ] , data ).add( jQuery( data ).filter( areas[ i ] ) ).html() ) ; }
+										}
+										if( fire( settings.callbacks.update.content.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){ break UPDATE ; }
 										
 										/* css */
-										css :
+										UPDATE_CSS :
 										{
-											if( !settings.load.css ){ break css ; }
+											if( !settings.load.css ){ break UPDATE_CSS ; }
 											
-											if( fire( settings.callbacks.update.css.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){  ; }
+											if( fire( settings.callbacks.update.css.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){ break UPDATE_CSS ; }
 											
 											jQuery( 'link[rel="stylesheet"], style' ).filter( function(){ return !jQuery.data( this , settings.nss.data , true ) ; } ) ;
 											for( var i = 0 ; i < css.length ; i++ )
@@ -553,15 +577,15 @@
 											}
 											jQuery( 'link[rel="stylesheet"], style' ).filter( function(){ return jQuery.data( this , settings.nss.data ) ; } ).remove() ;
 											
-											if( fire( settings.callbacks.update.css.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){  ; }
+											if( fire( settings.callbacks.update.css.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){ break UPDATE ; }
 										} // label: css
 										
 										/* script */
-										script :
+										UPDATE_SCRIPT :
 										{
-											if( !settings.load.script ){ break script ; }
+											if( !settings.load.script ){ break UPDATE_SCRIPT ; }
 											
-											if( fire( settings.callbacks.update.script.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){  ; }
+											if( fire( settings.callbacks.update.script.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){ break UPDATE_SCRIPT ; }
 											
 											for( var i = 0 ; i < script.length ; i++ )
 											{
@@ -579,14 +603,14 @@
 												jQuery.data( jQuery( 'head' ).append( jQuery( script[ i ].outerHTML ) ).children( ':last-child' ).get( 0 ) , settings.nss.data , false ) ;
 											}
 											
-											if( fire( settings.callbacks.update.script.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){  ; }
+											if( fire( settings.callbacks.update.script.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){ break UPDATE ; }
 										} // label: script
 										
 										register && event.type === 'click' ? window.scrollTo( scrollX , scrollY ) : null ;
 										
-										if( fire( settings.callbacks.update.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){  ; }
-										if( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){  ; }
-										if( fire( settings.callback , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){  ; }
+										if( fire( settings.callbacks.update.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){ break UPDATE ; }
+										if( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){ break UPDATE ; }
+										if( fire( settings.callback , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ){ break UPDATE ; }
 									}
 									catch( err )
 									{
