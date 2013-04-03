@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.6.0
+ * @version 1.6.1
  * @updated 2013/04/03
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
@@ -54,8 +54,8 @@
   
   jQuery.fn.pjax = pjax ;
   jQuery.pjax    = pjax ;
-	
-	pjax = null ;
+  
+  pjax = null ;
   
   function pjax( options ) {
     
@@ -77,7 +77,7 @@
       callback : function() {} ,
       callbacks : { ajax : {} , update : { url : {} , title : {} , content : {} , css : {} , script : {} } } ,
       parameter : undefined ,
-      load : { css : false , script : false } ,
+      load : { css : false , script : false , async : { css : null , script : null } } ,
       wait : 0 ,
       fallback : true
     } ,
@@ -126,9 +126,8 @@
           if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return this ; } ;
           if ( location.protocol !== this.protocol || location.host !== this.host ) { return this ; } ;
           if ( location.pathname === this.pathname && location.search === this.search && location.hash !== this.hash ) { return this ; } ;
-          if ( location.pathname + location.search + location.hash === this.pathname + this.search + this.hash ) { event.preventDefault() ; return this ; } ;
           
-          ajax( this , event , this.href , true , event.data ) ;
+          ajax( this , event , this.href , location.href !== this.href , event.data ) ;
         } ) ;
       } ; // label: DELEGATE_CLICK
       
@@ -301,7 +300,7 @@
                   
                   fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
                   settings.fallback ? fallback( context , true ) : null ;
-                }
+                }  
               }
             )
           )
@@ -317,8 +316,8 @@
                 
                 var
                 title = jQuery( data ).filter( 'title' ).text() ,
-                css = jQuery( data ).filter( 'link[rel="stylesheet"], style' ) ,
-                script = jQuery( data ).filter( 'script' ) ,
+                css = filter( data , '<link[^>]*?rel="stylesheet"[^>]*?>|<style[^>]*?>(.|[\n\r])*?</style>' ) ,
+                script = filter( data , '<script[^>]*?>(.|[\n\r])*?</script>' ) ,
                 areas = settings.area.split( ',' ) ,
                 scrollX = settings.scrollLeft === null ? jQuery( window ).scrollLeft() : parseInt( settings.scrollLeft ) ,
                 scrollY = settings.scrollTop === null ? jQuery( window ).scrollTop() : parseInt( settings.scrollTop ) ,
@@ -332,82 +331,99 @@
                 UPDATE_URL : {
                   if ( fire( settings.callbacks.update.url.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
                   register ? history.pushState( null , window.opera || ( 'userAgent' in window && userAgent.indexOf( 'opera' ) !== -1 ) ? title : document.title , url ) : null ;
-                  if ( fire( settings.callbacks.update.url.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
+                  if ( fire( settings.callbacks.update.url.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
                 } ;
                 
                 /* title */
                 UPDATE_TITLE : {
                   if ( fire( settings.callbacks.update.title.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_TITLE ; } ;
                   document.title = title ;
-                  if ( fire( settings.callbacks.update.title.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
+                  if ( fire( settings.callbacks.update.title.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_TITLE ; } ;
                 } ;
                 
                 /* content */
                 UPDATE_CONTENT : {
                   if ( fire( settings.callbacks.update.content.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CONTENT ; } ;
                   for ( var i = 0 , area ; area = areas[ i ] ; i++ ) { jQuery( area ).html( jQuery( area , data ).add( jQuery( data ).filter( area ) ).html() ) ; } ;
-                  if ( fire( settings.callbacks.update.content.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
+                  if ( fire( settings.callbacks.update.content.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CONTENT ; } ;
                 } ;
                 
                 /* css */
-                UPDATE_CSS : {
-                  if ( !settings.load.css ) { break UPDATE_CSS ; } ;
-                  
-                  if ( fire( settings.callbacks.update.css.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CSS ; } ;
-                  
-                  jQuery( 'link[rel="stylesheet"], style' ).filter( function() { return !jQuery.data( this , settings.nss.data , true ) ; } ) ;
-                  for ( var i = 0 , element ; element = css[ i ] ; i++ ) {
-                    if
-                    (
-                      jQuery( 'link[rel="stylesheet"]' ).filter( function() {
-                        if ( this.href === element.href ) {
-                          jQuery.data( this , settings.nss.data ) ? jQuery.data( this , settings.nss.data , false ) : null ;
-                          return true ;
-                        } ;
-                        return false ;
-                      } ).length
-                    ) { continue ; } ;
+                settings.load.async.css === null ? load_css() : setTimeout( function() { load_css() ; } , settings.load.async.css ) ;
+                function load_css() {
+                  UPDATE_CSS : {
+                    if ( !settings.load.css ) { break UPDATE_CSS ; } ;
                     
-                    if
-                    (
-                      jQuery( 'style' ).filter( function() {
-                        if ( this.innerHTML.replace(/^\s+|\s+$|\n/gm,'') === css[ i ].innerHTML.replace(/^\s+|\s+$|\n/gm,'') ) {
-                          jQuery.data( this , settings.nss.data ) ? jQuery.data( this , settings.nss.data , false ) : null ;
-                          return true ;
-                        } ;
-                        return false ;
-                      } ).length
-                    ) { continue ; } ;
-                    jQuery.data( jQuery( 'head' ).append( jQuery( css[ i ].outerHTML ) ).children( ':last-child' ).get( 0 ) , settings.nss.data , false ) ;
-                  } ;
-                  jQuery( 'link[rel="stylesheet"], style' ).filter( function() { return jQuery.data( this , settings.nss.data ) ; } ).remove() ;
-                  
-                  if ( fire( settings.callbacks.update.css.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-                } ; // label: css
+                    if ( fire( settings.callbacks.update.css.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CSS ; } ;
+                    
+                    jQuery( 'link[rel="stylesheet"], style' ).filter( function() { return jQuery.data( this , settings.nss.data , true ) ; } ) ;
+                    for ( var i = 0 , element ; element = css[ i ] ; i++ ) {
+                      element = jQuery( element )[ 0 ] ;
+                      
+                      LINK : {
+                        if( element.tagName.toUpperCase() !== 'LINK' ) { break LINK ; } ;
+                        if
+                        (
+                          jQuery( 'link[rel="stylesheet"]' ).filter( function() {
+                            if ( this.href === element.href ) {
+                              jQuery.data( this , settings.nss.data ) ? jQuery.data( this , settings.nss.data , false ) : null ;
+                              return true ;
+                            } ;
+                            return false ;
+                          } ).length
+                        ) { continue ; } ;
+                      } ;
+                      
+                      STYLE : {
+                        if( element.tagName.toUpperCase() !== 'STYLE' ) { break STYLE ; } ;
+                        if
+                        (
+                          jQuery( 'style' ).filter( function() {
+                            if ( this.innerHTML === element.innerHTML ) {
+                              jQuery.data( this , settings.nss.data ) ? jQuery.data( this , settings.nss.data , false ) : null ;
+                              return true ;
+                            } ;
+                            return false ;
+                          } ).length
+                        ) { continue ; } ;
+                      } ;
+                      
+                      jQuery.data( jQuery( 'head' ).append( element ).children( ':last-child' ).get( 0 ) , settings.nss.data , false ) ;
+                    } ;
+                    jQuery( 'link[rel="stylesheet"], style' ).filter( function() { return jQuery.data( this , settings.nss.data ) ; } ).remove() ;
+                    
+                    if ( fire( settings.callbacks.update.css.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CSS ; } ;
+                  } ; // label: css
+                } // function: css
                 
                 /* script */
-                UPDATE_SCRIPT : {
-                  if ( !settings.load.script ) { break UPDATE_SCRIPT ; } ;
-                  
-                  if ( fire( settings.callbacks.update.script.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_SCRIPT ; } ;
-                  
-                  for ( var i = 0 , element ; element = script[ i ] ; i++ ) {
-                    if
-                    (
-                      jQuery( 'script[src]' ).filter( function() {
-                        if ( this.src === element.src ) {
-                          return true ;
-                        } ;
-                        return false ;
-                      } ).length
-                    ) { continue ; } ;
-                    jQuery.data( jQuery( 'head' ).append( jQuery( script[ i ].outerHTML ) ).children( ':last-child' ).get( 0 ) , settings.nss.data , false ) ;
-                  } ;
-                  
-                  if ( fire( settings.callbacks.update.script.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-                } ; // label: script
+                settings.load.async.script === null ? load_script() : setTimeout( function() { load_script() ; } , settings.load.async.script ) ;
+                function load_script() {
+                  UPDATE_SCRIPT : {
+                    if ( !settings.load.script ) { break UPDATE_SCRIPT ; } ;
+                    
+                    if ( fire( settings.callbacks.update.script.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_SCRIPT ; } ;
+                    
+                    for ( var i = 0 , element ; element = script[ i ] ; i++ ) {
+                      element = jQuery( element )[ 0 ] ;
+                      if
+                      (
+                        jQuery( 'script[src]' ).filter( function() {
+                          if ( this.src === element.src ) {
+                            return true ;
+                          } ;
+                          return false ;
+                        } ).length
+                      ) { continue ; } ;
+                      
+                      jQuery.data( jQuery( 'head' ).append( element ).children( ':last-child' ).get( 0 ) , settings.nss.data , false ) ;
+                    } ;
+                    
+                    if ( fire( settings.callbacks.update.script.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_SCRIPT ; } ;
+                  } ; // label: script
+                } // function: script
                 
-                register && event.type === 'click' ? window.scrollTo( scrollX , scrollY ) : null ;
+                register && event.type.toLowerCase() === 'click' ? window.scrollTo( scrollX , scrollY ) : null ;
                 
                 if ( fire( settings.callbacks.update.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
                 if ( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
@@ -455,117 +471,134 @@
                 fire( settings.callbacks.ajax.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) ;
                 
                 /* + done */
-								UPDATE : {
-									if ( fire( settings.callbacks.update.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-									
-									try {
-										if ( XMLHttpRequest.getResponseHeader( 'Content-Type' ).indexOf( 'text/html' ) === -1 ) { throw new Error() ; } ;
-										
-										var
-										title = jQuery( data ).filter( 'title' ).text() ,
-										css = jQuery( data ).filter( 'link[rel="stylesheet"], style' ) ,
-										script = jQuery( data ).filter( 'script' ) ,
-										areas = settings.area.split( ',' ) ,
-										scrollX = settings.scrollLeft === null ? jQuery( window ).scrollLeft() : parseInt( settings.scrollLeft ) ,
-										scrollY = settings.scrollTop === null ? jQuery( window ).scrollTop() : parseInt( settings.scrollTop ) ,
-										len1 = jQuery( settings.area ).length ,
-										len2 = jQuery( settings.area , data ).add( jQuery( data ).filter( settings.area ) ).length ;
-										
-										
-										if ( len1 === 0 || len1 !== len2 ) { throw new Error() ; } ;
-										
-										/* url */
-										UPDATE_URL : {
-											if ( fire( settings.callbacks.update.url.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
-											register ? history.pushState( null , window.opera || ( 'userAgent' in window && userAgent.indexOf( 'opera' ) !== -1 ) ? title : document.title , url ) : null ;
-											if ( fire( settings.callbacks.update.url.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-										} ;
-										
-										/* title */
-										UPDATE_TITLE : {
-											if ( fire( settings.callbacks.update.title.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_TITLE ; } ;
-											document.title = title ;
-											if ( fire( settings.callbacks.update.title.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-										} ;
-										
-										/* content */
-										UPDATE_CONTENT : {
-											if ( fire( settings.callbacks.update.content.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CONTENT ; } ;
-											for ( var i = 0 , area ; area = areas[ i ] ; i++ ) { jQuery( area ).html( jQuery( area , data ).add( jQuery( data ).filter( area ) ).html() ) ; } ;
-											if ( fire( settings.callbacks.update.content.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-										} ;
-										
-										/* css */
-										UPDATE_CSS : {
-											if ( !settings.load.css ) { break UPDATE_CSS ; } ;
-											
-											if ( fire( settings.callbacks.update.css.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CSS ; } ;
-											
-											jQuery( 'link[rel="stylesheet"], style' ).filter( function() { return !jQuery.data( this , settings.nss.data , true ) ; } ) ;
-											for ( var i = 0 , element ; element = css[ i ] ; i++ ) {
-												if
-												(
-													jQuery( 'link[rel="stylesheet"]' ).filter( function() {
-														if ( this.href === element.href ) {
-															jQuery.data( this , settings.nss.data ) ? jQuery.data( this , settings.nss.data , false ) : null ;
-															return true ;
-														} ;
-														return false ;
-													} ).length
-												) { continue ; } ;
-												
-												if
-												(
-													jQuery( 'style' ).filter( function() {
-														if ( this.innerHTML.replace(/^\s+|\s+$|\n/gm,'') === css[ i ].innerHTML.replace(/^\s+|\s+$|\n/gm,'') ) {
-															jQuery.data( this , settings.nss.data ) ? jQuery.data( this , settings.nss.data , false ) : null ;
-															return true ;
-														} ;
-														return false ;
-													} ).length
-												) { continue ; } ;
-												jQuery.data( jQuery( 'head' ).append( jQuery( css[ i ].outerHTML ) ).children( ':last-child' ).get( 0 ) , settings.nss.data , false ) ;
-											} ;
-											jQuery( 'link[rel="stylesheet"], style' ).filter( function() { return jQuery.data( this , settings.nss.data ) ; } ).remove() ;
-											
-											if ( fire( settings.callbacks.update.css.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-										} ; // label: css
-										
-										/* script */
-										UPDATE_SCRIPT : {
-											if ( !settings.load.script ) { break UPDATE_SCRIPT ; } ;
-											
-											if ( fire( settings.callbacks.update.script.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_SCRIPT ; } ;
-											
-											for ( var i = 0 , element ; element = script[ i ] ; i++ ) {
-												if
-												(
-													jQuery( 'script[src]' ).filter( function() {
-														if ( this.src === element.src ) {
-															return true ;
-														} ;
-														return false ;
-													} ).length
-												) { continue ; } ;
-												jQuery.data( jQuery( 'head' ).append( jQuery( script[ i ].outerHTML ) ).children( ':last-child' ).get( 0 ) , settings.nss.data , false ) ;
-											} ;
-											
-											if ( fire( settings.callbacks.update.script.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-										} ; // label: script
-										
-										register && event.type === 'click' ? window.scrollTo( scrollX , scrollY ) : null ;
-										
-										if ( fire( settings.callbacks.update.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-										if ( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-										if ( fire( settings.callback , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-									} catch( err ) {
-										if ( fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-										if ( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-										settings.fallback ? fallback( context , false ) : null ;
-									} ;
-									
-									if ( fire( settings.callbacks.update.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-            } ; // label: UPDATE
+                UPDATE : {
+                  if ( fire( settings.callbacks.update.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
+                  
+                  try {
+                    if ( XMLHttpRequest.getResponseHeader( 'Content-Type' ).indexOf( 'text/html' ) === -1 ) { throw new Error() ; } ;
+                    
+                    var
+                    title = jQuery( data ).filter( 'title' ).text() ,
+                    css = filter( data , '<link[^>]*?rel="stylesheet"[^>]*?>|<style[^>]*?>(.|[\n\r])*?</style>' ) ,
+                    script = filter( data , '<script[^>]*?>(.|[\n\r])*?</script>' ) ,
+                    areas = settings.area.split( ',' ) ,
+                    scrollX = settings.scrollLeft === null ? jQuery( window ).scrollLeft() : parseInt( settings.scrollLeft ) ,
+                    scrollY = settings.scrollTop === null ? jQuery( window ).scrollTop() : parseInt( settings.scrollTop ) ,
+                    len1 = jQuery( settings.area ).length ,
+                    len2 = jQuery( settings.area , data ).add( jQuery( data ).filter( settings.area ) ).length ;
+                    
+                    
+                    if ( len1 === 0 || len1 !== len2 ) { throw new Error() ; } ;
+                    
+                    /* url */
+                    UPDATE_URL : {
+                      if ( fire( settings.callbacks.update.url.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
+                      register ? history.pushState( null , window.opera || ( 'userAgent' in window && userAgent.indexOf( 'opera' ) !== -1 ) ? title : document.title , url ) : null ;
+                      if ( fire( settings.callbacks.update.url.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
+                    } ;
+                    
+                    /* title */
+                    UPDATE_TITLE : {
+                      if ( fire( settings.callbacks.update.title.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_TITLE ; } ;
+                      document.title = title ;
+                      if ( fire( settings.callbacks.update.title.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_TITLE ; } ;
+                    } ;
+                    
+                    /* content */
+                    UPDATE_CONTENT : {
+                      if ( fire( settings.callbacks.update.content.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CONTENT ; } ;
+                      for ( var i = 0 , area ; area = areas[ i ] ; i++ ) { jQuery( area ).html( jQuery( area , data ).add( jQuery( data ).filter( area ) ).html() ) ; } ;
+                      if ( fire( settings.callbacks.update.content.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CONTENT ; } ;
+                    } ;
+                    
+                    /* css */
+                    settings.load.async.css === null ? load_css() : setTimeout( function() { load_css() ; } , settings.load.async.css ) ;
+                    function load_css() {
+                      UPDATE_CSS : {
+                        if ( !settings.load.css ) { break UPDATE_CSS ; } ;
+                        
+                        if ( fire( settings.callbacks.update.css.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CSS ; } ;
+                        
+                        jQuery( 'link[rel="stylesheet"], style' ).filter( function() { return jQuery.data( this , settings.nss.data , true ) ; } ) ;
+                        for ( var i = 0 , element ; element = css[ i ] ; i++ ) {
+                          element = jQuery( element )[ 0 ] ;
+                          
+                          LINK : {
+                            if( element.tagName.toUpperCase() !== 'LINK' ) { break LINK ; } ;
+                            if
+                            (
+                              jQuery( 'link[rel="stylesheet"]' ).filter( function() {
+                                if ( this.href === element.href ) {
+                                  jQuery.data( this , settings.nss.data ) ? jQuery.data( this , settings.nss.data , false ) : null ;
+                                  return true ;
+                                } ;
+                                return false ;
+                              } ).length
+                            ) { continue ; } ;
+                          } ;
+                          
+                          STYLE : {
+                            if( element.tagName.toUpperCase() !== 'STYLE' ) { break STYLE ; } ;
+                            if
+                            (
+                              jQuery( 'style' ).filter( function() {
+                                if ( this.innerHTML === element.innerHTML ) {
+                                  jQuery.data( this , settings.nss.data ) ? jQuery.data( this , settings.nss.data , false ) : null ;
+                                  return true ;
+                                } ;
+                                return false ;
+                              } ).length
+                            ) { continue ; } ;
+                          } ;
+                          
+                          jQuery.data( jQuery( 'head' ).append( element ).children( ':last-child' ).get( 0 ) , settings.nss.data , false ) ;
+                        } ;
+                        jQuery( 'link[rel="stylesheet"], style' ).filter( function() { return jQuery.data( this , settings.nss.data ) ; } ).remove() ;
+                        
+                        if ( fire( settings.callbacks.update.css.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CSS ; } ;
+                      } ; // label: css
+                    } // function: css
+                    
+                    /* script */
+                    settings.load.async.script === null ? load_script() : setTimeout( function() { load_script() ; } , settings.load.async.script ) ;
+                    function load_script() {
+                      UPDATE_SCRIPT : {
+                        if ( !settings.load.script ) { break UPDATE_SCRIPT ; } ;
+                        
+                        if ( fire( settings.callbacks.update.script.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_SCRIPT ; } ;
+                        
+                        for ( var i = 0 , element ; element = script[ i ] ; i++ ) {
+                          element = jQuery( element )[ 0 ] ;
+                          if
+                          (
+                            jQuery( 'script[src]' ).filter( function() {
+                              if ( this.src === element.src ) {
+                                return true ;
+                              } ;
+                              return false ;
+                            } ).length
+                          ) { continue ; } ;
+                          
+                          jQuery.data( jQuery( 'head' ).append( element ).children( ':last-child' ).get( 0 ) , settings.nss.data , false ) ;
+                        } ;
+                        
+                        if ( fire( settings.callbacks.update.script.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_SCRIPT ; } ;
+                      } ; // label: script
+                    } // function: script
+                    
+                    register && event.type.toLowerCase() === 'click' ? window.scrollTo( scrollX , scrollY ) : null ;
+                    
+                    if ( fire( settings.callbacks.update.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
+                    if ( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
+                    if ( fire( settings.callback , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
+                  } catch( err ) {
+                    if ( fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
+                    if ( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
+                    settings.fallback ? fallback( context , false ) : null ;
+                  } ;
+                  
+                  if ( fire( settings.callbacks.update.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
+                } ; // label: UPDATE
                 /* - done */
               } ,
               error : function( arg1 , arg2 , arg3 ) {
@@ -605,6 +638,13 @@
         location.reload() ;
       } ;
     } // function: fallback
+    
+    function filter( data , pattern ) {
+      var regex , result ;
+      regex = new RegExp( pattern , "gim" );
+      result = data.match( regex )
+      return result ;
+    } // function: filter
     
     return this ; // function: pjax
   } // function: pjax
