@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.6.1
- * @updated 2013/04/03
+ * @version 1.6.2
+ * @updated 2013/04/04
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -77,9 +77,10 @@
       callback : function() {} ,
       callbacks : { ajax : {} , update : { url : {} , title : {} , content : {} , css : {} , script : {} } } ,
       parameter : undefined ,
-      load : { css : false , script : false , async : { css : null , script : null } } ,
+      load : { css : false , script : false , async : { css : false , script : false } } ,
       wait : 0 ,
-      fallback : true
+      fallback : true ,
+      server : { query : 'pjax' }
     } ,
     settings = jQuery.extend( true , {} , defaults , options ) ;
     
@@ -88,10 +89,10 @@
       true ,
       settings , {
         nss : {
-          click : [ 'click' , settings.gns + ( settings.ns === undefined ? '' : ':' + settings.ns ) ].join( '.' ) ,
-          submit : [ 'submit' , settings.gns + ( settings.ns === undefined ? '' : ':' + settings.ns ) ].join( '.' ) ,
-          popstate : [ 'popstate' , settings.gns + ( settings.ns === undefined ? '' : ':' + settings.ns ) ].join( '.' ) ,
-          data : settings.gns + ( settings.ns === undefined ? '' : '.' + settings.ns ) ,
+          click : [ 'click' , settings.gns + ( settings.ns ? ':' + settings.ns : '' ) ].join( '.' ) ,
+          submit : [ 'submit' , settings.gns + ( settings.ns ? ':' + settings.ns : '' ) ].join( '.' ) ,
+          popstate : [ 'popstate' , settings.gns + ( settings.ns ? ':' + settings.ns : '' ) ].join( '.' ) ,
+          data : settings.gns + ( settings.ns ? ':' + settings.ns : '' ) ,
           requestHeader : [ 'X' , settings.gns.replace( /^(\w)/ , function( $1 ) { return $1.toUpperCase() ; } ) ].join( '-' )
         }
       }
@@ -117,8 +118,8 @@
     
     function register( context , settings ) {
       DELEGATE_CLICK : {
-        if ( settings.link === undefined ) { break DELEGATE_CLICK ; } ;
-        if ( settings.form !== undefined ) { break DELEGATE_CLICK ; } ;
+        if ( !settings.link ) { break DELEGATE_CLICK ; } ;
+        if ( settings.form ) { break DELEGATE_CLICK ; } ;
         
         jQuery( context )
         .undelegate( settings.link , settings.nss.click )
@@ -132,7 +133,7 @@
       } ; // label: DELEGATE_CLICK
       
       DELEGATE_SUBMIT : {
-        if ( settings.form === undefined ) { break DELEGATE_SUBMIT ; } ;
+        if ( !settings.form ) { break DELEGATE_SUBMIT ; } ;
         
         jQuery( context )
         .undelegate( settings.form , settings.nss.submit )
@@ -183,11 +184,11 @@
       } ;
       
       POPSTATE : {
-        if ( event.type.toLowerCase() !== 'popstate' ) { break POPSTATE ;} ;
+        if ( event.type.toLowerCase() !== 'popstate' ) { break POPSTATE ; } ;
         
         GET : {
           query = url.match( /\?[^\s]*/ ) ;
-          if ( query === null || query[ 0 ] === '?' ) { break GET ; } ;
+          if ( !query || query[ 0 ] === '?' ) { break GET ; } ;
           
           settings.ajax.type = 'GET' ;
         } ;
@@ -212,6 +213,11 @@
           
           settings.ajax.data = jQuery( event.target ).serializeArray() ;
         } ;
+      } ;
+      
+      URL : {
+        if ( !settings.server.query ) { break URL ; } ;
+        url = url.replace( /(#[^\s]*|)$/ , ( !url.match( /\?/ ) ? '?' :'&' ) + encodeURIComponent( settings.server.query ) + '=1' + '$1' ) ;
       } ;
       
       if ( fire( settings.callbacks.before , context , [ event , settings.parameter ] ) === false ) { return context ;} ; // function: ajax
@@ -299,7 +305,7 @@
                   errorThrown = arg3 ;
                   
                   fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
-                  settings.fallback ? fallback( context , true ) : null ;
+                  settings.fallback ? fallback( context ) : null ;
                 }  
               }
             )
@@ -320,16 +326,15 @@
                 script = filter( data , '<script[^>]*?>(.|[\n\r])*?</script>' ) ,
                 areas = settings.area.split( ',' ) ,
                 scrollX = settings.scrollLeft === null ? jQuery( window ).scrollLeft() : parseInt( settings.scrollLeft ) ,
-                scrollY = settings.scrollTop === null ? jQuery( window ).scrollTop() : parseInt( settings.scrollTop ) ,
-                len1 = jQuery( settings.area ).length ,
-                len2 = jQuery( settings.area , data ).add( jQuery( data ).filter( settings.area ) ).length ;
+                scrollY = settings.scrollTop === null ? jQuery( window ).scrollTop() : parseInt( settings.scrollTop ) ;
                 
                 
-                if ( len1 === 0 || len1 !== len2 ) { throw new Error() ; } ;
+                if ( !jQuery( settings.area ).length || !jQuery( settings.area , data ).add( jQuery( data ).filter( settings.area ) ).length ) { throw new Error() ; } ;
                 
                 /* url */
                 UPDATE_URL : {
                   if ( fire( settings.callbacks.update.url.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
+                  url = url.replace( new RegExp( '[?&]' + settings.server.query + '=.*?([\s\W#&]|$)' ) , '' )
                   register ? history.pushState( null , window.opera || ( 'userAgent' in window && userAgent.indexOf( 'opera' ) !== -1 ) ? title : document.title , url ) : null ;
                   if ( fire( settings.callbacks.update.url.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
                 } ;
@@ -344,12 +349,13 @@
                 /* content */
                 UPDATE_CONTENT : {
                   if ( fire( settings.callbacks.update.content.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CONTENT ; } ;
-                  for ( var i = 0 , area ; area = areas[ i ] ; i++ ) { jQuery( area ).html( jQuery( area , data ).add( jQuery( data ).filter( area ) ).html() ) ; } ;
+                  for ( var i = 0 , area ; area = areas[ i ] ; i++ ) {
+                    try { jQuery( area ).html( jQuery( area , data ).add( jQuery( data ).filter( area ) ).html() ) ; } catch( err ) {}
+                  } ;
                   if ( fire( settings.callbacks.update.content.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CONTENT ; } ;
                 } ;
                 
                 /* css */
-                settings.load.async.css === null ? load_css() : setTimeout( function() { load_css() ; } , settings.load.async.css ) ;
                 function load_css() {
                   UPDATE_CSS : {
                     if ( !settings.load.css ) { break UPDATE_CSS ; } ;
@@ -393,11 +399,11 @@
                     jQuery( 'link[rel="stylesheet"], style' ).filter( function() { return jQuery.data( this , settings.nss.data ) ; } ).remove() ;
                     
                     if ( fire( settings.callbacks.update.css.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CSS ; } ;
-                  } ; // label: css
+                  } ; // label: UPDATE_CSS
                 } // function: css
+                settings.load.async.css === false ? load_css() : setTimeout( function() { load_css() ; } , settings.load.async.css ) ;
                 
                 /* script */
-                settings.load.async.script === null ? load_script() : setTimeout( function() { load_script() ; } , settings.load.async.script ) ;
                 function load_script() {
                   UPDATE_SCRIPT : {
                     if ( !settings.load.script ) { break UPDATE_SCRIPT ; } ;
@@ -420,8 +426,9 @@
                     } ;
                     
                     if ( fire( settings.callbacks.update.script.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_SCRIPT ; } ;
-                  } ; // label: script
+                  } ; // label: UPDATE_SCRIPT
                 } // function: script
+                settings.load.async.script === false ? load_script() : setTimeout( function() { load_script() ; } , settings.load.async.script ) ;
                 
                 register && event.type.toLowerCase() === 'click' ? window.scrollTo( scrollX , scrollY ) : null ;
                 
@@ -431,7 +438,7 @@
               } catch( err ) {
                 if ( fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
                 if ( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-                settings.fallback ? fallback( context , false ) : null ;
+                settings.fallback ? fallback( context ) : null ;
               } ;
               
               if ( fire( settings.callbacks.update.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
@@ -483,16 +490,15 @@
                     script = filter( data , '<script[^>]*?>(.|[\n\r])*?</script>' ) ,
                     areas = settings.area.split( ',' ) ,
                     scrollX = settings.scrollLeft === null ? jQuery( window ).scrollLeft() : parseInt( settings.scrollLeft ) ,
-                    scrollY = settings.scrollTop === null ? jQuery( window ).scrollTop() : parseInt( settings.scrollTop ) ,
-                    len1 = jQuery( settings.area ).length ,
-                    len2 = jQuery( settings.area , data ).add( jQuery( data ).filter( settings.area ) ).length ;
+                    scrollY = settings.scrollTop === null ? jQuery( window ).scrollTop() : parseInt( settings.scrollTop ) ;
                     
                     
-                    if ( len1 === 0 || len1 !== len2 ) { throw new Error() ; } ;
+                    if ( !jQuery( settings.area ).length || !jQuery( settings.area , data ).add( jQuery( data ).filter( settings.area ) ).length ) { throw new Error() ; } ;
                     
                     /* url */
                     UPDATE_URL : {
                       if ( fire( settings.callbacks.update.url.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
+                      url = url.replace( new RegExp( '[?&]' + settings.server.query + '=.*?([\s\W#&]|$)' ) , '' )
                       register ? history.pushState( null , window.opera || ( 'userAgent' in window && userAgent.indexOf( 'opera' ) !== -1 ) ? title : document.title , url ) : null ;
                       if ( fire( settings.callbacks.update.url.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
                     } ;
@@ -507,12 +513,13 @@
                     /* content */
                     UPDATE_CONTENT : {
                       if ( fire( settings.callbacks.update.content.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CONTENT ; } ;
-                      for ( var i = 0 , area ; area = areas[ i ] ; i++ ) { jQuery( area ).html( jQuery( area , data ).add( jQuery( data ).filter( area ) ).html() ) ; } ;
+                      for ( var i = 0 , area ; area = areas[ i ] ; i++ ) {
+                        try { jQuery( area ).html( jQuery( area , data ).add( jQuery( data ).filter( area ) ).html() ) ; } catch( err ) {}
+                      } ;
                       if ( fire( settings.callbacks.update.content.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CONTENT ; } ;
                     } ;
                     
                     /* css */
-                    settings.load.async.css === null ? load_css() : setTimeout( function() { load_css() ; } , settings.load.async.css ) ;
                     function load_css() {
                       UPDATE_CSS : {
                         if ( !settings.load.css ) { break UPDATE_CSS ; } ;
@@ -556,11 +563,11 @@
                         jQuery( 'link[rel="stylesheet"], style' ).filter( function() { return jQuery.data( this , settings.nss.data ) ; } ).remove() ;
                         
                         if ( fire( settings.callbacks.update.css.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CSS ; } ;
-                      } ; // label: css
+                      } ; // label: UPDATE_CSS
                     } // function: css
+                    settings.load.async.css === false ? load_css() : setTimeout( function() { load_css() ; } , settings.load.async.css ) ;
                     
                     /* script */
-                    settings.load.async.script === null ? load_script() : setTimeout( function() { load_script() ; } , settings.load.async.script ) ;
                     function load_script() {
                       UPDATE_SCRIPT : {
                         if ( !settings.load.script ) { break UPDATE_SCRIPT ; } ;
@@ -583,8 +590,9 @@
                         } ;
                         
                         if ( fire( settings.callbacks.update.script.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_SCRIPT ; } ;
-                      } ; // label: script
+                      } ; // label: UPDATE_SCRIPT
                     } // function: script
+                    settings.load.async.script === false ? load_script() : setTimeout( function() { load_script() ; } , settings.load.async.script ) ;
                     
                     register && event.type.toLowerCase() === 'click' ? window.scrollTo( scrollX , scrollY ) : null ;
                     
@@ -594,7 +602,7 @@
                   } catch( err ) {
                     if ( fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
                     if ( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-                    settings.fallback ? fallback( context , false ) : null ;
+                    settings.fallback ? fallback( context ) : null ;
                   } ;
                   
                   if ( fire( settings.callbacks.update.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
@@ -631,10 +639,12 @@
       return dfd.promise() ; // function: wait
     } // function: wait
     
-    function fallback( context , reload ) {
-      if ( context.href !== undefined ) {
+    function fallback( context ) {
+      if ( context.tagName.toUpperCase() === 'A' ) {
         location = context.href ;
-      } else if ( reload ) {
+      } else if ( context.tagName.toUpperCase() === 'FORM' ) {
+        context.submit() ;
+      } else {
         location.reload() ;
       } ;
     } // function: fallback
