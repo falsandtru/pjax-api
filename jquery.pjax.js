@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.6.3
- * @updated 2013/04/05
+ * @version 1.6.4
+ * @updated 2013/04/07
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -64,6 +64,8 @@
     
     /* Variable initialization */
     var
+      win = window ,
+      doc = document ,
       defaults = {
         gns : 'pjax' ,
         ns : undefined ,
@@ -112,7 +114,7 @@
     } // function: check
     
     function supportPushState() {
-      return 'pushState' in window.history && window.history[ 'pushState' ] !== null ;
+      return 'pushState' in win.history && win.history[ 'pushState' ] !== null ;
     } // function: supportPushState
     
     function register( context , settings ) {
@@ -143,7 +145,7 @@
       
       BIND_POPSTATE : {
         setTimeout( function() {
-          jQuery( window )
+          jQuery( win )
           .unbind( settings.nss.popstate )
           .bind( settings.nss.popstate , settings , function( event ) {
             ajax( this , event , location.href , false , event.data ) ;
@@ -263,7 +265,7 @@
           break ;
       } ;
       
-      if ( fire( settings.callbacks.after , context , [ event , settings.parameter ] ) === false ) { return context ;} ; // function: ajax
+      if ( fire( settings.callbacks.after , context , [ event , settings.parameter ] ) === false ) { return context ; } ; // function: ajax
       
       event.preventDefault() ;
       
@@ -306,7 +308,7 @@
                   errorThrown = arg3 ;
                   
                   fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
-                  settings.fallback ? fallback( context ) : null ;
+                  settings.fallback ? fallback( event , context ) : null ;
                 }  
               }
             )
@@ -325,8 +327,8 @@
                 
                 var
                   title = jQuery( data ).filter( 'title' ).text() ,
-                  css = filter( data , '<link[^>]*?rel="stylesheet"[^>]*?>|<style[^>]*?>(.|[\n\r])*?</style>' ) ,
-                  script = filter( data , '([^\'\"]|^)<script[^>]*?>(.|[\n\r])*?</script>([^\'\"]|$)' ) ,
+                  css = filter( data , 'css' , '(<link[^>]*?rel="stylesheet"[^>]*?>|<style[^>]*?>(.|[\n\r])*?</style>)' ) ,
+                  script = filter( data , 'script' , '([^\'\"]|^\s*)(<script[^>]*?>(.|[\n\r])*?</script>)([^\'\"]|\s*$)' ) ,
                   areas = settings.area.split( ',' ) ,
                   scrollX = settings.scrollLeft === null ? jQuery( win ).scrollLeft() : parseInt( settings.scrollLeft ) ,
                   scrollY = settings.scrollTop === null ? jQuery( win ).scrollTop() : parseInt( settings.scrollTop ) ;
@@ -406,6 +408,7 @@
                       } ;
                       
                       jQuery.data( jQuery( 'head' ).append( element ).children( ':last-child' ).get( 0 ) , settings.nss.data , false ) ;
+                      element = null ;
                     } ;
                     jQuery( 'link[rel="stylesheet"], style' ).filter( function() { return jQuery.data( this , settings.nss.data ) ; } ).remove() ;
                     
@@ -438,6 +441,7 @@
                       ) { continue ; } ;
                       
                       jQuery.data( jQuery( 'head' ).append( element ).children( ':last-child' ).get( 0 ) , settings.nss.data , false ) ;
+                      element = null ;
                     } ;
                     
                     if ( fire( settings.callbacks.update.script.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_SCRIPT ; } ;
@@ -453,10 +457,11 @@
               } catch( err ) {
                 if ( fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
                 if ( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-                settings.fallback ? fallback( context ) : null ;
+                settings.fallback ? fallback( event , context ) : null ;
               } ;
               
               if ( fire( settings.callbacks.update.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
+              data = null ; dataType = null ; XMLHttpRequest = null ; textStatus = null ; errorThrown = null ;
             } ; // label: UPDATE
           }
         )
@@ -503,8 +508,8 @@
                     
                     var
                       title = jQuery( data ).filter( 'title' ).text() ,
-                      css = filter( data , '<link[^>]*?rel="stylesheet"[^>]*?>|<style[^>]*?>(.|[\n\r])*?</style>' ) ,
-                      script = filter( data , '([^\'\"]|^)<script[^>]*?>(.|[\n\r])*?</script>([^\'\"]|$)' ) ,
+                      css = filter( data , 'css' , '(<link[^>]*?rel="stylesheet"[^>]*?>|<style[^>]*?>(.|[\n\r])*?</style>)' ) ,
+                      script = filter( data , 'script' , '([^\'\"]|^\s*)(<script[^>]*?>(.|[\n\r])*?</script>)([^\'\"]|\s*$)' ) ,
                       areas = settings.area.split( ',' ) ,
                       scrollX = settings.scrollLeft === null ? jQuery( win ).scrollLeft() : parseInt( settings.scrollLeft ) ,
                       scrollY = settings.scrollTop === null ? jQuery( win ).scrollTop() : parseInt( settings.scrollTop ) ;
@@ -584,6 +589,7 @@
                           } ;
                           
                           jQuery.data( jQuery( 'head' ).append( element ).children( ':last-child' ).get( 0 ) , settings.nss.data , false ) ;
+                          element = null ;
                         } ;
                         jQuery( 'link[rel="stylesheet"], style' ).filter( function() { return jQuery.data( this , settings.nss.data ) ; } ).remove() ;
                         
@@ -616,6 +622,7 @@
                           ) { continue ; } ;
                           
                           jQuery.data( jQuery( 'head' ).append( element ).children( ':last-child' ).get( 0 ) , settings.nss.data , false ) ;
+                          element = null ;
                         } ;
                         
                         if ( fire( settings.callbacks.update.script.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_SCRIPT ; } ;
@@ -631,10 +638,11 @@
                   } catch( err ) {
                     if ( fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
                     if ( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-                    settings.fallback ? fallback( context ) : null ;
+                    settings.fallback ? fallback( event , context ) : null ;
                   } ;
                   
                   if ( fire( settings.callbacks.update.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
+                  data = null ; dataType = null ; XMLHttpRequest = null ; textStatus = null ; errorThrown = null ;
                 } ; // label: UPDATE
                 /* - done */
               } ,
@@ -644,7 +652,7 @@
                 errorThrown = arg3 ;
                 
                 fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
-                settings.fallback ? fallback( context , true ) : null ;
+                settings.fallback ? fallback( event , context ) : null ;
               }
             }
           )
@@ -669,20 +677,22 @@
       return dfd.promise() ; // function: wait
     } // function: wait
     
-    function fallback( context ) {
-      if ( context.tagName.toUpperCase() === 'A' ) {
-        location = context.href ;
-      } else if ( context.tagName.toUpperCase() === 'FORM' ) {
+    function fallback( event , context , reload ) {
+      if ( event.type.toLowerCase() === 'click' ) {
+        location.href = context.href ;
+      } else if ( event.type.toLowerCase() === 'submit' ) {
         context.submit() ;
-      } else {
+      } else if ( event.type.toLowerCase() === 'popstate' ) {
         location.reload() ;
       } ;
     } // function: fallback
     
-    function filter( data , pattern ) {
-      var regex , result ;
+    function filter( data , type , pattern ) {
+      var regex , result = [] ;
       regex = new RegExp( pattern , "gim" );
-      result = data.match( regex )
+      data.replace( regex , function( $0 , $1 , $2 ) {
+        result.push( type === 'script' ? $2 : $0 )
+      } ) ;
       return result ;
     } // function: filter
     
