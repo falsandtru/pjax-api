@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.6.4
- * @updated 2013/04/07
+ * @version 1.7.0
+ * @updated 2013/04/10
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -55,6 +55,7 @@
   jQuery.fn.pjax = pjax ;
   jQuery.pjax    = pjax ;
   pjax = null ;
+  var plugin_data = [ 'settings' ] ;
   
   
   function pjax( options ) {
@@ -66,7 +67,9 @@
     var
       win = window ,
       doc = document ,
+      timestamp = new Date() ,
       defaults = {
+        id : 0 ,
         gns : 'pjax' ,
         ns : undefined ,
         area : undefined ,
@@ -78,10 +81,13 @@
         callback : function() {} ,
         callbacks : { ajax : {} , update : { url : {} , title : {} , content : {} , css : {} , script : {} } } ,
         parameter : undefined ,
-        load : { css : false , script : false , async : { css : false , script : false } } ,
+        load : { css : false , script : false , sync : true } ,
+        interval : 300 ,
+        queue : [] ,
         wait : 0 ,
         fallback : true ,
-        server : { query : 'pjax' }
+        server : { query : 'pjax' } ,
+        timestamp : 0
       } ,
       settings = jQuery.extend( true , {} , defaults , options ) ;
     
@@ -95,7 +101,11 @@
           popstate : [ 'popstate' , settings.gns + ( settings.ns ? ':' + settings.ns : '' ) ].join( '.' ) ,
           data : settings.gns + ( settings.ns ? ':' + settings.ns : '' ) ,
           requestHeader : [ 'X' , settings.gns.replace( /^(\w)/ , function( $1 ) { return $1.toUpperCase() ; } ) ].join( '-' )
-        }
+        } ,
+        load : {
+          async : { css : false , script : false }
+        } ,
+        timestamp : timestamp.getTime()
       }
     ) ;
     
@@ -118,18 +128,21 @@
     } // function: supportPushState
     
     function register( context , settings ) {
+      settings.id = plugin_data.length ;
+      plugin_data.push( settings )
+      
       DELEGATE_CLICK : {
         if ( !settings.link ) { break DELEGATE_CLICK ; } ;
         if ( settings.form ) { break DELEGATE_CLICK ; } ;
         
         jQuery( context )
         .undelegate( settings.link , settings.nss.click )
-        .delegate( settings.link , settings.nss.click , settings , function( event ) {
+        .delegate( settings.link , settings.nss.click , settings.id , function( event ) {
           if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return this ; } ;
           if ( location.protocol !== this.protocol || location.host !== this.host ) { return this ; } ;
           if ( location.pathname === this.pathname && location.search === this.search && location.hash !== this.hash ) { return this ; } ;
           
-          ajax( this , event , this.href , location.href !== this.href , event.data ) ;
+          ajax( this , event , this.href , location.href !== this.href , plugin_data[ event.data ] ) ;
         } ) ;
       } ; // label: DELEGATE_CLICK
       
@@ -138,19 +151,18 @@
         
         jQuery( context )
         .undelegate( settings.form , settings.nss.submit )
-        .delegate( settings.form , settings.nss.submit , settings , function( event ) {
-          ajax( this , event , jQuery( event.target ).attr( 'action' ) , true , event.data ) ;
+        .delegate( settings.form , settings.nss.submit , settings.id , function( event ) {
+          ajax( this , event , jQuery( event.target ).attr( 'action' ) , true , plugin_data[ event.data ] ) ;
         } ) ;
       } ; // label: DELEGATE_SUBMIT
       
       BIND_POPSTATE : {
-        setTimeout( function() {
-          jQuery( win )
-          .unbind( settings.nss.popstate )
-          .bind( settings.nss.popstate , settings , function( event ) {
-            ajax( this , event , location.href , false , event.data ) ;
-          } ) ;
-        } , 100 ) ;
+        jQuery( win )
+        .unbind( settings.nss.popstate )
+        .bind( settings.nss.popstate , settings.id , function( event ) {
+          if( 300 > event.timeStamp - plugin_data[ event.data ].timestamp ) { return ; } ;
+          ajax( this , event , location.href , false , plugin_data[ event.data ] ) ;
+        } ) ;
       } ; // label: BIND_POPSTATE
     } // function: register
     
@@ -355,7 +367,10 @@
                 UPDATE_CONTENT : {
                   if ( fire( settings.callbacks.update.content.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CONTENT ; } ;
                   for ( var i = 0 , area ; area = areas[ i ] ; i++ ) {
-                    try { jQuery( area ).html( jQuery( area , data ).add( jQuery( data ).filter( area ) ).html() ) ; } catch( err ) {} ;
+                    try {
+                      jQuery( area ).html( jQuery( area , data ).add( jQuery( data ).filter( area ) ).html() ) ;
+                      settings.load.sync ? jQuery( area ).append( jQuery( '<div/>' , { 'data-pjax-loaded' : 'true' , 'style' : 'display:none;' } ) ) : null ;
+                    } catch( err ) {} ;
                   } ;
                   if ( fire( settings.callbacks.update.content.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CONTENT ; } ;
                 } ;
@@ -415,7 +430,7 @@
                     if ( fire( settings.callbacks.update.css.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CSS ; } ;
                   } ; // label: UPDATE_CSS
                 } // function: css
-                settings.load.async.css === false ? load_css() : setTimeout( function() { load_css() ; } , settings.load.async.css ) ;
+                settings.load.sync ? null : settings.load.async.css === false ? load_css() : setTimeout( function() { load_css() ; } , settings.load.async.css ) ;
                 
                 /* script */
                 function load_script() {
@@ -447,7 +462,24 @@
                     if ( fire( settings.callbacks.update.script.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_SCRIPT ; } ;
                   } ; // label: UPDATE_SCRIPT
                 } // function: script
-                settings.load.async.script === false ? load_script() : setTimeout( function() { load_script() ; } , settings.load.async.script ) ;
+                settings.load.sync ? null : settings.load.async.script === false ? load_script() : setTimeout( function() { load_script() ; } , settings.load.async.script ) ;
+                
+                if ( settings.load.sync ) {
+                  var id = setTimeout( function() {
+                    while ( id = settings.queue.shift() ) { clearTimeout( id ) ; } ;
+                    if( jQuery( settings.area ).length === jQuery( settings.area ).children( 'div[data-pjax-loaded]' ).length ) {
+                      jQuery( settings.area ).children( 'div[data-pjax-loaded]' ).remove() ;
+                      load_css() ;
+                      load_script() ;
+                    } else {
+                      id = setTimeout( arguments.callee , settings.interval ) ;
+                      settings.queue.push( id ) ;
+                    } ;
+                    plugin_data[ settings.id ] = settings ;
+                  } , settings.interval ) ;
+                  settings.queue.push( id ) ;
+                  plugin_data[ settings.id ] = settings ;
+                } ;
                 
                 register && -1 < 'click,submit'.indexOf( event.type.toLowerCase() ) ? win.scrollTo( scrollX , scrollY ) : null ;
                 
@@ -536,7 +568,10 @@
                     UPDATE_CONTENT : {
                       if ( fire( settings.callbacks.update.content.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CONTENT ; } ;
                       for ( var i = 0 , area ; area = areas[ i ] ; i++ ) {
-                        try { jQuery( area ).html( jQuery( area , data ).add( jQuery( data ).filter( area ) ).html() ) ; } catch( err ) {} ;
+                        try {
+                          jQuery( area ).html( jQuery( area , data ).add( jQuery( data ).filter( area ) ).html() ) ;
+                          settings.load.sync ? jQuery( area ).append( jQuery( '<div/>' , { 'data-pjax-loaded' : 'true' , 'style' : 'display:none;' } ) ) : null ;
+                        } catch( err ) {} ;
                       } ;
                       if ( fire( settings.callbacks.update.content.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CONTENT ; } ;
                     } ;
@@ -596,7 +631,7 @@
                         if ( fire( settings.callbacks.update.css.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CSS ; } ;
                       } ; // label: UPDATE_CSS
                     } // function: css
-                    settings.load.async.css === false ? load_css() : setTimeout( function() { load_css() ; } , settings.load.async.css ) ;
+                    settings.load.sync ? null : settings.load.async.css === false ? load_css() : setTimeout( function() { load_css() ; } , settings.load.async.css ) ;
                     
                     /* script */
                     function load_script() {
@@ -628,7 +663,24 @@
                         if ( fire( settings.callbacks.update.script.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_SCRIPT ; } ;
                       } ; // label: UPDATE_SCRIPT
                     } // function: script
-                    settings.load.async.script === false ? load_script() : setTimeout( function() { load_script() ; } , settings.load.async.script ) ;
+                    settings.load.sync ? null : settings.load.async.script === false ? load_script() : setTimeout( function() { load_script() ; } , settings.load.async.script ) ;
+                    
+                    if ( settings.load.sync ) {
+                      var id = setTimeout( function() {
+                        while ( id = settings.queue.shift() ) { clearTimeout( id ) ; } ;
+                        if( jQuery( settings.area ).length === jQuery( settings.area ).children( 'div[data-pjax-loaded]' ).length ) {
+                          jQuery( settings.area ).children( 'div[data-pjax-loaded]' ).remove() ;
+                          load_css() ;
+                          load_script() ;
+                        } else {
+                          id = setTimeout( arguments.callee , settings.interval ) ;
+                          settings.queue.push( id ) ;
+                        } ;
+                        plugin_data[ settings.id ] = settings ;
+                      } , settings.interval ) ;
+                      settings.queue.push( id ) ;
+                      plugin_data[ settings.id ] = settings ;
+                    } ;
                     
                     register && -1 < 'click,submit'.indexOf( event.type.toLowerCase() ) ? win.scrollTo( scrollX , scrollY ) : null ;
                     
