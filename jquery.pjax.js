@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.7.0
- * @updated 2013/04/10
+ * @version 1.7.1
+ * @updated 2013/04/11
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -81,13 +81,13 @@
         callback : function() {} ,
         callbacks : { ajax : {} , update : { url : {} , title : {} , content : {} , css : {} , script : {} } } ,
         parameter : undefined ,
-        load : { css : false , script : false , sync : true } ,
+        load : { sync : true , async : 0 } ,
         interval : 300 ,
         queue : [] ,
         wait : 0 ,
         fallback : true ,
         server : { query : 'pjax' } ,
-        timestamp : 0
+        delay : 300
       } ,
       settings = jQuery.extend( true , {} , defaults , options ) ;
     
@@ -101,9 +101,6 @@
           popstate : [ 'popstate' , settings.gns + ( settings.ns ? ':' + settings.ns : '' ) ].join( '.' ) ,
           data : settings.gns + ( settings.ns ? ':' + settings.ns : '' ) ,
           requestHeader : [ 'X' , settings.gns.replace( /^(\w)/ , function( $1 ) { return $1.toUpperCase() ; } ) ].join( '-' )
-        } ,
-        load : {
-          async : { css : false , script : false }
         } ,
         timestamp : timestamp.getTime()
       }
@@ -160,7 +157,13 @@
         jQuery( win )
         .unbind( settings.nss.popstate )
         .bind( settings.nss.popstate , settings.id , function( event ) {
-          if( 300 > event.timeStamp - plugin_data[ event.data ].timestamp ) { return ; } ;
+          var settings = plugin_data[ event.data ] ;
+          
+          if( settings.timestamp !== false && settings.delay > event.timeStamp - settings.timestamp ) {
+            settings.timestamp = false ;
+            plugin_data[ settings.id ] = settings ;
+            return ; 
+          } ;
           ajax( this , event , location.href , false , plugin_data[ event.data ] ) ;
         } ) ;
       } ; // label: BIND_POPSTATE
@@ -326,177 +329,7 @@
             )
           )
         )
-        .done
-        (
-          function( fn ) {
-            UPDATE : {
-              var fire = fn.fire ;
-              
-              if ( fire( settings.callbacks.update.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-              
-              try {
-                if ( XMLHttpRequest.getResponseHeader( 'Content-Type' ).indexOf( 'text/html' ) === -1 ) { throw new Error() ; } ;
-                
-                var
-                  title = jQuery( data ).filter( 'title' ).text() ,
-                  css = filter( data , 'css' , '(<link[^>]*?rel="stylesheet"[^>]*?>|<style[^>]*?>(.|[\n\r])*?</style>)' ) ,
-                  script = filter( data , 'script' , '([^\'\"]|^\s*)(<script[^>]*?>(.|[\n\r])*?</script>)([^\'\"]|\s*$)' ) ,
-                  areas = settings.area.split( ',' ) ,
-                  scrollX = settings.scrollLeft === null ? jQuery( win ).scrollLeft() : parseInt( settings.scrollLeft ) ,
-                  scrollY = settings.scrollTop === null ? jQuery( win ).scrollTop() : parseInt( settings.scrollTop ) ;
-                
-                
-                if ( !jQuery( settings.area ).length || !jQuery( settings.area , data ).add( jQuery( data ).filter( settings.area ) ).length ) { throw new Error() ; } ;
-                
-                /* url */
-                UPDATE_URL : {
-                  if ( fire( settings.callbacks.update.url.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
-                  url = url.replace( new RegExp( '[?&]' + settings.server.query + '=.*?([\s\W#&]|$)' ) , '' )
-                  register ? history.pushState( null , win.opera || ( 'userAgent' in win && userAgent.indexOf( 'opera' ) !== -1 ) ? title : doc.title , url ) : null ;
-                  if ( fire( settings.callbacks.update.url.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
-                } ;
-                
-                /* title */
-                UPDATE_TITLE : {
-                  if ( fire( settings.callbacks.update.title.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_TITLE ; } ;
-                  doc.title = title ;
-                  if ( fire( settings.callbacks.update.title.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_TITLE ; } ;
-                } ;
-                
-                /* content */
-                UPDATE_CONTENT : {
-                  if ( fire( settings.callbacks.update.content.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CONTENT ; } ;
-                  for ( var i = 0 , area ; area = areas[ i ] ; i++ ) {
-                    try {
-                      jQuery( area ).html( jQuery( area , data ).add( jQuery( data ).filter( area ) ).html() ) ;
-                      settings.load.sync ? jQuery( area ).append( jQuery( '<div/>' , { 'data-pjax-loaded' : 'true' , 'style' : 'display:none;' } ) ) : null ;
-                    } catch( err ) {} ;
-                  } ;
-                  if ( fire( settings.callbacks.update.content.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CONTENT ; } ;
-                } ;
-                
-                /* css */
-                function load_css() {
-                  var filter = fn.filter ;
-                  
-                  UPDATE_CSS : {
-                    if ( !settings.load.css ) { break UPDATE_CSS ; } ;
-                    
-                    if ( fire( settings.callbacks.update.css.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CSS ; } ;
-                    
-                    // 対象現行全要素に削除フラグを立てる。
-                    jQuery( 'link[rel="stylesheet"], style' ).filter( function() { return jQuery.data( this , settings.nss.data , true ) ; } ) ;
-                    // 対象移行全要素を走査する。
-                    for ( var i = 0 , element , consistent ; element = css[ i ] ; i++ ) {
-                      element = jQuery( element )[ 0 ] ;
-                      consistent = false ;
-                      
-                      LINK : {
-                        if( element.tagName.toUpperCase() !== 'LINK' ) { break LINK ; } ;
-                        // 現行要素と移行要素を比較、一致するものがあれば次の走査へ移る。
-                        // 一致するものがなければ移行要素を追加し、一致するものがない現行要素を削除する。
-                        if
-                        (
-                          jQuery( 'link[rel="stylesheet"]' ).filter( function() {
-                            // 一致しないためFALSEを返す
-                            if ( consistent || this.href !== element.href ) { return false ; } ;
-                            // 一致したためTRUEを返す。一致した要素に削除フラグが立っていればこれを消す。
-                            consistent = true ;
-                            jQuery.data( this , settings.nss.data ) ? jQuery.data( this , settings.nss.data , false ) : null ;
-                            return true ;
-                          } ).length
-                        ) { continue ; } ;
-                      } ;
-                      
-                      STYLE : {
-                        if( element.tagName.toUpperCase() !== 'STYLE' ) { break STYLE ; } ;
-                        // 現行要素と移行要素を比較、一致するものがあれば次の走査へ移る。
-                        if
-                        (
-                          jQuery( 'style' ).filter( function() {
-                            if ( consistent || !jQuery.data( this , settings.nss.data ) || this.innerHTML !== element.innerHTML ) { return false ; } ;
-                            consistent = true ;
-                            jQuery.data( this , settings.nss.data , false ) ;
-                            return true ;
-                          } ).length
-                        ) { continue ; } ;
-                      } ;
-                      
-                      jQuery.data( jQuery( 'head' ).append( element ).children( ':last-child' ).get( 0 ) , settings.nss.data , false ) ;
-                      element = null ;
-                    } ;
-                    jQuery( 'link[rel="stylesheet"], style' ).filter( function() { return jQuery.data( this , settings.nss.data ) ; } ).remove() ;
-                    
-                    if ( fire( settings.callbacks.update.css.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CSS ; } ;
-                  } ; // label: UPDATE_CSS
-                } // function: css
-                settings.load.sync ? null : settings.load.async.css === false ? load_css() : setTimeout( function() { load_css() ; } , settings.load.async.css ) ;
-                
-                /* script */
-                function load_script() {
-                  var filter = fn.filter ;
-                  
-                  UPDATE_SCRIPT : {
-                    if ( !settings.load.script ) { break UPDATE_SCRIPT ; } ;
-                    
-                    if ( fire( settings.callbacks.update.script.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_SCRIPT ; } ;
-                    
-                    for ( var i = 0 , element , consistent ; element = script[ i ] ; i++ ) {
-                      element = jQuery( element )[ 0 ] ;
-                      consistent = false ;
-                      
-                      // 現行要素と移行要素を比較、一致するものがあれば次の走査へ移る。
-                      if
-                        (
-                          jQuery( 'script[src]' ).filter( function() {
-                            if ( consistent || this.src !== element.src ) { return false ; } ;
-                            consistent = true ;
-                            return true ;
-                          } ).length
-                      ) { continue ; } ;
-                      
-                      jQuery.data( jQuery( 'head' ).append( element ).children( ':last-child' ).get( 0 ) , settings.nss.data , false ) ;
-                      element = null ;
-                    } ;
-                    
-                    if ( fire( settings.callbacks.update.script.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_SCRIPT ; } ;
-                  } ; // label: UPDATE_SCRIPT
-                } // function: script
-                settings.load.sync ? null : settings.load.async.script === false ? load_script() : setTimeout( function() { load_script() ; } , settings.load.async.script ) ;
-                
-                if ( settings.load.sync ) {
-                  var id = setTimeout( function() {
-                    while ( id = settings.queue.shift() ) { clearTimeout( id ) ; } ;
-                    if( jQuery( settings.area ).length === jQuery( settings.area ).children( 'div[data-pjax-loaded]' ).length ) {
-                      jQuery( settings.area ).children( 'div[data-pjax-loaded]' ).remove() ;
-                      load_css() ;
-                      load_script() ;
-                    } else {
-                      id = setTimeout( arguments.callee , settings.interval ) ;
-                      settings.queue.push( id ) ;
-                    } ;
-                    plugin_data[ settings.id ] = settings ;
-                  } , settings.interval ) ;
-                  settings.queue.push( id ) ;
-                  plugin_data[ settings.id ] = settings ;
-                } ;
-                
-                register && -1 < 'click,submit'.indexOf( event.type.toLowerCase() ) ? win.scrollTo( scrollX , scrollY ) : null ;
-                
-                if ( fire( settings.callbacks.update.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-                if ( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-                if ( fire( settings.callback , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-              } catch( err ) {
-                if ( fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-                if ( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-                settings.fallback ? fallback( event , context ) : null ;
-              } ;
-              
-              if ( fire( settings.callbacks.update.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-              data = null ; dataType = null ; XMLHttpRequest = null ; textStatus = null ; errorThrown = null ;
-            } ; // label: UPDATE
-          }
-        )
+        .done( function() { update() ; } )
         .fail()
         .always() ;
       } // function: ajax_regular
@@ -529,174 +362,7 @@
                 
                 fire( settings.callbacks.ajax.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) ;
                 
-                /* + done */
-                UPDATE : {
-                  var fire = fn.fire ;
-                  
-                  if ( fire( settings.callbacks.update.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-                  
-                  try {
-                    if ( XMLHttpRequest.getResponseHeader( 'Content-Type' ).indexOf( 'text/html' ) === -1 ) { throw new Error() ; } ;
-                    
-                    var
-                      title = jQuery( data ).filter( 'title' ).text() ,
-                      css = filter( data , 'css' , '(<link[^>]*?rel="stylesheet"[^>]*?>|<style[^>]*?>(.|[\n\r])*?</style>)' ) ,
-                      script = filter( data , 'script' , '([^\'\"]|^\s*)(<script[^>]*?>(.|[\n\r])*?</script>)([^\'\"]|\s*$)' ) ,
-                      areas = settings.area.split( ',' ) ,
-                      scrollX = settings.scrollLeft === null ? jQuery( win ).scrollLeft() : parseInt( settings.scrollLeft ) ,
-                      scrollY = settings.scrollTop === null ? jQuery( win ).scrollTop() : parseInt( settings.scrollTop ) ;
-                    
-                    
-                    if ( !jQuery( settings.area ).length || !jQuery( settings.area , data ).add( jQuery( data ).filter( settings.area ) ).length ) { throw new Error() ; } ;
-                    
-                    /* url */
-                    UPDATE_URL : {
-                      if ( fire( settings.callbacks.update.url.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
-                      url = url.replace( new RegExp( '[?&]' + settings.server.query + '=.*?([\s\W#&]|$)' ) , '' )
-                      register ? history.pushState( null , win.opera || ( 'userAgent' in win && userAgent.indexOf( 'opera' ) !== -1 ) ? title : doc.title , url ) : null ;
-                      if ( fire( settings.callbacks.update.url.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
-                    } ;
-                    
-                    /* title */
-                    UPDATE_TITLE : {
-                      if ( fire( settings.callbacks.update.title.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_TITLE ; } ;
-                      doc.title = title ;
-                      if ( fire( settings.callbacks.update.title.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_TITLE ; } ;
-                    } ;
-                    
-                    /* content */
-                    UPDATE_CONTENT : {
-                      if ( fire( settings.callbacks.update.content.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CONTENT ; } ;
-                      for ( var i = 0 , area ; area = areas[ i ] ; i++ ) {
-                        try {
-                          jQuery( area ).html( jQuery( area , data ).add( jQuery( data ).filter( area ) ).html() ) ;
-                          settings.load.sync ? jQuery( area ).append( jQuery( '<div/>' , { 'data-pjax-loaded' : 'true' , 'style' : 'display:none;' } ) ) : null ;
-                        } catch( err ) {} ;
-                      } ;
-                      if ( fire( settings.callbacks.update.content.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CONTENT ; } ;
-                    } ;
-                    
-                    /* css */
-                    function load_css() {
-                      var filter = fn.filter ;
-                      
-                      UPDATE_CSS : {
-                        if ( !settings.load.css ) { break UPDATE_CSS ; } ;
-                        
-                        if ( fire( settings.callbacks.update.css.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CSS ; } ;
-                        
-                        // 対象現行全要素に削除フラグを立てる。
-                        jQuery( 'link[rel="stylesheet"], style' ).filter( function() { return jQuery.data( this , settings.nss.data , true ) ; } ) ;
-                        // 対象移行全要素を走査する。
-                        for ( var i = 0 , element , consistent ; element = css[ i ] ; i++ ) {
-                          element = jQuery( element )[ 0 ] ;
-                          consistent = false ;
-                          
-                          LINK : {
-                            if( element.tagName.toUpperCase() !== 'LINK' ) { break LINK ; } ;
-                            // 現行要素と移行要素を比較、一致するものがあれば次の走査へ移る。
-                            // 一致するものがなければ移行要素を追加し、一致するものがない現行要素を削除する。
-                            if
-                            (
-                              jQuery( 'link[rel="stylesheet"]' ).filter( function() {
-                                // 一致しないためFALSEを返す
-                                if ( consistent || this.href !== element.href ) { return false ; } ;
-                                // 一致したためTRUEを返す。一致した要素に削除フラグが立っていればこれを消す。
-                                consistent = true ;
-                                jQuery.data( this , settings.nss.data ) ? jQuery.data( this , settings.nss.data , false ) : null ;
-                                return true ;
-                              } ).length
-                            ) { continue ; } ;
-                          } ;
-                          
-                          STYLE : {
-                            if( element.tagName.toUpperCase() !== 'STYLE' ) { break STYLE ; } ;
-                            // 現行要素と移行要素を比較、一致するものがあれば次の走査へ移る。
-                            if
-                            (
-                              jQuery( 'style' ).filter( function() {
-                                if ( consistent || !jQuery.data( this , settings.nss.data ) || this.innerHTML !== element.innerHTML ) { return false ; } ;
-                                consistent = true ;
-                                jQuery.data( this , settings.nss.data , false ) ;
-                                return true ;
-                              } ).length
-                            ) { continue ; } ;
-                          } ;
-                          
-                          jQuery.data( jQuery( 'head' ).append( element ).children( ':last-child' ).get( 0 ) , settings.nss.data , false ) ;
-                          element = null ;
-                        } ;
-                        jQuery( 'link[rel="stylesheet"], style' ).filter( function() { return jQuery.data( this , settings.nss.data ) ; } ).remove() ;
-                        
-                        if ( fire( settings.callbacks.update.css.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CSS ; } ;
-                      } ; // label: UPDATE_CSS
-                    } // function: css
-                    settings.load.sync ? null : settings.load.async.css === false ? load_css() : setTimeout( function() { load_css() ; } , settings.load.async.css ) ;
-                    
-                    /* script */
-                    function load_script() {
-                      var filter = fn.filter ;
-                      
-                      UPDATE_SCRIPT : {
-                        if ( !settings.load.script ) { break UPDATE_SCRIPT ; } ;
-                        
-                        if ( fire( settings.callbacks.update.script.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_SCRIPT ; } ;
-                        
-                        for ( var i = 0 , element , consistent ; element = script[ i ] ; i++ ) {
-                          element = jQuery( element )[ 0 ] ;
-                          consistent = false ;
-                          
-                          // 現行要素と移行要素を比較、一致するものがあれば次の走査へ移る。
-                          if
-                            (
-                              jQuery( 'script[src]' ).filter( function() {
-                                if ( consistent || this.src !== element.src ) { return false ; } ;
-                                consistent = true ;
-                                return true ;
-                              } ).length
-                          ) { continue ; } ;
-                          
-                          jQuery.data( jQuery( 'head' ).append( element ).children( ':last-child' ).get( 0 ) , settings.nss.data , false ) ;
-                          element = null ;
-                        } ;
-                        
-                        if ( fire( settings.callbacks.update.script.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_SCRIPT ; } ;
-                      } ; // label: UPDATE_SCRIPT
-                    } // function: script
-                    settings.load.sync ? null : settings.load.async.script === false ? load_script() : setTimeout( function() { load_script() ; } , settings.load.async.script ) ;
-                    
-                    if ( settings.load.sync ) {
-                      var id = setTimeout( function() {
-                        while ( id = settings.queue.shift() ) { clearTimeout( id ) ; } ;
-                        if( jQuery( settings.area ).length === jQuery( settings.area ).children( 'div[data-pjax-loaded]' ).length ) {
-                          jQuery( settings.area ).children( 'div[data-pjax-loaded]' ).remove() ;
-                          load_css() ;
-                          load_script() ;
-                        } else {
-                          id = setTimeout( arguments.callee , settings.interval ) ;
-                          settings.queue.push( id ) ;
-                        } ;
-                        plugin_data[ settings.id ] = settings ;
-                      } , settings.interval ) ;
-                      settings.queue.push( id ) ;
-                      plugin_data[ settings.id ] = settings ;
-                    } ;
-                    
-                    register && -1 < 'click,submit'.indexOf( event.type.toLowerCase() ) ? win.scrollTo( scrollX , scrollY ) : null ;
-                    
-                    if ( fire( settings.callbacks.update.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-                    if ( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-                    if ( fire( settings.callback , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-                  } catch( err ) {
-                    if ( fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-                    if ( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-                    settings.fallback ? fallback( event , context ) : null ;
-                  } ;
-                  
-                  if ( fire( settings.callbacks.update.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-                  data = null ; dataType = null ; XMLHttpRequest = null ; textStatus = null ; errorThrown = null ;
-                } ; // label: UPDATE
-                /* - done */
+                update() ;
               } ,
               error : function( arg1 , arg2 , arg3 ) {
                 XMLHttpRequest = arg1 ;
@@ -712,6 +378,171 @@
         /* - when */
       } // function: ajax_legacy
       /* - legacy support */
+    
+      function update() {
+        UPDATE : {
+          if ( fire( settings.callbacks.update.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
+          
+          try {
+            if ( XMLHttpRequest.getResponseHeader( 'Content-Type' ).indexOf( 'text/html' ) === -1 ) { throw new Error() ; } ;
+            
+            var
+              title = jQuery( data ).filter( 'title' ).text() ,
+              css = filter( data , 'css' , '(<link[^>]*?rel="stylesheet"[^>]*?>|<style[^>]*?>(.|[\n\r])*?</style>)' ) ,
+              script = filter( data , 'script' , '([^\'\"]|^\s*)(<script[^>]*?>(.|[\n\r])*?</script>)([^\'\"]|\s*$)' ) ,
+              areas = settings.area.split( ',' ) ,
+              scrollX = settings.scrollLeft === null ? jQuery( win ).scrollLeft() : parseInt( settings.scrollLeft ) ,
+              scrollY = settings.scrollTop === null ? jQuery( win ).scrollTop() : parseInt( settings.scrollTop ) ;
+            
+            
+            if ( !jQuery( settings.area ).length || !jQuery( settings.area , data ).add( jQuery( data ).filter( settings.area ) ).length ) { throw new Error() ; } ;
+            
+            /* url */
+            UPDATE_URL : {
+              if ( fire( settings.callbacks.update.url.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
+              url = url.replace( new RegExp( '[?&]' + settings.server.query + '=.*?([\s\W#&]|$)' ) , '' )
+              register ? history.pushState( null , win.opera || ( 'userAgent' in win && userAgent.indexOf( 'opera' ) !== -1 ) ? title : doc.title , url ) : null ;
+              if ( fire( settings.callbacks.update.url.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
+            } ;
+            
+            /* title */
+            UPDATE_TITLE : {
+              if ( fire( settings.callbacks.update.title.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_TITLE ; } ;
+              doc.title = title ;
+              if ( fire( settings.callbacks.update.title.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_TITLE ; } ;
+            } ;
+            
+            /* content */
+            UPDATE_CONTENT : {
+              if ( fire( settings.callbacks.update.content.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CONTENT ; } ;
+              for ( var i = 0 , area ; area = areas[ i ] ; i++ ) {
+                try {
+                  jQuery( area ).html( jQuery( area , data ).add( jQuery( data ).filter( area ) ).html() ) ;
+                  settings.load.sync ? jQuery( area ).append( jQuery( '<noscript/>' , { 'data-pjax-loaded' : 'true' , 'style' : 'display:none;' } ) ) : null ;
+                } catch( err ) {} ;
+              } ;
+              if ( fire( settings.callbacks.update.content.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CONTENT ; } ;
+            } ;
+            
+            /* css */
+            function load_css() {
+              UPDATE_CSS : {
+                if ( !settings.load.css ) { break UPDATE_CSS ; } ;
+                
+                if ( fire( settings.callbacks.update.css.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CSS ; } ;
+                
+                // 対象現行全要素に削除フラグを立てる。
+                jQuery( 'link[rel="stylesheet"], style' ).filter( function() { return jQuery.data( this , settings.nss.data , true ) ; } ) ;
+                // 対象移行全要素を走査する。
+                for ( var i = 0 , element , consistent ; element = css[ i ] ; i++ ) {
+                  element = jQuery( element )[ 0 ] ;
+                  consistent = false ;
+                  
+                  LINK : {
+                    if( element.tagName.toUpperCase() !== 'LINK' ) { break LINK ; } ;
+                    // 現行要素と移行要素を比較、一致するものがあれば次の走査へ移る。
+                    // 一致するものがなければ移行要素を追加し、一致するものがない現行要素を削除する。
+                    if
+                    (
+                      jQuery( 'link[rel="stylesheet"]' ).filter( function() {
+                        // 一致しないためFALSEを返す
+                        if ( consistent || this.href !== element.href ) { return false ; } ;
+                        // 一致したためTRUEを返す。一致した要素に削除フラグが立っていればこれを消す。
+                        consistent = true ;
+                        jQuery.data( this , settings.nss.data ) ? jQuery.data( this , settings.nss.data , false ) : null ;
+                        return true ;
+                      } ).length
+                    ) { continue ; } ;
+                  } ;
+                  
+                  STYLE : {
+                    if( element.tagName.toUpperCase() !== 'STYLE' ) { break STYLE ; } ;
+                    if
+                    (
+                      jQuery( 'style' ).filter( function() {
+                        if ( consistent || !jQuery.data( this , settings.nss.data ) || this.innerHTML !== element.innerHTML ) { return false ; } ;
+                        consistent = true ;
+                        jQuery.data( this , settings.nss.data , false ) ;
+                        return true ;
+                      } ).length
+                    ) { continue ; } ;
+                  } ;
+                  
+                  jQuery.data( jQuery( 'head' ).append( element ).children( ':last-child' ).get( 0 ) , settings.nss.data , false ) ;
+                  element = null ;
+                } ;
+                jQuery( 'link[rel="stylesheet"], style' ).filter( function() { return jQuery.data( this , settings.nss.data ) ; } ).remove() ;
+                
+                if ( fire( settings.callbacks.update.css.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CSS ; } ;
+              } ; // label: UPDATE_CSS
+            } // function: css
+            setTimeout( function() { load_css() ; } , settings.load.async || 0 ) ;
+            
+            /* script */
+            function load_script( type ) {
+              UPDATE_SCRIPT : {
+                if ( !settings.load.script ) { break UPDATE_SCRIPT ; } ;
+                
+                if ( fire( settings.callbacks.update.script.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_SCRIPT ; } ;
+                
+                for ( var i = 0 , element , defer , consistent ; element = script[ i ] ; i++ ) {
+                  
+                  defer = 0 < element.slice( 0 , element.indexOf( '>' ) ).lastIndexOf( ' defer' ) ;
+                  if ( type === 'defer' && !defer ) { continue ; } ;
+                  if ( type === 'async' && defer ) { continue ; } ;
+                  
+                  element = jQuery( element )[ 0 ] ;
+                  consistent = false ;
+                  
+                  if
+                    (
+                      jQuery( 'script[src]' ).filter( function() {
+                        if ( consistent || this.src !== element.src ) { return false ; } ;
+                        consistent = true ;
+                        return true ;
+                      } ).length
+                  ) { continue ; } ;
+                  
+                  jQuery.data( jQuery( 'head' ).append( element ).children( ':last-child' ).get( 0 ) , settings.nss.data , false ) ;
+                  element = null ;
+                } ;
+                
+                if ( fire( settings.callbacks.update.script.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_SCRIPT ; } ;
+              } ; // label: UPDATE_SCRIPT
+            } // function: script
+            setTimeout( function() { load_script( 'async' ) ; } , settings.load.async || 0 ) ;
+            
+            if ( settings.load.sync ) {
+              var id = setTimeout( function() {
+                while ( id = settings.queue.shift() ) { clearTimeout( id ) ; } ;
+                if( jQuery( settings.area ).length === jQuery( settings.area ).children( 'noscript[data-pjax-loaded]' ).length ) {
+                  jQuery( settings.area ).children( 'noscript[data-pjax-loaded]' ).remove() ;
+                   setTimeout( load_script( 'defer' ) , 0 ) ;
+                } else {
+                  id = setTimeout( arguments.callee , settings.interval ) ;
+                  settings.queue.push( id ) ;
+                } ;
+                plugin_data[ settings.id ] = settings ;
+              } , settings.interval ) ;
+              settings.queue.push( id ) ;
+              plugin_data[ settings.id ] = settings ;
+            } ;
+            
+            register && -1 < 'click,submit'.indexOf( event.type.toLowerCase() ) ? win.scrollTo( scrollX , scrollY ) : null ;
+            
+            if ( fire( settings.callbacks.update.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
+            if ( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
+            if ( fire( settings.callback , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
+          } catch( err ) {
+            if ( fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
+            if ( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
+            settings.fallback ? fallback( event , context ) : null ;
+          } ;
+          
+          if ( fire( settings.callbacks.update.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
+          data = null ; dataType = null ; XMLHttpRequest = null ; textStatus = null ; errorThrown = null ;
+        } ; // label: UPDATE
+      } // function: update
     } // function: ajax
     
     function fire( fn , context , args ) {
@@ -720,10 +551,10 @@
     
     function wait( ms ) {
       var dfd = jQuery.Deferred() ;
-      if ( !ms ) { return dfd.resolve( { fire : fire , filter : filter } ) ; } ;
+      if ( !ms ) { return dfd.resolve() ; } ;
       
       setTimeout( function() {
-        dfd.resolve( { fire : fire , filter : filter } ) ;
+        dfd.resolve() ;
       } , ms ) ;
       
       return dfd.promise() ; // function: wait
