@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.7.1
- * @updated 2013/04/11
+ * @version 1.7.2
+ * @updated 2013/04/12
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -81,7 +81,7 @@
         callback : function() {} ,
         callbacks : { ajax : {} , update : { url : {} , title : {} , content : {} , css : {} , script : {} } } ,
         parameter : undefined ,
-        load : { sync : true , async : 0 } ,
+        load : { css : false , script : false , sync : true , async : 0 } ,
         interval : 300 ,
         queue : [] ,
         wait : 0 ,
@@ -240,45 +240,7 @@
       
       if ( fire( settings.callbacks.before , context , [ event , settings.parameter ] ) === false ) { return context ;} ; // function: ajax
       
-      switch ( jQuery().jquery ) {
-        case '1.0':
-        case '1.0.4':
-        case '1.1.0':
-        case '1.1.2':
-        case '1.1.3':
-        case '1.1.4':
-        case '1.2':
-        case '1.2.3':
-        case '1.2.6':
-        case '1.3':
-        case '1.4':
-        case '1.4.1':
-        case '1.4.2':
-        case '1.4.3':
-        case '1.4.4':
-          ajax_legacy() ;
-          break ;
-        case '1.5':
-        case '1.5.1':
-        case '1.5.2':
-        case '1.6':
-        case '1.6.1':
-        case '1.6.2':
-        case '1.6.3':
-        case '1.6.4':
-        case '1.7':
-        case '1.7.1':
-        case '1.7.2':
-        case '1.8':
-        case '1.8.1':
-        case '1.8.2':
-        case '1.8.3':
-        case '1.9':
-        case '1.9.1':
-        default :
-          ajax_regular() ;
-          break ;
-      } ;
+      jQuery.when !== undefined ? ajax_regular() : ajax_legacy() ;
       
       if ( fire( settings.callbacks.after , context , [ event , settings.parameter ] ) === false ) { return context ; } ; // function: ajax
       
@@ -387,15 +349,17 @@
             if ( XMLHttpRequest.getResponseHeader( 'Content-Type' ).indexOf( 'text/html' ) === -1 ) { throw new Error() ; } ;
             
             var
-              title = jQuery( data ).filter( 'title' ).text() ,
-              css = filter( data , 'css' , '(<link[^>]*?rel="stylesheet"[^>]*?>|<style[^>]*?>(.|[\n\r])*?</style>)' ) ,
-              script = filter( data , 'script' , '([^\'\"]|^\s*)(<script[^>]*?>(.|[\n\r])*?</script>)([^\'\"]|\s*$)' ) ,
+              page = jQuery( data ) ,
+              parsable = 0 < page.filter( 'title' ).length ,
+              title = parsable ? page.filter( 'title' ).text() : filter( data , 'title' , '<title>([^<]*)</title>' ) ,
+              css ,
+              script ,
               areas = settings.area.split( ',' ) ,
               scrollX = settings.scrollLeft === null ? jQuery( win ).scrollLeft() : parseInt( settings.scrollLeft ) ,
               scrollY = settings.scrollTop === null ? jQuery( win ).scrollTop() : parseInt( settings.scrollTop ) ;
             
             
-            if ( !jQuery( settings.area ).length || !jQuery( settings.area , data ).add( jQuery( data ).filter( settings.area ) ).length ) { throw new Error() ; } ;
+            if ( !jQuery( settings.area ).length || !page.find( settings.area ).add( page.filter( settings.area ) ).length ) { throw new Error() ; } ;
             
             /* url */
             UPDATE_URL : {
@@ -417,26 +381,30 @@
               if ( fire( settings.callbacks.update.content.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CONTENT ; } ;
               for ( var i = 0 , area ; area = areas[ i ] ; i++ ) {
                 try {
-                  jQuery( area ).html( jQuery( area , data ).add( jQuery( data ).filter( area ) ).html() ) ;
-                  settings.load.sync ? jQuery( area ).append( jQuery( '<noscript/>' , { 'data-pjax-loaded' : 'true' , 'style' : 'display:none;' } ) ) : null ;
+                  jQuery( area ).html( page.find( area ).add( page.filter( area ) ).html() ) ;
+                  settings.load.sync ? jQuery( area ).append( jQuery( '<noscript/>' , { 'data-pjax-loaded' : 'true' , 'style' : 'display:none !important;' } ) ) : null ;
                 } catch( err ) {} ;
               } ;
               if ( fire( settings.callbacks.update.content.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CONTENT ; } ;
             } ;
             
             /* css */
+            settings.load.css ? setTimeout( function() { load_css() ; } , settings.load.async || 0 ) : null ;
             function load_css() {
               UPDATE_CSS : {
-                if ( !settings.load.css ) { break UPDATE_CSS ; } ;
-                
                 if ( fire( settings.callbacks.update.css.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CSS ; } ;
+                
+                css = parsable ?
+                      page.find( 'link[rel="stylesheet"], style' ).add( page.filter( 'link[rel="stylesheet"], style' ) ) :
+                      filter( data , 'css' , '(<link[^>]*?rel="stylesheet"[^>]*?>|<style[^>]*?>(.|[\n\r])*?</style>)' ) ;
                 
                 // 対象現行全要素に削除フラグを立てる。
                 jQuery( 'link[rel="stylesheet"], style' ).filter( function() { return jQuery.data( this , settings.nss.data , true ) ; } ) ;
                 // 対象移行全要素を走査する。
                 for ( var i = 0 , element , consistent ; element = css[ i ] ; i++ ) {
-                  element = jQuery( element )[ 0 ] ;
+                  
                   consistent = false ;
+                  element = parsable ? element : jQuery( element )[ 0 ] ;
                   
                   LINK : {
                     if( element.tagName.toUpperCase() !== 'LINK' ) { break LINK ; } ;
@@ -476,23 +444,24 @@
                 if ( fire( settings.callbacks.update.css.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CSS ; } ;
               } ; // label: UPDATE_CSS
             } // function: css
-            setTimeout( function() { load_css() ; } , settings.load.async || 0 ) ;
             
             /* script */
+            settings.load.script ? setTimeout( function() { load_script( 'async' ) ; } , settings.load.async || 0 ) : null ;
             function load_script( type ) {
               UPDATE_SCRIPT : {
-                if ( !settings.load.script ) { break UPDATE_SCRIPT ; } ;
-                
                 if ( fire( settings.callbacks.update.script.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_SCRIPT ; } ;
+                
+                script = parsable ? 
+                         page.find( 'script' ).add( page.filter( 'script' ) ) :
+                         filter( data , 'script' , '([^\'\"]|^\s*)(<script[^>]*?>(.|[\n\r])*?</script>)([^\'\"]|\s*$)' ) ;
                 
                 for ( var i = 0 , element , defer , consistent ; element = script[ i ] ; i++ ) {
                   
-                  defer = 0 < element.slice( 0 , element.indexOf( '>' ) ).lastIndexOf( ' defer' ) ;
-                  if ( type === 'defer' && !defer ) { continue ; } ;
-                  if ( type === 'async' && defer ) { continue ; } ;
-                  
-                  element = jQuery( element )[ 0 ] ;
                   consistent = false ;
+                  element = parsable ? element : jQuery( element )[ 0 ] ;
+                  
+                  if ( settings.load.sync && type === 'sync' && !element.defer ) { continue ; } ;
+                  if ( settings.load.sync && type === 'async' && element.defer ) { continue ; } ;
                   
                   if
                     (
@@ -510,14 +479,13 @@
                 if ( fire( settings.callbacks.update.script.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_SCRIPT ; } ;
               } ; // label: UPDATE_SCRIPT
             } // function: script
-            setTimeout( function() { load_script( 'async' ) ; } , settings.load.async || 0 ) ;
             
-            if ( settings.load.sync ) {
+            if ( settings.load.script && settings.load.sync ) {
               var id = setTimeout( function() {
                 while ( id = settings.queue.shift() ) { clearTimeout( id ) ; } ;
                 if( jQuery( settings.area ).length === jQuery( settings.area ).children( 'noscript[data-pjax-loaded]' ).length ) {
                   jQuery( settings.area ).children( 'noscript[data-pjax-loaded]' ).remove() ;
-                   setTimeout( load_script( 'defer' ) , 0 ) ;
+                  setTimeout( function() { load_script( 'sync' ) ; } , 0 ) ;
                 } else {
                   id = setTimeout( arguments.callee , settings.interval ) ;
                   settings.queue.push( id ) ;
@@ -540,7 +508,6 @@
           } ;
           
           if ( fire( settings.callbacks.update.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-          data = null ; dataType = null ; XMLHttpRequest = null ; textStatus = null ; errorThrown = null ;
         } ; // label: UPDATE
       } // function: update
     } // function: ajax
@@ -573,9 +540,18 @@
     function filter( data , type , pattern ) {
       var regex , result = [] ;
       regex = new RegExp( pattern , "gim" );
-      data.replace( regex , function( $0 , $1 , $2 ) {
-        result.push( type === 'script' ? $2 : $0 )
-      } ) ;
+      
+      switch ( type ) {
+        case 'title' :
+          data.replace( regex , function( $0 , $1 ) { result.push( $1 ) ;} ) ;
+          break ;
+        case 'css' :
+          data.replace( regex , function( $0 ) { result.push( $0 ) ;} ) ;
+          break ;
+        case 'script' :
+          data.replace( regex , function( $0 , $1 , $2 ) { result.push( $2 ) ;} ) ;
+          break ;
+      } ;
       return result ;
     } // function: filter
     
