@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.7.2
+ * @version 1.7.3
  * @updated 2013/04/12
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
@@ -50,12 +50,16 @@
  * 
  */
 
-( function( $ ) {
+( function() {
   
-  jQuery.fn.pjax = pjax ;
-  jQuery.pjax    = pjax ;
+  if ( typeof window[ 'jQuery' ] === 'undefined' ) { return ; } ;
+  
+  window[ 'undefined' ] = void( 0 ) ;
+  var $ = jQuery = window[ 'jQuery' ] , plugin_data = [ 'settings' ] ;
+  
+  window[ 'jQuery' ][ 'fn' ][ 'pjax' ] = pjax ;
+  window[ 'jQuery' ][ 'pjax' ]    = pjax ;
   pjax = null ;
-  var plugin_data = [ 'settings' ] ;
   
   
   function pjax( options ) {
@@ -67,7 +71,6 @@
     var
       win = window ,
       doc = document ,
-      timestamp = new Date() ,
       defaults = {
         id : 0 ,
         gns : 'pjax' ,
@@ -87,7 +90,8 @@
         wait : 0 ,
         fallback : true ,
         server : { query : 'pjax' } ,
-        delay : 300
+        delay : 500 ,
+        speed : { check : false }
       } ,
       settings = jQuery.extend( true , {} , defaults , options ) ;
     
@@ -96,13 +100,15 @@
       true ,
       settings , {
         nss : {
-          click : [ 'click' , settings.gns + ( settings.ns ? ':' + settings.ns : '' ) ].join( '.' ) ,
-          submit : [ 'submit' , settings.gns + ( settings.ns ? ':' + settings.ns : '' ) ].join( '.' ) ,
-          popstate : [ 'popstate' , settings.gns + ( settings.ns ? ':' + settings.ns : '' ) ].join( '.' ) ,
-          data : settings.gns + ( settings.ns ? ':' + settings.ns : '' ) ,
+          class4html : [ settings.gns + ( settings.ns ? '-' + settings.ns : null ) ].join( '.' ) ,
+          click : [ 'click' , settings.gns + ( settings.ns ? ':' + settings.ns : null ) ].join( '.' ) ,
+          submit : [ 'submit' , settings.gns + ( settings.ns ? ':' + settings.ns : null ) ].join( '.' ) ,
+          popstate : [ 'popstate' , settings.gns + ( settings.ns ? ':' + settings.ns : null ) ].join( '.' ) ,
+          data : settings.gns + ( settings.ns ? ':' + settings.ns : null ) ,
           requestHeader : [ 'X' , settings.gns.replace( /^(\w)/ , function( $1 ) { return $1.toUpperCase() ; } ) ].join( '-' )
         } ,
-        timestamp : timestamp.getTime()
+        timestamp : ( new Date() ).getTime() ,
+        speed : { now : function() { return ( new Date() ).getTime() ; } , log : { retry : 0 } }
       }
     ) ;
     
@@ -196,6 +202,11 @@
           }
         } ;
       
+      settings.speed.check ? settings.speed.log.fire = event.timeStamp : null ;
+      settings.speed.check ? settings.speed.log.time = [] : null ;
+      settings.speed.check ? settings.speed.log.name = [] : null ;
+      settings.speed.check ? settings.speed.log.name.push( 'fire' ) : null ;
+      settings.speed.check ? settings.speed.log.time.push( settings.speed.now() - settings.speed.log.fire ) : null ;
       for ( var i in callbacks ) {
         if ( i in settings.callbacks.ajax ) { continue ; } ;
         delete callbacks[ i ] ;
@@ -240,6 +251,8 @@
       
       if ( fire( settings.callbacks.before , context , [ event , settings.parameter ] ) === false ) { return context ;} ; // function: ajax
       
+      settings.speed.check ? settings.speed.log.name.push( 'ajax_start' ) : null ;
+      settings.speed.check ? settings.speed.log.time.push( settings.speed.now() - settings.speed.log.fire ) : null ;
       jQuery.when !== undefined ? ajax_regular() : ajax_legacy() ;
       
       if ( fire( settings.callbacks.after , context , [ event , settings.parameter ] ) === false ) { return context ; } ; // function: ajax
@@ -343,6 +356,8 @@
     
       function update() {
         UPDATE : {
+          settings.speed.check ? settings.speed.log.name.push( 'update_start' ) : null ;
+          settings.speed.check ? settings.speed.log.time.push( settings.speed.now() - settings.speed.log.fire ) : null ;
           if ( fire( settings.callbacks.update.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
           
           try {
@@ -365,7 +380,8 @@
             UPDATE_URL : {
               if ( fire( settings.callbacks.update.url.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
               url = url.replace( new RegExp( '[?&]' + settings.server.query + '=.*?([\s\W#&]|$)' ) , '' )
-              register ? history.pushState( null , win.opera || ( 'userAgent' in win && userAgent.indexOf( 'opera' ) !== -1 ) ? title : doc.title , url ) : null ;
+              register ? history.pushState( null , win.opera || ( 'userAgent' in win && userAgent.indexOf( 'opera' ) !== -1 ) ? title : doc.title , url )
+                       : null ;
               if ( fire( settings.callbacks.update.url.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
             } ;
             
@@ -380,10 +396,10 @@
             UPDATE_CONTENT : {
               if ( fire( settings.callbacks.update.content.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CONTENT ; } ;
               for ( var i = 0 , area ; area = areas[ i ] ; i++ ) {
-                try {
-                  jQuery( area ).html( page.find( area ).add( page.filter( area ) ).html() ) ;
-                  settings.load.sync ? jQuery( area ).append( jQuery( '<noscript/>' , { 'data-pjax-loaded' : 'true' , 'style' : 'display:none !important;' } ) ) : null ;
-                } catch( err ) {} ;
+                jQuery( area ).html( page.find( area ).add( page.filter( area ) ).html() ) ;
+                settings.load.script && settings.load.sync ? jQuery( area ).append( jQuery( '<div/>' , {
+                  'class' : settings.nss.class4html + '-loaded' , 'style' : 'display: block !important; visibility: hidden !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; position: absolute !important; top: -9999px !important; left: -9999px !important; font-size: 12px !important;'
+                } ).text( 'pjax' ) ) : null ;
               } ;
               if ( fire( settings.callbacks.update.content.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CONTENT ; } ;
             } ;
@@ -442,6 +458,8 @@
                 jQuery( 'link[rel="stylesheet"], style' ).filter( function() { return jQuery.data( this , settings.nss.data ) ; } ).remove() ;
                 
                 if ( fire( settings.callbacks.update.css.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CSS ; } ;
+                settings.speed.check ? settings.speed.log.name.push( 'css' ) : null ;
+                settings.speed.check ? settings.speed.log.time.push( settings.speed.now() - settings.speed.log.fire ) : null ;
               } ; // label: UPDATE_CSS
             } // function: css
             
@@ -483,18 +501,25 @@
             if ( settings.load.script && settings.load.sync ) {
               var id = setTimeout( function() {
                 while ( id = settings.queue.shift() ) { clearTimeout( id ) ; } ;
-                if( jQuery( settings.area ).length === jQuery( settings.area ).children( 'noscript[data-pjax-loaded]' ).length ) {
-                  jQuery( settings.area ).children( 'noscript[data-pjax-loaded]' ).remove() ;
+                if( jQuery( settings.area ).length === jQuery( settings.area ).children( '.' + settings.nss.class4html + '-loaded' ).filter( function() { return this.clientWidth ; } ).length ) {
+                  jQuery( settings.area ).children( '.' + settings.nss.class4html + '-loaded' ).remove() ;
                   setTimeout( function() { load_script( 'sync' ) ; } , 0 ) ;
+                  settings.speed.check ? settings.speed.log.name.push( 'script' ) : null ;
+                  settings.speed.check ? settings.speed.log.time.push( settings.speed.now() - settings.speed.log.fire ) : null ;
+                  settings.speed.check ? console.log( settings.speed.log.time ) : null ;
+                  settings.speed.check ? console.log( settings.speed.log.name ) : null ;
+                  settings.speed.check ? console.log( settings.speed.log.retry ) : null ;
                 } else {
                   id = setTimeout( arguments.callee , settings.interval ) ;
                   settings.queue.push( id ) ;
+                  settings.speed.check ? ++settings.speed.log.retry : null ;
                 } ;
                 plugin_data[ settings.id ] = settings ;
-              } , settings.interval ) ;
+              } , 0 ) ;
               settings.queue.push( id ) ;
               plugin_data[ settings.id ] = settings ;
             } ;
+            
             
             register && -1 < 'click,submit'.indexOf( event.type.toLowerCase() ) ? win.scrollTo( scrollX , scrollY ) : null ;
             
@@ -508,6 +533,8 @@
           } ;
           
           if ( fire( settings.callbacks.update.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
+          settings.speed.check ? settings.speed.log.name.push( 'end' ) : null ;
+          settings.speed.check ? settings.speed.log.time.push( settings.speed.now() - settings.speed.log.fire ) : null ;
         } ; // label: UPDATE
       } // function: update
     } // function: ajax
@@ -527,7 +554,7 @@
       return dfd.promise() ; // function: wait
     } // function: wait
     
-    function fallback( event , context , reload ) {
+    function fallback( event , context ) {
       if ( event.type.toLowerCase() === 'click' ) {
         location.href = context.href ;
       } else if ( event.type.toLowerCase() === 'submit' ) {
@@ -557,4 +584,4 @@
     
     return this ; // function: pjax
   } // function: pjax
-} )( jQuery )
+} )() ;
