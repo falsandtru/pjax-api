@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.7.3
- * @updated 2013/04/12
+ * @version 1.7.4
+ * @updated 2013/04/16
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -54,23 +54,20 @@
   
   if ( typeof window[ 'jQuery' ] === 'undefined' ) { return ; } ;
   
-  window[ 'undefined' ] = void( 0 ) ;
-  var $ = jQuery = window[ 'jQuery' ] , plugin_data = [ 'settings' ] ;
+  var $ = jQuery = window[ 'jQuery' ] , undefined = void( 0 ) , win = window , doc = document , plugin_data = [ 'settings' ] ;
   
-  window[ 'jQuery' ][ 'fn' ][ 'pjax' ] = pjax ;
-  window[ 'jQuery' ][ 'pjax' ]    = pjax ;
+  jQuery.fn.pjax = pjax ;
+  jQuery.pjax = pjax ;
   pjax = null ;
   
   
   function pjax( options ) {
     
     /* Transfer process */
-    if ( typeof this === 'function' ) { return arguments.callee.apply( jQuery( document ) , arguments ) ; } ;
+    if ( typeof this === 'function' ) { return arguments.callee.apply( jQuery( doc ) , arguments ) ; } ;
     
     /* Variable initialization */
     var
-      win = window ,
-      doc = document ,
       defaults = {
         id : 0 ,
         gns : 'pjax' ,
@@ -100,11 +97,11 @@
       true ,
       settings , {
         nss : {
-          class4html : [ settings.gns + ( settings.ns ? '-' + settings.ns : null ) ].join( '.' ) ,
-          click : [ 'click' , settings.gns + ( settings.ns ? ':' + settings.ns : null ) ].join( '.' ) ,
-          submit : [ 'submit' , settings.gns + ( settings.ns ? ':' + settings.ns : null ) ].join( '.' ) ,
-          popstate : [ 'popstate' , settings.gns + ( settings.ns ? ':' + settings.ns : null ) ].join( '.' ) ,
-          data : settings.gns + ( settings.ns ? ':' + settings.ns : null ) ,
+          class4html : [ settings.gns + ( settings.ns ? '-' + settings.ns : '' ) ].join( '.' ) ,
+          click : [ 'click' , settings.gns + ( settings.ns ? ':' + settings.ns : '' ) ].join( '.' ) ,
+          submit : [ 'submit' , settings.gns + ( settings.ns ? ':' + settings.ns : '' ) ].join( '.' ) ,
+          popstate : [ 'popstate' , settings.gns + ( settings.ns ? ':' + settings.ns : '' ) ].join( '.' ) ,
+          data : settings.gns + ( settings.ns ? ':' + settings.ns : '' ) ,
           requestHeader : [ 'X' , settings.gns.replace( /^(\w)/ , function( $1 ) { return $1.toUpperCase() ; } ) ].join( '-' )
         } ,
         timestamp : ( new Date() ).getTime() ,
@@ -112,10 +109,13 @@
       }
     ) ;
     
+    
     /* Process startup */
     if ( !check() ) { return this ; } ;
     
     register( this , settings ) ;
+    
+    return this ; // function: pjax
     
     
     /* Function declaration */
@@ -177,8 +177,6 @@
     
     function ajax( context , event , url , register , settings ) {
       var
-        win = window ,
-        doc = document ,
         data ,
         dataType ,
         XMLHttpRequest ,
@@ -298,7 +296,7 @@
                   errorThrown = arg3 ;
                   
                   fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
-                  settings.fallback ? fallback( event , context ) : null ;
+                  settings.fallback ? fallback( event ) : null ;
                 }  
               }
             )
@@ -345,7 +343,7 @@
                 errorThrown = arg3 ;
                 
                 fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
-                settings.fallback ? fallback( event , context ) : null ;
+                settings.fallback ? fallback( event ) : null ;
               }
             }
           )
@@ -366,7 +364,7 @@
             var
               page = jQuery( data ) ,
               parsable = 0 < page.filter( 'title' ).length ,
-              title = parsable ? page.filter( 'title' ).text() : filter( data , 'title' , '<title>([^<]*)</title>' ) ,
+              title = parsable ? page.filter( 'title' ).text() : filter( data , '<title>([^<]*)</title>' ) ,
               css ,
               script ,
               areas = settings.area.split( ',' ) ,
@@ -398,7 +396,7 @@
               for ( var i = 0 , area ; area = areas[ i ] ; i++ ) {
                 jQuery( area ).html( page.find( area ).add( page.filter( area ) ).html() ) ;
                 settings.load.script && settings.load.sync ? jQuery( area ).append( jQuery( '<div/>' , {
-                  'class' : settings.nss.class4html + '-loaded' , 'style' : 'display: block !important; visibility: hidden !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; position: absolute !important; top: -9999px !important; left: -9999px !important; font-size: 12px !important;'
+                  'class' : settings.nss.class4html + '-loaded' , 'style' : 'display: block !important; visibility: hidden !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; position: absolute !important; top: -9999px !important; left: -9999px !important; font-size: 12px !important; text-indent: 0 !important;'
                 } ).text( 'pjax' ) ) : null ;
               } ;
               if ( fire( settings.callbacks.update.content.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CONTENT ; } ;
@@ -412,7 +410,7 @@
                 
                 css = parsable ?
                       page.find( 'link[rel="stylesheet"], style' ).add( page.filter( 'link[rel="stylesheet"], style' ) ) :
-                      filter( data , 'css' , '(<link[^>]*?rel="stylesheet"[^>]*?>|<style[^>]*?>(.|[\n\r])*?</style>)' ) ;
+                      filter( data , '(<link[^>]*?rel="stylesheet"[^>]*?>|<style[^>]*?>(.|[\n\r])*?</style>)' ) ;
                 
                 // 対象現行全要素に削除フラグを立てる。
                 jQuery( 'link[rel="stylesheet"], style' ).filter( function() { return jQuery.data( this , settings.nss.data , true ) ; } ) ;
@@ -452,7 +450,7 @@
                     ) { continue ; } ;
                   } ;
                   
-                  jQuery.data( jQuery( 'head' ).append( element ).children( ':last-child' ).get( 0 ) , settings.nss.data , false ) ;
+                  jQuery.data( jQuery( 'head' ).append( element ).children( ':last-child' )[ 0 ] , settings.nss.data , false ) ;
                   element = null ;
                 } ;
                 jQuery( 'link[rel="stylesheet"], style' ).filter( function() { return jQuery.data( this , settings.nss.data ) ; } ).remove() ;
@@ -471,7 +469,7 @@
                 
                 script = parsable ? 
                          page.find( 'script' ).add( page.filter( 'script' ) ) :
-                         filter( data , 'script' , '([^\'\"]|^\s*)(<script[^>]*?>(.|[\n\r])*?</script>)([^\'\"]|\s*$)' ) ;
+                         filter( data , '(?:[^\'\"]|^\s*)(<script[^>]*?>(.|[\n\r])*?</script>)(?:[^\'\"]|\s*$)' ) ;
                 
                 for ( var i = 0 , element , defer , consistent ; element = script[ i ] ; i++ ) {
                   
@@ -490,7 +488,7 @@
                       } ).length
                   ) { continue ; } ;
                   
-                  jQuery.data( jQuery( 'head' ).append( element ).children( ':last-child' ).get( 0 ) , settings.nss.data , false ) ;
+                  jQuery.data( jQuery( 'head' ).append( element ).children( ':last-child' )[ 0 ] , settings.nss.data , false ) ;
                   element = null ;
                 } ;
                 
@@ -529,7 +527,7 @@
           } catch( err ) {
             if ( fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
             if ( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-            settings.fallback ? fallback( event , context ) : null ;
+            settings.fallback ? fallback( event ) : null ;
           } ;
           
           if ( fire( settings.callbacks.update.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
@@ -554,9 +552,9 @@
       return dfd.promise() ; // function: wait
     } // function: wait
     
-    function fallback( event , context ) {
+    function fallback( event ) {
       if ( event.type.toLowerCase() === 'click' ) {
-        location.href = context.href ;
+        location.href = event.currentTarget.href ;
       } else if ( event.type.toLowerCase() === 'submit' ) {
         context.submit() ;
       } else if ( event.type.toLowerCase() === 'popstate' ) {
@@ -564,24 +562,12 @@
       } ;
     } // function: fallback
     
-    function filter( data , type , pattern ) {
-      var regex , result = [] ;
-      regex = new RegExp( pattern , "gim" );
+    function filter( data , pattern ) {
+      var result = [] ;
       
-      switch ( type ) {
-        case 'title' :
-          data.replace( regex , function( $0 , $1 ) { result.push( $1 ) ;} ) ;
-          break ;
-        case 'css' :
-          data.replace( regex , function( $0 ) { result.push( $0 ) ;} ) ;
-          break ;
-        case 'script' :
-          data.replace( regex , function( $0 , $1 , $2 ) { result.push( $2 ) ;} ) ;
-          break ;
-      } ;
+      data.replace( new RegExp( pattern , "gim" ) , function( $0 , $1 ) { result.push( $1 ) ; } )
+      
       return result ;
     } // function: filter
-    
-    return this ; // function: pjax
   } // function: pjax
 } )() ;
