@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.8.0
+ * @version 1.8.1
  * @updated 2013/04/17
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
@@ -142,6 +142,8 @@
         jQuery( context )
         .undelegate( settings.link , settings.nss.click )
         .delegate( settings.link , settings.nss.click , settings.id , function( event ) {
+          event.timeStamp = ( new Date() ).getTime() ;
+          
           if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return this ; } ;
           if ( location.protocol !== this.protocol || location.host !== this.host ) { return this ; } ;
           if ( location.pathname === this.pathname && location.search === this.search && location.hash !== this.hash ) { return this ; } ;
@@ -163,6 +165,8 @@
         jQuery( context )
         .undelegate( settings.form , settings.nss.submit )
         .delegate( settings.form , settings.nss.submit , settings.id , function( event ) {
+          event.timeStamp = ( new Date() ).getTime() ;
+          
           var settings, url , cache ;
           settings = plugin_data[ event.data ] ;
           url = jQuery( event.target ).attr( 'action' ) ;
@@ -178,6 +182,8 @@
         jQuery( win )
         .unbind( settings.nss.popstate )
         .bind( settings.nss.popstate , settings.id , function( event ) {
+          event.timeStamp = ( new Date() ).getTime() ;
+          
           var settings, url , cache ;
           settings = plugin_data[ event.data ] ;
           url = location.href ;
@@ -405,7 +411,6 @@
                 title = cache.title ;
                 css = cache.css ;
                 script = cache.script ;
-                event = cache.event ;
               } ;
               if ( fire( settings.callbacks.update.cache.after , context , [ event , settings.parameter , cache ] ) === false ) { break UPDATE_CACHE ; } ;
             } ;
@@ -580,7 +585,6 @@
               size = data.length * 2 ;
               cache_history.size += size ;
               cache_history.data[ url ] = {
-                event : event ,
                 data : null ,
                 dataType : dataType ,
                 XMLHttpRequest : XMLHttpRequest ,
