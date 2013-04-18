@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.8.1
- * @updated 2013/04/17
+ * @version 1.8.2
+ * @updated 2013/04/18
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -78,17 +78,17 @@
         scrollTop : 0 ,
         scrollLeft : 0 ,
         ajax : {} ,
-        cache : { click : true , submit : true , popstate : true , length : 9 /* pages */ , size : 1*1024*1024 /* 1MB */ , expire : 30*60*1000 /* 30min */ } ,
+        cache : { click : false , submit : false , popstate : false , length : 9 /* pages */ , size : 1*1024*1024 /* 1MB */ , expire : 30*60*1000 /* 30min */ } ,
         callback : function() {} ,
-        callbacks : { ajax : {} , update : { url : {} , title : {} , content : {} , css : {} , script : {} , cache : {} } } ,
+        callbacks : { ajax : {} , update : { url : {} , title : {} , content : {} , css : {} , script : {} , cache : { load : {} , save : {} } } } ,
         parameter : undefined ,
         load : { css : false , script : false , sync : true , async : 0 } ,
         interval : 300 ,
         wait : 0 ,
         fallback : true ,
-        server : { query : 'pjax' } ,
         delay : 500 ,
-        speed : { check : false }
+        server : { query : '' } ,
+        speedcheck : false
       } ,
       settings = jQuery.extend( true , {} , defaults , options ) ;
     
@@ -102,11 +102,13 @@
           submit : [ 'submit' , settings.gns + ( settings.ns ? ':' + settings.ns : '' ) ].join( '.' ) ,
           popstate : [ 'popstate' , settings.gns + ( settings.ns ? ':' + settings.ns : '' ) ].join( '.' ) ,
           data : settings.gns + ( settings.ns ? ':' + settings.ns : '' ) ,
-          requestHeader : [ 'X' , settings.gns.replace( /^(\w)/ , function( $1 ) { return $1.toUpperCase() ; } ) ].join( '-' )
+          requestHeader : [ 'X' , settings.gns.replace( /^\w/ , function( $0 ) { return $0.toUpperCase() ; } ) ].join( '-' )
         } ,
+        server : { query : settings.server.query.length ? settings.server.query.length : settings.gns } ,
+        log : { script : {} , speed : {} } ,
         history : { order : [] , data : {} , size : 0 } ,
         timestamp : ( new Date() ).getTime() ,
-        speed : { now : function() { return ( new Date() ).getTime() ; } , log : { retry : 0 } }
+        speed : { now : function() { return ( new Date() ).getTime() ; } }
       }
     ) ;
     
@@ -145,8 +147,8 @@
           event.timeStamp = ( new Date() ).getTime() ;
           
           if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return this ; } ;
-          if ( location.protocol !== this.protocol || location.host !== this.host ) { return this ; } ;
-          if ( location.pathname === this.pathname && location.search === this.search && location.hash !== this.hash ) { return this ; } ;
+          if ( win.location.protocol !== this.protocol || win.location.host !== this.host ) { return this ; } ;
+          if ( win.location.pathname === this.pathname && win.location.search === this.search && win.location.hash !== this.hash ) { return this ; } ;
           
           var settings, url , cache ;
           settings = plugin_data[ event.data ] ;
@@ -154,7 +156,7 @@
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = settings.history.data[ url ] ; } ;
           if ( cache && event.timeStamp > cache.timestamp + settings.cache.expire ) { cache = undefined ; } ;
           
-          drive( this , event , url , url !== location.href , plugin_data[ event.data ] , cache ) ;
+          drive( this , event , url , url !== win.location.href , plugin_data[ event.data ] , cache ) ;
           event.preventDefault() ;
         } ) ;
       } ; // label: DELEGATE_CLICK
@@ -186,7 +188,7 @@
           
           var settings, url , cache ;
           settings = plugin_data[ event.data ] ;
-          url = location.href ;
+          url = win.location.href ;
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = settings.history.data[ url ] ; } ;
           if ( cache && event.timeStamp > cache.timestamp + settings.cache.expire ) { cache = undefined ; } ;
           
@@ -200,14 +202,18 @@
           event.preventDefault() ;
         } ) ;
       } ; // label: BIND_POPSTATE
+      
+      jQuery( 'script[src]' ).each( function() {
+        if ( !( this.src in settings.log.script ) ) { settings.log.script[ this.src ] = true ; } ;
+      } ) ;
     } // function: register
     
     function drive( context , event , url , register , settings , cache ) {
-      settings.speed.check ? settings.speed.log.fire = event.timeStamp : null ;
-      settings.speed.check ? settings.speed.log.time = [] : null ;
-      settings.speed.check ? settings.speed.log.name = [] : null ;
-      settings.speed.check ? settings.speed.log.name.push( 'fire' ) : null ;
-      settings.speed.check ? settings.speed.log.time.push( settings.speed.now() - settings.speed.log.fire ) : null ;
+      settings.speedcheck ? settings.log.speed.fire = event.timeStamp : null ;
+      settings.speedcheck ? settings.log.speed.time = [] : null ;
+      settings.speedcheck ? settings.log.speed.name = [] : null ;
+      settings.speedcheck ? settings.log.speed.name.push( 'fire' ) : null ;
+      settings.speedcheck ? settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) : null ;
       
       
       if ( fire( settings.callbacks.before , context , [ event , settings.parameter ] ) === false ) { return context ; } ; // function: ajax
@@ -287,8 +293,8 @@
         url = url.replace( /(#[^\s]*|)$/ , ( !url.match( /\?/ ) ? '?' :'&' ) + encodeURIComponent( settings.server.query ) + '=1' + '$1' ) ;
       } ;
       
-      settings.speed.check ? settings.speed.log.name.push( 'ajax_start' ) : null ;
-      settings.speed.check ? settings.speed.log.time.push( settings.speed.now() - settings.speed.log.fire ) : null ;
+      settings.speedcheck ? settings.log.speed.name.push( 'ajax_start' ) : null ;
+      settings.speedcheck ? settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) : null ;
       jQuery.when ? ajax_regular() : ajax_legacy() ;
       
       if ( fire( settings.callbacks.after , context , [ event , settings.parameter ] ) === false ) { return context ; } ; // function: ajax
@@ -390,8 +396,8 @@
     
       function update( cache ) {
         UPDATE : {
-          settings.speed.check ? settings.speed.log.name.push( 'update_start' ) : null ;
-          settings.speed.check ? settings.speed.log.time.push( settings.speed.now() - settings.speed.log.fire ) : null ;
+          settings.speedcheck ? settings.log.speed.name.push( 'update_start' ) : null ;
+          settings.speedcheck ? settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) : null ;
           if ( fire( settings.callbacks.update.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
           
           try {
@@ -403,17 +409,16 @@
             
             /* cache */
             UPDATE_CACHE : {
-              if ( fire( settings.callbacks.update.cache.before , context , [ event , settings.parameter , cache ] ) === false ) { break UPDATE_CACHE ; } ;
-              if ( cache ) {
-                XMLHttpRequest = cache.XMLHttpRequest ;
-                data = XMLHttpRequest.responseText ;
-                dataType = cache.dataType ;
-                title = cache.title ;
-                css = cache.css ;
-                script = cache.script ;
-              } ;
-              if ( fire( settings.callbacks.update.cache.after , context , [ event , settings.parameter , cache ] ) === false ) { break UPDATE_CACHE ; } ;
-            } ;
+              if ( !cache ) { break UPDATE_CACHE ; } ;
+              if ( fire( settings.callbacks.update.cache.load.before , context , [ event , settings.parameter , cache ] ) === false ) { break UPDATE_CACHE ; } ;
+              XMLHttpRequest = cache.XMLHttpRequest ;
+              data = XMLHttpRequest.responseText ;
+              dataType = cache.dataType ;
+              title = cache.title ;
+              css = cache.css ;
+              script = cache.script ;
+              if ( fire( settings.callbacks.update.cache.load.after , context , [ event , settings.parameter , cache ] ) === false ) { break UPDATE_CACHE ; } ;
+            } ; // label: UPDATE_CACHE
             
             /* variable initialization */
             var
@@ -433,7 +438,7 @@
             UPDATE_URL : {
               if ( fire( settings.callbacks.update.url.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
               url = url.replace( new RegExp( '[?&]' + settings.server.query + '=.*?([\s\W#&]|$)' ) , '' )
-              register ? history.pushState( null , win.opera || ( 'userAgent' in win && userAgent.indexOf( 'opera' ) !== -1 ) ? title : doc.title , url )
+              register ? win.history.pushState( null , win.opera || ( 'userAgent' in win && userAgent.indexOf( 'opera' ) !== -1 ) ? title : doc.title , url )
                        : null ;
               if ( fire( settings.callbacks.update.url.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
             } ;
@@ -511,8 +516,8 @@
                 jQuery( 'link[rel="stylesheet"], style' ).filter( function() { return jQuery.data( this , settings.nss.data ) ; } ).remove() ;
                 
                 if ( fire( settings.callbacks.update.css.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CSS ; } ;
-                settings.speed.check ? settings.speed.log.name.push( 'css' ) : null ;
-                settings.speed.check ? settings.speed.log.time.push( settings.speed.now() - settings.speed.log.fire ) : null ;
+                settings.speedcheck ? settings.log.speed.name.push( 'css' ) : null ;
+                settings.speedcheck ? settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) : null ;
               } ; // label: UPDATE_CSS
             } // function: css
             
@@ -534,14 +539,8 @@
                   if ( settings.load.sync && type === 'sync' && !element.defer ) { continue ; } ;
                   if ( settings.load.sync && type === 'async' && element.defer ) { continue ; } ;
                   
-                  if
-                    (
-                      jQuery( 'script[src]' ).filter( function() {
-                        if ( consistent || this.src !== element.src ) { return false ; } ;
-                        consistent = true ;
-                        return true ;
-                      } ).length
-                  ) { continue ; } ;
+                  if ( !element.childNodes.length && element.src in settings.log.script ) { continue ; } ;
+                  if ( element.src.length ) { settings.log.script[ element.src ] = true ; } ;
                   
                   jQuery.data( jQuery( 'head' ).append( element ).children( ':last-child' )[ 0 ] , settings.nss.data , false ) ;
                   element = null ;
@@ -556,14 +555,12 @@
                 if ( jQuery( settings.area ).length === jQuery( settings.area ).children( '.' + settings.nss.class4html + '-loaded' ).filter( function() { return this.clientWidth ; } ).length ) {
                   jQuery( settings.area ).children( '.' + settings.nss.class4html + '-loaded' ).remove() ;
                   setTimeout( function() { load_script( 'sync' ) ; } , 0 ) ;
-                  settings.speed.check ? settings.speed.log.name.push( 'script' ) : null ;
-                  settings.speed.check ? settings.speed.log.time.push( settings.speed.now() - settings.speed.log.fire ) : null ;
-                  settings.speed.check ? console.log( settings.speed.log.time ) : null ;
-                  settings.speed.check ? console.log( settings.speed.log.name ) : null ;
-                  settings.speed.check ? console.log( settings.speed.log.retry ) : null ;
+                  settings.speedcheck ? settings.log.speed.name.push( 'script' ) : null ;
+                  settings.speedcheck ? settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) : null ;
+                  settings.speedcheck ? console.log( settings.log.speed.time ) : null ;
+                  settings.speedcheck ? console.log( settings.log.speed.name ) : null ;
                 } else {
                   setTimeout( function() { arguments.callee() ; } , settings.interval ) ;
-                  settings.speed.check ? ++settings.speed.log.retry : null ;
                 } ;
               } , 0 ) ;
             } ;
@@ -573,7 +570,9 @@
             
             /* cache */
             UPDATE_CACHE : {
-              if ( !settings.cache[ event.type.toLowerCase() ] || settings.ajax.type === 'POST' ) { break UPDATE_CACHE ; } ;
+              if ( !settings.cache.click && !settings.cache.submit && !settings.cache.popstate ) { break UPDATE_CACHE ; } ;
+              if ( settings.ajax.type === 'POST' ) { break UPDATE_CACHE ; } ;
+              if ( fire( settings.callbacks.update.cache.save.before , context , [ event , settings.parameter , cache ] ) === false ) { break UPDATE_CACHE ; } ;
               
               var cache_history = settings.history , size ;
               
@@ -604,7 +603,9 @@
                 } ;
               } ;
               settings.history = cache_history ;
-            } ;
+              if ( fire( settings.callbacks.update.cache.save.after , context , [ event , settings.parameter , cache ] ) === false ) { break UPDATE_CACHE ; } ;
+            } ; // label: UPDATE_CACHE
+            
             plugin_data[ settings.id ] = settings ;
             
             if ( fire( settings.callbacks.update.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
@@ -638,8 +639,8 @@
           
           if ( fire( settings.callbacks.update.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
           
-          settings.speed.check ? settings.speed.log.name.push( 'end' ) : null ;
-          settings.speed.check ? settings.speed.log.time.push( settings.speed.now() - settings.speed.log.fire ) : null ;
+          settings.speedcheck ? settings.log.speed.name.push( 'end' ) : null ;
+          settings.speedcheck ? settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) : null ;
         } ; // label: UPDATE
       } // function: update
     } // function: ajax
@@ -658,11 +659,11 @@
     
     function fallback( event ) {
       if ( event.type.toLowerCase() === 'click' ) {
-        location.href = event.currentTarget.href ;
+        win.location.href = event.currentTarget.href ;
       } else if ( event.type.toLowerCase() === 'submit' ) {
         context.submit() ;
       } else if ( event.type.toLowerCase() === 'popstate' ) {
-        location.reload() ;
+        win.location.reload() ;
       } ;
     } // function: fallback
     
