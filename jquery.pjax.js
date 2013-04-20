@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.8.3
- * @updated 2013/04/20
+ * @version 1.8.4
+ * @updated 2013/04/21
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -90,19 +90,21 @@
         server : { query : '' } ,
         speedcheck : false
       } ,
-      settings = jQuery.extend( true , {} , defaults , options ) ;
+      settings = jQuery.extend( true , {} , defaults , options ) ,
+      nsArray = [ settings.gns ].concat( settings.ns || [] ) ;
     
     jQuery.extend
     (
       true ,
       settings , {
         nss : {
-          class4html : [ settings.gns + ( settings.ns ? '-' + settings.ns : '' ) ].join( '.' ) ,
-          click : [ 'click' , settings.gns + ( settings.ns ? ':' + settings.ns : '' ) ].join( '.' ) ,
-          submit : [ 'submit' , settings.gns + ( settings.ns ? ':' + settings.ns : '' ) ].join( '.' ) ,
-          popstate : [ 'popstate' , settings.gns + ( settings.ns ? ':' + settings.ns : '' ) ].join( '.' ) ,
-          data : settings.gns + ( settings.ns ? ':' + settings.ns : '' ) ,
-          requestHeader : [ 'X' , settings.gns.replace( /^\w/ , function( $0 ) { return $0.toUpperCase() ; } ) ].join( '-' )
+          pjax : nsArray.join( '.' ) ,
+          click : [ 'click' ].concat( nsArray.join( ':' ) ).join( '.' ) ,
+          submit : [ 'submit' ].concat( nsArray.join( ':' ) ).join( '.' ) ,
+          popstate : [ 'popstate' ].concat( nsArray.join( ':' ) ).join( '.' ) ,
+          data : nsArray.join( ':' ) ,
+          class4html : nsArray.join( '-' ) ,
+          requestHeader : [ 'X' , nsArray[ 0 ].replace( /^\w/ , function( $0 ) { return $0.toUpperCase() ; } ) ].join( '-' )
         } ,
         server : { query : settings.server.query.length ? settings.server.query : settings.gns } ,
         log : { script : {} , speed : {} } ,
@@ -425,8 +427,6 @@
               page = jQuery( data ) ,
               parsable = 0 < page.filter( 'title' ).length ,
               title = title || parsable ? page.filter( 'title' ).text() : find( data , '<title>([^<]*)</title>' ) ,
-              css ,
-              script ,
               areas = settings.area.split( ',' ) ,
               scrollX = settings.scrollLeft === null ? jQuery( win ).scrollLeft() : parseInt( settings.scrollLeft ) ,
               scrollY = settings.scrollTop === null ? jQuery( win ).scrollTop() : parseInt( settings.scrollTop ) ;
@@ -467,8 +467,10 @@
               UPDATE_CSS : {
                 if ( fire( settings.callbacks.update.css.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CSS ; } ;
                 
-                css = css || parsable ? page.find( 'link[rel="stylesheet"], style' ).add( page.filter( 'link[rel="stylesheet"], style' ) )
-                                      : find( data , '(<link[^>]*?rel="stylesheet"[^>]*?>|<style[^>]*?>(.|[\n\r])*?</style>)' ) ;
+                css = css ? css
+                          : parsable ? page.find( 'link[rel="stylesheet"], style' ).add( page.filter( 'link[rel="stylesheet"], style' ) )
+                                     : find( data , '(<link[^>]*?rel="stylesheet"[^>]*?>|<style[^>]*?>(.|[\n\r])*?</style>)' ) ;
+                plugin_data[ settings.id ].history.data[ url ].css = css ;
                 
                 // 対象現行全要素に削除フラグを立てる。
                 jQuery( 'link[rel="stylesheet"], style' ).filter( function() { return jQuery.data( this , settings.nss.data , true ) ; } ) ;
@@ -525,16 +527,18 @@
               UPDATE_SCRIPT : {
                 if ( fire( settings.callbacks.update.script.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_SCRIPT ; } ;
                 
-                script = script || parsable ? page.find( 'script' ).add( page.filter( 'script' ) )
-                                            : find( data , '(?:[^\'\"]|^\s*)(<script[^>]*?>(.|[\n\r])*?</script>)(?:[^\'\"]|\s*$)' ) ;
+                script = script ? script
+                                : parsable ? page.find( 'script' ).add( page.filter( 'script' ) )
+                                           : find( data , '(?:[^\'\"]|^\s*)(<script[^>]*?>(.|[\n\r])*?</script>)(?:[^\'\"]|\s*$)' ) ;
+                plugin_data[ settings.id ].history.data[ url ].script = script ;
                 
                 for ( var i = 0 , element , defer , consistent ; element = script[ i ] ; i++ ) {
                   
                   consistent = false ;
                   element = parsable ? element : jQuery( element )[ 0 ] ;
                   
-                  if ( settings.load.sync && type === 'sync' && !element.defer ) { continue ; } ;
-                  if ( settings.load.sync && type === 'async' && element.defer ) { continue ; } ;
+                  if ( type === 'sync' && !element.defer ) { continue ; } ;
+                  if ( type === 'async' && element.defer ) { continue ; } ;
                   
                   if ( !element.childNodes.length && element.src in settings.log.script ) { continue ; } ;
                   if ( element.src.length ) { settings.log.script[ element.src ] = true ; } ;
@@ -585,8 +589,6 @@
                 dataType : dataType ,
                 XMLHttpRequest : XMLHttpRequest ,
                 title : title ,
-                css : css ,
-                script : script ,
                 size : size ,
                 timestamp : ( new Date() ).getTime()
               } ;
