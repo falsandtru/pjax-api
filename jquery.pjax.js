@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.8.2
- * @updated 2013/04/18
+ * @version 1.8.3
+ * @updated 2013/04/20
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -104,7 +104,7 @@
           data : settings.gns + ( settings.ns ? ':' + settings.ns : '' ) ,
           requestHeader : [ 'X' , settings.gns.replace( /^\w/ , function( $0 ) { return $0.toUpperCase() ; } ) ].join( '-' )
         } ,
-        server : { query : settings.server.query.length ? settings.server.query.length : settings.gns } ,
+        server : { query : settings.server.query.length ? settings.server.query : settings.gns } ,
         log : { script : {} , speed : {} } ,
         history : { order : [] , data : {} , size : 0 } ,
         timestamp : ( new Date() ).getTime() ,
@@ -209,11 +209,11 @@
     } // function: register
     
     function drive( context , event , url , register , settings , cache ) {
-      settings.speedcheck ? settings.log.speed.fire = event.timeStamp : null ;
-      settings.speedcheck ? settings.log.speed.time = [] : null ;
-      settings.speedcheck ? settings.log.speed.name = [] : null ;
-      settings.speedcheck ? settings.log.speed.name.push( 'fire' ) : null ;
-      settings.speedcheck ? settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) : null ;
+      settings.speedcheck && ( settings.log.speed.fire = event.timeStamp ) ;
+      settings.speedcheck && ( settings.log.speed.time = [] ) ;
+      settings.speedcheck && ( settings.log.speed.name = [] ) ;
+      settings.speedcheck && settings.log.speed.name.push( 'fire' ) ;
+      settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
       
       
       if ( fire( settings.callbacks.before , context , [ event , settings.parameter ] ) === false ) { return context ; } ; // function: ajax
@@ -293,8 +293,8 @@
         url = url.replace( /(#[^\s]*|)$/ , ( !url.match( /\?/ ) ? '?' :'&' ) + encodeURIComponent( settings.server.query ) + '=1' + '$1' ) ;
       } ;
       
-      settings.speedcheck ? settings.log.speed.name.push( 'ajax_start' ) : null ;
-      settings.speedcheck ? settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) : null ;
+      settings.speedcheck && settings.log.speed.name.push( 'ajax_start' ) ;
+      settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
       jQuery.when ? ajax_regular() : ajax_legacy() ;
       
       if ( fire( settings.callbacks.after , context , [ event , settings.parameter ] ) === false ) { return context ; } ; // function: ajax
@@ -338,7 +338,7 @@
                   errorThrown = arg3 ;
                   
                   fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
-                  settings.fallback ? fallback( event ) : null ;
+                  settings.fallback && fallback( event ) ;
                 }  
               }
             )
@@ -385,7 +385,7 @@
                 errorThrown = arg3 ;
                 
                 fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
-                settings.fallback ? fallback( event ) : null ;
+                settings.fallback && fallback( event ) ;
               }
             }
           )
@@ -396,8 +396,8 @@
     
       function update( cache ) {
         UPDATE : {
-          settings.speedcheck ? settings.log.speed.name.push( 'update_start' ) : null ;
-          settings.speedcheck ? settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) : null ;
+          settings.speedcheck && settings.log.speed.name.push( 'update_start' ) ;
+          settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
           if ( fire( settings.callbacks.update.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
           
           try {
@@ -424,7 +424,7 @@
             var
               page = jQuery( data ) ,
               parsable = 0 < page.filter( 'title' ).length ,
-              title = title ? title : parsable ? page.filter( 'title' ).text() : filter( data , '<title>([^<]*)</title>' ) ,
+              title = title || parsable ? page.filter( 'title' ).text() : find( data , '<title>([^<]*)</title>' ) ,
               css ,
               script ,
               areas = settings.area.split( ',' ) ,
@@ -438,8 +438,7 @@
             UPDATE_URL : {
               if ( fire( settings.callbacks.update.url.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
               url = url.replace( new RegExp( '[?&]' + settings.server.query + '=.*?([\s\W#&]|$)' ) , '' )
-              register ? win.history.pushState( null , win.opera || ( 'userAgent' in win && userAgent.indexOf( 'opera' ) !== -1 ) ? title : doc.title , url )
-                       : null ;
+              register && win.history.pushState( null , win.opera || ( 'userAgent' in win && userAgent.indexOf( 'opera' ) !== -1 ) ? title : doc.title , url ) ;
               if ( fire( settings.callbacks.update.url.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
             } ;
             
@@ -455,22 +454,21 @@
               if ( fire( settings.callbacks.update.content.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CONTENT ; } ;
               for ( var i = 0 , area ; area = areas[ i ] ; i++ ) {
                 jQuery( area ).html( page.find( area ).add( page.filter( area ) ).html() ) ;
-                settings.load.script && settings.load.sync ? jQuery( area ).append( jQuery( '<div/>' , {
+                settings.load.script && settings.load.sync && jQuery( area ).append( jQuery( '<div/>' , {
                   'class' : settings.nss.class4html + '-loaded' , 'style' : 'display: block !important; visibility: hidden !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; position: absolute !important; top: -9999px !important; left: -9999px !important; font-size: 12px !important; text-indent: 0 !important;'
-                } ).text( 'pjax' ) ) : null ;
+                } ).text( 'pjax' ) ) ;
               } ;
               if ( fire( settings.callbacks.update.content.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CONTENT ; } ;
             } ;
             
             /* css */
-            settings.load.css ? setTimeout( function() { load_css() ; } , settings.load.async || 0 ) : null ;
+            settings.load.css && setTimeout( function() { load_css() ; } , settings.load.async || 0 ) ;
             function load_css() {
               UPDATE_CSS : {
                 if ( fire( settings.callbacks.update.css.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CSS ; } ;
                 
-                css = css ? css
-                          : parsable ? page.find( 'link[rel="stylesheet"], style' ).add( page.filter( 'link[rel="stylesheet"], style' ) )
-                                     : filter( data , '(<link[^>]*?rel="stylesheet"[^>]*?>|<style[^>]*?>(.|[\n\r])*?</style>)' ) ;
+                css = css || parsable ? page.find( 'link[rel="stylesheet"], style' ).add( page.filter( 'link[rel="stylesheet"], style' ) )
+                                      : find( data , '(<link[^>]*?rel="stylesheet"[^>]*?>|<style[^>]*?>(.|[\n\r])*?</style>)' ) ;
                 
                 // 対象現行全要素に削除フラグを立てる。
                 jQuery( 'link[rel="stylesheet"], style' ).filter( function() { return jQuery.data( this , settings.nss.data , true ) ; } ) ;
@@ -491,7 +489,7 @@
                         if ( consistent || this.href !== element.href ) { return false ; } ;
                         // 一致したためTRUEを返す。一致した要素に削除フラグが立っていればこれを消す。
                         consistent = true ;
-                        jQuery.data( this , settings.nss.data ) ? jQuery.data( this , settings.nss.data , false ) : null ;
+                        jQuery.data( this , settings.nss.data ) && jQuery.data( this , settings.nss.data , false ) ;
                         return true ;
                       } ).length
                     ) { continue ; } ;
@@ -516,20 +514,19 @@
                 jQuery( 'link[rel="stylesheet"], style' ).filter( function() { return jQuery.data( this , settings.nss.data ) ; } ).remove() ;
                 
                 if ( fire( settings.callbacks.update.css.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CSS ; } ;
-                settings.speedcheck ? settings.log.speed.name.push( 'css' ) : null ;
-                settings.speedcheck ? settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) : null ;
+                settings.speedcheck && settings.log.speed.name.push( 'css' ) ;
+                settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
               } ; // label: UPDATE_CSS
             } // function: css
             
             /* script */
-            settings.load.script ? setTimeout( function() { load_script( 'async' ) ; } , settings.load.async || 0 ) : null ;
+            settings.load.script && setTimeout( function() { load_script( 'async' ) ; } , settings.load.async || 0 ) ;
             function load_script( type ) {
               UPDATE_SCRIPT : {
                 if ( fire( settings.callbacks.update.script.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_SCRIPT ; } ;
                 
-                script = script ? script
-                                : parsable ? page.find( 'script' ).add( page.filter( 'script' ) )
-                                           : filter( data , '(?:[^\'\"]|^\s*)(<script[^>]*?>(.|[\n\r])*?</script>)(?:[^\'\"]|\s*$)' ) ;
+                script = script || parsable ? page.find( 'script' ).add( page.filter( 'script' ) )
+                                            : find( data , '(?:[^\'\"]|^\s*)(<script[^>]*?>(.|[\n\r])*?</script>)(?:[^\'\"]|\s*$)' ) ;
                 
                 for ( var i = 0 , element , defer , consistent ; element = script[ i ] ; i++ ) {
                   
@@ -555,10 +552,10 @@
                 if ( jQuery( settings.area ).length === jQuery( settings.area ).children( '.' + settings.nss.class4html + '-loaded' ).filter( function() { return this.clientWidth ; } ).length ) {
                   jQuery( settings.area ).children( '.' + settings.nss.class4html + '-loaded' ).remove() ;
                   setTimeout( function() { load_script( 'sync' ) ; } , 0 ) ;
-                  settings.speedcheck ? settings.log.speed.name.push( 'script' ) : null ;
-                  settings.speedcheck ? settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) : null ;
-                  settings.speedcheck ? console.log( settings.log.speed.time ) : null ;
-                  settings.speedcheck ? console.log( settings.log.speed.name ) : null ;
+                  settings.speedcheck && settings.log.speed.name.push( 'script' ) ;
+                  settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
+                  settings.speedcheck && console.log( settings.log.speed.time ) ;
+                  settings.speedcheck && console.log( settings.log.speed.name ) ;
                 } else {
                   setTimeout( function() { arguments.callee() ; } , settings.interval ) ;
                 } ;
@@ -566,7 +563,7 @@
             } ;
             
             /* scroll */
-            register && -1 < 'click,submit'.indexOf( event.type.toLowerCase() ) ? win.scrollTo( scrollX , scrollY ) : null ;
+            register && -1 < 'click,submit'.indexOf( event.type.toLowerCase() ) && win.scrollTo( scrollX , scrollY ) ;
             
             /* cache */
             UPDATE_CACHE : {
@@ -634,13 +631,13 @@
             
             if ( fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
             if ( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-            settings.fallback ? fallback( event ) : null ;
+            settings.fallback && fallback( event ) ;
           } ;
           
           if ( fire( settings.callbacks.update.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
           
-          settings.speedcheck ? settings.log.speed.name.push( 'end' ) : null ;
-          settings.speedcheck ? settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) : null ;
+          settings.speedcheck && settings.log.speed.name.push( 'end' ) ;
+          settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
         } ; // label: UPDATE
       } // function: update
     } // function: ajax
@@ -667,12 +664,12 @@
       } ;
     } // function: fallback
     
-    function filter( data , pattern ) {
+    function find( data , pattern ) {
       var result = [] ;
       
       data.replace( new RegExp( pattern , "gim" ) , function( $0 , $1 ) { result.push( $1 ) ; } )
       
       return result ;
-    } // function: filter
+    } // function: find
   } // function: pjax
 } )() ;
