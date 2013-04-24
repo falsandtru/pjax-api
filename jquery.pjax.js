@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.8.6
+ * @version 1.8.7
  * @updated 2013/04/24
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
@@ -111,6 +111,7 @@
         log : { script : {} , speed : {} } ,
         history : { order : [] , data : {} , size : 0 } ,
         timestamp : ( new Date() ).getTime() ,
+        disable : false ,
         speed : { now : function() { return ( new Date() ).getTime() ; } }
       }
     ) ;
@@ -156,10 +157,11 @@
           var settings, url , cache ;
           settings = plugin_data[ event.data ] ;
           url = this.href ;
+          if ( settings.disable ) { return ; } ;
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = settings.history.data[ url ] ; } ;
           if ( cache && event.timeStamp > cache.timestamp + settings.cache.expire ) { cache = undefined ; } ;
           
-          drive( this , event , url , url !== win.location.href , plugin_data[ event.data ] , cache ) ;
+          drive( this , event , url , url !== win.location.href , settings , cache ) ;
           event.preventDefault() ;
         } ) ;
       } ; // label: DELEGATE_CLICK
@@ -175,10 +177,11 @@
           var settings, url , cache ;
           settings = plugin_data[ event.data ] ;
           url = jQuery( event.target ).attr( 'action' ) ;
+          if ( settings.disable ) { return ; } ;
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = settings.history.data[ url ] ; } ;
           if ( cache && event.timeStamp > cache.timestamp + settings.cache.expire ) { cache = undefined ; } ;
           
-          drive( this , event , url , true , plugin_data[ event.data ] , cache ) ;
+          drive( this , event , url , true , settings , cache ) ;
           event.preventDefault() ;
         } ) ;
       } ; // label: DELEGATE_SUBMIT
@@ -192,16 +195,16 @@
           var settings, url , cache ;
           settings = plugin_data[ event.data ] ;
           url = win.location.href ;
+          if ( settings.disable ) { return ; } ;
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = settings.history.data[ url ] ; } ;
           if ( cache && event.timeStamp > cache.timestamp + settings.cache.expire ) { cache = undefined ; } ;
           
           if ( settings.timestamp !== false && settings.delay > event.timeStamp - settings.timestamp ) {
             settings.timestamp = false ;
-            plugin_data[ settings.id ] = settings ;
             return ; 
           } ;
           
-          drive( this , event , url , false , plugin_data[ event.data ] , cache ) ;
+          drive( this , event , url , false , settings , cache ) ;
           event.preventDefault() ;
         } ) ;
       } ; // label: BIND_POPSTATE
@@ -445,10 +448,10 @@
                 case register :
                   win.history.pushState( 'pjax' , win.opera || ( 'userAgent' in win && userAgent.indexOf( 'opera' ) !== -1 ) ? title : doc.title , url ) ;
                 case /Mobile(\/\w+)? Safari/i.test( win.navigator.userAgent ) :
-                  /* scroll */
-                  -1 < 'click,submit'.indexOf( event.type.toLowerCase() ) && win.scrollTo( scrollX , scrollY ) ;
+                  settings.disable = true ;
                   win.history.back() ;
                   win.history.forward() ;
+                  settings.disable = false ;
               } ;
               if ( fire( settings.callbacks.update.url.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
             } ;
@@ -484,7 +487,7 @@
                 css = css ? css
                           : parsable ? page.find( 'link[rel="stylesheet"], style' ).add( page.filter( 'link[rel="stylesheet"], style' ) )
                                      : find( data , '(<link[^>]*?rel="stylesheet"[^>]*?>|<style[^>]*?>(.|[\n\r])*?</style>)' ) ;
-                plugin_data[ settings.id ].history.data[ url ].css = css ;
+                settings.history.data[ url ].css = css ;
                 
                 // 対象現行全要素に削除フラグを立てる。
                 jQuery( 'link[rel="stylesheet"], style' ).filter( function() { return jQuery.data( this , settings.nss.data , true ) ; } ) ;
@@ -544,7 +547,7 @@
                 script = script ? script
                                 : parsable ? page.find( 'script' ).add( page.filter( 'script' ) )
                                            : find( data , '(?:[^\'\"]|^\s*)(<script[^>]*?>(.|[\n\r])*?</script>)(?:[^\'\"]|\s*$)' ) ;
-                plugin_data[ settings.id ].history.data[ url ].script = script ;
+                settings.history.data[ url ].script = script ;
                 
                 for ( var i = 0 , element , defer , consistent ; element = script[ i ] ; i++ ) {
                   
@@ -616,8 +619,6 @@
               if ( fire( settings.callbacks.update.cache.save.after , context , [ event , settings.parameter , cache ] ) === false ) { break UPDATE_CACHE ; } ;
             } ; // label: UPDATE_CACHE
             
-            plugin_data[ settings.id ] = settings ;
-            
             if ( fire( settings.callbacks.update.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
             if ( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
             if ( fire( settings.callback , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
@@ -640,7 +641,6 @@
               } ;
               settings.history = cache_history ;
             } ;
-            plugin_data[ settings.id ] = settings ;
             
             if ( fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
             if ( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
