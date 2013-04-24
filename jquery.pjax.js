@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.8.5
- * @updated 2013/04/21
+ * @version 1.8.6
+ * @updated 2013/04/24
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -99,12 +99,13 @@
       settings , {
         nss : {
           pjax : nsArray.join( '.' ) ,
-          click : [ 'click' ].concat( nsArray.join( ':' ) ).join( '.' ) ,
-          submit : [ 'submit' ].concat( nsArray.join( ':' ) ).join( '.' ) ,
-          popstate : [ 'popstate' ].concat( nsArray.join( ':' ) ).join( '.' ) ,
+          click : [ 'click' ].join( '.' ) ,
+          submit : [ 'submit' ].join( '.' ) ,
+          popstate : [ 'popstate' ].join( '.' ) ,
           data : nsArray.join( ':' ) ,
           class4html : nsArray.join( '-' ) ,
-          requestHeader : [ 'X' , nsArray[ 0 ].replace( /^\w/ , function( $0 ) { return $0.toUpperCase() ; } ) ].join( '-' )
+          requestHeader : [ 'X' , nsArray[ 0 ].replace( /^\w/ , function( $0 ) { return $0.toUpperCase() ; } ) ].join( '-' ) ,
+          array : nsArray
         } ,
         server : { query : settings.server.query.length ? settings.server.query : settings.gns } ,
         log : { script : {} , speed : {} } ,
@@ -437,10 +438,23 @@
             /* url */
             UPDATE_URL : {
               if ( fire( settings.callbacks.update.url.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
-              url = url.replace( new RegExp( '[?&]' + settings.server.query + '=.*?([\s\W#&]|$)' ) , '' )
-              register && win.history.pushState( null , win.opera || ( 'userAgent' in win && userAgent.indexOf( 'opera' ) !== -1 ) ? title : doc.title , url ) ;
+              url = url.replace( new RegExp( '[?&]' + settings.server.query + '=[^&#]*' ) , '' ) ;
+              switch ( true ) {
+                case !register :
+                  break ;
+                case register :
+                  win.history.pushState( 'pjax' , win.opera || ( 'userAgent' in win && userAgent.indexOf( 'opera' ) !== -1 ) ? title : doc.title , url ) ;
+                case /Mobile(\/\w+)? Safari/i.test( win.navigator.userAgent ) :
+                  /* scroll */
+                  -1 < 'click,submit'.indexOf( event.type.toLowerCase() ) && win.scrollTo( scrollX , scrollY ) ;
+                  win.history.back() ;
+                  win.history.forward() ;
+              } ;
               if ( fire( settings.callbacks.update.url.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
             } ;
+            
+            /* scroll */
+            -1 < 'click,submit'.indexOf( event.type.toLowerCase() ) && win.scrollTo( scrollX , scrollY ) ;
             
             /* title */
             UPDATE_TITLE : {
@@ -565,9 +579,6 @@
                 } ;
               } , 0 ) ;
             } ;
-            
-            /* scroll */
-            register && -1 < 'click,submit'.indexOf( event.type.toLowerCase() ) && win.scrollTo( scrollX , scrollY ) ;
             
             /* cache */
             UPDATE_CACHE : {
