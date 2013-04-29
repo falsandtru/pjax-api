@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.8.8
- * @updated 2013/04/27
+ * @version 1.9.0
+ * @updated 2013/04/30
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -546,6 +546,8 @@
               UPDATE_SCRIPT : {
                 if ( fire( settings.callbacks.update.script.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_SCRIPT ; } ;
                 
+                var executes = [] ;
+                
                 script = script ? script
                                 : parsable ? page.find( 'script' ).add( page.filter( 'script' ) )
                                            : find( data , '(?:[^\'\"]|^\s*)(<script[^>]*?>(.|[\n\r])*?</script>)(?:[^\'\"]|\s*$)' ) ;
@@ -560,11 +562,25 @@
                   if ( type === 'async' && element.defer ) { continue ; } ;
                   
                   if ( !element.childNodes.length && element.src in settings.log.script ) { continue ; } ;
-                  if ( element.src.length ) { settings.log.script[ element.src ] = true ; } ;
+                  if ( element.src ) { settings.log.script[ element.src ] = true ; } ;
                   
-                  jQuery.data( jQuery( 'head' ).append( element ).children( ':last-child' )[ 0 ] , settings.nss.data , false ) ;
+                  if ( jQuery.when ) {
+                    element =  element.src ? jQuery.ajax( jQuery.extend( true , {} , settings.ajax , { url : element.src , dataType : 'script' , global : false } ) )
+                                           : jQuery.Deferred().resolve( element ) ;
+                    executes.push( element ) ;
+                  } else {
+                    jQuery( 'head' ).append( element ) ;
+                  } ;
                   element = null ;
                 } ;
+                
+                jQuery.when && executes.length &&
+                jQuery.when.apply( null , executes )
+                .done( function () {
+                  for ( var i = 0 , exec ; exec = arguments[ i ] ; i++ ) {
+                    0 < Number( exec.nodeType ) && eval( ( exec.text || exec.textContent || exec.innerHTML || '' ).replace( /^\s*<!(?:\[CDATA\[|\-\-)/ , "/*$0*/" ) ) ;
+                  } ;
+                } ) ;
                 
                 if ( fire( settings.callbacks.update.script.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_SCRIPT ; } ;
               } ; // label: UPDATE_SCRIPT
