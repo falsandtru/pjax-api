@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.9.0
+ * @version 1.9.1
  * @updated 2013/04/30
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
@@ -565,7 +565,7 @@
                   if ( element.src ) { settings.log.script[ element.src ] = true ; } ;
                   
                   if ( jQuery.when ) {
-                    element =  element.src ? jQuery.ajax( jQuery.extend( true , {} , settings.ajax , { url : element.src , dataType : 'script' , global : false } ) )
+                    element =  element.src ? jQuery.ajax( jQuery.extend( true , {} , settings.ajax , { url : element.src , dataType : 'script' , async : false , global : false } ) )
                                            : jQuery.Deferred().resolve( element ) ;
                     executes.push( element ) ;
                   } else {
