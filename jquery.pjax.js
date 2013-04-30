@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.9.1
+ * @version 1.9.2
  * @updated 2013/04/30
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
@@ -447,16 +447,16 @@
             UPDATE_URL : {
               if ( fire( settings.callbacks.update.url.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
               url = url.replace( new RegExp( '[?&]' + settings.server.query + '=[^&#]*' ) , '' ) ;
+              register && win.history.pushState( 'pjax' , win.opera || ( 'userAgent' in win && userAgent.indexOf( 'opera' ) !== -1 ) ? title : doc.title , url ) ;
               switch ( true ) {
                 case !register :
                   break ;
-                case register :
-                  win.history.pushState( 'pjax' , win.opera || ( 'userAgent' in win && userAgent.indexOf( 'opera' ) !== -1 ) ? title : doc.title , url ) ;
                 case /Mobile(\/\w+)? Safari/i.test( win.navigator.userAgent ) :
                   settings.disable = true ;
                   win.history.back() ;
                   win.history.forward() ;
                   settings.disable = false ;
+                  break ;
               } ;
               if ( fire( settings.callbacks.update.url.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
             } ;
