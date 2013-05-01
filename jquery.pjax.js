@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.9.2
- * @updated 2013/04/30
+ * @version 1.9.3
+ * @updated 2013/05/01
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -91,7 +91,6 @@
         interval : 300 ,
         wait : 0 ,
         fallback : true ,
-        delay : 500 ,
         server : { query : '' } ,
         speedcheck : false
       } ,
@@ -117,6 +116,7 @@
         history : { order : [] , data : {} , size : 0 } ,
         timestamp : ( new Date() ).getTime() ,
         disable : false ,
+        landing : location.href ,
         speed : { now : function () { return ( new Date() ).getTime() ; } }
       }
     ) ;
@@ -204,13 +204,9 @@
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = settings.history.data[ url ] ; } ;
           if ( cache && event.timeStamp > cache.timestamp + settings.cache.expire ) { cache = undefined ; } ;
           
-          if ( settings.timestamp !== false && settings.delay > event.timeStamp - settings.timestamp ) {
-            settings.timestamp = false ;
-            return ; 
-          } ;
+          if ( settings.landing ) { if ( settings.landing === location.href ) { settings.landing = false ; return ; } ; settings.landing = false ; } ;
           
           drive( this , event , url , false , settings , cache ) ;
-          event.preventDefault() ;
         } ) ;
       } ; // label: BIND_POPSTATE
       
