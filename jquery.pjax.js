@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.9.4
+ * @version 1.9.5
  * @updated 2013/05/03
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
@@ -246,11 +246,20 @@
         query = [] ,
         request = [] ,
         callbacks = {
+          xhr : function () {
+            XMLHttpRequest = fire( settings.callbacks.ajax.xhr , context , [ event , settings.parameter ] ) ;
+            XMLHttpRequest = XMLHttpRequest instanceof win.XMLHttpRequest ? XMLHttpRequest : jQuery.ajaxSettings.xhr() ;
+            
+            if(XMLHttpRequest instanceof win.XMLHttpRequest) {
+              XMLHttpRequest.addEventListener( 'progress' , function ( event ) { dataSize = event.loaded ; } , false ) ;
+            } ;
+            return XMLHttpRequest ;
+          } ,
           dataFilter : function ( arg1 , arg2 ) {
             data = arg1 ;
             dataType = arg2 ;
             
-            return fire( settings.callbacks.ajax.dataFilter , context , [ event , settings.parameter , data , dataType ] ) ;
+            return fire( settings.callbacks.ajax.dataFilter , context , [ event , settings.parameter , data , dataType ] ) || data ;
           } ,
           complete : function ( arg1 , arg2 ) {
             XMLHttpRequest = arg1 ;
@@ -261,7 +270,7 @@
         } ;
       
       for ( var i in callbacks ) {
-        if ( i in settings.callbacks.ajax ) { continue ; } ;
+        if ( i in settings.callbacks.ajax || i === 'xhr' ) { continue ; } ;
         delete callbacks[ i ] ;
       } ;
       
@@ -324,15 +333,6 @@
               settings.ajax ,
               callbacks , {
                 url : url ,
-                xhr : function () {
-                    var XMLHttpRequest = fire( settings.callbacks.ajax.xhr , context , [ event , settings.parameter ] ) ;
-                    XMLHttpRequest = XMLHttpRequest instanceof win.XMLHttpRequest ? XMLHttpRequest : jQuery.ajaxSettings.xhr() ;
-                    
-                    if(XMLHttpRequest instanceof win.XMLHttpRequest) {
-                      XMLHttpRequest.addEventListener( 'progress' , function ( event ) { dataSize = event.loaded ; } , false ) ;
-                    } ;
-                    return XMLHttpRequest ;
-                } ,
                 beforeSend : function ( arg1 ) {
                   XMLHttpRequest = arg1 ;
                   
