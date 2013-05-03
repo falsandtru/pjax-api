@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.9.5
- * @updated 2013/05/03
+ * @version 1.9.6
+ * @updated 2013/05/04
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -67,7 +67,7 @@
     if ( typeof this === 'function' ) { return arguments.callee.apply( jQuery( doc ) , arguments ) ; } ;
     
     /* validate */ var validate = typeof window.validator === 'object' ? window.validator : false ;
-    /* validate */ var validate = validate ? validate.clone( { name : 'jquery.pjax.js' , base : true } ) : validate ;
+    /* validate */ var validate = validate ? validate.clone( { name : 'jquery.pjax.js' , base : true , timeout : { limit : options && options.ajax && options.ajax.timeout ? options.ajax.timeout + validate.timeout.limit : validate.timeout.limit } } ) : validate ;
     /* validate */ validate && validate.start() ;
     /* validate */ validate && validate.test( 1, 1, 0, 'plugin load' ) ;
     
@@ -117,6 +117,7 @@
         timestamp : ( new Date() ).getTime() ,
         disable : false ,
         landing : location.href ,
+        validate : validate ,
         speed : { now : function () { return ( new Date() ).getTime() ; } }
       }
     ) ;
@@ -217,6 +218,11 @@
     } // function: register
     
     function drive( context , event , url , register , settings , cache ) {
+      /* validate */ var validate = plugin_data[ settings.id ] && plugin_data[ settings.id ].validate ? plugin_data[ settings.id ].validate.clone( { name : 'jquery.pjax.js :drive()' } ) : validate ;
+      /* validate */ validate && validate.start() ;
+      /* validate */ validate && ( validate.scope = function( code ){ return eval( code ) ; } ) ;
+      /* validate */ validate && validate.test( 1, 1, 0, 'drive()' ) ;
+      
       settings.speedcheck && ( settings.log.speed.fire = event.timeStamp ) ;
       settings.speedcheck && ( settings.log.speed.time = [] ) ;
       settings.speedcheck && ( settings.log.speed.name = [] ) ;
@@ -356,7 +362,9 @@
                   errorThrown = arg3 ;
                   
                   fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
-                  settings.fallback && fallback( event ) ;
+                  /* validate */ validate && validate.test( '++', 1, [ url, location.href ], 'ajax error' ) ;
+                  /* validate */ validate && validate.end() ;
+                  if ( settings.fallback ) { return fallback( event ) ; } ;
                 }  
               }
             )
@@ -403,7 +411,9 @@
                 errorThrown = arg3 ;
                 
                 fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
-                settings.fallback && fallback( event ) ;
+                /* validate */ validate && validate.test( '++', 1, [ url, location.href ], 'ajax error' ) ;
+                /* validate */ validate && validate.end() ;
+                if ( settings.fallback ) { return fallback( event ) ; } ;
               }
             }
           )
@@ -413,6 +423,8 @@
       /* - legacy support */
     
       function update( cache ) {
+        /* validate */ validate && validate.test( '++', 1, 0, 'update()' ) ;
+        /* validate */ validate && ( validate.scope = function( code ){ return eval( code ) ; } ) ;
         UPDATE : {
           settings.speedcheck && settings.log.speed.name.push( 'update_start' ) ;
           settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
@@ -585,7 +597,7 @@
                 jQuery.when.apply( null , executes )
                 .done( function () {
                   for ( var i = 0 , exec ; exec = arguments[ i ] ; i++ ) {
-                    0 < Number( exec.nodeType ) && eval( ( exec.text || exec.textContent || exec.innerHTML || '' ).replace( /^\s*<!(?:\[CDATA\[|\-\-)/ , "/*$0*/" ) ) ;
+                    0 < Number( exec.nodeType ) && eval( ( exec.text || exec.textContent || exec.innerHTML || '' ).replace( /^\s*<!(?:\[CDATA\[|\-\-)/ , '/*$0*/' ) ) ; /* */
                   } ;
                 } ) ;
                 
@@ -650,6 +662,7 @@
             if ( fire( settings.callbacks.update.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
             if ( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
             if ( fire( settings.callback , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
+            /* validate */ validate && validate.test( '++', 1, 0, 'update: success' ) ;
           } catch( err ) {
             /* cache delete */
             UPDATE_CACHE : {
@@ -672,13 +685,16 @@
             
             if ( fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
             if ( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-            settings.fallback && fallback( event ) ;
+            /* validate */ validate && validate.test( '++', 1, [ url, location.href ], 'update: error' ) ;
+            if ( settings.fallback ) { return fallback( event ) ; } ;
           } ;
           
           if ( fire( settings.callbacks.update.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
           
           settings.speedcheck && settings.log.speed.name.push( 'end' ) ;
           settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
+          /* validate */ validate && validate.test( '++', 'url === location.href', [ url, location.href ], 'update: is updated' ) ;
+          /* validate */ validate && validate.end() ;
         } ; // label: UPDATE
       } // function: update
     } // function: ajax
