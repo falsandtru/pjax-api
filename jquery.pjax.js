@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.9.3
- * @updated 2013/05/01
+ * @version 1.9.4
+ * @updated 2013/05/03
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -165,6 +165,7 @@
           if ( settings.disable ) { return ; } ;
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = settings.history.data[ url ] ; } ;
           if ( cache && event.timeStamp > cache.timestamp + settings.cache.expire ) { cache = undefined ; } ;
+          if ( settings.landing ) { settings.landing = false ; } ;
           
           drive( this , event , url , url !== win.location.href , settings , cache ) ;
           event.preventDefault() ;
@@ -185,6 +186,7 @@
           if ( settings.disable ) { return ; } ;
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = settings.history.data[ url ] ; } ;
           if ( cache && event.timeStamp > cache.timestamp + settings.cache.expire ) { cache = undefined ; } ;
+          if ( settings.landing ) { settings.landing = false ; } ;
           
           drive( this , event , url , true , settings , cache ) ;
           event.preventDefault() ;
@@ -203,7 +205,6 @@
           if ( settings.disable ) { return ; } ;
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = settings.history.data[ url ] ; } ;
           if ( cache && event.timeStamp > cache.timestamp + settings.cache.expire ) { cache = undefined ; } ;
-          
           if ( settings.landing ) { if ( settings.landing === location.href ) { settings.landing = false ; return ; } ; settings.landing = false ; } ;
           
           drive( this , event , url , false , settings , cache ) ;
@@ -240,6 +241,7 @@
         XMLHttpRequest ,
         textStatus ,
         errorThrown ,
+        dataSize ,
         title ,
         query = [] ,
         request = [] ,
@@ -322,6 +324,15 @@
               settings.ajax ,
               callbacks , {
                 url : url ,
+                xhr : function () {
+                    var XMLHttpRequest = fire( settings.callbacks.ajax.xhr , context , [ event , settings.parameter ] ) ;
+                    XMLHttpRequest = XMLHttpRequest instanceof win.XMLHttpRequest ? XMLHttpRequest : jQuery.ajaxSettings.xhr() ;
+                    
+                    if(XMLHttpRequest instanceof win.XMLHttpRequest) {
+                      XMLHttpRequest.addEventListener( 'progress' , function ( event ) { dataSize = event.loaded ; } , false ) ;
+                    } ;
+                    return XMLHttpRequest ;
+                } ,
                 beforeSend : function ( arg1 ) {
                   XMLHttpRequest = arg1 ;
                   
@@ -606,25 +617,25 @@
               if ( settings.ajax.type === 'POST' ) { break UPDATE_CACHE ; } ;
               if ( fire( settings.callbacks.update.cache.save.before , context , [ event , settings.parameter , cache ] ) === false ) { break UPDATE_CACHE ; } ;
               
-              var cache_history = settings.history , size ;
+              var cache_history = settings.history ;
               
               cache_history.order.unshift( url ) ;
               for ( var i = 1 , key ; key = cache_history.order[ i ] ; i++ ) { if ( url === key ) { cache_history.order.splice( i , 1 ) ; } ; } ;
               
               if ( cache ) { break UPDATE_CACHE ; } ;
               
-              size = data.length * 2 ;
-              cache_history.size += size ;
+              dataSize = dataSize || data.length * 2 ;
+              cache_history.size += dataSize ;
               cache_history.data[ url ] = {
                 data : null ,
                 dataType : dataType ,
                 XMLHttpRequest : XMLHttpRequest ,
                 title : title ,
-                size : size ,
+                size : dataSize ,
                 timestamp : ( new Date() ).getTime()
               } ;
               
-              for ( var i = cache_history.order.length - 1 , key , size = cache_history.size ; key = cache_history.order[ i ] ; i-- ) {
+              for ( var i = cache_history.order.length - 1 , key ; key = cache_history.order[ i ] ; i-- ) {
                 if ( i >= settings.cache.length || cache_history.size > settings.cache.size || event.timeStamp > cache_history.data[ key ].timestamp + settings.cache.expire ) {
                   cache_history.order.pop() ;
                   cache_history.size -= cache_history.data[ key ].size ;
@@ -648,7 +659,7 @@
               
               cache_history.order.unshift( url ) ;
               for ( var i = 1 , key ; key = cache_history.order[ i ] ; i++ ) { if ( url === key ) { cache_history.order.splice( i , 1 ) ; } ; } ;
-              for ( var i = cache_history.order.length - 1 , key , size = cache_history.size ; key = cache_history.order[ i ] ; i-- ) {
+              for ( var i = cache_history.order.length - 1 , key ; key = cache_history.order[ i ] ; i-- ) {
                 if ( i >= settings.cache.length || cache_history.size > settings.cache.size || event.timeStamp > cache_history.data[ key ].timestamp + settings.cache.expire ) {
                   cache_history.order.pop() ;
                   cache_history.size -= cache_history.data[ key ].size ;
