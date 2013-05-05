@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.9.7
- * @updated 2013/05/05
+ * @version 1.9.8
+ * @updated 2013/05/06
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -455,11 +455,11 @@
             var
               page = jQuery( data ) ,
               parsable = 0 < page.filter( 'title' ).length ,
-              title = title ? title : parsable ? page.filter( 'title' ).text() : find( data , '<title>([^<]*)</title>' ) ,
               areas = settings.area.split( ',' ) ,
               scrollX = settings.scrollLeft === null ? jQuery( win ).scrollLeft() : parseInt( settings.scrollLeft ) ,
               scrollY = settings.scrollTop === null ? jQuery( win ).scrollTop() : parseInt( settings.scrollTop ) ;
             
+            title = title ? title : parsable ? page.filter( 'title' ).text() : jQuery( '<span/>' ).html( find( data , '<title>([^<]*)</title>' ).join() ).text() ;
             
             if ( !jQuery( settings.area ).length || !page.find( settings.area ).add( page.filter( settings.area ) ).length ) { throw new Error() ; } ;
             
