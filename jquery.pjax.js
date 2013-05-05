@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.9.6
- * @updated 2013/05/04
+ * @version 1.9.7
+ * @updated 2013/05/05
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -116,7 +116,9 @@
         history : { order : [] , data : {} , size : 0 } ,
         timestamp : ( new Date() ).getTime() ,
         disable : false ,
-        landing : location.href ,
+        on : on ,
+        off : off ,
+        landing : win.location.href ,
         validate : validate ,
         speed : { now : function () { return ( new Date() ).getTime() ; } }
       }
@@ -128,7 +130,7 @@
     
     /* validate */ validate && validate.end() ;
     
-    return this ; // function: pjax
+    return { on : settings.on , off : settings.off } ; // function: pjax
     
     
     /* Function declaration */
@@ -149,7 +151,6 @@
       
       DELEGATE_CLICK : {
         if ( !settings.link ) { break DELEGATE_CLICK ; } ;
-        if ( settings.form ) { break DELEGATE_CLICK ; } ;
         
         jQuery( context )
         .undelegate( settings.link , settings.nss.click )
@@ -206,7 +207,7 @@
           if ( settings.disable ) { return ; } ;
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = settings.history.data[ url ] ; } ;
           if ( cache && event.timeStamp > cache.timestamp + settings.cache.expire ) { cache = undefined ; } ;
-          if ( settings.landing ) { if ( settings.landing === location.href ) { settings.landing = false ; return ; } ; settings.landing = false ; } ;
+          if ( settings.landing ) { if ( settings.landing === win.location.href ) { settings.landing = false ; return ; } ; settings.landing = false ; } ;
           
           drive( this , event , url , false , settings , cache ) ;
         } ) ;
@@ -362,7 +363,7 @@
                   errorThrown = arg3 ;
                   
                   fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
-                  /* validate */ validate && validate.test( '++', 1, [ url, location.href ], 'ajax error' ) ;
+                  /* validate */ validate && validate.test( '++', 1, [ url, win.location.href ], 'ajax error' ) ;
                   /* validate */ validate && validate.end() ;
                   if ( settings.fallback ) { return fallback( event ) ; } ;
                 }  
@@ -411,7 +412,7 @@
                 errorThrown = arg3 ;
                 
                 fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
-                /* validate */ validate && validate.test( '++', 1, [ url, location.href ], 'ajax error' ) ;
+                /* validate */ validate && validate.test( '++', 1, [ url, win.location.href ], 'ajax error' ) ;
                 /* validate */ validate && validate.end() ;
                 if ( settings.fallback ) { return fallback( event ) ; } ;
               }
@@ -466,15 +467,15 @@
             UPDATE_URL : {
               if ( fire( settings.callbacks.update.url.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
               url = url.replace( new RegExp( '[?&]' + settings.server.query + '=[^&#]*' ) , '' ) ;
-              register && win.history.pushState( 'pjax' , win.opera || ( 'userAgent' in win && userAgent.indexOf( 'opera' ) !== -1 ) ? title : doc.title , url ) ;
+              register && win.history.pushState( settings.gns , win.opera || win.navigator.userAgent.toLowerCase().indexOf( 'opera' ) !== -1 ? title : doc.title , url ) ;
               switch ( true ) {
                 case !register :
                   break ;
                 case /Mobile(\/\w+)? Safari/i.test( win.navigator.userAgent ) :
-                  settings.disable = true ;
+                  settings.off() ;
                   win.history.back() ;
                   win.history.forward() ;
-                  settings.disable = false ;
+                  settings.on() ;
                   break ;
               } ;
               if ( fire( settings.callbacks.update.url.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
@@ -491,7 +492,7 @@
             UPDATE_CONTENT : {
               if ( fire( settings.callbacks.update.content.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CONTENT ; } ;
               for ( var i = 0 , area ; area = areas[ i ] ; i++ ) {
-                jQuery( area ).html( page.find( area ).add( page.filter( area ) ).html() ) ;
+                jQuery( area ).html( page.find( area ).add( page.filter( area ) ).children() ) ;
                 settings.load.script && settings.load.sync && jQuery( area ).append( jQuery( '<div/>' , {
                   'class' : settings.nss.class4html + '-loaded' , 'style' : 'display: block !important; visibility: hidden !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; position: absolute !important; top: -9999px !important; left: -9999px !important; font-size: 12px !important; text-indent: 0 !important;'
                 } ).text( 'pjax' ) ) ;
@@ -685,7 +686,7 @@
             
             if ( fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
             if ( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
-            /* validate */ validate && validate.test( '++', 1, [ url, location.href ], 'update: error' ) ;
+            /* validate */ validate && validate.test( '++', 1, [ url, win.location.href ], 'update: error' ) ;
             if ( settings.fallback ) { return fallback( event ) ; } ;
           } ;
           
@@ -693,7 +694,7 @@
           
           settings.speedcheck && settings.log.speed.name.push( 'end' ) ;
           settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
-          /* validate */ validate && validate.test( '++', 'url === location.href', [ url, location.href ], 'update: is updated' ) ;
+          /* validate */ validate && validate.test( '++', 'url === win.location.href', [ url, win.location.href ], 'update: is updated' ) ;
           /* validate */ validate && validate.end() ;
         } ; // label: UPDATE
       } // function: update
@@ -723,10 +724,16 @@
     
     function find( data , pattern ) {
       var result = [] ;
-      
       data.replace( new RegExp( pattern , "gim" ) , function ( $0 , $1 ) { result.push( $1 ) ; } )
-      
       return result ;
     } // function: find
+    
+    function on() {
+      for ( var i = 1 , len = plugin_data.length ; i < len ; i++ ) { plugin_data[ i ].disable = false ; } ;
+    } // function: on
+    
+    function off() {
+      for ( var i = 1 , len = plugin_data.length ; i < len ; i++ ) { plugin_data[ i ].disable = true ; } ;
+    } // function: off
   } // function: pjax
 } )() ;
