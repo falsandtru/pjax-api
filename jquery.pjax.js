@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.9.8
- * @updated 2013/05/06
+ * @version 1.10.0
+ * @updated 2013/05/07
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -83,6 +83,7 @@
         scrollTop : 0 ,
         scrollLeft : 0 ,
         ajax : {} ,
+        contentType : 'text/html' ,
         cache : { click : false , submit : false , popstate : false , length : 9 /* pages */ , size : 1*1024*1024 /* 1MB */ , expire : 30*60*1000 /* 30min */ } ,
         callback : function () {} ,
         callbacks : { ajax : {} , update : { url : {} , title : {} , content : {} , css : {} , script : {} , cache : { load : {} , save : {} } } } ,
@@ -164,13 +165,14 @@
           var settings, url , cache ;
           settings = plugin_data[ event.data ] ;
           url = this.href ;
-          if ( settings.disable ) { return ; } ;
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = settings.history.data[ url ] ; } ;
           if ( cache && event.timeStamp > cache.timestamp + settings.cache.expire ) { cache = undefined ; } ;
           if ( settings.landing ) { settings.landing = false ; } ;
+          if ( settings.disable ) { event.preventDefault() ; return false ; } else { settings.off() ; } ;
           
           drive( this , event , url , url !== win.location.href , settings , cache ) ;
           event.preventDefault() ;
+          return false ;
         } ) ;
       } ; // label: DELEGATE_CLICK
       
@@ -185,13 +187,14 @@
           var settings, url , cache ;
           settings = plugin_data[ event.data ] ;
           url = jQuery( event.target ).attr( 'action' ) ;
-          if ( settings.disable ) { return ; } ;
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = settings.history.data[ url ] ; } ;
           if ( cache && event.timeStamp > cache.timestamp + settings.cache.expire ) { cache = undefined ; } ;
           if ( settings.landing ) { settings.landing = false ; } ;
+          if ( settings.disable ) { event.preventDefault() ; return false ; } else { settings.off() ; } ;
           
           drive( this , event , url , true , settings , cache ) ;
           event.preventDefault() ;
+          return false ;
         } ) ;
       } ; // label: DELEGATE_SUBMIT
       
@@ -204,12 +207,14 @@
           var settings, url , cache ;
           settings = plugin_data[ event.data ] ;
           url = win.location.href ;
-          if ( settings.disable ) { return ; } ;
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = settings.history.data[ url ] ; } ;
           if ( cache && event.timeStamp > cache.timestamp + settings.cache.expire ) { cache = undefined ; } ;
           if ( settings.landing ) { if ( settings.landing === win.location.href ) { settings.landing = false ; return ; } ; settings.landing = false ; } ;
+          if ( settings.disable ) { event.preventDefault() ; return false ; } else { settings.off() ; } ;
           
           drive( this , event , url , false , settings , cache ) ;
+          event.preventDefault() ;
+          return false ;
         } ) ;
       } ; // label: BIND_POPSTATE
       
@@ -365,7 +370,7 @@
                   fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
                   /* validate */ validate && validate.test( '++', 1, [ url, win.location.href ], 'ajax error' ) ;
                   /* validate */ validate && validate.end() ;
-                  if ( settings.fallback ) { return fallback( event ) ; } ;
+                  if ( settings.fallback ) { return typeof settings.fallback === 'function' ? settings.fallback( event ) : fallback( event ) ; } ;
                 }  
               }
             )
@@ -414,7 +419,7 @@
                 fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
                 /* validate */ validate && validate.test( '++', 1, [ url, win.location.href ], 'ajax error' ) ;
                 /* validate */ validate && validate.end() ;
-                if ( settings.fallback ) { return fallback( event ) ; } ;
+                if ( settings.fallback ) { return typeof settings.fallback === 'function' ? settings.fallback( event ) : fallback( event ) ; } ;
               }
             }
           )
@@ -433,7 +438,7 @@
           
           try {
             
-            if ( !cache && XMLHttpRequest.getResponseHeader( 'Content-Type' ).indexOf( 'text/html' ) === -1 ) { throw new Error() ; } ;
+            if ( !cache && !( new RegExp( settings.contentType.replace( /\s*[,;]\s*/g , '|' ) , 'i' ) ).test( XMLHttpRequest.getResponseHeader( 'Content-Type' ) ) ) { throw new Error() ; } ;
             
             /* variable initialization */
             var title , css , script ;
@@ -472,10 +477,8 @@
                 case !register :
                   break ;
                 case /Mobile(\/\w+)? Safari/i.test( win.navigator.userAgent ) :
-                  settings.off() ;
                   win.history.back() ;
                   win.history.forward() ;
-                  settings.on() ;
                   break ;
               } ;
               if ( fire( settings.callbacks.update.url.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
@@ -687,10 +690,12 @@
             if ( fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
             if ( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
             /* validate */ validate && validate.test( '++', 1, [ url, win.location.href ], 'update: error' ) ;
-            if ( settings.fallback ) { return fallback( event ) ; } ;
+            if ( settings.fallback ) { return typeof settings.fallback === 'function' ? settings.fallback( event ) : fallback( event ) ; } ;
           } ;
           
           if ( fire( settings.callbacks.update.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
+          
+          settings.on() ;
           
           settings.speedcheck && settings.log.speed.name.push( 'end' ) ;
           settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
@@ -735,5 +740,6 @@
     function off() {
       for ( var i = 1 , len = plugin_data.length ; i < len ; i++ ) { plugin_data[ i ].disable = true ; } ;
     } // function: off
+    
   } // function: pjax
 } )() ;
