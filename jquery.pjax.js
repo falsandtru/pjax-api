@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.10.0
+ * @version 1.11.0
  * @updated 2013/05/07
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
@@ -66,7 +66,7 @@
     /* Transfer process */
     if ( typeof this === 'function' ) { return arguments.callee.apply( jQuery( doc ) , arguments ) ; } ;
     
-    /* validate */ var validate = typeof window.validator === 'object' ? window.validator : false ;
+    /* validate */ var validate = window.validator instanceof Object ? window.validator : false ;
     /* validate */ var validate = validate ? validate.clone( { name : 'jquery.pjax.js' , base : true , timeout : { limit : options && options.ajax && options.ajax.timeout ? options.ajax.timeout + validate.timeout.limit : validate.timeout.limit } } ) : validate ;
     /* validate */ validate && validate.start() ;
     /* validate */ validate && validate.test( 1, 1, 0, 'plugin load' ) ;
@@ -125,6 +125,7 @@
       }
     ) ;
     
+    share() ;
     
     /* Process startup */
     if ( check() ) { register( this , settings ) ; } ;
@@ -165,7 +166,7 @@
           var settings, url , cache ;
           settings = plugin_data[ event.data ] ;
           url = this.href ;
-          if ( settings.cache[ event.type.toLowerCase() ] ) { cache = settings.history.data[ url ] ; } ;
+          if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; } ;
           if ( cache && event.timeStamp > cache.timestamp + settings.cache.expire ) { cache = undefined ; } ;
           if ( settings.landing ) { settings.landing = false ; } ;
           if ( settings.disable ) { event.preventDefault() ; return false ; } else { settings.off() ; } ;
@@ -187,7 +188,7 @@
           var settings, url , cache ;
           settings = plugin_data[ event.data ] ;
           url = jQuery( event.target ).attr( 'action' ) ;
-          if ( settings.cache[ event.type.toLowerCase() ] ) { cache = settings.history.data[ url ] ; } ;
+          if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; } ;
           if ( cache && event.timeStamp > cache.timestamp + settings.cache.expire ) { cache = undefined ; } ;
           if ( settings.landing ) { settings.landing = false ; } ;
           if ( settings.disable ) { event.preventDefault() ; return false ; } else { settings.off() ; } ;
@@ -207,7 +208,7 @@
           var settings, url , cache ;
           settings = plugin_data[ event.data ] ;
           url = win.location.href ;
-          if ( settings.cache[ event.type.toLowerCase() ] ) { cache = settings.history.data[ url ] ; } ;
+          if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; } ;
           if ( cache && event.timeStamp > cache.timestamp + settings.cache.expire ) { cache = undefined ; } ;
           if ( settings.landing ) { if ( settings.landing === win.location.href ) { settings.landing = false ; return ; } ; settings.landing = false ; } ;
           if ( settings.disable ) { event.preventDefault() ; return false ; } else { settings.off() ; } ;
@@ -254,28 +255,27 @@
         textStatus ,
         errorThrown ,
         dataSize ,
-        title ,
         query = [] ,
         request = [] ,
         callbacks = {
           xhr : function () {
             XMLHttpRequest = fire( settings.callbacks.ajax.xhr , context , [ event , settings.parameter ] ) ;
-            XMLHttpRequest = XMLHttpRequest instanceof win.XMLHttpRequest ? XMLHttpRequest : jQuery.ajaxSettings.xhr() ;
+            XMLHttpRequest = XMLHttpRequest instanceof Object && XMLHttpRequest instanceof win.XMLHttpRequest ? XMLHttpRequest : XMLHttpRequest || jQuery.ajaxSettings.xhr() ;
             
-            if(XMLHttpRequest instanceof win.XMLHttpRequest) {
+            if ( XMLHttpRequest instanceof Object && XMLHttpRequest instanceof win.XMLHttpRequest && 'onprogress' in XMLHttpRequest ) {
               XMLHttpRequest.addEventListener( 'progress' , function ( event ) { dataSize = event.loaded ; } , false ) ;
             } ;
             return XMLHttpRequest ;
           } ,
-          dataFilter : function ( arg1 , arg2 ) {
-            data = arg1 ;
-            dataType = arg2 ;
+          dataFilter : function () {
+            data = arguments[ 0 ] ;
+            dataType = arguments[ 1 ] ;
             
             return fire( settings.callbacks.ajax.dataFilter , context , [ event , settings.parameter , data , dataType ] ) || data ;
           } ,
-          complete : function ( arg1 , arg2 ) {
-            XMLHttpRequest = arg1 ;
-            textStatus = arg2 ;
+          complete : function () {
+            XMLHttpRequest = arguments[ 0 ] ;
+            textStatus = arguments[ 1 ] ;
             
             fire( settings.callbacks.ajax.complete , context , [ event , settings.parameter , XMLHttpRequest , textStatus ] ) ;
           }
@@ -345,8 +345,8 @@
               settings.ajax ,
               callbacks , {
                 url : url ,
-                beforeSend : function ( arg1 ) {
-                  XMLHttpRequest = arg1 ;
+                beforeSend : function () {
+                  XMLHttpRequest = arguments[ 0 ] ;
                   
                   XMLHttpRequest.setRequestHeader( settings.nss.requestHeader , 'true' ) ;
                   XMLHttpRequest.setRequestHeader( settings.nss.requestHeader + '-Area' , settings.area ) ;
@@ -355,17 +355,17 @@
                   
                   fire( settings.callbacks.ajax.beforeSend , context , [ event , settings.parameter , XMLHttpRequest ] ) ;
                 } ,
-                success : function ( arg1 , arg2 , arg3 ) {
-                  data = arg1 ;
-                  dataType = arg2 ;
-                  XMLHttpRequest = arg3 ;
+                success : function () {
+                  data = arguments[ 0 ] ;
+                  dataType = arguments[ 1 ] ;
+                  XMLHttpRequest = arguments[ 2 ] ;
                   
                   fire( settings.callbacks.ajax.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) ;
                 } ,
-                error : function ( arg1 , arg2 , arg3 ) {
-                  XMLHttpRequest = arg1 ;
-                  textStatus = arg2 ;
-                  errorThrown = arg3 ;
+                error : function () {
+                  XMLHttpRequest = arguments[ 0 ] ;
+                  textStatus = arguments[ 1 ] ;
+                  errorThrown = arguments[ 2 ] ;
                   
                   fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
                   /* validate */ validate && validate.test( '++', 1, [ url, win.location.href ], 'ajax error' ) ;
@@ -392,8 +392,8 @@
             settings.ajax ,
             callbacks , {
               url : url ,
-              beforeSend : function ( arg1 ) {
-                XMLHttpRequest = arg1 ;
+              beforeSend : function () {
+                XMLHttpRequest = arguments[ 0 ] ;
                 
                 XMLHttpRequest.setRequestHeader( settings.nss.requestHeader , 'true' ) ;
                 XMLHttpRequest.setRequestHeader( settings.nss.requestHeader + '-Area' , settings.area ) ;
@@ -402,19 +402,19 @@
                 
                 fire( settings.callbacks.ajax.beforeSend , context , [ event , settings.parameter , XMLHttpRequest ] ) ;
               } ,
-              success : function ( arg1 , arg2 , arg3 ) {
-                data = arg1 ;
-                dataType = arg2 ;
-                XMLHttpRequest = arg3 ;
+              success : function () {
+                data = arguments[ 0 ] ;
+                dataType = arguments[ 1 ] ;
+                XMLHttpRequest = arguments[ 2 ] ;
                 
                 fire( settings.callbacks.ajax.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) ;
                 
                 update() ;
               } ,
-              error : function ( arg1 , arg2 , arg3 ) {
-                XMLHttpRequest = arg1 ;
-                textStatus = arg2 ;
-                errorThrown = arg3 ;
+              error : function () {
+                XMLHttpRequest = arguments[ 0 ] ;
+                textStatus = arguments[ 1 ] ;
+                errorThrown = arguments[ 2 ] ;
                 
                 fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
                 /* validate */ validate && validate.test( '++', 1, [ url, win.location.href ], 'ajax error' ) ;
@@ -436,12 +436,12 @@
           settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
           if ( fire( settings.callbacks.update.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
           
+          /* variable initialization */
+          var title , css , script ;
+          
           try {
             
             if ( !cache && !( new RegExp( settings.contentType.replace( /\s*[,;]\s*/g , '|' ) , 'i' ) ).test( XMLHttpRequest.getResponseHeader( 'Content-Type' ) ) ) { throw new Error() ; } ;
-            
-            /* variable initialization */
-            var title , css , script ;
             
             /* cache */
             UPDATE_CACHE : {
@@ -512,7 +512,7 @@
                 css = css ? css
                           : parsable ? page.find( 'link[rel="stylesheet"], style' ).add( page.filter( 'link[rel="stylesheet"], style' ) )
                                      : find( data , '(<link[^>]*?rel="stylesheet"[^>]*?>|<style[^>]*?>(.|[\n\r])*?</style>)' ) ;
-                settings.history.data[ url ].css = css ;
+                fnCache( settings.history , url ).css = css ;
                 
                 // 対象現行全要素に削除フラグを立てる。
                 jQuery( 'link[rel="stylesheet"], style' ).filter( function () { return jQuery.data( this , settings.nss.data , true ) ; } ) ;
@@ -574,7 +574,7 @@
                 script = script ? script
                                 : parsable ? page.find( 'script' ).add( page.filter( 'script' ) )
                                            : find( data , '(?:[^\'\"]|^\s*)(<script[^>]*?>(.|[\n\r])*?</script>)(?:[^\'\"]|\s*$)' ) ;
-                settings.history.data[ url ].script = script ;
+                fnCache( settings.history , url ).script = script ;
                 
                 for ( var i = 0 , element , defer , consistent ; element = script[ i ] ; i++ ) {
                   
@@ -633,33 +633,8 @@
               if ( settings.ajax.type === 'POST' ) { break UPDATE_CACHE ; } ;
               if ( fire( settings.callbacks.update.cache.save.before , context , [ event , settings.parameter , cache ] ) === false ) { break UPDATE_CACHE ; } ;
               
-              var cache_history = settings.history ;
+              fnCache( settings.history , url , title , dataSize , data , dataType , XMLHttpRequest )
               
-              cache_history.order.unshift( url ) ;
-              for ( var i = 1 , key ; key = cache_history.order[ i ] ; i++ ) { if ( url === key ) { cache_history.order.splice( i , 1 ) ; } ; } ;
-              
-              if ( cache ) { break UPDATE_CACHE ; } ;
-              
-              dataSize = dataSize || data.length * 2 ;
-              cache_history.size += dataSize ;
-              cache_history.data[ url ] = {
-                data : null ,
-                dataType : dataType ,
-                XMLHttpRequest : XMLHttpRequest ,
-                title : title ,
-                size : dataSize ,
-                timestamp : ( new Date() ).getTime()
-              } ;
-              
-              for ( var i = cache_history.order.length - 1 , key ; key = cache_history.order[ i ] ; i-- ) {
-                if ( i >= settings.cache.length || cache_history.size > settings.cache.size || event.timeStamp > cache_history.data[ key ].timestamp + settings.cache.expire ) {
-                  cache_history.order.pop() ;
-                  cache_history.size -= cache_history.data[ key ].size ;
-                  cache_history.data[ key ] = null ;
-                  delete cache_history.data[ key ] ;
-                } ;
-              } ;
-              settings.history = cache_history ;
               if ( fire( settings.callbacks.update.cache.save.after , context , [ event , settings.parameter , cache ] ) === false ) { break UPDATE_CACHE ; } ;
             } ; // label: UPDATE_CACHE
             
@@ -672,19 +647,8 @@
             UPDATE_CACHE : {
               if ( !cache ) { break UPDATE_CACHE ; } ;
               
-              var cache_history = settings.history ;
+              fnCache( settings.history , url , title , null )
               
-              cache_history.order.unshift( url ) ;
-              for ( var i = 1 , key ; key = cache_history.order[ i ] ; i++ ) { if ( url === key ) { cache_history.order.splice( i , 1 ) ; } ; } ;
-              for ( var i = cache_history.order.length - 1 , key ; key = cache_history.order[ i ] ; i-- ) {
-                if ( i >= settings.cache.length || cache_history.size > settings.cache.size || event.timeStamp > cache_history.data[ key ].timestamp + settings.cache.expire ) {
-                  cache_history.order.pop() ;
-                  cache_history.size -= cache_history.data[ key ].size ;
-                  cache_history.data[ key ] = null ;
-                  delete cache_history.data[ key ] ;
-                } ;
-              } ;
-              settings.history = cache_history ;
             } ;
             
             if ( fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
@@ -703,7 +667,7 @@
           /* validate */ validate && validate.end() ;
         } ; // label: UPDATE
       } // function: update
-    } // function: ajax
+    } // function: drive
     
     function fire( fn , context , args ) {
       if ( typeof fn === 'function' ) { return fn.apply( context , args ) ; } ;
@@ -733,6 +697,61 @@
       return result ;
     } // function: find
     
+    function fnCache( history , url , title , size , data , dataType , XMLHttpRequest ) {
+      var result ;
+      
+      switch ( true ) {
+        case history === undefined || url === undefined :
+          break ;
+          
+        case title === undefined :
+          result = history.data[ url ] ;
+          break ;
+          
+        case size === null :
+          history.order.unshift( url ) ;
+          for ( var i = 1 , key ; key = history.order[ i ] ; i++ ) { if ( url === key ) { history.order.splice( i , 1 ) ; } ; } ;
+          for ( var i = history.order.length - 1 , key ; key = history.order[ i ] ; i-- ) {
+            if ( i >= settings.cache.length || history.size > settings.cache.size || ( new Date() ).getTime() > history.data[ key ].timestamp + settings.cache.expire ) {
+              history.order.pop() ;
+              history.size -= history.data[ key ].size ;
+              history.data[ key ] = null ;
+              delete history.data[ key ] ;
+            } ;
+          } ;
+          break ;
+          
+        default :
+          history.order.unshift( url ) ;
+          for ( var i = 1 , key ; key = history.order[ i ] ; i++ ) { if ( url === key ) { history.order.splice( i , 1 ) ; } ; } ;
+          
+          if ( history.data[ url ] ) { break ; } ;
+          
+          size = size || data.length * 2 ;
+          history.size += size ;
+          history.data[ url ] = {
+            data : null ,
+            dataType : dataType ,
+            XMLHttpRequest : XMLHttpRequest ,
+            title : title ,
+            size : size ,
+            timestamp : ( new Date() ).getTime()
+          } ;
+          
+          for ( var i = history.order.length - 1 , key ; key = history.order[ i ] ; i-- ) {
+            if ( i >= settings.cache.length || history.size > settings.cache.size || ( new Date() ).getTime() > history.data[ key ].timestamp + settings.cache.expire ) {
+              history.order.pop() ;
+              history.size -= history.data[ key ].size ;
+              history.data[ key ] = null ;
+              delete history.data[ key ] ;
+            } ;
+          } ;
+          break ;
+      } ;
+      
+      return result ;
+    } // function: fnCache
+    
     function on() {
       for ( var i = 1 , len = plugin_data.length ; i < len ; i++ ) { plugin_data[ i ].disable = false ; } ;
     } // function: on
@@ -740,6 +759,48 @@
     function off() {
       for ( var i = 1 , len = plugin_data.length ; i < len ; i++ ) { plugin_data[ i ].disable = true ; } ;
     } // function: off
+    
+    function share() {
+      
+      if ( !jQuery.falsandtru ) { jQuery.fn.falsandtru = falsandtru ; jQuery.falsandtru = falsandtru ; } ;
+      
+      jQuery.falsandtru( 'share' , 'history' , settings.history ) ;
+      settings.history = jQuery.falsandtru( 'share' , 'history' ) ;
+      
+    } // function: share
+    
+    function falsandtru( namespace , key , value ) {
+      var obj , response ;
+      
+      switch ( true ) {
+        case namespace === undefined :
+          break ;
+          
+        case key === undefined :
+          response = jQuery.falsandtru[ namespace ] ;
+          break ;
+          
+        case value === undefined :
+          response = namespace in jQuery.falsandtru ? jQuery.falsandtru[ namespace ][ key ] : undefined ;
+          break ;
+          
+        case value !== undefined :
+          if ( !( jQuery.falsandtru[ namespace ] instanceof Object ) ) { jQuery.falsandtru[ namespace ] = {} ; } ;
+          if ( jQuery.falsandtru[ namespace ][ key ] instanceof Object && value instanceof Object ) {
+            jQuery.extend( true , jQuery.falsandtru[ namespace ][ key ] , value )
+          } else {
+            jQuery.falsandtru[ namespace ][ key ] = value ;
+          } ;
+          response = jQuery.falsandtru[ namespace ][ key ] ;
+          break ;
+          
+        default :
+          break ;
+      } ;
+      
+      return response ;
+    } // function: falsandtru
+    
     
   } // function: pjax
 } )() ;
