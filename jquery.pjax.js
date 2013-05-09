@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.11.0
- * @updated 2013/05/07
+ * @version 1.11.1
+ * @updated 2013/05/10
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -441,7 +441,7 @@
           
           try {
             
-            if ( !cache && !( new RegExp( settings.contentType.replace( /\s*[,;]\s*/g , '|' ) , 'i' ) ).test( XMLHttpRequest.getResponseHeader( 'Content-Type' ) ) ) { throw new Error() ; } ;
+            if ( !cache && !( new RegExp( settings.contentType.replace( /[,;\s]*(.|$)/g , function () { return arguments[ 1 ] ? '|' + arguments[ 1 ] : '' ; } ) , 'i' ) ).test( XMLHttpRequest.getResponseHeader( 'Content-Type' ) ) ) { throw new Error() ; } ;
             
             /* cache */
             UPDATE_CACHE : {
@@ -517,7 +517,7 @@
                 // 対象現行全要素に削除フラグを立てる。
                 jQuery( 'link[rel="stylesheet"], style' ).filter( function () { return jQuery.data( this , settings.nss.data , true ) ; } ) ;
                 // 対象移行全要素を走査する。
-                for ( var i = 0 , element , consistent ; element = css[ i ] ; i++ ) {
+                for ( var i = 0 , element , links = jQuery( 'link[rel="stylesheet"]' ) , styles = jQuery( 'style' ) , consistent ; element = css[ i ] ; i++ ) {
                   
                   consistent = false ;
                   element = parsable ? element : jQuery( element )[ 0 ] ;
@@ -528,7 +528,7 @@
                     // 一致するものがなければ移行要素を追加し、一致するものがない現行要素を削除する。
                     if
                     (
-                      jQuery( 'link[rel="stylesheet"]' ).filter( function () {
+                      links.filter( function () {
                         // 一致しないためFALSEを返す
                         if ( consistent || this.href !== element.href ) { return false ; } ;
                         // 一致したためTRUEを返す。一致した要素に削除フラグが立っていればこれを消す。
@@ -543,7 +543,7 @@
                     if ( element.tagName.toUpperCase() !== 'STYLE' ) { break STYLE ; } ;
                     if
                     (
-                      jQuery( 'style' ).filter( function () {
+                      styles.filter( function () {
                         if ( consistent || !jQuery.data( this , settings.nss.data ) || this.innerHTML !== element.innerHTML ) { return false ; } ;
                         consistent = true ;
                         jQuery.data( this , settings.nss.data , false ) ;
@@ -622,6 +622,8 @@
                   setTimeout( function () { arguments.callee() ; } , settings.interval ) ;
                 } ;
               } , 0 ) ;
+            } else if ( settings.load.script ) {
+              settings.load.script && setTimeout( function () { load_script( 'sync' ) ; } , settings.load.async || 0 ) ;
             } ;
             
             /* scroll */
@@ -693,7 +695,7 @@
     
     function find( data , pattern ) {
       var result = [] ;
-      data.replace( new RegExp( pattern , "gim" ) , function ( $0 , $1 ) { result.push( $1 ) ; } )
+      data.replace( new RegExp( pattern , "gim" ) , function () { result.push( arguments[ 1 ] ) ; } )
       return result ;
     } // function: find
     
