@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.11.1
+ * @version 1.11.2
  * @updated 2013/05/10
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
@@ -114,7 +114,7 @@
         } ,
         server : { query : settings.server.query.length ? settings.server.query : settings.gns } ,
         log : { script : {} , speed : {} } ,
-        history : { order : [] , data : {} , size : 0 } ,
+        history : { config : settings.cache , order : [] , data : {} /*, size : 0*/ } ,
         timestamp : ( new Date() ).getTime() ,
         disable : false ,
         on : on ,
@@ -167,11 +167,10 @@
           settings = plugin_data[ event.data ] ;
           url = this.href ;
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; } ;
-          if ( cache && event.timeStamp > cache.timestamp + settings.cache.expire ) { cache = undefined ; } ;
           if ( settings.landing ) { settings.landing = false ; } ;
           if ( settings.disable ) { event.preventDefault() ; return false ; } else { settings.off() ; } ;
           
-          drive( this , event , url , url !== win.location.href , settings , cache ) ;
+          drive( this , event , url , url !== win.location.href , cache ) ;
           event.preventDefault() ;
           return false ;
         } ) ;
@@ -189,11 +188,10 @@
           settings = plugin_data[ event.data ] ;
           url = jQuery( event.target ).attr( 'action' ) ;
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; } ;
-          if ( cache && event.timeStamp > cache.timestamp + settings.cache.expire ) { cache = undefined ; } ;
           if ( settings.landing ) { settings.landing = false ; } ;
           if ( settings.disable ) { event.preventDefault() ; return false ; } else { settings.off() ; } ;
           
-          drive( this , event , url , true , settings , cache ) ;
+          drive( this , event , url , true , cache ) ;
           event.preventDefault() ;
           return false ;
         } ) ;
@@ -209,11 +207,10 @@
           settings = plugin_data[ event.data ] ;
           url = win.location.href ;
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; } ;
-          if ( cache && event.timeStamp > cache.timestamp + settings.cache.expire ) { cache = undefined ; } ;
           if ( settings.landing ) { if ( settings.landing === win.location.href ) { settings.landing = false ; return ; } ; settings.landing = false ; } ;
           if ( settings.disable ) { event.preventDefault() ; return false ; } else { settings.off() ; } ;
           
-          drive( this , event , url , false , settings , cache ) ;
+          drive( this , event , url , false , cache ) ;
           event.preventDefault() ;
           return false ;
         } ) ;
@@ -224,7 +221,7 @@
       } ) ;
     } // function: register
     
-    function drive( context , event , url , register , settings , cache ) {
+    function drive( context , event , url , register , cache ) {
       /* validate */ var validate = plugin_data[ settings.id ] && plugin_data[ settings.id ].validate ? plugin_data[ settings.id ].validate.clone( { name : 'jquery.pjax.js :drive()' } ) : validate ;
       /* validate */ validate && validate.start() ;
       /* validate */ validate && ( validate.scope = function( code ){ return eval( code ) ; } ) ;
@@ -441,7 +438,7 @@
           
           try {
             
-            if ( !cache && !( new RegExp( settings.contentType.replace( /[,;\s]*(.|$)/g , function () { return arguments[ 1 ] ? '|' + arguments[ 1 ] : '' ; } ) , 'i' ) ).test( XMLHttpRequest.getResponseHeader( 'Content-Type' ) ) ) { throw new Error() ; } ;
+            if ( !cache && !( new RegExp( settings.contentType.replace( /\s*[,;]\s*(.|$)/g , function () { return arguments[ 1 ] ? '|' + arguments[ 1 ] : '' ; } ) , 'i' ) ).test( XMLHttpRequest.getResponseHeader( 'Content-Type' ) ) ) { throw new Error() ; } ;
             
             /* cache */
             UPDATE_CACHE : {
@@ -460,7 +457,7 @@
             var
               page = jQuery( data ) ,
               parsable = 0 < page.filter( 'title' ).length ,
-              areas = settings.area.split( ',' ) ,
+              areas = settings.area.replace( /(\((.*?(\(.*?\).*?)?)*?\)|\S)(,|$)/g , function () { return arguments[1] + ( arguments[4] ? '|' : '' ) } ).split( /\s*\|(?!=)\s*/ ) ,
               scrollX = settings.scrollLeft === null ? jQuery( win ).scrollLeft() : parseInt( settings.scrollLeft ) ,
               scrollY = settings.scrollTop === null ? jQuery( win ).scrollTop() : parseInt( settings.scrollTop ) ;
             
@@ -622,12 +619,22 @@
                   setTimeout( function () { arguments.callee() ; } , settings.interval ) ;
                 } ;
               } , 0 ) ;
-            } else if ( settings.load.script ) {
+            } else {
               settings.load.script && setTimeout( function () { load_script( 'sync' ) ; } , settings.load.async || 0 ) ;
             } ;
             
             /* scroll */
-            -1 < 'click,submit'.indexOf( event.type.toLowerCase() ) && win.scrollTo( scrollX , scrollY ) ;
+            switch ( event.type.toLowerCase() ) {
+              case 'click' :
+                win.scrollTo( scrollX , scrollY ) ;
+                break ;
+              case 'submit' :
+                win.scrollTo( scrollX , scrollY ) ;
+                break ;
+              case 'popstate' :
+                win.history.state instanceof Object && isFinite( win.history.state.scrollY ) && win.scrollTo( scrollX , win.history.state.scrollY ) ;
+                break ;
+            } ;
             
             /* cache */
             UPDATE_CACHE : {
@@ -707,15 +714,16 @@
           break ;
           
         case title === undefined :
+          if ( history.data[ url ] && ( new Date() ).getTime() > history.data[ url ].timestamp + history.config.expire ) {
+            arguments.callee( history , url , null , null ) ;
+          } ;
           result = history.data[ url ] ;
           break ;
           
         case size === null :
-          history.order.unshift( url ) ;
-          for ( var i = 1 , key ; key = history.order[ i ] ; i++ ) { if ( url === key ) { history.order.splice( i , 1 ) ; } ; } ;
-          for ( var i = history.order.length - 1 , key ; key = history.order[ i ] ; i-- ) {
-            if ( i >= settings.cache.length || history.size > settings.cache.size || ( new Date() ).getTime() > history.data[ key ].timestamp + settings.cache.expire ) {
-              history.order.pop() ;
+          for ( var i = 0 , key ; key = history.order[ i ] ; i++ ) {
+            if ( url === key ) {
+              history.order.splice( i , 1 ) ;
               history.size -= history.data[ key ].size ;
               history.data[ key ] = null ;
               delete history.data[ key ] ;
@@ -730,6 +738,7 @@
           if ( history.data[ url ] ) { break ; } ;
           
           size = size || data.length * 2 ;
+          history.size = history.size || 0 ;
           history.size += size ;
           history.data[ url ] = {
             data : null ,
@@ -740,12 +749,13 @@
             timestamp : ( new Date() ).getTime()
           } ;
           
-          for ( var i = history.order.length - 1 , key ; key = history.order[ i ] ; i-- ) {
-            if ( i >= settings.cache.length || history.size > settings.cache.size || ( new Date() ).getTime() > history.data[ key ].timestamp + settings.cache.expire ) {
-              history.order.pop() ;
-              history.size -= history.data[ key ].size ;
-              history.data[ key ] = null ;
-              delete history.data[ key ] ;
+          for ( var i = history.order.length - 1 , url ; url = history.order[ i ] ; i-- ) {
+            if ( i >= history.config.length || history.size > history.config.size || ( new Date() ).getTime() > history.data[ url ].timestamp + history.config.expire ) {
+              history.order.splice( i , 1 ) ;
+              history.size = history.size || 0 ;
+              history.size -= history.data[ url ].size ;
+              history.data[ url ] = null ;
+              delete history.data[ url ] ;
             } ;
           } ;
           break ;
