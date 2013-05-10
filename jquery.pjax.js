@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.11.2
+ * @version 1.11.3
  * @updated 2013/05/10
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
@@ -632,7 +632,11 @@
                 win.scrollTo( scrollX , scrollY ) ;
                 break ;
               case 'popstate' :
-                win.history.state instanceof Object && isFinite( win.history.state.scrollY ) && win.scrollTo( scrollX , win.history.state.scrollY ) ;
+                if ( win.history.state instanceof Object && isFinite( win.history.state.scrollY ) ) {
+                  win.scrollTo( scrollX , win.history.state.scrollY ) ;
+                  win.history.state.scrollY = undefined ;
+                  win.history.replaceState( win.history.state , title , url ) ;
+                } ;
                 break ;
             } ;
             
