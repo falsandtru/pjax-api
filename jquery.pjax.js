@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.11.5
- * @updated 2013/05/14
+ * @version 1.11.6
+ * @updated 2013/05/15
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -186,7 +186,7 @@
           
           var settings, url , cache ;
           settings = plugin_data[ event.data ] ;
-          url = jQuery.prop ? jQuery( event.target ).prop( 'action' ) : jQuery( '<a/>' , { href : jQuery( event.target ).attr( 'action' ) } )[ 0 ].href ;
+          url = this.action ;
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; } ;
           if ( settings.landing ) { settings.landing = false ; } ;
           if ( settings.disable ) { event.preventDefault() ; return false ; } else { settings.off() ; } ;
