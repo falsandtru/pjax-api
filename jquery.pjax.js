@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.11.3
- * @updated 2013/05/10
+ * @version 1.11.4
+ * @updated 2013/05/14
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -509,7 +509,7 @@
                 css = css ? css
                           : parsable ? page.find( 'link[rel="stylesheet"], style' ).add( page.filter( 'link[rel="stylesheet"], style' ) )
                                      : find( data , '(<link[^>]*?rel="stylesheet"[^>]*?>|<style[^>]*?>(.|[\n\r])*?</style>)' ) ;
-                fnCache( settings.history , url ).css = css ;
+                fnCache( settings.history , url ) && ( fnCache( settings.history , url ).css = css ) ;
                 
                 // 対象現行全要素に削除フラグを立てる。
                 jQuery( 'link[rel="stylesheet"], style' ).filter( function () { return jQuery.data( this , settings.nss.data , true ) ; } ) ;
@@ -571,7 +571,7 @@
                 script = script ? script
                                 : parsable ? page.find( 'script' ).add( page.filter( 'script' ) )
                                            : find( data , '(?:[^\'\"]|^\s*)(<script[^>]*?>(.|[\n\r])*?</script>)(?:[^\'\"]|\s*$)' ) ;
-                fnCache( settings.history , url ).script = script ;
+                fnCache( settings.history , url ) && ( fnCache( settings.history , url ).script = script ) ;
                 
                 for ( var i = 0 , element , defer , consistent ; element = script[ i ] ; i++ ) {
                   
