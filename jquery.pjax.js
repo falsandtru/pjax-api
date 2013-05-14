@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.11.4
+ * @version 1.11.5
  * @updated 2013/05/14
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
@@ -186,7 +186,7 @@
           
           var settings, url , cache ;
           settings = plugin_data[ event.data ] ;
-          url = jQuery( event.target ).attr( 'action' ) ;
+          url = jQuery.prop ? jQuery( event.target ).prop( 'action' ) : jQuery( '<a/>' , { href : jQuery( event.target ).attr( 'action' ) } )[ 0 ].href ;
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; } ;
           if ( settings.landing ) { settings.landing = false ; } ;
           if ( settings.disable ) { event.preventDefault() ; return false ; } else { settings.off() ; } ;
@@ -503,6 +503,10 @@
             /* css */
             settings.load.css && setTimeout( function () { load_css() ; } , settings.load.async || 0 ) ;
             function load_css() {
+              /* validate */ var validate = plugin_data[ settings.id ] && plugin_data[ settings.id ].validate ? plugin_data[ settings.id ].validate.clone( { name : 'jquery.pjax.js :css()' } ) : validate ;
+              /* validate */ validate && validate.start() ;
+              /* validate */ validate && ( validate.scope = function( code ){ return eval( code ) ; } ) ;
+              /* validate */ validate && validate.test( 1, 1, 0, 'css()' ) ;
               UPDATE_CSS : {
                 if ( fire( settings.callbacks.update.css.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CSS ; } ;
                 
@@ -558,11 +562,16 @@
                 settings.speedcheck && settings.log.speed.name.push( 'css' ) ;
                 settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
               } ; // label: UPDATE_CSS
+              /* validate */ validate && validate.end() ;
             } // function: css
             
             /* script */
             settings.load.script && setTimeout( function () { load_script( 'async' ) ; } , settings.load.async || 0 ) ;
             function load_script( type ) {
+              /* validate */ var validate = plugin_data[ settings.id ] && plugin_data[ settings.id ].validate ? plugin_data[ settings.id ].validate.clone( { name : 'jquery.pjax.js :script()' } ) : validate ;
+              /* validate */ validate && validate.start() ;
+              /* validate */ validate && ( validate.scope = function( code ){ return eval( code ) ; } ) ;
+              /* validate */ validate && validate.test( 1, 1, 0, 'script()' ) ;
               UPDATE_SCRIPT : {
                 if ( fire( settings.callbacks.update.script.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_SCRIPT ; } ;
                 
@@ -604,6 +613,7 @@
                 
                 if ( fire( settings.callbacks.update.script.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_SCRIPT ; } ;
               } ; // label: UPDATE_SCRIPT
+              /* validate */ validate && validate.end() ;
             } // function: script
             
             if ( settings.load.script && settings.load.sync ) {
