@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.11.7
- * @updated 2013/05/15
+ * @version 1.11.8
+ * @updated 2013/05/22
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -222,10 +222,11 @@
     } // function: register
     
     function drive( context , event , url , register , cache ) {
-      /* validate */ var validate = plugin_data[ settings.id ] && plugin_data[ settings.id ].validate ? plugin_data[ settings.id ].validate.clone( { name : 'jquery.pjax.js :drive()' } ) : validate ;
+      /* validate */ var validate = plugin_data[ settings.id ] && plugin_data[ settings.id ].validate ? plugin_data[ settings.id ].validate.clone( { name : 'jquery.pjax.js - drive()' } ) : validate ;
       /* validate */ validate && validate.start() ;
       /* validate */ validate && ( validate.scope = function( code ){ return eval( code ) ; } ) ;
       /* validate */ validate && validate.test( 1, 1, 0, 'drive()' ) ;
+      /* validate */ validate && validate.test( '++', 1, 0, 'drive:start' ) ;
       
       settings.speedcheck && ( settings.log.speed.fire = event.timeStamp ) ;
       settings.speedcheck && ( settings.log.speed.time = [] ) ;
@@ -234,17 +235,21 @@
       settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
       
       
-      if ( fire( settings.callbacks.before , context , [ event , settings.parameter ] ) === false ) { return context ; } ; // function: ajax
+      if ( fire( settings.callbacks.before , context , [ event , settings.parameter ] ) === false ) { return ; } ; // function: drive
       
       if ( cache ) {
+        /* validate */ validate && validate.test( '++', 1, 0, 'drive:update' ) ;
         if ( jQuery.when ) {
           jQuery.when( wait( settings.wait ) ).done( function () { update( cache ) ; } ) ;
         } else {
           update( cache )  ;
         } ;
+        /* validate */ validate && validate.test( '++', 1, 0, 'drive:end' ) ;
+        /* validate */ validate && validate.end() ;
         return ;
       } ;
       
+      /* validate */ validate && validate.test( '++', 1, 0, 'drive:initialize' ) ;
       var
         data ,
         dataType ,
@@ -283,6 +288,7 @@
         delete callbacks[ i ] ;
       } ;
       
+      /* validate */ validate && validate.test( '++', 1, 0, 'drive:popstate' ) ;
       POPSTATE : {
         if ( event.type.toLowerCase() !== 'popstate' ) { break POPSTATE ; } ;
         
@@ -295,6 +301,7 @@
         settings.ajax.data = null ;
       } ;
       
+      /* validate */ validate && validate.test( '++', 1, 0, 'drive:submit' ) ;
       SUBMIT : {
         if ( event.type.toLowerCase() !== 'submit' ) { break SUBMIT ;} ;
         
@@ -315,16 +322,20 @@
         } ;
       } ;
       
+      /* validate */ validate && validate.test( '++', 1, 0, 'drive:url' ) ;
       URL : {
         if ( !settings.server.query ) { break URL ; } ;
         url = url.replace( /(#[^\s]*|)$/ , ( !url.match( /\?/ ) ? '?' :'&' ) + encodeURIComponent( settings.server.query ) + '=1' + '$1' ) ;
       } ;
       
+      /* validate */ validate && validate.test( '++', 1, 0, 'drive:ajax' ) ;
       settings.speedcheck && settings.log.speed.name.push( 'ajax_start' ) ;
       settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
       jQuery.when ? ajax_regular() : ajax_legacy() ;
       
-      if ( fire( settings.callbacks.after , context , [ event , settings.parameter ] ) === false ) { return context ; } ; // function: ajax
+      if ( fire( settings.callbacks.after , context , [ event , settings.parameter ] ) === false ) { return ; } ; // function: drive
+      /* validate */ validate && validate.test( '++', 1, 0, 'drive:end' ) ;
+      /* validate */ validate && validate.end() ;
       
       
       /* ajax function */
@@ -367,7 +378,7 @@
                   fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
                   /* validate */ validate && validate.test( '++', 1, [ url, win.location.href ], 'ajax error' ) ;
                   /* validate */ validate && validate.end() ;
-                  if ( settings.fallback ) { return typeof settings.fallback === 'function' ? settings.fallback( event ) : fallback( event ) ; } ;
+                  if ( settings.fallback ) { return typeof settings.fallback === 'function' ? settings.fallback( event ) : fallback( event , validate ) ; } ;
                 }  
               }
             )
@@ -416,7 +427,7 @@
                 fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
                 /* validate */ validate && validate.test( '++', 1, [ url, win.location.href ], 'ajax error' ) ;
                 /* validate */ validate && validate.end() ;
-                if ( settings.fallback ) { return typeof settings.fallback === 'function' ? settings.fallback( event ) : fallback( event ) ; } ;
+                if ( settings.fallback ) { return typeof settings.fallback === 'function' ? settings.fallback( event ) : fallback( event , validate ) ; } ;
               }
             }
           )
@@ -426,8 +437,11 @@
       /* - legacy support */
     
       function update( cache ) {
-        /* validate */ validate && validate.test( '++', 1, 0, 'update()' ) ;
+        /* validate */ var validate = plugin_data[ settings.id ] && plugin_data[ settings.id ].validate ? plugin_data[ settings.id ].validate.clone( { name : 'jquery.pjax.js - update()' } ) : validate ;
+        /* validate */ validate && validate.start() ;
         /* validate */ validate && ( validate.scope = function( code ){ return eval( code ) ; } ) ;
+        /* validate */ validate && validate.test( '1', 1, 0, 'update()' ) ;
+        /* validate */ validate && validate.test( '++', 1, 0, 'update:start' ) ;
         UPDATE : {
           settings.speedcheck && settings.log.speed.name.push( 'update_start' ) ;
           settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
@@ -438,9 +452,12 @@
           
           try {
             
+            /* validate */ validate && validate.test( '++', 1, 0, 'update:try' ) ;
+            /* validate */ validate && validate.test( '++', 1, !cache ? [ settings.contentType, XMLHttpRequest.getResponseHeader( 'Content-Type' ) ] : 0, 'update:content-type' ) ;
             if ( !cache && !( new RegExp( settings.contentType.replace( /\s*[,;]\s*(.|$)/g , function () { return arguments[ 1 ] ? '|' + arguments[ 1 ] : '' ; } ) , 'i' ) ).test( XMLHttpRequest.getResponseHeader( 'Content-Type' ) ) ) { throw new Error() ; } ;
             
             /* cache */
+            /* validate */ validate && validate.test( '++', 'String(!!cache)', 0, 'update:cache' ) ;
             UPDATE_CACHE : {
               if ( !cache ) { break UPDATE_CACHE ; } ;
               if ( fire( settings.callbacks.update.cache.load.before , context , [ event , settings.parameter , cache ] ) === false ) { break UPDATE_CACHE ; } ;
@@ -454,6 +471,7 @@
             } ; // label: UPDATE_CACHE
             
             /* variable initialization */
+            /* validate */ validate && validate.test( '++', 1, 0, 'update:initialize' ) ;
             var
               page = jQuery( data ) ,
               parsable = 0 < page.filter( 'title' ).length ,
@@ -463,9 +481,10 @@
             
             title = title ? title : parsable ? page.filter( 'title' ).text() : jQuery( '<span/>' ).html( find( data , '<title>([^<]*)</title>' ).join() ).text() ;
             
-            if ( !jQuery( settings.area ).length || !page.find( settings.area ).add( page.filter( settings.area ) ).length ) { throw new Error() ; } ;
+            if ( !jQuery( settings.area ).length || !page.find( settings.area ).add( page.filter( settings.area ) ).length ) { throw new Error( 'cancel' ) ; } ;
             
             /* url */
+            /* validate */ validate && validate.test( '++', 1, url, 'update:url' ) ;
             UPDATE_URL : {
               if ( fire( settings.callbacks.update.url.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_URL ; } ;
               url = url.replace( new RegExp( '[?&]' + settings.server.query + '=[^&#]*' ) , '' ) ;
@@ -482,6 +501,7 @@
             } ;
             
             /* title */
+            /* validate */ validate && validate.test( '++', 1, title, 'update:title' ) ;
             UPDATE_TITLE : {
               if ( fire( settings.callbacks.update.title.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_TITLE ; } ;
               doc.title = title ;
@@ -489,6 +509,7 @@
             } ;
             
             /* content */
+            /* validate */ validate && validate.test( '++', 1, areas, 'update:content' ) ;
             UPDATE_CONTENT : {
               if ( fire( settings.callbacks.update.content.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE_CONTENT ; } ;
               for ( var i = 0 , area ; area = areas[ i ] ; i++ ) {
@@ -501,9 +522,10 @@
             } ;
             
             /* css */
+            /* validate */ validate && validate.test( '++', 1, 0, 'update:css' ) ;
             settings.load.css && setTimeout( function () { load_css() ; } , settings.load.async || 0 ) ;
             function load_css() {
-              /* validate */ var validate = plugin_data[ settings.id ] && plugin_data[ settings.id ].validate ? plugin_data[ settings.id ].validate.clone( { name : 'jquery.pjax.js :css()' } ) : validate ;
+              /* validate */ var validate = plugin_data[ settings.id ] && plugin_data[ settings.id ].validate ? plugin_data[ settings.id ].validate.clone( { name : 'jquery.pjax.js - load_css()' } ) : validate ;
               /* validate */ validate && validate.start() ;
               /* validate */ validate && ( validate.scope = function( code ){ return eval( code ) ; } ) ;
               UPDATE_CSS : {
@@ -565,9 +587,10 @@
             } // function: css
             
             /* script */
+            /* validate */ validate && validate.test( '++', 1, 0, 'update:script' ) ;
             settings.load.script && setTimeout( function () { load_script( 'async' ) ; } , settings.load.async || 0 ) ;
             function load_script( type ) {
-              /* validate */ var validate = plugin_data[ settings.id ] && plugin_data[ settings.id ].validate ? plugin_data[ settings.id ].validate.clone( { name : 'jquery.pjax.js :script()' } ) : validate ;
+              /* validate */ var validate = plugin_data[ settings.id ] && plugin_data[ settings.id ].validate ? plugin_data[ settings.id ].validate.clone( { name : 'jquery.pjax.js - load_script()' } ) : validate ;
               /* validate */ validate && validate.start() ;
               /* validate */ validate && ( validate.scope = function( code ){ return eval( code ) ; } ) ;
               UPDATE_SCRIPT : {
@@ -632,6 +655,7 @@
             } ;
             
             /* scroll */
+            /* validate */ validate && validate.test( '++', 1, 0, 'update:scroll' ) ;
             switch ( event.type.toLowerCase() ) {
               case 'click' :
                 win.scrollTo( scrollX , scrollY ) ;
@@ -649,6 +673,7 @@
             } ;
             
             /* cache */
+            /* validate */ validate && validate.test( '++', 1, 0, 'update:cache' ) ;
             UPDATE_CACHE : {
               if ( !settings.cache.click && !settings.cache.submit && !settings.cache.popstate ) { break UPDATE_CACHE ; } ;
               if ( settings.ajax.type === 'POST' ) { break UPDATE_CACHE ; } ;
@@ -664,6 +689,8 @@
             if ( fire( settings.callback , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
             /* validate */ validate && validate.test( '++', 1, 0, 'update: success' ) ;
           } catch( err ) {
+            /* validate */ validate && ( validate.scope = function( code ){ return eval( code ) ; } ) ;
+            /* validate */ validate && validate.test( '++', 'err.message === "cancel"', err, 'update:catch' ) ;
             /* cache delete */
             UPDATE_CACHE : {
               if ( !cache ) { break UPDATE_CACHE ; } ;
@@ -675,7 +702,7 @@
             if ( fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
             if ( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
             /* validate */ validate && validate.test( '++', 1, [ url, win.location.href ], 'update: error' ) ;
-            if ( settings.fallback ) { return typeof settings.fallback === 'function' ? settings.fallback( event ) : fallback( event ) ; } ;
+            if ( settings.fallback ) { return typeof settings.fallback === 'function' ? settings.fallback( event ) : fallback( event , validate ) ; } ;
           } ;
           
           if ( fire( settings.callbacks.update.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
@@ -684,7 +711,8 @@
           
           settings.speedcheck && settings.log.speed.name.push( 'end' ) ;
           settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
-          /* validate */ validate && validate.test( '++', 'url === win.location.href', [ url, win.location.href ], 'update: is updated' ) ;
+          /* validate */ validate && validate.test( '++', 'url === win.location.href', [ url, win.location.href ], 'update: is updated' ) ;            
+          /* validate */ validate && validate.test( '++', 1, 0, 'update:end' ) ;
           /* validate */ validate && validate.end() ;
         } ; // label: UPDATE
       } // function: update
@@ -702,7 +730,9 @@
       return dfd.promise() ; // function: wait
     } // function: wait
     
-    function fallback( event ) {
+    function fallback( event , validate ) {       
+      /* validate */ validate && validate.test( '++', 1, 0, 'fallback()' ) ;
+      /* validate */ validate && validate.end() ;
       if ( event.type.toLowerCase() === 'click' ) {
         win.location.href = event.currentTarget.href ;
       } else if ( event.type.toLowerCase() === 'submit' ) {
