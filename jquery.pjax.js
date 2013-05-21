@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.11.8
+ * @version 1.11.9
  * @updated 2013/05/22
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
@@ -225,8 +225,8 @@
       /* validate */ var validate = plugin_data[ settings.id ] && plugin_data[ settings.id ].validate ? plugin_data[ settings.id ].validate.clone( { name : 'jquery.pjax.js - drive()' } ) : validate ;
       /* validate */ validate && validate.start() ;
       /* validate */ validate && ( validate.scope = function( code ){ return eval( code ) ; } ) ;
-      /* validate */ validate && validate.test( 1, 1, 0, 'drive()' ) ;
-      /* validate */ validate && validate.test( '++', 1, 0, 'drive:start' ) ;
+      /* validate */ validate && validate.test( 1, 1, [ url, event.type ], 'drive()' ) ;
+      /* validate */ validate && validate.test( 2, 1, 0, 'drive:start' ) ;
       
       settings.speedcheck && ( settings.log.speed.fire = event.timeStamp ) ;
       settings.speedcheck && ( settings.log.speed.time = [] ) ;
@@ -238,18 +238,18 @@
       if ( fire( settings.callbacks.before , context , [ event , settings.parameter ] ) === false ) { return ; } ; // function: drive
       
       if ( cache ) {
-        /* validate */ validate && validate.test( '++', 1, 0, 'drive:update' ) ;
+        /* validate */ validate && validate.test( 3, 1, 0, 'drive:update' ) ;
         if ( jQuery.when ) {
           jQuery.when( wait( settings.wait ) ).done( function () { update( cache ) ; } ) ;
         } else {
           update( cache )  ;
         } ;
-        /* validate */ validate && validate.test( '++', 1, 0, 'drive:end' ) ;
+        /* validate */ validate && validate.test( 4, 1, 0, 'drive:end' ) ;
         /* validate */ validate && validate.end() ;
         return ;
       } ;
       
-      /* validate */ validate && validate.test( '++', 1, 0, 'drive:initialize' ) ;
+      /* validate */ validate && validate.test( 3, 1, 0, 'drive:initialize' ) ;
       var
         data ,
         dataType ,
@@ -288,7 +288,7 @@
         delete callbacks[ i ] ;
       } ;
       
-      /* validate */ validate && validate.test( '++', 1, 0, 'drive:popstate' ) ;
+      /* validate */ validate && validate.test( 4, 1, 0, 'drive:popstate' ) ;
       POPSTATE : {
         if ( event.type.toLowerCase() !== 'popstate' ) { break POPSTATE ; } ;
         
@@ -301,7 +301,7 @@
         settings.ajax.data = null ;
       } ;
       
-      /* validate */ validate && validate.test( '++', 1, 0, 'drive:submit' ) ;
+      /* validate */ validate && validate.test( 5, 1, 0, 'drive:submit' ) ;
       SUBMIT : {
         if ( event.type.toLowerCase() !== 'submit' ) { break SUBMIT ;} ;
         
@@ -311,6 +311,7 @@
         GET : {
           if ( settings.ajax.type !== 'GET' ) { break GET ;} ;
           
+          /* validate */ validate && validate.test( 5.1, 1, jQuery( event.target ).serialize(), 'drive:serialize' ) ;
           url += '?' + jQuery( event.target ).serialize() ;
           settings.ajax.data = null ;
         } ;
@@ -318,23 +319,24 @@
         POST : {
           if ( settings.ajax.type !== 'POST' ) { break POST ;} ;
           
+          /* validate */ validate && validate.test( 5.1, 1, jQuery( event.target ).serializeArray(), 'drive:serializeArray' ) ;
           settings.ajax.data = jQuery( event.target ).serializeArray() ;
         } ;
       } ;
       
-      /* validate */ validate && validate.test( '++', 1, 0, 'drive:url' ) ;
+      /* validate */ validate && validate.test( 6, 1, 0, 'drive:url' ) ;
       URL : {
         if ( !settings.server.query ) { break URL ; } ;
         url = url.replace( /(#[^\s]*|)$/ , ( !url.match( /\?/ ) ? '?' :'&' ) + encodeURIComponent( settings.server.query ) + '=1' + '$1' ) ;
       } ;
       
-      /* validate */ validate && validate.test( '++', 1, 0, 'drive:ajax' ) ;
+      /* validate */ validate && validate.test( 7, 1, 0, 'drive:ajax' ) ;
       settings.speedcheck && settings.log.speed.name.push( 'ajax_start' ) ;
       settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
       jQuery.when ? ajax_regular() : ajax_legacy() ;
       
       if ( fire( settings.callbacks.after , context , [ event , settings.parameter ] ) === false ) { return ; } ; // function: drive
-      /* validate */ validate && validate.test( '++', 1, 0, 'drive:end' ) ;
+      /* validate */ validate && validate.test( 8, 1, 0, 'drive:end' ) ;
       /* validate */ validate && validate.end() ;
       
       
