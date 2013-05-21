@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.11.9
+ * @version 1.11.10
  * @updated 2013/05/22
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
@@ -69,7 +69,7 @@
     /* validate */ var validate = window.validator instanceof Object ? window.validator : false ;
     /* validate */ var validate = validate ? validate.clone( { name : 'jquery.pjax.js' , base : true , timeout : { limit : options && options.ajax && options.ajax.timeout ? options.ajax.timeout + validate.timeout.limit : validate.timeout.limit } } ) : validate ;
     /* validate */ validate && validate.start() ;
-    /* validate */ validate && validate.test( 1, 1, 0, 'plugin load' ) ;
+    /* validate */ validate && validate.test( '++', 1, 0, 'pjax()' ) ;
     
     /* Variable initialization */
     var
@@ -377,10 +377,13 @@
                   textStatus = arguments[ 1 ] ;
                   errorThrown = arguments[ 2 ] ;
                   
+                  /* validate */ var validate = plugin_data[ settings.id ] && plugin_data[ settings.id ].validate ? plugin_data[ settings.id ].validate.clone( { name : 'jquery.pjax.js - drive()' } ) : validate ;
+                  /* validate */ validate && validate.start() ;
+                  /* validate */ validate && validate.test( '++', 1, [ url, win.location.href ], 'ajax_regular()' ) ;
+                  /* validate */ validate && validate.test( '++', 1, [ XMLHttpRequest, textStatus, errorThrown ], 'ajax error' ) ;
                   fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
-                  /* validate */ validate && validate.test( '++', 1, [ url, win.location.href ], 'ajax error' ) ;
-                  /* validate */ validate && validate.end() ;
                   if ( settings.fallback ) { return typeof settings.fallback === 'function' ? settings.fallback( event ) : fallback( event , validate ) ; } ;
+                  /* validate */ validate && validate.end() ;
                 }  
               }
             )
@@ -426,10 +429,13 @@
                 textStatus = arguments[ 1 ] ;
                 errorThrown = arguments[ 2 ] ;
                 
+                /* validate */ var validate = plugin_data[ settings.id ] && plugin_data[ settings.id ].validate ? plugin_data[ settings.id ].validate.clone( { name : 'jquery.pjax.js - drive()' } ) : validate ;
+                /* validate */ validate && validate.start() ;
+                /* validate */ validate && validate.test( '++', 1, [ url, win.location.href ], 'ajax_legacy()' ) ;
+                /* validate */ validate && validate.test( '++', 1, [ XMLHttpRequest, textStatus, errorThrown ], 'ajax error' ) ;
                 fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] ) ;
-                /* validate */ validate && validate.test( '++', 1, [ url, win.location.href ], 'ajax error' ) ;
-                /* validate */ validate && validate.end() ;
                 if ( settings.fallback ) { return typeof settings.fallback === 'function' ? settings.fallback( event ) : fallback( event , validate ) ; } ;
+                /* validate */ validate && validate.end() ;
               }
             }
           )
