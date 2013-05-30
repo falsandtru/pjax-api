@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.11.10
- * @updated 2013/05/22
+ * @version 1.11.11
+ * @updated 2013/05/30
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -456,7 +456,12 @@
           if ( fire( settings.callbacks.update.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
           
           /* variable initialization */
-          var title , css , script ;
+          var
+            win = window ,
+            doc = document ,
+            title ,
+            css ,
+            script ;
           
           try {
             
