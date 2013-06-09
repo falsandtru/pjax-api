@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.12.0
+ * @version 1.12.1
  * @updated 2013/06/10
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
@@ -86,7 +86,7 @@
         contentType : 'text/html' ,
         cache : { click : false , submit : false , popstate : false , length : 9 /* pages */ , size : 1*1024*1024 /* 1MB */ , expire : 30*60*1000 /* 30min */ } ,
         callback : function () {} ,
-        callbacks : { ajax : {} , update : { url : {} , title : {} , content : {} , css : {} , script : {} , cache : { load : {} , save : {} } } } ,
+        callbacks : { ajax : {} , update : { url : {} , title : {} , content : {} , css : {} , script : {} , cache : { load : {} , save : {} } , verify : {} } } ,
         parameter : undefined ,
         load : { css : false , script : false , sync : true , async : 0 } ,
         interval : 300 ,
@@ -698,9 +698,10 @@
               if ( fire( settings.callbacks.update.cache.save.after , context , [ event , settings.parameter , cache ] ) === false ) { break UPDATE_CACHE ; } ;
             } ; // label: UPDATE_CACHE
             
-            /* check */
-            /* validate */ validate && validate.test( '++', 1, 0, 'update:check' ) ;
-            UPDATE_CHECK : {
+            /* verify */
+            /* validate */ validate && validate.test( '++', 1, 0, 'update:verify' ) ;
+            UPDATE_VERIFY : {
+              if ( fire( settings.callbacks.update.verify.before , context , [ event , settings.parameter ] ) === false ) { break UPDATE_VERIFY ; } ;
               if ( url === win.location.href ) {
                 settings.retry = true ;
               } else if ( settings.retry ) {
@@ -709,6 +710,7 @@
               } else {
                 throw new Error( 'pjax: location mismatch' ) ;
               } ;
+              if ( fire( settings.callbacks.update.verify.after , context , [ event , settings.parameter ] ) === false ) { break UPDATE_VERIFY ; } ;
             } ;
             
             if ( fire( settings.callbacks.update.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
