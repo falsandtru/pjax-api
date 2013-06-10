@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.12.1
+ * @version 1.12.2
  * @updated 2013/06/10
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
@@ -468,10 +468,10 @@
             
             /* validate */ validate && validate.test( '++', 1, 0, 'update:try' ) ;
             /* validate */ validate && validate.test( '++', 1, !cache ? [ settings.contentType, XMLHttpRequest.getResponseHeader( 'Content-Type' ) ] : 0, 'update:content-type' ) ;
-            if ( !cache && !( new RegExp( settings.contentType.replace( /\s*[,;]\s*(.|$)/g , function () { return arguments[ 1 ] ? '|' + arguments[ 1 ] : '' ; } ) , 'i' ) ).test( XMLHttpRequest.getResponseHeader( 'Content-Type' ) ) ) { throw new Error( "pjax: content-type mismatch" ) ; } ;
+            if ( !cache && !( new RegExp( settings.contentType.replace( /\s*[,;]\s*(.|$)/g , function () { return arguments[ 1 ] ? '|' + arguments[ 1 ] : '' ; } ) , 'i' ) ).test( XMLHttpRequest.getResponseHeader( 'Content-Type' ) ) ) { throw new Error( "throw: content-type mismatch" ) ; } ;
             
             /* cache */
-            /* validate */ validate && validate.test( '++', 'String(!!cache)', 0, 'update:cache' ) ;
+            /* validate */ validate && validate.test( '++', cache ? "'usable'" : "'unusable'", 0, 'update:cache' ) ;
             UPDATE_CACHE : {
               if ( !cache ) { break UPDATE_CACHE ; } ;
               if ( fire( settings.callbacks.update.cache.load.before , context , [ event , settings.parameter , cache ] ) === false ) { break UPDATE_CACHE ; } ;
@@ -495,7 +495,7 @@
             
             title = title ? title : parsable ? page.filter( 'title' ).text() : jQuery( '<span/>' ).html( find( data , '<title>([^<]*)</title>' ).join() ).text() ;
             
-            if ( !jQuery( settings.area ).length || !page.find( settings.area ).add( page.filter( settings.area ) ).length ) { throw new Error( 'pjax: area length mismatch' ) ; } ;
+            if ( !jQuery( settings.area ).length || !page.find( settings.area ).add( page.filter( settings.area ) ).length ) { throw new Error( 'throw: area length mismatch' ) ; } ;
             
             /* url */
             /* validate */ validate && validate.test( '++', 1, url, 'update:url' ) ;
@@ -708,7 +708,7 @@
                 settings.retry = false ;
                 drive( context , event , win.location.href , false , settings.cache[ event.type.toLowerCase() ] ? fnCache( settings.history , win.location.href ) : undefined ) ;
               } else {
-                throw new Error( 'pjax: location mismatch' ) ;
+                throw new Error( 'throw: location mismatch' ) ;
               } ;
               if ( fire( settings.callbacks.update.verify.after , context , [ event , settings.parameter ] ) === false ) { break UPDATE_VERIFY ; } ;
             } ;
@@ -718,8 +718,9 @@
             if ( fire( settings.callback , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] ) === false ) { break UPDATE ; } ;
             /* validate */ validate && validate.test( '++', 1, 0, 'update: success' ) ;
           } catch( err ) {
-            /* validate */ validate && ( validate.scope = function( code ){ return eval( code ) ; } ) ;
-            /* validate */ validate && validate.test( '++', '!String( err.message ).indexOf( "pjax:" )', err, 'update:catch' ) ;
+            /* validate */ validate && validate.test( '++', !String( err.message ).indexOf( "throw:" ), err, 'update:catch' ) ;
+            /* validate */ validate && validate.test( '++', !( err.message === 'throw: location mismatch' && url !== win.location.href ), [ url, win.location.href ], "!( err.message === 'throw: location mismatch' && url !== win.location.href )" ) ;
+						
             /* cache delete */
             UPDATE_CACHE : {
               if ( !cache ) { break UPDATE_CACHE ; } ;
