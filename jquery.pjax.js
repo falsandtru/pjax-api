@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.12.2
- * @updated 2013/06/10
+ * @version 1.12.3
+ * @updated 2013/06/20
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -101,7 +101,8 @@
     jQuery.extend
     (
       true ,
-      settings , {
+      settings ,
+      {
         nss : {
           pjax : nsArray.join( '.' ) ,
           click : [ 'click' ].concat( nsArray.join( ':' ) ).join( '.' ) ,
@@ -354,7 +355,8 @@
             (
               true , {} ,
               settings.ajax ,
-              callbacks , {
+              callbacks ,
+              {
                 url : url ,
                 beforeSend : function () {
                   XMLHttpRequest = arguments[ 0 ] ;
@@ -404,7 +406,8 @@
           (
             true , {} ,
             settings.ajax ,
-            callbacks , {
+            callbacks ,
+            {
               url : url ,
               beforeSend : function () {
                 XMLHttpRequest = arguments[ 0 ] ;
@@ -720,7 +723,7 @@
           } catch( err ) {
             /* validate */ validate && validate.test( '++', !String( err.message ).indexOf( "throw:" ), err, 'update:catch' ) ;
             /* validate */ validate && validate.test( '++', !( err.message === 'throw: location mismatch' && url !== win.location.href ), [ url, win.location.href ], "!( err.message === 'throw: location mismatch' && url !== win.location.href )" ) ;
-						
+            
             /* cache delete */
             UPDATE_CACHE : {
               if ( !cache ) { break UPDATE_CACHE ; } ;
