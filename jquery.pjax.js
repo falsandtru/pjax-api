@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.13.0
- * @updated 2013/06/21
+ * @version 1.13.1
+ * @updated 2013/06/26
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -266,9 +266,9 @@
             XMLHttpRequest = fire( settings.callbacks.ajax.xhr , context , [ event , settings.parameter ] , settings.callbacks.async ) ;
             XMLHttpRequest = XMLHttpRequest instanceof Object && XMLHttpRequest instanceof win.XMLHttpRequest ? XMLHttpRequest : XMLHttpRequest || jQuery.ajaxSettings.xhr() ;
             
-            if ( XMLHttpRequest instanceof Object && XMLHttpRequest instanceof win.XMLHttpRequest && 'onprogress' in XMLHttpRequest ) {
-              XMLHttpRequest.addEventListener( 'progress' , function ( event ) { dataSize = event.loaded ; } , false ) ;
-            } ;
+            //if ( XMLHttpRequest instanceof Object && XMLHttpRequest instanceof win.XMLHttpRequest && 'onprogress' in XMLHttpRequest ) {
+            //  XMLHttpRequest.addEventListener( 'progress' , function ( event ) { dataSize = event.loaded ; } , false ) ;
+            //} ;
             return XMLHttpRequest ;
           } ,
           dataFilter : function () {
@@ -550,7 +550,7 @@
                 
                 css = css ? css
                           : parsable ? page.find( 'link[rel="stylesheet"], style' ).add( page.filter( 'link[rel="stylesheet"], style' ) )
-                                     : find( data , '(<link[^>]*?rel="stylesheet"[^>]*?>|<style[^>]*?>(.|[\n\r])*?</style>)' ) ;
+                                     : find( data , '(<link[^>]*?rel=.[^"\']*stylesheet[^>]*>|<style[^>]*>(.|[\n\r])*?</style>)' ) ;
                 fnCache( settings.history , url ) && ( fnCache( settings.history , url ).css = css ) ;
                 
                 // 対象現行全要素に削除フラグを立てる。
@@ -617,7 +617,7 @@
                 
                 script = script ? script
                                 : parsable ? page.find( 'script' ).add( page.filter( 'script' ) )
-                                           : find( data , '(?:[^\'\"]|^\s*)(<script[^>]*?>(.|[\n\r])*?</script>)(?:[^\'\"]|\s*$)' ) ;
+                                           : find( data , '(?:[^\'\"]|^\s*)(<script[^>]*>(.|[\n\r])*?</script>)(?:[^\'\"]|\s*$)' ) ;
                 fnCache( settings.history , url ) && ( fnCache( settings.history , url ).script = script ) ;
                 
                 for ( var i = 0 , element , defer , consistent ; element = script[ i ] ; i++ ) {
@@ -811,7 +811,7 @@
           
           if ( history.data[ url ] ) { break ; } ;
           
-          size = size || data.length * 2 ;
+          size = size || data.length * 1.8 ;
           history.size = history.size || 0 ;
           history.size += size ;
           history.data[ url ] = {
