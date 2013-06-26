@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.13.1
- * @updated 2013/06/26
+ * @version 1.13.2
+ * @updated 2013/06/27
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -72,31 +72,30 @@
     /* validate */ validate && validate.test( '++', 1, 0, 'pjax()' ) ;
     
     /* Variable initialization */
-    var
-      defaults = {
-        id : 0 ,
-        gns : 'pjax' ,
-        ns : undefined ,
-        area : undefined ,
-        link : 'a:not([target])[href^="/"]' ,
-        form : undefined ,
-        scrollTop : 0 ,
-        scrollLeft : 0 ,
-        ajax : {} ,
-        contentType : 'text/html' ,
-        cache : { click : false , submit : false , popstate : false , length : 9 /* pages */ , size : 1*1024*1024 /* 1MB */ , expire : 30*60*1000 /* 30min */ } ,
-        callback : function () {} ,
-        callbacks : { ajax : {} , update : { url : {} , title : {} , content : {} , css : {} , script : {} , cache : { load : {} , save : {} } , verify : {} } , async : false } ,
-        parameter : undefined ,
-        load : { css : false , script : false , sync : true , async : 0 } ,
-        interval : 300 ,
-        wait : 0 ,
-        fallback : true ,
-        server : { query : '' } ,
-        speedcheck : false
-      } ,
-      settings = jQuery.extend( true , {} , defaults , options ) ,
-      nsArray = [ settings.gns ].concat( settings.ns || [] ) ;
+    var defaults = {
+          id : 0 ,
+          gns : 'pjax' ,
+          ns : undefined ,
+          area : undefined ,
+          link : 'a:not([target])[href^="/"]' ,
+          form : undefined ,
+          scrollTop : 0 ,
+          scrollLeft : 0 ,
+          ajax : {} ,
+          contentType : 'text/html' ,
+          cache : { click : false , submit : false , popstate : false , length : 9 /* pages */ , size : 1*1024*1024 /* 1MB */ , expire : 30*60*1000 /* 30min */ } ,
+          callback : function () {} ,
+          callbacks : { ajax : {} , update : { url : {} , title : {} , content : {} , css : {} , script : {} , cache : { load : {} , save : {} } , verify : {} } , async : false } ,
+          parameter : undefined ,
+          load : { css : false , script : false , sync : true , async : 0 } ,
+          interval : 300 ,
+          wait : 0 ,
+          fallback : true ,
+          server : { query : '' } ,
+          speedcheck : false
+        } ,
+        settings = jQuery.extend( true , {} , defaults , options ) ,
+        nsArray = [ settings.gns ].concat( settings.ns || [] ) ;
     
     jQuery.extend
     (
@@ -252,38 +251,37 @@
       } ;
       
       /* validate */ validate && validate.test( 3, 1, 0, 'drive:initialize' ) ;
-      var
-        data ,
-        dataType ,
-        XMLHttpRequest ,
-        textStatus ,
-        errorThrown ,
-        dataSize ,
-        query = [] ,
-        request = [] ,
-        callbacks = {
-          xhr : function () {
-            XMLHttpRequest = fire( settings.callbacks.ajax.xhr , context , [ event , settings.parameter ] , settings.callbacks.async ) ;
-            XMLHttpRequest = XMLHttpRequest instanceof Object && XMLHttpRequest instanceof win.XMLHttpRequest ? XMLHttpRequest : XMLHttpRequest || jQuery.ajaxSettings.xhr() ;
-            
-            //if ( XMLHttpRequest instanceof Object && XMLHttpRequest instanceof win.XMLHttpRequest && 'onprogress' in XMLHttpRequest ) {
-            //  XMLHttpRequest.addEventListener( 'progress' , function ( event ) { dataSize = event.loaded ; } , false ) ;
-            //} ;
-            return XMLHttpRequest ;
-          } ,
-          dataFilter : function () {
-            data = arguments[ 0 ] ;
-            dataType = arguments[ 1 ] ;
-            
-            return fire( settings.callbacks.ajax.dataFilter , context , [ event , settings.parameter , data , dataType ] , settings.callbacks.async ) || data ;
-          } ,
-          complete : function () {
-            XMLHttpRequest = arguments[ 0 ] ;
-            textStatus = arguments[ 1 ] ;
-            
-            fire( settings.callbacks.ajax.complete , context , [ event , settings.parameter , XMLHttpRequest , textStatus ] , settings.callbacks.async ) ;
-          }
-        } ;
+      var data ,
+          dataType ,
+          XMLHttpRequest ,
+          textStatus ,
+          errorThrown ,
+          dataSize ,
+          query = [] ,
+          request = [] ,
+          callbacks = {
+            xhr : function () {
+              XMLHttpRequest = fire( settings.callbacks.ajax.xhr , context , [ event , settings.parameter ] , settings.callbacks.async ) ;
+              XMLHttpRequest = XMLHttpRequest instanceof Object && XMLHttpRequest instanceof win.XMLHttpRequest ? XMLHttpRequest : XMLHttpRequest || jQuery.ajaxSettings.xhr() ;
+              
+              //if ( XMLHttpRequest instanceof Object && XMLHttpRequest instanceof win.XMLHttpRequest && 'onprogress' in XMLHttpRequest ) {
+              //  XMLHttpRequest.addEventListener( 'progress' , function ( event ) { dataSize = event.loaded ; } , false ) ;
+              //} ;
+              return XMLHttpRequest ;
+            } ,
+            dataFilter : function () {
+              data = arguments[ 0 ] ;
+              dataType = arguments[ 1 ] ;
+              
+              return fire( settings.callbacks.ajax.dataFilter , context , [ event , settings.parameter , data , dataType ] , settings.callbacks.async ) || data ;
+            } ,
+            complete : function () {
+              XMLHttpRequest = arguments[ 0 ] ;
+              textStatus = arguments[ 1 ] ;
+              
+              fire( settings.callbacks.ajax.complete , context , [ event , settings.parameter , XMLHttpRequest , textStatus ] , settings.callbacks.async ) ;
+            }
+          } ;
       
       for ( var i in callbacks ) {
         if ( i in settings.callbacks.ajax || i === 'xhr' ) { continue ; } ;
@@ -460,12 +458,11 @@
           if ( fire( settings.callbacks.update.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; } ;
           
           /* variable initialization */
-          var
-            win = window ,
-            doc = document ,
-            title ,
-            css ,
-            script ;
+          var win = window ,
+              doc = document ,
+              title ,
+              css ,
+              script ;
           
           try {
             
@@ -489,14 +486,14 @@
             
             /* variable initialization */
             /* validate */ validate && validate.test( '++', 1, 0, 'update:initialize' ) ;
-            var
-              page = jQuery( data ) ,
-              parsable = 0 < page.filter( 'title' ).length ,
-              areas = settings.area.replace( /(\((.*?(\(.*?\).*?)?)*?\)|\S)(,|$)/g , function () { return arguments[1] + ( arguments[4] ? '|' : '' ) } ).split( /\s*\|(?!=)\s*/ ) ,
-              scrollX = settings.scrollLeft === null ? jQuery( win ).scrollLeft() : parseInt( settings.scrollLeft ) ,
-              scrollY = settings.scrollTop === null ? jQuery( win ).scrollTop() : parseInt( settings.scrollTop ) ;
+            var page = jQuery( data ) ,
+                parsable = 0 < page.filter( 'title' ).length ,
+                areas = settings.area.replace( /(\((.*?(\(.*?\).*?)?)*?\)|\S)(,|$)/g , function () { return arguments[1] + ( arguments[4] ? '|' : '' ) } ).split( /\s*\|(?!=)\s*/ ) ,
+                scrollX = settings.scrollLeft === null ? jQuery( win ).scrollLeft() : parseInt( settings.scrollLeft ) ,
+                scrollY = settings.scrollTop === null ? jQuery( win ).scrollTop() : parseInt( settings.scrollTop ) ;
             
-            title = title ? title : parsable ? page.filter( 'title' ).text() : jQuery( '<span/>' ).html( find( data , '<title>([^<]*)</title>' ).join() ).text() ;
+            title = title ? title
+                          : parsable ? page.filter( 'title' ).text() : jQuery( '<span/>' ).html( find( data , '<title>([^<]*)</title>' ).join() ).text() ;
             
             if ( !jQuery( settings.area ).length || !page.find( settings.area ).add( page.filter( settings.area ) ).length ) { throw new Error( 'throw: area length mismatch' ) ; } ;
             
@@ -549,14 +546,14 @@
                 if ( fire( settings.callbacks.update.css.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_CSS ; } ;
                 
                 css = css ? css
-                          : parsable ? page.find( 'link[rel="stylesheet"], style' ).add( page.filter( 'link[rel="stylesheet"], style' ) )
+                          : parsable ? page.find( 'link[rel~="stylesheet"], style' ).add( page.filter( 'link[rel~="stylesheet"], style' ) )
                                      : find( data , '(<link[^>]*?rel=.[^"\']*stylesheet[^>]*>|<style[^>]*>(.|[\n\r])*?</style>)' ) ;
                 fnCache( settings.history , url ) && ( fnCache( settings.history , url ).css = css ) ;
                 
                 // 対象現行全要素に削除フラグを立てる。
-                jQuery( 'link[rel="stylesheet"], style' ).filter( function () { return jQuery.data( this , settings.nss.data , true ) ; } ) ;
+                jQuery( 'link[rel~="stylesheet"], style' ).filter( function () { return jQuery.data( this , settings.nss.data , true ) ; } ) ;
                 // 対象移行全要素を走査する。
-                for ( var i = 0 , element , links = jQuery( 'link[rel="stylesheet"]' ) , styles = jQuery( 'style' ) , consistent ; element = css[ i ] ; i++ ) {
+                for ( var i = 0 , element , links = jQuery( 'link[rel~="stylesheet"]' ) , styles = jQuery( 'style' ) , consistent ; element = css[ i ] ; i++ ) {
                   
                   consistent = false ;
                   element = parsable ? element : jQuery( element )[ 0 ] ;
@@ -594,7 +591,7 @@
                   jQuery.data( jQuery( 'head' ).append( element ).children( ':last-child' )[ 0 ] , settings.nss.data , false ) ;
                   element = null ;
                 } ;
-                jQuery( 'link[rel="stylesheet"], style' ).filter( function () { return jQuery.data( this , settings.nss.data ) ; } ).remove() ;
+                jQuery( 'link[rel~="stylesheet"], style' ).filter( function () { return jQuery.data( this , settings.nss.data ) ; } ).remove() ;
                 
                 if ( fire( settings.callbacks.update.css.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_CSS ; } ;
                 settings.speedcheck && settings.log.speed.name.push( 'css' ) ;
@@ -675,8 +672,6 @@
             /* validate */ validate && validate.test( '++', 1, 0, 'update:scroll' ) ;
             switch ( event.type.toLowerCase() ) {
               case 'click' :
-                win.scrollTo( scrollX , scrollY ) ;
-                break ;
               case 'submit' :
                 win.scrollTo( scrollX , scrollY ) ;
                 break ;
