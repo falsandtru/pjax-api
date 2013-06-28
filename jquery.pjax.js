@@ -642,7 +642,7 @@
                 jQuery.when.apply( null , executes )
                 .done( function () {
                   for ( var i = 0 , exec ; exec = arguments[ i ] ; i++ ) {
-                    0 < Number( exec.nodeType ) && eval( ( exec.text || exec.textContent || exec.innerHTML || '' ).replace( /^\s*<!(?:\[CDATA\[|\-\-)/ , '/*$0*/' ) ) ; /* */
+                    0 < Number( exec.nodeType ) && ( exec.type === '' ||  exec.type.toLowerCase() === 'text/javascript' ) && eval( ( exec.text || exec.textContent || exec.innerHTML || '' ).replace( /^\s*<!(?:\[CDATA\[|\-\-)/ , '/*$0*/' ) ) ; /* */
                   } ;
                 } ) ;
                 
