@@ -1,0 +1,168 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="content-language" content="ja">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>pjax demo</title>
+<style type="text/css">
+/* reset */
+/* -------------------------------------------------- */
+html,body,div,p{
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* default */
+/* -------------------------------------------------- */
+html,body{
+  width: 100%;
+  height: 100%;
+}
+h1{
+  margin: 0;
+}
+p{
+  font-size: xx-large;
+}
+form{
+  text-align: center;
+}
+form p{
+  display: inline;
+}
+select{
+  height: 40px;
+  font-size: 32px;
+}
+
+/* frame */
+/* -------------------------------------------------- */
+#container{
+  width: 100%;
+  height: 100%;
+}
+#header{
+  height: 20%;
+  background: #ee0;
+}
+#wrapper{
+  position: relative;
+  height: 60%;
+  background: #e0e;
+}
+#wrapper div.layer{
+  height: 100%;
+}
+div.primary{
+  height: 100%;
+  background: #e00;
+}
+div.secondary{
+  display: none;
+  height: 100%;
+  background: #0e0;
+}
+div.tertiary{
+  display: none;
+  height: 100%;
+  background: #00e;
+}
+#footer{
+  height: 20%;
+  background: #0ee;
+}
+
+
+/* -------------------------------------------------- */
+
+/* new clearfix */
+.clearfix:after {
+  visibility: hidden;
+  display: block;
+  font-size: 0;
+  content: " ";
+  clear: both;
+  height: 0;
+}
+* html .clearfix             { zoom: 1; } /* IE6 */
+*:first-child+html .clearfix { zoom: 1; } /* IE7 */
+</style>
+<script type="text/javascript" charset="utf-8" src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
+<script type="text/javascript" charset="utf-8" src="http://sa-kusaku.sakura.ne.jp/lib/jquery.validator.js"></script>
+<script type="text/javascript">
+var validator = $.validator ? $.validator( {
+  base: true ,
+  name: 'base' ,
+  debug: true ,
+  report: true ,
+  url: '/lib/jquery.validator.send.php' ,
+  env: window.navigator.userAgent ,
+  dom: function() { return document.documentElement.outerHTML ; }
+} ) : false ;
+//var validator = false ;
+</script>
+<script type="text/javascript" charset="utf-8" src="/lib/jquery.pjax.js"></script>
+<script type="text/javascript" charset="utf-8" src="/output/pjax/test/script/ini.js"></script>
+<script type="text/javascript">
+$(function()
+{
+  alert( 'execute script [embedded(head)]\n' + $('div.primary p:first-child').text() )
+});
+</script>
+</head>
+<body>
+  <div id="container">
+    <div id="header">
+      <div class="layout">
+        <h1>pjax demo</h1>
+        <p>これはpjaxのデモページです</p>
+        <p>header2</p>
+      </div>
+    </div>
+    <div id="wrapper" class="clearfix">
+      <div class="layer">
+        <div class="primary pjax">
+          <div class="layout">
+            <p>primary2</p>
+            <p>pjax enable あアｱ亜</p>
+            <ul>
+              <li><a href="/output/pjax/test/script/">page1 enable</a></li>
+              <li><a href="/output/pjax/test/script/2.html">page2 enable</a></li>
+              <li><a href="/output/pjax/test/script/3.html">page3 enable</a></li>
+            </ul>
+            <script type="text/javascript" src="/output/pjax/test/script/2.js"></script>
+          </div>
+        </div>
+        <div class="secondary">
+          <div class="layout">
+            <p>secondary2</p>
+            <ul>
+              <li><a href="/output/pjax/test/script/">page1 enable</a></li>
+              <li><a href="/output/pjax/test/script/2.html">page2 enable</a></li>
+              <li><a href="/output/pjax/test/script/3.html">page3 enable</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="tertiary">
+          <div class="layout">
+            <p>tertiary2</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="footer">
+      <div class="layout">
+        <p>footer2</p>
+<script type="text/javascript">
+$(function()
+{
+  alert( 'execute script [embedded(body)]\n' + $('div.primary p:first-child').text() )
+});
+</script>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
