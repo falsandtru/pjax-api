@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.13.2
- * @updated 2013/06/27
+ * @version 1.13.3
+ * @updated 2013/07/02
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -614,7 +614,7 @@
                 
                 script = script ? script
                                 : parsable ? page.find( 'script' ).add( page.filter( 'script' ) )
-                                           : find( data , '(?:[^\'\"]|^\s*)(<script[^>]*>(.|[\n\r])*?</script>)(?:[^\'\"]|\s*$)' ) ;
+                                           : find( data , '(?:[^\'\"]|^\s*)(<script[^>]*>(.|[\n\r])*?</script>)(?:[^\'\"]|\s*$)' ) ; //
                 fnCache( settings.history , url ) && ( fnCache( settings.history , url ).script = script ) ;
                 
                 for ( var i = 0 , element , defer , consistent ; element = script[ i ] ; i++ ) {
@@ -642,7 +642,8 @@
                 jQuery.when.apply( null , executes )
                 .done( function () {
                   for ( var i = 0 , exec ; exec = arguments[ i ] ; i++ ) {
-                    0 < Number( exec.nodeType ) && ( exec.type === '' ||  exec.type.toLowerCase() === 'text/javascript' ) && eval( ( exec.text || exec.textContent || exec.innerHTML || '' ).replace( /^\s*<!(?:\[CDATA\[|\-\-)/ , '/*$0*/' ) ) ; /* */
+                    0 < Number( exec.nodeType ) && ( !exec.type || -1 < exec.type.toLowerCase().indexOf( 'text/javascript' ) ) &&
+                    eval( ( exec.text || exec.textContent || exec.innerHTML || '' ).replace( /^\s*<!(?:\[CDATA\[|\-\-)/ , '/*$0*/' ) ) ;
                   } ;
                 } ) ;
                 
@@ -655,7 +656,7 @@
               setTimeout( function () {
                 if ( jQuery( settings.area ).length === jQuery( settings.area ).children( '.' + settings.nss.class4html + '-loaded' ).filter( function () { return this.clientWidth ; } ).length ) {
                   jQuery( settings.area ).children( '.' + settings.nss.class4html + '-loaded' ).remove() ;
-                  setTimeout( function () { load_script( 'sync' ) ; } , 0 ) ;
+                  setTimeout( function () { load_script( 'sync' ) ; } , settings.load.async || 0 ) ;
                   settings.speedcheck && settings.log.speed.name.push( 'script' ) ;
                   settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
                   settings.speedcheck && console.log( settings.log.speed.time ) ;
