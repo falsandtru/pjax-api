@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.13.3
- * @updated 2013/07/02
+ * @version 1.13.4
+ * @updated 2013/07/03
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -569,7 +569,7 @@
                         if ( consistent || this.href !== element.href ) { return false ; } ;
                         // 一致したためTRUEを返す。一致した要素に削除フラグが立っていればこれを消す。
                         consistent = true ;
-                        jQuery.data( this , settings.nss.data ) && jQuery.data( this , settings.nss.data , false ) ;
+                        jQuery.removeData( this , settings.nss.data ) ;
                         return true ;
                       } ).length
                     ) { continue ; } ;
@@ -582,13 +582,13 @@
                       styles.filter( function () {
                         if ( consistent || !jQuery.data( this , settings.nss.data ) || this.innerHTML !== element.innerHTML ) { return false ; } ;
                         consistent = true ;
-                        jQuery.data( this , settings.nss.data , false ) ;
+                        jQuery.removeData( this , settings.nss.data ) ;
                         return true ;
                       } ).length
                     ) { continue ; } ;
                   } ;
                   
-                  jQuery.data( jQuery( 'head' ).append( element ).children( ':last-child' )[ 0 ] , settings.nss.data , false ) ;
+                  jQuery( 'head' ).append( element ) ;
                   element = null ;
                 } ;
                 jQuery( 'link[rel~="stylesheet"], style' ).filter( function () { return jQuery.data( this , settings.nss.data ) ; } ).remove() ;
