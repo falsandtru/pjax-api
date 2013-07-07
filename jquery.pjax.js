@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.14.0
- * @updated 2013/07/05
+ * @version 1.14.1
+ * @updated 2013/07/07
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -289,7 +289,7 @@
       
       /* validate */ validate && validate.test( 4, 1, 0, 'drive:area' ) ;
       AREA : {
-        settings.area = typeof settings.options.area === 'function' ? settings.options.area.apply( null , [ event ] ) : settings.options.area ;
+        settings.area = fire( settings.options.area , null , [ event ] ) || settings.options.area ;
       } ;
       
       /* validate */ validate && validate.test( 5, 1, 0, 'drive:popstate' ) ;
