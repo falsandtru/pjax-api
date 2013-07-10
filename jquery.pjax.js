@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.14.1
- * @updated 2013/07/07
+ * @version 1.14.2
+ * @updated 2013/07/11
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -148,8 +148,8 @@
     } // function: supportPushState
     
     function register( context , settings ) {
-      settings.id = plugin_data.length ;
-      plugin_data.push( settings )
+      settings.id = 1 ;
+      plugin_data[ settings.id ] = settings ;
       
       DELEGATE_CLICK : {
         if ( !settings.link ) { break DELEGATE_CLICK ; } ;
