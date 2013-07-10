@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.14.2
+ * @version 1.14.3
  * @updated 2013/07/11
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
@@ -168,7 +168,7 @@
           url = this.href ;
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; } ;
           if ( settings.landing ) { settings.landing = false ; } ;
-          if ( settings.disable ) { event.preventDefault() ; return false ; } else { settings.off() ; } ;
+          if ( settings.disable ) { return ; } else { settings.off() ; } ;
           
           drive( this , event , url , url !== win.location.href , cache ) ;
           event.preventDefault() ;
@@ -189,7 +189,7 @@
           url = this.action ;
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; } ;
           if ( settings.landing ) { settings.landing = false ; } ;
-          if ( settings.disable ) { event.preventDefault() ; return false ; } else { settings.off() ; } ;
+          if ( settings.disable ) { return ; } else { settings.off() ; } ;
           
           drive( this , event , url , true , cache ) ;
           event.preventDefault() ;
@@ -208,7 +208,7 @@
           url = win.location.href ;
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; } ;
           if ( settings.landing ) { if ( settings.landing === win.location.href ) { settings.landing = false ; return ; } ; settings.landing = false ; } ;
-          if ( settings.disable ) { event.preventDefault() ; return false ; } else { settings.off() ; } ;
+          if ( settings.disable ) { return ; } else { settings.off() ; } ;
           
           drive( this , event , url , false , cache ) ;
           event.preventDefault() ;
