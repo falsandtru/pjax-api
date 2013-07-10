@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.14.3
+ * @version 1.15.0
  * @updated 2013/07/11
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
@@ -166,9 +166,9 @@
           var settings, url , cache ;
           settings = plugin_data[ event.data ] ;
           url = this.href ;
-          if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; } ;
           if ( settings.landing ) { settings.landing = false ; } ;
           if ( settings.disable ) { return ; } else { settings.off() ; } ;
+          if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; } ;
           
           drive( this , event , url , url !== win.location.href , cache ) ;
           event.preventDefault() ;
@@ -187,9 +187,9 @@
           var settings, url , cache ;
           settings = plugin_data[ event.data ] ;
           url = this.action ;
-          if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; } ;
           if ( settings.landing ) { settings.landing = false ; } ;
           if ( settings.disable ) { return ; } else { settings.off() ; } ;
+          if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; } ;
           
           drive( this , event , url , true , cache ) ;
           event.preventDefault() ;
@@ -206,9 +206,9 @@
           var settings, url , cache ;
           settings = plugin_data[ event.data ] ;
           url = win.location.href ;
-          if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; } ;
           if ( settings.landing ) { if ( settings.landing === win.location.href ) { settings.landing = false ; return ; } ; settings.landing = false ; } ;
           if ( settings.disable ) { return ; } else { settings.off() ; } ;
+          if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; } ;
           
           drive( this , event , url , false , cache ) ;
           event.preventDefault() ;
@@ -541,7 +541,6 @@
             
             /* css */
             /* validate */ validate && validate.test( '++', 1, 0, 'update:css' ) ;
-            settings.load.css && setTimeout( function () { load_css() ; } , settings.load.async || 0 ) ;
             function load_css() {
               /* validate */ var validate = plugin_data[ settings.id ] && plugin_data[ settings.id ].validate ? plugin_data[ settings.id ].validate.clone( { name : 'jquery.pjax.js - load_css()' } ) : validate ;
               /* validate */ validate && validate.start() ;
@@ -603,10 +602,10 @@
               } ; // label: UPDATE_CSS
               /* validate */ validate && validate.end() ;
             } // function: css
+            settings.load.css && setTimeout( function () { load_css() ; } , settings.load.async || 0 ) ;
             
             /* script */
             /* validate */ validate && validate.test( '++', 1, 0, 'update:script' ) ;
-            settings.load.script && setTimeout( function () { load_script( 'async' ) ; } , settings.load.async || 0 ) ;
             function load_script( type ) {
               /* validate */ var validate = plugin_data[ settings.id ] && plugin_data[ settings.id ].validate ? plugin_data[ settings.id ].validate.clone( { name : 'jquery.pjax.js - load_script()' } ) : validate ;
               /* validate */ validate && validate.start() ;
@@ -652,42 +651,48 @@
                 } ) ;
                 
                 if ( fire( settings.callbacks.update.script.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_SCRIPT ; } ;
+                settings.speedcheck && type === 'async' && settings.log.speed.name.push( 'script' ) ;
+                settings.speedcheck && type === 'async' && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
               } ; // label: UPDATE_SCRIPT
               /* validate */ validate && validate.end() ;
             } // function: script
-            
-            if ( settings.load.script && settings.load.sync ) {
-              setTimeout( function () {
-                if ( jQuery( settings.area ).length === jQuery( settings.area ).children( '.' + settings.nss.class4html + '-loaded' ).filter( function () { return this.clientWidth ; } ).length ) {
-                  jQuery( settings.area ).children( '.' + settings.nss.class4html + '-loaded' ).remove() ;
-                  setTimeout( function () { load_script( 'sync' ) ; } , settings.load.async || 0 ) ;
-                  settings.speedcheck && settings.log.speed.name.push( 'script' ) ;
-                  settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
-                  settings.speedcheck && console.log( settings.log.speed.time ) ;
-                  settings.speedcheck && console.log( settings.log.speed.name ) ;
-                } else {
-                  setTimeout( function () { arguments.callee() ; } , settings.interval ) ;
-                } ;
-              } , 0 ) ;
-            } else {
-              settings.load.script && setTimeout( function () { load_script( 'sync' ) ; } , settings.load.async || 0 ) ;
-            } ;
+            settings.load.script && setTimeout( function () { load_script( 'async' ) ; } , settings.load.async || 0 ) ;
+            settings.load.script && !settings.load.sync && setTimeout( function () { load_script( 'sync' ) ; } , settings.load.async || 0 ) ;
             
             /* scroll */
             /* validate */ validate && validate.test( '++', 1, 0, 'update:scroll' ) ;
-            switch ( event.type.toLowerCase() ) {
-              case 'click' :
-              case 'submit' :
-                win.scrollTo( scrollX , scrollY ) ;
-                break ;
-              case 'popstate' :
-                if ( win.history.state instanceof Object && isFinite( win.history.state.scrollY ) ) {
-                  win.scrollTo( scrollX , win.history.state.scrollY ) ;
-                  win.history.state.scrollY = undefined ;
-                  win.history.replaceState( win.history.state , title , url ) ;
-                } ;
-                break ;
-            } ;
+            function scroll() {
+              switch ( event.type.toLowerCase() ) {
+                case 'click' :
+                case 'submit' :
+                  win.scrollTo( scrollX , scrollY ) ;
+                  break ;
+                case 'popstate' :
+                  if ( win.history.state instanceof Object && isFinite( win.history.state.scrollY ) ) {
+                    win.scrollTo( scrollX , win.history.state.scrollY ) ;
+                    win.history.state.scrollY = undefined ;
+                    win.history.replaceState( win.history.state , title , url ) ;
+                  } ;
+                  break ;
+              } ;
+            }
+            scroll() ;
+            
+            /* loaded */
+            /* validate */ validate && validate.test( '++', 1, 0, 'update:loaded' ) ;
+            setTimeout( function () {
+              if ( jQuery( settings.area ).length === jQuery( settings.area ).children( '.' + settings.nss.class4html + '-loaded' ).filter( function () { return this.clientWidth ; } ).length ) {
+                jQuery( settings.area ).children( '.' + settings.nss.class4html + '-loaded' ).remove() ;
+                settings.load.script && settings.load.sync && setTimeout( function () { load_script( 'sync' ) ; } , settings.load.async || 0 ) ;
+                scroll() ;
+                settings.speedcheck && settings.log.speed.name.push( 'loaded' ) ;
+                settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
+                settings.speedcheck && console.log( settings.log.speed.time ) ;
+                settings.speedcheck && console.log( settings.log.speed.name ) ;
+              } else {
+                setTimeout( function () { arguments.callee() ; } , settings.interval ) ;
+              } ;
+            } , 0 ) ;
             
             /* cache */
             /* validate */ validate && validate.test( '++', 1, 0, 'update:cache' ) ;
