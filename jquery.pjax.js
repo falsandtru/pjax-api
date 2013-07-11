@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.16.1
- * @updated 2013/07/11
+ * @version 1.16.2
+ * @updated 2013/07/12
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -542,7 +542,7 @@
                   'style' : 'display: block !important; visibility: hidden !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; position: absolute !important; top: -9999px !important; left: -9999px !important; font-size: 12px !important; text-indent: 0 !important;'
                 } ).text( 'pjax' ) ) ;
               } ;
-              jQuery( document ).trigger( settings.gns + '.DOMContentLoaded' ).trigger( settings.gns + '.ready' ) ;
+              jQuery( document ).trigger( settings.gns + '.DOMContentLoaded' ) ;
               if ( fire( settings.callbacks.update.content.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_CONTENT ; } ;
             } ;
             
@@ -563,45 +563,44 @@
                 // 対象現行全要素に削除フラグを立てる。
                 jQuery( 'link[rel~="stylesheet"], style' ).filter( function () { return jQuery.data( this , settings.nss.data , true ) ; } ) ;
                 // 対象移行全要素を走査する。
-                for ( var i = 0 , element , links = jQuery( 'link[rel~="stylesheet"]' ) , styles = jQuery( 'style' ) , consistent ; element = css[ i ] ; i++ ) {
+                for ( var i = 0 , element , links = jQuery( 'link[rel~="stylesheet"]' ) , styles = jQuery( 'style' ) , skip ; element = css[ i ] ; i++ ) {
                   
-                  consistent = false ;
+                  skip = false ;
                   element = parsable ? element : jQuery( element )[ 0 ] ;
                   
-                  LINK : {
-                    if ( element.tagName.toUpperCase() !== 'LINK' ) { break LINK ; } ;
-                    // 現行要素と移行要素を比較、一致するものがあれば次の走査へ移る。
-                    // 一致するものがなければ移行要素を追加し、一致するものがない現行要素を削除する。
-                    if
-                    (
-                      links.filter( function () {
-                        // 一致しないためFALSEを返す
-                        if ( consistent || this.href !== element.href ) { return false ; } ;
-                        // 一致したためTRUEを返す。一致した要素に削除フラグが立っていればこれを消す。
-                        consistent = true ;
-                        jQuery.removeData( this , settings.nss.data ) ;
-                        return true ;
-                      } ).length
-                    ) { continue ; } ;
-                  } ;
-                  
-                  STYLE : {
-                    if ( element.tagName.toUpperCase() !== 'STYLE' ) { break STYLE ; } ;
-                    if
-                    (
-                      styles.filter( function () {
-                        if ( consistent || !jQuery.data( this , settings.nss.data ) || this.innerHTML !== element.innerHTML ) { return false ; } ;
-                        consistent = true ;
-                        jQuery.removeData( this , settings.nss.data ) ;
-                        return true ;
-                      } ).length
-                    ) { continue ; } ;
+                  switch ( element.tagName.toLowerCase() ) {
+                    case 'link' :
+                      // 現行要素と移行要素を比較、一致するものがあれば次の走査へ移る。
+                      // 一致するものがなければ移行要素を追加し、一致するものがない現行要素を削除する。
+                      if ( links.filter( function () {
+                             if ( skip || this.href !== element.href ) {
+                               return false ;
+                             } else {
+                               skip = true ;
+                               jQuery.removeData( this , settings.nss.data ) ;
+                               return true ;
+                             } ;
+                           } ).length ) { continue ; } ;
+                      break ;
+                    
+                    case 'style' :
+                      if ( styles.filter( function () {
+                             if ( skip || !jQuery.data( this , settings.nss.data ) || this.innerHTML !== element.innerHTML ) {
+                               return false ;
+                             } else {
+                               skip = true ;
+                               jQuery.removeData( this , settings.nss.data ) ;
+                               return true ;
+                             } ;
+                           } ).length ) { continue ; } ;
+                      break ;
                   } ;
                   
                   jQuery( 'head' ).append( element ) ;
                   element = null ;
                 } ;
                 jQuery( 'link[rel~="stylesheet"], style' ).filter( function () { return jQuery.data( this , settings.nss.data ) ; } ).remove() ;
+                jQuery( document ).trigger( settings.gns + '.ready' ) ;
                 
                 if ( fire( settings.callbacks.update.css.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_CSS ; } ;
                 settings.speedcheck && settings.log.speed.name.push( 'css' ) ;
@@ -610,6 +609,7 @@
               /* validate */ validate && validate.end() ;
             } // function: css
             settings.load.css && setTimeout( function () { load_css() ; } , settings.load.async || 0 ) ;
+            !settings.load.css && jQuery( document ).trigger( settings.gns + '.ready' ) ;
             
             /* script */
             /* validate */ validate && validate.test( '++', 1, 0, 'update:script' ) ;
@@ -627,9 +627,8 @@
                                            : find( data , '(?:[^\'\"]|^\s*)(<script[^>]*>(.|[\n\r])*?</script>)(?:[^\'\"]|\s*$)' ) ; //
                 fnCache( settings.history , url ) && ( fnCache( settings.history , url ).script = script ) ;
                 
-                for ( var i = 0 , element , defer , consistent ; element = script[ i ] ; i++ ) {
+                for ( var i = 0 , element , defer ; element = script[ i ] ; i++ ) {
                   
-                  consistent = false ;
                   element = parsable ? element : jQuery( element )[ 0 ] ;
                   
                   if ( type === 'sync' && !element.defer ) { continue ; } ;
@@ -701,12 +700,11 @@
                   scroll( fire( settings.scrollLeft , null , [ event ] ) || settings.scrollLeft , fire( settings.scrollTop , null , [ event ] ) || settings.scrollTop ) ;
                   jQuery( window ).trigger( settings.gns + '.load' ) ;
                   
+                  if ( fire( settings.callbacks.update.rendering.after , context , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; } ;
                   settings.speedcheck && settings.log.speed.name.push( 'ready' ) ;
                   settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
                   settings.speedcheck && console.log( settings.log.speed.time ) ;
                   settings.speedcheck && console.log( settings.log.speed.name ) ;
-                  
-                  if ( fire( settings.callbacks.update.rendering.after , context , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; } ;
                 } else {
                   setTimeout( function () { arguments.callee() ; } , settings.interval ) ;
                 } ;
