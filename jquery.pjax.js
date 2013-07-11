@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.16.0
+ * @version 1.16.1
  * @updated 2013/07/11
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
@@ -692,7 +692,7 @@
             UPDATE_RENDERING : {
               setTimeout( function () {
                 if ( jQuery( settings.area ).children( '.' + settings.nss.class4html + '-check' )
-                     .filter( function () { return this.clientWidth || jQuery( this ).css( 'display' ) === 'none' ; } )
+                     .filter( function () { return this.clientWidth || jQuery( this ).is( ':hidden' ) ; } )
                      .length === jQuery( settings.area ).length ) {
                   if ( fire( settings.callbacks.update.rendering.before , context , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; } ;
                   
