@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.15.0
+ * @version 1.15.1
  * @updated 2013/07/11
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
@@ -85,7 +85,11 @@
           contentType : 'text/html' ,
           cache : { click : false , submit : false , popstate : false , length : 9 /* pages */ , size : 1*1024*1024 /* 1MB */ , expire : 30*60*1000 /* 30min */ } ,
           callback : function () {} ,
-          callbacks : { ajax : {} , update : { url : {} , title : {} , content : {} , css : {} , script : {} , cache : { load : {} , save : {} } , verify : {} } , async : false } ,
+          callbacks : {
+            ajax : {} ,
+            update : { url : {} , title : {} , content : {} , css : {} , script : {} , cache : { load : {} , save : {} } , rendering : {} , verify : {} } ,
+            async : false
+          } ,
           parameter : undefined ,
           load : { css : false , script : false , sync : true , async : 0 } ,
           interval : 300 ,
@@ -95,7 +99,7 @@
           speedcheck : false
         } ,
         settings = jQuery.extend( true , {} , defaults , options ) ,
-        nsArray = [ settings.gns ].concat( settings.ns || [] ) ;
+        nsArray = [ settings.gns ] ;
     
     jQuery.extend
     (
@@ -492,9 +496,7 @@
             /* validate */ validate && validate.test( '++', 1, 0, 'update:initialize' ) ;
             var page = jQuery( data ) ,
                 parsable = 0 < page.filter( 'title' ).length ,
-                areas = settings.area.replace( /(\((.*?(\(.*?\).*?)?)*?\)|\S)(,|$)/g , function () { return arguments[1] + ( arguments[4] ? '|' : '' ) } ).split( /\s*\|(?!=)\s*/ ) ,
-                scrollX = settings.scrollLeft === null ? jQuery( win ).scrollLeft() : parseInt( settings.scrollLeft ) ,
-                scrollY = settings.scrollTop === null ? jQuery( win ).scrollTop() : parseInt( settings.scrollTop ) ;
+                areas = settings.area.replace( /(\((.*?(\(.*?\).*?)?)*?\)|\S)(,|$)/g , function () { return arguments[1] + ( arguments[4] ? '|' : '' ) } ).split( /\s*\|(?!=)\s*/ ) ;
             
             title = title ? title
                           : parsable ? page.filter( 'title' ).text() : jQuery( '<span/>' ).html( find( data , '<title>([^<]*)</title>' ).join() ).text() ;
@@ -513,6 +515,8 @@
                 case /Mobile(\/\w+)? Safari/i.test( win.navigator.userAgent ) :
                   win.history.back() ;
                   win.history.forward() ;
+                  settings.area = fire( settings.options.area , null , [ event ] ) || settings.options.area ;
+                  areas = settings.area.replace( /(\((.*?(\(.*?\).*?)?)*?\)|\S)(,|$)/g , function () { return arguments[1] + ( arguments[4] ? '|' : '' ) } ).split( /\s*\|(?!=)\s*/ )
                   break ;
               } ;
               if ( fire( settings.callbacks.update.url.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_URL ; } ;
@@ -530,10 +534,12 @@
             /* validate */ validate && validate.test( '++', 1, areas, 'update:content' ) ;
             UPDATE_CONTENT : {
               if ( fire( settings.callbacks.update.content.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_CONTENT ; } ;
+              jQuery( settings.area ).children( '.' + settings.nss.class4html + '-check' ).remove() ;
               for ( var i = 0 , area ; area = areas[ i ] ; i++ ) {
                 jQuery( area ).html( page.find( area ).add( page.filter( area ) ).children() ) ;
                 settings.load.script && settings.load.sync && jQuery( area ).append( jQuery( '<div/>' , {
-                  'class' : settings.nss.class4html + '-loaded' , 'style' : 'display: block !important; visibility: hidden !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; position: absolute !important; top: -9999px !important; left: -9999px !important; font-size: 12px !important; text-indent: 0 !important;'
+                  'class' : settings.nss.class4html + '-check' ,
+                  'style' : 'display: block !important; visibility: hidden !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; position: absolute !important; top: -9999px !important; left: -9999px !important; font-size: 12px !important; text-indent: 0 !important;'
                 } ).text( 'pjax' ) ) ;
               } ;
               if ( fire( settings.callbacks.update.content.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_CONTENT ; } ;
@@ -661,7 +667,9 @@
             
             /* scroll */
             /* validate */ validate && validate.test( '++', 1, 0, 'update:scroll' ) ;
-            function scroll() {
+            function scroll( scrollX , scrollY ) {
+              scrollX = scrollX === null ? jQuery( win ).scrollLeft() : parseInt( scrollX ) ;
+              scrollY = scrollY === null ? jQuery( win ).scrollTop() : parseInt( scrollY ) ;
               switch ( event.type.toLowerCase() ) {
                 case 'click' :
                 case 'submit' :
@@ -669,30 +677,39 @@
                   break ;
                 case 'popstate' :
                   if ( win.history.state instanceof Object && isFinite( win.history.state.scrollY ) ) {
-                    win.scrollTo( scrollX , win.history.state.scrollY ) ;
+                    win.scrollTo( jQuery( win ).scrollLeft() , win.history.state.scrollY ) ;
                     win.history.state.scrollY = undefined ;
                     win.history.replaceState( win.history.state , title , url ) ;
                   } ;
                   break ;
               } ;
-            }
-            scroll() ;
+            } // function: scroll
+            scroll( fire( settings.scrollLeft , null , [ event ] ) || settings.scrollLeft , fire( settings.scrollTop , null , [ event ] ) || settings.scrollTop ) ;
             
-            /* loaded */
-            /* validate */ validate && validate.test( '++', 1, 0, 'update:loaded' ) ;
-            setTimeout( function () {
-              if ( jQuery( settings.area ).length === jQuery( settings.area ).children( '.' + settings.nss.class4html + '-loaded' ).filter( function () { return this.clientWidth ; } ).length ) {
-                jQuery( settings.area ).children( '.' + settings.nss.class4html + '-loaded' ).remove() ;
-                settings.load.script && settings.load.sync && setTimeout( function () { load_script( 'sync' ) ; } , settings.load.async || 0 ) ;
-                scroll() ;
-                settings.speedcheck && settings.log.speed.name.push( 'loaded' ) ;
-                settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
-                settings.speedcheck && console.log( settings.log.speed.time ) ;
-                settings.speedcheck && console.log( settings.log.speed.name ) ;
-              } else {
-                setTimeout( function () { arguments.callee() ; } , settings.interval ) ;
-              } ;
-            } , 0 ) ;
+            /* rendering */
+            /* validate */ validate && validate.test( '++', 1, 0, 'update:rendering' ) ;
+            UPDATE_RENDERING : {
+              setTimeout( function () {
+                if ( jQuery( settings.area ).children( '.' + settings.nss.class4html + '-check' )
+                     .filter( function () { return this.clientWidth || jQuery( this ).css( 'display' ) === 'none' ; } )
+                     .length === jQuery( settings.area ).length ) {
+                  if ( fire( settings.callbacks.update.rendering.before , context , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; } ;
+                  
+                  jQuery( settings.area ).children( '.' + settings.nss.class4html + '-check' ).remove() ;
+                  settings.load.script && settings.load.sync && setTimeout( function () { load_script( 'sync' ) ; } , settings.load.async || 0 ) ;
+                  scroll( fire( settings.scrollLeft , null , [ event ] ) || settings.scrollLeft , fire( settings.scrollTop , null , [ event ] ) || settings.scrollTop ) ;
+                  
+                  settings.speedcheck && settings.log.speed.name.push( 'ready' ) ;
+                  settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
+                  settings.speedcheck && console.log( settings.log.speed.time ) ;
+                  settings.speedcheck && console.log( settings.log.speed.name ) ;
+                  
+                  if ( fire( settings.callbacks.update.rendering.after , context , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; } ;
+                } else {
+                  setTimeout( function () { arguments.callee() ; } , settings.interval ) ;
+                } ;
+              } , 0 ) ;
+            } ; // label: UPDATE_RENDERING
             
             /* cache */
             /* validate */ validate && validate.test( '++', 1, 0, 'update:cache' ) ;
@@ -891,7 +908,6 @@
       
       return response ;
     } // function: falsandtru
-    
-    
+  
   } // function: pjax
 } )() ;
