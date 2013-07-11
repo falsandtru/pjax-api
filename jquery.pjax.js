@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.15.1
+ * @version 1.16.0
  * @updated 2013/07/11
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
@@ -91,7 +91,7 @@
             async : false
           } ,
           parameter : undefined ,
-          load : { css : false , script : false , sync : true , async : 0 } ,
+          load : { css : false , script : false , execute : true , sync : true , async : 0 } ,
           interval : 300 ,
           wait : 0 ,
           fallback : true ,
@@ -542,6 +542,7 @@
                   'style' : 'display: block !important; visibility: hidden !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; position: absolute !important; top: -9999px !important; left: -9999px !important; font-size: 12px !important; text-indent: 0 !important;'
                 } ).text( 'pjax' ) ) ;
               } ;
+              jQuery( document ).trigger( settings.gns + '.DOMContentLoaded' ).trigger( settings.gns + '.ready' ) ;
               if ( fire( settings.callbacks.update.content.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_CONTENT ; } ;
             } ;
             
@@ -638,9 +639,9 @@
                   if ( element.src ) { settings.log.script[ element.src ] = true ; } ;
                   
                   if ( jQuery.when ) {
-                    element =  element.src ? jQuery.ajax( jQuery.extend( true , {} , settings.ajax , { url : element.src , dataType : 'script' , async : false , global : false } ) )
-                                           : jQuery.Deferred().resolve( element ) ;
-                    executes.push( element ) ;
+                    defer = element.src ? jQuery.ajax( jQuery.extend( true , {} , settings.ajax , { url : element.src , dataType : 'script' , async : false , global : false } ) )
+                                        : jQuery.Deferred().resolve( settings.load.execute ? element : undefined ) ;
+                    executes.push( defer ) ;
                   } else {
                     jQuery( 'head' ).append( element ) ;
                   } ;
@@ -698,6 +699,7 @@
                   jQuery( settings.area ).children( '.' + settings.nss.class4html + '-check' ).remove() ;
                   settings.load.script && settings.load.sync && setTimeout( function () { load_script( 'sync' ) ; } , settings.load.async || 0 ) ;
                   scroll( fire( settings.scrollLeft , null , [ event ] ) || settings.scrollLeft , fire( settings.scrollTop , null , [ event ] ) || settings.scrollTop ) ;
+                  jQuery( window ).trigger( settings.gns + '.load' ) ;
                   
                   settings.speedcheck && settings.log.speed.name.push( 'ready' ) ;
                   settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
@@ -777,11 +779,11 @@
     } // function: fire
     
     function wait( ms ) {
-      var dfd = jQuery.Deferred() ;
-      if ( !ms ) { return dfd.resolve() ; } ;
+      var defer = jQuery.Deferred() ;
+      if ( !ms ) { return defer.resolve() ; } ;
       
-      setTimeout( function () { dfd.resolve() ; } , ms ) ;
-      return dfd.promise() ; // function: wait
+      setTimeout( function () { defer.resolve() ; } , ms ) ;
+      return defer.promise() ; // function: wait
     } // function: wait
     
     function fallback( event , validate ) {       
