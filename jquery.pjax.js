@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.16.2
- * @updated 2013/07/12
+ * @version 1.16.3
+ * @updated 2013/07/13
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -536,8 +536,9 @@
               if ( fire( settings.callbacks.update.content.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_CONTENT ; } ;
               jQuery( settings.area ).children( '.' + settings.nss.class4html + '-check' ).remove() ;
               for ( var i = 0 , area ; area = areas[ i ] ; i++ ) {
-                jQuery( area ).html( page.find( area ).add( page.filter( area ) ).children() ) ;
-                settings.load.script && settings.load.sync && jQuery( area ).append( jQuery( '<div/>' , {
+                jQuery( area )
+                .html( page.find( area ).add( page.filter( area ) ).children() )
+                .append( jQuery( '<div/>' , {
                   'class' : settings.nss.class4html + '-check' ,
                   'style' : 'display: block !important; visibility: hidden !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; position: absolute !important; top: -9999px !important; left: -9999px !important; font-size: 12px !important; text-indent: 0 !important;'
                 } ).text( 'pjax' ) ) ;
@@ -667,12 +668,19 @@
             
             /* scroll */
             /* validate */ validate && validate.test( '++', 1, 0, 'update:scroll' ) ;
-            function scroll( scrollX , scrollY ) {
-              scrollX = scrollX === null ? jQuery( win ).scrollLeft() : parseInt( scrollX ) ;
-              scrollY = scrollY === null ? jQuery( win ).scrollTop() : parseInt( scrollY ) ;
+            function scroll( call ) {
+              var scrollX , scrollY ;
               switch ( event.type.toLowerCase() ) {
                 case 'click' :
                 case 'submit' :
+                  scrollX = call ? fire( settings.scrollLeft , null , [ event ] ) : scrollX ;
+                  scrollX = 0 <= scrollX ? scrollX : settings.scrollLeft ;
+                  scrollX = scrollX === null ? jQuery( win ).scrollLeft() : parseInt( Number( scrollX ) ) ;
+                  
+                  scrollY = call ? fire( settings.scrollTop , null , [ event ] ) : scrollY ;
+                  scrollY = 0 <= scrollY ? scrollY : settings.scrollTop ;
+                  scrollY = scrollY === null ? jQuery( win ).scrollTop() : parseInt( Number( scrollY ) ) ;
+                  
                   win.scrollTo( scrollX , scrollY ) ;
                   break ;
                 case 'popstate' :
@@ -684,20 +692,22 @@
                   break ;
               } ;
             } // function: scroll
-            scroll( fire( settings.scrollLeft , null , [ event ] ) || settings.scrollLeft , fire( settings.scrollTop , null , [ event ] ) || settings.scrollTop ) ;
+            scroll( false ) ;
             
             /* rendering */
             /* validate */ validate && validate.test( '++', 1, 0, 'update:rendering' ) ;
             UPDATE_RENDERING : {
               setTimeout( function () {
-                if ( jQuery( settings.area ).children( '.' + settings.nss.class4html + '-check' )
+                var checker = jQuery( settings.area ).children( '.' + settings.nss.class4html + '-check' ) ;
+                
+                if ( checker
                      .filter( function () { return this.clientWidth || jQuery( this ).is( ':hidden' ) ; } )
-                     .length === jQuery( settings.area ).length ) {
+                     .length === checker.length ) {
                   if ( fire( settings.callbacks.update.rendering.before , context , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; } ;
                   
-                  jQuery( settings.area ).children( '.' + settings.nss.class4html + '-check' ).remove() ;
+                  checker.remove() ;
                   settings.load.script && settings.load.sync && setTimeout( function () { load_script( 'sync' ) ; } , settings.load.async || 0 ) ;
-                  scroll( fire( settings.scrollLeft , null , [ event ] ) || settings.scrollLeft , fire( settings.scrollTop , null , [ event ] ) || settings.scrollTop ) ;
+                  scroll( true ) ;
                   jQuery( window ).trigger( settings.gns + '.load' ) ;
                   
                   if ( fire( settings.callbacks.update.rendering.after , context , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; } ;
@@ -705,7 +715,7 @@
                   settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
                   settings.speedcheck && console.log( settings.log.speed.time ) ;
                   settings.speedcheck && console.log( settings.log.speed.name ) ;
-                } else {
+                } else if ( checker.length ) {
                   setTimeout( function () { arguments.callee() ; } , settings.interval ) ;
                 } ;
               } , 0 ) ;
