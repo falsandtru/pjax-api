@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.16.3
- * @updated 2013/07/13
+ * @version 1.16.4
+ * @updated 2013/07/14
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -170,8 +170,9 @@
           var settings, url , cache ;
           settings = plugin_data[ event.data ] ;
           url = this.href ;
+          settings.area = fire( settings.options.area , null , [ event ] ) || settings.options.area ;
           if ( settings.landing ) { settings.landing = false ; } ;
-          if ( settings.disable ) { return ; } else { settings.off() ; } ;
+          if ( settings.disable || !jQuery( settings.area ).length ) { return ; } else { settings.off() ; } ;
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; } ;
           
           drive( this , event , url , url !== win.location.href , cache ) ;
@@ -191,8 +192,9 @@
           var settings, url , cache ;
           settings = plugin_data[ event.data ] ;
           url = this.action ;
+          settings.area = fire( settings.options.area , null , [ event ] ) || settings.options.area ;
           if ( settings.landing ) { settings.landing = false ; } ;
-          if ( settings.disable ) { return ; } else { settings.off() ; } ;
+          if ( settings.disable || !jQuery( settings.area ).length ) { return ; } else { settings.off() ; } ;
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; } ;
           
           drive( this , event , url , true , cache ) ;
@@ -210,8 +212,9 @@
           var settings, url , cache ;
           settings = plugin_data[ event.data ] ;
           url = win.location.href ;
+          settings.area = fire( settings.options.area , null , [ event ] ) || settings.options.area ;
           if ( settings.landing ) { if ( settings.landing === win.location.href ) { settings.landing = false ; return ; } ; settings.landing = false ; } ;
-          if ( settings.disable ) { return ; } else { settings.off() ; } ;
+          if ( settings.disable || !jQuery( settings.area ).length ) { return ; } else { settings.off() ; } ;
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; } ;
           
           drive( this , event , url , false , cache ) ;
@@ -229,8 +232,8 @@
       /* validate */ var validate = plugin_data[ settings.id ] && plugin_data[ settings.id ].validate ? plugin_data[ settings.id ].validate.clone( { name : 'jquery.pjax.js - drive()' } ) : validate ;
       /* validate */ validate && validate.start() ;
       /* validate */ validate && ( validate.scope = function( code ){ return eval( code ) ; } ) ;
-      /* validate */ validate && validate.test( 1, 1, [ url, event.type ], 'drive()' ) ;
-      /* validate */ validate && validate.test( 2, 1, 0, 'drive:start' ) ;
+      /* validate */ validate && validate.test( '++', 1, [ url, event.type ], 'drive()' ) ;
+      /* validate */ validate && validate.test( '++', 1, 0, 'drive:start' ) ;
       
       settings.speedcheck && ( settings.log.speed.fire = event.timeStamp ) ;
       settings.speedcheck && ( settings.log.speed.time = [] ) ;
@@ -242,18 +245,18 @@
       if ( fire( settings.callbacks.before , context , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; } ; // function: drive
       
       if ( cache ) {
-        /* validate */ validate && validate.test( 3, 1, 0, 'drive:update' ) ;
+        /* validate */ validate && validate.test( '++', 1, 0, 'drive:update' ) ;
         if ( jQuery.when ) {
           jQuery.when( wait( settings.wait ) ).done( function () { update( cache ) ; } ) ;
         } else {
           update( cache )  ;
         } ;
-        /* validate */ validate && validate.test( 4, 1, 0, 'drive:end' ) ;
+        /* validate */ validate && validate.test( '++', 1, 0, 'drive:end' ) ;
         /* validate */ validate && validate.end() ;
         return ;
       } ;
       
-      /* validate */ validate && validate.test( 3, 1, 0, 'drive:initialize' ) ;
+      /* validate */ validate && validate.test( '++', 1, 0, 'drive:initialize' ) ;
       var data ,
           dataType ,
           XMLHttpRequest ,
@@ -291,12 +294,7 @@
         callbacks[ i ] = undefined ;
       } ;
       
-      /* validate */ validate && validate.test( 4, 1, 0, 'drive:area' ) ;
-      AREA : {
-        settings.area = fire( settings.options.area , null , [ event ] ) || settings.options.area ;
-      } ;
-      
-      /* validate */ validate && validate.test( 5, 1, 0, 'drive:popstate' ) ;
+      /* validate */ validate && validate.test( '++', 1, 0, 'drive:popstate' ) ;
       POPSTATE : {
         if ( event.type.toLowerCase() !== 'popstate' ) { break POPSTATE ; } ;
         
@@ -309,8 +307,9 @@
         settings.ajax.data = null ;
       } ;
       
-      /* validate */ validate && validate.test( 6, 1, 0, 'drive:submit' ) ;
+      /* validate */ validate && validate.test( '++', 1, 0, 'drive:submit' ) ;
       SUBMIT : {
+        /* validate */ validate && validate.test( '*', 1, jQuery( event.target ).serialize(), 'drive:submit' ) ;
         if ( event.type.toLowerCase() !== 'submit' ) { break SUBMIT ;} ;
         
         url = url.replace( /\?[^\s]*/ , '' ) ;
@@ -319,7 +318,7 @@
         GET : {
           if ( settings.ajax.type !== 'GET' ) { break GET ;} ;
           
-          /* validate */ validate && validate.test( 6.1, 1, jQuery( event.target ).serialize(), 'drive:serialize' ) ;
+          /* validate */ validate && validate.test( '++', 1, jQuery( event.target ).serialize(), 'drive:serialize' ) ;
           url += '?' + jQuery( event.target ).serialize() ;
           settings.ajax.data = null ;
         } ;
@@ -327,24 +326,24 @@
         POST : {
           if ( settings.ajax.type !== 'POST' ) { break POST ;} ;
           
-          /* validate */ validate && validate.test( 6.1, 1, jQuery( event.target ).serializeArray(), 'drive:serializeArray' ) ;
+          /* validate */ validate && validate.test( '++', 1, jQuery( event.target ).serializeArray(), 'drive:serializeArray' ) ;
           settings.ajax.data = jQuery( event.target ).serializeArray() ;
         } ;
       } ;
       
-      /* validate */ validate && validate.test( 7, 1, 0, 'drive:url' ) ;
+      /* validate */ validate && validate.test( '/', 1, 0, 'drive:url' ) ;
       URL : {
         if ( !settings.server.query ) { break URL ; } ;
         url = url.replace( /(#[^\s]*|)$/ , ( !url.match( /\?/ ) ? '?' :'&' ) + encodeURIComponent( settings.server.query ) + '=1' + '$1' ) ;
       } ;
       
-      /* validate */ validate && validate.test( 8, 1, 0, 'drive:ajax' ) ;
+      /* validate */ validate && validate.test( '++', 1, 0, 'drive:ajax' ) ;
       settings.speedcheck && settings.log.speed.name.push( 'ajax_start' ) ;
       settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
       jQuery.when ? ajax_regular() : ajax_legacy() ;
       
       if ( fire( settings.callbacks.after , context , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; } ; // function: drive
-      /* validate */ validate && validate.test( 9, 1, 0, 'drive:end' ) ;
+      /* validate */ validate && validate.test( '++', 1, 0, 'drive:end' ) ;
       /* validate */ validate && validate.end() ;
       
       
@@ -515,8 +514,6 @@
                 case /Mobile(\/\w+)? Safari/i.test( win.navigator.userAgent ) :
                   win.history.back() ;
                   win.history.forward() ;
-                  settings.area = fire( settings.options.area , null , [ event ] ) || settings.options.area ;
-                  areas = settings.area.replace( /(\((.*?(\(.*?\).*?)?)*?\)|\S)(,|$)/g , function () { return arguments[1] + ( arguments[4] ? '|' : '' ) } ).split( /\s*\|(?!=)\s*/ )
                   break ;
               } ;
               if ( fire( settings.callbacks.update.url.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_URL ; } ;
