@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.16.4
- * @updated 2013/07/14
+ * @version 1.16.5
+ * @updated 2013/07/15
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -534,7 +534,7 @@
               jQuery( settings.area ).children( '.' + settings.nss.class4html + '-check' ).remove() ;
               for ( var i = 0 , area ; area = areas[ i ] ; i++ ) {
                 jQuery( area )
-                .html( page.find( area ).add( page.filter( area ) ).children() )
+                .html( page.find( area ).add( page.filter( area ) ).contents() )
                 .append( jQuery( '<div/>' , {
                   'class' : settings.nss.class4html + '-check' ,
                   'style' : 'display: block !important; visibility: hidden !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; position: absolute !important; top: -9999px !important; left: -9999px !important; font-size: 12px !important; text-indent: 0 !important;'
@@ -681,11 +681,6 @@
                   win.scrollTo( scrollX , scrollY ) ;
                   break ;
                 case 'popstate' :
-                  if ( win.history.state instanceof Object && isFinite( win.history.state.scrollY ) ) {
-                    win.scrollTo( jQuery( win ).scrollLeft() , win.history.state.scrollY ) ;
-                    win.history.state.scrollY = undefined ;
-                    win.history.replaceState( win.history.state , title , url ) ;
-                  } ;
                   break ;
               } ;
             } // function: scroll
