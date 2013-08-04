@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.16.5
- * @updated 2013/07/15
+ * @version 1.16.6
+ * @updated 2013/08/05
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -95,7 +95,7 @@
           interval : 300 ,
           wait : 0 ,
           fallback : true ,
-          server : { query : '' } ,
+          server : {} ,
           speedcheck : false
         } ,
         settings = jQuery.extend( true , {} , defaults , options ) ,
@@ -116,7 +116,7 @@
           requestHeader : [ 'X' , nsArray[ 0 ].replace( /^\w/ , function ( $0 ) { return $0.toUpperCase() ; } ) ].join( '-' ) ,
           array : nsArray
         } ,
-        server : { query : settings.server.query.length ? settings.server.query : settings.gns } ,
+        server : { query : settings.server.query === undefined ? settings.gns : settings.server.query } ,
         log : { script : {} , speed : {} } ,
         history : { config : settings.cache , order : [] , data : {} /*, size : 0*/ } ,
         timestamp : ( new Date() ).getTime() ,
@@ -333,8 +333,7 @@
       
       /* validate */ validate && validate.test( '/', 1, 0, 'drive:url' ) ;
       URL : {
-        if ( !settings.server.query ) { break URL ; } ;
-        url = url.replace( /(#[^\s]*|)$/ , ( !url.match( /\?/ ) ? '?' :'&' ) + encodeURIComponent( settings.server.query ) + '=1' + '$1' ) ;
+        settings.ajax.url = settings.server.query ? url.replace( /(#[^\s]*)?$/ , ( !url.match( /\?/ ) ? '?' :'&' ) + encodeURIComponent( settings.server.query ) + '=1' + '$1' ) : url ;
       } ;
       
       /* validate */ validate && validate.test( '++', 1, 0, 'drive:ajax' ) ;
@@ -362,7 +361,7 @@
               settings.ajax ,
               callbacks ,
               {
-                url : url ,
+                url : settings.ajax.url ,
                 beforeSend : function () {
                   XMLHttpRequest = arguments[ 0 ] ;
                   
@@ -413,7 +412,7 @@
             settings.ajax ,
             callbacks ,
             {
-              url : url ,
+              url : settings.ajax.url ,
               beforeSend : function () {
                 XMLHttpRequest = arguments[ 0 ] ;
                 
@@ -506,8 +505,7 @@
             /* validate */ validate && validate.test( '++', 1, url, 'update:url' ) ;
             UPDATE_URL : {
               if ( fire( settings.callbacks.update.url.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_URL ; } ;
-              url = url.replace( new RegExp( '[?&]' + settings.server.query + '=[^&#]*' ) , '' ) ;
-              register && win.history.pushState( settings.gns , win.opera || win.navigator.userAgent.toLowerCase().indexOf( 'opera' ) !== -1 ? title : doc.title , url ) ;
+              register && win.history.pushState( win.history.state , win.opera || win.navigator.userAgent.toLowerCase().indexOf( 'opera' ) !== -1 ? title : doc.title , url ) ;
               switch ( true ) {
                 case !register :
                   break ;
