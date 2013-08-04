@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.16.6
+ * @version 1.17.0
  * @updated 2013/08/05
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
@@ -265,34 +265,8 @@
           dataSize ,
           query = [] ,
           request = [] ,
-          callbacks = {
-            xhr : function () {
-              XMLHttpRequest = fire( settings.callbacks.ajax.xhr , context , [ event , settings.parameter ] , settings.callbacks.async ) ;
-              XMLHttpRequest = XMLHttpRequest instanceof Object && XMLHttpRequest instanceof win.XMLHttpRequest ? XMLHttpRequest : XMLHttpRequest || jQuery.ajaxSettings.xhr() ;
-              
-              //if ( XMLHttpRequest instanceof Object && XMLHttpRequest instanceof win.XMLHttpRequest && 'onprogress' in XMLHttpRequest ) {
-              //  XMLHttpRequest.addEventListener( 'progress' , function ( event ) { dataSize = event.loaded ; } , false ) ;
-              //} ;
-              return XMLHttpRequest ;
-            } ,
-            dataFilter : function () {
-              data = arguments[ 0 ] ;
-              dataType = arguments[ 1 ] ;
-              
-              return fire( settings.callbacks.ajax.dataFilter , context , [ event , settings.parameter , data , dataType ] , settings.callbacks.async ) || data ;
-            } ,
-            complete : function () {
-              XMLHttpRequest = arguments[ 0 ] ;
-              textStatus = arguments[ 1 ] ;
-              
-              fire( settings.callbacks.ajax.complete , context , [ event , settings.parameter , XMLHttpRequest , textStatus ] , settings.callbacks.async ) ;
-            }
-          } ;
-      
-      for ( var i in callbacks ) {
-        if ( i in settings.callbacks.ajax || i === 'xhr' ) { continue ; } ;
-        callbacks[ i ] = undefined ;
-      } ;
+          ajax = {} ,
+          callbacks ;
       
       /* validate */ validate && validate.test( '++', 1, 0, 'drive:popstate' ) ;
       POPSTATE : {
@@ -331,127 +305,74 @@
         } ;
       } ;
       
-      /* validate */ validate && validate.test( '/', 1, 0, 'drive:url' ) ;
-      URL : {
-        settings.ajax.url = settings.server.query ? url.replace( /(#[^\s]*)?$/ , ( !url.match( /\?/ ) ? '?' :'&' ) + encodeURIComponent( settings.server.query ) + '=1' + '$1' ) : url ;
+      /* validate */ validate && validate.test( '/', 1, 0, 'drive:option' ) ;
+      callbacks = {
+        xhr : !settings.callbacks.ajax.xhr ? undefined : function () {
+          XMLHttpRequest = fire( settings.callbacks.ajax.xhr , context , [ event , settings.parameter ] , settings.callbacks.async ) ;
+          XMLHttpRequest = XMLHttpRequest instanceof Object && XMLHttpRequest instanceof win.XMLHttpRequest ? XMLHttpRequest : XMLHttpRequest || jQuery.ajaxSettings.xhr() ;
+          
+          //if ( XMLHttpRequest instanceof Object && XMLHttpRequest instanceof win.XMLHttpRequest && 'onprogress' in XMLHttpRequest ) {
+          //  XMLHttpRequest.addEventListener( 'progress' , function ( event ) { dataSize = event.loaded ; } , false ) ;
+          //} ;
+          return XMLHttpRequest ;
+        } ,
+        beforeSend : function () {
+          XMLHttpRequest = arguments[ 0 ] ;
+          
+          XMLHttpRequest.setRequestHeader( settings.nss.requestHeader , 'true' ) ;
+          XMLHttpRequest.setRequestHeader( settings.nss.requestHeader + '-Area' , settings.area ) ;
+          XMLHttpRequest.setRequestHeader( settings.nss.requestHeader + '-CSS' , settings.load.css ) ;
+          XMLHttpRequest.setRequestHeader( settings.nss.requestHeader + '-Script' , settings.load.script ) ;
+          
+          fire( settings.callbacks.ajax.beforeSend , context , [ event , settings.parameter , XMLHttpRequest ] , settings.callbacks.async ) ;
+        } ,
+        dataFilter : !settings.callbacks.ajax.dataFilter ? undefined : function () {
+          data = arguments[ 0 ] ;
+          dataType = arguments[ 1 ] ;
+          
+          return fire( settings.callbacks.ajax.dataFilter , context , [ event , settings.parameter , data , dataType ] , settings.callbacks.async ) || data ;
+        } ,
+        success : function () {
+          data = arguments[ 0 ] ;
+          dataType = arguments[ 1 ] ;
+          XMLHttpRequest = arguments[ 2 ] ;
+          
+          fire( settings.callbacks.ajax.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) ;
+          
+          !jQuery.when && update() ;
+        } ,
+        error : function () {
+          XMLHttpRequest = arguments[ 0 ] ;
+          textStatus = arguments[ 1 ] ;
+          errorThrown = arguments[ 2 ] ;
+          
+          /* validate */ var validate = plugin_data[ settings.id ] && plugin_data[ settings.id ].validate ? plugin_data[ settings.id ].validate.clone( { name : 'jquery.pjax.js - drive()' } ) : validate ;
+          /* validate */ validate && validate.start() ;
+          /* validate */ validate && validate.test( '++', 1, [ url, win.location.href ], 'ajax_regular()' ) ;
+          /* validate */ validate && validate.test( '++', 1, [ XMLHttpRequest, textStatus, errorThrown ], 'ajax error' ) ;
+          fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] , settings.callbacks.async ) ;
+          if ( settings.fallback ) { return typeof settings.fallback === 'function' ? settings.fallback( event ) : fallback( event , validate ) ; } ;
+          /* validate */ validate && validate.end() ;
+        } ,
+        complete : !settings.callbacks.ajax.complete ? undefined : function () {
+          XMLHttpRequest = arguments[ 0 ] ;
+          textStatus = arguments[ 1 ] ;
+          
+          fire( settings.callbacks.ajax.complete , context , [ event , settings.parameter , XMLHttpRequest , textStatus ] , settings.callbacks.async ) ;
+        }
       } ;
+      jQuery.extend( true , ajax , settings.ajax , callbacks ) ;
+      ajax.url = settings.server.query ? url.replace( /(#[^\s]*)?$/ , ( !url.match( /\?/ ) ? '?' :'&' ) + encodeURIComponent( settings.server.query ) + '=1' + '$1' ) : url ;
       
       /* validate */ validate && validate.test( '++', 1, 0, 'drive:ajax' ) ;
       settings.speedcheck && settings.log.speed.name.push( 'ajax_start' ) ;
       settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
-      jQuery.when ? ajax_regular() : ajax_legacy() ;
+      jQuery.when ? jQuery.when( jQuery.ajax( ajax ) , wait( settings.wait ) ).done( function () { update() ; } ).fail().always() : jQuery.ajax( ajax ) ;
       
       if ( fire( settings.callbacks.after , context , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; } ; // function: drive
       /* validate */ validate && validate.test( '++', 1, 0, 'drive:end' ) ;
       /* validate */ validate && validate.end() ;
       
-      
-      /* ajax function */
-      
-      function ajax_regular() {
-        jQuery
-        .when
-        (
-          wait( settings.wait ) ,
-          jQuery.ajax
-          (
-            jQuery.extend
-            (
-              true , {} ,
-              settings.ajax ,
-              callbacks ,
-              {
-                url : settings.ajax.url ,
-                beforeSend : function () {
-                  XMLHttpRequest = arguments[ 0 ] ;
-                  
-                  XMLHttpRequest.setRequestHeader( settings.nss.requestHeader , 'true' ) ;
-                  XMLHttpRequest.setRequestHeader( settings.nss.requestHeader + '-Area' , settings.area ) ;
-                  XMLHttpRequest.setRequestHeader( settings.nss.requestHeader + '-CSS' , settings.load.css ) ;
-                  XMLHttpRequest.setRequestHeader( settings.nss.requestHeader + '-Script' , settings.load.script ) ;
-                  
-                  fire( settings.callbacks.ajax.beforeSend , context , [ event , settings.parameter , XMLHttpRequest ] , settings.callbacks.async ) ;
-                } ,
-                success : function () {
-                  data = arguments[ 0 ] ;
-                  dataType = arguments[ 1 ] ;
-                  XMLHttpRequest = arguments[ 2 ] ;
-                  
-                  fire( settings.callbacks.ajax.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) ;
-                } ,
-                error : function () {
-                  XMLHttpRequest = arguments[ 0 ] ;
-                  textStatus = arguments[ 1 ] ;
-                  errorThrown = arguments[ 2 ] ;
-                  
-                  /* validate */ var validate = plugin_data[ settings.id ] && plugin_data[ settings.id ].validate ? plugin_data[ settings.id ].validate.clone( { name : 'jquery.pjax.js - drive()' } ) : validate ;
-                  /* validate */ validate && validate.start() ;
-                  /* validate */ validate && validate.test( '++', 1, [ url, win.location.href ], 'ajax_regular()' ) ;
-                  /* validate */ validate && validate.test( '++', 1, [ XMLHttpRequest, textStatus, errorThrown ], 'ajax error' ) ;
-                  fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] , settings.callbacks.async ) ;
-                  if ( settings.fallback ) { return typeof settings.fallback === 'function' ? settings.fallback( event ) : fallback( event , validate ) ; } ;
-                  /* validate */ validate && validate.end() ;
-                }  
-              }
-            )
-          )
-        )
-        .done( function () { update() ; } )
-        .fail()
-        .always() ;
-      } // function: ajax_regular
-      
-      /* + legacy support */
-      function ajax_legacy() {
-        /* + when */
-        jQuery.ajax
-        (
-          jQuery.extend
-          (
-            true , {} ,
-            settings.ajax ,
-            callbacks ,
-            {
-              url : settings.ajax.url ,
-              beforeSend : function () {
-                XMLHttpRequest = arguments[ 0 ] ;
-                
-                XMLHttpRequest.setRequestHeader( settings.nss.requestHeader , 'true' ) ;
-                XMLHttpRequest.setRequestHeader( settings.nss.requestHeader + '-Area' , settings.area ) ;
-                XMLHttpRequest.setRequestHeader( settings.nss.requestHeader + '-CSS' , settings.load.css ) ;
-                XMLHttpRequest.setRequestHeader( settings.nss.requestHeader + '-Script' , settings.load.script ) ;
-                
-                fire( settings.callbacks.ajax.beforeSend , context , [ event , settings.parameter , XMLHttpRequest ] , settings.callbacks.async ) ;
-              } ,
-              success : function () {
-                data = arguments[ 0 ] ;
-                dataType = arguments[ 1 ] ;
-                XMLHttpRequest = arguments[ 2 ] ;
-                
-                fire( settings.callbacks.ajax.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) ;
-                
-                update() ;
-              } ,
-              error : function () {
-                XMLHttpRequest = arguments[ 0 ] ;
-                textStatus = arguments[ 1 ] ;
-                errorThrown = arguments[ 2 ] ;
-                
-                /* validate */ var validate = plugin_data[ settings.id ] && plugin_data[ settings.id ].validate ? plugin_data[ settings.id ].validate.clone( { name : 'jquery.pjax.js - drive()' } ) : validate ;
-                /* validate */ validate && validate.start() ;
-                /* validate */ validate && validate.test( '++', 1, [ url, win.location.href ], 'ajax_legacy()' ) ;
-                /* validate */ validate && validate.test( '++', 1, [ XMLHttpRequest, textStatus, errorThrown ], 'ajax error' ) ;
-                fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] , settings.callbacks.async ) ;
-                if ( settings.fallback ) { return typeof settings.fallback === 'function' ? settings.fallback( event ) : fallback( event , validate ) ; } ;
-                /* validate */ validate && validate.end() ;
-              }
-            }
-          )
-        )
-        /* - when */
-      } // function: ajax_legacy
-      /* - legacy support */
-    
       function update( cache ) {
         /* validate */ var validate = plugin_data[ settings.id ] && plugin_data[ settings.id ].validate ? plugin_data[ settings.id ].validate.clone( { name : 'jquery.pjax.js - update()' } ) : validate ;
         /* validate */ validate && validate.start() ;
