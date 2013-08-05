@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.17.1
+ * @version 1.17.2
  * @updated 2013/08/05
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
@@ -280,28 +280,23 @@
       /* validate */ validate && validate.test( '++', 1, 0, 'drive:submit' ) ;
       SUBMIT : {
         /* validate */ validate && validate.test( '*', 1, jQuery( event.target ).serialize(), 'drive:submit' ) ;
-        if ( event.type.toLowerCase() !== 'submit' ) { break SUBMIT ;} ;
+        if ( event.type.toLowerCase() !== 'submit' ) { break SUBMIT ; } ;
         
         url = url.replace( /\?[^\s]*/ , '' ) ;
         settings.ajax.type = jQuery( event.target ).attr( 'method' ).toUpperCase() ;
         
-        GET : {
-          if ( settings.ajax.type !== 'GET' ) { break GET ;} ;
-          
-          /* validate */ validate && validate.test( '++', 1, jQuery( event.target ).serialize(), 'drive:serialize' ) ;
-          url += '?' + jQuery( event.target ).serialize() ;
-          settings.ajax.data = null ;
-        } ;
-        
-        POST : {
-          if ( settings.ajax.type !== 'POST' ) { break POST ;} ;
-          
-          /* validate */ validate && validate.test( '++', 1, jQuery( event.target ).serializeArray(), 'drive:serializeArray' ) ;
-          settings.ajax.data = jQuery( event.target ).serializeArray() ;
+        switch ( settings.ajax.type ) {
+          case 'GET' :
+            /* validate */ validate && validate.test( '++', 1, jQuery( event.target ).serialize(), 'drive:serialize' ) ;
+            url += '?' + jQuery( event.target ).serialize() ;
+            settings.ajax.data = null ;
+          case 'POST' :
+            /* validate */ validate && validate.test( '++', 1, jQuery( event.target ).serializeArray(), 'drive:serializeArray' ) ;
+            settings.ajax.data = jQuery( event.target ).serializeArray() ;
         } ;
       } ;
       
-      /* validate */ validate && validate.test( '/', 1, 0, 'drive:option' ) ;
+      /* validate */ validate && validate.test( '/', 1, 0, 'drive:setting' ) ;
       callbacks = {
         xhr : !settings.callbacks.ajax.xhr ? undefined : function () {
           XMLHttpRequest = fire( settings.callbacks.ajax.xhr , context , [ event , settings.parameter ] , settings.callbacks.async ) ;
@@ -344,8 +339,7 @@
           
           /* validate */ var validate = plugin_data[ settings.id ] && plugin_data[ settings.id ].validate ? plugin_data[ settings.id ].validate.clone( { name : 'jquery.pjax.js - drive()' } ) : validate ;
           /* validate */ validate && validate.start() ;
-          /* validate */ validate && validate.test( '++', 1, [ url, win.location.href ], 'ajax_regular()' ) ;
-          /* validate */ validate && validate.test( '++', 1, [ XMLHttpRequest, textStatus, errorThrown ], 'ajax error' ) ;
+          /* validate */ validate && validate.test( '++', 1, [ url, win.location.href, XMLHttpRequest, textStatus, errorThrown ], 'ajax error' ) ;
           fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] , settings.callbacks.async ) ;
           if ( settings.fallback ) { return typeof settings.fallback === 'function' ? settings.fallback( event ) : fallback( event , validate ) ; } ;
           /* validate */ validate && validate.end() ;
