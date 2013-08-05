@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.17.0
+ * @version 1.17.1
  * @updated 2013/08/05
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
@@ -246,11 +246,7 @@
       
       if ( cache ) {
         /* validate */ validate && validate.test( '++', 1, 0, 'drive:update' ) ;
-        if ( jQuery.when ) {
-          jQuery.when( wait( settings.wait ) ).done( function () { update( cache ) ; } ) ;
-        } else {
-          update( cache )  ;
-        } ;
+        jQuery.when ? jQuery.when( wait( settings.wait ) ).done( function () { update( cache ) ; } ) : update( cache ) ;
         /* validate */ validate && validate.test( '++', 1, 0, 'drive:end' ) ;
         /* validate */ validate && validate.end() ;
         return ;
