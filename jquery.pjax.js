@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.17.2
- * @updated 2013/08/05
+ * @version 1.17.3
+ * @updated 2013/08/06
  * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -593,7 +593,7 @@
                   break ;
               } ;
             } // function: scroll
-            scroll( false ) ;
+            scroll( !settings.load.sync ) ;
             
             /* rendering */
             /* validate */ validate && validate.test( '++', 1, 0, 'update:rendering' ) ;
@@ -608,7 +608,7 @@
                   
                   checker.remove() ;
                   settings.load.script && settings.load.sync && setTimeout( function () { load_script( 'sync' ) ; } , settings.load.async || 0 ) ;
-                  scroll( true ) ;
+                  settings.load.sync && scroll( true ) ;
                   jQuery( window ).trigger( settings.gns + '.load' ) ;
                   
                   if ( fire( settings.callbacks.update.rendering.after , context , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; } ;
