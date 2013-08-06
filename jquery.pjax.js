@@ -5,9 +5,9 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.17.3
+ * @version 1.17.4
  * @updated 2013/08/06
- * @author falsandtru  http://fat.main.jp/  http://sa-kusaku.sakura.ne.jp/
+ * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
  * Note: 
@@ -17,36 +17,10 @@
  * @jquery 1.7.2
  * 
  * $.pjax( { area : 'div.pjax:not(.no-pjax)' } ) ;
- *
- * or
- *
- * $( 'div.pjaxLinkArea' ).pjax(
- * {
- *   area : 'div.pjax:not(.no-pjax)' ,
- *   link : 'a.pjaxLinks' ,
- *   scrollTop : null ,
- *   scrollLeft : null ,
- *   callback : callback ,
- *   callbacks :
- *   {
- *     ajax :
- *     {
- *       beforeSend : function( arg , XMLHttpRequest ){ XMLHttpRequest.overrideMimeType( 'text/html;charset=UTF-8' ) ; }
- *       error : error
- *     }
- *   }
- *   wait : 100
- * }) ;
- *
- * function callback()
- * {
- *   if( window._gaq ){ _gaq.push( ['_trackPageview'] ) ; }
- * }
- *
- * function error( arg , XMLHttpRequest )
- * {
- *   alert( 'pjax cancel.\n' + XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText ) ;
- * }
+ * 
+ * ---
+ * Document:
+ * http://sa-kusaku.sakura.ne.jp/output/pjax/
  * 
  */
 
@@ -355,7 +329,7 @@
       ajax.url = settings.server.query ? url.replace( /(#[^\s]*)?$/ , ( !url.match( /\?/ ) ? '?' :'&' ) + encodeURIComponent( settings.server.query ) + '=1' + '$1' ) : url ;
       
       /* validate */ validate && validate.test( '++', 1, 0, 'drive:ajax' ) ;
-      settings.speedcheck && settings.log.speed.name.push( 'ajax_start' ) ;
+      settings.speedcheck && settings.log.speed.name.push( 'request' ) ;
       settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
       jQuery.when ? jQuery.when( jQuery.ajax( ajax ) , wait( settings.wait ) ).done( function () { update() ; } ).fail().always() : jQuery.ajax( ajax ) ;
       
@@ -370,7 +344,7 @@
         /* validate */ validate && validate.test( '1', 1, 0, 'update()' ) ;
         /* validate */ validate && validate.test( '++', 1, 0, 'update:start' ) ;
         UPDATE : {
-          settings.speedcheck && settings.log.speed.name.push( 'update_start' ) ;
+          settings.speedcheck && settings.log.speed.name.push( 'update' ) ;
           settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
           if ( fire( settings.callbacks.update.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; } ;
           
@@ -579,12 +553,12 @@
               switch ( event.type.toLowerCase() ) {
                 case 'click' :
                 case 'submit' :
-                  scrollX = call ? fire( settings.scrollLeft , null , [ event ] ) : scrollX ;
-                  scrollX = 0 <= scrollX ? scrollX : settings.scrollLeft ;
+                  scrollX = call ? fire( settings.scrollLeft , null , [ event ] ) : settings.scrollLeft ;
+                  scrollX = 0 <= scrollX ? scrollX : null ;
                   scrollX = scrollX === null ? jQuery( win ).scrollLeft() : parseInt( Number( scrollX ) ) ;
                   
-                  scrollY = call ? fire( settings.scrollTop , null , [ event ] ) : scrollY ;
-                  scrollY = 0 <= scrollY ? scrollY : settings.scrollTop ;
+                  scrollY = call ? fire( settings.scrollTop , null , [ event ] ) : settings.scrollTop ;
+                  scrollY = 0 <= scrollY ? scrollY : null ;
                   scrollY = scrollY === null ? jQuery( win ).scrollTop() : parseInt( Number( scrollY ) ) ;
                   
                   win.scrollTo( scrollX , scrollY ) ;
@@ -593,7 +567,7 @@
                   break ;
               } ;
             } // function: scroll
-            scroll( !settings.load.sync ) ;
+            scroll( false ) ;
             
             /* rendering */
             /* validate */ validate && validate.test( '++', 1, 0, 'update:rendering' ) ;
@@ -608,11 +582,11 @@
                   
                   checker.remove() ;
                   settings.load.script && settings.load.sync && setTimeout( function () { load_script( 'sync' ) ; } , settings.load.async || 0 ) ;
-                  settings.load.sync && scroll( true ) ;
+                  scroll( true ) ;
                   jQuery( window ).trigger( settings.gns + '.load' ) ;
                   
                   if ( fire( settings.callbacks.update.rendering.after , context , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; } ;
-                  settings.speedcheck && settings.log.speed.name.push( 'ready' ) ;
+                  settings.speedcheck && settings.log.speed.name.push( 'rendering' ) ;
                   settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
                   settings.speedcheck && console.log( settings.log.speed.time ) ;
                   settings.speedcheck && console.log( settings.log.speed.name ) ;
@@ -675,7 +649,7 @@
           
           settings.on() ;
           
-          settings.speedcheck && settings.log.speed.name.push( 'end' ) ;
+          settings.speedcheck && settings.log.speed.name.push( 'ready' ) ;
           settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
           /* validate */ validate && validate.test( '++', 1, 0, 'update:end' ) ;
           /* validate */ validate && validate.end() ;
