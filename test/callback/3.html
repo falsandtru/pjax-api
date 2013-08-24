@@ -106,28 +106,27 @@ var validator = $.validator ? $.validator( {
 <script type="text/javascript" charset="utf-8" src="/lib/jquery.pjax.js"></script>
 <script type="text/javascript">
 $(function(){
-  $.pjax(
-  {
+  $.pjax({
     area: 'div.pjax' ,
-    callback: function( event , arg ){ alert( arg + ': callback' ) ; } ,
+    callback: function( event , arg ){ _gaq.push(['_trackPageview']); console.log( arg + ': callback' ) ; } ,
     callbacks:
     {
-      before: function( event , arg ){ alert( arg + ': before' ) ; } ,
+      before: function( event , arg ){ console.log( arg + ': before' ) ; } ,
       ajax:
       {
-        beforeSend: function( event , arg ){ alert( arg + ': ajax.beforeSend' ) ; } ,
-        dataFilter: function( event , arg, data ){ alert( arg + ': ajax.dataFilter' ) ; return data ; } ,
-        success: function( event , arg ){ alert( arg + ': ajax.success' ) ; } ,
-        error: function( event , arg ){ alert( arg + ': ajax.error' ) ; } ,
-        complete: function( event , arg ){ alert( arg + ': ajax.complete' ) ; }
+        beforeSend: function( event , arg ){ console.log( arg + ': ajax.beforeSend' ) ; } ,
+        dataFilter: function( event , arg, data ){ console.log( arg + ': ajax.dataFilter' ) ; return data ; } ,
+        success: function( event , arg ){ console.log( arg + ': ajax.success' ) ; } ,
+        error: function( event , arg ){ console.log( arg + ': ajax.error' ) ; } ,
+        complete: function( event , arg ){ console.log( arg + ': ajax.complete' ) ; }
       } ,
       update:
       {
-        success: function( event , arg ){ alert( arg + ': update.success' ) ; } ,
-        error: function( event , arg ){ alert( arg + ': update.error' ) ; } ,
-        complete: function( event , arg ){ alert( arg + ': update.complete' ) ; }
+        success: function( event , arg ){ console.log( arg + ': update.success' ) ; } ,
+        error: function( event , arg ){ console.log( arg + ': update.error' ) ; } ,
+        complete: function( event , arg ){ console.log( arg + ': update.complete' ) ; }
       } ,
-      after: function( event , arg ){ alert( arg + ': after' ) ; }
+      after: function( event , arg ){ console.log( arg + ': after' ) ; }
     } ,
     parameter: 'callback'
   });
