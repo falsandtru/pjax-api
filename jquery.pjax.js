@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.17.6
- * @updated 2013/08/25
+ * @version 1.17.7
+ * @updated 2013/08/26
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -550,11 +550,11 @@
                 case 'click' :
                 case 'submit' :
                   scrollX = call ? fire( settings.scrollLeft , null , [ event ] ) : settings.scrollLeft ;
-                  scrollX = 0 <= scrollX ? scrollX : null ;
+                  scrollX = 0 <= scrollX ? scrollX : 0 ;
                   scrollX = scrollX === null ? jQuery( win ).scrollLeft() : parseInt( Number( scrollX ) ) ;
                   
                   scrollY = call ? fire( settings.scrollTop , null , [ event ] ) : settings.scrollTop ;
-                  scrollY = 0 <= scrollY ? scrollY : null ;
+                  scrollY = 0 <= scrollY ? scrollY : 0 ;
                   scrollY = scrollY === null ? jQuery( win ).scrollTop() : parseInt( Number( scrollY ) ) ;
                   
                   win.scrollTo( scrollX , scrollY ) ;
