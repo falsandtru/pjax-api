@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.18.1
+ * @version 1.18.2
  * @updated 2013/08/28
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -94,6 +94,7 @@
         off : off ,
         landing : win.location.href ,
         retry : true ,
+        xhr : null ,
         speed : { now : function () { return ( new Date() ).getTime() ; } } ,
         options : options ,
         validate : validate
@@ -280,6 +281,9 @@
         beforeSend : function () {
           XMLHttpRequest = arguments[ 0 ] ;
           
+          settings.xhr && settings.xhr.readyState < 4 && settings.xhr.abort() ;
+          settings.xhr = XMLHttpRequest ;
+          
           XMLHttpRequest.setRequestHeader( settings.nss.requestHeader , 'true' ) ;
           XMLHttpRequest.setRequestHeader( settings.nss.requestHeader + '-Area' , settings.area ) ;
           XMLHttpRequest.setRequestHeader( settings.nss.requestHeader + '-CSS' , settings.load.css ) ;
@@ -311,7 +315,7 @@
           /* validate */ validate && validate.start() ;
           /* validate */ validate && validate.test( '++', 1, [ url, win.location.href, XMLHttpRequest, textStatus, errorThrown ], 'ajax error' ) ;
           fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] , settings.callbacks.async ) ;
-          if ( settings.fallback ) { return typeof settings.fallback === 'function' ? settings.fallback( event ) : fallback( event , validate ) ; } ;
+          if ( settings.fallback && textStatus !== 'abort' ) { return typeof settings.fallback === 'function' ? settings.fallback( event ) : fallback( event , validate ) ; } ;
           /* validate */ validate && validate.end() ;
         } ,
         complete : !settings.callbacks.ajax.complete ? undefined : function () {
