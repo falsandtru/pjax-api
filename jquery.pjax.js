@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.18.0
+ * @version 1.18.1
  * @updated 2013/08/28
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -89,7 +89,6 @@
         log : { script : {} , speed : {} } ,
         history : { config : settings.cache , order : [] , data : {} /*, size : 0*/ } ,
         timestamp : ( new Date() ).getTime() ,
-        running : false ,
         disable : false ,
         on : on ,
         off : off ,
@@ -144,7 +143,7 @@
           url = this.href ;
           settings.area = fire( settings.options.area , null , [ event ] ) || settings.options.area ;
           if ( settings.landing ) { settings.landing = false ; } ;
-          if ( settings.disable || !jQuery( settings.area ).length ) { return ; } else { settings.running = true ; } ;
+          if ( settings.disable || !jQuery( settings.area ).length ) { return ; } ;
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; } ;
           
           drive( this , event , url , true , cache ) ;
@@ -166,7 +165,7 @@
           url = this.action ;
           settings.area = fire( settings.options.area , null , [ event ] ) || settings.options.area ;
           if ( settings.landing ) { settings.landing = false ; } ;
-          if ( settings.disable || !jQuery( settings.area ).length ) { return ; } else { settings.running = true ; } ;
+          if ( settings.disable || !jQuery( settings.area ).length ) { return ; } ;
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; } ;
           
           drive( this , event , url , true , cache ) ;
@@ -186,7 +185,7 @@
           url = win.location.href ;
           settings.area = fire( settings.options.area , null , [ event ] ) || settings.options.area ;
           if ( settings.landing ) { if ( settings.landing === win.location.href ) { settings.landing = false ; return ; } ; settings.landing = false ; } ;
-          if ( settings.disable || !jQuery( settings.area ).length ) { return ; } else { settings.running = true ; } ;
+          if ( settings.disable || !jQuery( settings.area ).length ) { return ; } ;
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; } ;
           
           drive( this , event , url , false , cache ) ;
@@ -645,8 +644,6 @@
           } ;
           
           if ( fire( settings.callbacks.update.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; } ;
-          
-          settings.running = false ;
           
           settings.speedcheck && settings.log.speed.name.push( 'ready' ) ;
           settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
