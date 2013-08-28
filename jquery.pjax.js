@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.18.2
+ * @version 1.18.3
  * @updated 2013/08/28
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -69,7 +69,7 @@
         settings = jQuery.extend( true , {} , defaults , options ) ,
         nsArray = [ settings.gns ] ;
     
-    /* validate */ validate && validate.test( '++', 1, 0, 'overwrite' ) ;
+    /* validate */ validate && validate.test( '++', 1, settings, 'overwrite' ) ;
     jQuery.extend
     (
       true ,
@@ -101,7 +101,7 @@
       }
     ) ;
     
-    /* validate */ validate && validate.test( '++', 1, 0, 'share' ) ;
+    /* validate */ validate && validate.test( '++', 1, settings, 'share' ) ;
     share() ;
     
     /* Process startup */
@@ -147,7 +147,7 @@
           if ( settings.disable || !jQuery( settings.area ).length ) { return ; } ;
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; } ;
           
-          drive( this , event , url , true , cache ) ;
+          drive( settings , this , event , url , true , cache ) ;
           event.preventDefault() ;
           return false ;
         } ) ;
@@ -169,7 +169,7 @@
           if ( settings.disable || !jQuery( settings.area ).length ) { return ; } ;
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; } ;
           
-          drive( this , event , url , true , cache ) ;
+          drive( settings , this , event , url , true , cache ) ;
           event.preventDefault() ;
           return false ;
         } ) ;
@@ -189,7 +189,7 @@
           if ( settings.disable || !jQuery( settings.area ).length ) { return ; } ;
           if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; } ;
           
-          drive( this , event , url , false , cache ) ;
+          drive( settings , this , event , url , false , cache ) ;
           event.preventDefault() ;
           return false ;
         } ) ;
@@ -200,7 +200,7 @@
       } ) ;
     } // function: register
     
-    function drive( context , event , url , register , cache ) {
+    function drive( settings , context , event , url , register , cache ) {
       /* validate */ var validate = settings.validate ? settings.validate.clone( { name : 'jquery.pjax.js - drive()' } ) : false ;
       /* validate */ validate && validate.start() ;
       /* validate */ validate && ( validate.scope = function( code ){ return eval( code ) ; } ) ;
@@ -235,36 +235,33 @@
           ajax = {} ,
           callbacks ;
       
-      /* validate */ validate && validate.test( '++', 1, 0, 'popstate' ) ;
-      POPSTATE : {
-        if ( event.type.toLowerCase() !== 'popstate' ) { break POPSTATE ; } ;
-        
-        GET : {
-          query = url.match( /\?[^\s]*/ ) ;
-          if ( !query || query[ 0 ] === '?' ) { break GET ; } ;
+      /* validate */ validate && validate.test( '++', 1, event.type, 'switch' ) ;
+      switch ( event.type.toLowerCase() ) {
+        case 'click' :
+          /* validate */ validate && validate.test( '*', 1, 0, 'click' ) ;
+          ajax.type = 'GET' ;
+          break ;
           
-          settings.ajax.type = 'GET' ;
-        } ;
-        settings.ajax.data = null ;
-      } ;
-      
-      /* validate */ validate && validate.test( '++', 1, 0, 'submit' ) ;
-      SUBMIT : {
-        /* validate */ validate && validate.test( '*', 1, jQuery( event.target ).serialize(), 'submit' ) ;
-        if ( event.type.toLowerCase() !== 'submit' ) { break SUBMIT ; } ;
-        
-        url = url.replace( /\?[^\s]*/ , '' ) ;
-        settings.ajax.type = jQuery( event.target ).attr( 'method' ).toUpperCase() ;
-        
-        switch ( settings.ajax.type ) {
-          case 'GET' :
-            /* validate */ validate && validate.test( '++', 1, jQuery( event.target ).serialize(), 'serialize' ) ;
-            url += '?' + jQuery( event.target ).serialize() ;
-            settings.ajax.data = null ;
-          case 'POST' :
-            /* validate */ validate && validate.test( '++', 1, jQuery( event.target ).serializeArray(), 'serializeArray' ) ;
-            settings.ajax.data = jQuery( event.target ).serializeArray() ;
-        } ;
+        case 'submit' :
+          /* validate */ validate && validate.test( '*', 1, event.target.method, 'submit' ) ;
+          url = url.replace( /\?[^\s]*/ , '' ) ;
+          ajax.type = event.target.method.toUpperCase() ;
+          
+          switch ( ajax.type ) {
+            case 'GET' :
+              /* validate */ validate && validate.test( '++', 1, jQuery( event.target ).serialize(), 'serialize' ) ;
+              url += '?' + jQuery( event.target ).serialize() ;
+            case 'POST' :
+              /* validate */ validate && validate.test( '++', 1, jQuery( event.target ).serializeArray(), 'serializeArray' ) ;
+              ajax.data = jQuery( event.target ).serializeArray() ;
+          } ;
+          break ;
+          
+        case 'popstate' :
+          /* validate */ validate && validate.test( '*', 1, url.match( /\?[^\s]*/ ), 'popstate' ) ;
+          query = url.match( /\?[^\s]*/ ) ;
+          ajax.type = 'GET' ;
+          break ;
       } ;
       
       /* validate */ validate && validate.test( '/', 1, 0, 'setting' ) ;
@@ -602,7 +599,7 @@
             /* validate */ validate && validate.test( '++', 1, 0, 'cache' ) ;
             UPDATE_CACHE : {
               if ( !settings.cache.click && !settings.cache.submit && !settings.cache.popstate ) { break UPDATE_CACHE ; } ;
-              if ( settings.ajax.type === 'POST' ) { break UPDATE_CACHE ; } ;
+              if ( !cache && ajax.type === 'POST' ) { break UPDATE_CACHE ; } ;
               if ( fire( settings.callbacks.update.cache.save.before , context , [ event , settings.parameter , cache ] , settings.callbacks.async ) === false ) { break UPDATE_CACHE ; } ;
               
               fnCache( settings.history , url , title , dataSize , data , dataType , XMLHttpRequest )
@@ -618,7 +615,7 @@
                 settings.retry = true ;
               } else if ( settings.retry ) {
                 settings.retry = false ;
-                drive( context , event , win.location.href , false , settings.cache[ event.type.toLowerCase() ] ? fnCache( settings.history , win.location.href ) : undefined ) ;
+                drive( settings , context , event , win.location.href , false , settings.cache[ event.type.toLowerCase() ] ? fnCache( settings.history , win.location.href ) : undefined ) ;
               } else {
                 throw new Error( 'throw: location mismatch' ) ;
               } ;
