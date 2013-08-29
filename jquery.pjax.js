@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.18.4
+ * @version 1.18.5
  * @updated 2013/08/29
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -161,11 +161,11 @@
         
         var settings, url , cache ;
         settings = plugin_data[ event.data ] ;
-        url = this.action ;
+        url = this.action + ( event.target.method.toUpperCase() === 'GET' ? '?' + jQuery( event.target ).serialize() : '' ) ;
         settings.area = fire( settings.options.area , null , [ event ] ) || settings.options.area ;
         if ( settings.landing ) { settings.landing = false ; }
         if ( settings.disable || !jQuery( settings.area ).length ) { return ; }
-        if ( settings.cache[ event.type.toLowerCase() ] && settings.cache[ event.target.method.toLowerCase() ] ) { cache = fnCache( settings.history , url + '?' + jQuery( event.target ).serialize() ) ; }
+        if ( settings.cache[ event.type.toLowerCase() ] && settings.cache[ event.target.method.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; }
         
         drive( settings , this , event , url , true , cache ) ;
         event.preventDefault() ;
@@ -190,9 +190,7 @@
         return false ;
       } ) ;
       
-      jQuery( 'script[src]' ).each( function () {
-        if ( !( this.src in settings.log.script ) ) { settings.log.script[ this.src ] = true ; }
-      } ) ;
+      jQuery( 'script[src]' ).each( function () { if ( !( this.src in settings.log.script ) ) { settings.log.script[ this.src ] = true ; } } ) ;
     } // function: register
     
     
@@ -220,47 +218,27 @@
       }
       
       /* validate */ validate && validate.test( '++', 1, 0, 'initialize' ) ;
-      var data ,
-          dataType ,
-          XMLHttpRequest ,
-          textStatus ,
-          errorThrown ,
-          dataSize ,
-          query = [] ,
-          request = [] ,
-          ajax = {} ,
-          callbacks ;
+      var data , dataType , XMLHttpRequest , textStatus , errorThrown , dataSize , ajax = {} , callbacks ;
       
-      /* validate */ validate && validate.test( '++', 1, event.type, 'switch' ) ;
       switch ( event.type.toLowerCase() ) {
         case 'click' :
-          /* validate */ validate && validate.test( '*', 1, 0, 'click' ) ;
+          /* validate */ validate && validate.test( '++', 1, 0, 'event click' ) ;
           ajax.type = 'GET' ;
           break ;
           
         case 'submit' :
-          /* validate */ validate && validate.test( '*', 1, event.target.method, 'submit' ) ;
-          url = url.replace( /\?[^\s]*/ , '' ) ;
+          /* validate */ validate && validate.test( '++', 1, event.target.method, 'event submit' ) ;
           ajax.type = event.target.method.toUpperCase() ;
-          
-          switch ( ajax.type ) {
-            case 'GET' :
-              /* validate */ validate && validate.test( '++', 1, jQuery( event.target ).serialize(), 'serialize' ) ;
-              url += '?' + jQuery( event.target ).serialize() ;
-            case 'POST' :
-              /* validate */ validate && validate.test( '++', 1, jQuery( event.target ).serializeArray(), 'serializeArray' ) ;
-              ajax.data = jQuery( event.target ).serializeArray() ;
-          }
+          if ( ajax.type === 'POST' ) { ajax.data = jQuery( event.target ).serializeArray() ; }
           break ;
           
         case 'popstate' :
-          /* validate */ validate && validate.test( '*', 1, url.match( /\?[^\s]*/ ), 'popstate' ) ;
-          query = url.match( /\?[^\s]*/ ) ;
+          /* validate */ validate && validate.test( '++', 1, 0, 'event popstate' ) ;
           ajax.type = 'GET' ;
           break ;
       }
       
-      /* validate */ validate && validate.test( '/', 1, 0, 'setting' ) ;
+      /* validate */ validate && validate.test( '++', 1, 0, 'setting' ) ;
       callbacks = {
         xhr : !settings.callbacks.ajax.xhr ? undefined : function () {
           XMLHttpRequest = fire( settings.callbacks.ajax.xhr , context , [ event , settings.parameter ] , settings.callbacks.async ) ;
@@ -319,7 +297,7 @@
         }
       } ;
       jQuery.extend( true , ajax , settings.ajax , callbacks ) ;
-      ajax.url = settings.server.query ? url.replace( /(#[^\s]*)?$/ , ( !url.match( /\?/ ) ? '?' :'&' ) + encodeURIComponent( settings.server.query ) + '=1' + '$1' ) : url ;
+      ajax.url = url.replace( /([^#]+)(#[^\s]*)?$/ , '$1' + ( settings.server.query ? ( url.match( /\?/ ) ? '&' : '?' ) + encodeURIComponent( settings.server.query ) + '=1' : '' ) + '$2' ) ;
       
       /* validate */ validate && validate.test( '++', 1, 0, 'ajax' ) ;
       settings.speedcheck && settings.log.speed.name.push( 'request' ) ;
@@ -343,11 +321,7 @@
           if ( fire( settings.callbacks.update.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
           
           /* variable initialization */
-          var win = window ,
-              doc = document ,
-              title ,
-              css ,
-              script ;
+          var win = window , doc = document , title , css , script ;
           
           try {
             
@@ -722,7 +696,7 @@
             title : title ,
             size : size ,
             timestamp : ( new Date() ).getTime()
-          }
+          } ;
           
           for ( var i = history.order.length - 1 , url ; url = history.order[ i ] ; i-- ) {
             if ( i >= history.config.length || history.size > history.config.size || ( new Date() ).getTime() > history.data[ url ].timestamp + history.config.expire ) {
