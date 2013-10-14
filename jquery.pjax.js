@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.18.5
- * @updated 2013/08/29
+ * @version 1.19.0
+ * @updated 2013/10/15
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -43,10 +43,11 @@
     var defaults = {
           id : 0 ,
           gns : 'pjax' ,
-          ns : undefined ,
-          area : undefined ,
+          ns : null ,
+          area : null ,
           link : 'a:not([target])[href^="/"]' ,
-          form : undefined ,
+          form : null ,
+          scope : null ,
           scrollTop : 0 ,
           scrollLeft : 0 ,
           ajax : {} ,
@@ -61,7 +62,7 @@
             update : { url : {} , title : {} , content : {} , css : {} , script : {} , cache : { load : {} , save : {} } , rendering : {} , verify : {} } ,
             async : false
           } ,
-          parameter : undefined ,
+          parameter : null ,
           load : { css : false , script : false , execute : true , sync : true , async : 0 } ,
           interval : 300 ,
           wait : 0 ,
@@ -88,7 +89,7 @@
           requestHeader : [ 'X' , nsArray[ 0 ].replace( /^\w/ , function ( $0 ) { return $0.toUpperCase() ; } ) ].join( '-' ) ,
           array : nsArray
         } ,
-        server : { query : settings.server.query === undefined ? settings.gns : settings.server.query } ,
+        server : { query : !settings.server.query ? settings.gns : settings.server.query } ,
         log : { script : {} , speed : {} } ,
         history : { config : settings.cache , order : [] , data : {} /*, size : 0*/ } ,
         timestamp : ( new Date() ).getTime() ,
@@ -109,7 +110,7 @@
     
     /* Process startup */
     /* validate */ validate && validate.test( '++', 1, 0, 'register' ) ;
-    if ( check() ) { register( this , settings ) ; }
+    if ( supportPushState() ) { register( this , settings ) ; }
     
     /* validate */ validate && validate.end() ;
     
@@ -117,10 +118,6 @@
     
     
     /* Function declaration */
-    
-    function check() {
-      return supportPushState() ;
-    } // function: check
     
     function supportPushState() {
       return 'pushState' in win.history && win.history[ 'pushState' ] !== null ;
@@ -145,7 +142,7 @@
         url = this.href ;
         settings.area = fire( settings.options.area , null , [ event ] ) || settings.options.area ;
         if ( settings.landing ) { settings.landing = false ; }
-        if ( settings.disable || !jQuery( settings.area ).length ) { return ; }
+        if ( settings.disable || !jQuery( settings.area ).length || settings.scope && !scope( settings.scope, location.pathname , url ) ) { return ; }
         if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; }
         
         drive( settings , this , event , url , true , cache ) ;
@@ -164,7 +161,7 @@
         url = this.action + ( event.target.method.toUpperCase() === 'GET' ? '?' + jQuery( event.target ).serialize() : '' ) ;
         settings.area = fire( settings.options.area , null , [ event ] ) || settings.options.area ;
         if ( settings.landing ) { settings.landing = false ; }
-        if ( settings.disable || !jQuery( settings.area ).length ) { return ; }
+        if ( settings.disable || !jQuery( settings.area ).length || settings.scope && !scope( settings.scope, location.pathname , url ) ) { return ; }
         if ( settings.cache[ event.type.toLowerCase() ] && settings.cache[ event.target.method.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; }
         
         drive( settings , this , event , url , true , cache ) ;
@@ -182,7 +179,7 @@
         url = win.location.href ;
         settings.area = fire( settings.options.area , null , [ event ] ) || settings.options.area ;
         if ( settings.landing ) { if ( settings.landing === win.location.href ) { settings.landing = false ; return ; } settings.landing = false ; }
-        if ( settings.disable || !jQuery( settings.area ).length ) { return ; }
+        if ( settings.disable || !jQuery( settings.area ).length || settings.scope && !scope( settings.scope, location.pathname , url ) ) { return ; }
         if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; }
         
         drive( settings , this , event , url , false , cache ) ;
@@ -654,6 +651,18 @@
       data.replace( new RegExp( pattern , "gim" ) , function () { result.push( arguments[ 1 ] ) ; } )
       return result ;
     } // function: find
+    
+    function scope( scp , loc , url ) {
+      var arr , keys , key ;
+      url = jQuery( '<a/>' , { href : url } )[ 0 ].pathname ;
+      arr = loc.replace( /^\// , '' ).split( '/' ) ;
+      for ( var i = 0 , len = arr.length ; i < len ; i++ ) {
+        keys = scp[ '/' + arr.slice( 0 , i ).join( '/' ) + '/' ] ;
+        if ( !keys ) { continue ; } ;
+        keys = keys.split( '|' ) ;
+        for ( var j = 0 ; key = keys[ j ] ; j++ ) { if ( !url.indexOf( key ) ) { return true ; } ; }
+      }
+    } // function: scope
     
     function fnCache( history , url , title , size , data , dataType , XMLHttpRequest ) {
       var result ;
