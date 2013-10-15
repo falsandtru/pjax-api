@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.19.1
+ * @version 1.19.2
  * @updated 2013/10/15
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -664,6 +664,7 @@
           keys = keys.split( '|' ) || [] ;
           for ( var j = 0 ; key = keys[ j ] ; j++ ) { if ( !( '^' + url ).indexOf( key ) ) { return false ; } }
           for ( var j = 0 ; key = keys[ j ] ; j++ ) { if ( !url.indexOf( key ) ) { return true ; } }
+          if ( url === loc ) { return true ; }
           return false ;
         }
       }
