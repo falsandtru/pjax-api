@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.19.0
+ * @version 1.19.1
  * @updated 2013/10/15
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -142,7 +142,7 @@
         url = this.href ;
         settings.area = fire( settings.options.area , null , [ event ] ) || settings.options.area ;
         if ( settings.landing ) { settings.landing = false ; }
-        if ( settings.disable || !jQuery( settings.area ).length || settings.scope && !scope( settings.scope, location.pathname , url ) ) { return ; }
+        if ( settings.disable || !jQuery( settings.area ).length || settings.scope && !scope( settings.scope, win.location.pathname , url ) ) { return ; }
         if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; }
         
         drive( settings , this , event , url , true , cache ) ;
@@ -161,7 +161,7 @@
         url = this.action + ( event.target.method.toUpperCase() === 'GET' ? '?' + jQuery( event.target ).serialize() : '' ) ;
         settings.area = fire( settings.options.area , null , [ event ] ) || settings.options.area ;
         if ( settings.landing ) { settings.landing = false ; }
-        if ( settings.disable || !jQuery( settings.area ).length || settings.scope && !scope( settings.scope, location.pathname , url ) ) { return ; }
+        if ( settings.disable || !jQuery( settings.area ).length || settings.scope && !scope( settings.scope, win.location.pathname , url ) ) { return ; }
         if ( settings.cache[ event.type.toLowerCase() ] && settings.cache[ event.target.method.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; }
         
         drive( settings , this , event , url , true , cache ) ;
@@ -179,7 +179,7 @@
         url = win.location.href ;
         settings.area = fire( settings.options.area , null , [ event ] ) || settings.options.area ;
         if ( settings.landing ) { if ( settings.landing === win.location.href ) { settings.landing = false ; return ; } settings.landing = false ; }
-        if ( settings.disable || !jQuery( settings.area ).length || settings.scope && !scope( settings.scope, location.pathname , url ) ) { return ; }
+        if ( settings.disable || !jQuery( settings.area ).length ) { return ; }
         if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; }
         
         drive( settings , this , event , url , false , cache ) ;
@@ -656,11 +656,16 @@
       var arr , keys , key ;
       url = jQuery( '<a/>' , { href : url } )[ 0 ].pathname ;
       arr = loc.replace( /^\// , '' ).split( '/' ) ;
-      for ( var i = 0 , len = arr.length ; i < len ; i++ ) {
-        keys = scp[ '/' + arr.slice( 0 , i ).join( '/' ) + '/' ] ;
-        if ( !keys ) { continue ; } ;
-        keys = keys.split( '|' ) ;
-        for ( var j = 0 ; key = keys[ j ] ; j++ ) { if ( !url.indexOf( key ) ) { return true ; } ; }
+      for ( var i = arr.length + 1 ; i-- ; ) {
+        keys = arr.slice( 0 , i ).join( '/' ) ;
+        keys = scp[ '/' + keys + ( loc.charAt( keys.length + 1 ) === '/' ? '/' : '' ) ] ;
+        
+        if ( keys !== undefined ) {
+          keys = keys.split( '|' ) || [] ;
+          for ( var j = 0 ; key = keys[ j ] ; j++ ) { if ( !( '^' + url ).indexOf( key ) ) { return false ; } }
+          for ( var j = 0 ; key = keys[ j ] ; j++ ) { if ( !url.indexOf( key ) ) { return true ; } }
+          return false ;
+        }
       }
     } // function: scope
     
