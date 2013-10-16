@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.19.3
- * @updated 2013/10/16
+ * @version 1.19.4
+ * @updated 2013/10/17
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -377,6 +377,29 @@
               if ( fire( settings.callbacks.update.title.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_TITLE ; }
             } ; // label: UPDATE_TITLE
             
+            /* scroll */
+            /* validate */ validate && validate.test( '++', 1, 0, 'scroll' ) ;
+            function scroll( call ) {
+              var scrollX , scrollY ;
+              switch ( event.type.toLowerCase() ) {
+                case 'click' :
+                case 'submit' :
+                  scrollX = call && typeof settings.scrollLeft === 'function' ? fire( settings.scrollLeft , null , [ event ] ) : settings.scrollLeft ;
+                  scrollX = 0 <= scrollX ? scrollX : 0 ;
+                  scrollX = scrollX === null ? jQuery( win ).scrollLeft() : parseInt( Number( scrollX ) ) ;
+                  
+                  scrollY = call && typeof settings.scrollTop === 'function' ? fire( settings.scrollTop , null , [ event ] ) : settings.scrollTop ;
+                  scrollY = 0 <= scrollY ? scrollY : 0 ;
+                  scrollY = scrollY === null ? jQuery( win ).scrollTop() : parseInt( Number( scrollY ) ) ;
+                  
+                  ( jQuery( win ).scrollTop() === scrollY && jQuery( win ).scrollLeft() === scrollX ) || win.scrollTo( scrollX , scrollY ) ;
+                  break ;
+                case 'popstate' :
+                  break ;
+              }
+            } // function: scroll
+            scroll( false ) ;
+            
             /* content */
             /* validate */ validate && validate.test( '++', 1, areas, 'content' ) ;
             UPDATE_CONTENT : {
@@ -512,29 +535,6 @@
             } // function: script
             settings.load.script && setTimeout( function () { load_script( 'async' ) ; } , settings.load.async || 0 ) ;
             settings.load.script && !settings.load.sync && setTimeout( function () { load_script( 'sync' ) ; } , settings.load.async || 0 ) ;
-            
-            /* scroll */
-            /* validate */ validate && validate.test( '++', 1, 0, 'scroll' ) ;
-            function scroll( call ) {
-              var scrollX , scrollY ;
-              switch ( event.type.toLowerCase() ) {
-                case 'click' :
-                case 'submit' :
-                  scrollX = call && typeof settings.scrollLeft === 'function' ? fire( settings.scrollLeft , null , [ event ] ) : settings.scrollLeft ;
-                  scrollX = 0 <= scrollX ? scrollX : 0 ;
-                  scrollX = scrollX === null ? jQuery( win ).scrollLeft() : parseInt( Number( scrollX ) ) ;
-                  
-                  scrollY = call && typeof settings.scrollTop === 'function' ? fire( settings.scrollTop , null , [ event ] ) : settings.scrollTop ;
-                  scrollY = 0 <= scrollY ? scrollY : 0 ;
-                  scrollY = scrollY === null ? jQuery( win ).scrollTop() : parseInt( Number( scrollY ) ) ;
-                  
-                  jQuery( win ).scrollTop() === scrollY || win.scrollTo( scrollX , scrollY ) ;
-                  break ;
-                case 'popstate' :
-                  break ;
-              }
-            } // function: scroll
-            scroll( false ) ;
             
             /* rendering */
             /* validate */ validate && validate.test( '++', 1, 0, 'rendering' ) ;
