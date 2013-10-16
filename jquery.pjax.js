@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.19.2
- * @updated 2013/10/15
+ * @version 1.19.3
+ * @updated 2013/10/16
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -140,9 +140,9 @@
         var settings, url , cache ;
         settings = plugin_data[ event.data ] ;
         url = this.href ;
-        settings.area = fire( settings.options.area , null , [ event ] ) || settings.options.area ;
+        settings.area = fire( settings.options.area , null , [ event , url ] ) || settings.options.area ;
         if ( settings.landing ) { settings.landing = false ; }
-        if ( settings.disable || !jQuery( settings.area ).length || settings.scope && !scope( settings.scope, win.location.pathname , url ) ) { return ; }
+        if ( settings.disable || !jQuery( settings.area ).length || settings.scope && !scope( settings.scope, win.location.href , url ) ) { return ; }
         if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; }
         
         drive( settings , this , event , url , true , cache ) ;
@@ -159,9 +159,9 @@
         var settings, url , cache ;
         settings = plugin_data[ event.data ] ;
         url = this.action + ( event.target.method.toUpperCase() === 'GET' ? '?' + jQuery( event.target ).serialize() : '' ) ;
-        settings.area = fire( settings.options.area , null , [ event ] ) || settings.options.area ;
+        settings.area = fire( settings.options.area , null , [ event , url ] ) || settings.options.area ;
         if ( settings.landing ) { settings.landing = false ; }
-        if ( settings.disable || !jQuery( settings.area ).length || settings.scope && !scope( settings.scope, win.location.pathname , url ) ) { return ; }
+        if ( settings.disable || !jQuery( settings.area ).length || settings.scope && !scope( settings.scope, win.location.href , url ) ) { return ; }
         if ( settings.cache[ event.type.toLowerCase() ] && settings.cache[ event.target.method.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; }
         
         drive( settings , this , event , url , true , cache ) ;
@@ -177,7 +177,7 @@
         var settings, url , cache ;
         settings = plugin_data[ event.data ] ;
         url = win.location.href ;
-        settings.area = fire( settings.options.area , null , [ event ] ) || settings.options.area ;
+        settings.area = fire( settings.options.area , null , [ event , url ] ) || settings.options.area ;
         if ( settings.landing ) { if ( settings.landing === win.location.href ) { settings.landing = false ; return ; } settings.landing = false ; }
         if ( settings.disable || !jQuery( settings.area ).length ) { return ; }
         if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; }
@@ -528,7 +528,7 @@
                   scrollY = 0 <= scrollY ? scrollY : 0 ;
                   scrollY = scrollY === null ? jQuery( win ).scrollTop() : parseInt( Number( scrollY ) ) ;
                   
-                  win.scrollTo( scrollX , scrollY ) ;
+                  jQuery( win ).scrollTop() === scrollY || win.scrollTo( scrollX , scrollY ) ;
                   break ;
                 case 'popstate' :
                   break ;
@@ -652,21 +652,62 @@
       return result ;
     } // function: find
     
-    function scope( scp , loc , url ) {
-      var arr , keys , key ;
-      url = jQuery( '<a/>' , { href : url } )[ 0 ].pathname ;
-      arr = loc.replace( /^\// , '' ).split( '/' ) ;
-      for ( var i = arr.length + 1 ; i-- ; ) {
-        keys = arr.slice( 0 , i ).join( '/' ) ;
-        keys = scp[ '/' + keys + ( loc.charAt( keys.length + 1 ) === '/' ? '/' : '' ) ] ;
+    function scope( scp , loc , url , relocation ) {
+      var a , arr , from , to , dirs , dir , keys , key , pattern , not , reg , inherit , hit , hit_from , hit_to ;
+      
+      a = document.createElement('a') ;
+      from = a ;
+      from.href = loc ;
+      from = from.pathname + from.search + from.hash ;
+      to = a ;
+      to.href = url ;
+      to = to.pathname + to.search + to.hash ;
+      hit = to === from ;
+      if ( hit ) { return true ; }
+      
+      arr = from.replace( /^\// , '' ).replace( /([?#])/g , '/$1' ).split( '/' ) ;
+      keys = ( relocation || from ).replace( /^\// , '' ).replace( /([?#])/g , '/$1' ).split( '/' ) ;
+      if ( relocation ) {
+        if ( -1 === relocation.indexOf( '*' ) ) { return false ; }
+        dirs = [] ;
+        for ( var i = keys.length ; i-- ; ) { '*' === keys[ i ] && dirs.unshift( arr[ i ] ) ; }
+      }
+      
+      for ( var i = keys.length + 1 ; i-- ; ) {
+        inherit = hit_from = hit_to = false ;
+        key = keys.slice( 0 , i ).join( '/' ).replace( /\/([?#])/g , '$1' ) ;
+        key = '/' + key + ( ( relocation || from ).charAt( key.length + 1 ) === '/' ? '/' : '' ) ;
         
-        if ( keys !== undefined ) {
-          keys = keys.split( '|' ) || [] ;
-          for ( var j = 0 ; key = keys[ j ] ; j++ ) { if ( !( '^' + url ).indexOf( key ) ) { return false ; } }
-          for ( var j = 0 ; key = keys[ j ] ; j++ ) { if ( !url.indexOf( key ) ) { return true ; } }
-          if ( url === loc ) { return true ; }
-          return false ;
+        if ( !key || !( key in scp ) ) { continue ; }
+        if ( !scp[ key ] || !scp[ key ].length ) { return false ; }
+        
+        for ( var j = 0 ; pattern = scp[ key ][ j ] ; j++ ) {
+          if ( !relocation && pattern === 'rewrite' && typeof scp.rewrite === 'function' ) {
+            hit_from = hit_to = scope( scp , loc , url , scp.rewrite.apply( null , [ url ] ) ) ;
+          } else if ( pattern === 'inherit' ) {
+            inherit = true ;
+          } else {
+            not = '^' === pattern.charAt( 0 ) ;
+            pattern = not ? pattern.slice( 1 ) : pattern ;
+            reg = '*' === pattern.charAt( 0 ) ;
+            pattern = reg ? pattern.slice( 1 ) : pattern ;
+            
+            if ( relocation ) {
+              for ( var k = 0 , len = dirs.length ; k < len ; k++ ) { pattern = pattern.replace( '/*/' , '/' + dirs[ k ] + '/' ) ; }
+            }
+            
+            if ( ( not || !hit_from ) && ( reg ? !from.search( pattern ) : !from.indexOf( pattern ) ) ) {
+              if ( not ) { return false ; } else { hit_from = true ; }
+            }
+            if ( ( not || !hit_to ) && ( reg ? !to.search( pattern ) : !to.indexOf( pattern ) ) ) {
+              if ( not ) { return false ; } else { hit_to = true ; }
+            }
+          }
         }
+        
+        if ( hit_from && hit_to ) { return true ; }
+        if ( inherit ) { continue ; }
+        return hit_from && hit_to ;
       }
     } // function: scope
     
