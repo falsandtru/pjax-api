@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.19.4
- * @updated 2013/10/17
+ * @version 1.20.0
+ * @updated 2013/10/18
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -67,6 +67,7 @@
           interval : 300 ,
           wait : 0 ,
           fallback : true ,
+          database : true ,
           server : {} ,
           speedcheck : false
         } ,
@@ -89,6 +90,7 @@
           requestHeader : [ 'X' , nsArray[ 0 ].replace( /^\w/ , function ( $0 ) { return $0.toUpperCase() ; } ) ].join( '-' ) ,
           array : nsArray
         } ,
+        database : settings.database ? ( win.indexedDB || win.webkitIndexedDB || win.mozIndexedDB || win.msIndexedDB || null ) : false ,
         server : { query : !settings.server.query ? settings.gns : settings.server.query } ,
         log : { script : {} , speed : {} } ,
         history : { config : settings.cache , order : [] , data : {} /*, size : 0*/ } ,
@@ -110,7 +112,7 @@
     
     /* Process startup */
     /* validate */ validate && validate.test( '++', 1, 0, 'register' ) ;
-    if ( supportPushState() ) { register( this , settings ) ; }
+    if ( supportPushState() ) { register( this ) ; }
     
     /* validate */ validate && validate.end() ;
     
@@ -123,9 +125,12 @@
       return 'pushState' in win.history && win.history[ 'pushState' ] !== null ;
     } // function: supportPushState
     
-    function register( context , settings ) {
+    function register( context ) {
       settings.id = 1 ;
       plugin_data[ settings.id ] = settings ;
+      
+      database() ;
+      jQuery( 'script[src]' ).each( function () { if ( !( this.src in settings.log.script ) ) { settings.log.script[ this.src ] = true ; } } ) ;
       
       settings.link &&
       jQuery( context )
@@ -141,8 +146,10 @@
         settings = plugin_data[ event.data ] ;
         url = this.href ;
         settings.area = fire( settings.options.area , null , [ event , url ] ) || settings.options.area ;
+        settings.timestamp = event.timeStamp ;
         if ( settings.landing ) { settings.landing = false ; }
         if ( settings.disable || !jQuery( settings.area ).length || settings.scope && !scope( settings.scope, win.location.href , url ) ) { return ; }
+        
         if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; }
         
         drive( settings , this , event , url , true , cache ) ;
@@ -160,8 +167,10 @@
         settings = plugin_data[ event.data ] ;
         url = this.action + ( event.target.method.toUpperCase() === 'GET' ? '?' + jQuery( event.target ).serialize() : '' ) ;
         settings.area = fire( settings.options.area , null , [ event , url ] ) || settings.options.area ;
+        settings.timestamp = event.timeStamp ;
         if ( settings.landing ) { settings.landing = false ; }
         if ( settings.disable || !jQuery( settings.area ).length || settings.scope && !scope( settings.scope, win.location.href , url ) ) { return ; }
+        
         if ( settings.cache[ event.type.toLowerCase() ] && settings.cache[ event.target.method.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; }
         
         drive( settings , this , event , url , true , cache ) ;
@@ -178,16 +187,17 @@
         settings = plugin_data[ event.data ] ;
         url = win.location.href ;
         settings.area = fire( settings.options.area , null , [ event , url ] ) || settings.options.area ;
+        settings.timestamp = event.timeStamp ;
         if ( settings.landing ) { if ( settings.landing === win.location.href ) { settings.landing = false ; return ; } settings.landing = false ; }
         if ( settings.disable || !jQuery( settings.area ).length ) { return ; }
+        
+        settings.database && fnTitle( url ) ;
         if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; }
         
         drive( settings , this , event , url , false , cache ) ;
         event.preventDefault() ;
         return false ;
       } ) ;
-      
-      jQuery( 'script[src]' ).each( function () { if ( !( this.src in settings.log.script ) ) { settings.log.script[ this.src ] = true ; } } ) ;
     } // function: register
     
     
@@ -197,7 +207,7 @@
       /* validate */ validate && ( validate.scope = function( code ){ return eval( code ) ; } ) ;
       /* validate */ validate && validate.test( '++', 1, [ url, event.type ], 'drive()' ) ;
       
-      settings.speedcheck && ( settings.log.speed.fire = event.timeStamp ) ;
+      settings.speedcheck && ( settings.log.speed.fire = settings.timestamp ) ;
       settings.speedcheck && ( settings.log.speed.time = [] ) ;
       settings.speedcheck && ( settings.log.speed.name = [] ) ;
       settings.speedcheck && settings.log.speed.name.push( 'fire' ) ;
@@ -355,7 +365,7 @@
             /* validate */ validate && validate.test( '++', 1, url, 'url' ) ;
             UPDATE_URL : {
               if ( fire( settings.callbacks.update.url.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_URL ; } ;
-              register && url !== win.location.href && win.history.pushState( win.history.state , win.opera || win.navigator.userAgent.toLowerCase().indexOf( 'opera' ) !== -1 ? title : doc.title , url ) ;
+              register && url !== win.location.href && win.history.pushState( null , win.opera || win.navigator.userAgent.toLowerCase().indexOf( 'opera' ) !== -1 ? title : doc.title , url ) ;
               switch ( true ) {
                 case !register :
                   break ;
@@ -374,6 +384,7 @@
             UPDATE_TITLE : {
               if ( fire( settings.callbacks.update.title.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_TITLE ; }
               doc.title = title ;
+              settings.database && fnTitle( url , title ) ;
               if ( fire( settings.callbacks.update.title.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_TITLE ; }
             } ; // label: UPDATE_TITLE
             
@@ -429,7 +440,7 @@
                 css = css ? css
                           : parsable ? page.find( 'link[rel~="stylesheet"], style' ).add( page.filter( 'link[rel~="stylesheet"], style' ) )
                                      : find( data , '(<link[^>]*?rel=.[^"\']*stylesheet[^>]*>|<style[^>]*>(.|[\n\r])*?</style>)' ) ;
-                fnCache( settings.history , url ) && ( fnCache( settings.history , url ).css = css ) ;
+                ( fnCache( settings.history , url ) || {} ).css = css ;
                 
                 // 対象現行全要素に削除フラグを立てる。
                 jQuery( 'link[rel~="stylesheet"], style' ).filter( function () { return jQuery.data( this , settings.nss.data , true ) ; } ) ;
@@ -496,7 +507,7 @@
                 script = script ? script
                                 : parsable ? page.find( 'script' ).add( page.filter( 'script' ) )
                                            : find( data , '(?:[^\'\"]|^\s*)(<script[^>]*>(.|[\n\r])*?</script>)(?:[^\'\"]|\s*$)' ) ; //
-                fnCache( settings.history , url ) && ( fnCache( settings.history , url ).script = script ) ;
+                ( fnCache( settings.history , url ) || {} ).script = script ;
                 
                 for ( var i = 0 , element , defer ; element = script[ i ] ; i++ ) {
                   
@@ -719,7 +730,7 @@
           break ;
           
         case title === undefined :
-          if ( history.data[ url ] && ( new Date() ).getTime() > history.data[ url ].timestamp + history.config.expire ) {
+          if ( history.data[ url ] && settings.timestamp > history.data[ url ].timestamp + history.config.expire ) {
             arguments.callee( history , url , null , null ) ;
           }
           result = history.data[ url ] ;
@@ -751,11 +762,11 @@
             XMLHttpRequest : XMLHttpRequest ,
             title : title ,
             size : size ,
-            timestamp : ( new Date() ).getTime()
+            timestamp : settings.timestamp
           } ;
           
           for ( var i = history.order.length - 1 , url ; url = history.order[ i ] ; i-- ) {
-            if ( i >= history.config.length || history.size > history.config.size || ( new Date() ).getTime() > history.data[ url ].timestamp + history.config.expire ) {
+            if ( i >= history.config.length || history.size > history.config.size || settings.timestamp > history.data[ url ].timestamp + history.config.expire ) {
               history.order.splice( i , 1 ) ;
               history.size = history.size || 0 ;
               history.size -= history.data[ url ].size ;
@@ -768,6 +779,50 @@
       
       return result ;
     } // function: fnCache
+    
+    function database() {
+      var idb = settings.database , name = settings.gns , db , store , req , days = Math.floor( settings.timestamp / ( 1000*60*60*24 ) ) ;
+      if ( !idb || !name ) { return false ; }
+      
+      settings.database = false ;
+      db = idb.open( name , days - days % 7 )
+      db.onupgradeneeded = function () {
+        var db = this.result ;
+        for ( var i = 0 , len = db.objectStoreNames.length ; i < len ; ) { db.deleteObjectStore( db.objectStoreNames[ i ] ) ; }
+        store = db.createObjectStore( name , { keyPath: 'id', autoIncrement: false } ) ;
+        store.createIndex( 'date' , 'date' , { unique: false } ) ;
+      }
+      db.onsuccess = function () {
+        settings.database = this.result ;
+      }
+    } // function: database
+    
+    function fnTitle( url , title ) {
+      var IDBKeyRange , store ;
+      store = settings.database.transaction( settings.gns , 'readwrite' ).objectStore( settings.gns ) ;
+      IDBKeyRange = win.IDBKeyRange || win.webkitIDBKeyRange || win.mozIDBKeyRange || win.msIDBKeyRange ;
+      
+      if ( title ) {
+        store.put( { id : url, title : title, date : settings.timestamp } ) ;
+        store.count().onsuccess = function () {
+          if ( 1000 < this.result ) {
+            store.index( 'date' ).openCursor( IDBKeyRange.upperBound( settings.timestamp - ( 1000*60*60*24*3 ) ) ).onsuccess = function () {
+              var cursor = this.result ;
+              if ( cursor ) {
+                cursor[ 'delete' ]( cursor.value.id ) ;
+                cursor[ 'continue' ]() ;
+              } else {
+                store.count().onsuccess = function () { 1000 < this.result && store.clear() ; }
+              }
+            }
+          }
+        }
+      } else {
+        store.get( url ).onsuccess = function () {
+          this.result && this.result.title && ( doc.title = this.result.title ) ;
+        }
+      }
+    } // function: title
     
     function on() {
       for ( var i = 1 , len = plugin_data.length ; i < len ; i++ ) { plugin_data[ i ].disable = false ; }
