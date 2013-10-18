@@ -5,12 +5,12 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.20.1
- * @updated 2013/10/18
+ * @version 1.20.2
+ * @updated 2013/10/19
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
- * Note: 
+ * Note:
  * 
  * ---
  * Example:
@@ -153,7 +153,7 @@
         
         if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; }
         
-        drive( settings , this , event , url , true , cache ) ;
+        drive( settings , event , url , true , cache ) ;
         event.preventDefault() ;
         return false ;
       } ) ;
@@ -174,7 +174,7 @@
         
         if ( settings.cache[ event.type.toLowerCase() ] && settings.cache[ event.target.method.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; }
         
-        drive( settings , this , event , url , true , cache ) ;
+        drive( settings , event , url , true , cache ) ;
         event.preventDefault() ;
         return false ;
       } ) ;
@@ -195,14 +195,14 @@
         settings.database && fnTitle( url ) ;
         if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; }
         
-        drive( settings , this , event , url , false , cache ) ;
+        drive( settings , event , url , false , cache ) ;
         event.preventDefault() ;
         return false ;
       } ) ;
     } // function: register
     
     
-    function drive( settings , context , event , url , register , cache ) {
+    function drive( settings , event , url , register , cache ) {
       /* validate */ var validate = settings.validate ? settings.validate.clone( { name : 'jquery.pjax.js - drive()' } ) : false ;
       /* validate */ validate && validate.start() ;
       /* validate */ validate && ( validate.scope = function( code ){ return eval( code ) ; } ) ;
@@ -215,7 +215,7 @@
       settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
       
       /* validate */ validate && validate.test( '++', 1, 0, 'start' ) ;
-      if ( fire( settings.callbacks.before , context , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; } // function: drive
+      if ( fire( settings.callbacks.before , null , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; } // function: drive
       
       if ( cache ) {
         /* validate */ validate && validate.test( '++', 1, 0, 'update' ) ;
@@ -249,7 +249,7 @@
       /* validate */ validate && validate.test( '++', 1, 0, 'setting' ) ;
       callbacks = {
         xhr : !settings.callbacks.ajax.xhr ? undefined : function () {
-          XMLHttpRequest = fire( settings.callbacks.ajax.xhr , context , [ event , settings.parameter ] , settings.callbacks.async ) ;
+          XMLHttpRequest = fire( settings.callbacks.ajax.xhr , null , [ event , settings.parameter ] , settings.callbacks.async ) ;
           XMLHttpRequest = XMLHttpRequest instanceof Object && XMLHttpRequest instanceof win.XMLHttpRequest ? XMLHttpRequest : XMLHttpRequest || jQuery.ajaxSettings.xhr() ;
           
           //if ( XMLHttpRequest instanceof Object && XMLHttpRequest instanceof win.XMLHttpRequest && 'onprogress' in XMLHttpRequest ) {
@@ -268,20 +268,20 @@
           XMLHttpRequest.setRequestHeader( settings.nss.requestHeader + '-CSS' , settings.load.css ) ;
           XMLHttpRequest.setRequestHeader( settings.nss.requestHeader + '-Script' , settings.load.script ) ;
           
-          fire( settings.callbacks.ajax.beforeSend , context , [ event , settings.parameter , XMLHttpRequest ] , settings.callbacks.async ) ;
+          fire( settings.callbacks.ajax.beforeSend , null , [ event , settings.parameter , XMLHttpRequest ] , settings.callbacks.async ) ;
         } ,
         dataFilter : !settings.callbacks.ajax.dataFilter ? undefined : function () {
           data = arguments[ 0 ] ;
           dataType = arguments[ 1 ] ;
           
-          return fire( settings.callbacks.ajax.dataFilter , context , [ event , settings.parameter , data , dataType ] , settings.callbacks.async ) || data ;
+          return fire( settings.callbacks.ajax.dataFilter , null , [ event , settings.parameter , data , dataType ] , settings.callbacks.async ) || data ;
         } ,
         success : function () {
           data = arguments[ 0 ] ;
           dataType = arguments[ 1 ] ;
           XMLHttpRequest = arguments[ 2 ] ;
           
-          fire( settings.callbacks.ajax.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) ;
+          fire( settings.callbacks.ajax.success , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) ;
           
           !jQuery.when && update() ;
         } ,
@@ -293,15 +293,15 @@
           /* validate */ var validate = settings.validate ? settings.validate.clone( { name : 'jquery.pjax.js - drive()' } ) : false ;
           /* validate */ validate && validate.start() ;
           /* validate */ validate && validate.test( '++', 1, [ url, win.location.href, XMLHttpRequest, textStatus, errorThrown ], 'ajax error' ) ;
-          fire( settings.callbacks.ajax.error , context , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] , settings.callbacks.async ) ;
-          if ( settings.fallback && textStatus !== 'abort' ) { return typeof settings.fallback === 'function' ? settings.fallback( event ) : fallback( event , validate ) ; }
+          fire( settings.callbacks.ajax.error , null , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] , settings.callbacks.async ) ;
+          if ( settings.fallback && textStatus !== 'abort' ) { return typeof settings.fallback === 'function' ? fire( settings.fallback , null , [ event , url ] ) : fallback( event , validate ) ; }
           /* validate */ validate && validate.end() ;
         } ,
         complete : !settings.callbacks.ajax.complete ? undefined : function () {
           XMLHttpRequest = arguments[ 0 ] ;
           textStatus = arguments[ 1 ] ;
           
-          fire( settings.callbacks.ajax.complete , context , [ event , settings.parameter , XMLHttpRequest , textStatus ] , settings.callbacks.async ) ;
+          fire( settings.callbacks.ajax.complete , null , [ event , settings.parameter , XMLHttpRequest , textStatus ] , settings.callbacks.async ) ;
         }
       } ;
       jQuery.extend( true , ajax , settings.ajax , callbacks ) ;
@@ -312,7 +312,7 @@
       settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
       jQuery.when ? jQuery.when( jQuery.ajax( ajax ) , wait( settings.wait ) ).done( function () { update() ; } ).fail().always() : jQuery.ajax( ajax ) ;
       
-      if ( fire( settings.callbacks.after , context , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; } // function: drive
+      if ( fire( settings.callbacks.after , null , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; } // function: drive
       /* validate */ validate && validate.test( '++', 1, 0, 'end' ) ;
       /* validate */ validate && validate.end() ;
       
@@ -326,7 +326,7 @@
         UPDATE : {
           settings.speedcheck && settings.log.speed.name.push( 'update' ) ;
           settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
-          if ( fire( settings.callbacks.update.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
+          if ( fire( settings.callbacks.update.before , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
           
           /* variable initialization */
           var win = window , doc = document , title , css , script ;
@@ -341,14 +341,14 @@
             /* validate */ validate && validate.test( '++', cache ? "'usable'" : "'unusable'", 0, 'cache' ) ;
             UPDATE_CACHE : {
               if ( !cache ) { break UPDATE_CACHE ; }
-              if ( fire( settings.callbacks.update.cache.load.before , context , [ event , settings.parameter , cache ] , settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
+              if ( fire( settings.callbacks.update.cache.load.before , null , [ event , settings.parameter , cache ] , settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
               XMLHttpRequest = cache.XMLHttpRequest ;
               data = XMLHttpRequest.responseText ;
               dataType = cache.dataType ;
               title = cache.title ;
               css = cache.css ;
               script = cache.script ;
-              if ( fire( settings.callbacks.update.cache.load.after , context , [ event , settings.parameter , cache ] , settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
+              if ( fire( settings.callbacks.update.cache.load.after , null , [ event , settings.parameter , cache ] , settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
             } ; // label: UPDATE_CACHE
             
             /* variable initialization */
@@ -365,11 +365,11 @@
             /* url */
             /* validate */ validate && validate.test( '++', 1, url, 'url' ) ;
             UPDATE_URL : {
-              if ( fire( settings.callbacks.update.url.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_URL ; } ;
+              if ( fire( settings.callbacks.update.url.before , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_URL ; } ;
               
               register && url !== win.location.href &&
               win.history.pushState(
-                typeof settings.state === 'function' && settings.state.apply( null , [ event , url ] ) || settings.state ,
+                typeof settings.state === 'function' ? fire( settings.state , null , [ event , url ] ) : settings.state ,
                 win.opera || win.navigator.userAgent.toLowerCase().indexOf( 'opera' ) !== -1 ? title : doc.title ,
                 url ) ;
               
@@ -384,16 +384,16 @@
                   break ;
               }
               
-              if ( fire( settings.callbacks.update.url.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_URL ; }
+              if ( fire( settings.callbacks.update.url.after , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_URL ; }
             } ; // label: UPDATE_URL
             
             /* title */
             /* validate */ validate && validate.test( '++', 1, title, 'title' ) ;
             UPDATE_TITLE : {
-              if ( fire( settings.callbacks.update.title.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_TITLE ; }
+              if ( fire( settings.callbacks.update.title.before , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_TITLE ; }
               doc.title = title ;
               settings.database && fnTitle( url , title ) ;
-              if ( fire( settings.callbacks.update.title.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_TITLE ; }
+              if ( fire( settings.callbacks.update.title.after , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_TITLE ; }
             } ; // label: UPDATE_TITLE
             
             /* scroll */
@@ -422,7 +422,7 @@
             /* content */
             /* validate */ validate && validate.test( '++', 1, areas, 'content' ) ;
             UPDATE_CONTENT : {
-              if ( fire( settings.callbacks.update.content.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_CONTENT ; }
+              if ( fire( settings.callbacks.update.content.before , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_CONTENT ; }
               jQuery( settings.area ).children( '.' + settings.nss.class4html + '-check' ).remove() ;
               for ( var i = 0 , area ; area = areas[ i ] ; i++ ) {
                 jQuery( area )
@@ -433,7 +433,7 @@
                 } ).text( 'pjax' ) ) ;
               }
               jQuery( document ).trigger( settings.gns + '.DOMContentLoaded' ) ;
-              if ( fire( settings.callbacks.update.content.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_CONTENT ; }
+              if ( fire( settings.callbacks.update.content.after , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_CONTENT ; }
             } ; // label: UPDATE_CONTENT
             
             /* css */
@@ -443,7 +443,7 @@
               /* validate */ validate && validate.start() ;
               /* validate */ validate && ( validate.scope = function( code ){ return eval( code ) ; } ) ;
               UPDATE_CSS : {
-                if ( fire( settings.callbacks.update.css.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_CSS ; }
+                if ( fire( settings.callbacks.update.css.before , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_CSS ; }
                 
                 css = css ? css
                           : parsable ? page.find( 'link[rel~="stylesheet"], style' ).add( page.filter( 'link[rel~="stylesheet"], style' ) )
@@ -492,7 +492,7 @@
                 jQuery( 'link[rel~="stylesheet"], style' ).filter( function () { return jQuery.data( this , settings.nss.data ) ; } ).remove() ;
                 jQuery( document ).trigger( settings.gns + '.ready' ) ;
                 
-                if ( fire( settings.callbacks.update.css.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_CSS ; }
+                if ( fire( settings.callbacks.update.css.after , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_CSS ; }
                 settings.speedcheck && settings.log.speed.name.push( 'css' ) ;
                 settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
               } ; // label: UPDATE_CSS
@@ -508,7 +508,7 @@
               /* validate */ validate && validate.start() ;
               /* validate */ validate && ( validate.scope = function( code ){ return eval( code ) ; } ) ;
               UPDATE_SCRIPT : {
-                if ( fire( settings.callbacks.update.script.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_SCRIPT ; }
+                if ( fire( settings.callbacks.update.script.before , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_SCRIPT ; }
                 
                 var executes = [] ;
                 
@@ -546,7 +546,7 @@
                   }
                 } ) ;
                 
-                if ( fire( settings.callbacks.update.script.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_SCRIPT ; }
+                if ( fire( settings.callbacks.update.script.after , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_SCRIPT ; }
                 settings.speedcheck && type === 'async' && settings.log.speed.name.push( 'script' ) ;
                 settings.speedcheck && type === 'async' && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
               } ; // label: UPDATE_SCRIPT
@@ -564,14 +564,14 @@
                 if ( checker
                      .filter( function () { return this.clientWidth || jQuery( this ).is( ':hidden' ) ; } )
                      .length === checker.length ) {
-                  if ( fire( settings.callbacks.update.rendering.before , context , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; }
+                  if ( fire( settings.callbacks.update.rendering.before , null , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; }
                   
                   checker.remove() ;
                   settings.load.script && settings.load.sync && setTimeout( function () { load_script( 'sync' ) ; } , settings.load.async || 0 ) ;
                   scroll( true ) ;
                   jQuery( window ).trigger( settings.gns + '.load' ) ;
                   
-                  if ( fire( settings.callbacks.update.rendering.after , context , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; }
+                  if ( fire( settings.callbacks.update.rendering.after , null , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; }
                   settings.speedcheck && settings.log.speed.name.push( 'rendering' ) ;
                   settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
                   settings.speedcheck && console.log( settings.log.speed.time ) ;
@@ -587,31 +587,31 @@
             UPDATE_CACHE : {
               if ( cache || !settings.cache.click && !settings.cache.submit && !settings.cache.popstate ) { break UPDATE_CACHE ; }
               if ( event.type.toLowerCase() === 'submit' && !settings.cache[ event.target.method.toLowerCase() ] ) { break UPDATE_CACHE ; }
-              if ( fire( settings.callbacks.update.cache.save.before , context , [ event , settings.parameter , cache ] , settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
+              if ( fire( settings.callbacks.update.cache.save.before , null , [ event , settings.parameter , cache ] , settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
               
               fnCache( settings.history , url , title , dataSize , data , dataType , XMLHttpRequest )
               
-              if ( fire( settings.callbacks.update.cache.save.after , context , [ event , settings.parameter , cache ] , settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
+              if ( fire( settings.callbacks.update.cache.save.after , null , [ event , settings.parameter , cache ] , settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
             } ; // label: UPDATE_CACHE
             
             /* verify */
             /* validate */ validate && validate.test( '++', 1, 0, 'verify' ) ;
             UPDATE_VERIFY : {
-              if ( fire( settings.callbacks.update.verify.before , context , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { break UPDATE_VERIFY ; }
+              if ( fire( settings.callbacks.update.verify.before , null , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { break UPDATE_VERIFY ; }
               if ( url === win.location.href ) {
                 settings.retry = true ;
               } else if ( settings.retry ) {
                 settings.retry = false ;
-                drive( settings , context , event , win.location.href , false , settings.cache[ event.type.toLowerCase() ] ? fnCache( settings.history , win.location.href ) : undefined ) ;
+                drive( settings , event , win.location.href , false , settings.cache[ event.type.toLowerCase() ] ? fnCache( settings.history , win.location.href ) : undefined ) ;
               } else {
                 throw new Error( 'throw: location mismatch' ) ;
               }
-              if ( fire( settings.callbacks.update.verify.after , context , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { break UPDATE_VERIFY ; }
+              if ( fire( settings.callbacks.update.verify.after , null , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { break UPDATE_VERIFY ; }
             } ; // label: UPDATE_VERIFY
             
-            if ( fire( settings.callbacks.update.success , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
-            if ( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
-            if ( fire( settings.callback , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
+            if ( fire( settings.callbacks.update.success , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
+            if ( fire( settings.callbacks.update.complete , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
+            if ( fire( settings.callback , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
             /* validate */ validate && validate.test( '++', 1, 0, 'success' ) ;
           } catch( err ) {
             /* validate */ validate && validate.test( '++', !String( err.message ).indexOf( "throw:" ), err, 'catch' ) ;
@@ -625,13 +625,13 @@
               
             } ; // label: UPDATE_CACHE
             
-            if ( fire( settings.callbacks.update.error , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
-            if ( fire( settings.callbacks.update.complete , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
+            if ( fire( settings.callbacks.update.error , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
+            if ( fire( settings.callbacks.update.complete , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
             /* validate */ validate && validate.test( '++', 1, [ url, win.location.href ], 'error' ) ;
-            if ( settings.fallback ) { return typeof settings.fallback === 'function' ? settings.fallback( event ) : fallback( event , validate ) ; }
+            if ( settings.fallback ) { return typeof settings.fallback === 'function' ? fire( settings.fallback , null , [ event , url ] ) : fallback( event , validate ) ; }
           } ;
           
-          if ( fire( settings.callbacks.update.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
+          if ( fire( settings.callbacks.update.after , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
           
           settings.speedcheck && settings.log.speed.name.push( 'ready' ) ;
           settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
@@ -659,7 +659,7 @@
       if ( event.type.toLowerCase() === 'click' ) {
         win.location.href = event.currentTarget.href ;
       } else if ( event.type.toLowerCase() === 'submit' ) {
-        context.submit() ;
+        event.target.submit() ;
       } else if ( event.type.toLowerCase() === 'popstate' ) {
         win.location.reload() ;
       }
