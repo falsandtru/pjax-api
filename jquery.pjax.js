@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.20.0
+ * @version 1.20.1
  * @updated 2013/10/18
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -48,6 +48,7 @@
           link : 'a:not([target])[href^="/"]' ,
           form : null ,
           scope : null ,
+          state : null ,
           scrollTop : 0 ,
           scrollLeft : 0 ,
           ajax : {} ,
@@ -365,7 +366,13 @@
             /* validate */ validate && validate.test( '++', 1, url, 'url' ) ;
             UPDATE_URL : {
               if ( fire( settings.callbacks.update.url.before , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_URL ; } ;
-              register && url !== win.location.href && win.history.pushState( null , win.opera || win.navigator.userAgent.toLowerCase().indexOf( 'opera' ) !== -1 ? title : doc.title , url ) ;
+              
+              register && url !== win.location.href &&
+              win.history.pushState(
+                typeof settings.state === 'function' && settings.state.apply( null , [ event , url ] ) || settings.state ,
+                win.opera || win.navigator.userAgent.toLowerCase().indexOf( 'opera' ) !== -1 ? title : doc.title ,
+                url ) ;
+              
               switch ( true ) {
                 case !register :
                   break ;
@@ -376,6 +383,7 @@
                   settings.on() ;
                   break ;
               }
+              
               if ( fire( settings.callbacks.update.url.after , context , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_URL ; }
             } ; // label: UPDATE_URL
             
