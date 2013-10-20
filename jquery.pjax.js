@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.20.2
- * @updated 2013/10/19
+ * @version 1.20.3
+ * @updated 2013/10/20
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -113,7 +113,7 @@
     
     /* Process startup */
     /* validate */ validate && validate.test( '++', 1, 0, 'register' ) ;
-    if ( supportPushState() ) { register( this ) ; }
+    if ( check() ) { register( this ) ; }
     
     /* validate */ validate && validate.end() ;
     
@@ -122,8 +122,12 @@
     
     /* Function declaration */
     
+    function check() {
+      return supportPushState() && ( settings.area && ( settings.link || settings.form ) ) ;
+    } // function: check
+    
     function supportPushState() {
-      return 'pushState' in win.history && win.history[ 'pushState' ] !== null ;
+      return 'pushState' in win.history && win.history[ 'pushState' ] ;
     } // function: supportPushState
     
     function register( context ) {
@@ -139,14 +143,15 @@
       .delegate( settings.link , settings.nss.click , settings.id , function ( event ) {
         event.timeStamp = ( new Date() ).getTime() ;
         
-        if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return this ; }
-        if ( win.location.protocol !== this.protocol || win.location.host !== this.host ) { return this ; }
-        if ( win.location.pathname === this.pathname && win.location.search === this.search && win.location.hash !== this.hash ) { return this ; }
+        if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
+        if ( win.location.protocol !== this.protocol || win.location.host !== this.host ) { return ; }
+        
+        if ( win.location.pathname === this.pathname && win.location.search === this.search ) { return ; }
         
         var settings, url , cache ;
         settings = plugin_data[ event.data ] ;
         url = this.href ;
-        settings.area = fire( settings.options.area , null , [ event , url ] ) || settings.options.area ;
+        settings.area = typeof settings.options.area === 'function' ? fire( settings.options.area , null , [ event , url ] ) : settings.options.area ;
         settings.timestamp = event.timeStamp ;
         if ( settings.landing ) { settings.landing = false ; }
         if ( settings.disable || !jQuery( settings.area ).length || settings.scope && !scope( settings.scope, win.location.href , url ) ) { return ; }
@@ -164,10 +169,12 @@
       .delegate( settings.form , settings.nss.submit , settings.id , function ( event ) {
         event.timeStamp = ( new Date() ).getTime() ;
         
+        if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
+        
         var settings, url , cache ;
         settings = plugin_data[ event.data ] ;
         url = this.action + ( event.target.method.toUpperCase() === 'GET' ? '?' + jQuery( event.target ).serialize() : '' ) ;
-        settings.area = fire( settings.options.area , null , [ event , url ] ) || settings.options.area ;
+        settings.area = typeof settings.options.area === 'function' ? fire( settings.options.area , null , [ event , url ] ) : settings.options.area ;
         settings.timestamp = event.timeStamp ;
         if ( settings.landing ) { settings.landing = false ; }
         if ( settings.disable || !jQuery( settings.area ).length || settings.scope && !scope( settings.scope, win.location.href , url ) ) { return ; }
@@ -184,10 +191,12 @@
       .bind( settings.nss.popstate , settings.id , function ( event ) {
         event.timeStamp = ( new Date() ).getTime() ;
         
+        if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
+        
         var settings, url , cache ;
         settings = plugin_data[ event.data ] ;
         url = win.location.href ;
-        settings.area = fire( settings.options.area , null , [ event , url ] ) || settings.options.area ;
+        settings.area = typeof settings.options.area === 'function' ? fire( settings.options.area , null , [ event , url ] ) : settings.options.area ;
         settings.timestamp = event.timeStamp ;
         if ( settings.landing ) { if ( settings.landing === win.location.href ) { settings.landing = false ; return ; } settings.landing = false ; }
         if ( settings.disable || !jQuery( settings.area ).length ) { return ; }
@@ -672,7 +681,7 @@
     } // function: find
     
     function scope( scp , loc , url , relocation ) {
-      var a , arr , from , to , dirs , dir , keys , key , pattern , not , reg , inherit , hit , hit_from , hit_to ;
+      var a , arr , from , to , dirs , dir , keys , key , pattern , not , reg , inherit , hit_from , hit_to ;
       
       a = document.createElement('a') ;
       from = a ;
@@ -681,8 +690,7 @@
       to = a ;
       to.href = url ;
       to = to.pathname + to.search + to.hash ;
-      hit = to === from ;
-      if ( hit ) { return true ; }
+      if ( to === from ) { return true ; }
       
       arr = from.replace( /^\// , '' ).replace( /([?#])/g , '/$1' ).split( '/' ) ;
       keys = ( relocation || from ).replace( /^\// , '' ).replace( /([?#])/g , '/$1' ).split( '/' ) ;
@@ -789,7 +797,7 @@
     } // function: fnCache
     
     function database() {
-      var idb = settings.database , name = settings.gns , db , store , req , days = Math.floor( settings.timestamp / ( 1000*60*60*24 ) ) ;
+      var idb = settings.database , name = settings.gns , db , store , days = Math.floor( settings.timestamp / ( 1000*60*60*24 ) ) ;
       if ( !idb || !name ) { return false ; }
       
       settings.database = false ;
