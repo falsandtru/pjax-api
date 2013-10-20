@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.20.4
+ * @version 1.20.5
  * @updated 2013/10/20
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -681,7 +681,7 @@
     } // function: find
     
     function scope( scp , loc , url , relocation ) {
-      var a , arr , from , to , dirs , dir , keys , key , pattern , not , reg , inherit , hit_from , hit_to ;
+      var a , arr , from , to , dirs , dir , keys , key , pattern , not , reg , rewrite , inherit , hit_from , hit_to ;
       
       a = document.createElement('a') ;
       from = a ;
@@ -695,13 +695,13 @@
       arr = from.replace( /^\// , '' ).replace( /([?#])/g , '/$1' ).split( '/' ) ;
       keys = ( relocation || from ).replace( /^\// , '' ).replace( /([?#])/g , '/$1' ).split( '/' ) ;
       if ( relocation ) {
-        if ( -1 === relocation.indexOf( '*' ) ) { return false ; }
+        if ( -1 === relocation.indexOf( '*' ) ) { return undefined ; }
         dirs = [] ;
         for ( var i = keys.length ; i-- ; ) { '*' === keys[ i ] && dirs.unshift( arr[ i ] ) ; }
       }
       
       for ( var i = keys.length + 1 ; i-- ; ) {
-        inherit = hit_from = hit_to = false ;
+        rewrite = inherit = hit_from = hit_to = false ;
         key = keys.slice( 0 , i ).join( '/' ).replace( /\/([?#])/g , '$1' ) ;
         key = '/' + key + ( ( relocation || from ).charAt( key.length + 1 ) === '/' ? '/' : '' ) ;
         
@@ -710,7 +710,12 @@
         
         for ( var j = 0 ; pattern = scp[ key ][ j ] ; j++ ) {
           if ( !relocation && pattern === 'rewrite' && typeof scp.rewrite === 'function' ) {
-            hit_from = hit_to = scope( scp , loc , url , scp.rewrite.apply( null , [ url ] ) ) ;
+            rewrite = scope( scp , loc , url , scp.rewrite.apply( null , [ url ] ) ) ;
+            if ( rewrite ) {
+              hit_from = hit_to = true ;
+            } else if ( false === rewrite ) {
+              return false ;
+            }
           } else if ( pattern === 'inherit' ) {
             inherit = true ;
           } else {
@@ -719,7 +724,7 @@
             reg = '*' === pattern.charAt( 0 ) ;
             pattern = reg ? pattern.slice( 1 ) : pattern ;
             
-            if ( relocation ) {
+            if ( relocation && -1 !== pattern.indexOf( '/*/' ) ) {
               for ( var k = 0 , len = dirs.length ; k < len ; k++ ) { pattern = pattern.replace( '/*/' , '/' + dirs[ k ] + '/' ) ; }
             }
             
@@ -734,7 +739,7 @@
         
         if ( hit_from && hit_to ) { return true ; }
         if ( inherit ) { continue ; }
-        return hit_from && hit_to ;
+        return undefined ;
       }
     } // function: scope
     
