@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.20.3
+ * @version 1.20.4
  * @updated 2013/10/20
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -146,7 +146,7 @@
         if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
         if ( win.location.protocol !== this.protocol || win.location.host !== this.host ) { return ; }
         
-        if ( win.location.pathname === this.pathname && win.location.search === this.search ) { return ; }
+        if ( win.location.pathname === this.pathname && win.location.search === this.search ) { return win.location.hash !== this.hash ; }
         
         var settings, url , cache ;
         settings = plugin_data[ event.data ] ;
