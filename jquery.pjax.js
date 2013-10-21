@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.20.5
- * @updated 2013/10/20
+ * @version 1.20.6
+ * @updated 2013/10/21
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -67,6 +67,7 @@
           load : { css : false , script : false , execute : true , sync : true , async : 0 } ,
           interval : 300 ,
           wait : 0 ,
+          scroll : { delay : 500 , suspend : -100 } ,
           fallback : true ,
           database : true ,
           server : {} ,
@@ -86,6 +87,7 @@
           click : [ 'click' ].concat( nsArray.join( ':' ) ).join( '.' ) ,
           submit : [ 'submit' ].concat( nsArray.join( ':' ) ).join( '.' ) ,
           popstate : [ 'popstate' ].concat( nsArray.join( ':' ) ).join( '.' ) ,
+          scroll : [ 'scroll' ].concat( nsArray.join( ':' ) ).join( '.' ) ,
           data : nsArray.join( ':' ) ,
           class4html : nsArray.join( '-' ) ,
           requestHeader : [ 'X' , nsArray[ 0 ].replace( /^\w/ , function ( $0 ) { return $0.toUpperCase() ; } ) ].join( '-' ) ,
@@ -103,6 +105,7 @@
         retry : true ,
         xhr : null ,
         speed : { now : function () { return ( new Date() ).getTime() ; } } ,
+        scroll : { queue : [] } ,
         options : options ,
         validate : validate
       }
@@ -191,8 +194,6 @@
       .bind( settings.nss.popstate , settings.id , function ( event ) {
         event.timeStamp = ( new Date() ).getTime() ;
         
-        if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
-        
         var settings, url , cache ;
         settings = plugin_data[ event.data ] ;
         url = win.location.href ;
@@ -201,12 +202,39 @@
         if ( settings.landing ) { if ( settings.landing === win.location.href ) { settings.landing = false ; return ; } settings.landing = false ; }
         if ( settings.disable || !jQuery( settings.area ).length ) { return ; }
         
-        settings.database && fnTitle( url ) ;
+        settings.database && dbTitle( url ) ;
         if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; }
         
         drive( settings , event , url , false , cache ) ;
         event.preventDefault() ;
         return false ;
+      } ) ;
+      
+      settings.database && settings.scroll &&
+      jQuery( win )
+      .unbind( settings.nss.scroll )
+      .bind( settings.nss.scroll , settings.id , function ( event , end ) {
+        var settings = plugin_data[ event.data ] , id , fn = arguments.callee ;
+        
+        if ( !settings.scroll.delay ) {
+          dbScroll( jQuery( win ).scrollLeft() , jQuery( win ).scrollTop() ) ;
+        } else {
+          while ( id = settings.scroll.queue.shift() ) { clearTimeout( id ) ; }
+          id = setTimeout( function () {
+            while ( id = settings.scroll.queue.shift() ) { clearTimeout( id ) ; }
+            dbScroll( jQuery( win ).scrollLeft() , jQuery( win ).scrollTop() ) ;
+          } , settings.scroll.delay ) ;
+          
+          settings.scroll.queue.push( id ) ;
+        }
+        
+        if ( settings.scroll.suspend && !end ) {
+          jQuery( this ).unbind( settings.nss.scroll ) ;
+          setTimeout( function () {
+            settings && jQuery( win ).bind( settings.nss.scroll , settings.id , fn ).trigger( settings.nss.scroll , [ true ] ) ;
+          } , settings.scroll.suspend ) ;
+        }
+        
       } ) ;
     } // function: register
     
@@ -401,9 +429,11 @@
             UPDATE_TITLE : {
               if ( fire( settings.callbacks.update.title.before , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_TITLE ; }
               doc.title = title ;
-              settings.database && fnTitle( url , title ) ;
+              settings.database && dbTitle( url , title ) ;
               if ( fire( settings.callbacks.update.title.after , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_TITLE ; }
             } ; // label: UPDATE_TITLE
+            
+            settings.database && dbCurrent() ;
             
             /* scroll */
             /* validate */ validate && validate.test( '++', 1, 0, 'scroll' ) ;
@@ -423,6 +453,7 @@
                   ( jQuery( win ).scrollTop() === scrollY && jQuery( win ).scrollLeft() === scrollX ) || win.scrollTo( scrollX , scrollY ) ;
                   break ;
                 case 'popstate' :
+                  settings.database && settings.scroll && dbScroll() ;
                   break ;
               }
             } // function: scroll
@@ -802,48 +833,85 @@
     } // function: fnCache
     
     function database() {
-      var idb = settings.database , name = settings.gns , db , store , days = Math.floor( settings.timestamp / ( 1000*60*60*24 ) ) ;
+      var version = 2 , idb = settings.database , name = settings.gns , db , store , days = Math.floor( settings.timestamp / ( 1000*60*60*24 ) ) ;
       if ( !idb || !name ) { return false ; }
       
-      settings.database = false ;
-      db = idb.open( name , days - days % 7 )
+      db = idb.open( name , days - days % 7 + version )
       db.onupgradeneeded = function () {
         var db = this.result ;
-        for ( var i = 0 , len = db.objectStoreNames.length ; i < len ; ) { db.deleteObjectStore( db.objectStoreNames[ i ] ) ; }
+        for ( var i = 0 , len = db.objectStoreNames.length ; i < len ; i++ ) { db.deleteObjectStore( db.objectStoreNames[ i ] ) ; }
         store = db.createObjectStore( name , { keyPath: 'id', autoIncrement: false } ) ;
         store.createIndex( 'date' , 'date' , { unique: false } ) ;
       }
       db.onsuccess = function () {
         settings.database = this.result ;
+        dbCurrent() ;
+        dbTitle( win.location.href , doc.title ) ;
+      }
+      db.onerror = function () {
+        settings.database = false ;
       }
     } // function: database
     
-    function fnTitle( url , title ) {
-      var IDBKeyRange , store ;
-      store = settings.database.transaction( settings.gns , 'readwrite' ).objectStore( settings.gns ) ;
-      IDBKeyRange = win.IDBKeyRange || win.webkitIDBKeyRange || win.mozIDBKeyRange || win.msIDBKeyRange ;
+    function dbCurrent() {
+      var store = typeof settings.database === 'object' && settings.database.transaction( settings.gns , 'readwrite' ).objectStore( settings.gns ) ;
       
+      if ( !store ) { return ; }
+      store.put( { id : 'current' , title : win.location.href } ) ;
+    } // function: dbCurrent
+    
+    function dbTitle( url , title ) {
+      var store = typeof settings.database === 'object' && settings.database.transaction( settings.gns , 'readwrite' ).objectStore( settings.gns ) ;
+      
+      if ( !store ) { return ; }
       if ( title ) {
-        store.put( { id : url, title : title, date : settings.timestamp } ) ;
-        store.count().onsuccess = function () {
-          if ( 1000 < this.result ) {
-            store.index( 'date' ).openCursor( IDBKeyRange.upperBound( settings.timestamp - ( 1000*60*60*24*3 ) ) ).onsuccess = function () {
-              var cursor = this.result ;
-              if ( cursor ) {
-                cursor[ 'delete' ]( cursor.value.id ) ;
-                cursor[ 'continue' ]() ;
-              } else {
-                store.count().onsuccess = function () { 1000 < this.result && store.clear() ; }
-              }
-            }
-          }
+        store.get( url ).onsuccess = function () {
+          store.put( jQuery.extend( true , {} , this.result || {} , { id : url , title : title , date : settings.timestamp } ) ) ;
+          dbClean( store ) ;
         }
       } else {
         store.get( url ).onsuccess = function () {
           this.result && this.result.title && ( doc.title = this.result.title ) ;
         }
       }
-    } // function: title
+    } // function: dbTitle
+    
+    function dbScroll( scrollX , scrollY ) {
+      var store = typeof settings.database === 'object' && settings.database.transaction( settings.gns , 'readwrite' ).objectStore( settings.gns ) ;
+      var url = win.location.href , title = doc.title , len = arguments.length ;
+      
+      if ( !store ) { return ; }
+      store.get( 'current' ).onsuccess = function () {
+        if ( !this.result || !this.result.title || url !== this.result.title ) { return ; }
+        if ( len ) {
+          store.get( url ).onsuccess = function () {
+            store.put( jQuery.extend( true , {} , this.result || {} , { title : title , scrollX : parseInt( Number( scrollX ) ) , scrollY : parseInt( Number( scrollY ) ) } ) ) ;
+          }
+        } else {
+          store.get( url ).onsuccess = function () {
+            this.result && isFinite( this.result.scrollX ) && isFinite( this.result.scrollY ) &&
+            win.scrollTo( parseInt( Number( this.result.scrollX ) ) , parseInt( Number( this.result.scrollY ) ) ) ;
+          }
+        }
+      }
+    } // function: dbScroll
+    
+    function dbClean( store ) {
+      var IDBKeyRange = win.IDBKeyRange || win.webkitIDBKeyRange || win.mozIDBKeyRange || win.msIDBKeyRange ;
+      store.count().onsuccess = function () {
+        if ( 1000 < this.result ) {
+          store.index( 'date' ).openCursor( IDBKeyRange.upperBound( settings.timestamp - ( 1000*60*60*24*3 ) ) ).onsuccess = function () {
+            var cursor = this.result ;
+            if ( cursor ) {
+              cursor[ 'delete' ]( cursor.value.id ) ;
+              cursor[ 'continue' ]() ;
+            } else {
+              store.count().onsuccess = function () { 1000 < this.result && store.clear() ; }
+            }
+          }
+        }
+      }
+    } // function: dbClean
     
     function on() {
       for ( var i = 1 , len = plugin_data.length ; i < len ; i++ ) { plugin_data[ i ].disable = false ; }
