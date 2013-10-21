@@ -37,8 +37,8 @@ pjaxはデータの読み込みと描画の冗長部分を省略することで�
 + サーバーからの差分データによるページ更新
 + キャッシュによるページ更新
 + ローディングエフェクトの表示
-+ <a href="/output/spage/">spage</a>とのキャッシュの共有
-+ <a href="/output/validator/">validator</a>によるユーザー環境下でのエラー検出
++ <a href="http://sa-kusaku.sakura.ne.jp/output/spage/">spage</a>とのキャッシュの共有
++ <a href="http://sa-kusaku.sakura.ne.jp/output/validator/">validator</a>によるユーザー環境下でのエラー検出
 
 ##pjaxの問題への対応
 pushStateないしreplaceStateとajaxを組み合わせたいわゆるpjaxと呼ばれる機能には下記のような問題が存在しています。当pjaxプラグインはこれらを解消するための処理を組み込み済みです。
@@ -60,10 +60,10 @@ defunkt版（v1.7.0/2013年6月現在最新版）との主な違いは次のと�
 |項目|defunkt版|falsandtru版|
 |:---|:-------:|:----------:|
 |jQueryバージョン対応|1.8.x|1.4.2|
-|Android・iOSへの対応<br><small>locationオブジェクトの更新</small>|**<span style="color:#f00;">×</span>**|○|
+|Android・iOSへの対応<br><small>locationオブジェクトの更新</small>|**×**|○|
 |Android・iOSへの対応<br><small>スクロール位置の操作※1</small>|×|○|
-|間違った履歴の修復|**<span style="color:#f00;">×</span>**|○|
-|スクロール位置の復元|**<span style="color:#f00;">×</span>**|○|
+|間違った履歴の修復|**×**|○|
+|スクロール位置の復元|**×**|○|
 |ページ移動方法の自動切替<br><small>HTML以外のコンテンツへのアクセス※2</small>|×|○|
 |JavaScriptの実行順序維持<small>※3</small>|×|○|
 |JavaScriptの読み込み<br><small>埋め込み型</small>|×|○|
@@ -77,7 +77,7 @@ defunkt版（v1.7.0/2013年6月現在最新版）との主な違いは次のと�
 |ユーザー定義関数の実行形式|イベント|コールバック＋イベント|
 |ユーザー定義関数の設定箇所|9|29+3|
 |部分的更新キャンセル<small>※6</small>|×|○|
-|比較用デモ<small>※7</small>|<a href="/output/pjax/demo/defunkt/" target="_blank">defunkt</a>|<a href="/output/pjax/demo/falsandtru/" target="_blank">falsandtru</a>|
+|比較用デモ<small>※7</small>|<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/defunkt/" target="_blank">defunkt</a>|<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/falsandtru/" target="_blank">falsandtru</a>|
 
 <small>※1 AndroidとiOSではページ移動時にjQueryの`scrollTop`メソッドでスクロール位置を操作できず、当プラグインではjQueryMobileと同じく`scrollTo`メソッドを使用することでこの問題を解決しています。**defunkt版では`scrollTop`メソッドを使用しているためAndroidとiOSでスクロール位置を操作できません**。</small>  
 <small>※2 リンク先がJavaScriptなどHTMLページ以外を参照していた場合にContent-Typeを参照してページ移動方法を自動的にpjaxから通常のものに切り替えます。defunkt版ではこの機能がないためJavaScriptなど誤作動を起こすリンクでpjaxが動作しないよう`"a:not([href$='.js'])"`のようにリンクの絞込みを行う必要があります。</small>  
@@ -86,7 +86,7 @@ defunkt版（v1.7.0/2013年6月現在最新版）との主な違いは次のと�
 <small>※5 defunkt版はキャッシュをページ離脱時に作成するためフォームの入力状態などページ(DOM)の状態を保持しますが、ページをリロードしなければページを初期状態に戻すことはできません。なお、入力状態などを保持する目的であればpjaxを使用せず通常のページ移動を行うかサーバー側で状態を保存するべきです。</small>  
 <small>※6 タイトルやURLなどの更新を個別にキャンセルできます。コールバック関数を非同期に実行している場合はキャンセルできません。</small>  
 <small>※7 defunkt版は非対応の複数領域の更新を無理やりさせようとしているため更新部分の表示がバグってます。</small>  
-<small>※ 記述に間違いがありましたら<a href="/service/board/">掲示板</a>または<a href="/service/contact/">連絡フォーム</a>からご連絡ください。</small>
+<small>※ 記述に間違いがありましたら<a href="http://sa-kusaku.sakura.ne.jp/service/board/">掲示板</a>または<a href="http://sa-kusaku.sakura.ne.jp/service/contact/">連絡フォーム</a>からご連絡ください。</small>
 
 ##使用法
 
@@ -164,11 +164,11 @@ pjaxによるページ移動を`http://example.com/pjax/`ディレクトリ内�
 ####*scroll: node*
 スクロール位置の復元のためのスクロール位置の記録間隔にかかる設定項目を持ちます。
 
-####*delay: Millisecond as number*
-スクロール位置の記録処理がスクロールイベント発生後実行されるまでの待機時間をミリ秒で設定します。待機時間が経過する前に新たなスクロールが行われた場合は前回までのスクロールによる待機中の処理の実行はキャンセルされます。初期値は`500`です。パラメータの詳細な仕様は<a href="/output/displaytrigger/">displaytrigger</a>の同名のパラメータを確認してください。
+#####*delay: Millisecond as number*
+スクロール位置の記録処理がスクロールイベント発生後実行されるまでの待機時間をミリ秒で設定します。待機時間が経過する前に新たなスクロールが行われた場合は前回までのスクロールによる待機中の処理の実行はキャンセルされます。初期値は`500`です。パラメータの詳細な仕様は<a href="http://sa-kusaku.sakura.ne.jp/output/displaytrigger/">displaytrigger</a>の同名のパラメータを確認してください。
 
-####*suspend: Millisecond as number*
-スクロールイベントの発生後、スクロールイベントの発生を抑制する時間をミリ秒で設定します。設定値を0にするとイベントが抑制されません。初期値は`-100`です。パラメータの詳細な仕様は<a href="/output/displaytrigger/">displaytrigger</a>の同名のパラメータを確認してください。
+#####*suspend: Millisecond as number*
+スクロールイベントの発生後、スクロールイベントの発生を抑制する時間をミリ秒で設定します。設定値を0にするとイベントが抑制されません。初期値は`-100`です。パラメータの詳細な仕様は<a href="http://sa-kusaku.sakura.ne.jp/output/displaytrigger/">displaytrigger</a>の同名のパラメータを確認してください。
 
 ###*ajax: object*
 pjaxで内部的に使用される`$.ajax`のオプションを設定します。`$.ajax`のコールバック関数はすべて上書きされるため使用できません。代わりに`callbacks.ajax`で設定できるのでこちらを使用してください。
@@ -180,29 +180,29 @@ pjaxで内部的に使用される`$.ajax`のオプションを設定します�
 pjaxによるページ読み込み時のCSSとJavaScriptを読み込みにかかる設定項目を持ちます。
 `load.css`と`load.script`を有効にすることで、ページ別にCSSやJavaScriptが存在するサイトでも配置や構成を変えることなくpjaxを導入することができます。
 
-###*load.css: boolean*
+####*load.css: boolean*
 pjaxによるページ読み込み時にCSSを読み込むかを設定します。初期値は`false`で読み込みません。
 
 読み込まれるページの、現在のページに存在しないすべてのCSS（`link rel="stylesheet"`要素および`style`要素）を読み込みます。読み込まれるページに存在しないCSSは削除されます。読み込まれたCSSはすべてDOMの`head`要素末尾のノードとして追加されます。
 
-###*load.script: boolean*
+####*load.script: boolean*
 pjaxによるページ読み込み時にJavaScriptを読み込むかを設定します。初期値は`false`で読み込みません。
 
 読み込まれるページの、現在のページに存在しないすべてのJavaScript（`script`要素）を読み込みます。外部ファイル以外の形式のJavaScriptは同一の内容であっても再度読み込まれます。jQueryの仕様により、JavaScriptは読み込まれていてもDOMに追加されません。
 
 pjaxによるJavaScriptの実行順序は、HTML上の記述順序（通常の読み込み順序）と同じであることが保障されません。外部ファイル形式のJavaScriptと埋め込み形式のJavaScriptでは実行タイミングが異なるため、同一形式間内での実行順序は保たれますが、異なる形式間での実行順序は保たれません。また、埋め込み形式のJavaScriptの実行はすべての外部ファイル形式のJavaScriptの実行を待ってから行われます。このため、外部ファイル形式のJavaScriptが実行される前に埋め込み形式のJavaScriptがすでに実行されていなければならないような設計は避ける必要があります。
 
-ページの表示直後にすべて実行されている必要のないJavaScriptは、ページ読み込み時に一括で実行せず<a href="/output/displaytrigger/">displaytrigger</a>により随時実行することで負荷を削減することを推奨します。ページの表示直後にすべて読み込まれている必要のないコンテンツについても同様です。
+ページの表示直後にすべて実行されている必要のないJavaScriptは、ページ読み込み時に一括で実行せず<a href="http://sa-kusaku.sakura.ne.jp/output/displaytrigger/">displaytrigger</a>により随時実行することで負荷を削減することを推奨します。ページの表示直後にすべて読み込まれている必要のないコンテンツについても同様です。
 
-###*load.execute: boolean*
+####*load.execute: boolean*
 JavaScriptの読み込みが有効になっている場合に埋め込み型のJavaScriptを実行するかを設定します。初期値は`true`で有効です。
 
-###*load.sync: boolean*
+####*load.sync: boolean*
 `defer`属性を持つJavaScript（`script`要素）の非同期読み込みを、pjaxによるコンテンツの更新の描画を待ってから行います。初期値は`true`で有効です。
 
 `load.sync`による同期（的）処理は、JavaScriptの読み込み処理を同期的に開始できるように実行タイミングを調整して行うものであり、pjaxによるCSSとJavaScriptの読み込み処理自体は`load.sync``load.async`の設定にかかわらずすべて非同期で行われます。
 
-###*load.async: Millisecond as number*
+####*load.async: Millisecond as number*
 CSSとJavaScript（`script`要素）の非同期読み込みをpjaxによるコンテンツの更新の描画を待たずに開始する、コンテンツの更新からの経過時間（遅延時間）をミリ秒で設定します。初期値は`0`です。
 
 ###*interval: Millisecond as number*
@@ -212,28 +212,28 @@ pjaxにより更新されたコンテンツの描画の確認を行う間隔を�
 pjaxによるページ読み込み時のキャッシュの使用にかかる設定項目を持ちます。
 独自に作成したキャッシュを使用することでサーバーと通信を行わずにページを移動することができるため、サーバーへのアクセスと負荷を軽減することができます。また、サーバーへのリクエスト時にキャッシュが使用されることはないため、リロードによる最新のデータへのアクセスを妨げません。ページに期限が設定されキャッシュされるよう設定されている場合はブラウザのキャッシュ機能が使用できるためpjaxのキャッシュ機能は無効にすることを推奨します。キャッシュはページを閉じるか通常のページ移動などによりJavaScriptの実行状態がリセットされるまで保持されます。初期設定では無効です。
 
-###*cache.click: boolean*
+####*cache.click: boolean*
 リンクのクリックによるページ移動にキャッシュを使用するかを設定します。初期値は`false`で無効です。
 
-###*cache.submit: boolean*
+####*cache.submit: boolean*
 フォームの送信によるページ移動にキャッシュを使用するかを設定します。初期値は`false`で無効です。
 
-###*cache.popstate: boolean*
+####*cache.popstate: boolean*
 ブラウザの操作によるページ移動にキャッシュを使用するかを設定します。初期値は`false`で無効です。
 
-###*cache.get: boolean*
+####*cache.get: boolean*
 フォームのGET送信により取得したページをキャッシュするかを設定します。初期値は`true`で有効です。
 
-###*cache.post: boolean*
+####*cache.post: boolean*
 フォームのPOST送信により取得したページをキャッシュするかを設定します。初期値は`true`で有効です。
 
-###*cache.length: number*
+####*cache.length: number*
 キャッシュを保持するページ数の上限を設定します。初期値は`9`です。
 
-###*cache.size: Byte as number*
+####*cache.size: Byte as number*
 キャッシュを保持するデータサイズの上限をバイト数で設定します。初期値は`1048576`(1MB)です。
 
-###*cache.expire: Millisecond as number*
+####*cache.expire: Millisecond as number*
 キャッシュの有効期限をミリ秒で設定します。初期値は`1800000`(30分)です。
 
 ###*wait: Millisecond as number*
@@ -364,7 +364,7 @@ pjaxによるページ遷移では通常のページ遷移で発生する`onload
 ##導入
 シンプルな実行例です。リンクをクリックするとPrimaryのみ更新されます。
 
-**<a href="/output/pjax/demo/install/" target="_blank">demo</a>**
+**<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/install/" target="_blank">demo</a>**
 
 ```javascript
 $.pjax({ area: 'div.pjax' });
@@ -442,7 +442,7 @@ $(function(){
 ###更新範囲 - area
 pjaxによる更新範囲を設定します。次のように複数の範囲を同時に更新することもできます。双方のページで更新範囲が一致していないか更新先のページに更新範囲がひとつもない場合はエラーとなり例外処理が実行されます。
 
-**<a href="/output/pjax/demo/area/" target="_blank">demo</a>**
+**<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/area/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({ area: 'div.primary.pjax, div.tertiary.pjax' });
@@ -451,7 +451,7 @@ pjaxによる更新範囲を設定します。次のように複数の範囲を�
 ###フォーム - form
 pjaxでフォームの送信によるページ遷移を行います。キャッシュ有効時は初期設定ではPOST送信結果もキャッシュされることに注意してください。
 
-**<a href="/output/pjax/demo/form/" target="_blank">demo</a>**
+**<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/form/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({ area: 'div.pjax', form: 'form.pjax' });
@@ -460,7 +460,7 @@ pjaxでフォームの送信によるページ遷移を行います。キャッ�
 ###リンク - $.fn.pjax, link
 pjaxによりページ移動を行うリンクを選択します。
 
-**<a href="/output/pjax/demo/fn/" target="_blank">demo</a>**
+**<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/fn/" target="_blank">demo</a>**
 
 ```javascript
   $('div.primary.pjax').pjax({
@@ -470,7 +470,7 @@ pjaxによりページ移動を行うリンクを選択します。
 
 `$.fn.pjax`のコンテキストにpjaxの`area`パラメータの子孫要素（pjaxによる更新範囲内）を設定することはできません。pjaxによりページ移動を行うリンクをpjaxによる更新範囲内にあるリンクから選択するには`link`パラメータを使用してください。
 
-**<a href="/output/pjax/demo/link/" target="_blank">demo</a>**
+**<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/link/" target="_blank">demo</a>**
 
 ```javascript
   // NG
@@ -560,7 +560,7 @@ pjaxによりページ移動を行う範囲を設定します。先頭に`^`で�
 + その他のページではpjaxを使用しない。
 
 
-**<a href="/output/pjax/demo/scope/" target="_blank">demo</a>**
+**<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/scope/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({
@@ -582,7 +582,7 @@ pjaxによりページ移動を行う範囲を設定します。先頭に`^`で�
 ###CSS自動読み込み - load.css
 pjaxによる移動先のページのCSSを自動的に読み込みます。移動先のページに存在しない現在のページのCSSは削除されます。
 
-**<a href="/output/pjax/demo/css/" target="_blank">demo</a>**
+**<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/css/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({
@@ -595,7 +595,7 @@ pjaxによる移動先のページのCSSを自動的に読み込みます。移�
 pjaxによる移動先のページのJavaScriptを自動的に読み込みます。
 同一の**外部ファイル**により記述されるJavaScriptは**重複して読み込まれません**が、**埋め込み**により記述される同一のJavaScriptは**重複して実行されます**。
 
-**<a href="/output/pjax/demo/script/" target="_blank">demo</a>**
+**<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/script/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({
@@ -609,7 +609,7 @@ pjaxによる移動先のページのJavaScriptを自動的に読み込みます
 ##代替処理 - fallback
 pjaxによるページ移動が失敗した場合に通常のページ移動を行います。初期値で有効になっているためこのための設定は不要です。
 
-**<a href="/output/pjax/demo/fallback/" target="_blank">demo</a>**
+**<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/fallback/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({ area: 'div.pjax' });
@@ -622,7 +622,7 @@ pjaxによるページ移動が失敗した場合に通常のページ移動を�
 ###スクロール位置 - scrollTop, scrollLeft
 pjaxによるページ移動後のスクロール位置を設定します。`null`を設定すると移動前のスクロール位置を維持します。
 
-**<a href="/output/pjax/demo/scroll/" target="_blank">demo</a>**
+**<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/scroll/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({ area: 'div.pjax', scrollTop: null, scrollLeft: 50 });
@@ -631,7 +631,7 @@ pjaxによるページ移動後のスクロール位置を設定します。`nul
 ###最低待ち時間 - wait
 `$.ajax`の実行からコンテンツの更新までの最低待ち時間を設定します。pjaxによるページ移動が速すぎる場合などに使用します。
 
-**<a href="/output/pjax/demo/wait/" target="_blank">demo</a>**
+**<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/wait/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({ area: 'div.pjax', wait: 1000 });
@@ -647,7 +647,7 @@ pjaxで内部的に使用される`$.ajax`のオプションを設定できま�
 ###コールバックとパラメータ - callback, callbacks, parameter
 コールバックに設定した関数を実行します。コールバック関数の第一引数はイベントオブジェクトが渡され、第二引数に設定したパラメータが渡され、以降は各もととなるコールバック関数に渡された引数を引き継ぎます。すべてのコールバック関数にはイベントの発生元のオブジェクトがコンテクストとして与えられます。例えば、`anchor`要素のクリックにより実行されるコールバックの`this`は`anchor`要素であり、コールバック関数内で`this.href`などが使用できます。
 
-**<a href="/output/pjax/demo/callback/" target="_blank">demo</a>**
+**<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/callback/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({
@@ -707,7 +707,7 @@ pjaxで内部的に使用される`$.ajax`のオプションを設定できま�
 ###ローディングエフェクト - callback, callbacks
 コールバックをカスタマイズすることでページ移動時にローディングエフェクトを表示させることができます。
 
-**<a href="/output/pjax/demo/effect/" target="_blank">demo</a>**
+**<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/effect/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({
@@ -788,7 +788,7 @@ pjaxで内部的に使用される`$.ajax`のオプションを設定できま�
 pjaxによる通信をサーバー側で識別し、pjax用の差分データを返させ、これを使用してページの更新（移動）を行います。データサイズを削減できるため、より少ない転送量と帯域で多くのアクセスを処理できます。
 pjaxは通信時にHTTPリクエストヘッダに`X-Pjax``X-Pjax-Area``X-Pjax-CSS``X-Pjax-Script`のフィールドと値を追加します。また、リクエストするURLに`?pjax=1`のようにクエリを追加します。サーバーはこれによりpjaxの使用の有無と必要なデータを知ることができます。なお、レスポンスヘッダの`Content-Type`に必ず`contentType`パラメータで設定したいずれかの値が含まれている必要があります。
 
-**<a href="/output/pjax/demo/server/" target="_blank">demo</a>** <small>※これは移動先のページを差分データに置き換えた擬似的なデモです。</small>
+**<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/server/" target="_blank">demo</a>** <small>※これは移動先のページを差分データに置き換えた擬似的なデモです。</small>
 
 ```javascript
   $.pjax({ area: 'div.pjax' });
@@ -904,7 +904,7 @@ NG
 なお、検索フォームのようなGET送信フォームで使用する分には問題ありません。
 
 #補足
-ドキュメント内の用語の用法にはあまり自信がありません。間違いやバグに気づかれた方は<a href="/service/board/">掲示板</a>または<a href="/service/contact/">連絡フォーム</a>からご連絡ください。
+ドキュメント内の用語の用法にはあまり自信がありません。間違いやバグに気づかれた方は<a href="http://sa-kusaku.sakura.ne.jp/service/board/">掲示板</a>または<a href="http://sa-kusaku.sakura.ne.jp/service/contact/">連絡フォーム</a>からご連絡ください。
 
 pjaxの実用的な使用方法についての雑考を書いてみました。<a href="http://d.hatena.ne.jp/fatwebstudy/20131015/1381780122" target="_blank">pjaxの実用性</a>
 
