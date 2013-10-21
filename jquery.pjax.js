@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.20.6
- * @updated 2013/10/21
+ * @version 1.20.7
+ * @updated 2013/10/22
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -68,6 +68,7 @@
           interval : 300 ,
           wait : 0 ,
           scroll : { delay : 500 , suspend : -100 } ,
+          fix : { location : true , history : true , scroll : true } ,
           fallback : true ,
           database : true ,
           server : {} ,
@@ -93,6 +94,7 @@
           requestHeader : [ 'X' , nsArray[ 0 ].replace( /^\w/ , function ( $0 ) { return $0.toUpperCase() ; } ) ].join( '-' ) ,
           array : nsArray
         } ,
+        scroll : { queue : [] } ,
         database : settings.database ? ( win.indexedDB || win.webkitIndexedDB || win.mozIndexedDB || win.msIndexedDB || null ) : false ,
         server : { query : !settings.server.query ? settings.gns : settings.server.query } ,
         log : { script : {} , speed : {} } ,
@@ -105,7 +107,6 @@
         retry : true ,
         xhr : null ,
         speed : { now : function () { return ( new Date() ).getTime() ; } } ,
-        scroll : { queue : [] } ,
         options : options ,
         validate : validate
       }
@@ -202,7 +203,7 @@
         if ( settings.landing ) { if ( settings.landing === win.location.href ) { settings.landing = false ; return ; } settings.landing = false ; }
         if ( settings.disable || !jQuery( settings.area ).length ) { return ; }
         
-        settings.database && dbTitle( url ) ;
+        settings.database && settings.fix.history && dbTitle( url ) ;
         if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; }
         
         drive( settings , event , url , false , cache ) ;
@@ -210,7 +211,7 @@
         return false ;
       } ) ;
       
-      settings.database && settings.scroll &&
+      settings.database && settings.fix.scroll &&
       jQuery( win )
       .unbind( settings.nss.scroll )
       .bind( settings.nss.scroll , settings.id , function ( event , end ) {
@@ -231,7 +232,8 @@
         if ( settings.scroll.suspend && !end ) {
           jQuery( this ).unbind( settings.nss.scroll ) ;
           setTimeout( function () {
-            settings && jQuery( win ).bind( settings.nss.scroll , settings.id , fn ).trigger( settings.nss.scroll , [ true ] ) ;
+            settings.database && settings.fix.scroll &&
+            jQuery( win ).bind( settings.nss.scroll , settings.id , fn ).trigger( settings.nss.scroll , [ true ] ) ;
           } , settings.scroll.suspend ) ;
         }
         
@@ -413,7 +415,7 @@
               switch ( true ) {
                 case !register :
                   break ;
-                case /Mobile(\/\w+)? Safari/i.test( win.navigator.userAgent ) :
+                case settings.fix.location && /Mobile(\/\w+)? Safari/i.test( win.navigator.userAgent ) :
                   settings.off() ;
                   win.history.back() ;
                   win.history.forward() ;
@@ -429,7 +431,7 @@
             UPDATE_TITLE : {
               if ( fire( settings.callbacks.update.title.before , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_TITLE ; }
               doc.title = title ;
-              settings.database && dbTitle( url , title ) ;
+              settings.database && settings.fix.history && dbTitle( url , title ) ;
               if ( fire( settings.callbacks.update.title.after , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_TITLE ; }
             } ; // label: UPDATE_TITLE
             
@@ -453,7 +455,7 @@
                   ( jQuery( win ).scrollTop() === scrollY && jQuery( win ).scrollLeft() === scrollX ) || win.scrollTo( scrollX , scrollY ) ;
                   break ;
                 case 'popstate' :
-                  settings.database && settings.scroll && dbScroll() ;
+                  settings.database && settings.fix.scroll && dbScroll() ;
                   break ;
               }
             } // function: scroll
