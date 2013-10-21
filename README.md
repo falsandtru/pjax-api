@@ -1,20 +1,24 @@
 #pjax
-pjaxはデータの読み込みと描画の冗長部分を省略することで非常に高速かつ低コストなページ移動を実現する、HTML5で実装される高速ブラウジング機能です。  
+pjaxはデータの読み込みと描画の冗長部分を省略することで非常に高速かつ低コストなページ移動を実現する、HTML5で実装される高速ブラウジング機能です。
+
 また、キャッシュ機能によりサーバーへのアクセスと負荷を軽減することで、高性能なサーバーでなくとも多くのPVアクセスを処理することが可能になります。
 
 ##最新版のダウンロード
 プラグインの最新版をGitHubで公開しています。ダウンロードはこちらから。
+
 **GitHub**:<a href="https://github.com/falsandtru/jquery.pjax.js" target="_blank">https://github.com/falsandtru/jquery.pjax.js</a>  
 **ファイル**:<a href="https://raw.github.com/falsandtru/jquery.pjax.js/master/jquery.pjax.js" target="_blank">https://raw.github.com/falsandtru/jquery.pjax.js/master/jquery.pjax.js</a>  
-**圧縮版**:<a href="https://raw.github.com/falsandtru/jquery.pjax.js/master/jquery.pjax.min.js" target="_blank">https://raw.github.com/falsandtru/jquery.pjax.js/master/jquery.pjax.min.js</a>  
+**圧縮版**:<a href="https://raw.github.com/falsandtru/jquery.pjax.js/master/jquery.pjax.min.js" target="_blank">https://raw.github.com/falsandtru/jquery.pjax.js/master/jquery.pjax.min.js</a>
 
 ###更新情報
 大幅な機能追加を矢継ぎ早に行ったため環境によってはエラーが発生する可能性があります。バグがありましたら<a href="/service/board/">掲示板</a>または<a href="/service/contact/">連絡フォーム</a>からご連絡ください。
 
 ##概要
 サイト内のページ移動において指定したHTML要素（異なるコンテンツを持つ範囲）のみ更新することでページ移動を高速化します。
-たとえば、このサイトのpjaxによるトップページへのページ移動時間は、ajaxによりサーバーからデータを取得した場合でも最短で100-200ミリ秒しかかかりませんが、pjaxのキャッシュ機能を有効にした場合のページ移動時間はわずか**20-30ミリ秒（0.02-0.03秒）**です。  
-このpjaxプラグインは数行のコードを追加するだけでサーバーに手を加えることなく簡単に導入することができます。また、既存のサイト構造やHTMLのクラス名を変更する必要もありません。Wordpressにも10分ほどで導入できます。  
+たとえば、このサイトのpjaxによるトップページへのページ移動時間は、ajaxによりサーバーからデータを取得した場合でも最短で100-200ミリ秒しかかかりませんが、pjaxのキャッシュ機能を有効にした場合のページ移動時間はわずか**20-30ミリ秒（0.02-0.03秒）**です。
+
+このpjaxプラグインは数行のコードを追加するだけでサーバーに手を加えることなく簡単に導入することができます。また、既存のサイト構造やHTMLのクラス名を変更する必要もありません。Wordpressにも10分ほどで導入できます。
+
 <small>※Windows7 + Google Chromeでの例です。</small>
 <small>※インストール直後のWordpressでは、ajaxで500ミリ秒、キャッシュで10ミリ秒となりました（サーバーはロリポップを使用）。</small>
 <small>※このサイトではブラウザのコンソールにページ移動にかかった時間を出力しており、コンソールからユーザーが実際にページ移動にかかった時間を見ることができます。</small>
@@ -268,7 +272,7 @@ pjaxによるサーバーへリクエストではページのURLにpjaxによる
 内部の各タイミングにおいて実行されるコールバック関数を設定します。コールバック関数にはイベントの発生もとのオブジェクトがコンテキストとして与えられます。
 `ajax`を除くすべてのコールバック関数は戻り値に`false`を設定することで現在の処理を抜けることができます。`before`では以降の処理をすべてキャンセルします。このときフォールバック処理は`fallback`の設定にかかわらず行われません。`update.any.before``update.any.after`ではページ更新処理のうちanyの示す部分の更新処理をキャンセルないし抜けます。ページ移動でエラーが発生した際に`update.error``update.complete`で処理を抜けるとフォールバック処理が`fallback`の設定にかかわらず行われません。
 使用できる`callbacks`のプロパティと渡されるパラメータ、実行タイミングは次のとおりです。
-  
+
 async
 : コールバック関数の実行を非同期にするかを設定します。初期値は`false`で無効です。
 before( event, parameter )
@@ -329,7 +333,6 @@ update.error( event, parameter, data, dataType, XMLHttpRequest )
 : ページの更新処理が失敗したときに実行されます。
 update.complete( event, parameter, data, dataType, XMLHttpRequest )
 : ページの更新処理が完了したときに実行されます。
-  
 
 ##Method
 
@@ -359,6 +362,7 @@ pjaxによるページ遷移では通常のページ遷移で発生する`onload
 
 ##導入
 シンプルな実行例です。リンクをクリックするとPrimaryのみ更新されます。
+
 **<a href="/output/pjax/demo/install/" target="_blank">demo</a>**
 
 ```javascript
@@ -376,7 +380,7 @@ $.pjax({ area: 'div.pjax' });
 <script type="text/javascript" charset="utf-8" src="/lib/jquery.pjax.min.js"></script>
 <script type="text/javascript">
 $(function(){
-$.pjax({ area: 'div.pjax' });
+  $.pjax({ area: 'div.pjax' });
 });
 </script>
 <style type="text/css">
@@ -386,96 +390,100 @@ $.pjax({ area: 'div.pjax' });
 </style>
 </head>
 <body>
-<div id="container">
-<div id="header">
-<div class="layout">
-<p>header1</p>
-<p>pjax demo</p>
-</div>
-</div>
-<div id="wrapper" class="clearfix">
-<div class="layer">
-<div class="primary pjax">
-<div class="layout">
-<p>primary1</p>
-<p>pjax enable あアｱ亜</p>
-<ul>
-  <li><a href="/output/pjax/demo/install/">page1 enable</a></li>
-  <li><a href="/output/pjax/demo/install/2.html">page2 enable</a></li>
-  <li><a href="/output/pjax/demo/install/3.html">page3 enable</a></li>
-</ul>
-</div>
-</div>
-<div class="secondary">
-<div class="layout">
-<p>secondary1</p>
-<ul>
-  <li><a href="/output/pjax/demo/install/">page1 enable</a></li>
-  <li><a href="/output/pjax/demo/install/2.html">page2 enable</a></li>
-  <li><a href="/output/pjax/demo/install/3.html">page3 enable</a></li>
-</ul>
-</div>
-</div>
-<div class="tertiary">
-<div class="layout">
-<p>tertiary1</p>
-</div>
-</div>
-</div>
-</div>
-<div id="footer">
-<div class="layout">
-<p>footer1</p>
-
-</div>
-</div>
-</div>
+  <div id="container">
+    <div id="header">
+      <div class="layout">
+        <p>header1</p>
+        <p>pjax demo</p>
+      </div>
+    </div>
+    <div id="wrapper" class="clearfix">
+      <div class="layer">
+        <div class="primary pjax">
+          <div class="layout">
+            <p>primary1</p>
+            <p>pjax enable あアｱ亜</p>
+            <ul>
+              <li><a href="/output/pjax/demo/install/">page1 enable</a></li>
+              <li><a href="/output/pjax/demo/install/2.html">page2 enable</a></li>
+              <li><a href="/output/pjax/demo/install/3.html">page3 enable</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="secondary">
+          <div class="layout">
+            <p>secondary1</p>
+            <ul>
+              <li><a href="/output/pjax/demo/install/">page1 enable</a></li>
+              <li><a href="/output/pjax/demo/install/2.html">page2 enable</a></li>
+              <li><a href="/output/pjax/demo/install/3.html">page3 enable</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="tertiary">
+          <div class="layout">
+            <p>tertiary1</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="footer">
+      <div class="layout">
+        <p>footer1</p>
+        
+      </div>
+    </div>
+  </div>
 </body>
 </html>
 ```
 
 ###更新範囲 - area
 pjaxによる更新範囲を設定します。次のように複数の範囲を同時に更新することもできます。双方のページで更新範囲が一致していないか更新先のページに更新範囲がひとつもない場合はエラーとなり例外処理が実行されます。
+
 **<a href="/output/pjax/demo/area/" target="_blank">demo</a>**
 
 ```javascript
-$.pjax({ area: 'div.primary.pjax, div.tertiary.pjax' });
+  $.pjax({ area: 'div.primary.pjax, div.tertiary.pjax' });
 ```
 
 ###フォーム - form
 pjaxでフォームの送信によるページ遷移を行います。キャッシュ有効時は初期設定ではPOST送信結果もキャッシュされることに注意してください。
+
 **<a href="/output/pjax/demo/form/" target="_blank">demo</a>**
 
 ```javascript
-$.pjax({ area: 'div.pjax', form: 'form.pjax' });
+  $.pjax({ area: 'div.pjax', form: 'form.pjax' });
 ```
 
 ###リンク - $.fn.pjax, link
 pjaxによりページ移動を行うリンクを選択します。
+
 **<a href="/output/pjax/demo/fn/" target="_blank">demo</a>**
 
 ```javascript
-$('div.primary.pjax').pjax({
-area: 'div.primary.pjax'
-});
+  $('div.primary.pjax').pjax({
+    area: 'div.primary.pjax'
+  });
 ```
 
 `$.fn.pjax`のコンテキストにpjaxの`area`パラメータの子孫要素（pjaxによる更新範囲内）を設定することはできません。pjaxによりページ移動を行うリンクをpjaxによる更新範囲内にあるリンクから選択するには`link`パラメータを使用してください。
+
 **<a href="/output/pjax/demo/link/" target="_blank">demo</a>**
 
 ```javascript
-// NG
-$('div.primary.pjax li').pjax({
-area: 'div.primary.pjax'
-});
+  // NG
+  $('div.primary.pjax li').pjax({
+    area: 'div.primary.pjax'
+  });
 ```
 
 ```javascript
-// OK
-$('div.primary.pjax').pjax({
-area: 'div.primary.pjax' ,
-link: 'li a:not([target])[href^="/"]'
-});
+  // OK
+  $('div.primary.pjax').pjax({
+    area: 'div.primary.pjax' ,
+    link: 'li a:not([target])[href^="/"]'
+  });
 ```
 
 ###適用範囲 - scope
@@ -486,14 +494,14 @@ pjaxによりページ移動を行う範囲を設定します。先頭に`^`で�
 + a.html,b.html,c.htmlの間での移動のみpjaxを使用する。
 
 ```javascript
-$.pjax({
-area: 'div.pjax',
-scope: {
-'/output/pjax/demo/scope/a.html': ['*/output/pjax/demo/scope/[a-c].html'],
-'/output/pjax/demo/scope/b.html': ['*/output/pjax/demo/scope/[a-c].html'],
-'/output/pjax/demo/scope/c.html': ['*/output/pjax/demo/scope/[a-c].html']
-}
-});
+  $.pjax({
+    area: 'div.pjax',
+    scope: {
+      '/output/pjax/demo/scope/a.html': ['*/output/pjax/demo/scope/[a-c].html'],
+      '/output/pjax/demo/scope/b.html': ['*/output/pjax/demo/scope/[a-c].html'],
+      '/output/pjax/demo/scope/c.html': ['*/output/pjax/demo/scope/[a-c].html']
+    }
+  });
 ```
 
 ####特定のディレクトリ下の移動のみpjaxを使用する
@@ -502,13 +510,13 @@ scope: {
 + pjax/exceptディレクトリ下のページは除外、pjaxを使用しない。
 
 ```javascript
-$.pjax({
-area: 'div.pjax',
-scope: {
-'/output/pjax/demo/scope/pjax/': ['/output/pjax/demo/scope/pjax/', '^/output/pjax/demo/scope/pjax/except/'],
-'/output/pjax/demo/scope/pjax/except/': false
-}
-});
+  $.pjax({
+    area: 'div.pjax',
+    scope: {
+      '/output/pjax/demo/scope/pjax/': ['/output/pjax/demo/scope/pjax/', '^/output/pjax/demo/scope/pjax/except/'],
+      '/output/pjax/demo/scope/pjax/except/': false
+    }
+  });
 ```
 
 ####動的に生成されるディレクトリ下にある特定のページ間の移動のみpjaxを使用する（異なる動的ディレクトリ間の移動を含む）
@@ -516,12 +524,12 @@ scope: {
 + user/*(user/foo,user/bar,etc)ディレクトリのインデックスページ間での移動のみpjaxを使用する。
 
 ```javascript
-$.pjax({
-area: 'div.pjax',
-scope: {
-'/output/pjax/demo/scope/user/': ['*/output/pjax/demo/scope/user/[^/]+/([?#][^/]*)?$']
-}
-});
+  $.pjax({
+    area: 'div.pjax',
+    scope: {
+      '/output/pjax/demo/scope/user/': ['*/output/pjax/demo/scope/user/[^/]+/([?#][^/]*)?$']
+    }
+  });
 ```
 
 ####動的に生成されるディレクトリ下にある特定のディレクトリ下の移動のみpjaxを使用する（同一の動的ディレクトリ下の移動のみ）
@@ -530,14 +538,14 @@ scope: {
 + 同一の動的ディレクトリ下(user/foo/a,user/foo/b)でのみpjaxを使用し、異なる場合(user/foo/a,user/bar/a)は使用しない。
 
 ```javascript
-$.pjax({
-area: 'div.pjax',
-scope: {
-'/output/pjax/demo/scope/user/': ['rewrite'],
-'/output/pjax/demo/scope/user/*/': ['*/output/pjax/demo/scope/user/*/[ab]/'],
-rewrite: function( url ){ return url.replace(/^[^\/]+\/\/[^\/]+/,'').replace(/^(\/output\/pjax\/demo\/scope\/user\/)[^\/]+(\/.*)/, '$1*$2') ; }
-}
-});
+  $.pjax({
+    area: 'div.pjax',
+    scope: {
+      '/output/pjax/demo/scope/user/': ['rewrite'],
+      '/output/pjax/demo/scope/user/*/': ['*/output/pjax/demo/scope/user/*/[ab]/'],
+      rewrite: function( url ){ return url.replace(/^[^\/]+\/\/[^\/]+/,'').replace(/^(\/output\/pjax\/demo\/scope\/user\/)[^\/]+(\/.*)/, '$1*$2') ; }
+    }
+  });
 ```
 
 ####複雑な条件の設定例
@@ -550,199 +558,207 @@ rewrite: function( url ){ return url.replace(/^[^\/]+\/\/[^\/]+/,'').replace(/^(
 + 同一の動的ディレクトリ下(user/foo/c/1,user/foo/c/2,user/foo/c/*)でのみpjaxを使用し、異なる場合(user/foo/c/1,user/bar/c/2)は使用しない。
 + その他のページではpjaxを使用しない。
 
+
 **<a href="/output/pjax/demo/scope/" target="_blank">demo</a>**
 
 ```javascript
-$.pjax({
-area: 'div.pjax',
-scope: {
-'/output/pjax/demo/scope/pjax/': ['/output/pjax/demo/scope/pjax/', '^/output/pjax/demo/scope/pjax/except/'],
-'/output/pjax/demo/scope/pjax/except/': false,
-'/output/pjax/demo/scope/a.html': ['*/output/pjax/demo/scope/[a-c].html'],
-'/output/pjax/demo/scope/b.html': ['*/output/pjax/demo/scope/[a-c].html'],
-'/output/pjax/demo/scope/c.html': ['*/output/pjax/demo/scope/[a-c].html'],
-'/output/pjax/demo/scope/user/': ['*/output/pjax/demo/scope/user/[^/]+/([?#][^/]*)?$', 'rewrite'],
-'/output/pjax/demo/scope/user/*/': ['*/output/pjax/demo/scope/user/*/[ab]/'],
-'/output/pjax/demo/scope/user/*/c/': ['*/output/pjax/demo/scope/user/*/c/'],
-rewrite: function( url ){ return url.replace(/^[^\/]+\/\/[^\/]+/,'').replace(/^(\/output\/pjax\/demo\/scope\/user\/)[^\/]+(\/.*)/, '$1*$2') ; }
-}
-});
+  $.pjax({
+    area: 'div.pjax',
+    scope: {
+      '/output/pjax/demo/scope/pjax/': ['/output/pjax/demo/scope/pjax/', '^/output/pjax/demo/scope/pjax/except/'],
+      '/output/pjax/demo/scope/pjax/except/': false,
+      '/output/pjax/demo/scope/a.html': ['*/output/pjax/demo/scope/[a-c].html'],
+      '/output/pjax/demo/scope/b.html': ['*/output/pjax/demo/scope/[a-c].html'],
+      '/output/pjax/demo/scope/c.html': ['*/output/pjax/demo/scope/[a-c].html'],
+      '/output/pjax/demo/scope/user/': ['*/output/pjax/demo/scope/user/[^/]+/([?#][^/]*)?$', 'rewrite'],
+      '/output/pjax/demo/scope/user/*/': ['*/output/pjax/demo/scope/user/*/[ab]/'],
+      '/output/pjax/demo/scope/user/*/c/': ['*/output/pjax/demo/scope/user/*/c/'],
+      rewrite: function( url ){ return url.replace(/^[^\/]+\/\/[^\/]+/,'').replace(/^(\/output\/pjax\/demo\/scope\/user\/)[^\/]+(\/.*)/, '$1*$2') ; }
+    }
+  });
 ```
 
 ###CSS自動読み込み - load.css
 pjaxによる移動先のページのCSSを自動的に読み込みます。移動先のページに存在しない現在のページのCSSは削除されます。
+
 **<a href="/output/pjax/demo/css/" target="_blank">demo</a>**
 
 ```javascript
-$.pjax({
-area: 'div.pjax' ,
-load: { css: true }
-});
+  $.pjax({
+    area: 'div.pjax' ,
+    load: { css: true }
+  });
 ```
 
 ###JavaScript自動読み込み - load.script
 pjaxによる移動先のページのJavaScriptを自動的に読み込みます。
 同一の**外部ファイル**により記述されるJavaScriptは**重複して読み込まれません**が、**埋め込み**により記述される同一のJavaScriptは**重複して実行されます**。
+
 **<a href="/output/pjax/demo/script/" target="_blank">demo</a>**
 
 ```javascript
-$.pjax({
-area: 'div.pjax' ,
-load: { script: true }
-});
+  $.pjax({
+    area: 'div.pjax' ,
+    load: { script: true }
+  });
 ```
 
 **上記pjax登録処理は実際には外部ファイルに記述してください。埋め込みで記述した場合、pjax登録処理がページ移動ごとに不要に繰り返されます。**
 
 ##代替処理 - fallback
 pjaxによるページ移動が失敗した場合に通常のページ移動を行います。初期値で有効になっているためこのための設定は不要です。
+
 **<a href="/output/pjax/demo/fallback/" target="_blank">demo</a>**
 
 ```javascript
-$.pjax({ area: 'div.pjax' });
+  $.pjax({ area: 'div.pjax' });
 ```
 
 ```javascript
-$.pjax({ area: 'div.pjax', fallback: true });
+  $.pjax({ area: 'div.pjax', fallback: true });
 ```
 
 ###スクロール位置 - scrollTop, scrollLeft
 pjaxによるページ移動後のスクロール位置を設定します。`null`を設定すると移動前のスクロール位置を維持します。
+
 **<a href="/output/pjax/demo/scroll/" target="_blank">demo</a>**
 
 ```javascript
-$.pjax({ area: 'div.pjax', scrollTop: null, scrollLeft: 50 });
+  $.pjax({ area: 'div.pjax', scrollTop: null, scrollLeft: 50 });
 ```
 
 ###最低待ち時間 - wait
 `$.ajax`の実行からコンテンツの更新までの最低待ち時間を設定します。pjaxによるページ移動が速すぎる場合などに使用します。
+
 **<a href="/output/pjax/demo/wait/" target="_blank">demo</a>**
 
 ```javascript
-$.pjax({ area: 'div.pjax', wait: 1000 });
+  $.pjax({ area: 'div.pjax', wait: 1000 });
 ```
 
 ###ajax通信設定 - ajax
 pjaxで内部的に使用される`$.ajax`のオプションを設定できます。
 
 ```javascript
-$.pjax({ area: 'div.pjax', ajax: { timeout: 3000 } });
+  $.pjax({ area: 'div.pjax', ajax: { timeout: 3000 } });
 ```
 
 ###コールバックとパラメータ - callback, callbacks, parameter
 コールバックに設定した関数を実行します。コールバック関数の第一引数はイベントオブジェクトが渡され、第二引数に設定したパラメータが渡され、以降は各もととなるコールバック関数に渡された引数を引き継ぎます。すべてのコールバック関数にはイベントの発生元のオブジェクトがコンテクストとして与えられます。例えば、`anchor`要素のクリックにより実行されるコールバックの`this`は`anchor`要素であり、コールバック関数内で`this.href`などが使用できます。
+
 **<a href="/output/pjax/demo/callback/" target="_blank">demo</a>**
 
 ```javascript
-$.pjax({
-area: 'div.pjax' ,
-callback: function( event, arg ){ console.log( arg + ': callback' ) ; } ,
-callbacks:
-{
-before: function( event, arg ){ console.log( arg + ': before' ) ; } ,
-ajax:
-{
-beforeSend: function( event, arg ){ console.log( arg + ': ajax.beforeSend' ) ; } ,
-dataFilter: function( event, arg, data ){ console.log( arg + ': ajax.dataFilter' ) ; return data ; } ,
-success: function( event, arg ){ console.log( arg + ': ajax.success' ) ; } ,
-error: function( event, arg ){ console.log( arg + ': ajax.error' ) ; } ,
-complete: function( event, arg ){ console.log( arg + ': ajax.complete' ) ; }
-} ,
-update:
-{
-success: function( event, arg ){ console.log( arg + ': update.success' ) ; } ,
-error: function( event, arg ){ console.log( arg + ': update.error' ) ; } ,
-complete: function( event, arg ){ console.log( arg + ': update.complete' ) ; }
-} ,
-after: function( event, arg ){ console.log( arg + ': after' ) ; }
-} ,
-parameter: 'callback'
-});
+  $.pjax({
+    area: 'div.pjax' ,
+    callback: function( event, arg ){ console.log( arg + ': callback' ) ; } ,
+    callbacks:
+    {
+      before: function( event, arg ){ console.log( arg + ': before' ) ; } ,
+      ajax:
+      {
+        beforeSend: function( event, arg ){ console.log( arg + ': ajax.beforeSend' ) ; } ,
+        dataFilter: function( event, arg, data ){ console.log( arg + ': ajax.dataFilter' ) ; return data ; } ,
+        success: function( event, arg ){ console.log( arg + ': ajax.success' ) ; } ,
+        error: function( event, arg ){ console.log( arg + ': ajax.error' ) ; } ,
+        complete: function( event, arg ){ console.log( arg + ': ajax.complete' ) ; }
+      } ,
+      update:
+      {
+        success: function( event, arg ){ console.log( arg + ': update.success' ) ; } ,
+        error: function( event, arg ){ console.log( arg + ': update.error' ) ; } ,
+        complete: function( event, arg ){ console.log( arg + ': update.complete' ) ; }
+      } ,
+      after: function( event, arg ){ console.log( arg + ': after' ) ; }
+    } ,
+    parameter: 'callback'
+  });
 ```
 
 ###Google Analytics - callback
 コールバックで`_gaq.push( ['_trackPageview'] )`を実行することでpjaxによるページ移動を Google Analytics に認識させることができます。
 
 ```javascript
-$.pjax({
-area: 'div.pjax' ,
-callback: function(){ if( window._gaq ){ _gaq.push( ['_trackPageview'] ) ; } }
-});
+  $.pjax({
+    area: 'div.pjax' ,
+    callback: function(){ if( window._gaq ){ _gaq.push( ['_trackPageview'] ) ; } }
+  });
 ```
 
 **`load.script`によりJavaScriptを有効にしている場合は移動先のページに埋め込まれているアクセス解析用のスクリプトが自動的に実行されますが、不要な部分まで実行されてしまうためアクセス解析用の記述を次のように置き換えることを推奨します。**
 
 ```javascript
-if (!window._gaq) {
-window._gaq = [];
-window._gaq.push(['_setAccount', 'UA-xxxxxxxx-x']);
-window._gaq.push(['_trackPageview']);
-
-(function() {
-var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-})();
-} else {
-window._gaq.push(['_trackPageview']);
-};
+  if (!window._gaq) {
+    window._gaq = [];
+    window._gaq.push(['_setAccount', 'UA-xxxxxxxx-x']);
+    window._gaq.push(['_trackPageview']);
+    
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  } else {
+    window._gaq.push(['_trackPageview']);
+  };
 ```
 
 ###ローディングエフェクト - callback, callbacks
 コールバックをカスタマイズすることでページ移動時にローディングエフェクトを表示させることができます。
+
 **<a href="/output/pjax/demo/effect/" target="_blank">demo</a>**
 
 ```javascript
-$.pjax({
-area: 'div.pjax',
-callback: function(){ $('div.loading').fadeOut(500); },
-callbacks: 
-{
-before: function(){ $('div.loading').fadeIn(100); }
-},
-ajax:
-{
-timeout: 3000
-},
-wait: 1000
-});
+  $.pjax({
+    area: 'div.pjax',
+    callback: function(){ $('div.loading').fadeOut(500); },
+    callbacks: 
+    {
+      before: function(){ $('div.loading').fadeIn(100); }
+    },
+    ajax:
+    {
+      timeout: 3000
+    },
+    wait: 1000
+  });
 ```
 
 ```html
-<div class="loading" style="background:url(/images/loading.png);display:none;position:fixed;top:0;left:0;z-index:9999;width:100%;height:100%;">
-<div style="position:absolute;top:45%;left: 50%;margin-top:-64px;margin-left:-64px;text-align:center;">
-<img src="/images/loading.gif" alt="" style="display:block;">
-<span style="font-size:18px;font-weight:bold;position:absolute;white-space:nowrap;">now loading...</span>
-</div>
-</div>
+        <div class="loading" style="background:url(/images/loading.png);display:none;position:fixed;top:0;left:0;z-index:9999;width:100%;height:100%;">
+          <div style="position:absolute;top:45%;left: 50%;margin-top:-64px;margin-left:-64px;text-align:center;">
+            <img src="/images/loading.gif" alt="" style="display:block;">
+            <span style="font-size:18px;font-weight:bold;position:absolute;white-space:nowrap;">now loading...</span>
+          </div>
+        </div>
 ```
 
 ローディングエフェクトは頻繁に表示されると煩わしいため多用しないことを推奨します。
 ページ移動時のローディングエフェクトの使用量を削減するには、ロードに1秒以上かかった場合のみ1秒経過した時点からローディングエフェクトを表示するなどの方法が考えられます。
 
 ```javascript
-$.pjax({
-area: 'div.pjax',
-callback: function()
-{
-clearTimeout($.data($('div.loading').get(0), 'pjax-effect-id'));
-$('div.loading').fadeOut(500);
-$.data($('div.loading').get(0), 'pjax-effect-id', 0);
-},
-callbacks: 
-{
-before: function()
-{
-clearTimeout($.data($('div.loading').get(0), 'pjax-effect-id'));
-$.data($('div.loading').get(0), 'pjax-effect-id', setTimeout(function(){ $('div.loading').fadeIn(100); }, 1000));
-}
-},
-ajax:
-{
-timeout: 3000
-},
-wait: 100
-});
+  $.pjax({
+    area: 'div.pjax',
+    callback: function()
+    {
+      clearTimeout($.data($('div.loading').get(0), 'pjax-effect-id'));
+      $('div.loading').fadeOut(500);
+      $.data($('div.loading').get(0), 'pjax-effect-id', 0);
+    },
+    callbacks: 
+    {
+      before: function()
+      {
+        clearTimeout($.data($('div.loading').get(0), 'pjax-effect-id'));
+        $.data($('div.loading').get(0), 'pjax-effect-id', setTimeout(function(){ $('div.loading').fadeIn(100); }, 1000));
+      }
+    },
+    ajax:
+    {
+      timeout: 3000
+    },
+    wait: 100
+  });
 ```
 
 ###UTF-8以外の文字コードへの対応 - callbacks.ajax.beforeSend
@@ -750,30 +766,31 @@ wait: 100
 文字コード変換のデモは、当サイトのサーバーがUTF-8以外で作成されたページもUTF-8として強制的に表示させる設定となっていたことから正常に動作しないため公開していません。
 
 ```javascript
-$.pjax({
-area: 'div.pjax' ,
-callbacks:
-{
-ajax:
-{
-beforeSend: function( event, arg, XMLHttpRequest )
-{
-XMLHttpRequest.overrideMimeType( 'text/html;charset=UTF-8' ) ;
-XMLHttpRequest.overrideMimeType( 'text/html;charset=Shift_JIS' ) ;
-XMLHttpRequest.overrideMimeType( 'text/html;charset=EUC-JP' ) ;
-}
-}
-}
-});
+  $.pjax({
+    area: 'div.pjax' ,
+    callbacks:
+    {
+      ajax:
+      {
+        beforeSend: function( event, arg, XMLHttpRequest )
+        {
+            XMLHttpRequest.overrideMimeType( 'text/html;charset=UTF-8' ) ;
+            XMLHttpRequest.overrideMimeType( 'text/html;charset=Shift_JIS' ) ;
+            XMLHttpRequest.overrideMimeType( 'text/html;charset=EUC-JP' ) ;
+        }
+      }
+    }
+  });
 ```
 
 ###サーバーへの対応 - PHPなどによる差分データを使用した更新
 pjaxによる通信をサーバー側で識別し、pjax用の差分データを返させ、これを使用してページの更新（移動）を行います。データサイズを削減できるため、より少ない転送量と帯域で多くのアクセスを処理できます。
 pjaxは通信時にHTTPリクエストヘッダに`X-Pjax``X-Pjax-Area``X-Pjax-CSS``X-Pjax-Script`のフィールドと値を追加します。また、リクエストするURLに`?pjax=1`のようにクエリを追加します。サーバーはこれによりpjaxの使用の有無と必要なデータを知ることができます。なお、レスポンスヘッダの`Content-Type`に必ず`contentType`パラメータで設定したいずれかの値が含まれている必要があります。
+
 **<a href="/output/pjax/demo/server/" target="_blank">demo</a>** <small>※これは移動先のページを差分データに置き換えた擬似的なデモです。</small>
 
 ```javascript
-$.pjax({ area: 'div.pjax' });
+  $.pjax({ area: 'div.pjax' });
 ```
 
 ```html
@@ -782,17 +799,17 @@ $.pjax({ area: 'div.pjax' });
 <title>pjax demo</title>
 </head>
 <body>
-<div class="primary pjax">
-<div class="layout">
-<p>primary2</p>
-<p>pjax enable あアｱ亜</p>
-<ul>
-<li><a href="/output/pjax/demo/server/">page1 enable</a></li>
-<li><a href="/output/pjax/demo/server/2.html">page2 enable</a></li>
-<li><a href="/output/pjax/demo/server/3.html">page3 enable</a></li>
-</ul>
-</div>
-</div>
+  <div class="primary pjax">
+    <div class="layout">
+      <p>primary2</p>
+      <p>pjax enable あアｱ亜</p>
+      <ul>
+        <li><a href="/output/pjax/demo/server/">page1 enable</a></li>
+        <li><a href="/output/pjax/demo/server/2.html">page2 enable</a></li>
+        <li><a href="/output/pjax/demo/server/3.html">page3 enable</a></li>
+      </ul>
+    </div>
+  </div>
 </body>
 </html>
 ```
@@ -800,19 +817,19 @@ $.pjax({ area: 'div.pjax' });
 ```html
 <title>pjax demo</title>
 <div class="primary pjax">
-<div class="layout">
-<p>primary3</p>
-<p>pjax enable あアｱ亜</p>
-<ul>
-<li><a href="/output/pjax/demo/server/">page1 enable</a></li>
-<li><a href="/output/pjax/demo/server/2.html">page2 enable</a></li>
-<li><a href="/output/pjax/demo/server/3.html">page3 enable</a></li>
-</ul>
-</div>
+  <div class="layout">
+    <p>primary3</p>
+    <p>pjax enable あアｱ亜</p>
+    <ul>
+      <li><a href="/output/pjax/demo/server/">page1 enable</a></li>
+      <li><a href="/output/pjax/demo/server/2.html">page2 enable</a></li>
+      <li><a href="/output/pjax/demo/server/3.html">page3 enable</a></li>
+    </ul>
+  </div>
 </div>
 ```
 
-pjaxによる通信とそれ以外の通信により返すレスポンス（HTML）の切り替えは、ページごとにPHPにより行う方法もありますが、ページが大量にある場合はWordpressのように差分データをデータベースで管理するとより簡便です。アクセスされるページのURLはmod_rewriteを使用すれることで`http://example/a/b/c/`→`http://example/?dir1=a&amp;dir2=b&amp;dir3=c`のようにクエリに変換することができます。この方法であればページファイルは`http://example/index.php`１つで済み、あとはGETクエリに応じたSQLクエリを生成しデータベースから必要なデータを持ってくるだけです。ただし、サーバーにpjax用の差分データを返させる（静的なページから動的なページと構成に変更する）場合は、大なり小なりサーバーの負荷が増加し従前より処理能力が低下する可能性があることに留意してください。
+pjaxによる通信とそれ以外の通信により返すレスポンス（HTML）の切り替えは、ページごとにPHPにより行う方法もありますが、ページが大量にある場合はWordpressのように差分データをデータベースで管理するとより簡便です。アクセスされるページのURLはmod_rewriteを使用すれることで`http://example/a/b/c/`→`http://example/?dir1=a&dir2=b&dir3=c`のようにクエリに変換することができます。この方法であればページファイルは`http://example/index.php`１つで済み、あとはGETクエリに応じたSQLクエリを生成しデータベースから必要なデータを持ってくるだけです。ただし、サーバーにpjax用の差分データを返させる（静的なページから動的なページと構成に変更する）場合は、大なり小なりサーバーの負荷が増加し従前より処理能力が低下する可能性があることに留意してください。
 
 ##Wordpressへの導入
 Wordpressにも既存の設定を変更することなく簡単にpjaxを導入することができます。
@@ -829,11 +846,11 @@ Wordpressの各種プラグインも概ね共存し併用することができ�
 
 ```javascript
 $(function(){
-$.pjax({
-area: '#primary' ,
-link: 'a:not([target])[href^="http://host/"]' ,
-load: { css : true , script : true , sync : true , async : 0 }
-});
+  $.pjax({
+    area: '#primary' ,
+    link: 'a:not([target])[href^="http://host/"]' ,
+    load: { css : true , script : true , sync : true , async : 0 }
+  });
 });
 ```
 
@@ -883,21 +900,17 @@ NG
 フォームによりデータの送受信を行うページではpjaxの使用を推奨しません。pjaxによりページ遷移を行った場合ではフォームへの入力情報が前後へのページ移動のつどリセットされるため、入力情報のリセット対策を施さなければ送信までのコンバージョン率の大幅な低下が予想されること、POST情報の二重送信防止の一般的な手法であるページのリダイレクトを行うために結局は通常のページ遷移が要求されることが理由です。
 フォームによるデータの送受信はpjaxではなく通常のページ遷移またはajaxによる入力情報の送信とページ内容の書き換えにより行うことを推奨します。
 
-```html
-<div class="primary pjax">
-↓
-<div class="primary">
-```
-
 なお、検索フォームのようなGET送信フォームで使用する分には問題ありません。
 
 #補足
 ドキュメント内の用語の用法にはあまり自信がありません。間違いやバグに気づかれた方は<a href="/service/board/">掲示板</a>または<a href="/service/contact/">連絡フォーム</a>からご連絡ください。
+
 pjaxの実用的な使用方法についての雑考を書いてみました。<a href="http://d.hatena.ne.jp/fatwebstudy/20131015/1381780122" target="_blank">pjaxの実用性</a>
 
 #ライセンス - MIT License
 以下に定める条件に従い、本ソフトウェアおよび関連文書のファイル（以下「ソフトウェア」）の複製を取得するすべての人に対し、ソフトウェアを無制限に扱うことを無償で許可します。これには、ソフトウェアの複製を使用、複写、変更、結合、掲載、頒布、サブライセンス、および/または販売する権利、およびソフトウェアを提供する相手に同じことを許可する権利も無制限に含まれます。
 上記の著作権表示および本許諾表示を、ソフトウェアのすべての複製または重要な部分に記載するものとします。
 ソフトウェアは「現状のまま」で、明示であるか暗黙であるかを問わず、何らの保証もなく提供されます。ここでいう保証とは、商品性、特定の目的への適合性、および権利非侵害についての保証も含みますが、それに限定されるものではありません。 作者または著作権者は、契約行為、不法行為、またはそれ以外であろうと、ソフトウェアに起因または関連し、あるいはソフトウェアの使用またはその他の扱いによって生じる一切の請求、損害、その他の義務について何らの責任も負わないものとします。
-<a href="http://opensource.org/licenses/mit-license.php" target="_blank">http://opensource.org/licenses/mit-license.php</a>
+
+<a href="http://opensource.org/licenses/mit-license.php" target="_blank">http://opensource.org/licenses/mit-license.php</a>  
 <a href="http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license" target="_blank">http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license</a>
