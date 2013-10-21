@@ -1,13 +1,16 @@
 #pjax
 pjaxはデータの読み込みと描画の冗長部分を省略することで非常に高速かつ低コストなページ移動を実現する、HTML5で実装される高速ブラウジング機能です。  
 また、キャッシュ機能によりサーバーへのアクセスと負荷を軽減することで、高性能なサーバーでなくとも多くのPVアクセスを処理することが可能になります。
+
 ##最新版のダウンロード
 プラグインの最新版をGitHubで公開しています。ダウンロードはこちらから。
-<b>GitHub</b>：<a href="https://github.com/falsandtru/jquery.pjax.js" target="_blank">https://github.com/falsandtru/jquery.pjax.js</a>
-<b>ファイル</b>：<a href="https://raw.github.com/falsandtru/jquery.pjax.js/master/jquery.pjax.js" target="_blank">https://raw.github.com/falsandtru/jquery.pjax.js/master/jquery.pjax.js</a>
-<b>圧縮版</b>：<a href="https://raw.github.com/falsandtru/jquery.pjax.js/master/jquery.pjax.min.js" target="_blank">https://raw.github.com/falsandtru/jquery.pjax.js/master/jquery.pjax.min.js</a>
+**GitHub**:<a href="https://github.com/falsandtru/jquery.pjax.js" target="_blank">https://github.com/falsandtru/jquery.pjax.js</a>  
+**ファイル**:<a href="https://raw.github.com/falsandtru/jquery.pjax.js/master/jquery.pjax.js" target="_blank">https://raw.github.com/falsandtru/jquery.pjax.js/master/jquery.pjax.js</a>  
+**圧縮版**:<a href="https://raw.github.com/falsandtru/jquery.pjax.js/master/jquery.pjax.min.js" target="_blank">https://raw.github.com/falsandtru/jquery.pjax.js/master/jquery.pjax.min.js</a>  
+
 ###更新情報
 大幅な機能追加を矢継ぎ早に行ったため環境によってはエラーが発生する可能性があります。バグがありましたら<a href="/service/board/">掲示板</a>または<a href="/service/contact/">連絡フォーム</a>からご連絡ください。
+
 ##概要
 サイト内のページ移動において指定したHTML要素（異なるコンテンツを持つ範囲）のみ更新することでページ移動を高速化します。
 たとえば、このサイトのpjaxによるトップページへのページ移動時間は、ajaxによりサーバーからデータを取得した場合でも最短で100-200ミリ秒しかかかりませんが、pjaxのキャッシュ機能を有効にした場合のページ移動時間はわずか**20-30ミリ秒（0.02-0.03秒）**です。  
@@ -16,6 +19,7 @@ pjaxはデータの読み込みと描画の冗長部分を省略することで�
 <small>※インストール直後のWordpressでは、ajaxで500ミリ秒、キャッシュで10ミリ秒となりました（サーバーはロリポップを使用）。</small>
 <small>※このサイトではブラウザのコンソールにページ移動にかかった時間を出力しており、コンソールからユーザーが実際にページ移動にかかった時間を見ることができます。</small>
 <small>※<span class="underline">動作テストのためpjaxが正常に動作していないことがあります。</span>恐縮ですがその際は時間をおいて再度ご覧ください。</small>
+
 ##特徴
 
 + jQuery 1.4.2から動作します。
@@ -54,7 +58,8 @@ pushStateないしreplaceStateとajaxを組み合わせたいわゆるpjaxと呼
 <small>※1 **AndroidとiOSでは`location`オブジェクトが`pushState`を使用しても更新されず、ブラウザのアドレスバーに表示されるURLと`location.href`により取得するURLが一致しない**バグが報告されています。defunkt版でもアドレスバーのURLと`location.href`が別のページを指しています。この問題は下の比較用デモで確認できます。当プラグインではこの問題を独自の方法で解決しています。この問題が解決されていなかった場合、ページのURLを参照するすべてのスクリプトが正常に動作できなくなり致命的なバグが発生する可能性があるため十分注意してください。Google Analytics などは間違ったアクセスログを生成することになります。</small>
 <small>※2 **pjaxにはajax通信が強制終了されたページのタイトルが直近の正常に表示されたページのタイトルで上書きされ、間違った履歴が記録される**問題があります。この問題はpjaxにより2回以上ページ移動後、ページをリロードしブラウザの戻るボタンでページを読み込む時間を与えず2回以上ページを戻ることで確認できます。当プラグインではこの問題をブラウザに内蔵されているデータベースを利用することでほぼ解決しています（Firefoxでは何度も修復を繰り返すと修復されにくくなっていくような挙動をする問題がありますが通常の使用の範囲であれば正常に修復されると思われます）。</small>
 <small>※3 **pjaxにはブラウザの戻る/進む機能によりページを移動した場合に移動先ページの直前のスクロール位置が復元されないことがある**問題があります。この問題はたとえば3000pxスクロールしているページから高さが1000pxのページに移動して前のページに戻ると1000px付近までしかスクロールされないといった形で確認できます。当プラグインではこの問題をブラウザに内蔵されているデータベースを利用することでほぼ解決しています（Firefoxでは何度も補正を繰り返すと補正されにくくなっていくような挙動をする問題がありますが通常の使用の範囲であれば正常に補正されると思われます）。</small>
-##defunkt版との比較
+
+#defunkt版との比較
 このpjaxプラグインは独自に開発されており、本家defunkt版の派生ではないため仕様が異なります。
 defunkt版（v1.7.0/2013年6月現在最新版）との主な違いは次のとおりです。
 
@@ -88,19 +93,23 @@ defunkt版（v1.7.0/2013年6月現在最新版）との主な違いは次のと�
 <small>※6 タイトルやURLなどの更新を個別にキャンセルできます。コールバック関数を非同期に実行している場合はキャンセルできません。</small>
 <small>※7 defunkt版は非対応の複数領域の更新を無理やりさせようとしているため更新部分の表示がバグってます。</small>
 <small>※ 記述に間違いがありましたら<a href="/service/board/">掲示板</a>または<a href="/service/contact/">連絡フォーム</a>からご連絡ください。</small>
+
 ##使用法
+
 ###jQuery
 v1.7.2の使用を推奨します。
 v1.4.2から動作します。
+
 ###Register
-####<span class="italic">$.pjax( Parameter as object )</span>
+
+####*$.pjax( Parameter as object )*
 リンクにpjaxを登録します。`document`オブジェクトにデリゲートを設定します。
 
 ```javascript
 $.pjax({ area: '.container' });
 ```
 
-####<span class="italic">$.fn.pjax( Parameter as object )</span>
+####*$.fn.pjax( Parameter as object )*
 コンテキストに含まれるリンクにのみpjaxを登録します。コンテキストにデリゲートを設定します。
 `link`パラメータと`form`パラメータはコンテキストにより絞り込まれますが、`area`パラメータは絞り込まれません。
 
@@ -110,108 +119,152 @@ $('.delegate').pjax({ area: '.container' });
 
 ###Parameter
 パラメータはすべてパラメータ用オブジェクトのプロパティに設定して渡します。パラメータとなるオブジェクトのプロパティは次のとおりです
-####<span class="italic">gns: Namespace as string</span>
+
+####*gns: Namespace as string*
 グローバルネームスペースです。通常は設定は不要です。
-####<span class="italic">ns: Namespace as string</span>
+
+####*ns: Namespace as string*
 ネームスペースです。ネームスペースを設定する場合はこちらを使用してください。
-####<span class="italic">area: Selector as string / function( event, url )<span class="red font-default">（必須）</span></span>
+
+####*area: Selector as string / function( event, url )<span class="red font-default">（必須）</span>*
 pjaxにより更新する範囲（HTML要素）をjQueryセレクタで設定します。
 `$.fn.pjax`により設定されたコンテキストで絞り込まれません。
-#####<span class="italic">area: Selector as string</span>
+
+#####*area: Selector as string*
 文字列により更新する範囲を設定します。
-#####<span class="italic">area: Selector as function( event, url )</span>
+
+#####*area: Selector as function( event, url )*
 関数の戻り値により更新する範囲を動的に設定します。
-####<span class="italic">link: Selector as string</span>
+
+####*link: Selector as string*
 pjaxによりページ移動を行うリンク（アンカータグ）をjQueryセレクタで選択します。
 初期値は、`href`属性の値が`/`で始まり、`target`属性がない`anchor`要素です。ルートパス以外のリンクは対象外となっています。
 `$.fn.pjax`で使用された場合は設定されたコンテキスト内で選択されます。
-####<span class="italic">form: Selector as string</span>
+
+####*form: Selector as string*
 pjaxによりページ移動を行うフォーム（フォームタグ）をjQueryセレクタで選択します。
 初期値は`null`でpjaxはフォームによるページ移動に使用されません。
 `$.fn.pjax`で使用された場合は設定されたコンテキスト内で選択されます。
-####<span class="italic">scope: Scope as object</span>
+
+####*scope: Scope as object*
 pjaxによりページ移動を行う（pjaxを適用する）ページの範囲をURL（ルートパス）で設定します。範囲をディレクトリで設定した場合はサブディレクトリも範囲に含まれます。設定はサブディレクトリで上書きできます。初期値は`null`で無効です。
 pjaxによるページ移動を`http://example.com/pjax/`ディレクトリ内でのみ有効にする場合は`{'/pjax/': ['/pjax/']}`とします。
 先頭に`^`を付加することで否定表現となり、サブディレクトリ（`http://example.com/pjax/except/`）でpjaxを無効にする場合は`{'/pjax/': ['/pjax/', '^/pjax/except/'], '/pjax/except/': false}`とします。無効を指定する値には偽と評価される値と空配列が使用できます。`http://example.com/a/`から`http://example.com/b/`への移動のみ有効にする場合は`{'/a/': ['/b/']}`と、双方向で有効にする場合は`{'/a/': ['/a/', '/b/'], '/b/': ['/a/', '/b/']}`とします。
 先頭に`*`を付加することで正規表現となり、`{'/a/': ['/a/', '/b/'], '/b/': ['/a/', '/b/']}`は`{'/a/': ['*/[ab]/'], '/b/': ['*/[ab]/']}`と同義です。
 `'rewrite'`を配列に加えるとscope.rewriteに定義した関数によりハッシュテーブルでキーとして使用される文字列を一度だけ書き換えることができます。
 `'inherit'`を配列に加えると直近の適用条件に一致するものがなかった場合に一階層上の条件を継承します。ディレクトリ上で複数階層開きがあっても継承されます。
-####<span class="italic">state: any / function( event, url )</span>
+
+####*state: any / function( event, url )*
 `pushState`の第一引数として渡す値を設定します。関数が設定された場合は戻り値が渡されます。初期値は`null`です。
-####<span class="italic">scrollTop: Position as number / null / function( event )</span>
+
+####*scrollTop: Position as number / null / function( event )*
 リンクまたはフォームによるページ移動後の縦方向のスクロール位置を設定します。`null`を設定すると移動前のスクロール位置を維持します。関数を設定すると戻り値がスクロール位置となります。初期値は`0`です。
-####<span class="italic">scrollLeft: Position as number / null / function( event )</span>
+
+####*scrollLeft: Position as number / null / function( event )*
 リンクまたはフォームによるページ移動後の横方向のスクロール位置を設定します。`null`を設定すると移動前のスクロール位置を維持します。関数を設定すると戻り値がスクロール位置となります。初期値は`0`です。
-####<span class="italic">scroll: node</span>
+
+####*scroll: node*
 スクロール位置の復元のためのスクロール位置の記録間隔にかかる設定項目を持ちます。
-#####<span class="italic">delay: Millisecond as number</span>
+
+####*delay: Millisecond as number*
 スクロール位置の記録処理がスクロールイベント発生後実行されるまでの待機時間をミリ秒で設定します。待機時間が経過する前に新たなスクロールが行われた場合は前回までのスクロールによる待機中の処理の実行はキャンセルされます。初期値は`500`です。パラメータの詳細な仕様は<a href="/output/displaytrigger/">displaytrigger</a>の同名のパラメータを確認してください。
-#####<span class="italic">suspend: Millisecond as number</span>
+
+####*suspend: Millisecond as number*
 スクロールイベントの発生後、スクロールイベントの発生を抑制する時間をミリ秒で設定します。設定値を0にするとイベントが抑制されません。初期値は`-100`です。パラメータの詳細な仕様は<a href="/output/displaytrigger/">displaytrigger</a>の同名のパラメータを確認してください。
-####<span class="italic">ajax: object</span>
+
+###*ajax: object*
 pjaxで内部的に使用される`$.ajax`のオプションを設定します。`$.ajax`のコールバック関数はすべて上書きされるため使用できません。代わりに`callbacks.ajax`で設定できるのでこちらを使用してください。
-####<span class="italic">contentType: string</span>
+
+###*contentType: string*
 移動先として読み込むデータで許容するコンテントタイプをカンマまたはセミコロン区切りの文字列で設定します。初期値は`text/html`です。
-####<span class="italic">load: node</span>
+
+###*load: node*
 pjaxによるページ読み込み時のCSSとJavaScriptを読み込みにかかる設定項目を持ちます。`load.css`と`load.script`を有効にすることで、ページ別にCSSやJavaScriptが存在するサイトでも配置や構成を変えることなくpjaxを導入することができます。
-####<span class="italic">load.css: boolean</span>
+
+###*load.css: boolean*
 pjaxによるページ読み込み時にCSSを読み込むかを設定します。初期値は`false`で読み込みません。
 読み込まれるページの、現在のページに存在しないすべてのCSS（`link rel="stylesheet"`要素および`style`要素）を読み込みます。読み込まれるページに存在しないCSSは削除されます。読み込まれたCSSはすべてDOMの`head`要素末尾のノードとして追加されます。
-####<span class="italic">load.script: boolean</span>
+
+###*load.script: boolean*
 pjaxによるページ読み込み時にJavaScriptを読み込むかを設定します。初期値は`false`で読み込みません。
 読み込まれるページの、現在のページに存在しないすべてのJavaScript（`script`要素）を読み込みます。外部ファイル以外の形式のJavaScriptは同一の内容であっても再度読み込まれます。jQueryの仕様により、JavaScriptは読み込まれていてもDOMに追加されません。
 pjaxによるJavaScriptの実行順序は、HTML上の記述順序（通常の読み込み順序）と同じであることが保障されません。外部ファイル形式のJavaScriptと埋め込み形式のJavaScriptでは実行タイミングが異なるため、同一形式間内での実行順序は保たれますが、異なる形式間での実行順序は保たれません。また、埋め込み形式のJavaScriptの実行はすべての外部ファイル形式のJavaScriptの実行を待ってから行われます。このため、外部ファイル形式のJavaScriptが実行される前に埋め込み形式のJavaScriptがすでに実行されていなければならないような設計は避ける必要があります。
 ページの表示直後にすべて実行されている必要のないJavaScriptは、ページ読み込み時に一括で実行せず<a href="/output/displaytrigger/">displaytrigger</a>により随時実行することで負荷を削減することを推奨します。ページの表示直後にすべて読み込まれている必要のないコンテンツについても同様です。
-####<span class="italic">load.execute: boolean</span>
+
+###*load.execute: boolean*
 JavaScriptの読み込みが有効になっている場合に埋め込み型のJavaScriptを実行するかを設定します。初期値は`true`で有効です。
-####<span class="italic">load.sync: boolean</span>
+
+###*load.sync: boolean*
 `defer`属性を持つJavaScript（`script`要素）の非同期読み込みを、pjaxによるコンテンツの更新の描画を待ってから行います。初期値は`true`で有効です。
 `load.sync`による同期（的）処理は、JavaScriptの読み込み処理を同期的に開始できるように実行タイミングを調整して行うものであり、pjaxによるCSSとJavaScriptの読み込み処理自体は`load.sync``load.async`の設定にかかわらずすべて非同期で行われます。
-####<span class="italic">load.async: Millisecond as number</span>
+
+###*load.async: Millisecond as number*
 CSSとJavaScript（`script`要素）の非同期読み込みをpjaxによるコンテンツの更新の描画を待たずに開始する、コンテンツの更新からの経過時間（遅延時間）をミリ秒で設定します。初期値は`0`です。
-####<span class="italic">interval: Millisecond as number</span>
+
+###*interval: Millisecond as number*
 pjaxにより更新されたコンテンツの描画の確認を行う間隔をミリ秒で設定します。初期値は`300`です。
-####<span class="italic">cache: node</span>
+
+###*cache: node*
 pjaxによるページ読み込み時のキャッシュの使用にかかる設定項目を持ちます。独自に作成したキャッシュを使用することでサーバーと通信を行わずにページを移動することができるため、サーバーへのアクセスと負荷を軽減することができます。また、サーバーへのリクエスト時にキャッシュが使用されることはないため、リロードによる最新のデータへのアクセスを妨げません。ページに期限が設定されキャッシュされるよう設定されている場合はブラウザのキャッシュ機能が使用できるためpjaxのキャッシュ機能は無効にすることを推奨します。キャッシュはページを閉じるか通常のページ移動などによりJavaScriptの実行状態がリセットされるまで保持されます。初期設定では無効です。
-####<span class="italic">cache.click: boolean</span>
+
+###*cache.click: boolean*
 リンクのクリックによるページ移動にキャッシュを使用するかを設定します。初期値は`false`で無効です。
-####<span class="italic">cache.submit: boolean</span>
+
+###*cache.submit: boolean*
 フォームの送信によるページ移動にキャッシュを使用するかを設定します。初期値は`false`で無効です。
-####<span class="italic">cache.popstate: boolean</span>
+
+###*cache.popstate: boolean*
 ブラウザの操作によるページ移動にキャッシュを使用するかを設定します。初期値は`false`で無効です。
-####<span class="italic">cache.get: boolean</span>
+
+###*cache.get: boolean*
 フォームのGET送信により取得したページをキャッシュするかを設定します。初期値は`true`で有効です。
-####<span class="italic">cache.post: boolean</span>
+
+###*cache.post: boolean*
 フォームのPOST送信により取得したページをキャッシュするかを設定します。初期値は`true`で有効です。
-####<span class="italic">cache.length: number</span>
+
+###*cache.length: number*
 キャッシュを保持するページ数の上限を設定します。初期値は`9`です。
-####<span class="italic">cache.size: Byte as number</span>
+
+###*cache.size: Byte as number*
 キャッシュを保持するデータサイズの上限をバイト数で設定します。初期値は`1048576`(1MB)です。
-####<span class="italic">cache.expire: Millisecond as number</span>
+
+###*cache.expire: Millisecond as number*
 キャッシュの有効期限をミリ秒で設定します。初期値は`1800000`(30分)です。
-####<span class="italic">wait: Millisecond as number</span>
+
+###*wait: Millisecond as number*
 `$.ajax`の実行からコンテンツの更新までの最低待ち時間を設定します。jQuery 1.5より前のバージョンでは無効です。初期値は`0`です。
-####<span class="italic">fallback: boolean / function( event, url )</span>
+
+###*fallback: boolean / function( event, url )*
 pjaxによるページ移動が失敗した場合の対応を行うかを設定します。初期状態では代替処理として通常のページ移動が行われます。関数が設定された場合は代替処理が当該関数により上書きされます。処理はエラーにかかるコールバック関数を実行後に行われます。初期値は`true`で有効です。
-####<span class="italic">fix: node</span>
+
+###*fix: node*
 pjaxの諸問題の修正にかかる設定項目を持ちます。
-#####<span class="italic">location: boolean</span>
+
+####*location: boolean*
 `location`オブジェクトを更新するかを設定します。初期値は`true`で有効です。
-#####<span class="italic">history: boolean</span>
+
+####*history: boolean*
 履歴を修復するかを設定します。`database`パラメータによりデータベースの使用が許可されていなければなりません。初期値は`true`で有効です。
-#####<span class="italic">scroll: boolean</span>
+
+####*scroll: boolean*
 スクロール位置を復元するかを設定します。`database`パラメータによりデータベースの使用が許可されていなければなりません。初期値は`true`で有効です。
-####<span class="italic">database: boolean</span>
+
+###*database: boolean*
 Indexed Databaseの使用をするかを設定します。データはデータ数が1000を超えるたびに最後のアクセスから3日（72時間）以上経過したデータが削除（削除後もデータ数が1000を超えている場合はすべてのデータを削除）され、データベースは暦日で7日ごとに日付変更後最初の`$.pjax()`実行時に初期化されます。データベースのサイズは最大1MB以下を見積もっています。初期値は`true`で有効です。
-####<span class="italic">server: node</span>
+
+###*server: node*
 サーバーとの通信にかかる設定項目を持ちます。
-####<span class="italic">server.query: Query as string</span>
+
+###*server.query: Query as string*
 pjaxによるサーバーへリクエストではページのURLにpjaxによるリクエストであることを通知するためのクエリ名が追加されており、このクエリ名を設定します。このクエリは内部処理でのみ使用されるためサイトの閲覧者の目に触れることはありません。初期値は`gns`の設定値と同じであり、`?pjax=1`のようにクエリが付加されます。
-####<span class="italic">callback: function( event, parameter, data, dataType, XMLHttpRequest )</span>
+
+###*callback: function( event, parameter, data, dataType, XMLHttpRequest )*
 ページ移動後に実行されるコールバック関数を設定します。ページの更新処理が成功したときに`update.complete( event, parameter, data, dataType, XMLHttpRequest )`の直後に実行されます。`callback``callbacks`ともに`callbacks.async`に`true`を設定することでコールバック関数の実行を非同期に行えます。コールバック関数を非同期で実行することで処理を高速化することができますが、戻り値に`false`を設定することによる処理のキャンセルができなくなります。
-####<span class="italic">parameter: any</span>
+
+###*parameter: any*
 すべてのコールバック関数に共通で渡されるパラメータを設定します。
-####<span class="italic">callbacks: object</span>
+
+###*callbacks: object*
 内部の各タイミングにおいて実行されるコールバック関数を設定します。コールバック関数にはイベントの発生もとのオブジェクトがコンテキストとして与えられます。
 `ajax`を除くすべてのコールバック関数は戻り値に`false`を設定することで現在の処理を抜けることができます。`before`では以降の処理をすべてキャンセルします。このときフォールバック処理は`fallback`の設定にかかわらず行われません。`update.any.before``update.any.after`ではページ更新処理のうちanyの示す部分の更新処理をキャンセルないし抜けます。ページ移動でエラーが発生した際に`update.error``update.complete`で処理を抜けるとフォールバック処理が`fallback`の設定にかかわらず行われません。
 使用できる`callbacks`のプロパティと渡されるパラメータ、実行タイミングは次のとおりです。
@@ -277,102 +330,113 @@ update.error( event, parameter, data, dataType, XMLHttpRequest )
 update.complete( event, parameter, data, dataType, XMLHttpRequest )
 : ページの更新処理が完了したときに実行されます。
   
-###Method
-####<span class="italic">on()</span>
+
+##Method
+
+###*on()*
 pjaxを有効にします。
-####<span class="italic">off()</span>
+
+###*off()*
 pjaxを無効にします。
-###Property
+
+##Property
 なし
-###Event
+
+##Event
 pjaxによるページ遷移では通常のページ遷移で発生する`onload`などのイベントが発生しないため、この代替イベントを提供します。
-####<span class="italic">pjax.DOMContentLoaded</span>
+
+###*pjax.DOMContentLoaded*
 `area`で指定された範囲のDOMの更新が完了した時点で`document`オブジェクトから発生します。CSSについてのDOMの更新は完了していません。
-####<span class="italic">pjax.ready</span>
+
+###*pjax.ready*
 すべてのDOMの更新が完了した時点で`document`オブジェクトから発生します。
-####<span class="italic">pjax.load</span>
+
+###*pjax.load*
 すべてのDOMの更新が反映された時点で`window`オブジェクトから発生します。画像の表示状態は考慮されません。
-##記述例
-###導入
+
+#記述例
+
+
+##導入
 シンプルな実行例です。リンクをクリックするとPrimaryのみ更新されます。
-<b><a href="/output/pjax/demo/install/" target="_blank">demo</a></b>
+**<a href="/output/pjax/demo/install/" target="_blank">demo</a>**
 
 ```javascript
 $.pjax({ area: 'div.pjax' });
 ```
 
 ```html
-&lt;!DOCTYPE html&gt;
-&lt;html lang="ja"&gt;
-&lt;head&gt;
-&lt;meta charset="UTF-8"&gt;
-&lt;meta http-equiv="content-language" content="ja"&gt;
-&lt;title&gt;pjax&lt;/title&gt;
-&lt;script type="text/javascript" charset="utf-8" src="/lib/jquery-1.7.2.min.js"&gt;&lt;/script&gt;
-&lt;script type="text/javascript" charset="utf-8" src="/lib/jquery.pjax.min.js"&gt;&lt;/script&gt;
-&lt;script type="text/javascript"&gt;
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="content-language" content="ja">
+<title>pjax</title>
+<script type="text/javascript" charset="utf-8" src="/lib/jquery-1.7.2.min.js"></script>
+<script type="text/javascript" charset="utf-8" src="/lib/jquery.pjax.min.js"></script>
+<script type="text/javascript">
 $(function(){
 $.pjax({ area: 'div.pjax' });
 });
-&lt;/script&gt;
-&lt;style type="text/css"&gt;
+</script>
+<style type="text/css">
 
 /* 省略 */
 
-&lt;/style&gt;
-&lt;/head&gt;
-&lt;body&gt;
-&lt;div id="container"&gt;
-&lt;div id="header"&gt;
-&lt;div class="layout"&gt;
-&lt;p&gt;header1&lt;/p&gt;
-&lt;p&gt;pjax demo&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="wrapper" class="clearfix"&gt;
-&lt;div class="layer"&gt;
-&lt;div class="primary pjax"&gt;
-&lt;div class="layout"&gt;
-&lt;p&gt;primary1&lt;/p&gt;
-&lt;p&gt;pjax enable あアｱ亜&lt;/p&gt;
-&lt;ul&gt;
-	&lt;li&gt;&lt;a href="/output/pjax/demo/install/"&gt;page1 enable&lt;/a&gt;&lt;/li&gt;
-	&lt;li&gt;&lt;a href="/output/pjax/demo/install/2.html"&gt;page2 enable&lt;/a&gt;&lt;/li&gt;
-	&lt;li&gt;&lt;a href="/output/pjax/demo/install/3.html"&gt;page3 enable&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div class="secondary"&gt;
-&lt;div class="layout"&gt;
-&lt;p&gt;secondary1&lt;/p&gt;
-&lt;ul&gt;
-	&lt;li&gt;&lt;a href="/output/pjax/demo/install/"&gt;page1 enable&lt;/a&gt;&lt;/li&gt;
-	&lt;li&gt;&lt;a href="/output/pjax/demo/install/2.html"&gt;page2 enable&lt;/a&gt;&lt;/li&gt;
-	&lt;li&gt;&lt;a href="/output/pjax/demo/install/3.html"&gt;page3 enable&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div class="tertiary"&gt;
-&lt;div class="layout"&gt;
-&lt;p&gt;tertiary1&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id="footer"&gt;
-&lt;div class="layout"&gt;
-&lt;p&gt;footer1&lt;/p&gt;
+</style>
+</head>
+<body>
+<div id="container">
+<div id="header">
+<div class="layout">
+<p>header1</p>
+<p>pjax demo</p>
+</div>
+</div>
+<div id="wrapper" class="clearfix">
+<div class="layer">
+<div class="primary pjax">
+<div class="layout">
+<p>primary1</p>
+<p>pjax enable あアｱ亜</p>
+<ul>
+  <li><a href="/output/pjax/demo/install/">page1 enable</a></li>
+  <li><a href="/output/pjax/demo/install/2.html">page2 enable</a></li>
+  <li><a href="/output/pjax/demo/install/3.html">page3 enable</a></li>
+</ul>
+</div>
+</div>
+<div class="secondary">
+<div class="layout">
+<p>secondary1</p>
+<ul>
+  <li><a href="/output/pjax/demo/install/">page1 enable</a></li>
+  <li><a href="/output/pjax/demo/install/2.html">page2 enable</a></li>
+  <li><a href="/output/pjax/demo/install/3.html">page3 enable</a></li>
+</ul>
+</div>
+</div>
+<div class="tertiary">
+<div class="layout">
+<p>tertiary1</p>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div class="layout">
+<p>footer1</p>
 
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/body&gt;
-&lt;/html&gt;
+</div>
+</div>
+</div>
+</body>
+</html>
 ```
 
 ###更新範囲 - area
 pjaxによる更新範囲を設定します。次のように複数の範囲を同時に更新することもできます。双方のページで更新範囲が一致していないか更新先のページに更新範囲がひとつもない場合はエラーとなり例外処理が実行されます。
-<b><a href="/output/pjax/demo/area/" target="_blank">demo</a></b>
+**<a href="/output/pjax/demo/area/" target="_blank">demo</a>**
 
 ```javascript
 $.pjax({ area: 'div.primary.pjax, div.tertiary.pjax' });
@@ -380,7 +444,7 @@ $.pjax({ area: 'div.primary.pjax, div.tertiary.pjax' });
 
 ###フォーム - form
 pjaxでフォームの送信によるページ遷移を行います。キャッシュ有効時は初期設定ではPOST送信結果もキャッシュされることに注意してください。
-<b><a href="/output/pjax/demo/form/" target="_blank">demo</a></b>
+**<a href="/output/pjax/demo/form/" target="_blank">demo</a>**
 
 ```javascript
 $.pjax({ area: 'div.pjax', form: 'form.pjax' });
@@ -388,7 +452,7 @@ $.pjax({ area: 'div.pjax', form: 'form.pjax' });
 
 ###リンク - $.fn.pjax, link
 pjaxによりページ移動を行うリンクを選択します。
-<b><a href="/output/pjax/demo/fn/" target="_blank">demo</a></b>
+**<a href="/output/pjax/demo/fn/" target="_blank">demo</a>**
 
 ```javascript
 $('div.primary.pjax').pjax({
@@ -397,7 +461,7 @@ area: 'div.primary.pjax'
 ```
 
 `$.fn.pjax`のコンテキストにpjaxの`area`パラメータの子孫要素（pjaxによる更新範囲内）を設定することはできません。pjaxによりページ移動を行うリンクをpjaxによる更新範囲内にあるリンクから選択するには`link`パラメータを使用してください。
-<b><a href="/output/pjax/demo/link/" target="_blank">demo</a></b>
+**<a href="/output/pjax/demo/link/" target="_blank">demo</a>**
 
 ```javascript
 // NG
@@ -416,7 +480,8 @@ link: 'li a:not([target])[href^="/"]'
 
 ###適用範囲 - scope
 pjaxによりページ移動を行う範囲を設定します。先頭に`^`で否定表現、先頭にまたは否定表現に続けて`*`で正規表現となります。
-####特定のページ間の移動のみpjaxを使用する
+
+###特定のページ間の移動のみpjaxを使用する
 
 + a.html,b.html,c.htmlの間での移動のみpjaxを使用する。
 
@@ -485,7 +550,7 @@ rewrite: function( url ){ return url.replace(/^[^\/]+\/\/[^\/]+/,'').replace(/^(
 + 同一の動的ディレクトリ下(user/foo/c/1,user/foo/c/2,user/foo/c/*)でのみpjaxを使用し、異なる場合(user/foo/c/1,user/bar/c/2)は使用しない。
 + その他のページではpjaxを使用しない。
 
-<b><a href="/output/pjax/demo/scope/" target="_blank">demo</a></b>
+**<a href="/output/pjax/demo/scope/" target="_blank">demo</a>**
 
 ```javascript
 $.pjax({
@@ -506,7 +571,7 @@ rewrite: function( url ){ return url.replace(/^[^\/]+\/\/[^\/]+/,'').replace(/^(
 
 ###CSS自動読み込み - load.css
 pjaxによる移動先のページのCSSを自動的に読み込みます。移動先のページに存在しない現在のページのCSSは削除されます。
-<b><a href="/output/pjax/demo/css/" target="_blank">demo</a></b>
+**<a href="/output/pjax/demo/css/" target="_blank">demo</a>**
 
 ```javascript
 $.pjax({
@@ -518,7 +583,7 @@ load: { css: true }
 ###JavaScript自動読み込み - load.script
 pjaxによる移動先のページのJavaScriptを自動的に読み込みます。
 同一の**外部ファイル**により記述されるJavaScriptは**重複して読み込まれません**が、**埋め込み**により記述される同一のJavaScriptは**重複して実行されます**。
-<b><a href="/output/pjax/demo/script/" target="_blank">demo</a></b>
+**<a href="/output/pjax/demo/script/" target="_blank">demo</a>**
 
 ```javascript
 $.pjax({
@@ -528,9 +593,10 @@ load: { script: true }
 ```
 
 **上記pjax登録処理は実際には外部ファイルに記述してください。埋め込みで記述した場合、pjax登録処理がページ移動ごとに不要に繰り返されます。**
-###代替処理 - fallback
+
+##代替処理 - fallback
 pjaxによるページ移動が失敗した場合に通常のページ移動を行います。初期値で有効になっているためこのための設定は不要です。
-<b><a href="/output/pjax/demo/fallback/" target="_blank">demo</a></b>
+**<a href="/output/pjax/demo/fallback/" target="_blank">demo</a>**
 
 ```javascript
 $.pjax({ area: 'div.pjax' });
@@ -542,7 +608,7 @@ $.pjax({ area: 'div.pjax', fallback: true });
 
 ###スクロール位置 - scrollTop, scrollLeft
 pjaxによるページ移動後のスクロール位置を設定します。`null`を設定すると移動前のスクロール位置を維持します。
-<b><a href="/output/pjax/demo/scroll/" target="_blank">demo</a></b>
+**<a href="/output/pjax/demo/scroll/" target="_blank">demo</a>**
 
 ```javascript
 $.pjax({ area: 'div.pjax', scrollTop: null, scrollLeft: 50 });
@@ -550,7 +616,7 @@ $.pjax({ area: 'div.pjax', scrollTop: null, scrollLeft: 50 });
 
 ###最低待ち時間 - wait
 `$.ajax`の実行からコンテンツの更新までの最低待ち時間を設定します。pjaxによるページ移動が速すぎる場合などに使用します。
-<b><a href="/output/pjax/demo/wait/" target="_blank">demo</a></b>
+**<a href="/output/pjax/demo/wait/" target="_blank">demo</a>**
 
 ```javascript
 $.pjax({ area: 'div.pjax', wait: 1000 });
@@ -565,7 +631,7 @@ $.pjax({ area: 'div.pjax', ajax: { timeout: 3000 } });
 
 ###コールバックとパラメータ - callback, callbacks, parameter
 コールバックに設定した関数を実行します。コールバック関数の第一引数はイベントオブジェクトが渡され、第二引数に設定したパラメータが渡され、以降は各もととなるコールバック関数に渡された引数を引き継ぎます。すべてのコールバック関数にはイベントの発生元のオブジェクトがコンテクストとして与えられます。例えば、`anchor`要素のクリックにより実行されるコールバックの`this`は`anchor`要素であり、コールバック関数内で`this.href`などが使用できます。
-<b><a href="/output/pjax/demo/callback/" target="_blank">demo</a></b>
+**<a href="/output/pjax/demo/callback/" target="_blank">demo</a>**
 
 ```javascript
 $.pjax({
@@ -624,7 +690,7 @@ window._gaq.push(['_trackPageview']);
 
 ###ローディングエフェクト - callback, callbacks
 コールバックをカスタマイズすることでページ移動時にローディングエフェクトを表示させることができます。
-<b><a href="/output/pjax/demo/effect/" target="_blank">demo</a></b>
+**<a href="/output/pjax/demo/effect/" target="_blank">demo</a>**
 
 ```javascript
 $.pjax({
@@ -643,12 +709,12 @@ wait: 1000
 ```
 
 ```html
-&lt;div class="loading" style="background:url(/images/loading.png);display:none;position:fixed;top:0;left:0;z-index:9999;width:100%;height:100%;"&gt;
-&lt;div style="position:absolute;top:45%;left: 50%;margin-top:-64px;margin-left:-64px;text-align:center;"&gt;
-&lt;img src="/images/loading.gif" alt="" style="display:block;"&gt;
-&lt;span style="font-size:18px;font-weight:bold;position:absolute;white-space:nowrap;"&gt;now loading...&lt;/span&gt;
-&lt;/div&gt;
-&lt;/div&gt;
+<div class="loading" style="background:url(/images/loading.png);display:none;position:fixed;top:0;left:0;z-index:9999;width:100%;height:100%;">
+<div style="position:absolute;top:45%;left: 50%;margin-top:-64px;margin-left:-64px;text-align:center;">
+<img src="/images/loading.gif" alt="" style="display:block;">
+<span style="font-size:18px;font-weight:bold;position:absolute;white-space:nowrap;">now loading...</span>
+</div>
+</div>
 ```
 
 ローディングエフェクトは頻繁に表示されると煩わしいため多用しないことを推奨します。
@@ -704,60 +770,62 @@ XMLHttpRequest.overrideMimeType( 'text/html;charset=EUC-JP' ) ;
 ###サーバーへの対応 - PHPなどによる差分データを使用した更新
 pjaxによる通信をサーバー側で識別し、pjax用の差分データを返させ、これを使用してページの更新（移動）を行います。データサイズを削減できるため、より少ない転送量と帯域で多くのアクセスを処理できます。
 pjaxは通信時にHTTPリクエストヘッダに`X-Pjax``X-Pjax-Area``X-Pjax-CSS``X-Pjax-Script`のフィールドと値を追加します。また、リクエストするURLに`?pjax=1`のようにクエリを追加します。サーバーはこれによりpjaxの使用の有無と必要なデータを知ることができます。なお、レスポンスヘッダの`Content-Type`に必ず`contentType`パラメータで設定したいずれかの値が含まれている必要があります。
-<b><a href="/output/pjax/demo/server/" target="_blank">demo</a></b> <small>※これは移動先のページを差分データに置き換えた擬似的なデモです。</small>
+**<a href="/output/pjax/demo/server/" target="_blank">demo</a>** <small>※これは移動先のページを差分データに置き換えた擬似的なデモです。</small>
 
 ```javascript
 $.pjax({ area: 'div.pjax' });
 ```
 
 ```html
-&lt;html&gt;
-&lt;head&gt;
-&lt;title&gt;pjax demo&lt;/title&gt;
-&lt;/head&gt;
-&lt;body&gt;
-&lt;div class="primary pjax"&gt;
-&lt;div class="layout"&gt;
-&lt;p&gt;primary2&lt;/p&gt;
-&lt;p&gt;pjax enable あアｱ亜&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="/output/pjax/demo/server/"&gt;page1 enable&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="/output/pjax/demo/server/2.html"&gt;page2 enable&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="/output/pjax/demo/server/3.html"&gt;page3 enable&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/body&gt;
-&lt;/html&gt;
+<html>
+<head>
+<title>pjax demo</title>
+</head>
+<body>
+<div class="primary pjax">
+<div class="layout">
+<p>primary2</p>
+<p>pjax enable あアｱ亜</p>
+<ul>
+<li><a href="/output/pjax/demo/server/">page1 enable</a></li>
+<li><a href="/output/pjax/demo/server/2.html">page2 enable</a></li>
+<li><a href="/output/pjax/demo/server/3.html">page3 enable</a></li>
+</ul>
+</div>
+</div>
+</body>
+</html>
 ```
 
 ```html
-&lt;title&gt;pjax demo&lt;/title&gt;
-&lt;div class="primary pjax"&gt;
-&lt;div class="layout"&gt;
-&lt;p&gt;primary3&lt;/p&gt;
-&lt;p&gt;pjax enable あアｱ亜&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="/output/pjax/demo/server/"&gt;page1 enable&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="/output/pjax/demo/server/2.html"&gt;page2 enable&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="/output/pjax/demo/server/3.html"&gt;page3 enable&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-&lt;/div&gt;
+<title>pjax demo</title>
+<div class="primary pjax">
+<div class="layout">
+<p>primary3</p>
+<p>pjax enable あアｱ亜</p>
+<ul>
+<li><a href="/output/pjax/demo/server/">page1 enable</a></li>
+<li><a href="/output/pjax/demo/server/2.html">page2 enable</a></li>
+<li><a href="/output/pjax/demo/server/3.html">page3 enable</a></li>
+</ul>
+</div>
+</div>
 ```
 
 pjaxによる通信とそれ以外の通信により返すレスポンス（HTML）の切り替えは、ページごとにPHPにより行う方法もありますが、ページが大量にある場合はWordpressのように差分データをデータベースで管理するとより簡便です。アクセスされるページのURLはmod_rewriteを使用すれることで`http://example/a/b/c/`→`http://example/?dir1=a&amp;dir2=b&amp;dir3=c`のようにクエリに変換することができます。この方法であればページファイルは`http://example/index.php`１つで済み、あとはGETクエリに応じたSQLクエリを生成しデータベースから必要なデータを持ってくるだけです。ただし、サーバーにpjax用の差分データを返させる（静的なページから動的なページと構成に変更する）場合は、大なり小なりサーバーの負荷が増加し従前より処理能力が低下する可能性があることに留意してください。
-###Wordpressへの導入
+
+##Wordpressへの導入
 Wordpressにも既存の設定を変更することなく簡単にpjaxを導入することができます。
 Wordpressの各種プラグインも概ね共存し併用することができます。
 <small>※Wordpressインストール直後、twentytwelveテーマを使用して確認。</small>
 <small>※プラグインはメジャーなものを2,30個インストールして確認、競合は1,2個ほど。</small>
 <small>※文字コードの差異は修正する必要があります。</small>
 <small>※本稼働中のWordpressサイトでの動作は未確認。現在動作および負荷検証用Wordpressサイトを制作中。</small>
-####初期テーマ（twentytwelve）への導入例
+
+###初期テーマ（twentytwelve）への導入例
 <ol>
-	<li>WordpressにjQueryとpjaxプラグインをアップロードしてください。ここでは`/lib/`ディレクトリにアップロードしたものとします。</li>
-	<li>テキストエディタで`initialize.js`ファイルを作成し、次のように記述したのちUTF-8で保存し先ほどと同じディレクトリにアップロードします。`http://host/`の部分はサイトにあわせて変更してください。
+  <li>WordpressにjQueryとpjaxプラグインをアップロードしてください。ここでは`/lib/`ディレクトリにアップロードしたものとします。</li>
+  <li>テキストエディタで`initialize.js`ファイルを作成し、次のように記述したのちUTF-8で保存し先ほどと同じディレクトリにアップロードします。`http://host/`の部分はサイトにあわせて変更してください。
 
 ```javascript
 $(function(){
@@ -769,28 +837,33 @@ load: { css : true , script : true , sync : true , async : 0 }
 });
 ```
 
-	</li>
-	<li>
-		テーマ編集画面を開き、`header.php`の`&lt;/head&gt;`タグの直前に次のようにコードを追加してアップロードしたファイルを読み込ませてください。jQueryは外部のサイトから読み込ませてもかまいません。
+  </li>
+  <li>
+    テーマ編集画面を開き、`header.php`の`</head>`タグの直前に次のようにコードを追加してアップロードしたファイルを読み込ませてください。jQueryは外部のサイトから読み込ませてもかまいません。
 
 ```html
-&lt;script type="text/javascript" charset="utf-8" src="/lib/jquery-1.7.2.min.js"&gt;&lt;/script&gt;
-&lt;script type="text/javascript" charset="utf-8" src="/lib/jquery.pjax.min.js"&gt;&lt;/script&gt;
-&lt;script type="text/javascript" charset="utf-8" src="/lib/initialize.js"&gt;&lt;/script&gt;
-&lt;/head&gt;
+<script type="text/javascript" charset="utf-8" src="/lib/jquery-1.7.2.min.js"></script>
+<script type="text/javascript" charset="utf-8" src="/lib/jquery.pjax.min.js"></script>
+<script type="text/javascript" charset="utf-8" src="/lib/initialize.js"></script>
+</head>
 ```
 
-	</li>
+  </li>
 </ol>
 以上で終わりです。`header.php`の編集を保存したらpjaxが動作しているはずです。
-####競合により不具合が発生するWordpressプラグインへの対応
+
+###競合により不具合が発生するWordpressプラグインへの対応
 JavaScriptを使用しているWordpressプラグインで不具合が発生する場合があります。基本的にはpjaxのscope機能によりpjaxを使用するページの範囲を制限し競合するWordpressプラグインとpjaxの動作ページを分離する方法での解決を推奨しますが、JavaScriptの実行タイミングを調整することで競合を解消し共存させられる可能性もあります。不具合が発生する主な状況と対応は以下のとおりです。
-#####WordpressプラグインのJavaScriptの想定外のページでの使用
+
+####WordpressプラグインのJavaScriptの想定外のページでの使用
 pjaxではJavaScriptの実行状態がページ移動後も維持されるため、ページ移動により変更されたDOMの差異からエラーが発生する可能性があります。ページ移動時に当該JavaScriptを終了ないし停止させ、適宜再開させることができれば回避が可能です。終了ないし停止ができない場合はあとはWordpressプラグインのJavaScriptの例外処理の問題であるためWordpressプラグインの修正以外による同一ページ内での共存は困難です。
-#####WordpressプラグインのJavaScriptを使用するページへの再アクセス
+
+####WordpressプラグインのJavaScriptを使用するページへの再アクセス
 pjaxは移動先のページのJavaScriptが読み込み済みであり、コードが外部ファイルに記述されている場合はこれを読み込まず、同一ページに埋め込まれている場合は再度読み込み実行します。このため、併用するJavaScriptによっては正常に動作させるために適宜再実行により実行状態をリセットするか、または読み込ませずリセットさせない処理を追加する必要があります。
-##注意点
-###リンクパスの記述
+
+#注意点
+
+##リンクパスの記述
 pjaxを使用したサイトでは相対パスはルートパスで書くのが基本です。ルートパス以外の相対パスで書いた場合、リンクが意図しないURLを示すことがあるため内部リンクの相対パスは必ずルートパスで書いてください。
 
 ```html
@@ -811,16 +884,18 @@ NG
 フォームによるデータの送受信はpjaxではなく通常のページ遷移またはajaxによる入力情報の送信とページ内容の書き換えにより行うことを推奨します。
 
 ```html
-&lt;div class="primary pjax"&gt;
+<div class="primary pjax">
 ↓
-&lt;div class="primary"&gt;
+<div class="primary">
 ```
 
 なお、検索フォームのようなGET送信フォームで使用する分には問題ありません。
-##補足
+
+#補足
 ドキュメント内の用語の用法にはあまり自信がありません。間違いやバグに気づかれた方は<a href="/service/board/">掲示板</a>または<a href="/service/contact/">連絡フォーム</a>からご連絡ください。
 pjaxの実用的な使用方法についての雑考を書いてみました。<a href="http://d.hatena.ne.jp/fatwebstudy/20131015/1381780122" target="_blank">pjaxの実用性</a>
-##ライセンス - MIT License
+
+#ライセンス - MIT License
 以下に定める条件に従い、本ソフトウェアおよび関連文書のファイル（以下「ソフトウェア」）の複製を取得するすべての人に対し、ソフトウェアを無制限に扱うことを無償で許可します。これには、ソフトウェアの複製を使用、複写、変更、結合、掲載、頒布、サブライセンス、および/または販売する権利、およびソフトウェアを提供する相手に同じことを許可する権利も無制限に含まれます。
 上記の著作権表示および本許諾表示を、ソフトウェアのすべての複製または重要な部分に記載するものとします。
 ソフトウェアは「現状のまま」で、明示であるか暗黙であるかを問わず、何らの保証もなく提供されます。ここでいう保証とは、商品性、特定の目的への適合性、および権利非侵害についての保証も含みますが、それに限定されるものではありません。 作者または著作権者は、契約行為、不法行為、またはそれ以外であろうと、ソフトウェアに起因または関連し、あるいはソフトウェアの使用またはその他の扱いによって生じる一切の請求、損害、その他の義務について何らの責任も負わないものとします。
