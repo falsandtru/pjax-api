@@ -37,8 +37,8 @@ pjaxはデータの読み込みと描画の冗長部分を省略することで�
 + サーバーからの差分データによるページ更新
 + キャッシュによるページ更新
 + ローディングエフェクトの表示
-+ <a href="http://sa-kusaku.sakura.ne.jp/output/spage/">spage</a>とのキャッシュの共有
-+ <a href="http://sa-kusaku.sakura.ne.jp/output/validator/">validator</a>によるユーザー環境下でのエラー検出
++ spage(http://sa-kusaku.sakura.ne.jp/output/spage/)とのキャッシュの共有
++ validator(http://sa-kusaku.sakura.ne.jp/output/validator/)によるユーザー環境下でのエラー検出
 
 ##pjaxの問題への対応
 pushStateないしreplaceStateとajaxを組み合わせたいわゆるpjaxと呼ばれる機能には下記のような問題が存在しています。当pjaxプラグインはこれらを解消するための処理を組み込み済みです。
@@ -77,7 +77,7 @@ defunkt版（v1.7.0/2013年6月現在最新版）との主な違いは次のと�
 |ユーザー定義関数の実行形式|イベント|コールバック＋イベント|
 |ユーザー定義関数の設定箇所|9|29+3|
 |部分的更新キャンセル<small>※6</small>|×|○|
-|比較用デモ<small>※7</small>|<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/defunkt/" target="_blank">defunkt</a>|<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/falsandtru/" target="_blank">falsandtru</a>|
+|比較用デモ<small>※7</small>|defunkt<br>http://sa-kusaku.sakura.ne.jp/output/pjax/demo/defunkt/|falsandtru<br>http://sa-kusaku.sakura.ne.jp/output/pjax/demo/falsandtru/|
 
 <small>※1 AndroidとiOSではページ移動時にjQueryの`scrollTop`メソッドでスクロール位置を操作できず、当プラグインではjQueryMobileと同じく`scrollTo`メソッドを使用することでこの問題を解決しています。**defunkt版では`scrollTop`メソッドを使用しているためAndroidとiOSでスクロール位置を操作できません**。</small>  
 <small>※2 リンク先がJavaScriptなどHTMLページ以外を参照していた場合にContent-Typeを参照してページ移動方法を自動的にpjaxから通常のものに切り替えます。defunkt版ではこの機能がないためJavaScriptなど誤作動を起こすリンクでpjaxが動作しないよう`"a:not([href$='.js'])"`のようにリンクの絞込みを行う必要があります。</small>  
