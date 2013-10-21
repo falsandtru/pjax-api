@@ -3,16 +3,6 @@ pjaxはデータの読み込みと描画の冗長部分を省略することで�
 
 また、キャッシュ機能によりサーバーへのアクセスと負荷を軽減することで、高性能なサーバーでなくとも多くのPVアクセスを処理することが可能になります。
 
-##最新版のダウンロード
-プラグインの最新版をGitHubで公開しています。ダウンロードはこちらから。
-
-**GitHub**:<a href="https://github.com/falsandtru/jquery.pjax.js" target="_blank">https://github.com/falsandtru/jquery.pjax.js</a>  
-**ファイル**:<a href="https://raw.github.com/falsandtru/jquery.pjax.js/master/jquery.pjax.js" target="_blank">https://raw.github.com/falsandtru/jquery.pjax.js/master/jquery.pjax.js</a>  
-**圧縮版**:<a href="https://raw.github.com/falsandtru/jquery.pjax.js/master/jquery.pjax.min.js" target="_blank">https://raw.github.com/falsandtru/jquery.pjax.js/master/jquery.pjax.min.js</a>
-
-###更新情報
-大幅な機能追加を矢継ぎ早に行ったため環境によってはエラーが発生する可能性があります。バグがありましたら<a href="/service/board/">掲示板</a>または<a href="/service/contact/">連絡フォーム</a>からご連絡ください。
-
 ##概要
 サイト内のページ移動において指定したHTML要素（異なるコンテンツを持つ範囲）のみ更新することでページ移動を高速化します。
 たとえば、このサイトのpjaxによるトップページへのページ移動時間は、ajaxによりサーバーからデータを取得した場合でも最短で100-200ミリ秒しかかかりませんが、pjaxのキャッシュ機能を有効にした場合のページ移動時間はわずか**20-30ミリ秒（0.02-0.03秒）**です。
@@ -59,8 +49,8 @@ pushStateないしreplaceStateとajaxを組み合わせたいわゆるpjaxと呼
 |間違った履歴の修復<small>※2</small>|○|
 |スクロール位置の復元<small>※3</small>|○|
 
-<small>※1 **AndroidとiOSでは`location`オブジェクトが`pushState`を使用しても更新されず、ブラウザのアドレスバーに表示されるURLと`location.href`により取得するURLが一致しない**バグが報告されています。defunkt版でもアドレスバーのURLと`location.href`が別のページを指しています。この問題は下の比較用デモで確認できます。当プラグインではこの問題を独自の方法で解決しています。この問題が解決されていなかった場合、ページのURLを参照するすべてのスクリプトが正常に動作できなくなり致命的なバグが発生する可能性があるため十分注意してください。Google Analytics などは間違ったアクセスログを生成することになります。</small>
-<small>※2 **pjaxにはajax通信が強制終了されたページのタイトルが直近の正常に表示されたページのタイトルで上書きされ、間違った履歴が記録される**問題があります。この問題はpjaxにより2回以上ページ移動後、ページをリロードしブラウザの戻るボタンでページを読み込む時間を与えず2回以上ページを戻ることで確認できます。当プラグインではこの問題をブラウザに内蔵されているデータベースを利用することでほぼ解決しています（Firefoxでは何度も修復を繰り返すと修復されにくくなっていくような挙動をする問題がありますが通常の使用の範囲であれば正常に修復されると思われます）。</small>
+<small>※1 **AndroidとiOSでは`location`オブジェクトが`pushState`を使用しても更新されず、ブラウザのアドレスバーに表示されるURLと`location.href`により取得するURLが一致しない**バグが報告されています。defunkt版でもアドレスバーのURLと`location.href`が別のページを指しています。この問題は下の比較用デモで確認できます。当プラグインではこの問題を独自の方法で解決しています。この問題が解決されていなかった場合、ページのURLを参照するすべてのスクリプトが正常に動作できなくなり致命的なバグが発生する可能性があるため十分注意してください。Google Analytics などは間違ったアクセスログを生成することになります。</small>  
+<small>※2 **pjaxにはajax通信が強制終了されたページのタイトルが直近の正常に表示されたページのタイトルで上書きされ、間違った履歴が記録される**問題があります。この問題はpjaxにより2回以上ページ移動後、ページをリロードしブラウザの戻るボタンでページを読み込む時間を与えず2回以上ページを戻ることで確認できます。当プラグインではこの問題をブラウザに内蔵されているデータベースを利用することでほぼ解決しています（Firefoxでは何度も修復を繰り返すと修復されにくくなっていくような挙動をする問題がありますが通常の使用の範囲であれば正常に修復されると思われます）。</small>  
 <small>※3 **pjaxにはブラウザの戻る/進む機能によりページを移動した場合に移動先ページの直前のスクロール位置が復元されないことがある**問題があります。この問題はたとえば3000pxスクロールしているページから高さが1000pxのページに移動して前のページに戻ると1000px付近までしかスクロールされないといった形で確認できます。当プラグインではこの問題をブラウザに内蔵されているデータベースを利用することでほぼ解決しています（Firefoxでは何度も補正を繰り返すと補正されにくくなっていくような挙動をする問題がありますが通常の使用の範囲であれば正常に補正されると思われます）。</small>
 
 #defunkt版との比較
@@ -70,10 +60,10 @@ defunkt版（v1.7.0/2013年6月現在最新版）との主な違いは次のと�
 |項目|defunkt版|falsandtru版|
 |:---|:-------:|:----------:|
 |jQueryバージョン対応|1.8.x|1.4.2|
-|Android・iOSへの対応<br><small>locationオブジェクトの更新</small>|<span class="red bold">×</span>|○|
+|Android・iOSへの対応<br><small>locationオブジェクトの更新</small>|**<span style="color:#f00;">×</span>**|○|
 |Android・iOSへの対応<br><small>スクロール位置の操作※1</small>|×|○|
-|間違った履歴の修復|<span class="red bold">×</span>|○|
-|スクロール位置の復元|<span class="red bold">×</span>|○|
+|間違った履歴の修復|**<span style="color:#f00;">×</span>**|○|
+|スクロール位置の復元|**<span style="color:#f00;">×</span>**|○|
 |ページ移動方法の自動切替<br><small>HTML以外のコンテンツへのアクセス※2</small>|×|○|
 |JavaScriptの実行順序維持<small>※3</small>|×|○|
 |JavaScriptの読み込み<br><small>埋め込み型</small>|×|○|
@@ -89,13 +79,13 @@ defunkt版（v1.7.0/2013年6月現在最新版）との主な違いは次のと�
 |部分的更新キャンセル<small>※6</small>|×|○|
 |比較用デモ<small>※7</small>|<a href="/output/pjax/demo/defunkt/" target="_blank">defunkt</a>|<a href="/output/pjax/demo/falsandtru/" target="_blank">falsandtru</a>|
 
-<small>※1 AndroidとiOSではページ移動時にjQueryの`scrollTop`メソッドでスクロール位置を操作できず、当プラグインではjQueryMobileと同じく`scrollTo`メソッドを使用することでこの問題を解決しています。**defunkt版では`scrollTop`メソッドを使用しているためAndroidとiOSでスクロール位置を操作できません**。</small>
-<small>※2 リンク先がJavaScriptなどHTMLページ以外を参照していた場合にContent-Typeを参照してページ移動方法を自動的にpjaxから通常のものに切り替えます。defunkt版ではこの機能がないためJavaScriptなど誤作動を起こすリンクでpjaxが動作しないよう`"a:not([href$='.js'])"`のようにリンクの絞込みを行う必要があります。</small>
+<small>※1 AndroidとiOSではページ移動時にjQueryの`scrollTop`メソッドでスクロール位置を操作できず、当プラグインではjQueryMobileと同じく`scrollTo`メソッドを使用することでこの問題を解決しています。**defunkt版では`scrollTop`メソッドを使用しているためAndroidとiOSでスクロール位置を操作できません**。</small>  
+<small>※2 リンク先がJavaScriptなどHTMLページ以外を参照していた場合にContent-Typeを参照してページ移動方法を自動的にpjaxから通常のものに切り替えます。defunkt版ではこの機能がないためJavaScriptなど誤作動を起こすリンクでpjaxが動作しないよう`"a:not([href$='.js'])"`のようにリンクの絞込みを行う必要があります。</small>  
 <small>※3 defunkt版のDOMオブジェクトの生成によるJavaScriptの動的読み込みはオライリーの｢続・ハイパフォーマンスWebサイト｣で実行順序が維持されない読込方法に分類されています。</small>
-<small>※4 キャッシュの無効化、有効期限の設定など。</small>
-<small>※5 defunkt版はキャッシュをページ離脱時に作成するためフォームの入力状態などページ(DOM)の状態を保持しますが、ページをリロードしなければページを初期状態に戻すことはできません。なお、入力状態などを保持する目的であればpjaxを使用せず通常のページ移動を行うかサーバー側で状態を保存するべきです。</small>
-<small>※6 タイトルやURLなどの更新を個別にキャンセルできます。コールバック関数を非同期に実行している場合はキャンセルできません。</small>
-<small>※7 defunkt版は非対応の複数領域の更新を無理やりさせようとしているため更新部分の表示がバグってます。</small>
+<small>※4 キャッシュの無効化、有効期限の設定など。</small>  
+<small>※5 defunkt版はキャッシュをページ離脱時に作成するためフォームの入力状態などページ(DOM)の状態を保持しますが、ページをリロードしなければページを初期状態に戻すことはできません。なお、入力状態などを保持する目的であればpjaxを使用せず通常のページ移動を行うかサーバー側で状態を保存するべきです。</small>  
+<small>※6 タイトルやURLなどの更新を個別にキャンセルできます。コールバック関数を非同期に実行している場合はキャンセルできません。</small>  
+<small>※7 defunkt版は非対応の複数領域の更新を無理やりさせようとしているため更新部分の表示がバグってます。</small>  
 <small>※ 記述に間違いがありましたら<a href="/service/board/">掲示板</a>または<a href="/service/contact/">連絡フォーム</a>からご連絡ください。</small>
 
 ##使用法
@@ -152,10 +142,14 @@ pjaxによりページ移動を行うフォーム（フォームタグ）をjQue
 
 ####*scope: Scope as object*
 pjaxによりページ移動を行う（pjaxを適用する）ページの範囲をURL（ルートパス）で設定します。範囲をディレクトリで設定した場合はサブディレクトリも範囲に含まれます。設定はサブディレクトリで上書きできます。初期値は`null`で無効です。
+
 pjaxによるページ移動を`http://example.com/pjax/`ディレクトリ内でのみ有効にする場合は`{'/pjax/': ['/pjax/']}`とします。
+
 先頭に`^`を付加することで否定表現となり、サブディレクトリ（`http://example.com/pjax/except/`）でpjaxを無効にする場合は`{'/pjax/': ['/pjax/', '^/pjax/except/'], '/pjax/except/': false}`とします。無効を指定する値には偽と評価される値と空配列が使用できます。`http://example.com/a/`から`http://example.com/b/`への移動のみ有効にする場合は`{'/a/': ['/b/']}`と、双方向で有効にする場合は`{'/a/': ['/a/', '/b/'], '/b/': ['/a/', '/b/']}`とします。
 先頭に`*`を付加することで正規表現となり、`{'/a/': ['/a/', '/b/'], '/b/': ['/a/', '/b/']}`は`{'/a/': ['*/[ab]/'], '/b/': ['*/[ab]/']}`と同義です。
+
 `'rewrite'`を配列に加えるとscope.rewriteに定義した関数によりハッシュテーブルでキーとして使用される文字列を一度だけ書き換えることができます。
+
 `'inherit'`を配列に加えると直近の適用条件に一致するものがなかった場合に一階層上の条件を継承します。ディレクトリ上で複数階層開きがあっても継承されます。
 
 ####*state: any / function( event, url )*
@@ -183,16 +177,21 @@ pjaxで内部的に使用される`$.ajax`のオプションを設定します�
 移動先として読み込むデータで許容するコンテントタイプをカンマまたはセミコロン区切りの文字列で設定します。初期値は`text/html`です。
 
 ###*load: node*
-pjaxによるページ読み込み時のCSSとJavaScriptを読み込みにかかる設定項目を持ちます。`load.css`と`load.script`を有効にすることで、ページ別にCSSやJavaScriptが存在するサイトでも配置や構成を変えることなくpjaxを導入することができます。
+pjaxによるページ読み込み時のCSSとJavaScriptを読み込みにかかる設定項目を持ちます。
+`load.css`と`load.script`を有効にすることで、ページ別にCSSやJavaScriptが存在するサイトでも配置や構成を変えることなくpjaxを導入することができます。
 
 ###*load.css: boolean*
 pjaxによるページ読み込み時にCSSを読み込むかを設定します。初期値は`false`で読み込みません。
+
 読み込まれるページの、現在のページに存在しないすべてのCSS（`link rel="stylesheet"`要素および`style`要素）を読み込みます。読み込まれるページに存在しないCSSは削除されます。読み込まれたCSSはすべてDOMの`head`要素末尾のノードとして追加されます。
 
 ###*load.script: boolean*
 pjaxによるページ読み込み時にJavaScriptを読み込むかを設定します。初期値は`false`で読み込みません。
+
 読み込まれるページの、現在のページに存在しないすべてのJavaScript（`script`要素）を読み込みます。外部ファイル以外の形式のJavaScriptは同一の内容であっても再度読み込まれます。jQueryの仕様により、JavaScriptは読み込まれていてもDOMに追加されません。
+
 pjaxによるJavaScriptの実行順序は、HTML上の記述順序（通常の読み込み順序）と同じであることが保障されません。外部ファイル形式のJavaScriptと埋め込み形式のJavaScriptでは実行タイミングが異なるため、同一形式間内での実行順序は保たれますが、異なる形式間での実行順序は保たれません。また、埋め込み形式のJavaScriptの実行はすべての外部ファイル形式のJavaScriptの実行を待ってから行われます。このため、外部ファイル形式のJavaScriptが実行される前に埋め込み形式のJavaScriptがすでに実行されていなければならないような設計は避ける必要があります。
+
 ページの表示直後にすべて実行されている必要のないJavaScriptは、ページ読み込み時に一括で実行せず<a href="/output/displaytrigger/">displaytrigger</a>により随時実行することで負荷を削減することを推奨します。ページの表示直後にすべて読み込まれている必要のないコンテンツについても同様です。
 
 ###*load.execute: boolean*
@@ -200,6 +199,7 @@ JavaScriptの読み込みが有効になっている場合に埋め込み型のJ
 
 ###*load.sync: boolean*
 `defer`属性を持つJavaScript（`script`要素）の非同期読み込みを、pjaxによるコンテンツの更新の描画を待ってから行います。初期値は`true`で有効です。
+
 `load.sync`による同期（的）処理は、JavaScriptの読み込み処理を同期的に開始できるように実行タイミングを調整して行うものであり、pjaxによるCSSとJavaScriptの読み込み処理自体は`load.sync``load.async`の設定にかかわらずすべて非同期で行われます。
 
 ###*load.async: Millisecond as number*
@@ -209,7 +209,8 @@ CSSとJavaScript（`script`要素）の非同期読み込みをpjaxによるコ�
 pjaxにより更新されたコンテンツの描画の確認を行う間隔をミリ秒で設定します。初期値は`300`です。
 
 ###*cache: node*
-pjaxによるページ読み込み時のキャッシュの使用にかかる設定項目を持ちます。独自に作成したキャッシュを使用することでサーバーと通信を行わずにページを移動することができるため、サーバーへのアクセスと負荷を軽減することができます。また、サーバーへのリクエスト時にキャッシュが使用されることはないため、リロードによる最新のデータへのアクセスを妨げません。ページに期限が設定されキャッシュされるよう設定されている場合はブラウザのキャッシュ機能が使用できるためpjaxのキャッシュ機能は無効にすることを推奨します。キャッシュはページを閉じるか通常のページ移動などによりJavaScriptの実行状態がリセットされるまで保持されます。初期設定では無効です。
+pjaxによるページ読み込み時のキャッシュの使用にかかる設定項目を持ちます。
+独自に作成したキャッシュを使用することでサーバーと通信を行わずにページを移動することができるため、サーバーへのアクセスと負荷を軽減することができます。また、サーバーへのリクエスト時にキャッシュが使用されることはないため、リロードによる最新のデータへのアクセスを妨げません。ページに期限が設定されキャッシュされるよう設定されている場合はブラウザのキャッシュ機能が使用できるためpjaxのキャッシュ機能は無効にすることを推奨します。キャッシュはページを閉じるか通常のページ移動などによりJavaScriptの実行状態がリセットされるまで保持されます。初期設定では無効です。
 
 ###*cache.click: boolean*
 リンクのクリックによるページ移動にキャッシュを使用するかを設定します。初期値は`false`で無効です。
@@ -273,66 +274,66 @@ pjaxによるサーバーへリクエストではページのURLにpjaxによる
 `ajax`を除くすべてのコールバック関数は戻り値に`false`を設定することで現在の処理を抜けることができます。`before`では以降の処理をすべてキャンセルします。このときフォールバック処理は`fallback`の設定にかかわらず行われません。`update.any.before``update.any.after`ではページ更新処理のうちanyの示す部分の更新処理をキャンセルないし抜けます。ページ移動でエラーが発生した際に`update.error``update.complete`で処理を抜けるとフォールバック処理が`fallback`の設定にかかわらず行われません。
 使用できる`callbacks`のプロパティと渡されるパラメータ、実行タイミングは次のとおりです。
 
-async
-: コールバック関数の実行を非同期にするかを設定します。初期値は`false`で無効です。
-before( event, parameter )
-: コード上の実行順序において最初に実行されます。
-after( event, parameter )
-: コード上の実行順序において最後に実行されます。
-ajax.xhr( event, parameter )
-: ajax通信において同名のメソッド内で実行されます。
-ajax.beforeSend( event, parameter, data, dataType )
-: 〃
-ajax.dataFilter( event, parameter, data, dataType )
-: 〃
-ajax.success( event, parameter, data, dataType, XMLHttpRequest )
-: 〃
-ajax.error( event, parameter, XMLHttpRequest, textStatus, errorThrown )
-: 〃
-ajax.complete( event, parameter, XMLHttpRequest, textStatus )
-: 〃
-update.before( event, parameter, data, dataType, XMLHttpRequest )
-: ページの更新処理において最初に実行されます。
-update.after( event, parameter, data, dataType, XMLHttpRequest )
-: ページの更新処理において最後に実行されます。
-update.cache.load.before( event, parameter, cache )
-: ページの更新処理においてcacheの読み込み前に実行されます。
-update.cache.load.after( event, parameter, cache )
-: ページの更新処理においてcacheの読み込み後に実行されます。
-update.title.before( event, parameter, data, dataType, XMLHttpRequest )
-: ページの更新処理においてタイトルの更新前に実行されます。
-update.title.after( event, parameter, data, dataType, XMLHttpRequest )
-: ページの更新処理においてタイトルの更新後に実行されます。
-update.content.before( event, parameter, data, dataType, XMLHttpRequest )
-: ページの更新処理においてコンテンツの更新前に実行されます。
-update.content.after( event, parameter, data, dataType, XMLHttpRequest )
-: ページの更新処理においてコンテンツの更新後に実行されます。
-update.css.before( event, parameter, data, dataType, XMLHttpRequest )
-: ページの更新処理においてCSSの読み込み前に実行されます。
-update.css.after( event, parameter, data, dataType, XMLHttpRequest )
-: ページの更新処理においてCSSの読み込み後に実行されます。
-update.script.before( event, parameter, data, dataType, XMLHttpRequest )
-: ページの更新処理においてJavaScriptの読み込み前に実行されます。
-update.script.after( event, parameter, data, dataType, XMLHttpRequest )
-: ページの更新処理においてJavaScriptの読み込み後に実行されます。
-update.rendering.before( event, parameter )
-: ページの更新処理において更新の反映を契機とする内部イベント処理の実行前に実行されます。
-update.rendering.after( event, parameter )
-: ページの更新処理において更新の反映を契機とする内部イベント処理の実行後に実行されます。
-update.cache.save.before( event, parameter, cache )
-: ページの更新処理においてcacheの作成前に実行されます。
-update.cache.save.after( event, parameter, cache )
-: ページの更新処理においてcacheの作成後に実行されます。
-update.verify.before( event, parameter )
-: ページの更新処理において更新結果の検証前に実行されます。
-update.verify.after( event, parameter )
-: ページの更新処理において更新結果の検証後に実行されます。
-update.success( event, parameter, data, dataType, XMLHttpRequest )
-: ページの更新処理が成功したときに実行されます。
-update.error( event, parameter, data, dataType, XMLHttpRequest )
-: ページの更新処理が失敗したときに実行されます。
-update.complete( event, parameter, data, dataType, XMLHttpRequest )
-: ページの更新処理が完了したときに実行されます。
+####async
+コールバック関数の実行を非同期にするかを設定します。初期値は`false`で無効です。
+####before( event, parameter )
+コード上の実行順序において最初に実行されます。
+####after( event, parameter )
+コード上の実行順序において最後に実行されます。
+####ajax.xhr( event, parameter )
+ajax通信において同名のメソッド内で実行されます。
+####ajax.beforeSend( event, parameter, data, dataType )
+〃
+####ajax.dataFilter( event, parameter, data, dataType )
+〃
+####ajax.success( event, parameter, data, dataType, XMLHttpRequest )
+〃
+####ajax.error( event, parameter, XMLHttpRequest, textStatus, errorThrown )
+〃
+####ajax.complete( event, parameter, XMLHttpRequest, textStatus )
+〃
+####update.before( event, parameter, data, dataType, XMLHttpRequest )
+ページの更新処理において最初に実行されます。
+####update.after( event, parameter, data, dataType, XMLHttpRequest )
+ページの更新処理において最後に実行されます。
+####update.cache.load.before( event, parameter, cache )
+ページの更新処理においてcacheの読み込み前に実行されます。
+####update.cache.load.after( event, parameter, cache )
+ページの更新処理においてcacheの読み込み後に実行されます。
+####update.title.before( event, parameter, data, dataType, XMLHttpRequest )
+ページの更新処理においてタイトルの更新前に実行されます。
+####update.title.after( event, parameter, data, dataType, XMLHttpRequest )
+ページの更新処理においてタイトルの更新後に実行されます。
+####update.content.before( event, parameter, data, dataType, XMLHttpRequest )
+ページの更新処理においてコンテンツの更新前に実行されます。
+####update.content.after( event, parameter, data, dataType, XMLHttpRequest )
+ページの更新処理においてコンテンツの更新後に実行されます。
+####update.css.before( event, parameter, data, dataType, XMLHttpRequest )
+ページの更新処理においてCSSの読み込み前に実行されます。
+####update.css.after( event, parameter, data, dataType, XMLHttpRequest )
+ページの更新処理においてCSSの読み込み後に実行されます。
+####update.script.before( event, parameter, data, dataType, XMLHttpRequest )
+ページの更新処理においてJavaScriptの読み込み前に実行されます。
+####update.script.after( event, parameter, data, dataType, XMLHttpRequest )
+ページの更新処理においてJavaScriptの読み込み後に実行されます。
+####update.rendering.before( event, parameter )
+ページの更新処理において更新の反映を契機とする内部イベント処理の実行前に実行されます。
+####update.rendering.after( event, parameter )
+ページの更新処理において更新の反映を契機とする内部イベント処理の実行後に実行されます。
+####update.cache.save.before( event, parameter, cache )
+ページの更新処理においてcacheの作成前に実行されます。
+####update.cache.save.after( event, parameter, cache )
+ページの更新処理においてcacheの作成後に実行されます。
+####update.verify.before( event, parameter )
+ページの更新処理において更新結果の検証前に実行されます。
+####update.verify.after( event, parameter )
+ページの更新処理において更新結果の検証後に実行されます。
+####update.success( event, parameter, data, dataType, XMLHttpRequest )
+ページの更新処理が成功したときに実行されます。
+####update.error( event, parameter, data, dataType, XMLHttpRequest )
+ページの更新処理が失敗したときに実行されます。
+####update.complete( event, parameter, data, dataType, XMLHttpRequest )
+ページの更新処理が完了したときに実行されます。
 
 ##Method
 
