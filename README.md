@@ -165,10 +165,10 @@ pjaxによるページ移動を`http://example.com/pjax/`ディレクトリ内�
 スクロール位置の復元のためのスクロール位置の記録間隔にかかる設定項目を持ちます。
 
 #####*scroll.delay: Millisecond as number*
-スクロール位置の記録処理がスクロールイベント発生後実行されるまでの待機時間をミリ秒で設定します。待機時間が経過する前に新たなスクロールが行われた場合は前回までのスクロールによる待機中の処理の実行はキャンセルされます。初期値は`500`です。パラメータの詳細な仕様は<a href="http://sa-kusaku.sakura.ne.jp/output/displaytrigger/" target="_blank">displaytrigger</a>の同名のパラメータを確認してください。
+スクロール位置の記録処理がスクロールイベント発生後実行されるまでの待機時間をミリ秒で設定します。待機時間が経過する前に新たなスクロールが行われた場合は前回までのスクロールによる待機中の処理の実行はキャンセルされます。初期値は`500`です。パラメータの詳細な仕様は<a href="https://github.com/falsandtru/jquery.displaytrigger.js" target="_blank">displaytrigger</a>の同名のパラメータを確認してください。
 
 #####*scroll.suspend: Millisecond as number*
-スクロールイベントの発生後、スクロールイベントの発生を抑制する時間をミリ秒で設定します。設定値を0にするとイベントが抑制されません。初期値は`-100`です。パラメータの詳細な仕様は<a href="http://sa-kusaku.sakura.ne.jp/output/displaytrigger/" target="_blank">displaytrigger</a>の同名のパラメータを確認してください。
+スクロールイベントの発生後、スクロールイベントの発生を抑制する時間をミリ秒で設定します。設定値を0にするとイベントが抑制されません。初期値は`-100`です。パラメータの詳細な仕様は<a href="https://github.com/falsandtru/jquery.displaytrigger.js" target="_blank">displaytrigger</a>の同名のパラメータを確認してください。
 
 ####*ajax: object*
 pjaxで内部的に使用される`$.ajax`のオプションを設定します。`$.ajax`のコールバック関数はすべて上書きされるため使用できません。代わりに`callbacks.ajax`で設定できるのでこちらを使用してください。
@@ -192,7 +192,7 @@ pjaxによるページ読み込み時にJavaScriptを読み込むかを設定し
 
 pjaxによるJavaScriptの実行順序は、HTML上の記述順序（通常の読み込み順序）と同じであることが保障されません。外部ファイル形式のJavaScriptと埋め込み形式のJavaScriptでは実行タイミングが異なるため、同一形式間内での実行順序は保たれますが、異なる形式間での実行順序は保たれません。また、埋め込み形式のJavaScriptの実行はすべての外部ファイル形式のJavaScriptの実行を待ってから行われます。このため、外部ファイル形式のJavaScriptが実行される前に埋め込み形式のJavaScriptがすでに実行されていなければならないような設計は避ける必要があります。
 
-ページの表示直後にすべて実行されている必要のないJavaScriptは、ページ読み込み時に一括で実行せず<a href="http://sa-kusaku.sakura.ne.jp/output/displaytrigger/" target="_blank">displaytrigger</a>により随時実行することで負荷を削減することを推奨します。ページの表示直後にすべて読み込まれている必要のないコンテンツについても同様です。
+ページの表示直後にすべて実行されている必要のないJavaScriptは、ページ読み込み時に一括で実行せず<a href="https://github.com/falsandtru/jquery.displaytrigger.js" target="_blank">displaytrigger</a>により随時実行することで負荷を削減することを推奨します。ページの表示直後にすべて読み込まれている必要のないコンテンツについても同様です。
 
 #####*load.execute: boolean*
 JavaScriptの読み込みが有効になっている場合に埋め込み型のJavaScriptを実行するかを設定します。初期値は`true`で有効です。
@@ -274,94 +274,94 @@ pjaxによるサーバーへリクエストではページのURLにpjaxによる
 `ajax`を除くすべてのコールバック関数は戻り値に`false`を設定することで現在の処理を抜けることができます。`before`では以降の処理をすべてキャンセルします。このときフォールバック処理は`fallback`の設定にかかわらず行われません。`update.any.before``update.any.after`ではページ更新処理のうちanyの示す部分の更新処理をキャンセルないし抜けます。ページ移動でエラーが発生した際に`update.error``update.complete`で処理を抜けるとフォールバック処理が`fallback`の設定にかかわらず行われません。
 使用できる`callbacks`のプロパティと渡されるパラメータ、実行タイミングは次のとおりです。
 
-#####async
+#####*async*
 コールバック関数の実行を非同期にするかを設定します。初期値は`false`で無効です。
 
-#####before( event, parameter )
+#####*before( event, parameter )*
 コード上の実行順序において最初に実行されます。
 
-#####after( event, parameter )
+#####*after( event, parameter )*
 コード上の実行順序において最後に実行されます。
 
-#####ajax.xhr( event, parameter )
+#####*ajax.xhr( event, parameter )*
 ajax通信において同名のメソッド内で実行されます。
 
-#####ajax.beforeSend( event, parameter, data, dataType )
+#####*ajax.beforeSend( event, parameter, data, dataType )*
 〃
 
-#####ajax.dataFilter( event, parameter, data, dataType )
+#####*ajax.dataFilter( event, parameter, data, dataType )*
 〃
 
-#####ajax.success( event, parameter, data, dataType, XMLHttpRequest )
+#####*ajax.success( event, parameter, data, dataType, XMLHttpRequest )*
 〃
 
-#####ajax.error( event, parameter, XMLHttpRequest, textStatus, errorThrown )
+#####*ajax.error( event, parameter, XMLHttpRequest, textStatus, errorThrown )*
 〃
 
-#####ajax.complete( event, parameter, XMLHttpRequest, textStatus )
+#####*ajax.complete( event, parameter, XMLHttpRequest, textStatus )*
 〃
 
-#####update.before( event, parameter, data, dataType, XMLHttpRequest )
+#####*update.before( event, parameter, data, dataType, XMLHttpRequest )*
 ページの更新処理において最初に実行されます。
 
-#####update.after( event, parameter, data, dataType, XMLHttpRequest )
+#####*update.after( event, parameter, data, dataType, XMLHttpRequest )*
 ページの更新処理において最後に実行されます。
 
-#####update.cache.load.before( event, parameter, cache )
+#####*update.cache.load.before( event, parameter, cache )*
 ページの更新処理においてcacheの読み込み前に実行されます。
 
-#####update.cache.load.after( event, parameter, cache )
+#####*update.cache.load.after( event, parameter, cache )*
 ページの更新処理においてcacheの読み込み後に実行されます。
 
-#####update.title.before( event, parameter, data, dataType, XMLHttpRequest )
+#####*update.title.before( event, parameter, data, dataType, XMLHttpRequest )*
 ページの更新処理においてタイトルの更新前に実行されます。
 
-#####update.title.after( event, parameter, data, dataType, XMLHttpRequest )
+#####*update.title.after( event, parameter, data, dataType, XMLHttpRequest )*
 ページの更新処理においてタイトルの更新後に実行されます。
 
-#####update.content.before( event, parameter, data, dataType, XMLHttpRequest )
+#####*update.content.before( event, parameter, data, dataType, XMLHttpRequest )*
 ページの更新処理においてコンテンツの更新前に実行されます。
 
-#####update.content.after( event, parameter, data, dataType, XMLHttpRequest )
+#####*update.content.after( event, parameter, data, dataType, XMLHttpRequest )*
 ページの更新処理においてコンテンツの更新後に実行されます。
 
-#####update.css.before( event, parameter, data, dataType, XMLHttpRequest )
+#####*update.css.before( event, parameter, data, dataType, XMLHttpRequest )*
 ページの更新処理においてCSSの読み込み前に実行されます。
 
-#####update.css.after( event, parameter, data, dataType, XMLHttpRequest )
+#####*update.css.after( event, parameter, data, dataType, XMLHttpRequest )*
 ページの更新処理においてCSSの読み込み後に実行されます。
 
-#####update.script.before( event, parameter, data, dataType, XMLHttpRequest )
+#####*update.script.before( event, parameter, data, dataType, XMLHttpRequest )*
 ページの更新処理においてJavaScriptの読み込み前に実行されます。
 
-#####update.script.after( event, parameter, data, dataType, XMLHttpRequest )
+#####*update.script.after( event, parameter, data, dataType, XMLHttpRequest )*
 ページの更新処理においてJavaScriptの読み込み後に実行されます。
 
-#####update.rendering.before( event, parameter )
+#####*update.rendering.before( event, parameter )*
 ページの更新処理において更新の反映を契機とする内部イベント処理の実行前に実行されます。
 
-#####update.rendering.after( event, parameter )
+#####*update.rendering.after( event, parameter )*
 ページの更新処理において更新の反映を契機とする内部イベント処理の実行後に実行されます。
 
-#####update.cache.save.before( event, parameter, cache )
+#####*update.cache.save.before( event, parameter, cache )*
 ページの更新処理においてcacheの作成前に実行されます。
 
-#####update.cache.save.after( event, parameter, cache )
+#####*update.cache.save.after( event, parameter, cache )*
 ページの更新処理においてcacheの作成後に実行されます。
 
-#####update.verify.before( event, parameter )
+#####*update.verify.before( event, parameter )*
 ページの更新処理において更新結果の検証前に実行されます。
 
-#####update.verify.after( event, parameter )
+#####*update.verify.after( event, parameter )*
 ページの更新処理において更新結果の検証後に実行されます。
 
-#####update.success( event, parameter, data, dataType, XMLHttpRequest )
+#####*update.success( event, parameter, data, dataType, XMLHttpRequest )*
 ページの更新処理が成功したときに実行されます。
 
-#####update.error( event, parameter, data, dataType, XMLHttpRequest )
+#####*update.error( event, parameter, data, dataType, XMLHttpRequest )*
 ページの更新処理が失敗したときに実行されます。
 
-#####update.complete( event, parameter, data, dataType, XMLHttpRequest )
+#####*update.complete( event, parameter, data, dataType, XMLHttpRequest )*
 ページの更新処理が完了したときに実行されます。
 
 ###Method
@@ -1195,7 +1195,7 @@ pjaxの実用的な使用方法についての雑考を書いてみました。<
 ###<a href="https://github.com/falsandtru/jquery.pjax.js">pjax</a>
 HTML5による高速なページ移動機能をウェブサイトに実装します。
 
-###<a href="http://sa-kusaku.sakura.ne.jp/output/displaytrigger/">displaytrigger</a>
+###<a href="https://github.com/falsandtru/jquery.displaytrigger.js">displaytrigger</a>
 スクロールにより特定のHTML要素が画面に表示されることを条件としてスクリプトを遅延実行させます。
 
 ###<a href="http://sa-kusaku.sakura.ne.jp/output/clientenv/">clientenv</a>
