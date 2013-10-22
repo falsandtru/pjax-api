@@ -717,6 +717,8 @@ pjaxで内部的に使用される`$.ajax`のオプションを設定できま�
 
 **`load.script`によりJavaScriptを有効にしている場合は移動先のページに埋め込まれているアクセス解析用のスクリプトが自動的に実行されますが、不要な部分まで実行されてしまうためアクセス解析用の記述を次のように置き換えることを推奨します。**
 
+####旧 Google Analytics
+
 ```javascript
   if (!window._gaq) {
     window._gaq = [];
@@ -730,6 +732,22 @@ pjaxで内部的に使用される`$.ajax`のオプションを設定できま�
     })();
   } else {
     window._gaq.push(['_trackPageview']);
+  };
+```
+
+####新 Google Analytics
+
+```javascript
+  if (!window.ga) {
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    
+    window.ga('create', 'UA-xxxxxxxx-x', 'hostname');
+    window.ga('send', 'pageview');
+  } else {
+    window.ga('send', 'pageview');
   };
 ```
 
