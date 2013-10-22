@@ -166,10 +166,10 @@ pjaxによるページ移動を`http://example.com/pjax/`ディレクトリ内�
 ####*scroll: node*
 スクロール位置の復元のためのスクロール位置の記録間隔にかかる設定項目を持ちます。
 
-#####*delay: Millisecond as number*
+#####*scroll.delay: Millisecond as number*
 スクロール位置の記録処理がスクロールイベント発生後実行されるまでの待機時間をミリ秒で設定します。待機時間が経過する前に新たなスクロールが行われた場合は前回までのスクロールによる待機中の処理の実行はキャンセルされます。初期値は`500`です。パラメータの詳細な仕様はdisplaytriggerの同名のパラメータを確認してください。
 
-#####*suspend: Millisecond as number*
+#####*scroll.suspend: Millisecond as number*
 スクロールイベントの発生後、スクロールイベントの発生を抑制する時間をミリ秒で設定します。設定値を0にするとイベントが抑制されません。初期値は`-100`です。パラメータの詳細な仕様はdisplaytriggerの同名のパラメータを確認してください。
 
 ###*ajax: object*
@@ -247,13 +247,13 @@ pjaxによるページ移動が失敗した場合の対応を行うかを設定�
 ###*fix: node*
 pjaxの諸問題の修正にかかる設定項目を持ちます。
 
-####*location: boolean*
+####*fix.location: boolean*
 `location`オブジェクトを更新するかを設定します。初期値は`true`で有効です。
 
-####*history: boolean*
+####*fix.history: boolean*
 履歴を修復するかを設定します。`database`パラメータによりデータベースの使用が許可されていなければなりません。初期値は`true`で有効です。
 
-####*scroll: boolean*
+####*fix.scroll: boolean*
 スクロール位置を復元するかを設定します。`database`パラメータによりデータベースの使用が許可されていなければなりません。初期値は`true`で有効です。
 
 ###*database: boolean*
@@ -366,7 +366,7 @@ pjaxによるページ遷移では通常のページ遷移で発生する`onload
 ##導入
 シンプルな実行例です。リンクをクリックするとPrimaryのみ更新されます。
 
-**demo**: http://sa-kusaku.sakura.ne.jp/output/pjax/demo/install/
+**<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/install/" target="_blank">demo</a>**
 
 ```javascript
 $.pjax({ area: 'div.pjax' });
@@ -444,7 +444,7 @@ $(function(){
 ###更新範囲 - area
 pjaxによる更新範囲を設定します。次のように複数の範囲を同時に更新することもできます。双方のページで更新範囲が一致していないか更新先のページに更新範囲がひとつもない場合はエラーとなり例外処理が実行されます。
 
-**demo**: http://sa-kusaku.sakura.ne.jp/output/pjax/demo/area/
+**<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/area/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({ area: 'div.primary.pjax, div.tertiary.pjax' });
@@ -453,7 +453,7 @@ pjaxによる更新範囲を設定します。次のように複数の範囲を�
 ###フォーム - form
 pjaxでフォームの送信によるページ遷移を行います。キャッシュ有効時は初期設定ではPOST送信結果もキャッシュされることに注意してください。
 
-**demo**: http://sa-kusaku.sakura.ne.jp/output/pjax/demo/form/
+**<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/form/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({ area: 'div.pjax', form: 'form.pjax' });
@@ -462,7 +462,7 @@ pjaxでフォームの送信によるページ遷移を行います。キャッ�
 ###リンク - $.fn.pjax, link
 pjaxによりページ移動を行うリンクを選択します。
 
-**demo**: http://sa-kusaku.sakura.ne.jp/output/pjax/demo/fn/
+**<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/fn/" target="_blank">demo</a>**
 
 ```javascript
   $('div.primary.pjax').pjax({
@@ -472,7 +472,7 @@ pjaxによりページ移動を行うリンクを選択します。
 
 `$.fn.pjax`のコンテキストにpjaxの`area`パラメータの子孫要素（pjaxによる更新範囲内）を設定することはできません。pjaxによりページ移動を行うリンクをpjaxによる更新範囲内にあるリンクから選択するには`link`パラメータを使用してください。
 
-**demo**: http://sa-kusaku.sakura.ne.jp/output/pjax/demo/link/
+**<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/link/" target="_blank">demo</a>**
 
 ```javascript
   // NG
@@ -562,7 +562,7 @@ pjaxによりページ移動を行う範囲を設定します。先頭に`^`で�
 + その他のページではpjaxを使用しない。
 
 
-**demo**: http://sa-kusaku.sakura.ne.jp/output/pjax/demo/scope/
+**<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/scope/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({
@@ -584,7 +584,7 @@ pjaxによりページ移動を行う範囲を設定します。先頭に`^`で�
 ###CSS自動読み込み - load.css
 pjaxによる移動先のページのCSSを自動的に読み込みます。移動先のページに存在しない現在のページのCSSは削除されます。
 
-**demo**: http://sa-kusaku.sakura.ne.jp/output/pjax/demo/css/
+**<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/css/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({
@@ -597,7 +597,7 @@ pjaxによる移動先のページのCSSを自動的に読み込みます。移�
 pjaxによる移動先のページのJavaScriptを自動的に読み込みます。
 同一の**外部ファイル**により記述されるJavaScriptは**重複して読み込まれません**が、**埋め込み**により記述される同一のJavaScriptは**重複して実行されます**。
 
-**demo**: http://sa-kusaku.sakura.ne.jp/output/pjax/demo/script/
+**<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/script/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({
@@ -611,7 +611,7 @@ pjaxによる移動先のページのJavaScriptを自動的に読み込みます
 ##代替処理 - fallback
 pjaxによるページ移動が失敗した場合に通常のページ移動を行います。初期値で有効になっているためこのための設定は不要です。
 
-**demo**: http://sa-kusaku.sakura.ne.jp/output/pjax/demo/fallback/
+**<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/fallback/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({ area: 'div.pjax' });
@@ -624,7 +624,7 @@ pjaxによるページ移動が失敗した場合に通常のページ移動を�
 ###スクロール位置 - scrollTop, scrollLeft
 pjaxによるページ移動後のスクロール位置を設定します。`null`を設定すると移動前のスクロール位置を維持します。
 
-**demo**: http://sa-kusaku.sakura.ne.jp/output/pjax/demo/scroll/
+**<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/scroll/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({ area: 'div.pjax', scrollTop: null, scrollLeft: 50 });
@@ -633,7 +633,7 @@ pjaxによるページ移動後のスクロール位置を設定します。`nul
 ###最低待ち時間 - wait
 `$.ajax`の実行からコンテンツの更新までの最低待ち時間を設定します。pjaxによるページ移動が速すぎる場合などに使用します。
 
-**demo**: http://sa-kusaku.sakura.ne.jp/output/pjax/demo/wait/
+**<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/wait/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({ area: 'div.pjax', wait: 1000 });
@@ -649,7 +649,7 @@ pjaxで内部的に使用される`$.ajax`のオプションを設定できま�
 ###コールバックとパラメータ - callback, callbacks, parameter
 コールバックに設定した関数を実行します。コールバック関数の第一引数はイベントオブジェクトが渡され、第二引数に設定したパラメータが渡され、以降は各もととなるコールバック関数に渡された引数を引き継ぎます。すべてのコールバック関数にはイベントの発生元のオブジェクトがコンテクストとして与えられます。例えば、`anchor`要素のクリックにより実行されるコールバックの`this`は`anchor`要素であり、コールバック関数内で`this.href`などが使用できます。
 
-**demo**: http://sa-kusaku.sakura.ne.jp/output/pjax/demo/callback/
+**<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/callback/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({
@@ -709,7 +709,7 @@ pjaxで内部的に使用される`$.ajax`のオプションを設定できま�
 ###ローディングエフェクト - callback, callbacks
 コールバックをカスタマイズすることでページ移動時にローディングエフェクトを表示させることができます。
 
-**demo**: http://sa-kusaku.sakura.ne.jp/output/pjax/demo/effect/
+**<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/effect/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({
@@ -790,7 +790,7 @@ pjaxで内部的に使用される`$.ajax`のオプションを設定できま�
 pjaxによる通信をサーバー側で識別し、pjax用の差分データを返させ、これを使用してページの更新（移動）を行います。データサイズを削減できるため、より少ない転送量と帯域で多くのアクセスを処理できます。
 pjaxは通信時にHTTPリクエストヘッダに`X-Pjax``X-Pjax-Area``X-Pjax-CSS``X-Pjax-Script`のフィールドと値を追加します。また、リクエストするURLに`?pjax=1`のようにクエリを追加します。サーバーはこれによりpjaxの使用の有無と必要なデータを知ることができます。なお、レスポンスヘッダの`Content-Type`に必ず`contentType`パラメータで設定したいずれかの値が含まれている必要があります。
 
-**demo**: http://sa-kusaku.sakura.ne.jp/output/pjax/demo/server/ <small>※これは移動先のページを差分データに置き換えた擬似的なデモです。</small>
+**<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/server/" target="_blank">demo</a>** <small>※これは移動先のページを差分データに置き換えた擬似的なデモです。</small>
 
 ```javascript
   $.pjax({ area: 'div.pjax' });
