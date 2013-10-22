@@ -37,8 +37,8 @@ pjaxはデータの読み込みと描画の冗長部分を省略することで�
 + サーバーからの差分データによるページ更新
 + キャッシュによるページ更新
 + ローディングエフェクトの表示
-+ spage( http://sa-kusaku.sakura.ne.jp/output/spage/ )とのキャッシュの共有
-+ validator( http://sa-kusaku.sakura.ne.jp/output/validator/ )によるユーザー環境下でのエラー検出
++ <a href="http://sa-kusaku.sakura.ne.jp/output/spage/" target="_blank">spage</a>とのキャッシュの共有
++ <a href="http://sa-kusaku.sakura.ne.jp/output/validator/" target="_blank">validator</a>によるユーザー環境下でのエラー検出
 
 ##pjaxの問題への対応
 pushStateないしreplaceStateとajaxを組み合わせたいわゆるpjaxと呼ばれる機能には下記のような問題が存在しています。当pjaxプラグインはこれらを解消するための処理を組み込み済みです。
@@ -77,10 +77,7 @@ defunkt版（v1.7.0/2013年6月現在最新版）との主な違いは次のと�
 |ユーザー定義関数の実行形式|イベント|コールバック＋イベント|
 |ユーザー定義関数の設定箇所|9|29+3|
 |部分的更新キャンセル<small>※6</small>|×|○|
-|比較用デモ<small>※7</small>|defunkt|falsandtru|
-
-defunkt: http://sa-kusaku.sakura.ne.jp/output/pjax/demo/defunkt/  
-falsandtru: http://sa-kusaku.sakura.ne.jp/output/pjax/demo/falsandtru/
+|比較用デモ<small>※7</small>|<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/defunkt/" target="_blank">defunkt</a>|<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/falsandtru/" target="_blank">falsandtru</a>|
 
 <small>※1 AndroidとiOSではページ移動時にjQueryの`scrollTop`メソッドでスクロール位置を操作できず、当プラグインではjQueryMobileと同じく`scrollTo`メソッドを使用することでこの問題を解決しています。**defunkt版では`scrollTop`メソッドを使用しているためAndroidとiOSでスクロール位置を操作できません**。</small>  
 <small>※2 リンク先がJavaScriptなどHTMLページ以外を参照していた場合にContent-Typeを参照してページ移動方法を自動的にpjaxから通常のものに切り替えます。defunkt版ではこの機能がないためJavaScriptなど誤作動を起こすリンクでpjaxが動作しないよう`"a:not([href$='.js'])"`のようにリンクの絞込みを行う必要があります。</small>  
@@ -167,10 +164,10 @@ pjaxによるページ移動を`http://example.com/pjax/`ディレクトリ内�
 スクロール位置の復元のためのスクロール位置の記録間隔にかかる設定項目を持ちます。
 
 #####*scroll.delay: Millisecond as number*
-スクロール位置の記録処理がスクロールイベント発生後実行されるまでの待機時間をミリ秒で設定します。待機時間が経過する前に新たなスクロールが行われた場合は前回までのスクロールによる待機中の処理の実行はキャンセルされます。初期値は`500`です。パラメータの詳細な仕様はdisplaytriggerの同名のパラメータを確認してください。
+スクロール位置の記録処理がスクロールイベント発生後実行されるまでの待機時間をミリ秒で設定します。待機時間が経過する前に新たなスクロールが行われた場合は前回までのスクロールによる待機中の処理の実行はキャンセルされます。初期値は`500`です。パラメータの詳細な仕様は<a href="http://sa-kusaku.sakura.ne.jp/output/displaytrigger/" target="_blank">displaytrigger</a>の同名のパラメータを確認してください。
 
 #####*scroll.suspend: Millisecond as number*
-スクロールイベントの発生後、スクロールイベントの発生を抑制する時間をミリ秒で設定します。設定値を0にするとイベントが抑制されません。初期値は`-100`です。パラメータの詳細な仕様はdisplaytriggerの同名のパラメータを確認してください。
+スクロールイベントの発生後、スクロールイベントの発生を抑制する時間をミリ秒で設定します。設定値を0にするとイベントが抑制されません。初期値は`-100`です。パラメータの詳細な仕様は<a href="http://sa-kusaku.sakura.ne.jp/output/displaytrigger/" target="_blank">displaytrigger</a>の同名のパラメータを確認してください。
 
 ###*ajax: object*
 pjaxで内部的に使用される`$.ajax`のオプションを設定します。`$.ajax`のコールバック関数はすべて上書きされるため使用できません。代わりに`callbacks.ajax`で設定できるのでこちらを使用してください。
@@ -194,7 +191,7 @@ pjaxによるページ読み込み時にJavaScriptを読み込むかを設定し
 
 pjaxによるJavaScriptの実行順序は、HTML上の記述順序（通常の読み込み順序）と同じであることが保障されません。外部ファイル形式のJavaScriptと埋め込み形式のJavaScriptでは実行タイミングが異なるため、同一形式間内での実行順序は保たれますが、異なる形式間での実行順序は保たれません。また、埋め込み形式のJavaScriptの実行はすべての外部ファイル形式のJavaScriptの実行を待ってから行われます。このため、外部ファイル形式のJavaScriptが実行される前に埋め込み形式のJavaScriptがすでに実行されていなければならないような設計は避ける必要があります。
 
-ページの表示直後にすべて実行されている必要のないJavaScriptは、ページ読み込み時に一括で実行せずdisplaytriggerにより随時実行することで負荷を削減することを推奨します。ページの表示直後にすべて読み込まれている必要のないコンテンツについても同様です。
+ページの表示直後にすべて実行されている必要のないJavaScriptは、ページ読み込み時に一括で実行せず<a href="http://sa-kusaku.sakura.ne.jp/output/displaytrigger/" target="_blank">displaytrigger</a>により随時実行することで負荷を削減することを推奨します。ページの表示直後にすべて読み込まれている必要のないコンテンツについても同様です。
 
 ####*load.execute: boolean*
 JavaScriptの読み込みが有効になっている場合に埋め込み型のJavaScriptを実行するかを設定します。初期値は`true`で有効です。
