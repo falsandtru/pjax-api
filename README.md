@@ -1199,17 +1199,17 @@ pjaxの実用的な使用方法についての雑考を書いてみました。<
 
 ##jQuery Plugins
 
-###<a href="/output/pjax/">pjax</a>
+###<a href="https://github.com/falsandtru/jquery.pjax.js">pjax</a>
 HTML5による高速なページ移動機能をウェブサイトに実装します。
 
-###<a href="/output/displaytrigger/">displaytrigger</a>
+###<a href="http://sa-kusaku.sakura.ne.jp/output/displaytrigger/">displaytrigger</a>
 スクロールにより特定のHTML要素が画面に表示されることを条件としてスクリプトを遅延実行させます。
 
-###<a href="/output/clientenv/">clientenv</a>
+###<a href="http://sa-kusaku.sakura.ne.jp/output/clientenv/">clientenv</a>
 サイトの閲覧者のOS、ブラウザ、フォント対応などを判定してクロスブラウザ対応の労力を軽減します。
 
-###<a href="/output/validator/">validator</a>
+###<a href="http://sa-kusaku.sakura.ne.jp/output/validator/">validator</a>
 JavaScriptの動作検証とエラーレポートを行う、インストール不要の埋め込み型検証ツールです。
 
-###<a href="/output/spage/">spage</a>
+###<a href="http://sa-kusaku.sakura.ne.jp/output/spage/">spage</a>
 AutoPagerやAutoPatchWorkのようなページの自動読み込み＆継ぎ足し機能をウェブサイトに実装します。
