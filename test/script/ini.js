@@ -1,7 +1,6 @@
 $(function()
 {
-  $.pjax(
-  {
+  $.pjax({
     area: 'div.pjax' ,
     load:
     {

@@ -121,31 +121,31 @@ $(function(){
     </div>
     <div id="wrapper" class="clearfix">
       <div class="layer">
-        <div class="primary">
+        <div class="primary pjax">
           <div class="layout">
             <p>primary5</p>
             <p>pjax link: disable form: disable あアｱ亜</p>
             <ul>
-              <li><a href="/output/pjax/test/form/">page1 enable</a></li>
-              <li><a href="/output/pjax/test/form/2.php">page2 enable</a></li>
-              <li><a href="/output/pjax/test/form/3.php">page3 enable</a></li>
-              <li><a href="/output/pjax/test/form/4.php">page4 disable</a></li>
-              <li><a href="/output/pjax/test/form/5.php">page5 disable</a></li>
+              <li><a href="/pjax/test/form/">page1 enable</a></li>
+              <li><a href="/pjax/test/form/2.php">page2 enable</a></li>
+              <li><a href="/pjax/test/form/3.php">page3 enable</a></li>
+              <li><a href="/pjax/test/form/4.php">page4 disable</a></li>
+              <li><a href="/pjax/test/form/5.php">page5 disable</a></li>
             </ul>
             <p><?php echo htmlspecialchars(@$_POST['data'], ENT_QUOTES, mb_internal_encoding())?></p>
-            <form class="pjax" method="get" action="/output/pjax/test/form/2.php">
+            <form class="pjax" method="get" action="/pjax/test/form/2.php">
               <input name="data" type="text" value="pjaxGET送信テスト">
               <input type="submit" value="送信">
             </form>
-            <form class="pjax" method="post" action="/output/pjax/test/form/3.php">
+            <form class="pjax" method="post" action="/pjax/test/form/3.php">
               <input name="data" type="text" value="pjaxPOST送信テスト">
               <input type="submit" value="送信">
             </form>
-            <form method="get" action="/output/pjax/test/form/4.php">
+            <form method="get" action="/pjax/test/form/4.php">
               <input name="data" type="text" value="通常GET送信テスト">
               <input type="submit" value="送信">
             </form>
-            <form method="post" action="/output/pjax/test/form/5.php">
+            <form method="post" action="/pjax/test/form/5.php">
               <input name="data" type="text" value="通常POST送信テスト">
               <input type="submit" value="送信">
             </form>
@@ -155,11 +155,11 @@ $(function(){
           <div class="layout">
             <p>secondary5</p>
             <ul>
-              <li><a href="/output/pjax/test/form/">page1 enable</a></li>
-              <li><a href="/output/pjax/test/form/2.php">page2 enable</a></li>
-              <li><a href="/output/pjax/test/form/3.php">page3 enable</a></li>
-              <li><a href="/output/pjax/test/form/4.php">page4 disable</a></li>
-              <li><a href="/output/pjax/test/form/5.php">page5 disable</a></li>
+              <li><a href="/pjax/test/form/">page1 enable</a></li>
+              <li><a href="/pjax/test/form/2.php">page2 enable</a></li>
+              <li><a href="/pjax/test/form/3.php">page3 enable</a></li>
+              <li><a href="/pjax/test/form/4.php">page4 disable</a></li>
+              <li><a href="/pjax/test/form/5.php">page5 disable</a></li>
             </ul>
           </div>
         </div>

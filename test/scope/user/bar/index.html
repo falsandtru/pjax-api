@@ -1,0 +1,178 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="content-language" content="ja">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>pjax demo</title>
+<style type="text/css">
+/* reset */
+/* -------------------------------------------------- */
+html,body,div,p{
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* default */
+/* -------------------------------------------------- */
+html,body{
+  width: 100%;
+  height: 100%;
+}
+h1{
+  margin: 0;
+}
+p{
+  font-size: xx-large;
+}
+form{
+  text-align: center;
+}
+form p{
+  display: inline;
+}
+select{
+  height: 40px;
+  font-size: 32px;
+}
+
+/* frame */
+/* -------------------------------------------------- */
+#container{
+  width: 100%;
+  height: 100%;
+}
+#header{
+  height: 20%;
+  background: #ee0;
+}
+#wrapper{
+  position: relative;
+  height: 60%;
+  background: #e0e;
+}
+#wrapper div.layer{
+  height: 100%;
+}
+div.primary{
+  height: 100%;
+  background: #e00;
+}
+div.secondary{
+  display: none;
+  height: 100%;
+  background: #0e0;
+}
+div.tertiary{
+  display: none;
+  height: 100%;
+  background: #00e;
+}
+#footer{
+  height: 20%;
+  background: #0ee;
+}
+
+
+/* -------------------------------------------------- */
+
+/* new clearfix */
+.clearfix:after {
+  visibility: hidden;
+  display: block;
+  font-size: 0;
+  content: " ";
+  clear: both;
+  height: 0;
+}
+* html .clearfix             { zoom: 1; } /* IE6 */
+*:first-child+html .clearfix { zoom: 1; } /* IE7 */
+</style>
+<script type="text/javascript" charset="utf-8" src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
+<script type="text/javascript" charset="utf-8" src="http://sa-kusaku.sakura.ne.jp/lib/jquery.validator.js"></script>
+<script type="text/javascript">
+var validator = $.validator ? $.validator( {
+  base: true ,
+  name: 'base' ,
+  debug: true ,
+  report: true ,
+  url: '/lib/jquery.validator.send.php' ,
+  env: window.navigator.userAgent ,
+  dom: function() { return document.documentElement.outerHTML ; }
+} ) : false ;
+//var validator = false ;
+</script>
+<script type="text/javascript" charset="utf-8" src="/lib/jquery.pjax.js"></script>
+<script type="text/javascript">
+$(function(){
+  $.pjax({
+    area: 'div.pjax',
+    scope: {
+      '/pjax/test/scope/pjax/': ['/pjax/test/scope/pjax/', '^/pjax/test/scope/pjax/except/'],
+      '/pjax/test/scope/pjax/except/': false,
+      '/pjax/test/scope/a.html': ['*/pjax/test/scope/[a-c].html'],
+      '/pjax/test/scope/b.html': ['*/pjax/test/scope/[a-c].html'],
+      '/pjax/test/scope/c.html': ['*/pjax/test/scope/[a-c].html'],
+      '/pjax/test/scope/user/': ['*/pjax/test/scope/user/[^/]+/([?#][^/]*)?$', 'rewrite'],
+      '/pjax/test/scope/user/*/': ['*/pjax/test/scope/user/*/[ab]/'],
+      '/pjax/test/scope/user/*/c/': ['*/pjax/test/scope/user/*/c/'],
+      rewrite: function( url ){ return url.replace(/^[^\/]+\/\/[^\/]+/,'').replace(/^(\/output\/pjax\/demo\/scope\/user\/)[^\/]+(\/.*)/, '$1*$2') ; }
+    }
+  });
+});
+</script>
+</head>
+<body>
+  <div id="container">
+    <div id="header">
+      <div class="layout">
+        <h1>pjax demo</h1>
+        <p>これはpjaxのデモページです</p>
+        <p>header user/bar</p>
+      </div>
+    </div>
+    <div id="wrapper" class="clearfix">
+      <div class="layer">
+        <div class="primary pjax">
+          <div class="layout">
+            <p>primary user/bar</p>
+            <p>pjax enable あアｱ亜</p>
+            <ul>
+              <li><a href="/pjax/test/scope/">top disable</a></li>
+              <li><a href="/pjax/test/scope/a.html">a enable(a,b,c)</a></li>
+              <li><a href="/pjax/test/scope/b.html">b enable(a,b,c)</a></li>
+              <li><a href="/pjax/test/scope/c.html">c enable(a,b,c)</a></li>
+              <li><a href="/pjax/test/scope/pjax/">pjax enable(pjax)</a></li>
+              <li><a href="/pjax/test/scope/pjax/inherit/">pjax/inherit enable(pjax)</a></li>
+              <li><a href="/pjax/test/scope/pjax/except/">pjax/except disable(pjax/except)</a></li>
+              <li><a href="/pjax/test/scope/normal/">normal disable</a></li>
+              <li><a href="/pjax/test/scope/user/foo/">user/foo enable(user/any/)</a></li>
+              <li><a href="/pjax/test/scope/user/foo/a/">user/foo/a/ enable(user/someone/a/,user/someone/b/)</a></li>
+              <li><a href="/pjax/test/scope/user/foo/b/">user/foo/b/ enable(user/someone/a/,user/someone/b/)</a></li>
+              <li><a href="/pjax/test/scope/user/foo/c/">user/foo/c/ enable(user/someone/c/)</a></li>
+              <li><a href="/pjax/test/scope/user/bar/">user/bar enable(user/any/)</a></li>
+              <li><a href="/pjax/test/scope/user/bar/a/">user/bar/a/ enable(user/someone/a/,user/someone/b/)</a></li>
+              <li><a href="/pjax/test/scope/user/bar/b/">user/bar/b/ enable(user/someone/a/,user/someone/b/)</a></li>
+              <li><a href="/pjax/test/scope/user/bar/c/">user/bar/c/ enable(user/someone/c/)</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="secondary">
+          <div class="layout">
+          </div>
+        </div>
+        <div class="tertiary">
+          <div class="layout">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="footer">
+      <div class="layout">
+        <p>footer user/bar</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

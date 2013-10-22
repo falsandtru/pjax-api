@@ -121,8 +121,7 @@ var validator = $.validator ? $.validator( {
 <script type="text/javascript" charset="utf-8" src="/lib/jquery.pjax.js"></script>
 <script type="text/javascript">
 $(function(){
-  $('div.primary.pjax').pjax(
-  {
+  $('div.primary.pjax').pjax({
     area: 'div.primary.pjax' ,
     link: 'li a:not([target])[href^="/"]'
   });
@@ -145,9 +144,9 @@ $(function(){
             <p>primary1</p>
             <p>pjax enable あアｱ亜</p>
             <ul>
-              <li><a href="/output/pjax/test/link/">page1 enable</a></li>
-              <li><a href="/output/pjax/test/link/2.html">page2 enable</a></li>
-              <li><a href="/output/pjax/test/link/3.html">page3 enable</a></li>
+              <li><a href="/pjax/test/link/">page1 enable</a></li>
+              <li><a href="/pjax/test/link/2.html">page2 enable</a></li>
+              <li><a href="/pjax/test/link/3.html">page3 enable</a></li>
             </ul>
           </div>
         </div>
@@ -155,9 +154,9 @@ $(function(){
           <div class="layout">
             <p>secondary1</p>
             <ul>
-              <li><a href="/output/pjax/test/link/">page1 disable</a></li>
-              <li><a href="/output/pjax/test/link/2.html">page2 disable</a></li>
-              <li><a href="/output/pjax/test/link/3.html">page3 disable</a></li>
+              <li><a href="/pjax/test/link/">page1 disable</a></li>
+              <li><a href="/pjax/test/link/2.html">page2 disable</a></li>
+              <li><a href="/pjax/test/link/3.html">page3 disable</a></li>
             </ul>
           </div>
         </div>

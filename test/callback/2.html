@@ -108,7 +108,7 @@ var validator = $.validator ? $.validator( {
 $(function(){
   $.pjax({
     area: 'div.pjax' ,
-    callback: function( event , arg ){ _gaq.push(['_trackPageview']); console.log( arg + ': callback' ) ; } ,
+    callback: function( event , arg ){ console.log( arg + ': callback' ) ; } ,
     callbacks:
     {
       before: function( event , arg ){ console.log( arg + ': before' ) ; } ,
@@ -149,9 +149,9 @@ $(function(){
             <p>primary2</p>
             <p>pjax enable あアｱ亜</p>
             <ul>
-              <li><a href="/output/pjax/test/callback/">page1 enable</a></li>
-              <li><a href="/output/pjax/test/callback/2.html">page2 enable</a></li>
-              <li><a href="/output/pjax/test/callback/3.html">page3 enable</a></li>
+              <li><a href="/pjax/test/callback/">page1 enable</a></li>
+              <li><a href="/pjax/test/callback/2.html">page2 enable</a></li>
+              <li><a href="/pjax/test/callback/3.html">page3 enable</a></li>
             </ul>
           </div>
         </div>
@@ -159,9 +159,9 @@ $(function(){
           <div class="layout">
             <p>secondary2</p>
             <ul>
-              <li><a href="/output/pjax/test/callback/">page1 enable</a></li>
-              <li><a href="/output/pjax/test/callback/2.html">page2 enable</a></li>
-              <li><a href="/output/pjax/test/callback/3.html">page3 enable</a></li>
+              <li><a href="/pjax/test/callback/">page1 enable</a></li>
+              <li><a href="/pjax/test/callback/2.html">page2 enable</a></li>
+              <li><a href="/pjax/test/callback/3.html">page3 enable</a></li>
             </ul>
           </div>
         </div>
