@@ -747,7 +747,7 @@ pjaxで内部的に使用される`$.ajax`のオプションを設定できま�
     window.ga('create', 'UA-xxxxxxxx-x', 'hostname');
     window.ga('send', 'pageview');
   } else {
-    window.ga('send', 'pageview');
+    window.ga('send', 'pageview', window.location.pathname+window.location.search);
   };
 ```
 
