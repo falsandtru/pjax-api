@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.21.0
+ * @version 1.21.1
  * @updated 2013/10/23
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -124,7 +124,7 @@
     
     /* validate */ validate && validate.end() ;
     
-    return { on : settings.on , off : settings.off } ; // function: pjax
+    return { on : on , off : off , click : click } ; // function: pjax
     
     
     /* Function declaration */
@@ -140,6 +140,7 @@
     function register( context ) {
       settings.id = 1 ;
       plugin_data[ settings.id ] = settings ;
+      jQuery.extend( true , jQuery.pjax , { on : on , off : off , click : click } ) ;
       
       database() ;
       jQuery( 'script[src]' ).each( function () { if ( !( this.src in settings.log.script ) ) { settings.log.script[ this.src ] = true ; } } ) ;
@@ -938,6 +939,10 @@
     function off() {
       for ( var i = 1 , len = plugin_data.length ; i < len ; i++ ) { plugin_data[ i ].disable = true ; }
     } // function: off
+    
+    function click( url ) {
+      jQuery( '<a/>' , { href : url }  ).appendTo( fire( plugin_data[ 1 ].area , null , [ null , url ] ) ).click().remove() ;
+    } // function: click
     
     function share() {
       
