@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.20.7
- * @updated 2013/10/22
+ * @version 1.21.0
+ * @updated 2013/10/23
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -69,6 +69,7 @@
           wait : 0 ,
           scroll : { delay : 500 , suspend : -100 } ,
           fix : { location : true , history : true , scroll : true } ,
+          hashquery : false ,
           fallback : true ,
           database : true ,
           server : {} ,
@@ -94,6 +95,8 @@
           requestHeader : [ 'X' , nsArray[ 0 ].replace( /^\w/ , function ( $0 ) { return $0.toUpperCase() ; } ) ].join( '-' ) ,
           array : nsArray
         } ,
+        location : jQuery( '<a/>' , { href : win.location.href } )[ 0 ] ,
+        hashclick : false ,
         scroll : { queue : [] } ,
         database : settings.database ? ( win.indexedDB || win.webkitIndexedDB || win.mozIndexedDB || win.msIndexedDB || null ) : false ,
         server : { query : !settings.server.query ? settings.gns : settings.server.query } ,
@@ -150,12 +153,14 @@
         if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
         if ( win.location.protocol !== this.protocol || win.location.host !== this.host ) { return ; }
         
-        if ( win.location.pathname === this.pathname && win.location.search === this.search ) { return win.location.hash !== this.hash ; }
+        var settings = plugin_data[ event.data ] , url , cache ;
         
-        var settings, url , cache ;
-        settings = plugin_data[ event.data ] ;
+        if ( settings.location.href === this.href ) { return false ; }
+        if ( !fire( settings.hashquery , null , [ event , url ] ) && settings.location.pathname + settings.location.search === this.pathname + this.search ) { return settings.hashclick = true ; }
+        
         url = this.href ;
-        settings.area = typeof settings.options.area === 'function' ? fire( settings.options.area , null , [ event , url ] ) : settings.options.area ;
+        settings.area = fire( settings.options.area , null , [ event , url ] ) ;
+        settings.hashclick = false ;
         settings.timestamp = event.timeStamp ;
         if ( settings.landing ) { settings.landing = false ; }
         if ( settings.disable || !jQuery( settings.area ).length || settings.scope && !scope( settings.scope, win.location.href , url ) ) { return ; }
@@ -163,7 +168,6 @@
         if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; }
         
         drive( settings , event , url , true , cache ) ;
-        event.preventDefault() ;
         return false ;
       } ) ;
       
@@ -175,10 +179,11 @@
         
         if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
         
-        var settings, url , cache ;
-        settings = plugin_data[ event.data ] ;
+        var settings = plugin_data[ event.data ] , url , cache ;
+        
         url = this.action + ( event.target.method.toUpperCase() === 'GET' ? '?' + jQuery( event.target ).serialize() : '' ) ;
-        settings.area = typeof settings.options.area === 'function' ? fire( settings.options.area , null , [ event , url ] ) : settings.options.area ;
+        settings.area = fire( settings.options.area , null , [ event , url ] ) ;
+        settings.hashclick = false ;
         settings.timestamp = event.timeStamp ;
         if ( settings.landing ) { settings.landing = false ; }
         if ( settings.disable || !jQuery( settings.area ).length || settings.scope && !scope( settings.scope, win.location.href , url ) ) { return ; }
@@ -186,7 +191,6 @@
         if ( settings.cache[ event.type.toLowerCase() ] && settings.cache[ event.target.method.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; }
         
         drive( settings , event , url , true , cache ) ;
-        event.preventDefault() ;
         return false ;
       } ) ;
       
@@ -195,10 +199,15 @@
       .bind( settings.nss.popstate , settings.id , function ( event ) {
         event.timeStamp = ( new Date() ).getTime() ;
         
-        var settings, url , cache ;
-        settings = plugin_data[ event.data ] ;
+        
+        var settings = plugin_data[ event.data ] , url , cache ;
+        
+        if ( settings.location.href === this.href ) { return false ; }
+        if ( !fire( settings.hashquery , null , [ event , url ] ) && settings.location.pathname + settings.location.search === win.location.pathname + win.location.search ) { return settings.hashclick = settings.hashclick && !!hashmove() && false ; }
+        
         url = win.location.href ;
-        settings.area = typeof settings.options.area === 'function' ? fire( settings.options.area , null , [ event , url ] ) : settings.options.area ;
+        settings.area = fire( settings.options.area , null , [ event , url ] ) ;
+        settings.hashclick = false ;
         settings.timestamp = event.timeStamp ;
         if ( settings.landing ) { if ( settings.landing === win.location.href ) { settings.landing = false ; return ; } settings.landing = false ; }
         if ( settings.disable || !jQuery( settings.area ).length ) { return ; }
@@ -207,7 +216,6 @@
         if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; }
         
         drive( settings , event , url , false , cache ) ;
-        event.preventDefault() ;
         return false ;
       } ) ;
       
@@ -408,10 +416,11 @@
               
               register && url !== win.location.href &&
               win.history.pushState(
-                typeof settings.state === 'function' ? fire( settings.state , null , [ event , url ] ) : settings.state ,
+                fire( settings.state , null , [ event , url ] ) ,
                 win.opera || win.navigator.userAgent.toLowerCase().indexOf( 'opera' ) !== -1 ? title : doc.title ,
                 url ) ;
               
+              settings.location.href = url ;
               switch ( true ) {
                 case !register :
                   break ;
@@ -570,8 +579,9 @@
                   if ( element.src ) { settings.log.script[ element.src ] = true ; }
                   
                   if ( jQuery.when ) {
-                    defer = element.src ? jQuery.ajax( jQuery.extend( true , {} , settings.ajax , { url : element.src , dataType : 'script' , async : false , global : false } ) )
-                                        : jQuery.Deferred().resolve( settings.load.execute ? element : undefined ) ;
+                    defer = jQuery.Deferred() ;
+                    element.src ? jQuery.ajax( jQuery.extend( true , {} , settings.ajax , { url : element.src , dataType : 'script' , async : false , global : false , complete : defer.resolve } ) )
+                                : defer.resolve( settings.load.execute ? element : undefined ) ;
                     executes.push( defer ) ;
                   } else {
                     jQuery( 'head' ).append( element ) ;
@@ -581,7 +591,7 @@
                 
                 jQuery.when && executes.length &&
                 jQuery.when.apply( null , executes )
-                .done( function () {
+                .always( function () {
                   for ( var i = 0 , exec ; exec = arguments[ i ] ; i++ ) {
                     0 < Number( exec.nodeType ) && ( !exec.type || -1 < exec.type.toLowerCase().indexOf( 'text/javascript' ) ) &&
                     eval( ( exec.text || exec.textContent || exec.innerHTML || '' ).replace( /^\s*<!(?:\[CDATA\[|\-\-)/ , '/*$0*/' ) ) ;
@@ -610,7 +620,7 @@
                   
                   checker.remove() ;
                   settings.load.script && settings.load.sync && setTimeout( function () { load_script( 'sync' ) ; } , settings.load.async || 0 ) ;
-                  scroll( true ) ;
+                  hashmove( event.type.toLowerCase() === 'popstate' ) || scroll( true ) ;
                   jQuery( window ).trigger( settings.gns + '.load' ) ;
                   
                   if ( fire( settings.callbacks.update.rendering.after , null , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; }
@@ -684,8 +694,14 @@
     } // function: drive
     
     function fire( fn , context , args , async ) {
-      if ( typeof fn === 'function' ) { return async ? setTimeout( function () { fn.apply( context , args ) } , 0 ) : fn.apply( context , args ) ; }
+      if ( typeof fn === 'function' ) { return async ? setTimeout( function () { fn.apply( context , args ) } , 0 ) : fn.apply( context , args ) ; } else { return fn ; }
     } // function: fire
+    
+    function hashmove( cancel ) {
+      return !cancel && jQuery(  win.location.hash + ', [name=' + win.location.hash + ']' ).first().each( function () {
+        isFinite( jQuery( this ).offset().top ) && win.scrollTo( jQuery( win ).scrollLeft() , parseInt( Number( jQuery( this ).offset().top ) ) ) ;
+      } ).length ;
+    } // function: hashmove
     
     function wait( ms ) {
       var defer = jQuery.Deferred() ;
