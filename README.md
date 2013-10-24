@@ -393,13 +393,13 @@ pjaxを使用してフォーム送信によりページを移動します。
 
 `$.pjax.submit('/', {method: 'POST'}, [{tag: 'input', attr: {type: 'text'}, name: 'name', value: 'data'}])`
 
-####*setCache( URL as string, Title as string, Size as number , textStatus , XMLHttpRequest )
+####*setCache( URL as string, Title as string, Size as number , textStatus , XMLHttpRequest )*
 キャッシュを設定します。`URL`のみ渡すとデータが削除されます。`Size`は設定されなかった場合自動で計算されます。ページデータには`XMLHttpRequest.responseText`が使用されます。
 
-####*getCache( URL as string )
+####*getCache( URL as string )*
 キャッシュを取得します。
 
-####*clearCache()
+####*clearCache()*
 キャッシュをすべて削除します。
 
 ###Property
