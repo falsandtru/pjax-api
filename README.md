@@ -31,8 +31,8 @@ pjaxはデータの読み込みと描画の冗長部分を省略することで�
 + Google Analytics によるアクセス解析
 + Wordpressへの導入
 + pjaxを使用するURLの範囲の設定
-+ 更新範囲の動的設定
 + 複数範囲の更新
++ 更新範囲の動的設定
 + 文字コードの異なるページの読み込み
 + サーバーからの差分データによるページ更新
 + キャッシュによるページ更新
@@ -72,8 +72,8 @@ defunkt版（v1.7.0/2013年6月現在最新版）との主な違いは次のと�
 |キャッシュ無効化|×|○|
 |キャッシュ作成タイミング※5|ページ離脱時|ページ取得時|
 |pjaxを使用するURLの範囲の設定|×|○|
-|更新範囲の動的設定|×|○|
 |複数領域の更新|×|○|
+|更新範囲の動的設定|×|○|
 |ユーザー定義関数の実行形式|イベント|コールバック＋イベント|
 |ユーザー定義関数の設定箇所|9|29+3|
 |部分的更新キャンセル※6|×|○|
@@ -266,8 +266,8 @@ Indexed Databaseの使用をするかを設定します。データはデータ�
 #####*server.query: Query as string*
 pjaxによるサーバーへリクエストではページのURLにpjaxによるリクエストであることを通知するためのクエリ名が追加されており、このクエリ名を設定します。このクエリは内部処理でのみ使用されるためサイトの閲覧者の目に触れることはありません。初期値は`gns`の設定値と同じであり、`?pjax=1`のようにクエリが付加されます。
 
-####*callback: function( event, parameter, data, dataType, XMLHttpRequest )*
-ページ移動後に実行されるコールバック関数を設定します。ページの更新処理が成功したときに`update.complete( event, parameter, data, dataType, XMLHttpRequest )`の直後に実行されます。`callback``callbacks`ともに`callbacks.async`に`true`を設定することでコールバック関数の実行を非同期に行えます。コールバック関数を非同期で実行することで処理を高速化することができますが、戻り値に`false`を設定することによる処理のキャンセルができなくなります。
+####*callback: function( event, parameter, data, textStatus, XMLHttpRequest )*
+ページ移動後に実行されるコールバック関数を設定します。ページの更新処理が成功したときに`update.complete( event, parameter, data, textStatus, XMLHttpRequest )`の直後に実行されます。`callback``callbacks`ともに`callbacks.async`に`true`を設定することでコールバック関数の実行を非同期に行えます。コールバック関数を非同期で実行することで処理を高速化することができますが、戻り値に`false`を設定することによる処理のキャンセルができなくなります。
 
 ####*parameter: any*
 すべてのコールバック関数に共通で渡されるパラメータを設定します。
@@ -289,13 +289,13 @@ pjaxによるサーバーへリクエストではページのURLにpjaxによる
 #####*ajax.xhr( event, parameter )*
 ajax通信において同名のメソッド内で実行されます。
 
-#####*ajax.beforeSend( event, parameter, data, dataType )*
+#####*ajax.beforeSend( event, parameter, data, settings )*
 〃
 
-#####*ajax.dataFilter( event, parameter, data, dataType )*
+#####*ajax.dataFilter( event, parameter, data, type )*
 〃
 
-#####*ajax.success( event, parameter, data, dataType, XMLHttpRequest )*
+#####*ajax.success( event, parameter, data, textStatus, XMLHttpRequest )*
 〃
 
 #####*ajax.error( event, parameter, XMLHttpRequest, textStatus, errorThrown )*
@@ -304,10 +304,10 @@ ajax通信において同名のメソッド内で実行されます。
 #####*ajax.complete( event, parameter, XMLHttpRequest, textStatus )*
 〃
 
-#####*update.before( event, parameter, data, dataType, XMLHttpRequest )*
+#####*update.before( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理において最初に実行されます。
 
-#####*update.after( event, parameter, data, dataType, XMLHttpRequest )*
+#####*update.after( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理において最後に実行されます。
 
 #####*update.cache.load.before( event, parameter, cache )*
@@ -316,28 +316,28 @@ ajax通信において同名のメソッド内で実行されます。
 #####*update.cache.load.after( event, parameter, cache )*
 ページの更新処理においてcacheの読み込み後に実行されます。
 
-#####*update.title.before( event, parameter, data, dataType, XMLHttpRequest )*
+#####*update.title.before( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理においてタイトルの更新前に実行されます。
 
-#####*update.title.after( event, parameter, data, dataType, XMLHttpRequest )*
+#####*update.title.after( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理においてタイトルの更新後に実行されます。
 
-#####*update.content.before( event, parameter, data, dataType, XMLHttpRequest )*
+#####*update.content.before( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理においてコンテンツの更新前に実行されます。
 
-#####*update.content.after( event, parameter, data, dataType, XMLHttpRequest )*
+#####*update.content.after( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理においてコンテンツの更新後に実行されます。
 
-#####*update.css.before( event, parameter, data, dataType, XMLHttpRequest )*
+#####*update.css.before( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理においてCSSの読み込み前に実行されます。
 
-#####*update.css.after( event, parameter, data, dataType, XMLHttpRequest )*
+#####*update.css.after( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理においてCSSの読み込み後に実行されます。
 
-#####*update.script.before( event, parameter, data, dataType, XMLHttpRequest )*
+#####*update.script.before( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理においてJavaScriptの読み込み前に実行されます。
 
-#####*update.script.after( event, parameter, data, dataType, XMLHttpRequest )*
+#####*update.script.after( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理においてJavaScriptの読み込み後に実行されます。
 
 #####*update.rendering.before( event, parameter )*
@@ -358,13 +358,13 @@ ajax通信において同名のメソッド内で実行されます。
 #####*update.verify.after( event, parameter )*
 ページの更新処理において更新結果の検証後に実行されます。
 
-#####*update.success( event, parameter, data, dataType, XMLHttpRequest )*
+#####*update.success( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理が成功したときに実行されます。
 
-#####*update.error( event, parameter, data, dataType, XMLHttpRequest )*
+#####*update.error( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理が失敗したときに実行されます。
 
-#####*update.complete( event, parameter, data, dataType, XMLHttpRequest )*
+#####*update.complete( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理が完了したときに実行されます。
 
 ###Method
@@ -376,7 +376,31 @@ pjaxを有効にします。
 pjaxを無効にします。
 
 ####*click( URL as string )*
-pjaxを使用してページを移動します。
+pjaxを使用してクリックによりページを移動します。
+
+`$.pjax.click('/')`
+
+####*submit()*
+pjaxを使用してフォーム送信によりページを移動します。
+
+#####*submit( Form as DOM / jQuery )*
+渡されたフォームを使用します。
+
+####*submit( URL as string, Attribute as object, Data as Object / Array )
+渡されたデータを元に生成したフォームを使用します。`Attribute`パラメータによりフォームの属性を設定できます。`Data`パラメータにはフォームの子要素の仕様（`[{tag: 'tagName', attr: {attrName: attrValue, ...}, name: 'name', value: 'data'}, ...]`）またはJSONオブジェクト（`{"name": "data", ...}`）を設定します。
+
+`$.pjax.submit('/', {method: 'POST'}, {"name": "data"})`
+
+`$.pjax.submit('/', {method: 'POST'}, [{tag: 'input', attr: {type: 'text'}, name: 'name', value: 'data'}])`
+
+####*setCache( URL as string, Title as string, Size as number , textStatus , XMLHttpRequest )
+キャッシュを設定します。`URL`のみ渡すとデータが削除されます。`Size`は設定されなかった場合自動で計算されます。ページデータには`XMLHttpRequest.responseText`が使用されます。
+
+####*getCache( URL as string )
+キャッシュを取得します。
+
+####*clearCache()
+キャッシュをすべて削除します。
 
 ###Property
 なし
@@ -738,7 +762,7 @@ pjaxで内部的に使用される`$.ajax`のオプションを設定できま�
     })();
   } else {
     window._gaq.push(['_trackPageview']);
-  };
+  }
 ```
 
 ####新 Google Analytics
@@ -754,7 +778,7 @@ pjaxで内部的に使用される`$.ajax`のオプションを設定できま�
     window.ga('send', 'pageview');
   } else {
     window.ga('send', 'pageview', window.location.pathname+window.location.search);
-  };
+  }
 ```
 
 ###ローディングエフェクト - callback, callbacks
@@ -959,10 +983,18 @@ pjaxの実用的な使用方法についての雑考を書いてみました。<
 
 ###change log
 
+####1.21.2
+
++ `click`メソッドの仕様を変更
++ `submit`メソッドを追加
++ `setCache`メソッドを追加
++ `getCache`メソッドを追加
++ `clearCache`メソッドを追加
++ コードを最適化
+
 ####1.21.1
 
 + `click`メソッドを追加
-  <br>pjaxを使用してページを移動する。
 
 ####1.21.0
 
