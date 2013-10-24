@@ -386,7 +386,7 @@ pjaxを使用してフォーム送信によりページを移動します。
 #####*submit( Form as DOM / jQuery )*
 渡されたフォームを使用します。
 
-####*submit( URL as string, Attribute as object, Data as Object / Array )
+#####*submit( URL as string, Attribute as object, Data as Object / Array )*
 渡されたデータを元に生成したフォームを使用します。`Attribute`パラメータによりフォームの属性を設定できます。`Data`パラメータにはフォームの子要素の仕様（`[{tag: 'tagName', attr: {attrName: attrValue, ...}, name: 'name', value: 'data'}, ...]`）またはJSONオブジェクト（`{"name": "data", ...}`）を設定します。
 
 `$.pjax.submit('/', {method: 'POST'}, {"name": "data"})`
