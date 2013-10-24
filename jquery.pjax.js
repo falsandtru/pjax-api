@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.21.1
- * @updated 2013/10/23
+ * @version 1.21.2
+ * @updated 2013/10/24
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -26,7 +26,7 @@
 
 ( function ( jQuery ) {
   
-  var win = window , doc = document , undefined = void( 0 ) , plugin_data = [ 'settings' ] ;
+  var win = window , doc = document , undefined = void( 0 ) , plugin_data = [ 'settings' ] , plugin_store , plugin_response ;
   
   jQuery.fn.pjax = jQuery.pjax = function ( options ) {
     
@@ -101,11 +101,9 @@
         database : settings.database ? ( win.indexedDB || win.webkitIndexedDB || win.mozIndexedDB || win.msIndexedDB || null ) : false ,
         server : { query : !settings.server.query ? settings.gns : settings.server.query } ,
         log : { script : {} , speed : {} } ,
-        history : { config : settings.cache , order : [] , data : {} /*, size : 0*/ } ,
+        history : { config : settings.cache , order : [] , data : {} , size : 0 } ,
         timestamp : ( new Date() ).getTime() ,
         disable : false ,
-        on : on ,
-        off : off ,
         landing : win.location.href ,
         retry : true ,
         xhr : null ,
@@ -115,16 +113,27 @@
       }
     ) ;
     
-    /* validate */ validate && validate.test( '++', 1, settings, 'share' ) ;
-    share() ;
+    settings.id = 1 ;
+    plugin_data[ settings.id ] = settings ;
+    plugin_store = {} ;
+    plugin_response = {
+      on : on ,
+      off : off ,
+      click : click ,
+      submit : submit ,
+      setCache : setCache ,
+      getCache : getCache ,
+      clearCache : clearCache
+    } ;
+    jQuery.extend( true , jQuery.pjax , plugin_response ) ;
     
     /* Process startup */
     /* validate */ validate && validate.test( '++', 1, 0, 'register' ) ;
-    if ( check() ) { register( this ) ; }
+    if ( check() ) { share() , register( this ) ; }
     
     /* validate */ validate && validate.end() ;
     
-    return { on : on , off : off , click : click } ; // function: pjax
+    return plugin_response ; // function: pjax
     
     
     /* Function declaration */
@@ -138,9 +147,6 @@
     } // function: supportPushState
     
     function register( context ) {
-      settings.id = 1 ;
-      plugin_data[ settings.id ] = settings ;
-      jQuery.extend( true , jQuery.pjax , { on : on , off : off , click : click } ) ;
       
       database() ;
       jQuery( 'script[src]' ).each( function () { if ( !( this.src in settings.log.script ) ) { settings.log.script[ this.src ] = true ; } } ) ;
@@ -148,13 +154,13 @@
       settings.link &&
       jQuery( context )
       .undelegate( settings.link , settings.nss.click )
-      .delegate( settings.link , settings.nss.click , settings.id , function ( event ) {
+      .delegate( settings.link , settings.nss.click , settings.id , plugin_store.click = function ( event ) {
         event.timeStamp = ( new Date() ).getTime() ;
         
         if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
         if ( win.location.protocol !== this.protocol || win.location.host !== this.host ) { return ; }
         
-        var settings = plugin_data[ event.data ] , url , cache ;
+        var url , cache ;
         
         if ( settings.location.href === this.href ) { return false ; }
         if ( !fire( settings.hashquery , null , [ event , url ] ) && settings.location.pathname + settings.location.search === this.pathname + this.search ) { return settings.hashclick = true ; }
@@ -166,7 +172,7 @@
         if ( settings.landing ) { settings.landing = false ; }
         if ( settings.disable || !jQuery( settings.area ).length || settings.scope && !scope( settings.scope, win.location.href , url ) ) { return ; }
         
-        if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; }
+        if ( settings.cache[ event.type.toLowerCase() ] ) { cache = getCache( url ) ; }
         
         drive( settings , event , url , true , cache ) ;
         return false ;
@@ -175,12 +181,12 @@
       settings.form &&
       jQuery( context )
       .undelegate( settings.form , settings.nss.submit )
-      .delegate( settings.form , settings.nss.submit , settings.id , function ( event ) {
+      .delegate( settings.form , settings.nss.submit , settings.id , plugin_store.submit = function ( event ) {
         event.timeStamp = ( new Date() ).getTime() ;
         
         if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
         
-        var settings = plugin_data[ event.data ] , url , cache ;
+        var url , cache ;
         
         url = this.action + ( event.target.method.toUpperCase() === 'GET' ? '?' + jQuery( event.target ).serialize() : '' ) ;
         settings.area = fire( settings.options.area , null , [ event , url ] ) ;
@@ -189,7 +195,7 @@
         if ( settings.landing ) { settings.landing = false ; }
         if ( settings.disable || !jQuery( settings.area ).length || settings.scope && !scope( settings.scope, win.location.href , url ) ) { return ; }
         
-        if ( settings.cache[ event.type.toLowerCase() ] && settings.cache[ event.target.method.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; }
+        if ( settings.cache[ event.type.toLowerCase() ] && settings.cache[ event.target.method.toLowerCase() ] ) { cache = getCache( url ) ; }
         
         drive( settings , event , url , true , cache ) ;
         return false ;
@@ -197,11 +203,11 @@
       
       jQuery( win )
       .unbind( settings.nss.popstate )
-      .bind( settings.nss.popstate , settings.id , function ( event ) {
+      .bind( settings.nss.popstate , settings.id , plugin_store.popstate = function ( event ) {
         event.timeStamp = ( new Date() ).getTime() ;
         
         
-        var settings = plugin_data[ event.data ] , url , cache ;
+        var url , cache ;
         
         if ( settings.location.href === this.href ) { return false ; }
         if ( !fire( settings.hashquery , null , [ event , url ] ) && settings.location.pathname + settings.location.search === win.location.pathname + win.location.search ) { return settings.hashclick = settings.hashclick && !!hashmove() && false ; }
@@ -214,7 +220,7 @@
         if ( settings.disable || !jQuery( settings.area ).length ) { return ; }
         
         settings.database && settings.fix.history && dbTitle( url ) ;
-        if ( settings.cache[ event.type.toLowerCase() ] ) { cache = fnCache( settings.history , url ) ; }
+        if ( settings.cache[ event.type.toLowerCase() ] ) { cache = getCache( url ) ; }
         
         drive( settings , event , url , false , cache ) ;
         return false ;
@@ -224,7 +230,7 @@
       jQuery( win )
       .unbind( settings.nss.scroll )
       .bind( settings.nss.scroll , settings.id , function ( event , end ) {
-        var settings = plugin_data[ event.data ] , id , fn = arguments.callee ;
+        var id , fn = arguments.callee ;
         
         if ( !settings.scroll.delay ) {
           dbScroll( jQuery( win ).scrollLeft() , jQuery( win ).scrollTop() ) ;
@@ -248,7 +254,6 @@
         
       } ) ;
     } // function: register
-    
     
     function drive( settings , event , url , register , cache ) {
       /* validate */ var validate = settings.validate ? settings.validate.clone( { name : 'jquery.pjax.js - drive()' } ) : false ;
@@ -274,7 +279,7 @@
       }
       
       /* validate */ validate && validate.test( '++', 1, 0, 'initialize' ) ;
-      var data , dataType , XMLHttpRequest , textStatus , errorThrown , dataSize , ajax = {} , callbacks ;
+      var data , XMLHttpRequest , textStatus , errorThrown , dataSize , ajax = {} , callbacks ;
       
       switch ( event.type.toLowerCase() ) {
         case 'click' :
@@ -316,20 +321,19 @@
           XMLHttpRequest.setRequestHeader( settings.nss.requestHeader + '-CSS' , settings.load.css ) ;
           XMLHttpRequest.setRequestHeader( settings.nss.requestHeader + '-Script' , settings.load.script ) ;
           
-          fire( settings.callbacks.ajax.beforeSend , null , [ event , settings.parameter , XMLHttpRequest ] , settings.callbacks.async ) ;
+          fire( settings.callbacks.ajax.beforeSend , null , [ event , settings.parameter , XMLHttpRequest , arguments[ 1 ] ] , settings.callbacks.async ) ;
         } ,
         dataFilter : !settings.callbacks.ajax.dataFilter ? undefined : function () {
           data = arguments[ 0 ] ;
-          dataType = arguments[ 1 ] ;
           
-          return fire( settings.callbacks.ajax.dataFilter , null , [ event , settings.parameter , data , dataType ] , settings.callbacks.async ) || data ;
+          return fire( settings.callbacks.ajax.dataFilter , null , [ event , settings.parameter , data , arguments[ 1 ] ] , settings.callbacks.async ) || data ;
         } ,
         success : function () {
           data = arguments[ 0 ] ;
-          dataType = arguments[ 1 ] ;
+          textStatus = arguments[ 1 ] ;
           XMLHttpRequest = arguments[ 2 ] ;
           
-          fire( settings.callbacks.ajax.success , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) ;
+          fire( settings.callbacks.ajax.success , null , [ event , settings.parameter , data , textStatus , XMLHttpRequest ] , settings.callbacks.async ) ;
           
           !jQuery.when && update() ;
         } ,
@@ -374,7 +378,7 @@
         UPDATE : {
           settings.speedcheck && settings.log.speed.name.push( 'update' ) ;
           settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
-          if ( fire( settings.callbacks.update.before , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
+          if ( fire( settings.callbacks.update.before , null , [ event , settings.parameter , data , textStatus , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
           
           /* variable initialization */
           var win = window , doc = document , title , css , script ;
@@ -392,7 +396,7 @@
               if ( fire( settings.callbacks.update.cache.load.before , null , [ event , settings.parameter , cache ] , settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
               XMLHttpRequest = cache.XMLHttpRequest ;
               data = XMLHttpRequest.responseText ;
-              dataType = cache.dataType ;
+              textStatus = cache.textStatus ;
               title = cache.title ;
               css = cache.css ;
               script = cache.script ;
@@ -413,7 +417,7 @@
             /* url */
             /* validate */ validate && validate.test( '++', 1, url, 'url' ) ;
             UPDATE_URL : {
-              if ( fire( settings.callbacks.update.url.before , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_URL ; } ;
+              if ( fire( settings.callbacks.update.url.before , null , [ event , settings.parameter , data , textStatus , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_URL ; } ;
               
               register && url !== win.location.href &&
               win.history.pushState(
@@ -426,23 +430,23 @@
                 case !register :
                   break ;
                 case settings.fix.location && /Mobile(\/\w+)? Safari/i.test( win.navigator.userAgent ) :
-                  settings.off() ;
+                  plugin_response.off() ;
                   win.history.back() ;
                   win.history.forward() ;
-                  settings.on() ;
+                  plugin_response.on() ;
                   break ;
               }
               
-              if ( fire( settings.callbacks.update.url.after , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_URL ; }
+              if ( fire( settings.callbacks.update.url.after , null , [ event , settings.parameter , data , textStatus , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_URL ; }
             } ; // label: UPDATE_URL
             
             /* title */
             /* validate */ validate && validate.test( '++', 1, title, 'title' ) ;
             UPDATE_TITLE : {
-              if ( fire( settings.callbacks.update.title.before , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_TITLE ; }
+              if ( fire( settings.callbacks.update.title.before , null , [ event , settings.parameter , data , textStatus , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_TITLE ; }
               doc.title = title ;
               settings.database && settings.fix.history && dbTitle( url , title ) ;
-              if ( fire( settings.callbacks.update.title.after , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_TITLE ; }
+              if ( fire( settings.callbacks.update.title.after , null , [ event , settings.parameter , data , textStatus , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_TITLE ; }
             } ; // label: UPDATE_TITLE
             
             settings.database && dbCurrent() ;
@@ -474,7 +478,7 @@
             /* content */
             /* validate */ validate && validate.test( '++', 1, areas, 'content' ) ;
             UPDATE_CONTENT : {
-              if ( fire( settings.callbacks.update.content.before , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_CONTENT ; }
+              if ( fire( settings.callbacks.update.content.before , null , [ event , settings.parameter , data , textStatus , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_CONTENT ; }
               jQuery( settings.area ).children( '.' + settings.nss.class4html + '-check' ).remove() ;
               for ( var i = 0 , area ; area = areas[ i ] ; i++ ) {
                 jQuery( area )
@@ -485,7 +489,7 @@
                 } ).text( 'pjax' ) ) ;
               }
               jQuery( document ).trigger( settings.gns + '.DOMContentLoaded' ) ;
-              if ( fire( settings.callbacks.update.content.after , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_CONTENT ; }
+              if ( fire( settings.callbacks.update.content.after , null , [ event , settings.parameter , data , textStatus , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_CONTENT ; }
             } ; // label: UPDATE_CONTENT
             
             /* css */
@@ -495,12 +499,12 @@
               /* validate */ validate && validate.start() ;
               /* validate */ validate && ( validate.scope = function( code ){ return eval( code ) ; } ) ;
               UPDATE_CSS : {
-                if ( fire( settings.callbacks.update.css.before , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_CSS ; }
+                if ( fire( settings.callbacks.update.css.before , null , [ event , settings.parameter , data , textStatus , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_CSS ; }
                 
                 css = css ? css
                           : parsable ? page.find( 'link[rel~="stylesheet"], style' ).add( page.filter( 'link[rel~="stylesheet"], style' ) )
                                      : find( data , '(<link[^>]*?rel=.[^"\']*stylesheet[^>]*>|<style[^>]*>(.|[\n\r])*?</style>)' ) ;
-                ( fnCache( settings.history , url ) || {} ).css = css ;
+                if ( cache ? !cache.css : getCache( url ) ) { ( cache || getCache( url ) || {} ).css = css ; }
                 
                 // 対象現行全要素に削除フラグを立てる。
                 jQuery( 'link[rel~="stylesheet"], style' ).filter( function () { return jQuery.data( this , settings.nss.data , true ) ; } ) ;
@@ -544,7 +548,7 @@
                 jQuery( 'link[rel~="stylesheet"], style' ).filter( function () { return jQuery.data( this , settings.nss.data ) ; } ).remove() ;
                 jQuery( document ).trigger( settings.gns + '.ready' ) ;
                 
-                if ( fire( settings.callbacks.update.css.after , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_CSS ; }
+                if ( fire( settings.callbacks.update.css.after , null , [ event , settings.parameter , data , textStatus , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_CSS ; }
                 settings.speedcheck && settings.log.speed.name.push( 'css' ) ;
                 settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
               } ; // label: UPDATE_CSS
@@ -560,14 +564,14 @@
               /* validate */ validate && validate.start() ;
               /* validate */ validate && ( validate.scope = function( code ){ return eval( code ) ; } ) ;
               UPDATE_SCRIPT : {
-                if ( fire( settings.callbacks.update.script.before , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_SCRIPT ; }
+                if ( fire( settings.callbacks.update.script.before , null , [ event , settings.parameter , data , textStatus , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_SCRIPT ; }
                 
                 var executes = [] ;
                 
                 script = script ? script
                                 : parsable ? page.find( 'script' ).add( page.filter( 'script' ) )
                                            : find( data , '(?:[^\'\"]|^\s*)(<script[^>]*>(.|[\n\r])*?</script>)(?:[^\'\"]|\s*$)' ) ; //
-                ( fnCache( settings.history , url ) || {} ).script = script ;
+                if ( cache ? !cache.script : getCache( url ) ) { ( cache || getCache( url ) || {} ).script = script ; }
                 
                 for ( var i = 0 , element , defer ; element = script[ i ] ; i++ ) {
                   
@@ -581,7 +585,7 @@
                   
                   if ( jQuery.when ) {
                     defer = jQuery.Deferred() ;
-                    element.src ? jQuery.ajax( jQuery.extend( true , {} , settings.ajax , { url : element.src , dataType : 'script' , async : false , global : false , complete : defer.resolve } ) )
+                    element.src ? jQuery.ajax( jQuery.extend( true , {} , settings.ajax , { url : element.src , textStatus : 'script' , async : false , global : false , complete : defer.resolve } ) )
                                 : defer.resolve( settings.load.execute ? element : undefined ) ;
                     executes.push( defer ) ;
                   } else {
@@ -599,7 +603,7 @@
                   }
                 } ) ;
                 
-                if ( fire( settings.callbacks.update.script.after , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_SCRIPT ; }
+                if ( fire( settings.callbacks.update.script.after , null , [ event , settings.parameter , data , textStatus , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_SCRIPT ; }
                 settings.speedcheck && type === 'async' && settings.log.speed.name.push( 'script' ) ;
                 settings.speedcheck && type === 'async' && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
               } ; // label: UPDATE_SCRIPT
@@ -642,7 +646,7 @@
               if ( event.type.toLowerCase() === 'submit' && !settings.cache[ event.target.method.toLowerCase() ] ) { break UPDATE_CACHE ; }
               if ( fire( settings.callbacks.update.cache.save.before , null , [ event , settings.parameter , cache ] , settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
               
-              fnCache( settings.history , url , title , dataSize , data , dataType , XMLHttpRequest )
+              setCache( url , title , dataSize , textStatus , XMLHttpRequest )
               
               if ( fire( settings.callbacks.update.cache.save.after , null , [ event , settings.parameter , cache ] , settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
             } ; // label: UPDATE_CACHE
@@ -655,36 +659,31 @@
                 settings.retry = true ;
               } else if ( settings.retry ) {
                 settings.retry = false ;
-                drive( settings , event , win.location.href , false , settings.cache[ event.type.toLowerCase() ] ? fnCache( settings.history , win.location.href ) : undefined ) ;
+                drive( settings , event , win.location.href , false , settings.cache[ event.type.toLowerCase() ] && getCache( win.location.href ) ) ;
               } else {
                 throw new Error( 'throw: location mismatch' ) ;
               }
               if ( fire( settings.callbacks.update.verify.after , null , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { break UPDATE_VERIFY ; }
             } ; // label: UPDATE_VERIFY
             
-            if ( fire( settings.callbacks.update.success , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
-            if ( fire( settings.callbacks.update.complete , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
-            if ( fire( settings.callback , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
+            if ( fire( settings.callbacks.update.success , null , [ event , settings.parameter , data , textStatus , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
+            if ( fire( settings.callbacks.update.complete , null , [ event , settings.parameter , data , textStatus , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
+            if ( fire( settings.callback , null , [ event , settings.parameter , data , textStatus , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
             /* validate */ validate && validate.test( '++', 1, 0, 'success' ) ;
           } catch( err ) {
             /* validate */ validate && validate.test( '++', !String( err.message ).indexOf( "throw:" ), err, 'catch' ) ;
             /* validate */ validate && validate.test( '++', !( err.message === 'throw: location mismatch' && url !== win.location.href ), [ url, win.location.href ], "!( err.message === 'throw: location mismatch' && url !== win.location.href )" ) ;
             
             /* cache delete */
-            UPDATE_CACHE : {
-              if ( !cache ) { break UPDATE_CACHE ; }
-              
-              fnCache( settings.history , url , title , null )
-              
-            } ; // label: UPDATE_CACHE
+            cache && setCache( url ) ;
             
-            if ( fire( settings.callbacks.update.error , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
-            if ( fire( settings.callbacks.update.complete , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
+            if ( fire( settings.callbacks.update.error , null , [ event , settings.parameter , data , textStatus , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
+            if ( fire( settings.callbacks.update.complete , null , [ event , settings.parameter , data , textStatus , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
             /* validate */ validate && validate.test( '++', 1, [ url, win.location.href ], 'error' ) ;
             if ( settings.fallback ) { return typeof settings.fallback === 'function' ? fire( settings.fallback , null , [ event , url ] ) : fallback( event , validate ) ; }
           } ;
           
-          if ( fire( settings.callbacks.update.after , null , [ event , settings.parameter , data , dataType , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
+          if ( fire( settings.callbacks.update.after , null , [ event , settings.parameter , data , textStatus , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE ; }
           
           settings.speedcheck && settings.log.speed.name.push( 'ready' ) ;
           settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
@@ -793,21 +792,11 @@
       }
     } // function: scope
     
-    function fnCache( history , url , title , size , data , dataType , XMLHttpRequest ) {
-      var result ;
-      
+    function setCache( url , title , size , textStatus , XMLHttpRequest ) {
+      var history = settings.history ;
+      url = settings.hashquery ? url : url.replace( /#.*/ , '' ) ;
       switch ( true ) {
-        case history === undefined || url === undefined :
-          break ;
-          
-        case title === undefined :
-          if ( history.data[ url ] && settings.timestamp > history.data[ url ].timestamp + history.config.expire ) {
-            arguments.callee( history , url , null , null ) ;
-          }
-          result = history.data[ url ] ;
-          break ;
-          
-        case size === null :
+        case 1 === arguments.length :
           for ( var i = 0 , key ; key = history.order[ i ] ; i++ ) {
             if ( url === key ) {
               history.order.splice( i , 1 ) ;
@@ -818,38 +807,59 @@
           }
           break ;
           
-        default :
+        case XMLHttpRequest instanceof Object :
           history.order.unshift( url ) ;
           for ( var i = 1 , key ; key = history.order[ i ] ; i++ ) { if ( url === key ) { history.order.splice( i , 1 ) ; } }
           
           if ( history.data[ url ] ) { break ; }
+          history.size > history.config.size && cleanCache() ;
           
-          size = size || data.length * 1.8 ;
+          size = parseInt( size || XMLHttpRequest.responseText.length * 1.8 ) ;
           history.size = history.size || 0 ;
           history.size += size ;
           history.data[ url ] = {
-            data : null ,
-            dataType : dataType ,
             XMLHttpRequest : XMLHttpRequest ,
+            textStatus : textStatus ,
             title : title ,
             size : size ,
-            timestamp : settings.timestamp
+            timestamp : ( new Date() ).getTime()
           } ;
-          
-          for ( var i = history.order.length - 1 , url ; url = history.order[ i ] ; i-- ) {
-            if ( i >= history.config.length || history.size > history.config.size || settings.timestamp > history.data[ url ].timestamp + history.config.expire ) {
-              history.order.splice( i , 1 ) ;
-              history.size = history.size || 0 ;
-              history.size -= history.data[ url ].size ;
-              history.data[ url ] = null ;
-              delete history.data[ url ] ;
-            }
-          }
           break ;
+          
+        default :
+          return false ;
       }
-      
-      return result ;
-    } // function: fnCache
+      return true ;
+    } // function: setCache
+    
+    function getCache( url ) {
+      var history = settings.history ;
+      url = settings.hashquery ? url : url.replace( /#.*/ , '' ) ;
+      history.data[ url ] && settings.timestamp > history.data[ url ].timestamp + history.config.expire && setCache( url ) ;
+      return history.data[ url ] ;
+    } // function: getCache
+    
+    function clearCache() {
+      var history = settings.history ;
+      for ( var i = history.order.length , url ; url = history.order[ --i ] ; ) {
+        history.order.splice( i , 1 ) ;
+        history.size -= history.data[ url ].size ;
+        delete history.data[ url ] ;
+      }
+      return true ;
+    } // function: clearCache
+    
+    function cleanCache() {
+      var history = settings.history ;
+      for ( var i = history.order.length , url ; url = history.order[ --i ] ; ) {
+        if ( i >= history.config.length || settings.timestamp > history.data[ url ].timestamp + history.config.expire ) {
+          history.order.splice( i , 1 ) ;
+          history.size -= history.data[ url ].size ;
+          delete history.data[ url ] ;
+        }
+      }
+      return true ;
+    } // function: cleanCache
     
     function database() {
       var version = 2 , idb = settings.database , name = settings.gns , db , store , days = Math.floor( settings.timestamp / ( 1000*60*60*24 ) ) ;
@@ -933,16 +943,48 @@
     } // function: dbClean
     
     function on() {
-      for ( var i = 1 , len = plugin_data.length ; i < len ; i++ ) { plugin_data[ i ].disable = false ; }
+      settings.disable = false ;
     } // function: on
     
     function off() {
-      for ( var i = 1 , len = plugin_data.length ; i < len ; i++ ) { plugin_data[ i ].disable = true ; }
+      settings.disable = true ;
     } // function: off
     
-    function click( url ) {
-      jQuery( '<a/>' , { href : url }  ).appendTo( fire( plugin_data[ 1 ].area , null , [ null , url ] ) ).click().remove() ;
+    function click( url , attr ) {
+      attr = attr || {} , attr.href = url ;
+      jQuery( '<a/>' , attr ).one( 'click' , 1 , plugin_store.click ).click() ;
+      return true ;
     } // function: click
+    
+    function submit( url , attr , data ) {
+      var form , df = document.createDocumentFragment() , type , element ;
+      if ( url instanceof Object ) {
+        form = jQuery( url ) ;
+      } else {
+        attr = attr || {} ;
+        attr.action = url ;
+        type = data instanceof Array && Array || data instanceof Object && Object || undefined ;
+        for ( var i in data ) {
+          element = data[ i ]
+          switch ( type ) {
+            case Object :
+              element = jQuery( '<textarea/>' , { name : i } ).val( element ) ;
+              break ;
+            case Array :
+              element.attr = element.attr || {} ;
+              element.attr.name = element.name ;
+              element = jQuery( !element.tag.indexOf( '<' ) ? element.tag : '<' + element.tag + '/>' , element.attr || {} ).val( element.value ) ;
+              break ;
+            default :
+              continue ;
+          }
+          df.appendChild( element[ 0 ] ) ;
+        }
+        form = jQuery( '<form/>' , attr ).append( df ) ;
+      }
+      form.one( 'submit' , 1 , plugin_store.submit ).submit() ;
+      return true ;
+    } // function: submit
     
     function share() {
       
