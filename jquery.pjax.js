@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.21.2
- * @updated 2013/10/24
+ * @version 1.21.3
+ * @updated 2013/10/25
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -64,7 +64,7 @@
             async : false
           } ,
           parameter : null ,
-          load : { css : false , script : false , execute : true , sync : true , async : 0 } ,
+          load : { css : false , script : false , execute : true , sync : true , async : 0 , rewrite : null } ,
           interval : 300 ,
           wait : 0 ,
           scroll : { delay : 500 , suspend : -100 } ,
@@ -97,6 +97,7 @@
         } ,
         location : jQuery( '<a/>' , { href : win.location.href } )[ 0 ] ,
         hashclick : false ,
+        contentType : settings.contentType.replace( /\s*[,;]\s*/g , '|' ).toLowerCase() ,
         scroll : { queue : [] } ,
         database : settings.database ? ( win.indexedDB || win.webkitIndexedDB || win.mozIndexedDB || win.msIndexedDB || null ) : false ,
         server : { query : !settings.server.query ? settings.gns : settings.server.query } ,
@@ -149,12 +150,18 @@
     function register( context ) {
       
       database() ;
-      jQuery( 'script[src]' ).each( function () { if ( !( this.src in settings.log.script ) ) { settings.log.script[ this.src ] = true ; } } ) ;
+      settings.load.script && jQuery( 'script' ).each( function () {
+        var element = this , src ;
+        element = typeof settings.load.rewrite === 'function' ? fire( settings.load.rewrite , null , [ element.cloneNode() ] ) || element : element ;
+        src = element.src ;
+        if ( src && !( src in settings.log.script ) ) { settings.log.script[ src ] = true ; }
+      } ) ;
       
       settings.link &&
       jQuery( context )
       .undelegate( settings.link , settings.nss.click )
       .delegate( settings.link , settings.nss.click , settings.id , plugin_store.click = function ( event ) {
+        var settings = plugin_data[ 1 ] ;
         event.timeStamp = ( new Date() ).getTime() ;
         
         if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
@@ -182,6 +189,7 @@
       jQuery( context )
       .undelegate( settings.form , settings.nss.submit )
       .delegate( settings.form , settings.nss.submit , settings.id , plugin_store.submit = function ( event ) {
+        var settings = plugin_data[ 1 ] ;
         event.timeStamp = ( new Date() ).getTime() ;
         
         if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
@@ -204,6 +212,7 @@
       jQuery( win )
       .unbind( settings.nss.popstate )
       .bind( settings.nss.popstate , settings.id , plugin_store.popstate = function ( event ) {
+        var settings = plugin_data[ 1 ] ;
         event.timeStamp = ( new Date() ).getTime() ;
         
         
@@ -230,6 +239,7 @@
       jQuery( win )
       .unbind( settings.nss.scroll )
       .bind( settings.nss.scroll , settings.id , function ( event , end ) {
+        var settings = plugin_data[ 1 ] ;
         var id , fn = arguments.callee ;
         
         if ( !settings.scroll.delay ) {
@@ -272,7 +282,7 @@
       
       if ( cache ) {
         /* validate */ validate && validate.test( '++', 1, 0, 'update' ) ;
-        jQuery.when ? jQuery.when( wait( settings.wait ) ).done( function () { update( cache ) ; } ) : update( cache ) ;
+        jQuery.when ? jQuery.when( wait( settings.wait ) ).done( function () { update( settings , cache ) ; } ) : update( settings , cache ) ;
         /* validate */ validate && validate.test( '++', 1, 0, 'end' ) ;
         /* validate */ validate && validate.end() ;
         return ;
@@ -335,7 +345,7 @@
           
           fire( settings.callbacks.ajax.success , null , [ event , settings.parameter , data , textStatus , XMLHttpRequest ] , settings.callbacks.async ) ;
           
-          !jQuery.when && update() ;
+          !jQuery.when && update( settings ) ;
         } ,
         error : function () {
           XMLHttpRequest = arguments[ 0 ] ;
@@ -362,14 +372,14 @@
       /* validate */ validate && validate.test( '++', 1, 0, 'ajax' ) ;
       settings.speedcheck && settings.log.speed.name.push( 'request' ) ;
       settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
-      jQuery.when ? jQuery.when( jQuery.ajax( ajax ) , wait( settings.wait ) ).done( function () { update() ; } ).fail().always() : jQuery.ajax( ajax ) ;
+      jQuery.when ? jQuery.when( jQuery.ajax( ajax ) , wait( settings.wait ) ).done( function () { update( settings ) ; } ).fail().always() : jQuery.ajax( ajax ) ;
       
       if ( fire( settings.callbacks.after , null , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; } // function: drive
       /* validate */ validate && validate.test( '++', 1, 0, 'end' ) ;
       /* validate */ validate && validate.end() ;
       
       
-      function update( cache ) {
+      function update( settings , cache ) {
         /* validate */ var validate = settings.validate ? settings.validate.clone( { name : 'jquery.pjax.js - update()' } ) : false ;
         /* validate */ validate && validate.start() ;
         /* validate */ validate && ( validate.scope = function( code ){ return eval( code ) ; } ) ;
@@ -387,7 +397,7 @@
             
             /* validate */ validate && validate.test( '++', 1, 0, 'try' ) ;
             /* validate */ validate && validate.test( '++', 1, !cache ? [ settings.contentType, XMLHttpRequest.getResponseHeader( 'Content-Type' ) ] : 0, 'content-type' ) ;
-            if ( !cache && !( new RegExp( settings.contentType.replace( /\s*[,;]\s*(.|$)/g , function () { return arguments[ 1 ] ? '|' + arguments[ 1 ] : '' ; } ) , 'i' ) ).test( XMLHttpRequest.getResponseHeader( 'Content-Type' ) ) ) { throw new Error( "throw: content-type mismatch" ) ; }
+            if ( !cache && -1 === XMLHttpRequest.getResponseHeader( 'Content-Type' ).toLowerCase().search( settings.contentType ) ) { throw new Error( "throw: content-type mismatch" ) ; }
             
             /* cache */
             /* validate */ validate && validate.test( '++', cache ? "'usable'" : "'unusable'", 0, 'cache' ) ;
@@ -406,11 +416,10 @@
             /* variable initialization */
             /* validate */ validate && validate.test( '++', 1, 0, 'initialize' ) ;
             var page = jQuery( data ) ,
-                parsable = 0 < page.filter( 'title' ).length ,
+                parsable = !!title || 0 < page.filter( 'title' ).length ,
                 areas = settings.area.replace( /(\((.*?(\(.*?\).*?)?)*?\)|\S)(,|$)/g , function () { return arguments[1] + ( arguments[4] ? '|' : '' ) } ).split( /\s*\|(?!=)\s*/ ) ;
             
-            title = title ? title
-                          : parsable ? page.filter( 'title' ).text() : jQuery( '<span/>' ).html( find( data , '<title>([^<]*)</title>' ).join() ).text() ;
+            title = title || parsable ? page.filter( 'title' ).text() : jQuery( '<span/>' ).html( find( data , /<title>([^<]*?)<\/title>/i ).join() ).text() ;
             
             if ( !jQuery( settings.area ).length || !page.find( settings.area ).add( page.filter( settings.area ) ).length ) { throw new Error( 'throw: area length mismatch' ) ; }
             
@@ -426,15 +435,11 @@
                 url ) ;
               
               settings.location.href = url ;
-              switch ( true ) {
-                case !register :
-                  break ;
-                case settings.fix.location && /Mobile(\/\w+)? Safari/i.test( win.navigator.userAgent ) :
-                  plugin_response.off() ;
-                  win.history.back() ;
-                  win.history.forward() ;
-                  plugin_response.on() ;
-                  break ;
+              if ( register && settings.fix.location && /Mobile(\/\w+)? Safari/i.test( win.navigator.userAgent ) ) {
+                plugin_response.off() ;
+                win.history.back() ;
+                win.history.forward() ;
+                plugin_response.on() ;
               }
               
               if ( fire( settings.callbacks.update.url.after , null , [ event , settings.parameter , data , textStatus , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_URL ; }
@@ -501,10 +506,14 @@
               UPDATE_CSS : {
                 if ( fire( settings.callbacks.update.css.before , null , [ event , settings.parameter , data , textStatus , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_CSS ; }
                 
+                var save ;
+                cache = cache || getCache( url ) ;
+                save = cache && !cache.css ;
                 css = css ? css
-                          : parsable ? page.find( 'link[rel~="stylesheet"], style' ).add( page.filter( 'link[rel~="stylesheet"], style' ) )
-                                     : find( data , '(<link[^>]*?rel=.[^"\']*stylesheet[^>]*>|<style[^>]*>(.|[\n\r])*?</style>)' ) ;
-                if ( cache ? !cache.css : getCache( url ) ) { ( cache || getCache( url ) || {} ).css = css ; }
+                          : parsable ? page.find( 'link[rel~="stylesheet"], style' ).add( page.filter( 'link[rel~="stylesheet"], style' ) ).get()
+                                     : jQuery( find( data , /(<link[^>]*?rel=.[^"\']*?stylesheet[^>]*?>|<style[^>]*?>(?:.|[\n\r])*?<\/style>)/gim ) ) ;
+                if ( cache && cache.css && css && css.length !== cache.css.length ) { save = true ; }
+                if ( save ) { cache.css = parsable ? css : [] ; }
                 
                 // 対象現行全要素に削除フラグを立てる。
                 jQuery( 'link[rel~="stylesheet"], style' ).filter( function () { return jQuery.data( this , settings.nss.data , true ) ; } ) ;
@@ -513,6 +522,8 @@
                   
                   skip = false ;
                   element = parsable ? element : jQuery( element )[ 0 ] ;
+                  element = typeof settings.load.rewrite === 'function' ? fire( settings.load.rewrite , null , [ element.cloneNode() ] ) || element : element ;
+                  if ( save && !parsable ) { cache.css[ i ] = element ; }
                   
                   switch ( element.tagName.toLowerCase() ) {
                     case 'link' :
@@ -566,27 +577,33 @@
               UPDATE_SCRIPT : {
                 if ( fire( settings.callbacks.update.script.before , null , [ event , settings.parameter , data , textStatus , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_SCRIPT ; }
                 
-                var executes = [] ;
-                
+                var save , executes = [] ;
+                cache = cache || getCache( url ) ;
+                save = cache && !cache.script ;
                 script = script ? script
-                                : parsable ? page.find( 'script' ).add( page.filter( 'script' ) )
-                                           : find( data , '(?:[^\'\"]|^\s*)(<script[^>]*>(.|[\n\r])*?</script>)(?:[^\'\"]|\s*$)' ) ; //
-                if ( cache ? !cache.script : getCache( url ) ) { ( cache || getCache( url ) || {} ).script = script ; }
+                                : parsable ? page.find( 'script' ).add( page.filter( 'script' ) ).get()
+                                           : find( data , /(?:[^\'\"]|^\s*?)(<script[^>]*?>(?:.|[\n\r])*?<\/script>)(?:[^\'\"]|\s*?$)/gim ) ; //
+                if ( cache && cache.script && script && script.length !== cache.script.length ) { save = true ; }
+                if ( save ) { cache.script = parsable ? script : [] ; }
                 
-                for ( var i = 0 , element , defer ; element = script[ i ] ; i++ ) {
+                for ( var i = 0 , element , src , defer ; element = script[ i ] ; i++ ) {
                   
                   element = parsable ? element : jQuery( element )[ 0 ] ;
+                  element = typeof settings.load.rewrite === 'function' ? fire( settings.load.rewrite , null , [ element.cloneNode() ] ) || element : element ;
+                  if ( save && !parsable ) { cache.script[ i ] = element ; }
+                  src = element.src ;
+                  defer = element.defer ;
                   
-                  if ( type === 'sync' && !element.defer ) { continue ; }
-                  if ( type === 'async' && element.defer ) { continue ; }
+                  if ( type === 'sync' && !defer ) { continue ; }
+                  if ( type === 'async' && defer ) { continue ; }
                   
-                  if ( !element.childNodes.length && element.src in settings.log.script ) { continue ; }
-                  if ( element.src ) { settings.log.script[ element.src ] = true ; }
+                  if ( src && src in settings.log.script ) { continue ; } else if ( src ) { settings.log.script[ src ] = true ; }
                   
                   if ( jQuery.when ) {
                     defer = jQuery.Deferred() ;
-                    element.src ? jQuery.ajax( jQuery.extend( true , {} , settings.ajax , { url : element.src , textStatus : 'script' , async : false , global : false , complete : defer.resolve } ) )
-                                : defer.resolve( settings.load.execute ? element : undefined ) ;
+                    src ? jQuery.ajax( jQuery.extend( true , {} , settings.ajax , { url : src , textStatus : 'script' , async : false , global : false , complete : defer.resolve } ) )
+                        : defer.resolve( settings.load.execute ? element : undefined ) ;
+                    
                     executes.push( defer ) ;
                   } else {
                     jQuery( 'head' ).append( element ) ;
@@ -598,7 +615,7 @@
                 jQuery.when.apply( null , executes )
                 .always( function () {
                   for ( var i = 0 , exec ; exec = arguments[ i ] ; i++ ) {
-                    0 < Number( exec.nodeType ) && ( !exec.type || -1 < exec.type.toLowerCase().indexOf( 'text/javascript' ) ) &&
+                    typeof exec === 'object' && !exec.src && ( !exec.type || -1 < exec.type.toLowerCase().indexOf( 'text/javascript' ) ) &&
                     eval( ( exec.text || exec.textContent || exec.innerHTML || '' ).replace( /^\s*<!(?:\[CDATA\[|\-\-)/ , '/*$0*/' ) ) ;
                   }
                 } ) ;
@@ -725,7 +742,7 @@
     
     function find( data , pattern ) {
       var result = [] ;
-      data.replace( new RegExp( pattern , "gim" ) , function () { result.push( arguments[ 1 ] ) ; } )
+      data.replace( pattern , function () { result.push( arguments[ 1 ] ) ; } )
       return result ;
     } // function: find
     
