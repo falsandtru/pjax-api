@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.22.2
+ * @version 1.22.3
  * @updated 2013/10/26
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -376,8 +376,6 @@
           XMLHttpRequest = arguments[ 2 ] ;
           
           fire( settings.callbacks.ajax.success , null , [ event , settings.parameter , data , textStatus , XMLHttpRequest ] , settings.callbacks.async ) ;
-          
-          defer && defer.resolve() || update( settings , event ) ;
         } ,
         error : function () {
           XMLHttpRequest = arguments[ 0 ] ;
@@ -386,18 +384,22 @@
           
           /* validate */ var validate = settings.validate ? settings.validate.clone( { name : 'jquery.pjax.js - drive()' } ) : false ;
           /* validate */ validate && validate.start() ;
-          /* validate */ validate && validate.test( '++', 1, [ url, win.location.href, XMLHttpRequest, textStatus, errorThrown ], 'ajax error' ) ;
+          /* validate */ validate && validate.test( '++', textStatus === 'abort', [ url, win.location.href, XMLHttpRequest, textStatus, errorThrown ], 'ajax error' ) ;
           fire( settings.callbacks.ajax.error , null , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] , settings.callbacks.async ) ;
-          
-          defer && defer.reject() ;
-          if ( settings.fallback && textStatus !== 'abort' ) { return typeof settings.fallback === 'function' ? fire( settings.fallback , null , [ event , url ] ) : fallback( event , validate ) ; }
           /* validate */ validate && validate.end() ;
         } ,
-        complete : !settings.callbacks.ajax.complete ? undefined : function () {
+        complete : function () {
           XMLHttpRequest = arguments[ 0 ] ;
           textStatus = arguments[ 1 ] ;
           
           fire( settings.callbacks.ajax.complete , null , [ event , settings.parameter , XMLHttpRequest , textStatus ] , settings.callbacks.async ) ;
+          
+          if ( !errorThrown ) {
+            defer && defer.resolve() || update( settings , event ) ;
+          } else {
+            defer && defer.reject() ;
+            if ( settings.fallback && textStatus !== 'abort' ) { return typeof settings.fallback === 'function' ? fire( settings.fallback , null , [ event , url ] ) : fallback( event ) ; }
+          }
         }
       } ;
       jQuery.extend( true , ajax , settings.ajax , callbacks ) ;
