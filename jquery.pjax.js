@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.21.4
+ * @version 1.22.0
  * @updated 2013/10/26
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -64,7 +64,7 @@
             async : false
           } ,
           parameter : null ,
-          load : { css : false , script : false , execute : true , sync : true , async : 0 , rewrite : null } ,
+          load : { css : false , script : false , execute : true , sync : true , ajax : { dataType : 'script' } , rewrite : null } ,
           interval : 300 ,
           wait : 0 ,
           scroll : { delay : 500 , suspend : -100 } ,
@@ -167,7 +167,7 @@
         if ( settings.disable ) { return false ; }
         settings.destination.href = this.href ;
         
-        if ( settings.disable || win.location.protocol !== this.protocol || win.location.host !== this.host ) { return ; }
+        if ( win.location.protocol !== this.protocol || win.location.host !== this.host ) { return ; }
         if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
         
         if ( settings.location.href === settings.destination.href ) { return false ; }
@@ -227,7 +227,7 @@
         
         var url , cache ;
         
-        if ( !fire( settings.hashquery , null , [ event , url ] ) && settings.location.pathname + settings.location.search === win.location.pathname + win.location.search ) { return settings.hashclick = settings.hashclick && !!hashmove() && false ; }
+        if ( !fire( settings.hashquery , null , [ event , url ] ) && settings.location.pathname + settings.location.search === win.location.pathname + win.location.search ) { return settings.hashclick = settings.hashclick && hashmove() && false ; }
         
         url = win.location.href ;
         settings.area = fire( settings.options.area , null , [ event , url ] ) ;
@@ -270,6 +270,30 @@
           } , settings.scroll.suspend ) ;
         }
         
+      } ) ;
+      
+      jQuery( doc )
+      .unbind( settings.gns + '.execute' )
+      .bind( settings.gns + '.execute' , settings.id , function ( event , executes ) {
+        switch ( typeof executes ) {
+          case 'function' :
+            settings.speedcheck && settings.log.speed.name.push( 'executable' ) ;
+            settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
+            
+            executes() ;
+            break;
+            
+          case 'object' :
+            for ( var i = 0 , element ; element = executes[ i++ ] ; ) {
+              if ( element.src ) {
+                jQuery.ajax( jQuery.extend( true , {} , settings.ajax , settings.load.ajax , { url : element.src , async : element.async , global : false } ) ) ;
+              } else {
+                typeof element === 'object' && ( !element.type || -1 < element.type.toLowerCase().indexOf( 'text/javascript' ) ) &&
+                eval( ( element.text || element.textContent || element.innerHTML || '' ).replace( /^\s*<!(?:\[CDATA\[|\-\-)/ , '/*$0*/' ) ) ;
+              }
+            }
+            break;
+        }
       } ) ;
     } // function: register
     
@@ -323,7 +347,7 @@
       callbacks = {
         xhr : !settings.callbacks.ajax.xhr ? undefined : function () {
           XMLHttpRequest = fire( settings.callbacks.ajax.xhr , null , [ event , settings.parameter ] , settings.callbacks.async ) ;
-          XMLHttpRequest = XMLHttpRequest instanceof Object && XMLHttpRequest instanceof win.XMLHttpRequest ? XMLHttpRequest : XMLHttpRequest || jQuery.ajaxSettings.xhr() ;
+          XMLHttpRequest = typeof XMLHttpRequest === 'object' && XMLHttpRequest || jQuery.ajaxSettings.xhr() ;
           
           //if ( XMLHttpRequest instanceof Object && XMLHttpRequest instanceof win.XMLHttpRequest && 'onprogress' in XMLHttpRequest ) {
           //  XMLHttpRequest.addEventListener( 'progress' , function ( event ) { dataSize = event.loaded ; } , false ) ;
@@ -384,8 +408,8 @@
       /* validate */ validate && validate.test( '++', 1, 0, 'ajax' ) ;
       settings.speedcheck && settings.log.speed.name.push( 'request' ) ;
       settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
+      jQuery.when && jQuery.when( defer.promise() , wait( settings.wait ) ).done( function () { update( settings , event ) ; } ) ;
       jQuery.ajax( ajax )
-      jQuery.when ? jQuery.when( defer , wait( settings.wait ) ).done( function () { update( settings , event ) ; } ) : jQuery.ajax( ajax ) ;
       
       if ( fire( settings.callbacks.after , null , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; } // function: drive
       /* validate */ validate && validate.test( '++', 1, 0, 'end' ) ;
@@ -428,10 +452,10 @@
             
             /* variable initialization */
             /* validate */ validate && validate.test( '++', 1, 0, 'initialize' ) ;
-            var page = jQuery( data ) ,
-                parsable = !!title || 0 < page.filter( 'title' ).length ,
-                areas = settings.area.replace( /(\((.*?(\(.*?\).*?)?)*?\)|\S)(,|$)/g , function () { return arguments[1] + ( arguments[4] ? '|' : '' ) } ).split( /\s*\|(?!=)\s*/ ) ,
-                checker ;
+            var page , parsable , areas , checker ;
+            page = jQuery( data ) ;
+            parsable = !!title || 0 < page.filter( 'title' ).length ;
+            areas = settings.area.replace( /(\((.*?(\(.*?\).*?)?)*?\)|\S)(,|$)/g , function () { return arguments[1] + ( arguments[4] ? '|' : '' ) } ).split( /\s*\|(?!=)\s*/ ) ;
             
             title = title || parsable ? page.filter( 'title' ).text() : jQuery( '<span/>' ).html( find( data , /<title>([^<]*?)<\/title>/i ).join() ).text() ;
             
@@ -486,6 +510,7 @@
                   scrollY = scrollY === null ? jQuery( win ).scrollTop() : parseInt( Number( scrollY ) ) ;
                   
                   ( jQuery( win ).scrollTop() === scrollY && jQuery( win ).scrollLeft() === scrollX ) || win.scrollTo( scrollX , scrollY ) ;
+                  settings.database && settings.fix.scroll && dbScroll( scrollX , scrollY ) ;
                   break ;
                 case 'popstate' :
                   settings.database && settings.fix.scroll && dbScroll() ;
@@ -504,9 +529,23 @@
                 'style' : 'display: block !important; visibility: hidden !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; position: absolute !important; top: -9999px !important; left: -9999px !important; font-size: 12px !important; text-indent: 0 !important;'
               } ).text( 'pjax' ) ;
               for ( var i = 0 , area ; area = areas[ i++ ] ; ) { jQuery( area ).html( page.find( area ).add( page.filter( area ) ).contents() ).append( checker.clone() ) ; }
-              jQuery( document ).trigger( settings.gns + '.DOMContentLoaded' ) ;
+              checker = jQuery( settings.area ).children( '.' + settings.nss.class4html + '-check' ) ;
+              jQuery( doc ).trigger( settings.gns + '.DOMContentLoaded' ) ;
               if ( fire( settings.callbacks.update.content.after , null , [ event , settings.parameter , data , textStatus , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_CONTENT ; }
             } ; // label: UPDATE_CONTENT
+            
+            /* cache */
+            /* validate */ validate && validate.test( '++', 1, 0, 'cache' ) ;
+            UPDATE_CACHE : {
+              if ( cache || !settings.cache.click && !settings.cache.submit && !settings.cache.popstate ) { break UPDATE_CACHE ; }
+              if ( event.type.toLowerCase() === 'submit' && !settings.cache[ event.target.method.toLowerCase() ] ) { break UPDATE_CACHE ; }
+              if ( fire( settings.callbacks.update.cache.save.before , null , [ event , settings.parameter , cache ] , settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
+              
+              setCache( url , title , dataSize , textStatus , XMLHttpRequest )
+              cahce = getCache( url ) ;
+              
+              if ( fire( settings.callbacks.update.cache.save.after , null , [ event , settings.parameter , cache ] , settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
+            } ; // label: UPDATE_CACHE
             
             /* css */
             /* validate */ validate && validate.test( '++', 1, 0, 'css' ) ;
@@ -518,7 +557,7 @@
                 if ( fire( settings.callbacks.update.css.before , null , [ event , settings.parameter , data , textStatus , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_CSS ; }
                 
                 var save ;
-                cache = cache || getCache( url ) ;
+                cache = getCache( url ) ;
                 save = cache && !cache.css ;
                 css = css ? css
                           : parsable ? page.find( 'link[rel~="stylesheet"], style' ).add( page.filter( 'link[rel~="stylesheet"], style' ) ).get()
@@ -565,10 +604,8 @@
                   }
                   
                   jQuery( 'head' ).append( element ) ;
-                  element = null ;
                 }
                 jQuery( 'link[rel~="stylesheet"], style' ).filter( function () { return jQuery.data( this , settings.nss.data ) ; } ).remove() ;
-                jQuery( document ).trigger( settings.gns + '.ready' ) ;
                 
                 if ( fire( settings.callbacks.update.css.after , null , [ event , settings.parameter , data , textStatus , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_CSS ; }
                 settings.speedcheck && settings.log.speed.name.push( 'css' ) ;
@@ -576,8 +613,8 @@
               } ; // label: UPDATE_CSS
               /* validate */ validate && validate.end() ;
             } // function: css
-            settings.load.css && setTimeout( function () { load_css() ; } , settings.load.async || 0 ) ;
-            !settings.load.css && jQuery( document ).trigger( settings.gns + '.ready' ) ;
+            settings.load.css && setTimeout( function () { load_css() , jQuery( doc ).trigger( settings.gns + '.ready' ) ; } , 0 ) ;
+            !settings.load.css && jQuery( doc ).trigger( settings.gns + '.ready' ) ;
             
             /* script */
             /* validate */ validate && validate.test( '++', 1, 0, 'script' ) ;
@@ -588,8 +625,8 @@
               UPDATE_SCRIPT : {
                 if ( fire( settings.callbacks.update.script.before , null , [ event , settings.parameter , data , textStatus , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_SCRIPT ; }
                 
-                var save , executes = [] ;
-                cache = cache || getCache( url ) ;
+                var save , executes = [] , callback ;
+                cache = getCache( url ) ;
                 save = cache && !cache.script ;
                 script = script ? script
                                 : parsable ? page.find( 'script' ).add( page.filter( 'script' ) ).get()
@@ -610,73 +647,46 @@
                   
                   if ( src && src in settings.log.script ) { continue ; } else if ( src ) { settings.log.script[ src ] = true ; }
                   
-                  if ( jQuery.when ) {
-                    defer = jQuery.Deferred() ;
-                    src ? jQuery.ajax( jQuery.extend( true , {} , settings.ajax , { url : src , textStatus : 'script' , async : false , global : false , complete : defer.resolve } ) )
-                        : defer.resolve( settings.load.execute ? element : undefined ) ;
-                    
-                    executes.push( defer ) ;
-                  } else {
-                    jQuery( 'head' ).append( element ) ;
-                  }
-                  element = null ;
+                  executes.push( element ) ;
                 }
                 
-                jQuery.when && executes.length &&
-                jQuery.when.apply( null , executes )
-                .always( function () {
-                  for ( var i = 0 , exec ; exec = arguments[ i ] ; i++ ) {
-                    typeof exec === 'object' && !exec.src && ( !exec.type || -1 < exec.type.toLowerCase().indexOf( 'text/javascript' ) ) &&
-                    eval( ( exec.text || exec.textContent || exec.innerHTML || '' ).replace( /^\s*<!(?:\[CDATA\[|\-\-)/ , '/*$0*/' ) ) ;
-                  }
-                } ) ;
-                
                 if ( fire( settings.callbacks.update.script.after , null , [ event , settings.parameter , data , textStatus , XMLHttpRequest ] , settings.callbacks.async ) === false ) { break UPDATE_SCRIPT ; }
-                settings.speedcheck && type === 'async' && settings.log.speed.name.push( 'script' ) ;
-                settings.speedcheck && type === 'async' && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
+                type === 'sync' && settings.speedcheck && settings.log.speed.name.push( 'script' ) ;
+                type === 'sync' && settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
               } ; // label: UPDATE_SCRIPT
               /* validate */ validate && validate.end() ;
+              return executes ;
             } // function: script
-            settings.load.script && setTimeout( function () { load_script( 'async' ) ; } , settings.load.async || 0 ) ;
-            settings.load.script && !settings.load.sync && setTimeout( function () { load_script( 'sync' ) ; } , settings.load.async || 0 ) ;
+            jQuery( doc ).trigger( settings.gns + '.execute' , [ rendering ] ) ;
+            settings.load.script && setTimeout( function () { jQuery( doc ).trigger( settings.gns + '.execute' , [ load_script( 'async' ) ] ) ; } , 0 ) ;
+            settings.load.script && !settings.load.sync && setTimeout( function () { jQuery( doc ).trigger( settings.gns + '.execute' , [ load_script( 'sync' ) ] ) ; } , 0 ) ;
             
             /* rendering */
             /* validate */ validate && validate.test( '++', 1, 0, 'rendering' ) ;
-            UPDATE_RENDERING : {
-              checker = jQuery( settings.area ).children( '.' + settings.nss.class4html + '-check' ) ;
+            function rendering( type ) {
+              if ( fire( settings.callbacks.update.rendering.before , null , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; }
               setTimeout( function () {
-                if ( checker
-                     .filter( function () { return this.clientWidth || jQuery( this ).is( ':hidden' ) ; } )
-                     .length === checker.length ) {
-                  if ( fire( settings.callbacks.update.rendering.before , null , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; }
+                if ( checker.filter( function () { return this.clientWidth || jQuery( this ).is( ':hidden' ) ; } ).length === checker.length ) {
                   
-                  checker.remove() ;
-                  settings.load.script && settings.load.sync && setTimeout( function () { load_script( 'sync' ) ; } , settings.load.async || 0 ) ;
-                  hashmove( event.type.toLowerCase() === 'popstate' ) || scroll( true ) ;
-                  jQuery( window ).trigger( settings.gns + '.load' ) ;
+                  rendered() ;
                   
-                  if ( fire( settings.callbacks.update.rendering.after , null , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; }
-                  settings.speedcheck && settings.log.speed.name.push( 'rendering' ) ;
-                  settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
-                  settings.speedcheck && console.log( settings.log.speed.time ) ;
-                  settings.speedcheck && console.log( settings.log.speed.name ) ;
                 } else if ( checker.length ) {
                   setTimeout( function () { arguments.callee() ; } , settings.interval ) ;
                 }
               } , 0 ) ;
-            } ; // label: UPDATE_RENDERING
-            
-            /* cache */
-            /* validate */ validate && validate.test( '++', 1, 0, 'cache' ) ;
-            UPDATE_CACHE : {
-              if ( cache || !settings.cache.click && !settings.cache.submit && !settings.cache.popstate ) { break UPDATE_CACHE ; }
-              if ( event.type.toLowerCase() === 'submit' && !settings.cache[ event.target.method.toLowerCase() ] ) { break UPDATE_CACHE ; }
-              if ( fire( settings.callbacks.update.cache.save.before , null , [ event , settings.parameter , cache ] , settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
+            } // function: rendering
+            function rendered() {
+              checker.remove() ;
+              settings.load.script && settings.load.sync && setTimeout( function () { jQuery( doc ).trigger( settings.gns + '.execute' , [ 'sync' , load_script( 'sync' ) ] ) ; } , 0 ) ;
+              hashmove( event.type.toLowerCase() === 'popstate' ) || scroll( true ) ;
+              jQuery( window ).trigger( settings.gns + '.load' ) ;
               
-              setCache( url , title , dataSize , textStatus , XMLHttpRequest )
-              
-              if ( fire( settings.callbacks.update.cache.save.after , null , [ event , settings.parameter , cache ] , settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
-            } ; // label: UPDATE_CACHE
+              if ( fire( settings.callbacks.update.rendering.after , null , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; }
+              settings.speedcheck && settings.log.speed.name.push( 'rendered' ) ;
+              settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
+              settings.speedcheck && console.log( settings.log.speed.time ) ;
+              settings.speedcheck && console.log( settings.log.speed.name ) ;
+            } // function: rendered
             
             /* verify */
             /* validate */ validate && validate.test( '++', 1, 0, 'verify' ) ;
@@ -725,7 +735,9 @@
     } // function: fire
     
     function hashmove( cancel ) {
-      return !cancel && jQuery(  win.location.hash + ', [name=' + win.location.hash + ']' ).first().each( function () {
+      var hash = win.location.hash.slice( 1 ) ;
+      cancel = cancel || !hash ;
+      return !cancel && jQuery(  '#' + ( hash ? hash : ', [name~=' + hash + ']' ) ).first().each( function () {
         isFinite( jQuery( this ).offset().top ) && win.scrollTo( jQuery( win ).scrollLeft() , parseInt( Number( jQuery( this ).offset().top ) ) ) ;
       } ).length ;
     } // function: hashmove
@@ -757,7 +769,7 @@
     } // function: find
     
     function scope( settings , relocation ) {
-      var scp , arr , loc , des , dirs , dir , keys , key , pattern , not , reg , rewrite , inherit , hit_from , hit_to ;
+      var scp , arr , loc , des , dirs , dir , keys , key , pattern , not , reg , rewrite , inherit , hit_loc , hit_des ;
       
       scp = settings.scope ;
       loc = settings.location.pathname + settings.location.search + settings.location.hash ;
@@ -773,7 +785,7 @@
       }
       
       for ( var i = keys.length + 1 ; i-- ; ) {
-        rewrite = inherit = hit_from = hit_to = false ;
+        rewrite = inherit = hit_loc = hit_des = false ;
         key = keys.slice( 0 , i ).join( '/' ).replace( /\/([?#])/g , '$1' ) ;
         key = '/' + key + ( ( relocation || loc ).charAt( key.length + 1 ) === '/' ? '/' : '' ) ;
         
@@ -784,7 +796,7 @@
           if ( !relocation && pattern === 'rewrite' && typeof scp.rewrite === 'function' ) {
             rewrite = scope( settings , fire( scp.rewrite , null , [ settings.destination.href ] ) ) ;
             if ( rewrite ) {
-              hit_from = hit_to = true ;
+              hit_loc = hit_des = true ;
             } else if ( false === rewrite ) {
               return false ;
             }
@@ -800,16 +812,16 @@
               for ( var k = 0 , len = dirs.length ; k < len ; k++ ) { pattern = pattern.replace( '/*/' , '/' + dirs[ k ] + '/' ) ; }
             }
             
-            if ( ( not || !hit_from ) && ( reg ? !loc.search( pattern ) : !loc.indexOf( pattern ) ) ) {
-              if ( not ) { return false ; } else { hit_from = true ; }
+            if ( ( not || !hit_loc ) && ( reg ? !loc.search( pattern ) : !loc.indexOf( pattern ) ) ) {
+              if ( not ) { return false ; } else { hit_loc = true ; }
             }
-            if ( ( not || !hit_to ) && ( reg ? !des.search( pattern ) : !des.indexOf( pattern ) ) ) {
-              if ( not ) { return false ; } else { hit_to = true ; }
+            if ( ( not || !hit_des ) && ( reg ? !des.search( pattern ) : !des.indexOf( pattern ) ) ) {
+              if ( not ) { return false ; } else { hit_des = true ; }
             }
           }
         }
         
-        if ( hit_from && hit_to ) { return true ; }
+        if ( hit_loc && hit_to ) { return true ; }
         if ( inherit ) { continue ; }
         return undefined ;
       }
@@ -830,7 +842,7 @@
           }
           break ;
           
-        case XMLHttpRequest instanceof Object :
+        case typeof XMLHttpRequest === 'object' :
           history.order.unshift( url ) ;
           for ( var i = 1 , key ; key = history.order[ i ] ; i++ ) { if ( url === key ) { history.order.splice( i , 1 ) ; } }
           
@@ -975,35 +987,41 @@
     
     function click( url , attr ) {
       attr = attr || {} , attr.href = url ;
-      jQuery( '<a/>' , attr ).one( 'click' , 1 , plugin_store.click ).click() ;
-      return true ;
+      return url ? jQuery( '<a/>' , attr ).one( 'click' , 1 , plugin_store.click ).click() : false ;
     } // function: click
     
     function submit( url , attr , data ) {
-      var form , df = document.createDocumentFragment() , type , element ;
-      if ( url instanceof Object ) {
-        form = jQuery( url ) ;
-      } else {
-        attr = attr || {} ;
-        attr.action = url ;
-        type = data instanceof Array && Array || data instanceof Object && Object || undefined ;
-        for ( var i in data ) {
-          element = data[ i ]
-          switch ( type ) {
-            case Object :
-              element = jQuery( '<textarea/>' , { name : i } ).val( element ) ;
-              break ;
-            case Array :
-              element.attr = element.attr || {} ;
-              element.attr.name = element.name ;
-              element = jQuery( !element.tag.indexOf( '<' ) ? element.tag : '<' + element.tag + '/>' , element.attr || {} ).val( element.value ) ;
-              break ;
-            default :
-              continue ;
+      var form , df = doc.createDocumentFragment() , type , element ;
+      switch ( true ) {
+        case typeof url === 'object' :
+          form = jQuery( url ) ;
+          break ;
+          
+        case !!data :
+          attr = attr || {} ;
+          attr.action = url ;
+          type = data instanceof Array && Array || data instanceof Object && Object || undefined ;
+          for ( var i in data ) {
+            element = data[ i ]
+            switch ( type ) {
+              case Object :
+                element = jQuery( '<textarea/>' , { name : i } ).val( element ) ;
+                break ;
+              case Array :
+                element.attr = element.attr || {} ;
+                element.attr.name = element.name ;
+                element = jQuery( !element.tag.indexOf( '<' ) ? element.tag : '<' + element.tag + '/>' , element.attr || {} ).val( element.value ) ;
+                break ;
+              default :
+                continue ;
+            }
+            df.appendChild( element[ 0 ] ) ;
           }
-          df.appendChild( element[ 0 ] ) ;
-        }
-        form = jQuery( '<form/>' , attr ).append( df ) ;
+          form = jQuery( '<form/>' , attr ).append( df ) ;
+          break ;
+          
+        default :
+          return false ;
       }
       form.one( 'submit' , 1 , plugin_store.submit ).submit() ;
       return true ;
