@@ -972,7 +972,7 @@ $(function(){
       rewrite: function( element ){
         if(element.type='text/rocketscript'){
           element.type = 'text/javascript';
-          element.src = $(element).data('rocketsrc');
+          element.src = $(element).data('rocketsrc') || '';
           return element;
         }
       }
@@ -1012,9 +1012,14 @@ NG
 pjaxの実用的な使用方法についての雑考を書いてみました。<a href="http://d.hatena.ne.jp/fatwebstudy/20131015/1381780122" target="_blank">pjaxの実用性</a>
 
 ##更新情報
-バージョン1.21.0で重大なバグの修正を行いました。これより古いバージョンを使用されている方は直ちにアップデートしてください。
+基本的にマイナーバージョン（1.0.xのxの部分）が若いバージョンはバグ持ちです。一つ前のメジャーバージョンの最終バージョンが比較的安定的なバージョンになります。
 
 ###change log
+
+####1.22.4
+
++ 読み込まれるJavaScriptのコンテキストを`window`に修正
++ scope機能が動作しないバグを修正
 
 ####1.22.3
 
@@ -1031,7 +1036,7 @@ pjaxの実用的な使用方法についての雑考を書いてみました。<
 
 ####1.22.0
 
-+ JavaScriptの読み込みの仕様を変更
++ JavaScript読み込み機能の仕様を変更
   <br>実行順序が完全に維持されるよう変更（通常のページ移動と同じ順序で実行される）。
 + `load.ajax`パラメータを追加
   <br>`script`要素のajaxによる読み込み設定を上書きする。
@@ -1045,7 +1050,7 @@ pjaxの実用的な使用方法についての雑考を書いてみました。<
 ####1.21.4
 
 + スクロール復元機能を修正
-+ jQuery1.5.0未満のバージョンでのバグを修正
++ jQuery1.4.x未満のバージョンでのバグを修正
 + コードを最適化
 
 ####1.21.3
