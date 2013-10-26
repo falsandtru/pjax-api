@@ -174,7 +174,7 @@ pjaxによるページ移動を`http://example.com/pjax/`ディレクトリ内�
 スクロールイベントの発生後、スクロールイベントの発生を抑制する時間をミリ秒で設定します。設定値を0にするとイベントが抑制されません。初期値は`-100`です。パラメータの詳細な仕様は<a href="https://github.com/falsandtru/jquery.displaytrigger.js" target="_blank">displaytrigger</a>の同名のパラメータを確認してください。
 
 ####*ajax: object*
-pjaxで内部的に使用される`$.ajax`のオプションを設定します。`$.ajax`のコールバック関数はすべて上書きされるため使用できません。代わりに`callbacks.ajax`で設定できるのでこちらを使用してください。
+pjaxで内部的に使用される`$.ajax`のパラメータを設定します。`$.ajax`のコールバック関数はすべて上書きされるため使用できません。代わりに`callbacks.ajax`で設定できるのでこちらを使用してください。
 
 ####*contentType: string*
 移動先として読み込むデータで許容するコンテントタイプをカンマまたはセミコロン区切りの文字列で設定します。初期値は`text/html`です。
@@ -191,11 +191,12 @@ pjaxによるページ読み込み時にCSSを読み込むかを設定します�
 #####*load.script: boolean*
 pjaxによるページ読み込み時にJavaScriptを読み込むかを設定します。初期値は`false`で読み込みません。
 
-読み込まれるページの、現在のページに存在しないすべてのJavaScript（`script`要素）を読み込みます。外部ファイル以外の形式のJavaScriptは同一の内容であっても再度読み込まれます。jQueryの仕様により、JavaScriptは読み込まれていてもDOMに追加されません。
-
-pjaxによるJavaScriptの実行順序は、HTML上の記述順序（通常の読み込み順序）と同じであることが保障されません。外部ファイル形式のJavaScriptと埋め込み形式のJavaScriptでは実行タイミングが異なるため、同一形式間内での実行順序は保たれますが、異なる形式間での実行順序は保たれません。また、埋め込み形式のJavaScriptの実行はすべての外部ファイル形式のJavaScriptの実行を待ってから行われます。このため、外部ファイル形式のJavaScriptが実行される前に埋め込み形式のJavaScriptがすでに実行されていなければならないような設計は避ける必要があります。
+読み込まれるページの、現在のページに存在しないすべてのJavaScript（`script`要素）を読み込みます。外部ファイル以外の形式のJavaScriptは同一の内容であっても再度読み込まれます。jQueryの仕様により、JavaScriptは読み込まれていてもDOMに追加されません。通常のページ移動と同じ実行順序が維持されます。
 
 ページの表示直後にすべて実行されている必要のないJavaScriptは、ページ読み込み時に一括で実行せず<a href="https://github.com/falsandtru/jquery.displaytrigger.js" target="_blank">displaytrigger</a>により随時実行することで負荷を削減することを推奨します。ページの表示直後にすべて読み込まれている必要のないコンテンツについても同様です。
+
+#####*load.ajax: object*
+`ajax`パラメータに重ねて上書きする`$.ajax`のパラメータを設定します。初期値は`{dataType: 'script'}`です。
 
 #####*load.execute: boolean*
 JavaScriptの読み込みが有効になっている場合に埋め込み型のJavaScriptを実行するかを設定します。初期値は`true`で有効です。
@@ -205,8 +206,13 @@ JavaScriptの読み込みが有効になっている場合に埋め込み型のJ
 
 `load.sync`による同期（的）処理は、JavaScriptの読み込み処理を同期的に開始できるように実行タイミングを調整して行うものであり、pjaxによるCSSとJavaScriptの読み込み処理自体は`load.sync``load.async`の設定にかかわらずすべて非同期で行われます。
 
-#####*load.async: Millisecond as number*
-CSSとJavaScript（`script`要素）の非同期読み込みをpjaxによるコンテンツの更新の描画を待たずに開始する、コンテンツの更新からの経過時間（遅延時間）をミリ秒で設定します。初期値は`0`です。
+#####<del>*load.async: Millisecond as number*</del>
+`script`要素の`async`属性により個別に設定されるよう変更されました。
+
+#####*load.rewrite: function( element )*
+JavaScriptまたはCSSとして読み込まれる要素（<code>script</code><code>link</code><code>style</code>要素）を戻り値の要素で置換します。初期値は<code>null</code>です。
+
+CloudFlareのRocketLoaderを使用するなどして要素が書き換えられている場合に有効です。渡される要素は複製であるため書き換えはDOMに反映されません。
 
 ####*interval: Millisecond as number*
 pjaxにより更新されたコンテンツの描画の確認を行う間隔をミリ秒で設定します。初期値は`300`です。
@@ -328,6 +334,12 @@ ajax通信において同名のメソッド内で実行されます。
 #####*update.content.after( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理においてコンテンツの更新後に実行されます。
 
+#####*update.cache.save.before( event, parameter, cache )*
+ページの更新処理においてcacheの作成前に実行されます。
+
+#####*update.cache.save.after( event, parameter, cache )*
+ページの更新処理においてcacheの作成後に実行されます。
+
 #####*update.css.before( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理においてCSSの読み込み前に実行されます。
 
@@ -345,12 +357,6 @@ ajax通信において同名のメソッド内で実行されます。
 
 #####*update.rendering.after( event, parameter )*
 ページの更新処理において更新の反映を契機とする内部イベント処理の実行後に実行されます。
-
-#####*update.cache.save.before( event, parameter, cache )*
-ページの更新処理においてcacheの作成前に実行されます。
-
-#####*update.cache.save.after( event, parameter, cache )*
-ページの更新処理においてcacheの作成後に実行されます。
 
 #####*update.verify.before( event, parameter )*
 ページの更新処理において更新結果の検証前に実行されます。
@@ -375,7 +381,7 @@ pjaxを有効にします。
 ####*off()*
 pjaxを無効にします。
 
-####*click( URL as string )*
+####*click( URL as string, Attribute as object )*
 pjaxを使用してクリックによりページを移動します。
 
 `$.pjax.click('/')`
@@ -383,17 +389,19 @@ pjaxを使用してクリックによりページを移動します。
 ####*submit()*
 pjaxを使用してフォーム送信によりページを移動します。
 
-#####*submit( Form as DOM / jQuery )*
+#####*submit( Form as element / jQuery )*
 渡されたフォームを使用します。
 
 #####*submit( URL as string, Attribute as object, Data as Object / Array )*
-渡されたデータを元に生成したフォームを使用します。`Attribute`パラメータによりフォームの属性を設定できます。`Data`パラメータにはフォームの子要素の仕様（`[{tag: 'tagName', attr: {attrName: attrValue, ...}, name: 'name', value: 'data'}, ...]`）またはJSONオブジェクト（`{"name": "data", ...}`）を設定します。
+渡されたデータを元に生成したフォームを使用します。
+
+`Attribute`パラメータによりフォームの属性を設定できます。`Data`パラメータにはフォームの子要素の仕様（`[{tag: 'tagName', attr: {attrName: attrValue, ...}, name: 'name', value: 'data'}, ...]`）またはJSONオブジェクト（`{"name": "data", ...}`）を設定します。
 
 `$.pjax.submit('/', {method: 'POST'}, {"name": "data"})`
 
 `$.pjax.submit('/', {method: 'POST'}, [{tag: 'input', attr: {type: 'text'}, name: 'name', value: 'data'}])`
 
-####*setCache( URL as string, Title as string, Size as number , textStatus , XMLHttpRequest )*
+####*setCache( URL as string, XMLHttpRequest, textStatus as string, Title as string, Size as number )*
 キャッシュを設定します。`URL`のみ渡すとデータが削除されます。`Size`は設定されなかった場合自動で計算されます。ページデータには`XMLHttpRequest.responseText`が使用されます。
 
 ####*getCache( URL as string )*
@@ -697,7 +705,7 @@ pjaxによるページ移動後のスクロール位置を設定します。`nul
 ```
 
 ###ajax通信設定 - ajax
-pjaxで内部的に使用される`$.ajax`のオプションを設定できます。
+pjaxで内部的に使用される`$.ajax`のパラメータを設定できます。
 
 ```javascript
   $.pjax({ area: 'div.pjax', ajax: { timeout: 3000 } });
@@ -949,6 +957,31 @@ pjaxではJavaScriptの実行状態がページ移動後も維持されるため
 #####WordpressプラグインのJavaScriptを使用するページへの再アクセス
 pjaxは移動先のページのJavaScriptが読み込み済みであり、コードが外部ファイルに記述されている場合はこれを読み込まず、同一ページに埋め込まれている場合は再度読み込み実行します。このため、併用するJavaScriptによっては正常に動作させるために適宜再実行により実行状態をリセットするか、または読み込ませずリセットさせない処理を追加する必要があります。
 
+###CloudFlareのRocketLoaderへの対応（暫定・検証中） - load.rewrite
+書き換えられた<code>script</code>要素を内部処理用に再度書き換えることで正常に動作させることができます。
+
+```html
+<script type="text/rocketscript" charset="utf-8" data-rocketsrc="/lib/jquery-1.7.2.min.js" data-rocketoptimized="true"></script>
+<script type="text/rocketscript" charset="utf-8" data-rocketsrc="/lib/jquery.pjax.min.js" data-rocketoptimized="true"></script>
+<script type="text/rocketscript" data-rocketoptimized="true">
+$(function(){
+  $.pjax({
+    area: 'div.pjax',
+    load: {
+      script: true,
+      rewrite: function( element ){
+        if(element.type='text/rocketscript'){
+          element.type = 'text/javascript';
+          element.src = $(element).data('rocketsrc');
+          return element;
+        }
+      }
+    }
+ });
+});
+</script>
+```
+
 ##注意点
 
 ###リンクパスの記述
@@ -982,6 +1015,35 @@ pjaxの実用的な使用方法についての雑考を書いてみました。<
 バージョン1.21.0で重大なバグの修正を行いました。これより古いバージョンを使用されている方は直ちにアップデートしてください。
 
 ###change log
+
+####1.22.0
+
++ JavaScriptの読み込みの仕様を変更
+  <br>実行順序が完全に維持されるよう変更（通常のページ移動と同じ順序で実行される）。
++ `load.ajax`パラメータを追加
+  <br>`script`要素のajaxによる読み込み設定を上書きする。
++	`load.async`パラメータを削除
+  <br>`script`要素の`async`属性により個別に設定されるよう変更。
++ `callback.cache.save`コールバックの実行タイミングを変更
++ jQuery1.4.x以下のバージョンでJavaScript読み込み機能が正常に動作しないバグを修正
++ 実行速度を高速化
+  <br>レンダリング完了確認までの、通信時間を除くページ移動時間を1/2に短縮。
+
+####1.21.4
+
++ スクロール復元機能を修正
++ jQuery1.5.0未満のバージョンでのバグを修正
++ コードを最適化
+
+####1.21.3
+
++ Android・iOSでの動作を高速化
++ `load.rewrite`パラメータを追加
+  <br>JavaScriptまたはCSSとして読み込まれる要素（`script``link``style`要素）を書き換える。
++ `setCache`メソッドの仕様を変更
+  <br>パラメータの順序を変更。
++ 圧縮版のバグを修正
++ コードを最適化
 
 ####1.21.2
 
