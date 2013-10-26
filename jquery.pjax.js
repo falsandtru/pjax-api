@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.22.1
+ * @version 1.22.2
  * @updated 2013/10/26
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -389,7 +389,7 @@
           /* validate */ validate && validate.test( '++', 1, [ url, win.location.href, XMLHttpRequest, textStatus, errorThrown ], 'ajax error' ) ;
           fire( settings.callbacks.ajax.error , null , [ event , settings.parameter , XMLHttpRequest , textStatus , errorThrown ] , settings.callbacks.async ) ;
           
-          defer && defer.resolve() ;
+          defer && defer.reject() ;
           if ( settings.fallback && textStatus !== 'abort' ) { return typeof settings.fallback === 'function' ? fire( settings.fallback , null , [ event , url ] ) : fallback( event , validate ) ; }
           /* validate */ validate && validate.end() ;
         } ,
@@ -432,7 +432,7 @@
             
             /* validate */ validate && validate.test( '++', 1, 0, 'try' ) ;
             /* validate */ validate && validate.test( '++', 1, !cache ? [ settings.contentType, XMLHttpRequest.getResponseHeader( 'Content-Type' ) ] : 0, 'content-type' ) ;
-            if ( !cache && -1 === XMLHttpRequest.getResponseHeader( 'Content-Type' ).toLowerCase().search( settings.contentType ) ) { throw new Error( "throw: content-type mismatch" ) ; }
+            if ( !cache && -1 === ( XMLHttpRequest.getResponseHeader( 'Content-Type' ) || '' ).toLowerCase().search( settings.contentType ) ) { throw new Error( "throw: content-type mismatch" ) ; }
             
             /* cache */
             /* validate */ validate && validate.test( '++', cache ? "'usable'" : "'unusable'", 0, 'cache' ) ;
