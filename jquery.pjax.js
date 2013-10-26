@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.22.0
+ * @version 1.22.1
  * @updated 2013/10/26
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -158,7 +158,6 @@
         if ( src && !( src in settings.log.script ) ) { settings.log.script[ src ] = true ; }
       } ) ;
       
-      settings.link &&
       jQuery( context )
       .undelegate( settings.link , settings.nss.click )
       .delegate( settings.link , settings.nss.click , settings.id , plugin_store.click = function ( event ) {
@@ -189,7 +188,6 @@
         return false ;
       } ) ;
       
-      settings.form &&
       jQuery( context )
       .undelegate( settings.form , settings.nss.submit )
       .delegate( settings.form , settings.nss.submit , settings.id , plugin_store.submit = function ( event ) {
@@ -547,6 +545,33 @@
               if ( fire( settings.callbacks.update.cache.save.after , null , [ event , settings.parameter , cache ] , settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
             } ; // label: UPDATE_CACHE
             
+            /* rendering */
+            /* validate */ validate && validate.test( '++', 1, 0, 'rendering' ) ;
+            function rendering( type ) {
+              if ( fire( settings.callbacks.update.rendering.before , null , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; }
+              setTimeout( function () {
+                if ( checker.filter( function () { return this.clientWidth || jQuery( this ).is( ':hidden' ) ; } ).length === checker.length ) {
+                  
+                  rendered() ;
+                  
+                } else if ( checker.length ) {
+                  setTimeout( function () { arguments.callee() ; } , settings.interval ) ;
+                }
+              } , 0 ) ;
+            } // function: rendering
+            function rendered() {
+              checker.remove() ;
+              settings.load.script && settings.load.sync && setTimeout( function () { jQuery( doc ).trigger( settings.gns + '.execute' , [ 'sync' , load_script( 'sync' ) ] ) ; } , 0 ) ;
+              hashmove( event.type.toLowerCase() === 'popstate' ) || scroll( true ) ;
+              jQuery( window ).trigger( settings.gns + '.load' ) ;
+              
+              if ( fire( settings.callbacks.update.rendering.after , null , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; }
+              settings.speedcheck && settings.log.speed.name.push( 'rendered' ) ;
+              settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
+              settings.speedcheck && console.log( settings.log.speed.time ) ;
+              settings.speedcheck && console.log( settings.log.speed.name ) ;
+            } // function: rendered
+            
             /* css */
             /* validate */ validate && validate.test( '++', 1, 0, 'css' ) ;
             function load_css() {
@@ -615,6 +640,7 @@
             } // function: css
             settings.load.css && setTimeout( function () { load_css() , jQuery( doc ).trigger( settings.gns + '.ready' ) ; } , 0 ) ;
             !settings.load.css && jQuery( doc ).trigger( settings.gns + '.ready' ) ;
+            jQuery( doc ).trigger( settings.gns + '.execute' , [ rendering ] ) ;
             
             /* script */
             /* validate */ validate && validate.test( '++', 1, 0, 'script' ) ;
@@ -657,36 +683,8 @@
               /* validate */ validate && validate.end() ;
               return executes ;
             } // function: script
-            jQuery( doc ).trigger( settings.gns + '.execute' , [ rendering ] ) ;
             settings.load.script && setTimeout( function () { jQuery( doc ).trigger( settings.gns + '.execute' , [ load_script( 'async' ) ] ) ; } , 0 ) ;
             settings.load.script && !settings.load.sync && setTimeout( function () { jQuery( doc ).trigger( settings.gns + '.execute' , [ load_script( 'sync' ) ] ) ; } , 0 ) ;
-            
-            /* rendering */
-            /* validate */ validate && validate.test( '++', 1, 0, 'rendering' ) ;
-            function rendering( type ) {
-              if ( fire( settings.callbacks.update.rendering.before , null , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; }
-              setTimeout( function () {
-                if ( checker.filter( function () { return this.clientWidth || jQuery( this ).is( ':hidden' ) ; } ).length === checker.length ) {
-                  
-                  rendered() ;
-                  
-                } else if ( checker.length ) {
-                  setTimeout( function () { arguments.callee() ; } , settings.interval ) ;
-                }
-              } , 0 ) ;
-            } // function: rendering
-            function rendered() {
-              checker.remove() ;
-              settings.load.script && settings.load.sync && setTimeout( function () { jQuery( doc ).trigger( settings.gns + '.execute' , [ 'sync' , load_script( 'sync' ) ] ) ; } , 0 ) ;
-              hashmove( event.type.toLowerCase() === 'popstate' ) || scroll( true ) ;
-              jQuery( window ).trigger( settings.gns + '.load' ) ;
-              
-              if ( fire( settings.callbacks.update.rendering.after , null , [ event , settings.parameter ] , settings.callbacks.async ) === false ) { return ; }
-              settings.speedcheck && settings.log.speed.name.push( 'rendered' ) ;
-              settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
-              settings.speedcheck && console.log( settings.log.speed.time ) ;
-              settings.speedcheck && console.log( settings.log.speed.name ) ;
-            } // function: rendered
             
             /* verify */
             /* validate */ validate && validate.test( '++', 1, 0, 'verify' ) ;
