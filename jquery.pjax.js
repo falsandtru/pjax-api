@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.22.4
- * @updated 2013/10/27
+ * @version 1.22.5
+ * @updated 2013/10/28
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -64,7 +64,7 @@
             async : false
           },
           parameter : null,
-          load : { css : false, script : false, execute : true, sync : true, ajax : { dataType : 'script' }, rewrite : null },
+          load : { css : false, script : false, execute : true, reload : '', sync : true, ajax : { dataType : 'script' }, rewrite : null },
           interval : 300,
           wait : 0,
           scroll : { delay : 500, suspend : -100 },
@@ -154,8 +154,8 @@
       settings.load.script && jQuery( 'script' ).each( function () {
         var element = this, src ;
         element = typeof settings.load.rewrite === 'function' ? fire( settings.load.rewrite, null, [ element.cloneNode() ] ) || element : element ;
-        src = element.src ;
-        if ( src && !( src in settings.log.script ) ) { settings.log.script[ src ] = true ; }
+        if ( ( src = element.src ) && src in settings.log.script ) { return ; }
+        if ( src && ( !settings.load.reload || !jQuery( element ).is( settings.load.reload ) ) ) { settings.log.script[ src ] = true ; }
       } ) ;
       
       jQuery( context )
@@ -454,7 +454,7 @@
             /* validate */ validate && validate.test( '++', 1, 0, 'initialize' ) ;
             var page, parsable, areas, checker ;
             page = jQuery( data ) ;
-            parsable = !!title || 0 < page.filter( 'title' ).length ;
+            parsable = 0 < page.filter( 'title' ).length ;
             areas = settings.area.replace( /(\((.*?(\(.*?\).*?)?)*?\)|\S)(,|$)/g, function () { return arguments[1] + ( arguments[4] ? '|' : '' ) } ).split( /\s*\|(?!=)\s*/ ) ;
             
             title = title || parsable ? page.filter( 'title' ).text() : jQuery( '<span/>' ).html( find( data, /<title>([^<]*?)<\/title>/i ).join() ).text() ;
@@ -563,7 +563,7 @@
             } // function: rendering
             function rendered() {
               checker.remove() ;
-              settings.load.script && settings.load.sync && setTimeout( function () { jQuery( doc ).trigger( settings.gns + '.execute', [ 'sync', load_script( 'sync' ) ] ) ; }, 0 ) ;
+              settings.load.script && settings.load.sync && setTimeout( function () { jQuery( doc ).trigger( settings.gns + '.execute', [ load_script( '[src][defer]' ) ] ) ; }, 0 ) ;
               hashmove( event.type.toLowerCase() === 'popstate' ) || scroll( true ) ;
               jQuery( window ).trigger( settings.gns + '.load' ) ;
               
@@ -588,9 +588,9 @@
                 save = cache && !cache.css ;
                 css = css ? css
                           : parsable ? page.find( 'link[rel~="stylesheet"], style' ).add( page.filter( 'link[rel~="stylesheet"], style' ) ).get()
-                                     : jQuery( find( data, /(<link[^>]*?rel=.[^"\']*?stylesheet[^>]*?>|<style[^>]*?>(?:.|[\n\r])*?<\/style>)/gim ) ) ;
+                                     : find( data, /(<link[^>]*?rel=.[^"\']*?stylesheet[^>]*?>|<style[^>]*?>(?:.|[\n\r])*?<\/style>)/gim ) ;
                 if ( cache && cache.css && css && css.length !== cache.css.length ) { save = true ; }
-                if ( save ) { cache.css = parsable ? css : [] ; }
+                if ( save ) { cache.css = css ; }
                 
                 // 対象現行全要素に削除フラグを立てる。
                 jQuery( 'link[rel~="stylesheet"], style' ).filter( function () { return jQuery.data( this, settings.nss.data, true ) ; } ) ;
@@ -598,7 +598,7 @@
                 for ( var i = 0, element, links = jQuery( 'link[rel~="stylesheet"]' ), styles = jQuery( 'style' ), skip ; element = css[ i ] ; i++ ) {
                   
                   skip = false ;
-                  element = parsable ? element : jQuery( element )[ 0 ] ;
+                  element = typeof element === 'object' ? element : jQuery( element )[ 0 ] ;
                   element = typeof settings.load.rewrite === 'function' ? fire( settings.load.rewrite, null, [ element.cloneNode() ] ) || element : element ;
                   if ( save && !parsable ) { cache.css[ i ] = element ; }
                   
@@ -646,7 +646,7 @@
             
             /* script */
             /* validate */ validate && validate.test( '++', 1, 0, 'script' ) ;
-            function load_script( type ) {
+            function load_script( selector ) {
               /* validate */ var validate = settings.validate ? settings.validate.clone( { name : 'jquery.pjax.js - load_script()' } ) : false ;
               /* validate */ validate && validate.start() ;
               /* validate */ validate && ( validate.scope = function( code ){ return eval( code ) ; } ) ;
@@ -656,37 +656,33 @@
                 var save, executes = [], callback ;
                 cache = getCache( url ) ;
                 save = cache && !cache.script ;
-                script = script ? script
-                                : parsable ? page.find( 'script' ).add( page.filter( 'script' ) ).get()
-                                           : find( data, /(?:[^\'\"]|^\s*?)(<script[^>]*?>(?:.|[\n\r])*?<\/script>)(?:[^\'\"]|\s*?$)/gim ) ;
+                script = script || parsable ? page.find( 'script' ).add( page.filter( 'script' ) ).get()
+                                            : find( data, /(?:[^\'\"]|^\s*?)(<script[^>]*?>(?:.|[\n\r])*?<\/script>)(?:[^\'\"]|\s*?$)/gim ) ;
                 if ( cache && cache.script && script && script.length !== cache.script.length ) { save = true ; }
-                if ( save ) { cache.script = parsable ? script : [] ; }
+                if ( save ) { cache.script = script ; }
                 
-                for ( var i = 0, element, src, defer ; element = script[ i ] ; i++ ) {
+                for ( var i = 0, element, src, rewrite ; element = script[ i ] ; i++ ) {
                   
-                  element = parsable ? element : jQuery( element )[ 0 ] ;
-                  element = typeof settings.load.rewrite === 'function' ? fire( settings.load.rewrite, null, [ element.cloneNode() ] ) || element : element ;
-                  if ( save && !parsable ) { cache.script[ i ] = element ; }
-                  src = element.src ;
-                  defer = element.defer ;
-                  
-                  if ( type === 'sync' && !defer ) { continue ; }
-                  if ( type === 'async' && defer ) { continue ; }
-                  
-                  if ( src && src in settings.log.script ) { continue ; } else if ( src ) { settings.log.script[ src ] = true ; }
+                  element = typeof element === 'object' ? element : jQuery( element )[ 0 ] ;
+                  element = typeof settings.load.rewrite === 'function' ? rewrite = fire( settings.load.rewrite, null, [ element.cloneNode() ] ) || element : element ;
+                  if ( save && ( !parsable || rewrite ) ) { cache.script[ i ] = element ; }
+									
+                  if ( !jQuery( element ).is( selector ) ) { continue ; }
+                  if ( ( src = element.src ) && src in settings.log.script ) { continue ; }
+                  if ( src && ( !settings.load.reload || !jQuery( element ).is( settings.load.reload ) ) ) { settings.log.script[ src ] = true ; }
                   
                   executes.push( element ) ;
                 }
                 
                 if ( fire( settings.callbacks.update.script.after, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_SCRIPT ; }
-                type === 'sync' && settings.speedcheck && settings.log.speed.name.push( 'script' ) ;
-                type === 'sync' && settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
+                selector === '[src][defer]' && settings.speedcheck && settings.log.speed.name.push( 'script' ) ;
+                selector === '[src][defer]' && settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
               } ; // label: UPDATE_SCRIPT
               /* validate */ validate && validate.end() ;
               return executes ;
             } // function: script
-            settings.load.script && setTimeout( function () { jQuery( doc ).trigger( settings.gns + '.execute', [ load_script( 'async' ) ] ) ; }, 0 ) ;
-            settings.load.script && !settings.load.sync && setTimeout( function () { jQuery( doc ).trigger( settings.gns + '.execute', [ load_script( 'sync' ) ] ) ; }, 0 ) ;
+            settings.load.script && setTimeout( function () { jQuery( doc ).trigger( settings.gns + '.execute', [ load_script( ':not([defer]),:not([src])' ) ] ) ; }, 0 ) ;
+            settings.load.script && !settings.load.sync && setTimeout( function () { jQuery( doc ).trigger( settings.gns + '.execute', [ load_script( '[src][defer]' ) ] ) ; }, 0 ) ;
             
             /* verify */
             /* validate */ validate && validate.test( '++', 1, 0, 'verify' ) ;
