@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.22.5
- * @updated 2013/10/28
+ * @version 1.22.6
+ * @updated 2013/10/30
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -95,8 +95,8 @@
           requestHeader : [ 'X', nsArray[ 0 ].replace( /^\w/, function ( $0 ) { return $0.toUpperCase() ; } ) ].join( '-' ),
           array : nsArray
         },
-        location : jQuery( '<a/>', { href : win.location.href } )[ 0 ],
-        destination : jQuery( '<a/>', { href : win.location.href } )[ 0 ],
+        location : jQuery( '<a/>', { href : encodeURI( decodeURI( win.location.href ) ) } )[ 0 ],
+        destination : jQuery( '<a/>', { href : encodeURI( decodeURI( win.location.href ) ) } )[ 0 ],
         hashclick : false,
         contentType : settings.contentType.replace( /\s*[,;]\s*/g, '|' ).toLowerCase(),
         scroll : { queue : [] },
@@ -106,7 +106,7 @@
         history : { config : settings.cache, order : [], data : {}, size : 0 },
         timestamp : ( new Date() ).getTime(),
         disable : false,
-        landing : win.location.href,
+        landing : encodeURI( decodeURI( win.location.href ) ),
         retry : true,
         xhr : null,
         speed : { now : function () { return ( new Date() ).getTime() ; } },
@@ -164,9 +164,9 @@
         event.timeStamp = ( new Date() ).getTime() ;
         var settings = plugin_data[ 1 ] ;
         if ( settings.disable ) { return false ; }
-        settings.destination.href = this.href ;
+        settings.destination.href = encodeURI( decodeURI( this.href ) ) ;
         
-        if ( win.location.protocol !== this.protocol || win.location.host !== this.host ) { return ; }
+        if ( settings.location.protocol !== settings.destination.protocol || settings.location.host !== settings.destination.host ) { return ; }
         if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
         
         if ( settings.location.href === settings.destination.href ) { return false ; }
@@ -175,7 +175,7 @@
         
         var url, cache ;
         
-        url = this.href ;
+        url = settings.destination.href ;
         settings.area = fire( settings.options.area, null, [ event, url ] ) ;
         settings.hashclick = false ;
         settings.timestamp = event.timeStamp ;
@@ -194,13 +194,13 @@
         event.timeStamp = ( new Date() ).getTime() ;
         var settings = plugin_data[ 1 ] ;
         if ( settings.disable ) { return false ; }
-        settings.destination.href = this.action ;
+        settings.destination.href = encodeURI( decodeURI( this.action ) ) ;
         
         if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
         
         var url, cache ;
         
-        url = this.action + ( event.target.method.toUpperCase() === 'GET' ? '?' + jQuery( event.target ).serialize() : '' ) ;
+        url = settings.destination.pathname + ( event.target.method.toUpperCase() === 'GET' ? '?' + jQuery( event.target ).serialize() : '' ) ;
         settings.area = fire( settings.options.area, null, [ event, url ] ) ;
         settings.hashclick = false ;
         settings.timestamp = event.timeStamp ;
@@ -219,19 +219,19 @@
         event.timeStamp = ( new Date() ).getTime() ;
         var settings = plugin_data[ 1 ] ;
         if ( settings.disable ) { return false ; }
-        settings.destination.href = win.location.href ;
+        settings.destination.href = encodeURI( decodeURI( win.location.href ) ) ;
         
         if ( settings.location.href === settings.destination.href ) { return false ; }
         
         var url, cache ;
         
-        if ( !fire( settings.hashquery, null, [ event, url ] ) && settings.location.pathname + settings.location.search === win.location.pathname + win.location.search ) { return settings.hashclick = settings.hashclick && hashmove() && false ; }
+        if ( !fire( settings.hashquery, null, [ event, url ] ) && settings.location.pathname + settings.location.search === settings.destination.pathname + settings.destination.search ) { return settings.hashclick = settings.hashclick && hashmove() && false ; }
         
-        url = win.location.href ;
+        url = settings.destination.href ;
         settings.area = fire( settings.options.area, null, [ event, url ] ) ;
         settings.hashclick = false ;
         settings.timestamp = event.timeStamp ;
-        if ( settings.landing ) { if ( settings.landing === win.location.href ) { settings.landing = false ; return ; } settings.landing = false ; }
+        if ( settings.landing ) { if ( settings.landing.href === settings.location.href ) { settings.landing = false ; return ; } settings.landing = false ; }
         if ( !jQuery( settings.area ).length ) { return ; }
         
         settings.database && settings.fix.history && dbTitle( url ) ;
@@ -384,7 +384,7 @@
           
           /* validate */ var validate = settings.validate ? settings.validate.clone( { name : 'jquery.pjax.js - drive()' } ) : false ;
           /* validate */ validate && validate.start() ;
-          /* validate */ validate && validate.test( '++', textStatus === 'abort', [ url, win.location.href, XMLHttpRequest, textStatus, errorThrown ], 'ajax error' ) ;
+          /* validate */ validate && validate.test( '++', textStatus === 'abort', [ url, settings.location.href, XMLHttpRequest, textStatus, errorThrown ], 'ajax error' ) ;
           fire( settings.callbacks.ajax.error, null, [ event, settings.parameter, XMLHttpRequest, textStatus, errorThrown ], settings.callbacks.async ) ;
           /* validate */ validate && validate.end() ;
         },
@@ -457,6 +457,11 @@
             parsable = 0 < page.filter( 'title' ).length ;
             areas = settings.area.replace( /(\((.*?(\(.*?\).*?)?)*?\)|\S)(,|$)/g, function () { return arguments[1] + ( arguments[4] ? '|' : '' ) } ).split( /\s*\|(?!=)\s*/ ) ;
             
+            if ( !parsable ) {
+              data = data.replace( /^((?:.|[\n\r])*?<body[^>]*>.*[\n\r]*.*[\n\r]*)/im , '$1' ).replace( /<!--\[(?:.|[\n\r])*?<!\[endif\]-->/gim , '' ) ;
+              data = data.replace( /<noscript(?:.|[\n\r])*?<\/noscript>/gim , '' ) ;
+            }
+            
             title = title || parsable ? page.filter( 'title' ).text() : jQuery( '<span/>' ).html( find( data, /<title>([^<]*?)<\/title>/i ).join() ).text() ;
             
             if ( !jQuery( settings.area ).length || !page.find( settings.area ).add( page.filter( settings.area ) ).length ) { throw new Error( 'throw: area length mismatch' ) ; }
@@ -466,7 +471,7 @@
             UPDATE_URL : {
               if ( fire( settings.callbacks.update.url.before, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_URL ; } ;
               
-              register && url !== win.location.href &&
+              register && url !== settings.location.href &&
               win.history.pushState(
                 fire( settings.state, null, [ event, url ] ),
                 win.opera || win.navigator.userAgent.toLowerCase().indexOf( 'opera' ) !== -1 ? title : doc.title,
@@ -501,11 +506,11 @@
               switch ( event.type.toLowerCase() ) {
                 case 'click' :
                 case 'submit' :
-                  scrollX = call && typeof settings.scrollLeft === 'function' ? fire( settings.scrollLeft, null, [ event ] ) : settings.scrollLeft ;
+                  scrollX = call && typeof settings.options.scrollLeft === 'function' ? fire( settings.options.scrollLeft, null, [ event ] ) : settings.scrollLeft ;
                   scrollX = 0 <= scrollX ? scrollX : 0 ;
                   scrollX = scrollX === null ? jQuery( win ).scrollLeft() : parseInt( Number( scrollX ) ) ;
                   
-                  scrollY = call && typeof settings.scrollTop === 'function' ? fire( settings.scrollTop, null, [ event ] ) : settings.scrollTop ;
+                  scrollY = call && typeof settings.options.scrollTop === 'function' ? fire( settings.options.scrollTop, null, [ event ] ) : settings.scrollTop ;
                   scrollY = 0 <= scrollY ? scrollY : 0 ;
                   scrollY = scrollY === null ? jQuery( win ).scrollTop() : parseInt( Number( scrollY ) ) ;
                   
@@ -591,6 +596,7 @@
                                      : find( data, /(<link[^>]*?rel=.[^"\']*?stylesheet[^>]*?>|<style[^>]*?>(?:.|[\n\r])*?<\/style>)/gim ) ;
                 if ( cache && cache.css && css && css.length !== cache.css.length ) { save = true ; }
                 if ( save ) { cache.css = css ; }
+                parsable = typeof css[ 0 ] === 'object' ;
                 
                 // 対象現行全要素に削除フラグを立てる。
                 jQuery( 'link[rel~="stylesheet"], style' ).filter( function () { return jQuery.data( this, settings.nss.data, true ) ; } ) ;
@@ -660,13 +666,14 @@
                                             : find( data, /(?:[^\'\"]|^\s*?)(<script[^>]*?>(?:.|[\n\r])*?<\/script>)(?:[^\'\"]|\s*?$)/gim ) ;
                 if ( cache && cache.script && script && script.length !== cache.script.length ) { save = true ; }
                 if ( save ) { cache.script = script ; }
+                parsable = typeof script[ 0 ] === 'object' ;
                 
                 for ( var i = 0, element, src, rewrite ; element = script[ i ] ; i++ ) {
                   
                   element = typeof element === 'object' ? element : jQuery( element )[ 0 ] ;
                   element = typeof settings.load.rewrite === 'function' ? rewrite = fire( settings.load.rewrite, null, [ element.cloneNode() ] ) || element : element ;
                   if ( save && ( !parsable || rewrite ) ) { cache.script[ i ] = element ; }
-									
+                  
                   if ( !jQuery( element ).is( selector ) ) { continue ; }
                   if ( ( src = element.src ) && src in settings.log.script ) { continue ; }
                   if ( src && ( !settings.load.reload || !jQuery( element ).is( settings.load.reload ) ) ) { settings.log.script[ src ] = true ; }
@@ -688,11 +695,11 @@
             /* validate */ validate && validate.test( '++', 1, 0, 'verify' ) ;
             UPDATE_VERIFY : {
               if ( fire( settings.callbacks.update.verify.before, null, [ event, settings.parameter ], settings.callbacks.async ) === false ) { break UPDATE_VERIFY ; }
-              if ( url === win.location.href ) {
+              if ( url === encodeURI( decodeURI( win.location.href ) ) ) {
                 settings.retry = true ;
               } else if ( settings.retry ) {
                 settings.retry = false ;
-                drive( settings, event, win.location.href, false, settings.cache[ event.type.toLowerCase() ] && getCache( win.location.href ) ) ;
+                drive( settings, event, win.location.href, false, settings.cache[ event.type.toLowerCase() ] && getCache( encodeURI( decodeURI( win.location.href ) ) ) ) ;
               } else {
                 throw new Error( 'throw: location mismatch' ) ;
               }
@@ -731,9 +738,9 @@
     } // function: fire
     
     function hashmove( cancel ) {
-      var hash = win.location.hash.slice( 1 ) ;
+      var hash = settings.destination.hash.slice( 1 ) ;
       cancel = cancel || !hash ;
-      return !cancel && jQuery(  '#' + ( hash ? hash : ', [name~=' + hash + ']' ) ).first().each( function () {
+      return !cancel && jQuery( '#' + ( hash ? hash : ', [name~=' + hash + ']' ) ).first().each( function () {
         isFinite( jQuery( this ).offset().top ) && win.scrollTo( jQuery( win ).scrollLeft(), parseInt( Number( jQuery( this ).offset().top ) ) ) ;
       } ).length ;
     } // function: hashmove
@@ -906,7 +913,7 @@
       db.onsuccess = function () {
         settings.database = this.result ;
         dbCurrent() ;
-        dbTitle( win.location.href, doc.title ) ;
+        dbTitle( settings.location.href, doc.title ) ;
       }
       db.onerror = function () {
         settings.database = false ;
@@ -917,7 +924,7 @@
       var store = typeof settings.database === 'object' && settings.database.transaction( settings.gns, 'readwrite' ).objectStore( settings.gns ) ;
       
       if ( !store ) { return ; }
-      store.put( { id : 'current', title : win.location.href } ) ;
+      store.put( { id : 'current', title : settings.location.href } ) ;
     } // function: dbCurrent
     
     function dbTitle( url, title ) {
@@ -938,7 +945,7 @@
     
     function dbScroll( scrollX, scrollY ) {
       var store = typeof settings.database === 'object' && settings.database.transaction( settings.gns, 'readwrite' ).objectStore( settings.gns ) ;
-      var url = win.location.href, title = doc.title, len = arguments.length ;
+      var url = settings.location.href, title = doc.title, len = arguments.length ;
       
       if ( !store ) { return ; }
       store.get( 'current' ).onsuccess = function () {
