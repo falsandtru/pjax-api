@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.22.6
- * @updated 2013/10/30
+ * @version 1.22.7
+ * @updated 2013/11/01
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -68,7 +68,7 @@
           interval : 300,
           wait : 0,
           scroll : { delay : 500, suspend : -100 },
-          fix : { location : true, history : true, scroll : true },
+          fix : { location : true, history : true, scroll : true, reset : false },
           hashquery : false,
           fallback : true,
           database : true,
@@ -98,6 +98,7 @@
         location : jQuery( '<a/>', { href : encodeURI( decodeURI( win.location.href ) ) } )[ 0 ],
         destination : jQuery( '<a/>', { href : encodeURI( decodeURI( win.location.href ) ) } )[ 0 ],
         hashclick : false,
+        fix : !/Mobile(\/\w+)? Safari/i.test( win.navigator.userAgent ) ? { location : false, reset : false } : {} ,
         contentType : settings.contentType.replace( /\s*[,;]\s*/g, '|' ).toLowerCase(),
         scroll : { queue : [] },
         database : settings.database ? ( win.indexedDB || win.webkitIndexedDB || win.mozIndexedDB || win.msIndexedDB || null ) : false,
@@ -200,7 +201,7 @@
         
         var url, cache ;
         
-        url = settings.destination.pathname + ( event.target.method.toUpperCase() === 'GET' ? '?' + jQuery( event.target ).serialize() : '' ) ;
+        url = settings.destination.href = settings.destination.href.replace( /[?#].*/, '' ) + encodeURI( decodeURI(  event.target.method.toUpperCase() === 'GET' ? '?' + jQuery( event.target ).serialize() : '' ) ) ;
         settings.area = fire( settings.options.area, null, [ event, url ] ) ;
         settings.hashclick = false ;
         settings.timestamp = event.timeStamp ;
@@ -225,13 +226,13 @@
         
         var url, cache ;
         
-        if ( !fire( settings.hashquery, null, [ event, url ] ) && settings.location.pathname + settings.location.search === settings.destination.pathname + settings.destination.search ) { return settings.hashclick = settings.hashclick && hashmove() && false ; }
+        if ( !fire( settings.hashquery, null, [ event, url ] ) && settings.location.pathname + settings.location.search === settings.destination.pathname + settings.destination.search ) { return settings.hashclick = settings.hashclick && hashscroll() && false ; }
         
         url = settings.destination.href ;
         settings.area = fire( settings.options.area, null, [ event, url ] ) ;
         settings.hashclick = false ;
         settings.timestamp = event.timeStamp ;
-        if ( settings.landing ) { if ( settings.landing.href === settings.location.href ) { settings.landing = false ; return ; } settings.landing = false ; }
+        if ( settings.landing ) { if ( settings.landing.href === url ) { settings.landing = false ; return ; } settings.landing = false ; }
         if ( !jQuery( settings.area ).length ) { return ; }
         
         settings.database && settings.fix.history && dbTitle( url ) ;
@@ -301,13 +302,15 @@
       /* validate */ validate && ( validate.scope = function( code ){ return eval( code ) ; } ) ;
       /* validate */ validate && validate.test( '++', 1, [ url, event.type ], 'drive()' ) ;
       
-      settings.speedcheck && ( settings.log.speed.fire = settings.timestamp ) ;
-      settings.speedcheck && ( settings.log.speed.time = [] ) ;
-      settings.speedcheck && ( settings.log.speed.name = [] ) ;
-      settings.speedcheck && settings.log.speed.name.push( 'fire' ) ;
-      settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
+      var speedcheck = settings.speedcheck ;
+      speedcheck && ( settings.log.speed.fire = settings.timestamp ) ;
+      speedcheck && ( settings.log.speed.time = [] ) ;
+      speedcheck && ( settings.log.speed.name = [] ) ;
+      speedcheck && settings.log.speed.name.push( 'fire' ) ;
+      speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
       
       /* validate */ validate && validate.test( '++', 1, 0, 'start' ) ;
+      settings.fix.reset && /click|submit/.test( event.type.toLowerCase() ) && win.scrollTo( jQuery( win ).scrollLeft(), 0 ) ;
       if ( fire( settings.callbacks.before, null, [ event, settings.parameter ], settings.callbacks.async ) === false ) { return ; } // function: drive
       
       if ( cache ) {
@@ -375,6 +378,9 @@
           textStatus = arguments[ 1 ] ;
           XMLHttpRequest = arguments[ 2 ] ;
           
+          /* validate */ validate = settings.validate ? settings.validate.clone( { name : 'jquery.pjax.js - $.ajax()' } ) : false ;
+          /* validate */ validate && validate.start() ;
+          /* validate */ validate && validate.test( '++', textStatus === 'success', [ url, settings.location.href, XMLHttpRequest, textStatus ], 'ajax success' ) ;
           fire( settings.callbacks.ajax.success, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) ;
         },
         error : function () {
@@ -382,32 +388,33 @@
           textStatus = arguments[ 1 ] ;
           errorThrown = arguments[ 2 ] ;
           
-          /* validate */ var validate = settings.validate ? settings.validate.clone( { name : 'jquery.pjax.js - drive()' } ) : false ;
+          /* validate */ validate = settings.validate ? settings.validate.clone( { name : 'jquery.pjax.js - $.ajax()' } ) : false ;
           /* validate */ validate && validate.start() ;
           /* validate */ validate && validate.test( '++', textStatus === 'abort', [ url, settings.location.href, XMLHttpRequest, textStatus, errorThrown ], 'ajax error' ) ;
           fire( settings.callbacks.ajax.error, null, [ event, settings.parameter, XMLHttpRequest, textStatus, errorThrown ], settings.callbacks.async ) ;
-          /* validate */ validate && validate.end() ;
         },
         complete : function () {
           XMLHttpRequest = arguments[ 0 ] ;
           textStatus = arguments[ 1 ] ;
           
+          /* validate */ validate && validate.test( '++', 1, 0, 'ajax complete' ) ;
           fire( settings.callbacks.ajax.complete, null, [ event, settings.parameter, XMLHttpRequest, textStatus ], settings.callbacks.async ) ;
           
           if ( !errorThrown ) {
             defer && defer.resolve() || update( settings, event ) ;
           } else {
             defer && defer.reject() ;
-            if ( settings.fallback && textStatus !== 'abort' ) { return typeof settings.fallback === 'function' ? fire( settings.fallback, null, [ event, url ] ) : fallback( event ) ; }
+            if ( settings.fallback && textStatus !== 'abort' ) { return typeof settings.fallback === 'function' ? fire( settings.fallback, null, [ event, url ] ) : fallback( event, validate ) ; }
           }
+          /* validate */ validate && validate.end() ;
         }
       } ;
       jQuery.extend( true, ajax, settings.ajax, callbacks ) ;
       ajax.url = url.replace( /([^#]+)(#[^\s]*)?$/, '$1' + ( settings.server.query ? ( url.match( /\?/ ) ? '&' : '?' ) + encodeURIComponent( settings.server.query ) + '=1' : '' ) + '$2' ) ;
       
       /* validate */ validate && validate.test( '++', 1, 0, 'ajax' ) ;
-      settings.speedcheck && settings.log.speed.name.push( 'request' ) ;
-      settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
+      speedcheck && settings.log.speed.name.push( 'request' ) ;
+      speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
       jQuery.when && jQuery.when( defer.promise(), wait( settings.wait ) ).done( function () { update( settings, event ) ; } ) ;
       jQuery.ajax( ajax )
       
@@ -423,9 +430,12 @@
         /* validate */ validate && validate.test( '1', 1, 0, 'update()' ) ;
         /* validate */ validate && validate.test( '++', 1, 0, 'start' ) ;
         UPDATE : {
-          settings.speedcheck && settings.log.speed.name.push( 'update' ) ;
-          settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
-          if ( fire( settings.callbacks.update.before, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE ; }
+          var speedcheck = settings.speedcheck ;
+          speedcheck && settings.log.speed.name.push( 'update' ) ;
+          speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
+          
+          var callbacks_update = settings.callbacks.update ;
+          if ( fire( callbacks_update.before, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE ; }
           
           /* variable initialization */
           var win = window, doc = document, title, css, script ;
@@ -440,14 +450,14 @@
             /* validate */ validate && validate.test( '++', cache ? "'usable'" : "'unusable'", 0, 'cache' ) ;
             UPDATE_CACHE : {
               if ( !cache ) { break UPDATE_CACHE ; }
-              if ( fire( settings.callbacks.update.cache.load.before, null, [ event, settings.parameter, cache ], settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
+              if ( fire( callbacks_update.cache.load.before, null, [ event, settings.parameter, cache ], settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
               XMLHttpRequest = cache.XMLHttpRequest ;
               data = XMLHttpRequest.responseText ;
               textStatus = cache.textStatus ;
               title = cache.title ;
               css = cache.css ;
               script = cache.script ;
-              if ( fire( settings.callbacks.update.cache.load.after, null, [ event, settings.parameter, cache ], settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
+              if ( fire( callbacks_update.cache.load.after, null, [ event, settings.parameter, cache ], settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
             } ; // label: UPDATE_CACHE
             
             /* variable initialization */
@@ -469,7 +479,7 @@
             /* url */
             /* validate */ validate && validate.test( '++', 1, url, 'url' ) ;
             UPDATE_URL : {
-              if ( fire( settings.callbacks.update.url.before, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_URL ; } ;
+              if ( fire( callbacks_update.url.before, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_URL ; } ;
               
               register && url !== settings.location.href &&
               win.history.pushState(
@@ -478,23 +488,23 @@
                 url ) ;
               
               settings.location.href = url ;
-              if ( register && settings.fix.location && /Mobile(\/\w+)? Safari/i.test( win.navigator.userAgent ) ) {
+              if ( register && settings.fix.location ) {
                 plugin_response.off() ;
                 win.history.back() ;
                 win.history.forward() ;
                 plugin_response.on() ;
               }
               
-              if ( fire( settings.callbacks.update.url.after, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_URL ; }
+              if ( fire( callbacks_update.url.after, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_URL ; }
             } ; // label: UPDATE_URL
             
             /* title */
             /* validate */ validate && validate.test( '++', 1, title, 'title' ) ;
             UPDATE_TITLE : {
-              if ( fire( settings.callbacks.update.title.before, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_TITLE ; }
+              if ( fire( callbacks_update.title.before, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_TITLE ; }
               doc.title = title ;
               settings.database && settings.fix.history && dbTitle( url, title ) ;
-              if ( fire( settings.callbacks.update.title.after, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_TITLE ; }
+              if ( fire( callbacks_update.title.after, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_TITLE ; }
             } ; // label: UPDATE_TITLE
             
             settings.database && dbCurrent() ;
@@ -506,11 +516,11 @@
               switch ( event.type.toLowerCase() ) {
                 case 'click' :
                 case 'submit' :
-                  scrollX = call && typeof settings.options.scrollLeft === 'function' ? fire( settings.options.scrollLeft, null, [ event ] ) : settings.scrollLeft ;
+                  scrollX = call && typeof settings.scrollLeft === 'function' ? fire( settings.scrollLeft, null, [ event ] ) : settings.scrollLeft ;
                   scrollX = 0 <= scrollX ? scrollX : 0 ;
                   scrollX = scrollX === null ? jQuery( win ).scrollLeft() : parseInt( Number( scrollX ) ) ;
                   
-                  scrollY = call && typeof settings.options.scrollTop === 'function' ? fire( settings.options.scrollTop, null, [ event ] ) : settings.scrollTop ;
+                  scrollY = call && typeof settings.scrollTop === 'function' ? fire( settings.scrollTop, null, [ event ] ) : settings.scrollTop ;
                   scrollY = 0 <= scrollY ? scrollY : 0 ;
                   scrollY = scrollY === null ? jQuery( win ).scrollTop() : parseInt( Number( scrollY ) ) ;
                   
@@ -527,7 +537,7 @@
             /* content */
             /* validate */ validate && validate.test( '++', 1, areas, 'content' ) ;
             UPDATE_CONTENT : {
-              if ( fire( settings.callbacks.update.content.before, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_CONTENT ; }
+              if ( fire( callbacks_update.content.before, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_CONTENT ; }
               jQuery( settings.area ).children( '.' + settings.nss.class4html + '-check' ).remove() ;
               checker = jQuery( '<div/>', {
                 'class' : settings.nss.class4html + '-check',
@@ -536,7 +546,7 @@
               for ( var i = 0, area ; area = areas[ i++ ] ; ) { jQuery( area ).html( page.find( area ).add( page.filter( area ) ).contents() ).append( checker.clone() ) ; }
               checker = jQuery( settings.area ).children( '.' + settings.nss.class4html + '-check' ) ;
               jQuery( doc ).trigger( settings.gns + '.DOMContentLoaded' ) ;
-              if ( fire( settings.callbacks.update.content.after, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_CONTENT ; }
+              if ( fire( callbacks_update.content.after, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_CONTENT ; }
             } ; // label: UPDATE_CONTENT
             
             /* cache */
@@ -544,18 +554,18 @@
             UPDATE_CACHE : {
               if ( cache || !settings.cache.click && !settings.cache.submit && !settings.cache.popstate ) { break UPDATE_CACHE ; }
               if ( event.type.toLowerCase() === 'submit' && !settings.cache[ event.target.method.toLowerCase() ] ) { break UPDATE_CACHE ; }
-              if ( fire( settings.callbacks.update.cache.save.before, null, [ event, settings.parameter, cache ], settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
+              if ( fire( callbacks_update.cache.save.before, null, [ event, settings.parameter, cache ], settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
               
               setCache( url, title, dataSize, textStatus, XMLHttpRequest )
               cahce = getCache( url ) ;
               
-              if ( fire( settings.callbacks.update.cache.save.after, null, [ event, settings.parameter, cache ], settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
+              if ( fire( callbacks_update.cache.save.after, null, [ event, settings.parameter, cache ], settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
             } ; // label: UPDATE_CACHE
             
             /* rendering */
             /* validate */ validate && validate.test( '++', 1, 0, 'rendering' ) ;
             function rendering( type ) {
-              if ( fire( settings.callbacks.update.rendering.before, null, [ event, settings.parameter ], settings.callbacks.async ) === false ) { return ; }
+              if ( fire( callbacks_update.rendering.before, null, [ event, settings.parameter ], settings.callbacks.async ) === false ) { return ; }
               setTimeout( function () {
                 if ( checker.filter( function () { return this.clientWidth || jQuery( this ).is( ':hidden' ) ; } ).length === checker.length ) {
                   
@@ -569,14 +579,14 @@
             function rendered() {
               checker.remove() ;
               settings.load.script && settings.load.sync && setTimeout( function () { jQuery( doc ).trigger( settings.gns + '.execute', [ load_script( '[src][defer]' ) ] ) ; }, 0 ) ;
-              hashmove( event.type.toLowerCase() === 'popstate' ) || scroll( true ) ;
+              hashscroll( event.type.toLowerCase() === 'popstate' ) || scroll( true ) ;
               jQuery( window ).trigger( settings.gns + '.load' ) ;
               
-              if ( fire( settings.callbacks.update.rendering.after, null, [ event, settings.parameter ], settings.callbacks.async ) === false ) { return ; }
-              settings.speedcheck && settings.log.speed.name.push( 'rendered' ) ;
-              settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
-              settings.speedcheck && console.log( settings.log.speed.time ) ;
-              settings.speedcheck && console.log( settings.log.speed.name ) ;
+              if ( fire( callbacks_update.rendering.after, null, [ event, settings.parameter ], settings.callbacks.async ) === false ) { return ; }
+              speedcheck && settings.log.speed.name.push( 'rendered' ) ;
+              speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
+              speedcheck && console.log( settings.log.speed.time ) ;
+              speedcheck && console.log( settings.log.speed.name ) ;
             } // function: rendered
             
             /* css */
@@ -586,7 +596,7 @@
               /* validate */ validate && validate.start() ;
               /* validate */ validate && ( validate.scope = function( code ){ return eval( code ) ; } ) ;
               UPDATE_CSS : {
-                if ( fire( settings.callbacks.update.css.before, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_CSS ; }
+                if ( fire( callbacks_update.css.before, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_CSS ; }
                 
                 var save ;
                 cache = getCache( url ) ;
@@ -640,9 +650,9 @@
                 }
                 jQuery( 'link[rel~="stylesheet"], style' ).filter( function () { return jQuery.data( this, settings.nss.data ) ; } ).remove() ;
                 
-                if ( fire( settings.callbacks.update.css.after, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_CSS ; }
-                settings.speedcheck && settings.log.speed.name.push( 'css' ) ;
-                settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
+                if ( fire( callbacks_update.css.after, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_CSS ; }
+                speedcheck && settings.log.speed.name.push( 'css' ) ;
+                speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
               } ; // label: UPDATE_CSS
               /* validate */ validate && validate.end() ;
             } // function: css
@@ -657,7 +667,7 @@
               /* validate */ validate && validate.start() ;
               /* validate */ validate && ( validate.scope = function( code ){ return eval( code ) ; } ) ;
               UPDATE_SCRIPT : {
-                if ( fire( settings.callbacks.update.script.before, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_SCRIPT ; }
+                if ( fire( callbacks_update.script.before, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_SCRIPT ; }
                 
                 var save, executes = [], callback ;
                 cache = getCache( url ) ;
@@ -681,9 +691,9 @@
                   executes.push( element ) ;
                 }
                 
-                if ( fire( settings.callbacks.update.script.after, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_SCRIPT ; }
-                selector === '[src][defer]' && settings.speedcheck && settings.log.speed.name.push( 'script' ) ;
-                selector === '[src][defer]' && settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
+                if ( fire( callbacks_update.script.after, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_SCRIPT ; }
+                selector === '[src][defer]' && speedcheck && settings.log.speed.name.push( 'script' ) ;
+                selector === '[src][defer]' && speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
               } ; // label: UPDATE_SCRIPT
               /* validate */ validate && validate.end() ;
               return executes ;
@@ -694,7 +704,7 @@
             /* verify */
             /* validate */ validate && validate.test( '++', 1, 0, 'verify' ) ;
             UPDATE_VERIFY : {
-              if ( fire( settings.callbacks.update.verify.before, null, [ event, settings.parameter ], settings.callbacks.async ) === false ) { break UPDATE_VERIFY ; }
+              if ( fire( callbacks_update.verify.before, null, [ event, settings.parameter ], settings.callbacks.async ) === false ) { break UPDATE_VERIFY ; }
               if ( url === encodeURI( decodeURI( win.location.href ) ) ) {
                 settings.retry = true ;
               } else if ( settings.retry ) {
@@ -703,11 +713,11 @@
               } else {
                 throw new Error( 'throw: location mismatch' ) ;
               }
-              if ( fire( settings.callbacks.update.verify.after, null, [ event, settings.parameter ], settings.callbacks.async ) === false ) { break UPDATE_VERIFY ; }
+              if ( fire( callbacks_update.verify.after, null, [ event, settings.parameter ], settings.callbacks.async ) === false ) { break UPDATE_VERIFY ; }
             } ; // label: UPDATE_VERIFY
             
-            if ( fire( settings.callbacks.update.success, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE ; }
-            if ( fire( settings.callbacks.update.complete, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE ; }
+            if ( fire( callbacks_update.success, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE ; }
+            if ( fire( callbacks_update.complete, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE ; }
             if ( fire( settings.callback, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE ; }
             /* validate */ validate && validate.test( '++', 1, 0, 'success' ) ;
           } catch( err ) {
@@ -717,16 +727,16 @@
             /* cache delete */
             cache && setCache( url ) ;
             
-            if ( fire( settings.callbacks.update.error, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE ; }
-            if ( fire( settings.callbacks.update.complete, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE ; }
+            if ( fire( callbacks_update.error, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE ; }
+            if ( fire( callbacks_update.complete, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE ; }
             /* validate */ validate && validate.test( '++', 1, [ url, win.location.href ], 'error' ) ;
             if ( settings.fallback ) { return typeof settings.fallback === 'function' ? fire( settings.fallback, null, [ event, url ] ) : fallback( event, validate ) ; }
           } ;
           
-          if ( fire( settings.callbacks.update.after, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE ; }
+          if ( fire( callbacks_update.after, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE ; }
           
-          settings.speedcheck && settings.log.speed.name.push( 'ready' ) ;
-          settings.speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
+          speedcheck && settings.log.speed.name.push( 'ready' ) ;
+          speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
           /* validate */ validate && validate.test( '++', 1, 0, 'end' ) ;
           /* validate */ validate && validate.end() ;
         } ; // label: UPDATE
@@ -737,13 +747,13 @@
       if ( typeof fn === 'function' ) { return async ? setTimeout( function () { fn.apply( context, args ) }, 0 ) : fn.apply( context, args ) ; } else { return fn ; }
     } // function: fire
     
-    function hashmove( cancel ) {
+    function hashscroll( cancel ) {
       var hash = settings.destination.hash.slice( 1 ) ;
       cancel = cancel || !hash ;
       return !cancel && jQuery( '#' + ( hash ? hash : ', [name~=' + hash + ']' ) ).first().each( function () {
         isFinite( jQuery( this ).offset().top ) && win.scrollTo( jQuery( win ).scrollLeft(), parseInt( Number( jQuery( this ).offset().top ) ) ) ;
       } ).length ;
-    } // function: hashmove
+    } // function: hashscroll
     
     function wait( ms ) {
       var defer = jQuery.Deferred() ;
@@ -777,6 +787,7 @@
       scp = settings.scope ;
       loc = settings.location.pathname + settings.location.search + settings.location.hash ;
       des = settings.destination.pathname + settings.destination.search + settings.destination.hash ;
+      if ( settings.location.pathname.charAt( 0 ) !== '/' ) { loc = '/' + loc ,des = '/' + des ; }
       if ( loc === des ) { return true ; }
       
       arr = loc.replace( /^\//, '' ).replace( /([?#])/g, '/$1' ).split( '/' ) ;
@@ -900,7 +911,7 @@
     } // function: cleanCache
     
     function database() {
-      var version = 2, idb = settings.database, name = settings.gns, db, store, days = Math.floor( settings.timestamp / ( 1000*60*60*24 ) ) ;
+      var version = 3, idb = settings.database, name = settings.gns, db, store, days = Math.floor( settings.timestamp / ( 1000*60*60*24 ) ) ;
       if ( !idb || !name ) { return false ; }
       
       db = idb.open( name, days - days % 7 + version )
