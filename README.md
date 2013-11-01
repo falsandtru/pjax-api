@@ -201,6 +201,9 @@ pjaxによるページ読み込み時にJavaScriptを読み込むかを設定し
 #####*load.execute: boolean*
 JavaScriptの読み込みが有効になっている場合に埋め込み型のJavaScriptを実行するかを設定します。初期値は`true`で有効です。
 
+#####*load.reload: Selector as string*
+JavaScriptの読み込みが有効になっている場合に繰り返し読み込む外部ファイル形式のJavaScriptをjQueryセレクタで設定します。初期値は`''`で無効です。
+
 #####*load.sync: boolean*
 `defer`属性を持つJavaScript（`script`要素）の非同期読み込みを、pjaxによるコンテンツの更新の描画を待ってから行います。初期値は`true`で有効です。
 
@@ -210,7 +213,7 @@ JavaScriptの読み込みが有効になっている場合に埋め込み型のJ
 `script`要素の`async`属性により個別に設定されるよう変更されました。
 
 #####*load.rewrite: function( element )*
-JavaScriptまたはCSSとして読み込まれる要素（<code>script</code><code>link</code><code>style</code>要素）を戻り値の要素で置換します。初期値は<code>null</code>です。
+JavaScriptまたはCSSとして読み込まれる要素（`script``link``style`要素）を戻り値の要素で置換します。初期値は`null`です。
 
 CloudFlareのRocketLoaderを使用するなどして要素が書き換えられている場合に有効です。渡される要素は複製であるため書き換えはDOMに反映されません。
 
@@ -262,6 +265,9 @@ pjaxの諸問題の修正にかかる設定項目を持ちます。
 
 #####*fix.scroll: boolean*
 スクロール位置を復元するかを設定します。`database`パラメータによりデータベースの使用が許可されていなければなりません。初期値は`true`で有効です。
+
+#####*fix.reset: boolean*
+MobileSafariでスクロールが長く重いページからの移動時にスクロール位置がリセットされない場合があるバグを修正するかを設定します。この修正を行った場合、移動前のページのスクロール位置が復元されない仕様となるためバグの発生しないサイトでは有効にする必要はありません。MobileSafariは通常のページ遷移が高速であるため導入するサイトでバグが生じるようであれば同ブラウザではpjaxを使用しない対応を推奨します。初期値は`false`で無効です。
 
 ####*database: boolean*
 Indexed Databaseの使用をするかを設定します。データはデータ数が1000を超えるたびに最後のアクセスから3日（72時間）以上経過したデータが削除（削除後もデータ数が1000を超えている場合はすべてのデータを削除）され、データベースは暦日で7日ごとに日付変更後最初の`$.pjax()`実行時に初期化されます。データベースのサイズは最大1MB以下を見積もっています。初期値は`true`で有効です。
@@ -958,7 +964,7 @@ pjaxではJavaScriptの実行状態がページ移動後も維持されるため
 pjaxは移動先のページのJavaScriptが読み込み済みであり、コードが外部ファイルに記述されている場合はこれを読み込まず、同一ページに埋め込まれている場合は再度読み込み実行します。このため、併用するJavaScriptによっては正常に動作させるために適宜再実行により実行状態をリセットするか、または読み込ませずリセットさせない処理を追加する必要があります。
 
 ###CloudFlareのRocketLoaderへの対応（暫定・検証中） - load.rewrite
-書き換えられた<code>script</code>要素を内部処理用に再度書き換えることで正常に動作させることができます。
+書き換えられた`script`要素を内部処理用に再度書き換えることで正常に動作させることができます。
 
 ```html
 <script type="text/rocketscript" charset="utf-8" data-rocketsrc="/lib/jquery-1.7.2.min.js" data-rocketoptimized="true"></script>
@@ -970,9 +976,10 @@ $(function(){
     load: {
       script: true,
       rewrite: function( element ){
-        if(element.type='text/rocketscript'){
+        var src;
+        if(src = element.type === 'text/rocketscript' && $(element).data('rocketsrc')){
           element.type = 'text/javascript';
-          element.src = $(element).data('rocketsrc') || '';
+          element.src = src;
           return element;
         }
       }
@@ -1006,6 +1013,9 @@ NG
 
 なお、検索フォームのようなGET送信フォームで使用する分には問題ありません。
 
+###pjaxの解消不能なバグ
+当プラグインはpjaxのデメリットを極力減らし、pjaxの一般的な問題点を概ね解消していますが、MobileSafari(Android・iOS)でlocationオブジェクトが更新されないバグを解消する代わりに、主にスクロールが長く重いページからの移動先ページのスクロール位置をリセットできない場合があるバグが生じ、当プラグインはさらにこれを解消する設定を行った場合は代わりに同ブラウザではブラウザバックで戻ったページのスクロール位置を復元できない仕様となっています。pjax機能を持つメジャーなプラグインであるdefunkt版pjax、jQueryMobileの手法も検証しましたがいずれもこれら３つの問題を同時には解決できませんでした。pjaxの導入の際はこの点留意してください。MobileSafariは通常のページ遷移が高速であるため導入するサイトでスクロール位置がリセットされないバグが生じるようであれば同ブラウザではpjaxを使用しない対応を推奨します。
+
 ##補足
 ドキュメント内の用語の用法にはあまり自信がありません。間違いやバグに気づかれた方は<a href="http://sa-kusaku.sakura.ne.jp/service/board/">掲示板</a>または<a href="http://sa-kusaku.sakura.ne.jp/service/contact/">連絡フォーム</a>からご連絡ください。
 
@@ -1015,6 +1025,24 @@ pjaxの実用的な使用方法についての雑考を書いてみました。<
 基本的にマイナーバージョン（1.0.xのxの部分）が若いバージョンはバグ持ちです。一つ前のメジャーバージョンの最終バージョンが比較的安定的なバージョンになります。
 
 ###change log
+
+####1.22.7
+
++ IE10でscope機能が動作しないバグを修正
++ URL処理のバグを修正
++ 動作を高速化
+
+####1.22.6
+
++ マルチバイト文字が使用されたURLを自動的にUTF-8エンコードするよう修正
++ コンディショナルコメントをエスケープするよう修正
++ `noscript`タグをエスケープするよう修正
+
+####1.22.5
+
++ `script`要素の`defer`属性への対応を修正
++ `load.reload`パラメータを追加
+  <br>繰り返し読み込む外部ファイル形式のJavaScriptをjQueryセレクタで設定する。
 
 ####1.22.4
 
