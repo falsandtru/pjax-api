@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.22.7
- * @updated 2013/11/01
+ * @version 1.22.8
+ * @updated 2013/11/02
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -100,7 +100,7 @@
         hashclick : false,
         fix : !/Mobile(\/\w+)? Safari/i.test( win.navigator.userAgent ) ? { location : false, reset : false } : {} ,
         contentType : settings.contentType.replace( /\s*[,;]\s*/g, '|' ).toLowerCase(),
-        scroll : { queue : [] },
+        scroll : { record : true , queue : [] },
         database : settings.database ? ( win.indexedDB || win.webkitIndexedDB || win.mozIndexedDB || win.msIndexedDB || null ) : false,
         server : { query : !settings.server.query ? settings.gns : settings.server.query },
         log : { script : {}, speed : {} },
@@ -310,6 +310,7 @@
       speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
       
       /* validate */ validate && validate.test( '++', 1, 0, 'start' ) ;
+      settings.scroll.record = false ;
       settings.fix.reset && /click|submit/.test( event.type.toLowerCase() ) && win.scrollTo( jQuery( win ).scrollLeft(), 0 ) ;
       if ( fire( settings.callbacks.before, null, [ event, settings.parameter ], settings.callbacks.async ) === false ) { return ; } // function: drive
       
@@ -525,10 +526,10 @@
                   scrollY = scrollY === null ? jQuery( win ).scrollTop() : parseInt( Number( scrollY ) ) ;
                   
                   ( jQuery( win ).scrollTop() === scrollY && jQuery( win ).scrollLeft() === scrollX ) || win.scrollTo( scrollX, scrollY ) ;
-                  settings.database && settings.fix.scroll && dbScroll( scrollX, scrollY ) ;
+                  call && settings.database && settings.fix.scroll && dbScroll( scrollX, scrollY ) ;
                   break ;
                 case 'popstate' :
-                  settings.database && settings.fix.scroll && dbScroll() ;
+                  call && settings.database && settings.fix.scroll && dbScroll() ;
                   break ;
               }
             } // function: scroll
@@ -579,6 +580,7 @@
             function rendered() {
               checker.remove() ;
               settings.load.script && settings.load.sync && setTimeout( function () { jQuery( doc ).trigger( settings.gns + '.execute', [ load_script( '[src][defer]' ) ] ) ; }, 0 ) ;
+              settings.scroll.record = true ;
               hashscroll( event.type.toLowerCase() === 'popstate' ) || scroll( true ) ;
               jQuery( window ).trigger( settings.gns + '.load' ) ;
               
@@ -958,7 +960,7 @@
       var store = typeof settings.database === 'object' && settings.database.transaction( settings.gns, 'readwrite' ).objectStore( settings.gns ) ;
       var url = settings.location.href, title = doc.title, len = arguments.length ;
       
-      if ( !store ) { return ; }
+      if ( !settings.scroll.record || !store ) { return ; }
       store.get( 'current' ).onsuccess = function () {
         if ( !this.result || !this.result.title || url !== this.result.title ) { return ; }
         if ( len ) {
