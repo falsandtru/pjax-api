@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.22.8
- * @updated 2013/11/02
+ * @version 1.22.9
+ * @updated 2013/11/03
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -845,7 +845,7 @@
     
     function setCache( url, title, size, textStatus, XMLHttpRequest ) {
       var history = settings.history ;
-      url = settings.hashquery ? url : url.replace( /#.*/, '' ) ;
+      if ( !settings.hashquery ) { url = url.replace( /#.*/, '' ) ; }
       switch ( true ) {
         case 1 === arguments.length :
           for ( var i = 0, key ; key = history.order[ i ] ; i++ ) {
@@ -885,7 +885,7 @@
     
     function getCache( url ) {
       var history = settings.history ;
-      url = settings.hashquery ? url : url.replace( /#.*/, '' ) ;
+      if ( !settings.hashquery ) { url = url.replace( /#.*/, '' ) ; }
       history.data[ url ] && settings.timestamp > history.data[ url ].timestamp + history.config.expire && setCache( url ) ;
       return history.data[ url ] ;
     } // function: getCache
@@ -937,13 +937,14 @@
       var store = typeof settings.database === 'object' && settings.database.transaction( settings.gns, 'readwrite' ).objectStore( settings.gns ) ;
       
       if ( !store ) { return ; }
-      store.put( { id : 'current', title : settings.location.href } ) ;
+      store.put( { id : 'current', title : settings.hashquery ? win.location.href : win.location.href.replace( /#.*/, '' ) } ) ;
     } // function: dbCurrent
     
     function dbTitle( url, title ) {
       var store = typeof settings.database === 'object' && settings.database.transaction( settings.gns, 'readwrite' ).objectStore( settings.gns ) ;
       
       if ( !store ) { return ; }
+      if ( !settings.hashquery ) { url = url.replace( /#.*/, '' ) ; }
       if ( title ) {
         store.get( url ).onsuccess = function () {
           store.put( jQuery.extend( true, {}, this.result || {}, { id : url, title : title, date : settings.timestamp } ) ) ;
@@ -961,6 +962,7 @@
       var url = settings.location.href, title = doc.title, len = arguments.length ;
       
       if ( !settings.scroll.record || !store ) { return ; }
+      if ( !settings.hashquery ) { url = url.replace( /#.*/, '' ) ; }
       store.get( 'current' ).onsuccess = function () {
         if ( !this.result || !this.result.title || url !== this.result.title ) { return ; }
         if ( len ) {
