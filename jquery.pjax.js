@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.22.9
- * @updated 2013/11/03
+ * @version 1.22.10
+ * @updated 2013/11/04
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -600,7 +600,7 @@
               UPDATE_CSS : {
                 if ( fire( callbacks_update.css.before, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_CSS ; }
                 
-                var save ;
+                var save, elements = [] ;
                 cache = getCache( url ) ;
                 save = cache && !cache.css ;
                 css = css ? css
@@ -622,14 +622,13 @@
                   
                   switch ( element.tagName.toLowerCase() ) {
                     case 'link' :
-                      // 現行要素と移行要素を比較、一致するものがあれば次の走査へ移る。
-                      // 一致するものがなければ移行要素を追加し、一致するものがない現行要素を削除する。
+                      // 現行要素と移行要素を比較、一致するものがあれば削除フラグを消して次の走査へ移る。
+                      // 一致するものがなければ移行要素を追加する。
                       if ( links.filter( function () {
                              if ( skip || this.href !== element.href ) {
                                return false ;
                              } else {
-                               skip = true ;
-                               jQuery.removeData( this, settings.nss.data ) ;
+                               skip = jQuery.removeData( this, settings.nss.data ) ;
                                return true ;
                              }
                            } ).length ) { continue ; }
@@ -640,27 +639,29 @@
                              if ( skip || !jQuery.data( this, settings.nss.data ) || this.innerHTML !== element.innerHTML ) {
                                return false ;
                              } else {
-                               skip = true ;
-                               jQuery.removeData( this, settings.nss.data ) ;
+                               skip = jQuery.removeData( this, settings.nss.data ) ;
                                return true ;
                              }
                            } ).length ) { continue ; }
                       break ;
                   }
                   
-                  jQuery( 'head' ).append( element ) ;
+                  elements.push( element ) ;
                 }
                 jQuery( 'link[rel~="stylesheet"], style' ).filter( function () { return jQuery.data( this, settings.nss.data ) ; } ).remove() ;
+                jQuery( 'head' ).append( elements ) ;
                 
                 if ( fire( callbacks_update.css.after, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_CSS ; }
+                
+                jQuery( doc ).trigger( settings.gns + '.ready' ).trigger( settings.gns + '.execute', [ rendering ] ) ;
+                
                 speedcheck && settings.log.speed.name.push( 'css' ) ;
                 speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
               } ; // label: UPDATE_CSS
               /* validate */ validate && validate.end() ;
             } // function: css
-            settings.load.css && setTimeout( function () { load_css(), jQuery( doc ).trigger( settings.gns + '.ready' ) ; }, 0 ) ;
-            !settings.load.css && jQuery( doc ).trigger( settings.gns + '.ready' ) ;
-            jQuery( doc ).trigger( settings.gns + '.execute', [ rendering ] ) ;
+            settings.load.css && setTimeout( function () { load_css() ; }, 0 ) ;
+            !settings.load.css && jQuery( doc ).trigger( settings.gns + '.ready' ).trigger( settings.gns + '.execute', [ rendering ] ) ;
             
             /* script */
             /* validate */ validate && validate.test( '++', 1, 0, 'script' ) ;
@@ -671,7 +672,7 @@
               UPDATE_SCRIPT : {
                 if ( fire( callbacks_update.script.before, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_SCRIPT ; }
                 
-                var save, executes = [], callback ;
+                var save, elements = [], callback ;
                 cache = getCache( url ) ;
                 save = cache && !cache.script ;
                 script = script || parsable ? page.find( 'script' ).add( page.filter( 'script' ) ).get()
@@ -690,7 +691,7 @@
                   if ( ( src = element.src ) && src in settings.log.script ) { continue ; }
                   if ( src && ( !settings.load.reload || !jQuery( element ).is( settings.load.reload ) ) ) { settings.log.script[ src ] = true ; }
                   
-                  executes.push( element ) ;
+                  elements.push( element ) ;
                 }
                 
                 if ( fire( callbacks_update.script.after, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_SCRIPT ; }
@@ -698,7 +699,7 @@
                 selector === '[src][defer]' && speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
               } ; // label: UPDATE_SCRIPT
               /* validate */ validate && validate.end() ;
-              return executes ;
+              return elements ;
             } // function: script
             settings.load.script && setTimeout( function () { jQuery( doc ).trigger( settings.gns + '.execute', [ load_script( ':not([defer]),:not([src])' ) ] ) ; }, 0 ) ;
             settings.load.script && !settings.load.sync && setTimeout( function () { jQuery( doc ).trigger( settings.gns + '.execute', [ load_script( '[src][defer]' ) ] ) ; }, 0 ) ;
