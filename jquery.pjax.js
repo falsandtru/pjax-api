@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.23.0
- * @updated 2013/11/04
+ * @version 1.23.1
+ * @updated 2013/11/05
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -525,6 +525,8 @@
               jQuery( doc ).trigger( settings.gns + '.DOMContentLoaded' ) ;
               if ( fire( callbacks_update.content.after, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_CONTENT ; }
             } ; // label: UPDATE_CONTENT
+            speedcheck && settings.log.speed.name.push( 'content' ) ;
+            speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
             
             /* cache */
             /* validate */ validate && validate.test( '++', 1, 0, 'cache' ) ;
@@ -541,30 +543,31 @@
             
             /* rendering */
             /* validate */ validate && validate.test( '++', 1, 0, 'rendering' ) ;
-            function rendering( type ) {
+            function rendering( call ) {
               if ( fire( callbacks_update.rendering.before, null, [ event, settings.parameter ], settings.callbacks.async ) === false ) { return ; }
               setTimeout( function () {
                 if ( checker.filter( function () { return this.clientWidth || jQuery( this ).is( ':hidden' ) ; } ).length === checker.length ) {
                   
-                  rendered() ;
+                  rendered( call ) ;
                   
                 } else if ( checker.length ) {
                   setTimeout( function () { arguments.callee() ; }, settings.interval ) ;
                 }
               }, 0 ) ;
             } // function: rendering
-            function rendered() {
+            function rendered( call ) {
               checker.remove() ;
-              settings.load.sync && setTimeout( function () { jQuery( doc ).trigger( settings.gns + '.execute', [ load_script( '[src][defer]' ) ] ) ; }, 0 ) ;
-              settings.scroll.record = true ;
-              hashscroll( event.type.toLowerCase() === 'popstate' ) || scroll( true ) ;
-              jQuery( window ).trigger( settings.gns + '.load' ) ;
-              
+              if ( call ) {
+                settings.load.sync && setTimeout( function () { load_script( '[src][defer]' ) ; }, 0 ) ;
+              } else {
+                settings.scroll.record = true ;
+                hashscroll( event.type.toLowerCase() === 'popstate' ) || scroll( true ) ;
+                jQuery( window ).trigger( settings.gns + '.load' ) ;
+                
+                speedcheck && settings.log.speed.name.push( 'rendered' ) ;
+                speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
+              }
               if ( fire( callbacks_update.rendering.after, null, [ event, settings.parameter ], settings.callbacks.async ) === false ) { return ; }
-              speedcheck && settings.log.speed.name.push( 'rendered' ) ;
-              speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
-              speedcheck && console.log( settings.log.speed.time ) ;
-              speedcheck && console.log( settings.log.speed.name ) ;
             } // function: rendered
             
             /* css */
@@ -577,7 +580,7 @@
                 if ( !settings.load.css ) { break UPDATE_CSS ; }
                 if ( fire( callbacks_update.css.before, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_CSS ; }
                 
-                var save, elements = [] ;
+                var save, adds = [], removes = jQuery( 'link[rel~="stylesheet"], style' ) ;
                 cache = getCache( url ) ;
                 save = cache && !cache.css ;
                 css = css ? css
@@ -587,46 +590,26 @@
                 if ( save ) { cache.css = css ; }
                 parsable = typeof css[ 0 ] === 'object' ;
                 
-                // 対象現行全要素に削除フラグを立てる。
-                jQuery( 'link[rel~="stylesheet"], style' ).filter( function () { return jQuery.data( this, settings.nss.data, true ) ; } ) ;
-                // 対象移行全要素を走査する。
-                for ( var i = 0, element, links = jQuery( 'link[rel~="stylesheet"]' ), styles = jQuery( 'style' ), skip ; element = css[ i ] ; i++ ) {
+                loop : for ( var i = 0, element, tagName, content ; element = css[ i ] ; i++ ) {
                   
-                  skip = false ;
                   element = typeof element === 'object' ? element : jQuery( element )[ 0 ] ;
                   element = typeof settings.load.rewrite === 'function' ? fire( settings.load.rewrite, null, [ element.cloneNode() ] ) || element : element ;
                   if ( save && !parsable ) { cache.css[ i ] = element ; }
                   
-                  switch ( element.tagName.toLowerCase() ) {
-                    case 'link' :
-                      // 現行要素と移行要素を比較、一致するものがあれば削除フラグを消して次の走査へ移る。
-                      // 一致するものがなければ移行要素を追加する。
-                      if ( links.filter( function () {
-                             if ( skip || this.href !== element.href ) {
-                               return false ;
-                             } else {
-                               skip = jQuery.removeData( this, settings.nss.data ) ;
-                               return true ;
-                             }
-                           } ).length ) { continue ; }
-                      break ;
-                    
-                    case 'style' :
-                      if ( styles.filter( function () {
-                             if ( skip || !jQuery.data( this, settings.nss.data ) || this.innerHTML !== element.innerHTML ) {
-                               return false ;
-                             } else {
-                               skip = jQuery.removeData( this, settings.nss.data ) ;
-                               return true ;
-                             }
-                           } ).length ) { continue ; }
-                      break ;
-                  }
+                  tagName = element.tagName.toLowerCase() ;
+                  content = tagName === 'link' ? element.href : element.innerHTML ;
                   
-                  elements.push( element ) ;
+                  for ( var j = removes.length, tmp ; tmp = removes[ --j ] ; ) {
+                    if ( tagName !== tmp.tagName.toLowerCase() ) { continue ; }
+                    if ( ( tagName === 'link' ? tmp.href : tmp.innerHTML ) === content ) {
+                      removes = removes.not( tmp ) ;
+                      continue loop ;
+                    }
+                  }
+                  adds.push( element ) ;
                 }
-                jQuery( 'link[rel~="stylesheet"], style' ).filter( function () { return jQuery.data( this, settings.nss.data ) ; } ).remove() ;
-                jQuery( 'head' ).append( elements ) ;
+                removes.remove() ;
+                jQuery( 'head' ).append( adds ) ;
                 
                 if ( fire( callbacks_update.css.after, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_CSS ; }
                 
@@ -635,15 +618,6 @@
               } ; // label: UPDATE_CSS
               /* validate */ validate && validate.end() ;
             } // function: css
-            if ( !settings.load.async ) {
-              load_css() ;
-            } else {
-              setTimeout( function () {
-                load_css() ;
-              }, parseInt( Number( settings.load.async ) ) ) ;
-            }
-            jQuery( doc ).trigger( settings.gns + '.ready' ) ;
-            
             
             /* script */
             /* validate */ validate && validate.test( '++', 1, 0, 'script' ) ;
@@ -685,19 +659,11 @@
                 if ( fire( callbacks_update.script.after, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_SCRIPT ; }
                 selector === '[src][defer]' && speedcheck && settings.log.speed.name.push( 'script' ) ;
                 selector === '[src][defer]' && speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
+                selector === '[src][defer]' && speedcheck && console.log( settings.log.speed.time ) ;
+                selector === '[src][defer]' && speedcheck && console.log( settings.log.speed.name ) ;
               } ; // label: UPDATE_SCRIPT
               /* validate */ validate && validate.end() ;
             } // function: script
-            if ( !settings.load.async ) {
-              load_script( ':not([defer]),:not([src])' ) ;
-              !settings.load.sync && load_script( '[src][defer]' ) ;
-            } else {
-              setTimeout( function () {
-                load_script( ':not([defer]),:not([src])' ) ;
-                !settings.load.sync && load_script( '[src][defer]' ) ;
-              }, parseInt( Number( settings.load.async ) ) ) ;
-            }
-            setTimeout( function () { rendering() }, 0) ;
             
             /* verify */
             /* validate */ validate && validate.test( '++', 1, 0, 'verify' ) ;
@@ -713,6 +679,17 @@
               }
               if ( fire( callbacks_update.verify.after, null, [ event, settings.parameter ], settings.callbacks.async ) === false ) { break UPDATE_VERIFY ; }
             } ; // label: UPDATE_VERIFY
+            
+            /* load */
+            load_css() ;
+            jQuery( doc ).trigger( settings.gns + '.ready' ) ;
+            jQuery( win ).bind( settings.gns + '.rendering', function ( event ) {
+              jQuery( event.target ).unbind( settings.gns + '.rendering', arguments.callee ) ;
+              rendering() ;
+              load_script( ':not([defer]), :not([src])' ) ;
+              !settings.load.sync && load_script( '[src][defer]' ) ;
+              rendering( true ) ;
+            } ).trigger( settings.gns + '.rendering' ) ;
             
             if ( fire( callbacks_update.success, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE ; }
             if ( fire( callbacks_update.complete, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE ; }
@@ -733,7 +710,7 @@
           
           if ( fire( callbacks_update.after, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE ; }
           
-          speedcheck && settings.log.speed.name.push( 'ready' ) ;
+          speedcheck && settings.log.speed.name.push( 'complete' ) ;
           speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
           /* validate */ validate && validate.test( '++', 1, 0, 'end' ) ;
           /* validate */ validate && validate.end() ;
