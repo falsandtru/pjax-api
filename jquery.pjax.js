@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.23.1
- * @updated 2013/11/05
+ * @version 1.23.2
+ * @updated 2013/11/06
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -95,8 +95,8 @@
           requestHeader : [ 'X', nsArray[ 0 ].replace( /^\w/, function ( $0 ) { return $0.toUpperCase() ; } ) ].join( '-' ),
           array : nsArray
         },
-        location : jQuery( '<a/>', { href : encodeURI( decodeURI( win.location.href ) ) } )[ 0 ],
-        destination : jQuery( '<a/>', { href : encodeURI( decodeURI( win.location.href ) ) } )[ 0 ],
+        location : jQuery( '<a/>', { href : canonicalizeURL( win.location.href ) } )[ 0 ],
+        destination : jQuery( '<a/>' )[ 0 ],
         hashclick : false,
         fix : !/Mobile(\/\w+)? Safari/i.test( win.navigator.userAgent ) ? { location : false, reset : false } : {} ,
         contentType : settings.contentType.replace( /\s*[,;]\s*/g, '|' ).toLowerCase(),
@@ -107,7 +107,7 @@
         history : { config : settings.cache, order : [], data : {}, size : 0 },
         timestamp : ( new Date() ).getTime(),
         disable : false,
-        landing : encodeURI( decodeURI( win.location.href ) ),
+        landing : canonicalizeURL( win.location.href ),
         retry : true,
         xhr : null,
         speed : { now : function () { return ( new Date() ).getTime() ; } },
@@ -165,7 +165,7 @@
         event.timeStamp = ( new Date() ).getTime() ;
         var settings = plugin_data[ 1 ] ;
         if ( settings.disable ) { return false ; }
-        settings.destination.href = encodeURI( decodeURI( this.href ) ) ;
+        settings.destination.href = canonicalizeURL( this.href ) ;
         
         if ( settings.location.protocol !== settings.destination.protocol || settings.location.host !== settings.destination.host ) { return ; }
         if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
@@ -195,13 +195,13 @@
         event.timeStamp = ( new Date() ).getTime() ;
         var settings = plugin_data[ 1 ] ;
         if ( settings.disable ) { return false ; }
-        settings.destination.href = encodeURI( decodeURI( this.action ) ) ;
+        settings.destination.href = canonicalizeURL( this.action ) ;
         
         if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
         
         var url, cache ;
         
-        url = settings.destination.href = settings.destination.href.replace( /[?#].*/, '' ) + encodeURI( decodeURI(  event.target.method.toUpperCase() === 'GET' ? '?' + jQuery( event.target ).serialize() : '' ) ) ;
+        url = settings.destination.href = canonicalizeURL( settings.destination.href.replace( /[?#].*/, '' ) + ( event.target.method.toUpperCase() === 'GET' ? '?' + jQuery( event.target ).serialize() : '' ) ) ;
         settings.area = fire( settings.options.area, null, [ event, url ] ) ;
         settings.hashclick = false ;
         settings.timestamp = event.timeStamp ;
@@ -220,7 +220,7 @@
         event.timeStamp = ( new Date() ).getTime() ;
         var settings = plugin_data[ 1 ] ;
         if ( settings.disable ) { return false ; }
-        settings.destination.href = encodeURI( decodeURI( win.location.href ) ) ;
+        settings.destination.href = canonicalizeURL( win.location.href ) ;
         
         if ( settings.location.href === settings.destination.href ) { return false ; }
         
@@ -495,11 +495,11 @@
                 case 'submit' :
                   scrollX = call && typeof settings.scrollLeft === 'function' ? fire( settings.scrollLeft, null, [ event ] ) : settings.scrollLeft ;
                   scrollX = 0 <= scrollX ? scrollX : 0 ;
-                  scrollX = scrollX === null ? jQuery( win ).scrollLeft() : parseInt( Number( scrollX ) ) ;
+                  scrollX = scrollX === null ? jQuery( win ).scrollLeft() : parseInt( Number( scrollX ), 10 ) ;
                   
                   scrollY = call && typeof settings.scrollTop === 'function' ? fire( settings.scrollTop, null, [ event ] ) : settings.scrollTop ;
                   scrollY = 0 <= scrollY ? scrollY : 0 ;
-                  scrollY = scrollY === null ? jQuery( win ).scrollTop() : parseInt( Number( scrollY ) ) ;
+                  scrollY = scrollY === null ? jQuery( win ).scrollTop() : parseInt( Number( scrollY ), 10 ) ;
                   
                   ( jQuery( win ).scrollTop() === scrollY && jQuery( win ).scrollLeft() === scrollX ) || win.scrollTo( scrollX, scrollY ) ;
                   call && settings.database && settings.fix.scroll && dbScroll( scrollX, scrollY ) ;
@@ -518,8 +518,8 @@
               jQuery( settings.area ).children( '.' + settings.nss.class4html + '-check' ).remove() ;
               checker = jQuery( '<div/>', {
                 'class' : settings.nss.class4html + '-check',
-                'style' : 'display: block !important; visibility: hidden !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; position: absolute !important; top: -9999px !important; left: -9999px !important; font-size: 12px !important; text-indent: 0 !important;'
-              } ).text( 'pjax' ) ;
+                'style' : 'background: none !important; display: block !important; visibility: hidden !important; position: absolute !important; top: 0 !important; left: 0 !important; z-index: -9999 !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; font-size: 12px !important; text-indent: 0 !important;'
+              } ).text( settings.gns ) ;
               for ( var i = 0, area ; area = areas[ i++ ] ; ) { jQuery( area ).html( page.find( area ).add( page.filter( area ) ).contents() ).append( checker.clone() ) ; }
               checker = jQuery( settings.area ).children( '.' + settings.nss.class4html + '-check' ) ;
               jQuery( doc ).trigger( settings.gns + '.DOMContentLoaded' ) ;
@@ -545,7 +545,7 @@
             /* validate */ validate && validate.test( '++', 1, 0, 'rendering' ) ;
             function rendering( call ) {
               if ( fire( callbacks_update.rendering.before, null, [ event, settings.parameter ], settings.callbacks.async ) === false ) { return ; }
-              setTimeout( function () {
+              ( function () {
                 if ( checker.filter( function () { return this.clientWidth || jQuery( this ).is( ':hidden' ) ; } ).length === checker.length ) {
                   
                   rendered( call ) ;
@@ -553,16 +553,16 @@
                 } else if ( checker.length ) {
                   setTimeout( function () { arguments.callee() ; }, settings.interval ) ;
                 }
-              }, 0 ) ;
+              } )() ;
             } // function: rendering
             function rendered( call ) {
               checker.remove() ;
               if ( call ) {
-                settings.load.sync && setTimeout( function () { load_script( '[src][defer]' ) ; }, 0 ) ;
+                settings.load.sync && load_script( '[src][defer]' ) ;
               } else {
                 settings.scroll.record = true ;
                 hashscroll( event.type.toLowerCase() === 'popstate' ) || scroll( true ) ;
-                jQuery( window ).trigger( settings.gns + '.load' ) ;
+                jQuery( win ).trigger( settings.gns + '.load' ) ;
                 
                 speedcheck && settings.log.speed.name.push( 'rendered' ) ;
                 speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
@@ -599,7 +599,7 @@
                   tagName = element.tagName.toLowerCase() ;
                   content = tagName === 'link' ? element.href : element.innerHTML ;
                   
-                  for ( var j = removes.length, tmp ; tmp = removes[ --j ] ; ) {
+                  for ( var j = 0, tmp ; tmp = removes[ j ] ; j++ ) {
                     if ( tagName !== tmp.tagName.toLowerCase() ) { continue ; }
                     if ( ( tagName === 'link' ? tmp.href : tmp.innerHTML ) === content ) {
                       removes = removes.not( tmp ) ;
@@ -669,11 +669,11 @@
             /* validate */ validate && validate.test( '++', 1, 0, 'verify' ) ;
             UPDATE_VERIFY : {
               if ( fire( callbacks_update.verify.before, null, [ event, settings.parameter ], settings.callbacks.async ) === false ) { break UPDATE_VERIFY ; }
-              if ( url === encodeURI( decodeURI( win.location.href ) ) ) {
+              if ( url === canonicalizeURL( win.location.href ) ) {
                 settings.retry = true ;
               } else if ( settings.retry ) {
                 settings.retry = false ;
-                drive( settings, event, win.location.href, false, settings.cache[ event.type.toLowerCase() ] && getCache( encodeURI( decodeURI( win.location.href ) ) ) ) ;
+                drive( settings, event, win.location.href, false, settings.cache[ event.type.toLowerCase() ] && getCache( canonicalizeURL( win.location.href ) ) ) ;
               } else {
                 throw new Error( 'throw: location mismatch' ) ;
               }
@@ -684,7 +684,7 @@
             load_css() ;
             jQuery( doc ).trigger( settings.gns + '.ready' ) ;
             jQuery( win ).bind( settings.gns + '.rendering', function ( event ) {
-              jQuery( event.target ).unbind( settings.gns + '.rendering', arguments.callee ) ;
+              jQuery( event.target ).unbind( event.type + '.rendering', arguments.callee ) ;
               rendering() ;
               load_script( ':not([defer]), :not([src])' ) ;
               !settings.load.sync && load_script( '[src][defer]' ) ;
@@ -718,6 +718,28 @@
       } // function: update
     } // function: drive
     
+    function canonicalizeURL( url ) {
+      // トリム
+      url = trim( url ) ;
+      // HTTP(S)以外の文字列から始まる値を拒否
+      url = /^https?:/i.test( url ) ? url : '' ;
+      // 不正な文字から始まる文字列を削除
+      url = url.replace( /[<>"{}|\\^\[\]`\s].*/,'' ) ;
+      // 値をエンコーディング済みに統一
+      return encodeURI( decodeURI( url ) ) ;
+    } // function: canonicalizeURL
+    
+    function trim( text ) {
+      text =  String( text ).replace( /^\s+/, '' ) ;
+      for ( var i = text.length ; --i > 0 ; ) {
+        if ( /\S/.test( text.charAt( i ) ) ) {
+          text = text.substring( 0, i + 1 ) ;
+          break ;
+        }
+      }
+      return text ;
+    } // function: trim
+    
     function fire( fn, context, args, async ) {
       if ( typeof fn === 'function' ) { return async ? setTimeout( function () { fn.apply( context, args ) }, 0 ) : fn.apply( context, args ) ; } else { return fn ; }
     } // function: fire
@@ -726,7 +748,7 @@
       var hash = settings.destination.hash.slice( 1 ) ;
       cancel = cancel || !hash ;
       return !cancel && jQuery( '#' + ( hash ? hash : ', [name~=' + hash + ']' ) ).first().each( function () {
-        isFinite( jQuery( this ).offset().top ) && win.scrollTo( jQuery( win ).scrollLeft(), parseInt( Number( jQuery( this ).offset().top ) ) ) ;
+        isFinite( jQuery( this ).offset().top ) && win.scrollTo( jQuery( win ).scrollLeft(), parseInt( Number( jQuery( this ).offset().top ), 10 ) ) ;
       } ).length ;
     } // function: hashscroll
     
@@ -838,7 +860,7 @@
           if ( history.data[ url ] ) { break ; }
           history.size > history.config.size && cleanCache() ;
           
-          size = parseInt( size || XMLHttpRequest.responseText.length * 1.8 ) ;
+          size = parseInt( size || XMLHttpRequest.responseText.length * 1.8, 10 ) ;
           history.size = history.size || 0 ;
           history.size += size ;
           history.data[ url ] = {
@@ -940,12 +962,12 @@
         if ( !this.result || !this.result.title || url !== this.result.title ) { return ; }
         if ( len ) {
           store.get( url ).onsuccess = function () {
-            store.put( jQuery.extend( true, {}, this.result || {}, { title : title, scrollX : parseInt( Number( scrollX ) ), scrollY : parseInt( Number( scrollY ) ) } ) ) ;
+            store.put( jQuery.extend( true, {}, this.result || {}, { title : title, scrollX : parseInt( Number( scrollX ), 10 ), scrollY : parseInt( Number( scrollY ), 10 ) } ) ) ;
           }
         } else {
           store.get( url ).onsuccess = function () {
             this.result && isFinite( this.result.scrollX ) && isFinite( this.result.scrollY ) &&
-            win.scrollTo( parseInt( Number( this.result.scrollX ) ), parseInt( Number( this.result.scrollY ) ) ) ;
+            win.scrollTo( parseInt( Number( this.result.scrollX ), 10 ), parseInt( Number( this.result.scrollY ), 10 ) ) ;
           }
         }
       }
