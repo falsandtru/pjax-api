@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.23.2
+ * @version 1.23.3
  * @updated 2013/11/06
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -587,26 +587,24 @@
                           : parsable ? page.find( 'link[rel~="stylesheet"], style' ).add( page.filter( 'link[rel~="stylesheet"], style' ) ).get()
                                      : find( data, /(<link[^>]*?rel=.[^"\']*?stylesheet[^>]*?>|<style[^>]*?>(?:.|[\n\r])*?<\/style>)/gim ) ;
                 if ( cache && cache.css && css && css.length !== cache.css.length ) { save = true ; }
-                if ( save ) { cache.css = css ; }
-                parsable = typeof css[ 0 ] === 'object' ;
+                if ( save ) { cache.css = [] ; }
                 
-                loop : for ( var i = 0, element, tagName, content ; element = css[ i ] ; i++ ) {
+                for ( var i = 0, element, content ; element = css[ i ] ; i++ ) {
                   
                   element = typeof element === 'object' ? element : jQuery( element )[ 0 ] ;
                   element = typeof settings.load.rewrite === 'function' ? fire( settings.load.rewrite, null, [ element.cloneNode() ] ) || element : element ;
-                  if ( save && !parsable ) { cache.css[ i ] = element ; }
+                  if ( save ) { cache.css[ i ] = element ; }
                   
-                  tagName = element.tagName.toLowerCase() ;
-                  content = tagName === 'link' ? element.href : element.innerHTML ;
+                  content = trim( element.href || element.innerHTML || '' ) ;
                   
                   for ( var j = 0, tmp ; tmp = removes[ j ] ; j++ ) {
-                    if ( tagName !== tmp.tagName.toLowerCase() ) { continue ; }
-                    if ( ( tagName === 'link' ? tmp.href : tmp.innerHTML ) === content ) {
+                    if ( trim( tmp.href || tmp.innerHTML || '' ) === content ) {
                       removes = removes.not( tmp ) ;
-                      continue loop ;
+                      element = null ;
+                      break ;
                     }
                   }
-                  adds.push( element ) ;
+                  element && adds.push( element ) ;
                 }
                 removes.remove() ;
                 jQuery( 'head' ).append( adds ) ;
@@ -635,23 +633,24 @@
                 script = script || parsable ? page.find( 'script' ).add( page.filter( 'script' ) ).get()
                                             : find( data, /(?:[^\'\"]|^\s*?)(<script[^>]*?>(?:.|[\n\r])*?<\/script>)(?:[^\'\"]|\s*?$)/gim ) ;
                 if ( cache && cache.script && script && script.length !== cache.script.length ) { save = true ; }
-                if ( save ) { cache.script = script ; }
-                parsable = typeof script[ 0 ] === 'object' ;
+                if ( save ) { cache.script = [] ; }
                 
-                for ( var i = 0, element, src, rewrite ; element = script[ i ] ; i++ ) {
+                for ( var i = 0, element, content ; element = script[ i ] ; i++ ) {
                   
                   element = typeof element === 'object' ? element : jQuery( element )[ 0 ] ;
-                  element = typeof settings.load.rewrite === 'function' ? rewrite = fire( settings.load.rewrite, null, [ element.cloneNode() ] ) || element : element ;
-                  if ( save && ( !parsable || rewrite ) ) { cache.script[ i ] = element ; }
+                  element = typeof settings.load.rewrite === 'function' ? fire( settings.load.rewrite, null, [ element.cloneNode() ] ) || element : element ;
+                  if ( save ) { cache.script[ i ] = element ; }
                   
                   if ( !jQuery( element ).is( selector ) ) { continue ; }
-                  if ( ( src = element.src ) && src in settings.log.script ) { continue ; }
-                  if ( src && ( !settings.load.reload || !jQuery( element ).is( settings.load.reload ) ) ) { settings.log.script[ src ] = true ; }
+                  content = trim( element.src || '' ) ;
                   
-                  if ( element.src ) {
+                  if ( content && ( content in settings.log.script ) ) { continue ; }
+                  if ( content && ( !settings.load.reload || !jQuery( element ).is( settings.load.reload ) ) ) { settings.log.script[ content ] = true ; }
+                  
+                  if ( content ) {
                     jQuery.ajax( jQuery.extend( true, {}, settings.ajax, settings.load.ajax, { url : element.src, async : !!element.async, global : false } ) ) ;
                   } else {
-                    typeof element === 'object' && ( !element.type || -1 < element.type.toLowerCase().indexOf( 'text/javascript' ) ) &&
+                    typeof element === 'object' && ( !element.type || -1 !== element.type.toLowerCase().indexOf( 'text/javascript' ) ) &&
                     win.eval.call( win, ( element.text || element.textContent || element.innerHTML || '' ).replace( /^\s*<!(?:\[CDATA\[|\-\-)/, '/*$0*/' ) ) ;
                   }
                 }
@@ -725,16 +724,21 @@
       url = /^https?:/i.test( url ) ? url : '' ;
       // 不正な文字から始まる文字列を削除
       url = url.replace( /[<>"{}|\\^\[\]`\s].*/,'' ) ;
-      // 値をエンコーディング済みに統一
+      // 値をUTF-8エンコード済みに統一
       return encodeURI( decodeURI( url ) ) ;
     } // function: canonicalizeURL
     
     function trim( text ) {
-      text =  String( text ).replace( /^\s+/, '' ) ;
-      for ( var i = text.length ; --i > 0 ; ) {
-        if ( /\S/.test( text.charAt( i ) ) ) {
-          text = text.substring( 0, i + 1 ) ;
-          break ;
+      if ( String.prototype.trim ) {
+        text = String( text ).trim() ;
+      } else {
+        if ( text = String( text ).replace( /^\s+/, '' ) ) {
+          for ( var i = text.length ; --i ; ) {
+            if ( /\S/.test( text.charAt( i ) ) ) {
+              text = text.substring( 0, i + 1 ) ;
+              break ;
+            }
+          }
         }
       }
       return text ;
