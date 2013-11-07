@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.23.3
- * @updated 2013/11/06
+ * @version 1.24.0
+ * @updated 2013/11/07
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -912,35 +912,52 @@
     } // function: cleanCache
     
     function database() {
+      /* validate */ var validate = settings.validate ? settings.validate.clone( { name : 'jquery.pjax.js - database()' } ) : false ;
+      /* validate */ validate && validate.start() ;
+      /* validate */ validate && ( validate.scope = function( code ){ return eval( code ) ; } ) ;
+      /* validate */ validate && validate.test( '++', 1, [settings.database, Math.floor( settings.timestamp / ( 1000*60*60*24 ) )], 'var' ) ;
       var version = 3, idb = settings.database, name = settings.gns, db, store, days = Math.floor( settings.timestamp / ( 1000*60*60*24 ) ) ;
-      if ( !idb || !name ) { return false ; }
+      if ( !idb || !name ) {
+        /* validate */ validate && validate.end() ;
+        return false ;
+      }
       
       db = idb.open( name, days - days % 7 + version )
       db.onupgradeneeded = function () {
+        /* validate */ validate && validate.test( '++', 1, [this], 'onupgradeneeded()' ) ;
         var db = this.result ;
         for ( var i = 0, len = db.objectStoreNames.length ; i < len ; i++ ) { db.deleteObjectStore( db.objectStoreNames[ i ] ) ; }
         store = db.createObjectStore( name, { keyPath: 'id', autoIncrement: false } ) ;
         store.createIndex( 'date', 'date', { unique: false } ) ;
       }
       db.onsuccess = function () {
+        /* validate */ validate && validate.test( '++', 1, [this], 'onsuccess()' ) ;
+        var db = this.result ;
+        if ( !db.objectStoreNames || !db.objectStoreNames.length ) {
+          store = db.createObjectStore( name, { keyPath: 'id', autoIncrement: false } ) ;
+          store.createIndex( 'date', 'date', { unique: false } ) ;
+        }
         settings.database = this.result ;
         dbCurrent() ;
         dbTitle( settings.location.href, doc.title ) ;
+        /* validate */ validate && validate.end() ;
       }
       db.onerror = function () {
+        /* validate */ validate && validate.test( '++', 0, [this], 'onerror()' ) ;
         settings.database = false ;
+        /* validate */ validate && validate.end() ;
       }
     } // function: database
     
     function dbCurrent() {
-      var store = typeof settings.database === 'object' && settings.database.transaction( settings.gns, 'readwrite' ).objectStore( settings.gns ) ;
+      var store = typeof settings.database === 'object' && settings.database.transaction && settings.database.transaction( settings.gns, 'readwrite' ).objectStore( settings.gns ) ;
       
       if ( !store ) { return ; }
       store.put( { id : 'current', title : settings.hashquery ? win.location.href : win.location.href.replace( /#.*/, '' ) } ) ;
     } // function: dbCurrent
     
     function dbTitle( url, title ) {
-      var store = typeof settings.database === 'object' && settings.database.transaction( settings.gns, 'readwrite' ).objectStore( settings.gns ) ;
+      var store = typeof settings.database === 'object' && settings.database.transaction && settings.database.transaction( settings.gns, 'readwrite' ).objectStore( settings.gns ) ;
       
       if ( !store ) { return ; }
       if ( !settings.hashquery ) { url = url.replace( /#.*/, '' ) ; }
@@ -957,7 +974,7 @@
     } // function: dbTitle
     
     function dbScroll( scrollX, scrollY ) {
-      var store = typeof settings.database === 'object' && settings.database.transaction( settings.gns, 'readwrite' ).objectStore( settings.gns ) ;
+      var store = typeof settings.database === 'object' && settings.database.transaction && settings.database.transaction( settings.gns, 'readwrite' ).objectStore( settings.gns ) ;
       var url = settings.location.href, title = doc.title, len = arguments.length ;
       
       if ( !settings.scroll.record || !store ) { return ; }
