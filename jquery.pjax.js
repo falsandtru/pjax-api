@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.24.0
- * @updated 2013/11/07
+ * @version 1.24.1
+ * @updated 2013/11/08
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -915,37 +915,51 @@
       /* validate */ var validate = settings.validate ? settings.validate.clone( { name : 'jquery.pjax.js - database()' } ) : false ;
       /* validate */ validate && validate.start() ;
       /* validate */ validate && ( validate.scope = function( code ){ return eval( code ) ; } ) ;
-      /* validate */ validate && validate.test( '++', 1, [settings.database, Math.floor( settings.timestamp / ( 1000*60*60*24 ) )], 'var' ) ;
-      var version = 3, idb = settings.database, name = settings.gns, db, store, days = Math.floor( settings.timestamp / ( 1000*60*60*24 ) ) ;
+      var version = 1, idb = settings.database, name = settings.gns, db, store, days = Math.floor( settings.timestamp / ( 1000*60*60*24 ) ) ;
       if ( !idb || !name ) {
         /* validate */ validate && validate.end() ;
         return false ;
       }
       
-      db = idb.open( name, days - days % 7 + version )
+      version = parseInt( days - days % 7 + version, 10 ) ;
+      /* validate */ validate && validate.test( '++', 1, version, 'version' ) ;
+      db = idb.open( name ) ;
       db.onupgradeneeded = function () {
-        /* validate */ validate && validate.test( '++', 1, [this], 'onupgradeneeded()' ) ;
+        /* validate */ validate && validate.test( '++', 1, 0, 'onupgradeneeded()' ) ;
         var db = this.result ;
         for ( var i = 0, len = db.objectStoreNames.length ; i < len ; i++ ) { db.deleteObjectStore( db.objectStoreNames[ i ] ) ; }
         store = db.createObjectStore( name, { keyPath: 'id', autoIncrement: false } ) ;
         store.createIndex( 'date', 'date', { unique: false } ) ;
       }
       db.onsuccess = function () {
-        /* validate */ validate && validate.test( '++', 1, [this], 'onsuccess()' ) ;
+        /* validate */ validate && validate.test( '++', 1, 0, 'onsuccess()' ) ;
         var db = this.result ;
         if ( !db.objectStoreNames || !db.objectStoreNames.length ) {
           store = db.createObjectStore( name, { keyPath: 'id', autoIncrement: false } ) ;
           store.createIndex( 'date', 'date', { unique: false } ) ;
         }
         settings.database = this.result ;
-        dbCurrent() ;
-        dbTitle( settings.location.href, doc.title ) ;
+        
+        var store = typeof settings.database === 'object' && settings.database.transaction && settings.database.transaction( settings.gns, 'readwrite' ).objectStore( settings.gns ) ;
+        store.get( '_version' ).onsuccess = function () {
+          if ( !this.result || this.result && version > this.result.title ) {
+            store.clear() ;
+          }
+          dbVersion( version ) ;
+          dbCurrent() ;
+          dbTitle( settings.location.href, doc.title ) ;
+        }
         /* validate */ validate && validate.end() ;
       }
       db.onerror = function () {
-        /* validate */ validate && validate.test( '++', 0, [this], 'onerror()' ) ;
+        /* validate */ validate && validate.test( '++', 0, 0, 'onerror()' ) ;
         settings.database = false ;
+        idb.deleteDatabase( name ) ;
         /* validate */ validate && validate.end() ;
+      }
+      db.onblocked = function () {
+        /* validate */ validate && validate.test( '++', 0, 0, 'onblocked()' ) ;
+        settings.database = false ;
       }
     } // function: database
     
@@ -953,8 +967,15 @@
       var store = typeof settings.database === 'object' && settings.database.transaction && settings.database.transaction( settings.gns, 'readwrite' ).objectStore( settings.gns ) ;
       
       if ( !store ) { return ; }
-      store.put( { id : 'current', title : settings.hashquery ? win.location.href : win.location.href.replace( /#.*/, '' ) } ) ;
+      store.put( { id : '_current', title : settings.hashquery ? win.location.href : win.location.href.replace( /#.*/, '' ) } ) ;
     } // function: dbCurrent
+    
+    function dbVersion( version ) {
+      var store = typeof settings.database === 'object' && settings.database.transaction && settings.database.transaction( settings.gns, 'readwrite' ).objectStore( settings.gns ) ;
+      
+      if ( !store ) { return ; }
+      store.put( { id : '_version', title : version } ) ;
+    } // function: dbVersion
     
     function dbTitle( url, title ) {
       var store = typeof settings.database === 'object' && settings.database.transaction && settings.database.transaction( settings.gns, 'readwrite' ).objectStore( settings.gns ) ;
@@ -979,7 +1000,7 @@
       
       if ( !settings.scroll.record || !store ) { return ; }
       if ( !settings.hashquery ) { url = url.replace( /#.*/, '' ) ; }
-      store.get( 'current' ).onsuccess = function () {
+      store.get( '_current' ).onsuccess = function () {
         if ( !this.result || !this.result.title || url !== this.result.title ) { return ; }
         if ( len ) {
           store.get( url ).onsuccess = function () {
