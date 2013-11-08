@@ -522,7 +522,7 @@ pjaxによる更新範囲を設定します。次のように複数の範囲を�
 ###フォーム - form
 pjaxでフォームの送信によるページ遷移を行います。キャッシュ有効時は初期設定ではPOST送信結果もキャッシュされることに注意してください。
 
-**<a href="http://falsandtru.github.io/pjax/demo/form/" target="_blank">demo</a>**
+**<del>demo</del>**GitPagesではPHPが動作しないため<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/form/" target="_blank">差し替え</a>
 
 ```javascript
   $.pjax({ area: 'div.pjax', form: 'form.pjax' });
