@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.24.1
- * @updated 2013/11/08
+ * @version 1.24.2
+ * @updated 2013/11/10
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -393,7 +393,7 @@
       speedcheck && settings.log.speed.name.push( 'request' ) ;
       speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
       jQuery.when && jQuery.when( defer.promise(), wait( settings.wait ) ).done( function () { update( settings, event ) ; } ) ;
-      jQuery.ajax( ajax )
+      jQuery.ajax( ajax ) ;
       
       if ( fire( settings.callbacks.after, null, [ event, settings.parameter ], settings.callbacks.async ) === false ) { return ; } // function: drive
       /* validate */ validate && validate.test( '++', 1, 0, 'end' ) ;
@@ -535,7 +535,7 @@
               if ( event.type.toLowerCase() === 'submit' && !settings.cache[ event.target.method.toLowerCase() ] ) { break UPDATE_CACHE ; }
               if ( fire( callbacks_update.cache.save.before, null, [ event, settings.parameter, cache ], settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
               
-              setCache( url, title, dataSize, textStatus, XMLHttpRequest )
+              setCache( url, title, dataSize, textStatus, XMLHttpRequest ) ;
               cahce = getCache( url ) ;
               
               if ( fire( callbacks_update.cache.save.after, null, [ event, settings.parameter, cache ], settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
@@ -778,7 +778,7 @@
     
     function find( data, pattern ) {
       var result = [] ;
-      data.replace( pattern, function () { result.push( arguments[ 1 ] ) ; } )
+      data.replace( pattern, function () { result.push( arguments[ 1 ] ) ; } ) ;
       return result ;
     } // function: find
     
@@ -789,7 +789,6 @@
       loc = settings.location.pathname + settings.location.search + settings.location.hash ;
       des = settings.destination.pathname + settings.destination.search + settings.destination.hash ;
       if ( settings.location.pathname.charAt( 0 ) !== '/' ) { loc = '/' + loc ,des = '/' + des ; }
-      if ( loc === des ) { return true ; }
       
       arr = loc.replace( /^\//, '' ).replace( /([?#])/g, '/$1' ).split( '/' ) ;
       keys = ( relocation || loc ).replace( /^\//, '' ).replace( /([?#])/g, '/$1' ).split( '/' ) ;
