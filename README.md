@@ -199,10 +199,13 @@ pjaxによるページ読み込み時にJavaScriptを読み込むかを設定し
 `ajax`パラメータに重ねて上書きする`$.ajax`のパラメータを設定します。初期値は`{dataType: 'script'}`です。
 
 #####*load.execute: boolean*
-JavaScriptの読み込みが有効になっている場合に埋め込み型のJavaScriptを実行するかを設定します。初期値は`true`で有効です。
+埋め込み型のJavaScriptを実行するかを設定します。初期値は`true`で有効です。
 
 #####*load.reload: Selector as string*
-JavaScriptの読み込みが有効になっている場合に繰り返し読み込む外部ファイル形式のJavaScriptをjQueryセレクタで設定します。初期値は`''`で無効です。
+繰り返し読み込むJavaScriptをjQueryセレクタで設定します。初期値は`null`で無効です。
+
+#####*load.reject: Selector as string*
+読み込まないJavaScriptをjQueryセレクタで設定します。初期値は`null`で無効です。
 
 #####*load.sync: boolean*
 `defer`属性を持つJavaScript（`script`要素）の読み込みを、pjaxによるコンテンツの更新の描画を待ってから行います。初期値は`true`で有効です。
@@ -1023,6 +1026,10 @@ pjaxの実用的な使用方法についての雑考を書いてみました。<
 v1.24.1で重大なバグの修正が行われました。従前のバージョンを使用している方は直ちにアップデートしてください。
 
 ###change log
+
+####1.24.3
+
++ `load.reject`パラメータを追加
 
 ####1.24.2
 

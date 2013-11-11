@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.24.2
- * @updated 2013/11/10
+ * @version 1.24.3
+ * @updated 2013/11/11
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -64,7 +64,7 @@
             async : false
           },
           parameter : null,
-          load : { css : false, script : false, execute : true, reload : '', sync : true, ajax : { dataType : 'script' }, rewrite : null },
+          load : { css : false, script : false, execute : true, reload : null, reject : null, sync : true, ajax : { dataType : 'script' }, rewrite : null },
           interval : 300,
           wait : 0,
           scroll : { delay : 500, suspend : -100 },
@@ -644,7 +644,7 @@
                   if ( !jQuery( element ).is( selector ) ) { continue ; }
                   content = trim( element.src || '' ) ;
                   
-                  if ( content && ( content in settings.log.script ) ) { continue ; }
+                  if ( content && ( content in settings.log.script ) || settings.load.reject && jQuery( element ).is( settings.load.reject ) ) { continue ; }
                   if ( content && ( !settings.load.reload || !jQuery( element ).is( settings.load.reload ) ) ) { settings.log.script[ content ] = true ; }
                   
                   if ( content ) {
