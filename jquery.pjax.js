@@ -4,9 +4,9 @@
  * 
  * ---
  * @Copyright(c) 2012, falsandtru
- * @license MIT  http://opensource.org/licenses/mit-license.php  http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
- * @version 1.24.3
- * @updated 2013/11/11
+ * @license MIT http://opensource.org/licenses/mit-license.php
+ * @version 1.24.4
+ * @updated 2013/11/14
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -97,7 +97,6 @@
         },
         location : jQuery( '<a/>', { href : canonicalizeURL( win.location.href ) } )[ 0 ],
         destination : jQuery( '<a/>' )[ 0 ],
-        hashclick : false,
         fix : !/Mobile(\/\w+)? Safari/i.test( win.navigator.userAgent ) ? { location : false, reset : false } : {} ,
         contentType : settings.contentType.replace( /\s*[,;]\s*/g, '|' ).toLowerCase(),
         scroll : { record : true , queue : [] },
@@ -164,21 +163,20 @@
       .delegate( settings.link, settings.nss.click, settings.id, plugin_store.click = function ( event ) {
         event.timeStamp = ( new Date() ).getTime() ;
         var settings = plugin_data[ 1 ] ;
-        if ( settings.disable ) { return false ; }
+        if ( settings.disable ) { return event.preventDefault() ; }
         settings.destination.href = canonicalizeURL( this.href ) ;
         
         if ( settings.location.protocol !== settings.destination.protocol || settings.location.host !== settings.destination.host ) { return ; }
         if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
         
-        if ( settings.location.href === settings.destination.href ) { return false ; }
-        
-        if ( !fire( settings.hashquery, null, [ event, this.href ] ) && settings.location.pathname + settings.location.search === settings.destination.pathname + settings.destination.search ) { return settings.hashclick = true ; }
+        if ( !fire( settings.hashquery, null, [ event, this.href ] ) && settings.location.pathname + settings.location.search === settings.destination.pathname + settings.destination.search ) {
+          return settings.destination.hash && hashscroll(), event.preventDefault() ;
+        }
         
         var url, cache ;
         
         url = settings.destination.href ;
         settings.area = fire( settings.options.area, null, [ event, url ] ) ;
-        settings.hashclick = false ;
         settings.timestamp = event.timeStamp ;
         if ( settings.landing ) { settings.landing = false ; }
         if ( !jQuery( settings.area ).length || settings.scope && !scope( settings ) ) { return ; }
@@ -186,7 +184,7 @@
         if ( settings.cache[ event.type.toLowerCase() ] ) { cache = getCache( url ) ; }
         
         drive( settings, event, url, true, cache ) ;
-        return false ;
+        return event.preventDefault() ;
       } ) ;
       
       jQuery( context )
@@ -194,7 +192,7 @@
       .delegate( settings.form, settings.nss.submit, settings.id, plugin_store.submit = function ( event ) {
         event.timeStamp = ( new Date() ).getTime() ;
         var settings = plugin_data[ 1 ] ;
-        if ( settings.disable ) { return false ; }
+        if ( settings.disable ) { return event.preventDefault() ; }
         settings.destination.href = canonicalizeURL( this.action ) ;
         
         if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
@@ -203,7 +201,6 @@
         
         url = settings.destination.href = canonicalizeURL( settings.destination.href.replace( /[?#].*/, '' ) + ( event.target.method.toUpperCase() === 'GET' ? '?' + jQuery( event.target ).serialize() : '' ) ) ;
         settings.area = fire( settings.options.area, null, [ event, url ] ) ;
-        settings.hashclick = false ;
         settings.timestamp = event.timeStamp ;
         if ( settings.landing ) { settings.landing = false ; }
         if ( !jQuery( settings.area ).length || settings.scope && !scope( settings ) ) { return ; }
@@ -211,7 +208,7 @@
         if ( settings.cache[ event.type.toLowerCase() ] && settings.cache[ event.target.method.toLowerCase() ] ) { cache = getCache( url ) ; }
         
         drive( settings, event, url, true, cache ) ;
-        return false ;
+        return event.preventDefault() ;
       } ) ;
       
       jQuery( win )
@@ -219,18 +216,19 @@
       .bind( settings.nss.popstate, settings.id, plugin_store.popstate = function ( event ) {
         event.timeStamp = ( new Date() ).getTime() ;
         var settings = plugin_data[ 1 ] ;
-        if ( settings.disable ) { return false ; }
+        if ( settings.disable ) { return event.preventDefault() ; }
         settings.destination.href = canonicalizeURL( win.location.href ) ;
         
-        if ( settings.location.href === settings.destination.href ) { return false ; }
+        if ( settings.location.href === settings.destination.href ) { return event.preventDefault() ; }
         
         var url, cache ;
         
-        if ( !fire( settings.hashquery, null, [ event, url ] ) && settings.location.pathname + settings.location.search === settings.destination.pathname + settings.destination.search ) { return settings.hashclick = settings.hashclick && hashscroll() && false ; }
+        if ( !fire( settings.hashquery, null, [ event, url ] ) && settings.location.pathname + settings.location.search === settings.destination.pathname + settings.destination.search ) {
+          return event.preventDefault() ;
+        }
         
         url = settings.destination.href ;
         settings.area = fire( settings.options.area, null, [ event, url ] ) ;
-        settings.hashclick = false ;
         settings.timestamp = event.timeStamp ;
         if ( settings.landing ) { if ( settings.landing.href === url ) { settings.landing = false ; return ; } settings.landing = false ; }
         if ( !jQuery( settings.area ).length ) { return ; }
@@ -239,7 +237,7 @@
         if ( settings.cache[ event.type.toLowerCase() ] ) { cache = getCache( url ) ; }
         
         drive( settings, event, url, false, cache ) ;
-        return false ;
+        return event.preventDefault() ;
       } ) ;
       
       settings.database && settings.fix.scroll &&
