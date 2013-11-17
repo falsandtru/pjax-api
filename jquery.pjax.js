@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.24.4
- * @updated 2013/11/14
+ * @version 1.24.5
+ * @updated 2013/11/17
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -163,7 +163,7 @@
       .delegate( settings.link, settings.nss.click, settings.id, plugin_store.click = function ( event ) {
         event.timeStamp = ( new Date() ).getTime() ;
         var settings = plugin_data[ 1 ] ;
-        if ( settings.disable ) { return event.preventDefault() ; }
+        if ( settings.disable || event.isDefaultPrevented() ) { return event.preventDefault() ; }
         settings.destination.href = canonicalizeURL( this.href ) ;
         
         if ( settings.location.protocol !== settings.destination.protocol || settings.location.host !== settings.destination.host ) { return ; }
@@ -192,7 +192,7 @@
       .delegate( settings.form, settings.nss.submit, settings.id, plugin_store.submit = function ( event ) {
         event.timeStamp = ( new Date() ).getTime() ;
         var settings = plugin_data[ 1 ] ;
-        if ( settings.disable ) { return event.preventDefault() ; }
+        if ( settings.disable || event.isDefaultPrevented() ) { return event.preventDefault() ; }
         settings.destination.href = canonicalizeURL( this.action ) ;
         
         if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
@@ -216,7 +216,7 @@
       .bind( settings.nss.popstate, settings.id, plugin_store.popstate = function ( event ) {
         event.timeStamp = ( new Date() ).getTime() ;
         var settings = plugin_data[ 1 ] ;
-        if ( settings.disable ) { return event.preventDefault() ; }
+        if ( settings.disable || event.isDefaultPrevented() ) { return event.preventDefault() ; }
         settings.destination.href = canonicalizeURL( win.location.href ) ;
         
         if ( settings.location.href === settings.destination.href ) { return event.preventDefault() ; }
