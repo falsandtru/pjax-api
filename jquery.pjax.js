@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.24.5
- * @updated 2013/11/17
+ * @version 1.24.6
+ * @updated 2013/11/19
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -948,8 +948,8 @@
         }
         /* validate */ validate && validate.end() ;
       }
-      db.onerror = function () {
-        /* validate */ validate && validate.test( '++', 0, 0, 'onerror()' ) ;
+      db.onerror = function ( event ) {
+        /* validate */ validate && validate.test( '++', 0, event.target.errorCode, 'onerror()' ) ;
         settings.database = false ;
         idb.deleteDatabase( name ) ;
         /* validate */ validate && validate.end() ;
