@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.24.6
- * @updated 2013/11/19
+ * @version 1.24.7
+ * @updated 2013/11/20
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -45,7 +45,7 @@
           gns : 'pjax',
           ns : null,
           area : null,
-          link : 'a:not([target])[href^="/"]',
+          link : 'a:not([target])',
           form : null,
           scope : null,
           state : null,
@@ -927,7 +927,7 @@
         for ( var i = 0, len = db.objectStoreNames.length ; i < len ; i++ ) { db.deleteObjectStore( db.objectStoreNames[ i ] ) ; }
         store = db.createObjectStore( name, { keyPath: 'id', autoIncrement: false } ) ;
         store.createIndex( 'date', 'date', { unique: false } ) ;
-      }
+      } ;
       db.onsuccess = function () {
         /* validate */ validate && validate.test( '++', 1, 0, 'onsuccess()' ) ;
         var db = this.result ;
@@ -945,19 +945,19 @@
           dbVersion( version ) ;
           dbCurrent() ;
           dbTitle( settings.location.href, doc.title ) ;
-        }
+        } ;
         /* validate */ validate && validate.end() ;
-      }
+      } ;
       db.onerror = function ( event ) {
         /* validate */ validate && validate.test( '++', 0, event.target.errorCode, 'onerror()' ) ;
         settings.database = false ;
         idb.deleteDatabase( name ) ;
         /* validate */ validate && validate.end() ;
-      }
+      } ;
       db.onblocked = function () {
         /* validate */ validate && validate.test( '++', 0, 0, 'onblocked()' ) ;
         settings.database = false ;
-      }
+      } ;
     } // function: database
     
     function dbCurrent() {
@@ -983,11 +983,11 @@
         store.get( url ).onsuccess = function () {
           store.put( jQuery.extend( true, {}, this.result || {}, { id : url, title : title, date : settings.timestamp } ) ) ;
           dbClean( store ) ;
-        }
+        } ;
       } else {
         store.get( url ).onsuccess = function () {
           this.result && this.result.title && ( doc.title = this.result.title ) ;
-        }
+        } ;
       }
     } // function: dbTitle
     
@@ -1009,7 +1009,7 @@
             win.scrollTo( parseInt( Number( this.result.scrollX ), 10 ), parseInt( Number( this.result.scrollY ), 10 ) ) ;
           }
         }
-      }
+      } ;
     } // function: dbScroll
     
     function dbClean( store ) {
@@ -1026,7 +1026,7 @@
             }
           }
         }
-      }
+      } ;
     } // function: dbClean
     
     function on() {
@@ -1054,7 +1054,7 @@
           attr.action = url ;
           type = data instanceof Array && Array || data instanceof Object && Object || undefined ;
           for ( var i in data ) {
-            element = data[ i ]
+            element = data[ i ] ;
             switch ( type ) {
               case Object :
                 element = jQuery( '<textarea/>', { name : i } ).val( element ) ;
