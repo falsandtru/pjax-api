@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.24.7
- * @updated 2013/11/20
+ * @version 1.25.0
+ * @updated 2013/11/21
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -27,6 +27,7 @@
 ( function ( jQuery ) {
   
   var win = window, doc = document, undefined = void( 0 ), plugin_data = [ 'settings' ], plugin_store, plugin_response ;
+  var DOMParser = win.DOMParser ;
   
   jQuery.fn.pjax = jQuery.pjax = function ( options ) {
     
@@ -427,7 +428,7 @@
               if ( !cache ) { break UPDATE_CACHE ; }
               if ( fire( callbacks_update.cache.load.before, null, [ event, settings.parameter, cache ], settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
               XMLHttpRequest = cache.XMLHttpRequest ;
-              data = XMLHttpRequest.responseText ;
+              data = XMLHttpRequest.responseText || XMLHttpRequest.responseXML ;
               textStatus = cache.textStatus ;
               title = cache.title ;
               css = cache.css ;
@@ -437,19 +438,34 @@
             
             /* variable initialization */
             /* validate */ validate && validate.test( '++', 1, 0, 'initialize' ) ;
-            var page, parsable, areas, checker ;
-            page = jQuery( data ) ;
-            parsable = 0 < page.filter( 'title' ).length ;
-            areas = settings.area.replace( /(\((.*?(\(.*?\).*?)?)*?\)|\S)(,|$)/g, function () { return arguments[1] + ( arguments[4] ? '|' : '' ) } ).split( /\s*\|(?!=)\s*/ ) ;
+            var pdoc, pdata, parsable, areas, checker ;
+            pdoc = jQuery( XMLHttpRequest.responseText && DOMParser && ( new DOMParser ).parseFromString( XMLHttpRequest.responseText, 'text/html' ) || XMLHttpRequest.responseText || XMLHttpRequest.responseXML ) ;
+            areas = settings.area.split( /\s*,\s*/ ) ;
             
-            if ( !parsable ) {
-              data = data.replace( /^((?:.|[\n\r])*?<body[^>]*>.*[\n\r]*.*[\n\r]*)/im , '$1' ).replace( /<!--\[(?:.|[\n\r])*?<!\[endif\]-->/gim , '' ) ;
-              data = data.replace( /<noscript(?:.|[\n\r])*?<\/noscript>/gim , '' ) ;
+            switch ( true ) {
+              case !!pdoc.find( 'html' )[ 0 ] :
+                parsable = 1 ;
+                break ;
+              case !!pdoc.filter( 'title' )[ 0 ] :
+                parsable = 0 ;
+                break ;
+              default :
+                parsable = false ;
             }
             
-            title = title || parsable ? page.filter( 'title' ).text() : jQuery( '<span/>' ).html( find( data, /<title>([^<]*?)<\/title>/i ).join() ).text() ;
+            switch ( parsable ) {
+              case 1 :
+                title = pdoc.find( 'title' ).text() ;
+                break ;
+              case 0 :
+                title = pdoc.filter( 'title' ).text() ;
+                break ;
+              case false :
+                title = jQuery( '<span/>' ).html( find( pdata, /<title>([^<]*?)<\/title>/i ).join() ).text() ;
+                break ;
+            }
             
-            if ( !jQuery( settings.area ).length || !page.find( settings.area ).add( page.filter( settings.area ) ).length ) { throw new Error( 'throw: area length mismatch' ) ; }
+            if ( !jQuery( settings.area ).length || !pdoc.find( settings.area ).add( parsable ? '' : pdoc.filter( settings.area ) ).length ) { throw new Error( 'throw: area length mismatch' ) ; }
             
             /* url */
             /* validate */ validate && validate.test( '++', 1, url, 'url' ) ;
@@ -518,7 +534,7 @@
                 'class' : settings.nss.class4html + '-check',
                 'style' : 'background: none !important; display: block !important; visibility: hidden !important; position: absolute !important; top: 0 !important; left: 0 !important; z-index: -9999 !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; font-size: 12px !important; text-indent: 0 !important;'
               } ).text( settings.gns ) ;
-              for ( var i = 0, area ; area = areas[ i++ ] ; ) { jQuery( area ).html( page.find( area ).add( page.filter( area ) ).contents() ).append( checker.clone() ) ; }
+              for ( var i = 0, area ; area = areas[ i++ ] ; ) { jQuery( area ).html( pdoc.find( area ).add( parsable ? '' : pdoc.filter( area ) ).contents().clone() ).append( checker.clone() ) ; }
               checker = jQuery( settings.area ).children( '.' + settings.nss.class4html + '-check' ) ;
               jQuery( doc ).trigger( settings.gns + '.DOMContentLoaded' ) ;
               if ( fire( callbacks_update.content.after, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_CONTENT ; }
@@ -568,6 +584,21 @@
               if ( fire( callbacks_update.rendering.after, null, [ event, settings.parameter ], settings.callbacks.async ) === false ) { return ; }
             } // function: rendered
             
+            /* escape */
+            /* validate */ validate && validate.test( '++', 1, 0, 'escape' ) ;
+            switch ( parsable ) {
+              case 1 :
+                pdoc.find( 'noscript' ).remove() ;
+                break ;
+              case 0 :
+                pdoc.find( 'noscript' ).remove() ;
+                break ;
+              case false :
+                pdata = data ;
+                pdata = pdata.replace( /^((?:.|[\n\r])*?<body[^>]*>.*[\n\r]*.*[\n\r]*)/im , '$1' ).replace( /<!--\[(?:.|[\n\r])*?<!\[endif\]-->/gim , '' ) ;
+                pdata = pdata.replace( /<noscript(?:.|[\n\r])*?<\/noscript>/gim , '' ) ;
+            }
+            
             /* css */
             /* validate */ validate && validate.test( '++', 1, 0, 'css' ) ;
             function load_css() {
@@ -581,9 +612,15 @@
                 var save, adds = [], removes = jQuery( 'link[rel~="stylesheet"], style' ) ;
                 cache = getCache( url ) ;
                 save = cache && !cache.css ;
-                css = css ? css
-                          : parsable ? page.find( 'link[rel~="stylesheet"], style' ).add( page.filter( 'link[rel~="stylesheet"], style' ) ).get()
-                                     : find( data, /(<link[^>]*?rel=.[^"\']*?stylesheet[^>]*?>|<style[^>]*?>(?:.|[\n\r])*?<\/style>)/gim ) ;
+                switch ( css || parsable ) {
+                  case 1 :
+                  case 0 :
+                    css = pdoc.find( 'link[rel~="stylesheet"], style' ).add( parsable ? '' : pdoc.filter( 'link[rel~="stylesheet"], style' ) ).clone().get() ;
+                    break ;
+                  case false :
+                    css = find( pdata, /(<link[^>]*?rel=.[^"\']*?stylesheet[^>]*?>|<style[^>]*?>(?:.|[\n\r])*?<\/style>)/gim ) ;
+                    break ;
+                }
                 if ( cache && cache.css && css && css.length !== cache.css.length ) { save = true ; }
                 if ( save ) { cache.css = [] ; }
                 
@@ -628,8 +665,15 @@
                 var save ;
                 cache = getCache( url ) ;
                 save = cache && !cache.script ;
-                script = script || parsable ? page.find( 'script' ).add( page.filter( 'script' ) ).get()
-                                            : find( data, /(?:[^\'\"]|^\s*?)(<script[^>]*?>(?:.|[\n\r])*?<\/script>)(?:[^\'\"]|\s*?$)/gim ) ;
+                switch ( script || parsable ) {
+                  case 1 :
+                  case 0 :
+                    script = pdoc.find( 'script' ).add( parsable ? '' : pdoc.filter( 'script' ) ).clone().get() ;
+                    break ;
+                  case false :
+                    script = find( pdata, /(?:[^\'\"]|^\s*?)(<script[^>]*?>(?:.|[\n\r])*?<\/script>)(?:[^\'\"]|\s*?$)/gim ) ;
+                    break ;
+                }
                 if ( cache && cache.script && script && script.length !== cache.script.length ) { save = true ; }
                 if ( save ) { cache.script = [] ; }
                 
@@ -678,6 +722,7 @@
             } ; // label: UPDATE_VERIFY
             
             /* load */
+            /* validate */ validate && validate.test( '++', 1, 0, 'load' ) ;
             load_css() ;
             jQuery( doc ).trigger( settings.gns + '.ready' ) ;
             jQuery( win ).bind( settings.gns + '.rendering', function ( event ) {
@@ -861,7 +906,7 @@
           if ( history.data[ url ] ) { break ; }
           history.size > history.config.size && cleanCache() ;
           
-          size = parseInt( size || XMLHttpRequest.responseText.length * 1.8, 10 ) ;
+          size = parseInt( size || ( XMLHttpRequest.responseText || '' ).length * 1.8 || 1024*1024, 10 ) ;
           history.size = history.size || 0 ;
           history.size += size ;
           history.data[ url ] = {
@@ -1001,7 +1046,7 @@
         if ( !this.result || !this.result.title || url !== this.result.title ) { return ; }
         if ( len ) {
           store.get( url ).onsuccess = function () {
-            store.put( jQuery.extend( true, {}, this.result || {}, { title : title, scrollX : parseInt( Number( scrollX ), 10 ), scrollY : parseInt( Number( scrollY ), 10 ) } ) ) ;
+            store.put( jQuery.extend( true, {}, this.result || {}, { scrollX : parseInt( Number( scrollX ), 10 ), scrollY : parseInt( Number( scrollY ), 10 ) } ) ) ;
           }
         } else {
           store.get( url ).onsuccess = function () {
@@ -1119,5 +1164,26 @@
       
       return response ;
     } // function: falsandtru
-  } // function: pjax
+  } ; // function: pjax
+  
+  ( function () {
+    if ( DOMParser ) {
+      var parser = new DOMParser;
+      if ( parser.parseFromString && parser.parseFromString( '', 'text/html' ) ) { return ; }
+    } else {
+      DOMParser = {} ;
+    }
+    
+    DOMParser.prototype.parseFromString = function( str, type ) {
+      if ( /(?:^|.+?\s+?|\s*?)text\/html(?:[\s;]|$)/i.test( type ) ) {
+        var doc = document.implementation.createHTMLDocument( '' );
+        doc.open().write( str ) ;
+        doc.close() ;
+        return doc ;
+      } else {
+        return DOMParser.prototype.parseFromString.apply( this, arguments ) ;
+      }
+    } ;
+  } )() ;
+  
 } )( jQuery ) ;
