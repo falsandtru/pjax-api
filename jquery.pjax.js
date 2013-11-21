@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.25.2
+ * @version 1.25.3
  * @updated 2013/11/21
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -1186,13 +1186,13 @@
   } ; // function: pjax
   
   ( function () {
-    if ( DOMParser ) {
-      var parser = new DOMParser ;
+    if ( DOMParser && DOMParser.prototype ) {
       try {
+        var parser = new DOMParser ;
         if ( parser.parseFromString && parser.parseFromString( '', 'text/html' ) ) { return ; }
       } catch ( err ) {}
     } else {
-      DOMParser = {} ;
+      DOMParser = function(){} ;
     }
     
     DOMParser.prototype.parseFromString = function( str, type ) {
