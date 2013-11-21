@@ -1006,8 +1006,8 @@ $(function(){
   function reset(){
     // 遅延読み込みはサーバーを問わず効果的です
     $.displaytrigger({
-      trigger: 'img[data-origin]',
-      callback: function(){ this.src = $(this).attr('data-origin'); }
+      trigger: 'img[data-origin]',
+      callback: function(){ this.src = $(this).attr('data-origin'); }
     }).trigger('displaytrigger');
   }
   
@@ -1214,7 +1214,7 @@ v1.24.1で重大なバグの修正が行われました。従前のバージョ�
   <br>実行順序が完全に維持されるよう変更（通常のページ移動と同じ順序で実行される）。
 + `load.ajax`パラメータを追加
   <br>`script`要素のajaxによる読み込み設定を上書きする。
-+	`load.async`パラメータを削除
++ `load.async`パラメータを削除
   <br>`script`要素の`async`属性により個別に設定されるよう変更。
 + `callbacks.cache.save`系コールバック関数の実行タイミングを変更
 + jQuery1.4.x以下のバージョンでJavaScript読み込み機能が正常に動作しないバグを修正
