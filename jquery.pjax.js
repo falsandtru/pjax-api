@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.25.0
+ * @version 1.25.1
  * @updated 2013/11/21
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -428,7 +428,7 @@
               if ( !cache ) { break UPDATE_CACHE ; }
               if ( fire( callbacks_update.cache.load.before, null, [ event, settings.parameter, cache ], settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
               XMLHttpRequest = cache.XMLHttpRequest ;
-              data = XMLHttpRequest.responseText || XMLHttpRequest.responseXML ;
+              data = XMLHttpRequest.responseText ;
               textStatus = cache.textStatus ;
               title = cache.title ;
               css = cache.css ;
@@ -439,12 +439,19 @@
             /* variable initialization */
             /* validate */ validate && validate.test( '++', 1, 0, 'initialize' ) ;
             var pdoc, pdata, parsable, areas, checker ;
-            pdoc = jQuery( XMLHttpRequest.responseText && DOMParser && ( new DOMParser ).parseFromString( XMLHttpRequest.responseText, 'text/html' ) || XMLHttpRequest.responseText || XMLHttpRequest.responseXML ) ;
+            // Can not delete the script in the noscript After parse.
+            pdata = ( XMLHttpRequest.responseText || '' ).replace( /<noscript[^>]*>(?:.|[\n\r])*?<\/noscript>/gim, function ( noscript ) {
+              return noscript.replace( /<script(?:.|[\n\r])*?<\/script>/gim, '' ) ;
+            } ) ;
+            pdoc = jQuery( pdata && DOMParser && !win.opera && win.navigator.userAgent.toLowerCase().indexOf( 'opera' ) === -1 && ( new DOMParser ).parseFromString( pdata, 'text/html' ) ||
+                           pdata ||
+                           XMLHttpRequest.responseXML ) ;
             areas = settings.area.split( /\s*,\s*/ ) ;
             
             switch ( true ) {
               case !!pdoc.find( 'html' )[ 0 ] :
                 parsable = 1 ;
+                pdoc.find( 'noscript' ).each( function () { this.children.length && jQuery( this ).text( this.innerHTML ) ; } ) ;
                 break ;
               case !!pdoc.filter( 'title' )[ 0 ] :
                 parsable = 0 ;
@@ -534,7 +541,10 @@
                 'class' : settings.nss.class4html + '-check',
                 'style' : 'background: none !important; display: block !important; visibility: hidden !important; position: absolute !important; top: 0 !important; left: 0 !important; z-index: -9999 !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; font-size: 12px !important; text-indent: 0 !important;'
               } ).text( settings.gns ) ;
-              for ( var i = 0, area ; area = areas[ i++ ] ; ) { jQuery( area ).html( pdoc.find( area ).add( parsable ? '' : pdoc.filter( area ) ).contents().clone() ).append( checker.clone() ) ; }
+              for ( var i = 0, area, element ; area = areas[ i++ ] ; ) {
+                element = pdoc.find( area ).add( parsable ? '' : pdoc.filter( area ) ).clone().find( 'script' ).remove().end().contents() ;
+                jQuery( area ).html( element ).append( checker.clone() ) ;
+              }
               checker = jQuery( settings.area ).children( '.' + settings.nss.class4html + '-check' ) ;
               jQuery( doc ).trigger( settings.gns + '.DOMContentLoaded' ) ;
               if ( fire( callbacks_update.content.after, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_CONTENT ; }
@@ -586,17 +596,20 @@
             
             /* escape */
             /* validate */ validate && validate.test( '++', 1, 0, 'escape' ) ;
+            // Can not delete the style of update range in parsable === false.
+            // However, there is no problem on real because parsable === false is not used.
             switch ( parsable ) {
               case 1 :
-                pdoc.find( 'noscript' ).remove() ;
-                break ;
               case 0 :
-                pdoc.find( 'noscript' ).remove() ;
+                pdoc.find( settings.area ).remove() ;
+                pdoc.find( 'noscript' ).find( 'link[rel~="stylesheet"], style' ).remove() ;
                 break ;
               case false :
-                pdata = data ;
-                pdata = pdata.replace( /^((?:.|[\n\r])*?<body[^>]*>.*[\n\r]*.*[\n\r]*)/im , '$1' ).replace( /<!--\[(?:.|[\n\r])*?<!\[endif\]-->/gim , '' ) ;
-                pdata = pdata.replace( /<noscript(?:.|[\n\r])*?<\/noscript>/gim , '' ) ;
+                pdata = pdata.replace( /^(?:.|[\n\r])*<body[^>]*>.*[\n\r]*.*[\n\r]*/im, function ( head ) {
+                  return head.replace( /<!--\[(?:.|[\n\r])*?<!\[endif\]-->/gim, '' ) ;
+                } ) ;
+                pdata = pdata.replace( /<noscript(?:.|[\n\r])*?<\/noscript>/gim, '' ) ;
+                break ;
             }
             
             /* css */
@@ -761,13 +774,13 @@
     } // function: drive
     
     function canonicalizeURL( url ) {
-      // トリム
+      // trim
       url = trim( url ) ;
-      // HTTP(S)以外の文字列から始まる値を拒否
+      // Deny value beginning with the string of HTTP (S) other than
       url = /^https?:/i.test( url ) ? url : '' ;
-      // 不正な文字から始まる文字列を削除
+      // Remove string starting with an invalid character
       url = url.replace( /[<>"{}|\\^\[\]`\s].*/,'' ) ;
-      // 値をUTF-8エンコード済みに統一
+      // Unify to UTF-8 encoded values
       return encodeURI( decodeURI( url ) ) ;
     } // function: canonicalizeURL
     
@@ -963,46 +976,52 @@
         return false ;
       }
       
-      version = parseInt( days - days % 7 + version, 10 ) ;
-      /* validate */ validate && validate.test( '++', 1, version, 'version' ) ;
-      db = idb.open( name ) ;
-      db.onupgradeneeded = function () {
-        /* validate */ validate && validate.test( '++', 1, 0, 'onupgradeneeded()' ) ;
-        var db = this.result ;
-        for ( var i = 0, len = db.objectStoreNames.length ; i < len ; i++ ) { db.deleteObjectStore( db.objectStoreNames[ i ] ) ; }
-        store = db.createObjectStore( name, { keyPath: 'id', autoIncrement: false } ) ;
-        store.createIndex( 'date', 'date', { unique: false } ) ;
-      } ;
-      db.onsuccess = function () {
-        /* validate */ validate && validate.test( '++', 1, 0, 'onsuccess()' ) ;
-        var db = this.result ;
-        if ( !db.objectStoreNames || !db.objectStoreNames.length ) {
+      try {
+        version = parseInt( days - days % 7 + version, 10 ) ;
+        /* validate */ validate && validate.test( '++', 1, version, 'version' ) ;
+        db = idb.open( name ) ;
+        db.onupgradeneeded = function () {
+          /* validate */ validate && validate.test( '++', 1, 0, 'onupgradeneeded()' ) ;
+          var db = this.result ;
+          for ( var i = 0, len = db.objectStoreNames.length ; i < len ; i++ ) { db.deleteObjectStore( db.objectStoreNames[ i ] ) ; }
           store = db.createObjectStore( name, { keyPath: 'id', autoIncrement: false } ) ;
           store.createIndex( 'date', 'date', { unique: false } ) ;
-        }
-        settings.database = this.result ;
-        
-        var store = typeof settings.database === 'object' && settings.database.transaction && settings.database.transaction( settings.gns, 'readwrite' ).objectStore( settings.gns ) ;
-        store.get( '_version' ).onsuccess = function () {
-          if ( !this.result || this.result && version > this.result.title ) {
-            store.clear() ;
-          }
-          dbVersion( version ) ;
-          dbCurrent() ;
-          dbTitle( settings.location.href, doc.title ) ;
         } ;
-        /* validate */ validate && validate.end() ;
-      } ;
-      db.onerror = function ( event ) {
-        /* validate */ validate && validate.test( '++', 0, event.target.errorCode, 'onerror()' ) ;
+        db.onsuccess = function () {
+          /* validate */ validate && validate.test( '++', 1, 0, 'onsuccess()' ) ;
+          var db = this.result ;
+          if ( !db.objectStoreNames || !db.objectStoreNames.length ) {
+            store = db.createObjectStore( name, { keyPath: 'id', autoIncrement: false } ) ;
+            store.createIndex( 'date', 'date', { unique: false } ) ;
+          }
+          settings.database = this.result ;
+          
+          var store = typeof settings.database === 'object' && settings.database.transaction && settings.database.transaction( settings.gns, 'readwrite' ).objectStore( settings.gns ) ;
+          store.get( '_version' ).onsuccess = function () {
+            if ( !this.result || this.result && version > this.result.title ) {
+              store.clear() ;
+            }
+            dbVersion( version ) ;
+            dbCurrent() ;
+            dbTitle( settings.location.href, doc.title ) ;
+          } ;
+          /* validate */ validate && validate.end() ;
+        } ;
+        db.onerror = function ( event ) {
+          /* validate */ validate && validate.test( '++', 0, event.target.errorCode, 'onerror()' ) ;
+          settings.database = false ;
+          idb.deleteDatabase( name ) ;
+          /* validate */ validate && validate.end() ;
+        } ;
+        db.onblocked = function () {
+          /* validate */ validate && validate.test( '++', 0, 0, 'onblocked()' ) ;
+          settings.database = false ;
+        } ;
+      } catch ( err ) {
+        /* validate */ validate && validate.test( '++', 0, err, 'error' ) ;
         settings.database = false ;
-        idb.deleteDatabase( name ) ;
         /* validate */ validate && validate.end() ;
-      } ;
-      db.onblocked = function () {
-        /* validate */ validate && validate.test( '++', 0, 0, 'onblocked()' ) ;
-        settings.database = false ;
-      } ;
+      }
     } // function: database
     
     function dbCurrent() {
@@ -1168,16 +1187,19 @@
   
   ( function () {
     if ( DOMParser ) {
-      var parser = new DOMParser;
-      if ( parser.parseFromString && parser.parseFromString( '', 'text/html' ) ) { return ; }
+      var parser = new DOMParser ;
+      try {
+        if ( parser.parseFromString && parser.parseFromString( '', 'text/html' ) ) { return ; }
+      } catch ( err ) {}
     } else {
       DOMParser = {} ;
     }
     
     DOMParser.prototype.parseFromString = function( str, type ) {
       if ( /(?:^|.+?\s+?|\s*?)text\/html(?:[\s;]|$)/i.test( type ) ) {
-        var doc = document.implementation.createHTMLDocument( '' );
-        doc.open().write( str ) ;
+        var doc = document.implementation.createHTMLDocument( '' ) ;
+        doc.open() ;
+        doc.write( str ) ;
         doc.close() ;
         return doc ;
       } else {
