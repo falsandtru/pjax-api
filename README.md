@@ -1003,6 +1003,19 @@ $(function(){
 ```javascript
 // これはinit.jsの記述です
 (function(){
+  function init(){
+    // Firefoxでのみpjaxを使用する場合は次の行を有効にする
+    //if(!$.clientenv('firefox')){return;}
+    var scope, xhrFields;
+    scope = $.clientenv.is('firefox') ? undefined : { '/somedir/', '/somedir/' };
+    xhrFields = $.clientenv.is('opera') ? undefined : { responseType: 'document' };
+    $.pjax({
+      area: '#contaner',
+      scope: scope,
+      ajax: { cache: true, timeout: 5000, xhrFields: xhrFields },
+      load: { css: true, script: true, sync: true, reload: '[src$="/page.js"]' }
+    });
+  }
   function reset(){
     // 遅延読み込みはサーバーを問わず効果的です
     $.displaytrigger({
@@ -1011,22 +1024,9 @@ $(function(){
     }).trigger('displaytrigger');
   }
   
-  // 初期化処理
-  $.clientenv();
+  init();
   $(function(){ reset(); });
   $(document).bind('pjax.ready', function(){ reset(); });
-  
-  // Firefoxでのみpjaxを使用する場合は次の行を有効にする
-  //if(!$.clientenv('firefox')){return;}
-  var scope, xhrFields;
-  scope = $.clientenv.is('firefox') ? undefined : { '/somedir/', '/somedir/' };
-  xhrFields = $.clientenv.is('opera') ? undefined : { responseType: 'document' };
-  $.pjax({
-    area: '#contaner',
-    scope: scope,
-    load: { css: true, script: true, sync: true, reload: '[src$="/page.js"]' },
-    ajax: { cache: true, timeout: 5000, xhrFields: xhrFields }
-  });
 })();
 ```
 
