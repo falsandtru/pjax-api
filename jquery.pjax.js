@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.25.1
+ * @version 1.25.2
  * @updated 2013/11/21
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -622,7 +622,7 @@
                 if ( !settings.load.css ) { break UPDATE_CSS ; }
                 if ( fire( callbacks_update.css.before, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_CSS ; }
                 
-                var save, adds = [], removes = jQuery( 'link[rel~="stylesheet"], style' ) ;
+                var save, adds = [], removes = jQuery( 'link[rel~="stylesheet"], style' ).not( jQuery( settings.area ).find( 'link[rel~="stylesheet"], style' ) ) ;
                 cache = getCache( url ) ;
                 save = cache && !cache.css ;
                 switch ( css || parsable ) {

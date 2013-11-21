@@ -990,6 +990,63 @@ $(function(){
 </script>
 ```
 
+###高速化済みサーバーでの設定例
+すべてのデータをブラウザでキャッシュするようサーバーで設定済みの場合の例です。
+
++ `http://example.com/somedir/`以下のページでpjaxを使用する
++ Firefoxではすべてのページでpjaxを使用する
++ Opera以外のブラウザではパース済みのHTMLを受け取る
++ CSSとJavaScriptを自動的に読み込む
++ `reset`関数により毎回ページを初期化する
++ `page.js`を毎回読み込みグローバルオブジェクトを初期化する
+
+```javascript
+// これはinit.jsの記述です
+(function(){
+  function reset(){
+    // 遅延読み込みはサーバーを問わず効果的です
+    $.displaytrigger({
+      trigger: 'img[data-origin]',
+      callback: function(){ this.src = $(this).attr('data-origin'); }
+    }).trigger('displaytrigger');
+  }
+  
+  // 初期化処理
+  $.clientenv();
+  $(function(){ reset(); });
+  $(document).bind('pjax.ready', function(){ reset(); });
+  
+  // Firefoxでのみpjaxを使用する場合は次の行を有効にする
+  //if(!$.clientenv('firefox')){return;}
+  var scope, xhrFields;
+  scope = $.clientenv.is('firefox') ? undefined : { '/somedir/', '/somedir/' };
+  xhrFields = $.clientenv.is('opera') ? undefined : { responseType: 'document' };
+  $.pjax({
+    area: '#contaner',
+    scope: scope,
+    load: { css: true, script: true, sync: true, reload: '[src$="/page.js"]' },
+    ajax: { cache: true, timeout: 5000, xhrFields: xhrFields }
+  });
+})();
+```
+
+```html
+<html>
+<head>
+<title>title</title>
+</head>
+<body>
+  <div id="contaner">content</div>
+  <script type="text/javascript" charset="utf-8" src="/jquery.js"></script>
+  <script type="text/javascript" charset="utf-8" src="/jquery.clientenv.js"></script>
+  <script type="text/javascript" charset="utf-8" src="/jquery.pjax.js"></script>
+  <script type="text/javascript" charset="utf-8" src="/jquery.displaytrigger.js"></script>
+  <script type="text/javascript" charset="utf-8" src="/init.js"></script>
+  <script type="text/javascript" charset="utf-8" src="/page.js"></script>
+</body>
+</html>
+```
+
 ##注意点
 
 ###リンクパスの記述
@@ -1036,6 +1093,10 @@ pjaxにより恩恵が得られるのは基本的にサーバーサイドでの�
 v1.24.1で重大なバグの修正が行われました。従前のバージョンを使用している方は直ちにアップデートしてください。
 
 ###change log
+
+####1.25.2
+
++ 更新範囲にあるCSSが読み込まれないバグを修正
 
 ####1.25.1
 
