@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.25.3
- * @updated 2013/11/21
+ * @version 1.26.0
+ * @updated 2013/11/27
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -20,19 +20,19 @@
  * 
  * ---
  * Document:
- * http://sa-kusaku.sakura.ne.jp/output/pjax/
+ * https://github.com/falsandtru/jquery.pjax.js
  * 
  */
 
 ( function ( jQuery ) {
   
-  var win = window, doc = document, undefined = void( 0 ), plugin_data = [ 'settings' ], plugin_store, plugin_response ;
-  var DOMParser = win.DOMParser ;
+  var win = window, doc = document, undefined = void( 0 ), plugin_data = [ 'settings' ], plugin_store ;
+  //var DOMParser = win.DOMParser ;
   
   jQuery.fn.pjax = jQuery.pjax = function ( options ) {
     
     /* Transfer process */
-    if ( typeof this === 'function' ) { return arguments.callee.apply( jQuery( doc ), arguments ) ; }
+    if ( !( this instanceof jQuery ) ) { return arguments.callee.apply( jQuery( doc ), arguments ) ; }
     
     /* validate */ var validate = window.validator instanceof Object ? window.validator : false ;
     /* validate */ validate = validate ? validator.clone( { name : 'jquery.pjax.js', base : true, timeout : { limit : options && options.ajax && options.ajax.timeout ? options.ajax.timeout + validate.timeout.limit : validate.timeout.limit } } ) : false ;
@@ -136,7 +136,7 @@
     
     /* validate */ validate && validate.end() ;
     
-    return plugin_response ; // function: pjax
+    return this ; // function: pjax
     
     
     /* Function declaration */
@@ -443,16 +443,17 @@
             pdata = ( XMLHttpRequest.responseText || '' ).replace( /<noscript[^>]*>(?:.|[\n\r])*?<\/noscript>/gim, function ( noscript ) {
               return noscript.replace( /<script(?:.|[\n\r])*?<\/script>/gim, '' ) ;
             } ) ;
-            pdoc = jQuery( pdata && DOMParser && !win.opera && win.navigator.userAgent.toLowerCase().indexOf( 'opera' ) === -1 && ( new DOMParser ).parseFromString( pdata, 'text/html' ) ||
-                           pdata ||
-                           XMLHttpRequest.responseXML ) ;
+            //pdoc = jQuery( pdata && DOMParser && !win.opera && win.navigator.userAgent.toLowerCase().indexOf( 'opera' ) === -1 && ( new DOMParser ).parseFromString( pdata, 'text/html' ) ||
+            //               pdata ||
+            //               XMLHttpRequest.responseXML ) ;
+            pdoc = jQuery( pdata ) ;
             areas = settings.area.split( /\s*,\s*/ ) ;
             
             switch ( true ) {
-              case !!pdoc.find( 'html' )[ 0 ] :
-                parsable = 1 ;
-                pdoc.find( 'noscript' ).each( function () { this.children.length && jQuery( this ).text( this.innerHTML ) ; } ) ;
-                break ;
+              //case !!pdoc.find( 'html' )[ 0 ] :
+              //  parsable = 1 ;
+              //  pdoc.find( 'noscript' ).each( function () { this.children.length && jQuery( this ).text( this.innerHTML ) ; } ) ;
+              //  break ;
               case !!pdoc.filter( 'title' )[ 0 ] :
                 parsable = 0 ;
                 break ;
@@ -461,9 +462,9 @@
             }
             
             switch ( parsable ) {
-              case 1 :
-                title = pdoc.find( 'title' ).text() ;
-                break ;
+              //case 1 :
+              //  title = pdoc.find( 'title' ).text() ;
+              //  break ;
               case 0 :
                 title = pdoc.filter( 'title' ).text() ;
                 break ;
@@ -599,7 +600,7 @@
             // Can not delete the style of update range in parsable === false.
             // However, there is no problem on real because parsable === false is not used.
             switch ( parsable ) {
-              case 1 :
+              //case 1 :
               case 0 :
                 pdoc.find( settings.area ).remove() ;
                 pdoc.find( 'noscript' ).find( 'link[rel~="stylesheet"], style' ).remove() ;
@@ -626,7 +627,7 @@
                 cache = getCache( url ) ;
                 save = cache && !cache.css ;
                 switch ( css || parsable ) {
-                  case 1 :
+                  //case 1 :
                   case 0 :
                     css = pdoc.find( 'link[rel~="stylesheet"], style' ).add( parsable ? '' : pdoc.filter( 'link[rel~="stylesheet"], style' ) ).clone().get() ;
                     break ;
@@ -991,11 +992,14 @@
           /* validate */ validate && validate.test( '++', 1, 0, 'onsuccess()' ) ;
           var db = this.result ;
           if ( !db.objectStoreNames || !db.objectStoreNames.length ) {
+            /* validate */ validate && validate.test( '++', 1, 0, 'createObjectStore' ) ;
             store = db.createObjectStore( name, { keyPath: 'id', autoIncrement: false } ) ;
+            /* validate */ validate && validate.test( '++', 1, 0, 'createIndex' ) ;
             store.createIndex( 'date', 'date', { unique: false } ) ;
           }
           settings.database = this.result ;
           
+          /* validate */ validate && validate.test( '++', 1, 0, 'versionup' ) ;
           var store = typeof settings.database === 'object' && settings.database.transaction && settings.database.transaction( settings.gns, 'readwrite' ).objectStore( settings.gns ) ;
           store.get( '_version' ).onsuccess = function () {
             if ( !this.result || this.result && version > this.result.title ) {
@@ -1185,27 +1189,27 @@
     } // function: falsandtru
   } ; // function: pjax
   
-  ( function () {
-    if ( DOMParser && DOMParser.prototype ) {
-      try {
-        var parser = new DOMParser ;
-        if ( parser.parseFromString && parser.parseFromString( '', 'text/html' ) ) { return ; }
-      } catch ( err ) {}
-    } else {
-      DOMParser = function(){} ;
-    }
-    
-    DOMParser.prototype.parseFromString = function( str, type ) {
-      if ( /(?:^|.+?\s+?|\s*?)text\/html(?:[\s;]|$)/i.test( type ) ) {
-        var doc = document.implementation.createHTMLDocument( '' ) ;
-        doc.open() ;
-        doc.write( str ) ;
-        doc.close() ;
-        return doc ;
-      } else {
-        return DOMParser.prototype.parseFromString.apply( this, arguments ) ;
-      }
-    } ;
-  } )() ;
+  //( function () {
+  //  if ( DOMParser && DOMParser.prototype ) {
+  //    try {
+  //      var parser = new DOMParser ;
+  //      if ( parser.parseFromString && parser.parseFromString( '', 'text/html' ) ) { return ; }
+  //    } catch ( err ) {}
+  //  } else {
+  //    DOMParser = function(){} ;
+  //  }
+  //  
+  //  DOMParser.prototype.parseFromString = function( str, type ) {
+  //    if ( /(?:^|.+?\s+?|\s*?)text\/html(?:[\s;]|$)/i.test( type ) ) {
+  //      var doc = document.implementation.createHTMLDocument( '' ) ;
+  //      doc.open() ;
+  //      doc.write( str ) ;
+  //      doc.close() ;
+  //      return doc ;
+  //    } else {
+  //      return DOMParser.prototype.parseFromString.apply( this, arguments ) ;
+  //    }
+  //  } ;
+  //} )() ;
   
 } )( jQuery ) ;
