@@ -1006,13 +1006,12 @@ $(function(){
   function init(){
     // Firefoxでのみpjaxを使用する場合は次の行を有効にする
     //if(!$.clientenv('firefox')){return;}
-    var scope, xhrFields;
+    var scope;
     scope = $.clientenv.is('firefox') ? undefined : { '/somedir/', '/somedir/' };
-    xhrFields = $.clientenv.is('opera') ? undefined : { responseType: 'document' };
     $.pjax({
       area: '#contaner',
       scope: scope,
-      ajax: { cache: true, timeout: 5000, xhrFields: xhrFields },
+      ajax: { cache: true, timeout: 5000 },
       load: { css: true, script: true, sync: true, reload: '[src$="/page.js"]' }
     });
   }
