@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.26.0
- * @updated 2013/11/27
+ * @version 1.26.1
+ * @updated 2013/12/03
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -26,7 +26,7 @@
 
 ( function ( jQuery ) {
   
-  var win = window, doc = document, undefined = void( 0 ), plugin_data = [ 'settings' ], plugin_store ;
+  var win = window, doc = document, undefined = void( 0 ), plugin_data = [ 'settings' ], plugin_store, plugin_response ;
   //var DOMParser = win.DOMParser ;
   
   jQuery.fn.pjax = jQuery.pjax = function ( options ) {
