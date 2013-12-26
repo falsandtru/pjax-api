@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.26.1
- * @updated 2013/12/03
+ * @version 1.26.2
+ * @updated 2013/12/27
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -570,12 +570,14 @@
             /* validate */ validate && validate.test( '++', 1, 0, 'rendering' ) ;
             function rendering( call ) {
               if ( fire( callbacks_update.rendering.before, null, [ event, settings.parameter ], settings.callbacks.async ) === false ) { return ; }
+              var count = 0 ;
               ( function () {
-                if ( checker.filter( function () { return this.clientWidth || jQuery( this ).is( ':hidden' ) ; } ).length === checker.length ) {
+                if ( checker.filter( function () { return this.clientWidth || this.clientHeight || jQuery( this ).is( ':hidden' ) ; } ).length === checker.length || count >= 100 ) {
                   
                   rendered( call ) ;
                   
                 } else if ( checker.length ) {
+                  count++ ;
                   setTimeout( function () { arguments.callee() ; }, settings.interval ) ;
                 }
               } )() ;
@@ -979,28 +981,34 @@
       
       try {
         version = parseInt( days - days % 7 + version, 10 ) ;
-        /* validate */ validate && validate.test( '++', 1, version, 'version' ) ;
+        /* validate */ validate && validate.test( '++', 1, version, 'open' ) ;
         db = idb.open( name ) ;
+        /* validate */ validate && validate.test( '++', 1, 0, 'call' ) ;
+        db.onblocked = function () {
+          /* validate */ validate && validate.test( '++', 0, 0, 'onblocked()' ) ;
+          settings.database = false ;
+        } ;
         db.onupgradeneeded = function () {
           /* validate */ validate && validate.test( '++', 1, 0, 'onupgradeneeded()' ) ;
           var db = this.result ;
-          for ( var i = 0, len = db.objectStoreNames.length ; i < len ; i++ ) { db.deleteObjectStore( db.objectStoreNames[ i ] ) ; }
+          for ( var i = db.objectStoreNames ? db.objectStoreNames.length : 0 ; i-- ; ) { db.deleteObjectStore( db.objectStoreNames[ i ] ) ; }
           store = db.createObjectStore( name, { keyPath: 'id', autoIncrement: false } ) ;
           store.createIndex( 'date', 'date', { unique: false } ) ;
         } ;
         db.onsuccess = function () {
           /* validate */ validate && validate.test( '++', 1, 0, 'onsuccess()' ) ;
           var db = this.result ;
-          if ( !db.objectStoreNames || !db.objectStoreNames.length ) {
+          settings.database = this.result ;
+          var store = dbStore() ;
+          if ( !store ) {
             /* validate */ validate && validate.test( '++', 1, 0, 'createObjectStore' ) ;
             store = db.createObjectStore( name, { keyPath: 'id', autoIncrement: false } ) ;
             /* validate */ validate && validate.test( '++', 1, 0, 'createIndex' ) ;
             store.createIndex( 'date', 'date', { unique: false } ) ;
+            store = dbStore() ;
           }
-          settings.database = this.result ;
           
           /* validate */ validate && validate.test( '++', 1, 0, 'versionup' ) ;
-          var store = typeof settings.database === 'object' && settings.database.transaction && settings.database.transaction( settings.gns, 'readwrite' ).objectStore( settings.gns ) ;
           store.get( '_version' ).onsuccess = function () {
             if ( !this.result || this.result && version > this.result.title ) {
               store.clear() ;
@@ -1012,14 +1020,10 @@
           /* validate */ validate && validate.end() ;
         } ;
         db.onerror = function ( event ) {
-          /* validate */ validate && validate.test( '++', 0, event.target.errorCode, 'onerror()' ) ;
+          /* validate */ validate && validate.test( '++', 0, event, 'onerror()' ) ;
           settings.database = false ;
           idb.deleteDatabase( name ) ;
           /* validate */ validate && validate.end() ;
-        } ;
-        db.onblocked = function () {
-          /* validate */ validate && validate.test( '++', 0, 0, 'onblocked()' ) ;
-          settings.database = false ;
         } ;
       } catch ( err ) {
         /* validate */ validate && validate.test( '++', 0, err, 'error' ) ;
@@ -1028,22 +1032,26 @@
       }
     } // function: database
     
+    function dbStore() {
+      return typeof settings.database === 'object' && typeof settings.database.transaction === 'function' && settings.database.transaction( settings.gns, 'readwrite' ).objectStore( settings.gns ) ;
+    } // function: dbStore
+    
     function dbCurrent() {
-      var store = typeof settings.database === 'object' && settings.database.transaction && settings.database.transaction( settings.gns, 'readwrite' ).objectStore( settings.gns ) ;
+      var store = dbStore() ;
       
       if ( !store ) { return ; }
       store.put( { id : '_current', title : settings.hashquery ? win.location.href : win.location.href.replace( /#.*/, '' ) } ) ;
     } // function: dbCurrent
     
     function dbVersion( version ) {
-      var store = typeof settings.database === 'object' && settings.database.transaction && settings.database.transaction( settings.gns, 'readwrite' ).objectStore( settings.gns ) ;
+      var store = dbStore() ;
       
       if ( !store ) { return ; }
       store.put( { id : '_version', title : version } ) ;
     } // function: dbVersion
     
     function dbTitle( url, title ) {
-      var store = typeof settings.database === 'object' && settings.database.transaction && settings.database.transaction( settings.gns, 'readwrite' ).objectStore( settings.gns ) ;
+      var store = dbStore() ;
       
       if ( !store ) { return ; }
       if ( !settings.hashquery ) { url = url.replace( /#.*/, '' ) ; }
@@ -1060,7 +1068,7 @@
     } // function: dbTitle
     
     function dbScroll( scrollX, scrollY ) {
-      var store = typeof settings.database === 'object' && settings.database.transaction && settings.database.transaction( settings.gns, 'readwrite' ).objectStore( settings.gns ) ;
+      var store = dbStore() ;
       var url = settings.location.href, title = doc.title, len = arguments.length ;
       
       if ( !settings.scroll.record || !store ) { return ; }
