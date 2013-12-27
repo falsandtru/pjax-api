@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.26.2
- * @updated 2013/12/27
+ * @version 1.26.3
+ * @updated 2013/12/28
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -990,32 +990,32 @@
         } ;
         db.onupgradeneeded = function () {
           /* validate */ validate && validate.test( '++', 1, 0, 'onupgradeneeded()' ) ;
+          settings.database = this.result ;
           var db = this.result ;
+          /* validate */ validate && validate.test( '++', 1, 0, 'deleteObjectStore' ) ;
           for ( var i = db.objectStoreNames ? db.objectStoreNames.length : 0 ; i-- ; ) { db.deleteObjectStore( db.objectStoreNames[ i ] ) ; }
-          store = db.createObjectStore( name, { keyPath: 'id', autoIncrement: false } ) ;
-          store.createIndex( 'date', 'date', { unique: false } ) ;
+          /* validate */ validate && validate.test( '++', 1, 0, 'createObjectStore' ) ;
+          settings.database.createObjectStore( settings.gns, { keyPath: 'id', autoIncrement: false } ).createIndex( 'date', 'date', { unique: false } ) ;
         } ;
         db.onsuccess = function () {
           /* validate */ validate && validate.test( '++', 1, 0, 'onsuccess()' ) ;
           var db = this.result ;
           settings.database = this.result ;
-          var store = dbStore() ;
-          if ( !store ) {
-            /* validate */ validate && validate.test( '++', 1, 0, 'createObjectStore' ) ;
-            store = db.createObjectStore( name, { keyPath: 'id', autoIncrement: false } ) ;
-            /* validate */ validate && validate.test( '++', 1, 0, 'createIndex' ) ;
-            store.createIndex( 'date', 'date', { unique: false } ) ;
-            store = dbStore() ;
-          }
+          /* validate */ validate && validate.test( '++', 1, 0, 'store' ) ;
+          store = dbStore() ;
           
-          /* validate */ validate && validate.test( '++', 1, 0, 'versionup' ) ;
+          /* validate */ validate && validate.test( '++', 1, 0, 'update' ) ;
           store.get( '_version' ).onsuccess = function () {
-            if ( !this.result || this.result && version > this.result.title ) {
-              store.clear() ;
+            if ( !this.result || version === this.result.title ) {
+              dbVersion( version ) ;
+              dbCurrent() ;
+              dbTitle( settings.location.href, doc.title ) ;
+            } else {
+              settings.database.close() ;
+              idb.deleteDatabase( name ) ;
+              settings.database = idb ;
+              database() ;
             }
-            dbVersion( version ) ;
-            dbCurrent() ;
-            dbTitle( settings.location.href, doc.title ) ;
           } ;
           /* validate */ validate && validate.end() ;
         } ;
