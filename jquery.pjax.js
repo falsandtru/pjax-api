@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.26.3
- * @updated 2013/12/28
+ * @version 1.26.4
+ * @updated 2013/12/30
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -165,6 +165,7 @@
         event.timeStamp = ( new Date() ).getTime() ;
         var settings = plugin_data[ 1 ] ;
         if ( settings.disable || event.isDefaultPrevented() ) { return event.preventDefault() ; }
+        settings.location.href = canonicalizeURL( win.location.href ) ;
         settings.destination.href = canonicalizeURL( this.href ) ;
         
         if ( settings.location.protocol !== settings.destination.protocol || settings.location.host !== settings.destination.host ) { return ; }
@@ -194,6 +195,7 @@
         event.timeStamp = ( new Date() ).getTime() ;
         var settings = plugin_data[ 1 ] ;
         if ( settings.disable || event.isDefaultPrevented() ) { return event.preventDefault() ; }
+        settings.location.href = canonicalizeURL( win.location.href ) ;
         settings.destination.href = canonicalizeURL( this.action ) ;
         
         if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
@@ -999,24 +1001,31 @@
         } ;
         db.onsuccess = function () {
           /* validate */ validate && validate.test( '++', 1, 0, 'onsuccess()' ) ;
-          var db = this.result ;
-          settings.database = this.result ;
-          /* validate */ validate && validate.test( '++', 1, 0, 'store' ) ;
-          store = dbStore() ;
-          
-          /* validate */ validate && validate.test( '++', 1, 0, 'update' ) ;
-          store.get( '_version' ).onsuccess = function () {
-            if ( !this.result || version === this.result.title ) {
-              dbVersion( version ) ;
-              dbCurrent() ;
-              dbTitle( settings.location.href, doc.title ) ;
-            } else {
-              settings.database.close() ;
-              idb.deleteDatabase( name ) ;
-              settings.database = idb ;
-              database() ;
-            }
-          } ;
+          try {
+            var db = this.result ;
+            settings.database = this.result ;
+            /* validate */ validate && validate.test( '++', 1, 0, 'store' ) ;
+            store = dbStore() ;
+            
+            /* validate */ validate && validate.test( '++', 1, 0, 'update' ) ;
+            store.get( '_version' ).onsuccess = function () {
+              if ( !this.result || version === this.result.title ) {
+                dbVersion( version ) ;
+                dbCurrent() ;
+                dbTitle( settings.location.href, doc.title ) ;
+              } else {
+                settings.database.close() ;
+                idb.deleteDatabase( name ) ;
+                settings.database = idb ;
+                database() ;
+              }
+            } ;
+          } catch ( err ) {
+            /* validate */ validate && validate.test( '++', 1, err, 'cancel' ) ;
+            settings.database.close() ;
+            idb.deleteDatabase( name ) ;
+            settings.database = false ;
+          }
           /* validate */ validate && validate.end() ;
         } ;
         db.onerror = function ( event ) {
