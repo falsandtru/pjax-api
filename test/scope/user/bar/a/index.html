@@ -89,7 +89,7 @@ div.tertiary{
 * html .clearfix             { zoom: 1; } /* IE6 */
 *:first-child+html .clearfix { zoom: 1; } /* IE7 */
 </style>
-<script type="text/javascript" charset="utf-8" src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
+<script type="text/javascript" charset="utf-8" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 <script type="text/javascript" charset="utf-8" src="http://sa-kusaku.sakura.ne.jp/lib/jquery.validator.js"></script>
 <script type="text/javascript">
 var validator = $.validator ? $.validator( {
@@ -109,12 +109,12 @@ $(function(){
   $.pjax({
     area: 'div.pjax',
     scope: {
-      '/pjax/test/scope/pjax/': ['/pjax/test/scope/pjax/', '^/pjax/test/scope/pjax/except/'],
+      '/pjax/test/scope/pjax/': ['/', '^/pjax/test/scope/pjax/except/'],
       '/pjax/test/scope/pjax/except/': false,
       '/pjax/test/scope/a.html': ['*/pjax/test/scope/[a-c].html'],
       '/pjax/test/scope/b.html': ['*/pjax/test/scope/[a-c].html'],
       '/pjax/test/scope/c.html': ['*/pjax/test/scope/[a-c].html'],
-      '/pjax/test/scope/user/': ['*/pjax/test/scope/user/[^/]+/([?#][^/]*)?$', 'rewrite'],
+      '/pjax/test/scope/user/': ['*/pjax/test/scope/user/[^/]+/([?#][^/]*)?$', 'rewrite', {area: '#header, div.pjax'}],
       '/pjax/test/scope/user/*/': ['*/pjax/test/scope/user/*/[ab]/'],
       '/pjax/test/scope/user/*/c/': ['*/pjax/test/scope/user/*/c/'],
       rewrite: function( url ){ return url.replace(/^[^\/]+\/\/[^\/]+/,'').replace(/^(\/output\/pjax\/demo\/scope\/user\/)[^\/]+(\/.*)/, '$1*$2') ; }
