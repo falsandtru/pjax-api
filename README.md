@@ -607,7 +607,7 @@ pjaxによりページ移動を行う範囲を設定します。先頭に`^`で�
   $.pjax({
     area: 'div.pjax',
     scope: {
-      '/output/pjax/demo/scope/pjax/': ['/', '^/output/pjax/demo/scope/pjax/except/'],
+      '/output/pjax/demo/scope/pjax/': ['/output/pjax/demo/scope/pjax/', '^/output/pjax/demo/scope/pjax/except/'],
       '/output/pjax/demo/scope/pjax/except/': false
     }
   });
@@ -622,8 +622,8 @@ pjaxによりページ移動を行う範囲を設定します。先頭に`^`で�
   $.pjax({
     area: '.container',
     scope: {
-      '/': ['/', '^*/output/pjax/demo/scope/[a-c].html'],
-      '/output/pjax/demo/scope/pjax/': ['/', {area: 'div.pjax'}]
+      '/': ['/', '^/output/pjax/demo/scope/pjax/'],
+      '/output/pjax/demo/scope/pjax/': ['/output/pjax/demo/scope/pjax/', {area: 'div.pjax'}]
     }
   });
 ```
@@ -675,7 +675,7 @@ pjaxによりページ移動を行う範囲を設定します。先頭に`^`で�
   $.pjax({
     area: 'div.pjax',
     scope: {
-      '/output/pjax/demo/scope/pjax/': ['/', '^/output/pjax/demo/scope/pjax/except/'],
+      '/output/pjax/demo/scope/pjax/': ['/output/pjax/demo/scope/pjax/', '^/output/pjax/demo/scope/pjax/except/'],
       '/output/pjax/demo/scope/pjax/except/': false,
       '/output/pjax/demo/scope/a.html': ['*/output/pjax/demo/scope/[a-c].html'],
       '/output/pjax/demo/scope/b.html': ['*/output/pjax/demo/scope/[a-c].html'],
