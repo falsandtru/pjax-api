@@ -109,7 +109,7 @@ $(function(){
   $.pjax({
     area: 'div.pjax',
     scope: {
-      '/pjax/test/scope/pjax/': ['/', '^/pjax/test/scope/pjax/except/'],
+      '/pjax/test/scope/pjax/': ['/pjax/test/scope/pjax/', '^/pjax/test/scope/pjax/except/'],
       '/pjax/test/scope/pjax/except/': false,
       '/pjax/test/scope/a.html': ['*/pjax/test/scope/[a-c].html'],
       '/pjax/test/scope/b.html': ['*/pjax/test/scope/[a-c].html'],
