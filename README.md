@@ -5,13 +5,8 @@ pjaxはデータの読み込みと描画の冗長部分を省略することで�
 
 ##概要
 サイト内のページ移動において指定したHTML要素（異なるコンテンツを持つ範囲）のみ更新することでページ移動を高速化します。
-たとえば、<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/" target="_blank">このサイト</a>のpjaxによるトップページへのページ移動時間は、ajaxによりサーバーからデータを取得した場合でも最短で100-200ミリ秒しかかかりませんが、pjaxのキャッシュ機能を有効にした場合のページ移動時間はわずか**20-30ミリ秒（0.02-0.03秒）**です。
+HTMLに数行のコードを追加するだけで簡単に導入することができ、既存のサイト構造やHTMLのクラス名を変更する必要はありません。
 
-このpjaxプラグインは数行のコードを追加するだけでサーバーに手を加えることなく簡単に導入することができます。また、既存のサイト構造やHTMLのクラス名を変更する必要もありません。Wordpressにも10分ほどで導入できます。
-
-※Windows7 + Google Chromeでの例です。  
-※インストール直後のWordpressでは、ajaxで500ミリ秒、キャッシュで10ミリ秒となりました（サーバーはロリポップを使用）。  
-※<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/" target="_blank">このサイト</a>ではブラウザのコンソールにページ移動にかかった時間を出力しており、コンソールからユーザーが実際にページ移動にかかった時間を見ることができます。  
 ※動作テストのためpjaxが正常に動作していないことがあります。恐縮ですがその際は時間をおいて再度ご覧ください。  
 
 ##特徴
@@ -29,7 +24,7 @@ pjaxはデータの読み込みと描画の冗長部分を省略することで�
 + Android・iOSでの使用
 + フォームのsubmitによるページ遷移
 + Google Analytics によるアクセス解析
-+ Wordpressへの導入
++ Wordpressでの使用
 + pjaxを使用するURLの範囲の設定
 + 複数範囲の更新
 + 更新範囲の動的設定
@@ -50,8 +45,8 @@ pushStateないしreplaceStateとajaxを組み合わせたいわゆるpjaxと呼
 |スクロール位置の復元※3|○|
 
 ※1 **AndroidとiOSでは`location`オブジェクトが`pushState`を使用しても更新されず、ブラウザのアドレスバーに表示されるURLと`location.href`により取得するURLが一致しない**バグが報告されています。defunkt版でもアドレスバーのURLと`location.href`が別のページを指しています。この問題は下の比較用デモで確認できます。当プラグインではこの問題を独自の方法で解決しています。この問題が解決されていなかった場合、ページのURLを参照するすべてのスクリプトが正常に動作できなくなり致命的なバグが発生する可能性があるため十分注意してください。Google Analytics などは間違ったアクセスログを生成することになります。  
-※2 **pjaxにはajax通信が強制終了されたページのタイトルが直近の正常に表示されたページのタイトルで上書きされ、間違った履歴が記録される**問題があります。この問題はpjaxにより2回以上ページ移動後、ページをリロードしブラウザの戻るボタンでページを読み込む時間を与えず2回以上ページを戻ることで確認できます。当プラグインではこの問題をブラウザに内蔵されているデータベースを利用することでほぼ解決しています（Firefoxでは何度も修復を繰り返すと修復されにくくなっていくような挙動をする問題がありますが通常の使用の範囲であれば正常に修復されると思われます）。  
-※3 **pjaxにはブラウザの戻る/進む機能によりページを移動した場合に移動先ページの直前のスクロール位置が復元されないことがある**問題があります。この問題はたとえば3000pxスクロールしているページから高さが1000pxのページに移動して前のページに戻ると1000px付近までしかスクロールされないといった形で確認できます。当プラグインではこの問題をブラウザに内蔵されているデータベースを利用することでほぼ解決しています（Firefoxでは何度も補正を繰り返すと補正されにくくなっていくような挙動をする問題がありますが通常の使用の範囲であれば正常に補正されると思われます）。  
+※2 **ajax通信が強制終了されたページのタイトルが直近の正常に表示されたページのタイトルで上書きされ、間違った履歴が記録される**問題があります。この問題はpjaxにより2回以上ページ移動後、ページをリロードしブラウザの戻るボタンでページを読み込む時間を与えず2回以上ページを戻ることで確認できます。当プラグインではこの問題をブラウザに内蔵されているデータベースを利用することでほぼ解決しています（Firefoxでは何度も修復を繰り返すと修復されにくくなっていくような挙動をする問題がありますが通常の使用の範囲であれば正常に修復されると思われます）。  
+※3 **ブラウザの戻る/進む機能によりページを移動した場合に移動先ページの直前のスクロール位置が復元されないことがある**問題があります。この問題はたとえば3000pxスクロールしているページから1000pxの高さのページに移動して前のページに戻ると1000px付近までしかスクロールされないといった形で確認できます。当プラグインではこの問題をブラウザに内蔵されているデータベースを利用することでほぼ解決しています（Firefoxでは何度も補正を繰り返すと補正されにくくなっていくような挙動をする問題がありますが通常の使用の範囲であれば正常に補正されると思われます）。  
 
 ##defunkt版との比較
 このpjaxプラグインは独自に開発されており、本家defunkt版の派生ではないため仕様が異なります。
@@ -71,11 +66,12 @@ defunkt版（v1.7.0/2013年6月現在最新版）との主な違いは次のと�
 |キャッシュ制御※4|×|○|
 |キャッシュ無効化|×|○|
 |キャッシュ作成タイミング※5|ページ離脱時|ページ取得時|
-|pjaxを使用するURLの範囲の設定|×|○|
+|適用範囲の設定|×|○|
+|適用範囲別の設定|×|○|
 |複数領域の更新|×|○|
 |更新範囲の動的設定|×|○|
 |ユーザー定義関数の実行形式|イベント|コールバック＋イベント|
-|ユーザー定義関数の設定箇所|9|29+3|
+|ユーザー定義関数の設定箇所|9|29+4|
 |部分的更新キャンセル※6|×|○|
 |比較用デモ※7|<a href="http://falsandtru.github.io/pjax/demo/defunkt/" target="_blank">defunkt</a>|<a href="http://falsandtru.github.io/pjax/demo/falsandtru/" target="_blank">falsandtru</a>|
 
@@ -140,17 +136,19 @@ pjaxによりページ移動を行うフォーム（フォームタグ）をjQue
 `$.fn.pjax`で使用された場合は設定されたコンテキスト内で選択されます。
 
 ####*scope: Scope as object*
-pjaxによりページ移動を行う（pjaxを適用する）ページの範囲をURL（ルートパス）で設定します。範囲をディレクトリで設定した場合はサブディレクトリも範囲に含まれます。設定はサブディレクトリで上書きできます。初期値は`null`で無効です。
+pjaxによりページ移動を行う（pjaxを適用する）ページの範囲をURL（ルートパス）ベースで設定します。pjaxの設定を範囲ごとに個別に変更できます。範囲をディレクトリで設定した場合はサブディレクトリも範囲に含まれます。設定はサブディレクトリで上書きできます。初期値は`null`で無効です。
 
-pjaxによるページ移動を`http://example.com/pjax/`ディレクトリ内でのみ有効にする場合は`{'/pjax/': ['/pjax/']}`とします。
+pjaxによるページ移動を`http://example.com/pjax/`ディレクトリ内でのみ有効にする場合は`{'/pjax/': ['/pjax/']}`とします。`{'/pjax/': ['/pjax/', {area: '.pjax'}]}`とすると範囲内での更新範囲が`.pjax`に変更されます。
 
 先頭に`^`を付加することで否定表現となり、サブディレクトリ（`http://example.com/pjax/except/`）でpjaxを無効にする場合は`{'/pjax/': ['/pjax/', '^/pjax/except/'], '/pjax/except/': false}`とします。無効を指定する値には偽と評価される値と空配列が使用できます。`http://example.com/a/`から`http://example.com/b/`への移動のみ有効にする場合は`{'/a/': ['/b/']}`と、双方向で有効にする場合は`{'/a/': ['/a/', '/b/'], '/b/': ['/a/', '/b/']}`とします。
 
 先頭に`*`を付加することで正規表現となり、`{'/a/': ['/a/', '/b/'], '/b/': ['/a/', '/b/']}`は`{'/a/': ['*/[ab]/'], '/b/': ['*/[ab]/']}`と同義です。
 
-`'rewrite'`を配列に加えるとscope.rewriteに定義した関数によりハッシュテーブルでキーとして使用される文字列を一度だけ書き換えることができます。
+`'rewrite'`を配列に加えると`scope.rewrite`に定義した関数によりハッシュテーブルでキーとして使用される文字列を一度だけ書き換えることができます。
 
 `'inherit'`を配列に加えると直近の適用条件に一致するものがなかった場合に一階層上の条件を継承します。ディレクトリ上で複数階層開きがあっても継承されます。
+
+オブジェクトを配列に加えるとオブジェクトによりpjaxの設定が上書きされます。ただし、`'rewrite'`により適用設定が見つかった場合は書き換え前のキーの設定は使用されません。
 
 ####*hashquery: boolean / function( event, url )*
 ハッシュの変更によりページを更新するかを設定します。関数が設定された場合は戻り値が渡されます。ハッシュごとにレスポンスが異なる場合に使用します。初期値は`false`で無効です。
@@ -408,11 +406,29 @@ pjaxを使用してフォーム送信によりページを移動します。
 
 `$.pjax.submit('/', {method: 'POST'}, [{tag: 'input', attr: {type: 'text'}, name: 'name', value: 'data'}])`
 
-####*setCache( URL as string, XMLHttpRequest, textStatus as string, Title as string, Size as number )*
-キャッシュを設定します。`URL`のみ渡すとデータが削除されます。`Size`は設定されなかった場合自動で計算されます。ページデータには`XMLHttpRequest.responseText`が使用されます。
+####*setCache( [ URL as string [, Data as string [, textStatus as string, XMLHttpRequest as XMLHttpRequest ] ] ] )*
+キャッシュを設定します。`URL`のみ渡すとデータが削除されます。ページの更新には`XMLHttpRequest.responseText`をベースに`Data`に存在するタイトルと更新範囲で上書きして使用されます。`Data`はタイトルと更新範囲以外使用されません。`XMLHttpRequest`がない場合はページ移動時に取得して補充されます。
 
-####*getCache( URL as string )*
+#####*setCache( URL as string, Data as string, textStatus as string, XMLHttpRequest as XMLHttpRequest )*
+パラメータによりキャッシュを設定します。`Data`は`null`で省略できます。
+
+#####*setCache( URL as string, Data as string )*
+パラメータによりキャッシュを設定します。更新範囲外のデータの状態は復元されません。`Data`に`null`を設定すると`XMLHttpRequest`を使用して更新されます。
+
+#####*setCache()*
+現在のページのキャッシュを設定します。`setCache( location.href, document.documentElement.outerHTML )`と同義です。
+
+#####*setCache( URL as string )*
+URLのページのキャッシュを削除します。
+
+####*getCache( [ URL as string ] )*
 キャッシュを取得します。
+
+#####*getCache( URL as string )*
+URLのページのキャッシュを取得します。
+
+#####*getCache()*
+現在のページのキャッシュを取得します。
 
 ####*clearCache()*
 キャッシュをすべて削除します。
@@ -422,6 +438,9 @@ pjaxを使用してフォーム送信によりページを移動します。
 
 ###Event
 pjaxによるページ遷移では通常のページ遷移で発生する`onload`などのイベントが発生しないため、この代替イベントを提供します。
+
+####*pjax.unload*
+更新データを取得し、DOMの更新準備ができた時点で`window`オブジェクトから発生します。
 
 ####*pjax.DOMContentLoaded*
 `area`で指定された範囲のDOMの更新が完了した時点で`document`オブジェクトから発生します。CSSについてのDOMの更新は完了していません。
@@ -588,8 +607,23 @@ pjaxによりページ移動を行う範囲を設定します。先頭に`^`で�
   $.pjax({
     area: 'div.pjax',
     scope: {
-      '/output/pjax/demo/scope/pjax/': ['/output/pjax/demo/scope/pjax/', '^/output/pjax/demo/scope/pjax/except/'],
+      '/output/pjax/demo/scope/pjax/': ['/', '^/output/pjax/demo/scope/pjax/except/'],
       '/output/pjax/demo/scope/pjax/except/': false
+    }
+  });
+```
+
+####pjaxの設定を変更する
+
++ すべてのページでpjaxを使用する。
++ pjaxディレクトリ下のページ間の移動では更新範囲を`div.pjax`に変更する。
+
+```javascript
+  $.pjax({
+    area: '.container',
+    scope: {
+      '/': ['/', '^*/output/pjax/demo/scope/[a-c].html'],
+      '/output/pjax/demo/scope/pjax/': ['/', {area: 'div.pjax'}]
     }
   });
 ```
@@ -629,6 +663,7 @@ pjaxによりページ移動を行う範囲を設定します。先頭に`^`で�
 + pjaxディレクトリ下のページ間での移動にpjaxを使用する。
 + pjax/exceptディレクトリ下のページは除外、pjaxを使用しない。
 + user/\*(user/foo,user/bar,etc)ディレクトリのインデックスページ間での移動にpjaxを使用する。
++ user/\*(user/foo,user/bar,etc)ディレクトリのインデックスページ間での移動では更新範囲を`'#header, div.pjax'`に変更する。
 + 同一の動的ディレクトリ下(user/foo/a,user/foo/b)でのみpjaxを使用し、異なる場合(user/foo/a,user/bar/a)は使用しない。
 + 同一の動的ディレクトリ下(user/foo/c/1,user/foo/c/2,user/foo/c/\*)でのみpjaxを使用し、異なる場合(user/foo/c/1,user/bar/c/2)は使用しない。
 + その他のページではpjaxを使用しない。
@@ -640,12 +675,12 @@ pjaxによりページ移動を行う範囲を設定します。先頭に`^`で�
   $.pjax({
     area: 'div.pjax',
     scope: {
-      '/output/pjax/demo/scope/pjax/': ['/output/pjax/demo/scope/pjax/', '^/output/pjax/demo/scope/pjax/except/'],
+      '/output/pjax/demo/scope/pjax/': ['/', '^/output/pjax/demo/scope/pjax/except/'],
       '/output/pjax/demo/scope/pjax/except/': false,
       '/output/pjax/demo/scope/a.html': ['*/output/pjax/demo/scope/[a-c].html'],
       '/output/pjax/demo/scope/b.html': ['*/output/pjax/demo/scope/[a-c].html'],
       '/output/pjax/demo/scope/c.html': ['*/output/pjax/demo/scope/[a-c].html'],
-      '/output/pjax/demo/scope/user/': ['*/output/pjax/demo/scope/user/[^/]+/([?#][^/]*)?$', 'rewrite'],
+      '/output/pjax/demo/scope/user/': ['*/output/pjax/demo/scope/user/[^/]+/([?#][^/]*)?$', 'rewrite', {area: '#header, div.pjax'}],
       '/output/pjax/demo/scope/user/*/': ['*/output/pjax/demo/scope/user/*/[ab]/'],
       '/output/pjax/demo/scope/user/*/c/': ['*/output/pjax/demo/scope/user/*/c/'],
       rewrite: function( url ){ return url.replace(/^[^\/]+\/\/[^\/]+/,'').replace(/^(\/output\/pjax\/demo\/scope\/user\/)[^\/]+(\/.*)/, '$1*$2') ; }
@@ -1091,6 +1126,18 @@ pjaxにより恩恵が得られるのは基本的にサーバーサイドでの�
 ##更新情報
 
 ###change log
+
+####1.27.0
+
++ `scope`パラメータの動作を拡張
+  <br>適用範囲ごとにpjaxの設定を変更できるよう拡張。
++ `setCache`メソッドの仕様を変更
+  <br>パラメータの仕様その他を変更。
+  <br>任意の時点でのページ状態の保持に対応。
++ `getCache`メソッドの仕様を変更
++ `pjax.unload`イベントを追加
++ パース処理を変更
++ 更新確認処理を修正
 
 ####1.26.4
 

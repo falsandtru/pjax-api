@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.26.4
- * @updated 2013/12/30
+ * @version 1.27.0
+ * @updated 2014/01/06
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -27,7 +27,7 @@
 ( function ( jQuery ) {
   
   var win = window, doc = document, undefined = void( 0 ), plugin_data = [ 'settings' ], plugin_store, plugin_response ;
-  //var DOMParser = win.DOMParser ;
+  var parser = {} ;
   
   jQuery.fn.pjax = jQuery.pjax = function ( options ) {
     
@@ -74,6 +74,8 @@
           fallback : true,
           database : true,
           server : {},
+          location : jQuery( '<a/>', { href : canonicalizeURL( win.location.href ) } )[ 0 ],
+          destination : jQuery( '<a/>', { href : canonicalizeURL( win.location.href ) } )[ 0 ],
           speedcheck : false
         },
         settings = jQuery.extend( true, {}, defaults, options ),
@@ -83,7 +85,7 @@
     jQuery.extend
     (
       true,
-      settings,
+      settings = settings.scope && scope( settings ) || settings,
       {
         nss : {
           pjax : nsArray.join( '.' ),
@@ -96,8 +98,7 @@
           requestHeader : [ 'X', nsArray[ 0 ].replace( /^\w/, function ( $0 ) { return $0.toUpperCase() ; } ) ].join( '-' ),
           array : nsArray
         },
-        location : jQuery( '<a/>', { href : canonicalizeURL( win.location.href ) } )[ 0 ],
-        destination : jQuery( '<a/>' )[ 0 ],
+        areaback : settings.area,
         fix : !/Mobile(\/\w+)? Safari/i.test( win.navigator.userAgent ) ? { location : false, reset : false } : {} ,
         contentType : settings.contentType.replace( /\s*[,;]\s*/g, '|' ).toLowerCase(),
         scroll : { record : true , queue : [] },
@@ -178,7 +179,7 @@
         var url, cache ;
         
         url = settings.destination.href ;
-        settings.area = fire( settings.options.area, null, [ event, url ] ) ;
+        settings.area = fire( settings.areaback, null, [ event, url ] ) ;
         settings.timestamp = event.timeStamp ;
         if ( settings.landing ) { settings.landing = false ; }
         if ( !jQuery( settings.area ).length || settings.scope && !scope( settings ) ) { return ; }
@@ -203,7 +204,7 @@
         var url, cache ;
         
         url = settings.destination.href = canonicalizeURL( settings.destination.href.replace( /[?#].*/, '' ) + ( event.target.method.toUpperCase() === 'GET' ? '?' + jQuery( event.target ).serialize() : '' ) ) ;
-        settings.area = fire( settings.options.area, null, [ event, url ] ) ;
+        settings.area = fire( settings.areaback, null, [ event, url ] ) ;
         settings.timestamp = event.timeStamp ;
         if ( settings.landing ) { settings.landing = false ; }
         if ( !jQuery( settings.area ).length || settings.scope && !scope( settings ) ) { return ; }
@@ -231,7 +232,7 @@
         }
         
         url = settings.destination.href ;
-        settings.area = fire( settings.options.area, null, [ event, url ] ) ;
+        settings.area = fire( settings.areaback, null, [ event, url ] ) ;
         settings.timestamp = event.timeStamp ;
         if ( settings.landing ) { if ( settings.landing.href === url ) { settings.landing = false ; return ; } settings.landing = false ; }
         if ( !jQuery( settings.area ).length ) { return ; }
@@ -271,6 +272,36 @@
         }
         
       } ) ;
+      
+      ( function () {
+        var DOMParser = window.DOMParser ;
+        parser = DOMParser && DOMParser.prototype && new DOMParser() ;
+        if ( test( parser ) ) { return ; }
+        
+        parser = function(){} ;
+        parser.parseFromString = function( str, type ) {
+          if ( /(?:^|.+?\s+?|\s*?)text\/html(?:[\s;]|$)/i.test( type ) ) {
+            if ( document.implementation && document.implementation.createHTMLDocument ) {
+              var doc = document.implementation.createHTMLDocument( '' ) ;
+              doc.open() ;
+              doc.write( str ) ;
+              doc.close() ;
+              return doc ;
+            }
+          } else {
+            return ( new DOMParser() ).parseFromString.apply( this, arguments ) ;
+          }
+        } ;
+        if ( test( parser ) ) { return ; }
+        parser = false ;
+        
+        function test( parser ) {
+          try {
+            var doc = parser && parser.parseFromString && parser.parseFromString( 'DOMParser', 'text/html' ) ;
+            return doc && doc.body && doc.body.innerHTML === 'DOMParser' ;
+          } catch ( err ) {}
+        }
+      } )() ;
     } // function: register
     
     function drive( settings, event, url, register, cache ) {
@@ -291,7 +322,7 @@
       settings.fix.reset && /click|submit/.test( event.type.toLowerCase() ) && win.scrollTo( jQuery( win ).scrollLeft(), 0 ) ;
       if ( fire( settings.callbacks.before, null, [ event, settings.parameter ], settings.callbacks.async ) === false ) { return ; } // function: drive
       
-      if ( cache ) {
+      if ( cache && cache.XMLHttpRequest ) {
         /* validate */ validate && validate.test( '++', 1, 0, 'update' ) ;
         jQuery.when ? jQuery.when( wait( settings.wait ) ).done( function () { update( settings, event, cache ) ; } ) : update( settings, event, cache ) ;
         /* validate */ validate && validate.test( '++', 1, 0, 'end' ) ;
@@ -379,7 +410,7 @@
           fire( settings.callbacks.ajax.complete, null, [ event, settings.parameter, XMLHttpRequest, textStatus ], settings.callbacks.async ) ;
           
           if ( !errorThrown ) {
-            defer && defer.resolve() || update( settings, event ) ;
+            defer && defer.resolve() || update( settings, event, cache ) ;
           } else {
             defer && defer.reject() ;
             if ( settings.fallback && textStatus !== 'abort' ) { return typeof settings.fallback === 'function' ? fire( settings.fallback, null, [ event, url ] ) : fallback( event, validate ) ; }
@@ -393,7 +424,7 @@
       /* validate */ validate && validate.test( '++', 1, 0, 'ajax' ) ;
       speedcheck && settings.log.speed.name.push( 'request' ) ;
       speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
-      jQuery.when && jQuery.when( defer.promise(), wait( settings.wait ) ).done( function () { update( settings, event ) ; } ) ;
+      jQuery.when && jQuery.when( defer.promise(), wait( settings.wait ) ).done( function () { update( settings, event, cache ) ; } ) ;
       jQuery.ajax( ajax ) ;
       
       if ( fire( settings.callbacks.after, null, [ event, settings.parameter ], settings.callbacks.async ) === false ) { return ; } // function: drive
@@ -413,7 +444,7 @@
           speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
           
           var callbacks_update = settings.callbacks.update ;
-          if ( fire( callbacks_update.before, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE ; }
+          if ( fire( callbacks_update.before, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest, cache ], settings.callbacks.async ) === false ) { break UPDATE ; }
           
           /* variable initialization */
           var win = window, doc = document, title, css, script ;
@@ -429,10 +460,9 @@
             UPDATE_CACHE : {
               if ( !cache ) { break UPDATE_CACHE ; }
               if ( fire( callbacks_update.cache.load.before, null, [ event, settings.parameter, cache ], settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
-              XMLHttpRequest = cache.XMLHttpRequest ;
+              XMLHttpRequest = cache.XMLHttpRequest || XMLHttpRequest ;
               data = XMLHttpRequest.responseText ;
-              textStatus = cache.textStatus ;
-              title = cache.title ;
+              textStatus = cache.textStatus || textStatus ;
               css = cache.css ;
               script = cache.script ;
               if ( fire( callbacks_update.cache.load.after, null, [ event, settings.parameter, cache ], settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
@@ -440,22 +470,31 @@
             
             /* variable initialization */
             /* validate */ validate && validate.test( '++', 1, 0, 'initialize' ) ;
-            var pdoc, pdata, parsable, areas, checker ;
+            var pdoc, pdata, cdoc, cdata, parsable, areas, checker ;
+            areas = settings.area.split( /\s*,\s*/ ) ;
             // Can not delete the script in the noscript After parse.
             pdata = ( XMLHttpRequest.responseText || '' ).replace( /<noscript[^>]*>(?:.|[\n\r])*?<\/noscript>/gim, function ( noscript ) {
               return noscript.replace( /<script(?:.|[\n\r])*?<\/script>/gim, '' ) ;
             } ) ;
-            //pdoc = jQuery( pdata && DOMParser && !win.opera && win.navigator.userAgent.toLowerCase().indexOf( 'opera' ) === -1 && ( new DOMParser ).parseFromString( pdata, 'text/html' ) ||
-            //               pdata ||
-            //               XMLHttpRequest.responseXML ) ;
-            pdoc = jQuery( pdata ) ;
-            areas = settings.area.split( /\s*,\s*/ ) ;
+            if ( cache && cache.data ) {
+              cdata = cache.data ;
+              cdoc = jQuery( parser && cdata && parser.parseFromString( cdata, 'text/html' ) || cdata ) ;
+              pdata = pdata.replace( /<title[^>]*?>([^<]*?)<\/title>/i, function ( title ) {
+                return find( cdata, /(<title[^>]*?>[^<]*?<\/title>)/i ).shift() || title ;
+              }) ;
+              pdoc = jQuery( parser && pdata && parser.parseFromString( pdata, 'text/html' ) || pdata ) ;
+              for ( var i = 0, area, element ; area = areas[ i++ ] ; ) {
+                pdoc.find( area ).add( parsable ? '' : pdoc.filter( area ) ).html( cdoc.find( area ).add( parsable ? '' : cdoc.filter( area ) ).contents() ) ;
+              }
+            } else {
+              pdoc = jQuery( parser && pdata && parser.parseFromString( pdata, 'text/html' ) || pdata ) ;
+            }
             
             switch ( true ) {
-              //case !!pdoc.find( 'html' )[ 0 ] :
-              //  parsable = 1 ;
-              //  pdoc.find( 'noscript' ).each( function () { this.children.length && jQuery( this ).text( this.innerHTML ) ; } ) ;
-              //  break ;
+              case !!pdoc.find( 'html' )[ 0 ] :
+                parsable = 1 ;
+                pdoc.find( 'noscript' ).each( function () { this.children.length && jQuery( this ).text( this.innerHTML ) ; } ) ;
+                break ;
               case !!pdoc.filter( 'title' )[ 0 ] :
                 parsable = 0 ;
                 break ;
@@ -464,18 +503,19 @@
             }
             
             switch ( parsable ) {
-              //case 1 :
-              //  title = pdoc.find( 'title' ).text() ;
-              //  break ;
+              case 1 :
+                title = pdoc.find( 'title' ).text() ;
+                break ;
               case 0 :
                 title = pdoc.filter( 'title' ).text() ;
                 break ;
               case false :
-                title = jQuery( '<span/>' ).html( find( pdata, /<title>([^<]*?)<\/title>/i ).join() ).text() ;
+                title = jQuery( '<span/>' ).html( find( pdata, /<title[^>]*?>([^<]*?)<\/title>/i ).shift() ).text() ;
                 break ;
             }
             
             if ( !jQuery( settings.area ).length || !pdoc.find( settings.area ).add( parsable ? '' : pdoc.filter( settings.area ) ).length ) { throw new Error( 'throw: area length mismatch' ) ; }
+            jQuery( win ).trigger( settings.gns + '.unload' ) ;
             
             /* url */
             /* validate */ validate && validate.test( '++', 1, url, 'url' ) ;
@@ -558,11 +598,11 @@
             /* cache */
             /* validate */ validate && validate.test( '++', 1, 0, 'cache' ) ;
             UPDATE_CACHE : {
-              if ( cache || !settings.cache.click && !settings.cache.submit && !settings.cache.popstate ) { break UPDATE_CACHE ; }
+              if ( cache && cache.XMLHttpRequest || !settings.cache.click && !settings.cache.submit && !settings.cache.popstate ) { break UPDATE_CACHE ; }
               if ( event.type.toLowerCase() === 'submit' && !settings.cache[ event.target.method.toLowerCase() ] ) { break UPDATE_CACHE ; }
               if ( fire( callbacks_update.cache.save.before, null, [ event, settings.parameter, cache ], settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
               
-              setCache( url, title, dataSize, textStatus, XMLHttpRequest ) ;
+              setCache( url, cdata || null, textStatus, XMLHttpRequest ) ;
               cahce = getCache( url ) ;
               
               if ( fire( callbacks_update.cache.save.after, null, [ event, settings.parameter, cache ], settings.callbacks.async ) === false ) { break UPDATE_CACHE ; }
@@ -570,32 +610,32 @@
             
             /* rendering */
             /* validate */ validate && validate.test( '++', 1, 0, 'rendering' ) ;
-            function rendering( call ) {
+            function rendering( callback ) {
               if ( fire( callbacks_update.rendering.before, null, [ event, settings.parameter ], settings.callbacks.async ) === false ) { return ; }
               var count = 0 ;
               ( function () {
                 if ( checker.filter( function () { return this.clientWidth || this.clientHeight || jQuery( this ).is( ':hidden' ) ; } ).length === checker.length || count >= 100 ) {
                   
-                  rendered( call ) ;
+                  rendered( callback ) ;
                   
                 } else if ( checker.length ) {
                   count++ ;
-                  setTimeout( function () { arguments.callee() ; }, settings.interval ) ;
+                  setTimeout( arguments.callee, settings.interval ) ;
                 }
               } )() ;
             } // function: rendering
-            function rendered( call ) {
+            function rendered( callback ) {
+              speedcheck && settings.log.speed.name.push( 'rendered' ) ;
+              speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
+              
               checker.remove() ;
-              if ( call ) {
-                settings.load.sync && load_script( '[src][defer]' ) ;
-              } else {
-                settings.scroll.record = true ;
-                hashscroll( event.type.toLowerCase() === 'popstate' ) || scroll( true ) ;
-                jQuery( win ).trigger( settings.gns + '.load' ) ;
-                
-                speedcheck && settings.log.speed.name.push( 'rendered' ) ;
-                speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
-              }
+              settings.scroll.record = true ;
+              hashscroll( event.type.toLowerCase() === 'popstate' ) || scroll( true ) ;
+              jQuery( win ).trigger( settings.gns + '.load' ) ;
+              fire( callback ) ;
+              
+              speedcheck && console.log( settings.log.speed.time ) ;
+              speedcheck && console.log( settings.log.speed.name ) ;
               if ( fire( callbacks_update.rendering.after, null, [ event, settings.parameter ], settings.callbacks.async ) === false ) { return ; }
             } // function: rendered
             
@@ -604,9 +644,9 @@
             // Can not delete the style of update range in parsable === false.
             // However, there is no problem on real because parsable === false is not used.
             switch ( parsable ) {
-              //case 1 :
+              case 1 :
               case 0 :
-                pdoc.find( settings.area ).remove() ;
+                //pdoc.find( settings.area ).remove() ;
                 pdoc.find( 'noscript' ).find( 'link[rel~="stylesheet"], style' ).remove() ;
                 break ;
               case false :
@@ -627,11 +667,11 @@
                 if ( !settings.load.css ) { break UPDATE_CSS ; }
                 if ( fire( callbacks_update.css.before, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_CSS ; }
                 
-                var save, adds = [], removes = jQuery( 'link[rel~="stylesheet"], style' ).not( jQuery( settings.area ).find( 'link[rel~="stylesheet"], style' ) ) ;
+                var save, adds = [], removes = jQuery( 'link[rel~="stylesheet"], style' ) ;
                 cache = getCache( url ) ;
                 save = cache && !cache.css ;
                 switch ( css || parsable ) {
-                  //case 1 :
+                  case 1 :
                   case 0 :
                     css = pdoc.find( 'link[rel~="stylesheet"], style' ).add( parsable ? '' : pdoc.filter( 'link[rel~="stylesheet"], style' ) ).clone().get() ;
                     break ;
@@ -644,7 +684,8 @@
                 
                 for ( var i = 0, element, content ; element = css[ i ] ; i++ ) {
                   
-                  element = typeof element === 'object' ? element : jQuery( element )[ 0 ] ;
+                  element = typeof element === 'object' ? save ? jQuery( element.outerHTML )[ 0 ] : element
+                                                        : jQuery( element )[ 0 ] ;
                   element = typeof settings.load.rewrite === 'function' ? fire( settings.load.rewrite, null, [ element.cloneNode() ] ) || element : element ;
                   if ( save ) { cache.css[ i ] = element ; }
                   
@@ -697,7 +738,8 @@
                 
                 for ( var i = 0, element, content ; element = script[ i ] ; i++ ) {
                   
-                  element = typeof element === 'object' ? element : jQuery( element )[ 0 ] ;
+                  element = typeof element === 'object' ? save ? jQuery( element.outerHTML )[ 0 ] : element
+                                                        : jQuery( element )[ 0 ] ;
                   element = typeof settings.load.rewrite === 'function' ? fire( settings.load.rewrite, null, [ element.cloneNode() ] ) || element : element ;
                   if ( save ) { cache.script[ i ] = element ; }
                   
@@ -707,19 +749,21 @@
                   if ( content && ( content in settings.log.script ) || settings.load.reject && jQuery( element ).is( settings.load.reject ) ) { continue ; }
                   if ( content && ( !settings.load.reload || !jQuery( element ).is( settings.load.reload ) ) ) { settings.log.script[ content ] = true ; }
                   
-                  if ( content ) {
-                    jQuery.ajax( jQuery.extend( true, {}, settings.ajax, settings.load.ajax, { url : element.src, async : !!element.async, global : false } ) ) ;
-                  } else {
-                    typeof element === 'object' && ( !element.type || -1 !== element.type.toLowerCase().indexOf( 'text/javascript' ) ) &&
-                    win.eval.call( win, ( element.text || element.textContent || element.innerHTML || '' ).replace( /^\s*<!(?:\[CDATA\[|\-\-)/, '/*$0*/' ) ) ;
+                  try {
+                    if ( content ) {
+                      jQuery.ajax( jQuery.extend( true, {}, settings.ajax, settings.load.ajax, { url : element.src, async : !!element.async, global : false } ) ) ;
+                    } else {
+                      typeof element === 'object' && ( !element.type || -1 !== element.type.toLowerCase().indexOf( 'text/javascript' ) ) &&
+                      win.eval.call( win, ( element.text || element.textContent || element.innerHTML || '' ).replace( /^\s*<!(?:\[CDATA\[|\-\-)/, '/*$0*/' ) ) ;
+                    }
+                  } catch ( err ) {
+                    break ;
                   }
                 }
                 
                 if ( fire( callbacks_update.script.after, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE_SCRIPT ; }
                 selector === '[src][defer]' && speedcheck && settings.log.speed.name.push( 'script' ) ;
                 selector === '[src][defer]' && speedcheck && settings.log.speed.time.push( settings.speed.now() - settings.log.speed.fire ) ;
-                selector === '[src][defer]' && speedcheck && console.log( settings.log.speed.time ) ;
-                selector === '[src][defer]' && speedcheck && console.log( settings.log.speed.name ) ;
               } ; // label: UPDATE_SCRIPT
               /* validate */ validate && validate.end() ;
             } // function: script
@@ -743,13 +787,21 @@
             /* validate */ validate && validate.test( '++', 1, 0, 'load' ) ;
             load_css() ;
             jQuery( doc ).trigger( settings.gns + '.ready' ) ;
-            jQuery( win ).bind( settings.gns + '.rendering', function ( event ) {
+            jQuery( win )
+            .bind( settings.gns + '.rendering', function ( event ) {
               jQuery( event.target ).unbind( event.type + '.rendering', arguments.callee ) ;
-              rendering() ;
               load_script( ':not([defer]), :not([src])' ) ;
-              !settings.load.sync && load_script( '[src][defer]' ) ;
-              rendering( true ) ;
-            } ).trigger( settings.gns + '.rendering' ) ;
+              if ( settings.load.sync ) {
+                rendering( function () {
+                  load_script( '[src][defer]' ) ;
+                } ) ;
+              } else {
+                rendering() ;
+                load_script( '[src][defer]' ) ;
+              }
+            } )
+            .trigger( settings.gns + '.rendering' )
+            .unbind( settings.gns + '.rendering' ) ;
             
             if ( fire( callbacks_update.success, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE ; }
             if ( fire( callbacks_update.complete, null, [ event, settings.parameter, data, textStatus, XMLHttpRequest ], settings.callbacks.async ) === false ) { break UPDATE ; }
@@ -844,7 +896,7 @@
     } // function: find
     
     function scope( settings, relocation ) {
-      var scp, arr, loc, des, dirs, dir, keys, key, pattern, not, reg, rewrite, inherit, hit_loc, hit_des ;
+      var scp, arr, loc, des, dirs, dir, keys, key, pattern, not, reg, rewrite, inherit, hit_loc, hit_des, options ;
       
       scp = settings.scope ;
       loc = settings.location.pathname + settings.location.search + settings.location.hash ;
@@ -860,7 +912,7 @@
       }
       
       for ( var i = keys.length + 1 ; i-- ; ) {
-        rewrite = inherit = hit_loc = hit_des = false ;
+        rewrite = inherit = hit_loc = hit_des = undefined ;
         key = keys.slice( 0, i ).join( '/' ).replace( /\/([?#])/g, '$1' ) ;
         key = '/' + key + ( ( relocation || loc ).charAt( key.length + 1 ) === '/' ? '/' : '' ) ;
         
@@ -868,7 +920,8 @@
         if ( !scp[ key ] || !scp[ key ].length ) { return false ; }
         
         for ( var j = 0 ; pattern = scp[ key ][ j ] ; j++ ) {
-          if ( !relocation && pattern === 'rewrite' && typeof scp.rewrite === 'function' ) {
+          if ( hit_loc === false || hit_des === false ) {
+          } else if ( pattern === 'rewrite' && typeof scp.rewrite === 'function' && !relocation ) {
             rewrite = scope( settings, fire( scp.rewrite, null, [ settings.destination.href ] ) ) ;
             if ( rewrite ) {
               hit_loc = hit_des = true ;
@@ -877,7 +930,7 @@
             }
           } else if ( pattern === 'inherit' ) {
             inherit = true ;
-          } else {
+          } else if ( typeof pattern === 'string' ) {
             not = '^' === pattern.charAt( 0 ) ;
             pattern = not ? pattern.slice( 1 ) : pattern ;
             reg = '*' === pattern.charAt( 0 ) ;
@@ -893,20 +946,27 @@
             if ( ( not || !hit_des ) && ( reg ? !des.search( pattern ) : !des.indexOf( pattern ) ) ) {
               if ( not ) { return false ; } else { hit_des = true ; }
             }
+          } else if ( typeof pattern === 'object' ) {
+            options = pattern ;
           }
         }
         
-        if ( hit_loc && hit_des ) { return true ; }
+        if ( hit_loc && hit_des ) {
+          return settings.options || rewrite ? jQuery.extend( true, {}, rewrite || {} )
+                                             : jQuery.extend( true, {}, settings, options || {}, rewrite || {} ) ;
+        }
         if ( inherit ) { continue ; }
-        return undefined ;
+        break ;
       }
     } // function: scope
     
-    function setCache( url, title, size, textStatus, XMLHttpRequest ) {
-      var history = settings.history ;
+    function setCache( url, data, textStatus, XMLHttpRequest ) {
+      var cache, history, title, size ;
+      history = settings.history ;
+      url = url || canonicalizeURL( win.location.href ) ;
       if ( !settings.hashquery ) { url = url.replace( /#.*/, '' ) ; }
-      switch ( true ) {
-        case 1 === arguments.length :
+      switch ( arguments.length ) {
+        case 1 :
           for ( var i = 0, key ; key = history.order[ i ] ; i++ ) {
             if ( url === key ) {
               history.order.splice( i, 1 ) ;
@@ -916,34 +976,44 @@
             }
           }
           break ;
-          
-        case typeof XMLHttpRequest === 'object' :
+        case 0 :
+          return arguments.callee.call( this, url, trim( document.documentElement.outerHTML ) ) ;
+        case 2 :
+        case 3 :
+        case 4 :
+        case 5 :
+        default :
           history.order.unshift( url ) ;
           for ( var i = 1, key ; key = history.order[ i ] ; i++ ) { if ( url === key ) { history.order.splice( i, 1 ) ; } }
           
-          if ( history.data[ url ] ) { break ; }
           history.size > history.config.size && cleanCache() ;
+          cache = getCache( url ) ;
           
-          size = parseInt( size || ( XMLHttpRequest.responseText || '' ).length * 1.8 || 1024*1024, 10 ) ;
+          title = jQuery( '<span/>' ).html( find( ( data || '' ) + ( ( XMLHttpRequest || {} ).responseText || '' ) + '<title></title>', /<title[^>]*?>([^<]*?)<\/title>/i ).shift() ).text() ;
+          size = parseInt( ( ( data || '' ).length + ( ( XMLHttpRequest || {} ).responseText || '' ).length ) * 1.8 || 1024*1024, 10 ) ;
           history.size = history.size || 0 ;
           history.size += size ;
-          history.data[ url ] = {
-            XMLHttpRequest : XMLHttpRequest,
-            textStatus : textStatus,
-            title : title,
-            size : size,
-            timestamp : ( new Date() ).getTime()
-          } ;
+          history.data[ url ] = jQuery.extend(
+            true,
+            ( history.data[ url ] || {} ),
+            {
+              XMLHttpRequest : XMLHttpRequest,
+              textStatus : textStatus,
+              data : data,
+              size : size,
+              timestamp : ( new Date() ).getTime()
+            }
+          ) ;
+          settings.database && settings.fix.history && dbTitle( url, title ) ;
           break ;
-          
-        default :
-          return false ;
       }
-      return true ;
+      return history.data[ url ] ;
     } // function: setCache
     
     function getCache( url ) {
-      var history = settings.history ;
+      var history ;
+      history = settings.history ;
+      url = url || canonicalizeURL( win.location.href ) ;
       if ( !settings.hashquery ) { url = url.replace( /#.*/, '' ) ; }
       history.data[ url ] && settings.timestamp > history.data[ url ].timestamp + history.config.expire && setCache( url ) ;
       return history.data[ url ] ;
@@ -962,7 +1032,7 @@
     function cleanCache() {
       var history = settings.history ;
       for ( var i = history.order.length, url ; url = history.order[ --i ] ; ) {
-        if ( i >= history.config.length || settings.timestamp > history.data[ url ].timestamp + history.config.expire ) {
+        if ( i >= history.config.length || url in history.data && settings.timestamp > history.data[ url ].timestamp + history.config.expire ) {
           history.order.splice( i, 1 ) ;
           history.size -= history.data[ url ].size ;
           delete history.data[ url ] ;
@@ -1205,28 +1275,5 @@
       return response ;
     } // function: falsandtru
   } ; // function: pjax
-  
-  //( function () {
-  //  if ( DOMParser && DOMParser.prototype ) {
-  //    try {
-  //      var parser = new DOMParser ;
-  //      if ( parser.parseFromString && parser.parseFromString( '', 'text/html' ) ) { return ; }
-  //    } catch ( err ) {}
-  //  } else {
-  //    DOMParser = function(){} ;
-  //  }
-  //  
-  //  DOMParser.prototype.parseFromString = function( str, type ) {
-  //    if ( /(?:^|.+?\s+?|\s*?)text\/html(?:[\s;]|$)/i.test( type ) ) {
-  //      var doc = document.implementation.createHTMLDocument( '' ) ;
-  //      doc.open() ;
-  //      doc.write( str ) ;
-  //      doc.close() ;
-  //      return doc ;
-  //    } else {
-  //      return DOMParser.prototype.parseFromString.apply( this, arguments ) ;
-  //    }
-  //  } ;
-  //} )() ;
   
 } )( jQuery ) ;
