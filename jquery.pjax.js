@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.28.0
+ * @version 1.28.1
  * @updated 2014/01/07
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -169,7 +169,7 @@
     ids: [0],
     settings: [0],
     count: 0,
-    parser: null,
+    parseHTML: null,
     setAlias:  function ( name ) {
       Store.alias = typeof name === 'string' ? name : Store.alias ;
       if ( Store.name !== Store.alias && !jQuery[ Store.alias ] ) {
@@ -460,31 +460,28 @@
       
       ( function () {
         var DOMParser = window.DOMParser ;
-        Store.parser = DOMParser && DOMParser.prototype && new DOMParser() ;
-        if ( test( Store.parser ) ) { return ; }
+        Store.parseHTML = function ( html ) { return DOMParser && DOMParser.prototype && ( new DOMParser() ).parseFromString( html, 'text/html' ) ; } ;
+        if ( test( Store.parseHTML ) ) { return ; }
         
-        Store.parser = function(){} ;
-        Store.parser.parseFromString = function( str, type ) {
-          if ( /(?:^|.+?\s+?|\s*?)text\/html(?:[\s;]|$)/i.test( type ) ) {
-            if ( document.implementation && document.implementation.createHTMLDocument ) {
-              var doc = document.implementation.createHTMLDocument( '' ) ;
-              if ( typeof doc.activeElement === 'object' ) {
-                doc.open() ;
-                doc.write( str ) ;
-                doc.close() ;
-              }
-              return doc ;
+        Store.parseHTML = function( html ) {
+          var doc ;
+          if ( document.implementation && document.implementation.createHTMLDocument ) {
+            doc = document.implementation.createHTMLDocument( '' ) ;
+            if ( typeof doc.activeElement === 'object' ) {
+              doc.open() ;
+              doc.write( html ) ;
+              doc.close() ;
             }
-          } else {
-            return ( new DOMParser() ).parseFromString.apply( this, arguments ) ;
           }
+          return doc ;
         } ;
-        if ( test( Store.parser ) ) { return ; }
-        Store.parser = false ;
+        if ( test( Store.parseHTML ) ) { return ; }
         
-        function test( parser ) {
+        Store.parseHTML = false ;
+        
+        function test( parseHTML ) {
           try {
-            var doc = parser && parser.parseFromString && parser.parseFromString( '<body><noscript>DOMParser</noscript></body>', 'text/html' ) ;
+            var doc = parseHTML && parseHTML( '<body><noscript>DOMParser</noscript></body>' ) ;
             return jQuery( doc ).find( 'noscript' ).text() === 'DOMParser' ;
           } catch ( err ) {}
         }
@@ -665,16 +662,16 @@
             } ) ;
             if ( cache && cache.data ) {
               cdata = cache.data ;
-              cdoc = jQuery( Store.parser && cdata && Store.parser.parseFromString( cdata, 'text/html' ) || cdata ) ;
+              cdoc = jQuery( Store.parseHTML && cdata && Store.parseHTML( cdata ) || cdata ) ;
               pdata = pdata.replace( /<title[^>]*?>([^<]*?)<\/title>/i, function ( title ) {
                 return Store.find( cdata, /(<title[^>]*?>[^<]*?<\/title>)/i ).shift() || title ;
               }) ;
-              pdoc = jQuery( Store.parser && pdata && Store.parser.parseFromString( pdata, 'text/html' ) || pdata ) ;
+              pdoc = jQuery( Store.parseHTML && pdata && Store.parseHTML( pdata ) || pdata ) ;
               for ( var i = 0, area, element ; area = areas[ i++ ] ; ) {
                 pdoc.find( area ).add( parsable ? '' : pdoc.filter( area ) ).html( cdoc.find( area ).add( parsable ? '' : cdoc.filter( area ) ).contents() ) ;
               }
             } else {
-              pdoc = jQuery( Store.parser && pdata && Store.parser.parseFromString( pdata, 'text/html' ) || pdata ) ;
+              pdoc = jQuery( Store.parseHTML && pdata && Store.parseHTML( pdata ) || pdata ) ;
             }
             
             switch ( true ) {
