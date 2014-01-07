@@ -65,7 +65,7 @@ defunkt版（v1.7.0/2013年6月現在最新版）との主な違いは次のと�
 |CSSの読み込み|×|○|
 |キャッシュ制御※4|×|○|
 |キャッシュ無効化|×|○|
-|キャッシュ作成タイミング※5|ページ離脱時|ページ取得時|
+|キャッシュ作成タイミング※5|ページ離脱時|ページ取得時＋任意|
 |適用範囲の設定|×|○|
 |適用範囲別の設定|×|○|
 |複数領域の更新|×|○|
@@ -166,10 +166,10 @@ pjaxによるページ移動を`http://example.com/pjax/`ディレクトリ内�
 スクロール位置の復元のためのスクロール位置の記録間隔にかかる設定項目を持ちます。
 
 #####*scroll.delay: Millisecond as number*
-スクロール位置の記録処理がスクロールイベント発生後実行されるまでの待機時間をミリ秒で設定します。待機時間が経過する前に新たなスクロールが行われた場合は前回までのスクロールによる待機中の処理の実行はキャンセルされます。初期値は`500`です。パラメータの詳細な仕様は<a href="https://github.com/falsandtru/jquery.displaytrigger.js" target="_blank">displaytrigger</a>の同名のパラメータを確認してください。
+スクロール位置の記録処理がスクロールイベント発生後実行されるまでの待機時間をミリ秒で設定します。待機時間が経過する前に新たなスクロールが行われた場合は前回までのスクロールによる待機中の処理の実行はキャンセルされます。初期値は`500`です。パラメータの詳細な仕様は<a href="https://github.com/falsandtru/jquery.visibilitytrigger.js" target="_blank">visibilitytrigger</a>の同名のパラメータを確認してください。
 
 #####*scroll.suspend: Millisecond as number*
-スクロールイベントの発生後、スクロールイベントの発生を抑制する時間をミリ秒で設定します。設定値を0にするとイベントが抑制されません。初期値は`-100`です。パラメータの詳細な仕様は<a href="https://github.com/falsandtru/jquery.displaytrigger.js" target="_blank">displaytrigger</a>の同名のパラメータを確認してください。
+スクロールイベントの発生後、スクロールイベントの発生を抑制する時間をミリ秒で設定します。設定値を0にするとイベントが抑制されません。初期値は`-100`です。パラメータの詳細な仕様は<a href="https://github.com/falsandtru/jquery.visibilitytrigger.js" target="_blank">visibilitytrigger</a>の同名のパラメータを確認してください。
 
 ####*ajax: object*
 pjaxで内部的に使用される`$.ajax`のパラメータを設定します。`$.ajax`のコールバック関数はすべて上書きされるため使用できません。代わりに`callbacks.ajax`で設定できるのでこちらを使用してください。
@@ -191,7 +191,7 @@ pjaxによるページ読み込み時にJavaScriptを読み込むかを設定し
 
 読み込まれるページの、現在のページに存在しないすべてのJavaScript（`script`要素）を読み込みます。外部ファイル以外の形式のJavaScriptは同一の内容であっても再度読み込まれます。jQueryの仕様により、JavaScriptは読み込まれていてもDOMに追加されません。通常のページ移動と同じ実行順序が維持されます。
 
-ページの表示直後にすべて実行されている必要のないJavaScriptは、ページ読み込み時に一括で実行せず<a href="https://github.com/falsandtru/jquery.displaytrigger.js" target="_blank">displaytrigger</a>により随時実行することで負荷を削減することを推奨します。ページの表示直後にすべて読み込まれている必要のないコンテンツについても同様です。
+ページの表示直後にすべて実行されている必要のないJavaScriptは、ページ読み込み時に一括で実行せず<a href="https://github.com/falsandtru/jquery.visibilitytrigger.js" target="_blank">visibilitytrigger</a>により随時実行することで負荷を削減することを推奨します。ページの表示直後にすべて読み込まれている必要のないコンテンツについても同様です。
 
 #####*load.ajax: object*
 `ajax`パラメータに重ねて上書きする`$.ajax`のパラメータを設定します。初期値は`{dataType: 'script'}`です。
@@ -1052,10 +1052,10 @@ $(function(){
   }
   function reset(){
     // 遅延読み込みはサーバーを問わず効果的です
-    $.displaytrigger({
+    $.visibilitytrigger({
       trigger: 'img[data-origin]',
       callback: function(){ this.src = $(this).attr('data-origin'); }
-    }).trigger('displaytrigger');
+    }).vtrigger();
   }
   
   init();
@@ -1074,7 +1074,7 @@ $(function(){
   <script type="text/javascript" charset="utf-8" src="/jquery.1.7.2.js"></script>
   <script type="text/javascript" charset="utf-8" src="/jquery.clientenv.js"></script>
   <script type="text/javascript" charset="utf-8" src="/jquery.pjax.js"></script>
-  <script type="text/javascript" charset="utf-8" src="/jquery.displaytrigger.js"></script>
+  <script type="text/javascript" charset="utf-8" src="/jquery.visibilitytrigger.js"></script>
   <script type="text/javascript" charset="utf-8" src="/init.js"></script>
   <script type="text/javascript" charset="utf-8" src="/page.js"></script>
 </body>
@@ -1599,7 +1599,7 @@ pjaxにより恩恵が得られるのは基本的にサーバーサイドでの�
 ###<a href="https://github.com/falsandtru/jquery.pjax.js">pjax</a>
 HTML5による高速なページ移動機能をウェブサイトに実装します。
 
-###<a href="https://github.com/falsandtru/jquery.displaytrigger.js">displaytrigger</a>
+###<a href="https://github.com/falsandtru/jquery.visibilitytrigger.js">visibilitytrigger</a>
 スクロールにより特定のHTML要素が画面に表示されることを条件としてスクリプトを遅延実行させます。
 
 ###<a href="http://sa-kusaku.sakura.ne.jp/output/clientenv/">clientenv</a>
