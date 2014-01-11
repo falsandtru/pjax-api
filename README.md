@@ -92,14 +92,14 @@ v1.4.2から動作します。
 
 ###Register
 
-####*$.pjax( Parameter as object )*
+####*$.pjax( Setting as object )*
 リンクにpjaxを登録します。`document`オブジェクトにデリゲートを設定します。
 
 ```javascript
 $.pjax({ area: '.container' });
 ```
 
-####*$.fn.pjax( Parameter as object )*
+####*$.fn.pjax( Setting as object )*
 コンテキストに含まれるリンクにのみpjaxを登録します。コンテキストにデリゲートを設定します。
 `link`パラメータと`form`パラメータはコンテキストにより絞り込まれますが、`area`パラメータは絞り込まれません。
 
