@@ -587,7 +587,7 @@
             defer && defer.resolve() || update( jQuery, window, document, undefined, Store, setting, event, cache ) ;
           } else {
             defer && defer.reject() ;
-            if ( setting.fallback && textStatus !== 'abort' ) { return typeof setting.fallback === 'function' ? Store.fire( setting.fallback, null, [ event, url ] ) : Store.fallback( event, validator ) ; }
+            if ( setting.fallback && textStatus !== 'abort' ) { return typeof setting.fallback === 'function' ? Store.fire( setting.fallback, null, [ event, url ] ) : Store.fallback( event ) ; }
           }
           /* validator */ validator && validator.end() ;
         }
@@ -992,7 +992,7 @@
             if ( Store.fire( callbacks_update.error, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
             if ( Store.fire( callbacks_update.complete, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
             /* validator */ validator && validator.test( '++', 1, [ url, window.location.href ], 'error' ) ;
-            if ( setting.fallback ) { return typeof setting.fallback === 'function' ? Store.fire( setting.fallback, null, [ event, url ] ) : Store.fallback( event, validator ) ; }
+            if ( setting.fallback ) { return typeof setting.fallback === 'function' ? Store.fire( setting.fallback, null, [ event, url ] ) : Store.fallback( event ) ; }
           } ;
           
           if ( Store.fire( callbacks_update.after, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
@@ -1047,8 +1047,7 @@
       setTimeout( function () { defer.resolve() ; }, ms ) ;
       return defer.promise() ; // function: wait
     },
-    fallback: function ( event, validator ) {       
-      /* validator */ validator && validator.test( '++', 1, 0, 'fallback()' ) ;
+    fallback: function ( event ) {       
       switch ( event.type.toLowerCase() ) {
         case 'click':
           window.location.href = event.currentTarget.href ;
@@ -1059,10 +1058,7 @@
         case 'popstate':
           window.location.reload() ;
           break ;
-        default:
-          /* validator */ validator && validator.test( '++', 0, event.type, 'type error' ) ;
       }
-      /* validator */ validator && validator.end() ;
     },
     find: function ( data, pattern ) {
       var result = [] ;
