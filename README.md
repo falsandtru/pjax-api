@@ -169,9 +169,6 @@ pjaxによるページ移動を`http://example.com/pjax/`ディレクトリ内�
 #####*scroll.delay: Millisecond as number*
 スクロール位置の記録処理がスクロールイベント発生後実行されるまでの待機時間をミリ秒で設定します。待機時間が経過する前に新たなスクロールが行われた場合は前回までのスクロールによる待機中の処理の実行はキャンセルされます。初期値は`500`です。パラメータの詳細な仕様は<a href="https://github.com/falsandtru/jquery.visibilitytrigger.js" target="_blank">visibilitytrigger</a>の同名のパラメータを確認してください。
 
-#####*scroll.suspend: Millisecond as number*
-スクロールイベントの発生後、スクロールイベントの発生を抑制する時間をミリ秒で設定します。設定値を0にするとイベントが抑制されません。初期値は`-100`です。パラメータの詳細な仕様は<a href="https://github.com/falsandtru/jquery.visibilitytrigger.js" target="_blank">visibilitytrigger</a>の同名のパラメータを確認してください。
-
 ####*ajax: object*
 pjaxで内部的に使用される`$.ajax`のパラメータを設定します。`$.ajax`のコールバック関数はすべて上書きされるため使用できません。代わりに`callbacks.ajax`で設定できるのでこちらを使用してください。
 
@@ -1125,6 +1122,11 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 ##更新情報
 
 ###change log
+
+####1.28.2
+
++ `scroll.suspend`パラメータを削除
++ 内部関数`fallback()`を最適化
 
 ####1.28.1
 
