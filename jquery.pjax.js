@@ -94,7 +94,7 @@
         load: { css: false, script: false, execute: true, reload: null, reject: null, sync: true, ajax: { dataType: 'script' }, rewrite: null },
         interval: 300,
         wait: 0,
-        scroll: { delay: 500, suspend: -100 },
+        scroll: { delay: 500 },
         fix: { location: true, history: true, scroll: true, reset: false },
         hashquery: false,
         fallback: true,
@@ -444,18 +444,8 @@
             while ( id = setting.scroll.queue.shift() ) { clearTimeout( id ) ; }
             Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
           }, setting.scroll.delay ) ;
-          
           setting.scroll.queue.push( id ) ;
         }
-        
-        if ( setting.scroll.suspend && !end ) {
-          jQuery( this ).unbind( setting.nss.scroll ) ;
-          setTimeout( function () {
-            setting.database && setting.fix.scroll &&
-            jQuery( window ).bind( setting.nss.scroll, setting.id, fn ).trigger( setting.nss.scroll, [ true ] ) ;
-          }, setting.scroll.suspend ) ;
-        }
-        
       } ) ;
       
       ( function () {
