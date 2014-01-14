@@ -45,7 +45,6 @@
     /* validator */ validator && validator.start() ;
     /* validator */ validator && validator.test( '++', 1, option, 'pjax()' ) ;
     
-    /* Variable initialization */
     /* validator */ validator && validator.test( '++', 1, 0, 'initialize' ) ;
     
     var $context = this ;
@@ -65,6 +64,7 @@
         return Store.setProperties.call( $context, null, null ) ;
     }
     
+    // setting
     var setting ;
     setting = jQuery.extend( true,
       {
@@ -147,11 +147,11 @@
       }
     ) ;
     
+    // registrate
     setting.id = 1 ;
     Store.ids.push( setting.id ) ;
     Store.settings[ setting.id ] = setting ;
     
-    /* Process startup */
     /* validator */ validator && validator.test( '++', 1, 0, 'register' ) ;
     if ( Store.check() ) {
       Store.share() ;
