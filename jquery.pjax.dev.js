@@ -148,13 +148,8 @@
     ) ;
     
     // registrate
-    setting.id = 1 ;
-    Store.ids.push( setting.id ) ;
-    Store.settings[ setting.id ] = setting ;
-    
     /* validator */ validator && validator.test( '++', 1, 0, 'register' ) ;
     if ( Store.check() ) {
-      Store.share() ;
       Store.registrate.call( $context, jQuery, window, document, undefined, Store, setting ) ;
     }
     
@@ -327,8 +322,7 @@
       return $context ;
     },
     check: function () {
-      var setting = Store.settings[ 1 ] ;
-      return Store.supportPushState() && ( setting.area && ( setting.link || setting.form ) ) ;
+      return Store.supportPushState() ;
     },
     supportPushState: function () {
       return 'pushState' in window.history && window.history[ 'pushState' ] ;
@@ -336,6 +330,11 @@
     registrate: function ( jQuery, window, document, undefined, Store, setting ) {
       var context = this ;
       
+      setting.id = 1 ;
+      Store.ids.push( setting.id ) ;
+      Store.settings[ setting.id ] = setting ;
+      
+      Store.share() ;
       Store.database() ;
       setting.load.script && jQuery( 'script' ).each( function () {
         var element = this, src ;
