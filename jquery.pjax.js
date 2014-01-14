@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.28.1
- * @updated 2014/01/07
+ * @version 1.28.2
+ * @updated 2014/01/15
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -94,7 +94,7 @@
         load: { css: false, script: false, execute: true, reload: null, reject: null, sync: true, ajax: { dataType: 'script' }, rewrite: null },
         interval: 300,
         wait: 0,
-        scroll: { delay: 500, suspend: -100 },
+        scroll: { delay: 500 },
         fix: { location: true, history: true, scroll: true, reset: false },
         hashquery: false,
         fallback: true,
@@ -444,18 +444,8 @@
             while ( id = setting.scroll.queue.shift() ) { clearTimeout( id ) ; }
             Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
           }, setting.scroll.delay ) ;
-          
           setting.scroll.queue.push( id ) ;
         }
-        
-        if ( setting.scroll.suspend && !end ) {
-          jQuery( this ).unbind( setting.nss.scroll ) ;
-          setTimeout( function () {
-            setting.database && setting.fix.scroll &&
-            jQuery( window ).bind( setting.nss.scroll, setting.id, fn ).trigger( setting.nss.scroll, [ true ] ) ;
-          }, setting.scroll.suspend ) ;
-        }
-        
       } ) ;
       
       ( function () {
@@ -1059,14 +1049,20 @@
     },
     fallback: function ( event, validator ) {       
       /* validator */ validator && validator.test( '++', 1, 0, 'fallback()' ) ;
-      /* validator */ validator && validator.end() ;
-      if ( event.type.toLowerCase() === 'click' ) {
-        window.location.href = event.currentTarget.href ;
-      } else if ( event.type.toLowerCase() === 'submit' ) {
-        event.target.submit() ;
-      } else if ( event.type.toLowerCase() === 'popstate' ) {
-        window.location.reload() ;
+      switch ( event.type.toLowerCase() ) {
+        case 'click':
+          window.location.href = event.currentTarget.href ;
+          break ;
+        case 'submit':
+          event.target.submit() ;
+          break ;
+        case 'popstate':
+          window.location.reload() ;
+          break ;
+        default:
+          /* validator */ validator && validator.test( '++', 0, event.type, 'type error' ) ;
       }
+      /* validator */ validator && validator.end() ;
     },
     find: function ( data, pattern ) {
       var result = [] ;
