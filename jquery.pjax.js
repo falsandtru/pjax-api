@@ -1059,14 +1059,20 @@
     },
     fallback: function ( event, validator ) {       
       /* validator */ validator && validator.test( '++', 1, 0, 'fallback()' ) ;
-      /* validator */ validator && validator.end() ;
-      if ( event.type.toLowerCase() === 'click' ) {
-        window.location.href = event.currentTarget.href ;
-      } else if ( event.type.toLowerCase() === 'submit' ) {
-        event.target.submit() ;
-      } else if ( event.type.toLowerCase() === 'popstate' ) {
-        window.location.reload() ;
+      switch ( event.type.toLowerCase() ) {
+        case 'click':
+          window.location.href = event.currentTarget.href ;
+          break ;
+        case 'submit':
+          event.target.submit() ;
+          break ;
+        case 'popstate':
+          window.location.reload() ;
+          break ;
+        default:
+          /* validator */ validator && validator.test( '++', 0, event.type, 'type error' ) ;
       }
+      /* validator */ validator && validator.end() ;
     },
     find: function ( data, pattern ) {
       var result = [] ;
