@@ -784,6 +784,7 @@
             /* validator */ validator && validator.test( '++', 1, 0, 'rendering' ) ;
             function rendering( callback ) {
               if ( Store.fire( callbacks_update.rendering.before, null, [ event, setting.parameter ], setting.callbacks.async ) === false ) { return ; }
+              
               var count = 0 ;
               ( function () {
                 if ( checker.filter( function () { return this.clientWidth || this.clientHeight || jQuery( this ).is( ':hidden' ) ; } ).length === checker.length || count >= 100 ) {
