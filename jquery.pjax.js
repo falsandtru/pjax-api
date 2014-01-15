@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.29.0
+ * @version 1.30.0
  * @updated 2014/01/15
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -230,17 +230,8 @@
           url = url || Store.canonicalizeURL( window.location.href ) ;
           if ( !setting.hashquery ) { url = url.replace( /#.*/, '' ) ; }
           switch ( arguments.length ) {
-            case 1:
-              for ( var i = 0, key ; key = history.order[ i ] ; i++ ) {
-                if ( url === key ) {
-                  history.order.splice( i, 1 ) ;
-                  history.size -= history.data[ key ].size ;
-                  history.data[ key ] = null ;
-                  delete history.data[ key ] ;
-                }
-              }
-              break ;
             case 0:
+            case 1:
               return arguments.callee.call( this, url, Store.trim( document.documentElement.outerHTML ) ) ;
             case 2:
             case 3:
@@ -282,6 +273,23 @@
           if ( !setting.hashquery ) { url = url.replace( /#.*/, '' ) ; }
           history.data[ url ] && setting.timestamp > history.data[ url ].timestamp + history.config.expire && jQuery[ Store.name ].setCache( url ) ;
           return history.data[ url ] ;
+        } ;
+        
+        $context.removeCache = function ( url ) {
+          var setting = Store.settings[ 1 ] ;
+          var history ;
+          history = setting.history ;
+          url = url || Store.canonicalizeURL( window.location.href ) ;
+          if ( !setting.hashquery ) { url = url.replace( /#.*/, '' ) ; }
+          for ( var i = 0, key ; key = history.order[ i ] ; i++ ) {
+            if ( url === key ) {
+              history.order.splice( i, 1 ) ;
+              history.size -= history.data[ key ].size ;
+              history.data[ key ] = null ;
+              delete history.data[ key ] ;
+            }
+          }
+          return true ;
         } ;
         
         $context.clearCache = function () {
