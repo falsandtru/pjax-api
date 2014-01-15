@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.28.2
+ * @version 1.29.0
  * @updated 2014/01/15
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -40,8 +40,6 @@
   
   function initialize( jQuery, window, document, undefined, Store, option ) {
     
-    /* Variable initialization */
-    
     var $context = this ;
     
     // polymorphism
@@ -59,6 +57,7 @@
         return Store.setProperties.call( $context, null, null ) ;
     }
     
+    // setting
     var setting ;
     setting = jQuery.extend( true,
       {
@@ -140,13 +139,8 @@
       }
     ) ;
     
-    setting.id = 1 ;
-    Store.ids.push( setting.id ) ;
-    Store.settings[ setting.id ] = setting ;
-    
-    /* Process startup */
+    // registrate
     if ( Store.check() ) {
-      Store.share() ;
       Store.registrate.call( $context, jQuery, window, document, undefined, Store, setting ) ;
     }
     
@@ -317,15 +311,20 @@
       return $context ;
     },
     check: function () {
-      var setting = Store.settings[ 1 ] ;
-      return Store.supportPushState() && ( setting.area && ( setting.link || setting.form ) ) ;
+      return Store.supportPushState() ;
     },
     supportPushState: function () {
       return 'pushState' in window.history && window.history[ 'pushState' ] ;
     },
     registrate: function ( jQuery, window, document, undefined, Store, setting ) {
+      
       var context = this ;
       
+      setting.id = 1 ;
+      Store.ids.push( setting.id ) ;
+      Store.settings[ setting.id ] = setting ;
+      
+      Store.share() ;
       Store.database() ;
       setting.load.script && jQuery( 'script' ).each( function () {
         var element = this, src ;
@@ -469,13 +468,6 @@
     },
     drive: function ( jQuery, window, document, undefined, Store, setting, event, url, register, cache ) {
       
-      var speedcheck = setting.speedcheck ;
-      speedcheck && ( setting.log.speed.fire = setting.timestamp ) ;
-      speedcheck && ( setting.log.speed.time = [] ) ;
-      speedcheck && ( setting.log.speed.name = [] ) ;
-      speedcheck && setting.log.speed.name.push( 'fire' ) ;
-      speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
-      
       setting.scroll.record = false ;
       setting.fix.reset && /click|submit/.test( event.type.toLowerCase() ) && window.scrollTo( jQuery( window ).scrollLeft(), 0 ) ;
       if ( Store.fire( setting.callbacks.before, null, [ event, setting.parameter ], setting.callbacks.async ) === false ) { return ; } // function: drive
@@ -564,8 +556,6 @@
       jQuery.extend( true, ajax, setting.ajax, callbacks ) ;
       ajax.url = url.replace( /([^#]+)(#[^\s]*)?$/, '$1' + ( setting.server.query ? ( url.match( /\?/ ) ? '&' : '?' ) + encodeURIComponent( setting.server.query ) + '=1' : '' ) + '$2' ) ;
       
-      speedcheck && setting.log.speed.name.push( 'request' ) ;
-      speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
       jQuery.when && jQuery.when( defer.promise(), Store.wait( setting.wait ) ).done( function () { update( jQuery, window, document, undefined, Store, setting, event, cache ) ; } ) ;
       jQuery.ajax( ajax ) ;
       
@@ -574,10 +564,6 @@
       
       function update( jQuery, window, document, undefined, Store, setting, event, cache ) {
         UPDATE: {
-          var speedcheck = setting.speedcheck ;
-          speedcheck && setting.log.speed.name.push( 'update' ) ;
-          speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
-          
           var callbacks_update = setting.callbacks.update ;
           if ( Store.fire( callbacks_update.before, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest, cache ], setting.callbacks.async ) === false ) { break UPDATE ; }
           
@@ -585,7 +571,6 @@
           var title, css, script ;
           
           try {
-            
             if ( !cache && -1 === ( XMLHttpRequest.getResponseHeader( 'Content-Type' ) || '' ).toLowerCase().search( setting.contentType ) ) { throw new Error( "throw: content-type mismatch" ) ; }
             
             /* cache */
@@ -719,8 +704,6 @@
               jQuery( document ).trigger( setting.gns + '.DOMContentLoaded' ) ;
               if ( Store.fire( callbacks_update.content.after, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE_CONTENT ; }
             } ; // label: UPDATE_CONTENT
-            speedcheck && setting.log.speed.name.push( 'content' ) ;
-            speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
             
             /* cache */
             UPDATE_CACHE: {
@@ -737,6 +720,7 @@
             /* rendering */
             function rendering( callback ) {
               if ( Store.fire( callbacks_update.rendering.before, null, [ event, setting.parameter ], setting.callbacks.async ) === false ) { return ; }
+              
               var count = 0 ;
               ( function () {
                 if ( checker.filter( function () { return this.clientWidth || this.clientHeight || jQuery( this ).is( ':hidden' ) ; } ).length === checker.length || count >= 100 ) {
@@ -750,17 +734,12 @@
               } )() ;
             } // function: rendering
             function rendered( callback ) {
-              speedcheck && setting.log.speed.name.push( 'rendered' ) ;
-              speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
-              
               checker.remove() ;
               setting.scroll.record = true ;
               Store.hashscroll( event.type.toLowerCase() === 'popstate' ) || scroll( true ) ;
               jQuery( window ).trigger( setting.gns + '.load' ) ;
               Store.fire( callback ) ;
               
-              speedcheck && console.log( setting.log.speed.time ) ;
-              speedcheck && console.log( setting.log.speed.name ) ;
               if ( Store.fire( callbacks_update.rendering.after, null, [ event, setting.parameter ], setting.callbacks.async ) === false ) { return ; }
             } // function: rendered
             
@@ -823,9 +802,6 @@
                 jQuery( 'head' ).append( adds ) ;
                 
                 if ( Store.fire( callbacks_update.css.after, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE_CSS ; }
-                
-                speedcheck && setting.log.speed.name.push( 'css' ) ;
-                speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
               } ; // label: UPDATE_CSS
             } // function: css
             
@@ -876,8 +852,6 @@
                 }
                 
                 if ( Store.fire( callbacks_update.script.after, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE_SCRIPT ; }
-                selector === '[src][defer]' && speedcheck && setting.log.speed.name.push( 'script' ) ;
-                selector === '[src][defer]' && speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
               } ; // label: UPDATE_SCRIPT
             } // function: script
             
@@ -927,9 +901,6 @@
           } ;
           
           if ( Store.fire( callbacks_update.after, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
-          
-          speedcheck && setting.log.speed.name.push( 'complete' ) ;
-          speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
         } ; // label: UPDATE
       } // function: update
     },
@@ -1061,7 +1032,7 @@
     database: function () {
       var setting = Store.settings[ 1 ] ;
       var version = 1, idb = setting.database, name = setting.gns, db, store, days = Math.floor( setting.timestamp / ( 1000*60*60*24 ) ) ;
-      if ( !idb || !name ) {
+      if ( !idb || !name || !idb.open ) {
         return false ;
       }
       

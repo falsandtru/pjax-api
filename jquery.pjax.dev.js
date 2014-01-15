@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.28.2
+ * @version 1.29.0
  * @updated 2014/01/15
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -328,6 +328,7 @@
       return 'pushState' in window.history && window.history[ 'pushState' ] ;
     },
     registrate: function ( jQuery, window, document, undefined, Store, setting ) {
+      
       var context = this ;
       
       setting.id = 1 ;
@@ -623,7 +624,6 @@
           var title, css, script ;
           
           try {
-            
             /* validator */ validator && validator.test( '++', 1, 0, 'try' ) ;
             /* validator */ validator && validator.test( '++', 1, !cache ? [ setting.contentType, XMLHttpRequest.getResponseHeader( 'Content-Type' ) ] : 0, 'content-type' ) ;
             if ( !cache && -1 === ( XMLHttpRequest.getResponseHeader( 'Content-Type' ) || '' ).toLowerCase().search( setting.contentType ) ) { throw new Error( "throw: content-type mismatch" ) ; }
@@ -785,6 +785,7 @@
             /* validator */ validator && validator.test( '++', 1, 0, 'rendering' ) ;
             function rendering( callback ) {
               if ( Store.fire( callbacks_update.rendering.before, null, [ event, setting.parameter ], setting.callbacks.async ) === false ) { return ; }
+              
               var count = 0 ;
               ( function () {
                 if ( checker.filter( function () { return this.clientWidth || this.clientHeight || jQuery( this ).is( ':hidden' ) ; } ).length === checker.length || count >= 100 ) {
