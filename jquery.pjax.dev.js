@@ -623,7 +623,6 @@
           var title, css, script ;
           
           try {
-            
             /* validator */ validator && validator.test( '++', 1, 0, 'try' ) ;
             /* validator */ validator && validator.test( '++', 1, !cache ? [ setting.contentType, XMLHttpRequest.getResponseHeader( 'Content-Type' ) ] : 0, 'content-type' ) ;
             if ( !cache && -1 === ( XMLHttpRequest.getResponseHeader( 'Content-Type' ) || '' ).toLowerCase().search( setting.contentType ) ) { throw new Error( "throw: content-type mismatch" ) ; }
