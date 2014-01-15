@@ -995,7 +995,7 @@
             /* validator */ validator && validator.test( '++', !( err.message === 'throw: location mismatch' && url !== window.location.href ), [ url, window.location.href ], "!( err.message === 'throw: location mismatch' && url !== window.location.href )" ) ;
             
             /* cache delete */
-            cache && jQuery[ Store.name ].setCache( url ) ;
+            cache && jQuery[ Store.name ].removeCache( url ) ;
             
             if ( Store.fire( callbacks_update.error, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
             if ( Store.fire( callbacks_update.complete, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
