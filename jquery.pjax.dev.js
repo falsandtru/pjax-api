@@ -282,7 +282,7 @@
           history = setting.history ;
           url = url || Store.canonicalizeURL( window.location.href ) ;
           if ( !setting.hashquery ) { url = url.replace( /#.*/, '' ) ; }
-          history.data[ url ] && setting.timestamp > history.data[ url ].timestamp + history.config.expire && jQuery[ Store.name ].setCache( url ) ;
+          history.data[ url ] && setting.timestamp > history.data[ url ].timestamp + history.config.expire && jQuery[ Store.name ].removeCache( url ) ;
           return history.data[ url ] ;
         } ;
         
