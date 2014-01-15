@@ -328,6 +328,7 @@
       return 'pushState' in window.history && window.history[ 'pushState' ] ;
     },
     registrate: function ( jQuery, window, document, undefined, Store, setting ) {
+      
       var context = this ;
       
       setting.id = 1 ;
