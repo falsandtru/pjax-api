@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.30.0
- * @updated 2014/01/15
+ * @version 1.30.1
+ * @updated 2014/01/16
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -271,7 +271,7 @@
           history = setting.history ;
           url = url || Store.canonicalizeURL( window.location.href ) ;
           if ( !setting.hashquery ) { url = url.replace( /#.*/, '' ) ; }
-          history.data[ url ] && setting.timestamp > history.data[ url ].timestamp + history.config.expire && jQuery[ Store.name ].setCache( url ) ;
+          history.data[ url ] && setting.timestamp > history.data[ url ].timestamp + history.config.expire && jQuery[ Store.name ].removeCache( url ) ;
           return history.data[ url ] ;
         } ;
         
@@ -901,7 +901,7 @@
             if ( Store.fire( setting.callback, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
           } catch( err ) {
             /* cache delete */
-            cache && jQuery[ Store.name ].setCache( url ) ;
+            cache && jQuery[ Store.name ].removeCache( url ) ;
             
             if ( Store.fire( callbacks_update.error, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
             if ( Store.fire( callbacks_update.complete, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
