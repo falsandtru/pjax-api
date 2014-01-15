@@ -405,13 +405,14 @@ pjaxを使用してフォーム送信によりページを移動します。
 `$.pjax.submit('/', {method: 'POST'}, [{tag: 'input', attr: {type: 'text'}, name: 'name', value: 'data'}])`
 
 ####*setCache( [ URL as string [, Data as string [, textStatus as string, XMLHttpRequest as XMLHttpRequest ] ] ] )*
-キャッシュを設定します。`URL`のみ渡すとデータが削除されます。ページの更新には`XMLHttpRequest.responseText`をベースに`Data`に存在するタイトルと更新範囲で上書きして使用されます。`Data`はタイトルと更新範囲以外使用されません。`XMLHttpRequest`がない場合はページ移動時に取得して補充されます。
+キャッシュを設定します。ページの更新には`XMLHttpRequest.responseText`をベースに`Data`に存在するタイトルと更新範囲で上書きして使用されます。`Data`によるキャッシュの上書きはタイトルと更新範囲にのみ適用されます。`XMLHttpRequest`がない場合はページ移動時に取得して補充されます。
 
 #####*setCache( URL as string, Data as string, textStatus as string, XMLHttpRequest as XMLHttpRequest )*
-パラメータによりキャッシュを設定します。`Data`は`null`で省略できます。
-
 #####*setCache( URL as string, Data as string )*
-パラメータによりキャッシュを設定します。更新範囲外のデータの状態は復元されません。`Data`に`null`を設定すると`XMLHttpRequest`を使用して更新されます。
+パラメータによりキャッシュを設定します。`Data`に`null`を設定すると`XMLHttpRequest`を使用して更新されます。
+
+#####*setCache( URL as string )*
+URLのページのキャッシュを設定します。`setCache( URL, document.documentElement.outerHTML )`と同義です。
 
 #####*setCache()*
 現在のページのキャッシュを設定します。`setCache( location.href, document.documentElement.outerHTML )`と同義です。
@@ -427,6 +428,9 @@ URLのページのキャッシュを取得します。
 
 #####*getCache()*
 現在のページのキャッシュを取得します。
+
+####*removeCache( [ URL as string ] )*
+URLまたは現在のページのキャッシュを削除します。
 
 ####*clearCache()*
 キャッシュをすべて削除します。
@@ -1122,6 +1126,12 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 ##更新情報
 
 ###change log
+
+####1.30.0
+
++ `setCache`メソッドの仕様を変更
+  <br>パラメータを一つ渡した場合の動作を変更。
++ `removeCache`メソッドを追加
 
 ####1.29.0
 
