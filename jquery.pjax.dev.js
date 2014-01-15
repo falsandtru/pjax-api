@@ -1134,7 +1134,7 @@
       /* validator */ validator && validator.start() ;
       /* validator */ validator && ( validator.scope = function( code ){ return eval( code ) ; } ) ;
       var version = 1, idb = setting.database, name = setting.gns, db, store, days = Math.floor( setting.timestamp / ( 1000*60*60*24 ) ) ;
-      if ( !idb || !name ) {
+      if ( !idb || !name || !idb.open ) {
         /* validator */ validator && validator.end() ;
         return false ;
       }
