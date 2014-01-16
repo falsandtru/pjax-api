@@ -1141,13 +1141,15 @@
         break ;
       }
     },
-    database: function () {
+    database: function ( count ) {
       var setting = Store.settings[ 1 ] ;
       /* validator */ var validator = setting.validator ? setting.validator.clone( { name: 'jquery.pjax.js - database()' } ) : false ;
       /* validator */ validator && validator.start() ;
       /* validator */ validator && ( validator.scope = function( code ){ return eval( code ) ; } ) ;
       var version = 1, idb = setting.database, name = setting.gns, db, store, days = Math.floor( setting.timestamp / ( 1000*60*60*24 ) ) ;
-      if ( !idb || !name || !idb.open ) {
+      count = count || 0 ;
+      if ( !idb || !name || !idb.open || count > 3 ) {
+        setting.database = false ;
         /* validator */ validator && validator.end() ;
         return false ;
       }
@@ -1165,10 +1167,14 @@
           /* validator */ validator && validator.test( '++', 1, 0, 'onupgradeneeded()' ) ;
           setting.database = this.result ;
           var db = this.result ;
-          /* validator */ validator && validator.test( '++', 1, 0, 'deleteObjectStore' ) ;
-          for ( var i = db.objectStoreNames ? db.objectStoreNames.length : 0 ; i-- ; ) { db.deleteObjectStore( db.objectStoreNames[ i ] ) ; }
-          /* validator */ validator && validator.test( '++', 1, 0, 'createObjectStore' ) ;
-          setting.database.createObjectStore( setting.gns, { keyPath: 'id', autoIncrement: false } ).createIndex( 'date', 'date', { unique: false } ) ;
+          try {
+            /* validator */ validator && validator.test( '++', 1, 0, 'deleteObjectStore' ) ;
+            for ( var i = db.objectStoreNames ? db.objectStoreNames.length : 0 ; i-- ; ) { db.deleteObjectStore( db.objectStoreNames[ i ] ) ; }
+            /* validator */ validator && validator.test( '++', 1, 0, 'createObjectStore' ) ;
+            setting.database.createObjectStore( setting.gns, { keyPath: 'id', autoIncrement: false } ).createIndex( 'date', 'date', { unique: false } ) ;
+          } catch ( err ) {
+            /* validator */ validator && validator.test( '++', 1, err, 'cancel' ) ;
+          }
         } ;
         db.onsuccess = function () {
           /* validator */ validator && validator.test( '++', 1, 0, 'onsuccess()' ) ;
@@ -1200,9 +1206,10 @@
           /* validator */ validator && validator.end() ;
         } ;
         db.onerror = function ( event ) {
-          /* validator */ validator && validator.test( '++', 0, event, 'onerror()' ) ;
+          /* validator */ validator && validator.test( '++', count, event, 'onerror()' ) ;
           setting.database = false ;
           idb.deleteDatabase( name ) ;
+          setTimeout( function () { database( ++count ) ; }, 1000 ) ;
           /* validator */ validator && validator.end() ;
         } ;
       } catch ( err ) {
