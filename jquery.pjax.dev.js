@@ -279,6 +279,7 @@
         
         $context.getCache = function ( url ) {
           var setting = Store.settings[ 1 ] ;
+          if ( !setting || !setting.history ) { return false ; }
           var history ;
           history = setting.history ;
           url = url || Store.canonicalizeURL( window.location.href ) ;
