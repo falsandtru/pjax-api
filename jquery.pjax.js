@@ -1054,7 +1054,6 @@
         version = parseInt( days - days % 7 + version, 10 ) ;
         db = idb.open( name ) ;
         db.onblocked = function () {
-          setting.database = false ;
         } ;
         db.onupgradeneeded = function () {
           setting.database = this.result ;
@@ -1090,7 +1089,6 @@
           }
         } ;
         db.onerror = function ( event ) {
-          setting.database = false ;
           idb.deleteDatabase( name ) ;
           setTimeout( function () { database( ++count ) ; }, 1000 ) ;
         } ;
