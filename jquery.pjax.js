@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.30.2
- * @updated 2014/01/16
+ * @version 1.30.3
+ * @updated 2014/01/17
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -1076,16 +1076,16 @@
                 Store.dbCurrent() ;
                 Store.dbTitle( setting.location.href, document.title ) ;
               } else {
-                setting.database.close() ;
+                db.close() ;
                 idb.deleteDatabase( name ) ;
                 setting.database = idb ;
                 Store.database() ;
               }
             } ;
           } catch ( err ) {
-            setting.database.close() ;
-            idb.deleteDatabase( name ) ;
             setting.database = false ;
+            db.close() ;
+            idb.deleteDatabase( name ) ;
           }
         } ;
         db.onerror = function ( event ) {
