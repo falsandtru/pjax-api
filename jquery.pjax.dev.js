@@ -983,8 +983,7 @@
                 load_script( '[src][defer]' ) ;
               }
             } )
-            .trigger( setting.gns + '.rendering' )
-            .unbind( setting.gns + '.rendering' ) ;
+            .trigger( setting.gns + '.rendering' ) ;
             
             if ( Store.fire( callbacks_update.success, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
             if ( Store.fire( callbacks_update.complete, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
