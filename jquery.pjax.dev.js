@@ -1161,7 +1161,6 @@
         /* validator */ validator && validator.test( '++', 1, 0, 'call' ) ;
         db.onblocked = function () {
           /* validator */ validator && validator.test( '++', 0, 0, 'onblocked()' ) ;
-          setting.database = false ;
         } ;
         db.onupgradeneeded = function () {
           /* validator */ validator && validator.test( '++', 1, 0, 'onupgradeneeded()' ) ;
@@ -1207,7 +1206,6 @@
         } ;
         db.onerror = function ( event ) {
           /* validator */ validator && validator.test( '++', count, event, 'onerror()' ) ;
-          setting.database = false ;
           idb.deleteDatabase( name ) ;
           setTimeout( function () { database( ++count ) ; }, 1000 ) ;
           /* validator */ validator && validator.end() ;
