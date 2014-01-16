@@ -1076,16 +1076,16 @@
                 Store.dbCurrent() ;
                 Store.dbTitle( setting.location.href, document.title ) ;
               } else {
-                setting.database.close() ;
+                db.close() ;
                 idb.deleteDatabase( name ) ;
                 setting.database = idb ;
                 Store.database() ;
               }
             } ;
           } catch ( err ) {
-            setting.database.close() ;
-            idb.deleteDatabase( name ) ;
             setting.database = false ;
+            db.close() ;
+            idb.deleteDatabase( name ) ;
           }
         } ;
         db.onerror = function ( event ) {
