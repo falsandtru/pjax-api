@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.30.1
+ * @version 1.30.2
  * @updated 2014/01/16
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -225,6 +225,7 @@
         
         $context.setCache = function ( url, data, textStatus, XMLHttpRequest ) {
           var setting = Store.settings[ 1 ] ;
+          if ( !setting || !setting.history ) { return false ; }
           var cache, history, title, size ;
           history = setting.history ;
           url = url || Store.canonicalizeURL( window.location.href ) ;
@@ -267,6 +268,7 @@
         
         $context.getCache = function ( url ) {
           var setting = Store.settings[ 1 ] ;
+          if ( !setting || !setting.history ) { return false ; }
           var history ;
           history = setting.history ;
           url = url || Store.canonicalizeURL( window.location.href ) ;
@@ -277,6 +279,7 @@
         
         $context.removeCache = function ( url ) {
           var setting = Store.settings[ 1 ] ;
+          if ( !setting || !setting.history ) { return false ; }
           var history ;
           history = setting.history ;
           url = url || Store.canonicalizeURL( window.location.href ) ;
@@ -294,6 +297,7 @@
         
         $context.clearCache = function () {
           var setting = Store.settings[ 1 ] ;
+          if ( !setting || !setting.history ) { return false ; }
           var history = setting.history ;
           for ( var i = history.order.length, url ; url = history.order[ --i ] ; ) {
             history.order.splice( i, 1 ) ;
@@ -305,6 +309,7 @@
         
         $context.cleanCache = function () {
           var setting = Store.settings[ 1 ] ;
+          if ( !setting || !setting.history ) { return false ; }
           var history = setting.history ;
           for ( var i = history.order.length, url ; url = history.order[ --i ] ; ) {
             if ( i >= history.config.length || url in history.data && setting.timestamp > history.data[ url ].timestamp + history.config.expire ) {
@@ -893,8 +898,7 @@
                 load_script( '[src][defer]' ) ;
               }
             } )
-            .trigger( setting.gns + '.rendering' )
-            .unbind( setting.gns + '.rendering' ) ;
+            .trigger( setting.gns + '.rendering' ) ;
             
             if ( Store.fire( callbacks_update.success, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
             if ( Store.fire( callbacks_update.complete, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
@@ -1037,10 +1041,12 @@
         break ;
       }
     },
-    database: function () {
+    database: function ( count ) {
       var setting = Store.settings[ 1 ] ;
       var version = 1, idb = setting.database, name = setting.gns, db, store, days = Math.floor( setting.timestamp / ( 1000*60*60*24 ) ) ;
-      if ( !idb || !name || !idb.open ) {
+      count = count || 0 ;
+      if ( !idb || !name || !idb.open || count > 3 ) {
+        setting.database = false ;
         return false ;
       }
       
@@ -1048,13 +1054,15 @@
         version = parseInt( days - days % 7 + version, 10 ) ;
         db = idb.open( name ) ;
         db.onblocked = function () {
-          setting.database = false ;
         } ;
         db.onupgradeneeded = function () {
           setting.database = this.result ;
           var db = this.result ;
-          for ( var i = db.objectStoreNames ? db.objectStoreNames.length : 0 ; i-- ; ) { db.deleteObjectStore( db.objectStoreNames[ i ] ) ; }
-          setting.database.createObjectStore( setting.gns, { keyPath: 'id', autoIncrement: false } ).createIndex( 'date', 'date', { unique: false } ) ;
+          try {
+            for ( var i = db.objectStoreNames ? db.objectStoreNames.length : 0 ; i-- ; ) { db.deleteObjectStore( db.objectStoreNames[ i ] ) ; }
+            setting.database.createObjectStore( setting.gns, { keyPath: 'id', autoIncrement: false } ).createIndex( 'date', 'date', { unique: false } ) ;
+          } catch ( err ) {
+          }
         } ;
         db.onsuccess = function () {
           try {
@@ -1081,8 +1089,8 @@
           }
         } ;
         db.onerror = function ( event ) {
-          setting.database = false ;
           idb.deleteDatabase( name ) ;
+          setTimeout( function () { database( ++count ) ; }, 1000 ) ;
         } ;
       } catch ( err ) {
         setting.database = false ;

@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.30.1
+ * @version 1.30.2
  * @updated 2014/01/16
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -236,6 +236,7 @@
         
         $context.setCache = function ( url, data, textStatus, XMLHttpRequest ) {
           var setting = Store.settings[ 1 ] ;
+          if ( !setting || !setting.history ) { return false ; }
           var cache, history, title, size ;
           history = setting.history ;
           url = url || Store.canonicalizeURL( window.location.href ) ;
@@ -278,6 +279,7 @@
         
         $context.getCache = function ( url ) {
           var setting = Store.settings[ 1 ] ;
+          if ( !setting || !setting.history ) { return false ; }
           var history ;
           history = setting.history ;
           url = url || Store.canonicalizeURL( window.location.href ) ;
@@ -288,6 +290,7 @@
         
         $context.removeCache = function ( url ) {
           var setting = Store.settings[ 1 ] ;
+          if ( !setting || !setting.history ) { return false ; }
           var history ;
           history = setting.history ;
           url = url || Store.canonicalizeURL( window.location.href ) ;
@@ -305,6 +308,7 @@
         
         $context.clearCache = function () {
           var setting = Store.settings[ 1 ] ;
+          if ( !setting || !setting.history ) { return false ; }
           var history = setting.history ;
           for ( var i = history.order.length, url ; url = history.order[ --i ] ; ) {
             history.order.splice( i, 1 ) ;
@@ -316,6 +320,7 @@
         
         $context.cleanCache = function () {
           var setting = Store.settings[ 1 ] ;
+          if ( !setting || !setting.history ) { return false ; }
           var history = setting.history ;
           for ( var i = history.order.length, url ; url = history.order[ --i ] ; ) {
             if ( i >= history.config.length || url in history.data && setting.timestamp > history.data[ url ].timestamp + history.config.expire ) {
@@ -983,8 +988,7 @@
                 load_script( '[src][defer]' ) ;
               }
             } )
-            .trigger( setting.gns + '.rendering' )
-            .unbind( setting.gns + '.rendering' ) ;
+            .trigger( setting.gns + '.rendering' ) ;
             
             if ( Store.fire( callbacks_update.success, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
             if ( Store.fire( callbacks_update.complete, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
@@ -1137,13 +1141,15 @@
         break ;
       }
     },
-    database: function () {
+    database: function ( count ) {
       var setting = Store.settings[ 1 ] ;
       /* validator */ var validator = setting.validator ? setting.validator.clone( { name: 'jquery.pjax.js - database()' } ) : false ;
       /* validator */ validator && validator.start() ;
       /* validator */ validator && ( validator.scope = function( code ){ return eval( code ) ; } ) ;
       var version = 1, idb = setting.database, name = setting.gns, db, store, days = Math.floor( setting.timestamp / ( 1000*60*60*24 ) ) ;
-      if ( !idb || !name || !idb.open ) {
+      count = count || 0 ;
+      if ( !idb || !name || !idb.open || count > 3 ) {
+        setting.database = false ;
         /* validator */ validator && validator.end() ;
         return false ;
       }
@@ -1155,16 +1161,19 @@
         /* validator */ validator && validator.test( '++', 1, 0, 'call' ) ;
         db.onblocked = function () {
           /* validator */ validator && validator.test( '++', 0, 0, 'onblocked()' ) ;
-          setting.database = false ;
         } ;
         db.onupgradeneeded = function () {
           /* validator */ validator && validator.test( '++', 1, 0, 'onupgradeneeded()' ) ;
           setting.database = this.result ;
           var db = this.result ;
-          /* validator */ validator && validator.test( '++', 1, 0, 'deleteObjectStore' ) ;
-          for ( var i = db.objectStoreNames ? db.objectStoreNames.length : 0 ; i-- ; ) { db.deleteObjectStore( db.objectStoreNames[ i ] ) ; }
-          /* validator */ validator && validator.test( '++', 1, 0, 'createObjectStore' ) ;
-          setting.database.createObjectStore( setting.gns, { keyPath: 'id', autoIncrement: false } ).createIndex( 'date', 'date', { unique: false } ) ;
+          try {
+            /* validator */ validator && validator.test( '++', 1, 0, 'deleteObjectStore' ) ;
+            for ( var i = db.objectStoreNames ? db.objectStoreNames.length : 0 ; i-- ; ) { db.deleteObjectStore( db.objectStoreNames[ i ] ) ; }
+            /* validator */ validator && validator.test( '++', 1, 0, 'createObjectStore' ) ;
+            setting.database.createObjectStore( setting.gns, { keyPath: 'id', autoIncrement: false } ).createIndex( 'date', 'date', { unique: false } ) ;
+          } catch ( err ) {
+            /* validator */ validator && validator.test( '++', 1, err, 'cancel' ) ;
+          }
         } ;
         db.onsuccess = function () {
           /* validator */ validator && validator.test( '++', 1, 0, 'onsuccess()' ) ;
@@ -1196,9 +1205,9 @@
           /* validator */ validator && validator.end() ;
         } ;
         db.onerror = function ( event ) {
-          /* validator */ validator && validator.test( '++', 0, event, 'onerror()' ) ;
-          setting.database = false ;
+          /* validator */ validator && validator.test( '++', count, event, 'onerror()' ) ;
           idb.deleteDatabase( name ) ;
+          setTimeout( function () { database( ++count ) ; }, 1000 ) ;
           /* validator */ validator && validator.end() ;
         } ;
       } catch ( err ) {
