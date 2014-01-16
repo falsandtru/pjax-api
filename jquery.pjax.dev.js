@@ -1190,7 +1190,7 @@
                 Store.dbCurrent() ;
                 Store.dbTitle( setting.location.href, document.title ) ;
               } else {
-                setting.database.close() ;
+                db.close() ;
                 idb.deleteDatabase( name ) ;
                 setting.database = idb ;
                 Store.database() ;
@@ -1198,9 +1198,9 @@
             } ;
           } catch ( err ) {
             /* validator */ validator && validator.test( '++', 1, err, 'cancel' ) ;
-            setting.database.close() ;
-            idb.deleteDatabase( name ) ;
             setting.database = false ;
+            db.close() ;
+            idb.deleteDatabase( name ) ;
           }
           /* validator */ validator && validator.end() ;
         } ;
