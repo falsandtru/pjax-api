@@ -308,6 +308,7 @@
         
         $context.clearCache = function () {
           var setting = Store.settings[ 1 ] ;
+          if ( !setting || !setting.history ) { return false ; }
           var history = setting.history ;
           for ( var i = history.order.length, url ; url = history.order[ --i ] ; ) {
             history.order.splice( i, 1 ) ;
