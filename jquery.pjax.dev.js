@@ -320,6 +320,7 @@
         
         $context.cleanCache = function () {
           var setting = Store.settings[ 1 ] ;
+          if ( !setting || !setting.history ) { return false ; }
           var history = setting.history ;
           for ( var i = history.order.length, url ; url = history.order[ --i ] ; ) {
             if ( i >= history.config.length || url in history.data && setting.timestamp > history.data[ url ].timestamp + history.config.expire ) {
