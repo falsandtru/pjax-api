@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.30.4
+ * @version 1.30.5
  * @updated 2014/01/17
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -881,6 +881,8 @@
                     if ( !adds.length && Store.trim( tmp.href || tmp.innerHTML || '' ) === content ) {
                       removes = removes.not( tmp ) ;
                       element = null ;
+                      break ;
+                    } else if ( !j && adds.length ) {
                       break ;
                     }
                   }
