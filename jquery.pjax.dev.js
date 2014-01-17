@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.30.3
+ * @version 1.30.4
  * @updated 2014/01/17
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -878,7 +878,7 @@
                   content = Store.trim( element.href || element.innerHTML || '' ) ;
                   
                   for ( var j = 0, tmp ; tmp = removes[ j ] ; j++ ) {
-                    if ( Store.trim( tmp.href || tmp.innerHTML || '' ) === content ) {
+                    if ( !adds.length && Store.trim( tmp.href || tmp.innerHTML || '' ) === content ) {
                       removes = removes.not( tmp ) ;
                       element = null ;
                       break ;
