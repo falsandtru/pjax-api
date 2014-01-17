@@ -882,6 +882,8 @@
                       removes = removes.not( tmp ) ;
                       element = null ;
                       break ;
+                    } else if ( !j && adds.length ) {
+                      break ;
                     }
                   }
                   element && adds.push( element ) ;
