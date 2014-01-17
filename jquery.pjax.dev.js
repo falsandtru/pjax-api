@@ -878,7 +878,7 @@
                   content = Store.trim( element.href || element.innerHTML || '' ) ;
                   
                   for ( var j = 0, tmp ; tmp = removes[ j ] ; j++ ) {
-                    if ( Store.trim( tmp.href || tmp.innerHTML || '' ) === content ) {
+                    if ( !adds.length && Store.trim( tmp.href || tmp.innerHTML || '' ) === content ) {
                       removes = removes.not( tmp ) ;
                       element = null ;
                       break ;
