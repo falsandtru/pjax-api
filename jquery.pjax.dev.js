@@ -1209,9 +1209,9 @@
           /* validator */ validator && validator.end() ;
         } ;
         db.onerror = function ( event ) {
-          /* validator */ validator && validator.test( '++', count, event, 'onerror()' ) ;
+          /* validator */ validator && validator.test( '++', 1, event, 'onerror()' ) ;
           idb.deleteDatabase( name ) ;
-          setTimeout( function () { database( ++count ) ; }, 1000 ) ;
+          setTimeout( function () { Store.database( ++count ) ; }, 1000 ) ;
           /* validator */ validator && validator.end() ;
         } ;
       } catch ( err ) {
