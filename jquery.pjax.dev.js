@@ -267,6 +267,8 @@
                   XMLHttpRequest: XMLHttpRequest,
                   textStatus: textStatus,
                   data: data,
+                  //css: undefined,
+                  //script: undefined,
                   size: size,
                   timestamp: ( new Date() ).getTime()
                 }
