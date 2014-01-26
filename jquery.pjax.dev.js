@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.30.5
- * @updated 2014/01/17
+ * @version 1.30.6
+ * @updated 2014/01/26
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -267,6 +267,8 @@
                   XMLHttpRequest: XMLHttpRequest,
                   textStatus: textStatus,
                   data: data,
+                  //css: undefined,
+                  //script: undefined,
                   size: size,
                   timestamp: ( new Date() ).getTime()
                 }
@@ -1207,9 +1209,9 @@
           /* validator */ validator && validator.end() ;
         } ;
         db.onerror = function ( event ) {
-          /* validator */ validator && validator.test( '++', count, event, 'onerror()' ) ;
+          /* validator */ validator && validator.test( '++', 1, event, 'onerror()' ) ;
           idb.deleteDatabase( name ) ;
-          setTimeout( function () { database( ++count ) ; }, 1000 ) ;
+          setTimeout( function () { Store.database( ++count ) ; }, 1000 ) ;
           /* validator */ validator && validator.end() ;
         } ;
       } catch ( err ) {
