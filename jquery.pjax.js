@@ -256,6 +256,8 @@
                   XMLHttpRequest: XMLHttpRequest,
                   textStatus: textStatus,
                   data: data,
+                  //css: undefined,
+                  //script: undefined,
                   size: size,
                   timestamp: ( new Date() ).getTime()
                 }
@@ -1092,7 +1094,7 @@
         } ;
         db.onerror = function ( event ) {
           idb.deleteDatabase( name ) ;
-          setTimeout( function () { database( ++count ) ; }, 1000 ) ;
+          setTimeout( function () { Store.database( ++count ) ; }, 1000 ) ;
         } ;
       } catch ( err ) {
         setting.database = false ;
