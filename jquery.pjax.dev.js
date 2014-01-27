@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.30.6
- * @updated 2014/01/26
+ * @version 1.30.7
+ * @updated 2014/01/27
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -142,8 +142,7 @@
         retry: true,
         xhr: null,
         speed: { now: function () { return ( new Date() ).getTime() ; } },
-        option: option,
-        validator: validator
+        option: option
       }
     ) ;
     
