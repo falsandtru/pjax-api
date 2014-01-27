@@ -134,8 +134,7 @@
         retry: true,
         xhr: null,
         speed: { now: function () { return ( new Date() ).getTime() ; } },
-        option: option,
-        validator: validator
+        option: option
       }
     ) ;
     
