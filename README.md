@@ -72,7 +72,7 @@ defunkt版（v1.7.0/2013年6月現在最新版）との主な違いは次のと�
 |複数領域の更新|×|○|
 |更新範囲の動的設定|×|○|
 |ユーザー定義関数の実行形式|イベント|コールバック＋イベント|
-|ユーザー定義関数の設定箇所|9|29+4|
+|ユーザー定義関数の設定箇所|9|31+4|
 |部分的更新キャンセル※6|×|○|
 |比較用デモ※7|<a href="http://falsandtru.github.io/pjax/demo/defunkt/" target="_blank">defunkt</a>|<a href="http://falsandtru.github.io/pjax/demo/falsandtru/" target="_blank">falsandtru</a>|
 
@@ -324,6 +324,12 @@ ajax通信において同名のメソッド内で実行されます。
 
 #####*update.cache.load.after( event, parameter, cache )*
 ページの更新処理においてcacheの読み込み後に実行されます。
+
+#####*update.url.before( event, parameter, data, textStatus, XMLHttpRequest )*
+ページの更新処理においてURLの更新前に実行されます。
+
+#####*update.url.after( event, parameter, data, textStatus, XMLHttpRequest )*
+ページの更新処理においてURLの更新後に実行されます。
 
 #####*update.title.before( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理においてタイトルの更新前に実行されます。
