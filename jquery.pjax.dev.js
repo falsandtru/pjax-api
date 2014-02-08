@@ -746,11 +746,11 @@
                 case 'submit':
                   scrollX = call && typeof setting.scrollLeft === 'function' ? Store.fire( setting.scrollLeft, null, [ event ] ) : setting.scrollLeft ;
                   scrollX = 0 <= scrollX ? scrollX : 0 ;
-                  scrollX = scrollX === null ? jQuery( window ).scrollLeft() : parseInt( Number( scrollX ), 10 ) ;
+                  scrollX = scrollX === false || scrollX === null ? jQuery( window ).scrollLeft() : parseInt( Number( scrollX ), 10 ) ;
                   
                   scrollY = call && typeof setting.scrollTop === 'function' ? Store.fire( setting.scrollTop, null, [ event ] ) : setting.scrollTop ;
                   scrollY = 0 <= scrollY ? scrollY : 0 ;
-                  scrollY = scrollY === null ? jQuery( window ).scrollTop() : parseInt( Number( scrollY ), 10 ) ;
+                  scrollY = scrollY === false || scrollY === null ? jQuery( window ).scrollTop() : parseInt( Number( scrollY ), 10 ) ;
                   
                   ( jQuery( window ).scrollTop() === scrollY && jQuery( window ).scrollLeft() === scrollX ) || window.scrollTo( scrollX, scrollY ) ;
                   call && setting.database && setting.fix.scroll && Store.dbScroll( scrollX, scrollY ) ;

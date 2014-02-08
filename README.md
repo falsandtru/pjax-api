@@ -158,11 +158,11 @@ pjaxによるページ移動を`http://example.com/pjax/`ディレクトリ内�
 ####*state: any / function( event, url )*
 `pushState`の第一引数として渡す値を設定します。関数が設定された場合は戻り値が渡されます。初期値は`null`です。
 
-####*scrollTop: Position as number / null / function( event )*
-リンクまたはフォームによるページ移動後の縦方向のスクロール位置を設定します。`null`を設定すると移動前のスクロール位置を維持します。関数を設定すると戻り値がスクロール位置となります。初期値は`0`です。
+####*scrollTop: Position as number / false / null / function( event )*
+リンクまたはフォームによるページ移動後の縦方向のスクロール位置を設定します。`false`または`null`を設定すると移動前のスクロール位置を維持します。関数を設定すると戻り値がスクロール位置となります。初期値は`0`です。
 
-####*scrollLeft: Position as number / null / function( event )*
-リンクまたはフォームによるページ移動後の横方向のスクロール位置を設定します。`null`を設定すると移動前のスクロール位置を維持します。関数を設定すると戻り値がスクロール位置となります。初期値は`0`です。
+####*scrollLeft: Position as number / false / null / function( event )*
+リンクまたはフォームによるページ移動後の横方向のスクロール位置を設定します。`false`または`null`を設定すると移動前のスクロール位置を維持します。関数を設定すると戻り値がスクロール位置となります。初期値は`0`です。
 
 ####*scroll: node*
 スクロール位置の復元のためのスクロール位置の記録間隔にかかる設定項目を持ちます。
@@ -738,12 +738,12 @@ pjaxによるページ移動が失敗した場合に通常のページ移動を�
 ```
 
 ###スクロール位置 - scrollTop, scrollLeft
-pjaxによるページ移動後のスクロール位置を設定します。`null`を設定すると移動前のスクロール位置を維持します。
+pjaxによるページ移動後のスクロール位置を設定します。`false`を設定すると移動前のスクロール位置を維持します。
 
 **<a href="http://falsandtru.github.io/pjax/demo/scroll/" target="_blank">demo</a>**
 
 ```javascript
-  $.pjax({ area: 'div.pjax', scrollTop: null, scrollLeft: 50 });
+  $.pjax({ area: 'div.pjax', scrollTop: false, scrollLeft: 50 });
 ```
 
 ###最低待ち時間 - wait
