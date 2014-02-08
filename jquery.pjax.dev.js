@@ -160,7 +160,7 @@
   Store = {
     name: 'pjax',
     alias: '',
-    ids: [0],
+    ids: [],
     settings: [0],
     count: 0,
     parseHTML: null,
