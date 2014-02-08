@@ -8,6 +8,7 @@ pjaxはデータの読み込みと描画の冗長部分を省略することで�
 フルフラッシュサイトのHTML5化、ウェブサービスのアプリケーション的な表現、ウェブアプリ開発におけるajaxの機能拡張、ネイティブアプリのウェブアプリへの移行などの用途にも利用できます。
 HTMLに数行のコードを追加するだけで簡単に導入することができ、既存のサイト構造やHTMLのクラス名を変更する必要はありません。
 
+※**defunkt/jquery-pjaxとfalsandtru/jquery.pjax.jsはまったく別のjQueryプラグインであり初期化方法など使用方法に互換性はありません。ときおり混同して使用されている方を見かけますのでご注意ください。** 
 ※動作テストのためpjaxが正常に動作していないことがあります。恐縮ですがその際は時間をおいて再度ご覧ください。  
 
 ##特徴
@@ -212,7 +213,7 @@ pjaxによるページ読み込み時にJavaScriptを読み込むかを設定し
 #####*load.rewrite: function( element )*
 JavaScriptまたはCSSとして読み込まれる要素（`script``link``style`要素）を戻り値の要素で置換します。初期値は`null`です。
 
-CloudFlareのRocketLoaderを使用するなどして要素が書き換えられている場合に有効です。渡される要素は複製であるため書き換えはDOMに反映されません。
+CloudFlareのRocketLoaderを使用するなどして要素が書き換えられている場合に有効です。
 
 ####*interval: Millisecond as number*
 pjaxにより更新されたコンテンツの描画の確認を行う間隔をミリ秒で設定します。初期値は`300`です。
@@ -895,6 +896,74 @@ pjaxで内部的に使用される`$.ajax`のパラメータを設定できま�
     },
     wait: 100
   });
+```
+
+プログレスバーでページの読み込み状況を表示することもできます。
+
+**<a href="http://falsandtru.github.io/pjax/demo/progress/" target="_blank">demo</a>**
+
+```javascript
+  $.pjax({
+    area: 'div.pjax',
+    callbacks: {
+      before: function(){
+        $('div.loading').children().width('');
+        $('div.loading').fadeIn(0);
+      },
+      ajax: {
+        xhr: function(){
+          var xhr = jQuery.ajaxSettings.xhr();
+          
+          $('div.loading').children().width('5%');
+          if ( xhr instanceof Object && 'onprogress' in xhr ) {
+            xhr.addEventListener( 'progress', function ( event ) {
+              var percentage = event.total ? event.loaded / event.total : 0.4;
+              percentage = percentage * 90 + 5;
+              $('div.loading').children().width( percentage + '%' );
+            }, false );
+            xhr.addEventListener( 'load', function ( event ) {
+              $('div.loading').children().width('95%');
+            }, false );
+            xhr.addEventListener( 'error', function ( event ) {
+              $('div.loading').children().css('background-color', '#00f');
+            }, false );
+          }
+          return xhr;
+        }
+      },
+      update: {
+        content: {
+          after: function(){
+            $('div.loading').children().width('96.25%');
+          }
+        },
+        css: {
+          after: function(){
+            $('div.loading').children().width('97.5%');
+          }
+        },
+        script: {
+          after: function(){
+            $('div.loading').children().width('98.75%');
+          }
+        },
+        rendering: {
+          after: function(){
+            $('div.loading').children().width('100%');
+            $('div.loading').fadeOut(50);
+          }
+        }
+      }
+    },
+    ajax: { timeout: 3000 },
+    wait: 1000
+  });
+```
+
+```html
+        <div class="loading" style="background:rgba(0,0,0,.2);display:none;position:fixed;bottom:0;left:0;z-index:9999;width:100%;height:5px;">
+          <div style="background:#f77;position:absolute;top:0;left:0;width:0;height:5px;"></div>
+        </div>
 ```
 
 ###UTF-8以外の文字コードへの対応 - callbacks.ajax.beforeSend
