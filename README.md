@@ -117,7 +117,7 @@ $('.delegate').pjax({ area: '.container' });
 ####*ns: Namespace as string*
 ネームスペースです。ネームスペースを設定する場合はこちらを使用してください。
 
-####*area: Selector as string / function( event, url )* **（必須）**
+####*area: Selector as string / function( event, url )*
 pjaxにより更新する範囲（HTML要素）をjQueryセレクタで設定します。
 `$.fn.pjax`により設定されたコンテキストで絞り込まれません。
 
@@ -397,7 +397,7 @@ pjaxを使用してクリックによりページを移動します。
 #####*click( Anchor as jQuery / element )*
 渡されたリンク（アンカー要素）を使用します。
 
-#####*click( URL as string[, Attribute as object ] )*
+#####*click( URL as string [, Attribute as object ] )*
 渡されたデータを元に生成したリンクを使用します。
 
 ####*submit()*
@@ -1205,6 +1205,10 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 ##更新情報
 
 ###change log
+
+####1.30.9
+
+* `scope`パラメータのみ設定した空登録に対応
 
 ####1.30.8
 

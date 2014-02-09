@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.30.8
+ * @version 1.30.9
  * @updated 2014/02/09
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -54,7 +54,7 @@
       case typeof option === 'object':
         $context = $context instanceof jQuery ? $context : jQuery( document ) ;
         $context = Store.setProperties.call( $context, option.ns || '', null ) ;
-        if ( !option.area ) {
+        if ( !option.area && !option.scope ) {
           return $context ;
         }
         break ;
