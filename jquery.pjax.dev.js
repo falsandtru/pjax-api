@@ -101,8 +101,7 @@
         database: true,
         server: {},
         location: jQuery( '<a/>', { href: Store.canonicalizeURL( window.location.href ) } )[ 0 ],
-        destination: jQuery( '<a/>', { href: Store.canonicalizeURL( window.location.href ) } )[ 0 ],
-        speedcheck: false
+        destination: jQuery( '<a/>', { href: Store.canonicalizeURL( window.location.href ) } )[ 0 ]
       },
       option
     ) ;
