@@ -391,15 +391,19 @@ pjaxを有効にします。
 ####*off()*
 pjaxを無効にします。
 
-####*click( URL as string, Attribute as object )*
+####*click()*
 pjaxを使用してクリックによりページを移動します。
 
-`$.pjax.click('/')`
+#####*click( Anchor as jQuery / element )*
+渡されたリンク（アンカー要素）を使用します。
+
+#####*click( URL as string[, Attribute as object ] )*
+渡されたデータを元に生成したリンクを使用します。
 
 ####*submit()*
 pjaxを使用してフォーム送信によりページを移動します。
 
-#####*submit( Form as element / jQuery )*
+#####*submit( Form as element / jQuery / element )*
 渡されたフォームを使用します。
 
 #####*submit( URL as string, Attribute as object, Data as Object / Array )*
@@ -1201,6 +1205,13 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 ##更新情報
 
 ###change log
+
+####1.30.8
+
+* `click`メソッドの仕様を拡張
+* `scrollTop`パラメータの仕様を拡張
+* `scrollLeft`パラメータの仕様を拡張
+* テストを追加
 
 ####1.30.7
 
