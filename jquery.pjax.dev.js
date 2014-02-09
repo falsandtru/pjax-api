@@ -192,8 +192,22 @@
         } ;
         
         $context.click = function ( url, attr ) {
-          attr = attr || {}, attr.href = url ;
-          return url ? jQuery( '<a/>', attr ).one( 'click', 1, Store.click ).click() : false ;
+          var anchor ;
+          switch ( true ) {
+            case typeof url === 'object':
+              anchor = jQuery( url ) ;
+              break ;
+              
+            case !!url:
+              attr = attr || {} ;
+              attr.href = url ;
+              anchor = jQuery( '<a/>', attr ) ;
+              break ;
+              
+            default:
+              return this ;
+          }
+          return anchor.first().one( 'click', 1, Store.click ).click() ;
         } ;
         
         $context.submit = function ( url, attr, data ) {
