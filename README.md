@@ -8,7 +8,7 @@ pjaxはデータの読み込みと描画の冗長部分を省略することで�
 フルフラッシュサイトのHTML5化、ウェブサービスのアプリケーション的な表現、ウェブアプリ開発におけるajaxの機能拡張、ネイティブアプリのウェブアプリへの移行などの用途にも利用できます。
 HTMLに数行のコードを追加するだけで簡単に導入することができ、既存のサイト構造やHTMLのクラス名を変更する必要はありません。
 
-※**defunkt/jquery-pjaxとfalsandtru/jquery.pjax.jsはまったく別のjQueryプラグインであり初期化方法など使用方法に互換性はありません。ときおり混同して使用されている方を見かけますのでご注意ください。** 
+※**defunkt/jquery-pjaxとfalsandtru/jquery.pjax.jsはまったく別のjQueryプラグインであり初期化方法など使用方法に互換性はありません。ときおり混同して使用されている方を見かけますのでご注意ください。**  
 ※動作テストのためpjaxが正常に動作していないことがあります。恐縮ですがその際は時間をおいて再度ご覧ください。  
 
 ##特徴
@@ -158,11 +158,11 @@ pjaxによるページ移動を`http://example.com/pjax/`ディレクトリ内�
 ####*state: any / function( event, url )*
 `pushState`の第一引数として渡す値を設定します。関数が設定された場合は戻り値が渡されます。初期値は`null`です。
 
-####*scrollTop: Position as number / null / function( event )*
-リンクまたはフォームによるページ移動後の縦方向のスクロール位置を設定します。`null`を設定すると移動前のスクロール位置を維持します。関数を設定すると戻り値がスクロール位置となります。初期値は`0`です。
+####*scrollTop: Position as number / false / null / function( event )*
+リンクまたはフォームによるページ移動後の縦方向のスクロール位置を設定します。`false`または`null`を設定すると移動前のスクロール位置を維持します。関数を設定すると戻り値がスクロール位置となります。初期値は`0`です。
 
-####*scrollLeft: Position as number / null / function( event )*
-リンクまたはフォームによるページ移動後の横方向のスクロール位置を設定します。`null`を設定すると移動前のスクロール位置を維持します。関数を設定すると戻り値がスクロール位置となります。初期値は`0`です。
+####*scrollLeft: Position as number / false / null / function( event )*
+リンクまたはフォームによるページ移動後の横方向のスクロール位置を設定します。`false`または`null`を設定すると移動前のスクロール位置を維持します。関数を設定すると戻り値がスクロール位置となります。初期値は`0`です。
 
 ####*scroll: node*
 スクロール位置の復元のためのスクロール位置の記録間隔にかかる設定項目を持ちます。
@@ -391,15 +391,19 @@ pjaxを有効にします。
 ####*off()*
 pjaxを無効にします。
 
-####*click( URL as string, Attribute as object )*
+####*click()*
 pjaxを使用してクリックによりページを移動します。
 
-`$.pjax.click('/')`
+#####*click( Anchor as jQuery / element )*
+渡されたリンク（アンカー要素）を使用します。
+
+#####*click( URL as string[, Attribute as object ] )*
+渡されたデータを元に生成したリンクを使用します。
 
 ####*submit()*
 pjaxを使用してフォーム送信によりページを移動します。
 
-#####*submit( Form as element / jQuery )*
+#####*submit( Form as element / jQuery / element )*
 渡されたフォームを使用します。
 
 #####*submit( URL as string, Attribute as object, Data as Object / Array )*
@@ -738,12 +742,12 @@ pjaxによるページ移動が失敗した場合に通常のページ移動を�
 ```
 
 ###スクロール位置 - scrollTop, scrollLeft
-pjaxによるページ移動後のスクロール位置を設定します。`null`を設定すると移動前のスクロール位置を維持します。
+pjaxによるページ移動後のスクロール位置を設定します。`false`を設定すると移動前のスクロール位置を維持します。
 
 **<a href="http://falsandtru.github.io/pjax/demo/scroll/" target="_blank">demo</a>**
 
 ```javascript
-  $.pjax({ area: 'div.pjax', scrollTop: null, scrollLeft: 50 });
+  $.pjax({ area: 'div.pjax', scrollTop: false, scrollLeft: 50 });
 ```
 
 ###最低待ち時間 - wait
@@ -1201,6 +1205,13 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 ##更新情報
 
 ###change log
+
+####1.30.8
+
+* `click`メソッドの仕様を拡張
+* `scrollTop`パラメータの仕様を拡張
+* `scrollLeft`パラメータの仕様を拡張
+* テストを追加
 
 ####1.30.7
 
