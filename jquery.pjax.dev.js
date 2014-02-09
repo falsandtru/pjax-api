@@ -415,7 +415,6 @@
       
       jQuery( window )
       .unbind( setting.nss.popstate )
-
       .bind( setting.nss.popstate, setting.id, Store.popstate = function ( event ) {
         event.timeStamp = ( new Date() ).getTime() ;
         var setting = Store.settings[ 1 ] ;
