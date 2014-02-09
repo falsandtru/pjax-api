@@ -47,7 +47,7 @@
       case typeof option === 'object':
         $context = $context instanceof jQuery ? $context : jQuery( document ) ;
         $context = Store.setProperties.call( $context, option.ns || '', null ) ;
-        if ( !option.area ) {
+        if ( !option.area && !option.scope ) {
           return $context ;
         }
         break ;
