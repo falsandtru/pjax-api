@@ -94,8 +94,7 @@
         database: true,
         server: {},
         location: jQuery( '<a/>', { href: Store.canonicalizeURL( window.location.href ) } )[ 0 ],
-        destination: jQuery( '<a/>', { href: Store.canonicalizeURL( window.location.href ) } )[ 0 ],
-        speedcheck: false
+        destination: jQuery( '<a/>', { href: Store.canonicalizeURL( window.location.href ) } )[ 0 ]
       },
       option
     ) ;
@@ -149,7 +148,7 @@
   Store = {
     name: 'pjax',
     alias: '',
-    ids: [0],
+    ids: [],
     settings: [0],
     count: 0,
     parseHTML: null,
@@ -181,8 +180,22 @@
         } ;
         
         $context.click = function ( url, attr ) {
-          attr = attr || {}, attr.href = url ;
-          return url ? jQuery( '<a/>', attr ).one( 'click', 1, Store.click ).click() : false ;
+          var anchor ;
+          switch ( true ) {
+            case typeof url === 'object':
+              anchor = jQuery( url ) ;
+              break ;
+              
+            case !!url:
+              attr = attr || {} ;
+              attr.href = url ;
+              anchor = jQuery( '<a/>', attr ) ;
+              break ;
+              
+            default:
+              return this ;
+          }
+          return anchor.first().one( 'click', 1, Store.click ).click() ;
         } ;
         
         $context.submit = function ( url, attr, data ) {
@@ -216,10 +229,9 @@
               break ;
               
             default:
-              return false ;
+              return this ;
           }
-          form.one( 'submit', 1, Store.submit ).submit() ;
-          return true ;
+          return form.first().one( 'submit', 1, Store.submit ).submit() ;
         } ;
         
         $context.setCache = function ( url, data, textStatus, XMLHttpRequest ) {
@@ -404,7 +416,6 @@
       
       jQuery( window )
       .unbind( setting.nss.popstate )
-
       .bind( setting.nss.popstate, setting.id, Store.popstate = function ( event ) {
         event.timeStamp = ( new Date() ).getTime() ;
         var setting = Store.settings[ 1 ] ;
@@ -686,11 +697,11 @@
                 case 'submit':
                   scrollX = call && typeof setting.scrollLeft === 'function' ? Store.fire( setting.scrollLeft, null, [ event ] ) : setting.scrollLeft ;
                   scrollX = 0 <= scrollX ? scrollX : 0 ;
-                  scrollX = scrollX === null ? jQuery( window ).scrollLeft() : parseInt( Number( scrollX ), 10 ) ;
+                  scrollX = scrollX === false || scrollX === null ? jQuery( window ).scrollLeft() : parseInt( Number( scrollX ), 10 ) ;
                   
                   scrollY = call && typeof setting.scrollTop === 'function' ? Store.fire( setting.scrollTop, null, [ event ] ) : setting.scrollTop ;
                   scrollY = 0 <= scrollY ? scrollY : 0 ;
-                  scrollY = scrollY === null ? jQuery( window ).scrollTop() : parseInt( Number( scrollY ), 10 ) ;
+                  scrollY = scrollY === false || scrollY === null ? jQuery( window ).scrollTop() : parseInt( Number( scrollY ), 10 ) ;
                   
                   ( jQuery( window ).scrollTop() === scrollY && jQuery( window ).scrollLeft() === scrollX ) || window.scrollTo( scrollX, scrollY ) ;
                   call && setting.database && setting.fix.scroll && Store.dbScroll( scrollX, scrollY ) ;
@@ -984,9 +995,8 @@
       var scp, arr, loc, des, dirs, dir, keys, key, pattern, not, reg, rewrite, inherit, hit_loc, hit_des, option ;
       
       scp = setting.scope ;
-      loc = setting.location.pathname + setting.location.search + setting.location.hash ;
-      des = setting.destination.pathname + setting.destination.search + setting.destination.hash ;
-      if ( setting.location.pathname.charAt( 0 ) !== '/' ) { loc = '/' + loc, des = '/' + des ; }
+      loc = setting.location.href.replace( /.+?\w(\/[^#?]*).*/, '$1' ) ;
+      des = setting.destination.href.replace( /.+?\w(\/[^#?]*).*/, '$1' ) ;
       
       arr = loc.replace( /^\//, '' ).replace( /([?#])/g, '/$1' ).split( '/' ) ;
       keys = ( relocation || loc ).replace( /^\//, '' ).replace( /([?#])/g, '/$1' ).split( '/' ) ;
