@@ -1083,9 +1083,8 @@
       var scp, arr, loc, des, dirs, dir, keys, key, pattern, not, reg, rewrite, inherit, hit_loc, hit_des, option ;
       
       scp = setting.scope ;
-      loc = setting.location.pathname + setting.location.search + setting.location.hash ;
-      des = setting.destination.pathname + setting.destination.search + setting.destination.hash ;
-      if ( setting.location.pathname.charAt( 0 ) !== '/' ) { loc = '/' + loc, des = '/' + des ; }
+      loc = setting.location.href.replace( /.+?\w(\/[^#?]*).*/, '$1' ) ;
+      des = setting.destination.href.replace( /.+?\w(\/[^#?]*).*/, '$1' ) ;
       
       arr = loc.replace( /^\//, '' ).replace( /([?#])/g, '/$1' ).split( '/' ) ;
       keys = ( relocation || loc ).replace( /^\//, '' ).replace( /([?#])/g, '/$1' ).split( '/' ) ;
