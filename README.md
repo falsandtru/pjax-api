@@ -117,7 +117,7 @@ $('.delegate').pjax({ area: '.container' });
 ####*ns: Namespace as string*
 ネームスペースです。ネームスペースを設定する場合はこちらを使用してください。
 
-####*area: Selector as string / function( event, url )* **（必須）**
+####*area: Selector as string / function( event, url )*
 pjaxにより更新する範囲（HTML要素）をjQueryセレクタで設定します。
 `$.fn.pjax`により設定されたコンテキストで絞り込まれません。
 
