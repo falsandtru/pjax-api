@@ -397,7 +397,7 @@ pjaxを使用してクリックによりページを移動します。
 #####*click( Anchor as jQuery / element )*
 渡されたリンク（アンカー要素）を使用します。
 
-#####*click( URL as string[, Attribute as object ] )*
+#####*click( URL as string [, Attribute as object ] )*
 渡されたデータを元に生成したリンクを使用します。
 
 ####*submit()*
