@@ -241,10 +241,9 @@
               break ;
               
             default:
-              return false ;
+              return this ;
           }
-          form.one( 'submit', 1, Store.submit ).submit() ;
-          return true ;
+          return form.first().one( 'submit', 1, Store.submit ).submit() ;
         } ;
         
         $context.setCache = function ( url, data, textStatus, XMLHttpRequest ) {
