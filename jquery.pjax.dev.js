@@ -722,7 +722,7 @@
               
               register && url !== setting.location.href &&
               window.history.pushState(
-                Store.fire( setting.state, null, [ event, url ] ),
+                Store.fire( setting.state, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ),
                 window.opera || window.navigator.userAgent.toLowerCase().indexOf( 'opera' ) !== -1 ? title : document.title,
                 url ) ;
               

@@ -155,7 +155,7 @@ pjaxによるページ移動を`http://example.com/pjax/`ディレクトリ内�
 ####*hashquery: boolean / function( event, parameter, to, from )*
 ハッシュの変更によりページを更新するかを設定します。関数が設定された場合は戻り値が渡されます。ハッシュごとにレスポンスが異なる場合に使用します。初期値は`false`で無効です。
 
-####*state: any / function( event, url )*
+####*state: any / function( event, parameter, to, from )*
 `pushState`の第一引数として渡す値を設定します。関数が設定された場合は戻り値が渡されます。初期値は`null`です。
 
 ####*scrollTop: Position as number / false / null / function( event )*
