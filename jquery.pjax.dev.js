@@ -382,7 +382,7 @@
         if ( setting.location.protocol !== setting.destination.protocol || setting.location.host !== setting.destination.host ) { return ; }
         if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
         
-        if ( !Store.fire( setting.hashquery, null, [ event, this.href ] ) && setting.location.pathname + setting.location.search === setting.destination.pathname + setting.destination.search ) {
+        if ( !Store.fire( setting.hashquery, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) && setting.location.pathname + setting.location.search === setting.destination.pathname + setting.destination.search ) {
           return setting.destination.hash && Store.hashscroll(), event.preventDefault() ;
         }
         
@@ -437,7 +437,7 @@
         
         var url, cache ;
         
-        if ( !Store.fire( setting.hashquery, null, [ event, url ] ) && setting.location.pathname + setting.location.search === setting.destination.pathname + setting.destination.search ) {
+        if ( !Store.fire( setting.hashquery, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) && setting.location.pathname + setting.location.search === setting.destination.pathname + setting.destination.search ) {
           return event.preventDefault() ;
         }
         

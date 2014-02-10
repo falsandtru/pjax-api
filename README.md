@@ -152,7 +152,7 @@ pjaxによるページ移動を`http://example.com/pjax/`ディレクトリ内�
 
 オブジェクトを配列に加えるとオブジェクトによりpjaxの設定が上書きされます。ただし、`'rewrite'`により適用設定が見つかった場合は書き換え前のキーの設定は使用されません。
 
-####*hashquery: boolean / function( event, url )*
+####*hashquery: boolean / function( event, parameter, to, from )*
 ハッシュの変更によりページを更新するかを設定します。関数が設定された場合は戻り値が渡されます。ハッシュごとにレスポンスが異なる場合に使用します。初期値は`false`で無効です。
 
 ####*state: any / function( event, url )*
