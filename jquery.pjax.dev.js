@@ -612,7 +612,10 @@
             defer && defer.resolve() || update( jQuery, window, document, undefined, Store, setting, event, cache ) ;
           } else {
             defer && defer.reject() ;
-            if ( setting.fallback && textStatus !== 'abort' ) { return typeof setting.fallback === 'function' ? Store.fire( setting.fallback, null, [ event, url ] ) : Store.fallback( event ) ; }
+            if ( setting.fallback && textStatus !== 'abort' ) {
+              return typeof setting.fallback === 'function' ? Store.fire( setting.fallback, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] )
+                                                            : Store.fallback( event ) ;
+            }
           }
           /* validator */ validator && validator.end() ;
         }
@@ -1020,7 +1023,7 @@
             if ( Store.fire( callbacks_update.error, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
             if ( Store.fire( callbacks_update.complete, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
             /* validator */ validator && validator.test( '++', 1, [ url, window.location.href ], 'error' ) ;
-            if ( setting.fallback ) { return typeof setting.fallback === 'function' ? Store.fire( setting.fallback, null, [ event, url ] ) : Store.fallback( event ) ; }
+            if ( setting.fallback ) { return typeof setting.fallback === 'function' ? Store.fire( setting.fallback, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) : Store.fallback( event ) ; }
           } ;
           
           if ( Store.fire( callbacks_update.after, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
