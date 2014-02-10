@@ -87,7 +87,7 @@
         callback: function () {},
         callbacks: {
           ajax: {},
-          update: { url: {}, title: {}, content: {}, css: {}, script: {}, cache: { load: {}, save: {} }, rendering: {}, verify: {} },
+          update: { url: {}, title: {}, scroll: {}, content: {}, css: {}, script: {}, cache: { load: {}, save: {} }, rendering: {}, verify: {} },
           async: false
         },
         parameter: null,
