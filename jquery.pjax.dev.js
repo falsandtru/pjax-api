@@ -389,7 +389,7 @@
         var url, cache ;
         
         url = setting.destination.href ;
-        setting.area = Store.fire( setting.areaback, null, [ event, url ] ) ;
+        setting.area = Store.fire( setting.areaback, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) ;
         setting.timestamp = event.timeStamp ;
         if ( setting.landing ) { setting.landing = false ; }
         if ( !jQuery( setting.area ).length || setting.scope && !Store.scope( setting ) ) { return ; }
@@ -414,7 +414,7 @@
         var url, cache ;
         
         url = setting.destination.href = Store.canonicalizeURL( setting.destination.href.replace( /[?#].*/, '' ) + ( event.target.method.toUpperCase() === 'GET' ? '?' + jQuery( event.target ).serialize() : '' ) ) ;
-        setting.area = Store.fire( setting.areaback, null, [ event, url ] ) ;
+        setting.area = Store.fire( setting.areaback, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) ;
         setting.timestamp = event.timeStamp ;
         if ( setting.landing ) { setting.landing = false ; }
         if ( !jQuery( setting.area ).length || setting.scope && !Store.scope( setting ) ) { return ; }
@@ -442,7 +442,7 @@
         }
         
         url = setting.destination.href ;
-        setting.area = Store.fire( setting.areaback, null, [ event, url ] ) ;
+        setting.area = Store.fire( setting.areaback, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) ;
         setting.timestamp = event.timeStamp ;
         if ( setting.landing ) { if ( setting.landing.href === url ) { setting.landing = false ; return ; } setting.landing = false ; }
         if ( !jQuery( setting.area ).length ) { return ; }
