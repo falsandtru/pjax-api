@@ -522,7 +522,8 @@
       
       if ( cache && cache.XMLHttpRequest ) {
         /* validator */ validator && validator.test( '++', 1, 0, 'update' ) ;
-        jQuery.when ? jQuery.when( Store.wait( setting.wait ) ).done( function () { update( jQuery, window, document, undefined, Store, setting, event, cache ) ; } )
+        jQuery.when ? jQuery.when( Store.wait( Store.fire( setting.wait, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) ) )
+                      .done( function () { update( jQuery, window, document, undefined, Store, setting, event, cache ) ; } )
                     : update( jQuery, window, document, undefined, Store, setting, event, cache ) ;
         /* validator */ validator && validator.test( '++', 1, 0, 'end' ) ;
         /* validator */ validator && validator.end() ;
@@ -626,7 +627,8 @@
       /* validator */ validator && validator.test( '++', 1, 0, 'ajax' ) ;
       speedcheck && setting.log.speed.name.push( 'request' ) ;
       speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
-      jQuery.when && jQuery.when( defer.promise(), Store.wait( setting.wait ) ).done( function () { update( jQuery, window, document, undefined, Store, setting, event, cache ) ; } ) ;
+      jQuery.when && jQuery.when( defer.promise(), Store.wait( Store.fire( setting.wait, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) ) )
+                     .done( function () { update( jQuery, window, document, undefined, Store, setting, event, cache ) ; } ) ;
       jQuery.ajax( ajax ) ;
       
       if ( Store.fire( setting.callbacks.after, null, [ event, setting.parameter ], setting.callbacks.async ) === false ) { return ; } // function: drive

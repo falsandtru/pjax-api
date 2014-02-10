@@ -246,8 +246,8 @@ pjaxによるページ読み込み時のキャッシュの使用にかかる設�
 #####*cache.expire: Millisecond as number*
 キャッシュの有効期限をミリ秒で設定します。初期値は`1800000`(30分)です。
 
-####*wait: Millisecond as number*
-`$.ajax`の実行からコンテンツの更新までの最低待ち時間を設定します。jQuery 1.5より前のバージョンでは無効です。初期値は`0`です。
+####*wait: Millisecond as number / function( event, parameter, to, from ) *
+`$.ajax`の実行からコンテンツの更新までの最低待ち時間を設定します。関数が設定された場合は関数の戻り値が使用されます。jQuery 1.5より前のバージョンでは無効です。初期値は`0`です。
 
 ####*fallback: boolean / function( event, parameter, to, from )*
 pjaxによるページ移動が失敗した場合の対応を行うかを設定します。初期状態では代替処理として通常のページ移動が行われます。関数が設定された場合は代替処理が当該関数により上書きされます。処理はエラーにかかるコールバック関数を実行後に行われます。初期値は`true`で有効です。
