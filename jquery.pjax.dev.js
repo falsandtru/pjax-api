@@ -756,11 +756,11 @@
               switch ( event.type.toLowerCase() ) {
                 case 'click':
                 case 'submit':
-                  scrollX = call && typeof setting.scrollLeft === 'function' ? Store.fire( setting.scrollLeft, null, [ event ] ) : setting.scrollLeft ;
+                  scrollX = call && typeof setting.scrollLeft === 'function' ? Store.fire( setting.scrollLeft, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) : setting.scrollLeft ;
                   scrollX = 0 <= scrollX ? scrollX : 0 ;
                   scrollX = scrollX === false || scrollX === null ? jQuery( window ).scrollLeft() : parseInt( Number( scrollX ), 10 ) ;
                   
-                  scrollY = call && typeof setting.scrollTop === 'function' ? Store.fire( setting.scrollTop, null, [ event ] ) : setting.scrollTop ;
+                  scrollY = call && typeof setting.scrollTop === 'function' ? Store.fire( setting.scrollTop, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) : setting.scrollTop ;
                   scrollY = 0 <= scrollY ? scrollY : 0 ;
                   scrollY = scrollY === false || scrollY === null ? jQuery( window ).scrollTop() : parseInt( Number( scrollY ), 10 ) ;
                   

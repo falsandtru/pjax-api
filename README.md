@@ -158,10 +158,10 @@ pjaxによるページ移動を`http://example.com/pjax/`ディレクトリ内�
 ####*state: any / function( event, parameter, to, from )*
 `pushState`の第一引数として渡す値を設定します。関数が設定された場合は戻り値が渡されます。初期値は`null`です。
 
-####*scrollTop: Position as number / false / null / function( event )*
+####*scrollTop: Position as number / false / null / function( event, parameter, to, from )*
 リンクまたはフォームによるページ移動後の縦方向のスクロール位置を設定します。`false`または`null`を設定すると移動前のスクロール位置を維持します。関数を設定すると戻り値がスクロール位置となります。初期値は`0`です。
 
-####*scrollLeft: Position as number / false / null / function( event )*
+####*scrollLeft: Position as number / false / null / function( event, parameter, to, from )*
 リンクまたはフォームによるページ移動後の横方向のスクロール位置を設定します。`false`または`null`を設定すると移動前のスクロール位置を維持します。関数を設定すると戻り値がスクロール位置となります。初期値は`0`です。
 
 ####*scroll: node*
