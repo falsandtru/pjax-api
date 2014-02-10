@@ -431,6 +431,7 @@
         event.timeStamp = ( new Date() ).getTime() ;
         var setting = Store.settings[ 1 ] ;
         if ( setting.disable || event.isDefaultPrevented() ) { return event.preventDefault() ; }
+        //setting.location.href = Store.canonicalizeURL( window.location.href ) ;
         setting.destination.href = Store.canonicalizeURL( window.location.href ) ;
         
         if ( setting.location.href === setting.destination.href ) { return event.preventDefault() ; }
