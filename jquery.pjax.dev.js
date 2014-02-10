@@ -751,6 +751,7 @@
             /* scroll */
             /* validator */ validator && validator.test( '++', 1, 0, 'scroll' ) ;
             function scroll( call ) {
+              if ( Store.fire( callbacks_update.scroll.before, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { return ; }
               var scrollX, scrollY ;
               switch ( event.type.toLowerCase() ) {
                 case 'click':
@@ -770,6 +771,7 @@
                   call && setting.database && setting.fix.scroll && Store.dbScroll() ;
                   break ;
               }
+              if ( Store.fire( callbacks_update.scroll.after, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { return ; }
             } // function: scroll
             scroll( false ) ;
             
