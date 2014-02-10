@@ -87,7 +87,7 @@
         callback: function () {},
         callbacks: {
           ajax: {},
-          update: { url: {}, title: {}, scroll: {}, content: {}, css: {}, script: {}, cache: { load: {}, save: {} }, rendering: {}, verify: {} },
+          update: { url: {}, title: {}, content: {}, scroll: {}, css: {}, script: {}, cache: { load: {}, save: {} }, rendering: {}, verify: {} },
           async: false
         },
         parameter: null,
@@ -754,33 +754,6 @@
             
             setting.database && Store.dbCurrent() ;
             
-            /* scroll */
-            /* validator */ validator && validator.test( '++', 1, 0, 'scroll' ) ;
-            function scroll( call ) {
-              if ( Store.fire( callbacks_update.scroll.before, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { return ; }
-              var scrollX, scrollY ;
-              switch ( event.type.toLowerCase() ) {
-                case 'click':
-                case 'submit':
-                  scrollX = call && typeof setting.scrollLeft === 'function' ? Store.fire( setting.scrollLeft, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) : setting.scrollLeft ;
-                  scrollX = 0 <= scrollX ? scrollX : 0 ;
-                  scrollX = scrollX === false || scrollX === null ? jQuery( window ).scrollLeft() : parseInt( Number( scrollX ), 10 ) ;
-                  
-                  scrollY = call && typeof setting.scrollTop === 'function' ? Store.fire( setting.scrollTop, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) : setting.scrollTop ;
-                  scrollY = 0 <= scrollY ? scrollY : 0 ;
-                  scrollY = scrollY === false || scrollY === null ? jQuery( window ).scrollTop() : parseInt( Number( scrollY ), 10 ) ;
-                  
-                  ( jQuery( window ).scrollTop() === scrollY && jQuery( window ).scrollLeft() === scrollX ) || window.scrollTo( scrollX, scrollY ) ;
-                  call && setting.database && setting.fix.scroll && Store.dbScroll( scrollX, scrollY ) ;
-                  break ;
-                case 'popstate':
-                  call && setting.database && setting.fix.scroll && Store.dbScroll() ;
-                  break ;
-              }
-              if ( Store.fire( callbacks_update.scroll.after, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { return ; }
-            } // function: scroll
-            scroll( false ) ;
-            
             /* content */
             /* validator */ validator && validator.test( '++', 1, areas, 'content' ) ;
             UPDATE_CONTENT: {
@@ -800,6 +773,33 @@
             } ; // label: UPDATE_CONTENT
             speedcheck && setting.log.speed.name.push( 'content' ) ;
             speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
+            
+            /* scroll */
+            /* validator */ validator && validator.test( '++', 1, 0, 'scroll' ) ;
+            function scroll( call ) {
+              if ( Store.fire( callbacks_update.scroll.before, null, [ event, setting.parameter ], setting.callbacks.async ) === false ) { return ; }
+              var scrollX, scrollY ;
+              switch ( event.type.toLowerCase() ) {
+                case 'click':
+                case 'submit':
+                  scrollX = call && typeof setting.scrollLeft === 'function' ? Store.fire( setting.scrollLeft, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) : setting.scrollLeft ;
+                  scrollX = 0 <= scrollX ? scrollX : 0 ;
+                  scrollX = scrollX === false || scrollX === null ? jQuery( window ).scrollLeft() : parseInt( Number( scrollX ), 10 ) ;
+                  
+                  scrollY = call && typeof setting.scrollTop === 'function' ? Store.fire( setting.scrollTop, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) : setting.scrollTop ;
+                  scrollY = 0 <= scrollY ? scrollY : 0 ;
+                  scrollY = scrollY === false || scrollY === null ? jQuery( window ).scrollTop() : parseInt( Number( scrollY ), 10 ) ;
+                  
+                  ( jQuery( window ).scrollTop() === scrollY && jQuery( window ).scrollLeft() === scrollX ) || window.scrollTo( scrollX, scrollY ) ;
+                  call && setting.database && setting.fix.scroll && Store.dbScroll( scrollX, scrollY ) ;
+                  break ;
+                case 'popstate':
+                  call && setting.database && setting.fix.scroll && Store.dbScroll() ;
+                  break ;
+              }
+              if ( Store.fire( callbacks_update.scroll.after, null, [ event, setting.parameter ], setting.callbacks.async ) === false ) { return ; }
+            } // function: scroll
+            scroll( false ) ;
             
             /* cache */
             /* validator */ validator && validator.test( '++', 1, 0, 'cache' ) ;

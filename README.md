@@ -338,17 +338,17 @@ ajax通信において同名のメソッド内で実行されます。
 #####*update.title.after( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理においてタイトルの更新後に実行されます。
 
-#####*update.scroll.before( event, parameter, data, textStatus, XMLHttpRequest )*
-ページの更新処理においてスクロール位置の更新前に実行されます。
-
-#####*update.scroll.after( event, parameter, data, textStatus, XMLHttpRequest )*
-ページの更新処理においてスクロール位置の更新後に実行されます。
-
 #####*update.content.before( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理においてコンテンツの更新前に実行されます。
 
 #####*update.content.after( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理においてコンテンツの更新後に実行されます。
+
+#####*update.scroll.before( event, parameter )*
+ページの更新処理においてスクロール位置の更新前に実行されます。
+
+#####*update.scroll.after( event, parameter )*
+ページの更新処理においてスクロール位置の更新後に実行されます。
 
 #####*update.cache.save.before( event, parameter, cache )*
 ページの更新処理においてcacheの作成前に実行されます。
