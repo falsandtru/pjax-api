@@ -1106,9 +1106,11 @@
             setting.database = false ;
             db.close() ;
             idb.deleteDatabase( name ) ;
+            setTimeout( function () { Store.database( ++count ) ; }, 1000 ) ;
           }
         } ;
         db.onerror = function ( event ) {
+          db.close() ;
           idb.deleteDatabase( name ) ;
           setTimeout( function () { Store.database( ++count ) ; }, 1000 ) ;
         } ;
