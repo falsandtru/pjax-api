@@ -123,7 +123,11 @@
         fix: !/Mobile(\/\w+)? Safari/i.test( window.navigator.userAgent ) ? { location: false, reset: false } : {},
         contentType: setting.contentType.replace( /\s*[,;]\s*/g, '|' ).toLowerCase(),
         scroll: { record: true, queue: [] },
-        database: setting.database ? ( window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB || null ) : false,
+        database: setting.database ? {
+                                       IDBFactory: ( window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB || null ),
+                                       IDBRequest: null
+                                     }
+                                   : false,
         server: { query: !setting.server.query ? setting.gns : setting.server.query },
         log: { script: {}, speed: {} },
         history: { config: setting.cache, order: [], data: {}, size: 0 },
@@ -1064,30 +1068,34 @@
     },
     database: function ( count ) {
       var setting = Store.settings[ 1 ] ;
-      var version = 1, idb = setting.database, name = setting.gns, db, store, days = Math.floor( setting.timestamp / ( 1000*60*60*24 ) ) ;
+      var version, IDBFactory, name, db, store, days ;
+      version = 1 ;
+      IDBFactory = setting.database && setting.database.IDBFactory ;
+      name = setting.gns; 
+      days = Math.floor( setting.timestamp / ( 1000*60*60*24 ) ) ;
       count = count || 0 ;
-      if ( !idb || !name || !idb.open || count > 3 ) {
+      
+      if ( !IDBFactory || !name || count > 3 ) {
         setting.database = false ;
         return false ;
       }
       
       try {
         version = parseInt( days - days % 7 + version, 10 ) ;
-        db = idb.open( name ) ;
+        db = IDBFactory.open( name ) ;
         db.onblocked = function () {} ;
         db.onupgradeneeded = function () {
-          setting.database = this.result ;
           var db = this.result ;
           try {
             for ( var i = db.objectStoreNames ? db.objectStoreNames.length : 0 ; i-- ; ) { db.deleteObjectStore( db.objectStoreNames[ i ] ) ; }
-            setting.database.createObjectStore( setting.gns, { keyPath: 'id', autoIncrement: false } ).createIndex( 'date', 'date', { unique: false } ) ;
+            db.createObjectStore( setting.gns, { keyPath: 'id', autoIncrement: false } ).createIndex( 'date', 'date', { unique: false } ) ;
           } catch ( err ) {
           }
         } ;
         db.onsuccess = function () {
           try {
             var db = this.result ;
-            setting.database = this.result ;
+            setting.database.IDBRequest = db ;
             store = Store.dbStore() ;
             
             store.get( '_version' ).onsuccess = function () {
@@ -1095,32 +1103,34 @@
                 Store.dbVersion( version ) ;
                 Store.dbCurrent() ;
                 Store.dbTitle( setting.location.href, document.title ) ;
+                Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
               } else {
+                setting.database.IDBRequest = null ;
                 db.close() ;
-                idb.deleteDatabase( name ) ;
-                setting.database = idb ;
+                IDBFactory.deleteDatabase( name ) ;
                 Store.database() ;
               }
             } ;
           } catch ( err ) {
-            setting.database = false ;
+            setting.database.IDBRequest = null ;
             db.close() ;
-            idb.deleteDatabase( name ) ;
+            IDBFactory.deleteDatabase( name ) ;
             setTimeout( function () { Store.database( ++count ) ; }, 1000 ) ;
           }
         } ;
         db.onerror = function ( event ) {
+          setting.database.IDBRequest = null ;
           db.close() ;
-          idb.deleteDatabase( name ) ;
+          IDBFactory.deleteDatabase( name ) ;
           setTimeout( function () { Store.database( ++count ) ; }, 1000 ) ;
         } ;
       } catch ( err ) {
-        setting.database = false ;
+        setting.database.IDBRequest = null ;
       }
     },
     dbStore: function () {
       var setting = Store.settings[ 1 ] ;
-      return typeof setting.database === 'object' && typeof setting.database.transaction === 'function' && setting.database.transaction( setting.gns, 'readwrite' ).objectStore( setting.gns ) ;
+      return typeof setting.database.IDBRequest && setting.database.IDBRequest.transaction( setting.gns, 'readwrite' ).objectStore( setting.gns ) ;
     },
     dbCurrent: function () {
       var setting = Store.settings[ 1 ] ;
