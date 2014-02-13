@@ -1180,7 +1180,6 @@
       
       if ( !IDBFactory || !name || count > 3 ) {
         setting.database = false ;
-        /* validator */ validator && validator.test( '++', count <= 3, 0, 'retry' ) ;
         /* validator */ validator && validator.end() ;
         return false ;
       }
@@ -1222,7 +1221,7 @@
                 Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
               } else {
                 setting.database.IDBRequest = null ;
-                db.close() ;
+                db.close && db.close() ;
                 IDBFactory.deleteDatabase( name ) ;
                 Store.database() ;
               }
@@ -1230,7 +1229,7 @@
           } catch ( err ) {
             /* validator */ validator && validator.test( '++', 1, err, 'cancel' ) ;
             setting.database.IDBRequest = null ;
-            db.close() ;
+            db.close && db.close() ;
             IDBFactory.deleteDatabase( name ) ;
             setTimeout( function () { Store.database( ++count ) ; }, 1000 ) ;
           }
@@ -1239,7 +1238,7 @@
         db.onerror = function ( event ) {
           /* validator */ validator && validator.test( '++', 1, event, 'onerror()' ) ;
           setting.database.IDBRequest = null ;
-          db.close() ;
+          db.close && db.close() ;
           IDBFactory.deleteDatabase( name ) ;
           setTimeout( function () { Store.database( ++count ) ; }, 1000 ) ;
           /* validator */ validator && validator.end() ;
