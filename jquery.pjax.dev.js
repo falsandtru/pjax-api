@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.31.1
- * @updated 2014/02/13
+ * @version 1.31.2
+ * @updated 2014/02/14
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -131,7 +131,11 @@
         fix: !/Mobile(\/\w+)? Safari/i.test( window.navigator.userAgent ) ? { location: false, reset: false } : {},
         contentType: setting.contentType.replace( /\s*[,;]\s*/g, '|' ).toLowerCase(),
         scroll: { record: true, queue: [] },
-        database: setting.database ? ( window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB || null ) : false,
+        database: setting.database ? {
+                                       IDBFactory: ( window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB || null ),
+                                       IDBRequest: null
+                                     }
+                                   : false,
         server: { query: !setting.server.query ? setting.gns : setting.server.query },
         log: { script: {}, speed: {} },
         history: { config: setting.cache, order: [], data: {}, size: 0 },
@@ -1167,9 +1171,14 @@
       /* validator */ var validator = setting.validator ? setting.validator.clone( { name: 'jquery.pjax.js - database()' } ) : false ;
       /* validator */ validator && validator.start() ;
       /* validator */ validator && ( validator.scope = function( code ){ return eval( code ) ; } ) ;
-      var version = 1, idb = setting.database, name = setting.gns, db, store, days = Math.floor( setting.timestamp / ( 1000*60*60*24 ) ) ;
+      var version, IDBFactory, name, db, store, days ;
+      version = 1 ;
+      IDBFactory = setting.database && setting.database.IDBFactory ;
+      name = setting.gns; 
+      days = Math.floor( setting.timestamp / ( 1000*60*60*24 ) ) ;
       count = count || 0 ;
-      if ( !idb || !name || !idb.open || count > 3 ) {
+      
+      if ( !IDBFactory || !name || count > 3 ) {
         setting.database = false ;
         /* validator */ validator && validator.test( '++', count <= 3, 0, 'retry' ) ;
         /* validator */ validator && validator.end() ;
@@ -1179,20 +1188,19 @@
       try {
         version = parseInt( days - days % 7 + version, 10 ) ;
         /* validator */ validator && validator.test( '++', 1, version, 'open' ) ;
-        db = idb.open( name ) ;
+        db = IDBFactory.open( name ) ;
         /* validator */ validator && validator.test( '++', 1, 0, 'call' ) ;
         db.onblocked = function () {
           /* validator */ validator && validator.test( '++', 1, 0, 'onblocked()' ) ;
         } ;
         db.onupgradeneeded = function () {
           /* validator */ validator && validator.test( '++', 1, 0, 'onupgradeneeded()' ) ;
-          setting.database = this.result ;
           var db = this.result ;
           try {
             /* validator */ validator && validator.test( '++', 1, 0, 'deleteObjectStore' ) ;
             for ( var i = db.objectStoreNames ? db.objectStoreNames.length : 0 ; i-- ; ) { db.deleteObjectStore( db.objectStoreNames[ i ] ) ; }
             /* validator */ validator && validator.test( '++', 1, 0, 'createObjectStore' ) ;
-            setting.database.createObjectStore( setting.gns, { keyPath: 'id', autoIncrement: false } ).createIndex( 'date', 'date', { unique: false } ) ;
+            db.createObjectStore( setting.gns, { keyPath: 'id', autoIncrement: false } ).createIndex( 'date', 'date', { unique: false } ) ;
           } catch ( err ) {
             /* validator */ validator && validator.test( '++', 1, err, 'cancel' ) ;
           }
@@ -1201,7 +1209,7 @@
           /* validator */ validator && validator.test( '++', 1, 0, 'onsuccess()' ) ;
           try {
             var db = this.result ;
-            setting.database = this.result ;
+            setting.database.IDBRequest = db ;
             /* validator */ validator && validator.test( '++', 1, 0, 'store' ) ;
             store = Store.dbStore() ;
             
@@ -1211,38 +1219,40 @@
                 Store.dbVersion( version ) ;
                 Store.dbCurrent() ;
                 Store.dbTitle( setting.location.href, document.title ) ;
+                Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
               } else {
+                setting.database.IDBRequest = null ;
                 db.close() ;
-                idb.deleteDatabase( name ) ;
-                setting.database = idb ;
+                IDBFactory.deleteDatabase( name ) ;
                 Store.database() ;
               }
             } ;
           } catch ( err ) {
             /* validator */ validator && validator.test( '++', 1, err, 'cancel' ) ;
-            setting.database = false ;
+            setting.database.IDBRequest = null ;
             db.close() ;
-            idb.deleteDatabase( name ) ;
+            IDBFactory.deleteDatabase( name ) ;
             setTimeout( function () { Store.database( ++count ) ; }, 1000 ) ;
           }
           /* validator */ validator && validator.end() ;
         } ;
         db.onerror = function ( event ) {
           /* validator */ validator && validator.test( '++', 1, event, 'onerror()' ) ;
+          setting.database.IDBRequest = null ;
           db.close() ;
-          idb.deleteDatabase( name ) ;
+          IDBFactory.deleteDatabase( name ) ;
           setTimeout( function () { Store.database( ++count ) ; }, 1000 ) ;
           /* validator */ validator && validator.end() ;
         } ;
       } catch ( err ) {
         /* validator */ validator && validator.test( '++', 0, err, 'error' ) ;
-        setting.database = false ;
+        setting.database.IDBRequest = null ;
         /* validator */ validator && validator.end() ;
       }
     },
     dbStore: function () {
       var setting = Store.settings[ 1 ] ;
-      return typeof setting.database === 'object' && typeof setting.database.transaction === 'function' && setting.database.transaction( setting.gns, 'readwrite' ).objectStore( setting.gns ) ;
+      return typeof setting.database.IDBRequest && setting.database.IDBRequest.transaction( setting.gns, 'readwrite' ).objectStore( setting.gns ) ;
     },
     dbCurrent: function () {
       var setting = Store.settings[ 1 ] ;
