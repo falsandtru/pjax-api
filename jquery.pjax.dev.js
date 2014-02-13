@@ -1181,7 +1181,7 @@
         db = idb.open( name ) ;
         /* validator */ validator && validator.test( '++', 1, 0, 'call' ) ;
         db.onblocked = function () {
-          /* validator */ validator && validator.test( '++', 0, 0, 'onblocked()' ) ;
+          /* validator */ validator && validator.test( '++', 1, 0, 'onblocked()' ) ;
         } ;
         db.onupgradeneeded = function () {
           /* validator */ validator && validator.test( '++', 1, 0, 'onupgradeneeded()' ) ;
@@ -1222,11 +1222,13 @@
             setting.database = false ;
             db.close() ;
             idb.deleteDatabase( name ) ;
+            setTimeout( function () { Store.database( ++count ) ; }, 1000 ) ;
           }
           /* validator */ validator && validator.end() ;
         } ;
         db.onerror = function ( event ) {
           /* validator */ validator && validator.test( '++', 1, event, 'onerror()' ) ;
+          db.close() ;
           idb.deleteDatabase( name ) ;
           setTimeout( function () { Store.database( ++count ) ; }, 1000 ) ;
           /* validator */ validator && validator.end() ;
