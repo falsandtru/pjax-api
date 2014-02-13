@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.31.2
+ * @version 1.31.3
  * @updated 2014/02/14
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -397,6 +397,7 @@
         setting.timestamp = event.timeStamp ;
         if ( setting.landing ) { setting.landing = false ; }
         if ( !jQuery( setting.area ).length || setting.scope && !Store.scope( setting ) ) { return ; }
+        setting.database && Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
         
         if ( setting.cache[ event.type.toLowerCase() ] ) { cache = jQuery[ Store.name ].getCache( url ) ; }
         
@@ -422,6 +423,7 @@
         setting.timestamp = event.timeStamp ;
         if ( setting.landing ) { setting.landing = false ; }
         if ( !jQuery( setting.area ).length || setting.scope && !Store.scope( setting ) ) { return ; }
+        setting.database && Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
         
         if ( setting.cache[ event.type.toLowerCase() ] && setting.cache[ event.target.method.toLowerCase() ] ) { cache = jQuery[ Store.name ].getCache( url ) ; }
         
@@ -1180,7 +1182,6 @@
       
       if ( !IDBFactory || !name || count > 3 ) {
         setting.database = false ;
-        /* validator */ validator && validator.test( '++', count <= 3, 0, 'retry' ) ;
         /* validator */ validator && validator.end() ;
         return false ;
       }
@@ -1222,7 +1223,7 @@
                 Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
               } else {
                 setting.database.IDBRequest = null ;
-                db.close() ;
+                db.close && db.close() ;
                 IDBFactory.deleteDatabase( name ) ;
                 Store.database() ;
               }
@@ -1230,7 +1231,7 @@
           } catch ( err ) {
             /* validator */ validator && validator.test( '++', 1, err, 'cancel' ) ;
             setting.database.IDBRequest = null ;
-            db.close() ;
+            db.close && db.close() ;
             IDBFactory.deleteDatabase( name ) ;
             setTimeout( function () { Store.database( ++count ) ; }, 1000 ) ;
           }
@@ -1239,7 +1240,7 @@
         db.onerror = function ( event ) {
           /* validator */ validator && validator.test( '++', 1, event, 'onerror()' ) ;
           setting.database.IDBRequest = null ;
-          db.close() ;
+          db.close && db.close() ;
           IDBFactory.deleteDatabase( name ) ;
           setTimeout( function () { Store.database( ++count ) ; }, 1000 ) ;
           /* validator */ validator && validator.end() ;
