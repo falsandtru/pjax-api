@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.31.0
- * @updated 2014/02/10
+ * @version 1.31.1
+ * @updated 2014/02/13
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -1171,6 +1171,7 @@
       count = count || 0 ;
       if ( !idb || !name || !idb.open || count > 3 ) {
         setting.database = false ;
+        /* validator */ validator && validator.test( '++', count <= 3, 0, 'retry' ) ;
         /* validator */ validator && validator.end() ;
         return false ;
       }
@@ -1181,7 +1182,7 @@
         db = idb.open( name ) ;
         /* validator */ validator && validator.test( '++', 1, 0, 'call' ) ;
         db.onblocked = function () {
-          /* validator */ validator && validator.test( '++', 0, 0, 'onblocked()' ) ;
+          /* validator */ validator && validator.test( '++', 1, 0, 'onblocked()' ) ;
         } ;
         db.onupgradeneeded = function () {
           /* validator */ validator && validator.test( '++', 1, 0, 'onupgradeneeded()' ) ;
@@ -1222,11 +1223,13 @@
             setting.database = false ;
             db.close() ;
             idb.deleteDatabase( name ) ;
+            setTimeout( function () { Store.database( ++count ) ; }, 1000 ) ;
           }
           /* validator */ validator && validator.end() ;
         } ;
         db.onerror = function ( event ) {
           /* validator */ validator && validator.test( '++', 1, event, 'onerror()' ) ;
+          db.close() ;
           idb.deleteDatabase( name ) ;
           setTimeout( function () { Store.database( ++count ) ; }, 1000 ) ;
           /* validator */ validator && validator.end() ;
