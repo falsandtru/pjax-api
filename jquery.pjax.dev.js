@@ -397,6 +397,7 @@
         setting.timestamp = event.timeStamp ;
         if ( setting.landing ) { setting.landing = false ; }
         if ( !jQuery( setting.area ).length || setting.scope && !Store.scope( setting ) ) { return ; }
+        setting.database && Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
         
         if ( setting.cache[ event.type.toLowerCase() ] ) { cache = jQuery[ Store.name ].getCache( url ) ; }
         
@@ -422,6 +423,7 @@
         setting.timestamp = event.timeStamp ;
         if ( setting.landing ) { setting.landing = false ; }
         if ( !jQuery( setting.area ).length || setting.scope && !Store.scope( setting ) ) { return ; }
+        setting.database && Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
         
         if ( setting.cache[ event.type.toLowerCase() ] && setting.cache[ event.target.method.toLowerCase() ] ) { cache = jQuery[ Store.name ].getCache( url ) ; }
         
