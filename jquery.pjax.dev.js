@@ -1252,7 +1252,7 @@
     },
     dbStore: function () {
       var setting = Store.settings[ 1 ] ;
-      return typeof setting.database === 'object' && typeof setting.database.transaction === 'function' && setting.database.transaction( setting.gns, 'readwrite' ).objectStore( setting.gns ) ;
+      return typeof setting.database.IDBRequest && setting.database.IDBRequest.transaction( setting.gns, 'readwrite' ).objectStore( setting.gns ) ;
     },
     dbCurrent: function () {
       var setting = Store.settings[ 1 ] ;
