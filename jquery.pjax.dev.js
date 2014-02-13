@@ -1171,6 +1171,7 @@
       count = count || 0 ;
       if ( !idb || !name || !idb.open || count > 3 ) {
         setting.database = false ;
+        /* validator */ validator && validator.test( '++', count <= 3, 0, 'retry' ) ;
         /* validator */ validator && validator.end() ;
         return false ;
       }
