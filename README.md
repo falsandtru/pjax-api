@@ -199,10 +199,10 @@ pjaxによるページ読み込み時にJavaScriptを読み込むかを設定し
 埋め込み型のJavaScriptを実行するかを設定します。初期値は`true`で有効です。
 
 #####*load.reload: Selector as string*
-繰り返し読み込むJavaScriptをjQueryセレクタで設定します。初期値は`null`で無効です。
+繰り返し読み込むJavaScriptと読み込みを維持するCSSをjQueryセレクタで設定します。初期値は`null`で無効です。
 
 #####*load.reject: Selector as string*
-読み込まないJavaScriptをjQueryセレクタで設定します。初期値は`null`で無効です。
+読み込まないJavaScriptとCSSをjQueryセレクタで設定します。初期値は`null`で無効です。
 
 #####*load.sync: boolean*
 `defer`属性を持つJavaScript（`script`要素）の読み込みを、pjaxによるコンテンツの更新が描画されてから行います。ただし、描画の確認回数が100回を超えた場合は描画を待たずその時点で読み込みます。初期値は`true`で有効です。
