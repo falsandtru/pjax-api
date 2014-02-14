@@ -111,12 +111,6 @@ $('.delegate').pjax({ area: '.container' });
 ###Parameter
 パラメータはすべてパラメータ用オブジェクトのプロパティに設定して渡します。パラメータとなるオブジェクトのプロパティは次のとおりです
 
-####*gns: Namespace as string*
-グローバルネームスペースです。通常は設定は不要です。
-
-####*ns: Namespace as string*
-ネームスペースです。ネームスペースを設定する場合はこちらを使用してください。
-
 ####*area: Selector as string / function( event, parameter, to, from )*
 pjaxにより更新する範囲（HTML要素）をjQueryセレクタで設定します。
 `$.fn.pjax`により設定されたコンテキストで絞り込まれません。
