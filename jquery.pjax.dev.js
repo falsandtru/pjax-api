@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.31.3
+ * @version 1.31.4
  * @updated 2014/02/14
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -42,10 +42,6 @@
     
     /* validator */ var validator = option.validator instanceof Object ? option.validator : false ;
     /* validator */ validator = validator ? validator.clone( { name: 'jquery.pjax.js', base: true, timeout: { limit: option && option.ajax && option.ajax.timeout ? option.ajax.timeout + validator.timeout.limit : validator.timeout.limit } } ) : false ;
-    /* validator */ validator && validator.start() ;
-    /* validator */ validator && validator.test( '++', 1, option, 'pjax()' ) ;
-    
-    /* validator */ validator && validator.test( '++', 1, 0, 'initialize' ) ;
     
     var $context = this ;
     
@@ -109,7 +105,6 @@
     setting.nss = {
       array: [ Store.name ].concat( setting.ns && String( setting.ns ).split( '.' ) || [] )
     } ;
-    /* validator */ validator && validator.test( '++', 1, setting, 'overwrite' ) ;
     jQuery.extend
     (
       true,
@@ -131,11 +126,6 @@
         fix: !/Mobile(\/\w+)? Safari/i.test( window.navigator.userAgent ) ? { location: false, reset: false } : {},
         contentType: setting.contentType.replace( /\s*[,;]\s*/g, '|' ).toLowerCase(),
         scroll: { record: true, queue: [] },
-        database: setting.database ? {
-                                       IDBFactory: ( window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB || null ),
-                                       IDBRequest: null
-                                     }
-                                   : false,
         server: { query: !setting.server.query ? setting.gns : setting.server.query },
         log: { script: {}, speed: {} },
         history: { config: setting.cache, order: [], data: {}, size: 0 },
@@ -150,12 +140,9 @@
     ) ;
     
     // registrate
-    /* validator */ validator && validator.test( '++', 1, 0, 'register' ) ;
     if ( Store.check() ) {
       Store.registrate.call( $context, jQuery, window, document, undefined, Store, setting ) ;
     }
-    
-    /* validator */ validator && validator.end() ;
     
     return $context ; // function: pjax
   }
@@ -166,7 +153,6 @@
     ids: [],
     settings: [0],
     count: 0,
-    parseHTML: null,
     setAlias:  function ( name ) {
       Store.alias = typeof name === 'string' ? name : Store.alias ;
       if ( Store.name !== Store.alias && !jQuery[ Store.alias ] ) {
@@ -174,6 +160,10 @@
         jQuery.fn[ Store.alias ] = jQuery[ Store.alias ] = jQuery.fn[ Store.name ] ;
       }
     },
+    IDBFactory: window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB,
+    IDBDatabase: null,
+    IDBKeyRange: window.IDBKeyRange || window.webkitIDBKeyRange || window.mozIDBKeyRange || window.msIDBKeyRange,
+    parseHTML: null,
     setProperties: function ( namespace, element ) {
       
       var $context = this ;
@@ -366,13 +356,36 @@
       Store.settings[ setting.id ] = setting ;
       
       Store.share() ;
-      Store.database() ;
+      
       setting.load.script && jQuery( 'script' ).each( function () {
         var element = this, src ;
         element = typeof setting.load.rewrite === 'function' ? Store.fire( setting.load.rewrite, null, [ element.cloneNode() ] ) || element : element ;
         if ( ( src = element.src ) && src in setting.log.script ) { return ; }
         if ( src && ( !setting.load.reload || !jQuery( element ).is( setting.load.reload ) ) ) { setting.log.script[ src ] = true ; }
       } ) ;
+      
+      if ( setting.database ) {
+        Store.database() ;
+        
+        setting.fix.scroll &&
+        jQuery( window )
+        .unbind( setting.nss.scroll )
+        .bind( setting.nss.scroll, setting.id, function ( event, end ) {
+          var setting = Store.settings[ 1 ] ;
+          var id, fn = arguments.callee ;
+          
+          if ( !setting.scroll.delay ) {
+            Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
+          } else {
+            while ( id = setting.scroll.queue.shift() ) { clearTimeout( id ) ; }
+            id = setTimeout( function () {
+              while ( id = setting.scroll.queue.shift() ) { clearTimeout( id ) ; }
+              Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
+            }, setting.scroll.delay ) ;
+            setting.scroll.queue.push( id ) ;
+          }
+        } ) ;
+      }
       
       jQuery( context )
       .undelegate( setting.link, setting.nss.click )
@@ -385,10 +398,6 @@
         
         if ( setting.location.protocol !== setting.destination.protocol || setting.location.host !== setting.destination.host ) { return ; }
         if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
-        
-        if ( !Store.fire( setting.hashquery, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) && setting.location.pathname + setting.location.search === setting.destination.pathname + setting.destination.search ) {
-          return setting.destination.hash && Store.hashscroll(), event.preventDefault() ;
-        }
         
         var url, cache ;
         
@@ -414,6 +423,7 @@
         setting.location.href = Store.canonicalizeURL( window.location.href ) ;
         setting.destination.href = Store.canonicalizeURL( this.action ) ;
         
+        if ( setting.location.protocol !== setting.destination.protocol || setting.location.host !== setting.destination.host ) { return ; }
         if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
         
         var url, cache ;
@@ -444,7 +454,9 @@
         
         var url, cache ;
         
-        if ( !Store.fire( setting.hashquery, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) && setting.location.pathname + setting.location.search === setting.destination.pathname + setting.destination.search ) {
+        if ( setting.location.hash !== setting.destination.hash &&
+             setting.location.pathname + setting.location.search === setting.destination.pathname + setting.destination.search &&
+             !Store.fire( setting.hashquery, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) ) {
           return event.preventDefault() ;
         }
         
@@ -459,25 +471,6 @@
         
         Store.drive( jQuery, window, document, undefined, Store, setting, event, url, false, cache ) ;
         return event.preventDefault() ;
-      } ) ;
-      
-      setting.database && setting.fix.scroll &&
-      jQuery( window )
-      .unbind( setting.nss.scroll )
-      .bind( setting.nss.scroll, setting.id, function ( event, end ) {
-        var setting = Store.settings[ 1 ] ;
-        var id, fn = arguments.callee ;
-        
-        if ( !setting.scroll.delay ) {
-          Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
-        } else {
-          while ( id = setting.scroll.queue.shift() ) { clearTimeout( id ) ; }
-          id = setTimeout( function () {
-            while ( id = setting.scroll.queue.shift() ) { clearTimeout( id ) ; }
-            Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
-          }, setting.scroll.delay ) ;
-          setting.scroll.queue.push( id ) ;
-        }
       } ) ;
       
       ( function () {
@@ -510,11 +503,7 @@
       } )() ;
     },
     drive: function ( jQuery, window, document, undefined, Store, setting, event, url, register, cache ) {
-      /* validator */ var validator = setting.validator ? setting.validator.clone( { name: 'jquery.pjax.js - drive()' } ) : false ;
-      /* validator */ validator && validator.start() ;
-      /* validator */ validator && ( validator.scope = function( code ){ return eval( code ) ; } ) ;
-      /* validator */ validator && validator.test( '++', 1, [ url, event.type ], 'drive()' ) ;
-      
+      /* validator */ var validator ;
       var speedcheck = setting.speedcheck ;
       speedcheck && ( setting.log.speed.fire = setting.timestamp ) ;
       speedcheck && ( setting.log.speed.time = [] ) ;
@@ -522,45 +511,36 @@
       speedcheck && setting.log.speed.name.push( 'fire' ) ;
       speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
       
-      /* validator */ validator && validator.test( '++', 1, 0, 'start' ) ;
       setting.scroll.record = false ;
       setting.fix.reset && /click|submit/.test( event.type.toLowerCase() ) && window.scrollTo( jQuery( window ).scrollLeft(), 0 ) ;
       if ( Store.fire( setting.callbacks.before, null, [ event, setting.parameter ], setting.callbacks.async ) === false ) { return ; } // function: drive
       
       if ( cache && cache.XMLHttpRequest ) {
-        /* validator */ validator && validator.test( '++', 1, 0, 'update' ) ;
         jQuery.when ? jQuery.when( Store.wait( Store.fire( setting.wait, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) ) )
                       .done( function () { update( jQuery, window, document, undefined, Store, setting, event, cache ) ; } )
                     : update( jQuery, window, document, undefined, Store, setting, event, cache ) ;
-        /* validator */ validator && validator.test( '++', 1, 0, 'end' ) ;
-        /* validator */ validator && validator.end() ;
         return ;
       }
       
-      /* validator */ validator && validator.test( '++', 1, 0, 'initialize' ) ;
       var ajax, callbacks, defer, data, XMLHttpRequest, textStatus, errorThrown, dataSize ;
       
       ajax = {} ;
       switch ( event.type.toLowerCase() ) {
         case 'click':
-          /* validator */ validator && validator.test( '++', 1, 0, 'event click' ) ;
           ajax.type = 'GET' ;
           break ;
           
         case 'submit':
-          /* validator */ validator && validator.test( '++', 1, event.target.method, 'event submit' ) ;
           ajax.type = event.target.method.toUpperCase() ;
           if ( ajax.type === 'POST' ) { ajax.data = jQuery( event.target ).serializeArray() ; }
           break ;
           
         case 'popstate':
-          /* validator */ validator && validator.test( '++', 1, 0, 'event popstate' ) ;
           ajax.type = 'GET' ;
           break ;
       }
       
       defer = jQuery.when ? jQuery.Deferred() : null ;
-      /* validator */ validator && validator.test( '++', 1, 0, 'setting' ) ;
       callbacks = {
         xhr: !setting.callbacks.ajax.xhr ? undefined : function () {
           XMLHttpRequest = Store.fire( setting.callbacks.ajax.xhr, null, [ event, setting.parameter ], setting.callbacks.async ) ;
@@ -631,7 +611,6 @@
       jQuery.extend( true, ajax, setting.ajax, callbacks ) ;
       ajax.url = url.replace( /([^#]+)(#[^\s]*)?$/, '$1' + ( setting.server.query ? ( url.match( /\?/ ) ? '&' : '?' ) + encodeURIComponent( setting.server.query ) + '=1' : '' ) + '$2' ) ;
       
-      /* validator */ validator && validator.test( '++', 1, 0, 'ajax' ) ;
       speedcheck && setting.log.speed.name.push( 'request' ) ;
       speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
       jQuery.when && jQuery.when( defer.promise(), Store.wait( Store.fire( setting.wait, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) ) )
@@ -639,16 +618,9 @@
       jQuery.ajax( ajax ) ;
       
       if ( Store.fire( setting.callbacks.after, null, [ event, setting.parameter ], setting.callbacks.async ) === false ) { return ; } // function: drive
-      /* validator */ validator && validator.test( '++', 1, 0, 'end' ) ;
-      /* validator */ validator && validator.end() ;
       
       
       function update( jQuery, window, document, undefined, Store, setting, event, cache ) {
-        /* validator */ var validator = setting.validator ? setting.validator.clone( { name: 'jquery.pjax.js - update()' } ) : false ;
-        /* validator */ validator && validator.start() ;
-        /* validator */ validator && ( validator.scope = function( code ){ return eval( code ) ; } ) ;
-        /* validator */ validator && validator.test( '1', 1, 0, 'update()' ) ;
-        /* validator */ validator && validator.test( '++', 1, 0, 'start' ) ;
         UPDATE: {
           var speedcheck = setting.speedcheck ;
           speedcheck && setting.log.speed.name.push( 'update' ) ;
@@ -661,12 +633,9 @@
           var title, css, script ;
           
           try {
-            /* validator */ validator && validator.test( '++', 1, 0, 'try' ) ;
-            /* validator */ validator && validator.test( '++', 1, !cache ? [ setting.contentType, XMLHttpRequest.getResponseHeader( 'Content-Type' ) ] : 0, 'content-type' ) ;
             if ( !cache && -1 === ( XMLHttpRequest.getResponseHeader( 'Content-Type' ) || '' ).toLowerCase().search( setting.contentType ) ) { throw new Error( "throw: content-type mismatch" ) ; }
             
             /* cache */
-            /* validator */ validator && validator.test( '++', cache ? "'usable'" : "'unusable'", 0, 'cache' ) ;
             UPDATE_CACHE: {
               if ( !cache ) { break UPDATE_CACHE ; }
               if ( Store.fire( callbacks_update.cache.load.before, null, [ event, setting.parameter, cache ], setting.callbacks.async ) === false ) { break UPDATE_CACHE ; }
@@ -679,7 +648,6 @@
             } ; // label: UPDATE_CACHE
             
             /* variable initialization */
-            /* validator */ validator && validator.test( '++', 1, 0, 'initialize' ) ;
             var pdoc, pdata, cdoc, cdata, parsable, areas, checker ;
             areas = setting.area.split( /\s*,\s*/ ) ;
             // Can not delete the script in the noscript After parse.
@@ -728,7 +696,6 @@
             jQuery( window ).trigger( setting.gns + '.unload' ) ;
             
             /* url */
-            /* validator */ validator && validator.test( '++', 1, url, 'url' ) ;
             UPDATE_URL: {
               if ( Store.fire( callbacks_update.url.before, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE_URL ; } ;
               
@@ -750,7 +717,6 @@
             } ; // label: UPDATE_URL
             
             /* title */
-            /* validator */ validator && validator.test( '++', 1, title, 'title' ) ;
             UPDATE_TITLE: {
               if ( Store.fire( callbacks_update.title.before, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE_TITLE ; }
               document.title = title ;
@@ -761,7 +727,6 @@
             setting.database && Store.dbCurrent() ;
             
             /* content */
-            /* validator */ validator && validator.test( '++', 1, areas, 'content' ) ;
             UPDATE_CONTENT: {
               if ( Store.fire( callbacks_update.content.before, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE_CONTENT ; }
               jQuery( setting.area ).children( '.' + setting.nss.class4html + '-check' ).remove() ;
@@ -781,7 +746,6 @@
             speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
             
             /* scroll */
-            /* validator */ validator && validator.test( '++', 1, 0, 'scroll' ) ;
             function scroll( call ) {
               if ( Store.fire( callbacks_update.scroll.before, null, [ event, setting.parameter ], setting.callbacks.async ) === false ) { return ; }
               var scrollX, scrollY ;
@@ -808,7 +772,6 @@
             scroll( false ) ;
             
             /* cache */
-            /* validator */ validator && validator.test( '++', 1, 0, 'cache' ) ;
             UPDATE_CACHE: {
               if ( cache && cache.XMLHttpRequest || !setting.cache.click && !setting.cache.submit && !setting.cache.popstate ) { break UPDATE_CACHE ; }
               if ( event.type.toLowerCase() === 'submit' && !setting.cache[ event.target.method.toLowerCase() ] ) { break UPDATE_CACHE ; }
@@ -821,7 +784,6 @@
             } ; // label: UPDATE_CACHE
             
             /* rendering */
-            /* validator */ validator && validator.test( '++', 1, 0, 'rendering' ) ;
             function rendering( callback ) {
               if ( Store.fire( callbacks_update.rendering.before, null, [ event, setting.parameter ], setting.callbacks.async ) === false ) { return ; }
               
@@ -853,7 +815,6 @@
             } // function: rendered
             
             /* escape */
-            /* validator */ validator && validator.test( '++', 1, 0, 'escape' ) ;
             // Can not delete the style of update range in parsable === false.
             // However, there is no problem on real because parsable === false is not used.
             switch ( parsable ) {
@@ -870,11 +831,7 @@
             }
             
             /* css */
-            /* validator */ validator && validator.test( '++', 1, 0, 'css' ) ;
             function load_css() {
-              /* validator */ var validator = setting.validator ? setting.validator.clone( { name: 'jquery.pjax.js - load_css()' } ) : false ;
-              /* validator */ validator && validator.start() ;
-              /* validator */ validator && ( validator.scope = function( code ){ return eval( code ) ; } ) ;
               UPDATE_CSS: {
                 if ( !setting.load.css ) { break UPDATE_CSS ; }
                 if ( Store.fire( callbacks_update.css.before, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE_CSS ; }
@@ -891,11 +848,13 @@
                     css = Store.find( pdata, /(<link[^>]*?rel=.[^"\']*?stylesheet[^>]*?>|<style[^>]*?>(?:.|[\n\r])*?<\/style>)/gim ) ;
                     break ;
                 }
+                css = jQuery( css ).not( setting.load.reject ) ;
+                removes = removes.not( setting.load.reload ) ;
+                
                 if ( cache && cache.css && css && css.length !== cache.css.length ) { save = true ; }
                 if ( save ) { cache.css = [] ; }
                 
                 for ( var i = 0, element, content ; element = css[ i ] ; i++ ) {
-                  
                   element = typeof element === 'object' ? save ? jQuery( element.outerHTML )[ 0 ] : element
                                                         : jQuery( element )[ 0 ] ;
                   element = typeof setting.load.rewrite === 'function' ? Store.fire( setting.load.rewrite, null, [ element.cloneNode() ] ) || element : element ;
@@ -918,19 +877,13 @@
                 jQuery( 'head' ).append( adds ) ;
                 
                 if ( Store.fire( callbacks_update.css.after, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE_CSS ; }
-                
                 speedcheck && setting.log.speed.name.push( 'css' ) ;
                 speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
               } ; // label: UPDATE_CSS
-              /* validator */ validator && validator.end() ;
             } // function: css
             
             /* script */
-            /* validator */ validator && validator.test( '++', 1, 0, 'script' ) ;
             function load_script( selector ) {
-              /* validator */ var validator = setting.validator ? setting.validator.clone( { name: 'jquery.pjax.js - load_script()' } ) : false ;
-              /* validator */ validator && validator.start() ;
-              /* validator */ validator && ( validator.scope = function( code ){ return eval( code ) ; } ) ;
               UPDATE_SCRIPT: {
                 if ( !setting.load.script ) { break UPDATE_SCRIPT ; }
                 if ( Store.fire( callbacks_update.script.before, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE_SCRIPT ; }
@@ -947,12 +900,12 @@
                     script = Store.find( pdata, /(?:[^\'\"]|^\s*?)(<script[^>]*?>(?:.|[\n\r])*?<\/script>)(?:[^\'\"]|\s*?$)/gim ) ;
                     break ;
                 }
+                script = jQuery( script ).not( setting.load.reject ) ;
+                
                 if ( cache && cache.script && script && script.length !== cache.script.length ) { save = true ; }
                 if ( save ) { cache.script = [] ; }
                 
                 for ( var i = 0, element, content ; element = script[ i ] ; i++ ) {
-                  
-                  /* validator */ validator && validator.test( '++', 1, element.outerHTML, 'load' ) ;
                   element = typeof element === 'object' ? save ? jQuery( element.outerHTML )[ 0 ] : element
                                                         : jQuery( element )[ 0 ] ;
                   element = typeof setting.load.rewrite === 'function' ? Store.fire( setting.load.rewrite, null, [ element.cloneNode() ] ) || element : element ;
@@ -972,7 +925,6 @@
                       window.eval.call( window, ( element.text || element.textContent || element.innerHTML || '' ).replace( /^\s*<!(?:\[CDATA\[|\-\-)/, '/*$0*/' ) ) ;
                     }
                   } catch ( err ) {
-                    /* validator */ validator && validator.test( '++', 0, err, 'error' ) ;
                     break ;
                   }
                 }
@@ -981,11 +933,9 @@
                 selector === '[src][defer]' && speedcheck && setting.log.speed.name.push( 'script' ) ;
                 selector === '[src][defer]' && speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
               } ; // label: UPDATE_SCRIPT
-              /* validator */ validator && validator.end() ;
             } // function: script
             
             /* verify */
-            /* validator */ validator && validator.test( '++', 1, 0, 'verify' ) ;
             UPDATE_VERIFY: {
               if ( Store.fire( callbacks_update.verify.before, null, [ event, setting.parameter ], setting.callbacks.async ) === false ) { break UPDATE_VERIFY ; }
               if ( url === Store.canonicalizeURL( window.location.href ) ) {
@@ -1000,7 +950,6 @@
             } ; // label: UPDATE_VERIFY
             
             /* load */
-            /* validator */ validator && validator.test( '++', 1, 0, 'load' ) ;
             load_css() ;
             jQuery( document ).trigger( setting.gns + '.ready' ) ;
             jQuery( window )
@@ -1021,26 +970,18 @@
             if ( Store.fire( callbacks_update.success, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
             if ( Store.fire( callbacks_update.complete, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
             if ( Store.fire( setting.callback, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
-            /* validator */ validator && validator.test( '++', 1, 0, 'success' ) ;
           } catch( err ) {
-            /* validator */ validator && validator.test( '++', !String( err.message ).indexOf( "throw:" ), err, 'catch' ) ;
-            /* validator */ validator && validator.test( '++', !( err.message === 'throw: location mismatch' && url !== window.location.href ), [ url, window.location.href ], "!( err.message === 'throw: location mismatch' && url !== window.location.href )" ) ;
-            
             /* cache delete */
             cache && jQuery[ Store.name ].removeCache( url ) ;
             
             if ( Store.fire( callbacks_update.error, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
             if ( Store.fire( callbacks_update.complete, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
-            /* validator */ validator && validator.test( '++', 1, [ url, window.location.href ], 'error' ) ;
             if ( setting.fallback ) { return typeof setting.fallback === 'function' ? Store.fire( setting.fallback, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) : Store.fallback( event ) ; }
           } ;
           
           if ( Store.fire( callbacks_update.after, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
-          
           speedcheck && setting.log.speed.name.push( 'complete' ) ;
           speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
-          /* validator */ validator && validator.test( '++', 1, 0, 'end' ) ;
-          /* validator */ validator && validator.end() ;
         } ; // label: UPDATE
       } // function: update
     },
@@ -1173,151 +1114,155 @@
       /* validator */ var validator = setting.validator ? setting.validator.clone( { name: 'jquery.pjax.js - database()' } ) : false ;
       /* validator */ validator && validator.start() ;
       /* validator */ validator && ( validator.scope = function( code ){ return eval( code ) ; } ) ;
-      var version, IDBFactory, name, db, store, days ;
-      version = 1 ;
-      IDBFactory = setting.database && setting.database.IDBFactory ;
+      var name, version, days, IDBFactory, IDBDatabase, IDBObjectStore ;
       name = setting.gns; 
+      version = 1 ;
       days = Math.floor( setting.timestamp / ( 1000*60*60*24 ) ) ;
+      IDBFactory = Store.IDBFactory ;
+      IDBDatabase = Store.IDBDatabase ;
       count = count || 0 ;
       
-      if ( !IDBFactory || !name || count > 3 ) {
-        setting.database = false ;
+      setting.database = false ;
+      if ( !IDBFactory || !name || count > 5 ) {
         /* validator */ validator && validator.end() ;
         return false ;
       }
       
       try {
+        function retry( wait ) {
+          Store.IDBDatabase = null ;
+          IDBDatabase && IDBDatabase.close && IDBDatabase.close() ;
+          IDBFactory.deleteDatabase( name ) ;
+          wait ? setTimeout( function () { Store.database( ++count ) ; }, wait ) : Store.database( ++count ) ;
+        }
+        
         version = parseInt( days - days % 7 + version, 10 ) ;
         /* validator */ validator && validator.test( '++', 1, version, 'open' ) ;
-        db = IDBFactory.open( name ) ;
+        IDBDatabase = IDBFactory.open( name ) ;
         /* validator */ validator && validator.test( '++', 1, 0, 'call' ) ;
-        db.onblocked = function () {
+        IDBDatabase.onblocked = function () {
           /* validator */ validator && validator.test( '++', 1, 0, 'onblocked()' ) ;
         } ;
-        db.onupgradeneeded = function () {
+        IDBDatabase.onupgradeneeded = function () {
           /* validator */ validator && validator.test( '++', 1, 0, 'onupgradeneeded()' ) ;
-          var db = this.result ;
+          var IDBDatabase = this.result ;
           try {
             /* validator */ validator && validator.test( '++', 1, 0, 'deleteObjectStore' ) ;
-            for ( var i = db.objectStoreNames ? db.objectStoreNames.length : 0 ; i-- ; ) { db.deleteObjectStore( db.objectStoreNames[ i ] ) ; }
+            for ( var i = IDBDatabase.objectStoreNames ? IDBDatabase.objectStoreNames.length : 0 ; i-- ; ) { IDBDatabase.deleteObjectStore( IDBDatabase.objectStoreNames[ i ] ) ; }
             /* validator */ validator && validator.test( '++', 1, 0, 'createObjectStore' ) ;
-            db.createObjectStore( setting.gns, { keyPath: 'id', autoIncrement: false } ).createIndex( 'date', 'date', { unique: false } ) ;
+            IDBDatabase.createObjectStore( setting.gns, { keyPath: 'id', autoIncrement: false } ).createIndex( 'date', 'date', { unique: false } ) ;
           } catch ( err ) {
             /* validator */ validator && validator.test( '++', 1, err, 'cancel' ) ;
           }
         } ;
-        db.onsuccess = function () {
+        IDBDatabase.onsuccess = function () {
           /* validator */ validator && validator.test( '++', 1, 0, 'onsuccess()' ) ;
           try {
-            var db = this.result ;
-            setting.database.IDBRequest = db ;
+            IDBDatabase = this.result ;
+            Store.IDBDatabase = IDBDatabase ;
             /* validator */ validator && validator.test( '++', 1, 0, 'store' ) ;
-            store = Store.dbStore() ;
-            
-            /* validator */ validator && validator.test( '++', 1, 0, 'update' ) ;
-            store.get( '_version' ).onsuccess = function () {
-              if ( !this.result || version === this.result.title ) {
-                Store.dbVersion( version ) ;
-                Store.dbCurrent() ;
-                Store.dbTitle( setting.location.href, document.title ) ;
-                Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
-              } else {
-                setting.database.IDBRequest = null ;
-                db.close && db.close() ;
-                IDBFactory.deleteDatabase( name ) ;
-                Store.database() ;
-              }
-            } ;
+            if ( IDBObjectStore = Store.dbStore() ) {
+              /* validator */ validator && validator.test( '++', 1, 0, 'update' ) ;
+              IDBObjectStore.get( '_version' ).onsuccess = function () {
+                if ( !this.result || version === this.result.title ) {
+                  Store.dbVersion( version ) ;
+                  Store.dbCurrent() ;
+                  Store.dbTitle( setting.location.href, document.title ) ;
+                  Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
+                  
+                  setting.database = true ;
+                } else {
+                  retry() ;
+                }
+              } ;
+            } else {
+              retry() ;
+            }
           } catch ( err ) {
             /* validator */ validator && validator.test( '++', 1, err, 'cancel' ) ;
-            setting.database.IDBRequest = null ;
-            db.close && db.close() ;
-            IDBFactory.deleteDatabase( name ) ;
-            setTimeout( function () { Store.database( ++count ) ; }, 1000 ) ;
+            retry( 1000 ) ;
           }
           /* validator */ validator && validator.end() ;
         } ;
-        db.onerror = function ( event ) {
+        IDBDatabase.onerror = function ( event ) {
           /* validator */ validator && validator.test( '++', 1, event, 'onerror()' ) ;
-          setting.database.IDBRequest = null ;
-          db.close && db.close() ;
-          IDBFactory.deleteDatabase( name ) ;
-          setTimeout( function () { Store.database( ++count ) ; }, 1000 ) ;
+          retry( 1000 ) ;
           /* validator */ validator && validator.end() ;
         } ;
       } catch ( err ) {
         /* validator */ validator && validator.test( '++', 0, err, 'error' ) ;
-        setting.database.IDBRequest = null ;
+        retry( 1000 ) ;
         /* validator */ validator && validator.end() ;
       }
     },
     dbStore: function () {
-      var setting = Store.settings[ 1 ] ;
-      return typeof setting.database.IDBRequest && setting.database.IDBRequest.transaction( setting.gns, 'readwrite' ).objectStore( setting.gns ) ;
+      var setting = Store.settings[ 1 ], IDBDatabase = Store.IDBDatabase ;
+      for ( var i = IDBDatabase && IDBDatabase.objectStoreNames ? IDBDatabase.objectStoreNames.length : 0 ; i-- ; ) {
+        if ( setting.gns === IDBDatabase.objectStoreNames[ i ] ) {
+          return IDBDatabase && IDBDatabase.transaction && IDBDatabase.transaction( setting.gns, 'readwrite' ).objectStore( setting.gns ) ;
+        }
+      }
+      return false ;
     },
     dbCurrent: function () {
-      var setting = Store.settings[ 1 ] ;
-      var store = Store.dbStore() ;
+      var setting = Store.settings[ 1 ], IDBObjectStore = Store.dbStore() ;
       
-      if ( !store ) { return ; }
-      store.put( { id: '_current', title: setting.hashquery ? window.location.href: window.location.href.replace( /#.*/, '' ) } ) ;
+      if ( !IDBObjectStore ) { return ; }
+      IDBObjectStore.put( { id: '_current', title: setting.hashquery ? window.location.href: window.location.href.replace( /#.*/, '' ) } ) ;
     },
     dbVersion: function ( version ) {
-      var store = Store.dbStore() ;
+      var setting = Store.settings[ 1 ], IDBObjectStore = Store.dbStore() ;
       
-      if ( !store ) { return ; }
-      store.put( { id: '_version', title: version } ) ;
+      if ( !IDBObjectStore ) { return ; }
+      IDBObjectStore.put( { id: '_version', title: version } ) ;
     },
     dbTitle: function ( url, title ) {
-      var setting = Store.settings[ 1 ] ;
-      var store = Store.dbStore() ;
+      var setting = Store.settings[ 1 ], IDBObjectStore = Store.dbStore() ;
       
-      if ( !store ) { return ; }
+      if ( !IDBObjectStore ) { return ; }
       if ( !setting.hashquery ) { url = url.replace( /#.*/, '' ) ; }
       if ( title ) {
-        store.get( url ).onsuccess = function () {
-          store.put( jQuery.extend( true, {}, this.result || {}, { id: url, title: title, date: setting.timestamp } ) ) ;
-          Store.dbClean( store ) ;
+        IDBObjectStore.get( url ).onsuccess = function () {
+          IDBObjectStore.put( jQuery.extend( true, {}, this.result || {}, { id: url, title: title, date: setting.timestamp } ) ) ;
+          Store.dbClean() ;
         } ;
       } else {
-        store.get( url ).onsuccess = function () {
+        IDBObjectStore.get( url ).onsuccess = function () {
           this.result && this.result.title && ( document.title = this.result.title ) ;
         } ;
       }
     },
     dbScroll: function ( scrollX, scrollY ) {
-      var setting = Store.settings[ 1 ] ;
-      var store = Store.dbStore() ;
+      var setting = Store.settings[ 1 ], IDBObjectStore = Store.dbStore() ;
       var url = setting.location.href, title = document.title, len = arguments.length ;
       
-      if ( !setting.scroll.record || !store ) { return ; }
+      if ( !setting.scroll.record || !IDBObjectStore ) { return ; }
       if ( !setting.hashquery ) { url = url.replace( /#.*/, '' ) ; }
-      store.get( '_current' ).onsuccess = function () {
+      IDBObjectStore.get( '_current' ).onsuccess = function () {
         if ( !this.result || !this.result.title || url !== this.result.title ) { return ; }
         if ( len ) {
-          store.get( url ).onsuccess = function () {
-            store.put( jQuery.extend( true, {}, this.result || {}, { scrollX: parseInt( Number( scrollX ), 10 ), scrollY: parseInt( Number( scrollY ), 10 ) } ) ) ;
+          IDBObjectStore.get( url ).onsuccess = function () {
+            IDBObjectStore.put( jQuery.extend( true, {}, this.result || {}, { scrollX: parseInt( Number( scrollX ), 10 ), scrollY: parseInt( Number( scrollY ), 10 ) } ) ) ;
           }
         } else {
-          store.get( url ).onsuccess = function () {
+          IDBObjectStore.get( url ).onsuccess = function () {
             this.result && isFinite( this.result.scrollX ) && isFinite( this.result.scrollY ) &&
             window.scrollTo( parseInt( Number( this.result.scrollX ), 10 ), parseInt( Number( this.result.scrollY ), 10 ) ) ;
           }
         }
       } ;
     },
-    dbClean: function ( store ) {
-      var setting = Store.settings[ 1 ] ;
-      var IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.mozIDBKeyRange || window.msIDBKeyRange ;
-      store.count().onsuccess = function () {
+    dbClean: function () {
+      var setting = Store.settings[ 1 ], IDBObjectStore = Store.dbStore() ;
+      IDBObjectStore.count().onsuccess = function () {
         if ( 1000 < this.result ) {
-          store.index( 'date' ).openCursor( IDBKeyRange.upperBound( setting.timestamp - ( 1000*60*60*24*3 ) ) ).onsuccess = function () {
-            var cursor = this.result ;
-            if ( cursor ) {
-              cursor[ 'delete' ]( cursor.value.id ) ;
-              cursor[ 'continue' ]() ;
+          IDBObjectStore.index( 'date' ).openCursor( Store.IDBKeyRange.upperBound( setting.timestamp - ( 1000*60*60*24*3 ) ) ).onsuccess = function () {
+            var IDBCursor = this.result ;
+            if ( IDBCursor ) {
+              IDBCursor[ 'delete' ]( IDBCursor.value.id ) ;
+              IDBCursor[ 'continue' ]() ;
             } else {
-              store.count().onsuccess = function () { 1000 < this.result && store.clear() ; }
+              IDBObjectStore.count().onsuccess = function () { 1000 < this.result && IDBObjectStore.clear() ; }
             }
           }
         }
