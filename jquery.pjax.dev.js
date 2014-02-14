@@ -131,11 +131,6 @@
         fix: !/Mobile(\/\w+)? Safari/i.test( window.navigator.userAgent ) ? { location: false, reset: false } : {},
         contentType: setting.contentType.replace( /\s*[,;]\s*/g, '|' ).toLowerCase(),
         scroll: { record: true, queue: [] },
-        database: setting.database ? {
-                                       IDBFactory: ( window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB || null ),
-                                       IDBRequest: null
-                                     }
-                                   : false,
         server: { query: !setting.server.query ? setting.gns : setting.server.query },
         log: { script: {}, speed: {} },
         history: { config: setting.cache, order: [], data: {}, size: 0 },
@@ -166,7 +161,6 @@
     ids: [],
     settings: [0],
     count: 0,
-    parseHTML: null,
     setAlias:  function ( name ) {
       Store.alias = typeof name === 'string' ? name : Store.alias ;
       if ( Store.name !== Store.alias && !jQuery[ Store.alias ] ) {
@@ -174,6 +168,10 @@
         jQuery.fn[ Store.alias ] = jQuery[ Store.alias ] = jQuery.fn[ Store.name ] ;
       }
     },
+    IDBFactory: window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB,
+    IDBDatabase: null,
+    IDBKeyRange: window.IDBKeyRange || window.webkitIDBKeyRange || window.mozIDBKeyRange || window.msIDBKeyRange,
+    parseHTML: null,
     setProperties: function ( namespace, element ) {
       
       var $context = this ;
@@ -1173,11 +1171,11 @@
       /* validator */ var validator = setting.validator ? setting.validator.clone( { name: 'jquery.pjax.js - database()' } ) : false ;
       /* validator */ validator && validator.start() ;
       /* validator */ validator && ( validator.scope = function( code ){ return eval( code ) ; } ) ;
-      var version, IDBFactory, name, db, store, days ;
-      version = 1 ;
-      IDBFactory = setting.database && setting.database.IDBFactory ;
+      var name, version, days, IDBFactory, IDBDatabase, IDBObjectStore ;
       name = setting.gns; 
+      version = 1 ;
       days = Math.floor( setting.timestamp / ( 1000*60*60*24 ) ) ;
+      IDBFactory = setting.database && Store.IDBFactory ;
       count = count || 0 ;
       
       if ( !IDBFactory || !name || count > 3 ) {
@@ -1189,135 +1187,131 @@
       try {
         version = parseInt( days - days % 7 + version, 10 ) ;
         /* validator */ validator && validator.test( '++', 1, version, 'open' ) ;
-        db = IDBFactory.open( name ) ;
+        IDBDatabase = IDBFactory.open( name ) ;
         /* validator */ validator && validator.test( '++', 1, 0, 'call' ) ;
-        db.onblocked = function () {
+        IDBDatabase.onblocked = function () {
           /* validator */ validator && validator.test( '++', 1, 0, 'onblocked()' ) ;
         } ;
-        db.onupgradeneeded = function () {
+        IDBDatabase.onupgradeneeded = function () {
           /* validator */ validator && validator.test( '++', 1, 0, 'onupgradeneeded()' ) ;
-          var db = this.result ;
+          var IDBDatabase = this.result ;
           try {
             /* validator */ validator && validator.test( '++', 1, 0, 'deleteObjectStore' ) ;
-            for ( var i = db.objectStoreNames ? db.objectStoreNames.length : 0 ; i-- ; ) { db.deleteObjectStore( db.objectStoreNames[ i ] ) ; }
+            for ( var i = IDBDatabase.objectStoreNames ? IDBDatabase.objectStoreNames.length : 0 ; i-- ; ) { IDBDatabase.deleteObjectStore( IDBDatabase.objectStoreNames[ i ] ) ; }
             /* validator */ validator && validator.test( '++', 1, 0, 'createObjectStore' ) ;
-            db.createObjectStore( setting.gns, { keyPath: 'id', autoIncrement: false } ).createIndex( 'date', 'date', { unique: false } ) ;
+            IDBDatabase.createObjectStore( setting.gns, { keyPath: 'id', autoIncrement: false } ).createIndex( 'date', 'date', { unique: false } ) ;
           } catch ( err ) {
             /* validator */ validator && validator.test( '++', 1, err, 'cancel' ) ;
           }
         } ;
-        db.onsuccess = function () {
+        IDBDatabase.onsuccess = function () {
           /* validator */ validator && validator.test( '++', 1, 0, 'onsuccess()' ) ;
           try {
-            var db = this.result ;
-            setting.database.IDBRequest = db ;
+            var IDBDatabase = this.result ;
+            Store.IDBDatabase = IDBDatabase ;
             /* validator */ validator && validator.test( '++', 1, 0, 'store' ) ;
-            store = Store.dbStore() ;
+            IDBObjectStore = Store.dbStore() ;
             
             /* validator */ validator && validator.test( '++', 1, 0, 'update' ) ;
-            store.get( '_version' ).onsuccess = function () {
+            IDBObjectStore.get( '_version' ).onsuccess = function () {
               if ( !this.result || version === this.result.title ) {
                 Store.dbVersion( version ) ;
                 Store.dbCurrent() ;
                 Store.dbTitle( setting.location.href, document.title ) ;
                 Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
               } else {
-                setting.database.IDBRequest = null ;
-                db.close && db.close() ;
+                Store.IDBDatabase = null ;
+                IDBDatabase.close && IDBDatabase.close() ;
                 IDBFactory.deleteDatabase( name ) ;
                 Store.database() ;
               }
             } ;
           } catch ( err ) {
             /* validator */ validator && validator.test( '++', 1, err, 'cancel' ) ;
-            setting.database.IDBRequest = null ;
-            db.close && db.close() ;
+            Store.IDBDatabase = null ;
+            IDBDatabase.close && IDBDatabase.close() ;
             IDBFactory.deleteDatabase( name ) ;
             setTimeout( function () { Store.database( ++count ) ; }, 1000 ) ;
           }
           /* validator */ validator && validator.end() ;
         } ;
-        db.onerror = function ( event ) {
+        IDBDatabase.onerror = function ( event ) {
           /* validator */ validator && validator.test( '++', 1, event, 'onerror()' ) ;
-          setting.database.IDBRequest = null ;
-          db.close && db.close() ;
+          Store.IDBDatabase = null ;
+          IDBDatabase.close && IDBDatabase.close() ;
           IDBFactory.deleteDatabase( name ) ;
           setTimeout( function () { Store.database( ++count ) ; }, 1000 ) ;
           /* validator */ validator && validator.end() ;
         } ;
       } catch ( err ) {
         /* validator */ validator && validator.test( '++', 0, err, 'error' ) ;
-        setting.database.IDBRequest = null ;
+        Store.IDBDatabase = null ;
         /* validator */ validator && validator.end() ;
       }
     },
     dbStore: function () {
-      var setting = Store.settings[ 1 ] ;
-      return typeof setting.database.IDBRequest && setting.database.IDBRequest.transaction( setting.gns, 'readwrite' ).objectStore( setting.gns ) ;
+      var setting = Store.settings[ 1 ], IDBDatabase = Store.IDBDatabase ;
+      return IDBDatabase && IDBDatabase.transaction && IDBDatabase.transaction( setting.gns, 'readwrite' ).objectStore( setting.gns ) ;
     },
     dbCurrent: function () {
-      var setting = Store.settings[ 1 ] ;
-      var store = Store.dbStore() ;
+      var setting = Store.settings[ 1 ], IDBObjectStore = Store.dbStore() ;
       
-      if ( !store ) { return ; }
-      store.put( { id: '_current', title: setting.hashquery ? window.location.href: window.location.href.replace( /#.*/, '' ) } ) ;
+      if ( !IDBObjectStore ) { return ; }
+      IDBObjectStore.put( { id: '_current', title: setting.hashquery ? window.location.href: window.location.href.replace( /#.*/, '' ) } ) ;
     },
     dbVersion: function ( version ) {
-      var store = Store.dbStore() ;
+      var setting = Store.settings[ 1 ], IDBObjectStore = Store.dbStore() ;
       
-      if ( !store ) { return ; }
-      store.put( { id: '_version', title: version } ) ;
+      if ( !IDBObjectStore ) { return ; }
+      IDBObjectStore.put( { id: '_version', title: version } ) ;
     },
     dbTitle: function ( url, title ) {
-      var setting = Store.settings[ 1 ] ;
-      var store = Store.dbStore() ;
+      var setting = Store.settings[ 1 ], IDBObjectStore = Store.dbStore() ;
       
-      if ( !store ) { return ; }
+      if ( !IDBObjectStore ) { return ; }
       if ( !setting.hashquery ) { url = url.replace( /#.*/, '' ) ; }
       if ( title ) {
-        store.get( url ).onsuccess = function () {
-          store.put( jQuery.extend( true, {}, this.result || {}, { id: url, title: title, date: setting.timestamp } ) ) ;
-          Store.dbClean( store ) ;
+        IDBObjectStore.get( url ).onsuccess = function () {
+          IDBObjectStore.put( jQuery.extend( true, {}, this.result || {}, { id: url, title: title, date: setting.timestamp } ) ) ;
+          Store.dbClean() ;
         } ;
       } else {
-        store.get( url ).onsuccess = function () {
+        IDBObjectStore.get( url ).onsuccess = function () {
           this.result && this.result.title && ( document.title = this.result.title ) ;
         } ;
       }
     },
     dbScroll: function ( scrollX, scrollY ) {
-      var setting = Store.settings[ 1 ] ;
-      var store = Store.dbStore() ;
+      var setting = Store.settings[ 1 ], IDBObjectStore = Store.dbStore() ;
       var url = setting.location.href, title = document.title, len = arguments.length ;
       
-      if ( !setting.scroll.record || !store ) { return ; }
+      if ( !setting.scroll.record || !IDBObjectStore ) { return ; }
       if ( !setting.hashquery ) { url = url.replace( /#.*/, '' ) ; }
-      store.get( '_current' ).onsuccess = function () {
+      IDBObjectStore.get( '_current' ).onsuccess = function () {
         if ( !this.result || !this.result.title || url !== this.result.title ) { return ; }
         if ( len ) {
-          store.get( url ).onsuccess = function () {
-            store.put( jQuery.extend( true, {}, this.result || {}, { scrollX: parseInt( Number( scrollX ), 10 ), scrollY: parseInt( Number( scrollY ), 10 ) } ) ) ;
+          IDBObjectStore.get( url ).onsuccess = function () {
+            IDBObjectStore.put( jQuery.extend( true, {}, this.result || {}, { scrollX: parseInt( Number( scrollX ), 10 ), scrollY: parseInt( Number( scrollY ), 10 ) } ) ) ;
           }
         } else {
-          store.get( url ).onsuccess = function () {
+          IDBObjectStore.get( url ).onsuccess = function () {
             this.result && isFinite( this.result.scrollX ) && isFinite( this.result.scrollY ) &&
             window.scrollTo( parseInt( Number( this.result.scrollX ), 10 ), parseInt( Number( this.result.scrollY ), 10 ) ) ;
           }
         }
       } ;
     },
-    dbClean: function ( store ) {
-      var setting = Store.settings[ 1 ] ;
-      var IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.mozIDBKeyRange || window.msIDBKeyRange ;
-      store.count().onsuccess = function () {
+    dbClean: function () {
+      var setting = Store.settings[ 1 ], IDBObjectStore = Store.dbStore() ;
+      IDBObjectStore.count().onsuccess = function () {
         if ( 1000 < this.result ) {
-          store.index( 'date' ).openCursor( IDBKeyRange.upperBound( setting.timestamp - ( 1000*60*60*24*3 ) ) ).onsuccess = function () {
-            var cursor = this.result ;
-            if ( cursor ) {
-              cursor[ 'delete' ]( cursor.value.id ) ;
-              cursor[ 'continue' ]() ;
+          IDBObjectStore.index( 'date' ).openCursor( Store.IDBKeyRange.upperBound( setting.timestamp - ( 1000*60*60*24*3 ) ) ).onsuccess = function () {
+            var IDBCursor = this.result ;
+            if ( IDBCursor ) {
+              IDBCursor[ 'delete' ]( IDBCursor.value.id ) ;
+              IDBCursor[ 'continue' ]() ;
             } else {
-              store.count().onsuccess = function () { 1000 < this.result && store.clear() ; }
+              IDBObjectStore.count().onsuccess = function () { 1000 < this.result && IDBObjectStore.clear() ; }
             }
           }
         }
