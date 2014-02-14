@@ -356,13 +356,36 @@
       Store.settings[ setting.id ] = setting ;
       
       Store.share() ;
-      Store.database() ;
+      
       setting.load.script && jQuery( 'script' ).each( function () {
         var element = this, src ;
         element = typeof setting.load.rewrite === 'function' ? Store.fire( setting.load.rewrite, null, [ element.cloneNode() ] ) || element : element ;
         if ( ( src = element.src ) && src in setting.log.script ) { return ; }
         if ( src && ( !setting.load.reload || !jQuery( element ).is( setting.load.reload ) ) ) { setting.log.script[ src ] = true ; }
       } ) ;
+      
+      if ( setting.database ) {
+        Store.database() ;
+        
+        setting.fix.scroll &&
+        jQuery( window )
+        .unbind( setting.nss.scroll )
+        .bind( setting.nss.scroll, setting.id, function ( event, end ) {
+          var setting = Store.settings[ 1 ] ;
+          var id, fn = arguments.callee ;
+          
+          if ( !setting.scroll.delay ) {
+            Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
+          } else {
+            while ( id = setting.scroll.queue.shift() ) { clearTimeout( id ) ; }
+            id = setTimeout( function () {
+              while ( id = setting.scroll.queue.shift() ) { clearTimeout( id ) ; }
+              Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
+            }, setting.scroll.delay ) ;
+            setting.scroll.queue.push( id ) ;
+          }
+        } ) ;
+      }
       
       jQuery( context )
       .undelegate( setting.link, setting.nss.click )
@@ -449,25 +472,6 @@
         
         Store.drive( jQuery, window, document, undefined, Store, setting, event, url, false, cache ) ;
         return event.preventDefault() ;
-      } ) ;
-      
-      setting.database && setting.fix.scroll &&
-      jQuery( window )
-      .unbind( setting.nss.scroll )
-      .bind( setting.nss.scroll, setting.id, function ( event, end ) {
-        var setting = Store.settings[ 1 ] ;
-        var id, fn = arguments.callee ;
-        
-        if ( !setting.scroll.delay ) {
-          Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
-        } else {
-          while ( id = setting.scroll.queue.shift() ) { clearTimeout( id ) ; }
-          id = setTimeout( function () {
-            while ( id = setting.scroll.queue.shift() ) { clearTimeout( id ) ; }
-            Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
-          }, setting.scroll.delay ) ;
-          setting.scroll.queue.push( id ) ;
-        }
       } ) ;
       
       ( function () {
