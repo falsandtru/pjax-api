@@ -454,7 +454,9 @@
         
         var url, cache ;
         
-        if ( !Store.fire( setting.hashquery, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) && setting.location.pathname + setting.location.search === setting.destination.pathname + setting.destination.search ) {
+        if ( setting.location.hash !== setting.destination.hash &&
+             setting.location.pathname + setting.location.search === setting.destination.pathname + setting.destination.search &&
+             !Store.fire( setting.hashquery, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) ) {
           return event.preventDefault() ;
         }
         
@@ -850,7 +852,6 @@
                 if ( save ) { cache.css = [] ; }
                 
                 for ( var i = 0, element, content ; element = css[ i ] ; i++ ) {
-                  
                   element = typeof element === 'object' ? save ? jQuery( element.outerHTML )[ 0 ] : element
                                                         : jQuery( element )[ 0 ] ;
                   element = typeof setting.load.rewrite === 'function' ? Store.fire( setting.load.rewrite, null, [ element.cloneNode() ] ) || element : element ;
