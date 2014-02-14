@@ -900,6 +900,7 @@
                     script = Store.find( pdata, /(?:[^\'\"]|^\s*?)(<script[^>]*?>(?:.|[\n\r])*?<\/script>)(?:[^\'\"]|\s*?$)/gim ) ;
                     break ;
                 }
+                script = jQuery( script ).not( setting.load.reject ) ;
                 
                 if ( cache && cache.script && script && script.length !== cache.script.length ) { save = true ; }
                 if ( save ) { cache.script = [] ; }
