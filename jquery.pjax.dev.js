@@ -1194,7 +1194,12 @@
     },
     dbStore: function () {
       var setting = Store.settings[ 1 ], IDBDatabase = Store.IDBDatabase ;
-      return IDBDatabase && IDBDatabase.transaction && IDBDatabase.transaction( setting.gns, 'readwrite' ).objectStore( setting.gns ) ;
+      for ( var i = IDBDatabase && IDBDatabase.objectStoreNames ? IDBDatabase.objectStoreNames.length : 0 ; i-- ; ) {
+        if ( setting.gns === IDBDatabase.objectStoreNames[ i ] ) {
+          return IDBDatabase && IDBDatabase.transaction && IDBDatabase.transaction( setting.gns, 'readwrite' ).objectStore( setting.gns ) ;
+        }
+      }
+      return false ;
     },
     dbCurrent: function () {
       var setting = Store.settings[ 1 ], IDBObjectStore = Store.dbStore() ;
