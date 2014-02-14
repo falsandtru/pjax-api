@@ -42,10 +42,6 @@
     
     /* validator */ var validator = option.validator instanceof Object ? option.validator : false ;
     /* validator */ validator = validator ? validator.clone( { name: 'jquery.pjax.js', base: true, timeout: { limit: option && option.ajax && option.ajax.timeout ? option.ajax.timeout + validator.timeout.limit : validator.timeout.limit } } ) : false ;
-    /* validator */ validator && validator.start() ;
-    /* validator */ validator && validator.test( '++', 1, option, 'pjax()' ) ;
-    
-    /* validator */ validator && validator.test( '++', 1, 0, 'initialize' ) ;
     
     var $context = this ;
     
@@ -109,7 +105,6 @@
     setting.nss = {
       array: [ Store.name ].concat( setting.ns && String( setting.ns ).split( '.' ) || [] )
     } ;
-    /* validator */ validator && validator.test( '++', 1, setting, 'overwrite' ) ;
     jQuery.extend
     (
       true,
@@ -145,12 +140,9 @@
     ) ;
     
     // registrate
-    /* validator */ validator && validator.test( '++', 1, 0, 'register' ) ;
     if ( Store.check() ) {
       Store.registrate.call( $context, jQuery, window, document, undefined, Store, setting ) ;
     }
-    
-    /* validator */ validator && validator.end() ;
     
     return $context ; // function: pjax
   }
@@ -508,11 +500,7 @@
       } )() ;
     },
     drive: function ( jQuery, window, document, undefined, Store, setting, event, url, register, cache ) {
-      /* validator */ var validator = setting.validator ? setting.validator.clone( { name: 'jquery.pjax.js - drive()' } ) : false ;
-      /* validator */ validator && validator.start() ;
-      /* validator */ validator && ( validator.scope = function( code ){ return eval( code ) ; } ) ;
-      /* validator */ validator && validator.test( '++', 1, [ url, event.type ], 'drive()' ) ;
-      
+      /* validator */ var validator ;
       var speedcheck = setting.speedcheck ;
       speedcheck && ( setting.log.speed.fire = setting.timestamp ) ;
       speedcheck && ( setting.log.speed.time = [] ) ;
@@ -520,45 +508,36 @@
       speedcheck && setting.log.speed.name.push( 'fire' ) ;
       speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
       
-      /* validator */ validator && validator.test( '++', 1, 0, 'start' ) ;
       setting.scroll.record = false ;
       setting.fix.reset && /click|submit/.test( event.type.toLowerCase() ) && window.scrollTo( jQuery( window ).scrollLeft(), 0 ) ;
       if ( Store.fire( setting.callbacks.before, null, [ event, setting.parameter ], setting.callbacks.async ) === false ) { return ; } // function: drive
       
       if ( cache && cache.XMLHttpRequest ) {
-        /* validator */ validator && validator.test( '++', 1, 0, 'update' ) ;
         jQuery.when ? jQuery.when( Store.wait( Store.fire( setting.wait, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) ) )
                       .done( function () { update( jQuery, window, document, undefined, Store, setting, event, cache ) ; } )
                     : update( jQuery, window, document, undefined, Store, setting, event, cache ) ;
-        /* validator */ validator && validator.test( '++', 1, 0, 'end' ) ;
-        /* validator */ validator && validator.end() ;
         return ;
       }
       
-      /* validator */ validator && validator.test( '++', 1, 0, 'initialize' ) ;
       var ajax, callbacks, defer, data, XMLHttpRequest, textStatus, errorThrown, dataSize ;
       
       ajax = {} ;
       switch ( event.type.toLowerCase() ) {
         case 'click':
-          /* validator */ validator && validator.test( '++', 1, 0, 'event click' ) ;
           ajax.type = 'GET' ;
           break ;
           
         case 'submit':
-          /* validator */ validator && validator.test( '++', 1, event.target.method, 'event submit' ) ;
           ajax.type = event.target.method.toUpperCase() ;
           if ( ajax.type === 'POST' ) { ajax.data = jQuery( event.target ).serializeArray() ; }
           break ;
           
         case 'popstate':
-          /* validator */ validator && validator.test( '++', 1, 0, 'event popstate' ) ;
           ajax.type = 'GET' ;
           break ;
       }
       
       defer = jQuery.when ? jQuery.Deferred() : null ;
-      /* validator */ validator && validator.test( '++', 1, 0, 'setting' ) ;
       callbacks = {
         xhr: !setting.callbacks.ajax.xhr ? undefined : function () {
           XMLHttpRequest = Store.fire( setting.callbacks.ajax.xhr, null, [ event, setting.parameter ], setting.callbacks.async ) ;
@@ -629,7 +608,6 @@
       jQuery.extend( true, ajax, setting.ajax, callbacks ) ;
       ajax.url = url.replace( /([^#]+)(#[^\s]*)?$/, '$1' + ( setting.server.query ? ( url.match( /\?/ ) ? '&' : '?' ) + encodeURIComponent( setting.server.query ) + '=1' : '' ) + '$2' ) ;
       
-      /* validator */ validator && validator.test( '++', 1, 0, 'ajax' ) ;
       speedcheck && setting.log.speed.name.push( 'request' ) ;
       speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
       jQuery.when && jQuery.when( defer.promise(), Store.wait( Store.fire( setting.wait, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) ) )
@@ -637,16 +615,9 @@
       jQuery.ajax( ajax ) ;
       
       if ( Store.fire( setting.callbacks.after, null, [ event, setting.parameter ], setting.callbacks.async ) === false ) { return ; } // function: drive
-      /* validator */ validator && validator.test( '++', 1, 0, 'end' ) ;
-      /* validator */ validator && validator.end() ;
       
       
       function update( jQuery, window, document, undefined, Store, setting, event, cache ) {
-        /* validator */ var validator = setting.validator ? setting.validator.clone( { name: 'jquery.pjax.js - update()' } ) : false ;
-        /* validator */ validator && validator.start() ;
-        /* validator */ validator && ( validator.scope = function( code ){ return eval( code ) ; } ) ;
-        /* validator */ validator && validator.test( '1', 1, 0, 'update()' ) ;
-        /* validator */ validator && validator.test( '++', 1, 0, 'start' ) ;
         UPDATE: {
           var speedcheck = setting.speedcheck ;
           speedcheck && setting.log.speed.name.push( 'update' ) ;
@@ -659,12 +630,9 @@
           var title, css, script ;
           
           try {
-            /* validator */ validator && validator.test( '++', 1, 0, 'try' ) ;
-            /* validator */ validator && validator.test( '++', 1, !cache ? [ setting.contentType, XMLHttpRequest.getResponseHeader( 'Content-Type' ) ] : 0, 'content-type' ) ;
             if ( !cache && -1 === ( XMLHttpRequest.getResponseHeader( 'Content-Type' ) || '' ).toLowerCase().search( setting.contentType ) ) { throw new Error( "throw: content-type mismatch" ) ; }
             
             /* cache */
-            /* validator */ validator && validator.test( '++', cache ? "'usable'" : "'unusable'", 0, 'cache' ) ;
             UPDATE_CACHE: {
               if ( !cache ) { break UPDATE_CACHE ; }
               if ( Store.fire( callbacks_update.cache.load.before, null, [ event, setting.parameter, cache ], setting.callbacks.async ) === false ) { break UPDATE_CACHE ; }
@@ -677,7 +645,6 @@
             } ; // label: UPDATE_CACHE
             
             /* variable initialization */
-            /* validator */ validator && validator.test( '++', 1, 0, 'initialize' ) ;
             var pdoc, pdata, cdoc, cdata, parsable, areas, checker ;
             areas = setting.area.split( /\s*,\s*/ ) ;
             // Can not delete the script in the noscript After parse.
@@ -726,7 +693,6 @@
             jQuery( window ).trigger( setting.gns + '.unload' ) ;
             
             /* url */
-            /* validator */ validator && validator.test( '++', 1, url, 'url' ) ;
             UPDATE_URL: {
               if ( Store.fire( callbacks_update.url.before, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE_URL ; } ;
               
@@ -748,7 +714,6 @@
             } ; // label: UPDATE_URL
             
             /* title */
-            /* validator */ validator && validator.test( '++', 1, title, 'title' ) ;
             UPDATE_TITLE: {
               if ( Store.fire( callbacks_update.title.before, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE_TITLE ; }
               document.title = title ;
@@ -759,7 +724,6 @@
             setting.database && Store.dbCurrent() ;
             
             /* content */
-            /* validator */ validator && validator.test( '++', 1, areas, 'content' ) ;
             UPDATE_CONTENT: {
               if ( Store.fire( callbacks_update.content.before, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE_CONTENT ; }
               jQuery( setting.area ).children( '.' + setting.nss.class4html + '-check' ).remove() ;
@@ -779,7 +743,6 @@
             speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
             
             /* scroll */
-            /* validator */ validator && validator.test( '++', 1, 0, 'scroll' ) ;
             function scroll( call ) {
               if ( Store.fire( callbacks_update.scroll.before, null, [ event, setting.parameter ], setting.callbacks.async ) === false ) { return ; }
               var scrollX, scrollY ;
@@ -806,7 +769,6 @@
             scroll( false ) ;
             
             /* cache */
-            /* validator */ validator && validator.test( '++', 1, 0, 'cache' ) ;
             UPDATE_CACHE: {
               if ( cache && cache.XMLHttpRequest || !setting.cache.click && !setting.cache.submit && !setting.cache.popstate ) { break UPDATE_CACHE ; }
               if ( event.type.toLowerCase() === 'submit' && !setting.cache[ event.target.method.toLowerCase() ] ) { break UPDATE_CACHE ; }
@@ -819,7 +781,6 @@
             } ; // label: UPDATE_CACHE
             
             /* rendering */
-            /* validator */ validator && validator.test( '++', 1, 0, 'rendering' ) ;
             function rendering( callback ) {
               if ( Store.fire( callbacks_update.rendering.before, null, [ event, setting.parameter ], setting.callbacks.async ) === false ) { return ; }
               
@@ -851,7 +812,6 @@
             } // function: rendered
             
             /* escape */
-            /* validator */ validator && validator.test( '++', 1, 0, 'escape' ) ;
             // Can not delete the style of update range in parsable === false.
             // However, there is no problem on real because parsable === false is not used.
             switch ( parsable ) {
@@ -868,11 +828,7 @@
             }
             
             /* css */
-            /* validator */ validator && validator.test( '++', 1, 0, 'css' ) ;
             function load_css() {
-              /* validator */ var validator = setting.validator ? setting.validator.clone( { name: 'jquery.pjax.js - load_css()' } ) : false ;
-              /* validator */ validator && validator.start() ;
-              /* validator */ validator && ( validator.scope = function( code ){ return eval( code ) ; } ) ;
               UPDATE_CSS: {
                 if ( !setting.load.css ) { break UPDATE_CSS ; }
                 if ( Store.fire( callbacks_update.css.before, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE_CSS ; }
@@ -920,15 +876,10 @@
                 speedcheck && setting.log.speed.name.push( 'css' ) ;
                 speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
               } ; // label: UPDATE_CSS
-              /* validator */ validator && validator.end() ;
             } // function: css
             
             /* script */
-            /* validator */ validator && validator.test( '++', 1, 0, 'script' ) ;
             function load_script( selector ) {
-              /* validator */ var validator = setting.validator ? setting.validator.clone( { name: 'jquery.pjax.js - load_script()' } ) : false ;
-              /* validator */ validator && validator.start() ;
-              /* validator */ validator && ( validator.scope = function( code ){ return eval( code ) ; } ) ;
               UPDATE_SCRIPT: {
                 if ( !setting.load.script ) { break UPDATE_SCRIPT ; }
                 if ( Store.fire( callbacks_update.script.before, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE_SCRIPT ; }
@@ -949,8 +900,6 @@
                 if ( save ) { cache.script = [] ; }
                 
                 for ( var i = 0, element, content ; element = script[ i ] ; i++ ) {
-                  
-                  /* validator */ validator && validator.test( '++', 1, element.outerHTML, 'load' ) ;
                   element = typeof element === 'object' ? save ? jQuery( element.outerHTML )[ 0 ] : element
                                                         : jQuery( element )[ 0 ] ;
                   element = typeof setting.load.rewrite === 'function' ? Store.fire( setting.load.rewrite, null, [ element.cloneNode() ] ) || element : element ;
@@ -970,7 +919,6 @@
                       window.eval.call( window, ( element.text || element.textContent || element.innerHTML || '' ).replace( /^\s*<!(?:\[CDATA\[|\-\-)/, '/*$0*/' ) ) ;
                     }
                   } catch ( err ) {
-                    /* validator */ validator && validator.test( '++', 0, err, 'error' ) ;
                     break ;
                   }
                 }
@@ -979,11 +927,9 @@
                 selector === '[src][defer]' && speedcheck && setting.log.speed.name.push( 'script' ) ;
                 selector === '[src][defer]' && speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
               } ; // label: UPDATE_SCRIPT
-              /* validator */ validator && validator.end() ;
             } // function: script
             
             /* verify */
-            /* validator */ validator && validator.test( '++', 1, 0, 'verify' ) ;
             UPDATE_VERIFY: {
               if ( Store.fire( callbacks_update.verify.before, null, [ event, setting.parameter ], setting.callbacks.async ) === false ) { break UPDATE_VERIFY ; }
               if ( url === Store.canonicalizeURL( window.location.href ) ) {
@@ -998,7 +944,6 @@
             } ; // label: UPDATE_VERIFY
             
             /* load */
-            /* validator */ validator && validator.test( '++', 1, 0, 'load' ) ;
             load_css() ;
             jQuery( document ).trigger( setting.gns + '.ready' ) ;
             jQuery( window )
@@ -1019,17 +964,12 @@
             if ( Store.fire( callbacks_update.success, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
             if ( Store.fire( callbacks_update.complete, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
             if ( Store.fire( setting.callback, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
-            /* validator */ validator && validator.test( '++', 1, 0, 'success' ) ;
           } catch( err ) {
-            /* validator */ validator && validator.test( '++', !String( err.message ).indexOf( "throw:" ), err, 'catch' ) ;
-            /* validator */ validator && validator.test( '++', !( err.message === 'throw: location mismatch' && url !== window.location.href ), [ url, window.location.href ], "!( err.message === 'throw: location mismatch' && url !== window.location.href )" ) ;
-            
             /* cache delete */
             cache && jQuery[ Store.name ].removeCache( url ) ;
             
             if ( Store.fire( callbacks_update.error, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
             if ( Store.fire( callbacks_update.complete, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
-            /* validator */ validator && validator.test( '++', 1, [ url, window.location.href ], 'error' ) ;
             if ( setting.fallback ) { return typeof setting.fallback === 'function' ? Store.fire( setting.fallback, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) : Store.fallback( event ) ; }
           } ;
           
@@ -1037,8 +977,6 @@
           
           speedcheck && setting.log.speed.name.push( 'complete' ) ;
           speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
-          /* validator */ validator && validator.test( '++', 1, 0, 'end' ) ;
-          /* validator */ validator && validator.end() ;
         } ; // label: UPDATE
       } // function: update
     },
