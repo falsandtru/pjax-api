@@ -123,11 +123,6 @@
         fix: !/Mobile(\/\w+)? Safari/i.test( window.navigator.userAgent ) ? { location: false, reset: false } : {},
         contentType: setting.contentType.replace( /\s*[,;]\s*/g, '|' ).toLowerCase(),
         scroll: { record: true, queue: [] },
-        database: setting.database ? {
-                                       IDBFactory: ( window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB || null ),
-                                       IDBRequest: null
-                                     }
-                                   : false,
         server: { query: !setting.server.query ? setting.gns : setting.server.query },
         log: { script: {}, speed: {} },
         history: { config: setting.cache, order: [], data: {}, size: 0 },
@@ -155,7 +150,6 @@
     ids: [],
     settings: [0],
     count: 0,
-    parseHTML: null,
     setAlias:  function ( name ) {
       Store.alias = typeof name === 'string' ? name : Store.alias ;
       if ( Store.name !== Store.alias && !jQuery[ Store.alias ] ) {
@@ -163,6 +157,10 @@
         jQuery.fn[ Store.alias ] = jQuery[ Store.alias ] = jQuery.fn[ Store.name ] ;
       }
     },
+    IDBFactory: window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB,
+    IDBDatabase: null,
+    IDBKeyRange: window.IDBKeyRange || window.webkitIDBKeyRange || window.mozIDBKeyRange || window.msIDBKeyRange,
+    parseHTML: null,
     setProperties: function ( namespace, element ) {
       
       var $context = this ;
@@ -355,13 +353,36 @@
       Store.settings[ setting.id ] = setting ;
       
       Store.share() ;
-      Store.database() ;
+      
       setting.load.script && jQuery( 'script' ).each( function () {
         var element = this, src ;
         element = typeof setting.load.rewrite === 'function' ? Store.fire( setting.load.rewrite, null, [ element.cloneNode() ] ) || element : element ;
         if ( ( src = element.src ) && src in setting.log.script ) { return ; }
         if ( src && ( !setting.load.reload || !jQuery( element ).is( setting.load.reload ) ) ) { setting.log.script[ src ] = true ; }
       } ) ;
+      
+      if ( setting.database ) {
+        Store.database() ;
+        
+        setting.fix.scroll &&
+        jQuery( window )
+        .unbind( setting.nss.scroll )
+        .bind( setting.nss.scroll, setting.id, function ( event, end ) {
+          var setting = Store.settings[ 1 ] ;
+          var id, fn = arguments.callee ;
+          
+          if ( !setting.scroll.delay ) {
+            Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
+          } else {
+            while ( id = setting.scroll.queue.shift() ) { clearTimeout( id ) ; }
+            id = setTimeout( function () {
+              while ( id = setting.scroll.queue.shift() ) { clearTimeout( id ) ; }
+              Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
+            }, setting.scroll.delay ) ;
+            setting.scroll.queue.push( id ) ;
+          }
+        } ) ;
+      }
       
       jQuery( context )
       .undelegate( setting.link, setting.nss.click )
@@ -374,10 +395,6 @@
         
         if ( setting.location.protocol !== setting.destination.protocol || setting.location.host !== setting.destination.host ) { return ; }
         if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
-        
-        if ( !Store.fire( setting.hashquery, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) && setting.location.pathname + setting.location.search === setting.destination.pathname + setting.destination.search ) {
-          return setting.destination.hash && Store.hashscroll(), event.preventDefault() ;
-        }
         
         var url, cache ;
         
@@ -403,6 +420,7 @@
         setting.location.href = Store.canonicalizeURL( window.location.href ) ;
         setting.destination.href = Store.canonicalizeURL( this.action ) ;
         
+        if ( setting.location.protocol !== setting.destination.protocol || setting.location.host !== setting.destination.host ) { return ; }
         if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
         
         var url, cache ;
@@ -433,7 +451,9 @@
         
         var url, cache ;
         
-        if ( !Store.fire( setting.hashquery, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) && setting.location.pathname + setting.location.search === setting.destination.pathname + setting.destination.search ) {
+        if ( setting.location.hash !== setting.destination.hash &&
+             setting.location.pathname + setting.location.search === setting.destination.pathname + setting.destination.search &&
+             !Store.fire( setting.hashquery, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) ) {
           return event.preventDefault() ;
         }
         
@@ -448,25 +468,6 @@
         
         Store.drive( jQuery, window, document, undefined, Store, setting, event, url, false, cache ) ;
         return event.preventDefault() ;
-      } ) ;
-      
-      setting.database && setting.fix.scroll &&
-      jQuery( window )
-      .unbind( setting.nss.scroll )
-      .bind( setting.nss.scroll, setting.id, function ( event, end ) {
-        var setting = Store.settings[ 1 ] ;
-        var id, fn = arguments.callee ;
-        
-        if ( !setting.scroll.delay ) {
-          Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
-        } else {
-          while ( id = setting.scroll.queue.shift() ) { clearTimeout( id ) ; }
-          id = setTimeout( function () {
-            while ( id = setting.scroll.queue.shift() ) { clearTimeout( id ) ; }
-            Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
-          }, setting.scroll.delay ) ;
-          setting.scroll.queue.push( id ) ;
-        }
       } ) ;
       
       ( function () {
@@ -499,7 +500,6 @@
       } )() ;
     },
     drive: function ( jQuery, window, document, undefined, Store, setting, event, url, register, cache ) {
-      
       setting.scroll.record = false ;
       setting.fix.reset && /click|submit/.test( event.type.toLowerCase() ) && window.scrollTo( jQuery( window ).scrollLeft(), 0 ) ;
       if ( Store.fire( setting.callbacks.before, null, [ event, setting.parameter ], setting.callbacks.async ) === false ) { return ; } // function: drive
@@ -816,11 +816,13 @@
                     css = Store.find( pdata, /(<link[^>]*?rel=.[^"\']*?stylesheet[^>]*?>|<style[^>]*?>(?:.|[\n\r])*?<\/style>)/gim ) ;
                     break ;
                 }
+                css = jQuery( css ).not( setting.load.reject ) ;
+                removes = removes.not( setting.load.reload ) ;
+                
                 if ( cache && cache.css && css && css.length !== cache.css.length ) { save = true ; }
                 if ( save ) { cache.css = [] ; }
                 
                 for ( var i = 0, element, content ; element = css[ i ] ; i++ ) {
-                  
                   element = typeof element === 'object' ? save ? jQuery( element.outerHTML )[ 0 ] : element
                                                         : jQuery( element )[ 0 ] ;
                   element = typeof setting.load.rewrite === 'function' ? Store.fire( setting.load.rewrite, null, [ element.cloneNode() ] ) || element : element ;
@@ -864,11 +866,12 @@
                     script = Store.find( pdata, /(?:[^\'\"]|^\s*?)(<script[^>]*?>(?:.|[\n\r])*?<\/script>)(?:[^\'\"]|\s*?$)/gim ) ;
                     break ;
                 }
+                script = jQuery( script ).not( setting.load.reject ) ;
+                
                 if ( cache && cache.script && script && script.length !== cache.script.length ) { save = true ; }
                 if ( save ) { cache.script = [] ; }
                 
                 for ( var i = 0, element, content ; element = script[ i ] ; i++ ) {
-                  
                   element = typeof element === 'object' ? save ? jQuery( element.outerHTML )[ 0 ] : element
                                                         : jQuery( element )[ 0 ] ;
                   element = typeof setting.load.rewrite === 'function' ? Store.fire( setting.load.rewrite, null, [ element.cloneNode() ] ) || element : element ;
@@ -1070,133 +1073,138 @@
     },
     database: function ( count ) {
       var setting = Store.settings[ 1 ] ;
-      var version, IDBFactory, name, db, store, days ;
-      version = 1 ;
-      IDBFactory = setting.database && setting.database.IDBFactory ;
+      var name, version, days, IDBFactory, IDBDatabase, IDBObjectStore ;
       name = setting.gns; 
+      version = 1 ;
       days = Math.floor( setting.timestamp / ( 1000*60*60*24 ) ) ;
+      IDBFactory = Store.IDBFactory ;
+      IDBDatabase = Store.IDBDatabase ;
       count = count || 0 ;
       
-      if ( !IDBFactory || !name || count > 3 ) {
-        setting.database = false ;
+      setting.database = false ;
+      if ( !IDBFactory || !name || count > 5 ) {
         return false ;
       }
       
       try {
-        version = parseInt( days - days % 7 + version, 10 ) ;
-        db = IDBFactory.open( name ) ;
-        db.onblocked = function () {} ;
-        db.onupgradeneeded = function () {
-          var db = this.result ;
-          try {
-            for ( var i = db.objectStoreNames ? db.objectStoreNames.length : 0 ; i-- ; ) { db.deleteObjectStore( db.objectStoreNames[ i ] ) ; }
-            db.createObjectStore( setting.gns, { keyPath: 'id', autoIncrement: false } ).createIndex( 'date', 'date', { unique: false } ) ;
-          } catch ( err ) {
-          }
-        } ;
-        db.onsuccess = function () {
-          try {
-            var db = this.result ;
-            setting.database.IDBRequest = db ;
-            store = Store.dbStore() ;
-            
-            store.get( '_version' ).onsuccess = function () {
-              if ( !this.result || version === this.result.title ) {
-                Store.dbVersion( version ) ;
-                Store.dbCurrent() ;
-                Store.dbTitle( setting.location.href, document.title ) ;
-                Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
-              } else {
-                setting.database.IDBRequest = null ;
-                db.close && db.close() ;
-                IDBFactory.deleteDatabase( name ) ;
-                Store.database() ;
-              }
-            } ;
-          } catch ( err ) {
-            setting.database.IDBRequest = null ;
-            db.close && db.close() ;
-            IDBFactory.deleteDatabase( name ) ;
-            setTimeout( function () { Store.database( ++count ) ; }, 1000 ) ;
-          }
-        } ;
-        db.onerror = function ( event ) {
-          setting.database.IDBRequest = null ;
-          db.close && db.close() ;
+        function retry( wait ) {
+          Store.IDBDatabase = null ;
+          IDBDatabase && IDBDatabase.close && IDBDatabase.close() ;
           IDBFactory.deleteDatabase( name ) ;
-          setTimeout( function () { Store.database( ++count ) ; }, 1000 ) ;
+          wait ? setTimeout( function () { Store.database( ++count ) ; }, wait ) : Store.database( ++count ) ;
+        }
+        
+        version = parseInt( days - days % 7 + version, 10 ) ;
+        IDBDatabase = IDBFactory.open( name ) ;
+        IDBDatabase.onblocked = function () {
+        } ;
+        IDBDatabase.onupgradeneeded = function () {
+          var IDBDatabase = this.result ;
+          try {
+            for ( var i = IDBDatabase.objectStoreNames ? IDBDatabase.objectStoreNames.length : 0 ; i-- ; ) { IDBDatabase.deleteObjectStore( IDBDatabase.objectStoreNames[ i ] ) ; }
+            IDBDatabase.createObjectStore( setting.gns, { keyPath: 'id', autoIncrement: false } ).createIndex( 'date', 'date', { unique: false } ) ;
+          } catch ( err ) {
+          }
+        } ;
+        IDBDatabase.onsuccess = function () {
+          try {
+            IDBDatabase = this.result ;
+            Store.IDBDatabase = IDBDatabase ;
+            if ( IDBObjectStore = Store.dbStore() ) {
+              IDBObjectStore.get( '_version' ).onsuccess = function () {
+                if ( !this.result || version === this.result.title ) {
+                  Store.dbVersion( version ) ;
+                  Store.dbCurrent() ;
+                  Store.dbTitle( setting.location.href, document.title ) ;
+                  Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
+                  
+                  setting.database = true ;
+                } else {
+                  retry() ;
+                }
+              } ;
+            } else {
+              retry() ;
+            }
+          } catch ( err ) {
+            retry( 1000 ) ;
+          }
+        } ;
+        IDBDatabase.onerror = function ( event ) {
+          retry( 1000 ) ;
         } ;
       } catch ( err ) {
-        setting.database.IDBRequest = null ;
+        retry( 1000 ) ;
       }
     },
     dbStore: function () {
-      var setting = Store.settings[ 1 ] ;
-      return typeof setting.database.IDBRequest && setting.database.IDBRequest.transaction( setting.gns, 'readwrite' ).objectStore( setting.gns ) ;
+      var setting = Store.settings[ 1 ], IDBDatabase = Store.IDBDatabase ;
+      for ( var i = IDBDatabase && IDBDatabase.objectStoreNames ? IDBDatabase.objectStoreNames.length : 0 ; i-- ; ) {
+        if ( setting.gns === IDBDatabase.objectStoreNames[ i ] ) {
+          return IDBDatabase && IDBDatabase.transaction && IDBDatabase.transaction( setting.gns, 'readwrite' ).objectStore( setting.gns ) ;
+        }
+      }
+      return false ;
     },
     dbCurrent: function () {
-      var setting = Store.settings[ 1 ] ;
-      var store = Store.dbStore() ;
+      var setting = Store.settings[ 1 ], IDBObjectStore = Store.dbStore() ;
       
-      if ( !store ) { return ; }
-      store.put( { id: '_current', title: setting.hashquery ? window.location.href: window.location.href.replace( /#.*/, '' ) } ) ;
+      if ( !IDBObjectStore ) { return ; }
+      IDBObjectStore.put( { id: '_current', title: setting.hashquery ? window.location.href: window.location.href.replace( /#.*/, '' ) } ) ;
     },
     dbVersion: function ( version ) {
-      var store = Store.dbStore() ;
+      var setting = Store.settings[ 1 ], IDBObjectStore = Store.dbStore() ;
       
-      if ( !store ) { return ; }
-      store.put( { id: '_version', title: version } ) ;
+      if ( !IDBObjectStore ) { return ; }
+      IDBObjectStore.put( { id: '_version', title: version } ) ;
     },
     dbTitle: function ( url, title ) {
-      var setting = Store.settings[ 1 ] ;
-      var store = Store.dbStore() ;
+      var setting = Store.settings[ 1 ], IDBObjectStore = Store.dbStore() ;
       
-      if ( !store ) { return ; }
+      if ( !IDBObjectStore ) { return ; }
       if ( !setting.hashquery ) { url = url.replace( /#.*/, '' ) ; }
       if ( title ) {
-        store.get( url ).onsuccess = function () {
-          store.put( jQuery.extend( true, {}, this.result || {}, { id: url, title: title, date: setting.timestamp } ) ) ;
-          Store.dbClean( store ) ;
+        IDBObjectStore.get( url ).onsuccess = function () {
+          IDBObjectStore.put( jQuery.extend( true, {}, this.result || {}, { id: url, title: title, date: setting.timestamp } ) ) ;
+          Store.dbClean() ;
         } ;
       } else {
-        store.get( url ).onsuccess = function () {
+        IDBObjectStore.get( url ).onsuccess = function () {
           this.result && this.result.title && ( document.title = this.result.title ) ;
         } ;
       }
     },
     dbScroll: function ( scrollX, scrollY ) {
-      var setting = Store.settings[ 1 ] ;
-      var store = Store.dbStore() ;
+      var setting = Store.settings[ 1 ], IDBObjectStore = Store.dbStore() ;
       var url = setting.location.href, title = document.title, len = arguments.length ;
       
-      if ( !setting.scroll.record || !store ) { return ; }
+      if ( !setting.scroll.record || !IDBObjectStore ) { return ; }
       if ( !setting.hashquery ) { url = url.replace( /#.*/, '' ) ; }
-      store.get( '_current' ).onsuccess = function () {
+      IDBObjectStore.get( '_current' ).onsuccess = function () {
         if ( !this.result || !this.result.title || url !== this.result.title ) { return ; }
         if ( len ) {
-          store.get( url ).onsuccess = function () {
-            store.put( jQuery.extend( true, {}, this.result || {}, { scrollX: parseInt( Number( scrollX ), 10 ), scrollY: parseInt( Number( scrollY ), 10 ) } ) ) ;
+          IDBObjectStore.get( url ).onsuccess = function () {
+            IDBObjectStore.put( jQuery.extend( true, {}, this.result || {}, { scrollX: parseInt( Number( scrollX ), 10 ), scrollY: parseInt( Number( scrollY ), 10 ) } ) ) ;
           }
         } else {
-          store.get( url ).onsuccess = function () {
+          IDBObjectStore.get( url ).onsuccess = function () {
             this.result && isFinite( this.result.scrollX ) && isFinite( this.result.scrollY ) &&
             window.scrollTo( parseInt( Number( this.result.scrollX ), 10 ), parseInt( Number( this.result.scrollY ), 10 ) ) ;
           }
         }
       } ;
     },
-    dbClean: function ( store ) {
-      var setting = Store.settings[ 1 ] ;
-      var IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.mozIDBKeyRange || window.msIDBKeyRange ;
-      store.count().onsuccess = function () {
+    dbClean: function () {
+      var setting = Store.settings[ 1 ], IDBObjectStore = Store.dbStore() ;
+      IDBObjectStore.count().onsuccess = function () {
         if ( 1000 < this.result ) {
-          store.index( 'date' ).openCursor( IDBKeyRange.upperBound( setting.timestamp - ( 1000*60*60*24*3 ) ) ).onsuccess = function () {
-            var cursor = this.result ;
-            if ( cursor ) {
-              cursor[ 'delete' ]( cursor.value.id ) ;
-              cursor[ 'continue' ]() ;
+          IDBObjectStore.index( 'date' ).openCursor( Store.IDBKeyRange.upperBound( setting.timestamp - ( 1000*60*60*24*3 ) ) ).onsuccess = function () {
+            var IDBCursor = this.result ;
+            if ( IDBCursor ) {
+              IDBCursor[ 'delete' ]( IDBCursor.value.id ) ;
+              IDBCursor[ 'continue' ]() ;
             } else {
-              store.count().onsuccess = function () { 1000 < this.result && store.clear() ; }
+              IDBObjectStore.count().onsuccess = function () { 1000 < this.result && IDBObjectStore.clear() ; }
             }
           }
         }
