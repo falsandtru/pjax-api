@@ -848,8 +848,8 @@
                     css = Store.find( pdata, /(<link[^>]*?rel=.[^"\']*?stylesheet[^>]*?>|<style[^>]*?>(?:.|[\n\r])*?<\/style>)/gim ) ;
                     break ;
                 }
+                css = jQuery( css ).not( setting.load.reject ) ;
                 removes = removes.not( setting.load.reload ) ;
-                css = css.not( setting.load.reject ) ;
                 
                 if ( cache && cache.css && css && css.length !== cache.css.length ) { save = true ; }
                 if ( save ) { cache.css = [] ; }
