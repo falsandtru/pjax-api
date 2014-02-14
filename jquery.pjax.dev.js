@@ -877,7 +877,6 @@
                 jQuery( 'head' ).append( adds ) ;
                 
                 if ( Store.fire( callbacks_update.css.after, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE_CSS ; }
-                
                 speedcheck && setting.log.speed.name.push( 'css' ) ;
                 speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
               } ; // label: UPDATE_CSS
@@ -901,6 +900,7 @@
                     script = Store.find( pdata, /(?:[^\'\"]|^\s*?)(<script[^>]*?>(?:.|[\n\r])*?<\/script>)(?:[^\'\"]|\s*?$)/gim ) ;
                     break ;
                 }
+                
                 if ( cache && cache.script && script && script.length !== cache.script.length ) { save = true ; }
                 if ( save ) { cache.script = [] ; }
                 
@@ -979,7 +979,6 @@
           } ;
           
           if ( Store.fire( callbacks_update.after, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
-          
           speedcheck && setting.log.speed.name.push( 'complete' ) ;
           speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
         } ; // label: UPDATE
