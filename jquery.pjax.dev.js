@@ -1115,16 +1115,24 @@
       name = setting.gns; 
       version = 1 ;
       days = Math.floor( setting.timestamp / ( 1000*60*60*24 ) ) ;
-      IDBFactory = setting.database && Store.IDBFactory ;
+      IDBFactory = Store.IDBFactory ;
+      IDBDatabase = Store.IDBDatabase ;
       count = count || 0 ;
       
-      if ( !IDBFactory || !name || count > 3 ) {
-        setting.database = false ;
+      setting.database = false ;
+      if ( !IDBFactory || !name || count > 5 ) {
         /* validator */ validator && validator.end() ;
         return false ;
       }
       
       try {
+        function retry( wait ) {
+          Store.IDBDatabase = null ;
+          IDBDatabase && IDBDatabase.close && IDBDatabase.close() ;
+          IDBFactory.deleteDatabase( name ) ;
+          wait ? setTimeout( function () { Store.database( ++count ) ; }, wait ) : Store.database( ++count ) ;
+        }
+        
         version = parseInt( days - days % 7 + version, 10 ) ;
         /* validator */ validator && validator.test( '++', 1, version, 'open' ) ;
         IDBDatabase = IDBFactory.open( name ) ;
@@ -1147,45 +1155,40 @@
         IDBDatabase.onsuccess = function () {
           /* validator */ validator && validator.test( '++', 1, 0, 'onsuccess()' ) ;
           try {
-            var IDBDatabase = this.result ;
+            IDBDatabase = this.result ;
             Store.IDBDatabase = IDBDatabase ;
             /* validator */ validator && validator.test( '++', 1, 0, 'store' ) ;
-            IDBObjectStore = Store.dbStore() ;
-            
-            /* validator */ validator && validator.test( '++', 1, 0, 'update' ) ;
-            IDBObjectStore.get( '_version' ).onsuccess = function () {
-              if ( !this.result || version === this.result.title ) {
-                Store.dbVersion( version ) ;
-                Store.dbCurrent() ;
-                Store.dbTitle( setting.location.href, document.title ) ;
-                Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
-              } else {
-                Store.IDBDatabase = null ;
-                IDBDatabase.close && IDBDatabase.close() ;
-                IDBFactory.deleteDatabase( name ) ;
-                Store.database() ;
-              }
-            } ;
+            if ( IDBObjectStore = Store.dbStore() ) {
+              /* validator */ validator && validator.test( '++', 1, 0, 'update' ) ;
+              IDBObjectStore.get( '_version' ).onsuccess = function () {
+                if ( !this.result || version === this.result.title ) {
+                  Store.dbVersion( version ) ;
+                  Store.dbCurrent() ;
+                  Store.dbTitle( setting.location.href, document.title ) ;
+                  Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
+                  
+                  setting.database = true ;
+                } else {
+                  retry() ;
+                }
+              } ;
+            } else {
+              retry() ;
+            }
           } catch ( err ) {
             /* validator */ validator && validator.test( '++', 1, err, 'cancel' ) ;
-            Store.IDBDatabase = null ;
-            IDBDatabase.close && IDBDatabase.close() ;
-            IDBFactory.deleteDatabase( name ) ;
-            setTimeout( function () { Store.database( ++count ) ; }, 1000 ) ;
+            retry( 1000 ) ;
           }
           /* validator */ validator && validator.end() ;
         } ;
         IDBDatabase.onerror = function ( event ) {
           /* validator */ validator && validator.test( '++', 1, event, 'onerror()' ) ;
-          Store.IDBDatabase = null ;
-          IDBDatabase.close && IDBDatabase.close() ;
-          IDBFactory.deleteDatabase( name ) ;
-          setTimeout( function () { Store.database( ++count ) ; }, 1000 ) ;
+          retry( 1000 ) ;
           /* validator */ validator && validator.end() ;
         } ;
       } catch ( err ) {
         /* validator */ validator && validator.test( '++', 0, err, 'error' ) ;
-        Store.IDBDatabase = null ;
+        retry( 1000 ) ;
         /* validator */ validator && validator.end() ;
       }
     },
