@@ -1070,10 +1070,12 @@
         
         for ( var j = 0 ; pattern = scp[ key ][ j ] ; j++ ) {
           if ( hit_loc === false || hit_des === false ) {
+            break ;
           } else if ( pattern === 'rewrite' && typeof scp.rewrite === 'function' && !relocation ) {
             rewrite = arguments.callee( setting, Store.fire( scp.rewrite, null, [ setting.destination.href ] ) ) ;
             if ( rewrite ) {
               hit_loc = hit_des = true ;
+              break ;
             } else if ( false === rewrite ) {
               return false ;
             }
@@ -1101,8 +1103,7 @@
         }
         
         if ( hit_loc && hit_des ) {
-          return setting.option || rewrite ? jQuery.extend( true, {}, rewrite || {} )
-                                           : jQuery.extend( true, {}, setting, option || {}, rewrite || {} ) ;
+          return jQuery.extend( true, {}, setting, rewrite || option || {} ) ;
         }
         if ( inherit ) { continue ; }
         break ;
