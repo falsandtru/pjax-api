@@ -90,7 +90,7 @@
         load: { css: false, script: false, execute: true, reload: null, reject: null, sync: true, ajax: { dataType: 'script' }, rewrite: null },
         interval: 300,
         wait: 0,
-        scroll: { delay: 500 },
+        scroll: { delay: 300 },
         fix: { location: true, history: true, scroll: true, reset: false },
         hashquery: false,
         fallback: true,
