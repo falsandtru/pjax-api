@@ -1103,7 +1103,7 @@
         }
         
         if ( hit_loc && hit_des ) {
-          return jQuery.extend( true, {}, setting, rewrite || option || {} ) ;
+          return jQuery.extend( true, {}, setting, ( typeof rewrite === 'object' ? rewrite : option ) || {} ) ;
         }
         if ( inherit ) { continue ; }
         break ;
