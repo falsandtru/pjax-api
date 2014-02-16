@@ -95,12 +95,12 @@
         hashquery: false,
         fallback: true,
         database: true,
-        server: {},
-        location: jQuery( '<a/>', { href: Store.canonicalizeURL( window.location.href ) } )[ 0 ],
-        destination: jQuery( '<a/>', { href: Store.canonicalizeURL( window.location.href ) } )[ 0 ]
+        server: { query: 'pjax' }
       },
       option
     ) ;
+    setting.location = jQuery( '<a/>', { href: Store.canonicalizeURL( window.location.href ) } )[ 0 ] ;
+    setting.destination = jQuery( '<a/>', { href: Store.canonicalizeURL( window.location.href ) } )[ 0 ] ;
     
     setting.nss = {
       array: [ Store.name ].concat( setting.ns && String( setting.ns ).split( '.' ) || [] )
@@ -126,7 +126,6 @@
         fix: !/Mobile(\/\w+)? Safari/i.test( window.navigator.userAgent ) ? { location: false, reset: false } : {},
         contentType: setting.contentType.replace( /\s*[,;]\s*/g, '|' ).toLowerCase(),
         scroll: { record: true, queue: [] },
-        server: { query: !setting.server.query ? setting.gns : setting.server.query },
         log: { script: {}, speed: {} },
         history: { config: setting.cache, order: [], data: {}, size: 0 },
         timestamp: ( new Date() ).getTime(),
