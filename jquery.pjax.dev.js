@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.31.4
- * @updated 2014/02/14
+ * @version 1.31.5
+ * @updated 2014/02/16
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -90,17 +90,17 @@
         load: { css: false, script: false, execute: true, reload: null, reject: null, sync: true, ajax: { dataType: 'script' }, rewrite: null },
         interval: 300,
         wait: 0,
-        scroll: { delay: 500 },
+        scroll: { delay: 300 },
         fix: { location: true, history: true, scroll: true, reset: false },
         hashquery: false,
         fallback: true,
         database: true,
-        server: {},
-        location: jQuery( '<a/>', { href: Store.canonicalizeURL( window.location.href ) } )[ 0 ],
-        destination: jQuery( '<a/>', { href: Store.canonicalizeURL( window.location.href ) } )[ 0 ]
+        server: { query: 'pjax' }
       },
       option
     ) ;
+    setting.location = jQuery( '<a/>', { href: Store.canonicalizeURL( window.location.href ) } )[ 0 ] ;
+    setting.destination = jQuery( '<a/>', { href: Store.canonicalizeURL( window.location.href ) } )[ 0 ] ;
     
     setting.nss = {
       array: [ Store.name ].concat( setting.ns && String( setting.ns ).split( '.' ) || [] )
@@ -126,7 +126,6 @@
         fix: !/Mobile(\/\w+)? Safari/i.test( window.navigator.userAgent ) ? { location: false, reset: false } : {},
         contentType: setting.contentType.replace( /\s*[,;]\s*/g, '|' ).toLowerCase(),
         scroll: { record: true, queue: [] },
-        server: { query: !setting.server.query ? setting.gns : setting.server.query },
         log: { script: {}, speed: {} },
         history: { config: setting.cache, order: [], data: {}, size: 0 },
         timestamp: ( new Date() ).getTime(),
@@ -1071,10 +1070,12 @@
         
         for ( var j = 0 ; pattern = scp[ key ][ j ] ; j++ ) {
           if ( hit_loc === false || hit_des === false ) {
+            break ;
           } else if ( pattern === 'rewrite' && typeof scp.rewrite === 'function' && !relocation ) {
             rewrite = arguments.callee( setting, Store.fire( scp.rewrite, null, [ setting.destination.href ] ) ) ;
             if ( rewrite ) {
               hit_loc = hit_des = true ;
+              break ;
             } else if ( false === rewrite ) {
               return false ;
             }
@@ -1102,8 +1103,7 @@
         }
         
         if ( hit_loc && hit_des ) {
-          return setting.option || rewrite ? jQuery.extend( true, {}, rewrite || {} )
-                                           : jQuery.extend( true, {}, setting, option || {}, rewrite || {} ) ;
+          return jQuery.extend( true, {}, setting, ( typeof rewrite === 'object' ? rewrite : option ) || {} ) ;
         }
         if ( inherit ) { continue ; }
         break ;

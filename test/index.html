@@ -77,7 +77,7 @@ test( "install", function() {
         equal( document.title, 'pjax demo1', "title" );
         equal( $('#header p:first', document).text(), 'header1', "header" );
         equal( $('.primary p:first', document).text(), 'primary1', "primary" );
-      })
+      }, function(){ tdefer.reject(); })
       .pipe(function(){
         tdefer.resolve();
       });
@@ -521,7 +521,7 @@ test( "css", function() {
         equal( $('#header p:first', document).text(), 'header1', "header" );
         equal( $('.primary p:first', document).text(), 'primary1', "primary" );
         equal( $('#header', document).css('background-color').toLowerCase(), 'rgb(238, 238, 0)', "css" );
-      })
+      }, function(){ tdefer.reject(); })
       .pipe(function(){
         tdefer.resolve();
       });
@@ -568,12 +568,12 @@ test( "scroll", function() {
         equal( $('.primary p:first', document).text(), 'primary2', "primary" );
         equal( $(window).scrollLeft(), 50, "scrollX" );
         equal( $(window).scrollTop(), 0, "scrollY" );
-				window.scrollTo($(window).scrollLeft(), 50);
+        window.scrollTo($(window).scrollLeft(), 50);
         
         defer = self.$.Deferred();
         $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
         $('.primary a:eq(2)', document).each(function(){ url = this.href; }).click();
-        ok(1, "back" );
+        ok(1, "click" );
         return wait( 5000, defer, true );
       }, function(){ tdefer.reject(); })
       .pipe(function($, window, document){
@@ -584,7 +584,7 @@ test( "scroll", function() {
         equal( $('.primary p:first', document).text(), 'primary3', "primary" );
         equal( $(window).scrollLeft(), 50, "scrollX" );
         equal( $(window).scrollTop(), 50, "scrollY" );
-      })
+      }, function(){ tdefer.reject(); })
       .pipe(function(){
         tdefer.resolve();
       });
