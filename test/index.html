@@ -92,6 +92,75 @@ test( "install", function() {
   });
 });
 
+test( "cache", function() {
+  ok(1 == "1", "Passed!" );
+  stop();
+  
+  $.when()
+  .pipe(function(){
+    return load('../demo/falsandtru/', function(window, document){
+      $(iframe).bind('load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
+      
+      $.when($.Deferred().resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument))
+      .pipe(function($, window, document){
+        ok(1, 'page1');
+        equal( document.title, 'pjax demo1', "title" );
+        equal( $('#header p:first', document).text(), 'header1', "header" );
+        equal( $('.primary p:first', document).text(), 'primary1', "primary" );
+        
+        defer = self.$.Deferred();
+        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
+        $('.primary a:eq(2)', document).each(function(){ url = this.href; }).click();
+        ok(1, "click" );
+        return wait( 5000, defer, true );
+      }, function(){ tdefer.reject(); })
+      .pipe(function($, window, document){
+        ok(1, 'page2');
+        equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
+        equal( document.title, 'pjax demo2', "title" );
+        equal( $('#header p:first', document).text(), 'header1', "header" );
+        equal( $('.primary p:first', document).text(), 'primary2', "primary" );
+        
+        defer = self.$.Deferred();
+        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
+        window.history.back();
+        ok(1, "back" );
+        return wait( 5000, defer, true );
+      }, function(){ tdefer.reject(); })
+      .pipe(function($, window, document){
+        ok(1, 'page1');
+        //equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
+        equal( document.title, 'pjax demo1', "title" );
+        equal( $('#header p:first', document).text(), 'header1', "header" );
+        equal( $('.primary p:first', document).text(), 'primary1', "primary" );
+        
+        defer = self.$.Deferred();
+        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
+        $('.primary a:eq(2)', document).each(function(){ url = this.href; }).click();
+        ok(1, "click" );
+        return wait( 5000, defer, true );
+      }, function(){ tdefer.reject(); })
+      .pipe(function($, window, document){
+        ok(1, 'page2');
+        equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
+        equal( document.title, 'pjax demo2', "title" );
+        equal( $('#header p:first', document).text(), 'header1', "header" );
+        equal( $('.primary p:first', document).text(), 'primary2', "primary" );
+      }, function(){ tdefer.reject(); })
+      .pipe(function(){
+        tdefer.resolve();
+      });
+    })
+  })
+  .done(function(){
+    start();
+  })
+  .fail(function(){
+    equal( 1, 0, "error" );
+    start();
+  });
+});
+
 test( "form", function() {
   ok(1 == "1", "Passed!" );
   stop();
