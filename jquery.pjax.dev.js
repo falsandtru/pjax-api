@@ -243,8 +243,8 @@
           if ( !setting || !setting.history ) { return false ; }
           var cache, history, title, size ;
           history = setting.history ;
-          url = url || Store.canonicalizeURL( window.location.href ) ;
-          if ( !setting.hashquery ) { url = url.replace( /#.*/, '' ) ; }
+          url = Store.canonicalizeURL( url || window.location.href ) ;
+          url = setting.hashquery ? url : url.replace( /#.*/, '' ) ;
           switch ( arguments.length ) {
             case 0:
             case 1:
@@ -288,8 +288,8 @@
           if ( !setting || !setting.history ) { return false ; }
           var history ;
           history = setting.history ;
-          url = url || Store.canonicalizeURL( window.location.href ) ;
-          if ( !setting.hashquery ) { url = url.replace( /#.*/, '' ) ; }
+          url = Store.canonicalizeURL( url || window.location.href ) ;
+          url = setting.hashquery ? url : url.replace( /#.*/, '' ) ;
           history.data[ url ] && setting.timestamp > history.data[ url ].timestamp + history.config.expire && jQuery[ Store.name ].removeCache( url ) ;
           return history.data[ url ] ;
         } ;
@@ -299,8 +299,8 @@
           if ( !setting || !setting.history ) { return false ; }
           var history ;
           history = setting.history ;
-          url = url || Store.canonicalizeURL( window.location.href ) ;
-          if ( !setting.hashquery ) { url = url.replace( /#.*/, '' ) ; }
+          url = Store.canonicalizeURL( url || window.location.href ) ;
+          url = setting.hashquery ? url : url.replace( /#.*/, '' ) ;
           for ( var i = 0, key ; key = history.order[ i ] ; i++ ) {
             if ( url === key ) {
               history.order.splice( i, 1 ) ;
@@ -455,7 +455,7 @@
         
         if ( setting.location.hash !== setting.destination.hash &&
              setting.location.pathname + setting.location.search === setting.destination.pathname + setting.destination.search &&
-             !Store.fire( setting.hashquery, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) ) {
+             !setting.hashquery ) {
           return event.preventDefault() ;
         }
         
@@ -1210,7 +1210,10 @@
       var setting = Store.settings[ 1 ], IDBObjectStore = Store.dbStore() ;
       
       if ( !IDBObjectStore ) { return ; }
-      IDBObjectStore.put( { id: '_current', title: setting.hashquery ? window.location.href: window.location.href.replace( /#.*/, '' ) } ) ;
+      var url ;
+      url = Store.canonicalizeURL( window.location.href ) ;
+      url = setting.hashquery ? url : url.replace( /#.*/, '' ) ;
+      IDBObjectStore.put( { id: '_current', title: url } ) ;
     },
     dbVersion: function ( version ) {
       var setting = Store.settings[ 1 ], IDBObjectStore = Store.dbStore() ;
@@ -1222,7 +1225,7 @@
       var setting = Store.settings[ 1 ], IDBObjectStore = Store.dbStore() ;
       
       if ( !IDBObjectStore ) { return ; }
-      if ( !setting.hashquery ) { url = url.replace( /#.*/, '' ) ; }
+      url = setting.hashquery ? url : url.replace( /#.*/, '' ) ;
       if ( title ) {
         IDBObjectStore.get( url ).onsuccess = function () {
           IDBObjectStore.put( jQuery.extend( true, {}, this.result || {}, { id: url, title: title, date: setting.timestamp } ) ) ;
@@ -1239,7 +1242,7 @@
       var url = setting.location.href, title = document.title, len = arguments.length ;
       
       if ( !setting.scroll.record || !IDBObjectStore ) { return ; }
-      if ( !setting.hashquery ) { url = url.replace( /#.*/, '' ) ; }
+      url = setting.hashquery ? url : url.replace( /#.*/, '' ) ;
       IDBObjectStore.get( '_current' ).onsuccess = function () {
         if ( !this.result || !this.result.title || url !== this.result.title ) { return ; }
         if ( len ) {
