@@ -88,7 +88,7 @@
           async: false
         },
         parameter: null,
-        load: { css: false, script: false, execute: true, reload: null, reject: null, sync: true, ajax: { dataType: 'script' }, rewrite: null },
+        load: { css: false, script: false, execute: true, reload: '', reject: '', sync: true, ajax: { dataType: 'script' }, rewrite: null },
         interval: 300,
         wait: 0,
         scroll: { delay: 300 },
