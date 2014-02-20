@@ -987,16 +987,22 @@
       } // function: update
     },
     canonicalizeURL: function ( url ) {
+      var ret ;
       // Trim
-      url = Store.trim( url ) ;
+      ret = Store.trim( url ) ;
       // Remove string starting with an invalid character
-      url = url.replace( /[<>"{}|\\^\[\]`\s].*/,'' ) ;
+      ret = url.replace( /[<>"{}|\\^\[\]`\s].*/,'' ) ;
       // Parse
-      url = jQuery( '<a/>', { href: url } )[ 0 ].href ;
+      ret = jQuery( '<a/>', { href: url } )[ 0 ].href ;
       // Deny value beginning with the string of HTTP (S) other than
-      url = /^https?:/i.test( url ) ? url : '' ;
+      ret = /^https?:/i.test( url ) ? url : '' ;
       // Unify to UTF-8 encoded values
-      return encodeURI( decodeURI( url ) ) ;
+      ret = encodeURI( decodeURI( url ) ) ;
+      // Fix case
+      ret = ret.replace( /(?:%\w+)+/g, function () {
+        return url.match( arguments[ 0 ].toLowerCase() ) || arguments[ 0 ] ;
+      } ) ;
+      return ret ;
     },
     trim: function ( text ) {
       if ( String.prototype.trim ) {
