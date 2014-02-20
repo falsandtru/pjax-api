@@ -985,12 +985,14 @@
       } // function: update
     },
     canonicalizeURL: function ( url ) {
-      // trim
+      // Trim
       url = Store.trim( url ) ;
-      // Deny value beginning with the string of HTTP (S) other than
-      url = /^https?:/i.test( url ) ? url : '' ;
       // Remove string starting with an invalid character
       url = url.replace( /[<>"{}|\\^\[\]`\s].*/,'' ) ;
+      // Parse
+      url = jQuery( '<a/>', { href: url } )[ 0 ].href ;
+      // Deny value beginning with the string of HTTP (S) other than
+      url = /^https?:/i.test( url ) ? url : '' ;
       // Unify to UTF-8 encoded values
       return encodeURI( decodeURI( url ) ) ;
     },
