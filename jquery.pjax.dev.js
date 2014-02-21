@@ -393,7 +393,7 @@
         event.timeStamp = ( new Date() ).getTime() ;
         var setting = Store.settings[ 1 ] ;
         if ( !jQuery( this ).filter( setting.filter ).length ) { return ; }
-        if ( setting.disable || event.isDefaultPrevented() ) { return event.preventDefault() ; }
+        if ( setting.disable || event.isDefaultPrevented() ) { return ; }
         setting.location.href = Store.canonicalizeURL( window.location.href ) ;
         setting.destination.href = Store.canonicalizeURL( this.href ) ;
         
