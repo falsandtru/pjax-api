@@ -973,7 +973,7 @@ pjaxで内部的に使用される`$.ajax`のパラメータを設定できま�
 
 ```html
         <div class="loading" style="background:rgba(0,0,0,.2);display:none;position:fixed;bottom:0;left:0;z-index:9999;width:100%;height:5px;">
-          <div style="background:#f77;position:absolute;top:0;left:0;width:0;height:5px;"></div>
+          <div style="background:#f77;position:absolute;top:0;left:0;width:0;height:3px;"></div>
         </div>
 ```
 
