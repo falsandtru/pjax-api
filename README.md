@@ -15,7 +15,7 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 
 * jQuery 1.4.2から動作します。
 * サーバー側の設定やコードのインストール等の作業が不要です。
-* <a href="/falsandtru/jquery.preload.js" target="_blank">preload</a>と組み合わせて使用できます。
+* <a href="https://github.com/falsandtru/jquery.preload.js" target="_blank">preload</a>と組み合わせて使用できます。
 * CSSとJavaScriptの自動読み込みが可能です。
 * 詳細な動作制御が可能で幅広い要求に対応できます。
 * pjax(pushState + ajax)で一般的に発生する問題に対応しています。
@@ -35,11 +35,11 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 * サーバーからの差分データによるページ更新
 * キャッシュによるページ更新
 * ローディングエフェクトの表示
-* <a href="/falsandtru/jquery.preload.js" target="_blank">preload</a>との連携
-* <a href="/falsandtru/jquery.spage.js" target="_blank">spage</a>とのキャッシュの共有
+* <a href="https://github.com/falsandtru/jquery.preload.js" target="_blank">preload</a>との連携
+* <a href="https://github.com/falsandtru/jquery.spage.js" target="_blank">spage</a>とのキャッシュの共有
 
 ##preloadとの併用
-<a href="/falsandtru/jquery.preload.js" target="_blank">preload</a>と併用することで初回アクセスから極めて高速にページ移動を行うことができるため、preloadと併用することを推奨します。
+<a href="https://github.com/falsandtru/jquery.preload.js" target="_blank">preload</a>と併用することで初回アクセスから極めて高速にページ移動を行うことができるため、preloadと併用することを推奨します。
 
 ##pjaxの問題への対応
 pushStateないしreplaceStateとajaxを組み合わせたいわゆるpjaxと呼ばれる機能には下記のような問題が存在しています。当pjaxプラグインはこれらを解消するための処理を組み込み済みです。
@@ -1828,20 +1828,20 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 
 ##jQuery Plugins
 
-###<a href="/falsandtru/jquery.preload.js">pjax</a>
-ユーザーが次に見るページを予測して先読み（事前読み込み）することでページ移動を高速化します。
+###<a href="https://github.com/falsandtru/jquery.preload.js">preload</a>
+ユーザーが次に見るページを予測してあらかじめ読み込みページ移動を高速化します。
 
-###<a href="/falsandtru/jquery.pjax.js">pjax</a>
+###<a href="https://github.com/falsandtru/jquery.pjax.js">pjax</a>
 HTML5による高速なページ移動機能をウェブサイトに実装します。
 
-###<a href="/falsandtru/jquery.visibilitytrigger.js">visibilitytrigger</a>
+###<a href="https://github.com/falsandtru/jquery.visibilitytrigger.js">visibilitytrigger</a>
 スクロールにより特定のHTML要素が画面に表示されることを条件としてスクリプトを遅延実行させます。
 
-###<a href="/falsandtru/jquery.clientenv.js">clientenv</a>
+###<a href="https://github.com/falsandtru/jquery.clientenv.js">clientenv</a>
 サイトの閲覧者のOS、ブラウザ、フォント対応などを判定してクロスブラウザ対応の労力を軽減します。
 
-###<a href="/falsandtru/jquery.validator.js">validator</a>
+###<a href="https://github.com/falsandtru/jquery.validator.js">validator</a>
 JavaScriptの動作検証とエラーレポートを行う、インストール不要の埋め込み型検証ツールです。
 
-###<a href="/falsandtru/jquery.spage.js">spage</a>
+###<a href="https://github.com/falsandtru/jquery.spage.js">spage</a>
 AutoPagerやAutoPatchWorkのようなページの自動読み込み＆継ぎ足し機能をウェブサイトに実装します。
