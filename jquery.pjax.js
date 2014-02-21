@@ -384,6 +384,7 @@
         } ) ;
       }
       
+      setting.link &&
       jQuery( context )
       .undelegate( setting.link, setting.nss.click )
       .delegate( setting.link, setting.nss.click, setting.id, Store.click = function ( event ) {
@@ -412,6 +413,7 @@
         return event.preventDefault() ;
       } ) ;
       
+      setting.form &&
       jQuery( context )
       .undelegate( setting.form, setting.nss.submit )
       .delegate( setting.form, setting.nss.submit, setting.id, Store.submit = function ( event ) {
