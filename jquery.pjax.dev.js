@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.31.6
- * @updated 2014/02/20
+ * @version 1.31.7
+ * @updated 2014/02/21
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -69,6 +69,7 @@
         ns: null,
         area: null,
         link: 'a:not([target])',
+        filter: function(){ return /(\/|\.html?|\.php)([#?].*)?$/.test( this.href ); },
         form: null,
         scope: null,
         state: null,
@@ -87,7 +88,7 @@
           async: false
         },
         parameter: null,
-        load: { css: false, script: false, execute: true, reload: null, reject: null, sync: true, ajax: { dataType: 'script' }, rewrite: null },
+        load: { css: false, script: false, execute: true, reload: '', reject: '', sync: true, ajax: { dataType: 'script' }, rewrite: null },
         interval: 300,
         wait: 0,
         scroll: { delay: 300 },
@@ -391,7 +392,8 @@
       .delegate( setting.link, setting.nss.click, setting.id, Store.click = function ( event ) {
         event.timeStamp = ( new Date() ).getTime() ;
         var setting = Store.settings[ 1 ] ;
-        if ( setting.disable || event.isDefaultPrevented() ) { return event.preventDefault() ; }
+        if ( !jQuery( this ).filter( setting.filter ).length ) { return ; }
+        if ( setting.disable || event.isDefaultPrevented() ) { return ; }
         setting.location.href = Store.canonicalizeURL( window.location.href ) ;
         setting.destination.href = Store.canonicalizeURL( this.href ) ;
         
@@ -418,7 +420,7 @@
       .delegate( setting.form, setting.nss.submit, setting.id, Store.submit = function ( event ) {
         event.timeStamp = ( new Date() ).getTime() ;
         var setting = Store.settings[ 1 ] ;
-        if ( setting.disable || event.isDefaultPrevented() ) { return event.preventDefault() ; }
+        if ( setting.disable || event.isDefaultPrevented() ) { return ; }
         setting.location.href = Store.canonicalizeURL( window.location.href ) ;
         setting.destination.href = Store.canonicalizeURL( this.action ) ;
         
@@ -445,7 +447,7 @@
       .bind( setting.nss.popstate, setting.id, Store.popstate = function ( event ) {
         event.timeStamp = ( new Date() ).getTime() ;
         var setting = Store.settings[ 1 ] ;
-        if ( setting.disable || event.isDefaultPrevented() ) { return event.preventDefault() ; }
+        if ( setting.disable || event.isDefaultPrevented() ) { return ; }
         //setting.location.href = Store.canonicalizeURL( window.location.href ) ;
         setting.destination.href = Store.canonicalizeURL( window.location.href ) ;
         
@@ -985,16 +987,22 @@
       } // function: update
     },
     canonicalizeURL: function ( url ) {
+      var ret ;
       // Trim
-      url = Store.trim( url ) ;
+      ret = Store.trim( url ) ;
       // Remove string starting with an invalid character
-      url = url.replace( /[<>"{}|\\^\[\]`\s].*/,'' ) ;
+      ret = url.replace( /[<>"{}|\\^\[\]`\s].*/,'' ) ;
       // Parse
-      url = jQuery( '<a/>', { href: url } )[ 0 ].href ;
+      ret = jQuery( '<a/>', { href: url } )[ 0 ].href ;
       // Deny value beginning with the string of HTTP (S) other than
-      url = /^https?:/i.test( url ) ? url : '' ;
+      ret = /^https?:/i.test( url ) ? url : '' ;
       // Unify to UTF-8 encoded values
-      return encodeURI( decodeURI( url ) ) ;
+      ret = encodeURI( decodeURI( url ) ) ;
+      // Fix case
+      ret = ret.replace( /(?:%\w+)+/g, function () {
+        return url.match( arguments[ 0 ].toLowerCase() ) || arguments[ 0 ] ;
+      } ) ;
+      return ret ;
     },
     trim: function ( text ) {
       if ( String.prototype.trim ) {
