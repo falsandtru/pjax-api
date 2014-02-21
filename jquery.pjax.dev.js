@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.31.7
- * @updated 2014/02/21
+ * @version 1.31.8
+ * @updated 2014/02/22
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -387,6 +387,7 @@
         } ) ;
       }
       
+      setting.link &&
       jQuery( context )
       .undelegate( setting.link, setting.nss.click )
       .delegate( setting.link, setting.nss.click, setting.id, Store.click = function ( event ) {
@@ -415,6 +416,7 @@
         return event.preventDefault() ;
       } ) ;
       
+      setting.form &&
       jQuery( context )
       .undelegate( setting.form, setting.nss.submit )
       .delegate( setting.form, setting.nss.submit, setting.id, Store.submit = function ( event ) {
