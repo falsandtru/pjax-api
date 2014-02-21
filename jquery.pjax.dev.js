@@ -134,6 +134,7 @@
         landing: Store.canonicalizeURL( window.location.href ),
         retry: true,
         xhr: null,
+        relay: null,
         speed: { now: function () { return ( new Date() ).getTime() ; } },
         option: option
       }
@@ -338,6 +339,26 @@
           }
           return true ;
         } ;
+        
+        $context.relay = function ( url, $XHR ) {
+          var setting = Store.settings[ 1 ] ;
+          if ( !setting ) { return false ; }
+          if ( jQuery.when ) {
+            setting.relay = $XHR ;
+            jQuery.when( $XHR )
+            .done( function () {
+              setting.xhr && setting.xhr.readyState < 4 && setting.xhr.abort() ;
+              jQuery[ Store.name ].setCache( url, undefined, undefined, $XHR ) ;
+            } )
+            .always( function () {
+              setting.relay = null ;
+            } ) ;
+            jQuery[ Store.name ].click( url ) ;
+            return true ;
+          } else {
+            return false ;
+          }
+        } ;
       }
       return $context ;
     },
@@ -525,6 +546,13 @@
         return ;
       }
       
+      if ( setting.relay ) {
+        speedcheck && setting.log.speed.name.push( 'relay' ) ;
+        speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
+        jQuery.when( setting.relay ).done( function () { update( jQuery, window, document, undefined, Store, setting, event, jQuery[ Store.name ].getCache( url ) ) ; } ) ;
+        return ;
+      }
+      
       var ajax, callbacks, defer, data, XMLHttpRequest, textStatus, errorThrown, dataSize ;
       
       ajax = {} ;
@@ -636,6 +664,7 @@
           var title, css, script ;
           
           try {
+            setting.relay && setting.relay.readyState < 4 && setting.relay.abort() ;
             if ( !cache && -1 === ( XMLHttpRequest.getResponseHeader( 'Content-Type' ) || '' ).toLowerCase().search( setting.contentType ) ) { throw new Error( "throw: content-type mismatch" ) ; }
             
             /* cache */
