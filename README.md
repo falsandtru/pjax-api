@@ -127,7 +127,7 @@ pjaxによりページ移動を行うリンク（アンカータグ）をjQuery�
 なお、カレントディレクトリを基準とした相対パスは正常に動作しない可能性があるため使用しないでください。
 
 ####*filter: string / function*
-リンクを絞り込むjQueryセレクタまたは関数を設定します。初期値は<code>function(){ return /(\/|\.html?|\.php)([#?][^\/]*)?$/.test( this.href ); }</code>です。
+リンクを絞り込むjQueryセレクタまたは関数を設定します。初期値は<code>function(){ return /(\/|\.html?|\.php)([#?].*)?$/.test( this.href ); }</code>です。
 
 ####*form: Selector as string*
 pjaxによりページ移動を行うフォーム（フォームタグ）をjQueryセレクタで選択します。

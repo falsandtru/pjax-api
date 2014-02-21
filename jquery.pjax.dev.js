@@ -69,7 +69,7 @@
         ns: null,
         area: null,
         link: 'a:not([target])',
-        filter: function(){ return /(\/|\.html?|\.php)([#?][^\/]*)?$/.test( this.href ); },
+        filter: function(){ return /(\/|\.html?|\.php)([#?].*)?$/.test( this.href ); },
         form: null,
         scope: null,
         state: null,
