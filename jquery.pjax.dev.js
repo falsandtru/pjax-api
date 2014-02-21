@@ -994,15 +994,13 @@
       ret = Store.trim( url ) ;
       // Remove string starting with an invalid character
       ret = url.replace( /[<>"{}|\\^\[\]`\s].*/,'' ) ;
-      // Parse
-      ret = jQuery( '<a/>', { href: url } )[ 0 ].href ;
       // Deny value beginning with the string of HTTP (S) other than
       ret = /^https?:/i.test( url ) ? url : '' ;
       // Unify to UTF-8 encoded values
       ret = encodeURI( decodeURI( url ) ) ;
       // Fix case
-      ret = ret.replace( /(?:%\w+)+/g, function () {
-        return url.match( arguments[ 0 ].toLowerCase() ) || arguments[ 0 ] ;
+      ret = ret.replace( /(?:%\w+)+/g, function ( str ) {
+        return url.match( str.toLowerCase() ) || str ;
       } ) ;
       return ret ;
     },
