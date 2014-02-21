@@ -447,7 +447,7 @@
       .bind( setting.nss.popstate, setting.id, Store.popstate = function ( event ) {
         event.timeStamp = ( new Date() ).getTime() ;
         var setting = Store.settings[ 1 ] ;
-        if ( setting.disable || event.isDefaultPrevented() ) { return event.preventDefault() ; }
+        if ( setting.disable || event.isDefaultPrevented() ) { return ; }
         //setting.location.href = Store.canonicalizeURL( window.location.href ) ;
         setting.destination.href = Store.canonicalizeURL( window.location.href ) ;
         
