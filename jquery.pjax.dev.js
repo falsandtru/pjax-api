@@ -989,20 +989,19 @@
       } // function: update
     },
     canonicalizeURL: function ( url ) {
-      var ret ;
       // Trim
-      ret = Store.trim( url ) ;
+      url = Store.trim( url ) ;
       // Remove string starting with an invalid character
-      ret = url.replace( /[<>"{}|\\^\[\]`\s].*/,'' ) ;
+      url = url.replace( /[<>"{}|\\^\[\]`\s].*/,'' ) ;
       // Deny value beginning with the string of HTTP (S) other than
-      ret = /^https?:/i.test( url ) ? url : '' ;
+      url = /^https?:/i.test( url ) ? url : '' ;
       // Unify to UTF-8 encoded values
-      ret = encodeURI( decodeURI( url ) ) ;
+      url = encodeURI( decodeURI( url ) ) ;
       // Fix case
-      ret = ret.replace( /(?:%\w+)+/g, function ( str ) {
+      url = url.replace( /(?:%\w+)+/g, function ( str ) {
         return url.match( str.toLowerCase() ) || str ;
       } ) ;
-      return ret ;
+      return url ;
     },
     trim: function ( text ) {
       if ( String.prototype.trim ) {
