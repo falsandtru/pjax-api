@@ -96,7 +96,7 @@
         hashquery: false,
         fallback: true,
         database: true,
-        server: { query: 'pjax' }
+        server: { query: 'pjax=1' }
       },
       option
     ) ;
@@ -647,7 +647,7 @@
         }
       } ;
       jQuery.extend( true, ajax, setting.ajax, callbacks ) ;
-      ajax.url = url.replace( /([^#]+)(#[^\s]*)?$/, '$1' + ( setting.server.query ? ( url.match( /\?/ ) ? '&' : '?' ) + encodeURIComponent( setting.server.query ) + '=1' : '' ) + '$2' ) ;
+      ajax.url = url.replace( /([^#]+)(#[^\s]*)?$/, '$1' + ( setting.server.query ? ( url.match( /\?/ ) ? '&' : '?' ) + encodeURIComponent( setting.server.query ) : '' ) + '$2' ) ;
       
       speedcheck && setting.log.speed.name.push( 'request' ) ;
       speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
