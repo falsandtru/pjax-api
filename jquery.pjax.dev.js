@@ -367,8 +367,24 @@
       }
       return $context ;
     },
-    check: function () {
-      return Store.supportPushState() ;
+    check: function ( event, setting ) {
+      var src, dst ;
+      src = jQuery( '<a/>', { href: Store.canonicalizeURL( window.location.href ) } )[ 0 ] ;
+      dst = jQuery( '<a/>', { href: Store.canonicalizeURL( event.currentTarget.href ) } )[ 0 ] ;
+      
+      if ( !jQuery( event.currentTarget ).filter( setting.filter ).length ) { return ; }
+      if ( setting.disable ) { return ; }
+      
+      if ( src.protocol !== dst.protocol || src.host !== dst.host ) { return ; }
+      if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
+      
+      var url, cache ;
+      
+      url = dst.href ;
+      setting.area = Store.fire( setting.areaback, null, [ event, setting.parameter, dst.href, src.href ] ) ;
+      if ( !jQuery( setting.area ).length || setting.scope && !Store.scope( setting, src.href, dst.href ) ) { return ; }
+      
+      return true ;
     },
     supportPushState: function () {
       return 'pushState' in window.history && window.history[ 'pushState' ] ;
