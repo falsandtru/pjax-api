@@ -434,7 +434,7 @@ pjaxを使用してフォーム送信によりページを移動します。
 
 `$.pjax.submit('/', {method: 'POST'}, [{tag: 'input', attr: {type: 'text'}, name: 'name', value: 'data'}])`
 
-####*follow( URL as string, Ajax as jQuery, timeStamp as number )*
+####*follow( Event as object, Ajax as jQuery )*
 外部のajax処理を引き継いでページ移動を行います。第二引数`Ajax`は`$.ajax()`の戻り値を使用します。jQuery1.5より前のバージョンでは無効です。
 
 ####*setCache( [ URL as string [, Data as string [, textStatus as string, XMLHttpRequest as XMLHttpRequest ] ] ] )*

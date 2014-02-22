@@ -339,30 +339,21 @@
           return true ;
         } ;
         
-        $context.follow = function ( url, $XHR, timeStamp ) {
+        $context.follow = function ( event, $XHR, timeStamp ) {
           var setting = Store.settings[ 1 ] ;
-          if ( !setting ) { return false ; }
-          if ( jQuery.when ) {
-            if ( isFinite( timeStamp ) ) { $XHR.timeStamp = timeStamp ; }
-            setting.xhr = $XHR ;
-            jQuery.when( $XHR )
-            .done( function () {
-              setting.xhr && setting.xhr.readyState < 4 && setting.xhr.abort() ;
-              jQuery[ Store.name ].setCache( url, undefined, undefined, $XHR ) ;
-            } )
-            .fail( function () {
-              Store.fallback( {
-                type: 'click',
-                currentTarget: {
-                  href: url
-                }
-              } ) ;
-            } ) ;
-            jQuery[ Store.name ].click( url ) ;
-            return true ;
-          } else {
-            return false ;
-          }
+          if ( !setting || !jQuery.when || !Store.check( event, setting ) ) { return false ; }
+          if ( isFinite( event.timeStamp ) ) { $XHR.timeStamp = timeStamp || event.timeStamp ; }
+          setting.xhr = $XHR ;
+          jQuery.when( $XHR )
+          .done( function () {
+            setting.xhr && setting.xhr.readyState < 4 && setting.xhr.abort() ;
+            jQuery[ Store.name ].setCache( event.currentTarget.href, undefined, undefined, $XHR ) ;
+          } )
+          .fail( function () {
+            Store.fallback( event ) ;
+          } ) ;
+          jQuery[ Store.name ].click( event.currentTarget.href ) ;
+          return true ;
         } ;
       }
       return $context ;
