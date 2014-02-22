@@ -140,7 +140,7 @@
     ) ;
     
     // registrate
-    if ( Store.check() ) {
+    if ( Store.supportPushState() ) {
       Store.registrate.call( $context, jQuery, window, document, undefined, Store, setting ) ;
     }
     
