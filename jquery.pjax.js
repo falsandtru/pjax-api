@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.31.9
+ * @version 1.31.10
  * @updated 2014/02/22
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -988,7 +988,7 @@
       // Unify to UTF-8 encoded values
       ret = encodeURI( decodeURI( ret ) ) ;
       // Fix case
-      ret = ret.replace( /(?:%\w+)+/g, function ( str ) {
+      ret = ret.replace( /(?:%\w{2})+/g, function ( str ) {
         return url.match( str.toLowerCase() ) || str ;
       } ) ;
       return ret ;
