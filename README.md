@@ -173,7 +173,7 @@ pjaxによるページ移動を`http://example.com/pjax/`ディレクトリ内�
 スクロール位置の記録処理がスクロールイベント発生後実行されるまでの待機時間をミリ秒で設定します。待機時間が経過する前に新たなスクロールが行われた場合は前回までのスクロールによる待機中の処理の実行はキャンセルされます。初期値は`500`です。パラメータの詳細な仕様は<a href="https://github.com/falsandtru/jquery.visibilitytrigger.js" target="_blank">visibilitytrigger</a>の同名のパラメータを確認してください。
 
 ####*ajax: object*
-pjaxで内部的に使用される`$.ajax`のパラメータを設定します。`$.ajax`のコールバック関数はすべて上書きされるため使用できません。代わりに`callbacks.ajax`で設定できるのでこちらを使用してください。
+pjaxで内部的に使用される`$.ajax`のパラメータを設定します。初期値は`{ dataType: 'text' }`です。`$.ajax`のコールバック関数はすべて上書きされるため使用できません。代わりに`callbacks.ajax`で設定できるのでこちらを使用してください。
 
 ####*contentType: string*
 移動先として読み込むデータで許容するコンテントタイプをカンマまたはセミコロン区切りの文字列で設定します。初期値は`text/html`です。
@@ -423,7 +423,7 @@ pjaxを使用してフォーム送信によりページを移動します。
 
 `$.pjax.submit('/', {method: 'POST'}, [{tag: 'input', attr: {type: 'text'}, name: 'name', value: 'data'}])`
 
-####*relay( URL as string, Ajax as jQuery )*
+####*follow( URL as string, Ajax as jQuery )*
 外部のajax処理を引き継いでページ移動を行います。第二引数`Ajax`は`$.ajax()`の戻り値を使用します。jQuery 1.5より前のバージョンでは無効です。
 
 ####*setCache( [ URL as string [, Data as string [, textStatus as string, XMLHttpRequest as XMLHttpRequest ] ] ] )*
@@ -1240,6 +1240,11 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 ##更新情報
 
 ###change log
+
+####1.32.0
+
+* `relay`メソッドを`follow`メソッドに変更
+* `ajax`パラメータの初期値を変更
 
 ####1.31.10
 

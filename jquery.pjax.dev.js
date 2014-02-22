@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.31.10
+ * @version 1.32.0
  * @updated 2014/02/22
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -75,7 +75,7 @@
         state: null,
         scrollTop: 0,
         scrollLeft: 0,
-        ajax: {},
+        ajax: { dataType: 'text' },
         contentType: 'text/html',
         cache: {
           click: false, submit: false, popstate: false, get: true, post: true,
@@ -134,7 +134,6 @@
         landing: Store.canonicalizeURL( window.location.href ),
         retry: true,
         xhr: null,
-        relay: null,
         speed: { now: function () { return ( new Date() ).getTime() ; } },
         option: option
       }
@@ -340,18 +339,23 @@
           return true ;
         } ;
         
-        $context.relay = function ( url, $XHR ) {
+        $context.follow = function ( url, $XHR ) {
           var setting = Store.settings[ 1 ] ;
           if ( !setting ) { return false ; }
           if ( jQuery.when ) {
-            setting.relay = $XHR ;
+            setting.xhr = $XHR ;
             jQuery.when( $XHR )
             .done( function () {
               setting.xhr && setting.xhr.readyState < 4 && setting.xhr.abort() ;
               jQuery[ Store.name ].setCache( url, undefined, undefined, $XHR ) ;
             } )
-            .always( function () {
-              setting.relay = null ;
+            .fail( function () {
+              Store.fallback( {
+                type: 'click',
+                currentTarget: {
+                  href: url
+                }
+              } ) ;
             } ) ;
             jQuery[ Store.name ].click( url ) ;
             return true ;
@@ -546,10 +550,10 @@
         return ;
       }
       
-      if ( setting.relay ) {
-        speedcheck && setting.log.speed.name.push( 'relay' ) ;
+      if ( setting.xhr && setting.xhr.promise ) {
+        speedcheck && setting.log.speed.name.push( 'continue' ) ;
         speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
-        jQuery.when( setting.relay ).done( function () { update( jQuery, window, document, undefined, Store, setting, event, jQuery[ Store.name ].getCache( url ) ) ; } ) ;
+        jQuery.when( setting.xhr ).done( function () { update( jQuery, window, document, undefined, Store, setting, event, jQuery[ Store.name ].getCache( url ) ) ; } ) ;
         return ;
       }
       
@@ -664,7 +668,8 @@
           var title, css, script ;
           
           try {
-            setting.relay && setting.relay.readyState < 4 && setting.relay.abort() ;
+            setting.xhr && setting.xhr.readyState < 4 && setting.xhr.abort() ;
+            setting.xhr = null ;
             if ( !cache && -1 === ( XMLHttpRequest.getResponseHeader( 'Content-Type' ) || '' ).toLowerCase().search( setting.contentType ) ) { throw new Error( "throw: content-type mismatch" ) ; }
             
             /* cache */
