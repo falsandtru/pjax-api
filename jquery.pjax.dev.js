@@ -1018,19 +1018,20 @@
       } // function: update
     },
     canonicalizeURL: function ( url ) {
+      var ret ;
       // Trim
-      url = Store.trim( url ) ;
+      ret = Store.trim( url ) ;
       // Remove string starting with an invalid character
-      url = url.replace( /[<>"{}|\\^\[\]`\s].*/,'' ) ;
+      ret = ret.replace( /[<>"{}|\\^\[\]`\s].*/,'' ) ;
       // Deny value beginning with the string of HTTP (S) other than
-      url = /^https?:/i.test( url ) ? url : '' ;
+      ret = /^https?:/i.test( ret ) ? ret : jQuery( '<a/>', { href: ret } )[0].href ;
       // Unify to UTF-8 encoded values
-      url = encodeURI( decodeURI( url ) ) ;
+      ret = encodeURI( decodeURI( ret ) ) ;
       // Fix case
-      url = url.replace( /(?:%\w+)+/g, function ( str ) {
+      ret = ret.replace( /(?:%\w+)+/g, function ( str ) {
         return url.match( str.toLowerCase() ) || str ;
       } ) ;
-      return url ;
+      return ret ;
     },
     trim: function ( text ) {
       if ( String.prototype.trim ) {
