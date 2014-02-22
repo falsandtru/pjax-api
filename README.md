@@ -50,7 +50,7 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 
 ※jQuery1.5以降のバージョン必須
 ※Windows7+GoogleChromeで手近なサイトを計測
-※サーバーでレスポンスの生成に時間がかかっている場合は除く
+※データの受信を開始するまでの待機時間が長い場合は除く
 
 ##pjaxの問題への対応
 pushStateないしreplaceStateとajaxを組み合わせたいわゆるpjaxと呼ばれる機能には下記のような問題が存在しています。当pjaxプラグインはこれらを解消するための処理を組み込み済みです。
@@ -996,8 +996,8 @@ pjaxで内部的に使用される`$.ajax`のパラメータを設定できま�
 
 ```javascript
 $.preload({
-  lock: 300,
   forward: $.pjax.follow,
+  fix: true,
   ajax: {
     xhr: function(){
       var xhr = jQuery.ajaxSettings.xhr();
