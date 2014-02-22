@@ -537,8 +537,8 @@
       speedcheck && ( setting.log.speed.fire = setting.timestamp ) ;
       speedcheck && ( setting.log.speed.time = [] ) ;
       speedcheck && ( setting.log.speed.name = [] ) ;
-      speedcheck && setting.log.speed.name.push( 'fire' ) ;
-      speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
+      speedcheck && setting.log.speed.name.push( 'pjax' ) ;
+      speedcheck && setting.log.speed.time.push( 0 ) ;
       
       setting.scroll.record = false ;
       setting.fix.reset && /click|submit/.test( event.type.toLowerCase() ) && window.scrollTo( jQuery( window ).scrollLeft(), 0 ) ;
@@ -552,6 +552,8 @@
       }
       
       if ( setting.xhr && setting.xhr.promise ) {
+        speedcheck && ( setting.log.speed.fire = setting.xhr.timeStamp ) ;
+        speedcheck && setting.log.speed.name.splice( 0, 1, 'preload' ) ;
         speedcheck && setting.log.speed.name.push( 'continue' ) ;
         speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
         var wait = setting.wait && isFinite( setting.xhr.timeStamp ) ? Math.max( setting.wait - ( new Date() ).getTime() + setting.xhr.timeStamp, 0 ) : 0 ;
