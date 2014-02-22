@@ -339,10 +339,11 @@
           return true ;
         } ;
         
-        $context.follow = function ( url, $XHR ) {
+        $context.follow = function ( url, $XHR, timeStamp ) {
           var setting = Store.settings[ 1 ] ;
           if ( !setting ) { return false ; }
           if ( jQuery.when ) {
+            if ( isFinite( timeStamp ) ) { $XHR.timeStamp = timeStamp ; }
             setting.xhr = $XHR ;
             jQuery.when( $XHR )
             .done( function () {
@@ -553,7 +554,9 @@
       if ( setting.xhr && setting.xhr.promise ) {
         speedcheck && setting.log.speed.name.push( 'continue' ) ;
         speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
-        jQuery.when( setting.xhr ).done( function () { update( jQuery, window, document, undefined, Store, setting, event, jQuery[ Store.name ].getCache( url ) ) ; } ) ;
+        var wait = setting.wait && isFinite( setting.xhr.timeStamp ) ? Math.max( setting.wait - ( new Date() ).getTime() + setting.xhr.timeStamp, 0 ) : 0 ;
+        jQuery.when( setting.xhr, Store.wait( wait ) )
+        .done( function () { update( jQuery, window, document, undefined, Store, setting, event, jQuery[ Store.name ].getCache( url ) ) ; } ) ;
         return ;
       }
       
