@@ -13,15 +13,15 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 
 ##特徴
 
-* jQuery 1.4.2から動作します。
-* サーバー側の設定やコードのインストール等の作業が不要です。
-* <a href="https://github.com/falsandtru/jquery.preload.js" target="_blank">preload</a>と組み合わせて使用できます。
+* **プリロードのajax処理を中断せず引き継ぐことができるため最速でページ移動が可能です。**
 * CSSとJavaScriptの自動読み込みが可能です。
+* サーバー側の設定やコードのインストール等の作業が不要です。
 * 詳細な動作制御が可能で幅広い要求に対応できます。
 * pjax(pushState + ajax)で一般的に発生する問題に対応しています。
 
 ##対応
 
+* jQuery 1.4.2+
 * CSSの読み込み
 * JavaScriptの読み込み
 * Android・iOSでの使用
@@ -38,8 +38,18 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 * <a href="https://github.com/falsandtru/jquery.preload.js" target="_blank">preload</a>との連携
 * <a href="https://github.com/falsandtru/jquery.spage.js" target="_blank">spage</a>とのキャッシュの共有
 
-##preloadとの併用
-<a href="https://github.com/falsandtru/jquery.preload.js" target="_blank">preload</a>と併用することで初回アクセスから極めて高速にページ移動を行うことができるため、preloadとの併用を推奨します。
+##preload+pjax
+<a href="https://github.com/falsandtru/jquery.preload.js">preload</a>と<a href="https://github.com/falsandtru/jquery.pjax.js">pjax</a>を連携させることで初回アクセスから極めて高速にページ移動を行うことができるため、この手法を強く推奨します。
+
+通常はリンクのクリックからHTMLファイルのダウンロード完了まで0.5～1秒、ページの表示（DOMロード）にさらに1秒の合計2秒前後かかるページ移動をpreload+pjaxではクリックからページの表示まで0.5秒（500ミリ秒）前後で完了することができます。PCでは多分これが一番速いと思います。
+
+|パターン|HTMLダウンロード|DOMロード|合計|
+|:---|:--:|:--:|:--:|
+|Normal|500-1000ms|800-1600ms|1300-2600ms|
+|preload+pjax|0-700ms|30-100ms|30-800ms|
+
+※Windows7+GoogleChromeで手近なサイトを計測
+※サーバーでレスポンスの生成に時間がかかっている場合は除く
 
 ##pjaxの問題への対応
 pushStateないしreplaceStateとajaxを組み合わせたいわゆるpjaxと呼ばれる機能には下記のような問題が存在しています。当pjaxプラグインはこれらを解消するための処理を組み込み済みです。
@@ -979,6 +989,39 @@ pjaxで内部的に使用される`$.ajax`のパラメータを設定できま�
         <div class="loading" style="background:rgba(0,0,0,.2);display:none;position:fixed;bottom:0;left:0;z-index:9999;width:100%;height:5px;">
           <div style="background:#f77;position:absolute;top:0;left:0;width:0;height:3px;"></div>
         </div>
+```
+
+プリロードに対応する場合は以下のように設定します。
+
+```javascript
+$.preload({
+  lock: 300,
+  forward: $.pjax.follow,
+  ajax: {
+    xhr: function(){
+      var xhr = jQuery.ajaxSettings.xhr();
+      
+      $('div.loading').children().width('5%');
+      if ( xhr instanceof Object && 'onprogress' in xhr ) {
+        xhr.addEventListener( 'progress', function ( event ) {
+          var percentage = event.total ? event.loaded / event.total : 0.4;
+          percentage = percentage * 90 + 5;
+          $('div.loading').children().width( percentage + '%' );
+        }, false );
+        xhr.addEventListener( 'load', function ( event ) {
+          $('div.loading').children().width('95%');
+        }, false );
+        xhr.addEventListener( 'error', function ( event ) {
+          $('div.loading').children().css('background-color', '#00f');
+        }, false );
+      }
+      return xhr;
+    },
+    success: function ( data, textStatus, XMLHttpRequest ) {
+      !$.pjax.getCache( this.url ) && $.pjax.setCache( this.url, null, textStatus, XMLHttpRequest ) ;
+    }
+  }
+});
 ```
 
 ###UTF-8以外の文字コードへの対応 - callbacks.ajax.beforeSend
