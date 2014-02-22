@@ -131,6 +131,7 @@
         landing: Store.canonicalizeURL( window.location.href ),
         retry: true,
         xhr: null,
+        relay: null,
         speed: { now: function () { return ( new Date() ).getTime() ; } },
         option: option
       }
@@ -335,6 +336,26 @@
           }
           return true ;
         } ;
+        
+        $context.relay = function ( url, $XHR ) {
+          var setting = Store.settings[ 1 ] ;
+          if ( !setting ) { return false ; }
+          if ( jQuery.when ) {
+            setting.relay = $XHR ;
+            jQuery.when( $XHR )
+            .done( function () {
+              setting.xhr && setting.xhr.readyState < 4 && setting.xhr.abort() ;
+              jQuery[ Store.name ].setCache( url, undefined, undefined, $XHR ) ;
+            } )
+            .always( function () {
+              setting.relay = null ;
+            } ) ;
+            jQuery[ Store.name ].click( url ) ;
+            return true ;
+          } else {
+            return false ;
+          }
+        } ;
       }
       return $context ;
     },
@@ -514,6 +535,11 @@
         return ;
       }
       
+      if ( setting.relay ) {
+        jQuery.when( setting.relay ).done( function () { update( jQuery, window, document, undefined, Store, setting, event, jQuery[ Store.name ].getCache( url ) ) ; } ) ;
+        return ;
+      }
+      
       var ajax, callbacks, defer, data, XMLHttpRequest, textStatus, errorThrown, dataSize ;
       
       ajax = {} ;
@@ -611,6 +637,7 @@
           var title, css, script ;
           
           try {
+            setting.relay && setting.relay.readyState < 4 && setting.relay.abort() ;
             if ( !cache && -1 === ( XMLHttpRequest.getResponseHeader( 'Content-Type' ) || '' ).toLowerCase().search( setting.contentType ) ) { throw new Error( "throw: content-type mismatch" ) ; }
             
             /* cache */
@@ -955,16 +982,14 @@
       // Trim
       ret = Store.trim( url ) ;
       // Remove string starting with an invalid character
-      ret = url.replace( /[<>"{}|\\^\[\]`\s].*/,'' ) ;
-      // Parse
-      ret = jQuery( '<a/>', { href: url } )[ 0 ].href ;
+      ret = ret.replace( /[<>"{}|\\^\[\]`\s].*/,'' ) ;
       // Deny value beginning with the string of HTTP (S) other than
-      ret = /^https?:/i.test( url ) ? url : '' ;
+      ret = /^https?:/i.test( ret ) ? ret : jQuery( '<a/>', { href: ret } )[0].href ;
       // Unify to UTF-8 encoded values
-      ret = encodeURI( decodeURI( url ) ) ;
+      ret = encodeURI( decodeURI( ret ) ) ;
       // Fix case
-      ret = ret.replace( /(?:%\w+)+/g, function () {
-        return url.match( arguments[ 0 ].toLowerCase() ) || arguments[ 0 ] ;
+      ret = ret.replace( /(?:%\w+)+/g, function ( str ) {
+        return url.match( str.toLowerCase() ) || str ;
       } ) ;
       return ret ;
     },
