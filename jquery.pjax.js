@@ -988,7 +988,7 @@
       // Unify to UTF-8 encoded values
       ret = encodeURI( decodeURI( ret ) ) ;
       // Fix case
-      ret = ret.replace( /(?:%\w+)+/g, function ( str ) {
+      ret = ret.replace( /(?:%\w{2})+/g, function ( str ) {
         return url.match( str.toLowerCase() ) || str ;
       } ) ;
       return ret ;
