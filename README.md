@@ -39,7 +39,7 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 * <a href="https://github.com/falsandtru/jquery.spage.js" target="_blank">spage</a>とのキャッシュの共有
 
 ##preloadとの併用
-<a href="https://github.com/falsandtru/jquery.preload.js" target="_blank">preload</a>と併用することで初回アクセスから極めて高速にページ移動を行うことができるため、preloadと併用することを推奨します。
+<a href="https://github.com/falsandtru/jquery.preload.js" target="_blank">preload</a>と併用することで初回アクセスから極めて高速にページ移動を行うことができるため、preloadとの併用を推奨します。
 
 ##pjaxの問題への対応
 pushStateないしreplaceStateとajaxを組み合わせたいわゆるpjaxと呼ばれる機能には下記のような問題が存在しています。当pjaxプラグインはこれらを解消するための処理を組み込み済みです。
@@ -61,6 +61,7 @@ defunkt版（v1.7.0/2013年6月現在最新版）との主な違いは次のと�
 |項目|defunkt版|falsandtru版|
 |:---|:-------:|:----------:|
 |jQueryバージョン対応|1.8.x|1.4.2|
+|プリロードとの併用|×|○|
 |Android・iOSへの対応<br>locationオブジェクトの更新|**×**|○|
 |Android・iOSへの対応<br>スクロール位置の操作※1|×|○|
 |間違った履歴の修復|**×**|○|
@@ -421,6 +422,9 @@ pjaxを使用してフォーム送信によりページを移動します。
 `$.pjax.submit('/', {method: 'POST'}, {"name": "data"})`
 
 `$.pjax.submit('/', {method: 'POST'}, [{tag: 'input', attr: {type: 'text'}, name: 'name', value: 'data'}])`
+
+####*relay( URL as string, Ajax as jQuery )*
+外部のajax処理を引き継いでページ移動を行います。第二引数`Ajax`は`$.ajax()`の戻り値を使用します。jQuery 1.5より前のバージョンでは無効です。
 
 ####*setCache( [ URL as string [, Data as string [, textStatus as string, XMLHttpRequest as XMLHttpRequest ] ] ] )*
 キャッシュを設定します。ページの更新には`XMLHttpRequest.responseText`をベースに`Data`に存在するタイトルと更新範囲で上書きして使用されます。`Data`によるキャッシュの上書きはタイトルと更新範囲にのみ適用されます。`XMLHttpRequest`がない場合はページ移動時に取得して補充されます。
@@ -973,7 +977,7 @@ pjaxで内部的に使用される`$.ajax`のパラメータを設定できま�
 
 ```html
         <div class="loading" style="background:rgba(0,0,0,.2);display:none;position:fixed;bottom:0;left:0;z-index:9999;width:100%;height:5px;">
-          <div style="background:#f77;position:absolute;top:0;left:0;width:0;height:5px;"></div>
+          <div style="background:#f77;position:absolute;top:0;left:0;width:0;height:3px;"></div>
         </div>
 ```
 
@@ -1236,6 +1240,12 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 ##更新情報
 
 ###change log
+
+####1.31.9
+
+* `relay`メソッドを追加
+* ajax処理の外部からの引継ぎに対応
+* URL処理のバグを修正
 
 ####1.31.8
 
