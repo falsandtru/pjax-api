@@ -21,7 +21,7 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 
 ##対応
 
-* jQuery 1.4.2+
+* jQuery1.4.2+
 * CSSの読み込み
 * JavaScriptの読み込み
 * Android・iOSでの使用
@@ -260,7 +260,7 @@ pjaxによるページ読み込み時のキャッシュの使用にかかる設�
 キャッシュの有効期限をミリ秒で設定します。初期値は`1800000`(30分)です。
 
 ####*wait: Millisecond as number / function( event, parameter, to, from )*
-`$.ajax`の実行からコンテンツの更新までの最低待ち時間を設定します。関数が設定された場合は関数の戻り値が使用されます。jQuery 1.5より前のバージョンでは無効です。初期値は`0`です。
+`$.ajax`の実行からコンテンツの更新までの最低待ち時間を設定します。関数が設定された場合は関数の戻り値が使用されます。jQuery1.5より前のバージョンでは無効です。初期値は`0`です。
 
 ####*fallback: boolean / function( event, parameter, to, from )*
 pjaxによるページ移動が失敗した場合の対応を行うかを設定します。初期状態では代替処理として通常のページ移動が行われます。関数が設定された場合は代替処理が当該関数により上書きされます。処理はエラーにかかるコールバック関数を実行後に行われます。初期値は`true`で有効です。
@@ -435,7 +435,7 @@ pjaxを使用してフォーム送信によりページを移動します。
 `$.pjax.submit('/', {method: 'POST'}, [{tag: 'input', attr: {type: 'text'}, name: 'name', value: 'data'}])`
 
 ####*follow( URL as string, Ajax as jQuery, timeStamp as number )*
-外部のajax処理を引き継いでページ移動を行います。第二引数`Ajax`は`$.ajax()`の戻り値を使用します。jQuery 1.5より前のバージョンでは無効です。
+外部のajax処理を引き継いでページ移動を行います。第二引数`Ajax`は`$.ajax()`の戻り値を使用します。jQuery1.5より前のバージョンでは無効です。
 
 ####*setCache( [ URL as string [, Data as string [, textStatus as string, XMLHttpRequest as XMLHttpRequest ] ] ] )*
 キャッシュを設定します。ページの更新には`XMLHttpRequest.responseText`をベースに`Data`に存在するタイトルと更新範囲で上書きして使用されます。`Data`によるキャッシュの上書きはタイトルと更新範囲にのみ適用されます。`XMLHttpRequest`がない場合はページ移動時に取得して補充されます。
