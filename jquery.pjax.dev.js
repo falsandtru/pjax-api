@@ -1094,15 +1094,19 @@
       data.replace( pattern, function () { result.push( arguments[ 1 ] ) ; } ) ;
       return result ;
     },
-    scope: function ( setting, relocation ) {
-      var scp, arr, loc, des, dirs, dir, keys, key, pattern, not, reg, rewrite, inherit, hit_loc, hit_des, option ;
+    scope: function ( setting, src, dst, relocation ) {
+      var args, scp, arr, dirs, dir, keys, key, pattern, not, reg, rewrite, inherit, hit_src, hit_dst, option ;
+      
+      args = [].slice.call( arguments ) ;
+      args.splice( 1, 1, src || setting.location.href ) ;
+      args.splice( 2, 1, dst || setting.destination.href ) ;
       
       scp = setting.scope ;
-      loc = setting.location.href.replace( /.+?\w(\/[^#?]*).*/, '$1' ) ;
-      des = setting.destination.href.replace( /.+?\w(\/[^#?]*).*/, '$1' ) ;
+      src = ( src || setting.location.href ).replace( /.+?\w(\/[^#?]*).*/, '$1' ) ;
+      dst = ( dst || setting.destination.href ).replace( /.+?\w(\/[^#?]*).*/, '$1' ) ;
       
-      arr = loc.replace( /^\//, '' ).replace( /([?#])/g, '/$1' ).split( '/' ) ;
-      keys = ( relocation || loc ).replace( /^\//, '' ).replace( /([?#])/g, '/$1' ).split( '/' ) ;
+      arr = src.replace( /^\//, '' ).replace( /([?#])/g, '/$1' ).split( '/' ) ;
+      keys = ( relocation || src ).replace( /^\//, '' ).replace( /([?#])/g, '/$1' ).split( '/' ) ;
       if ( relocation ) {
         if ( -1 === relocation.indexOf( '*' ) ) { return undefined ; }
         dirs = [] ;
@@ -1110,20 +1114,21 @@
       }
       
       for ( var i = keys.length + 1 ; i-- ; ) {
-        rewrite = inherit = hit_loc = hit_des = undefined ;
+        rewrite = inherit = hit_src = hit_dst = undefined ;
         key = keys.slice( 0, i ).join( '/' ).replace( /\/([?#])/g, '$1' ) ;
-        key = '/' + key + ( ( relocation || loc ).charAt( key.length + 1 ) === '/' ? '/' : '' ) ;
+        key = '/' + key + ( ( relocation || src ).charAt( key.length + 1 ) === '/' ? '/' : '' ) ;
         
         if ( !key || !( key in scp ) ) { continue ; }
         if ( !scp[ key ] || !scp[ key ].length ) { return false ; }
         
         for ( var j = 0 ; pattern = scp[ key ][ j ] ; j++ ) {
-          if ( hit_loc === false || hit_des === false ) {
+          if ( hit_src === false || hit_dst === false ) {
             break ;
           } else if ( pattern === 'rewrite' && typeof scp.rewrite === 'function' && !relocation ) {
-            rewrite = arguments.callee( setting, Store.fire( scp.rewrite, null, [ setting.destination.href ] ) ) ;
+            args.push( Store.fire( scp.rewrite, null, [ dst ] ) ) ;
+            rewrite = arguments.callee.apply( this, args ) ;
             if ( rewrite ) {
-              hit_loc = hit_des = true ;
+              hit_src = hit_dst = true ;
               break ;
             } else if ( false === rewrite ) {
               return false ;
@@ -1140,18 +1145,18 @@
               for ( var k = 0, len = dirs.length ; k < len ; k++ ) { pattern = pattern.replace( '/*/', '/' + dirs[ k ] + '/' ) ; }
             }
             
-            if ( ( not || !hit_loc ) && ( reg ? !loc.search( pattern ) : !loc.indexOf( pattern ) ) ) {
-              if ( not ) { return false ; } else { hit_loc = true ; }
+            if ( ( not || !hit_src ) && ( reg ? !src.search( pattern ) : !src.indexOf( pattern ) ) ) {
+              if ( not ) { return false ; } else { hit_src = true ; }
             }
-            if ( ( not || !hit_des ) && ( reg ? !des.search( pattern ) : !des.indexOf( pattern ) ) ) {
-              if ( not ) { return false ; } else { hit_des = true ; }
+            if ( ( not || !hit_dst ) && ( reg ? !dst.search( pattern ) : !dst.indexOf( pattern ) ) ) {
+              if ( not ) { return false ; } else { hit_dst = true ; }
             }
           } else if ( typeof pattern === 'object' ) {
             option = pattern ;
           }
         }
         
-        if ( hit_loc && hit_des ) {
+        if ( hit_src && hit_dst ) {
           return jQuery.extend( true, {}, setting, ( typeof rewrite === 'object' ? rewrite : option ) || {} ) ;
         }
         if ( inherit ) { continue ; }
