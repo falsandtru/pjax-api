@@ -656,7 +656,12 @@
         }
       } ;
       jQuery.extend( true, ajax, setting.ajax, callbacks ) ;
-      ajax.url = url.replace( /([^#]+)(#[^\s]*)?$/, '$1' + ( setting.server.query ? ( url.match( /\?/ ) ? '&' : '?' ) + encodeURIComponent( setting.server.query ) : '' ) + '$2' ) ;
+      var query = setting.server.query ;
+      if ( query ) {
+        query = query.split( '=' ) ;
+        query = encodeURIComponent( query[ 0 ] ) + ( query.length > 0 ? '=' + encodeURIComponent( query[ 1 ] ) : '' ) ;
+      }
+      ajax.url = url.replace( /([^#]+)(#[^\s]*)?$/, '$1' + ( query ? ( url.match( /\?/ ) ? '&' : '?' ) + query : '' ) + '$2' ) ;
       
       speedcheck && setting.log.speed.name.push( 'request' ) ;
       speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
