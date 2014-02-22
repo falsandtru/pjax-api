@@ -75,7 +75,7 @@
         state: null,
         scrollTop: 0,
         scrollLeft: 0,
-        ajax: {},
+        ajax: { dataType: 'text' },
         contentType: 'text/html',
         cache: {
           click: false, submit: false, popstate: false, get: true, post: true,
