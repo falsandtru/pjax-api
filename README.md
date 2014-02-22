@@ -39,7 +39,7 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 * <a href="https://github.com/falsandtru/jquery.spage.js" target="_blank">spage</a>とのキャッシュの共有
 
 ##preloadとの併用
-<a href="https://github.com/falsandtru/jquery.preload.js" target="_blank">preload</a>と併用することで初回アクセスから極めて高速にページ移動を行うことができるため、preloadと併用することを推奨します。
+<a href="https://github.com/falsandtru/jquery.preload.js" target="_blank">preload</a>と併用することで初回アクセスから極めて高速にページ移動を行うことができるため、preloadとの併用を推奨します。
 
 ##pjaxの問題への対応
 pushStateないしreplaceStateとajaxを組み合わせたいわゆるpjaxと呼ばれる機能には下記のような問題が存在しています。当pjaxプラグインはこれらを解消するための処理を組み込み済みです。
@@ -61,6 +61,7 @@ defunkt版（v1.7.0/2013年6月現在最新版）との主な違いは次のと�
 |項目|defunkt版|falsandtru版|
 |:---|:-------:|:----------:|
 |jQueryバージョン対応|1.8.x|1.4.2|
+|プリロードとの併用|×|○|
 |Android・iOSへの対応<br>locationオブジェクトの更新|**×**|○|
 |Android・iOSへの対応<br>スクロール位置の操作※1|×|○|
 |間違った履歴の修復|**×**|○|
@@ -1239,6 +1240,12 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 ##更新情報
 
 ###change log
+
+####1.31.9
+
+* `relay`メソッドを追加
+* ajax処理の外部からの引継ぎに対応
+* URL処理のバグを修正
 
 ####1.31.8
 
