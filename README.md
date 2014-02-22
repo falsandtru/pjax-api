@@ -13,15 +13,15 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 
 ##特徴
 
-* jQuery 1.4.2から動作します。
-* サーバー側の設定やコードのインストール等の作業が不要です。
-* <a href="https://github.com/falsandtru/jquery.preload.js" target="_blank">preload</a>と組み合わせて使用できます。
+* **プリロードのajax処理を中断せず引き継ぐことができるため最速でページ移動が可能です。**
 * CSSとJavaScriptの自動読み込みが可能です。
+* サーバー側の設定やコードのインストール等の作業が不要です。
 * 詳細な動作制御が可能で幅広い要求に対応できます。
 * pjax(pushState + ajax)で一般的に発生する問題に対応しています。
 
 ##対応
 
+* jQuery1.4.2+
 * CSSの読み込み
 * JavaScriptの読み込み
 * Android・iOSでの使用
@@ -38,8 +38,19 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 * <a href="https://github.com/falsandtru/jquery.preload.js" target="_blank">preload</a>との連携
 * <a href="https://github.com/falsandtru/jquery.spage.js" target="_blank">spage</a>とのキャッシュの共有
 
-##preloadとの併用
-<a href="https://github.com/falsandtru/jquery.preload.js" target="_blank">preload</a>と併用することで初回アクセスから極めて高速にページ移動を行うことができるため、preloadとの併用を推奨します。
+##preload+pjax
+<a href="https://github.com/falsandtru/jquery.preload.js">preload</a>と<a href="https://github.com/falsandtru/jquery.pjax.js">pjax</a>を連携させることで初回アクセスから極めて高速にページ移動を行うことができるため、この手法を強く推奨します。
+
+通常はリンクのクリックからHTMLファイルのダウンロード完了まで0.5～1秒、ページの表示（DOMロード）にさらに1秒の合計2秒前後かかるページ移動をpreload+pjaxではクリックからページの表示まで0.5秒（500ミリ秒）前後で完了することができます。PCでは多分これが一番速いと思います。
+
+|パターン|HTMLダウンロード|DOMロード|合計|
+|:---|:--:|:--:|:--:|
+|Normal|500-1000ms|800-1600ms|1300-2600ms|
+|preload+pjax|0-700ms|30-100ms|30-800ms|
+
+※jQuery1.5以降のバージョン必須
+※Windows7+GoogleChromeで手近なサイトを計測
+※データの受信を開始するまでの待機時間が長い場合は除く
 
 ##pjaxの問題への対応
 pushStateないしreplaceStateとajaxを組み合わせたいわゆるpjaxと呼ばれる機能には下記のような問題が存在しています。当pjaxプラグインはこれらを解消するための処理を組み込み済みです。
@@ -249,7 +260,7 @@ pjaxによるページ読み込み時のキャッシュの使用にかかる設�
 キャッシュの有効期限をミリ秒で設定します。初期値は`1800000`(30分)です。
 
 ####*wait: Millisecond as number / function( event, parameter, to, from )*
-`$.ajax`の実行からコンテンツの更新までの最低待ち時間を設定します。関数が設定された場合は関数の戻り値が使用されます。jQuery 1.5より前のバージョンでは無効です。初期値は`0`です。
+`$.ajax`の実行からコンテンツの更新までの最低待ち時間を設定します。関数が設定された場合は関数の戻り値が使用されます。jQuery1.5より前のバージョンでは無効です。初期値は`0`です。
 
 ####*fallback: boolean / function( event, parameter, to, from )*
 pjaxによるページ移動が失敗した場合の対応を行うかを設定します。初期状態では代替処理として通常のページ移動が行われます。関数が設定された場合は代替処理が当該関数により上書きされます。処理はエラーにかかるコールバック関数を実行後に行われます。初期値は`true`で有効です。
@@ -276,7 +287,7 @@ Indexed Databaseの使用をするかを設定します。データはデータ�
 サーバーとの通信にかかる設定項目を持ちます。
 
 #####*server.query: Query as string*
-pjaxによるサーバーへリクエストではページのURLにpjaxによるリクエストであることを通知するためのクエリ名が追加されており、このクエリ名を設定します。このクエリは内部処理でのみ使用されるためサイトの閲覧者の目に触れることはありません。初期値は`gns`の設定値と同じであり、`?pjax=1`のようにクエリが付加されます。
+サーバーへリクエストに付加するクエリを設定します。このクエリは内部処理でのみ使用されるためサイトの閲覧者の目に触れることはありません。ブラウザのキャッシュはクエリに応じて個別に生成されるためプリロードと組み合わせる場合は注意が必要です。初期値は`pjax=1`です。
 
 ####*callback: function( event, parameter, data, textStatus, XMLHttpRequest )*
 ページ移動後に実行されるコールバック関数を設定します。ページの更新処理が成功したときに`update.complete( event, parameter, data, textStatus, XMLHttpRequest )`の直後に実行されます。`callback``callbacks`ともに`callbacks.async`に`true`を設定することでコールバック関数の実行を非同期に行えます。コールバック関数を非同期で実行することで処理を高速化することができますが、戻り値に`false`を設定することによる処理のキャンセルができなくなります。
@@ -423,8 +434,8 @@ pjaxを使用してフォーム送信によりページを移動します。
 
 `$.pjax.submit('/', {method: 'POST'}, [{tag: 'input', attr: {type: 'text'}, name: 'name', value: 'data'}])`
 
-####*follow( URL as string, Ajax as jQuery )*
-外部のajax処理を引き継いでページ移動を行います。第二引数`Ajax`は`$.ajax()`の戻り値を使用します。jQuery 1.5より前のバージョンでは無効です。
+####*follow( Event as object, Ajax as jQuery )*
+外部のajax処理を引き継いでページ移動を行います。第二引数`Ajax`は`$.ajax()`の戻り値を使用します。jQuery1.5より前のバージョンでは無効です。
 
 ####*setCache( [ URL as string [, Data as string [, textStatus as string, XMLHttpRequest as XMLHttpRequest ] ] ] )*
 キャッシュを設定します。ページの更新には`XMLHttpRequest.responseText`をベースに`Data`に存在するタイトルと更新範囲で上書きして使用されます。`Data`によるキャッシュの上書きはタイトルと更新範囲にのみ適用されます。`XMLHttpRequest`がない場合はページ移動時に取得して補充されます。
@@ -981,6 +992,39 @@ pjaxで内部的に使用される`$.ajax`のパラメータを設定できま�
         </div>
 ```
 
+プリロードに対応する場合は以下のように設定します。
+
+```javascript
+$.preload({
+  forward: $.pjax.follow,
+  fix: true,
+  ajax: {
+    xhr: function(){
+      var xhr = jQuery.ajaxSettings.xhr();
+      
+      $('div.loading').children().width('5%');
+      if ( xhr instanceof Object && 'onprogress' in xhr ) {
+        xhr.addEventListener( 'progress', function ( event ) {
+          var percentage = event.total ? event.loaded / event.total : 0.4;
+          percentage = percentage * 90 + 5;
+          $('div.loading').children().width( percentage + '%' );
+        }, false );
+        xhr.addEventListener( 'load', function ( event ) {
+          $('div.loading').children().width('95%');
+        }, false );
+        xhr.addEventListener( 'error', function ( event ) {
+          $('div.loading').children().css('background-color', '#00f');
+        }, false );
+      }
+      return xhr;
+    },
+    success: function ( data, textStatus, XMLHttpRequest ) {
+      !$.pjax.getCache( this.url ) && $.pjax.setCache( this.url, null, textStatus, XMLHttpRequest ) ;
+    }
+  }
+});
+```
+
 ###UTF-8以外の文字コードへの対応 - callbacks.ajax.beforeSend
 `beforeSend`でMimeTypeをオーバーライドすることでUTF-8以外の文字コードを使用したHTMLを文字化けすることなく読み込むことができます。ただし、移動先のページの文字コードを事前に判別することができないため、複数の文字コードの混在したサイトでは文字コードの設定ができずpjaxは使用できません（CSSやJavaScriptなどの外部ファイルは異なる文字コードで作成されていても問題ありません）。
 文字コード変換のデモは、当サイトのサーバーがUTF-8以外で作成されたページもUTF-8として強制的に表示させる設定となっていたことから正常に動作しないため公開していません。
@@ -1241,6 +1285,12 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 
 ###change log
 
+####1.32.1
+
+* `server.query`パラメータの仕様を変更
+* `server.query`パラメータの初期値`pjax`から`pjax=1`に変更
+* プリロード連携処理のバグを修正
+
 ####1.32.0
 
 * `relay`メソッドを`follow`メソッドに変更
@@ -1262,7 +1312,7 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 
 ####1.31.7
 
-* preloadに対応
+* プリロードに対応
 * `filter`パラメータを追加
 * `load.reject`パラメータの初期値を`null`から`''`に変更
 * `load.reload`パラメータの初期値を`null`から`''`に変更

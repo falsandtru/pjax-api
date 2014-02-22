@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.32.0
- * @updated 2014/02/22
+ * @version 1.32.1
+ * @updated 2014/02/23
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -96,7 +96,7 @@
         hashquery: false,
         fallback: true,
         database: true,
-        server: { query: 'pjax' }
+        server: { query: 'pjax=1' }
       },
       option
     ) ;
@@ -140,7 +140,7 @@
     ) ;
     
     // registrate
-    if ( Store.check() ) {
+    if ( Store.supportPushState() ) {
       Store.registrate.call( $context, jQuery, window, document, undefined, Store, setting ) ;
     }
     
@@ -339,35 +339,43 @@
           return true ;
         } ;
         
-        $context.follow = function ( url, $XHR ) {
+        $context.follow = function ( event, $XHR, timeStamp ) {
           var setting = Store.settings[ 1 ] ;
-          if ( !setting ) { return false ; }
-          if ( jQuery.when ) {
-            setting.xhr = $XHR ;
-            jQuery.when( $XHR )
-            .done( function () {
-              setting.xhr && setting.xhr.readyState < 4 && setting.xhr.abort() ;
-              jQuery[ Store.name ].setCache( url, undefined, undefined, $XHR ) ;
-            } )
-            .fail( function () {
-              Store.fallback( {
-                type: 'click',
-                currentTarget: {
-                  href: url
-                }
-              } ) ;
-            } ) ;
-            jQuery[ Store.name ].click( url ) ;
-            return true ;
-          } else {
-            return false ;
-          }
+          if ( !setting || !jQuery.when || !Store.check( event, setting ) ) { return false ; }
+          if ( isFinite( event.timeStamp ) ) { $XHR.timeStamp = timeStamp || event.timeStamp ; }
+          setting.xhr = $XHR ;
+          jQuery.when( $XHR )
+          .done( function () {
+            setting.xhr && setting.xhr.readyState < 4 && setting.xhr.abort() ;
+            jQuery[ Store.name ].setCache( event.currentTarget.href, undefined, undefined, $XHR ) ;
+          } )
+          .fail( function () {
+            Store.fallback( event ) ;
+          } ) ;
+          jQuery[ Store.name ].click( event.currentTarget.href ) ;
+          return true ;
         } ;
       }
       return $context ;
     },
-    check: function () {
-      return Store.supportPushState() ;
+    check: function ( event, setting ) {
+      var src, dst ;
+      src = jQuery( '<a/>', { href: Store.canonicalizeURL( window.location.href ) } )[ 0 ] ;
+      dst = jQuery( '<a/>', { href: Store.canonicalizeURL( event.currentTarget.href ) } )[ 0 ] ;
+      
+      if ( !jQuery( event.currentTarget ).filter( setting.filter ).length ) { return ; }
+      if ( setting.disable ) { return ; }
+      
+      if ( src.protocol !== dst.protocol || src.host !== dst.host ) { return ; }
+      if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
+      
+      var url, cache ;
+      
+      url = dst.href ;
+      setting.area = Store.fire( setting.areaback, null, [ event, setting.parameter, dst.href, src.href ] ) ;
+      if ( !jQuery( setting.area ).length || setting.scope && !Store.scope( setting, src.href, dst.href ) ) { return ; }
+      
+      return true ;
     },
     supportPushState: function () {
       return 'pushState' in window.history && window.history[ 'pushState' ] ;
@@ -536,8 +544,8 @@
       speedcheck && ( setting.log.speed.fire = setting.timestamp ) ;
       speedcheck && ( setting.log.speed.time = [] ) ;
       speedcheck && ( setting.log.speed.name = [] ) ;
-      speedcheck && setting.log.speed.name.push( 'fire' ) ;
-      speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
+      speedcheck && setting.log.speed.name.push( 'pjax' ) ;
+      speedcheck && setting.log.speed.time.push( 0 ) ;
       
       setting.scroll.record = false ;
       setting.fix.reset && /click|submit/.test( event.type.toLowerCase() ) && window.scrollTo( jQuery( window ).scrollLeft(), 0 ) ;
@@ -551,9 +559,13 @@
       }
       
       if ( setting.xhr && setting.xhr.promise ) {
+        speedcheck && ( setting.log.speed.fire = setting.xhr.timeStamp ) ;
+        speedcheck && setting.log.speed.name.splice( 0, 1, 'preload' ) ;
         speedcheck && setting.log.speed.name.push( 'continue' ) ;
         speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
-        jQuery.when( setting.xhr ).done( function () { update( jQuery, window, document, undefined, Store, setting, event, jQuery[ Store.name ].getCache( url ) ) ; } ) ;
+        var wait = setting.wait && isFinite( setting.xhr.timeStamp ) ? Math.max( setting.wait - ( new Date() ).getTime() + setting.xhr.timeStamp, 0 ) : 0 ;
+        jQuery.when( setting.xhr, Store.wait( wait ) )
+        .done( function () { update( jQuery, window, document, undefined, Store, setting, event, jQuery[ Store.name ].getCache( url ) ) ; } ) ;
         return ;
       }
       
@@ -644,7 +656,12 @@
         }
       } ;
       jQuery.extend( true, ajax, setting.ajax, callbacks ) ;
-      ajax.url = url.replace( /([^#]+)(#[^\s]*)?$/, '$1' + ( setting.server.query ? ( url.match( /\?/ ) ? '&' : '?' ) + encodeURIComponent( setting.server.query ) + '=1' : '' ) + '$2' ) ;
+      var query = setting.server.query ;
+      if ( query ) {
+        query = query.split( '=' ) ;
+        query = encodeURIComponent( query[ 0 ] ) + ( query.length > 0 ? '=' + encodeURIComponent( query[ 1 ] ) : '' ) ;
+      }
+      ajax.url = url.replace( /([^#]+)(#[^\s]*)?$/, '$1' + ( query ? ( url.match( /\?/ ) ? '&' : '?' ) + query : '' ) + '$2' ) ;
       
       speedcheck && setting.log.speed.name.push( 'request' ) ;
       speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
@@ -1089,15 +1106,19 @@
       data.replace( pattern, function () { result.push( arguments[ 1 ] ) ; } ) ;
       return result ;
     },
-    scope: function ( setting, relocation ) {
-      var scp, arr, loc, des, dirs, dir, keys, key, pattern, not, reg, rewrite, inherit, hit_loc, hit_des, option ;
+    scope: function ( setting, src, dst, relocation ) {
+      var args, scp, arr, dirs, dir, keys, key, pattern, not, reg, rewrite, inherit, hit_src, hit_dst, option ;
+      
+      args = [].slice.call( arguments ) ;
+      args.splice( 1, 1, src || setting.location.href ) ;
+      args.splice( 2, 1, dst || setting.destination.href ) ;
       
       scp = setting.scope ;
-      loc = setting.location.href.replace( /.+?\w(\/[^#?]*).*/, '$1' ) ;
-      des = setting.destination.href.replace( /.+?\w(\/[^#?]*).*/, '$1' ) ;
+      src = ( src || setting.location.href ).replace( /.+?\w(\/[^#?]*).*/, '$1' ) ;
+      dst = ( dst || setting.destination.href ).replace( /.+?\w(\/[^#?]*).*/, '$1' ) ;
       
-      arr = loc.replace( /^\//, '' ).replace( /([?#])/g, '/$1' ).split( '/' ) ;
-      keys = ( relocation || loc ).replace( /^\//, '' ).replace( /([?#])/g, '/$1' ).split( '/' ) ;
+      arr = src.replace( /^\//, '' ).replace( /([?#])/g, '/$1' ).split( '/' ) ;
+      keys = ( relocation || src ).replace( /^\//, '' ).replace( /([?#])/g, '/$1' ).split( '/' ) ;
       if ( relocation ) {
         if ( -1 === relocation.indexOf( '*' ) ) { return undefined ; }
         dirs = [] ;
@@ -1105,20 +1126,21 @@
       }
       
       for ( var i = keys.length + 1 ; i-- ; ) {
-        rewrite = inherit = hit_loc = hit_des = undefined ;
+        rewrite = inherit = hit_src = hit_dst = undefined ;
         key = keys.slice( 0, i ).join( '/' ).replace( /\/([?#])/g, '$1' ) ;
-        key = '/' + key + ( ( relocation || loc ).charAt( key.length + 1 ) === '/' ? '/' : '' ) ;
+        key = '/' + key + ( ( relocation || src ).charAt( key.length + 1 ) === '/' ? '/' : '' ) ;
         
         if ( !key || !( key in scp ) ) { continue ; }
         if ( !scp[ key ] || !scp[ key ].length ) { return false ; }
         
         for ( var j = 0 ; pattern = scp[ key ][ j ] ; j++ ) {
-          if ( hit_loc === false || hit_des === false ) {
+          if ( hit_src === false || hit_dst === false ) {
             break ;
           } else if ( pattern === 'rewrite' && typeof scp.rewrite === 'function' && !relocation ) {
-            rewrite = arguments.callee( setting, Store.fire( scp.rewrite, null, [ setting.destination.href ] ) ) ;
+            args.push( Store.fire( scp.rewrite, null, [ dst ] ) ) ;
+            rewrite = arguments.callee.apply( this, args ) ;
             if ( rewrite ) {
-              hit_loc = hit_des = true ;
+              hit_src = hit_dst = true ;
               break ;
             } else if ( false === rewrite ) {
               return false ;
@@ -1135,18 +1157,18 @@
               for ( var k = 0, len = dirs.length ; k < len ; k++ ) { pattern = pattern.replace( '/*/', '/' + dirs[ k ] + '/' ) ; }
             }
             
-            if ( ( not || !hit_loc ) && ( reg ? !loc.search( pattern ) : !loc.indexOf( pattern ) ) ) {
-              if ( not ) { return false ; } else { hit_loc = true ; }
+            if ( ( not || !hit_src ) && ( reg ? !src.search( pattern ) : !src.indexOf( pattern ) ) ) {
+              if ( not ) { return false ; } else { hit_src = true ; }
             }
-            if ( ( not || !hit_des ) && ( reg ? !des.search( pattern ) : !des.indexOf( pattern ) ) ) {
-              if ( not ) { return false ; } else { hit_des = true ; }
+            if ( ( not || !hit_dst ) && ( reg ? !dst.search( pattern ) : !dst.indexOf( pattern ) ) ) {
+              if ( not ) { return false ; } else { hit_dst = true ; }
             }
           } else if ( typeof pattern === 'object' ) {
             option = pattern ;
           }
         }
         
-        if ( hit_loc && hit_des ) {
+        if ( hit_src && hit_dst ) {
           return jQuery.extend( true, {}, setting, ( typeof rewrite === 'object' ? rewrite : option ) || {} ) ;
         }
         if ( inherit ) { continue ; }
