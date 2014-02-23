@@ -46,7 +46,7 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 |パターン|HTMLダウンロード|DOMロード|合計|
 |:---|:--:|:--:|:--:|
 |Normal|500-1000ms|800-1600ms|1300-2600ms|
-|preload+pjax|0-700ms|30-100ms|30-800ms|
+|preload+pjax|0-700ms|50-100ms|50-800ms|
 
 ※jQuery1.5以降のバージョン必須
 ※Windows7+GoogleChromeで手近なサイトを計測
