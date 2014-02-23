@@ -591,7 +591,7 @@
       defer = jQuery.when ? jQuery.Deferred() : null ;
       callbacks = {
         xhr: !setting.callbacks.ajax.xhr ? undefined : function () {
-          XMLHttpRequest = Store.fire( setting.callbacks.ajax.xhr, null, [ event, setting.parameter ], setting.callbacks.async ) ;
+          XMLHttpRequest = Store.fire( setting.callbacks.ajax.xhr, this, [ event, setting.parameter ], setting.callbacks.async ) ;
           XMLHttpRequest = typeof XMLHttpRequest === 'object' && XMLHttpRequest || jQuery.ajaxSettings.xhr() ;
           
           //if ( XMLHttpRequest instanceof Object && XMLHttpRequest instanceof window.XMLHttpRequest && 'onprogress' in XMLHttpRequest ) {
@@ -610,12 +610,12 @@
           XMLHttpRequest.setRequestHeader( setting.nss.requestHeader + '-CSS', setting.load.css ) ;
           XMLHttpRequest.setRequestHeader( setting.nss.requestHeader + '-Script', setting.load.script ) ;
           
-          Store.fire( setting.callbacks.ajax.beforeSend, null, [ event, setting.parameter, XMLHttpRequest, arguments[ 1 ] ], setting.callbacks.async ) ;
+          Store.fire( setting.callbacks.ajax.beforeSend, this, [ event, setting.parameter, XMLHttpRequest, arguments[ 1 ] ], setting.callbacks.async ) ;
         },
         dataFilter: !setting.callbacks.ajax.dataFilter ? undefined : function () {
           data = arguments[ 0 ] ;
           
-          return Store.fire( setting.callbacks.ajax.dataFilter, null, [ event, setting.parameter, data, arguments[ 1 ] ], setting.callbacks.async ) || data ;
+          return Store.fire( setting.callbacks.ajax.dataFilter, this, [ event, setting.parameter, data, arguments[ 1 ] ], setting.callbacks.async ) || data ;
         },
         success: function () {
           data = arguments[ 0 ] ;
@@ -625,7 +625,7 @@
           /* validator */ validator = setting.validator ? setting.validator.clone( { name: 'jquery.pjax.js - $.ajax()' } ) : false ;
           /* validator */ validator && validator.start() ;
           /* validator */ validator && validator.test( '++', textStatus === 'success', [ url, setting.location.href, XMLHttpRequest, textStatus ], 'ajax success' ) ;
-          Store.fire( setting.callbacks.ajax.success, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) ;
+          Store.fire( setting.callbacks.ajax.success, this, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) ;
         },
         error: function () {
           XMLHttpRequest = arguments[ 0 ] ;
@@ -635,14 +635,14 @@
           /* validator */ validator = setting.validator ? setting.validator.clone( { name: 'jquery.pjax.js - $.ajax()' } ) : false ;
           /* validator */ validator && validator.start() ;
           /* validator */ validator && validator.test( '++', textStatus === 'abort', [ url, setting.location.href, XMLHttpRequest, textStatus, errorThrown ], 'ajax error' ) ;
-          Store.fire( setting.callbacks.ajax.error, null, [ event, setting.parameter, XMLHttpRequest, textStatus, errorThrown ], setting.callbacks.async ) ;
+          Store.fire( setting.callbacks.ajax.error, this, [ event, setting.parameter, XMLHttpRequest, textStatus, errorThrown ], setting.callbacks.async ) ;
         },
         complete: function () {
           XMLHttpRequest = arguments[ 0 ] ;
           textStatus = arguments[ 1 ] ;
           
           /* validator */ validator && validator.test( '++', 1, 0, 'ajax complete' ) ;
-          Store.fire( setting.callbacks.ajax.complete, null, [ event, setting.parameter, XMLHttpRequest, textStatus ], setting.callbacks.async ) ;
+          Store.fire( setting.callbacks.ajax.complete, this, [ event, setting.parameter, XMLHttpRequest, textStatus ], setting.callbacks.async ) ;
           
           if ( !errorThrown ) {
             defer && defer.resolve() || update( jQuery, window, document, undefined, Store, setting, event, cache ) ;
