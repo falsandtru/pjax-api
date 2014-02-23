@@ -24,6 +24,7 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 * jQuery1.4.2+
 * CSSの読み込み
 * JavaScriptの読み込み
+* ajax処理の継承
 * Android・iOSでの使用
 * フォームのsubmitによるページ遷移
 * Google Analytics によるアクセス解析
@@ -35,7 +36,6 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 * サーバーからの差分データによるページ更新
 * キャッシュによるページ更新
 * ローディングエフェクトの表示
-* <a href="https://github.com/falsandtru/jquery.preload.js" target="_blank">preload</a>との連携
 * <a href="https://github.com/falsandtru/jquery.spage.js" target="_blank">spage</a>とのキャッシュの共有
 
 ##preload+pjax
