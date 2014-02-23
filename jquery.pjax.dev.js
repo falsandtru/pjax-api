@@ -129,12 +129,12 @@
         scroll: { record: true, queue: [] },
         log: { script: {}, speed: {} },
         history: { config: setting.cache, order: [], data: {}, size: 0 },
-        timestamp: ( new Date() ).getTime(),
+        timeStamp: new Date().getTime(),
         disable: false,
         landing: Store.canonicalizeURL( window.location.href ),
         retry: true,
         xhr: null,
-        speed: { now: function () { return ( new Date() ).getTime() ; } },
+        speed: { now: function () { return new Date().getTime() ; } },
         option: option
       }
     ) ;
@@ -275,7 +275,7 @@
                   //css: undefined,
                   //script: undefined,
                   size: size,
-                  timestamp: ( new Date() ).getTime()
+                  timeStamp: new Date().getTime()
                 }
               ) ;
               setting.database && setting.fix.history && Store.dbTitle( url, title ) ;
@@ -291,7 +291,7 @@
           history = setting.history ;
           url = Store.canonicalizeURL( url || window.location.href ) ;
           url = setting.hashquery ? url : url.replace( /#.*/, '' ) ;
-          history.data[ url ] && setting.timestamp > history.data[ url ].timestamp + history.config.expire && jQuery[ Store.name ].removeCache( url ) ;
+          history.data[ url ] && setting.timeStamp > history.data[ url ].timeStamp + history.config.expire && jQuery[ Store.name ].removeCache( url ) ;
           return history.data[ url ] ;
         } ;
         
@@ -330,7 +330,7 @@
           if ( !setting || !setting.history ) { return false ; }
           var history = setting.history ;
           for ( var i = history.order.length, url ; url = history.order[ --i ] ; ) {
-            if ( i >= history.config.length || url in history.data && setting.timestamp > history.data[ url ].timestamp + history.config.expire ) {
+            if ( i >= history.config.length || url in history.data && setting.timeStamp > history.data[ url ].timeStamp + history.config.expire ) {
               history.order.splice( i, 1 ) ;
               history.size -= history.data[ url ].size ;
               delete history.data[ url ] ;
@@ -424,7 +424,7 @@
       jQuery( context )
       .undelegate( setting.link, setting.nss.click )
       .delegate( setting.link, setting.nss.click, setting.id, Store.click = function ( event ) {
-        event.timeStamp = ( new Date() ).getTime() ;
+        event.timeStamp = new Date().getTime() ;
         var setting = Store.settings[ 1 ] ;
         if ( !jQuery( this ).filter( setting.filter ).length ) { return ; }
         if ( setting.disable || event.isDefaultPrevented() ) { return ; }
@@ -438,7 +438,7 @@
         
         url = setting.destination.href ;
         setting.area = Store.fire( setting.areaback, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) ;
-        setting.timestamp = event.timeStamp ;
+        setting.timeStamp = event.timeStamp ;
         if ( setting.landing ) { setting.landing = false ; }
         if ( !jQuery( setting.area ).length || setting.scope && !Store.scope( setting ) ) { return ; }
         setting.database && Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
@@ -453,7 +453,7 @@
       jQuery( context )
       .undelegate( setting.form, setting.nss.submit )
       .delegate( setting.form, setting.nss.submit, setting.id, Store.submit = function ( event ) {
-        event.timeStamp = ( new Date() ).getTime() ;
+        event.timeStamp = new Date().getTime() ;
         var setting = Store.settings[ 1 ] ;
         if ( setting.disable || event.isDefaultPrevented() ) { return ; }
         setting.location.href = Store.canonicalizeURL( window.location.href ) ;
@@ -466,7 +466,7 @@
         
         url = setting.destination.href = Store.canonicalizeURL( setting.destination.href.replace( /[?#].*/, '' ) + ( event.target.method.toUpperCase() === 'GET' ? '?' + jQuery( event.target ).serialize() : '' ) ) ;
         setting.area = Store.fire( setting.areaback, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) ;
-        setting.timestamp = event.timeStamp ;
+        setting.timeStamp = event.timeStamp ;
         if ( setting.landing ) { setting.landing = false ; }
         if ( !jQuery( setting.area ).length || setting.scope && !Store.scope( setting ) ) { return ; }
         setting.database && Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
@@ -480,7 +480,7 @@
       jQuery( window )
       .unbind( setting.nss.popstate )
       .bind( setting.nss.popstate, setting.id, Store.popstate = function ( event ) {
-        event.timeStamp = ( new Date() ).getTime() ;
+        event.timeStamp = new Date().getTime() ;
         var setting = Store.settings[ 1 ] ;
         if ( setting.disable || event.isDefaultPrevented() ) { return ; }
         //setting.location.href = Store.canonicalizeURL( window.location.href ) ;
@@ -498,7 +498,7 @@
         
         url = setting.destination.href ;
         setting.area = Store.fire( setting.areaback, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) ;
-        setting.timestamp = event.timeStamp ;
+        setting.timeStamp = event.timeStamp ;
         if ( setting.landing ) { if ( setting.landing.href === url ) { setting.landing = false ; return ; } setting.landing = false ; }
         if ( !jQuery( setting.area ).length ) { return ; }
         
@@ -541,7 +541,7 @@
     drive: function ( jQuery, window, document, undefined, Store, setting, event, url, register, cache ) {
       /* validator */ var validator ;
       var speedcheck = setting.speedcheck ;
-      speedcheck && ( setting.log.speed.fire = setting.timestamp ) ;
+      speedcheck && ( setting.log.speed.fire = setting.timeStamp ) ;
       speedcheck && ( setting.log.speed.time = [] ) ;
       speedcheck && ( setting.log.speed.name = [] ) ;
       speedcheck && setting.log.speed.time.push( 0 ) ;
@@ -564,7 +564,7 @@
         speedcheck && setting.log.speed.name.splice( 0, 1, 'preload(' + setting.log.speed.time[ setting.log.speed.time.length - 1 ] + ')' ) ;
         speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
         speedcheck && setting.log.speed.name.push( 'continue(' + setting.log.speed.time[ setting.log.speed.time.length - 1 ] + ')' ) ;
-        var wait = setting.wait && isFinite( setting.xhr.timeStamp ) ? Math.max( setting.wait - ( new Date() ).getTime() + setting.xhr.timeStamp, 0 ) : 0 ;
+        var wait = setting.wait && isFinite( setting.xhr.timeStamp ) ? Math.max( setting.wait - new Date().getTime() + setting.xhr.timeStamp, 0 ) : 0 ;
         jQuery.when( setting.xhr, Store.wait( wait ) )
         .done( function () { update( jQuery, window, document, undefined, Store, setting, event, jQuery[ Store.name ].getCache( url ) ) ; } ) ;
         
@@ -1184,7 +1184,7 @@
       var name, version, days, IDBFactory, IDBDatabase, IDBObjectStore ;
       name = setting.gns; 
       version = 1 ;
-      days = Math.floor( setting.timestamp / ( 1000*60*60*24 ) ) ;
+      days = Math.floor( setting.timeStamp / ( 1000*60*60*24 ) ) ;
       IDBFactory = Store.IDBFactory ;
       IDBDatabase = Store.IDBDatabase ;
       count = count || 0 ;
@@ -1293,7 +1293,7 @@
       url = setting.hashquery ? url : url.replace( /#.*/, '' ) ;
       if ( title ) {
         IDBObjectStore.get( url ).onsuccess = function () {
-          IDBObjectStore.put( jQuery.extend( true, {}, this.result || {}, { id: url, title: title, date: setting.timestamp } ) ) ;
+          IDBObjectStore.put( jQuery.extend( true, {}, this.result || {}, { id: url, title: title, date: setting.timeStamp } ) ) ;
           Store.dbClean() ;
         } ;
       } else {
@@ -1326,7 +1326,7 @@
       var setting = Store.settings[ 1 ], IDBObjectStore = Store.dbStore() ;
       IDBObjectStore.count().onsuccess = function () {
         if ( 1000 < this.result ) {
-          IDBObjectStore.index( 'date' ).openCursor( Store.IDBKeyRange.upperBound( setting.timestamp - ( 1000*60*60*24*3 ) ) ).onsuccess = function () {
+          IDBObjectStore.index( 'date' ).openCursor( Store.IDBKeyRange.upperBound( setting.timeStamp - ( 1000*60*60*24*3 ) ) ).onsuccess = function () {
             var IDBCursor = this.result ;
             if ( IDBCursor ) {
               IDBCursor[ 'delete' ]( IDBCursor.value.id ) ;
