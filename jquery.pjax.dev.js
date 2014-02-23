@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.32.1
+ * @version 1.32.2
  * @updated 2014/02/23
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -552,6 +552,7 @@
       if ( Store.fire( setting.callbacks.before, null, [ event, setting.parameter ], setting.callbacks.async ) === false ) { return ; } // function: drive
       
       if ( cache && cache.XMLHttpRequest ) {
+        speedcheck && setting.log.speed.name.splice( 0, 1, 'cache' ) ;
         jQuery.when ? jQuery.when( Store.wait( Store.fire( setting.wait, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) ) )
                       .done( function () { update( jQuery, window, document, undefined, Store, setting, event, cache ) ; } )
                     : update( jQuery, window, document, undefined, Store, setting, event, cache ) ;
@@ -559,8 +560,8 @@
       }
       
       if ( setting.xhr && setting.xhr.promise ) {
-        speedcheck && ( setting.log.speed.fire = setting.xhr.timeStamp ) ;
         speedcheck && setting.log.speed.name.splice( 0, 1, 'preload' ) ;
+        speedcheck && setting.log.speed.time.splice( 0, 1, setting.xhr.timeStamp - setting.log.speed.fire ) ;
         speedcheck && setting.log.speed.name.push( 'continue' ) ;
         speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
         var wait = setting.wait && isFinite( setting.xhr.timeStamp ) ? Math.max( setting.wait - ( new Date() ).getTime() + setting.xhr.timeStamp, 0 ) : 0 ;
@@ -590,7 +591,7 @@
       defer = jQuery.when ? jQuery.Deferred() : null ;
       callbacks = {
         xhr: !setting.callbacks.ajax.xhr ? undefined : function () {
-          XMLHttpRequest = Store.fire( setting.callbacks.ajax.xhr, null, [ event, setting.parameter ], setting.callbacks.async ) ;
+          XMLHttpRequest = Store.fire( setting.callbacks.ajax.xhr, this, [ event, setting.parameter ], setting.callbacks.async ) ;
           XMLHttpRequest = typeof XMLHttpRequest === 'object' && XMLHttpRequest || jQuery.ajaxSettings.xhr() ;
           
           //if ( XMLHttpRequest instanceof Object && XMLHttpRequest instanceof window.XMLHttpRequest && 'onprogress' in XMLHttpRequest ) {
@@ -609,12 +610,12 @@
           XMLHttpRequest.setRequestHeader( setting.nss.requestHeader + '-CSS', setting.load.css ) ;
           XMLHttpRequest.setRequestHeader( setting.nss.requestHeader + '-Script', setting.load.script ) ;
           
-          Store.fire( setting.callbacks.ajax.beforeSend, null, [ event, setting.parameter, XMLHttpRequest, arguments[ 1 ] ], setting.callbacks.async ) ;
+          Store.fire( setting.callbacks.ajax.beforeSend, this, [ event, setting.parameter, XMLHttpRequest, arguments[ 1 ] ], setting.callbacks.async ) ;
         },
         dataFilter: !setting.callbacks.ajax.dataFilter ? undefined : function () {
           data = arguments[ 0 ] ;
           
-          return Store.fire( setting.callbacks.ajax.dataFilter, null, [ event, setting.parameter, data, arguments[ 1 ] ], setting.callbacks.async ) || data ;
+          return Store.fire( setting.callbacks.ajax.dataFilter, this, [ event, setting.parameter, data, arguments[ 1 ] ], setting.callbacks.async ) || data ;
         },
         success: function () {
           data = arguments[ 0 ] ;
@@ -624,7 +625,7 @@
           /* validator */ validator = setting.validator ? setting.validator.clone( { name: 'jquery.pjax.js - $.ajax()' } ) : false ;
           /* validator */ validator && validator.start() ;
           /* validator */ validator && validator.test( '++', textStatus === 'success', [ url, setting.location.href, XMLHttpRequest, textStatus ], 'ajax success' ) ;
-          Store.fire( setting.callbacks.ajax.success, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) ;
+          Store.fire( setting.callbacks.ajax.success, this, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) ;
         },
         error: function () {
           XMLHttpRequest = arguments[ 0 ] ;
@@ -634,14 +635,14 @@
           /* validator */ validator = setting.validator ? setting.validator.clone( { name: 'jquery.pjax.js - $.ajax()' } ) : false ;
           /* validator */ validator && validator.start() ;
           /* validator */ validator && validator.test( '++', textStatus === 'abort', [ url, setting.location.href, XMLHttpRequest, textStatus, errorThrown ], 'ajax error' ) ;
-          Store.fire( setting.callbacks.ajax.error, null, [ event, setting.parameter, XMLHttpRequest, textStatus, errorThrown ], setting.callbacks.async ) ;
+          Store.fire( setting.callbacks.ajax.error, this, [ event, setting.parameter, XMLHttpRequest, textStatus, errorThrown ], setting.callbacks.async ) ;
         },
         complete: function () {
           XMLHttpRequest = arguments[ 0 ] ;
           textStatus = arguments[ 1 ] ;
           
           /* validator */ validator && validator.test( '++', 1, 0, 'ajax complete' ) ;
-          Store.fire( setting.callbacks.ajax.complete, null, [ event, setting.parameter, XMLHttpRequest, textStatus ], setting.callbacks.async ) ;
+          Store.fire( setting.callbacks.ajax.complete, this, [ event, setting.parameter, XMLHttpRequest, textStatus ], setting.callbacks.async ) ;
           
           if ( !errorThrown ) {
             defer && defer.resolve() || update( jQuery, window, document, undefined, Store, setting, event, cache ) ;
@@ -823,7 +824,6 @@
               }
               if ( Store.fire( callbacks_update.scroll.after, null, [ event, setting.parameter ], setting.callbacks.async ) === false ) { return ; }
             } // function: scroll
-            scroll( false ) ;
             
             /* cache */
             UPDATE_CACHE: {
@@ -1005,15 +1005,16 @@
             
             /* load */
             load_css() ;
-            jQuery( document ).trigger( setting.gns + '.ready' ) ;
             jQuery( window )
-            .bind( setting.gns + '.rendering', function ( event ) {
-              jQuery( event.target ).unbind( event.type + '.rendering', arguments.callee ) ;
+            .one( setting.gns + '.rendering', function ( event ) {
+              event.preventDefault() ;
+              event.stopImmediatePropagation() ;
+              
+              scroll( false ) ;
+              jQuery( document ).trigger( setting.gns + '.ready' ) ;
               load_script( ':not([defer]), :not([src])' ) ;
               if ( setting.load.sync ) {
-                rendering( function () {
-                  load_script( '[src][defer]' ) ;
-                } ) ;
+                rendering( function () { load_script( '[src][defer]' ) ; } ) ;
               } else {
                 rendering() ;
                 load_script( '[src][defer]' ) ;
