@@ -997,7 +997,7 @@ pjaxで内部的に使用される`$.ajax`のパラメータを設定できま�
 ```javascript
 $.preload({
   forward: $.pjax.follow,
-  fix: true,
+  encode: true,
   ajax: {
     xhr: function(){
       var xhr = jQuery.ajaxSettings.xhr();
