@@ -128,7 +128,7 @@
         contentType: setting.contentType.replace( /\s*[,;]\s*/g, '|' ).toLowerCase(),
         scroll: { record: true, queue: [] },
         log: { script: {}, speed: {} },
-        history: { config: setting.cache, order: [], data: {}, size: 0 },
+        history: { order: [], data: {}, size: 0 },
         timeStamp: new Date().getTime(),
         disable: false,
         landing: Store.canonicalizeURL( window.location.href ),
@@ -258,7 +258,7 @@
               history.order.unshift( url ) ;
               for ( var i = 1, key ; key = history.order[ i ] ; i++ ) { if ( url === key ) { history.order.splice( i, 1 ) ; } }
               
-              history.size > history.config.size && jQuery[ Store.name ].cleanCache() ;
+              history.size > setting.cache.size && jQuery[ Store.name ].cleanCache() ;
               cache = jQuery[ Store.name ].getCache( url ) ;
               
               title = jQuery( '<span/>' ).html( Store.find( ( data || '' ) + ( ( XMLHttpRequest || {} ).responseText || '' ) + '<title></title>', /<title[^>]*?>([^<]*?)<\/title>/i ).shift() ).text() ;
@@ -291,7 +291,7 @@
           history = setting.history ;
           url = Store.canonicalizeURL( url || window.location.href ) ;
           url = setting.hashquery ? url : url.replace( /#.*/, '' ) ;
-          history.data[ url ] && setting.timeStamp > history.data[ url ].timeStamp + history.config.expire && jQuery[ Store.name ].removeCache( url ) ;
+          history.data[ url ] && new Date().getTime() > history.data[ url ].timeStamp + setting.cache.expire && jQuery[ Store.name ].removeCache( url ) ;
           return history.data[ url ] ;
         } ;
         
@@ -330,7 +330,7 @@
           if ( !setting || !setting.history ) { return false ; }
           var history = setting.history ;
           for ( var i = history.order.length, url ; url = history.order[ --i ] ; ) {
-            if ( i >= history.config.length || url in history.data && setting.timeStamp > history.data[ url ].timeStamp + history.config.expire ) {
+            if ( i >= setting.cache.length || url in history.data && new Date().getTime() > history.data[ url ].timeStamp + setting.cache.expire ) {
               history.order.splice( i, 1 ) ;
               history.size -= history.data[ url ].size ;
               delete history.data[ url ] ;
@@ -387,8 +387,6 @@
       setting.id = 1 ;
       Store.ids.push( setting.id ) ;
       Store.settings[ setting.id ] = setting ;
-      
-      Store.share() ;
       
       setting.load.script && jQuery( 'script' ).each( function () {
         var element = this, src ;
@@ -1184,7 +1182,7 @@
       var name, version, days, IDBFactory, IDBDatabase, IDBObjectStore ;
       name = setting.gns; 
       version = 1 ;
-      days = Math.floor( setting.timeStamp / ( 1000*60*60*24 ) ) ;
+      days = Math.floor( new Date().getTime() / ( 1000*60*60*24 ) ) ;
       IDBFactory = Store.IDBFactory ;
       IDBDatabase = Store.IDBDatabase ;
       count = count || 0 ;
@@ -1293,7 +1291,7 @@
       url = setting.hashquery ? url : url.replace( /#.*/, '' ) ;
       if ( title ) {
         IDBObjectStore.get( url ).onsuccess = function () {
-          IDBObjectStore.put( jQuery.extend( true, {}, this.result || {}, { id: url, title: title, date: setting.timeStamp } ) ) ;
+          IDBObjectStore.put( jQuery.extend( true, {}, this.result || {}, { id: url, title: title, date: new Date().getTime() } ) ) ;
           Store.dbClean() ;
         } ;
       } else {
@@ -1326,7 +1324,7 @@
       var setting = Store.settings[ 1 ], IDBObjectStore = Store.dbStore() ;
       IDBObjectStore.count().onsuccess = function () {
         if ( 1000 < this.result ) {
-          IDBObjectStore.index( 'date' ).openCursor( Store.IDBKeyRange.upperBound( setting.timeStamp - ( 1000*60*60*24*3 ) ) ).onsuccess = function () {
+          IDBObjectStore.index( 'date' ).openCursor( Store.IDBKeyRange.upperBound( new Date().getTime() - ( 3*24*60*60*1000 ) ) ).onsuccess = function () {
             var IDBCursor = this.result ;
             if ( IDBCursor ) {
               IDBCursor[ 'delete' ]( IDBCursor.value.id ) ;
@@ -1337,47 +1335,7 @@
           }
         }
       } ;
-    },
-    share: function () {
-      var setting = Store.settings[ 1 ] ;
-      
-      if ( !jQuery.falsandtru ) { jQuery.fn.falsandtru = jQuery.falsandtru = Store.falsandtru ; }
-      
-      jQuery.falsandtru( 'share', 'history', setting.history ) ;
-      setting.history = jQuery.falsandtru( 'share', 'history' ) ;
-      
-    },
-    falsandtru: function ( namespace, key, value ) {
-      var obj, response ;
-      
-      switch ( true ) {
-        case namespace === undefined:
-          break ;
-          
-        case key === undefined:
-          response = jQuery.falsandtru[ namespace ] ;
-          break ;
-          
-        case value === undefined:
-          response = namespace in jQuery.falsandtru ? jQuery.falsandtru[ namespace ][ key ] : undefined ;
-          break ;
-          
-        case value !== undefined:
-          if ( !( jQuery.falsandtru[ namespace ] instanceof Object ) ) { jQuery.falsandtru[ namespace ] = {} ; }
-          if ( jQuery.falsandtru[ namespace ][ key ] instanceof Object && value instanceof Object ) {
-            jQuery.extend( true, jQuery.falsandtru[ namespace ][ key ], value )
-          } else {
-            jQuery.falsandtru[ namespace ][ key ] = value ;
-          }
-          response = jQuery.falsandtru[ namespace ][ key ] ;
-          break ;
-          
-        default:
-          break ;
-      }
-      
-      return response ;
-    } // function: falsandtru
+    }
   } ;
   
   registrate.apply( this, [].slice.call( arguments ).concat( [ Store ] ) ) ;

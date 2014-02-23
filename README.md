@@ -36,7 +36,6 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 * サーバーからの差分データによるページ更新
 * キャッシュによるページ更新
 * ローディングエフェクトの表示
-* <a href="https://github.com/falsandtru/jquery.spage.js" target="_blank">spage</a>とのキャッシュの共有
 
 ##preload+pjax
 <a href="https://github.com/falsandtru/jquery.preload.js">preload</a>と<a href="https://github.com/falsandtru/jquery.pjax.js">pjax</a>を連携させることで初回アクセスから極めて高速にページ移動を行うことができるため、この手法を強く推奨します。
