@@ -824,7 +824,6 @@
               }
               if ( Store.fire( callbacks_update.scroll.after, null, [ event, setting.parameter ], setting.callbacks.async ) === false ) { return ; }
             } // function: scroll
-            scroll( false ) ;
             
             /* cache */
             UPDATE_CACHE: {
@@ -1006,15 +1005,16 @@
             
             /* load */
             load_css() ;
-            jQuery( document ).trigger( setting.gns + '.ready' ) ;
             jQuery( window )
-            .bind( setting.gns + '.rendering', function ( event ) {
-              jQuery( event.target ).unbind( event.type + '.rendering', arguments.callee ) ;
+            .one( setting.gns + '.rendering', function ( event ) {
+              event.preventDefault() ;
+              event.stopImmediatePropagation() ;
+              
+              scroll( false ) ;
+              jQuery( document ).trigger( setting.gns + '.ready' ) ;
               load_script( ':not([defer]), :not([src])' ) ;
               if ( setting.load.sync ) {
-                rendering( function () {
-                  load_script( '[src][defer]' ) ;
-                } ) ;
+                rendering( function () { load_script( '[src][defer]' ) ; } ) ;
               } else {
                 rendering() ;
                 load_script( '[src][defer]' ) ;
