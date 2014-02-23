@@ -552,6 +552,7 @@
       if ( Store.fire( setting.callbacks.before, null, [ event, setting.parameter ], setting.callbacks.async ) === false ) { return ; } // function: drive
       
       if ( cache && cache.XMLHttpRequest ) {
+        speedcheck && setting.log.speed.name.splice( 0, 1, 'cache' ) ;
         jQuery.when ? jQuery.when( Store.wait( Store.fire( setting.wait, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) ) )
                       .done( function () { update( jQuery, window, document, undefined, Store, setting, event, cache ) ; } )
                     : update( jQuery, window, document, undefined, Store, setting, event, cache ) ;
@@ -559,8 +560,8 @@
       }
       
       if ( setting.xhr && setting.xhr.promise ) {
-        speedcheck && ( setting.log.speed.fire = setting.xhr.timeStamp ) ;
         speedcheck && setting.log.speed.name.splice( 0, 1, 'preload' ) ;
+        speedcheck && setting.log.speed.time.splice( 0, 1, setting.xhr.timeStamp - setting.log.speed.fire ) ;
         speedcheck && setting.log.speed.name.push( 'continue' ) ;
         speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
         var wait = setting.wait && isFinite( setting.xhr.timeStamp ) ? Math.max( setting.wait - ( new Date() ).getTime() + setting.xhr.timeStamp, 0 ) : 0 ;
