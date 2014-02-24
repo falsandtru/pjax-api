@@ -37,7 +37,7 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 * キャッシュによるページ更新
 * ローディングエフェクトの表示
 
-##preload+pjax
+##preload + pjax
 <a href="https://github.com/falsandtru/jquery.preload.js">preload</a>と<a href="https://github.com/falsandtru/jquery.pjax.js">pjax</a>を連携させることで初回アクセスから極めて高速にページ移動を行うことができるため、この手法を強く推奨します。
 
 通常はリンクのクリックからHTMLファイルのダウンロード完了まで0.5～1秒、ページの表示（DOMロード）にさらに1秒の合計2秒前後かかるページ移動をpreload+pjaxではクリックからページの表示まで0.5秒（500ミリ秒）前後で完了することができます。PCでは多分これが一番速いと思います。
