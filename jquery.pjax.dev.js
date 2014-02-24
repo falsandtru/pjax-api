@@ -1121,7 +1121,7 @@
       if ( relocation ) {
         if ( -1 === relocation.indexOf( '*' ) ) { return undefined ; }
         dirs = [] ;
-        for ( var i = keys.length ; i-- ; ) { '*' === keys[ i ] && dirs.unshift( arr[ i ] ) ; }
+        for ( var i = 0, len = keys.length ; i < len ; i++ ) { '*' === keys[ i ] && dirs.push( arr[ i ] ) ; }
       }
       
       for ( var i = keys.length + 1 ; i-- ; ) {
