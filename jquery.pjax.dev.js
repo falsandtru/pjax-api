@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.32.2
- * @updated 2014/02/23
+ * @version 1.32.3
+ * @updated 2014/02/24
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -69,7 +69,7 @@
         ns: null,
         area: null,
         link: 'a:not([target])',
-        filter: function(){ return /(\/|\.html?|\.php)([#?].*)?$/.test( this.href ); },
+        filter: function(){ return /(\/[^.]*|\.html?|\.php)([#?].*)?$/.test( this.href ); },
         form: null,
         scope: null,
         state: null,
@@ -128,13 +128,13 @@
         contentType: setting.contentType.replace( /\s*[,;]\s*/g, '|' ).toLowerCase(),
         scroll: { record: true, queue: [] },
         log: { script: {}, speed: {} },
-        history: { config: setting.cache, order: [], data: {}, size: 0 },
-        timestamp: ( new Date() ).getTime(),
+        history: { order: [], data: {}, size: 0 },
+        timeStamp: new Date().getTime(),
         disable: false,
         landing: Store.canonicalizeURL( window.location.href ),
         retry: true,
         xhr: null,
-        speed: { now: function () { return ( new Date() ).getTime() ; } },
+        speed: { now: function () { return new Date().getTime() ; } },
         option: option
       }
     ) ;
@@ -258,7 +258,7 @@
               history.order.unshift( url ) ;
               for ( var i = 1, key ; key = history.order[ i ] ; i++ ) { if ( url === key ) { history.order.splice( i, 1 ) ; } }
               
-              history.size > history.config.size && jQuery[ Store.name ].cleanCache() ;
+              history.size > setting.cache.size && jQuery[ Store.name ].cleanCache() ;
               cache = jQuery[ Store.name ].getCache( url ) ;
               
               title = jQuery( '<span/>' ).html( Store.find( ( data || '' ) + ( ( XMLHttpRequest || {} ).responseText || '' ) + '<title></title>', /<title[^>]*?>([^<]*?)<\/title>/i ).shift() ).text() ;
@@ -275,7 +275,7 @@
                   //css: undefined,
                   //script: undefined,
                   size: size,
-                  timestamp: ( new Date() ).getTime()
+                  timeStamp: new Date().getTime()
                 }
               ) ;
               setting.database && setting.fix.history && Store.dbTitle( url, title ) ;
@@ -291,7 +291,7 @@
           history = setting.history ;
           url = Store.canonicalizeURL( url || window.location.href ) ;
           url = setting.hashquery ? url : url.replace( /#.*/, '' ) ;
-          history.data[ url ] && setting.timestamp > history.data[ url ].timestamp + history.config.expire && jQuery[ Store.name ].removeCache( url ) ;
+          history.data[ url ] && new Date().getTime() > history.data[ url ].timeStamp + setting.cache.expire && jQuery[ Store.name ].removeCache( url ) ;
           return history.data[ url ] ;
         } ;
         
@@ -330,7 +330,7 @@
           if ( !setting || !setting.history ) { return false ; }
           var history = setting.history ;
           for ( var i = history.order.length, url ; url = history.order[ --i ] ; ) {
-            if ( i >= history.config.length || url in history.data && setting.timestamp > history.data[ url ].timestamp + history.config.expire ) {
+            if ( i >= setting.cache.length || url in history.data && new Date().getTime() > history.data[ url ].timeStamp + setting.cache.expire ) {
               history.order.splice( i, 1 ) ;
               history.size -= history.data[ url ].size ;
               delete history.data[ url ] ;
@@ -388,8 +388,6 @@
       Store.ids.push( setting.id ) ;
       Store.settings[ setting.id ] = setting ;
       
-      Store.share() ;
-      
       setting.load.script && jQuery( 'script' ).each( function () {
         var element = this, src ;
         element = typeof setting.load.rewrite === 'function' ? Store.fire( setting.load.rewrite, null, [ element.cloneNode() ] ) || element : element ;
@@ -424,7 +422,7 @@
       jQuery( context )
       .undelegate( setting.link, setting.nss.click )
       .delegate( setting.link, setting.nss.click, setting.id, Store.click = function ( event ) {
-        event.timeStamp = ( new Date() ).getTime() ;
+        event.timeStamp = new Date().getTime() ;
         var setting = Store.settings[ 1 ] ;
         if ( !jQuery( this ).filter( setting.filter ).length ) { return ; }
         if ( setting.disable || event.isDefaultPrevented() ) { return ; }
@@ -438,7 +436,7 @@
         
         url = setting.destination.href ;
         setting.area = Store.fire( setting.areaback, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) ;
-        setting.timestamp = event.timeStamp ;
+        setting.timeStamp = event.timeStamp ;
         if ( setting.landing ) { setting.landing = false ; }
         if ( !jQuery( setting.area ).length || setting.scope && !Store.scope( setting ) ) { return ; }
         setting.database && Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
@@ -453,7 +451,7 @@
       jQuery( context )
       .undelegate( setting.form, setting.nss.submit )
       .delegate( setting.form, setting.nss.submit, setting.id, Store.submit = function ( event ) {
-        event.timeStamp = ( new Date() ).getTime() ;
+        event.timeStamp = new Date().getTime() ;
         var setting = Store.settings[ 1 ] ;
         if ( setting.disable || event.isDefaultPrevented() ) { return ; }
         setting.location.href = Store.canonicalizeURL( window.location.href ) ;
@@ -466,7 +464,7 @@
         
         url = setting.destination.href = Store.canonicalizeURL( setting.destination.href.replace( /[?#].*/, '' ) + ( event.target.method.toUpperCase() === 'GET' ? '?' + jQuery( event.target ).serialize() : '' ) ) ;
         setting.area = Store.fire( setting.areaback, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) ;
-        setting.timestamp = event.timeStamp ;
+        setting.timeStamp = event.timeStamp ;
         if ( setting.landing ) { setting.landing = false ; }
         if ( !jQuery( setting.area ).length || setting.scope && !Store.scope( setting ) ) { return ; }
         setting.database && Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
@@ -480,7 +478,7 @@
       jQuery( window )
       .unbind( setting.nss.popstate )
       .bind( setting.nss.popstate, setting.id, Store.popstate = function ( event ) {
-        event.timeStamp = ( new Date() ).getTime() ;
+        event.timeStamp = new Date().getTime() ;
         var setting = Store.settings[ 1 ] ;
         if ( setting.disable || event.isDefaultPrevented() ) { return ; }
         //setting.location.href = Store.canonicalizeURL( window.location.href ) ;
@@ -498,7 +496,7 @@
         
         url = setting.destination.href ;
         setting.area = Store.fire( setting.areaback, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) ;
-        setting.timestamp = event.timeStamp ;
+        setting.timeStamp = event.timeStamp ;
         if ( setting.landing ) { if ( setting.landing.href === url ) { setting.landing = false ; return ; } setting.landing = false ; }
         if ( !jQuery( setting.area ).length ) { return ; }
         
@@ -541,134 +539,136 @@
     drive: function ( jQuery, window, document, undefined, Store, setting, event, url, register, cache ) {
       /* validator */ var validator ;
       var speedcheck = setting.speedcheck ;
-      speedcheck && ( setting.log.speed.fire = setting.timestamp ) ;
+      speedcheck && ( setting.log.speed.fire = setting.timeStamp ) ;
       speedcheck && ( setting.log.speed.time = [] ) ;
       speedcheck && ( setting.log.speed.name = [] ) ;
-      speedcheck && setting.log.speed.name.push( 'pjax' ) ;
       speedcheck && setting.log.speed.time.push( 0 ) ;
+      speedcheck && setting.log.speed.name.push( 'pjax(' + setting.log.speed.time[ setting.log.speed.time.length - 1 ] + ')' ) ;
       
       setting.scroll.record = false ;
       setting.fix.reset && /click|submit/.test( event.type.toLowerCase() ) && window.scrollTo( jQuery( window ).scrollLeft(), 0 ) ;
       if ( Store.fire( setting.callbacks.before, null, [ event, setting.parameter ], setting.callbacks.async ) === false ) { return ; } // function: drive
       
+      jQuery[ Store.name ].off() ;
+      
       if ( cache && cache.XMLHttpRequest ) {
-        speedcheck && setting.log.speed.name.splice( 0, 1, 'cache' ) ;
+        speedcheck && setting.log.speed.name.splice( 0, 1, 'cache(' + setting.log.speed.time[ setting.log.speed.time.length - 1 ] + ')' ) ;
         jQuery.when ? jQuery.when( Store.wait( Store.fire( setting.wait, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) ) )
                       .done( function () { update( jQuery, window, document, undefined, Store, setting, event, cache ) ; } )
                     : update( jQuery, window, document, undefined, Store, setting, event, cache ) ;
-        return ;
-      }
-      
-      if ( setting.xhr && setting.xhr.promise ) {
-        speedcheck && setting.log.speed.name.splice( 0, 1, 'preload' ) ;
+        
+      } else if ( setting.xhr && setting.xhr.promise ) {
         speedcheck && setting.log.speed.time.splice( 0, 1, setting.xhr.timeStamp - setting.log.speed.fire ) ;
-        speedcheck && setting.log.speed.name.push( 'continue' ) ;
+        speedcheck && setting.log.speed.name.splice( 0, 1, 'preload(' + setting.log.speed.time[ setting.log.speed.time.length - 1 ] + ')' ) ;
         speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
-        var wait = setting.wait && isFinite( setting.xhr.timeStamp ) ? Math.max( setting.wait - ( new Date() ).getTime() + setting.xhr.timeStamp, 0 ) : 0 ;
+        speedcheck && setting.log.speed.name.push( 'continue(' + setting.log.speed.time[ setting.log.speed.time.length - 1 ] + ')' ) ;
+        var wait = setting.wait && isFinite( setting.xhr.timeStamp ) ? Math.max( setting.wait - new Date().getTime() + setting.xhr.timeStamp, 0 ) : 0 ;
         jQuery.when( setting.xhr, Store.wait( wait ) )
         .done( function () { update( jQuery, window, document, undefined, Store, setting, event, jQuery[ Store.name ].getCache( url ) ) ; } ) ;
-        return ;
-      }
-      
-      var ajax, callbacks, defer, data, XMLHttpRequest, textStatus, errorThrown, dataSize ;
-      
-      ajax = {} ;
-      switch ( event.type.toLowerCase() ) {
-        case 'click':
-          ajax.type = 'GET' ;
-          break ;
-          
-        case 'submit':
-          ajax.type = event.target.method.toUpperCase() ;
-          if ( ajax.type === 'POST' ) { ajax.data = jQuery( event.target ).serializeArray() ; }
-          break ;
-          
-        case 'popstate':
-          ajax.type = 'GET' ;
-          break ;
-      }
-      
-      defer = jQuery.when ? jQuery.Deferred() : null ;
-      callbacks = {
-        xhr: !setting.callbacks.ajax.xhr ? undefined : function () {
-          XMLHttpRequest = Store.fire( setting.callbacks.ajax.xhr, this, [ event, setting.parameter ], setting.callbacks.async ) ;
-          XMLHttpRequest = typeof XMLHttpRequest === 'object' && XMLHttpRequest || jQuery.ajaxSettings.xhr() ;
-          
-          //if ( XMLHttpRequest instanceof Object && XMLHttpRequest instanceof window.XMLHttpRequest && 'onprogress' in XMLHttpRequest ) {
-          //  XMLHttpRequest.addEventListener( 'progress', function ( event ) { dataSize = event.loaded ; }, false ) ;
-          //}
-          return XMLHttpRequest ;
-        },
-        beforeSend: function () {
-          XMLHttpRequest = arguments[ 0 ] ;
-          
-          setting.xhr && setting.xhr.readyState < 4 && setting.xhr.abort() ;
-          setting.xhr = XMLHttpRequest ;
-          
-          XMLHttpRequest.setRequestHeader( setting.nss.requestHeader, 'true' ) ;
-          XMLHttpRequest.setRequestHeader( setting.nss.requestHeader + '-Area', setting.area ) ;
-          XMLHttpRequest.setRequestHeader( setting.nss.requestHeader + '-CSS', setting.load.css ) ;
-          XMLHttpRequest.setRequestHeader( setting.nss.requestHeader + '-Script', setting.load.script ) ;
-          
-          Store.fire( setting.callbacks.ajax.beforeSend, this, [ event, setting.parameter, XMLHttpRequest, arguments[ 1 ] ], setting.callbacks.async ) ;
-        },
-        dataFilter: !setting.callbacks.ajax.dataFilter ? undefined : function () {
-          data = arguments[ 0 ] ;
-          
-          return Store.fire( setting.callbacks.ajax.dataFilter, this, [ event, setting.parameter, data, arguments[ 1 ] ], setting.callbacks.async ) || data ;
-        },
-        success: function () {
-          data = arguments[ 0 ] ;
-          textStatus = arguments[ 1 ] ;
-          XMLHttpRequest = arguments[ 2 ] ;
-          
-          /* validator */ validator = setting.validator ? setting.validator.clone( { name: 'jquery.pjax.js - $.ajax()' } ) : false ;
-          /* validator */ validator && validator.start() ;
-          /* validator */ validator && validator.test( '++', textStatus === 'success', [ url, setting.location.href, XMLHttpRequest, textStatus ], 'ajax success' ) ;
-          Store.fire( setting.callbacks.ajax.success, this, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) ;
-        },
-        error: function () {
-          XMLHttpRequest = arguments[ 0 ] ;
-          textStatus = arguments[ 1 ] ;
-          errorThrown = arguments[ 2 ] ;
-          
-          /* validator */ validator = setting.validator ? setting.validator.clone( { name: 'jquery.pjax.js - $.ajax()' } ) : false ;
-          /* validator */ validator && validator.start() ;
-          /* validator */ validator && validator.test( '++', textStatus === 'abort', [ url, setting.location.href, XMLHttpRequest, textStatus, errorThrown ], 'ajax error' ) ;
-          Store.fire( setting.callbacks.ajax.error, this, [ event, setting.parameter, XMLHttpRequest, textStatus, errorThrown ], setting.callbacks.async ) ;
-        },
-        complete: function () {
-          XMLHttpRequest = arguments[ 0 ] ;
-          textStatus = arguments[ 1 ] ;
-          
-          /* validator */ validator && validator.test( '++', 1, 0, 'ajax complete' ) ;
-          Store.fire( setting.callbacks.ajax.complete, this, [ event, setting.parameter, XMLHttpRequest, textStatus ], setting.callbacks.async ) ;
-          
-          if ( !errorThrown ) {
-            defer && defer.resolve() || update( jQuery, window, document, undefined, Store, setting, event, cache ) ;
-          } else {
-            defer && defer.reject() ;
-            if ( setting.fallback && textStatus !== 'abort' ) {
-              return typeof setting.fallback === 'function' ? Store.fire( setting.fallback, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] )
-                                                            : Store.fallback( event ) ;
-            }
-          }
-          /* validator */ validator && validator.end() ;
+        
+      } else {
+        var ajax, callbacks, defer, data, XMLHttpRequest, textStatus, errorThrown, dataSize ;
+        
+        ajax = {} ;
+        switch ( event.type.toLowerCase() ) {
+          case 'click':
+            ajax.type = 'GET' ;
+            break ;
+            
+          case 'submit':
+            ajax.type = event.target.method.toUpperCase() ;
+            if ( ajax.type === 'POST' ) { ajax.data = jQuery( event.target ).serializeArray() ; }
+            break ;
+            
+          case 'popstate':
+            ajax.type = 'GET' ;
+            break ;
         }
-      } ;
-      jQuery.extend( true, ajax, setting.ajax, callbacks ) ;
-      var query = setting.server.query ;
-      if ( query ) {
-        query = query.split( '=' ) ;
-        query = encodeURIComponent( query[ 0 ] ) + ( query.length > 0 ? '=' + encodeURIComponent( query[ 1 ] ) : '' ) ;
+        
+        defer = jQuery.when ? jQuery.Deferred() : null ;
+        callbacks = {
+          xhr: !setting.callbacks.ajax.xhr ? undefined : function () {
+            XMLHttpRequest = Store.fire( setting.callbacks.ajax.xhr, this, [ event, setting.parameter ], setting.callbacks.async ) ;
+            XMLHttpRequest = typeof XMLHttpRequest === 'object' && XMLHttpRequest || jQuery.ajaxSettings.xhr() ;
+            
+            //if ( XMLHttpRequest instanceof Object && XMLHttpRequest instanceof window.XMLHttpRequest && 'onprogress' in XMLHttpRequest ) {
+            //  XMLHttpRequest.addEventListener( 'progress', function ( event ) { dataSize = event.loaded ; }, false ) ;
+            //}
+            return XMLHttpRequest ;
+          },
+          beforeSend: function () {
+            XMLHttpRequest = arguments[ 0 ] ;
+            
+            setting.xhr && setting.xhr.readyState < 4 && setting.xhr.abort() ;
+            setting.xhr = XMLHttpRequest ;
+            
+            XMLHttpRequest.setRequestHeader( setting.nss.requestHeader, 'true' ) ;
+            XMLHttpRequest.setRequestHeader( setting.nss.requestHeader + '-Area', setting.area ) ;
+            XMLHttpRequest.setRequestHeader( setting.nss.requestHeader + '-CSS', setting.load.css ) ;
+            XMLHttpRequest.setRequestHeader( setting.nss.requestHeader + '-Script', setting.load.script ) ;
+            
+            Store.fire( setting.callbacks.ajax.beforeSend, this, [ event, setting.parameter, XMLHttpRequest, arguments[ 1 ] ], setting.callbacks.async ) ;
+          },
+          dataFilter: !setting.callbacks.ajax.dataFilter ? undefined : function () {
+            data = arguments[ 0 ] ;
+            
+            return Store.fire( setting.callbacks.ajax.dataFilter, this, [ event, setting.parameter, data, arguments[ 1 ] ], setting.callbacks.async ) || data ;
+          },
+          success: function () {
+            data = arguments[ 0 ] ;
+            textStatus = arguments[ 1 ] ;
+            XMLHttpRequest = arguments[ 2 ] ;
+            
+            /* validator */ validator = setting.validator ? setting.validator.clone( { name: 'jquery.pjax.js - $.ajax()' } ) : false ;
+            /* validator */ validator && validator.start() ;
+            /* validator */ validator && validator.test( '++', textStatus === 'success', [ url, setting.location.href, XMLHttpRequest, textStatus ], 'ajax success' ) ;
+            Store.fire( setting.callbacks.ajax.success, this, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) ;
+          },
+          error: function () {
+            XMLHttpRequest = arguments[ 0 ] ;
+            textStatus = arguments[ 1 ] ;
+            errorThrown = arguments[ 2 ] ;
+            
+            /* validator */ validator = setting.validator ? setting.validator.clone( { name: 'jquery.pjax.js - $.ajax()' } ) : false ;
+            /* validator */ validator && validator.start() ;
+            /* validator */ validator && validator.test( '++', textStatus === 'abort', [ url, setting.location.href, XMLHttpRequest, textStatus, errorThrown ], 'ajax error' ) ;
+            Store.fire( setting.callbacks.ajax.error, this, [ event, setting.parameter, XMLHttpRequest, textStatus, errorThrown ], setting.callbacks.async ) ;
+          },
+          complete: function () {
+            XMLHttpRequest = arguments[ 0 ] ;
+            textStatus = arguments[ 1 ] ;
+            
+            /* validator */ validator && validator.test( '++', 1, 0, 'ajax complete' ) ;
+            Store.fire( setting.callbacks.ajax.complete, this, [ event, setting.parameter, XMLHttpRequest, textStatus ], setting.callbacks.async ) ;
+            
+            if ( !errorThrown ) {
+              defer && defer.resolve() || update( jQuery, window, document, undefined, Store, setting, event, cache ) ;
+            } else {
+              defer && defer.reject() ;
+              if ( setting.fallback && textStatus !== 'abort' ) {
+                return typeof setting.fallback === 'function' ? Store.fire( setting.fallback, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] )
+                                                              : Store.fallback( event ) ;
+              }
+            }
+            /* validator */ validator && validator.end() ;
+          }
+        } ;
+        jQuery.extend( true, ajax, setting.ajax, callbacks ) ;
+        var query = setting.server.query ;
+        if ( query ) {
+          query = query.split( '=' ) ;
+          query = encodeURIComponent( query[ 0 ] ) + ( query.length > 0 ? '=' + encodeURIComponent( query[ 1 ] ) : '' ) ;
+        }
+        ajax.url = url.replace( /([^#]+)(#[^\s]*)?$/, '$1' + ( query ? ( url.match( /\?/ ) ? '&' : '?' ) + query : '' ) + '$2' ) ;
+        
+        speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
+        speedcheck && setting.log.speed.name.push( 'request(' + setting.log.speed.time[ setting.log.speed.time.length - 1 ] + ')' ) ;
+        jQuery.when && jQuery.when( defer.promise(), Store.wait( Store.fire( setting.wait, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) ) )
+                       .done( function () { update( jQuery, window, document, undefined, Store, setting, event, cache ) ; } ) ;
+        jQuery.ajax( ajax ) ;
       }
-      ajax.url = url.replace( /([^#]+)(#[^\s]*)?$/, '$1' + ( query ? ( url.match( /\?/ ) ? '&' : '?' ) + query : '' ) + '$2' ) ;
       
-      speedcheck && setting.log.speed.name.push( 'request' ) ;
-      speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
-      jQuery.when && jQuery.when( defer.promise(), Store.wait( Store.fire( setting.wait, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) ) )
-                     .done( function () { update( jQuery, window, document, undefined, Store, setting, event, cache ) ; } ) ;
-      jQuery.ajax( ajax ) ;
+      jQuery[ Store.name ].on() ;
       
       if ( Store.fire( setting.callbacks.after, null, [ event, setting.parameter ], setting.callbacks.async ) === false ) { return ; } // function: drive
       
@@ -676,8 +676,8 @@
       function update( jQuery, window, document, undefined, Store, setting, event, cache ) {
         UPDATE: {
           var speedcheck = setting.speedcheck ;
-          speedcheck && setting.log.speed.name.push( 'update' ) ;
           speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
+          speedcheck && setting.log.speed.name.push( 'loaded(' + setting.log.speed.time[ setting.log.speed.time.length - 1 ] + ')' ) ;
           
           var callbacks_update = setting.callbacks.update ;
           if ( Store.fire( callbacks_update.before, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest, cache ], setting.callbacks.async ) === false ) { break UPDATE ; }
@@ -797,8 +797,8 @@
               jQuery( document ).trigger( setting.gns + '.DOMContentLoaded' ) ;
               if ( Store.fire( callbacks_update.content.after, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE_CONTENT ; }
             } ; // label: UPDATE_CONTENT
-            speedcheck && setting.log.speed.name.push( 'content' ) ;
             speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
+            speedcheck && setting.log.speed.name.push( 'content(' + setting.log.speed.time[ setting.log.speed.time.length - 1 ] + ')' ) ;
             
             /* scroll */
             function scroll( call ) {
@@ -854,8 +854,8 @@
               } )() ;
             } // function: rendering
             function rendered( callback ) {
-              speedcheck && setting.log.speed.name.push( 'rendered' ) ;
               speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
+              speedcheck && setting.log.speed.name.push( 'renderd(' + setting.log.speed.time[ setting.log.speed.time.length - 1 ] + ')' ) ;
               
               checker.remove() ;
               setting.scroll.record = true ;
@@ -931,8 +931,8 @@
                 jQuery( 'head' ).append( adds ) ;
                 
                 if ( Store.fire( callbacks_update.css.after, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE_CSS ; }
-                speedcheck && setting.log.speed.name.push( 'css' ) ;
                 speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
+                speedcheck && setting.log.speed.name.push( 'css(' + setting.log.speed.time[ setting.log.speed.time.length - 1 ] + ')' ) ;
               } ; // label: UPDATE_CSS
             } // function: css
             
@@ -984,8 +984,8 @@
                 }
                 
                 if ( Store.fire( callbacks_update.script.after, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE_SCRIPT ; }
-                selector === '[src][defer]' && speedcheck && setting.log.speed.name.push( 'script' ) ;
-                selector === '[src][defer]' && speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
+                speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
+                speedcheck && setting.log.speed.name.push( ( selector === '[src][defer]'  ? 'defer' : 'script' ) + '(' + setting.log.speed.time[ setting.log.speed.time.length - 1 ] + ')' ) ;
               } ; // label: UPDATE_SCRIPT
             } // function: script
             
@@ -1035,8 +1035,6 @@
           } ;
           
           if ( Store.fire( callbacks_update.after, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE ; }
-          speedcheck && setting.log.speed.name.push( 'complete' ) ;
-          speedcheck && setting.log.speed.time.push( setting.speed.now() - setting.log.speed.fire ) ;
         } ; // label: UPDATE
       } // function: update
     },
@@ -1123,7 +1121,7 @@
       if ( relocation ) {
         if ( -1 === relocation.indexOf( '*' ) ) { return undefined ; }
         dirs = [] ;
-        for ( var i = keys.length ; i-- ; ) { '*' === keys[ i ] && dirs.unshift( arr[ i ] ) ; }
+        for ( var i = 0, len = keys.length ; i < len ; i++ ) { '*' === keys[ i ] && dirs.push( arr[ i ] ) ; }
       }
       
       for ( var i = keys.length + 1 ; i-- ; ) {
@@ -1184,7 +1182,7 @@
       var name, version, days, IDBFactory, IDBDatabase, IDBObjectStore ;
       name = setting.gns; 
       version = 1 ;
-      days = Math.floor( setting.timestamp / ( 1000*60*60*24 ) ) ;
+      days = Math.floor( new Date().getTime() / ( 1000*60*60*24 ) ) ;
       IDBFactory = Store.IDBFactory ;
       IDBDatabase = Store.IDBDatabase ;
       count = count || 0 ;
@@ -1293,7 +1291,7 @@
       url = setting.hashquery ? url : url.replace( /#.*/, '' ) ;
       if ( title ) {
         IDBObjectStore.get( url ).onsuccess = function () {
-          IDBObjectStore.put( jQuery.extend( true, {}, this.result || {}, { id: url, title: title, date: setting.timestamp } ) ) ;
+          IDBObjectStore.put( jQuery.extend( true, {}, this.result || {}, { id: url, title: title, date: new Date().getTime() } ) ) ;
           Store.dbClean() ;
         } ;
       } else {
@@ -1326,7 +1324,7 @@
       var setting = Store.settings[ 1 ], IDBObjectStore = Store.dbStore() ;
       IDBObjectStore.count().onsuccess = function () {
         if ( 1000 < this.result ) {
-          IDBObjectStore.index( 'date' ).openCursor( Store.IDBKeyRange.upperBound( setting.timestamp - ( 1000*60*60*24*3 ) ) ).onsuccess = function () {
+          IDBObjectStore.index( 'date' ).openCursor( Store.IDBKeyRange.upperBound( new Date().getTime() - ( 3*24*60*60*1000 ) ) ).onsuccess = function () {
             var IDBCursor = this.result ;
             if ( IDBCursor ) {
               IDBCursor[ 'delete' ]( IDBCursor.value.id ) ;
@@ -1337,47 +1335,7 @@
           }
         }
       } ;
-    },
-    share: function () {
-      var setting = Store.settings[ 1 ] ;
-      
-      if ( !jQuery.falsandtru ) { jQuery.fn.falsandtru = jQuery.falsandtru = Store.falsandtru ; }
-      
-      jQuery.falsandtru( 'share', 'history', setting.history ) ;
-      setting.history = jQuery.falsandtru( 'share', 'history' ) ;
-      
-    },
-    falsandtru: function ( namespace, key, value ) {
-      var obj, response ;
-      
-      switch ( true ) {
-        case namespace === undefined:
-          break ;
-          
-        case key === undefined:
-          response = jQuery.falsandtru[ namespace ] ;
-          break ;
-          
-        case value === undefined:
-          response = namespace in jQuery.falsandtru ? jQuery.falsandtru[ namespace ][ key ] : undefined ;
-          break ;
-          
-        case value !== undefined:
-          if ( !( jQuery.falsandtru[ namespace ] instanceof Object ) ) { jQuery.falsandtru[ namespace ] = {} ; }
-          if ( jQuery.falsandtru[ namespace ][ key ] instanceof Object && value instanceof Object ) {
-            jQuery.extend( true, jQuery.falsandtru[ namespace ][ key ], value )
-          } else {
-            jQuery.falsandtru[ namespace ][ key ] = value ;
-          }
-          response = jQuery.falsandtru[ namespace ][ key ] ;
-          break ;
-          
-        default:
-          break ;
-      }
-      
-      return response ;
-    } // function: falsandtru
+    }
   } ;
   
   registrate.apply( this, [].slice.call( arguments ).concat( [ Store ] ) ) ;

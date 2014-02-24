@@ -24,6 +24,7 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 * jQuery1.4.2+
 * CSSの読み込み
 * JavaScriptの読み込み
+* ajax処理の継承
 * Android・iOSでの使用
 * フォームのsubmitによるページ遷移
 * Google Analytics によるアクセス解析
@@ -35,10 +36,8 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 * サーバーからの差分データによるページ更新
 * キャッシュによるページ更新
 * ローディングエフェクトの表示
-* <a href="https://github.com/falsandtru/jquery.preload.js" target="_blank">preload</a>との連携
-* <a href="https://github.com/falsandtru/jquery.spage.js" target="_blank">spage</a>とのキャッシュの共有
 
-##preload+pjax
+##preload + pjax
 <a href="https://github.com/falsandtru/jquery.preload.js">preload</a>と<a href="https://github.com/falsandtru/jquery.pjax.js">pjax</a>を連携させることで初回アクセスから極めて高速にページ移動を行うことができるため、この手法を強く推奨します。
 
 通常はリンクのクリックからHTMLファイルのダウンロード完了まで0.5～1秒、ページの表示（DOMロード）にさらに1秒の合計2秒前後かかるページ移動をpreload+pjaxではクリックからページの表示まで0.5秒（500ミリ秒）前後で完了することができます。PCでは多分これが一番速いと思います。
@@ -46,7 +45,7 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 |パターン|HTMLダウンロード|DOMロード|合計|
 |:---|:--:|:--:|:--:|
 |Normal|500-1000ms|800-1600ms|1300-2600ms|
-|preload+pjax|0-700ms|30-100ms|30-800ms|
+|preload+pjax|0-700ms|50-100ms|50-800ms|
 
 ※jQuery1.5以降のバージョン必須
 ※Windows7+GoogleChromeで手近なサイトを計測
@@ -1284,6 +1283,13 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 ##更新情報
 
 ###change log
+
+####1.32.3
+
+* `filter`パラメータの初期値を変更
+* プリロードまたはキャッシュ使用時に`callbacks.after`コールバック関数が実行されないバグを修正
+* `scope`処理のバグを修正
+* spageとのキャッシュ共有機能を削除
 
 ####1.32.2
 
