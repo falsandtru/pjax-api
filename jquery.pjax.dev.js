@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.32.3
- * @updated 2014/02/24
+ * @version 1.32.4
+ * @updated 2014/02/25
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -241,7 +241,7 @@
         
         $context.setCache = function ( url, data, textStatus, XMLHttpRequest ) {
           var setting = Store.settings[ 1 ] ;
-          if ( !setting || !setting.history ) { return false ; }
+          if ( !setting || !setting.history ) { return this ; }
           var cache, history, title, size ;
           history = setting.history ;
           url = Store.canonicalizeURL( url || window.location.href ) ;
@@ -264,7 +264,7 @@
               title = jQuery( '<span/>' ).html( Store.find( ( data || '' ) + ( ( XMLHttpRequest || {} ).responseText || '' ) + '<title></title>', /<title[^>]*?>([^<]*?)<\/title>/i ).shift() ).text() ;
               size = parseInt( ( ( data || '' ).length + ( ( XMLHttpRequest || {} ).responseText || '' ).length ) * 1.8 || 1024*1024, 10 ) ;
               history.size = history.size || 0 ;
-              history.size += size ;
+              history.size += history.data[ url ] ? 0 : size ;
               history.data[ url ] = jQuery.extend(
                 true,
                 ( history.data[ url ] || {} ),
@@ -281,7 +281,7 @@
               setting.database && setting.fix.history && Store.dbTitle( url, title ) ;
               break ;
           }
-          return history.data[ url ] ;
+          return this ;
         } ;
         
         $context.getCache = function ( url ) {
@@ -297,7 +297,7 @@
         
         $context.removeCache = function ( url ) {
           var setting = Store.settings[ 1 ] ;
-          if ( !setting || !setting.history ) { return false ; }
+          if ( !setting || !setting.history ) { return this ; }
           var history ;
           history = setting.history ;
           url = Store.canonicalizeURL( url || window.location.href ) ;
@@ -310,24 +310,24 @@
               delete history.data[ key ] ;
             }
           }
-          return true ;
+          return this ;
         } ;
         
         $context.clearCache = function () {
           var setting = Store.settings[ 1 ] ;
-          if ( !setting || !setting.history ) { return false ; }
+          if ( !setting || !setting.history ) { return this ; }
           var history = setting.history ;
           for ( var i = history.order.length, url ; url = history.order[ --i ] ; ) {
             history.order.splice( i, 1 ) ;
             history.size -= history.data[ url ].size ;
             delete history.data[ url ] ;
           }
-          return true ;
+          return this ;
         } ;
         
         $context.cleanCache = function () {
           var setting = Store.settings[ 1 ] ;
-          if ( !setting || !setting.history ) { return false ; }
+          if ( !setting || !setting.history ) { return this ; }
           var history = setting.history ;
           for ( var i = history.order.length, url ; url = history.order[ --i ] ; ) {
             if ( i >= setting.cache.length || url in history.data && new Date().getTime() > history.data[ url ].timeStamp + setting.cache.expire ) {
@@ -336,7 +336,7 @@
               delete history.data[ url ] ;
             }
           }
-          return true ;
+          return this ;
         } ;
         
         $context.follow = function ( event, $XHR, timeStamp ) {
