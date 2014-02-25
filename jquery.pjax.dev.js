@@ -241,7 +241,7 @@
         
         $context.setCache = function ( url, data, textStatus, XMLHttpRequest ) {
           var setting = Store.settings[ 1 ] ;
-          if ( !setting || !setting.history ) { return false ; }
+          if ( !setting || !setting.history ) { return this ; }
           var cache, history, title, size ;
           history = setting.history ;
           url = Store.canonicalizeURL( url || window.location.href ) ;
@@ -281,7 +281,7 @@
               setting.database && setting.fix.history && Store.dbTitle( url, title ) ;
               break ;
           }
-          return history.data[ url ] ;
+          return this ;
         } ;
         
         $context.getCache = function ( url ) {
@@ -297,7 +297,7 @@
         
         $context.removeCache = function ( url ) {
           var setting = Store.settings[ 1 ] ;
-          if ( !setting || !setting.history ) { return false ; }
+          if ( !setting || !setting.history ) { return this ; }
           var history ;
           history = setting.history ;
           url = Store.canonicalizeURL( url || window.location.href ) ;
@@ -310,24 +310,24 @@
               delete history.data[ key ] ;
             }
           }
-          return true ;
+          return this ;
         } ;
         
         $context.clearCache = function () {
           var setting = Store.settings[ 1 ] ;
-          if ( !setting || !setting.history ) { return false ; }
+          if ( !setting || !setting.history ) { return this ; }
           var history = setting.history ;
           for ( var i = history.order.length, url ; url = history.order[ --i ] ; ) {
             history.order.splice( i, 1 ) ;
             history.size -= history.data[ url ].size ;
             delete history.data[ url ] ;
           }
-          return true ;
+          return this ;
         } ;
         
         $context.cleanCache = function () {
           var setting = Store.settings[ 1 ] ;
-          if ( !setting || !setting.history ) { return false ; }
+          if ( !setting || !setting.history ) { return this ; }
           var history = setting.history ;
           for ( var i = history.order.length, url ; url = history.order[ --i ] ; ) {
             if ( i >= setting.cache.length || url in history.data && new Date().getTime() > history.data[ url ].timeStamp + setting.cache.expire ) {
@@ -336,7 +336,7 @@
               delete history.data[ url ] ;
             }
           }
-          return true ;
+          return this ;
         } ;
         
         $context.follow = function ( event, $XHR, timeStamp ) {
