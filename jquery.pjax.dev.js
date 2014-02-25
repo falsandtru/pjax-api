@@ -264,7 +264,7 @@
               title = jQuery( '<span/>' ).html( Store.find( ( data || '' ) + ( ( XMLHttpRequest || {} ).responseText || '' ) + '<title></title>', /<title[^>]*?>([^<]*?)<\/title>/i ).shift() ).text() ;
               size = parseInt( ( ( data || '' ).length + ( ( XMLHttpRequest || {} ).responseText || '' ).length ) * 1.8 || 1024*1024, 10 ) ;
               history.size = history.size || 0 ;
-              history.size += size ;
+              history.size += history.data[ url ] ? 0 : size ;
               history.data[ url ] = jQuery.extend(
                 true,
                 ( history.data[ url ] || {} ),
