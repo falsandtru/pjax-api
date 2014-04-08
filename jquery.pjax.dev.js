@@ -689,7 +689,7 @@
           try {
             setting.xhr && setting.xhr.readyState < 4 && setting.xhr.abort() ;
             setting.xhr = null ;
-            if ( !cache && -1 === ( XMLHttpRequest.getResponseHeader( 'Content-Type' ) || '' ).toLowerCase().search( setting.contentType ) ) { throw new Error( "throw: content-type mismatch" ) ; }
+            if ( !cache && !~( XMLHttpRequest.getResponseHeader( 'Content-Type' ) || '' ).toLowerCase().search( setting.contentType ) ) { throw new Error( "throw: content-type mismatch" ) ; }
             
             /* cache */
             UPDATE_CACHE: {
@@ -758,7 +758,7 @@
               register && url !== setting.location.href &&
               window.history.pushState(
                 Store.fire( setting.state, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ),
-                window.opera || window.navigator.userAgent.toLowerCase().indexOf( 'opera' ) !== -1 ? title : document.title,
+                window.opera || ~window.navigator.userAgent.toLowerCase().indexOf( 'opera' ) ? title : document.title,
                 url ) ;
               
               setting.location.href = url ;
@@ -976,7 +976,7 @@
                     if ( content ) {
                       jQuery.ajax( jQuery.extend( true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: !!element.async, global: false } ) ) ;
                     } else {
-                      typeof element === 'object' && ( !element.type || -1 !== element.type.toLowerCase().indexOf( 'text/javascript' ) ) &&
+                      typeof element === 'object' && ( !element.type || ~element.type.toLowerCase().indexOf( 'text/javascript' ) ) &&
                       window.eval.call( window, ( element.text || element.textContent || element.innerHTML || '' ).replace( /^\s*<!(?:\[CDATA\[|\-\-)/, '/*$0*/' ) ) ;
                     }
                   } catch ( err ) {
@@ -1120,7 +1120,7 @@
       arr = src.replace( /^\//, '' ).replace( /([?#])/g, '/$1' ).split( '/' ) ;
       keys = ( relocation || src ).replace( /^\//, '' ).replace( /([?#])/g, '/$1' ).split( '/' ) ;
       if ( relocation ) {
-        if ( -1 === relocation.indexOf( '*' ) ) { return undefined ; }
+        if ( !~relocation.indexOf( '*' ) ) { return undefined ; }
         dirs = [] ;
         for ( var i = 0, len = keys.length ; i < len ; i++ ) { '*' === keys[ i ] && dirs.push( arr[ i ] ) ; }
       }
@@ -1153,7 +1153,7 @@
             reg = '*' === pattern.charAt( 0 ) ;
             pattern = reg ? pattern.slice( 1 ) : pattern ;
             
-            if ( relocation && -1 !== pattern.indexOf( '/*/' ) ) {
+            if ( relocation && ~pattern.indexOf( '/*/' ) ) {
               for ( var k = 0, len = dirs.length ; k < len ; k++ ) { pattern = pattern.replace( '/*/', '/' + dirs[ k ] + '/' ) ; }
             }
             
