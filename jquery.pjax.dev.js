@@ -274,8 +274,8 @@
                   expires = setting.cache.expires;
                 }
                 expires = Math.max( expires, 0 ) || 0;
-                expires = Math.min( typeof setting.cache.expires === 'object' && setting.cache.expires.max || 0, expires );
-                expires = Math.max( typeof setting.cache.expires === 'object' && setting.cache.expires.min || 0, expires );
+                expires = typeof setting.cache.expires === 'object' && typeof setting.cache.expires.max === 'number' ? Math.min( setting.cache.expires.max, expires ) : expires;
+                expires = typeof setting.cache.expires === 'object' && typeof setting.cache.expires.min === 'number' ? Math.max( setting.cache.expires.min, expires ) : expires;
                 return expires;
               })() || 0;
               history.size = history.size || 0 ;
