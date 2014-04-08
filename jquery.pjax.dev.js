@@ -79,7 +79,7 @@
         contentType: 'text/html',
         cache: {
           click: false, submit: false, popstate: false, get: true, post: true,
-          length: 9 /* pages */, size: 1*1024*1024 /* 1MB */, expire: 30*60*1000 /* 30min */
+          length: 9 /* pages */, size: 1*1024*1024 /* 1MB */, expires: { max: null, min: 5*60*1000 /* 5min */ }
         },
         callback: function () {},
         callbacks: {
@@ -242,7 +242,7 @@
         $context.setCache = function ( url, data, textStatus, XMLHttpRequest ) {
           var setting = Store.settings[ 1 ] ;
           if ( !setting || !setting.history ) { return this ; }
-          var cache, history, title, size ;
+          var cache, history, title, size, expires ;
           history = setting.history ;
           url = Store.canonicalizeURL( url || window.location.href ) ;
           url = setting.hashquery ? url : url.replace( /#.*/, '' ) ;
@@ -263,6 +263,21 @@
               
               title = jQuery( '<span/>' ).html( Store.find( ( data || '' ) + ( ( XMLHttpRequest || {} ).responseText || '' ) + '<title></title>', /<title[^>]*?>([^<]*?)<\/title>/i ).shift() ).text() ;
               size = parseInt( ( ( data || '' ).length + ( ( XMLHttpRequest || {} ).responseText || '' ).length ) * 1.8 || 1024*1024, 10 ) ;
+              expires = setting.cache.expires && (function(){
+                var expires;
+                if (/no-store|no-cache/.test(XMLHttpRequest.getResponseHeader( 'Cache-Control' ))) {
+                } else if (~String(expires = XMLHttpRequest.getResponseHeader( 'Cache-Control' )).indexOf('max-age=')) {
+                  expires = expires.match(/max-age=(\d+)/)[1] * 1000;
+                } else if (expires = XMLHttpRequest.getResponseHeader( 'Expires' )) {
+                  expires = new Date(expires).getTime() - new Date().getTime();
+                } else {
+                  expires = setting.cache.expires;
+                }
+                expires = Math.max( expires, 0 ) || 0;
+                expires = Math.min( typeof setting.cache.expires === 'object' && setting.cache.expires.max || 0, expires );
+                expires = Math.max( typeof setting.cache.expires === 'object' && setting.cache.expires.min || 0, expires );
+                return expires;
+              })() || 0;
               history.size = history.size || 0 ;
               history.size += history.data[ url ] ? 0 : size ;
               history.data[ url ] = jQuery.extend(
@@ -275,6 +290,7 @@
                   //css: undefined,
                   //script: undefined,
                   size: size,
+                  expires: expires,
                   timeStamp: new Date().getTime()
                 }
               ) ;
@@ -291,7 +307,7 @@
           history = setting.history ;
           url = Store.canonicalizeURL( url || window.location.href ) ;
           url = setting.hashquery ? url : url.replace( /#.*/, '' ) ;
-          history.data[ url ] && new Date().getTime() > history.data[ url ].timeStamp + setting.cache.expire && jQuery[ Store.name ].removeCache( url ) ;
+          history.data[ url ] && new Date().getTime() > history.data[ url ].timeStamp + history.data[ url ].expires && jQuery[ Store.name ].removeCache( url ) ;
           return history.data[ url ] ;
         } ;
         
@@ -330,7 +346,7 @@
           if ( !setting || !setting.history ) { return this ; }
           var history = setting.history ;
           for ( var i = history.order.length, url ; url = history.order[ --i ] ; ) {
-            if ( i >= setting.cache.length || url in history.data && new Date().getTime() > history.data[ url ].timeStamp + setting.cache.expire ) {
+            if ( i >= setting.cache.length || url in history.data && new Date().getTime() > history.data[ url ].timeStamp + history.data[ url ].expires ) {
               history.order.splice( i, 1 ) ;
               history.size -= history.data[ url ].size ;
               delete history.data[ url ] ;
