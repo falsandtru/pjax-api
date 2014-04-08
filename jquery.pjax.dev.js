@@ -431,6 +431,7 @@
         
         if ( setting.location.protocol !== setting.destination.protocol || setting.location.host !== setting.destination.host ) { return ; }
         if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
+        if ( !setting.hashquery && setting.destination.hash && setting.location.href.replace( /#.*/, '' ) === setting.destination.href.replace( /#.*/, '' ) ) { return ; }
         
         var url, cache ;
         
