@@ -242,7 +242,7 @@
         $context.setCache = function ( url, data, textStatus, XMLHttpRequest ) {
           var setting = Store.settings[ 1 ] ;
           if ( !setting || !setting.history ) { return this ; }
-          var cache, history, title, size, expires ;
+          var cache, history, title, size, timeStamp, expires ;
           history = setting.history ;
           url = Store.canonicalizeURL( url || window.location.href ) ;
           url = setting.hashquery ? url : url.replace( /#.*/, '' ) ;
@@ -263,7 +263,8 @@
               
               title = jQuery( '<span/>' ).html( Store.find( ( data || '' ) + ( ( XMLHttpRequest || {} ).responseText || '' ) + '<title></title>', /<title[^>]*?>([^<]*?)<\/title>/i ).shift() ).text() ;
               size = parseInt( ( ( data || '' ).length + ( ( XMLHttpRequest || {} ).responseText || '' ).length ) * 1.8 || 1024*1024, 10 ) ;
-              expires = setting.cache.expires && (function(){
+              timeStamp = new Date().getTime();
+              expires = setting.cache.expires && (function(timeStamp){
                 var expires;
                 if (/no-store|no-cache/.test(XMLHttpRequest.getResponseHeader( 'Cache-Control' ))) {
                 } else if (~String(expires = XMLHttpRequest.getResponseHeader( 'Cache-Control' )).indexOf('max-age=')) {
@@ -276,8 +277,8 @@
                 expires = Math.max( expires, 0 ) || 0;
                 expires = typeof setting.cache.expires === 'object' && typeof setting.cache.expires.max === 'number' ? Math.min( setting.cache.expires.max, expires ) : expires;
                 expires = typeof setting.cache.expires === 'object' && typeof setting.cache.expires.min === 'number' ? Math.max( setting.cache.expires.min, expires ) : expires;
-                return expires;
-              })() || 0;
+                return timeStamp + expires;
+              })(timeStamp) || 0;
               history.size = history.size || 0 ;
               history.size += history.data[ url ] ? 0 : size ;
               history.data[ url ] = jQuery.extend(
@@ -291,7 +292,7 @@
                   //script: undefined,
                   size: size,
                   expires: expires,
-                  timeStamp: new Date().getTime()
+                  timeStamp: timeStamp
                 }
               ) ;
               setting.database && setting.fix.history && Store.dbTitle( url, title ) ;
@@ -307,7 +308,7 @@
           history = setting.history ;
           url = Store.canonicalizeURL( url || window.location.href ) ;
           url = setting.hashquery ? url : url.replace( /#.*/, '' ) ;
-          history.data[ url ] && new Date().getTime() > history.data[ url ].timeStamp + history.data[ url ].expires && jQuery[ Store.name ].removeCache( url ) ;
+          history.data[ url ] && new Date().getTime() > history.data[ url ].expires && jQuery[ Store.name ].removeCache( url ) ;
           return history.data[ url ] ;
         } ;
         
@@ -346,7 +347,7 @@
           if ( !setting || !setting.history ) { return this ; }
           var history = setting.history ;
           for ( var i = history.order.length, url ; url = history.order[ --i ] ; ) {
-            if ( i >= setting.cache.length || url in history.data && new Date().getTime() > history.data[ url ].timeStamp + history.data[ url ].expires ) {
+            if ( i >= setting.cache.length || url in history.data && new Date().getTime() > history.data[ url ].expires ) {
               history.order.splice( i, 1 ) ;
               history.size -= history.data[ url ].size ;
               delete history.data[ url ] ;
