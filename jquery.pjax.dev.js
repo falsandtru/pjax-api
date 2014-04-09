@@ -531,16 +531,12 @@
         if ( test( Store.parseHTML ) ) { return ; }
         
         Store.parseHTML = function( html ) {
-          var doc ;
-          if ( document.implementation && document.implementation.createHTMLDocument ) {
-            doc = document.implementation.createHTMLDocument( '' ) ;
-            if ( typeof doc.activeElement === 'object' ) {
-              doc.open() ;
-              doc.write( html ) ;
-              doc.close() ;
-            }
-          }
-          return doc ;
+          var doc = document.implementation.createHTMLDocument('');
+          var range = doc.createRange();
+          range.selectNodeContents(doc.documentElement);
+          range.deleteContents();
+          doc.documentElement.appendChild(range.createContextualFragment(html));
+          return doc;
         } ;
         if ( test( Store.parseHTML ) ) { return ; }
         
