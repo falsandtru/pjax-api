@@ -78,7 +78,7 @@
         ajax: { dataType: 'text' },
         contentType: 'text/html',
         cache: {
-          click: false, submit: false, popstate: false, get: true, post: true, mix: 0,
+          click: false, submit: false, popstate: false, get: true, post: true, mix: false,
           length: 9 /* pages */, size: 1*1024*1024 /* 1MB */, expires: { max: null, min: 5*60*1000 /* 5min */ }
         },
         callback: function () {},
