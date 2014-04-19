@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.32.5
+ * @version 1.32.6
  * @updated 2014/04/19
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -699,7 +699,7 @@
           if ( Store.fire( callbacks_update.before, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest, cache ], setting.callbacks.async ) === false ) { break UPDATE ; }
           
           if ( setting.cache.mix && event.type.toLowerCase() !== 'popstate' && new Date().getTime() - event.timeStamp < setting.cache.mix ) {
-            return window.location.href = event.currentTarget.href ;
+            return typeof setting.fallback === 'function' ? Store.fire( setting.fallback, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) : Store.fallback( event ) ;
           }
           
           /* variable initialization */
