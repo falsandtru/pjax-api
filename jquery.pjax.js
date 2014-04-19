@@ -75,8 +75,8 @@
         ajax: { dataType: 'text' },
         contentType: 'text/html',
         cache: {
-          click: false, submit: false, popstate: false, get: true, post: true,
-          length: 9 /* pages */, size: 1*1024*1024 /* 1MB */, expire: 30*60*1000 /* 30min */
+          click: false, submit: false, popstate: false, get: true, post: true, mix: 0,
+          length: 9 /* pages */, size: 1*1024*1024 /* 1MB */, expires: { max: null, min: 5*60*1000 /* 5min */ }
         },
         callback: function () {},
         callbacks: {
@@ -239,7 +239,7 @@
         $context.setCache = function ( url, data, textStatus, XMLHttpRequest ) {
           var setting = Store.settings[ 1 ] ;
           if ( !setting || !setting.history ) { return this ; }
-          var cache, history, title, size ;
+          var cache, history, title, size, timeStamp, expires ;
           history = setting.history ;
           url = Store.canonicalizeURL( url || window.location.href ) ;
           url = setting.hashquery ? url : url.replace( /#.*/, '' ) ;
@@ -260,6 +260,22 @@
               
               title = jQuery( '<span/>' ).html( Store.find( ( data || '' ) + ( ( XMLHttpRequest || {} ).responseText || '' ) + '<title></title>', /<title[^>]*?>([^<]*?)<\/title>/i ).shift() ).text() ;
               size = parseInt( ( ( data || '' ).length + ( ( XMLHttpRequest || {} ).responseText || '' ).length ) * 1.8 || 1024*1024, 10 ) ;
+              timeStamp = new Date().getTime();
+              expires = setting.cache.expires && (function(timeStamp){
+                var expires;
+                if (/no-store|no-cache/.test(XMLHttpRequest.getResponseHeader( 'Cache-Control' ))) {
+                } else if (~String(expires = XMLHttpRequest.getResponseHeader( 'Cache-Control' )).indexOf('max-age=')) {
+                  expires = expires.match(/max-age=(\d+)/)[1] * 1000;
+                } else if (expires = XMLHttpRequest.getResponseHeader( 'Expires' )) {
+                  expires = new Date(expires).getTime() - new Date().getTime();
+                } else {
+                  expires = setting.cache.expires;
+                }
+                expires = Math.max( expires, 0 ) || 0;
+                expires = typeof setting.cache.expires === 'object' && typeof setting.cache.expires.max === 'number' ? Math.min( setting.cache.expires.max, expires ) : expires;
+                expires = typeof setting.cache.expires === 'object' && typeof setting.cache.expires.min === 'number' ? Math.max( setting.cache.expires.min, expires ) : expires;
+                return timeStamp + expires;
+              })(timeStamp) || 0;
               history.size = history.size || 0 ;
               history.size += history.data[ url ] ? 0 : size ;
               history.data[ url ] = jQuery.extend(
@@ -272,7 +288,8 @@
                   //css: undefined,
                   //script: undefined,
                   size: size,
-                  timeStamp: new Date().getTime()
+                  expires: expires,
+                  timeStamp: timeStamp
                 }
               ) ;
               setting.database && setting.fix.history && Store.dbTitle( url, title ) ;
@@ -288,7 +305,7 @@
           history = setting.history ;
           url = Store.canonicalizeURL( url || window.location.href ) ;
           url = setting.hashquery ? url : url.replace( /#.*/, '' ) ;
-          history.data[ url ] && new Date().getTime() > history.data[ url ].timeStamp + setting.cache.expire && jQuery[ Store.name ].removeCache( url ) ;
+          history.data[ url ] && new Date().getTime() > history.data[ url ].expires && jQuery[ Store.name ].removeCache( url ) ;
           return history.data[ url ] ;
         } ;
         
@@ -327,7 +344,7 @@
           if ( !setting || !setting.history ) { return this ; }
           var history = setting.history ;
           for ( var i = history.order.length, url ; url = history.order[ --i ] ; ) {
-            if ( i >= setting.cache.length || url in history.data && new Date().getTime() > history.data[ url ].timeStamp + setting.cache.expire ) {
+            if ( i >= setting.cache.length || url in history.data && new Date().getTime() > history.data[ url ].expires ) {
               history.order.splice( i, 1 ) ;
               history.size -= history.data[ url ].size ;
               delete history.data[ url ] ;
@@ -428,6 +445,7 @@
         
         if ( setting.location.protocol !== setting.destination.protocol || setting.location.host !== setting.destination.host ) { return ; }
         if ( event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ) { return ; }
+        if ( !setting.hashquery && setting.destination.hash && setting.location.href.replace( /#.*/, '' ) === setting.destination.href.replace( /#.*/, '' ) ) { return ; }
         
         var url, cache ;
         
@@ -435,6 +453,7 @@
         setting.area = Store.fire( setting.areaback, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) ;
         setting.timeStamp = event.timeStamp ;
         if ( setting.landing ) { setting.landing = false ; }
+        if ( setting.cache.mix && jQuery[ Store.name ].getCache( url ) ) { return ; }
         if ( !jQuery( setting.area ).length || setting.scope && !Store.scope( setting ) ) { return ; }
         setting.database && Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
         
@@ -463,6 +482,7 @@
         setting.area = Store.fire( setting.areaback, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) ;
         setting.timeStamp = event.timeStamp ;
         if ( setting.landing ) { setting.landing = false ; }
+        if ( setting.cache.mix && jQuery[ Store.name ].getCache( url ) ) { return ; }
         if ( !jQuery( setting.area ).length || setting.scope && !Store.scope( setting ) ) { return ; }
         setting.database && Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
         
@@ -510,16 +530,12 @@
         if ( test( Store.parseHTML ) ) { return ; }
         
         Store.parseHTML = function( html ) {
-          var doc ;
-          if ( document.implementation && document.implementation.createHTMLDocument ) {
-            doc = document.implementation.createHTMLDocument( '' ) ;
-            if ( typeof doc.activeElement === 'object' ) {
-              doc.open() ;
-              doc.write( html ) ;
-              doc.close() ;
-            }
-          }
-          return doc ;
+          var doc = document.implementation.createHTMLDocument('');
+          var range = doc.createRange();
+          range.selectNodeContents(doc.documentElement);
+          range.deleteContents();
+          doc.documentElement.appendChild(range.createContextualFragment(html));
+          return doc;
         } ;
         if ( test( Store.parseHTML ) ) { return ; }
         
@@ -652,13 +668,17 @@
           var callbacks_update = setting.callbacks.update ;
           if ( Store.fire( callbacks_update.before, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest, cache ], setting.callbacks.async ) === false ) { break UPDATE ; }
           
+          if ( setting.cache.mix && event.type.toLowerCase() !== 'popstate' && new Date().getTime() - event.timeStamp < setting.cache.mix ) {
+            return window.location.href = event.currentTarget.href ;
+          }
+          
           /* variable initialization */
           var title, css, script ;
           
           try {
             setting.xhr && setting.xhr.readyState < 4 && setting.xhr.abort() ;
             setting.xhr = null ;
-            if ( !cache && -1 === ( XMLHttpRequest.getResponseHeader( 'Content-Type' ) || '' ).toLowerCase().search( setting.contentType ) ) { throw new Error( "throw: content-type mismatch" ) ; }
+            if ( !cache && !~( XMLHttpRequest.getResponseHeader( 'Content-Type' ) || '' ).toLowerCase().search( setting.contentType ) ) { throw new Error( "throw: content-type mismatch" ) ; }
             
             /* cache */
             UPDATE_CACHE: {
@@ -686,8 +706,12 @@
                 return Store.find( cdata, /(<title[^>]*?>[^<]*?<\/title>)/i ).shift() || title ;
               }) ;
               pdoc = jQuery( Store.parseHTML && pdata && Store.parseHTML( pdata ) || pdata ) ;
-              for ( var i = 0, area, element ; area = areas[ i++ ] ; ) {
-                pdoc.find( area ).add( parsable ? '' : pdoc.filter( area ) ).html( cdoc.find( area ).add( parsable ? '' : cdoc.filter( area ) ).contents() ) ;
+              for ( var i = 0, area, container, elements ; area = areas[ i++ ] ; ) {
+                container = pdoc.find( area ).add( pdoc.filter( area ) ).empty()[0] ;
+                elements = cdoc.find( area ).add( cdoc.filter( area ) ).contents() ;
+                for ( var j = 0 ; element = elements[ j++ ] ; ) {
+                  container.appendChild( element ) ;
+                }
               }
             } else {
               pdoc = jQuery( Store.parseHTML && pdata && Store.parseHTML( pdata ) || pdata ) ;
@@ -727,7 +751,7 @@
               register && url !== setting.location.href &&
               window.history.pushState(
                 Store.fire( setting.state, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ),
-                window.opera || window.navigator.userAgent.toLowerCase().indexOf( 'opera' ) !== -1 ? title : document.title,
+                window.opera || ~window.navigator.userAgent.toLowerCase().indexOf( 'opera' ) ? title : document.title,
                 url ) ;
               
               setting.location.href = url ;
@@ -866,7 +890,7 @@
                     break ;
                 }
                 css = jQuery( css ).not( setting.load.reject ) ;
-                removes = removes.not( setting.load.reload ) ;
+                removes = removes.not( setting.load.reject ).not( setting.load.reload ) ;
                 
                 if ( cache && cache.css && css && css.length !== cache.css.length ) { save = true ; }
                 if ( save ) { cache.css = [] ; }
@@ -936,7 +960,7 @@
                     if ( content ) {
                       jQuery.ajax( jQuery.extend( true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: !!element.async, global: false } ) ) ;
                     } else {
-                      typeof element === 'object' && ( !element.type || -1 !== element.type.toLowerCase().indexOf( 'text/javascript' ) ) &&
+                      typeof element === 'object' && ( !element.type || ~element.type.toLowerCase().indexOf( 'text/javascript' ) ) &&
                       window.eval.call( window, ( element.text || element.textContent || element.innerHTML || '' ).replace( /^\s*<!(?:\[CDATA\[|\-\-)/, '/*$0*/' ) ) ;
                     }
                   } catch ( err ) {
@@ -1078,7 +1102,7 @@
       arr = src.replace( /^\//, '' ).replace( /([?#])/g, '/$1' ).split( '/' ) ;
       keys = ( relocation || src ).replace( /^\//, '' ).replace( /([?#])/g, '/$1' ).split( '/' ) ;
       if ( relocation ) {
-        if ( -1 === relocation.indexOf( '*' ) ) { return undefined ; }
+        if ( !~relocation.indexOf( '*' ) ) { return undefined ; }
         dirs = [] ;
         for ( var i = 0, len = keys.length ; i < len ; i++ ) { '*' === keys[ i ] && dirs.push( arr[ i ] ) ; }
       }
@@ -1111,7 +1135,7 @@
             reg = '*' === pattern.charAt( 0 ) ;
             pattern = reg ? pattern.slice( 1 ) : pattern ;
             
-            if ( relocation && -1 !== pattern.indexOf( '/*/' ) ) {
+            if ( relocation && ~pattern.indexOf( '/*/' ) ) {
               for ( var k = 0, len = dirs.length ; k < len ; k++ ) { pattern = pattern.replace( '/*/', '/' + dirs[ k ] + '/' ) ; }
             }
             
