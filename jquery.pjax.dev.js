@@ -927,7 +927,7 @@
                     break ;
                 }
                 css = jQuery( css ).not( setting.load.reject ) ;
-                removes = removes.not( setting.load.reload ) ;
+                removes = removes.not( setting.load.reject ).not( setting.load.reload ) ;
                 
                 if ( cache && cache.css && css && css.length !== cache.css.length ) { save = true ; }
                 if ( save ) { cache.css = [] ; }
