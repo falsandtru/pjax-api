@@ -527,7 +527,7 @@
         return event.preventDefault() ;
       } ) ;
       
-      ( function () {
+      setTimeout( function () {
         var DOMParser = window.DOMParser ;
         Store.parseHTML = function ( html ) { return DOMParser && DOMParser.prototype && ( new DOMParser() ).parseFromString( html, 'text/html' ) ; } ;
         if ( test( Store.parseHTML ) ) { return ; }
@@ -558,11 +558,11 @@
         
         function test( parseHTML ) {
           try {
-            var doc = parseHTML && parseHTML( '<body><noscript>DOMParser</noscript></body>' ) ;
-            return jQuery( doc ).find( 'noscript' ).text() === 'DOMParser' ;
+            var doc = parseHTML && parseHTML('<html><body><noscript>DOMParser</noscript></body></html>') ;
+            return doc && jQuery('body>noscript', doc).text() === 'DOMParser' ;
           } catch ( err ) {}
         }
-      } )() ;
+      }, 50) ;
     },
     drive: function ( jQuery, window, document, undefined, Store, setting, event, url, register, cache ) {
       /* validator */ var validator ;
