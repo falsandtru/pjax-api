@@ -15,7 +15,7 @@ module("pjax", {
   setup: function() {
   load = function (url,callback){
     tdefer = $.Deferred()
-    iframe = $("<iframe src='" + url + "'>")[0];
+    iframe = $('<iframe src="' + url + '">')[0];
     $(iframe).one('load', function(){
       callback( iframe.contentWindow, iframe.contentDocument );
     });
@@ -50,11 +50,11 @@ test( "install", function() {
         ok(1, 'page1');
         equal( document.title, 'pjax demo1', "title" );
         equal( $('#header p:first', document).text(), 'header1', "header" );
-        equal( $('.primary p:first', document).text(), 'primary1', "primary" );
+        equal( $('#primary p:first', document).text(), 'primary1', "primary" );
         
         defer = self.$.Deferred();
         $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
-        $('.primary a:eq(1)', document).each(function(){ url = this.href; }).click();
+        $('#primary a:eq(1)', document).each(function(){ url = this.href; }).click();
         ok(1, "click" );
         return wait( 5000, defer, true );
       }, function(){ tdefer.reject(); })
@@ -63,7 +63,7 @@ test( "install", function() {
         equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
         equal( document.title, 'pjax demo2', "title" );
         equal( $('#header p:first', document).text(), 'header1', "header" );
-        equal( $('.primary p:first', document).text(), 'primary2', "primary" );
+        equal( $('#primary p:first', document).text(), 'primary2', "primary" );
         
         defer = self.$.Deferred();
         $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
@@ -76,7 +76,7 @@ test( "install", function() {
         //equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
         equal( document.title, 'pjax demo1', "title" );
         equal( $('#header p:first', document).text(), 'header1', "header" );
-        equal( $('.primary p:first', document).text(), 'primary1', "primary" );
+        equal( $('#primary p:first', document).text(), 'primary1', "primary" );
       }, function(){ tdefer.reject(); })
       .pipe(function(){
         tdefer.resolve();
@@ -106,11 +106,11 @@ test( "cache", function() {
         ok(1, 'page1');
         equal( document.title, 'pjax demo1', "title" );
         equal( $('#header p:first', document).text(), 'header1', "header" );
-        equal( $('.primary p:first', document).text(), 'primary1', "primary" );
+        equal( $('#primary p:first', document).text(), 'primary1', "primary" );
         
         defer = self.$.Deferred();
         $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
-        $('.primary a:eq(2)', document).each(function(){ url = this.href; }).click();
+        $('#primary a:eq(2)', document).each(function(){ url = this.href; }).click();
         ok(1, "click" );
         return wait( 5000, defer, true );
       }, function(){ tdefer.reject(); })
@@ -119,7 +119,7 @@ test( "cache", function() {
         equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
         equal( document.title, 'pjax demo2', "title" );
         equal( $('#header p:first', document).text(), 'header1', "header" );
-        equal( $('.primary p:first', document).text(), 'primary2', "primary" );
+        equal( $('#primary p:first', document).text(), 'primary2', "primary" );
         
         defer = self.$.Deferred();
         $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
@@ -132,11 +132,11 @@ test( "cache", function() {
         //equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
         equal( document.title, 'pjax demo1', "title" );
         equal( $('#header p:first', document).text(), 'header1', "header" );
-        equal( $('.primary p:first', document).text(), 'primary1', "primary" );
+        equal( $('#primary p:first', document).text(), 'primary1', "primary" );
         
         defer = self.$.Deferred();
         $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
-        $('.primary a:eq(2)', document).each(function(){ url = this.href; }).click();
+        $('#primary a:eq(2)', document).each(function(){ url = this.href; }).click();
         ok(1, "click" );
         return wait( 5000, defer, true );
       }, function(){ tdefer.reject(); })
@@ -145,7 +145,7 @@ test( "cache", function() {
         equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
         equal( document.title, 'pjax demo2', "title" );
         equal( $('#header p:first', document).text(), 'header1', "header" );
-        equal( $('.primary p:first', document).text(), 'primary2', "primary" );
+        equal( $('#primary p:first', document).text(), 'primary2', "primary" );
       }, function(){ tdefer.reject(); })
       .pipe(function(){
         tdefer.resolve();
@@ -176,7 +176,7 @@ test( "form", function() {
         ok(1, 'page1');
         equal( document.title, 'pjax demo1', "title" );
         equal( $('#header p:first', document).text(), 'header1', "header" );
-        equal( $('.primary p:first', document).text(), 'primary1', "primary" );
+        equal( $('#primary p:first', document).text(), 'primary1', "primary" );
         
         defer = self.$.Deferred();
         $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
@@ -189,8 +189,8 @@ test( "form", function() {
         equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
         equal( document.title, 'pjax demo2', "title" );
         equal( $('#header p:first', document).text(), 'header1', "header" );
-        equal( $('.primary p:first', document).text(), 'primary2', "primary" );
-        equal( $('.primary p:last', document).text(), 'pjaxGET送信テスト', "primary" );
+        equal( $('#primary p:first', document).text(), 'primary2', "primary" );
+        equal( $('#primary p:last', document).text(), 'pjaxGET送信テスト', "primary" );
         
         defer = self.$.Deferred();
         $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
@@ -203,8 +203,8 @@ test( "form", function() {
         equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
         equal( document.title, 'pjax demo3', "title" );
         equal( $('#header p:first', document).text(), 'header1', "header" );
-        equal( $('.primary p:first', document).text(), 'primary3', "primary" );
-        equal( $('.primary p:last', document).text(), 'pjaxPOST送信テスト', "primary" );
+        equal( $('#primary p:first', document).text(), 'primary3', "primary" );
+        equal( $('#primary p:last', document).text(), 'pjaxPOST送信テスト', "primary" );
         
         defer = self.$.Deferred();
         $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
@@ -217,8 +217,8 @@ test( "form", function() {
         //equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
         equal( document.title, 'pjax demo2', "title" );
         equal( $('#header p:first', document).text(), 'header1', "header" );
-        equal( $('.primary p:first', document).text(), 'primary2', "primary" );
-        equal( $('.primary p:last', document).text(), 'pjaxGET送信テスト', "primary" );
+        equal( $('#primary p:first', document).text(), 'primary2', "primary" );
+        equal( $('#primary p:last', document).text(), 'pjaxGET送信テスト', "primary" );
         
         defer = self.$.Deferred();
         $(document.forms[2]).each(function(){ url = this.action; }).submit();
@@ -230,8 +230,8 @@ test( "form", function() {
         equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
         equal( document.title, 'pjax demo4', "title" );
         equal( $('#header p:first', document).text(), 'header4', "header" );
-        equal( $('.primary p:first', document).text(), 'primary4', "primary" );
-        equal( $('.primary p:last', document).text(), '通常GET送信テスト', "primary" );
+        equal( $('#primary p:first', document).text(), 'primary4', "primary" );
+        equal( $('#primary p:last', document).text(), '通常GET送信テスト', "primary" );
         
         defer = self.$.Deferred();
         $(document.forms[3]).each(function(){ url = this.action; }).submit();
@@ -243,8 +243,8 @@ test( "form", function() {
         equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
         equal( document.title, 'pjax demo5', "title" );
         equal( $('#header p:first', document).text(), 'header5', "header" );
-        equal( $('.primary p:first', document).text(), 'primary5', "primary" );
-        equal( $('.primary p:last', document).text(), '通常POST送信テスト', "primary" );
+        equal( $('#primary p:first', document).text(), 'primary5', "primary" );
+        equal( $('#primary p:last', document).text(), '通常POST送信テスト', "primary" );
       }, function(){ tdefer.reject(); })
       .pipe(function(){
         tdefer.resolve();
@@ -275,11 +275,11 @@ test( "link", function() {
         ok(1, 'page1');
         equal( document.title, 'pjax demo1', "title" );
         equal( $('#header p:first', document).text(), 'header1', "header" );
-        equal( $('.primary p:first', document).text(), 'primary1', "primary" );
+        equal( $('#primary p:first', document).text(), 'primary1', "primary" );
         
         defer = self.$.Deferred();
         $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
-        $('.primary a:eq(1)', document).each(function(){ url = this.href; }).click();
+        $('#primary a:eq(1)', document).each(function(){ url = this.href; }).click();
         ok(1, "click" );
         return wait( 5000, defer, true );
       }, function(){ tdefer.reject(); })
@@ -288,249 +288,10 @@ test( "link", function() {
         equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
         equal( document.title, 'pjax demo2', "title" );
         equal( $('#header p:first', document).text(), 'header1', "header" );
-        equal( $('.primary p:first', document).text(), 'primary2', "primary" );
+        equal( $('#primary p:first', document).text(), 'primary2', "primary" );
         
-        equal( !!$('.primary', document).data('events'), true, "events" );
-        equal( !!$('.secondary', document).data('events'), false, "events" );
-      }, function(){ tdefer.reject(); })
-      .pipe(function(){
-        tdefer.resolve();
-      });
-    })
-  })
-  .done(function(){
-    start();
-  })
-  .fail(function(){
-    equal( 1, 0, "error" );
-    start();
-  });
-});
-
-test( "scope", function() {
-  ok(1 == "1", "Passed!" );
-  stop();
-  
-  var defer ;
-  $.when()
-  .pipe(function(){
-    return load('../demo/scope/', function(window, document){
-      $(iframe).bind('load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
-      
-      $.when($.Deferred().resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument))
-      .pipe(function($, window, document){
-        ok(1, 'page top');
-        equal( $('#header p:first', document).text(), 'header top', "header" );
-        equal( $('.primary p:first', document).text(), 'primary top', "primary" );
-        
-        defer = self.$.Deferred();
-        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
-        $('.primary a[href$="a.html"]', document).each(function(){ url = this.href; }).click();
-        ok(1, "click" );
-        return wait( 1000, defer, false );
-      }, function(){ tdefer.reject(); })
-      .pipe(function($, window, document){        
-        defer = self.$.Deferred();
-        window.location.href = url;
-        return wait( 5000, defer, true );
-      }, function(){ tdefer.reject(); })
-      .pipe(function($, window, document){
-        ok(1, 'page a');
-        equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
-        equal( $('#header p:first', document).text(), 'header a', "header" );
-        equal( $('.primary p:first', document).text(), 'primary a', "primary" );
-        
-        defer = self.$.Deferred();
-        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
-        $('.primary a[href$="b.html"]', document).each(function(){ url = this.href; }).click();
-        ok(1, "click" );
-        return wait( 5000, defer, true );
-      }, function(){ tdefer.reject(); })
-      .pipe(function($, window, document){
-        ok(1, 'page b');
-        equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
-        equal( $('#header p:first', document).text(), 'header a', "header" );
-        equal( $('.primary p:first', document).text(), 'primary b', "primary" );
-        
-        defer = self.$.Deferred();
-        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
-        $('.primary a[href$="/pjax/"]', document).each(function(){ url = this.href; }).click();
-        ok(1, "click" );
-        return wait( 1000, defer, false );
-      }, function(){ tdefer.reject(); })
-      .pipe(function($, window, document){        
-        defer = self.$.Deferred();
-        window.location.href = url;
-        return wait( 5000, defer, true );
-      }, function(){ tdefer.reject(); })
-      .pipe(function($, window, document){
-        ok(1, 'page pjax');
-        equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
-        equal( $('#header p:first', document).text(), 'header pjax', "header" );
-        equal( $('.primary p:first', document).text(), 'primary pjax', "primary" );
-        
-        defer = self.$.Deferred();
-        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
-        $('.primary a[href$="/pjax/inherit/"]', document).each(function(){ url = this.href; }).click();
-        ok(1, "click" );
-        return wait( 5000, defer, true );
-      }, function(){ tdefer.reject(); })
-      .pipe(function($, window, document){
-        ok(1, 'page3 pjax/inherit');
-        equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
-        equal( $('#header p:first', document).text(), 'header pjax', "header" );
-        equal( $('.primary p:first', document).text(), 'primary pjax/inherit', "primary" );
-        
-        defer = self.$.Deferred();
-        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
-        window.history.back();
-        ok(1, "back" );
-        return wait( 5000, defer, true );
-      }, function(){ tdefer.reject(); })
-      .pipe(function($, window, document){
-        ok(1, 'page pjax');
-        //equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
-        equal( $('#header p:first', document).text(), 'header pjax', "header" );
-        equal( $('.primary p:first', document).text(), 'primary pjax', "primary" );
-        
-        defer = self.$.Deferred();
-        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
-        $('.primary a[href$="/pjax/except/"]', document).each(function(){ url = this.href; }).click();
-        ok(1, "click" );
-        return wait( 1000, defer, false );
-      }, function(){ tdefer.reject(); })
-      .pipe(function($, window, document){        
-        defer = self.$.Deferred();
-        window.location.href = url;
-        return wait( 5000, defer, true );
-      }, function(){ tdefer.reject(); })
-      .pipe(function($, window, document){
-        ok(1, 'page pjax/except');
-        equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
-        equal( $('#header p:first', document).text(), 'header pjax/except', "header" );
-        equal( $('.primary p:first', document).text(), 'primary pjax/except', "primary" );
-        
-        defer = self.$.Deferred();
-        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
-        $('.primary a[href$="/user/foo/"]', document).each(function(){ url = this.href; }).click();
-        ok(1, "click" );
-        return wait( 1000, defer, false );
-      }, function(){ tdefer.reject(); })
-      .pipe(function($, window, document){        
-        defer = self.$.Deferred();
-        window.location.href = url;
-        return wait( 5000, defer, true );
-      }, function(){ tdefer.reject(); })
-      .pipe(function($, window, document){
-        ok(1, 'page user/foo');
-        equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
-        equal( $('#header p:first', document).text(), 'header user/foo', "header" );
-        equal( $('.primary p:first', document).text(), 'primary user/foo', "primary" );
-        
-        defer = self.$.Deferred();
-        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
-        $('.primary a[href$="/user/bar/"]', document).each(function(){ url = this.href; }).click();
-        ok(1, "click" );
-        return wait( 5000, defer, true );
-      }, function(){ tdefer.reject(); })
-      .pipe(function($, window, document){  
-        ok(1, 'page user/bar');
-        equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
-        equal( $('#header p:first', document).text(), 'header user/bar', "header" );
-        equal( $('.primary p:first', document).text(), 'primary user/bar', "primary" );
-        equal( $('#footer p:first', document).text(), 'footer user/foo', "footer" );
-        
-        defer = self.$.Deferred();
-        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
-        $('.primary a[href$="/user/foo/a/"]', document).each(function(){ url = this.href; }).click();
-        ok(1, "click" );
-        return wait( 1000, defer, false );
-      }, function(){ tdefer.reject(); })
-      .pipe(function($, window, document){        
-        defer = self.$.Deferred();
-        window.location.href = url;
-        return wait( 5000, defer, true );
-      }, function(){ tdefer.reject(); })
-      .pipe(function($, window, document){
-        ok(1, 'page user/foo/a');
-        equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
-        equal( $('#header p:first', document).text(), 'header user/foo/a', "header" );
-        equal( $('.primary p:first', document).text(), 'primary user/foo/a', "primary" );
-        
-        defer = self.$.Deferred();
-        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
-        $('.primary a[href$="/user/foo/b/"]', document).each(function(){ url = this.href; }).click();
-        ok(1, "click" );
-        return wait( 5000, defer, true );
-      }, function(){ tdefer.reject(); })
-      .pipe(function($, window, document){
-        ok(1, 'page user/foo/b');
-        equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
-        equal( $('#header p:first', document).text(), 'header user/foo/a', "header" );
-        equal( $('.primary p:first', document).text(), 'primary user/foo/b', "primary" );
-        
-        defer = self.$.Deferred();
-        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
-        $('.primary a[href$="/user/bar/a/"]', document).each(function(){ url = this.href; }).click();
-        ok(1, "click" );
-        return wait( 1000, defer, false );
-      }, function(){ tdefer.reject(); })
-      .pipe(function($, window, document){        
-        defer = self.$.Deferred();
-        window.location.href = url;
-        return wait( 5000, defer, true );
-      }, function(){ tdefer.reject(); })
-      .pipe(function($, window, document){
-        ok(1, 'page user/bar/a');
-        equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
-        equal( $('#header p:first', document).text(), 'header user/bar/a', "header" );
-        equal( $('.primary p:first', document).text(), 'primary user/bar/a', "primary" );
-        
-        defer = self.$.Deferred();
-        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
-        $('.primary a[href$="/user/bar/b/"]', document).each(function(){ url = this.href; }).click();
-        ok(1, "click" );
-        return wait( 5000, defer, true );
-      }, function(){ tdefer.reject(); })
-      .pipe(function($, window, document){
-        ok(1, 'page user/bar/b');
-        equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
-        equal( $('#header p:first', document).text(), 'header user/bar/a', "header" );
-        equal( $('.primary p:first', document).text(), 'primary user/bar/b', "primary" );
-        
-        defer = self.$.Deferred();
-        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
-        $('.primary a[href$="/user/bar/c/"]', document).each(function(){ url = this.href; }).click();
-        ok(1, "click" );
-        return wait( 1000, defer, false );
-      }, function(){ tdefer.reject(); })
-      .pipe(function($, window, document){        
-        defer = self.$.Deferred();
-        window.location.href = url;
-        return wait( 5000, defer, true );
-      }, function(){ tdefer.reject(); })
-      .pipe(function($, window, document){
-        ok(1, 'page user/bar/c');
-        equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
-        equal( $('#header p:first', document).text(), 'header user/bar/c', "header" );
-        equal( $('.primary p:first', document).text(), 'primary user/bar/c', "primary" );
-        
-        defer = self.$.Deferred();
-        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
-        $('.primary a[href$="/user/foo/c/"]', document).each(function(){ url = this.href; }).click();
-        ok(1, "click" );
-        return wait( 1000, defer, false );
-      }, function(){ tdefer.reject(); })
-      .pipe(function($, window, document){        
-        defer = self.$.Deferred();
-        window.location.href = url;
-        return wait( 5000, defer, true );
-      }, function(){ tdefer.reject(); })
-      .pipe(function($, window, document){
-        ok(1, 'page user/foo/c');
-        equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
-        equal( $('#header p:first', document).text(), 'header user/foo/c', "header" );
-        equal( $('.primary p:first', document).text(), 'primary user/foo/c', "primary" );
+        equal( !!$('#primary', document).data('events'), true, "events" );
+        equal( !!$('#secondary', document).data('events'), false, "events" );
       }, function(){ tdefer.reject(); })
       .pipe(function(){
         tdefer.resolve();
@@ -560,12 +321,12 @@ test( "css", function() {
         ok(1, 'page1');
         equal( document.title, 'pjax demo1', "title" );
         equal( $('#header p:first', document).text(), 'header1', "header" );
-        equal( $('.primary p:first', document).text(), 'primary1', "primary" );
+        equal( $('#primary p:first', document).text(), 'primary1', "primary" );
         equal( $('#header', document).css('background-color').toLowerCase(), 'rgb(238, 238, 0)', "css" );
         
         defer = self.$.Deferred();
         $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
-        $('.primary a:eq(1)', document).each(function(){ url = this.href; }).click();
+        $('#primary a:eq(1)', document).each(function(){ url = this.href; }).click();
         ok(1, "click" );
         return wait( 5000, defer, true );
       }, function(){ tdefer.reject(); })
@@ -574,7 +335,7 @@ test( "css", function() {
         equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
         equal( document.title, 'pjax demo2', "title" );
         equal( $('#header p:first', document).text(), 'header1', "header" );
-        equal( $('.primary p:first', document).text(), 'primary2', "primary" );
+        equal( $('#primary p:first', document).text(), 'primary2', "primary" );
         equal( $('#header', document).css('background-color').toLowerCase(), 'rgb(238, 0, 0)', "css" );
         
         defer = self.$.Deferred();
@@ -588,7 +349,7 @@ test( "css", function() {
         //equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
         equal( document.title, 'pjax demo1', "title" );
         equal( $('#header p:first', document).text(), 'header1', "header" );
-        equal( $('.primary p:first', document).text(), 'primary1', "primary" );
+        equal( $('#primary p:first', document).text(), 'primary1', "primary" );
         equal( $('#header', document).css('background-color').toLowerCase(), 'rgb(238, 238, 0)', "css" );
       }, function(){ tdefer.reject(); })
       .pipe(function(){
@@ -619,13 +380,13 @@ test( "scroll", function() {
         ok(1, 'page1');
         equal( document.title, 'pjax demo1', "title" );
         equal( $('#header p:first', document).text(), 'header1', "header" );
-        equal( $('.primary p:first', document).text(), 'primary1', "primary" );
+        equal( $('#primary p:first', document).text(), 'primary1', "primary" );
         equal( $(window).scrollLeft(), 0, "scrollX" );
         equal( $(window).scrollTop(), 0, "scrollY" );
         
         defer = self.$.Deferred();
         $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
-        $('.primary a:eq(1)', document).each(function(){ url = this.href; }).click();
+        $('#primary a:eq(1)', document).each(function(){ url = this.href; }).click();
         ok(1, "click" );
         return wait( 5000, defer, true );
       }, function(){ tdefer.reject(); })
@@ -634,14 +395,14 @@ test( "scroll", function() {
         equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
         equal( document.title, 'pjax demo2', "title" );
         equal( $('#header p:first', document).text(), 'header1', "header" );
-        equal( $('.primary p:first', document).text(), 'primary2', "primary" );
+        equal( $('#primary p:first', document).text(), 'primary2', "primary" );
         equal( $(window).scrollLeft(), 50, "scrollX" );
         equal( $(window).scrollTop(), 0, "scrollY" );
         window.scrollTo($(window).scrollLeft(), 50);
         
         defer = self.$.Deferred();
         $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
-        $('.primary a:eq(2)', document).each(function(){ url = this.href; }).click();
+        $('#primary a:eq(2)', document).each(function(){ url = this.href; }).click();
         ok(1, "click" );
         return wait( 5000, defer, true );
       }, function(){ tdefer.reject(); })
@@ -650,9 +411,249 @@ test( "scroll", function() {
         //equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
         equal( document.title, 'pjax demo3', "title" );
         equal( $('#header p:first', document).text(), 'header1', "header" );
-        equal( $('.primary p:first', document).text(), 'primary3', "primary" );
+        equal( $('#primary p:first', document).text(), 'primary3', "primary" );
         equal( $(window).scrollLeft(), 50, "scrollX" );
         equal( $(window).scrollTop(), 50, "scrollY" );
+      }, function(){ tdefer.reject(); })
+      .pipe(function(){
+        tdefer.resolve();
+      });
+    })
+  })
+  .done(function(){
+    start();
+  })
+  .fail(function(){
+    equal( 1, 0, "error" );
+    start();
+  });
+});
+
+test( "scope", function() {
+  ok(1 == "1", "Passed!" );
+  stop();
+  
+  var defer ;
+  $.when()
+  .pipe(function(){
+    return load('../demo/scope/', function(window, document){
+      $(iframe).bind('load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
+      
+      $.when($.Deferred().resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument))
+      .pipe(function($, window, document){
+        ok(1, 'page top');
+        equal( $('#header p:first', document).text(), 'header top', "header" );
+        equal( $('#primary p:first', document).text(), 'primary top', "primary" );
+        
+        defer = self.$.Deferred();
+        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
+        $('#primary a[href$="a.html"]', document).each(function(){ url = this.href; }).click();
+        ok(1, "click" );
+        return wait( 1000, defer, false );
+      }, function(){ tdefer.reject(); })
+      .pipe(function($, window, document){        
+        defer = self.$.Deferred();
+        window.location.href = url;
+        return wait( 5000, defer, true );
+      }, function(){ tdefer.reject(); })
+      .pipe(function($, window, document){
+        ok(1, 'page a');
+        equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
+        equal( $('#header p:first', document).text(), 'header a', "header" );
+        equal( $('#primary p:first', document).text(), 'primary a', "primary" );
+        
+        defer = self.$.Deferred();
+        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
+        $('#primary a[href$="b.html"]', document).each(function(){ url = this.href; }).click();
+        ok(1, "click" );
+        return wait( 5000, defer, true );
+      }, function(){ tdefer.reject(); })
+      .pipe(function($, window, document){
+        ok(1, 'page b');
+        equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
+        equal( $('#header p:first', document).text(), 'header a', "header" );
+        equal( $('#primary p:first', document).text(), 'primary b', "primary" );
+        
+        defer = self.$.Deferred();
+        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
+        $('#primary a[href$="/pjax/"]', document).each(function(){ url = this.href; }).click();
+        ok(1, "click" );
+        return wait( 1000, defer, false );
+      }, function(){ tdefer.reject(); })
+      .pipe(function($, window, document){        
+        defer = self.$.Deferred();
+        window.location.href = url;
+        return wait( 5000, defer, true );
+      }, function(){ tdefer.reject(); })
+      .pipe(function($, window, document){
+        ok(1, 'page pjax');
+        equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
+        equal( $('#header p:first', document).text(), 'header pjax', "header" );
+        equal( $('#primary p:first', document).text(), 'primary pjax', "primary" );
+        
+        defer = self.$.Deferred();
+        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
+        $('#primary a[href$="/pjax/inherit/"]', document).each(function(){ url = this.href; }).click();
+        ok(1, "click" );
+        return wait( 5000, defer, true );
+      }, function(){ tdefer.reject(); })
+      .pipe(function($, window, document){
+        ok(1, 'page3 pjax/inherit');
+        equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
+        equal( $('#header p:first', document).text(), 'header pjax', "header" );
+        equal( $('#primary p:first', document).text(), 'primary pjax/inherit', "primary" );
+        
+        defer = self.$.Deferred();
+        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
+        window.history.back();
+        ok(1, "back" );
+        return wait( 5000, defer, true );
+      }, function(){ tdefer.reject(); })
+      .pipe(function($, window, document){
+        ok(1, 'page pjax');
+        //equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
+        equal( $('#header p:first', document).text(), 'header pjax', "header" );
+        equal( $('#primary p:first', document).text(), 'primary pjax', "primary" );
+        
+        defer = self.$.Deferred();
+        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
+        $('#primary a[href$="/pjax/except/"]', document).each(function(){ url = this.href; }).click();
+        ok(1, "click" );
+        return wait( 1000, defer, false );
+      }, function(){ tdefer.reject(); })
+      .pipe(function($, window, document){        
+        defer = self.$.Deferred();
+        window.location.href = url;
+        return wait( 5000, defer, true );
+      }, function(){ tdefer.reject(); })
+      .pipe(function($, window, document){
+        ok(1, 'page pjax/except');
+        equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
+        equal( $('#header p:first', document).text(), 'header pjax/except', "header" );
+        equal( $('#primary p:first', document).text(), 'primary pjax/except', "primary" );
+        
+        defer = self.$.Deferred();
+        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
+        $('#primary a[href$="/user/foo/"]', document).each(function(){ url = this.href; }).click();
+        ok(1, "click" );
+        return wait( 1000, defer, false );
+      }, function(){ tdefer.reject(); })
+      .pipe(function($, window, document){        
+        defer = self.$.Deferred();
+        window.location.href = url;
+        return wait( 5000, defer, true );
+      }, function(){ tdefer.reject(); })
+      .pipe(function($, window, document){
+        ok(1, 'page user/foo');
+        equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
+        equal( $('#header p:first', document).text(), 'header user/foo', "header" );
+        equal( $('#primary p:first', document).text(), 'primary user/foo', "primary" );
+        
+        defer = self.$.Deferred();
+        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
+        $('#primary a[href$="/user/bar/"]', document).each(function(){ url = this.href; }).click();
+        ok(1, "click" );
+        return wait( 5000, defer, true );
+      }, function(){ tdefer.reject(); })
+      .pipe(function($, window, document){  
+        ok(1, 'page user/bar');
+        equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
+        equal( $('#header p:first', document).text(), 'header user/bar', "header" );
+        equal( $('#primary p:first', document).text(), 'primary user/bar', "primary" );
+        equal( $('#footer p:first', document).text(), 'footer user/foo', "footer" );
+        
+        defer = self.$.Deferred();
+        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
+        $('#primary a[href$="/user/foo/a/"]', document).each(function(){ url = this.href; }).click();
+        ok(1, "click" );
+        return wait( 1000, defer, false );
+      }, function(){ tdefer.reject(); })
+      .pipe(function($, window, document){        
+        defer = self.$.Deferred();
+        window.location.href = url;
+        return wait( 5000, defer, true );
+
+      }, function(){ tdefer.reject(); })
+      .pipe(function($, window, document){
+        ok(1, 'page user/foo/a');
+        equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
+        equal( $('#header p:first', document).text(), 'header user/foo/a', "header" );
+        equal( $('#primary p:first', document).text(), 'primary user/foo/a', "primary" );
+        
+        defer = self.$.Deferred();
+        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
+        $('#primary a[href$="/user/foo/b/"]', document).each(function(){ url = this.href; }).click();
+        ok(1, "click" );
+        return wait( 5000, defer, true );
+      }, function(){ tdefer.reject(); })
+      .pipe(function($, window, document){
+        ok(1, 'page user/foo/b');
+        equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
+        equal( $('#header p:first', document).text(), 'header user/foo/a', "header" );
+        equal( $('#primary p:first', document).text(), 'primary user/foo/b', "primary" );
+        
+        defer = self.$.Deferred();
+        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
+        $('#primary a[href$="/user/bar/a/"]', document).each(function(){ url = this.href; }).click();
+        ok(1, "click" );
+        return wait( 1000, defer, false );
+      }, function(){ tdefer.reject(); })
+      .pipe(function($, window, document){        
+        defer = self.$.Deferred();
+        window.location.href = url;
+        return wait( 5000, defer, true );
+      }, function(){ tdefer.reject(); })
+      .pipe(function($, window, document){
+        ok(1, 'page user/bar/a');
+        equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
+        equal( $('#header p:first', document).text(), 'header user/bar/a', "header" );
+        equal( $('#primary p:first', document).text(), 'primary user/bar/a', "primary" );
+        
+        defer = self.$.Deferred();
+        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
+        $('#primary a[href$="/user/bar/b/"]', document).each(function(){ url = this.href; }).click();
+        ok(1, "click" );
+        return wait( 5000, defer, true );
+      }, function(){ tdefer.reject(); })
+      .pipe(function($, window, document){
+        ok(1, 'page user/bar/b');
+        equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
+        equal( $('#header p:first', document).text(), 'header user/bar/a', "header" );
+        equal( $('#primary p:first', document).text(), 'primary user/bar/b', "primary" );
+        
+        defer = self.$.Deferred();
+        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
+        $('#primary a[href$="/user/bar/c/"]', document).each(function(){ url = this.href; }).click();
+        ok(1, "click" );
+        return wait( 1000, defer, false );
+      }, function(){ tdefer.reject(); })
+      .pipe(function($, window, document){        
+        defer = self.$.Deferred();
+        window.location.href = url;
+        return wait( 5000, defer, true );
+      }, function(){ tdefer.reject(); })
+      .pipe(function($, window, document){
+        ok(1, 'page user/bar/c');
+        equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
+        equal( $('#header p:first', document).text(), 'header user/bar/c', "header" );
+        equal( $('#primary p:first', document).text(), 'primary user/bar/c', "primary" );
+        
+        defer = self.$.Deferred();
+        $(window).one('pjax.load', function(){ defer.resolve(iframe.contentWindow.$, iframe.contentWindow, iframe.contentDocument); });
+        $('#primary a[href$="/user/foo/c/"]', document).each(function(){ url = this.href; }).click();
+        ok(1, "click" );
+        return wait( 1000, defer, false );
+      }, function(){ tdefer.reject(); })
+      .pipe(function($, window, document){        
+        defer = self.$.Deferred();
+        window.location.href = url;
+        return wait( 5000, defer, true );
+      }, function(){ tdefer.reject(); })
+      .pipe(function($, window, document){
+        ok(1, 'page user/foo/c');
+        equal( url.replace(/.+?\w(\/[^#?]*).*/, '$1'), window.location.href.replace(/.+?\w(\/[^#?]*).*/, '$1'), "url" );
+        equal( $('#header p:first', document).text(), 'header user/foo/c', "header" );
+        equal( $('#primary p:first', document).text(), 'primary user/foo/c', "primary" );
       }, function(){ tdefer.reject(); })
       .pipe(function(){
         tdefer.resolve();

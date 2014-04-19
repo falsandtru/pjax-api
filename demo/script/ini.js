@@ -7,5 +7,5 @@ $(function()
       script: true
     }
   });
-  alert( 'execute script [linked(head)]\n' + $('div.primary p:first-child').text() )
+  console.log( 'execute script [linked(head)]\n' + $('div.primary p:first-child').text() )
 });

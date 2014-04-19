@@ -12,6 +12,10 @@
 <link rel="stylesheet" href="../lib/style.css">
 
 <style>
+#container{
+  width: 200%;
+  height: auto;
+}
 #header{
   background: #ee0;
 }
@@ -34,7 +38,7 @@
 <script charset="utf-8" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 <script charset="utf-8" src="../lib/jquery.pjax.dev.js"></script>
 <script>
-$(function(){ $.pjax({ area: '#primary, #tertiary', callback: function(){ga('send', 'pageview', window.location.pathname+window.location.search);} }); });
+$(function(){ $.pjax({ area: '#primary', callback: function(){ga('send', 'pageview', window.location.pathname+window.location.search);} }); });
 </script>
 <script>
 if (!window.ga) {
@@ -58,7 +62,7 @@ window.ga('send', 'pageview', window.location.pathname+window.location.search);
 </script>
 </head>
 <body>
-<div id="container" class="layout-213">
+<div id="container" class="layout-001">
 <!-- ----- HEADER ------------------------------------------------------------- -->
 <header id="header"><div class="wrapper clearfix">
 
@@ -74,9 +78,27 @@ window.ga('send', 'pageview', window.location.pathname+window.location.search);
   <p>primary3</p>
   <p>pjax enable あアｱ亜</p>
   <ul>
-    <li><a href="./">page1 enable</a></li>
-    <li><a href="./2.html">page2 enable</a></li>
-    <li><a href="./3.html">page3 enable</a></li>
+    <li><a href="./#first">page1 enable</a></li>
+    <li><a href="./2.html#second">page2 enable</a></li>
+    <li><a href="./3.html#third">page3 enable</a></li>
+  </ul>
+  <h2 id="first" style="margin-top: 10%;">first</h2>
+  <ul>
+    <li><a href="./#first">page1 enable</a></li>
+    <li><a href="./2.html#second">page2 enable</a></li>
+    <li><a href="./3.html#third">page3 enable</a></li>
+  </ul>
+  <h2 id="second" style="margin-top: 10%;">second</h2>
+  <ul>
+    <li><a href="./#first">page1 enable</a></li>
+    <li><a href="./2.html#second">page2 enable</a></li>
+    <li><a href="./3.html#third">page3 enable</a></li>
+  </ul>
+  <h2 id="third" style="margin-top: 10%;">third</h2>
+  <ul>
+    <li><a href="./#first">page1 enable</a></li>
+    <li><a href="./2.html#second">page2 enable</a></li>
+    <li><a href="./3.html#third">page3 enable</a></li>
   </ul>
 
 </div></div></div>
