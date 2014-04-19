@@ -78,7 +78,7 @@
         ajax: { dataType: 'text' },
         contentType: 'text/html',
         cache: {
-          click: false, submit: false, popstate: false, get: true, post: true,
+          click: false, submit: false, popstate: false, get: true, post: true, mix: 0,
           length: 9 /* pages */, size: 1*1024*1024 /* 1MB */, expires: { max: null, min: 5*60*1000 /* 5min */ }
         },
         callback: function () {},
@@ -456,6 +456,7 @@
         setting.area = Store.fire( setting.areaback, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) ;
         setting.timeStamp = event.timeStamp ;
         if ( setting.landing ) { setting.landing = false ; }
+        if ( setting.cache.mix && jQuery[ Store.name ].getCache( url ) ) { return ; }
         if ( !jQuery( setting.area ).length || setting.scope && !Store.scope( setting ) ) { return ; }
         setting.database && Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
         
@@ -484,6 +485,7 @@
         setting.area = Store.fire( setting.areaback, null, [ event, setting.parameter, setting.destination.href, setting.location.href ] ) ;
         setting.timeStamp = event.timeStamp ;
         if ( setting.landing ) { setting.landing = false ; }
+        if ( setting.cache.mix && jQuery[ Store.name ].getCache( url ) ) { return ; }
         if ( !jQuery( setting.area ).length || setting.scope && !Store.scope( setting ) ) { return ; }
         setting.database && Store.dbScroll( jQuery( window ).scrollLeft(), jQuery( window ).scrollTop() ) ;
         
@@ -695,6 +697,10 @@
           
           var callbacks_update = setting.callbacks.update ;
           if ( Store.fire( callbacks_update.before, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest, cache ], setting.callbacks.async ) === false ) { break UPDATE ; }
+          
+          if ( setting.cache.mix && event.type.toLowerCase() !== 'popstate' && new Date().getTime() - event.timeStamp < setting.cache.mix ) {
+            return window.location.href = event.currentTarget.href ;
+          }
           
           /* variable initialization */
           var title, css, script ;
