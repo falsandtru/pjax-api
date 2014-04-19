@@ -736,8 +736,12 @@
                 return Store.find( cdata, /(<title[^>]*?>[^<]*?<\/title>)/i ).shift() || title ;
               }) ;
               pdoc = jQuery( Store.parseHTML && pdata && Store.parseHTML( pdata ) || pdata ) ;
-              for ( var i = 0, area, element ; area = areas[ i++ ] ; ) {
-                pdoc.find( area ).add( parsable ? '' : pdoc.filter( area ) ).html( cdoc.find( area ).add( parsable ? '' : cdoc.filter( area ) ).contents() ) ;
+              for ( var i = 0, area, container, elements ; area = areas[ i++ ] ; ) {
+                container = pdoc.find( area ).add( pdoc.filter( area ) ).empty()[0] ;
+                elements = cdoc.find( area ).add( cdoc.filter( area ) ).contents() ;
+                for ( var j = 0 ; element = elements[ j++ ] ; ) {
+                  container.appendChild( element ) ;
+                }
               }
             } else {
               pdoc = jQuery( Store.parseHTML && pdata && Store.parseHTML( pdata ) || pdata ) ;
