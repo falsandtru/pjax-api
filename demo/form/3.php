@@ -1,193 +1,129 @@
 ﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta http-equiv="content-language" content="ja">
-<meta name="robots" content="noindex,nofollow,noarchive">
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
 <title>pjax demo3</title>
-<style type="text/css">
-/* reset */
-/* -------------------------------------------------- */
-html,body,div,p{
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
+<meta name="description" content="">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
 
-/* default */
-/* -------------------------------------------------- */
-html,body{
-  width: 100%;
-  height: 100%;
-}
-h1{
-  margin: 0;
-}
-p{
-  font-size: xx-large;
-}
-form{
-  text-align: center;
-}
-form p{
-  display: inline;
-}
-select{
-  height: 40px;
-  font-size: 32px;
-}
+<link rel="stylesheet" href="../lib/normalize.css">
+<link rel="stylesheet" href="../lib/style.css">
 
-/* frame */
-/* -------------------------------------------------- */
-#container{
-  width: 100%;
-  height: 100%;
-}
+<style>
 #header{
-  height: 20%;
   background: #ee0;
 }
-#wrapper{
-  position: relative;
-  height: 60%;
-  background: #e0e;
-}
-#wrapper div.layer{
-  height: 100%;
-}
-div.primary{
-  height: 100%;
-  background: #e00;
-}
-div.secondary{
-  display: none;
-  height: 100%;
-  background: #0e0;
-}
-div.tertiary{
-  display: none;
-  height: 100%;
-  background: #00e;
-}
 #footer{
-  height: 20%;
   background: #0ee;
 }
-
-
-/* -------------------------------------------------- */
-
-/* new clearfix */
-.clearfix:after {
-  visibility: hidden;
-  display: block;
-  font-size: 0;
-  content: " ";
-  clear: both;
-  height: 0;
+#wrapper{
+  background: #e0e;
 }
-* html .clearfix             { zoom: 1; } /* IE6 */
-*:first-child+html .clearfix { zoom: 1; } /* IE7 */
+#primary{
+  background: #e00;
+}
+#secondary{
+  background: #0e0;
+}
+#tertiary{
+  background: #00e;
+}
 </style>
-<script type="text/javascript" charset="utf-8" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-<script type="text/javascript" charset="utf-8" src="http://sa-kusaku.sakura.ne.jp/lib/jquery.validator.js"></script>
-<script type="text/javascript">
-var validator = $.validator ? $.validator( {
-  base: true ,
-  name: 'base' ,
-  debug: true ,
-  report: true ,
-  url: 'http://sa-kusaku.sakura.ne.jp/lib/jquery.validator.send.php' ,
-  env: window.navigator.userAgent ,
-  dom: function() { return document.documentElement.outerHTML ; }
-} ) : false ;
-//var validator = false ;
+<script charset="utf-8" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script charset="utf-8" src="../lib/jquery.pjax.dev.js"></script>
+<script>
+$(function(){ $.pjax({ area: '#primary', form: 'form.pjax', callback: function(){ga('send', 'pageview', window.location.pathname+window.location.search);} }); });
 </script>
-<script type="text/javascript" charset="utf-8" src="/lib/jquery.pjax.dev.js"></script>
-<script type="text/javascript">
-$(function(){
-  $.pjax({ area: 'div.pjax', form: 'form.pjax', callback: function(){_gaq.push(['_trackPageview']);} });
-});
-</script>
-<script type="text/javascript">
-
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-37495394-1']);
-  _gaq.push(['_trackPageview']);
-
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-
+<script>
+if (!window.ga) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  
+  switch (location.hostname) {
+    case 'github.com':
+      ga('create', 'UA-43533651-1', 'github.com');
+      break;
+    case 'falsandtru.github.io':
+      ga('create', 'UA-43533651-1', 'falsandtru.github.io');
+      break;
+    case 'sa-kusaku.sakura.ne.jp':
+      ga('create', 'UA-37495394-1', 'sakura.ne.jp');
+  }
+}
+window.ga('send', 'pageview', window.location.pathname+window.location.search);
 </script>
 </head>
 <body>
-  <div id="container">
-    <div id="header">
-      <div class="layout">
-        <h1>pjax demo</h1>
-        <p>header3</p>
-        <p>これはpjaxのデモページです</p>
-      </div>
-    </div>
-    <div id="wrapper" class="clearfix">
-      <div class="layer">
-        <div class="primary pjax">
-          <div class="layout">
-            <p>primary3</p>
-            <p>pjax link: enable form: enable あアｱ亜</p>
-            <ul>
-              <li><a href="/output/pjax/demo/form/">page1 enable</a></li>
-              <li><a href="/output/pjax/demo/form/2.php">page2 enable</a></li>
-              <li><a href="/output/pjax/demo/form/3.php">page3 enable</a></li>
-              <li><a href="/output/pjax/demo/form/4.php">page4 disable</a></li>
-              <li><a href="/output/pjax/demo/form/5.php">page5 disable</a></li>
-            </ul>
-            <p><?php echo htmlspecialchars(@$_POST['data'], ENT_QUOTES, mb_internal_encoding())?></p>
-            <form class="pjax" method="get" action="/output/pjax/demo/form/2.php">
-              <input name="data" type="text" value="pjaxGET送信テスト">
-              <input type="submit" value="送信">
-            </form>
-            <form class="pjax" method="post" action="/output/pjax/demo/form/3.php">
-              <input name="data" type="text" value="pjaxPOST送信テスト">
-              <input type="submit" value="送信">
-            </form>
-            <form method="get" action="/output/pjax/demo/form/4.php">
-              <input name="data" type="text" value="通常GET送信テスト">
-              <input type="submit" value="送信">
-            </form>
-            <form method="post" action="/output/pjax/demo/form/5.php">
-              <input name="data" type="text" value="通常POST送信テスト">
-              <input type="submit" value="送信">
-            </form>
-          </div>
-        </div>
-        <div class="secondary">
-          <div class="layout">
-            <p>secondary3</p>
-            <ul>
-              <li><a href="/output/pjax/demo/form/">page1 enable</a></li>
-              <li><a href="/output/pjax/demo/form/2.php">page2 enable</a></li>
-              <li><a href="/output/pjax/demo/form/3.php">page3 enable</a></li>
-              <li><a href="/output/pjax/demo/form/4.php">page4 disable</a></li>
-              <li><a href="/output/pjax/demo/form/5.php">page5 disable</a></li>
-            </ul>
-          </div>
-        </div>
-        <div class="tertiary">
-          <div class="layout">
-            <p>tertiary3</p>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div id="footer">
-      <div class="layout">
-        <p>footer3</p>
-      </div>
-    </div>
-  </div>
-</body>
-</html>
+<div id="container" class="layout-001">
+<!-- ----- HEADER ------------------------------------------------------------- -->
+<header id="header"><div class="wrapper clearfix">
+
+  <h1>pjax demo</h1>
+  <p>header3</p>
+  <p>これはpjaxのデモページです</p>
+
+</div></header>
+<div id="wrapper" class="wrapper clearfix">
+<!-- ----- PRIMARY ------------------------------------------------------------ -->
+<div id="primary"><div id="layout"><div class="wrapper clearfix">
+
+  <p>primary3</p>
+  <p>pjax enable あアｱ亜</p>
+  <ul>
+    <li><a href="./">page1 enable</a></li>
+    <li><a href="./2.php">page2 enable</a></li>
+    <li><a href="./3.php">page3 enable</a></li>
+    <li><a href="./4.php">page4 disable</a></li>
+    <li><a href="./5.php">page5 disable</a></li>
+  </ul>
+  <p><?php echo htmlspecialchars(@$_POST['data'], ENT_QUOTES, mb_internal_encoding())?></p>
+  <form class="pjax" method="get" action="./2.php">
+    <input name="data" type="text" value="pjaxGET送信テスト">
+    <input type="submit" value="送信">
+  </form>
+  <form class="pjax" method="post" action="./3.php">
+    <input name="data" type="text" value="pjaxPOST送信テスト">
+    <input type="submit" value="送信">
+  </form>
+  <form method="get" action="./4.php">
+    <input name="data" type="text" value="通常GET送信テスト">
+    <input type="submit" value="送信">
+  </form>
+  <form method="post" action="./5.php">
+    <input name="data" type="text" value="通常POST送信テスト">
+    <input type="submit" value="送信">
+  </form>
+
+</div></div></div>
+<!-- ----- SECONDARY ---------------------------------------------------------- -->
+<div id="secondary"><div class="wrapper clearfix">
+
+  <p>secondary3</p>
+  <ul>
+    <li><a href="./">page1 enable</a></li>
+    <li><a href="./2.php">page2 enable</a></li>
+    <li><a href="./3.php">page3 enable</a></li>
+    <li><a href="./4.php">page4 disable</a></li>
+    <li><a href="./5.php">page5 disable</a></li>
+  </ul>
+
+</div></div>
+<!-- ----- TERTIARY ----------------------------------------------------------- -->
+<div id="tertiary"><div class="wrapper clearfix">
+
+  <p>tertiary3</p>
+
+</div></div>
+</div>
+<!-- ----- FOOTER ------------------------------------------------------------- -->
+<footer id="footer"><div class="wrapper clearfix">
+
+  <p>footer3</p>
+
+</div></footer>
+</div>
+</body></html>
