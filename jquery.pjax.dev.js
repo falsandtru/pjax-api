@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.32.6
+ * @version 1.32.7
  * @updated 2014/04/19
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -533,12 +533,24 @@
         if ( test( Store.parseHTML ) ) { return ; }
         
         Store.parseHTML = function( html ) {
-          var doc = document.implementation.createHTMLDocument('');
-          var range = doc.createRange();
-          range.selectNodeContents(doc.documentElement);
-          range.deleteContents();
-          doc.documentElement.appendChild(range.createContextualFragment(html));
-          return doc;
+          var doc, ua ;
+          if ( document.implementation && document.implementation.createHTMLDocument ) {
+            doc = document.implementation.createHTMLDocument( '' ) ;
+            ua = window.navigator.userAgent.toLowerCase() ;
+            switch (true) {
+              case typeof doc.activeElement !== 'object':
+              case ~ua.indexOf('opera'):
+              case ~ua.indexOf('android'):
+              case ~ua.indexOf('iphone os') || ~userAgent.indexOf( 'like mac os x' ):
+                jQuery( doc ).html( html );
+                break;
+              default:
+                doc.open();
+                doc.write( html );
+                doc.close();
+            }
+          }
+          return doc ;
         } ;
         if ( test( Store.parseHTML ) ) { return ; }
         
