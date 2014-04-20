@@ -163,7 +163,7 @@
     IDBFactory: window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB,
     IDBDatabase: null,
     IDBKeyRange: window.IDBKeyRange || window.webkitIDBKeyRange || window.mozIDBKeyRange || window.msIDBKeyRange,
-    parseHTML: null,
+    createHTMLDocument: null,
     setProperties: function ( namespace, element ) {
       
       var $context = this ;
@@ -528,38 +528,31 @@
       } ) ;
       
       setTimeout( function () {
-        var DOMParser = window.DOMParser ;
-        Store.parseHTML = function ( html ) { return DOMParser && DOMParser.prototype && ( new DOMParser() ).parseFromString( html, 'text/html' ) ; } ;
-        if ( test( Store.parseHTML ) ) { return ; }
+        // chrome, firefox
+        Store.createHTMLDocument = function ( html ) { return window.DOMParser && window.DOMParser.prototype && new window.DOMParser().parseFromString( html, 'text/html' ) ; } ;
+        if ( test( Store.createHTMLDocument ) ) { return ; }
         
-        Store.parseHTML = function( html ) {
-          var doc, ua ;
+        // opera
+        Store.createHTMLDocument = function( html ) {
           if ( document.implementation && document.implementation.createHTMLDocument ) {
-            doc = document.implementation.createHTMLDocument( '' ) ;
-            ua = window.navigator.userAgent.toLowerCase() ;
-            switch (true) {
-              case typeof doc.activeElement !== 'object':
-              case ~ua.indexOf('opera'):
-              case ~ua.indexOf('android'):
-              case ~ua.indexOf('iphone os') || ~userAgent.indexOf( 'like mac os x' ):
-                jQuery( doc ).html( html );
-                break;
-              default:
-                doc.open();
-                doc.write( html );
-                doc.close();
+            var doc = document.implementation.createHTMLDocument('');
+            var attrs = (html.slice(0, 1024).match(/.*<html ([^>]+)>/im) || [0,''])[1].match(/\w+\="[^"]*.|\w+\='[^']*.|\w+/gm) || [];
+            for (var i = -1, attr;attr=attrs[++i];) {
+              attr = attr.split('=', 2);
+              doc.documentElement.setAttribute(attr[0], attr[1].replace(/^["']|["']$/g, ''));
             }
+            doc.documentElement.innerHTML = html;
           }
           return doc ;
         } ;
-        if ( test( Store.parseHTML ) ) { return ; }
+        if ( test( Store.createHTMLDocument ) ) { return ; }   
         
-        Store.parseHTML = false ;
+        Store.createHTMLDocument = false ;
         
-        function test( parseHTML ) {
+        function test( createHTMLDocument ) {
           try {
-            var doc = parseHTML && parseHTML('<html><body><noscript>DOMParser</noscript></body></html>') ;
-            return doc && jQuery('body>noscript', doc).text() === 'DOMParser' ;
+            var doc = createHTMLDocument && createHTMLDocument('<html lang="en" class="html a b"><noscript><style></style></noscript><body><noscript>noscript</noscript></body></html>') ;
+            return doc && jQuery('html', doc).is('.html[lang=en]') && jQuery('head>noscript', doc).html() && jQuery('body>noscript', doc).text() === 'noscript' ;
           } catch ( err ) {}
         }
       }, 50) ;
@@ -743,11 +736,11 @@
             } ) ;
             if ( cache && cache.data ) {
               cdata = cache.data ;
-              cdoc = jQuery( Store.parseHTML && cdata && Store.parseHTML( cdata ) || cdata ) ;
+              cdoc = jQuery( Store.createHTMLDocument && cdata && Store.createHTMLDocument( cdata ) || cdata ) ;
               pdata = pdata.replace( /<title[^>]*?>([^<]*?)<\/title>/i, function ( title ) {
                 return Store.find( cdata, /(<title[^>]*?>[^<]*?<\/title>)/i ).shift() || title ;
               }) ;
-              pdoc = jQuery( Store.parseHTML && pdata && Store.parseHTML( pdata ) || pdata ) ;
+              pdoc = jQuery( Store.createHTMLDocument && pdata && Store.createHTMLDocument( pdata ) || pdata ) ;
               for ( var i = 0, area, container, elements ; area = areas[ i++ ] ; ) {
                 container = pdoc.find( area ).add( pdoc.filter( area ) ).empty()[0] ;
                 elements = cdoc.find( area ).add( cdoc.filter( area ) ).contents() ;
@@ -756,7 +749,7 @@
                 }
               }
             } else {
-              pdoc = jQuery( Store.parseHTML && pdata && Store.parseHTML( pdata ) || pdata ) ;
+              pdoc = jQuery( Store.createHTMLDocument && pdata && Store.createHTMLDocument( pdata ) || pdata ) ;
             }
             
             switch ( true ) {
