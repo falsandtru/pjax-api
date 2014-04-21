@@ -932,7 +932,6 @@
                     break ;
                 }
                 css = jQuery( css ).not( setting.load.reject ) ;
-                removes = removes.not( setting.load.reject ).not( setting.load.reload ) ;
                 
                 if ( cache && cache.css && css && css.length !== cache.css.length ) { save = true ; }
                 if ( save ) { cache.css = [] ; }
@@ -956,7 +955,7 @@
                   }
                   element && adds.push( element ) ;
                 }
-                removes.remove() ;
+                removes.not( setting.load.reload ).remove() ;
                 jQuery( 'head' ).append( adds ) ;
                 
                 if ( Store.fire( callbacks_update.css.after, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE_CSS ; }
