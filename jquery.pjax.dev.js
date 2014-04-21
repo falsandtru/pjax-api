@@ -79,7 +79,7 @@
         contentType: 'text/html',
         cache: {
           click: false, submit: false, popstate: false, get: true, post: true, mix: false,
-          length: 9 /* pages */, size: 1*1024*1024 /* 1MB */, expires: { max: null, min: 5*60*1000 /* 5min */ }
+          page: 100 /* pages */, size: 1*1024*1024 /* 1MB */, expires: { max: null, min: 5*60*1000 /* 5min */}
         },
         callback: function () {},
         callbacks: {
@@ -347,7 +347,7 @@
           if ( !setting || !setting.history ) { return this ; }
           var history = setting.history ;
           for ( var i = history.order.length, url ; url = history.order[ --i ] ; ) {
-            if ( i >= setting.cache.length || url in history.data && new Date().getTime() > history.data[ url ].expires ) {
+            if ( i >= setting.cache.page || url in history.data && new Date().getTime() > history.data[ url ].expires ) {
               history.order.splice( i, 1 ) ;
               history.size -= history.data[ url ].size ;
               delete history.data[ url ] ;
