@@ -1,5 +1,5 @@
 #pjax
-pjaxはデータの読み込みと描画の冗長部分を省略することで非常に高速かつシームレスなページ移動を実現する、HTML5で実装される高速ブラウジング機能です。
+pjaxはデータの読み込みと描画の冗長部分を省略することで非常に高速かつシームレスなページ移動を実現する、HTML5の高速ブラウジング機能です。
 
 ページ移動の高速化のほか、シームレス性を利用してフルフラッシュサイトをHTML5で表現したり、ウェブサービスをハイエンドなインターフェースを持つアプリケーションソフトのように提供することができます。
 
@@ -13,7 +13,7 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 
 ##特徴
 
-* **プリロードのajax処理を中断せず引き継ぐことができるため最速でページ移動が可能です。**
+* プリロードによりリンクがクリックされる前にページの読み込みを開始してページ移動を高速化できます。
 * CSSとJavaScriptの自動読み込みが可能です。
 * サーバー側の設定やコードのインストール等の作業が不要です。
 * 詳細な動作制御が可能で幅広い要求に対応できます。
@@ -51,6 +51,145 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 ※Windows7+Chromeで手近なサイトを計測
 ※データの受信を開始するまでの待機時間が長い場合は除く
 
+##設定例
+汎用的な高速化設定例です。
+
+* PCでのみpreloadとpjaxを有効（タブレットとモバイルでは無効）
+* pjax処理の進捗をプログレスバーで表示
+
+```javascript
+(function(){
+  function init(){
+    var progressbar = '#pjax-progressbar';
+    
+    $.clientenv.is('pc') &&
+    $.preload({
+      forward: $.pjax.follow,
+      check: $.pjax.getCache,
+      encode: true,
+      ajax: {
+        xhr: function(){
+          var xhr = jQuery.ajaxSettings.xhr();
+           
+          $(progressbar).children().width('5%');
+          if ( xhr instanceof Object && 'onprogress' in xhr ) {
+            xhr.addEventListener( 'progress', function ( event ) {
+              var percentage = event.total ? event.loaded / event.total : 0.4;
+              percentage = percentage * 90 + 5;
+              $(progressbar).children().width( percentage + '%' );
+            }, false );
+            xhr.addEventListener( 'load', function ( event ) {
+              $(progressbar).children().width('95%');
+            }, false );
+            xhr.addEventListener( 'error', function ( event ) {
+              $(progressbar).children().css('background-color', '#00f');
+            }, false );
+          }
+          return xhr;
+        },
+        success: function ( data, textStatus, XMLHttpRequest ) {
+          !$.pjax.getCache( this.url ) && $.pjax.setCache( this.url, null, textStatus, XMLHttpRequest ) ;
+        }
+      }
+    });
+    
+    $.clientenv.is('pc') &&
+    $.pjax({
+      area: '#header, #content, #sidebar',
+      callbacks: {
+        before: function(){
+          $(progressbar).children().width('');
+          $(progressbar).fadeIn(0);
+        },
+        ajax: {
+          xhr: function(){
+            var xhr = jQuery.ajaxSettings.xhr();
+            
+            $(progressbar).children().width('5%');
+            if ( xhr instanceof Object && 'onprogress' in xhr ) {
+              xhr.addEventListener( 'progress', function ( event ) {
+                var percentage = event.loaded / event.total;
+                percentage = isFinite( percentage ) ? percentage : 0.4 ;
+                percentage = percentage * 90 + 5;
+                $(progressbar).children().width( percentage + '%' );
+              }, false );
+              xhr.addEventListener( 'loadend', function ( event ) {}, false );
+            }
+            return xhr;
+          }
+        },
+        update: {
+          before: function(){
+            $(progressbar).children().width('95%');
+          },
+          content: {
+            after: function(){
+              $(progressbar).children().width('96.25%');
+            }
+          },
+          css: {
+            after: function(){
+              $(progressbar).children().width('97.5%');
+            }
+          },
+          script: {
+            after: function(){
+              $(progressbar).children().width('98.75%');
+            }
+          },
+          rendering: {
+            after: function(){
+              $(progressbar).children().width('100%');
+              $(progressbar).fadeOut(50);
+            }
+          }
+        }
+      },
+      load: {
+        css: true, script: true, sync: true,
+        reload: '',
+        reject: ''
+      },
+      cache: {
+        click: true, submit: true, popstate: true, get: true, post: true
+      },
+      ajax: { cache: true, timeout: 5000 },
+      server: { query: null }
+    });
+  }
+  function reset(){
+    $.visibilitytrigger({
+      trigger: 'img[data-origin]',
+      callback: function(){ this.src = $(this).attr('data-origin'); }
+    }).vtrigger();
+  }
+  
+  $(init);
+  $(reset);
+  $(document).bind('pjax.ready', reset);
+})();
+```
+
+```html
+<div id="pjax-progressbar" style="background:rgba(0,0,0,.2);display:none;position:fixed;bottom:0;left:0;z-index:9999;width:100%;height:5px;">
+  <div style="background:#f77;position:absolute;top:0;left:0;width:0;height:3px;"></div>
+</div>
+```
+
+```javascript
+if (!window.ga) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  
+  window.ga('create', 'UA-xxxxxxxx-x', 'hostname');
+  window.ga('send', 'pageview', window.location.pathname+window.location.search);
+} else {
+  window.ga('send', 'pageview', window.location.pathname+window.location.search);
+}
+```
+
 ##pjaxの問題への対応
 pushStateないしreplaceStateとajaxを組み合わせたいわゆるpjaxと呼ばれる機能には下記のような問題が存在しています。当pjaxプラグインはこれらを解消するための処理を組み込み済みです。
 
@@ -66,7 +205,7 @@ pushStateないしreplaceStateとajaxを組み合わせたいわゆるpjaxと呼
 
 ##defunkt版との比較
 このpjaxプラグインは独自に開発されており、本家defunkt版の派生ではないため仕様が異なります。
-defunkt版（v1.7.0/2013年6月現在最新版）との主な違いは次のとおりです。
+defunkt版（v1.7.0/2013年6月時点最新版）との主な違いは次のとおりです。
 
 |項目|defunkt版|falsandtru版|
 |:---|:-------:|:----------:|
@@ -123,7 +262,43 @@ $('.delegate').pjax({ area: '.container' });
 ```
 
 ###Parameter
-パラメータはすべてパラメータ用オブジェクトのプロパティに設定して渡します。パラメータとなるオブジェクトのプロパティは次のとおりです
+パラメータはすべてパラメータ用オブジェクトのプロパティに設定して渡します。パラメータとなるオブジェクトのプロパティとその初期値は次のとおりです
+
+```javascript
+// 初期値
+{
+  area: null,
+  link: 'a:not([target])',
+  filter: function(){ return /(\/[^.]*|\.html?|\.php)([#?].*)?$/.test( this.href ); },
+  form: null,
+  scope: null,
+  state: null,
+  scrollTop: 0,
+  scrollLeft: 0,
+  ajax: { dataType: 'text' },
+  contentType: 'text/html',
+  cache: {
+    click: false, submit: false, popstate: false, get: true, post: true, mix: false,
+    length: 100 /* pages */, size: 1*1024*1024 /* 1MB */, expires: { max: null, min: 5*60*1000 /* 5min */}
+  },
+  callback: function () {},
+  callbacks: {
+    ajax: {},
+    update: { url: {}, title: {}, content: {}, scroll: {}, css: {}, script: {}, cache: { load: {}, save: {} }, rendering: {}, verify: {} },
+    async: false
+  },
+  parameter: null,
+  load: { css: false, script: false, execute: true, reload: '', reject: '', sync: true, ajax: { dataType: 'script' }, rewrite: null },
+  interval: 300,
+  wait: 0,
+  scroll: { delay: 300 },
+  fix: { location: true, history: true, scroll: true, reset: false },
+  hashquery: false,
+  fallback: true,
+  database: true,
+  server: { query: 'pjax=1' }
+}
+```
 
 ####*area: Selector as string / function( event, parameter, to, from )*
 pjaxにより更新する範囲（HTML要素）をjQueryセレクタで設定します。
@@ -218,9 +393,6 @@ pjaxによるページ読み込み時にJavaScriptを読み込むかを設定し
 #####*load.sync: boolean*
 `defer`属性を持つJavaScript（`script`要素）の読み込みを、pjaxによるコンテンツの更新が描画されてから行います。ただし、描画の確認回数が100回を超えた場合は描画を待たずその時点で読み込みます。初期値は`true`で有効です。
 
-#####<del>*load.async: Millisecond as number*</del>
-`script`要素の`async`属性により個別に設定されるよう変更されました。
-
 #####*load.rewrite: function( element )*
 JavaScriptまたはCSSとして読み込まれる要素（`script``link``style`要素）を戻り値の要素で置換します。初期値は`null`です。
 
@@ -231,16 +403,16 @@ pjaxにより更新されたコンテンツの描画の確認を行う間隔を�
 
 ####*cache: node*
 pjaxによるページ読み込み時のキャッシュの使用にかかる設定項目を持ちます。
-独自に作成したキャッシュを使用することでサーバーと通信を行わずにページを移動することができるため、サーバーへのアクセスと負荷を軽減することができます。また、サーバーへのリクエスト時にキャッシュが使用されることはないため、リロードによる最新のデータへのアクセスを妨げません。ページに期限が設定されキャッシュされるよう設定されている場合はブラウザのキャッシュ機能が使用できるためpjaxのキャッシュ機能は無効にすることを推奨します。キャッシュはページを閉じるか通常のページ移動などによりJavaScriptの実行状態がリセットされるまで保持されます。初期設定では無効です。
+独自に作成したキャッシュ（プラグインキャッシュ）を使用することでサーバーと通信を行わずにページを移動することができるため、サーバーへのアクセスと負荷を軽減することができます。また、サーバーへのリクエスト時にキャッシュが使用されることはないため、リロードによる最新のデータへのアクセスを妨げません。キャッシュはページを閉じるか通常のページ移動などによりJavaScriptの実行状態がリセットされるまで保持されます。初期設定では無効です。
 
 #####*cache.click: boolean*
-リンクのクリックによるページ移動にキャッシュを使用するかを設定します。初期値は`false`で無効です。
+リンクのクリックによるページ移動にプラグインキャッシュを使用するかを設定します。初期値は`false`で無効です。
 
 #####*cache.submit: boolean*
-フォームの送信によるページ移動にキャッシュを使用するかを設定します。初期値は`false`で無効です。
+フォームの送信によるページ移動にプラグインキャッシュを使用するかを設定します。初期値は`false`で無効です。
 
 #####*cache.popstate: boolean*
-ブラウザの操作によるページ移動にキャッシュを使用するかを設定します。初期値は`false`で無効です。
+ブラウザの操作によるページ移動にプラグインキャッシュを使用するかを設定します。初期値は`false`で無効です。
 
 #####*cache.get: boolean*
 フォームのGET送信により取得したページをキャッシュするかを設定します。初期値は`true`で有効です。
@@ -248,26 +420,24 @@ pjaxによるページ読み込み時のキャッシュの使用にかかる設�
 #####*cache.post: boolean*
 フォームのPOST送信により取得したページをキャッシュするかを設定します。初期値は`true`で有効です。
 
-#####*cache.length: number*
-キャッシュを保持するページ数の上限を設定します。初期値は`9`です。
+#####*cache.page: number*
+プラグインキャッシュを保持するページ数の上限を設定します。初期値は`100`です。
 
 #####*cache.size: Byte as number*
-キャッシュを保持するデータサイズの上限をバイト数で設定します。初期値は`1048576`(1MB)です。
+プラグインキャッシュを保持するデータサイズの上限をバイト数で設定します。初期値は`1048576`(1MB)です。
 
 #####*cache.mix: Millisecond as number*
 ブラウザがキャッシュを保持していると推測できる場合にpjaxをキャンセルして通常のページ移動を行います。
 キャッシュを保持しているとみなす、ajaxによるページ取得に要した時間をミリ秒で設定します。設定値には`50`(ミリ秒)程度を推奨します。初期値は`false`で無効です。
 
-プリロードによる高速化のみにpjaxを使用する場合や通常のページ移動が非常に高速なChromeを使用する場合に有効です。タブレット、モバイル端末ではpjaxを完全に無効にすることも検討してください。
-
 #####*cache.expires: node*
-キャッシュの期限にかかる設定項目を持ちます。キャッシュの期限にはページに設定された期限が使用されますが異なる期限を設定することもできます。
+プラグインキャッシュの期限にかかる設定項目を持ちます。プラグインキャッシュの期限にはブラウザキャッシュに設定された期限が使用されますが異なる期限を設定することもできます。
 
 #####*cache.expires.min: Millisecond as number*
-キャッシュの期限の最小値をミリ秒で設定します。初期値は`1800000`(30分)です。
+プラグインキャッシュの期限の最小値をミリ秒で設定します。初期値は`1800000`(30分)です。
 
 #####*cache.expires.max: Millisecond as number*
-キャッシュの期限の最大値をミリ秒で設定します。初期値は`null`(無効)です。
+プラグインキャッシュの期限の最大値をミリ秒で設定します。初期値は`null`(無効)です。
 
 ####*wait: Millisecond as number / function( event, parameter, to, from )*
 `$.ajax`の実行からコンテンツの更新までの最低待ち時間を設定します。関数が設定された場合は関数の戻り値が使用されます。jQuery1.5より前のバージョンでは無効です。初期値は`0`です。
@@ -448,35 +618,35 @@ pjaxを使用してフォーム送信によりページを移動します。
 外部のajax処理を引き継いでページ移動を行います。第二引数`Ajax`は`$.ajax()`の戻り値を使用します。jQuery1.5より前のバージョンでは無効です。
 
 ####*setCache( [ URL as string [, Data as string [, textStatus as string, XMLHttpRequest as XMLHttpRequest ] ] ] )*
-キャッシュを設定します。ページの更新には`XMLHttpRequest.responseText`をベースに`Data`に存在するタイトルと更新範囲で上書きして使用されます。`Data`によるキャッシュの上書きはタイトルと更新範囲にのみ適用されます。`XMLHttpRequest`がない場合はページ移動時に取得して補充されます。
+プラグインキャッシュを設定します。ページの更新には`XMLHttpRequest.responseText`をベースに`Data`に存在するタイトルと更新範囲で上書きして使用されます。`Data`によるキャッシュの上書きはタイトルと更新範囲にのみ適用されます。`XMLHttpRequest`がない場合はページ移動時に取得して補充されます。
 
 #####*setCache( URL as string, Data as string, textStatus as string, XMLHttpRequest as XMLHttpRequest )*
 #####*setCache( URL as string, Data as string )*
-パラメータによりキャッシュを設定します。`Data`に`null`を設定すると`XMLHttpRequest`を使用して更新されます。
+パラメータによりプラグインキャッシュを設定します。`Data`に`null`を設定すると`XMLHttpRequest`を使用して更新されます。
 
 #####*setCache( URL as string )*
-URLのページのキャッシュを設定します。`setCache( URL, document.documentElement.outerHTML )`と同義です。
+URLのページのプラグインキャッシュを設定します。`setCache( URL, document.documentElement.outerHTML )`と同義です。
 
 #####*setCache()*
-現在のページのキャッシュを設定します。`setCache( location.href, document.documentElement.outerHTML )`と同義です。
+現在のページのプラグインキャッシュを設定します。`setCache( location.href, document.documentElement.outerHTML )`と同義です。
 
 #####*setCache( URL as string )*
-URLのページのキャッシュを削除します。
+URLのページのプラグインキャッシュを削除します。
 
 ####*getCache( [ URL as string ] )*
-キャッシュを取得します。
+プラグインキャッシュを取得します。
 
 #####*getCache( URL as string )*
-URLのページのキャッシュを取得します。
+URLのページのプラグインキャッシュを取得します。
 
 #####*getCache()*
-現在のページのキャッシュを取得します。
+現在のページのプラグインキャッシュを取得します。
 
 ####*removeCache( [ URL as string ] )*
-URLまたは現在のページのキャッシュを削除します。
+URLまたは現在のページのプラグインキャッシュを削除します。
 
 ####*clearCache()*
-キャッシュをすべて削除します。
+プラグインキャッシュをすべて削除します。
 
 ###Property
 なし
@@ -587,7 +757,7 @@ pjaxによる更新範囲を設定します。次のように複数の範囲を�
 ```
 
 ###フォーム - form
-pjaxでフォームの送信によるページ遷移を行います。キャッシュ有効時は初期設定ではPOST送信結果もキャッシュされることに注意してください。
+pjaxでフォームの送信によるページ遷移を行います。プラグインキャッシュ有効時は初期設定ではPOST送信結果もキャッシュされることに注意してください。
 
 **<del>demo</del>**GitPagesではPHPが動作しないため<a href="http://sa-kusaku.sakura.ne.jp/output/pjax/demo/form/" target="_blank">差し替え</a>
 
@@ -1035,6 +1205,37 @@ $.preload({
 });
 ```
 
+###キャッシュ最適化 - cache.mix
+通常のページ移動速度がpjaxと遜色ないブラウザではブラウザキャッシュが存在する場合には通常のページ移動を優先した方が高速かつ安定したページ移動を行えます。この場合、pjaxはプリロードにのみ使用します。
+
+Chromeは特に高速なブラウザですが、処理能力の高くない環境ではまだpjaxと比較して体感で0.5秒ほど遅れるケースがあるためこの機能を利用するにはもうしばらくブラウザの高速化を待つ必要があるようです。
+
+```javascript
+  $.preload({
+    forward: $.pjax.follow,
+    check: $.pjax.getCache,
+    encode: true,
+    ajax: {
+      success: function ( data, textStatus, XMLHttpRequest ) {
+        !$.pjax.getCache( this.url ) && $.pjax.setCache( this.url, null, textStatus, XMLHttpRequest ) ;
+      }
+    }
+  });
+  
+  $.pjax({
+    area: '#primary',
+    cache: {
+      click: true, submit: true, popstate: true, get: true, post: false,
+      // 移動先のページを50ミリ秒未満で取得できた場合はブラウザキャッシュが存在するとみなす
+      mix: 50,
+      // プラグインキャッシュの期限はブラウザキャッシュの期限が使用されるが
+      // プリロードによる高速化を使用できるようブラウザにキャッシュされないページでも10秒間キャッシュさせる
+      expires: { min: 10000 }
+    },
+    server: { query: null }
+  });
+```
+
 ###UTF-8以外の文字コードへの対応 - callbacks.ajax.beforeSend
 `beforeSend`でMimeTypeをオーバーライドすることでUTF-8以外の文字コードを使用したHTMLを文字化けすることなく読み込むことができます。ただし、移動先のページの文字コードを事前に判別することができないため、複数の文字コードの混在したサイトでは文字コードの設定ができずpjaxは使用できません（CSSやJavaScriptなどの外部ファイルは異なる文字コードで作成されていても問題ありません）。
 文字コード変換のデモは、当サイトのサーバーがUTF-8以外で作成されたページもUTF-8として強制的に表示させる設定となっていたことから正常に動作しないため公開していません。
@@ -1120,9 +1321,14 @@ Wordpressの各種プラグインも概ね共存し併用することができ�
 ```javascript
 $(function(){
   $.pjax({
-    area: '#primary' ,
-    link: 'a:not([target])[href^="http://host/"]' ,
-    load: { css : true , script : true , sync : true , async : 0 }
+    area: '#site-navigation, #content',
+    link: 'a:not([target])[href^="http://host/"]',
+    load: {
+      css : true , script : true , sync : true,
+      reload: '#admin-bar-css, #jetpack-slideshow-css',
+      reject: '[src^="http://host.com/wp-content/cache/head-cleaner/"]'
+    },
+    cache: { click: true, submit: true, popstate: true, get: true, post: false }
   });
 });
 ```
@@ -1169,62 +1375,6 @@ $(function(){
  });
 });
 </script>
-```
-
-###高速化済みサーバーでの設定例
-すべてのデータをブラウザでキャッシュするようサーバーで設定済みの場合の例です。
-
-* `http://example.com/somedir/`以下のページでpjaxを使用する
-* Firefoxではすべてのページでpjaxを使用する
-* Opera以外のブラウザではパース済みのHTMLを受け取る
-* CSSとJavaScriptを自動的に読み込む
-* `reset`関数により毎回ページを初期化する
-* `page.js`を毎回読み込みグローバルオブジェクトを初期化する
-
-```javascript
-// これはinit.jsの記述です
-(function(){
-  function init(){
-    // Firefoxでのみpjaxを使用する場合は次の行を有効にする
-    //if(!$.clientenv.is('firefox')){ return; }
-    var scope;
-    scope = $.clientenv.is('firefox') ? undefined : { '/somedir/', '/somedir/' };
-    $.pjax({
-      area: '#contaner',
-      scope: scope,
-      ajax: { cache: true, timeout: 5000 },
-      load: { css: true, script: true, sync: true, reload: '[src$="/page.js"]' }
-    });
-  }
-  function reset(){
-    // 遅延読み込みはサーバーを問わず効果的です
-    $.visibilitytrigger({
-      trigger: 'img[data-origin]',
-      callback: function(){ this.src = $(this).attr('data-origin'); }
-    }).vtrigger();
-  }
-  
-  init();
-  $(function(){ reset(); });
-  $(document).bind('pjax.ready', function(){ reset(); });
-})();
-```
-
-```html
-<html>
-<head>
-<title>title</title>
-</head>
-<body>
-  <div id="contaner">content</div>
-  <script type="text/javascript" charset="utf-8" src="/jquery.1.7.2.js"></script>
-  <script type="text/javascript" charset="utf-8" src="/jquery.clientenv.js"></script>
-  <script type="text/javascript" charset="utf-8" src="/jquery.pjax.js"></script>
-  <script type="text/javascript" charset="utf-8" src="/jquery.visibilitytrigger.js"></script>
-  <script type="text/javascript" charset="utf-8" src="/init.js"></script>
-  <script type="text/javascript" charset="utf-8" src="/page.js"></script>
-</body>
-</html>
 ```
 
 ##注意点
@@ -1295,6 +1445,13 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 
 ###change log
 
+####1.32.9
+
+* `cache.length`パラメータの初期値を`100`に変更
+* `cache.length`パラメータを`cache.page`パラメータに変更
+* `expires.max`パラメータを`expires.min`パラメータより優先するよう変更
+* `load.reload`パラメータがCSSの読み込みにおいて正常に動作していなかったバグを修正
+
 ####1.32.8
 
 * HTMLのパース処理を修正
@@ -1305,7 +1462,7 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 
 ####1.32.6
 
-* `cache.mix`の挙動を修正
+* `cache.mix`の動作を修正
 
 ####1.32.5
 

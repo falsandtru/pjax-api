@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.32.7
- * @updated 2014/04/19
+ * @version 1.32.9
+ * @updated 2014/04/22
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -78,8 +78,8 @@
         ajax: { dataType: 'text' },
         contentType: 'text/html',
         cache: {
-          click: false, submit: false, popstate: false, get: true, post: true, mix: 0,
-          length: 9 /* pages */, size: 1*1024*1024 /* 1MB */, expires: { max: null, min: 5*60*1000 /* 5min */ }
+          click: false, submit: false, popstate: false, get: true, post: true, mix: false,
+          page: 100 /* pages */, size: 1*1024*1024 /* 1MB */, expires: { max: null, min: 5*60*1000 /* 5min */}
         },
         callback: function () {},
         callbacks: {
@@ -163,7 +163,7 @@
     IDBFactory: window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB,
     IDBDatabase: null,
     IDBKeyRange: window.IDBKeyRange || window.webkitIDBKeyRange || window.mozIDBKeyRange || window.msIDBKeyRange,
-    parseHTML: null,
+    createHTMLDocument: null,
     setProperties: function ( namespace, element ) {
       
       var $context = this ;
@@ -275,8 +275,8 @@
                   expires = setting.cache.expires;
                 }
                 expires = Math.max( expires, 0 ) || 0;
-                expires = typeof setting.cache.expires === 'object' && typeof setting.cache.expires.max === 'number' ? Math.min( setting.cache.expires.max, expires ) : expires;
                 expires = typeof setting.cache.expires === 'object' && typeof setting.cache.expires.min === 'number' ? Math.max( setting.cache.expires.min, expires ) : expires;
+                expires = typeof setting.cache.expires === 'object' && typeof setting.cache.expires.max === 'number' ? Math.min( setting.cache.expires.max, expires ) : expires;
                 return timeStamp + expires;
               })(timeStamp) || 0;
               history.size = history.size || 0 ;
@@ -347,7 +347,7 @@
           if ( !setting || !setting.history ) { return this ; }
           var history = setting.history ;
           for ( var i = history.order.length, url ; url = history.order[ --i ] ; ) {
-            if ( i >= setting.cache.length || url in history.data && new Date().getTime() > history.data[ url ].expires ) {
+            if ( i >= setting.cache.page || url in history.data && new Date().getTime() > history.data[ url ].expires ) {
               history.order.splice( i, 1 ) ;
               history.size -= history.data[ url ].size ;
               delete history.data[ url ] ;
@@ -527,42 +527,35 @@
         return event.preventDefault() ;
       } ) ;
       
-      ( function () {
-        var DOMParser = window.DOMParser ;
-        Store.parseHTML = function ( html ) { return DOMParser && DOMParser.prototype && ( new DOMParser() ).parseFromString( html, 'text/html' ) ; } ;
-        if ( test( Store.parseHTML ) ) { return ; }
+      setTimeout( function () {
+        // chrome, firefox
+        Store.createHTMLDocument = function ( html ) { return window.DOMParser && window.DOMParser.prototype && new window.DOMParser().parseFromString( html, 'text/html' ) ; } ;
+        if ( test( Store.createHTMLDocument ) ) { return ; }
         
-        Store.parseHTML = function( html ) {
-          var doc, ua ;
+        // opera
+        Store.createHTMLDocument = function( html ) {
           if ( document.implementation && document.implementation.createHTMLDocument ) {
-            doc = document.implementation.createHTMLDocument( '' ) ;
-            ua = window.navigator.userAgent.toLowerCase() ;
-            switch (true) {
-              case typeof doc.activeElement !== 'object':
-              case ~ua.indexOf('opera'):
-              case ~ua.indexOf('android'):
-              case ~ua.indexOf('iphone os') || ~userAgent.indexOf( 'like mac os x' ):
-                jQuery( doc ).html( html );
-                break;
-              default:
-                doc.open();
-                doc.write( html );
-                doc.close();
+            var doc = document.implementation.createHTMLDocument('');
+            var attrs = (html.slice(0, 1024).match(/.*<html ([^>]+)>/im) || [0,''])[1].match(/\w+\="[^"]*.|\w+\='[^']*.|\w+/gm) || [];
+            for (var i = -1, attr;attr=attrs[++i];) {
+              attr = attr.split('=', 2);
+              doc.documentElement.setAttribute(attr[0], attr[1].replace(/^["']|["']$/g, ''));
             }
+            doc.documentElement.innerHTML = html;
           }
           return doc ;
         } ;
-        if ( test( Store.parseHTML ) ) { return ; }
+        if ( test( Store.createHTMLDocument ) ) { return ; }   
         
-        Store.parseHTML = false ;
+        Store.createHTMLDocument = false ;
         
-        function test( parseHTML ) {
+        function test( createHTMLDocument ) {
           try {
-            var doc = parseHTML && parseHTML( '<body><noscript>DOMParser</noscript></body>' ) ;
-            return jQuery( doc ).find( 'noscript' ).text() === 'DOMParser' ;
+            var doc = createHTMLDocument && createHTMLDocument('<html lang="en" class="html a b"><noscript><style></style></noscript><body><noscript>noscript</noscript></body></html>') ;
+            return doc && jQuery('html', doc).is('.html[lang=en]') && jQuery('head>noscript', doc).html() && jQuery('body>noscript', doc).text() === 'noscript' ;
           } catch ( err ) {}
         }
-      } )() ;
+      }, 50) ;
     },
     drive: function ( jQuery, window, document, undefined, Store, setting, event, url, register, cache ) {
       /* validator */ var validator ;
@@ -743,11 +736,11 @@
             } ) ;
             if ( cache && cache.data ) {
               cdata = cache.data ;
-              cdoc = jQuery( Store.parseHTML && cdata && Store.parseHTML( cdata ) || cdata ) ;
+              cdoc = jQuery( Store.createHTMLDocument && cdata && Store.createHTMLDocument( cdata ) || cdata ) ;
               pdata = pdata.replace( /<title[^>]*?>([^<]*?)<\/title>/i, function ( title ) {
                 return Store.find( cdata, /(<title[^>]*?>[^<]*?<\/title>)/i ).shift() || title ;
               }) ;
-              pdoc = jQuery( Store.parseHTML && pdata && Store.parseHTML( pdata ) || pdata ) ;
+              pdoc = jQuery( Store.createHTMLDocument && pdata && Store.createHTMLDocument( pdata ) || pdata ) ;
               for ( var i = 0, area, container, elements ; area = areas[ i++ ] ; ) {
                 container = pdoc.find( area ).add( pdoc.filter( area ) ).empty()[0] ;
                 elements = cdoc.find( area ).add( cdoc.filter( area ) ).contents() ;
@@ -756,7 +749,7 @@
                 }
               }
             } else {
-              pdoc = jQuery( Store.parseHTML && pdata && Store.parseHTML( pdata ) || pdata ) ;
+              pdoc = jQuery( Store.createHTMLDocument && pdata && Store.createHTMLDocument( pdata ) || pdata ) ;
             }
             
             switch ( true ) {
@@ -939,7 +932,6 @@
                     break ;
                 }
                 css = jQuery( css ).not( setting.load.reject ) ;
-                removes = removes.not( setting.load.reject ).not( setting.load.reload ) ;
                 
                 if ( cache && cache.css && css && css.length !== cache.css.length ) { save = true ; }
                 if ( save ) { cache.css = [] ; }
@@ -963,7 +955,7 @@
                   }
                   element && adds.push( element ) ;
                 }
-                removes.remove() ;
+                removes.not( setting.load.reload ).remove() ;
                 jQuery( 'head' ).append( adds ) ;
                 
                 if ( Store.fire( callbacks_update.css.after, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE_CSS ; }

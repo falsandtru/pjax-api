@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.32.8
- * @updated 2014/04/21
+ * @version 1.32.9
+ * @updated 2014/04/22
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -76,7 +76,7 @@
         contentType: 'text/html',
         cache: {
           click: false, submit: false, popstate: false, get: true, post: true, mix: false,
-          length: 9 /* pages */, size: 1*1024*1024 /* 1MB */, expires: { max: null, min: 5*60*1000 /* 5min */ }
+          page: 100 /* pages */, size: 1*1024*1024 /* 1MB */, expires: { max: null, min: 5*60*1000 /* 5min */}
         },
         callback: function () {},
         callbacks: {
@@ -272,8 +272,8 @@
                   expires = setting.cache.expires;
                 }
                 expires = Math.max( expires, 0 ) || 0;
-                expires = typeof setting.cache.expires === 'object' && typeof setting.cache.expires.max === 'number' ? Math.min( setting.cache.expires.max, expires ) : expires;
                 expires = typeof setting.cache.expires === 'object' && typeof setting.cache.expires.min === 'number' ? Math.max( setting.cache.expires.min, expires ) : expires;
+                expires = typeof setting.cache.expires === 'object' && typeof setting.cache.expires.max === 'number' ? Math.min( setting.cache.expires.max, expires ) : expires;
                 return timeStamp + expires;
               })(timeStamp) || 0;
               history.size = history.size || 0 ;
@@ -344,7 +344,7 @@
           if ( !setting || !setting.history ) { return this ; }
           var history = setting.history ;
           for ( var i = history.order.length, url ; url = history.order[ --i ] ; ) {
-            if ( i >= setting.cache.length || url in history.data && new Date().getTime() > history.data[ url ].expires ) {
+            if ( i >= setting.cache.page || url in history.data && new Date().getTime() > history.data[ url ].expires ) {
               history.order.splice( i, 1 ) ;
               history.size -= history.data[ url ].size ;
               delete history.data[ url ] ;
@@ -533,7 +533,6 @@
         Store.createHTMLDocument = function( html ) {
           if ( document.implementation && document.implementation.createHTMLDocument ) {
             var doc = document.implementation.createHTMLDocument('');
-
             var attrs = (html.slice(0, 1024).match(/.*<html ([^>]+)>/im) || [0,''])[1].match(/\w+\="[^"]*.|\w+\='[^']*.|\w+/gm) || [];
             for (var i = -1, attr;attr=attrs[++i];) {
               attr = attr.split('=', 2);
@@ -896,7 +895,6 @@
                     break ;
                 }
                 css = jQuery( css ).not( setting.load.reject ) ;
-                removes = removes.not( setting.load.reject ).not( setting.load.reload ) ;
                 
                 if ( cache && cache.css && css && css.length !== cache.css.length ) { save = true ; }
                 if ( save ) { cache.css = [] ; }
@@ -920,7 +918,7 @@
                   }
                   element && adds.push( element ) ;
                 }
-                removes.remove() ;
+                removes.not( setting.load.reload ).remove() ;
                 jQuery( 'head' ).append( adds ) ;
                 
                 if ( Store.fire( callbacks_update.css.after, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE_CSS ; }
