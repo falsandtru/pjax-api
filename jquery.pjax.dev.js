@@ -408,7 +408,8 @@
       setting.load.script && jQuery( 'script' ).each( function () {
         var element = this, src ;
         element = typeof setting.load.rewrite === 'function' ? Store.fire( setting.load.rewrite, null, [ element.cloneNode() ] ) || element : element ;
-        if ( ( src = element.src ) && src in setting.log.script ) { return ; }
+        src = element.src ;
+        if ( src in setting.log.script ) { return ; }
         if ( src && ( !setting.load.reload || !jQuery( element ).is( setting.load.reload ) ) ) { setting.log.script[ src ] = true ; }
       } ) ;
       
@@ -936,16 +937,14 @@
                 if ( cache && cache.css && css && css.length !== cache.css.length ) { save = true ; }
                 if ( save ) { cache.css = [] ; }
                 
-                for ( var i = 0, element, content ; element = css[ i ] ; i++ ) {
+                for ( var i = 0, element ; element = css[ i ] ; i++ ) {
                   element = typeof element === 'object' ? save ? jQuery( element.outerHTML )[ 0 ] : element
                                                         : jQuery( element )[ 0 ] ;
                   element = typeof setting.load.rewrite === 'function' ? Store.fire( setting.load.rewrite, null, [ element.cloneNode() ] ) || element : element ;
                   if ( save ) { cache.css[ i ] = element ; }
                   
-                  content = Store.trim( element.href || element.innerHTML || '' ) ;
-                  
                   for ( var j = 0, tmp ; tmp = removes[ j ] ; j++ ) {
-                    if ( !adds.length && Store.trim( tmp.href || tmp.innerHTML || '' ) === content ) {
+                    if ( !adds.length && Store.trim( tmp.href || tmp.innerHTML || '' ) === Store.trim( element.href || element.innerHTML || '' ) ) {
                       removes = removes.not( tmp ) ;
                       element = null ;
                       break ;
@@ -970,7 +969,7 @@
                 if ( !setting.load.script ) { break UPDATE_SCRIPT ; }
                 if ( Store.fire( callbacks_update.script.before, null, [ event, setting.parameter, data, textStatus, XMLHttpRequest ], setting.callbacks.async ) === false ) { break UPDATE_SCRIPT ; }
                 
-                var save ;
+                var save, execs = [] ;
                 cache = jQuery[ Store.name ].getCache( url ) ;
                 save = cache && !cache.script ;
                 switch ( script || parsable ) {
@@ -987,20 +986,23 @@
                 if ( cache && cache.script && script && script.length !== cache.script.length ) { save = true ; }
                 if ( save ) { cache.script = [] ; }
                 
-                for ( var i = 0, element, content ; element = script[ i ] ; i++ ) {
+                for ( var i = 0, element ; element = script[ i ] ; i++ ) {
                   element = typeof element === 'object' ? save ? jQuery( element.outerHTML )[ 0 ] : element
                                                         : jQuery( element )[ 0 ] ;
                   element = typeof setting.load.rewrite === 'function' ? Store.fire( setting.load.rewrite, null, [ element.cloneNode() ] ) || element : element ;
                   if ( save ) { cache.script[ i ] = element ; }
                   
                   if ( !jQuery( element ).is( selector ) ) { continue ; }
-                  content = Store.trim( element.src || '' ) ;
+                  if ( !element.src && !Store.trim( element.innerHTML ) ) { continue ; }
+                  if ( element.src in setting.log.script || setting.load.reject && jQuery( element ).is( setting.load.reject ) ) { continue ; }
                   
-                  if ( content && ( content in setting.log.script ) || setting.load.reject && jQuery( element ).is( setting.load.reject ) ) { continue ; }
-                  if ( content && ( !setting.load.reload || !jQuery( element ).is( setting.load.reload ) ) ) { setting.log.script[ content ] = true ; }
-                  
+                  if ( !setting.load.reload || !jQuery( element ).is( setting.load.reload ) ) { setting.log.script[ element.src ] = true ; }
+                  element && execs.push( element ) ;
+                }
+                
+                for ( var i = 0, element ; element = execs[ i ] ; i++ ) {
                   try {
-                    if ( content ) {
+                    if ( element.src ) {
                       jQuery.ajax( jQuery.extend( true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: !!element.async, global: false } ) ) ;
                     } else {
                       typeof element === 'object' && ( !element.type || ~element.type.toLowerCase().indexOf( 'text/javascript' ) ) &&
