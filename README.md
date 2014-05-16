@@ -64,33 +64,33 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
     
     $.clientenv.is('pc') &&
     $.preload({
-      forward: $.pjax.follow,
-      check: $.pjax.getCache,
-      encode: true,
-      ajax: {
-        xhr: function(){
-          var xhr = jQuery.ajaxSettings.xhr();
-           
-          $(progressbar).children().width('5%');
-          if ( xhr instanceof Object && 'onprogress' in xhr ) {
-            xhr.addEventListener( 'progress', function ( event ) {
-              var percentage = event.total ? event.loaded / event.total : 0.4;
-              percentage = percentage * 90 + 5;
-              $(progressbar).children().width( percentage + '%' );
-            }, false );
-            xhr.addEventListener( 'load', function ( event ) {
-              $(progressbar).children().width('95%');
-            }, false );
-            xhr.addEventListener( 'error', function ( event ) {
-              $(progressbar).children().css('background-color', '#00f');
-            }, false );
-          }
-          return xhr;
-        },
-        success: function ( data, textStatus, XMLHttpRequest ) {
-          !$.pjax.getCache( this.url ) && $.pjax.setCache( this.url, null, textStatus, XMLHttpRequest ) ;
-        }
-      }
+      forward: $.pjax.follow,
+      check: $.pjax.getCache,
+      encode: true,
+      ajax: {
+        xhr: function(){
+          var xhr = jQuery.ajaxSettings.xhr();
+           
+          $(progressbar).children().width('5%');
+          if ( xhr instanceof Object && 'onprogress' in xhr ) {
+            xhr.addEventListener( 'progress', function ( event ) {
+              var percentage = event.total ? event.loaded / event.total : 0.4;
+              percentage = percentage * 90 + 5;
+              $(progressbar).children().width( percentage + '%' );
+            }, false );
+            xhr.addEventListener( 'load', function ( event ) {
+              $(progressbar).children().width('95%');
+            }, false );
+            xhr.addEventListener( 'error', function ( event ) {
+              $(progressbar).children().css('background-color', '#00f');
+            }, false );
+          }
+          return xhr;
+        },
+        success: function ( data, textStatus, XMLHttpRequest ) {
+          !$.pjax.getCache( this.url ) && $.pjax.setCache( this.url, null, textStatus, XMLHttpRequest ) ;
+        }
+      }
     });
     
     $.clientenv.is('pc') &&
@@ -1212,14 +1212,14 @@ Chromeは特に高速なブラウザですが、処理能力の高くない環�
 
 ```javascript
   $.preload({
-    forward: $.pjax.follow,
-    check: $.pjax.getCache,
-    encode: true,
-    ajax: {
-      success: function ( data, textStatus, XMLHttpRequest ) {
-        !$.pjax.getCache( this.url ) && $.pjax.setCache( this.url, null, textStatus, XMLHttpRequest ) ;
-      }
-    }
+    forward: $.pjax.follow,
+    check: $.pjax.getCache,
+    encode: true,
+    ajax: {
+      success: function ( data, textStatus, XMLHttpRequest ) {
+        !$.pjax.getCache( this.url ) && $.pjax.setCache( this.url, null, textStatus, XMLHttpRequest ) ;
+      }
+    }
   });
   
   $.pjax({
