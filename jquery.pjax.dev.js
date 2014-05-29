@@ -704,7 +704,7 @@
           var callbacks_update = setting.callbacks.update;
           if (Store.fire(callbacks_update.before, null, [event, setting.parameter, data, textStatus, XMLHttpRequest, cache], setting.callbacks.async) === false) {break UPDATE;}
           
-          if (setting.cache.mix && event.type.toLowerCase() !== 'popstate' && new Date().getTime() - event.timeStamp < setting.cache.mix) {
+          if (setting.cache.mix && event.type.toLowerCase() !== 'popstate' && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
             return typeof setting.fallback === 'function' ? Store.fire(setting.fallback, null, [event, setting.parameter, setting.destination.href, setting.location.href]) : Store.fallback(event);
           }
           
