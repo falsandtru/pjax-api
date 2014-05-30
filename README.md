@@ -621,17 +621,16 @@ pjaxを使用してフォーム送信によりページを移動します。
 プラグインキャッシュを設定します。ページの更新には`XMLHttpRequest.responseText`をベースに`Data`に存在するタイトルと更新範囲で上書きして使用されます。`Data`によるキャッシュの上書きはタイトルと更新範囲にのみ適用されます。`XMLHttpRequest`がない場合はページ移動時に取得して補充されます。
 
 #####*setCache( URL as string, Data as string, textStatus as string, XMLHttpRequest as XMLHttpRequest )*
+パラメータによりプラグインキャッシュを設定します。`Data`は`null`で省略できます。
+
 #####*setCache( URL as string, Data as string )*
-パラメータによりプラグインキャッシュを設定します。`Data`に`null`を設定すると`XMLHttpRequest`を使用して更新されます。
+パラメータによりプラグインキャッシュを設定します。更新範囲外のデータの状態は復元されません。`Data`に`null`を設定すると`XMLHttpRequest`を使用して更新されます。
 
 #####*setCache( URL as string )*
 URLのページのプラグインキャッシュを設定します。`setCache( URL, document.documentElement.outerHTML )`と同義です。
 
 #####*setCache()*
 現在のページのプラグインキャッシュを設定します。`setCache( location.href, document.documentElement.outerHTML )`と同義です。
-
-#####*setCache( URL as string )*
-URLのページのプラグインキャッシュを削除します。
 
 ####*getCache( [ URL as string ] )*
 プラグインキャッシュを取得します。
