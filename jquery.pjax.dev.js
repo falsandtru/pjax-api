@@ -39,10 +39,6 @@
   }
   
   function initialize(jQuery, window, document, undefined, Store, option) {
-    
-    /* validator */ var validator = option.validator instanceof Object ? option.validator : false;
-    /* validator */ validator = validator ? validator.clone({name: 'jquery.pjax.js', base: true, timeout: {limit: option && option.ajax && option.ajax.timeout ? option.ajax.timeout + validator.timeout.limit : validator.timeout.limit}}) : false;
-    
     var $context = this;
     
     // polymorphism
@@ -559,7 +555,6 @@
       }, 50);
     },
     drive: function(jQuery, window, document, undefined, Store, setting, event, url, register, cache) {
-      /* validator */ var validator;
       var speedcheck = setting.speedcheck;
       speedcheck && (setting.log.speed.fire = setting.timeStamp);
       speedcheck && (setting.log.speed.time = []);
@@ -641,9 +636,6 @@
             textStatus = arguments[1];
             XMLHttpRequest = arguments[2];
             
-            /* validator */ validator = setting.validator ? setting.validator.clone({name: 'jquery.pjax.js - $.ajax()'}) : false;
-            /* validator */ validator && validator.start();
-            /* validator */ validator && validator.test('++', textStatus === 'success', [url, setting.location.href, XMLHttpRequest, textStatus], 'ajax success');
             Store.fire(setting.callbacks.ajax.success, this, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async);
           },
           error: function() {
@@ -651,16 +643,12 @@
             textStatus = arguments[1];
             errorThrown = arguments[2];
             
-            /* validator */ validator = setting.validator ? setting.validator.clone({name: 'jquery.pjax.js - $.ajax()'}) : false;
-            /* validator */ validator && validator.start();
-            /* validator */ validator && validator.test('++', textStatus === 'abort', [url, setting.location.href, XMLHttpRequest, textStatus, errorThrown], 'ajax error');
             Store.fire(setting.callbacks.ajax.error, this, [event, setting.parameter, XMLHttpRequest, textStatus, errorThrown], setting.callbacks.async);
           },
           complete: function() {
             XMLHttpRequest = arguments[0];
             textStatus = arguments[1];
             
-            /* validator */ validator && validator.test('++', 1, 0, 'ajax complete');
             Store.fire(setting.callbacks.ajax.complete, this, [event, setting.parameter, XMLHttpRequest, textStatus], setting.callbacks.async);
             
             if (!errorThrown) {
@@ -672,7 +660,6 @@
                                                               : Store.fallback(event);
               }
             }
-            /* validator */ validator && validator.end();
           }
         };
         jQuery.extend(true, ajax, setting.ajax, callbacks);
@@ -1206,9 +1193,6 @@
     },
     database: function(count) {
       var setting = Store.settings[1];
-      /* validator */ var validator = setting.validator ? setting.validator.clone({name: 'jquery.pjax.js - database()'}) : false;
-      /* validator */ validator && validator.start();
-      /* validator */ validator && (validator.scope = function(code){return eval(code);});
       var name, version, days, IDBFactory, IDBDatabase, IDBObjectStore;
       name = setting.gns; 
       version = 1;
@@ -1219,7 +1203,6 @@
       
       setting.database = false;
       if (!IDBFactory || !name || count > 5) {
-        /* validator */ validator && validator.end();
         return false;
       }
       
@@ -1232,32 +1215,22 @@
         }
         
         version = parseInt(days - days % 7 + version, 10);
-        /* validator */ validator && validator.test('++', 1, version, 'open');
         IDBDatabase = IDBFactory.open(name);
-        /* validator */ validator && validator.test('++', 1, 0, 'call');
         IDBDatabase.onblocked = function() {
-          /* validator */ validator && validator.test('++', 1, 0, 'onblocked()');
         };
         IDBDatabase.onupgradeneeded = function() {
-          /* validator */ validator && validator.test('++', 1, 0, 'onupgradeneeded()');
           var IDBDatabase = this.result;
           try {
-            /* validator */ validator && validator.test('++', 1, 0, 'deleteObjectStore');
             for (var i = IDBDatabase.objectStoreNames ? IDBDatabase.objectStoreNames.length : 0; i--;) {IDBDatabase.deleteObjectStore(IDBDatabase.objectStoreNames[i]);}
-            /* validator */ validator && validator.test('++', 1, 0, 'createObjectStore');
             IDBDatabase.createObjectStore(setting.gns, {keyPath: 'id', autoIncrement: false}).createIndex('date', 'date', {unique: false});
           } catch (err) {
-            /* validator */ validator && validator.test('++', 1, err, 'cancel');
           }
         };
         IDBDatabase.onsuccess = function() {
-          /* validator */ validator && validator.test('++', 1, 0, 'onsuccess()');
           try {
             IDBDatabase = this.result;
             Store.IDBDatabase = IDBDatabase;
-            /* validator */ validator && validator.test('++', 1, 0, 'store');
             if (IDBObjectStore = Store.dbStore()) {
-              /* validator */ validator && validator.test('++', 1, 0, 'update');
               IDBObjectStore.get('_version').onsuccess = function() {
                 if (!this.result || version === this.result.title) {
                   Store.dbVersion(version);
@@ -1274,20 +1247,14 @@
               retry();
             }
           } catch (err) {
-            /* validator */ validator && validator.test('++', 1, err, 'cancel');
             retry(1000);
           }
-          /* validator */ validator && validator.end();
         };
         IDBDatabase.onerror = function(event) {
-          /* validator */ validator && validator.test('++', 1, event, 'onerror()');
           retry(1000);
-          /* validator */ validator && validator.end();
         };
       } catch (err) {
-        /* validator */ validator && validator.test('++', 0, err, 'error');
         retry(1000);
-        /* validator */ validator && validator.end();
       }
     },
     dbStore: function() {
