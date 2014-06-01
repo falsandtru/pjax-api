@@ -602,7 +602,7 @@ pjaxを使用してクリックによりページを移動します。
 ####*submit()*
 pjaxを使用してフォーム送信によりページを移動します。
 
-#####*submit( Form as element / jQuery / element )*
+#####*submit( Form as jQuery / element )*
 渡されたフォームを使用します。
 
 #####*submit( URL as string, Attribute as object, Data as Object / Array )*
