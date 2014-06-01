@@ -717,7 +717,7 @@
             
             /* variable initialization */
             var pdoc, pdata, cdoc, cdata, parsable, areas, checker;
-            areas = jQuery.map(setting.area.match(/(?:[^,\(\[]*(?:\(.*?\)|\[.*?\])*)+/g), function(val) {return Store.trim(val) || null;});
+            areas = setting.area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
             // Can not delete the script in the noscript After parse.
             pdata = (XMLHttpRequest.responseText || '').replace(/<noscript[^>]*>(?:.|[\n\r])*?<\/noscript>/gim, function(noscript) {
               return noscript.replace(/<script(?:.|[\n\r])*?<\/script>/gim, '');
