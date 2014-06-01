@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<title>pjax demo1</title>
+<title>pjax demo2</title>
 <meta name="description" content="">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive">
@@ -32,9 +32,33 @@
 }
 </style>
 <script charset="utf-8" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script charset="utf-8" src="../lib/jquery.preload.min.js"></script>
 <script charset="utf-8" src="../lib/jquery.pjax.js"></script>
 <script>
-$(function(){ $.pjax({ area: '#primary', callback: function(){ga('send', 'pageview', window.location.pathname+window.location.search);} }); });
+$(function(){
+  $.preload({
+    forward: $.pjax.follow,
+    check: $.pjax.getCache,
+    encode: true,
+    ajax: {
+      success: function ( data, textStatus, XMLHttpRequest ) {
+        !$.pjax.getCache( this.url ) && $.pjax.setCache( this.url, null, textStatus, XMLHttpRequest ) ;
+      }
+    }
+  });
+  
+  $.pjax({
+    area: '#primary',
+    cache: {
+      click: true, submit: true, popstate: true,
+      // 移動先のページを50ミリ秒未満で取得できた場合はブラウザキャッシュが存在するとみなす
+      mix: 50,
+      // プラグインキャッシュの期限はブラウザキャッシュの期限が使用されるが
+      // プリロードによる高速化を使用できるようブラウザにキャッシュされないページでも10秒間キャッシュさせる
+      expires: { min: 10*1000 }
+    }, callback: function(){ga('send', 'pageview', window.location.pathname+window.location.search);}
+  });
+});
 </script>
 <script>
 if (!window.ga) {
@@ -63,7 +87,7 @@ window.ga('send', 'pageview', window.location.pathname+window.location.search);
 <header id="header"><div class="wrapper clearfix">
 
   <h1>pjax demo</h1>
-  <p>header1</p>
+  <p>header2</p>
   <p>これはpjaxのデモページです</p>
 
 </div></header>
@@ -71,7 +95,7 @@ window.ga('send', 'pageview', window.location.pathname+window.location.search);
 <!-- ----- PRIMARY ------------------------------------------------------------ -->
 <div id="primary"><div id="layout"><div class="wrapper clearfix">
 
-  <p>primary1</p>
+  <p>primary2</p>
   <p>pjax enable あアｱ亜</p>
   <ul>
     <li><a href="./">page1 enable</a></li>
@@ -83,7 +107,7 @@ window.ga('send', 'pageview', window.location.pathname+window.location.search);
 <!-- ----- SECONDARY ---------------------------------------------------------- -->
 <div id="secondary"><div class="wrapper clearfix">
 
-  <p>secondary1</p>
+  <p>secondary2</p>
   <ul>
     <li><a href="./">page1 enable</a></li>
     <li><a href="./2.html">page2 enable</a></li>
@@ -94,14 +118,14 @@ window.ga('send', 'pageview', window.location.pathname+window.location.search);
 <!-- ----- TERTIARY ----------------------------------------------------------- -->
 <div id="tertiary"><div class="wrapper clearfix">
 
-  <p>tertiary1</p>
+  <p>tertiary2</p>
 
 </div></div>
 </div>
 <!-- ----- FOOTER ------------------------------------------------------------- -->
 <footer id="footer"><div class="wrapper clearfix">
 
-  <p>footer1</p>
+  <p>footer2</p>
 
 </div></footer>
 </div>

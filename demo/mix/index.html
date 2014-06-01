@@ -32,9 +32,33 @@
 }
 </style>
 <script charset="utf-8" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script charset="utf-8" src="../lib/jquery.preload.min.js"></script>
 <script charset="utf-8" src="../lib/jquery.pjax.js"></script>
 <script>
-$(function(){ $.pjax({ area: '#primary', callback: function(){ga('send', 'pageview', window.location.pathname+window.location.search);} }); });
+$(function(){
+  $.preload({
+    forward: $.pjax.follow,
+    check: $.pjax.getCache,
+    encode: true,
+    ajax: {
+      success: function ( data, textStatus, XMLHttpRequest ) {
+        !$.pjax.getCache( this.url ) && $.pjax.setCache( this.url, null, textStatus, XMLHttpRequest ) ;
+      }
+    }
+  });
+  
+  $.pjax({
+    area: '#primary',
+    cache: {
+      click: true, submit: true, popstate: true,
+      // 移動先のページを50ミリ秒未満で取得できた場合はブラウザキャッシュが存在するとみなす
+      mix: 50,
+      // プラグインキャッシュの期限はブラウザキャッシュの期限が使用されるが
+      // プリロードによる高速化を使用できるようブラウザにキャッシュされないページでも10秒間キャッシュさせる
+      expires: { min: 10*1000 }
+    }, callback: function(){ga('send', 'pageview', window.location.pathname+window.location.search);}
+  });
+});
 </script>
 <script>
 if (!window.ga) {
