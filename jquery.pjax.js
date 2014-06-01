@@ -1075,9 +1075,9 @@
       if (String.prototype.trim) {
         text = String(text).trim();
       } else {
-        if (text = String(text).replace(/^\s+/, '')) {
+        if (text = String(text).replace(/^[\s\uFEFF\xA0]+/, '')) {
           for (var i = text.length; --i;) {
-            if (/\S/.test(text.charAt(i))) {
+            if (/[^\s\uFEFF\xA0]/.test(text.charAt(i))) {
               text = text.substring(0, i + 1);
               break;
             }
