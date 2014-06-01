@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.33.0
- * @updated 2014/06/01
+ * @version 1.33.1
+ * @updated 2014/06/02
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -717,7 +717,7 @@
             
             /* variable initialization */
             var pdoc, pdata, cdoc, cdata, parsable, areas, checker;
-            areas = setting.area.match(/[^,\(\[]+(?:(?:\(.*?\)|\[.*?\])[^,\(\[]*)*/g);
+            areas = jQuery.map(setting.area.match(/(?:[^,\(\[]*(?:\(.*?\)|\[.*?\])*)+/g), function(val) {return Store.trim(val) || null;});
             // Can not delete the script in the noscript After parse.
             pdata = (XMLHttpRequest.responseText || '').replace(/<noscript[^>]*>(?:.|[\n\r])*?<\/noscript>/gim, function(noscript) {
               return noscript.replace(/<script(?:.|[\n\r])*?<\/script>/gim, '');
@@ -1075,9 +1075,9 @@
       if (String.prototype.trim) {
         text = String(text).trim();
       } else {
-        if (text = String(text).replace(/^\s+/, '')) {
+        if (text = String(text).replace(/^[\s\uFEFF\xA0]+/, '')) {
           for (var i = text.length; --i;) {
-            if (/\S/.test(text.charAt(i))) {
+            if (/[^\s\uFEFF\xA0]/.test(text.charAt(i))) {
               text = text.substring(0, i + 1);
               break;
             }
