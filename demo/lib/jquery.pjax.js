@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.33.1
+ * @version 1.33.2
  * @updated 2014/06/02
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -717,7 +717,7 @@
             
             /* variable initialization */
             var pdoc, pdata, cdoc, cdata, parsable, areas, checker;
-            areas = jQuery.map(setting.area.match(/(?:[^,\(\[]*(?:\(.*?\)|\[.*?\])*)+/g), function(val) {return Store.trim(val) || null;});
+            areas = setting.area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
             // Can not delete the script in the noscript After parse.
             pdata = (XMLHttpRequest.responseText || '').replace(/<noscript[^>]*>(?:.|[\n\r])*?<\/noscript>/gim, function(noscript) {
               return noscript.replace(/<script(?:.|[\n\r])*?<\/script>/gim, '');
