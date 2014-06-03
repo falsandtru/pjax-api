@@ -80,7 +80,7 @@
         callback: function() {},
         callbacks: {
           ajax: {},
-          update: {url: {}, title: {}, content: {}, scroll: {}, css: {}, script: {}, cache: {load: {}, save: {}}, rendering: {}, verify: {}},
+          update: {url: {}, title: {}, base: {}, content: {}, scroll: {}, css: {}, script: {}, cache: {load: {}, save: {}}, rendering: {}, verify: {}},
           async: false
         },
         parameter: null,
@@ -706,7 +706,7 @@
           }
           
           /* variable initialization */
-          var title, css, script;
+          var title, base, css, script;
           
           try {
             setting.xhr && setting.xhr.readyState < 4 && setting.xhr.abort();
@@ -807,6 +807,22 @@
             }; // label: UPDATE_TITLE
             
             setting.database && Store.dbCurrent();
+            
+            /* base */
+            UPDATE_BASE: {
+              if (Store.fire(callbacks_update.base.before, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_BASE;}
+              switch (parsable) {
+                case 1:
+                case 0:
+                  base = pdoc.find('base').add(parsable ? '' : pdoc.filter('base')).clone();
+                  break;
+                case false:
+                  base = jQuery(Store.find(pdata, /<base[^>]*?>.*?(?:<\/base>|\n)/i));
+                  break;
+              }
+              jQuery('base, title').after(base).remove('base');
+              if (Store.fire(callbacks_update.base.after, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_BASE;}
+            }; // label: UPDATE_BASE
             
             /* content */
             UPDATE_CONTENT: {

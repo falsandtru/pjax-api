@@ -531,6 +531,12 @@ ajax通信において同名のメソッド内で実行されます。
 #####*update.title.after( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理においてタイトルの更新後に実行されます。
 
+#####*update.base.before( event, parameter, data, textStatus, XMLHttpRequest )*
+ページの更新処理において`base`タグの更新前に実行されます。
+
+#####*update.base.after( event, parameter, data, textStatus, XMLHttpRequest )*
+ページの更新処理において`base`タグの更新後に実行されます。
+
 #####*update.content.before( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理においてコンテンツの更新前に実行されます。
 
@@ -1447,6 +1453,7 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
   <br>パラメータに第一引数(URL)のみ設定された場合の動作を`setCache(URL, null)`の短縮に変更
 * `setCache`メソッドがパラメータにXMLHttpRequestを設定しなければ動作しないバグを修正
 * `setCache`メソッド実行時にすでにキャッシュが存在する場合、`XMLHttpRequest`パラメータが設定されている場合のみキャッシュの期限を更新するよう動作を変更
+* `base`タグに対応
 * `area`パラメータで複数の要素に一致するセレクタを使用した場合に正常に動作しないバグを修正
 * 中身のないキャッシュの生成および取得を許容するバグを修正
 
