@@ -264,6 +264,7 @@
               timeStamp = new Date().getTime();
               expires = setting.cache.expires && (function(timeStamp){
                 var expires;
+                if (history.data[url] && !XMLHttpRequest) {return history.data[url].expires;}
                 if (!XMLHttpRequest) {
                   expires = setting.cache.expires;
                 } else if (/no-store|no-cache/.test(XMLHttpRequest.getResponseHeader('Cache-Control'))) {
