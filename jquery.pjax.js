@@ -257,16 +257,17 @@
               for (var i = 1, key; key = history.order[i]; i++) {if (url === key) {history.order.splice(i, 1);}}
               
               history.size > setting.cache.size && jQuery[Store.name].cleanCache();
-              cache = jQuery[Store.name].getCache(url);
+              jQuery[Store.name].getCache(url);
               
               title = jQuery('<span/>').html(Store.find((data || '') + ((XMLHttpRequest || {}).responseText || '') + '<title></title>', /<title[^>]*?>([^<]*?)<\/title>/i).shift()).text();
               size = parseInt(((data || '').length + ((XMLHttpRequest || {}).responseText || '').length) * 1.8 || 1024*1024, 10);
               timeStamp = new Date().getTime();
-              expires = setting.cache.expires && (function(timeStamp){
-                var expires;
+              expires = (function(timeStamp){
+                var expires = setting.cache.expires;
+                if (setting.cache.expires) {return 0;}
                 if (history.data[url] && !XMLHttpRequest) {return history.data[url].expires;}
+                
                 if (!XMLHttpRequest) {
-                  expires = setting.cache.expires;
                 } else if (/no-store|no-cache/.test(XMLHttpRequest.getResponseHeader('Cache-Control'))) {
                 } else if (~String(expires = XMLHttpRequest.getResponseHeader('Cache-Control')).indexOf('max-age=')) {
                   expires = expires.match(/max-age=(\d+)/)[1] * 1000;
@@ -279,7 +280,7 @@
                 expires = typeof setting.cache.expires === 'object' && typeof setting.cache.expires.min === 'number' ? Math.max(setting.cache.expires.min, expires) : expires;
                 expires = typeof setting.cache.expires === 'object' && typeof setting.cache.expires.max === 'number' ? Math.min(setting.cache.expires.max, expires) : expires;
                 return timeStamp + expires;
-              })(timeStamp) || 0;
+              })(timeStamp);
               history.size = history.size || 0;
               history.size += history.data[url] ? 0 : size;
               history.data[url] = jQuery.extend(
