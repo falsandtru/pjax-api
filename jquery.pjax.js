@@ -295,6 +295,9 @@
                   timeStamp: timeStamp
                 }
               );
+              if (!history.data[url].data && !history.data[url].XMLHttpRequest) {
+                jQuery[Store.name].removeCache(url);
+              }
               setting.database && setting.fix.history && Store.dbTitle(url, title);
               break;
           }
@@ -309,6 +312,7 @@
           url = Store.canonicalizeURL(url || window.location.href);
           url = setting.hashquery ? url : url.replace(/#.*/, '');
           history.data[url] && new Date().getTime() > history.data[url].expires && jQuery[Store.name].removeCache(url);
+          history.data[url] && !history.data[url].data && !history.data[url].XMLHttpRequest && jQuery[Store.name].removeCache(url);
           return history.data[url];
         };
         
