@@ -1060,8 +1060,8 @@
       // Trim
       ret = Store.trim(url);
       // Remove string starting with an invalid character
-      ret = ret.replace(/[<>"{}|\\^\[\]`\s].*/,'');
-      // Deny value beginning with the string of HTTP (S) other than
+      ret = ret.replace(/["`^|\\<>{}\[\]\s].*/, '');
+      // Deny value beginning with the string of HTTP(S) other than
       ret = /^https?:/i.test(ret) ? ret : jQuery('<a/>', {href: ret})[0].href;
       // Unify to UTF-8 encoded values
       ret = encodeURI(decodeURI(ret));
