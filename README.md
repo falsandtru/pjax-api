@@ -627,7 +627,7 @@ pjaxを使用してフォーム送信によりページを移動します。
 パラメータによりプラグインキャッシュを設定します。更新範囲外のデータの状態は復元されません。`Data`に`null`を設定すると`XMLHttpRequest`を使用して更新されます。
 
 #####*setCache( URL as string )*
-URLのページのプラグインキャッシュを設定します。`setCache( URL, document.documentElement.outerHTML )`と同義です。
+URLのページのプラグインキャッシュの上書きを削除します。`setCache( URL, null )`と同義です。
 
 #####*setCache()*
 現在のページのプラグインキャッシュを設定します。`setCache( location.href, document.documentElement.outerHTML )`と同義です。
@@ -1443,8 +1443,10 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 
 ####1.33.3
 
-* `area`パラメータで複数の要素に一致するセレクタを使用した場合に正常に動作しないバグを修正
+* `setCache`メソッドの仕様を変更
+  <br>パラメータに第一引数(URL)のみ設定された場合の動作を`setCache(URL, null)`の短縮に変更
 * `setCache`メソッドがパラメータにXMLHttpRequestを設定しなければ動作しないバグを修正
+* `area`パラメータで複数の要素に一致するセレクタを使用した場合に正常に動作しないバグを修正
 
 ####1.33.2
 

@@ -244,8 +244,10 @@
           url = setting.hashquery ? url : url.replace(/#.*/, '');
           switch (arguments.length) {
             case 0:
+              data = Store.trim(document.documentElement.outerHTML);
+              return arguments.callee.call(this, url, data);
             case 1:
-              return arguments.callee.call(this, url, Store.trim(document.documentElement.outerHTML));
+              return arguments.callee.call(this, url, null);
             case 2:
             case 3:
             case 4:
