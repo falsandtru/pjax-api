@@ -262,7 +262,9 @@
               timeStamp = new Date().getTime();
               expires = setting.cache.expires && (function(timeStamp){
                 var expires;
-                if (/no-store|no-cache/.test(XMLHttpRequest.getResponseHeader('Cache-Control'))) {
+                if (!XMLHttpRequest) {
+                  expires = setting.cache.expires;
+                } else if (/no-store|no-cache/.test(XMLHttpRequest.getResponseHeader('Cache-Control'))) {
                 } else if (~String(expires = XMLHttpRequest.getResponseHeader('Cache-Control')).indexOf('max-age=')) {
                   expires = expires.match(/max-age=(\d+)/)[1] * 1000;
                 } else if (expires = XMLHttpRequest.getResponseHeader('Expires')) {
