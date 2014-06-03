@@ -627,7 +627,7 @@ pjaxを使用してフォーム送信によりページを移動します。
 パラメータによりプラグインキャッシュを設定します。更新範囲外のデータの状態は復元されません。`Data`に`null`を設定すると`XMLHttpRequest`を使用して更新されます。
 
 #####*setCache( URL as string )*
-URLのページのプラグインキャッシュの上書きを削除します。`setCache( URL, null )`と同義です。
+URLのページのプラグインキャッシュの上書きを削除します。`setCache( URL, null )`と同義です。URLに偽となる値を指定すると現在のページのプラグインキャッシュの上書きを削除します。
 
 #####*setCache()*
 現在のページのプラグインキャッシュを設定します。`setCache( location.href, document.documentElement.outerHTML )`と同義です。
