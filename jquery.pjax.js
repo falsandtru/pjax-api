@@ -729,11 +729,11 @@
                 return Store.find(cdata, /(<title[^>]*?>[^<]*?<\/title>)/i).shift() || title;
               });
               pdoc = jQuery(Store.createHTMLDocument && pdata && Store.createHTMLDocument(pdata) || pdata);
-              for (var i = 0, area, container, elements; area = areas[i++];) {
-                container = pdoc.find(area).add(pdoc.filter(area)).empty()[0];
-                elements = cdoc.find(area).add(cdoc.filter(area)).contents();
-                for (var j = 0; element = elements[j++];) {
-                  container.appendChild(element);
+              for (var i = 0, area, containers, elements; area = areas[i++];) {
+                containers = pdoc.find(area).add(pdoc.filter(area));
+                elements = cdoc.find(area).add(cdoc.filter(area));
+                for (var j = 0; element = elements[j]; j++) {
+                  containers.eq(j).html(jQuery(element).contents());
                 }
               }
             } else {
@@ -806,9 +806,12 @@
                 'class': setting.nss.class4html + '-check',
                 'style': 'background: none !important; display: block !important; visibility: hidden !important; position: absolute !important; top: 0 !important; left: 0 !important; z-index: -9999 !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; font-size: 12px !important; text-indent: 0 !important;'
               }).text(setting.gns);
-              for (var i = 0, area, element; area = areas[i++];) {
-                element = pdoc.find(area).add(parsable ? '' : pdoc.filter(area)).clone().find('script').remove().end().contents();
-                jQuery(area).html(element).append(checker.clone());
+              for (var i = 0, area, containers, elements; area = areas[i++];) {
+                containers = jQuery(area);
+                elements = pdoc.find(area).add(parsable ? '' : pdoc.filter(area)).clone().find('script').remove().end();
+                for (var j = 0; element = elements[j]; j++) {
+                  containers.eq(j).html(jQuery(element).contents()).append(checker.clone());
+                }
               }
               checker = jQuery(setting.area).children('.' + setting.nss.class4html + '-check');
               jQuery(document).trigger(setting.gns + '.DOMContentLoaded');

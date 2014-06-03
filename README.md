@@ -301,7 +301,7 @@ $('.delegate').pjax({ area: '.container' });
 ```
 
 ####*area: Selector as string / function( event, parameter, to, from )*
-pjaxにより更新する範囲（HTML要素）をjQueryセレクタで設定します。
+pjaxにより更新する範囲（HTML要素）をjQueryセレクタで設定します。更新範囲を複数設定する場合は一つのクラスセレクタ等による包括指定でなくIDセレクタのように一つの要素にのみ一致するセレクタをカンマ区切りで列挙してください。
 `$.fn.pjax`により設定されたコンテキストで絞り込まれません。
 
 #####*area: Selector as string*
@@ -1440,6 +1440,10 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 ##更新情報
 
 ###change log
+
+####1.33.3
+
+* `area`パラメータで複数の要素に一致するセレクタを使用した場合に正常に動作しないバグを修正
 
 ####1.33.2
 
