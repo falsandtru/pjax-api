@@ -264,7 +264,7 @@
               timeStamp = new Date().getTime();
               expires = (function(timeStamp){
                 var expires = setting.cache.expires;
-                if (setting.cache.expires) {return 0;}
+                if (!setting.cache.expires) {return 0;}
                 if (history.data[url] && !XMLHttpRequest) {return history.data[url].expires;}
                 
                 if (!XMLHttpRequest) {
