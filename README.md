@@ -288,7 +288,7 @@ $('.delegate').pjax({ area: '.container' });
     async: false
   },
   parameter: null,
-  load: { css: false, script: false, execute: true, reload: '', reject: '', sync: true, ajax: { dataType: 'script' }, rewrite: null },
+  load: { css: false, script: false, execute: true, reload: '', reject: '', sync: true, ajax: { dataType: 'script', cache: true }, rewrite: null },
   interval: 300,
   wait: 0,
   scroll: { delay: 300 },
@@ -379,7 +379,7 @@ pjaxによるページ読み込み時にJavaScriptを読み込むかを設定し
 ページの表示直後にすべて実行されている必要のないJavaScriptは、ページ読み込み時に一括で実行せず<a href="https://github.com/falsandtru/jquery.visibilitytrigger.js" target="_blank">visibilitytrigger</a>により随時実行することで負荷を削減することを推奨します。ページの表示直後にすべて読み込まれている必要のないコンテンツについても同様です。
 
 #####*load.ajax: object*
-`ajax`パラメータに重ねて上書きする`$.ajax`のパラメータを設定します。初期値は`{dataType: 'script'}`です。
+`ajax`パラメータに重ねて上書きする`$.ajax`のパラメータを設定します。初期値は`{dataType: 'script', cache: true}`です。
 
 #####*load.execute: boolean*
 埋め込み型のJavaScriptを実行するかを設定します。初期値は`true`で有効です。
@@ -1455,6 +1455,7 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 * `setCache`メソッド実行時にすでにキャッシュが存在する場合、`XMLHttpRequest`パラメータが設定されている場合のみキャッシュの期限を更新するよう動作を変更
 * `base`タグに対応
 * `area`パラメータで複数の要素に一致するセレクタを使用した場合に正常に動作しないバグを修正
+* `load.ajax`パラメータの初期値を`{dataType: 'script', cache: true}`に変更
 * 中身のないキャッシュの生成および取得を許容するバグを修正
 
 ####1.33.2
