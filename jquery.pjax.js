@@ -137,7 +137,7 @@
     
     // registrate
     if (Store.supportPushState()) {
-      Store.registrate.call($context, jQuery, window, document, undefined, Store, setting);
+      jQuery(function() {Store.registrate.call($context, jQuery, window, document, undefined, Store, setting)});
     }
     
     return $context; // function: pjax
