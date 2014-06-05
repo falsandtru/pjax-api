@@ -878,8 +878,9 @@
                       selector = null;
                   }
                   adds = head.filter(selector).not('[rel~="stylesheet"]');
-                  var callback = function() {
-                    var src = this, dst, callback = function() {
+                  function callback() {
+                    var src = this, dst;
+                    function callback() {
                       dst = this;
                       if (src.outerHTML === dst.outerHTML) {
                         adds = adds.not(dst);
