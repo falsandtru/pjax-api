@@ -80,15 +80,16 @@
         callback: function() {},
         callbacks: {
           ajax: {},
-          update: {url: {}, title: {}, base: {}, content: {}, scroll: {}, css: {}, script: {}, cache: {load: {}, save: {}}, rendering: {}, verify: {}},
+          update: {url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, cache: {load: {}, save: {}}, rendering: {}, verify: {}},
           async: false
         },
         parameter: null,
         load: {
-          css: false, script: false, sync: true, ajax: {dataType: 'script', cache: true}, execute: true,
+          css: false, script: false, execute: true,
           reload: '[href^="chrome-extension://"]',
           reject: '',
-          rewrite: null
+          head: 'link, meta, base',
+          sync: true, ajax: {dataType: 'script', cache: true}, rewrite: null
         },
         interval: 300,
         wait: 0,
@@ -731,7 +732,7 @@
           }
           
           /* variable initialization */
-          var title, base, css, script;
+          var title, head, css, script;
           
           try {
             setting.xhr && setting.xhr.readyState < 4 && setting.xhr.abort();
@@ -833,21 +834,72 @@
             
             setting.database && Store.dbCurrent();
             
-            /* base */
-            UPDATE_BASE: {
-              if (Store.fire(callbacks_update.base.before, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_BASE;}
-              switch (parsable) {
-                case 1:
-                case 0:
-                  base = pdoc.find('base').add(parsable ? '' : pdoc.filter('base')).clone();
-                  break;
-                case false:
-                  base = jQuery(Store.find(pdata, /<base[^>]*?>.*?(?:<\/base>|\n)/i));
-                  break;
-              }
-              jQuery('base, title').after(base).remove('base');
-              if (Store.fire(callbacks_update.base.after, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_BASE;}
-            }; // label: UPDATE_BASE
+            /* head */
+            UPDATE_HEAD: {
+              if (Store.fire(callbacks_update.head.before, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_HEAD;}
+              
+                var adds = [], removes = jQuery('head').find(setting.load.head).not('[rel~="stylesheet"]');
+                switch (parsable) {
+                  case 1:
+                  case 0:
+                    head = pdoc.find('head').find(setting.load.head).add(parsable ? '' : pdoc.filter(setting.load.head))
+                          .not(pdoc.find(setting.area).add(parsable ? '' : pdoc.filter(setting.area)).find(setting.load.head));
+                    break;
+                  case false:
+                    break;
+                }
+                head = jQuery(head).not(setting.load.reject).not('[rel~="stylesheet"]');
+                
+                var selector;
+                for (var i = 0, element; element = head[i]; i++) {
+                  element = typeof element === 'object' ? element : jQuery(element)[0];
+                  
+                  switch (element.tagName.toLowerCase()) {
+                    case 'base':
+                      selector = 'base';
+                      break;
+                    case 'link':
+                      switch ((element.getAttribute('rel') || '').toLowerCase()) {
+                        case 'alternate':
+                          selector = 'link[type="' + element.getAttribute('type') + '"][rel="' + element.getAttribute('rel') + '"]';
+                          break;
+                        default:
+                          selector = 'link[rel="' + element.getAttribute('rel') + '"]';
+                      }
+                      break;
+                    case 'meta':
+                      if (element.getAttribute('charset')) {
+                        selector = 'meta[charset]';
+                      } else {
+                        selector = 'meta[name="' + element.getAttribute('name') + '"]';
+                      }
+                      break;
+                    default:
+                      selector = null;
+                  }
+                  adds = head.filter(selector).not('[rel~="stylesheet"]');
+                  var callback = function() {
+                    var src = this, dst, callback = function() {
+                      dst = this;
+                      if (src.outerHTML === dst.outerHTML) {
+                        adds = adds.not(dst);
+                        removes = removes.not(src);
+                        return false;
+                      } else {
+                        return true;
+                      }
+                    };
+                    return !!adds.filter(callback)[0];
+                  };
+                  jQuery('head').find(selector).not(setting.load.reload).not('[rel~="stylesheet"]').filter(callback).remove();
+                  jQuery('head').prepend(adds.map(function() {return jQuery(this.outerHTML)[0];}));
+                }
+                removes.not(setting.load.reload).remove();
+                
+              if (Store.fire(callbacks_update.head.after, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_HEAD;}
+            }; // label: UPDATE_HEAD
+            speedcheck && setting.log.speed.time.push(setting.speed.now() - setting.log.speed.fire);
+            speedcheck && setting.log.speed.name.push('head(' + setting.log.speed.time[setting.log.speed.time.length - 1] + ')');
             
             /* content */
             UPDATE_CONTENT: {

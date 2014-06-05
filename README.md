@@ -226,8 +226,9 @@ defunkt版（v1.7.0/2013年6月時点最新版）との主な違いは次のと�
 |適用範囲別の設定|×|○|
 |複数領域の更新|×|○|
 |更新範囲の動的設定|×|○|
+|RSS等のhead内要素の更新|×|○|
 |ユーザー定義関数の実行形式|イベント|コールバック＋イベント|
-|ユーザー定義関数の設定箇所|9|33+4|
+|ユーザー定義関数の設定箇所|9|36+4|
 |部分的更新キャンセル※6|×|○|
 |比較用デモ※7|<a href="http://falsandtru.github.io/pjax/demo/defunkt/" target="_blank">defunkt</a>|<a href="http://falsandtru.github.io/pjax/demo/falsandtru/" target="_blank">falsandtru</a>|
 
@@ -267,36 +268,45 @@ $('.delegate').pjax({ area: '.container' });
 ```javascript
 // 初期値
 {
+  id: 0,
+  gns: Store.name,
+  ns: null,
   area: null,
   link: 'a:not([target])',
-  filter: function(){ return /(\/[^.]*|\.html?|\.php)([#?].*)?$/.test( this.href ); },
+  filter: function(){return /(\/[^.]*|\.html?|\.php)([#?].*)?$/.test(this.href);},
   form: null,
   scope: null,
   state: null,
   scrollTop: 0,
   scrollLeft: 0,
-  ajax: { dataType: 'text' },
+  ajax: {dataType: 'text'},
   contentType: 'text/html',
   cache: {
     click: false, submit: false, popstate: false, get: true, post: true, mix: false,
-    length: 100 /* pages */, size: 1*1024*1024 /* 1MB */, expires: { max: null, min: 5*60*1000 /* 5min */}
+    page: 100 /* pages */, size: 1*1024*1024 /* 1MB */, expires: {max: null, min: 5*60*1000 /* 5min */}
   },
-  callback: function () {},
+  callback: function() {},
   callbacks: {
     ajax: {},
-    update: { url: {}, title: {}, content: {}, scroll: {}, css: {}, script: {}, cache: { load: {}, save: {} }, rendering: {}, verify: {} },
+    update: {url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, cache: {load: {}, save: {}}, rendering: {}, verify: {}},
     async: false
   },
   parameter: null,
-  load: { css: false, script: false, execute: true, reload: '', reject: '', sync: true, ajax: { dataType: 'script', cache: true }, rewrite: null },
+  load: {
+    css: false, script: false, execute: true,
+    reload: '[href^="chrome-extension://"]',
+    reject: '',
+    head: 'link, meta, base',
+    sync: true, ajax: {dataType: 'script', cache: true}, rewrite: null
+  },
   interval: 300,
   wait: 0,
-  scroll: { delay: 300 },
-  fix: { location: true, history: true, scroll: true, reset: false },
+  scroll: {delay: 300},
+  fix: {location: true, history: true, scroll: true, reset: false},
   hashquery: false,
   fallback: true,
   database: true,
-  server: { query: 'pjax=1' }
+  server: {query: 'pjax=1'}
 }
 ```
 
@@ -378,9 +388,6 @@ pjaxによるページ読み込み時にJavaScriptを読み込むかを設定し
 
 ページの表示直後にすべて実行されている必要のないJavaScriptは、ページ読み込み時に一括で実行せず<a href="https://github.com/falsandtru/jquery.visibilitytrigger.js" target="_blank">visibilitytrigger</a>により随時実行することで負荷を削減することを推奨します。ページの表示直後にすべて読み込まれている必要のないコンテンツについても同様です。
 
-#####*load.ajax: object*
-`ajax`パラメータに重ねて上書きする`$.ajax`のパラメータを設定します。初期値は`{dataType: 'script', cache: true}`です。
-
 #####*load.execute: boolean*
 埋め込み型のJavaScriptを実行するかを設定します。初期値は`true`で有効です。
 
@@ -390,8 +397,14 @@ pjaxによるページ読み込み時にJavaScriptを読み込むかを設定し
 #####*load.reject: Selector as string*
 読み込まないJavaScriptとCSSをjQueryセレクタで設定します。初期値は`null`で無効です。
 
+#####*load.head: Selector as string*
+`head`要素内で同期させる要素をjQueryセレクタで設定します。対応している要素は`link``meta``base`要素のみです。JavaScriptとCSSは除外されます。初期値は`link, meta, base`です。
+
 #####*load.sync: boolean*
 `defer`属性を持つJavaScript（`script`要素）の読み込みを、pjaxによるコンテンツの更新が描画されてから行います。ただし、描画の確認回数が100回を超えた場合は描画を待たずその時点で読み込みます。初期値は`true`で有効です。
+
+#####*load.ajax: object*
+`ajax`パラメータに重ねて上書きする`$.ajax`のパラメータを設定します。初期値は`{dataType: 'script', cache: true}`です。
 
 #####*load.rewrite: function( element )*
 JavaScriptまたはCSSとして読み込まれる要素（`script``link``style`要素）を戻り値の要素で置換します。初期値は`null`です。
@@ -531,11 +544,11 @@ ajax通信において同名のメソッド内で実行されます。
 #####*update.title.after( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理においてタイトルの更新後に実行されます。
 
-#####*update.base.before( event, parameter, data, textStatus, XMLHttpRequest )*
-ページの更新処理において`base`タグの更新前に実行されます。
+#####*update.head.before( event, parameter, data, textStatus, XMLHttpRequest )*
+ページの更新処理において`head`要素の更新前に実行されます。
 
-#####*update.base.after( event, parameter, data, textStatus, XMLHttpRequest )*
-ページの更新処理において`base`タグの更新後に実行されます。
+#####*update.head.after( event, parameter, data, textStatus, XMLHttpRequest )*
+ページの更新処理において`head`要素の更新後に実行されます。
 
 #####*update.content.before( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理においてコンテンツの更新前に実行されます。
@@ -1449,12 +1462,14 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 
 ####1.33.3
 
+* `load.head`パタメータを追加
+* `callbacks.update.head`系コールバック関数を追加
+* `base``link``meta`タグに対応
 * `setCache`メソッドの仕様を変更
   <br>パラメータに第一引数(URL)のみ設定された場合の動作を`setCache(URL, null)`の短縮に変更
 * `setCache`メソッドがパラメータにXMLHttpRequestを設定しなければ動作しないバグを修正
 * `setCache`メソッド実行時にすでにキャッシュが存在する場合、`XMLHttpRequest`パラメータが設定されている場合のみキャッシュの期限を更新するよう動作を変更
 * CSSの読み込みを高速化
-* `base`タグに対応
 * `area`パラメータで複数の要素に一致するセレクタを使用した場合に正常に動作しないバグを修正
 * `load.ajax`パラメータの初期値を`{dataType: 'script', cache: true}`に変更
 * `load.reload`パラメータの初期値を`'[href^="chrome-extension://"]'`に変更
