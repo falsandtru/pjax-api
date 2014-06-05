@@ -941,13 +941,14 @@
                 if (!setting.load.css) {break UPDATE_CSS;}
                 if (Store.fire(callbacks_update.css.before, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_CSS;}
                 
-                var save, adds = [], removes = jQuery('link[rel~="stylesheet"], style');
+                var save, adds = [], removes = jQuery('link[rel~="stylesheet"], style').not(jQuery(setting.area).find('link[rel~="stylesheet"], style'));
                 cache = jQuery[Store.name].getCache(url);
                 save = cache && !cache.css;
                 switch (css || parsable) {
                   case 1:
                   case 0:
-                    css = pdoc.find('link[rel~="stylesheet"], style').add(parsable ? '' : pdoc.filter('link[rel~="stylesheet"], style')).clone().get();
+                    css = pdoc.find('link[rel~="stylesheet"], style').add(parsable ? '' : pdoc.filter('link[rel~="stylesheet"], style'))
+                          .not(pdoc.find(setting.area).add(parsable ? '' : pdoc.filter(setting.area)).find('link[rel~="stylesheet"], style'));
                     break;
                   case false:
                     css = Store.find(pdata, /(<link[^>]*?rel=.[^"\']*?stylesheet[^>]*?>|<style[^>]*?>(?:.|[\n\r])*?<\/style>)/gim);
@@ -961,22 +962,26 @@
                 for (var i = 0, element; element = css[i]; i++) {
                   element = typeof element === 'object' ? save ? jQuery(element.outerHTML)[0] : element
                                                         : jQuery(element)[0];
-                  element = typeof setting.load.rewrite === 'function' ? Store.fire(setting.load.rewrite, null, [element.cloneNode()]) || element : element;
+                  element = typeof setting.load.rewrite === 'function' ? Store.fire(setting.load.rewrite, null, [element]) || element : element;
                   if (save) {cache.css[i] = element;}
                   
-                  for (var j = 0, tmp; tmp = removes[j]; j++) {
-                    if (!adds.length && Store.trim(tmp.href || tmp.innerHTML || '') === Store.trim(element.href || element.innerHTML || '')) {
-                      removes = removes.not(tmp);
+                  for (var j = 0; removes[j]; j++) {
+                    if (Store.trim(removes[j].href || removes[j].innerHTML || '') === Store.trim(element.href || element.innerHTML || '')) {
+                      if (adds.length) {
+                        j ? removes.eq(j - 1).after(adds) : removes.eq(j).before(adds);
+                        adds = [];
+                      }
+                      removes = removes.not(removes[j]);
+                      j -= Number(!!j);
                       element = null;
-                      break;
-                    } else if (!j && adds.length) {
                       break;
                     }
                   }
-                  element && adds.push(element);
+                  element && adds.push(element.cloneNode(true));
                 }
-                removes.not(setting.load.reload).remove();
-                jQuery('head').append(adds);
+                removes.last().after(adds);
+                removes = removes.not(setting.load.reload);
+                removes.remove();
                 
                 if (Store.fire(callbacks_update.css.after, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_CSS;}
                 speedcheck && setting.log.speed.time.push(setting.speed.now() - setting.log.speed.fire);
