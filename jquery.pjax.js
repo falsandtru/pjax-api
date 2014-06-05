@@ -544,26 +544,46 @@
         Store.createHTMLDocument = function(html) {return window.DOMParser && window.DOMParser.prototype && new window.DOMParser().parseFromString(html, 'text/html');};
         if (test(Store.createHTMLDocument)) {return;}
         
-        // opera
+        // ie10+, opera
         Store.createHTMLDocument = function(html) {
           if (document.implementation && document.implementation.createHTMLDocument) {
             var doc = document.implementation.createHTMLDocument('');
+            var root = document.createElement('html');
             var attrs = (html.slice(0, 1024).match(/.*<html ([^>]+)>/im) || [0,''])[1].match(/\w+\="[^"]*.|\w+\='[^']*.|\w+/gm) || [];
-            for (var i = -1, attr;attr=attrs[++i];) {
+            for (var i = 0, attr;attr=attrs[i]; i++) {
               attr = attr.split('=', 2);
               doc.documentElement.setAttribute(attr[0], attr[1].replace(/^["']|["']$/g, ''));
             }
-            doc.documentElement.innerHTML = html;
+            root.innerHTML = html.replace(/^.*?<html[^>]*>|<\/html>.*$/ig, '');
+            doc.documentElement.removeChild(doc.head);
+            doc.documentElement.removeChild(doc.body);
+            for (var i = 0, element; element = root.childNodes[i]; i) {
+              doc.documentElement.appendChild(element);
+            }
           }
           return doc;
         };
-        if (test(Store.createHTMLDocument)) {return;}   
+        if (test(Store.createHTMLDocument)) {return;}
+        
+        // msafari
+        Store.createHTMLDocument = function(html) {
+          if (document.implementation && document.implementation.createHTMLDocument) {
+            var doc = document.implementation.createHTMLDocument('');
+            if (typeof doc.activeElement === 'object') {
+              doc.open();
+              doc.write(html);
+              doc.close();
+            }
+          }
+          return doc;
+        };
+        if (test(Store.createHTMLDocument)) {return;}
         
         Store.createHTMLDocument = false;
         
         function test(createHTMLDocument) {
           try {
-            var doc = createHTMLDocument && createHTMLDocument('<html lang="en" class="html a b"><noscript><style></style></noscript><body><noscript>noscript</noscript></body></html>');
+            var doc = createHTMLDocument && createHTMLDocument('<html lang="en" class="html a b"><head><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript></body></html>');
             return doc && jQuery('html', doc).is('.html[lang=en]') && jQuery('head>noscript', doc).html() && jQuery('body>noscript', doc).text() === 'noscript';
           } catch (err) {}
         }
