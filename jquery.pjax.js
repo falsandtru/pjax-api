@@ -1217,7 +1217,7 @@
     fallback: function(event) {
       switch (event.type.toLowerCase()) {
         case 'click':
-          window.location.href = event.currentTarget.href;
+          window.location.assign(event.currentTarget.href);
           break;
         case 'submit':
           event.target.submit();
