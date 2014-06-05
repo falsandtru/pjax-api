@@ -1051,9 +1051,8 @@
                   }
                   element && adds.push(element.cloneNode(true));
                 }
-                removes.last().after(adds);
-                removes = removes.not(setting.load.reload);
-                removes.remove();
+                removes[0] ? removes.last().after(adds) : jQuery('head').append(adds);
+                removes.not(setting.load.reload).remove();
                 
                 if (Store.fire(callbacks_update.css.after, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_CSS;}
                 speedcheck && setting.log.speed.time.push(setting.speed.now() - setting.log.speed.fire);
