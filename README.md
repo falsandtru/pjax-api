@@ -14,7 +14,7 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 ##特徴
 
 * プリロードによりリンクがクリックされる前にページの読み込みを開始してページ移動を高速化できます。
-* CSSとJavaScriptの自動読み込みが可能です。
+* 高度に自動化されているためHTMLやCSSがページごとにバラバラでも使用できます。
 * サーバー側の設定やコードのインストール等の作業が不要です。
 * 詳細な動作制御が可能で幅広い要求に対応できます。
 * pjax(pushState + ajax)で一般的に発生する問題に対応しています。
@@ -24,6 +24,7 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 * jQuery1.4.2+
 * CSSの読み込み
 * JavaScriptの読み込み
+* RSS・viewport等の同期
 * ajax処理の継承
 * Android・iOSでの使用
 * フォームのsubmitによるページ遷移
@@ -38,18 +39,62 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 * ローディングエフェクトの表示
 
 ##preload + pjax
-<a href="https://github.com/falsandtru/jquery.preload.js">preload</a>と<a href="https://github.com/falsandtru/jquery.pjax.js">pjax</a>を連携させることで初回アクセスから極めて高速にページ移動を行うことができるため、この手法を強く推奨します。
+preloadとpjaxの複合利用は、スクリプトファイルを置くだけでページの表示(移動)にかかる時間を約0.5秒短縮する手軽で効果の高い高速化手法です。ここで使用するpjaxは高度に自動化されているためHTMLやCSSがページごとにバラバラでも動作します。スクリプトと動的に追加される要素には注意が必要ですがpjaxの`load.reload`と`load.reject`パラメータを調整するだけでプラグインを数十個入れたWordpressのような複雑なサイトでも使用できます。ただし、タッチ操作ではpreloadを使用できず効果がいまひとつのため無効にします。
 
-通常はリンクのクリックからHTMLファイルのダウンロード完了まで0.5～1秒、ページの表示（DOMロード）にさらに1秒の合計2秒前後かかるページ移動をpreload+pjaxではクリックからページの表示まで0.5秒（500ミリ秒）前後で完了することができます。PCでは多分これが一番速いと思います。
+通常はリンクのクリックからHTMLファイルのダウンロード完了まで0.5～1秒、ページの表示（DOMロード）にさらに1秒の合計2秒前後かかるページ移動をpreload+pjaxではクリックからページの表示まで0.5秒（500ミリ秒）前後で完了することができます。詳細な設定項目は<a href="https://github.com/falsandtru/jquery.preload.js">preload</a>と<a href="https://github.com/falsandtru/jquery.pjax.js">pjax</a>の各ドキュメントに記載しています。PCでは多分これが一番速いと思います。
 
 |パターン|HTMLダウンロード|DOMロード|合計|
 |:---|:--:|:--:|:--:|
 |Normal|500-1000ms|800-1600ms|1300-2600ms|
 |preload+pjax|0-700ms|50-100ms|50-800ms|
 
-※jQuery1.5以降のバージョン必須
+※jQuery1.5以降のバージョン必須  
 ※Windows7+Chromeで手近なサイトを計測
-※データの受信を開始するまでの待機時間が長い場合は除く
+
+jQueryとスクリプトを3つ追加するだけで動作します。
+
+```html
+<script charset="utf-8" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script charset="utf-8" src="/lib/jquery.preload.js"></script>
+<script charset="utf-8" src="/lib/jquery.pjax.js"></script>
+<script charset="utf-8" src="/lib/accelerate.js"></script>
+```
+
+preload: [https://github.com/falsandtru/jquery.preload.js](https://github.com/falsandtru/jquery.preload.js)  
+pjax: [https://github.com/falsandtru/jquery.pjax.js](https://github.com/falsandtru/jquery.pjax.js)
+
+```javascript
+// accelerate.js
+if (!/touch|tablet|mobile|android|iphone|ipad|ios|windows phone|Mobile(\/\w+)? Safari/i.test(window.navigator.userAgent)) {
+  $.preload({
+    forward: $.pjax.follow,
+    check: $.pjax.getCache,
+    encode: true,
+    ajax: {
+      success: function ( data, textStatus, XMLHttpRequest ) {
+        !$.pjax.getCache( this.url ) && $.pjax.setCache( this.url, null, textStatus, XMLHttpRequest );
+      }
+    }
+  });
+  
+  $.pjax({
+    area: 'body',
+    load: { css: true, script: true },
+    cache: { click: true, submit: false, popstate: true },
+    server: { query: null },
+    speedcheck: true
+  });
+  
+  $(document).bind('pjax.ready', function() {$(document).trigger('preload');});
+}
+```
+
+クリックから表示までにかかった時間をコンソールに出力します。以下の出力はクリックの493ミリ秒前にリンク先のページの取得を開始し、クリックから386ミリ秒で表示されたときのものです。
+
+```
+[-493, 10, 361, 386, 411, 490, 492, 496]
+["preload(-493)", "continue(10)", "loaded(361)", "content(386)", "css(411)", "script(490)", "renderd(492)", "defer(496)"]
+```
 
 ##設定例
 汎用的な高速化設定例です。
@@ -226,7 +271,7 @@ defunkt版（v1.7.0/2013年6月時点最新版）との主な違いは次のと�
 |適用範囲別の設定|×|○|
 |複数領域の更新|×|○|
 |更新範囲の動的設定|×|○|
-|RSS等のhead内要素の更新|×|○|
+|RSS等head内要素の更新|×|○|
 |ユーザー定義関数の実行形式|イベント|コールバック＋イベント|
 |ユーザー定義関数の設定箇所|9|36+4|
 |部分的更新キャンセル※6|×|○|
@@ -1462,14 +1507,13 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 
 ####1.33.3
 
-* `load.head`パタメータを追加
-* `callbacks.update.head`系コールバック関数を追加
-* `base``link``meta`タグに対応
 * `setCache`メソッドの仕様を変更
   <br>パラメータに第一引数(URL)のみ設定された場合の動作を`setCache(URL, null)`の短縮に変更
 * `setCache`メソッドがパラメータにXMLHttpRequestを設定しなければ動作しないバグを修正
 * `setCache`メソッド実行時にすでにキャッシュが存在する場合、`XMLHttpRequest`パラメータが設定されている場合のみキャッシュの期限を更新するよう動作を変更
 * CSSの読み込みを高速化
+* `load.head`パタメータを追加、`base``link``meta`タグに対応
+* `callbacks.update.head`系コールバック関数を追加
 * `area`パラメータで複数の要素に一致するセレクタを使用した場合に正常に動作しないバグを修正
 * `load.ajax`パラメータの初期値を`{dataType: 'script', cache: true}`に変更
 * `load.reload`パラメータの初期値を`'[href^="chrome-extension://"]'`に変更
