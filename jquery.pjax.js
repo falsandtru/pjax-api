@@ -84,7 +84,12 @@
           async: false
         },
         parameter: null,
-        load: {css: false, script: false, execute: true, reload: '', reject: '', sync: true, ajax: {dataType: 'script', cache: true}, rewrite: null},
+        load: {
+          css: false, script: false, sync: true, ajax: {dataType: 'script', cache: true}, execute: true,
+          reload: '[href^="chrome-extension://"]',
+          reject: '',
+          rewrite: null
+        },
         interval: 300,
         wait: 0,
         scroll: {delay: 300},
