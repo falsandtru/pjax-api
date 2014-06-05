@@ -22,10 +22,10 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 ##対応
 
 * jQuery1.4.2+
+* ajax処理の継承
 * CSSの読み込み
 * JavaScriptの読み込み
 * RSS・viewport等の同期
-* ajax処理の継承
 * Android・iOSでの使用
 * フォームのsubmitによるページ遷移
 * Google Analytics によるアクセス解析
@@ -273,7 +273,7 @@ defunkt版（v1.7.0/2013年6月時点最新版）との主な違いは次のと�
 |更新範囲の動的設定|×|○|
 |RSS等head内要素の更新|×|○|
 |ユーザー定義関数の実行形式|イベント|コールバック＋イベント|
-|ユーザー定義関数の設定箇所|9|36+4|
+|ユーザー定義関数の設定箇所|9|38+4|
 |部分的更新キャンセル※6|×|○|
 |比較用デモ※7|<a href="http://falsandtru.github.io/pjax/demo/defunkt/" target="_blank">defunkt</a>|<a href="http://falsandtru.github.io/pjax/demo/falsandtru/" target="_blank">falsandtru</a>|
 
@@ -333,7 +333,7 @@ $('.delegate').pjax({ area: '.container' });
   callback: function() {},
   callbacks: {
     ajax: {},
-    update: {url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, cache: {load: {}, save: {}}, rendering: {}, verify: {}},
+    update: {redirect: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, cache: {load: {}, save: {}}, rendering: {}, verify: {}},
     async: false
   },
   parameter: null,
@@ -342,7 +342,8 @@ $('.delegate').pjax({ area: '.container' });
     reload: '[href^="chrome-extension://"]',
     reject: '',
     head: 'link, meta, base',
-    sync: true, ajax: {dataType: 'script', cache: true}, rewrite: null
+    sync: true, ajax: {dataType: 'script', cache: true}, rewrite: null,
+    redirect: true    
   },
   interval: 300,
   wait: 0,
@@ -443,7 +444,7 @@ pjaxによるページ読み込み時にJavaScriptを読み込むかを設定し
 読み込まないJavaScriptとCSSをjQueryセレクタで設定します。初期値は`null`で無効です。
 
 #####*load.head: Selector as string*
-`head`要素内で同期させる要素をjQueryセレクタで設定します。対応している要素は`link``meta``base`要素のみです。JavaScriptとCSSは除外されます。初期値は`link, meta, base`です。
+`head`要素内で同期させる要素をjQueryセレクタで設定します。対応している要素は`link``meta``base`要素のみです。CSSは除外されます。処理がやや重いため同期させる要素はできるだけ減らしてください。初期値は`link, meta, base`です。
 
 #####*load.sync: boolean*
 `defer`属性を持つJavaScript（`script`要素）の読み込みを、pjaxによるコンテンツの更新が描画されてから行います。ただし、描画の確認回数が100回を超えた場合は描画を待たずその時点で読み込みます。初期値は`true`で有効です。
@@ -455,6 +456,9 @@ pjaxによるページ読み込み時にJavaScriptを読み込むかを設定し
 JavaScriptまたはCSSとして読み込まれる要素（`script``link``style`要素）を戻り値の要素で置換します。初期値は`null`です。
 
 CloudFlareのRocketLoaderを使用するなどして要素が書き換えられている場合に有効です。
+
+#####*load.redirect: boolean*
+HTMLに記述されたリダイレクト先への移動にpjaxを使用するかを設定します。対応するリダイレクトはHTMLのMETAタグによるもののみです。HTTPヘッダによるリダイレクトはリダイレクト前のURLでリダイレクト後のページが表示される結果となるため注意してください。初期値は`true`で有効です。
 
 ####*interval: Millisecond as number*
 pjaxにより更新されたコンテンツの描画の確認を行う間隔をミリ秒で設定します。初期値は`300`です。
@@ -576,6 +580,12 @@ ajax通信において同名のメソッド内で実行されます。
 
 #####*update.cache.load.after( event, parameter, cache )*
 ページの更新処理においてcacheの読み込み後に実行されます。
+
+#####*update.redirect.before( event, parameter, data, textStatus, XMLHttpRequest )*
+ページの更新処理においてリダイレクトの確認前に実行されます。
+
+#####*update.redirect.after( event, parameter, data, textStatus, XMLHttpRequest )*
+ページの更新処理においてリダイレクトの確認後に実行されます。
 
 #####*update.url.before( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理においてURLの更新前に実行されます。
@@ -1465,7 +1475,13 @@ NG
 なお、検索フォームのようなGET送信フォームで使用する分には問題ありません。
 
 ###pjaxの解消不能なバグ
-当プラグインはpjaxのデメリットを極力減らし、pjaxの一般的な問題点を概ね解消していますが、MobileSafari(Android・iOS)でlocationオブジェクトが更新されないバグを解消する代わりに、主にスクロールが長く重いページからの移動先ページのスクロール位置をリセットできない場合があるバグが生じ、当プラグインはさらにこれを解消する設定を行った場合は代わりに同ブラウザではブラウザバックで戻ったページのスクロール位置を復元できない仕様となっています。pjax機能を持つメジャーなプラグインであるdefunkt版pjax、jQueryMobileの手法も検証しましたがいずれもこれら３つの問題を同時には解決できませんでした。pjaxの導入の際はこの点留意してください。MobileSafariは通常のページ遷移が高速であるため導入するサイトでスクロール位置がリセットされないバグが生じるようであれば同ブラウザではpjaxを使用しない対応を推奨します。
+当プラグインはpjaxのデメリットを極力減らし、pjaxの一般的な問題点を概ね解消していますが解消不能なバグも存在します。
+
+####リダイレクト
+ajaxはリダイレクトを検出できないためリダイレクトの設定されているページを開くとリダイレクト前のURLでリダイレクト後のページが表示される結果となります。HTMLのMETAタグによるリダイレクトには対応しているためこのリダイレクト方法であれば正常にリダイレクトされます。
+
+####MobileSafari
+MobileSafari(Android・iOS)ではlocationオブジェクトが更新されないバグを解消する代わりに、主にスクロールが長く重いページからの移動先ページのスクロール位置をリセットできない場合があるバグが生じ、当プラグインはさらにこれを解消する設定を行った場合は代わりに同ブラウザではブラウザバックで戻ったページのスクロール位置を復元できない仕様となっています。pjax機能を持つメジャーなプラグインであるdefunkt版pjax、jQueryMobileの手法も検証しましたがいずれもこれら３つの問題を同時には解決できませんでした。pjaxの導入の際はこの点留意してください。MobileSafariは通常のページ遷移が高速であるため導入するサイトでスクロール位置がリセットされないバグが生じるようであれば同ブラウザではpjaxを使用しない対応を推奨します。
 
 ###pjaxの導入にあたって
 pjaxの恩恵が得られるのは基本的にサーバーサイドでの高速化の代替、重いページ初期化処理の省略、ページ状態の維持を目的として使用する場面であり、これらいずれにも該当しない場合（サーバーでブラウザがHTML、CSS、JavaScriptをキャッシュするよう設定しており、ページの初期化処理（JavaScriptの実行）が重くなく、ページ状態を維持する必要がない）は余分な処理をさせるデメリットが生じるだけでないかよく検討するべきです。pjaxをサイトの一部のページだけで使用する場合はscope機能の使用を推奨します。
@@ -1514,6 +1530,8 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 * CSSの読み込みを高速化
 * `load.head`パタメータを追加、`base``link``meta`タグに対応
 * `callbacks.update.head`系コールバック関数を追加
+* `load.redirect`パタメータを追加、リダイレクトに対応
+* `callbacks.update.redirect`系コールバック関数を追加
 * `area`パラメータで複数の要素に一致するセレクタを使用した場合に正常に動作しないバグを修正
 * `load.ajax`パラメータの初期値を`{dataType: 'script', cache: true}`に変更
 * `load.reload`パラメータの初期値を`'[href^="chrome-extension://"]'`に変更

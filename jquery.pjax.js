@@ -80,7 +80,7 @@
         callback: function() {},
         callbacks: {
           ajax: {},
-          update: {url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, cache: {load: {}, save: {}}, rendering: {}, verify: {}},
+          update: {redirect: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, cache: {load: {}, save: {}}, rendering: {}, verify: {}},
           async: false
         },
         parameter: null,
@@ -89,7 +89,8 @@
           reload: '[href^="chrome-extension://"]',
           reject: '',
           head: 'link, meta, base',
-          sync: true, ajax: {dataType: 'script', cache: true}, rewrite: null
+          sync: true, ajax: {dataType: 'script', cache: true}, rewrite: null,
+          redirect: true
         },
         interval: 300,
         wait: 0,
@@ -802,6 +803,47 @@
             
             if (!jQuery(setting.area).length || !pdoc.find(setting.area).add(parsable ? '' : pdoc.filter(setting.area)).length) {throw new Error('throw: area length mismatch');}
             jQuery(window).trigger(setting.gns + '.unload');
+            
+            /* redirect */
+            UPDATE_REDIRECT: {
+              var redirect = jQuery('head meta[http-equiv="Refresh"][content*="URL="]', newDocument);
+              if (!redirect[0]) {break UPDATE_REDIRECT;}
+              if (Store.fire(callbacks_update.redirect.before, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_REDIRECT;};
+              
+              redirect = jQuery('<a>', {href: redirect.attr('content').match(/\w+:\/\/[^;\s]+/i)})[0];
+              switch (true) {
+                case !setting.load.redirect:
+                case redirect.protocol !== setting.destination.protocol:
+                case redirect.host !== setting.destination.host:
+                case 'submit' === event.type.toLowerCase() && 'GET' === event.target.method.toUpperCase():
+                  switch (event.type.toLowerCase()) {
+                    case 'click':
+                    case 'submit':
+                      return window.location.assign(redirect.href);
+                    case 'popstate':
+                      return window.location.replace(redirect.href);
+                  }
+                default:
+                  jQuery[Store.name].on();
+                  switch (event.type.toLowerCase()) {
+                    case 'click':
+                      return jQuery[Store.name].click(redirect.href);
+                    case 'submit':
+                      return 'GET' === event.target.method.toUpperCase() ? jQuery[Store.name].click(redirect) : window.location.assign(redirect.href);
+                    case 'popstate':
+                      window.history.replaceState(window.history.state, title, redirect.href);
+                      if (register && setting.fix.location) {
+                        jQuery[Store.name].off();
+                        window.history.back();
+                        window.history.forward();
+                        jQuery[Store.name].on();
+                      }
+                      return jQuery(window).trigger('popstate');
+                  }
+              }
+              
+              if (Store.fire(callbacks_update.redirect.after, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_REDIRECT;}
+            }; // label: UPDATE_REDIRECT
             
             /* url */
             UPDATE_URL: {
