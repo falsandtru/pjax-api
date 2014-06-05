@@ -996,7 +996,7 @@
                 switch (script || parsable) {
                   case 1:
                   case 0:
-                    script = pdoc.find('script').add(parsable ? '' : pdoc.filter('script')).clone().get();
+                    script = pdoc.find('script').add(parsable ? '' : pdoc.filter('script'));
                     break;
                   case false:
                     script = Store.find(pdata, /(?:[^\'\"]|^\s*?)(<script[^>]*?>(?:.|[\n\r])*?<\/script>)(?:[^\'\"]|\s*?$)/gim);
@@ -1010,7 +1010,7 @@
                 for (var i = 0, element; element = script[i]; i++) {
                   element = typeof element === 'object' ? save ? jQuery(element.outerHTML)[0] : element
                                                         : jQuery(element)[0];
-                  element = typeof setting.load.rewrite === 'function' ? Store.fire(setting.load.rewrite, null, [element.cloneNode()]) || element : element;
+                  element = typeof setting.load.rewrite === 'function' ? Store.fire(setting.load.rewrite, null, [element]) || element : element;
                   if (save) {cache.script[i] = element;}
                   
                   if (!jQuery(element).is(selector)) {continue;}
