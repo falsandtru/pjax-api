@@ -266,8 +266,9 @@
               history.size > setting.cache.size && jQuery[Store.name].cleanCache();
               jQuery[Store.name].getCache(url);
               
-              title = jQuery('<span/>').html(Store.find((data || '') + ((XMLHttpRequest || {}).responseText || '') + '<title></title>', /<title[^>]*?>([^<]*?)<\/title>/i).shift()).text();
-              size = parseInt(((data || '').length + ((XMLHttpRequest || {}).responseText || '').length) * 1.8 || 1024*1024, 10);
+              var doc = Store.createHTMLDocument(data || (XMLHttpRequest||{}).responseText || '');
+              title = doc.title || '';
+              size = parseInt(doc.documentElement.outerHTML.length * 1.8 || 1024*1024, 10);
               timeStamp = new Date().getTime();
               expires = (function(timeStamp){
                 var expires = setting.cache.expires;
@@ -411,6 +412,57 @@
       return 'pushState' in window.history && window.history['pushState'];
     },
     registrate: function(jQuery, window, document, undefined, Store, setting) {
+      TEST: {
+        function test(createHTMLDocument) {
+          try {
+            var doc = createHTMLDocument && createHTMLDocument('<html lang="en" class="html a b"><head><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript></body></html>');
+            return doc && jQuery('html', doc).is('.html[lang=en]') && jQuery('head>noscript', doc).html() && jQuery('body>noscript', doc).text() === 'noscript';
+          } catch (err) {}
+        }
+        
+        // chrome, firefox
+        Store.createHTMLDocument = function(html) {return window.DOMParser && window.DOMParser.prototype && new window.DOMParser().parseFromString(html || '', 'text/html');};
+        if (test(Store.createHTMLDocument)) {break TEST;}
+        
+        // msafari
+        Store.createHTMLDocument = function(html) {
+          html = html || '';
+          if (document.implementation && document.implementation.createHTMLDocument) {
+            var doc = document.implementation.createHTMLDocument('');
+            if (typeof doc.activeElement === 'object') {
+              doc.open();
+              doc.write(html);
+              doc.close();
+            }
+          }
+          return doc;
+        };
+        if (test(Store.createHTMLDocument)) {break TEST;}
+        
+        // ie10+, opera
+        Store.createHTMLDocument = function(html) {
+          html = html || '';
+          if (document.implementation && document.implementation.createHTMLDocument) {
+            var doc = document.implementation.createHTMLDocument('');
+            var root = document.createElement('html');
+            var attrs = (html.slice(0, 1024).match(/<html ([^>]+)>/im) || [0,''])[1].match(/\w+\="[^"]*.|\w+\='[^']*.|\w+/gm) || [];
+            for (var i = 0, attr;attr=attrs[i]; i++) {
+              attr = attr.split('=', 2);
+              doc.documentElement.setAttribute(attr[0], attr[1].replace(/^["']|["']$/g, ''));
+            }
+            root.innerHTML = html.replace(/^.*?<html[^>]*>|<\/html>.*$/ig, '');
+            doc.documentElement.removeChild(doc.head);
+            doc.documentElement.removeChild(doc.body);
+            for (var i = 0, element; element = root.childNodes[i]; i) {
+              doc.documentElement.appendChild(element);
+            }
+          }
+          return doc;
+        };
+        if (test(Store.createHTMLDocument)) {break TEST;}
+        
+        return;
+      }; // label: TEST
       
       var context = this;
       
@@ -540,56 +592,6 @@
         Store.drive(jQuery, window, document, undefined, Store, setting, event, url, false, cache);
         return event.preventDefault();
       });
-      
-      setTimeout(function() {
-        // chrome, firefox
-        Store.createHTMLDocument = function(html) {return window.DOMParser && window.DOMParser.prototype && new window.DOMParser().parseFromString(html, 'text/html');};
-        if (test(Store.createHTMLDocument)) {return;}
-        
-        // ie10+, opera
-        Store.createHTMLDocument = function(html) {
-          if (document.implementation && document.implementation.createHTMLDocument) {
-            var doc = document.implementation.createHTMLDocument('');
-            var root = document.createElement('html');
-            var attrs = (html.slice(0, 1024).match(/.*<html ([^>]+)>/im) || [0,''])[1].match(/\w+\="[^"]*.|\w+\='[^']*.|\w+/gm) || [];
-            for (var i = 0, attr;attr=attrs[i]; i++) {
-              attr = attr.split('=', 2);
-              doc.documentElement.setAttribute(attr[0], attr[1].replace(/^["']|["']$/g, ''));
-            }
-            root.innerHTML = html.replace(/^.*?<html[^>]*>|<\/html>.*$/ig, '');
-            doc.documentElement.removeChild(doc.head);
-            doc.documentElement.removeChild(doc.body);
-            for (var i = 0, element; element = root.childNodes[i]; i) {
-              doc.documentElement.appendChild(element);
-            }
-          }
-          return doc;
-        };
-        if (test(Store.createHTMLDocument)) {return;}
-        
-        // msafari
-        Store.createHTMLDocument = function(html) {
-          if (document.implementation && document.implementation.createHTMLDocument) {
-            var doc = document.implementation.createHTMLDocument('');
-            if (typeof doc.activeElement === 'object') {
-              doc.open();
-              doc.write(html);
-              doc.close();
-            }
-          }
-          return doc;
-        };
-        if (test(Store.createHTMLDocument)) {return;}
-        
-        Store.createHTMLDocument = false;
-        
-        function test(createHTMLDocument) {
-          try {
-            var doc = createHTMLDocument && createHTMLDocument('<html lang="en" class="html a b"><head><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript></body></html>');
-            return doc && jQuery('html', doc).is('.html[lang=en]') && jQuery('head>noscript', doc).html() && jQuery('body>noscript', doc).text() === 'noscript';
-          } catch (err) {}
-        }
-      }, 50);
     },
     drive: function(jQuery, window, document, undefined, Store, setting, event, url, register, cache) {
       var speedcheck = setting.speedcheck;
@@ -765,55 +767,26 @@
             }; // label: UPDATE_CACHE
             
             /* variable initialization */
-            var pdoc, pdata, cdoc, cdata, parsable, areas, checker;
+            var newDocument, cacheDocument, areas, checker;
             areas = setting.area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
-            // Can not delete the script in the noscript After parse.
-            pdata = (XMLHttpRequest.responseText || '').replace(/<noscript[^>]*>(?:.|[\n\r])*?<\/noscript>/gim, function(noscript) {
-              return noscript.replace(/<script(?:.|[\n\r])*?<\/script>/gim, '');
-            });
             if (cache && cache.data) {
-              cdata = cache.data;
-              cdoc = jQuery(Store.createHTMLDocument && cdata && Store.createHTMLDocument(cdata) || cdata);
-              pdata = pdata.replace(/<title[^>]*?>([^<]*?)<\/title>/i, function(title) {
-                return Store.find(cdata, /(<title[^>]*?>[^<]*?<\/title>)/i).shift() || title;
-              });
-              pdoc = jQuery(Store.createHTMLDocument && pdata && Store.createHTMLDocument(pdata) || pdata);
+              cacheDocument = Store.createHTMLDocument(cache.data);
+              newDocument = Store.createHTMLDocument(XMLHttpRequest.responseText);
               for (var i = 0, area, containers, elements; area = areas[i++];) {
-                containers = pdoc.find(area).add(pdoc.filter(area));
-                elements = cdoc.find(area).add(cdoc.filter(area));
+                containers = jQuery(area, newDocument);
+                elements = jQuery(area, cacheDocument);
                 for (var j = 0; element = elements[j]; j++) {
                   containers.eq(j).html(jQuery(element).contents());
                 }
               }
             } else {
-              pdoc = jQuery(Store.createHTMLDocument && pdata && Store.createHTMLDocument(pdata) || pdata);
+              newDocument = Store.createHTMLDocument(XMLHttpRequest.responseText);
             }
             
-            switch (true) {
-              case !!pdoc.find('html')[0]:
-                parsable = 1;
-                pdoc.find('noscript').each(function() {this.children.length && jQuery(this).text(this.innerHTML);});
-                break;
-              case !!pdoc.filter('title')[0]:
-                parsable = 0;
-                break;
-              default:
-                parsable = false;
-            }
+            jQuery('noscript', newDocument).each(function() {this.children.length && jQuery(this).text(this.innerHTML);});
+            title = jQuery('title', newDocument).text();
             
-            switch (parsable) {
-              case 1:
-                title = pdoc.find('title').text();
-                break;
-              case 0:
-                title = pdoc.filter('title').text();
-                break;
-              case false:
-                title = jQuery('<span/>').html(Store.find(pdata, /<title[^>]*?>([^<]*?)<\/title>/i).shift()).text();
-                break;
-            }
-            
-            if (!jQuery(setting.area).length || !pdoc.find(setting.area).add(parsable ? '' : pdoc.filter(setting.area)).length) {throw new Error('throw: area length mismatch');}
+            if (!jQuery(setting.area).length || jQuery(setting.area).length !== jQuery(setting.area, newDocument).length) {throw new Error('throw: area length mismatch');}
             jQuery(window).trigger(setting.gns + '.unload');
             
             /* redirect */
@@ -893,15 +866,7 @@
               if (Store.fire(callbacks_update.head.before, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_HEAD;}
               
                 var adds = [], removes = jQuery('head').find(setting.load.head).not('[rel~="stylesheet"]');
-                switch (parsable) {
-                  case 1:
-                  case 0:
-                    head = pdoc.find('head').find(setting.load.head).add(parsable ? '' : pdoc.filter(setting.load.head))
-                          .not(pdoc.find(setting.area).add(parsable ? '' : pdoc.filter(setting.area)).find(setting.load.head));
-                    break;
-                  case false:
-                    break;
-                }
+                head = jQuery('head', newDocument).find(setting.load.head).not(jQuery(setting.area, newDocument).find(setting.load.head));
                 head = jQuery(head).not(setting.load.reject).not('[rel~="stylesheet"]');
                 
                 var selector;
@@ -966,7 +931,7 @@
               }).text(setting.gns);
               for (var i = 0, area, containers, elements; area = areas[i++];) {
                 containers = jQuery(area);
-                elements = pdoc.find(area).add(parsable ? '' : pdoc.filter(area)).clone().find('script').remove().end();
+                elements = jQuery(area, newDocument).clone().find('script').remove().end();
                 for (var j = 0; element = elements[j]; j++) {
                   containers.eq(j).html(jQuery(element).contents()).append(checker.clone());
                 }
@@ -1035,20 +1000,7 @@
             } // function: rendered
             
             /* escape */
-            // Can not delete the style of update range in parsable === false.
-            // However, there is no problem on real because parsable === false is not used.
-            switch (parsable) {
-              case 1:
-              case 0:
-                pdoc.find('noscript').remove();
-                break;
-              case false:
-                pdata = pdata.replace(/^(?:.|[\n\r])*<body[^>]*>.*[\n\r]*.*[\n\r]*/im, function(head) {
-                  return head.replace(/<!--\[(?:.|[\n\r])*?<!\[endif\]-->/gim, '');
-                });
-                pdata = pdata.replace(/<noscript(?:.|[\n\r])*?<\/noscript>/gim, '');
-                break;
-            }
+            jQuery('noscript', newDocument).remove();
             
             /* css */
             function load_css() {
@@ -1059,16 +1011,7 @@
                 var save, adds = [], removes = jQuery('link[rel~="stylesheet"], style').not(jQuery(setting.area).find('link[rel~="stylesheet"], style'));
                 cache = jQuery[Store.name].getCache(url);
                 save = cache && !cache.css;
-                switch (css || parsable) {
-                  case 1:
-                  case 0:
-                    css = pdoc.find('link[rel~="stylesheet"], style').add(parsable ? '' : pdoc.filter('link[rel~="stylesheet"], style'))
-                          .not(pdoc.find(setting.area).add(parsable ? '' : pdoc.filter(setting.area)).find('link[rel~="stylesheet"], style'));
-                    break;
-                  case false:
-                    css = Store.find(pdata, /(<link[^>]*?rel=.[^"\']*?stylesheet[^>]*?>|<style[^>]*?>(?:.|[\n\r])*?<\/style>)/gim);
-                    break;
-                }
+                css = css || jQuery('link[rel~="stylesheet"], style', newDocument).not(jQuery(setting.area, newDocument).find('link[rel~="stylesheet"], style'));
                 css = jQuery(css).not(setting.load.reject);
                 
                 if (cache && cache.css && css && css.length !== cache.css.length) {save = true;}
@@ -1112,15 +1055,7 @@
                 var save, execs = [];
                 cache = jQuery[Store.name].getCache(url);
                 save = cache && !cache.script;
-                switch (script || parsable) {
-                  case 1:
-                  case 0:
-                    script = pdoc.find('script').add(parsable ? '' : pdoc.filter('script'));
-                    break;
-                  case false:
-                    script = Store.find(pdata, /(?:[^\'\"]|^\s*?)(<script[^>]*?>(?:.|[\n\r])*?<\/script>)(?:[^\'\"]|\s*?$)/gim);
-                    break;
-                }
+                script = script || jQuery('script', newDocument);
                 script = jQuery(script).not(setting.load.reject);
                 
                 if (cache && cache.script && script && script.length !== cache.script.length) {save = true;}
@@ -1269,11 +1204,6 @@
           window.location.reload();
           break;
       }
-    },
-    find: function(data, pattern) {
-      var result = [];
-      data.replace(pattern, function() {result.push(arguments[1]);});
-      return result;
     },
     scope: function(setting, src, dst, relocation) {
       var args, scp, arr, dirs, dir, keys, key, pattern, not, reg, rewrite, inherit, hit_src, hit_dst, option;

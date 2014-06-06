@@ -1536,7 +1536,7 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 * `load.ajax`パラメータの初期値を`{dataType: 'script', cache: true}`に変更
 * `load.reload`パラメータの初期値を`'[href^="chrome-extension://"]'`に変更
 * `callbacks.update.cache.save`系コールバック関数の実行タイミングを変更
-* HTMLのパース処理を修正
+* HTMLのパース処理を修正、最適化
 * 中身のないキャッシュの生成および取得を許容するバグを修正
 * DOMロード前に実行されたpjaxの初期化が自動で遅延させないバグを修正
 
