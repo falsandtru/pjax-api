@@ -275,7 +275,7 @@ defunkt版（v1.7.0/2013年6月時点最新版）との主な違いは次のと�
 |ユーザー定義関数の実行形式|イベント|コールバック＋イベント|
 |ユーザー定義関数の設定箇所|9|38+4|
 |部分的更新キャンセル※6|×|○|
-|比較用デモ※7|<a href="http://falsandtru.github.io/pjax/demo/defunkt/" target="_blank">defunkt</a>|<a href="http://falsandtru.github.io/pjax/demo/falsandtru/" target="_blank">falsandtru</a>|
+|比較用デモ※7|<a href="http://falsandtru.github.io/jquery.pjax.js/demo/defunkt/" target="_blank">defunkt</a>|<a href="http://falsandtru.github.io/jquery.pjax.js/demo/falsandtru/" target="_blank">falsandtru</a>|
 
 ※1 AndroidとiOSではページ移動時にjQueryの`scrollTop`メソッドでスクロール位置を操作できず、当プラグインではjQueryMobileと同じく`scrollTo`メソッドを使用することでこの問題を解決しています。**defunkt版では`scrollTop`メソッドを使用しているためAndroidとiOSでスクロール位置を操作できません**。  
 ※2 リンク先がJavaScriptなどHTMLページ以外を参照していた場合にContent-Typeを参照してページ移動方法を自動的にpjaxから通常のものに切り替えます。defunkt版ではこの機能がないためJavaScriptなど誤作動を起こすリンクでpjaxが動作しないよう`"a:not([href$='.js'])"`のようにリンクの絞込みを行う必要があります。  
@@ -745,7 +745,7 @@ pjaxによるページ遷移では通常のページ遷移で発生する`onload
 ###導入
 シンプルな実行例です。リンクをクリックするとPrimaryのみ更新されます。
 
-**<a href="http://falsandtru.github.io/pjax/demo/install/" target="_blank">demo</a>**
+**<a href="http://falsandtru.github.io/jquery.pjax.js/demo/install/" target="_blank">demo</a>**
 
 ```javascript
 $.pjax({ area: 'div.pjax' });
@@ -823,7 +823,7 @@ $(function(){
 ###更新範囲 - area
 pjaxによる更新範囲を設定します。次のように複数の範囲を同時に更新することもできます。双方のページで更新範囲が一致していないか更新先のページに更新範囲がひとつもない場合はエラーとなり例外処理が実行されます。
 
-**<a href="http://falsandtru.github.io/pjax/demo/area/" target="_blank">demo</a>**
+**<a href="http://falsandtru.github.io/jquery.pjax.js/demo/area/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({ area: 'div.primary.pjax, div.tertiary.pjax' });
@@ -841,7 +841,7 @@ pjaxでフォームの送信によるページ遷移を行います。プラグ�
 ###リンク - $.fn.pjax, link
 pjaxによりページ移動を行うリンクを選択します。
 
-**<a href="http://falsandtru.github.io/pjax/demo/fn/" target="_blank">demo</a>**
+**<a href="http://falsandtru.github.io/jquery.pjax.js/demo/fn/" target="_blank">demo</a>**
 
 ```javascript
   $('div.primary.pjax').pjax({
@@ -851,7 +851,7 @@ pjaxによりページ移動を行うリンクを選択します。
 
 `$.fn.pjax`のコンテキストにpjaxの`area`パラメータの子孫要素（pjaxによる更新範囲内）を設定することはできません。pjaxによりページ移動を行うリンクをpjaxによる更新範囲内にあるリンクから選択するには`link`パラメータを使用してください。
 
-**<a href="http://falsandtru.github.io/pjax/demo/link/" target="_blank">demo</a>**
+**<a href="http://falsandtru.github.io/jquery.pjax.js/demo/link/" target="_blank">demo</a>**
 
 ```javascript
   // NG
@@ -957,7 +957,7 @@ pjaxによりページ移動を行う範囲を設定します。先頭に`^`で�
 * その他のページではpjaxを使用しない。
 
 
-**<a href="http://falsandtru.github.io/pjax/demo/scope/" target="_blank">demo</a>**
+**<a href="http://falsandtru.github.io/jquery.pjax.js/demo/scope/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({
@@ -979,7 +979,7 @@ pjaxによりページ移動を行う範囲を設定します。先頭に`^`で�
 ###CSS自動読み込み - load.css
 pjaxによる移動先のページのCSSを自動的に読み込みます。移動先のページに存在しない現在のページのCSSは削除されます。
 
-**<a href="http://falsandtru.github.io/pjax/demo/css/" target="_blank">demo</a>**
+**<a href="http://falsandtru.github.io/jquery.pjax.js/demo/css/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({
@@ -992,7 +992,7 @@ pjaxによる移動先のページのCSSを自動的に読み込みます。移�
 pjaxによる移動先のページのJavaScriptを自動的に読み込みます。
 同一の**外部ファイル**により記述されるJavaScriptは**重複して読み込まれません**が、**埋め込み**により記述される同一のJavaScriptは**重複して実行されます**。
 
-**<a href="http://falsandtru.github.io/pjax/demo/script/" target="_blank">demo</a>**
+**<a href="http://falsandtru.github.io/jquery.pjax.js/demo/script/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({
@@ -1006,7 +1006,7 @@ pjaxによる移動先のページのJavaScriptを自動的に読み込みます
 ###代替処理 - fallback
 pjaxによるページ移動が失敗した場合に通常のページ移動を行います。初期値で有効になっているためこのための設定は不要です。
 
-**<a href="http://falsandtru.github.io/pjax/demo/fallback/" target="_blank">demo</a>**
+**<a href="http://falsandtru.github.io/jquery.pjax.js/demo/fallback/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({ area: 'div.pjax' });
@@ -1019,7 +1019,7 @@ pjaxによるページ移動が失敗した場合に通常のページ移動を�
 ###スクロール位置 - scrollTop, scrollLeft
 pjaxによるページ移動後のスクロール位置を設定します。`false`を設定すると移動前のスクロール位置を維持します。
 
-**<a href="http://falsandtru.github.io/pjax/demo/scroll/" target="_blank">demo</a>**
+**<a href="http://falsandtru.github.io/jquery.pjax.js/demo/scroll/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({ area: 'div.pjax', scrollTop: false, scrollLeft: 50 });
@@ -1028,7 +1028,7 @@ pjaxによるページ移動後のスクロール位置を設定します。`fal
 ###最低待ち時間 - wait
 `$.ajax`の実行からコンテンツの更新までの最低待ち時間を設定します。pjaxによるページ移動が速すぎる場合などに使用します。
 
-**<a href="http://falsandtru.github.io/pjax/demo/wait/" target="_blank">demo</a>**
+**<a href="http://falsandtru.github.io/jquery.pjax.js/demo/wait/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({ area: 'div.pjax', wait: 1000 });
@@ -1044,7 +1044,7 @@ pjaxで内部的に使用される`$.ajax`のパラメータを設定できま�
 ###コールバックとパラメータ - callback, callbacks, parameter
 コールバックに設定した関数を実行します。コールバック関数の第一引数はイベントオブジェクトが渡され、第二引数に設定したパラメータが渡され、以降は各もととなるコールバック関数に渡された引数を引き継ぎます。
 
-**<a href="http://falsandtru.github.io/pjax/demo/callback/" target="_blank">demo</a>**
+**<a href="http://falsandtru.github.io/jquery.pjax.js/demo/callback/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({
@@ -1122,7 +1122,7 @@ pjaxで内部的に使用される`$.ajax`のパラメータを設定できま�
 ###ローディングエフェクト - callback, callbacks
 コールバックをカスタマイズすることでページ移動時にローディングエフェクトを表示させることができます。
 
-**<a href="http://falsandtru.github.io/pjax/demo/effect/" target="_blank">demo</a>**
+**<a href="http://falsandtru.github.io/jquery.pjax.js/demo/effect/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({
@@ -1179,7 +1179,7 @@ pjaxで内部的に使用される`$.ajax`のパラメータを設定できま�
 
 プログレスバーでページの読み込み状況を表示することもできます。
 
-**<a href="http://falsandtru.github.io/pjax/demo/progress/" target="_blank">demo</a>**
+**<a href="http://falsandtru.github.io/jquery.pjax.js/demo/progress/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({
@@ -1335,7 +1335,7 @@ Chromeは特に高速なブラウザですが、処理能力の高くない環�
 pjaxによる通信をサーバー側で識別し、pjax用の差分データを返させ、これを使用してページの更新（移動）を行います。データサイズを削減できるため、より少ない転送量と帯域で多くのアクセスを処理できます。
 pjaxは通信時にHTTPリクエストヘッダに`X-Pjax``X-Pjax-Area``X-Pjax-CSS``X-Pjax-Script`のフィールドと値を追加します。また、リクエストするURLに`?pjax=1`のようにクエリを追加します。サーバーはこれによりpjaxの使用の有無と必要なデータを知ることができます。なお、レスポンスヘッダの`Content-Type`に必ず`contentType`パラメータで設定したいずれかの値が含まれている必要があります。
 
-**<a href="http://falsandtru.github.io/pjax/demo/server/" target="_blank">demo</a>** ※これは移動先のページを差分データに置き換えた擬似的なデモです。  
+**<a href="http://falsandtru.github.io/jquery.pjax.js/demo/server/" target="_blank">demo</a>** ※これは移動先のページを差分データに置き換えた擬似的なデモです。  
 
 ```javascript
   $.pjax({ area: 'div.pjax' });
@@ -1521,7 +1521,7 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 
 ###change log
 
-####1.33.3
+####1.34.0
 
 * `setCache`メソッドの仕様を変更
   <br>パラメータに第一引数(URL)のみ設定された場合の動作を`setCache(URL, null)`の短縮に変更
