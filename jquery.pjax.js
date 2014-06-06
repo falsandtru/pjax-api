@@ -889,8 +889,12 @@
                     case 'meta':
                       if (element.getAttribute('charset')) {
                         selector = 'meta[charset]';
-                      } else {
+                      } else if (element.getAttribute('http-equiv')) {
+                        selector = 'meta[http-equiv="' + element.getAttribute('http-equiv') + '"]';
+                      } else if (element.getAttribute('name')) {
                         selector = 'meta[name="' + element.getAttribute('name') + '"]';
+                      } else {
+                        continue;
                       }
                       break;
                     default:
