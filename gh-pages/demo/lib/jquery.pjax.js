@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.33.2
- * @updated 2014/06/02
+ * @version 1.34.0
+ * @updated 2014/06/06
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -80,11 +80,18 @@
         callback: function() {},
         callbacks: {
           ajax: {},
-          update: {url: {}, title: {}, content: {}, scroll: {}, css: {}, script: {}, cache: {load: {}, save: {}}, rendering: {}, verify: {}},
+          update: {redirect: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, cache: {load: {}, save: {}}, rendering: {}, verify: {}},
           async: false
         },
         parameter: null,
-        load: {css: false, script: false, execute: true, reload: '', reject: '', sync: true, ajax: {dataType: 'script'}, rewrite: null},
+        load: {
+          css: false, script: false, execute: true,
+          reload: '[href^="chrome-extension://"]',
+          reject: '',
+          head: 'link, meta, base',
+          sync: true, ajax: {dataType: 'script', cache: true}, rewrite: null,
+          redirect: true
+        },
         interval: 300,
         wait: 0,
         scroll: {delay: 300},
@@ -137,7 +144,7 @@
     
     // registrate
     if (Store.supportPushState()) {
-      Store.registrate.call($context, jQuery, window, document, undefined, Store, setting);
+      jQuery(function() {Store.registrate.call($context, jQuery, window, document, undefined, Store, setting)});
     }
     
     return $context; // function: pjax
@@ -244,8 +251,10 @@
           url = setting.hashquery ? url : url.replace(/#.*/, '');
           switch (arguments.length) {
             case 0:
+              data = Store.trim(document.documentElement.outerHTML);
+              return arguments.callee.call(this, url, data);
             case 1:
-              return arguments.callee.call(this, url, Store.trim(document.documentElement.outerHTML));
+              return arguments.callee.call(this, url, null);
             case 2:
             case 3:
             case 4:
@@ -255,14 +264,19 @@
               for (var i = 1, key; key = history.order[i]; i++) {if (url === key) {history.order.splice(i, 1);}}
               
               history.size > setting.cache.size && jQuery[Store.name].cleanCache();
-              cache = jQuery[Store.name].getCache(url);
+              jQuery[Store.name].getCache(url);
               
-              title = jQuery('<span/>').html(Store.find((data || '') + ((XMLHttpRequest || {}).responseText || '') + '<title></title>', /<title[^>]*?>([^<]*?)<\/title>/i).shift()).text();
-              size = parseInt(((data || '').length + ((XMLHttpRequest || {}).responseText || '').length) * 1.8 || 1024*1024, 10);
+              var doc = Store.createHTMLDocument(data || (XMLHttpRequest||{}).responseText || '');
+              title = doc.title || '';
+              size = parseInt(doc.documentElement.outerHTML.length * 1.8 || 1024*1024, 10);
               timeStamp = new Date().getTime();
-              expires = setting.cache.expires && (function(timeStamp){
-                var expires;
-                if (/no-store|no-cache/.test(XMLHttpRequest.getResponseHeader('Cache-Control'))) {
+              expires = (function(timeStamp){
+                var expires = setting.cache.expires;
+                if (!setting.cache.expires) {return 0;}
+                if (history.data[url] && !XMLHttpRequest) {return history.data[url].expires;}
+                
+                if (!XMLHttpRequest) {
+                } else if (/no-store|no-cache/.test(XMLHttpRequest.getResponseHeader('Cache-Control'))) {
                 } else if (~String(expires = XMLHttpRequest.getResponseHeader('Cache-Control')).indexOf('max-age=')) {
                   expires = expires.match(/max-age=(\d+)/)[1] * 1000;
                 } else if (expires = XMLHttpRequest.getResponseHeader('Expires')) {
@@ -274,7 +288,7 @@
                 expires = typeof setting.cache.expires === 'object' && typeof setting.cache.expires.min === 'number' ? Math.max(setting.cache.expires.min, expires) : expires;
                 expires = typeof setting.cache.expires === 'object' && typeof setting.cache.expires.max === 'number' ? Math.min(setting.cache.expires.max, expires) : expires;
                 return timeStamp + expires;
-              })(timeStamp) || 0;
+              })(timeStamp);
               history.size = history.size || 0;
               history.size += history.data[url] ? 0 : size;
               history.data[url] = jQuery.extend(
@@ -291,6 +305,9 @@
                   timeStamp: timeStamp
                 }
               );
+              if (!history.data[url].data && !history.data[url].XMLHttpRequest) {
+                jQuery[Store.name].removeCache(url);
+              }
               setting.database && setting.fix.history && Store.dbTitle(url, title);
               break;
           }
@@ -305,6 +322,7 @@
           url = Store.canonicalizeURL(url || window.location.href);
           url = setting.hashquery ? url : url.replace(/#.*/, '');
           history.data[url] && new Date().getTime() > history.data[url].expires && jQuery[Store.name].removeCache(url);
+          history.data[url] && !history.data[url].data && !history.data[url].XMLHttpRequest && jQuery[Store.name].removeCache(url);
           return history.data[url];
         };
         
@@ -394,6 +412,57 @@
       return 'pushState' in window.history && window.history['pushState'];
     },
     registrate: function(jQuery, window, document, undefined, Store, setting) {
+      TEST: {
+        function test(createHTMLDocument) {
+          try {
+            var doc = createHTMLDocument && createHTMLDocument('<html lang="en" class="html a b"><head><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript></body></html>');
+            return doc && jQuery('html', doc).is('.html[lang=en]') && jQuery('head>noscript', doc).html() && jQuery('body>noscript', doc).text() === 'noscript';
+          } catch (err) {}
+        }
+        
+        // chrome, firefox
+        Store.createHTMLDocument = function(html) {return window.DOMParser && window.DOMParser.prototype && new window.DOMParser().parseFromString(html || '', 'text/html');};
+        if (test(Store.createHTMLDocument)) {break TEST;}
+        
+        // msafari
+        Store.createHTMLDocument = function(html) {
+          html = html || '';
+          if (document.implementation && document.implementation.createHTMLDocument) {
+            var doc = document.implementation.createHTMLDocument('');
+            if (typeof doc.activeElement === 'object') {
+              doc.open();
+              doc.write(html);
+              doc.close();
+            }
+          }
+          return doc;
+        };
+        if (test(Store.createHTMLDocument)) {break TEST;}
+        
+        // ie10+, opera
+        Store.createHTMLDocument = function(html) {
+          html = html || '';
+          if (document.implementation && document.implementation.createHTMLDocument) {
+            var doc = document.implementation.createHTMLDocument('');
+            var root = document.createElement('html');
+            var attrs = (html.slice(0, 1024).match(/<html ([^>]+)>/im) || [0,''])[1].match(/\w+\="[^"]*.|\w+\='[^']*.|\w+/gm) || [];
+            for (var i = 0, attr;attr=attrs[i]; i++) {
+              attr = attr.split('=', 2);
+              doc.documentElement.setAttribute(attr[0], attr[1].replace(/^["']|["']$/g, ''));
+            }
+            root.innerHTML = html.replace(/^.*?<html[^>]*>|<\/html>.*$/ig, '');
+            doc.documentElement.removeChild(doc.head);
+            doc.documentElement.removeChild(doc.body);
+            for (var i = 0, element; element = root.childNodes[i]; i) {
+              doc.documentElement.appendChild(element);
+            }
+          }
+          return doc;
+        };
+        if (test(Store.createHTMLDocument)) {break TEST;}
+        
+        return;
+      }; // label: TEST
       
       var context = this;
       
@@ -523,36 +592,6 @@
         Store.drive(jQuery, window, document, undefined, Store, setting, event, url, false, cache);
         return event.preventDefault();
       });
-      
-      setTimeout(function() {
-        // chrome, firefox
-        Store.createHTMLDocument = function(html) {return window.DOMParser && window.DOMParser.prototype && new window.DOMParser().parseFromString(html, 'text/html');};
-        if (test(Store.createHTMLDocument)) {return;}
-        
-        // opera
-        Store.createHTMLDocument = function(html) {
-          if (document.implementation && document.implementation.createHTMLDocument) {
-            var doc = document.implementation.createHTMLDocument('');
-            var attrs = (html.slice(0, 1024).match(/.*<html ([^>]+)>/im) || [0,''])[1].match(/\w+\="[^"]*.|\w+\='[^']*.|\w+/gm) || [];
-            for (var i = -1, attr;attr=attrs[++i];) {
-              attr = attr.split('=', 2);
-              doc.documentElement.setAttribute(attr[0], attr[1].replace(/^["']|["']$/g, ''));
-            }
-            doc.documentElement.innerHTML = html;
-          }
-          return doc;
-        };
-        if (test(Store.createHTMLDocument)) {return;}   
-        
-        Store.createHTMLDocument = false;
-        
-        function test(createHTMLDocument) {
-          try {
-            var doc = createHTMLDocument && createHTMLDocument('<html lang="en" class="html a b"><noscript><style></style></noscript><body><noscript>noscript</noscript></body></html>');
-            return doc && jQuery('html', doc).is('.html[lang=en]') && jQuery('head>noscript', doc).html() && jQuery('body>noscript', doc).text() === 'noscript';
-          } catch (err) {}
-        }
-      }, 50);
     },
     drive: function(jQuery, window, document, undefined, Store, setting, event, url, register, cache) {
       var speedcheck = setting.speedcheck;
@@ -696,7 +735,7 @@
           }
           
           /* variable initialization */
-          var title, css, script;
+          var title, head, css, script;
           
           try {
             setting.xhr && setting.xhr.readyState < 4 && setting.xhr.abort();
@@ -715,57 +754,81 @@
               if (Store.fire(callbacks_update.cache.load.after, null, [event, setting.parameter, cache], setting.callbacks.async) === false) {break UPDATE_CACHE;}
             }; // label: UPDATE_CACHE
             
+            /* cache */
+            UPDATE_CACHE: {
+              if (cache && cache.XMLHttpRequest || !setting.cache.click && !setting.cache.submit && !setting.cache.popstate) {break UPDATE_CACHE;}
+              if (event.type.toLowerCase() === 'submit' && !setting.cache[event.target.method.toLowerCase()]) {break UPDATE_CACHE;}
+              if (Store.fire(callbacks_update.cache.save.before, null, [event, setting.parameter, cache], setting.callbacks.async) === false) {break UPDATE_CACHE;}
+              
+              jQuery[Store.name].setCache(url, cache && cache.data || null, textStatus, XMLHttpRequest);
+              cache = jQuery[Store.name].getCache(url);
+              
+              if (Store.fire(callbacks_update.cache.save.after, null, [event, setting.parameter, cache], setting.callbacks.async) === false) {break UPDATE_CACHE;}
+            }; // label: UPDATE_CACHE
+            
             /* variable initialization */
-            var pdoc, pdata, cdoc, cdata, parsable, areas, checker;
+            var newDocument, cacheDocument, areas, checker;
             areas = setting.area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
-            // Can not delete the script in the noscript After parse.
-            pdata = (XMLHttpRequest.responseText || '').replace(/<noscript[^>]*>(?:.|[\n\r])*?<\/noscript>/gim, function(noscript) {
-              return noscript.replace(/<script(?:.|[\n\r])*?<\/script>/gim, '');
-            });
             if (cache && cache.data) {
-              cdata = cache.data;
-              cdoc = jQuery(Store.createHTMLDocument && cdata && Store.createHTMLDocument(cdata) || cdata);
-              pdata = pdata.replace(/<title[^>]*?>([^<]*?)<\/title>/i, function(title) {
-                return Store.find(cdata, /(<title[^>]*?>[^<]*?<\/title>)/i).shift() || title;
-              });
-              pdoc = jQuery(Store.createHTMLDocument && pdata && Store.createHTMLDocument(pdata) || pdata);
-              for (var i = 0, area, container, elements; area = areas[i++];) {
-                container = pdoc.find(area).add(pdoc.filter(area)).empty()[0];
-                elements = cdoc.find(area).add(cdoc.filter(area)).contents();
-                for (var j = 0; element = elements[j++];) {
-                  container.appendChild(element);
+              cacheDocument = Store.createHTMLDocument(cache.data);
+              newDocument = Store.createHTMLDocument(XMLHttpRequest.responseText);
+              for (var i = 0, area, containers, elements; area = areas[i++];) {
+                containers = jQuery(area, newDocument);
+                elements = jQuery(area, cacheDocument);
+                for (var j = 0; element = elements[j]; j++) {
+                  containers.eq(j).html(jQuery(element).contents());
                 }
               }
             } else {
-              pdoc = jQuery(Store.createHTMLDocument && pdata && Store.createHTMLDocument(pdata) || pdata);
+              newDocument = Store.createHTMLDocument(XMLHttpRequest.responseText);
             }
             
-            switch (true) {
-              case !!pdoc.find('html')[0]:
-                parsable = 1;
-                pdoc.find('noscript').each(function() {this.children.length && jQuery(this).text(this.innerHTML);});
-                break;
-              case !!pdoc.filter('title')[0]:
-                parsable = 0;
-                break;
-              default:
-                parsable = false;
-            }
+            jQuery('noscript', newDocument).each(function() {this.children.length && jQuery(this).text(this.innerHTML);});
+            title = jQuery('title', newDocument).text();
             
-            switch (parsable) {
-              case 1:
-                title = pdoc.find('title').text();
-                break;
-              case 0:
-                title = pdoc.filter('title').text();
-                break;
-              case false:
-                title = jQuery('<span/>').html(Store.find(pdata, /<title[^>]*?>([^<]*?)<\/title>/i).shift()).text();
-                break;
-            }
-            
-            if (!jQuery(setting.area).length || !pdoc.find(setting.area).add(parsable ? '' : pdoc.filter(setting.area)).length) {throw new Error('throw: area length mismatch');}
+            if (!jQuery(setting.area).length || jQuery(setting.area).length !== jQuery(setting.area, newDocument).length) {throw new Error('throw: area length mismatch');}
             jQuery(window).trigger(setting.gns + '.unload');
+            
+            /* redirect */
+            UPDATE_REDIRECT: {
+              var redirect = jQuery('head meta[http-equiv="Refresh"][content*="URL="]', newDocument);
+              if (!redirect[0]) {break UPDATE_REDIRECT;}
+              if (Store.fire(callbacks_update.redirect.before, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_REDIRECT;};
+              
+              redirect = jQuery('<a>', {href: redirect.attr('content').match(/\w+:\/\/[^;\s]+/i)})[0];
+              switch (true) {
+                case !setting.load.redirect:
+                case redirect.protocol !== setting.destination.protocol:
+                case redirect.host !== setting.destination.host:
+                case 'submit' === event.type.toLowerCase() && 'GET' === event.target.method.toUpperCase():
+                  switch (event.type.toLowerCase()) {
+                    case 'click':
+                    case 'submit':
+                      return window.location.assign(redirect.href);
+                    case 'popstate':
+                      return window.location.replace(redirect.href);
+                  }
+                default:
+                  jQuery[Store.name].on();
+                  switch (event.type.toLowerCase()) {
+                    case 'click':
+                      return jQuery[Store.name].click(redirect.href);
+                    case 'submit':
+                      return 'GET' === event.target.method.toUpperCase() ? jQuery[Store.name].click(redirect) : window.location.assign(redirect.href);
+                    case 'popstate':
+                      window.history.replaceState(window.history.state, title, redirect.href);
+                      if (register && setting.fix.location) {
+                        jQuery[Store.name].off();
+                        window.history.back();
+                        window.history.forward();
+                        jQuery[Store.name].on();
+                      }
+                      return jQuery(window).trigger('popstate');
+                  }
+              }
+              
+              if (Store.fire(callbacks_update.redirect.after, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_REDIRECT;}
+            }; // label: UPDATE_REDIRECT
             
             /* url */
             UPDATE_URL: {
@@ -798,6 +861,66 @@
             
             setting.database && Store.dbCurrent();
             
+            /* head */
+            UPDATE_HEAD: {
+              if (Store.fire(callbacks_update.head.before, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_HEAD;}
+              
+                var adds = [], removes = jQuery('head').find(setting.load.head).not('[rel~="stylesheet"]');
+                head = jQuery('head', newDocument).find(setting.load.head).not(jQuery(setting.area, newDocument).find(setting.load.head));
+                head = jQuery(head).not(setting.load.reject).not('[rel~="stylesheet"]');
+                
+                var selector;
+                for (var i = 0, element; element = head[i]; i++) {
+                  element = typeof element === 'object' ? element : jQuery(element)[0];
+                  
+                  switch (element.tagName.toLowerCase()) {
+                    case 'base':
+                      selector = 'base';
+                      break;
+                    case 'link':
+                      switch ((element.getAttribute('rel') || '').toLowerCase()) {
+                        case 'alternate':
+                          selector = 'link[type="' + element.getAttribute('type') + '"][rel="' + element.getAttribute('rel') + '"]';
+                          break;
+                        default:
+                          selector = 'link[rel="' + element.getAttribute('rel') + '"]';
+                      }
+                      break;
+                    case 'meta':
+                      if (element.getAttribute('charset')) {
+                        selector = 'meta[charset]';
+                      } else {
+                        selector = 'meta[name="' + element.getAttribute('name') + '"]';
+                      }
+                      break;
+                    default:
+                      selector = null;
+                  }
+                  adds = head.filter(selector).not('[rel~="stylesheet"]');
+                  function callback() {
+                    var src = this, dst;
+                    function callback() {
+                      dst = this;
+                      if (src.outerHTML === dst.outerHTML) {
+                        adds = adds.not(dst);
+                        removes = removes.not(src);
+                        return false;
+                      } else {
+                        return true;
+                      }
+                    };
+                    return !!adds.filter(callback)[0];
+                  };
+                  jQuery('head').find(selector).not(setting.load.reload).not('[rel~="stylesheet"]').filter(callback).remove();
+                  jQuery('head').prepend(adds.map(function() {return jQuery(this.outerHTML)[0];}));
+                }
+                removes.not(setting.load.reload).remove();
+                
+              if (Store.fire(callbacks_update.head.after, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_HEAD;}
+            }; // label: UPDATE_HEAD
+            speedcheck && setting.log.speed.time.push(setting.speed.now() - setting.log.speed.fire);
+            speedcheck && setting.log.speed.name.push('head(' + setting.log.speed.time[setting.log.speed.time.length - 1] + ')');
+            
             /* content */
             UPDATE_CONTENT: {
               if (Store.fire(callbacks_update.content.before, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_CONTENT;}
@@ -806,9 +929,12 @@
                 'class': setting.nss.class4html + '-check',
                 'style': 'background: none !important; display: block !important; visibility: hidden !important; position: absolute !important; top: 0 !important; left: 0 !important; z-index: -9999 !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; font-size: 12px !important; text-indent: 0 !important;'
               }).text(setting.gns);
-              for (var i = 0, area, element; area = areas[i++];) {
-                element = pdoc.find(area).add(parsable ? '' : pdoc.filter(area)).clone().find('script').remove().end().contents();
-                jQuery(area).html(element).append(checker.clone());
+              for (var i = 0, area, containers, elements; area = areas[i++];) {
+                containers = jQuery(area);
+                elements = jQuery(area, newDocument).clone().find('script').remove().end();
+                for (var j = 0; element = elements[j]; j++) {
+                  containers.eq(j).html(jQuery(element).contents()).append(checker.clone());
+                }
               }
               checker = jQuery(setting.area).children('.' + setting.nss.class4html + '-check');
               jQuery(document).trigger(setting.gns + '.DOMContentLoaded');
@@ -842,18 +968,6 @@
               if (Store.fire(callbacks_update.scroll.after, null, [event, setting.parameter], setting.callbacks.async) === false) {return;}
             } // function: scroll
             
-            /* cache */
-            UPDATE_CACHE: {
-              if (cache && cache.XMLHttpRequest || !setting.cache.click && !setting.cache.submit && !setting.cache.popstate) {break UPDATE_CACHE;}
-              if (event.type.toLowerCase() === 'submit' && !setting.cache[event.target.method.toLowerCase()]) {break UPDATE_CACHE;}
-              if (Store.fire(callbacks_update.cache.save.before, null, [event, setting.parameter, cache], setting.callbacks.async) === false) {break UPDATE_CACHE;}
-              
-              jQuery[Store.name].setCache(url, cdata || null, textStatus, XMLHttpRequest);
-              cache = jQuery[Store.name].getCache(url);
-              
-              if (Store.fire(callbacks_update.cache.save.after, null, [event, setting.parameter, cache], setting.callbacks.async) === false) {break UPDATE_CACHE;}
-            }; // label: UPDATE_CACHE
-            
             /* rendering */
             function rendering(callback) {
               if (Store.fire(callbacks_update.rendering.before, null, [event, setting.parameter], setting.callbacks.async) === false) {return;}
@@ -886,20 +1000,7 @@
             } // function: rendered
             
             /* escape */
-            // Can not delete the style of update range in parsable === false.
-            // However, there is no problem on real because parsable === false is not used.
-            switch (parsable) {
-              case 1:
-              case 0:
-                pdoc.find('noscript').remove();
-                break;
-              case false:
-                pdata = pdata.replace(/^(?:.|[\n\r])*<body[^>]*>.*[\n\r]*.*[\n\r]*/im, function(head) {
-                  return head.replace(/<!--\[(?:.|[\n\r])*?<!\[endif\]-->/gim, '');
-                });
-                pdata = pdata.replace(/<noscript(?:.|[\n\r])*?<\/noscript>/gim, '');
-                break;
-            }
+            jQuery('noscript', newDocument).remove();
             
             /* css */
             function load_css() {
@@ -907,18 +1008,10 @@
                 if (!setting.load.css) {break UPDATE_CSS;}
                 if (Store.fire(callbacks_update.css.before, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_CSS;}
                 
-                var save, adds = [], removes = jQuery('link[rel~="stylesheet"], style');
+                var save, adds = [], removes = jQuery('link[rel~="stylesheet"], style').not(jQuery(setting.area).find('link[rel~="stylesheet"], style'));
                 cache = jQuery[Store.name].getCache(url);
                 save = cache && !cache.css;
-                switch (css || parsable) {
-                  case 1:
-                  case 0:
-                    css = pdoc.find('link[rel~="stylesheet"], style').add(parsable ? '' : pdoc.filter('link[rel~="stylesheet"], style')).clone().get();
-                    break;
-                  case false:
-                    css = Store.find(pdata, /(<link[^>]*?rel=.[^"\']*?stylesheet[^>]*?>|<style[^>]*?>(?:.|[\n\r])*?<\/style>)/gim);
-                    break;
-                }
+                css = css || jQuery('link[rel~="stylesheet"], style', newDocument).not(jQuery(setting.area, newDocument).find('link[rel~="stylesheet"], style'));
                 css = jQuery(css).not(setting.load.reject);
                 
                 if (cache && cache.css && css && css.length !== cache.css.length) {save = true;}
@@ -927,22 +1020,25 @@
                 for (var i = 0, element; element = css[i]; i++) {
                   element = typeof element === 'object' ? save ? jQuery(element.outerHTML)[0] : element
                                                         : jQuery(element)[0];
-                  element = typeof setting.load.rewrite === 'function' ? Store.fire(setting.load.rewrite, null, [element.cloneNode()]) || element : element;
+                  element = typeof setting.load.rewrite === 'function' ? Store.fire(setting.load.rewrite, null, [element]) || element : element;
                   if (save) {cache.css[i] = element;}
                   
-                  for (var j = 0, tmp; tmp = removes[j]; j++) {
-                    if (!adds.length && Store.trim(tmp.href || tmp.innerHTML || '') === Store.trim(element.href || element.innerHTML || '')) {
-                      removes = removes.not(tmp);
+                  for (var j = 0; removes[j]; j++) {
+                    if (Store.trim(removes[j].href || removes[j].innerHTML || '') === Store.trim(element.href || element.innerHTML || '')) {
+                      if (adds.length) {
+                        j ? removes.eq(j - 1).after(adds) : removes.eq(j).before(adds);
+                        adds = [];
+                      }
+                      removes = removes.not(removes[j]);
+                      j -= Number(!!j);
                       element = null;
-                      break;
-                    } else if (!j && adds.length) {
                       break;
                     }
                   }
-                  element && adds.push(element);
+                  element && adds.push(element.cloneNode(true));
                 }
+                removes[0] ? removes.last().after(adds) : jQuery('head').append(adds);
                 removes.not(setting.load.reload).remove();
-                jQuery('head').append(adds);
                 
                 if (Store.fire(callbacks_update.css.after, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_CSS;}
                 speedcheck && setting.log.speed.time.push(setting.speed.now() - setting.log.speed.fire);
@@ -959,15 +1055,7 @@
                 var save, execs = [];
                 cache = jQuery[Store.name].getCache(url);
                 save = cache && !cache.script;
-                switch (script || parsable) {
-                  case 1:
-                  case 0:
-                    script = pdoc.find('script').add(parsable ? '' : pdoc.filter('script')).clone().get();
-                    break;
-                  case false:
-                    script = Store.find(pdata, /(?:[^\'\"]|^\s*?)(<script[^>]*?>(?:.|[\n\r])*?<\/script>)(?:[^\'\"]|\s*?$)/gim);
-                    break;
-                }
+                script = script || jQuery('script', newDocument);
                 script = jQuery(script).not(setting.load.reject);
                 
                 if (cache && cache.script && script && script.length !== cache.script.length) {save = true;}
@@ -976,7 +1064,7 @@
                 for (var i = 0, element; element = script[i]; i++) {
                   element = typeof element === 'object' ? save ? jQuery(element.outerHTML)[0] : element
                                                         : jQuery(element)[0];
-                  element = typeof setting.load.rewrite === 'function' ? Store.fire(setting.load.rewrite, null, [element.cloneNode()]) || element : element;
+                  element = typeof setting.load.rewrite === 'function' ? Store.fire(setting.load.rewrite, null, [element]) || element : element;
                   if (save) {cache.script[i] = element;}
                   
                   if (!jQuery(element).is(selector)) {continue;}
@@ -1060,8 +1148,8 @@
       // Trim
       ret = Store.trim(url);
       // Remove string starting with an invalid character
-      ret = ret.replace(/[<>"{}|\\^\[\]`\s].*/,'');
-      // Deny value beginning with the string of HTTP (S) other than
+      ret = ret.replace(/["`^|\\<>{}\[\]\s].*/, '');
+      // Deny value beginning with the string of HTTP(S) other than
       ret = /^https?:/i.test(ret) ? ret : jQuery('<a/>', {href: ret})[0].href;
       // Unify to UTF-8 encoded values
       ret = encodeURI(decodeURI(ret));
@@ -1107,7 +1195,7 @@
     fallback: function(event) {
       switch (event.type.toLowerCase()) {
         case 'click':
-          window.location.href = event.currentTarget.href;
+          window.location.assign(event.currentTarget.href);
           break;
         case 'submit':
           event.target.submit();
@@ -1116,11 +1204,6 @@
           window.location.reload();
           break;
       }
-    },
-    find: function(data, pattern) {
-      var result = [];
-      data.replace(pattern, function() {result.push(arguments[1]);});
-      return result;
     },
     scope: function(setting, src, dst, relocation) {
       var args, scp, arr, dirs, dir, keys, key, pattern, not, reg, rewrite, inherit, hit_src, hit_dst, option;

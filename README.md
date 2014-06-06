@@ -14,7 +14,7 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 ##特徴
 
 * プリロードによりリンクがクリックされる前にページの読み込みを開始してページ移動を高速化できます。
-* CSSとJavaScriptの自動読み込みが可能です。
+* 高度に自動化されているためHTMLやCSSがページごとにバラバラでも使用できます。
 * サーバー側の設定やコードのインストール等の作業が不要です。
 * 詳細な動作制御が可能で幅広い要求に対応できます。
 * pjax(pushState + ajax)で一般的に発生する問題に対応しています。
@@ -22,9 +22,10 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 ##対応
 
 * jQuery1.4.2+
+* ajax処理の継承
 * CSSの読み込み
 * JavaScriptの読み込み
-* ajax処理の継承
+* RSS・viewport等の同期
 * Android・iOSでの使用
 * フォームのsubmitによるページ遷移
 * Google Analytics によるアクセス解析
@@ -38,18 +39,62 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 * ローディングエフェクトの表示
 
 ##preload + pjax
-<a href="https://github.com/falsandtru/jquery.preload.js">preload</a>と<a href="https://github.com/falsandtru/jquery.pjax.js">pjax</a>を連携させることで初回アクセスから極めて高速にページ移動を行うことができるため、この手法を強く推奨します。
+preloadとpjaxの複合利用は、スクリプトファイルを置くだけでページの表示(移動)にかかる時間を約0.5秒短縮する手軽で効果の高い高速化手法です。ここで使用するpjaxは高度に自動化されているためHTMLやCSSがページごとにバラバラでも動作します。スクリプトと動的に追加される要素には注意が必要ですがpjaxの`load.reload`と`load.reject`パラメータを調整するだけでプラグインを数十個入れたWordpressのような複雑なサイトでも使用できます。ただし、タッチ操作ではpreloadを使用できず効果がいまひとつのため無効にします。
 
-通常はリンクのクリックからHTMLファイルのダウンロード完了まで0.5～1秒、ページの表示（DOMロード）にさらに1秒の合計2秒前後かかるページ移動をpreload+pjaxではクリックからページの表示まで0.5秒（500ミリ秒）前後で完了することができます。PCでは多分これが一番速いと思います。
+通常はリンクのクリックからHTMLファイルのダウンロード完了まで0.5～1秒、ページの表示（DOMロード）にさらに1秒の合計2秒前後かかるページ移動をpreload+pjaxではクリックからページの表示まで0.5秒（500ミリ秒）前後で完了することができます。詳細な設定項目は<a href="https://github.com/falsandtru/jquery.preload.js">preload</a>と<a href="https://github.com/falsandtru/jquery.pjax.js">pjax</a>の各ドキュメントに記載しています。PCでは多分これが一番速いと思います。
 
 |パターン|HTMLダウンロード|DOMロード|合計|
 |:---|:--:|:--:|:--:|
 |Normal|500-1000ms|800-1600ms|1300-2600ms|
 |preload+pjax|0-700ms|50-100ms|50-800ms|
 
-※jQuery1.5以降のバージョン必須
+※jQuery1.5以降のバージョン必須  
 ※Windows7+Chromeで手近なサイトを計測
-※データの受信を開始するまでの待機時間が長い場合は除く
+
+jQueryとスクリプトを3つ追加するだけで動作します。
+
+```html
+<script charset="utf-8" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script charset="utf-8" src="/lib/jquery.preload.js"></script>
+<script charset="utf-8" src="/lib/jquery.pjax.js"></script>
+<script charset="utf-8" src="/lib/accelerate.js"></script>
+```
+
+preload: [https://github.com/falsandtru/jquery.preload.js](https://github.com/falsandtru/jquery.preload.js)  
+pjax: [https://github.com/falsandtru/jquery.pjax.js](https://github.com/falsandtru/jquery.pjax.js)
+
+```javascript
+// accelerate.js
+if (!/touch|tablet|mobile|android|iphone|ipad|ios|windows phone|Mobile(\/\w+)? Safari/i.test(window.navigator.userAgent)) {
+  $.preload({
+    forward: $.pjax.follow,
+    check: $.pjax.getCache,
+    encode: true,
+    ajax: {
+      success: function ( data, textStatus, XMLHttpRequest ) {
+        !$.pjax.getCache( this.url ) && $.pjax.setCache( this.url, null, textStatus, XMLHttpRequest );
+      }
+    }
+  });
+  
+  $.pjax({
+    area: 'body',
+    load: { css: true, script: true },
+    cache: { click: true, submit: false, popstate: true },
+    server: { query: null },
+    speedcheck: true
+  });
+  
+  $(document).bind('pjax.ready', function() {$(document).trigger('preload');});
+}
+```
+
+クリックから表示までにかかった時間をコンソールに出力します。以下の出力はクリックの493ミリ秒前にリンク先のページの取得を開始し、クリックから386ミリ秒で表示されたときのものです。
+
+```
+[-493, 10, 361, 386, 411, 490, 492, 496]
+["preload(-493)", "continue(10)", "loaded(361)", "content(386)", "css(411)", "script(490)", "renderd(492)", "defer(496)"]
+```
 
 ##設定例
 汎用的な高速化設定例です。
@@ -226,10 +271,11 @@ defunkt版（v1.7.0/2013年6月時点最新版）との主な違いは次のと�
 |適用範囲別の設定|×|○|
 |複数領域の更新|×|○|
 |更新範囲の動的設定|×|○|
+|RSS等head内要素の更新|×|○|
 |ユーザー定義関数の実行形式|イベント|コールバック＋イベント|
-|ユーザー定義関数の設定箇所|9|33+4|
+|ユーザー定義関数の設定箇所|9|38+4|
 |部分的更新キャンセル※6|×|○|
-|比較用デモ※7|<a href="http://falsandtru.github.io/pjax/demo/defunkt/" target="_blank">defunkt</a>|<a href="http://falsandtru.github.io/pjax/demo/falsandtru/" target="_blank">falsandtru</a>|
+|比較用デモ※7|<a href="http://falsandtru.github.io/jquery.pjax.js/demo/defunkt/" target="_blank">defunkt</a>|<a href="http://falsandtru.github.io/jquery.pjax.js/demo/falsandtru/" target="_blank">falsandtru</a>|
 
 ※1 AndroidとiOSではページ移動時にjQueryの`scrollTop`メソッドでスクロール位置を操作できず、当プラグインではjQueryMobileと同じく`scrollTo`メソッドを使用することでこの問題を解決しています。**defunkt版では`scrollTop`メソッドを使用しているためAndroidとiOSでスクロール位置を操作できません**。  
 ※2 リンク先がJavaScriptなどHTMLページ以外を参照していた場合にContent-Typeを参照してページ移動方法を自動的にpjaxから通常のものに切り替えます。defunkt版ではこの機能がないためJavaScriptなど誤作動を起こすリンクでpjaxが動作しないよう`"a:not([href$='.js'])"`のようにリンクの絞込みを行う必要があります。  
@@ -267,41 +313,51 @@ $('.delegate').pjax({ area: '.container' });
 ```javascript
 // 初期値
 {
+  id: 0,
+  gns: Store.name,
+  ns: null,
   area: null,
   link: 'a:not([target])',
-  filter: function(){ return /(\/[^.]*|\.html?|\.php)([#?].*)?$/.test( this.href ); },
+  filter: function(){return /(\/[^.]*|\.html?|\.php)([#?].*)?$/.test(this.href);},
   form: null,
   scope: null,
   state: null,
   scrollTop: 0,
   scrollLeft: 0,
-  ajax: { dataType: 'text' },
+  ajax: {dataType: 'text'},
   contentType: 'text/html',
   cache: {
     click: false, submit: false, popstate: false, get: true, post: true, mix: false,
-    length: 100 /* pages */, size: 1*1024*1024 /* 1MB */, expires: { max: null, min: 5*60*1000 /* 5min */}
+    page: 100 /* pages */, size: 1*1024*1024 /* 1MB */, expires: {max: null, min: 5*60*1000 /* 5min */}
   },
-  callback: function () {},
+  callback: function() {},
   callbacks: {
     ajax: {},
-    update: { url: {}, title: {}, content: {}, scroll: {}, css: {}, script: {}, cache: { load: {}, save: {} }, rendering: {}, verify: {} },
+    update: {redirect: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, cache: {load: {}, save: {}}, rendering: {}, verify: {}},
     async: false
   },
   parameter: null,
-  load: { css: false, script: false, execute: true, reload: '', reject: '', sync: true, ajax: { dataType: 'script' }, rewrite: null },
+  load: {
+    css: false, script: false, execute: true,
+    reload: '[href^="chrome-extension://"]',
+    reject: '',
+    head: 'link, meta, base',
+    sync: true, ajax: {dataType: 'script', cache: true}, rewrite: null,
+    redirect: true    
+  },
   interval: 300,
   wait: 0,
-  scroll: { delay: 300 },
-  fix: { location: true, history: true, scroll: true, reset: false },
+  scroll: {delay: 300},
+  fix: {location: true, history: true, scroll: true, reset: false},
   hashquery: false,
   fallback: true,
   database: true,
-  server: { query: 'pjax=1' }
+  server: {query: 'pjax=1'}
 }
 ```
 
 ####*area: Selector as string / function( event, parameter, to, from )*
-pjaxにより更新する範囲（HTML要素）をjQueryセレクタで設定します。
+pjaxにより更新する範囲（HTML要素）をjQueryセレクタで設定します。更新範囲を複数設定する場合は一つのクラスセレクタ等による包括指定でなくIDセレクタのように一つの要素にのみ一致するセレクタをカンマ区切りで列挙してください。
 `$.fn.pjax`により設定されたコンテキストで絞り込まれません。
 
 #####*area: Selector as string*
@@ -378,9 +434,6 @@ pjaxによるページ読み込み時にJavaScriptを読み込むかを設定し
 
 ページの表示直後にすべて実行されている必要のないJavaScriptは、ページ読み込み時に一括で実行せず<a href="https://github.com/falsandtru/jquery.visibilitytrigger.js" target="_blank">visibilitytrigger</a>により随時実行することで負荷を削減することを推奨します。ページの表示直後にすべて読み込まれている必要のないコンテンツについても同様です。
 
-#####*load.ajax: object*
-`ajax`パラメータに重ねて上書きする`$.ajax`のパラメータを設定します。初期値は`{dataType: 'script'}`です。
-
 #####*load.execute: boolean*
 埋め込み型のJavaScriptを実行するかを設定します。初期値は`true`で有効です。
 
@@ -390,13 +443,22 @@ pjaxによるページ読み込み時にJavaScriptを読み込むかを設定し
 #####*load.reject: Selector as string*
 読み込まないJavaScriptとCSSをjQueryセレクタで設定します。初期値は`null`で無効です。
 
+#####*load.head: Selector as string*
+`head`要素内で同期させる要素をjQueryセレクタで設定します。対応している要素は`link``meta``base`要素のみです。CSSは除外されます。処理がやや重いため同期させる要素はできるだけ減らしてください。初期値は`link, meta, base`です。
+
 #####*load.sync: boolean*
 `defer`属性を持つJavaScript（`script`要素）の読み込みを、pjaxによるコンテンツの更新が描画されてから行います。ただし、描画の確認回数が100回を超えた場合は描画を待たずその時点で読み込みます。初期値は`true`で有効です。
+
+#####*load.ajax: object*
+`ajax`パラメータに重ねて上書きする`$.ajax`のパラメータを設定します。初期値は`{dataType: 'script', cache: true}`です。
 
 #####*load.rewrite: function( element )*
 JavaScriptまたはCSSとして読み込まれる要素（`script``link``style`要素）を戻り値の要素で置換します。初期値は`null`です。
 
 CloudFlareのRocketLoaderを使用するなどして要素が書き換えられている場合に有効です。
+
+#####*load.redirect: boolean*
+HTMLに記述されたリダイレクト先への移動にpjaxを使用するかを設定します。対応するリダイレクトはHTMLのMETAタグによるもののみです。HTTPヘッダによるリダイレクトはリダイレクト前のURLでリダイレクト後のページが表示される結果となるため注意してください。初期値は`true`で有効です。
 
 ####*interval: Millisecond as number*
 pjaxにより更新されたコンテンツの描画の確認を行う間隔をミリ秒で設定します。初期値は`300`です。
@@ -519,6 +581,18 @@ ajax通信において同名のメソッド内で実行されます。
 #####*update.cache.load.after( event, parameter, cache )*
 ページの更新処理においてcacheの読み込み後に実行されます。
 
+#####*update.cache.save.before( event, parameter, cache )*
+ページの更新処理においてcacheの作成前に実行されます。
+
+#####*update.cache.save.after( event, parameter, cache )*
+ページの更新処理においてcacheの作成後に実行されます。
+
+#####*update.redirect.before( event, parameter, data, textStatus, XMLHttpRequest )*
+ページの更新処理においてリダイレクトの確認前に実行されます。
+
+#####*update.redirect.after( event, parameter, data, textStatus, XMLHttpRequest )*
+ページの更新処理においてリダイレクトの確認後に実行されます。
+
 #####*update.url.before( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理においてURLの更新前に実行されます。
 
@@ -531,6 +605,12 @@ ajax通信において同名のメソッド内で実行されます。
 #####*update.title.after( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理においてタイトルの更新後に実行されます。
 
+#####*update.head.before( event, parameter, data, textStatus, XMLHttpRequest )*
+ページの更新処理において`head`要素の更新前に実行されます。
+
+#####*update.head.after( event, parameter, data, textStatus, XMLHttpRequest )*
+ページの更新処理において`head`要素の更新後に実行されます。
+
 #####*update.content.before( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理においてコンテンツの更新前に実行されます。
 
@@ -542,12 +622,6 @@ ajax通信において同名のメソッド内で実行されます。
 
 #####*update.scroll.after( event, parameter )*
 ページの更新処理においてスクロール位置の更新後に実行されます。
-
-#####*update.cache.save.before( event, parameter, cache )*
-ページの更新処理においてcacheの作成前に実行されます。
-
-#####*update.cache.save.after( event, parameter, cache )*
-ページの更新処理においてcacheの作成後に実行されます。
 
 #####*update.css.before( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理においてCSSの読み込み前に実行されます。
@@ -627,7 +701,7 @@ pjaxを使用してフォーム送信によりページを移動します。
 パラメータによりプラグインキャッシュを設定します。更新範囲外のデータの状態は復元されません。`Data`に`null`を設定すると`XMLHttpRequest`を使用して更新されます。
 
 #####*setCache( URL as string )*
-URLのページのプラグインキャッシュを設定します。`setCache( URL, document.documentElement.outerHTML )`と同義です。
+URLのページのプラグインキャッシュの上書きを削除します。`setCache( URL, null )`と同義です。URLに偽となる値を指定すると現在のページのプラグインキャッシュの上書きを削除します。
 
 #####*setCache()*
 現在のページのプラグインキャッシュを設定します。`setCache( location.href, document.documentElement.outerHTML )`と同義です。
@@ -671,7 +745,7 @@ pjaxによるページ遷移では通常のページ遷移で発生する`onload
 ###導入
 シンプルな実行例です。リンクをクリックするとPrimaryのみ更新されます。
 
-**<a href="http://falsandtru.github.io/pjax/demo/install/" target="_blank">demo</a>**
+**<a href="http://falsandtru.github.io/jquery.pjax.js/demo/install/" target="_blank">demo</a>**
 
 ```javascript
 $.pjax({ area: 'div.pjax' });
@@ -749,7 +823,7 @@ $(function(){
 ###更新範囲 - area
 pjaxによる更新範囲を設定します。次のように複数の範囲を同時に更新することもできます。双方のページで更新範囲が一致していないか更新先のページに更新範囲がひとつもない場合はエラーとなり例外処理が実行されます。
 
-**<a href="http://falsandtru.github.io/pjax/demo/area/" target="_blank">demo</a>**
+**<a href="http://falsandtru.github.io/jquery.pjax.js/demo/area/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({ area: 'div.primary.pjax, div.tertiary.pjax' });
@@ -767,7 +841,7 @@ pjaxでフォームの送信によるページ遷移を行います。プラグ�
 ###リンク - $.fn.pjax, link
 pjaxによりページ移動を行うリンクを選択します。
 
-**<a href="http://falsandtru.github.io/pjax/demo/fn/" target="_blank">demo</a>**
+**<a href="http://falsandtru.github.io/jquery.pjax.js/demo/fn/" target="_blank">demo</a>**
 
 ```javascript
   $('div.primary.pjax').pjax({
@@ -777,7 +851,7 @@ pjaxによりページ移動を行うリンクを選択します。
 
 `$.fn.pjax`のコンテキストにpjaxの`area`パラメータの子孫要素（pjaxによる更新範囲内）を設定することはできません。pjaxによりページ移動を行うリンクをpjaxによる更新範囲内にあるリンクから選択するには`link`パラメータを使用してください。
 
-**<a href="http://falsandtru.github.io/pjax/demo/link/" target="_blank">demo</a>**
+**<a href="http://falsandtru.github.io/jquery.pjax.js/demo/link/" target="_blank">demo</a>**
 
 ```javascript
   // NG
@@ -883,7 +957,7 @@ pjaxによりページ移動を行う範囲を設定します。先頭に`^`で�
 * その他のページではpjaxを使用しない。
 
 
-**<a href="http://falsandtru.github.io/pjax/demo/scope/" target="_blank">demo</a>**
+**<a href="http://falsandtru.github.io/jquery.pjax.js/demo/scope/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({
@@ -905,7 +979,7 @@ pjaxによりページ移動を行う範囲を設定します。先頭に`^`で�
 ###CSS自動読み込み - load.css
 pjaxによる移動先のページのCSSを自動的に読み込みます。移動先のページに存在しない現在のページのCSSは削除されます。
 
-**<a href="http://falsandtru.github.io/pjax/demo/css/" target="_blank">demo</a>**
+**<a href="http://falsandtru.github.io/jquery.pjax.js/demo/css/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({
@@ -918,7 +992,7 @@ pjaxによる移動先のページのCSSを自動的に読み込みます。移�
 pjaxによる移動先のページのJavaScriptを自動的に読み込みます。
 同一の**外部ファイル**により記述されるJavaScriptは**重複して読み込まれません**が、**埋め込み**により記述される同一のJavaScriptは**重複して実行されます**。
 
-**<a href="http://falsandtru.github.io/pjax/demo/script/" target="_blank">demo</a>**
+**<a href="http://falsandtru.github.io/jquery.pjax.js/demo/script/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({
@@ -932,7 +1006,7 @@ pjaxによる移動先のページのJavaScriptを自動的に読み込みます
 ###代替処理 - fallback
 pjaxによるページ移動が失敗した場合に通常のページ移動を行います。初期値で有効になっているためこのための設定は不要です。
 
-**<a href="http://falsandtru.github.io/pjax/demo/fallback/" target="_blank">demo</a>**
+**<a href="http://falsandtru.github.io/jquery.pjax.js/demo/fallback/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({ area: 'div.pjax' });
@@ -945,7 +1019,7 @@ pjaxによるページ移動が失敗した場合に通常のページ移動を�
 ###スクロール位置 - scrollTop, scrollLeft
 pjaxによるページ移動後のスクロール位置を設定します。`false`を設定すると移動前のスクロール位置を維持します。
 
-**<a href="http://falsandtru.github.io/pjax/demo/scroll/" target="_blank">demo</a>**
+**<a href="http://falsandtru.github.io/jquery.pjax.js/demo/scroll/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({ area: 'div.pjax', scrollTop: false, scrollLeft: 50 });
@@ -954,7 +1028,7 @@ pjaxによるページ移動後のスクロール位置を設定します。`fal
 ###最低待ち時間 - wait
 `$.ajax`の実行からコンテンツの更新までの最低待ち時間を設定します。pjaxによるページ移動が速すぎる場合などに使用します。
 
-**<a href="http://falsandtru.github.io/pjax/demo/wait/" target="_blank">demo</a>**
+**<a href="http://falsandtru.github.io/jquery.pjax.js/demo/wait/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({ area: 'div.pjax', wait: 1000 });
@@ -970,7 +1044,7 @@ pjaxで内部的に使用される`$.ajax`のパラメータを設定できま�
 ###コールバックとパラメータ - callback, callbacks, parameter
 コールバックに設定した関数を実行します。コールバック関数の第一引数はイベントオブジェクトが渡され、第二引数に設定したパラメータが渡され、以降は各もととなるコールバック関数に渡された引数を引き継ぎます。
 
-**<a href="http://falsandtru.github.io/pjax/demo/callback/" target="_blank">demo</a>**
+**<a href="http://falsandtru.github.io/jquery.pjax.js/demo/callback/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({
@@ -1048,7 +1122,7 @@ pjaxで内部的に使用される`$.ajax`のパラメータを設定できま�
 ###ローディングエフェクト - callback, callbacks
 コールバックをカスタマイズすることでページ移動時にローディングエフェクトを表示させることができます。
 
-**<a href="http://falsandtru.github.io/pjax/demo/effect/" target="_blank">demo</a>**
+**<a href="http://falsandtru.github.io/jquery.pjax.js/demo/effect/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({
@@ -1105,7 +1179,7 @@ pjaxで内部的に使用される`$.ajax`のパラメータを設定できま�
 
 プログレスバーでページの読み込み状況を表示することもできます。
 
-**<a href="http://falsandtru.github.io/pjax/demo/progress/" target="_blank">demo</a>**
+**<a href="http://falsandtru.github.io/jquery.pjax.js/demo/progress/" target="_blank">demo</a>**
 
 ```javascript
   $.pjax({
@@ -1261,7 +1335,7 @@ Chromeは特に高速なブラウザですが、処理能力の高くない環�
 pjaxによる通信をサーバー側で識別し、pjax用の差分データを返させ、これを使用してページの更新（移動）を行います。データサイズを削減できるため、より少ない転送量と帯域で多くのアクセスを処理できます。
 pjaxは通信時にHTTPリクエストヘッダに`X-Pjax``X-Pjax-Area``X-Pjax-CSS``X-Pjax-Script`のフィールドと値を追加します。また、リクエストするURLに`?pjax=1`のようにクエリを追加します。サーバーはこれによりpjaxの使用の有無と必要なデータを知ることができます。なお、レスポンスヘッダの`Content-Type`に必ず`contentType`パラメータで設定したいずれかの値が含まれている必要があります。
 
-**<a href="http://falsandtru.github.io/pjax/demo/server/" target="_blank">demo</a>** ※これは移動先のページを差分データに置き換えた擬似的なデモです。  
+**<a href="http://falsandtru.github.io/jquery.pjax.js/demo/server/" target="_blank">demo</a>** ※これは移動先のページを差分データに置き換えた擬似的なデモです。  
 
 ```javascript
   $.pjax({ area: 'div.pjax' });
@@ -1401,7 +1475,13 @@ NG
 なお、検索フォームのようなGET送信フォームで使用する分には問題ありません。
 
 ###pjaxの解消不能なバグ
-当プラグインはpjaxのデメリットを極力減らし、pjaxの一般的な問題点を概ね解消していますが、MobileSafari(Android・iOS)でlocationオブジェクトが更新されないバグを解消する代わりに、主にスクロールが長く重いページからの移動先ページのスクロール位置をリセットできない場合があるバグが生じ、当プラグインはさらにこれを解消する設定を行った場合は代わりに同ブラウザではブラウザバックで戻ったページのスクロール位置を復元できない仕様となっています。pjax機能を持つメジャーなプラグインであるdefunkt版pjax、jQueryMobileの手法も検証しましたがいずれもこれら３つの問題を同時には解決できませんでした。pjaxの導入の際はこの点留意してください。MobileSafariは通常のページ遷移が高速であるため導入するサイトでスクロール位置がリセットされないバグが生じるようであれば同ブラウザではpjaxを使用しない対応を推奨します。
+当プラグインはpjaxのデメリットを極力減らし、pjaxの一般的な問題点を概ね解消していますが解消不能なバグも存在します。
+
+####リダイレクト
+ajaxはリダイレクトを検出できないためリダイレクトの設定されているページを開くとリダイレクト前のURLでリダイレクト後のページが表示される結果となります。HTMLのMETAタグによるリダイレクトには対応しているためこのリダイレクト方法であれば正常にリダイレクトされます。
+
+####MobileSafari
+MobileSafari(Android・iOS)ではlocationオブジェクトが更新されないバグを解消する代わりに、主にスクロールが長く重いページからの移動先ページのスクロール位置をリセットできない場合があるバグが生じ、当プラグインはさらにこれを解消する設定を行った場合は代わりに同ブラウザではブラウザバックで戻ったページのスクロール位置を復元できない仕様となっています。pjax機能を持つメジャーなプラグインであるdefunkt版pjax、jQueryMobileの手法も検証しましたがいずれもこれら３つの問題を同時には解決できませんでした。pjaxの導入の際はこの点留意してください。MobileSafariは通常のページ遷移が高速であるため導入するサイトでスクロール位置がリセットされないバグが生じるようであれば同ブラウザではpjaxを使用しない対応を推奨します。
 
 ###pjaxの導入にあたって
 pjaxの恩恵が得られるのは基本的にサーバーサイドでの高速化の代替、重いページ初期化処理の省略、ページ状態の維持を目的として使用する場面であり、これらいずれにも該当しない場合（サーバーでブラウザがHTML、CSS、JavaScriptをキャッシュするよう設定しており、ページの初期化処理（JavaScriptの実行）が重くなく、ページ状態を維持する必要がない）は余分な処理をさせるデメリットが生じるだけでないかよく検討するべきです。pjaxをサイトの一部のページだけで使用する場合はscope機能の使用を推奨します。
@@ -1440,6 +1520,25 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 ##更新情報
 
 ###change log
+
+####1.34.0
+
+* `setCache`メソッドの仕様を変更
+  <br>パラメータに第一引数(URL)のみ設定された場合の動作を`setCache(URL, null)`の短縮に変更
+* `setCache`メソッドがパラメータにXMLHttpRequestを設定しなければ動作しないバグを修正
+* `setCache`メソッド実行時にすでにキャッシュが存在する場合、`XMLHttpRequest`パラメータが設定されている場合のみキャッシュの期限を更新するよう動作を変更
+* CSSの読み込みを高速化
+* `load.head`パタメータを追加、`base``link``meta`タグに対応
+* `callbacks.update.head`系コールバック関数を追加
+* `load.redirect`パタメータを追加、リダイレクトに対応
+* `callbacks.update.redirect`系コールバック関数を追加
+* `area`パラメータで複数の要素に一致するセレクタを使用した場合に正常に動作しないバグを修正
+* `load.ajax`パラメータの初期値を`{dataType: 'script', cache: true}`に変更
+* `load.reload`パラメータの初期値を`'[href^="chrome-extension://"]'`に変更
+* `callbacks.update.cache.save`系コールバック関数の実行タイミングを変更
+* HTMLのパース処理を修正、最適化
+* 中身のないキャッシュの生成および取得を許容するバグを修正
+* DOMロード前に実行されたpjaxの初期化が自動で遅延させないバグを修正
 
 ####1.33.2
 

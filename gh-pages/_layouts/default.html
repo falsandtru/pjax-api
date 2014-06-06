@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>{{ page.title }} | Project Page</title>
+<meta name="description" content="">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- This base url is not support IE6-7 JavaScript is disabled -->
+<base href="/jquery.pjax.js/">
+<!--[if lt IE 8]>
+<script>
+(function(base){
+  base && !base.href.split(/\/+/, 2).pop() && base.setAttribute('href', '//' + location.host + base.href)
+})(document.getElementsByTagName('base')[0])
+</script>
+<![endif]-->
+
+<!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+
+<link rel="stylesheet" href="/css/normalize.css">
+<link rel="stylesheet" href="/css/main.css">
+<link rel="stylesheet" href="/css/mobile.css" media="only screen and (min-width: 0px) and (max-width: 640px)">
+<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1/themes/start/jquery-ui.css">
+<script src="js/vendor/modernizr-2.6.2.min.js"></script>
+</head>
+<body>
+<noscript><p class="browsehappy warning">Please enable <strong>JavaScript</strong></p></noscript>
+<!--[if lte IE 9]>
+<p class="browsehappy warning">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+<![endif]-->
+
+<!-- Add your site or application content here -->
+<div id="container" class="layout-012">
+<!-- ----- HEADER ------------------------------------------------------------- -->
+<header id="header"><div class="wrapper clearfix">
+<h1>{{ page.title }}</h1>
+
+</div></header>
+
+<div id="wrapper" class="wrapper clearfix">
+<!-- ----- PRIMARY ------------------------------------------------------------ -->
+<div id="primary"><div id="layout"><div class="wrapper clearfix">
+<article id="content">{{ content }}</article>
+<aside></aside>
+
+</div></div></div>
+<!-- ----- SECONDARY ---------------------------------------------------------- -->
+<div id="secondary"><div class="wrapper clearfix">
+<nav></nav>
+
+</div></div>
+<!-- ----- TERTIARY ----------------------------------------------------------- -->
+<div id="tertiary"><div class="wrapper clearfix">
+<aside></aside>
+
+</div></div>
+</div>
+<!-- ----- FOOTER ------------------------------------------------------------- -->
+<footer id="footer"><div class="wrapper clearfix">
+
+</div></footer>
+
+</div>
+<div id="fill"></div>
+<!-- ----- SCRIPT ------------------------------------------------------------- -->
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script>jQuery || document.write('<script src="js/vendor/jquery-1.11.0.min.js"><\/script>')</script>
+<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+<script>jQuery || document.write('<script src="js/vendor/jquery-ui-1.10.4.min.js"><\/script>')</script>
+<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1/i18n/jquery-ui-i18n.min.js"></script>
+<script src="/js/plugins.js"></script>
+
+<script src="/js/jquery.template.mvc.js"></script>
+
+<script src="/js/main.js"></script>
+
+<script>
+if (!window.ga) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  
+  window.ga('create', 'UA-43533651-1', 'hostname');
+}
+window.ga('send', 'pageview', window.location.pathname+window.location.search);
+</script>
+
+
+</body></html>
