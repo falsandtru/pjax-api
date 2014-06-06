@@ -65,7 +65,7 @@ pjax: [https://github.com/falsandtru/jquery.pjax.js](https://github.com/falsandt
 
 ```javascript
 // accelerate.js
-if (!/touch|tablet|mobile|android|iphone|ipad|ios|windows phone|Mobile(\/\w+)? Safari/i.test(window.navigator.userAgent)) {
+if (!/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.navigator.userAgent)) {
   $.preload({
     forward: $.pjax.follow,
     check: $.pjax.getCache,
