@@ -65,7 +65,7 @@ pjax: [https://github.com/falsandtru/jquery.pjax.js](https://github.com/falsandt
 
 ```javascript
 // accelerate.js
-if (!/touch|tablet|mobile|android|iphone|ipad|ios|windows phone|Mobile(\/\w+)? Safari/i.test(window.navigator.userAgent)) {
+if (!/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.navigator.userAgent)) {
   $.preload({
     forward: $.pjax.follow,
     check: $.pjax.getCache,
@@ -445,7 +445,7 @@ pjaxによるページ読み込み時にJavaScriptを読み込むかを設定し
 読み込まないJavaScriptとCSSをjQueryセレクタで設定します。初期値は`null`で無効です。
 
 #####*load.head: Selector as string*
-`head`要素内で同期させる要素をjQueryセレクタで設定します。対応している要素は`link``meta``base`要素のみです。CSSは除外されます。処理がやや重いため同期させる要素はできるだけ減らしてください。初期値は`link, meta, base`です。
+`head`要素内で同期させる要素をjQueryセレクタで設定します。対応している要素は`link``meta``base`要素のみです。CSSは除外されます。初期値は`link, meta, base`です。
 
 #####*load.sync: boolean*
 `defer`属性を持つJavaScript（`script`要素）の読み込みを、pjaxによるコンテンツの更新が描画されてから行います。ただし、描画の確認回数が100回を超えた場合は描画を待たずその時点で読み込みます。初期値は`true`で有効です。
@@ -577,16 +577,16 @@ ajax通信において同名のメソッド内で実行されます。
 ページの更新処理において最後に実行されます。
 
 #####*update.cache.load.before( event, parameter, cache )*
-ページの更新処理においてcacheの読み込み前に実行されます。
+ページの更新処理においてキャッシュの読み込み前に実行されます。
 
 #####*update.cache.load.after( event, parameter, cache )*
-ページの更新処理においてcacheの読み込み後に実行されます。
+ページの更新処理においてキャッシュの読み込み後に実行されます。
 
 #####*update.cache.save.before( event, parameter, cache )*
-ページの更新処理においてcacheの作成前に実行されます。
+ページの更新処理においてキャッシュの作成前に実行されます。
 
 #####*update.cache.save.after( event, parameter, cache )*
-ページの更新処理においてcacheの作成後に実行されます。
+ページの更新処理においてキャッシュの作成後に実行されます。
 
 #####*update.redirect.before( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理においてリダイレクトの確認前に実行されます。
@@ -1521,6 +1521,10 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 ##更新情報
 
 ###change log
+
+####1.34.3
+
+* MobileSafariでマルチバイト文字を含むURLを処理できないバグを修正
 
 ####1.34.2
 
