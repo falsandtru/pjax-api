@@ -424,21 +424,6 @@
         Store.createHTMLDocument = function(html) {return window.DOMParser && window.DOMParser.prototype && new window.DOMParser().parseFromString(html || '', 'text/html');};
         if (test(Store.createHTMLDocument)) {break TEST;}
         
-        // msafari
-        Store.createHTMLDocument = function(html) {
-          html = html || '';
-          if (document.implementation && document.implementation.createHTMLDocument) {
-            var doc = document.implementation.createHTMLDocument('');
-            if (typeof doc.activeElement === 'object') {
-              doc.open();
-              doc.write(html);
-              doc.close();
-            }
-          }
-          return doc;
-        };
-        if (test(Store.createHTMLDocument)) {break TEST;}
-        
         // ie10+, opera
         Store.createHTMLDocument = function(html) {
           html = html || '';
@@ -455,6 +440,21 @@
             doc.documentElement.removeChild(doc.body);
             for (var i = 0, element; element = root.childNodes[i]; i) {
               doc.documentElement.appendChild(element);
+            }
+          }
+          return doc;
+        };
+        if (test(Store.createHTMLDocument)) {break TEST;}
+        
+        // msafari
+        Store.createHTMLDocument = function(html) {
+          html = html || '';
+          if (document.implementation && document.implementation.createHTMLDocument) {
+            var doc = document.implementation.createHTMLDocument('');
+            if (typeof doc.activeElement === 'object') {
+              doc.open();
+              doc.write(html);
+              doc.close();
             }
           }
           return doc;
