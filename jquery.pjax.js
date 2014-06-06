@@ -752,6 +752,18 @@
               if (Store.fire(callbacks_update.cache.load.after, null, [event, setting.parameter, cache], setting.callbacks.async) === false) {break UPDATE_CACHE;}
             }; // label: UPDATE_CACHE
             
+            /* cache */
+            UPDATE_CACHE: {
+              if (cache && cache.XMLHttpRequest || !setting.cache.click && !setting.cache.submit && !setting.cache.popstate) {break UPDATE_CACHE;}
+              if (event.type.toLowerCase() === 'submit' && !setting.cache[event.target.method.toLowerCase()]) {break UPDATE_CACHE;}
+              if (Store.fire(callbacks_update.cache.save.before, null, [event, setting.parameter, cache], setting.callbacks.async) === false) {break UPDATE_CACHE;}
+              
+              jQuery[Store.name].setCache(url, cache && cache.data || null, textStatus, XMLHttpRequest);
+              cache = jQuery[Store.name].getCache(url);
+              
+              if (Store.fire(callbacks_update.cache.save.after, null, [event, setting.parameter, cache], setting.callbacks.async) === false) {break UPDATE_CACHE;}
+            }; // label: UPDATE_CACHE
+            
             /* variable initialization */
             var pdoc, pdata, cdoc, cdata, parsable, areas, checker;
             areas = setting.area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
@@ -990,18 +1002,6 @@
               }
               if (Store.fire(callbacks_update.scroll.after, null, [event, setting.parameter], setting.callbacks.async) === false) {return;}
             } // function: scroll
-            
-            /* cache */
-            UPDATE_CACHE: {
-              if (cache && cache.XMLHttpRequest || !setting.cache.click && !setting.cache.submit && !setting.cache.popstate) {break UPDATE_CACHE;}
-              if (event.type.toLowerCase() === 'submit' && !setting.cache[event.target.method.toLowerCase()]) {break UPDATE_CACHE;}
-              if (Store.fire(callbacks_update.cache.save.before, null, [event, setting.parameter, cache], setting.callbacks.async) === false) {break UPDATE_CACHE;}
-              
-              jQuery[Store.name].setCache(url, cdata || null, textStatus, XMLHttpRequest);
-              cache = jQuery[Store.name].getCache(url);
-              
-              if (Store.fire(callbacks_update.cache.save.after, null, [event, setting.parameter, cache], setting.callbacks.async) === false) {break UPDATE_CACHE;}
-            }; // label: UPDATE_CACHE
             
             /* rendering */
             function rendering(callback) {

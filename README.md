@@ -581,6 +581,12 @@ ajax通信において同名のメソッド内で実行されます。
 #####*update.cache.load.after( event, parameter, cache )*
 ページの更新処理においてcacheの読み込み後に実行されます。
 
+#####*update.cache.save.before( event, parameter, cache )*
+ページの更新処理においてcacheの作成前に実行されます。
+
+#####*update.cache.save.after( event, parameter, cache )*
+ページの更新処理においてcacheの作成後に実行されます。
+
 #####*update.redirect.before( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理においてリダイレクトの確認前に実行されます。
 
@@ -616,12 +622,6 @@ ajax通信において同名のメソッド内で実行されます。
 
 #####*update.scroll.after( event, parameter )*
 ページの更新処理においてスクロール位置の更新後に実行されます。
-
-#####*update.cache.save.before( event, parameter, cache )*
-ページの更新処理においてcacheの作成前に実行されます。
-
-#####*update.cache.save.after( event, parameter, cache )*
-ページの更新処理においてcacheの作成後に実行されます。
 
 #####*update.css.before( event, parameter, data, textStatus, XMLHttpRequest )*
 ページの更新処理においてCSSの読み込み前に実行されます。
@@ -1535,6 +1535,7 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 * `area`パラメータで複数の要素に一致するセレクタを使用した場合に正常に動作しないバグを修正
 * `load.ajax`パラメータの初期値を`{dataType: 'script', cache: true}`に変更
 * `load.reload`パラメータの初期値を`'[href^="chrome-extension://"]'`に変更
+* `callbacks.update.cache.save`系コールバック関数の実行タイミングを変更
 * HTMLのパース処理を修正
 * 中身のないキャッシュの生成および取得を許容するバグを修正
 * DOMロード前に実行されたpjaxの初期化が自動で遅延させないバグを修正
