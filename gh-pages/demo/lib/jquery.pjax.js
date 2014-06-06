@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.34.2
+ * @version 1.34.3
  * @updated 2014/06/07
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -127,7 +127,7 @@
           requestHeader: ['X', setting.nss.array[0].replace(/^\w/, function($0) {return $0.toUpperCase();})].join('-')
         },
         areaback: setting.area,
-        fix: !/Mobile(\/\w+)? Safari/i.test(window.navigator.userAgent) ? {location: false, reset: false} : {},
+        fix: !/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.navigator.userAgent) ? {location: false, reset: false} : {},
         contentType: setting.contentType.replace(/\s*[,;]\s*/g, '|').toLowerCase(),
         scroll: {record: true, queue: []},
         log: {script: {}, speed: {}},
@@ -1101,11 +1101,13 @@
             /* verify */
             UPDATE_VERIFY: {
               if (Store.fire(callbacks_update.verify.before, null, [event, setting.parameter], setting.callbacks.async) === false) {break UPDATE_VERIFY;}
-              if (url === Store.canonicalizeURL(window.location.href)) {
+              var current = Store.canonicalizeURL(window.location.href).replace(/(?:%\w{2})+/g, function(str) {return url.match(str.toLowerCase()) || str;});
+              if (url === current) {
                 setting.retry = true;
               } else if (setting.retry) {
                 setting.retry = false;
-                Store.drive(jQuery, window, document, undefined, Store, setting, event, window.location.href, false, setting.cache[event.type.toLowerCase()] && jQuery[Store.name].getCache(Store.canonicalizeURL(window.location.href)));
+                setting.destination.href = current;
+                Store.drive(jQuery, window, document, undefined, Store, setting, event, setting.destination.href, false, setting.cache[event.type.toLowerCase()] && jQuery[Store.name].getCache(Store.canonicalizeURL(window.location.href)));
               } else {
                 throw new Error('throw: location mismatch');
               }
