@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.34.0
+ * @version 1.34.1
  * @updated 2014/06/06
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -889,8 +889,12 @@
                     case 'meta':
                       if (element.getAttribute('charset')) {
                         selector = 'meta[charset]';
-                      } else {
+                      } else if (element.getAttribute('http-equiv')) {
+                        selector = 'meta[http-equiv="' + element.getAttribute('http-equiv') + '"]';
+                      } else if (element.getAttribute('name')) {
                         selector = 'meta[name="' + element.getAttribute('name') + '"]';
+                      } else {
+                        continue;
                       }
                       break;
                     default:
