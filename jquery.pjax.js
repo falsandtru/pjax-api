@@ -127,7 +127,7 @@
           requestHeader: ['X', setting.nss.array[0].replace(/^\w/, function($0) {return $0.toUpperCase();})].join('-')
         },
         areaback: setting.area,
-        fix: !/Mobile(\/\w+)? Safari/i.test(window.navigator.userAgent) ? {location: false, reset: false} : {},
+        fix: !/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.navigator.userAgent) ? {location: false, reset: false} : {},
         contentType: setting.contentType.replace(/\s*[,;]\s*/g, '|').toLowerCase(),
         scroll: {record: true, queue: []},
         log: {script: {}, speed: {}},
