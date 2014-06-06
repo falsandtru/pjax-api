@@ -1101,11 +1101,13 @@
             /* verify */
             UPDATE_VERIFY: {
               if (Store.fire(callbacks_update.verify.before, null, [event, setting.parameter], setting.callbacks.async) === false) {break UPDATE_VERIFY;}
-              if (url === Store.canonicalizeURL(window.location.href)) {
+              var current = Store.canonicalizeURL(window.location.href).replace(/(?:%\w{2})+/g, function(str) {return url.match(str.toLowerCase()) || str;});
+              if (url === current) {
                 setting.retry = true;
               } else if (setting.retry) {
                 setting.retry = false;
-                Store.drive(jQuery, window, document, undefined, Store, setting, event, window.location.href, false, setting.cache[event.type.toLowerCase()] && jQuery[Store.name].getCache(Store.canonicalizeURL(window.location.href)));
+                setting.destination.href = current;
+                Store.drive(jQuery, window, document, undefined, Store, setting, event, setting.destination.href, false, setting.cache[event.type.toLowerCase()] && jQuery[Store.name].getCache(Store.canonicalizeURL(window.location.href)));
               } else {
                 throw new Error('throw: location mismatch');
               }
