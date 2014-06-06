@@ -203,6 +203,7 @@ if (!/touch|tablet|mobile|android|iphone|ipad|ios|windows phone|Mobile(\/\w+)? S
     });
   }
   function reset(){
+    $(document).trigger('preload');
     $.visibilitytrigger({
       trigger: 'img[data-origin]',
       callback: function(){ this.src = $(this).attr('data-origin'); }
