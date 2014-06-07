@@ -5,7 +5,7 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.34.3
+ * @version 1.35.0
  * @updated 2014/06/07
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
@@ -63,7 +63,7 @@
         id: 0,
         gns: Store.name,
         ns: null,
-        area: null,
+        area: 'body',
         link: 'a:not([target])',
         filter: function(){return /(\/[^.]*|\.html?|\.php)([#?].*)?$/.test(this.href);},
         form: null,
@@ -105,6 +105,7 @@
     );
     setting.location = jQuery('<a/>', {href: Store.canonicalizeURL(window.location.href)})[0];
     setting.destination = jQuery('<a/>', {href: Store.canonicalizeURL(window.location.href)})[0];
+    setting = setting.scope && Store.scope(setting) || setting;
     
     setting.nss = {
       array: [Store.name].concat(setting.ns && String(setting.ns).split('.') || [])
@@ -112,7 +113,7 @@
     jQuery.extend
     (
       true,
-      setting = setting.scope && Store.scope(setting) || setting,
+      setting,
       {
         nss: {
           name: setting.ns || '',
@@ -126,7 +127,8 @@
           class4html: setting.nss.array.join('-'),
           requestHeader: ['X', setting.nss.array[0].replace(/^\w/, function($0) {return $0.toUpperCase();})].join('-')
         },
-        areaback: setting.area,
+        areas: null,
+        areaback: null,
         fix: !/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.navigator.userAgent) ? {location: false, reset: false} : {},
         contentType: setting.contentType.replace(/\s*[,;]\s*/g, '|').toLowerCase(),
         scroll: {record: true, queue: []},
@@ -400,11 +402,19 @@
       if (src.protocol !== dst.protocol || src.host !== dst.host) {return;}
       if (event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {return;}
       
+      setting = jQuery.extend(true, {}, setting);
+      
       var url, cache;
       
       url = dst.href;
-      setting.area = Store.fire(setting.areaback, null, [event, setting.parameter, dst.href, src.href]);
-      if (!jQuery(setting.area).length || setting.scope && !Store.scope(setting, src.href, dst.href)) {return;}
+      setting.area = setting.option.area;
+      setting = setting.scope ? Store.scope(setting, src.href, dst.href) : setting;
+      if (!setting) {return;}
+      setting.area = Store.fire(setting.area, null, [event, setting.parameter, dst.href, src.href]);
+      setting.areas = setting.areas || Store.chooseAreas(document, event, setting.area);
+      setting.areaback = setting.area;
+      setting.area = setting.areas[0];
+      if (!setting.area) {return;}
       
       return true;
     },
@@ -519,11 +529,16 @@
         var url, cache;
         
         url = setting.destination.href;
-        setting.area = Store.fire(setting.areaback, null, [event, setting.parameter, setting.destination.href, setting.location.href]);
         setting.timeStamp = event.timeStamp;
         if (setting.landing) {setting.landing = false;}
         if (setting.cache.mix && jQuery[Store.name].getCache(url)) {return;}
-        if (!jQuery(setting.area).length || setting.scope && !Store.scope(setting)) {return;}
+        setting = setting.scope ? Store.scope(setting, setting.location.href, setting.destination.href) : setting;
+        if (!setting) {return;}
+        setting.area = Store.fire(setting.area, null, [event, setting.parameter, setting.destination.href, setting.location.href]);
+        setting.areas = setting.areas || Store.chooseAreas(document, event, setting.area, setting.parameter, setting.destination.href, setting.location.href);
+        setting.areaback = setting.area;
+        setting.area = setting.areas[0];
+        if (!setting.area) {return;}
         setting.database && Store.dbScroll(jQuery(window).scrollLeft(), jQuery(window).scrollTop());
         
         if (setting.cache[event.type.toLowerCase()]) {cache = jQuery[Store.name].getCache(url);}
@@ -548,11 +563,16 @@
         var url, cache;
         
         url = setting.destination.href = Store.canonicalizeURL(setting.destination.href.replace(/[?#].*/, '') + (event.target.method.toUpperCase() === 'GET' ? '?' + jQuery(event.target).serialize() : ''));
-        setting.area = Store.fire(setting.areaback, null, [event, setting.parameter, setting.destination.href, setting.location.href]);
         setting.timeStamp = event.timeStamp;
         if (setting.landing) {setting.landing = false;}
         if (setting.cache.mix && jQuery[Store.name].getCache(url)) {return;}
-        if (!jQuery(setting.area).length || setting.scope && !Store.scope(setting)) {return;}
+        setting = setting.scope ? Store.scope(setting, setting.location.href, setting.destination.href) : setting;
+        if (!setting) {return;}
+        setting.area = Store.fire(setting.area, null, [event, setting.parameter, setting.destination.href, setting.location.href]);
+        setting.areas = setting.areas || Store.chooseAreas(document, event, setting.area, setting.parameter, setting.destination.href, setting.location.href);
+        setting.areaback = setting.area;
+        setting.area = setting.areas[0];
+        if (!setting.area) {return;}
         setting.database && Store.dbScroll(jQuery(window).scrollLeft(), jQuery(window).scrollTop());
         
         if (setting.cache[event.type.toLowerCase()] && setting.cache[event.target.method.toLowerCase()]) {cache = jQuery[Store.name].getCache(url);}
@@ -581,10 +601,16 @@
         }
         
         url = setting.destination.href;
-        setting.area = Store.fire(setting.areaback, null, [event, setting.parameter, setting.destination.href, setting.location.href]);
         setting.timeStamp = event.timeStamp;
         if (setting.landing) {if (setting.landing.href === url) {setting.landing = false; return;} setting.landing = false;}
-        if (!jQuery(setting.area).length) {return;}
+        if (setting.cache.mix && jQuery[Store.name].getCache(url)) {return;}
+        setting = setting.scope ? Store.scope(setting, setting.location.href, setting.destination.href) : setting;
+        if (!setting) {return;}
+        setting.area = Store.fire(setting.area, null, [event, setting.parameter, setting.destination.href, setting.location.href]);
+        setting.areas = setting.areas || Store.chooseAreas(document, event, setting.area, setting.parameter, setting.destination.href, setting.location.href);
+        setting.areaback = setting.area;
+        setting.area = setting.areas[0];
+        if (!setting.area) {return;}
         
         setting.database && setting.fix.history && Store.dbTitle(url);
         if (setting.cache[event.type.toLowerCase()]) {cache = jQuery[Store.name].getCache(url);}
@@ -768,10 +794,17 @@
             
             /* variable initialization */
             var newDocument, cacheDocument, areas, checker;
+            newDocument = Store.createHTMLDocument(XMLHttpRequest.responseText);
+            
+            var nextAreas = Store.chooseAreas(newDocument, event, setting.areaback, setting.parameter, setting.destination.href, setting.location.href);
+            setting.areas = jQuery.map(setting.areas, function(area) {return ~jQuery.inArray(area, nextAreas) ? area : null;});
+            setting.area = setting.areas[0];
+            if (!setting.area || jQuery(setting.area).length !== jQuery(setting.area, newDocument).length) {throw new Error('throw: area length mismatch');}
+            
+            title = jQuery('title', newDocument).text();
             areas = setting.area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
             if (cache && cache.data) {
               cacheDocument = Store.createHTMLDocument(cache.data);
-              newDocument = Store.createHTMLDocument(XMLHttpRequest.responseText);
               for (var i = 0, area, containers, elements; area = areas[i++];) {
                 containers = jQuery(area, newDocument);
                 elements = jQuery(area, cacheDocument);
@@ -779,14 +812,11 @@
                   containers.eq(j).html(jQuery(element).contents());
                 }
               }
-            } else {
-              newDocument = Store.createHTMLDocument(XMLHttpRequest.responseText);
             }
             
-            jQuery('noscript', newDocument).each(function() {this.children.length && jQuery(this).text(this.innerHTML);});
-            title = jQuery('title', newDocument).text();
+            /* escape */
+            jQuery('noscript', newDocument).children().parent().each(function() {this.children.length && jQuery(this).text(this.innerHTML);});
             
-            if (!jQuery(setting.area).length || jQuery(setting.area).length !== jQuery(setting.area, newDocument).length) {throw new Error('throw: area length mismatch');}
             jQuery(window).trigger(setting.gns + '.unload');
             
             /* redirect */
@@ -865,9 +895,9 @@
             UPDATE_HEAD: {
               if (Store.fire(callbacks_update.head.before, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_HEAD;}
               
-                var adds = [], removes = jQuery('head').find(setting.load.head).not('[rel~="stylesheet"]');
+                var adds = [], removes = jQuery('head').find(setting.load.head).not('link[rel~="stylesheet"], style, script');
                 head = jQuery('head', newDocument).find(setting.load.head).not(jQuery(setting.area, newDocument).find(setting.load.head));
-                head = jQuery(head).not(setting.load.reject).not('[rel~="stylesheet"]');
+                head = jQuery(head).not(setting.load.reject).not('link[rel~="stylesheet"], style, script');
                 
                 var selector;
                 for (var i = 0, element; element = head[i]; i++) {
@@ -878,12 +908,11 @@
                       selector = 'base';
                       break;
                     case 'link':
+                      selector = 'link[rel="' + element.getAttribute('rel') + '"]';
                       switch ((element.getAttribute('rel') || '').toLowerCase()) {
                         case 'alternate':
-                          selector = 'link[type="' + element.getAttribute('type') + '"][rel="' + element.getAttribute('rel') + '"]';
+                          selector += '[type="' + element.getAttribute('type') + '"]';
                           break;
-                        default:
-                          selector = 'link[rel="' + element.getAttribute('rel') + '"]';
                       }
                       break;
                     case 'meta':
@@ -893,6 +922,8 @@
                         selector = 'meta[http-equiv="' + element.getAttribute('http-equiv') + '"]';
                       } else if (element.getAttribute('name')) {
                         selector = 'meta[name="' + element.getAttribute('name') + '"]';
+                      } else if (element.getAttribute('property')) {
+                        selector = 'meta[property="' + element.getAttribute('property') + '"]';
                       } else {
                         continue;
                       }
@@ -900,7 +931,7 @@
                     default:
                       selector = null;
                   }
-                  adds = head.filter(selector).not('[rel~="stylesheet"]');
+                  adds = head.filter(selector).not('link[rel~="stylesheet"], style, script');
                   function callback() {
                     var src = this, dst;
                     function callback() {
@@ -915,7 +946,7 @@
                     };
                     return !!adds.filter(callback)[0];
                   };
-                  jQuery('head').find(selector).not(setting.load.reload).not('[rel~="stylesheet"]').filter(callback).remove();
+                  jQuery('head').find(selector).not(setting.load.reload).not('link[rel~="stylesheet"], style, script').filter(callback).remove();
                   jQuery('head').prepend(adds.map(function() {return jQuery(this.outerHTML)[0];}));
                 }
                 removes.not(setting.load.reload).remove();
@@ -1007,15 +1038,15 @@
             jQuery('noscript', newDocument).remove();
             
             /* css */
-            function load_css() {
+            function load_css(selector) {
               UPDATE_CSS: {
                 if (!setting.load.css) {break UPDATE_CSS;}
                 if (Store.fire(callbacks_update.css.before, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_CSS;}
                 
-                var save, adds = [], removes = jQuery('link[rel~="stylesheet"], style').not(jQuery(setting.area).find('link[rel~="stylesheet"], style'));
+                var save, adds = [], removes = jQuery(selector).not(jQuery(setting.area).find(selector));
                 cache = jQuery[Store.name].getCache(url);
                 save = cache && !cache.css;
-                css = css || jQuery('link[rel~="stylesheet"], style', newDocument).not(jQuery(setting.area, newDocument).find('link[rel~="stylesheet"], style'));
+                css = css || jQuery(selector, newDocument).not(jQuery(setting.area, newDocument).find(selector));
                 css = jQuery(css).not(setting.load.reject);
                 
                 if (cache && cache.css && css && css.length !== cache.css.length) {save = true;}
@@ -1030,7 +1061,8 @@
                   for (var j = 0; removes[j]; j++) {
                     if (Store.trim(removes[j].href || removes[j].innerHTML || '') === Store.trim(element.href || element.innerHTML || '')) {
                       if (adds.length) {
-                        j ? removes.eq(j - 1).after(adds) : removes.eq(j).before(adds);
+                        element = removes.eq(j).prevAll(selector).first();
+                        element[0] ? element.after(adds) : removes.eq(j).before(adds);
                         adds = [];
                       }
                       removes = removes.not(removes[j]);
@@ -1100,10 +1132,12 @@
             
             /* verify */
             UPDATE_VERIFY: {
-              if (Store.fire(callbacks_update.verify.before, null, [event, setting.parameter], setting.callbacks.async) === false) {break UPDATE_VERIFY;}
+              Store.fire(callbacks_update.verify.before, null, [event, setting.parameter], setting.callbacks.async);
               var current = Store.canonicalizeURL(window.location.href).replace(/(?:%\w{2})+/g, function(str) {return url.match(str.toLowerCase()) || str;});
               if (url === current) {
                 setting.retry = true;
+                setting.area = setting.option.area;
+                setting.areas = nextAreas;
               } else if (setting.retry) {
                 setting.retry = false;
                 setting.destination.href = current;
@@ -1111,11 +1145,11 @@
               } else {
                 throw new Error('throw: location mismatch');
               }
-              if (Store.fire(callbacks_update.verify.after, null, [event, setting.parameter], setting.callbacks.async) === false) {break UPDATE_VERIFY;}
+              Store.fire(callbacks_update.verify.after, null, [event, setting.parameter], setting.callbacks.async);
             }; // label: UPDATE_VERIFY
             
             /* load */
-            load_css();
+            load_css('link[rel~="stylesheet"], style');
             jQuery(window)
             .one(setting.gns + '.rendering', function(event) {
               event.preventDefault();
@@ -1179,6 +1213,11 @@
         }
       }
       return text;
+    },
+    chooseAreas: function(document, event, area) {
+      area = area instanceof Array ? area : [area];
+      area = jQuery.map(area, function(area) {return jQuery(area, document)[0] ? area : null;});
+      return area;
     },
     fire: function(fn, context, args, async) {
       if (typeof fn === 'function') {return async ? setTimeout(function() {fn.apply(context, args)}, 0) : fn.apply(context, args);} else {return fn;}
