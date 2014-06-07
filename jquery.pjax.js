@@ -105,6 +105,7 @@
     );
     setting.location = jQuery('<a/>', {href: Store.canonicalizeURL(window.location.href)})[0];
     setting.destination = jQuery('<a/>', {href: Store.canonicalizeURL(window.location.href)})[0];
+    setting = setting.scope && Store.scope(setting) || setting;
     
     setting.nss = {
       array: [Store.name].concat(setting.ns && String(setting.ns).split('.') || [])
@@ -112,7 +113,7 @@
     jQuery.extend
     (
       true,
-      setting = setting.scope && Store.scope(setting) || setting,
+      setting,
       {
         nss: {
           name: setting.ns || '',
@@ -127,6 +128,7 @@
           requestHeader: ['X', setting.nss.array[0].replace(/^\w/, function($0) {return $0.toUpperCase();})].join('-')
         },
         areas: null,
+        areaback: null,
         fix: !/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.navigator.userAgent) ? {location: false, reset: false} : {},
         contentType: setting.contentType.replace(/\s*[,;]\s*/g, '|').toLowerCase(),
         scroll: {record: true, queue: []},
@@ -400,12 +402,19 @@
       if (src.protocol !== dst.protocol || src.host !== dst.host) {return;}
       if (event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {return;}
       
+      setting = jQuery.extend(true, {}, setting);
+      
       var url, cache;
       
       url = dst.href;
-      setting.areas = setting.areas || Store.chooseAreas(document, event, setting.option.area, setting.parameter, dst.href, src.href);
+      setting.area = setting.option.area;
+      setting = setting.scope ? Store.scope(setting, src.href, dst.href) : setting;
+      if (!setting) {return;}
+      setting.area = Store.fire(setting.area, null, [event, setting.parameter, dst.href, src.href]);
+      setting.areas = setting.areas || Store.chooseAreas(document, event, setting.area);
+      setting.areaback = setting.area;
       setting.area = setting.areas[0];
-      if (!setting.area || setting.scope && !Store.scope(setting, src.href, dst.href)) {return;}
+      if (!setting.area) {return;}
       
       return true;
     },
@@ -520,12 +529,16 @@
         var url, cache;
         
         url = setting.destination.href;
-        setting.areas = setting.areas || Store.chooseAreas(document, event, setting.option.area, setting.parameter, setting.destination.href, setting.location.href);
-        setting.area = setting.areas[0];
         setting.timeStamp = event.timeStamp;
         if (setting.landing) {setting.landing = false;}
         if (setting.cache.mix && jQuery[Store.name].getCache(url)) {return;}
-        if (!setting.area || setting.scope && !Store.scope(setting)) {return;}
+        setting = setting.scope ? Store.scope(setting, setting.location.href, setting.destination.href) : setting;
+        if (!setting) {return;}
+        setting.area = Store.fire(setting.area, null, [event, setting.parameter, setting.destination.href, setting.location.href]);
+        setting.areas = setting.areas || Store.chooseAreas(document, event, setting.area, setting.parameter, setting.destination.href, setting.location.href);
+        setting.areaback = setting.area;
+        setting.area = setting.areas[0];
+        if (!setting.area) {return;}
         setting.database && Store.dbScroll(jQuery(window).scrollLeft(), jQuery(window).scrollTop());
         
         if (setting.cache[event.type.toLowerCase()]) {cache = jQuery[Store.name].getCache(url);}
@@ -550,12 +563,16 @@
         var url, cache;
         
         url = setting.destination.href = Store.canonicalizeURL(setting.destination.href.replace(/[?#].*/, '') + (event.target.method.toUpperCase() === 'GET' ? '?' + jQuery(event.target).serialize() : ''));
-        setting.areas = setting.areas || Store.chooseAreas(document, event, setting.option.area, setting.parameter, setting.destination.href, setting.location.href);
-        setting.area = setting.areas[0];
         setting.timeStamp = event.timeStamp;
         if (setting.landing) {setting.landing = false;}
         if (setting.cache.mix && jQuery[Store.name].getCache(url)) {return;}
-        if (!setting.area || setting.scope && !Store.scope(setting)) {return;}
+        setting = setting.scope ? Store.scope(setting, setting.location.href, setting.destination.href) : setting;
+        if (!setting) {return;}
+        setting.area = Store.fire(setting.area, null, [event, setting.parameter, setting.destination.href, setting.location.href]);
+        setting.areas = setting.areas || Store.chooseAreas(document, event, setting.area, setting.parameter, setting.destination.href, setting.location.href);
+        setting.areaback = setting.area;
+        setting.area = setting.areas[0];
+        if (!setting.area) {return;}
         setting.database && Store.dbScroll(jQuery(window).scrollLeft(), jQuery(window).scrollTop());
         
         if (setting.cache[event.type.toLowerCase()] && setting.cache[event.target.method.toLowerCase()]) {cache = jQuery[Store.name].getCache(url);}
@@ -584,10 +601,15 @@
         }
         
         url = setting.destination.href;
-        setting.areas = setting.areas || Store.chooseAreas(document, event, setting.option.area, setting.parameter, setting.destination.href, setting.location.href);
-        setting.area = setting.areas[0];
         setting.timeStamp = event.timeStamp;
         if (setting.landing) {if (setting.landing.href === url) {setting.landing = false; return;} setting.landing = false;}
+        if (setting.cache.mix && jQuery[Store.name].getCache(url)) {return;}
+        setting = setting.scope ? Store.scope(setting, setting.location.href, setting.destination.href) : setting;
+        if (!setting) {return;}
+        setting.area = Store.fire(setting.area, null, [event, setting.parameter, setting.destination.href, setting.location.href]);
+        setting.areas = setting.areas || Store.chooseAreas(document, event, setting.area, setting.parameter, setting.destination.href, setting.location.href);
+        setting.areaback = setting.area;
+        setting.area = setting.areas[0];
         if (!setting.area) {return;}
         
         setting.database && setting.fix.history && Store.dbTitle(url);
@@ -774,7 +796,7 @@
             var newDocument, cacheDocument, areas, checker;
             newDocument = Store.createHTMLDocument(XMLHttpRequest.responseText);
             
-            var nextAreas = Store.chooseAreas(newDocument, event, setting.option.area, setting.parameter, setting.destination.href, setting.location.href);
+            var nextAreas = Store.chooseAreas(newDocument, event, setting.areaback, setting.parameter, setting.destination.href, setting.location.href);
             setting.areas = jQuery.map(setting.areas, function(area) {return ~jQuery.inArray(area, nextAreas) ? area : null;});
             setting.area = setting.areas[0];
             if (!setting.area || jQuery(setting.area).length !== jQuery(setting.area, newDocument).length) {throw new Error('throw: area length mismatch');}
@@ -1114,6 +1136,7 @@
               var current = Store.canonicalizeURL(window.location.href).replace(/(?:%\w{2})+/g, function(str) {return url.match(str.toLowerCase()) || str;});
               if (url === current) {
                 setting.retry = true;
+                setting.area = setting.option.area;
                 setting.areas = nextAreas;
               } else if (setting.retry) {
                 setting.retry = false;
@@ -1191,8 +1214,7 @@
       }
       return text;
     },
-    chooseAreas: function(document, event, area, param, dst, src) {
-      area = Store.fire(area, null, [event, param, dst, src]);
+    chooseAreas: function(document, event, area) {
       area = area instanceof Array ? area : [area];
       area = jQuery.map(area, function(area) {return jQuery(area, document)[0] ? area : null;});
       return area;
