@@ -126,7 +126,6 @@
           class4html: setting.nss.array.join('-'),
           requestHeader: ['X', setting.nss.array[0].replace(/^\w/, function($0) {return $0.toUpperCase();})].join('-')
         },
-        areaback: setting.area,
         fix: !/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.navigator.userAgent) ? {location: false, reset: false} : {},
         contentType: setting.contentType.replace(/\s*[,;]\s*/g, '|').toLowerCase(),
         scroll: {record: true, queue: []},
@@ -403,7 +402,7 @@
       var url, cache;
       
       url = dst.href;
-      setting.area = Store.fire(setting.areaback, null, [event, setting.parameter, dst.href, src.href]);
+      setting.area = Store.fire(setting.option.area, null, [event, setting.parameter, dst.href, src.href]);
       if (!jQuery(setting.area).length || setting.scope && !Store.scope(setting, src.href, dst.href)) {return;}
       
       return true;
@@ -519,7 +518,7 @@
         var url, cache;
         
         url = setting.destination.href;
-        setting.area = Store.fire(setting.areaback, null, [event, setting.parameter, setting.destination.href, setting.location.href]);
+        setting.area = Store.fire(setting.option.area, null, [event, setting.parameter, setting.destination.href, setting.location.href]);
         setting.timeStamp = event.timeStamp;
         if (setting.landing) {setting.landing = false;}
         if (setting.cache.mix && jQuery[Store.name].getCache(url)) {return;}
@@ -548,7 +547,7 @@
         var url, cache;
         
         url = setting.destination.href = Store.canonicalizeURL(setting.destination.href.replace(/[?#].*/, '') + (event.target.method.toUpperCase() === 'GET' ? '?' + jQuery(event.target).serialize() : ''));
-        setting.area = Store.fire(setting.areaback, null, [event, setting.parameter, setting.destination.href, setting.location.href]);
+        setting.area = Store.fire(setting.option.area, null, [event, setting.parameter, setting.destination.href, setting.location.href]);
         setting.timeStamp = event.timeStamp;
         if (setting.landing) {setting.landing = false;}
         if (setting.cache.mix && jQuery[Store.name].getCache(url)) {return;}
@@ -581,7 +580,7 @@
         }
         
         url = setting.destination.href;
-        setting.area = Store.fire(setting.areaback, null, [event, setting.parameter, setting.destination.href, setting.location.href]);
+        setting.area = Store.fire(setting.option.area, null, [event, setting.parameter, setting.destination.href, setting.location.href]);
         setting.timeStamp = event.timeStamp;
         if (setting.landing) {if (setting.landing.href === url) {setting.landing = false; return;} setting.landing = false;}
         if (!jQuery(setting.area).length) {return;}
