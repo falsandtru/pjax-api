@@ -1110,7 +1110,7 @@
             
             /* verify */
             UPDATE_VERIFY: {
-              if (Store.fire(callbacks_update.verify.before, null, [event, setting.parameter], setting.callbacks.async) === false) {break UPDATE_VERIFY;}
+              Store.fire(callbacks_update.verify.before, null, [event, setting.parameter], setting.callbacks.async);
               var current = Store.canonicalizeURL(window.location.href).replace(/(?:%\w{2})+/g, function(str) {return url.match(str.toLowerCase()) || str;});
               if (url === current) {
                 setting.retry = true;
@@ -1122,7 +1122,7 @@
               } else {
                 throw new Error('throw: location mismatch');
               }
-              if (Store.fire(callbacks_update.verify.after, null, [event, setting.parameter], setting.callbacks.async) === false) {break UPDATE_VERIFY;}
+              Store.fire(callbacks_update.verify.after, null, [event, setting.parameter], setting.callbacks.async);
             }; // label: UPDATE_VERIFY
             
             /* load */
