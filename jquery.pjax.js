@@ -878,12 +878,11 @@
                       selector = 'base';
                       break;
                     case 'link':
+                      selector = 'link[rel="' + element.getAttribute('rel') + '"]';
                       switch ((element.getAttribute('rel') || '').toLowerCase()) {
                         case 'alternate':
-                          selector = 'link[type="' + element.getAttribute('type') + '"][rel="' + element.getAttribute('rel') + '"]';
+                          selector += '[type="' + element.getAttribute('type') + '"]';
                           break;
-                        default:
-                          selector = 'link[rel="' + element.getAttribute('rel') + '"]';
                       }
                       break;
                     case 'meta':
