@@ -1007,15 +1007,15 @@
             jQuery('noscript', newDocument).remove();
             
             /* css */
-            function load_css() {
+            function load_css(selector) {
               UPDATE_CSS: {
                 if (!setting.load.css) {break UPDATE_CSS;}
                 if (Store.fire(callbacks_update.css.before, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_CSS;}
                 
-                var save, adds = [], removes = jQuery('link[rel~="stylesheet"], style').not(jQuery(setting.area).find('link[rel~="stylesheet"], style'));
+                var save, adds = [], removes = jQuery(selector).not(jQuery(setting.area).find(selector));
                 cache = jQuery[Store.name].getCache(url);
                 save = cache && !cache.css;
-                css = css || jQuery('link[rel~="stylesheet"], style', newDocument).not(jQuery(setting.area, newDocument).find('link[rel~="stylesheet"], style'));
+                css = css || jQuery(selector, newDocument).not(jQuery(setting.area, newDocument).find(selector));
                 css = jQuery(css).not(setting.load.reject);
                 
                 if (cache && cache.css && css && css.length !== cache.css.length) {save = true;}
@@ -1030,7 +1030,7 @@
                   for (var j = 0; removes[j]; j++) {
                     if (Store.trim(removes[j].href || removes[j].innerHTML || '') === Store.trim(element.href || element.innerHTML || '')) {
                       if (adds.length) {
-                        element = removes.eq(j).prevAll('link[rel~="stylesheet"], style').first();
+                        element = removes.eq(j).prevAll(selector).first();
                         element[0] ? element.after(adds) : removes.eq(j).before(adds);
                         adds = [];
                       }
@@ -1116,7 +1116,7 @@
             }; // label: UPDATE_VERIFY
             
             /* load */
-            load_css();
+            load_css('link[rel~="stylesheet"], style');
             jQuery(window)
             .one(setting.gns + '.rendering', function(event) {
               event.preventDefault();
