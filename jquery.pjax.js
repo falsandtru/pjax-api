@@ -1030,7 +1030,8 @@
                   for (var j = 0; removes[j]; j++) {
                     if (Store.trim(removes[j].href || removes[j].innerHTML || '') === Store.trim(element.href || element.innerHTML || '')) {
                       if (adds.length) {
-                        j ? removes.eq(j - 1).after(adds) : removes.eq(j).before(adds);
+                        element = removes.eq(j).prevAll('link[rel~="stylesheet"], style').first();
+                        element[0] ? element.after(adds) : removes.eq(j).before(adds);
                         adds = [];
                       }
                       removes = removes.not(removes[j]);
