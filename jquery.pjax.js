@@ -63,7 +63,7 @@
         id: 0,
         gns: Store.name,
         ns: null,
-        area: null,
+        area: 'body',
         link: 'a:not([target])',
         filter: function(){return /(\/[^.]*|\.html?|\.php)([#?].*)?$/.test(this.href);},
         form: null,

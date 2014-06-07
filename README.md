@@ -317,7 +317,7 @@ $('.delegate').pjax({ area: '.container' });
   id: 0,
   gns: Store.name,
   ns: null,
-  area: null,
+  area: 'body',
   link: 'a:not([target])',
   filter: function(){return /(\/[^.]*|\.html?|\.php)([#?].*)?$/.test(this.href);},
   form: null,
@@ -358,11 +358,11 @@ $('.delegate').pjax({ area: '.container' });
 ```
 
 ####*area: Selector as string / function( event, parameter, to, from )*
-pjaxにより更新する範囲（HTML要素）をjQueryセレクタで設定します。更新範囲を複数設定する場合は一つのクラスセレクタ等による包括指定でなくIDセレクタのように一つの要素にのみ一致するセレクタをカンマ区切りで列挙してください。
+pjaxにより更新する範囲（HTML要素）をjQueryセレクタで設定します。初期値は`body`です。
 `$.fn.pjax`により設定されたコンテキストで絞り込まれません。
 
 #####*area: Selector as string*
-文字列により更新する範囲を設定します。
+文字列により更新する範囲を設定します。更新範囲を複数設定する場合は一つのクラスセレクタ等による包括指定でなくIDセレクタのように一つの要素にのみ一致するセレクタをカンマ区切りで列挙してください。
 
 #####*area: Selector as function( event, parameter, to, from )*
 関数の戻り値により更新する範囲を動的に設定します。
@@ -1524,6 +1524,7 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 
 ####1.34.4
 
+* `area`パラメータの初期値を`body`に変更
 * `property`属性を持つMETAタグが同期されないバグを修正
 * CSSの順序が維持されない場合があるバグを修正
 
