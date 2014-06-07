@@ -792,7 +792,8 @@
               }
             }
             
-            jQuery('noscript', newDocument).each(function() {this.children.length && jQuery(this).text(this.innerHTML);});
+            /* escape */
+            jQuery('noscript', newDocument).children().parent().each(function() {this.children.length && jQuery(this).text(this.innerHTML);});
             
             jQuery(window).trigger(setting.gns + '.unload');
             
