@@ -865,9 +865,9 @@
             UPDATE_HEAD: {
               if (Store.fire(callbacks_update.head.before, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_HEAD;}
               
-                var adds = [], removes = jQuery('head').find(setting.load.head).not('[rel~="stylesheet"]');
+                var adds = [], removes = jQuery('head').find(setting.load.head).not('link[rel~="stylesheet"], style, script');
                 head = jQuery('head', newDocument).find(setting.load.head).not(jQuery(setting.area, newDocument).find(setting.load.head));
-                head = jQuery(head).not(setting.load.reject).not('[rel~="stylesheet"]');
+                head = jQuery(head).not(setting.load.reject).not('link[rel~="stylesheet"], style, script');
                 
                 var selector;
                 for (var i = 0, element; element = head[i]; i++) {
@@ -900,7 +900,7 @@
                     default:
                       selector = null;
                   }
-                  adds = head.filter(selector).not('[rel~="stylesheet"]');
+                  adds = head.filter(selector).not('link[rel~="stylesheet"], style, script');
                   function callback() {
                     var src = this, dst;
                     function callback() {
@@ -915,7 +915,7 @@
                     };
                     return !!adds.filter(callback)[0];
                   };
-                  jQuery('head').find(selector).not(setting.load.reload).not('[rel~="stylesheet"]').filter(callback).remove();
+                  jQuery('head').find(selector).not(setting.load.reload).not('link[rel~="stylesheet"], style, script').filter(callback).remove();
                   jQuery('head').prepend(adds.map(function() {return jQuery(this.outerHTML)[0];}));
                 }
                 removes.not(setting.load.reload).remove();
