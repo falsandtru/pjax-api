@@ -893,6 +893,8 @@
                         selector = 'meta[http-equiv="' + element.getAttribute('http-equiv') + '"]';
                       } else if (element.getAttribute('name')) {
                         selector = 'meta[name="' + element.getAttribute('name') + '"]';
+                      } else if (element.getAttribute('property')) {
+                        selector = 'meta[property="' + element.getAttribute('property') + '"]';
                       } else {
                         continue;
                       }
