@@ -40,7 +40,19 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 * ローディングエフェクトの表示
 
 ##preload + pjax
-preloadとpjaxの複合利用は、スクリプトファイルを置くだけでページの表示(移動)にかかる時間を約0.5秒短縮する手軽で効果の高い高速化手法です。ここで使用するpjaxは高度に自動化されているためHTMLやCSSがページごとにバラバラでも動作します。スクリプトと動的に追加される要素には注意が必要ですがpjaxの`load.reload`と`load.reject`パラメータを調整するだけでプラグインを数十個入れたWordpressのような複雑なサイトでも使用できます。ただし、タッチ操作ではpreloadを使用できず効果がいまひとつのため無効にします。
+GoogleやAmazonが示すように、ページのロードタイムを1秒前後にまで改善したあとさらに短くする0.1秒には莫大な価値があります。preloadとpjaxはこの価値を約0.5秒分提供します。
+
+preloadとpjaxの複合利用は、スクリプトファイルを置くだけでページの表示(移動)にかかる時間を約0.5秒短縮する手軽で効果の高い高速化手法です。ここで使用するpjaxは高度に自動化されているためHTMLやCSSがページごとにバラバラでも動作します。スクリプトと動的に追加される要素には注意が必要ですがpjaxの`load.reload`と`load.reject`パラメータを調整するだけでプラグインを数十個入れたWordpressのような複雑なサイトでも快適に使用できますし、ユーザーJSとしてさえ動作します。ただし、タッチ操作ではpreloadを使用できず効果がいまひとつのため無効にします。
+
+ページロードがどれだけ速くなったかをコンソールの出力から確認できます。以下の出力はクリックの310ミリ秒前にリンク先のページの取得を開始し、クリックから450ミリ秒で表示されたときのものです。
+
+```
+[-310, 1, 361, 379, 403, 424, 450, 486, 487, 491] jquery.pjax.js:1035
+["preload(-310)", "continue(1)", "load(361)", "parse(379)", "head(403)", "content(424)", "css(450)", "script(486)", "renderd(487)", "defer(491)"]
+```
+
+※jQuery1.5以降のバージョン必須  
+※Windows7+Chrome
 
 通常はリンクのクリックからHTMLファイルのダウンロード完了まで0.5～1秒、ページの表示（DOMロード）にさらに1秒の合計2秒前後かかるページ移動をpreload+pjaxではクリックからページの表示まで0.5秒（500ミリ秒）前後で完了することができます。詳細な設定項目は<a href="https://github.com/falsandtru/jquery.preload.js">preload</a>と<a href="https://github.com/falsandtru/jquery.pjax.js">pjax</a>の各ドキュメントに記載しています。PCでは多分これが一番速いと思います。
 
@@ -48,9 +60,6 @@ preloadとpjaxの複合利用は、スクリプトファイルを置くだけで
 |:---|:--:|:--:|:--:|
 |Normal|500-1000ms|800-1600ms|1300-2600ms|
 |preload+pjax|0-700ms|50-100ms|50-800ms|
-
-※jQuery1.5以降のバージョン必須  
-※Windows7+Chromeで手近なサイトを計測
 
 jQueryとスクリプトを3つ追加するだけで動作します。
 
@@ -87,153 +96,6 @@ if (!/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.nav
   });
   
   $(document).bind('pjax.ready', function() {$(document).trigger('preload');});
-}
-```
-
-クリックから表示までにかかった時間をコンソールに出力します。以下の出力はクリックの493ミリ秒前にリンク先のページの取得を開始し、クリックから386ミリ秒で表示されたときのものです。
-
-```
-[-493, 10, 361, 386, 411, 490, 492, 496]
-["preload(-493)", "continue(10)", "loaded(361)", "content(386)", "css(411)", "script(490)", "renderd(492)", "defer(496)"]
-```
-
-##設定例
-汎用的な高速化設定例です。
-
-* PCでのみpreloadとpjaxを有効（タブレットとモバイルでは無効）
-* pjax処理の進捗をプログレスバーで表示
-
-```javascript
-(function(){
-  function init(){
-    var progressbar = '#pjax-progressbar';
-    
-    $.clientenv.is('pc') &&
-    $.preload({
-      forward: $.pjax.follow,
-      check: $.pjax.getCache,
-      encode: true,
-      ajax: {
-        xhr: function(){
-          var xhr = jQuery.ajaxSettings.xhr();
-          
-          $(progressbar).children().width('5%');
-          if ( xhr instanceof Object && 'onprogress' in xhr ) {
-            xhr.addEventListener( 'progress', function ( event ) {
-              var percentage = event.total ? event.loaded / event.total : 0.4;
-              percentage = percentage * 90 + 5;
-              $(progressbar).children().width( percentage + '%' );
-            }, false );
-            xhr.addEventListener( 'load', function ( event ) {
-              $(progressbar).children().width('95%');
-            }, false );
-            xhr.addEventListener( 'error', function ( event ) {
-              $(progressbar).children().css('background-color', '#00f');
-            }, false );
-          }
-          return xhr;
-        },
-        success: function ( data, textStatus, XMLHttpRequest ) {
-          !$.pjax.getCache( this.url ) && $.pjax.setCache( this.url, null, textStatus, XMLHttpRequest ) ;
-        }
-      }
-    });
-    
-    $.clientenv.is('pc') &&
-    $.pjax({
-      area: '#header, #content, #sidebar',
-      callbacks: {
-        before: function(){
-          $(progressbar).children().width('');
-          $(progressbar).fadeIn(0);
-        },
-        ajax: {
-          xhr: function(){
-            var xhr = jQuery.ajaxSettings.xhr();
-            
-            $(progressbar).children().width('5%');
-            if ( xhr instanceof Object && 'onprogress' in xhr ) {
-              xhr.addEventListener( 'progress', function ( event ) {
-                var percentage = event.loaded / event.total;
-                percentage = isFinite( percentage ) ? percentage : 0.4 ;
-                percentage = percentage * 90 + 5;
-                $(progressbar).children().width( percentage + '%' );
-              }, false );
-              xhr.addEventListener( 'loadend', function ( event ) {}, false );
-            }
-            return xhr;
-          }
-        },
-        update: {
-          before: function(){
-            $(progressbar).children().width('95%');
-          },
-          content: {
-            after: function(){
-              $(progressbar).children().width('96.25%');
-            }
-          },
-          css: {
-            after: function(){
-              $(progressbar).children().width('97.5%');
-            }
-          },
-          script: {
-            after: function(){
-              $(progressbar).children().width('98.75%');
-            }
-          },
-          rendering: {
-            after: function(){
-              $(progressbar).children().width('100%');
-              $(progressbar).fadeOut(50);
-            }
-          }
-        }
-      },
-      load: {
-        css: true, script: true, sync: true,
-        reload: '',
-        reject: ''
-      },
-      cache: {
-        click: true, submit: true, popstate: true, get: true, post: true
-      },
-      ajax: { cache: true, timeout: 5000 },
-      server: { query: null }
-    });
-  }
-  function reset(){
-    $(document).trigger('preload');
-    $.visibilitytrigger({
-      trigger: 'img[data-origin]',
-      callback: function(){ this.src = $(this).attr('data-origin'); }
-    }).vtrigger();
-  }
-  
-  $(init);
-  $(reset);
-  $(document).bind('pjax.ready', reset);
-})();
-```
-
-```html
-<div id="pjax-progressbar" style="background:rgba(0,0,0,.2);display:none;position:fixed;bottom:0;left:0;z-index:9999;width:100%;height:5px;">
-  <div style="background:#f77;position:absolute;top:0;left:0;width:0;height:3px;"></div>
-</div>
-```
-
-```javascript
-if (!window.ga) {
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-  
-  window.ga('create', 'UA-xxxxxxxx-x', 'hostname');
-  window.ga('send', 'pageview', window.location.pathname+window.location.search);
-} else {
-  window.ga('send', 'pageview', window.location.pathname+window.location.search);
 }
 ```
 
@@ -316,9 +178,6 @@ $('.delegate').pjax({ area: '.container' });
 ```javascript
 // 初期値
 {
-  id: 0,
-  gns: Store.name,
-  ns: null,
   area: 'body',
   link: 'a:not([target])',
   filter: function(){return /(\/[^.]*|\.html?|\.php)([#?].*)?$/.test(this.href);},
@@ -342,13 +201,13 @@ $('.delegate').pjax({ area: '.container' });
   parameter: null,
   load: {
     css: false, script: false, execute: true,
-    reload: '[href^="chrome-extension://"]',
-    reject: '',
     head: 'link, meta, base',
+    reload: '[href^="chrome-extension://"]',
+    reject: '[src*="jquery.js"], [src*="jquery.min.js"]',
     sync: true, ajax: {dataType: 'script', cache: true}, rewrite: null,
     redirect: true    
   },
-  interval: 300,
+  interval: 100,
   wait: 0,
   scroll: {delay: 300},
   fix: {location: true, history: true, scroll: true, reset: false},
@@ -379,7 +238,7 @@ pjaxによりページ移動を行うリンク（アンカータグ）をjQuery�
 なお、カレントディレクトリを基準とした相対パスは正常に動作しない可能性があるため使用しないでください。
 
 ####*filter: string / function*
-リンクを絞り込むjQueryセレクタまたは関数を設定します。初期値は`function(){ return /(\/|\.html?|\.php)([#?].*)?$/.test( this.href ); }`です。
+リンクを絞り込むjQueryセレクタまたは関数を設定します。初期値は`function(){return /(\/[^.]*|\.html?|\.php)([#?].*)?$/.test(this.href);}`です。
 
 ####*form: Selector as string*
 pjaxによりページ移動を行うフォーム（フォームタグ）をjQueryセレクタで選択します。
@@ -445,10 +304,10 @@ pjaxによるページ読み込み時にJavaScriptを読み込むかを設定し
 埋め込み型のJavaScriptを実行するかを設定します。初期値は`true`で有効です。
 
 #####*load.reload: Selector as string*
-繰り返し読み込むJavaScriptと読み込みを維持するCSSをjQueryセレクタで設定します。初期値は`null`で無効です。
+繰り返し読み込むJavaScriptと読み込みを維持するCSSをjQueryセレクタで設定します。初期値は`[href^="chrome-extension://"]`です。
 
 #####*load.reject: Selector as string*
-読み込まないJavaScriptとCSSをjQueryセレクタで設定します。初期値は`null`で無効です。
+読み込まないJavaScriptとCSSをjQueryセレクタで設定します。初期値は`[src*="jquery.js"], [src*="jquery.min.js"]`です。
 
 #####*load.head: Selector as string*
 `head`要素内で同期させる要素をjQueryセレクタで設定します。対応している要素は`link``meta``base`要素のみです。CSSは除外されます。初期値は`link, meta, base`です。
@@ -468,7 +327,7 @@ CloudFlareのRocketLoaderを使用するなどして要素が書き換えられ�
 HTMLに記述されたリダイレクト先への移動にpjaxを使用するかを設定します。対応するリダイレクトはHTMLのMETAタグによるもののみです。HTTPヘッダによるリダイレクトはリダイレクト前のURLでリダイレクト後のページが表示される結果となるため注意してください。初期値は`true`で有効です。
 
 ####*interval: Millisecond as number*
-pjaxにより更新されたコンテンツの描画の確認を行う間隔をミリ秒で設定します。初期値は`300`です。
+pjaxにより更新されたコンテンツの描画の確認を行う間隔をミリ秒で設定します。初期値は`100`です。
 
 ####*cache: node*
 pjaxによるページ読み込み時のキャッシュの使用にかかる設定項目を持ちます。
@@ -665,10 +524,10 @@ ajax通信において同名のメソッド内で実行されます。
 
 ###Method
 
-####*on()*
+####*enable()*
 pjaxを有効にします。
 
-####*off()*
+####*disable()*
 pjaxを無効にします。
 
 ####*click()*
@@ -1386,6 +1245,146 @@ pjaxは通信時にHTTPリクエストヘッダに`X-Pjax``X-Pjax-Area``X-Pjax-C
 
 pjaxによる通信とそれ以外の通信により返すレスポンス（HTML）の切り替えは、ページごとにPHPにより行う方法もありますが、ページが大量にある場合はWordpressのように差分データをデータベースで管理するとより簡便です。アクセスされるページのURLはmod_rewriteを使用すれることで`http://example/a/b/c/`→`http://example/?dir1=a&dir2=b&dir3=c`のようにクエリに変換することができます。この方法であればページファイルは`http://example/index.php`１つで済み、あとはGETクエリに応じたSQLクエリを生成しデータベースから必要なデータを持ってくるだけです。ただし、サーバーにpjax用の差分データを返させる（静的なページから動的なページと構成に変更する）場合は、大なり小なりサーバーの負荷が増加し従前より処理能力が低下する可能性があることに留意してください。
 
+##汎用設定
+汎用的な高速化設定例です。
+
+* PCでのみpreloadとpjaxを有効（タブレットとモバイルでは無効）
+* pjax処理の進捗をプログレスバーで表示
+
+```javascript
+(function(){
+  function init(){
+    var progressbar = '#pjax-progressbar';
+    
+    $.clientenv.is('pc') &&
+    $.preload({
+      forward: $.pjax.follow,
+      check: $.pjax.getCache,
+      encode: true,
+      ajax: {
+        xhr: function(){
+          var xhr = jQuery.ajaxSettings.xhr();
+          
+          $(progressbar).children().width('5%');
+          if ( xhr instanceof Object && 'onprogress' in xhr ) {
+            xhr.addEventListener( 'progress', function ( event ) {
+              var percentage = event.total ? event.loaded / event.total : 0.4;
+              percentage = percentage * 90 + 5;
+              $(progressbar).children().width( percentage + '%' );
+            }, false );
+            xhr.addEventListener( 'load', function ( event ) {
+              $(progressbar).children().width('95%');
+            }, false );
+            xhr.addEventListener( 'error', function ( event ) {
+              $(progressbar).children().css('background-color', '#00f');
+            }, false );
+          }
+          return xhr;
+        },
+        success: function ( data, textStatus, XMLHttpRequest ) {
+          !$.pjax.getCache( this.url ) && $.pjax.setCache( this.url, null, textStatus, XMLHttpRequest ) ;
+        }
+      }
+    });
+    
+    $.clientenv.is('pc') &&
+    $.pjax({
+      area: '#header, #content, #sidebar',
+      callbacks: {
+        before: function(){
+          $(progressbar).children().width('');
+          $(progressbar).fadeIn(0);
+        },
+        ajax: {
+          xhr: function(){
+            var xhr = jQuery.ajaxSettings.xhr();
+            
+            $(progressbar).children().width('5%');
+            if ( xhr instanceof Object && 'onprogress' in xhr ) {
+              xhr.addEventListener( 'progress', function ( event ) {
+                var percentage = event.loaded / event.total;
+                percentage = isFinite( percentage ) ? percentage : 0.4 ;
+                percentage = percentage * 90 + 5;
+                $(progressbar).children().width( percentage + '%' );
+              }, false );
+              xhr.addEventListener( 'loadend', function ( event ) {}, false );
+            }
+            return xhr;
+          }
+        },
+        update: {
+          before: function(){
+            $(progressbar).children().width('95%');
+          },
+          content: {
+            after: function(){
+              $(progressbar).children().width('96.25%');
+            }
+          },
+          css: {
+            after: function(){
+              $(progressbar).children().width('97.5%');
+            }
+          },
+          script: {
+            after: function(){
+              $(progressbar).children().width('98.75%');
+            }
+          },
+          rendering: {
+            after: function(){
+              $(progressbar).children().width('100%');
+              $(progressbar).fadeOut(50);
+            }
+          }
+        }
+      },
+      load: {
+        css: true, script: true, sync: true,
+        reload: '',
+        reject: ''
+      },
+      cache: {
+        click: true, submit: true, popstate: true, get: true, post: true
+      },
+      ajax: { cache: true, timeout: 5000 },
+      server: { query: null }
+    });
+  }
+  function reset(){
+    $(document).trigger('preload');
+    $.visibilitytrigger({
+      trigger: 'img[data-origin]',
+      callback: function(){ this.src = $(this).attr('data-origin'); }
+    }).vtrigger();
+  }
+  
+  $(init);
+  $(reset);
+  $(document).bind('pjax.ready', reset);
+})();
+```
+
+```html
+<div id="pjax-progressbar" style="background:rgba(0,0,0,.2);display:none;position:fixed;bottom:0;left:0;z-index:9999;width:100%;height:5px;">
+  <div style="background:#f77;position:absolute;top:0;left:0;width:0;height:3px;"></div>
+</div>
+```
+
+```javascript
+if (!window.ga) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  
+  window.ga('create', 'UA-xxxxxxxx-x', 'hostname');
+  window.ga('send', 'pageview', window.location.pathname+window.location.search);
+} else {
+  window.ga('send', 'pageview', window.location.pathname+window.location.search);
+}
+```
+
 ###Wordpressへの導入
 Wordpressにも既存の設定を変更することなく簡単にpjaxを導入することができます。
 Wordpressの各種プラグインも概ね共存し併用することができます。
@@ -1527,6 +1526,15 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 ##更新情報
 
 ###change log
+
+####1.36.0
+
+* `on`メソッドを`enable`メソッドに変更
+* `off`メソッドを`disable`メソッドに変更
+* `load.reject`パラメータの初期値を`'[src*="jquery.js"], [src*="jquery.min.js"]'`に変更
+* `interval`パラメータの初期値を`100`に変更
+* `type`属性を持たないLINLタグの処理を修正
+* HEAD要素の同期を高速化
 
 ####1.35.0
 

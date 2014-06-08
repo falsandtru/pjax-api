@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2014, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 0.2.0
- * @updated 2014/06/06
+ * @version 0.2.2
+ * @updated 2014/06/08
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -55,8 +55,9 @@
       {
         gns: Store.name,
         ns: undefined,
+        observe: true,
         link: 'a:not([target])',
-        filter: function(){return /(\/|\.html?|\.php)([#?].*)?$/.test(this.href);},
+        filter: function(){return /(\/[^.]*|\.html?|\.php)([#?].*)?$/.test(this.href);},
         lock: 1000,
         forward: null,
         check: null,
@@ -101,6 +102,7 @@
         touch: false,
         queue: [],
         xhr: null,
+        ajax: jQuery.extend(true, {}, jQuery.ajaxSettings, setting.ajax),
         timeStamp: 0,
         option: option
       }
@@ -118,7 +120,7 @@
     ids: [],
     settings: [0],
     count: 0,
-    parseHTML: null,
+    disable: false,
     setAlias:  function(name) {
       Store.alias = typeof name === 'string' ? name : Store.alias;
       if (Store.name !== Store.alias && !jQuery[Store.alias]) {
@@ -136,6 +138,13 @@
         
         $context[Store.name] = jQuery[Store.name];
         
+        $context.enable = function() {
+          Store.disable = false;
+        };
+        
+        $context.disable = function() {
+          Store.disable = true;
+        };
       }
       return $context;
     },
@@ -159,10 +168,12 @@
         setting.volume = 0;
         setting.timeStamp = 0;
         
-        jQuery(event.target).find(setting.link).filter(setting.filter)
+        $context.find(event.target).add($context.filter(event.target))
+        .find(setting.link).filter(setting.filter)
         .unbind(setting.nss.click)
         .one(setting.nss.click, setting.id, function(event) {
-          // Behavior when not using the lock
+          if (Store.disable) {return;}
+          
           var setting = Store.settings[event.data];
           
           event.timeStamp = new Date().getTime();
@@ -244,7 +255,8 @@
           
           setting.touch = false;
         })*/;
-      }).trigger(setting.nss.event);
+      })
+      setting.observe && jQuery(document).trigger(setting.nss.event);
       
       (function(id, wait) {
         setTimeout(function() {
@@ -301,6 +313,8 @@
               case !setting.target:
               case event !== setting.points[0]:
               case event.pageX !== setting.points[0].pageX || event.pageY !== setting.points[0].pageY:
+              case !setting.ajax.crossDomain && setting.target.protocol !== window.location.protocol:
+              case !setting.ajax.crossDomain && setting.target.host !== window.location.host:
                 break;
               default:
                 setting.xhr && setting.xhr.readyState < 4 && setting.xhr.abort();
