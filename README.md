@@ -1116,6 +1116,7 @@ pjaxで内部的に使用される`$.ajax`のパラメータを設定できま�
 ```javascript
 $.preload({
   forward: $.pjax.follow,
+  check: $.pjax.getCache,
   encode: true,
   ajax: {
     xhr: function(){
