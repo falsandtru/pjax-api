@@ -817,8 +817,6 @@
             /* escape */
             jQuery('noscript', newDocument).children().parent().each(function() {this.children.length && jQuery(this).text(this.innerHTML);});
             
-            jQuery(window).trigger(setting.gns + '.unload');
-            
             /* redirect */
             UPDATE_REDIRECT: {
               var redirect = jQuery('head meta[http-equiv="Refresh"][content*="URL="]', newDocument);
@@ -859,6 +857,8 @@
               
               if (Store.fire(callbacks_update.redirect.after, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_REDIRECT;}
             }; // label: UPDATE_REDIRECT
+            
+            jQuery(window).trigger(setting.gns + '.unload');
             
             /* url */
             UPDATE_URL: {
