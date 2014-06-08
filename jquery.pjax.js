@@ -448,7 +448,7 @@
             root.innerHTML = html.replace(/^.*?<html[^>]*>|<\/html>.*$/ig, '');
             doc.documentElement.removeChild(doc.head);
             doc.documentElement.removeChild(doc.body);
-            for (var i = 0, element; element = root.childNodes[i]; i) {
+            while (element = root.childNodes[0]) {
               doc.documentElement.appendChild(element);
             }
           }
