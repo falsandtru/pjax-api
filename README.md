@@ -40,6 +40,8 @@ HTMLに数行のコードを追加するだけで簡単に導入することが�
 * ローディングエフェクトの表示
 
 ##preload + pjax
+GoogleやAmazonが示すように、ページのロードタイムを1秒前後にまで改善したあとさらに短くする0.1秒には莫大な価値があります。preloadとpjaxはこの価値を約0.5秒分提供します。
+
 preloadとpjaxの複合利用は、スクリプトファイルを置くだけでページの表示(移動)にかかる時間を約0.5秒短縮する手軽で効果の高い高速化手法です。ここで使用するpjaxは高度に自動化されているためHTMLやCSSがページごとにバラバラでも動作します。スクリプトと動的に追加される要素には注意が必要ですがpjaxの`load.reload`と`load.reject`パラメータを調整するだけでプラグインを数十個入れたWordpressのような複雑なサイトでも快適に使用できますし、ユーザーJSとしてさえ動作します。ただし、タッチ操作ではpreloadを使用できず効果がいまひとつのため無効にします。
 
 通常はリンクのクリックからHTMLファイルのダウンロード完了まで0.5～1秒、ページの表示（DOMロード）にさらに1秒の合計2秒前後かかるページ移動をpreload+pjaxではクリックからページの表示まで0.5秒（500ミリ秒）前後で完了することができます。詳細な設定項目は<a href="https://github.com/falsandtru/jquery.preload.js">preload</a>と<a href="https://github.com/falsandtru/jquery.pjax.js">pjax</a>の各ドキュメントに記載しています。PCでは多分これが一番速いと思います。
@@ -442,10 +444,10 @@ pjaxによるページ読み込み時にJavaScriptを読み込むかを設定し
 埋め込み型のJavaScriptを実行するかを設定します。初期値は`true`で有効です。
 
 #####*load.reload: Selector as string*
-繰り返し読み込むJavaScriptと読み込みを維持するCSSをjQueryセレクタで設定します。初期値は`null`で無効です。
+繰り返し読み込むJavaScriptと読み込みを維持するCSSをjQueryセレクタで設定します。初期値は`[href^="chrome-extension://"]`です。
 
 #####*load.reject: Selector as string*
-読み込まないJavaScriptとCSSをjQueryセレクタで設定します。初期値は`null`で無効です。
+読み込まないJavaScriptとCSSをjQueryセレクタで設定します。初期値は`[src*="jquery.js"], [src*="jquery.min.js"]`です。
 
 #####*load.head: Selector as string*
 `head`要素内で同期させる要素をjQueryセレクタで設定します。対応している要素は`link``meta``base`要素のみです。CSSは除外されます。初期値は`link, meta, base`です。
@@ -1529,7 +1531,7 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 
 * `on`メソッドを`enable`メソッドに変更
 * `off`メソッドを`disable`メソッドに変更
-* `load.reject`の初期値を`'[src*="jquery.js"], [src*="jquery.min.js"]'`に変更
+* `load.reject`パラメータの初期値を`'[src*="jquery.js"], [src*="jquery.min.js"]'`に変更
 * `interval`パラメータの初期値を`100`に変更
 * `type`属性を持たないLINLタグの処理を修正
 * HEAD要素の同期を高速化
