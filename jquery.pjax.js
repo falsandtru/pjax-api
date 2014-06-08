@@ -751,7 +751,7 @@
         UPDATE: {
           var speedcheck = setting.speedcheck;
           speedcheck && setting.log.speed.time.push(setting.speed.now() - setting.log.speed.fire);
-          speedcheck && setting.log.speed.name.push('loaded(' + setting.log.speed.time[setting.log.speed.time.length - 1] + ')');
+          speedcheck && setting.log.speed.name.push('load(' + setting.log.speed.time[setting.log.speed.time.length - 1] + ')');
           
           var callbacks_update = setting.callbacks.update;
           if (Store.fire(callbacks_update.before, null, [event, setting.parameter, data, textStatus, XMLHttpRequest, cache], setting.callbacks.async) === false) {break UPDATE;}
@@ -813,6 +813,9 @@
                 }
               }
             }
+            
+            speedcheck && setting.log.speed.time.push(setting.speed.now() - setting.log.speed.fire);
+            speedcheck && setting.log.speed.name.push('parse(' + setting.log.speed.time[setting.log.speed.time.length - 1] + ')');
             
             /* escape */
             jQuery('noscript', newDocument).children().parent().each(function() {this.children.length && jQuery(this).text(this.innerHTML);});
@@ -974,6 +977,7 @@
               jQuery(document).trigger(setting.gns + '.DOMContentLoaded');
               if (Store.fire(callbacks_update.content.after, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_CONTENT;}
             }; // label: UPDATE_CONTENT
+            
             speedcheck && setting.log.speed.time.push(setting.speed.now() - setting.log.speed.fire);
             speedcheck && setting.log.speed.name.push('content(' + setting.log.speed.time[setting.log.speed.time.length - 1] + ')');
             
