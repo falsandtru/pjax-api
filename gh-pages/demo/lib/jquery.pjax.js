@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.35.0
- * @updated 2014/06/07
+ * @version 1.36.0
+ * @updated 2014/06/08
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -86,13 +86,13 @@
         parameter: null,
         load: {
           css: false, script: false, execute: true,
-          reload: '[href^="chrome-extension://"]',
-          reject: '',
           head: 'link, meta, base',
+          reload: '[href^="chrome-extension://"]',
+          reject: '[src*="jquery.js"], [src*="jquery.min.js"]',
           sync: true, ajax: {dataType: 'script', cache: true}, rewrite: null,
           redirect: true
         },
-        interval: 300,
+        interval: 100,
         wait: 0,
         scroll: {delay: 300},
         fix: {location: true, history: true, scroll: true, reset: false},
@@ -158,6 +158,7 @@
     ids: [],
     settings: [0],
     count: 0,
+    disable: false,
     setAlias:  function(name) {
       Store.alias = typeof name === 'string' ? name : Store.alias;
       if (Store.name !== Store.alias && !jQuery[Store.alias]) {
@@ -179,14 +180,12 @@
         
         $context[Store.name] = jQuery[Store.name];
         
-        $context.on = function() {
-          var setting = Store.settings[1];
-          setting.disable = false;
+        $context.enable = function() {
+          Store.disable = false;
         };
         
-        $context.off = function() {
-          var setting = Store.settings[1];
-          setting.disable = true;
+        $context.disable = function() {
+          Store.disable = true;
         };
         
         $context.click = function(url, attr) {
@@ -392,12 +391,13 @@
       return $context;
     },
     check: function(event, setting) {
+      if (Store.disable) {return;}
+      
       var src, dst;
       src = jQuery('<a/>', {href: Store.canonicalizeURL(window.location.href)})[0];
       dst = jQuery('<a/>', {href: Store.canonicalizeURL(event.currentTarget.href)})[0];
       
       if (!jQuery(event.currentTarget).filter(setting.filter).length) {return;}
-      if (setting.disable) {return;}
       
       if (src.protocol !== dst.protocol || src.host !== dst.host) {return;}
       if (event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {return;}
@@ -448,7 +448,7 @@
             root.innerHTML = html.replace(/^.*?<html[^>]*>|<\/html>.*$/ig, '');
             doc.documentElement.removeChild(doc.head);
             doc.documentElement.removeChild(doc.body);
-            for (var i = 0, element; element = root.childNodes[i]; i) {
+            while (element = root.childNodes[0]) {
               doc.documentElement.appendChild(element);
             }
           }
@@ -482,7 +482,7 @@
       
       setting.load.script && jQuery('script').each(function() {
         var element = this, src;
-        element = typeof setting.load.rewrite === 'function' ? Store.fire(setting.load.rewrite, null, [element.cloneNode()]) || element : element;
+        element = typeof setting.load.rewrite === 'function' ? Store.fire(setting.load.rewrite, null, [element.cloneNode(true)]) || element : element;
         src = element.src;
         if (src in setting.log.script) {return;}
         if (src && (!setting.load.reload || !jQuery(element).is(setting.load.reload))) {setting.log.script[src] = true;}
@@ -518,10 +518,10 @@
         event.timeStamp = new Date().getTime();
         var setting = Store.settings[1];
         if (!jQuery(this).filter(setting.filter).length) {return;}
-        if (setting.disable || event.isDefaultPrevented()) {return;}
         setting.location.href = Store.canonicalizeURL(window.location.href);
         setting.destination.href = Store.canonicalizeURL(this.href);
         
+        if (Store.disable || event.isDefaultPrevented()) {return;}
         if (setting.location.protocol !== setting.destination.protocol || setting.location.host !== setting.destination.host) {return;}
         if (event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {return;}
         if (!setting.hashquery && setting.destination.hash && setting.location.href.replace(/#.*/, '') === setting.destination.href.replace(/#.*/, '')) {return;}
@@ -553,10 +553,10 @@
       .delegate(setting.form, setting.nss.submit, setting.id, Store.submit = function(event) {
         event.timeStamp = new Date().getTime();
         var setting = Store.settings[1];
-        if (setting.disable || event.isDefaultPrevented()) {return;}
         setting.location.href = Store.canonicalizeURL(window.location.href);
         setting.destination.href = Store.canonicalizeURL(this.action);
         
+        if (Store.disable || event.isDefaultPrevented()) {return;}
         if (setting.location.protocol !== setting.destination.protocol || setting.location.host !== setting.destination.host) {return;}
         if (event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {return;}
         
@@ -586,10 +586,10 @@
       .bind(setting.nss.popstate, setting.id, Store.popstate = function(event) {
         event.timeStamp = new Date().getTime();
         var setting = Store.settings[1];
-        if (setting.disable || event.isDefaultPrevented()) {return;}
         //setting.location.href = Store.canonicalizeURL(window.location.href);
         setting.destination.href = Store.canonicalizeURL(window.location.href);
         
+        if (Store.disable || event.isDefaultPrevented()) {return;}
         if (setting.location.href === setting.destination.href) {return event.preventDefault();}
         
         var url, cache;
@@ -631,7 +631,7 @@
       setting.fix.reset && /click|submit/.test(event.type.toLowerCase()) && window.scrollTo(jQuery(window).scrollLeft(), 0);
       if (Store.fire(setting.callbacks.before, null, [event, setting.parameter], setting.callbacks.async) === false) {return;} // function: drive
       
-      jQuery[Store.name].off();
+      jQuery[Store.name].disable();
       
       if (cache && cache.XMLHttpRequest) {
         speedcheck && setting.log.speed.name.splice(0, 1, 'cache(' + setting.log.speed.time[setting.log.speed.time.length - 1] + ')');
@@ -742,7 +742,7 @@
         jQuery.ajax(ajax);
       }
       
-      jQuery[Store.name].on();
+      jQuery[Store.name].enable();
       
       if (Store.fire(setting.callbacks.after, null, [event, setting.parameter], setting.callbacks.async) === false) {return;} // function: drive
       
@@ -751,7 +751,7 @@
         UPDATE: {
           var speedcheck = setting.speedcheck;
           speedcheck && setting.log.speed.time.push(setting.speed.now() - setting.log.speed.fire);
-          speedcheck && setting.log.speed.name.push('loaded(' + setting.log.speed.time[setting.log.speed.time.length - 1] + ')');
+          speedcheck && setting.log.speed.name.push('load(' + setting.log.speed.time[setting.log.speed.time.length - 1] + ')');
           
           var callbacks_update = setting.callbacks.update;
           if (Store.fire(callbacks_update.before, null, [event, setting.parameter, data, textStatus, XMLHttpRequest, cache], setting.callbacks.async) === false) {break UPDATE;}
@@ -814,10 +814,11 @@
               }
             }
             
+            speedcheck && setting.log.speed.time.push(setting.speed.now() - setting.log.speed.fire);
+            speedcheck && setting.log.speed.name.push('parse(' + setting.log.speed.time[setting.log.speed.time.length - 1] + ')');
+            
             /* escape */
             jQuery('noscript', newDocument).children().parent().each(function() {this.children.length && jQuery(this).text(this.innerHTML);});
-            
-            jQuery(window).trigger(setting.gns + '.unload');
             
             /* redirect */
             UPDATE_REDIRECT: {
@@ -839,7 +840,7 @@
                       return window.location.replace(redirect.href);
                   }
                 default:
-                  jQuery[Store.name].on();
+                  jQuery[Store.name].enable();
                   switch (event.type.toLowerCase()) {
                     case 'click':
                       return jQuery[Store.name].click(redirect.href);
@@ -848,10 +849,10 @@
                     case 'popstate':
                       window.history.replaceState(window.history.state, title, redirect.href);
                       if (register && setting.fix.location) {
-                        jQuery[Store.name].off();
+                        jQuery[Store.name].disable();
                         window.history.back();
                         window.history.forward();
-                        jQuery[Store.name].on();
+                        jQuery[Store.name].enable();
                       }
                       return jQuery(window).trigger('popstate');
                   }
@@ -859,6 +860,8 @@
               
               if (Store.fire(callbacks_update.redirect.after, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_REDIRECT;}
             }; // label: UPDATE_REDIRECT
+            
+            jQuery(window).trigger(setting.gns + '.unload');
             
             /* url */
             UPDATE_URL: {
@@ -872,10 +875,10 @@
               
               setting.location.href = url;
               if (register && setting.fix.location) {
-                jQuery[Store.name].off();
+                jQuery[Store.name].disable();
                 window.history.back();
                 window.history.forward();
-                jQuery[Store.name].on();
+                jQuery[Store.name].enable();
               }
               
               if (Store.fire(callbacks_update.url.after, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_URL;}
@@ -901,7 +904,7 @@
                 
                 var selector;
                 for (var i = 0, element; element = head[i]; i++) {
-                  element = typeof element === 'object' ? element : jQuery(element)[0];
+                  element = document.importNode ? document.importNode(element, true) : element.cloneNode(true);
                   
                   switch (element.tagName.toLowerCase()) {
                     case 'base':
@@ -911,7 +914,7 @@
                       selector = 'link[rel="' + element.getAttribute('rel') + '"]';
                       switch ((element.getAttribute('rel') || '').toLowerCase()) {
                         case 'alternate':
-                          selector += '[type="' + element.getAttribute('type') + '"]';
+                          selector += 'string' === typeof element.getAttribute('type') ? '[type="' + element.getAttribute('type') + '"]' : ':not([type])';
                           break;
                       }
                       break;
@@ -931,7 +934,7 @@
                     default:
                       selector = null;
                   }
-                  adds = head.filter(selector).not('link[rel~="stylesheet"], style, script');
+                  adds = head.children().filter(selector);
                   function callback() {
                     var src = this, dst;
                     function callback() {
@@ -946,13 +949,14 @@
                     };
                     return !!adds.filter(callback)[0];
                   };
-                  jQuery('head').find(selector).not(setting.load.reload).not('link[rel~="stylesheet"], style, script').filter(callback).remove();
+                  jQuery('head').children().filter(selector).not(setting.load.reload).not('link[rel~="stylesheet"], style, script').filter(callback).remove();
                   jQuery('head').prepend(adds.map(function() {return jQuery(this.outerHTML)[0];}));
                 }
                 removes.not(setting.load.reload).remove();
                 
               if (Store.fire(callbacks_update.head.after, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_HEAD;}
             }; // label: UPDATE_HEAD
+            
             speedcheck && setting.log.speed.time.push(setting.speed.now() - setting.log.speed.fire);
             speedcheck && setting.log.speed.name.push('head(' + setting.log.speed.time[setting.log.speed.time.length - 1] + ')');
             
@@ -975,6 +979,7 @@
               jQuery(document).trigger(setting.gns + '.DOMContentLoaded');
               if (Store.fire(callbacks_update.content.after, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_CONTENT;}
             }; // label: UPDATE_CONTENT
+            
             speedcheck && setting.log.speed.time.push(setting.speed.now() - setting.log.speed.fire);
             speedcheck && setting.log.speed.name.push('content(' + setting.log.speed.time[setting.log.speed.time.length - 1] + ')');
             
@@ -1053,8 +1058,7 @@
                 if (save) {cache.css = [];}
                 
                 for (var i = 0, element; element = css[i]; i++) {
-                  element = typeof element === 'object' ? save ? jQuery(element.outerHTML)[0] : element
-                                                        : jQuery(element)[0];
+                  element = document.importNode ? document.importNode(element, true) : element.cloneNode(true);
                   element = typeof setting.load.rewrite === 'function' ? Store.fire(setting.load.rewrite, null, [element]) || element : element;
                   if (save) {cache.css[i] = element;}
                   
@@ -1071,7 +1075,7 @@
                       break;
                     }
                   }
-                  element && adds.push(element.cloneNode(true));
+                  element && adds.push(element);
                 }
                 removes[0] ? removes.last().after(adds) : jQuery('head').append(adds);
                 removes.not(setting.load.reload).remove();
@@ -1098,8 +1102,7 @@
                 if (save) {cache.script = [];}
                 
                 for (var i = 0, element; element = script[i]; i++) {
-                  element = typeof element === 'object' ? save ? jQuery(element.outerHTML)[0] : element
-                                                        : jQuery(element)[0];
+                  //element = document.importNode ? document.importNode(element, true) : element.cloneNode(true);
                   element = typeof setting.load.rewrite === 'function' ? Store.fire(setting.load.rewrite, null, [element]) || element : element;
                   if (save) {cache.script[i] = element;}
                   

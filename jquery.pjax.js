@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.35.0
- * @updated 2014/06/07
+ * @version 1.36.0
+ * @updated 2014/06/08
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -448,7 +448,7 @@
             root.innerHTML = html.replace(/^.*?<html[^>]*>|<\/html>.*$/ig, '');
             doc.documentElement.removeChild(doc.head);
             doc.documentElement.removeChild(doc.body);
-            for (var i = 0, element; element = root.childNodes[i]; i) {
+            while (element = root.childNodes[0]) {
               doc.documentElement.appendChild(element);
             }
           }
