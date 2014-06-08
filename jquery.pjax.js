@@ -911,7 +911,7 @@
                       selector = 'link[rel="' + element.getAttribute('rel') + '"]';
                       switch ((element.getAttribute('rel') || '').toLowerCase()) {
                         case 'alternate':
-                          selector += '[type="' + element.getAttribute('type') + '"]';
+                          selector += 'string' === typeof element.getAttribute('type') ? '[type="' + element.getAttribute('type') + '"]' : ':not([type])';
                           break;
                       }
                       break;
