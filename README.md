@@ -339,9 +339,9 @@ $('.delegate').pjax({ area: '.container' });
   parameter: null,
   load: {
     css: false, script: false, execute: true,
-    reload: '[href^="chrome-extension://"]',
     reject: '',
     head: 'link, meta, base',
+    reload: '[href^="chrome-extension://"]',
     sync: true, ajax: {dataType: 'script', cache: true}, rewrite: null,
     redirect: true    
   },

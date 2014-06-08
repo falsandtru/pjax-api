@@ -86,9 +86,9 @@
         parameter: null,
         load: {
           css: false, script: false, execute: true,
-          reload: '[href^="chrome-extension://"]',
           reject: '',
           head: 'link, meta, base',
+          reload: '[href^="chrome-extension://"]',
           sync: true, ajax: {dataType: 'script', cache: true}, rewrite: null,
           redirect: true
         },
@@ -929,7 +929,7 @@
                     default:
                       selector = null;
                   }
-                  adds = head.children().filter(selector).not('link[rel~="stylesheet"], style, script');
+                  adds = head.children().filter(selector);
                   function callback() {
                     var src = this, dst;
                     function callback() {
