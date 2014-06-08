@@ -158,6 +158,7 @@
     ids: [],
     settings: [0],
     count: 0,
+    disable: false,
     setAlias:  function(name) {
       Store.alias = typeof name === 'string' ? name : Store.alias;
       if (Store.name !== Store.alias && !jQuery[Store.alias]) {
@@ -179,14 +180,12 @@
         
         $context[Store.name] = jQuery[Store.name];
         
-        $context.on = function() {
-          var setting = Store.settings[1];
-          setting.disable = false;
+        $context.enable = function() {
+          Store.disable = false;
         };
         
-        $context.off = function() {
-          var setting = Store.settings[1];
-          setting.disable = true;
+        $context.disable = function() {
+          Store.disable = true;
         };
         
         $context.click = function(url, attr) {
@@ -392,12 +391,13 @@
       return $context;
     },
     check: function(event, setting) {
+      if (Store.disable) {return;}
+      
       var src, dst;
       src = jQuery('<a/>', {href: Store.canonicalizeURL(window.location.href)})[0];
       dst = jQuery('<a/>', {href: Store.canonicalizeURL(event.currentTarget.href)})[0];
       
       if (!jQuery(event.currentTarget).filter(setting.filter).length) {return;}
-      if (setting.disable) {return;}
       
       if (src.protocol !== dst.protocol || src.host !== dst.host) {return;}
       if (event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {return;}
@@ -518,10 +518,10 @@
         event.timeStamp = new Date().getTime();
         var setting = Store.settings[1];
         if (!jQuery(this).filter(setting.filter).length) {return;}
-        if (setting.disable || event.isDefaultPrevented()) {return;}
         setting.location.href = Store.canonicalizeURL(window.location.href);
         setting.destination.href = Store.canonicalizeURL(this.href);
         
+        if (Store.disable || event.isDefaultPrevented()) {return;}
         if (setting.location.protocol !== setting.destination.protocol || setting.location.host !== setting.destination.host) {return;}
         if (event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {return;}
         if (!setting.hashquery && setting.destination.hash && setting.location.href.replace(/#.*/, '') === setting.destination.href.replace(/#.*/, '')) {return;}
@@ -553,10 +553,10 @@
       .delegate(setting.form, setting.nss.submit, setting.id, Store.submit = function(event) {
         event.timeStamp = new Date().getTime();
         var setting = Store.settings[1];
-        if (setting.disable || event.isDefaultPrevented()) {return;}
         setting.location.href = Store.canonicalizeURL(window.location.href);
         setting.destination.href = Store.canonicalizeURL(this.action);
         
+        if (Store.disable || event.isDefaultPrevented()) {return;}
         if (setting.location.protocol !== setting.destination.protocol || setting.location.host !== setting.destination.host) {return;}
         if (event.which>1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {return;}
         
@@ -586,10 +586,10 @@
       .bind(setting.nss.popstate, setting.id, Store.popstate = function(event) {
         event.timeStamp = new Date().getTime();
         var setting = Store.settings[1];
-        if (setting.disable || event.isDefaultPrevented()) {return;}
         //setting.location.href = Store.canonicalizeURL(window.location.href);
         setting.destination.href = Store.canonicalizeURL(window.location.href);
         
+        if (Store.disable || event.isDefaultPrevented()) {return;}
         if (setting.location.href === setting.destination.href) {return event.preventDefault();}
         
         var url, cache;
@@ -631,7 +631,7 @@
       setting.fix.reset && /click|submit/.test(event.type.toLowerCase()) && window.scrollTo(jQuery(window).scrollLeft(), 0);
       if (Store.fire(setting.callbacks.before, null, [event, setting.parameter], setting.callbacks.async) === false) {return;} // function: drive
       
-      jQuery[Store.name].off();
+      jQuery[Store.name].disable();
       
       if (cache && cache.XMLHttpRequest) {
         speedcheck && setting.log.speed.name.splice(0, 1, 'cache(' + setting.log.speed.time[setting.log.speed.time.length - 1] + ')');
@@ -742,7 +742,7 @@
         jQuery.ajax(ajax);
       }
       
-      jQuery[Store.name].on();
+      jQuery[Store.name].enable();
       
       if (Store.fire(setting.callbacks.after, null, [event, setting.parameter], setting.callbacks.async) === false) {return;} // function: drive
       
@@ -839,7 +839,7 @@
                       return window.location.replace(redirect.href);
                   }
                 default:
-                  jQuery[Store.name].on();
+                  jQuery[Store.name].enable();
                   switch (event.type.toLowerCase()) {
                     case 'click':
                       return jQuery[Store.name].click(redirect.href);
@@ -848,10 +848,10 @@
                     case 'popstate':
                       window.history.replaceState(window.history.state, title, redirect.href);
                       if (register && setting.fix.location) {
-                        jQuery[Store.name].off();
+                        jQuery[Store.name].disable();
                         window.history.back();
                         window.history.forward();
-                        jQuery[Store.name].on();
+                        jQuery[Store.name].enable();
                       }
                       return jQuery(window).trigger('popstate');
                   }
@@ -872,10 +872,10 @@
               
               setting.location.href = url;
               if (register && setting.fix.location) {
-                jQuery[Store.name].off();
+                jQuery[Store.name].disable();
                 window.history.back();
                 window.history.forward();
-                jQuery[Store.name].on();
+                jQuery[Store.name].enable();
               }
               
               if (Store.fire(callbacks_update.url.after, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_URL;}
