@@ -901,8 +901,6 @@
                 
                 var selector;
                 for (var i = 0, element; element = head[i]; i++) {
-                  element = typeof element === 'object' ? element : jQuery(element)[0];
-                  
                   switch (element.tagName.toLowerCase()) {
                     case 'base':
                       selector = 'base';
@@ -931,7 +929,7 @@
                     default:
                       selector = null;
                   }
-                  adds = head.filter(selector).not('link[rel~="stylesheet"], style, script');
+                  adds = head.children().filter(selector).not('link[rel~="stylesheet"], style, script');
                   function callback() {
                     var src = this, dst;
                     function callback() {
@@ -946,13 +944,14 @@
                     };
                     return !!adds.filter(callback)[0];
                   };
-                  jQuery('head').find(selector).not(setting.load.reload).not('link[rel~="stylesheet"], style, script').filter(callback).remove();
+                  jQuery('head').children().filter(selector).not(setting.load.reload).not('link[rel~="stylesheet"], style, script').filter(callback).remove();
                   jQuery('head').prepend(adds.map(function() {return jQuery(this.outerHTML)[0];}));
                 }
                 removes.not(setting.load.reload).remove();
                 
               if (Store.fire(callbacks_update.head.after, null, [event, setting.parameter, data, textStatus, XMLHttpRequest], setting.callbacks.async) === false) {break UPDATE_HEAD;}
             }; // label: UPDATE_HEAD
+            
             speedcheck && setting.log.speed.time.push(setting.speed.now() - setting.log.speed.fire);
             speedcheck && setting.log.speed.name.push('head(' + setting.log.speed.time[setting.log.speed.time.length - 1] + ')');
             
@@ -1053,8 +1052,6 @@
                 if (save) {cache.css = [];}
                 
                 for (var i = 0, element; element = css[i]; i++) {
-                  element = typeof element === 'object' ? save ? jQuery(element.outerHTML)[0] : element
-                                                        : jQuery(element)[0];
                   element = typeof setting.load.rewrite === 'function' ? Store.fire(setting.load.rewrite, null, [element]) || element : element;
                   if (save) {cache.css[i] = element;}
                   
@@ -1098,8 +1095,6 @@
                 if (save) {cache.script = [];}
                 
                 for (var i = 0, element; element = script[i]; i++) {
-                  element = typeof element === 'object' ? save ? jQuery(element.outerHTML)[0] : element
-                                                        : jQuery(element)[0];
                   element = typeof setting.load.rewrite === 'function' ? Store.fire(setting.load.rewrite, null, [element]) || element : element;
                   if (save) {cache.script[i] = element;}
                   
