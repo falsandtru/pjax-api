@@ -86,9 +86,9 @@
         parameter: null,
         load: {
           css: false, script: false, execute: true,
-          reject: '',
           head: 'link, meta, base',
           reload: '[href^="chrome-extension://"]',
+          reject: '[src*="jquery.js"], [src*="jquery.min.js"]',
           sync: true, ajax: {dataType: 'script', cache: true}, rewrite: null,
           redirect: true
         },

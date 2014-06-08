@@ -339,9 +339,9 @@ $('.delegate').pjax({ area: '.container' });
   parameter: null,
   load: {
     css: false, script: false, execute: true,
-    reject: '',
     head: 'link, meta, base',
     reload: '[href^="chrome-extension://"]',
+    reject: '[src*="jquery.js"], [src*="jquery.min.js"]',
     sync: true, ajax: {dataType: 'script', cache: true}, rewrite: null,
     redirect: true    
   },
@@ -1529,6 +1529,7 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 
 * `on`メソッドを`enable`メソッドに変更
 * `off`メソッドを`disable`メソッドに変更
+* `load.reject`の初期値を`'[src*="jquery.js"], [src*="jquery.min.js"]'`に変更
 * `type`属性を持たないLINLタグの処理を修正
 * HEAD要素の同期を高速化
 
