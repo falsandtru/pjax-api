@@ -482,7 +482,7 @@
       
       setting.load.script && jQuery('script').each(function() {
         var element = this, src;
-        element = typeof setting.load.rewrite === 'function' ? Store.fire(setting.load.rewrite, null, [element.cloneNode()]) || element : element;
+        element = typeof setting.load.rewrite === 'function' ? Store.fire(setting.load.rewrite, null, [element.cloneNode(true)]) || element : element;
         src = element.src;
         if (src in setting.log.script) {return;}
         if (src && (!setting.load.reload || !jQuery(element).is(setting.load.reload))) {setting.log.script[src] = true;}
@@ -904,6 +904,8 @@
                 
                 var selector;
                 for (var i = 0, element; element = head[i]; i++) {
+                  element = document.importNode ? document.importNode(element, true) : element.cloneNode(true);
+                  
                   switch (element.tagName.toLowerCase()) {
                     case 'base':
                       selector = 'base';
@@ -1056,6 +1058,7 @@
                 if (save) {cache.css = [];}
                 
                 for (var i = 0, element; element = css[i]; i++) {
+                  element = document.importNode ? document.importNode(element, true) : element.cloneNode(true);
                   element = typeof setting.load.rewrite === 'function' ? Store.fire(setting.load.rewrite, null, [element]) || element : element;
                   if (save) {cache.css[i] = element;}
                   
@@ -1072,7 +1075,7 @@
                       break;
                     }
                   }
-                  element && adds.push(element.cloneNode(true));
+                  element && adds.push(element);
                 }
                 removes[0] ? removes.last().after(adds) : jQuery('head').append(adds);
                 removes.not(setting.load.reload).remove();
@@ -1099,6 +1102,7 @@
                 if (save) {cache.script = [];}
                 
                 for (var i = 0, element; element = script[i]; i++) {
+                  //element = document.importNode ? document.importNode(element, true) : element.cloneNode(true);
                   element = typeof setting.load.rewrite === 'function' ? Store.fire(setting.load.rewrite, null, [element]) || element : element;
                   if (save) {cache.script[i] = element;}
                   
