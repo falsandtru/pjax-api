@@ -345,7 +345,7 @@ $('.delegate').pjax({ area: '.container' });
     sync: true, ajax: {dataType: 'script', cache: true}, rewrite: null,
     redirect: true    
   },
-  interval: 300,
+  interval: 100,
   wait: 0,
   scroll: {delay: 300},
   fix: {location: true, history: true, scroll: true, reset: false},
@@ -465,7 +465,7 @@ CloudFlareのRocketLoaderを使用するなどして要素が書き換えられ�
 HTMLに記述されたリダイレクト先への移動にpjaxを使用するかを設定します。対応するリダイレクトはHTMLのMETAタグによるもののみです。HTTPヘッダによるリダイレクトはリダイレクト前のURLでリダイレクト後のページが表示される結果となるため注意してください。初期値は`true`で有効です。
 
 ####*interval: Millisecond as number*
-pjaxにより更新されたコンテンツの描画の確認を行う間隔をミリ秒で設定します。初期値は`300`です。
+pjaxにより更新されたコンテンツの描画の確認を行う間隔をミリ秒で設定します。初期値は`100`です。
 
 ####*cache: node*
 pjaxによるページ読み込み時のキャッシュの使用にかかる設定項目を持ちます。
@@ -1530,6 +1530,7 @@ pjaxは情報の閲覧を目的に利用される一般的なウェブサイト�
 * `on`メソッドを`enable`メソッドに変更
 * `off`メソッドを`disable`メソッドに変更
 * `load.reject`の初期値を`'[src*="jquery.js"], [src*="jquery.min.js"]'`に変更
+* `interval`パラメータの初期値を`100`に変更
 * `type`属性を持たないLINLタグの処理を修正
 * HEAD要素の同期を高速化
 

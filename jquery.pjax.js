@@ -92,7 +92,7 @@
           sync: true, ajax: {dataType: 'script', cache: true}, rewrite: null,
           redirect: true
         },
-        interval: 300,
+        interval: 100,
         wait: 0,
         scroll: {delay: 300},
         fix: {location: true, history: true, scroll: true, reset: false},
