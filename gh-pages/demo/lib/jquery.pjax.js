@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.36.0
- * @updated 2014/06/08
+ * @version 1.36.1
+ * @updated 2014/06/12
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -934,7 +934,7 @@
                     default:
                       selector = null;
                   }
-                  adds = head.children().filter(selector);
+                  adds = head.filter(selector);
                   function callback() {
                     var src = this, dst;
                     function callback() {
