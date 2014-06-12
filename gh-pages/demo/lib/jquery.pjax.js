@@ -5,8 +5,8 @@
  * ---
  * @Copyright(c) 2012, falsandtru
  * @license MIT http://opensource.org/licenses/mit-license.php
- * @version 1.36.1
- * @updated 2014/06/12
+ * @version 1.36.2
+ * @updated 2014/06/13
  * @author falsandtru https://github.com/falsandtru/
  * @CodingConventions Google JavaScript Style Guide
  * ---
@@ -765,7 +765,7 @@
           
           try {
             setting.xhr && setting.xhr.readyState < 4 && setting.xhr.abort();
-            setting.xhr = null;
+            Store.settings[setting.id].xhr = setting.xhr = null;
             if (!cache && !~(XMLHttpRequest.getResponseHeader('Content-Type') || '').toLowerCase().search(setting.contentType)) {throw new Error("throw: content-type mismatch");}
             
             /* cache */
