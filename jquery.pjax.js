@@ -934,7 +934,7 @@
                     default:
                       selector = null;
                   }
-                  adds = head.children().filter(selector);
+                  adds = head.filter(selector);
                   function callback() {
                     var src = this, dst;
                     function callback() {
