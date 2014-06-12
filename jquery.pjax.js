@@ -765,7 +765,7 @@
           
           try {
             setting.xhr && setting.xhr.readyState < 4 && setting.xhr.abort();
-            setting.xhr = null;
+            Store.settings[setting.id].xhr = setting.xhr = null;
             if (!cache && !~(XMLHttpRequest.getResponseHeader('Content-Type') || '').toLowerCase().search(setting.contentType)) {throw new Error("throw: content-type mismatch");}
             
             /* cache */
