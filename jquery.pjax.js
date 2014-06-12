@@ -908,10 +908,10 @@
                   
                   switch (element.tagName.toLowerCase()) {
                     case 'base':
-                      selector = 'base';
+                      selector = '*';
                       break;
                     case 'link':
-                      selector = 'link[rel="' + element.getAttribute('rel') + '"]';
+                      selector = '[rel="' + element.getAttribute('rel') + '"]';
                       switch ((element.getAttribute('rel') || '').toLowerCase()) {
                         case 'alternate':
                           selector += 'string' === typeof element.getAttribute('type') ? '[type="' + element.getAttribute('type') + '"]' : ':not([type])';
@@ -920,13 +920,13 @@
                       break;
                     case 'meta':
                       if (element.getAttribute('charset')) {
-                        selector = 'meta[charset]';
+                        selector = '[charset]';
                       } else if (element.getAttribute('http-equiv')) {
-                        selector = 'meta[http-equiv="' + element.getAttribute('http-equiv') + '"]';
+                        selector = '[http-equiv="' + element.getAttribute('http-equiv') + '"]';
                       } else if (element.getAttribute('name')) {
-                        selector = 'meta[name="' + element.getAttribute('name') + '"]';
+                        selector = '[name="' + element.getAttribute('name') + '"]';
                       } else if (element.getAttribute('property')) {
-                        selector = 'meta[property="' + element.getAttribute('property') + '"]';
+                        selector = '[property="' + element.getAttribute('property') + '"]';
                       } else {
                         continue;
                       }
@@ -934,7 +934,7 @@
                     default:
                       selector = null;
                   }
-                  adds = head.filter(selector);
+                  adds = head.filter(element.tagName).filter(selector);
                   function callback() {
                     var src = this, dst;
                     function callback() {
@@ -949,7 +949,7 @@
                     };
                     return !!adds.filter(callback)[0];
                   };
-                  jQuery('head').children().filter(selector).not(setting.load.reload).not('link[rel~="stylesheet"], style, script').filter(callback).remove();
+                  jQuery('head').children().filter(element.tagName).filter(selector).not(setting.load.reload).not('link[rel~="stylesheet"], style, script').filter(callback).remove();
                   jQuery('head').prepend(adds.map(function() {return jQuery(this.outerHTML)[0];}));
                 }
                 removes.not(setting.load.reload).remove();
