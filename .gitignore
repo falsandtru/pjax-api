@@ -1,3 +1,6 @@
+﻿# secret
+.coveralls.yml
+
 # eclipse
 .project
 .metadata
@@ -5,3 +8,18 @@
 
 # adobe
 _notes
+
+# ci
+node_modules
+
+# gh-pages
+gh-pages/coverage
+gh-pages/demo
+gh-pages/test
+
+
+# terminal
+cmd.exe
+
+# temp
+temp

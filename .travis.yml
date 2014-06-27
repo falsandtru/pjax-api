@@ -1,0 +1,55 @@
+language: node_js
+
+node_js:
+  - 0.10
+
+env:
+  global:
+    - secure: "TRzumLgYDiCuUPco+40PvxtvkCGl/gjsuhFEmX0I9iKK2vQIdbFi7HQ8v6uWkuFSpvEoOCxUHs6E5vT6Id6Q5FQryf0q85o9dj8oh0idU7gdV30SxhPSghCaRrNdIOJ7IwIiwwhA9WAKSo3JzwaAd60A2cT2nP+knNYwh7kUsF8="
+    - GIT_REPO=TypeScriptMVCTemplate
+    - GIT_COMMITTER_NAME=Travis-CI
+    - GIT_COMMITTER_EMAIL=Travis-CI
+    - GIT_AUTHOR_NAME=falsandtru
+    - GIT_AUTHOR_EMAIL=falsandtru
+
+  matrix:
+    - jquery=1.4.2
+      output=false
+    - jquery=1.5.0
+      output=false
+    - jquery=1.6.0
+      output=false
+    - jquery=1.7.2
+      output=true
+    - jquery=1.11.1
+      output=false
+    - jquery=2.1.1
+      output=false
+
+script:
+  - grunt travis
+
+after_success:
+  - if [ $TRAVIS_BRANCH != "master" ] || [ ! $GH_TOKEN ]; then exit 0; fi
+  - if [ $output == "false" ]; then exit 0; fi
+  - mkdir ../gh-pages
+  - cp -rf ./gh-pages ../
+  - cp -rf ./demo ../gh-pages
+  - cp -rf ./test ../gh-pages
+  - cat package.json | json version
+  - new_version=`cat package.json | json version | awk -F. '{printf("%d%05d%06d", ++$1, $2, $3)}'`
+  - git reset --hard HEAD~
+  - cat package.json | json version
+  - cat package.json | json version | awk -F. '{printf("%d%05d%06d", ++$1, $2, $3)}'
+  - old_version=`cat package.json | json version | awk -F. '{printf("%d%05d%06d", ++$1, $2, $3)}'`
+  - git reset --hard ORIG_HEAD
+  - if [ $new_version -lt $old_version ]; then exit 0; fi
+  - git fetch origin gh-pages:gh-pages
+  - git checkout --orphan gh-pages
+  - git checkout -m gh-pages
+  - ls -a | grep -vE "^.git$|^\.+$" | xargs rm -rf
+  - cp -rf ../gh-pages/* ./
+  - find | grep -vE "^./.git(/|$)"
+  - git add -A :/
+  - git commit -m 'Deploy by Travis-CI'
+  - git push https://${GH_TOKEN}@github.com/${GIT_AUTHOR_NAME}/${GIT_REPO}.git gh-pages:gh-pages 2>&1 | sed -e "s/:\/\/\w\+@/:\/\/[secure]@/g"
