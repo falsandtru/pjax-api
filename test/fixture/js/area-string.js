@@ -1,0 +1,3 @@
+$.pjax({
+  area: '#primary, #tertiary'
+});

@@ -1,0 +1,3 @@
+$.pjax({
+  link: '#primary a'
+});
