@@ -5,8 +5,8 @@ node_js:
 
 env:
   global:
-    - secure: "TRzumLgYDiCuUPco+40PvxtvkCGl/gjsuhFEmX0I9iKK2vQIdbFi7HQ8v6uWkuFSpvEoOCxUHs6E5vT6Id6Q5FQryf0q85o9dj8oh0idU7gdV30SxhPSghCaRrNdIOJ7IwIiwwhA9WAKSo3JzwaAd60A2cT2nP+knNYwh7kUsF8="
-    - GIT_REPO=TypeScriptMVCTemplate
+    - secure: "fB15BBKr9RlhfXqFfK/tBZTun83uLi3V7gIHMOkWoxjzF9tP/dI+QTu7pDICpOGeuDsVUdmEdW/Tqb/gpUemLI2r07NKz57ceY5LPPv8+Bzqkvh6XLKhjAyxWgPdzMRxI6lxNRjAAnti99a8EzIRjAVf4YabTsWgKX74vFJnI7A="
+    - GIT_REPO=jquery.pjax.js
     - GIT_COMMITTER_NAME=Travis-CI
     - GIT_COMMITTER_EMAIL=Travis-CI
     - GIT_AUTHOR_NAME=falsandtru
