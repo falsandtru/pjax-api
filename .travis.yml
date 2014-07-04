@@ -34,7 +34,6 @@ after_success:
   - if [ $output == "false" ]; then exit 0; fi
   - mkdir ../gh-pages
   - cp -rf ./gh-pages ../
-  - cp -rf ./demo ../gh-pages
   - cp -rf ./test ../gh-pages
   - cat package.json | json version
   - new_version=`cat package.json | json version | awk -F. '{printf("%d%05d%06d", ++$1, $2, $3)}'`
