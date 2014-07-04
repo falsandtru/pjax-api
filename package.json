@@ -1,0 +1,47 @@
+{
+  "name": "jquery.pjax.js",
+  "version": "2.0.0",
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/falsandtru/jquery.pjax.js.git"
+  },
+  "homepage": "https://github.com/falsandtru/jquery.pjax.js/",
+  "bugs": {
+    "url": "https://github.com/falsandtru/jquery.pjax.js/issues"
+  },
+  "devDependencies": {
+    "chai": "^1.9.1",
+    "grunt-cli": "^0.1.13",
+    "grunt-contrib-clean": "^0.5.0",
+    "grunt-contrib-concat": "^0.4.0",
+    "grunt-contrib-copy": "^0.5.0",
+    "grunt-contrib-jshint": "^0.10.0",
+    "grunt-contrib-uglify": "^0.4.0",
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt-contrib-yuidoc": "^0.5.2",
+    "grunt-jekyll": "^0.4.2",
+    "grunt-karma": "^0.8.3",
+    "grunt-karma-coveralls": "^2.3.0",
+    "grunt-shell-spawn": "^0.3.0",
+    "grunt-tslint": "^0.4.1",
+    "grunt-typescript": "^0.3.6",
+    "json": "^9.0.1",
+    "karma": "^0.12.0",
+    "karma-chai": "^0.1.0",
+    "karma-chrome-launcher": "^0.1.4",
+    "karma-coverage": "^0.2.1",
+    "karma-coveralls": "^0.1.4",
+    "karma-firefox-launcher": "^0.1.3",
+    "karma-html2js-preprocessor": "^0.1.0",
+    "karma-ie-launcher": "^0.1.5",
+    "karma-mocha": "^0.1.3",
+    "karma-phantomjs-launcher": "^0.1.4",
+    "karma-requirejs": "^0.2.1",
+    "mocha": "^1.20.1",
+    "phantomjs": "^1.9.7-9",
+    "requirejs": "^2.1.11"
+  },
+  "author": "falsandtru",
+  "license": "MIT"
+}
