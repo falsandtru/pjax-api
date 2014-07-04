@@ -64,14 +64,13 @@ module.exports = function(grunt) {
     copy: {
       test: {
         files: [
-          { expand: true, cwd: 'dist/raw/', src: ['**'], dest: 'demo/cov/' },
           { expand: true, cwd: 'dist/raw/', src: ['**'], dest: 'test/cov/' }
         ]
       },
       dist: {
         files: [
-          { expand: true, cwd: 'test', src: ['**'], dest: 'gh-pages/test' },
-          { expand: true, cwd: 'demo', src: ['**'], dest: 'gh-pages/demo' }
+          { expand: true, cwd: 'dist/raw/', src: ['**'], dest: 'gh-pages/demo/cov/' },
+          { expand: true, cwd: 'test', src: ['**'], dest: 'gh-pages/test' }
         ]
       }
     },
@@ -113,7 +112,7 @@ module.exports = function(grunt) {
         tasks: ['typescript', 'concat', 'copy:test']
       },
       cp: {
-        files: ['test/**', 'demo/**'],
+        files: ['test/**'],
         tasks: ['copy:dist']
       },
       jekyll: {
@@ -140,7 +139,7 @@ module.exports = function(grunt) {
         singleRun: false
       },
       ci: {
-        reporters: process.env.output ? ['progress', 'coverage'] : ['progress', 'coverage'],
+        //reporters: process.env.output ? ['progress', 'coverage', 'coveralls'] : ['progress', 'coverage'],
         browsers: ['PhantomJS'],
         singleRun: true
       }
@@ -172,7 +171,7 @@ module.exports = function(grunt) {
 
     clean: {
       temp: ['temp'],
-      dest: ['dist', 'test/cov', 'demo/cov', 'gh-pages/test', 'gh-pages/demo', 'gh-pages/coverage']
+      dest: ['dist', 'test/cov', 'gh-pages/demo/cov', 'gh-pages/test', 'gh-pages/coverage']
     }
 
   });
@@ -187,7 +186,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-karma');
-  grunt.loadNpmTasks('grunt-karma-coveralls');
+  //grunt.loadNpmTasks('grunt-karma-coveralls');
   grunt.loadNpmTasks('grunt-jekyll');
   grunt.loadNpmTasks('grunt-shell-spawn');
 
