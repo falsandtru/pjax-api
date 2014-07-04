@@ -53,3 +53,10 @@ after_success:
   - git add -A :/
   - git commit -m 'Deploy by Travis-CI'
   - git push https://${GH_TOKEN}@github.com/${GIT_AUTHOR_NAME}/${GIT_REPO}.git gh-pages:gh-pages 2>&1 | sed -e "s/:\/\/\w\+@/:\/\/[secure]@/g"
+  
+notifications:
+  email:
+    recipients:
+      - secure: "d3l1hjddikZY14QJhyRA6ChAJ+3LlmlmIVDXauza6TcVOxWnmb9GpEPIJvvN+TLy4wM4y9lQargQW1/PRAIG+JJg5pQ5Yw41F19DNkeAdNKrHJ7gC3NskT8EXoU4o68nyG/9BNEZyHnUJwWXF8yBVu6mI1ezkKBHkyZh6mFNsME="
+    on_success: change # default: change
+    on_failure: always # default: always
