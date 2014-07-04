@@ -139,7 +139,7 @@ module.exports = function(grunt) {
         singleRun: false
       },
       ci: {
-        reporters: process.env.output ? ['progress', 'coverage'] : ['progress', 'coverage'],
+        //reporters: process.env.output ? ['progress', 'coverage', 'coveralls'] : ['progress', 'coverage'],
         browsers: ['PhantomJS'],
         singleRun: true
       }
@@ -186,7 +186,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-karma');
-  grunt.loadNpmTasks('grunt-karma-coveralls');
+  //grunt.loadNpmTasks('grunt-karma-coveralls');
   grunt.loadNpmTasks('grunt-jekyll');
   grunt.loadNpmTasks('grunt-shell-spawn');
 
