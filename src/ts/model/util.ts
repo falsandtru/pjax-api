@@ -4,6 +4,12 @@
 /* MODEL */
 
 module MODULE {
+  // Allow access:
+  //  -
+
+  // Deny access
+  var M: void, V: void, C: void, APP: void, DATA: void;
+
   export interface ModelUtilInterface {
     canonicalizeUrl(url: string): string
     trim(text: string): string

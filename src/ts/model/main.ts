@@ -21,6 +21,12 @@ interface JQueryXHR {
   timeStamp: number
 }
 module MODULE {
+  // Allow access:
+  //  M, C, APP
+
+  // Deny access
+  var V: void, DATA: void;
+
   export class ModelMain extends ModelTemplate implements ModelInterface {
     constructor() {
       super();

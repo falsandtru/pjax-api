@@ -5,6 +5,12 @@
 /* CONTROLLER */
 
 module MODULE {
+  // Allow access:
+  //  M, C
+
+  // Deny access
+  var V: void, APP: void, DATA: void;
+
   export class ControllerMain extends ControllerTemplate implements ControllerInterface {
 
     exec_($context: JQuery, option) {

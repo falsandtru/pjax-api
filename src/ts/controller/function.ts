@@ -4,6 +4,12 @@
 /* CONTROLLER */
 
 module MODULE {
+  // Allow access:
+  //  M, V, C
+
+  // Deny access
+  var APP: void, DATA: void;
+
   export class ControllerFunction implements FunctionInterface {
 
     enable(): any {

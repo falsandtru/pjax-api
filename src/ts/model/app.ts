@@ -5,6 +5,12 @@
 /* MODEL */
 
 module MODULE {
+  // Allow access:
+  //  M, APP, DATA
+
+  // Deny access
+  var V: void, C: void;
+
   export class ModelApp extends ModelTemplate implements ModelAppInterface {
     constructor() {
       super();

@@ -5,6 +5,12 @@
 /* MODEL */
 
 module MODULE {
+  // Allow access:
+  //  M, APP, DATA
+
+  // Deny access
+  var V: void, C: void;
+
   export class ModelData extends ModelTemplate implements ModelDataInterface {
 
     IDBFactory: IDBFactory = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB
