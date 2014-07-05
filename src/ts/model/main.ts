@@ -28,6 +28,7 @@ module MODULE {
     }
 
     state: State
+    isDeferrable: boolean = jQuery.when && 1.6 <= Number(jQuery().jquery.match(/\d+\.\d+/))
 
     main_($context: JQuery, option): JQuery {
 

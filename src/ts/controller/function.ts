@@ -121,7 +121,7 @@ module MODULE {
     }
 
     follow(event: JQueryEventObject, $XHR: JQueryXHR, timeStamp?: number): boolean {
-      if (!jQuery.when || 1.6 > Number(jQuery().jquery.match(/\d+\.\d+/))) { return false; }
+      if (!M.isDeferrable) { return false; }
       var anchor = <HTMLAnchorElement>event.currentTarget;
       $XHR.follow = true;
       if (isFinite(event.timeStamp)) { $XHR.timeStamp = timeStamp || event.timeStamp; }

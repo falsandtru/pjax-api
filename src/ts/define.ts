@@ -59,6 +59,7 @@ module MODULE {
 
     // プロパティ
     state_: State
+    isDeferrable: boolean
     
     // Model機能
     main_(context: ContextInterface, ...args: any[]): ContextInterface

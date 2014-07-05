@@ -169,7 +169,7 @@ module MODULE {
         // cache
         speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
         M.setActiveXHR(null);
-        if (jQuery.when && 1.6 <= Number(jQuery().jquery.match(/\d+\.\d+/))) {
+        if (M.isDeferrable) {
           jQuery.when(jQuery.Deferred().resolve(cache), APP.wait_(UTIL.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href])))
           .done((cache) => APP.update_(setting, event, register, cache.data, cache.textStatus, cache.XMLHttpRequest, cache)) && undefined
         } else {
@@ -257,7 +257,7 @@ module MODULE {
 
             M.setActiveXHR(null);
             if (!errorThrown) {
-              if (!jQuery.when || 1.6 > Number(jQuery().jquery.match(/\d+\.\d+/))) {
+              if (!M.isDeferrable) {
                 APP.update_(setting, event, register, data, textStatus, XMLHttpRequest, null);
               }
             } else if (setting.fallback && 'abort' !== textStatus) {
@@ -275,7 +275,7 @@ module MODULE {
         jQuery(document).trigger(setting.gns + '.request');
         
         activeXHR = M.setActiveXHR(jQuery.ajax(ajax));
-        if (jQuery.when && 1.6 <= Number(jQuery().jquery.match(/\d+\.\d+/))) {
+        if (M.isDeferrable) {
           jQuery.when(activeXHR, APP.wait_(UTIL.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href])))
           .done(done).fail(fail).always(always);
         }
