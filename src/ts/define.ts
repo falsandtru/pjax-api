@@ -1,5 +1,19 @@
 /// <reference path="type/jquery.d.ts"/>
 
+interface Window {
+  DOMParser?: any
+  webkitIndexedDB?: IDBFactory
+  mozIndexedDB?: IDBFactory
+  IDBKeyRange?: IDBKeyRange
+  webkitIDBKeyRange?: IDBKeyRange
+  mozIDBKeyRange?: IDBKeyRange
+  msIDBKeyRange?: IDBKeyRange
+  opera?
+}
+interface JQueryXHR {
+  follow: boolean
+  timeStamp: number
+}
 module MODULE {
 
   export var NAME: string = 'pjax';
