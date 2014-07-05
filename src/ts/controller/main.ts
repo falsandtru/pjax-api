@@ -45,9 +45,7 @@ module MODULE {
     }
 
     //内部イベント
-    static EVENTS = {
-      CHANGE: M.NAME + '.change'
-    }
+    static EVENTS = { }
 
     // プラグインに登録されるプロパティ
     static PROPERTIES = []
