@@ -46,8 +46,9 @@ module MODULE {
    * 
    * - MVCモジュール間のアクセスは各モジュールのインターフェイスを経由し、内部機能(APP/DATA)に直接アクセスしない。
    * - UTILはどこからでも自由に使用してよい。
-   * - モデルインターフェイスへのアクセスは`main_`を除いて引数のパターンを固定し、オーバーロードを使用しない。
    * - モデルインターフェイスへ渡されるデータはすべて正規化、検疫されてないものとして自身で正規化、検疫する。
+   * - モデルのインターフェイスより下のレイヤーのメソッドは引数のパターンを省略を除いて固定し、ポリモーフィズムやオーバーロードを使用しない。
+   * - モデルインターフェイスもViewやControllerの機能の実体を実装するメソッドは同様とする。
    * 
    */
   // Model
@@ -64,8 +65,8 @@ module MODULE {
     // Model機能
     main_(context: ContextInterface, ...args: any[]): ContextInterface
     convertUrlToUrlKey(unsafe_url: string, isIncludeHash: boolean): string
-    isAvailableDestination(unsafe_url: string): boolean
-    isAvailableDestination(event: JQueryEventObject): boolean
+    isImmediateLoadable(unsafe_url: string): boolean
+    isImmediateLoadable(event: JQueryEventObject): boolean
     getActiveSetting(): CommonSettingInterface
     setActiveSetting(setting: CommonSettingInterface): CommonSettingInterface
     getActiveXHR(): JQueryXHR

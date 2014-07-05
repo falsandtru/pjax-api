@@ -128,7 +128,7 @@ module MODULE {
       M.setActiveXHR($XHR);
       jQuery.when($XHR)
       .done(function () {
-        !jQuery[M.NAME].getCache(anchor.href) && M.isAvailableDestination(event) && jQuery[M.NAME].setCache(anchor.href, undefined, undefined, $XHR);
+        !jQuery[M.NAME].getCache(anchor.href) && M.isImmediateLoadable(event) && jQuery[M.NAME].setCache(anchor.href, undefined, undefined, $XHR);
       });
       jQuery[M.NAME].click(anchor.href);
       return true;

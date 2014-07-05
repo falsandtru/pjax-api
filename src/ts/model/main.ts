@@ -72,9 +72,9 @@ module MODULE {
       return isIncludeHash ? unsafe_url : unsafe_url.replace(/#.*/, '')
     }
 
-    isAvailableDestination(url: string): boolean
-    isAvailableDestination(event: JQueryEventObject): boolean
-    isAvailableDestination(param: any): boolean {
+    isImmediateLoadable(url: string): boolean
+    isImmediateLoadable(event: JQueryEventObject): boolean
+    isImmediateLoadable(param: any): boolean {
       if (M.state_ !== State.ready) { return; }
 
       var origURL: string = UTIL.canonicalizeUrl(window.location.href),
@@ -138,7 +138,7 @@ module MODULE {
       var setting: SettingInterface = APP.configure(M.getActiveSetting(), window.location.href, context.href);
 
       if (M.state_ !== State.ready || setting.disable || event.isDefaultPrevented()) { return; }
-      if (!M.isAvailableDestination(event)) { return; }
+      if (!M.isImmediateLoadable(event)) { return; }
 
       if (setting.cache.mix && jQuery[M.NAME].getCache(setting.destLocation.href)) { return; }
       setting.area = UTIL.fire(setting.area, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
@@ -159,7 +159,7 @@ module MODULE {
       var setting: SettingInterface = APP.configure(M.getActiveSetting(), window.location.href, context.action);
 
       if (M.state_ !== State.ready || setting.disable || event.isDefaultPrevented()) { return; }
-      if (!M.isAvailableDestination(event)) { return; }
+      if (!M.isImmediateLoadable(event)) { return; }
 
       var serializedURL = setting.destLocation.href.replace(/[?#].*/, '') + (context.method.toUpperCase() === 'GET' ? '?' + jQuery(context).serialize() : '');
       setting.destLocation.href = UTIL.canonicalizeUrl(serializedURL);
