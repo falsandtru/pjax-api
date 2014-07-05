@@ -4,6 +4,12 @@
 /* CONTROLLER */
 
 module MODULE {
+  // Allow access:
+  //  M, V, C
+
+  // Deny access
+  var APP: void, DATA: void;
+
   export class ControllerFunction implements FunctionInterface {
 
     enable(): any {
@@ -121,14 +127,14 @@ module MODULE {
     }
 
     follow(event: JQueryEventObject, $XHR: JQueryXHR, timeStamp?: number): boolean {
-      if (!jQuery.when || 1.6 > Number(jQuery().jquery.match(/\d+\.\d+/))) { return false; }
+      if (!M.isDeferrable) { return false; }
       var anchor = <HTMLAnchorElement>event.currentTarget;
       $XHR.follow = true;
       if (isFinite(event.timeStamp)) { $XHR.timeStamp = timeStamp || event.timeStamp; }
       M.setActiveXHR($XHR);
       jQuery.when($XHR)
       .done(function () {
-        !jQuery[M.NAME].getCache(anchor.href) && M.isAvailableDestination(event) && jQuery[M.NAME].setCache(anchor.href, undefined, undefined, $XHR);
+        !jQuery[M.NAME].getCache(anchor.href) && M.isImmediateLoadable(event) && jQuery[M.NAME].setCache(anchor.href, undefined, undefined, $XHR);
       });
       jQuery[M.NAME].click(anchor.href);
       return true;

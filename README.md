@@ -1,11 +1,14 @@
 # pjax
 [![Build Status](https://travis-ci.org/falsandtru/jquery.pjax.js.svg?branch=master)](https://travis-ci.org/falsandtru/jquery.pjax.js)
 
+**[Document](http://falsandtru.github.io/jquery.pjax.js/)**
+ | 
+**[Download](https://github.com/falsandtru/jquery.pjax.js/releases)**
+
+
 pjaxはリクエストと描画を最小限に抑えることで高速かつシームレスなページ遷移機能を提供します。
 
 主にページ遷移の高速化やウェブサービスのハイエンドなインターフェイスの実装に利用されます。
-
-[http://falsandtru.github.io/jquery.pjax.js/](http://falsandtru.github.io/jquery.pjax.js/)
 
 ## 特徴
 

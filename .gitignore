@@ -1,4 +1,8 @@
-﻿# secret
+﻿# binary
+dist
+cov
+
+# secret
 .coveralls.yml
 
 # eclipse

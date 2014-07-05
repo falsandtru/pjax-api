@@ -5,6 +5,12 @@
 /* CONTROLLER */
 
 module MODULE {
+  // Allow access:
+  //  M, C
+
+  // Deny access
+  var V: void, APP: void, DATA: void;
+
   export class ControllerMain extends ControllerTemplate implements ControllerInterface {
 
     exec_($context: JQuery, option) {
@@ -39,9 +45,7 @@ module MODULE {
     }
 
     //内部イベント
-    static EVENTS = {
-      CHANGE: M.NAME + '.change'
-    }
+    static EVENTS = { }
 
     // プラグインに登録されるプロパティ
     static PROPERTIES = []
