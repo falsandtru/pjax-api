@@ -709,21 +709,21 @@ module MODULE {
           /* load */
           load_css('link[rel~="stylesheet"], style');
           jQuery(window)
-            .one(setting.gns + '.rendering', (event) => {
-              event.preventDefault();
-              event.stopImmediatePropagation();
+          .one(setting.gns + '.rendering', (event) => {
+            event.preventDefault();
+            event.stopImmediatePropagation();
 
-              scroll(false);
-              jQuery(dstDocument).trigger(setting.gns + '.ready');
-              load_script(':not([defer]), :not([src])');
-              if (setting.load.sync) {
-                rendering(() => load_script('[src][defer]'));
-              } else {
-                rendering();
-                load_script('[src][defer]');
-              }
-            })
-            .trigger(setting.gns + '.rendering');
+            scroll(false);
+            jQuery(dstDocument).trigger(setting.gns + '.ready');
+            load_script(':not([defer]), :not([src])');
+            if (setting.load.sync) {
+              rendering(() => load_script('[src][defer]'));
+            } else {
+              rendering();
+              load_script('[src][defer]');
+            }
+          })
+          .trigger(setting.gns + '.rendering');
 
           if (UTIL.fire(callbacks_update.success, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE; }
           if (UTIL.fire(callbacks_update.complete, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE; }
