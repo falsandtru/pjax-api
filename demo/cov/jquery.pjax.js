@@ -3,7 +3,7 @@
  * jquery.pjax.js
  * 
  * @name jquery.pjax.js
- * @version 2.0.0
+ * @version 2.0.1
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
  * @copyright 2014, falsandtru
@@ -13,6 +13,7 @@
 
 new (function(window, document, undefined, $) {
 "use strict";
+
 var MODULE;
 (function (MODULE) {
     MODULE.NAME = 'pjax';
@@ -123,6 +124,8 @@ var __extends = this.__extends || function (d, b) {
 };
 var MODULE;
 (function (MODULE) {
+    var M, V, C, APP, DATA;
+
     var ModelUtil = (function (_super) {
         __extends(ModelUtil, _super);
         function ModelUtil() {
@@ -184,6 +187,8 @@ var MODULE;
 })(MODULE || (MODULE = {}));
 var MODULE;
 (function (MODULE) {
+    var V, C;
+
     var ModelApp = (function (_super) {
         __extends(ModelApp, _super);
         function ModelApp() {
@@ -360,7 +365,7 @@ var MODULE;
             if (cache && cache.XMLHttpRequest) {
                 speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
                 MODULE.M.setActiveXHR(null);
-                if (jQuery.when && 1.6 <= Number(jQuery().jquery.match(/\d+\.\d+/))) {
+                if (MODULE.M.isDeferrable) {
                     jQuery.when(jQuery.Deferred().resolve(cache), MODULE.APP.wait_(MODULE.UTIL.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]))).done(function (cache) {
                         return MODULE.APP.update_(setting, event, register, cache.data, cache.textStatus, cache.XMLHttpRequest, cache);
                     }) && undefined;
@@ -442,7 +447,7 @@ var MODULE;
 
                         MODULE.M.setActiveXHR(null);
                         if (!errorThrown) {
-                            if (!jQuery.when || 1.6 > Number(jQuery().jquery.match(/\d+\.\d+/))) {
+                            if (!MODULE.M.isDeferrable) {
                                 MODULE.APP.update_(setting, event, register, data, textStatus, XMLHttpRequest, null);
                             }
                         } else if (setting.fallback && 'abort' !== textStatus) {
@@ -459,7 +464,7 @@ var MODULE;
                 jQuery(document).trigger(setting.gns + '.request');
 
                 activeXHR = MODULE.M.setActiveXHR(jQuery.ajax(ajax));
-                if (jQuery.when && 1.6 <= Number(jQuery().jquery.match(/\d+\.\d+/))) {
+                if (MODULE.M.isDeferrable) {
                     jQuery.when(activeXHR, MODULE.APP.wait_(MODULE.UTIL.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]))).done(done).fail(fail).always(always);
                 }
             }
@@ -1253,6 +1258,8 @@ var MODULE;
 })(MODULE || (MODULE = {}));
 var MODULE;
 (function (MODULE) {
+    var V, C;
+
     var ModelData = (function (_super) {
         __extends(ModelData, _super);
         function ModelData() {
@@ -1423,13 +1430,15 @@ var MODULE;
 
     MODULE.DATA = new ModelData();
 })(MODULE || (MODULE = {}));
-
 var MODULE;
 (function (MODULE) {
+    var V, DATA;
+
     var ModelMain = (function (_super) {
         __extends(ModelMain, _super);
         function ModelMain() {
             _super.call(this);
+            this.isDeferrable = jQuery.when && 1.6 <= Number(jQuery().jquery.match(/\d+\.\d+/));
             this.state_ = -1 /* wait */;
         }
         ModelMain.prototype.main_ = function ($context, option) {
@@ -1473,7 +1482,7 @@ var MODULE;
             return isIncludeHash ? unsafe_url : unsafe_url.replace(/#.*/, '');
         };
 
-        ModelMain.prototype.isAvailableDestination = function (param) {
+        ModelMain.prototype.isImmediateLoadable = function (param) {
             if (MODULE.M.state_ !== 0 /* ready */) {
                 return;
             }
@@ -1549,7 +1558,7 @@ var MODULE;
             if (MODULE.M.state_ !== 0 /* ready */ || setting.disable || event.isDefaultPrevented()) {
                 return;
             }
-            if (!MODULE.M.isAvailableDestination(event)) {
+            if (!MODULE.M.isImmediateLoadable(event)) {
                 return;
             }
 
@@ -1577,7 +1586,7 @@ var MODULE;
             if (MODULE.M.state_ !== 0 /* ready */ || setting.disable || event.isDefaultPrevented()) {
                 return;
             }
-            if (!MODULE.M.isAvailableDestination(event)) {
+            if (!MODULE.M.isImmediateLoadable(event)) {
                 return;
             }
 
@@ -1859,6 +1868,8 @@ var MODULE;
 })(MODULE || (MODULE = {}));
 var MODULE;
 (function (MODULE) {
+    var APP, DATA;
+
     var ViewMain = (function (_super) {
         __extends(ViewMain, _super);
         function ViewMain() {
@@ -2035,6 +2046,8 @@ var MODULE;
 })(MODULE || (MODULE = {}));
 var MODULE;
 (function (MODULE) {
+    var APP, DATA;
+
     var ControllerFunction = (function () {
         function ControllerFunction() {
         }
@@ -2141,7 +2154,7 @@ var MODULE;
         };
 
         ControllerFunction.prototype.follow = function (event, $XHR, timeStamp) {
-            if (!jQuery.when || 1.6 > Number(jQuery().jquery.match(/\d+\.\d+/))) {
+            if (!MODULE.M.isDeferrable) {
                 return false;
             }
             var anchor = event.currentTarget;
@@ -2151,7 +2164,7 @@ var MODULE;
             }
             MODULE.M.setActiveXHR($XHR);
             jQuery.when($XHR).done(function () {
-                !jQuery[MODULE.M.NAME].getCache(anchor.href) && MODULE.M.isAvailableDestination(event) && jQuery[MODULE.M.NAME].setCache(anchor.href, undefined, undefined, $XHR);
+                !jQuery[MODULE.M.NAME].getCache(anchor.href) && MODULE.M.isImmediateLoadable(event) && jQuery[MODULE.M.NAME].setCache(anchor.href, undefined, undefined, $XHR);
             });
             jQuery[MODULE.M.NAME].click(anchor.href);
             return true;
@@ -2162,6 +2175,8 @@ var MODULE;
 })(MODULE || (MODULE = {}));
 var MODULE;
 (function (MODULE) {
+    var V, APP, DATA;
+
     var ControllerMain = (function (_super) {
         __extends(ControllerMain, _super);
         function ControllerMain() {
@@ -2215,9 +2230,7 @@ var MODULE;
             MODULE.M.SCROLL.apply(MODULE.M, args);
         };
 
-        ControllerMain.EVENTS = {
-            CHANGE: MODULE.M.NAME + '.change'
-        };
+        ControllerMain.EVENTS = {};
 
         ControllerMain.PROPERTIES = [];
 
@@ -2231,6 +2244,8 @@ var MODULE;
 })(MODULE || (MODULE = {}));
 var MODULE;
 (function (MODULE) {
+    var APP, DATA;
+
     var ControllerMethod = (function (_super) {
         __extends(ControllerMethod, _super);
         function ControllerMethod() {
