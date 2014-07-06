@@ -9,8 +9,11 @@ class: style-api style-api-detail
 # server
 サーバーへのリクエストを設定します。
 
-## server.query: string
+## server.query
 サーバーへのリクエストURLに付加するクエリを設定します。このクエリは内部処理でのみ使用され閲覧者の目に触れることはありません。ブラウザのキャッシュはクエリに応じて個別に生成されるためプリロードと組み合わせる場合は注意が必要です。初期値は`'pjax=1'`です。
+
+### server.query: string
+サーバーへのリクエストURLに付加するクエリを文字列で設定します。
 
 <pre class="sh brush: js;">
 $.pjax({
@@ -20,7 +23,20 @@ $.pjax({
 });
 </pre>
 
-## server.header: boolean
+### server.query: object
+サーバーへのリクエストURLに付加するクエリをオブジェクトで設定します。
+
+<pre class="sh brush: js;">
+$.pjax({
+  server: {
+    query: {
+      pjax: 1
+    }
+  }
+});
+</pre>
+
+## server.header
 サーバーへリクエストヘッダの付加を切り替えます。`true`を設定すると`X-Pjax: true`がヘッダに追加されます。
 
 <pre class="sh brush: js;">

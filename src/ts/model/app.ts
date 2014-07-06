@@ -89,7 +89,15 @@ module MODULE {
             option: option
           },
           compute = function () {
-            var nsArray = [setting.gns || M.NAME].concat(setting.ns && String(setting.ns).split('.') || []);
+            var nsArray: string[] = [setting.gns || M.NAME].concat(setting.ns && String(setting.ns).split('.') || []);
+            var query: string = setting.server.query;
+            switch (query && typeof query) {
+              case 'string':
+                query = eval('({' + query.replace(/"/g, '\\"').replace(/([^?=&]+)=([^&]+)/g, '"$1": "$2"').replace(/&/g, ',') + '})');
+              case 'object':
+                query = jQuery.param(query);
+                break;
+            }
             return {
               nss: {
                 name: setting.ns || '',
@@ -106,7 +114,7 @@ module MODULE {
               fix: !/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.navigator.userAgent) ? { location: false, reset: false } : {},
               contentType: setting.contentType.replace(/\s*[,;]\s*/g, '|').toLowerCase(),
               server: {
-                query: setting.server.query && jQuery.map(setting.server.query.split('='), function (val) { return encodeURIComponent(decodeURIComponent(val)); }).join('=')
+                query: query
               },
               timeStamp: new Date().getTime()
             };

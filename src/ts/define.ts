@@ -261,7 +261,7 @@ module MODULE {
     fallback: boolean
     database: boolean
     server: {
-      query: string
+      query: any
       header: {
         area: boolean
         head: boolean
