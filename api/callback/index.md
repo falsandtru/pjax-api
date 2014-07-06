@@ -26,10 +26,10 @@ class: style-api style-api-detail
 ### ajax.xhr( event, param )
 ajaxの同名のメソッド内で実行されます。外部から引き継いだリクエストでは実行されません。
 
-### ajax.beforeSend( event, param, data, settings )
+### ajax.beforeSend( event, param, data, ajaxSettings )
 〃
 
-### ajax.dataFilter( event, param, data, type )
+### ajax.dataFilter( event, param, data, dataType )
 〃
 
 ### ajax.success( event, param, data, textStatus, XMLHttpRequest ) <small><span class="label label-warning">deprecated</span></small>

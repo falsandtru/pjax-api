@@ -3,7 +3,7 @@
  * jquery.pjax.js
  * 
  * @name jquery.pjax.js
- * @version 2.0.1
+ * @version 2.1.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
  * @copyright 2014, falsandtru
@@ -249,12 +249,7 @@ var MODULE;
                 speedcheck: false,
                 server: {
                     query: 'pjax=1',
-                    head: {
-                        area: true,
-                        head: false,
-                        css: false,
-                        script: false
-                    }
+                    header: true
                 }
             }, force = {
                 origLocation: (function (url, a) {
@@ -270,6 +265,14 @@ var MODULE;
                 option: option
             }, compute = function () {
                 var nsArray = [setting.gns || MODULE.M.NAME].concat(setting.ns && String(setting.ns).split('.') || []);
+                var query = setting.server.query;
+                switch (query && typeof query) {
+                    case 'string':
+                        query = eval('({' + query.replace(/"/g, '\\"').replace(/([^?=&]+)=([^&]+)/g, '"$1": "$2"').replace(/&/g, ',') + '})');
+                    case 'object':
+                        query = jQuery.param(query);
+                        break;
+                }
                 return {
                     nss: {
                         name: setting.ns || '',
@@ -288,9 +291,7 @@ var MODULE;
                     fix: !/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.navigator.userAgent) ? { location: false, reset: false } : {},
                     contentType: setting.contentType.replace(/\s*[,;]\s*/g, '|').toLowerCase(),
                     server: {
-                        query: setting.server.query && jQuery.map(setting.server.query.split('='), function (val) {
-                            return encodeURIComponent(decodeURIComponent(val));
-                        }).join('=')
+                        query: query
                     },
                     timeStamp: new Date().getTime()
                 };
@@ -416,7 +417,7 @@ var MODULE;
 
                         return XMLHttpRequest;
                     },
-                    beforeSend: function (XMLHttpRequest, ajaxSetting) {
+                    beforeSend: !setting.callbacks.ajax.beforeSend && !setting.server.header ? undefined : function (XMLHttpRequest, ajaxSetting) {
                         if (setting.server.header) {
                             XMLHttpRequest.setRequestHeader(setting.nss.requestHeader, 'true');
                         }
