@@ -73,12 +73,7 @@ module MODULE {
             speedcheck: false,
             server: {
               query: 'pjax=1',
-              head: {
-                area: true,
-                head: false,
-                css: false,
-                script: false
-              }
+              header: true
             }
           },
           force = {
@@ -240,7 +235,7 @@ module MODULE {
             //}
             return XMLHttpRequest;
           },
-          beforeSend: function (XMLHttpRequest: JQueryXHR, ajaxSetting: JQueryAjaxSettings) {
+          beforeSend: !setting.callbacks.ajax.beforeSend && !setting.server.header ? undefined : function (XMLHttpRequest: JQueryXHR, ajaxSetting: JQueryAjaxSettings) {
             if (setting.server.header) {
               XMLHttpRequest.setRequestHeader(setting.nss.requestHeader, 'true');
             }

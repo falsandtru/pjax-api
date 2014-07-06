@@ -7,9 +7,10 @@ nav: nav
 
 # ChangeLog
 
-## 2.0.2
+## 2.1.0
 
 * `server.query`パラメータをオブジェクトで設定できるよう拡張
+* `server.header`パラメータの初期値を`true`に変更
 
 ## 2.0.1
 
