@@ -30,7 +30,7 @@ accelerate:
       check: $.pjax.getCache,
       encode: true,
       ajax: {
-        success: function ( data, textStatus, XMLHttpRequest ) {
+        done: function ( data, textStatus, XMLHttpRequest ) {
           !$.pjax.getCache( this.url ) && $.pjax.setCache( this.url, null, textStatus, XMLHttpRequest );
         }
       }
