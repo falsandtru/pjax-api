@@ -583,7 +583,7 @@ module MODULE {
             setting.scroll.record = true;
             if ('popstate' !== event.type.toLowerCase()) {
               APP.scrollByHash_(setting.destLocation.hash) || scroll(true);
-              setTimeout(function () { APP.scrollByHash_(setting.destLocation.hash); }, 300);
+              setTimeout(function () { APP.scrollByHash_(setting.destLocation.hash); }, 50);
             } else {
               scroll(true);
             }
