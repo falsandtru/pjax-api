@@ -563,13 +563,15 @@ module MODULE {
 
             var count = 0;
             (function check() {
-              if (checker.filter(function () { return this.clientWidth || this.clientHeight || jQuery(this).is(':hidden'); }).length === checker.length || count >= 100) {
-
-                rendered(callback);
-
-              } else if (checker.length) {
-                count++;
-                setTimeout(check, setting.interval);
+              switch (true) {
+                case 100 <= count:
+                case setting.destLocation.href !== UTIL.canonicalizeUrl(window.location.href).replace(/(?:%\w{2})+/g, function (str) { return String(url.match(str.toLowerCase()) || str); }):
+                  break;
+                case checker.length === checker.filter(function () { return this.clientWidth || this.clientHeight || jQuery(this).is(':hidden'); }).length:
+                  rendered(callback);
+                  break;
+                case 0 < checker.length:
+                  ++count && setTimeout(check, setting.interval);
               }
             })();
           } // function: rendering
