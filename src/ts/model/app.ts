@@ -301,7 +301,6 @@ module MODULE {
 
         M.setActiveSetting(setting);
 
-        var url: string = setting.destLocation.href;
         var callbacks_update = setting.callbacks.update;
 
         if (UTIL.fire(callbacks_update.before, null, [event, setting.param, data, textStatus, XMLHttpRequest, cache]) === false) { break UPDATE; }
@@ -322,8 +321,8 @@ module MODULE {
             if (event.type.toLowerCase() === 'submit' && !setting.cache[(<HTMLFormElement>event.currentTarget).method.toLowerCase()]) { break UPDATE_CACHE; }
             if (UTIL.fire(callbacks_update.cache.before, null, [event, setting.param, cache]) === false) { break UPDATE_CACHE; }
 
-            jQuery[M.NAME].setCache(url, cache && cache.data || null, textStatus, XMLHttpRequest);
-            cache = jQuery[M.NAME].getCache(url);
+            jQuery[M.NAME].setCache(setting.destLocation.href, cache && cache.data || null, textStatus, XMLHttpRequest);
+            cache = jQuery[M.NAME].getCache(setting.destLocation.href);
 
             if (UTIL.fire(callbacks_update.cache.after, null, [event, setting.param, cache]) === false) { break UPDATE_CACHE; }
           }; // label: UPDATE_CACHE
@@ -408,13 +407,13 @@ module MODULE {
           UPDATE_URL: {
             if (UTIL.fire(callbacks_update.url.before, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE_URL; };
 
-            register && url !== setting.origLocation.href &&
+            register && setting.destLocation.href !== setting.origLocation.href &&
             window.history.pushState(
               UTIL.fire(setting.state, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]),
               window.opera || ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? title : dstDocument.title,
-              url);
+              setting.destLocation.href);
 
-            setting.origLocation.href = url;
+            setting.origLocation.href = setting.destLocation.href;
             if (register && setting.fix.location) {
               jQuery[M.NAME].disable();
               window.history.back();
@@ -429,7 +428,7 @@ module MODULE {
           UPDATE_TITLE: {
             if (UTIL.fire(callbacks_update.title.before, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE_TITLE; }
             dstDocument.title = title;
-            setting.database && setting.fix.history && APP.saveTitleToDB(url, setting.hashquery, title);
+            setting.database && setting.fix.history && APP.saveTitleToDB(setting.destLocation.href, setting.hashquery, title);
             if (UTIL.fire(callbacks_update.title.after, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE_TITLE; }
           }; // label: UPDATE_TITLE
 
@@ -548,10 +547,10 @@ module MODULE {
                 scrollY = scrollY === false || scrollY === null ? jQuery(window).scrollTop() : parseInt(Number(scrollY) + '', 10);
 
                 (jQuery(window).scrollTop() === scrollY && jQuery(window).scrollLeft() === scrollX) || window.scrollTo(scrollX, scrollY);
-                call && setting.database && setting.fix.scroll && APP.saveScrollPositionToCacheAndDB(url, setting.hashquery, scrollX, scrollY);
+                call && setting.database && setting.fix.scroll && APP.saveScrollPositionToCacheAndDB(setting.destLocation.href, setting.hashquery, scrollX, scrollY);
                 break;
               case 'popstate':
-                call && setting.fix.scroll && setting.database && setting.scroll.record && APP.loadScrollPositionByCacheOrDB(url, setting.hashquery);
+                call && setting.fix.scroll && setting.database && setting.scroll.record && APP.loadScrollPositionByCacheOrDB(setting.destLocation.href, setting.hashquery);
                 break;
             }
             if (UTIL.fire(callbacks_update.scroll.after, null, [event, setting.param]) === false) { return; }
@@ -565,7 +564,7 @@ module MODULE {
             (function check() {
               switch (true) {
                 case 100 <= count:
-                case setting.destLocation.href !== UTIL.canonicalizeUrl(window.location.href).replace(/(?:%\w{2})+/g, function (str) { return String(url.match(str.toLowerCase()) || str); }):
+                case UTIL.canonicalizeUrl(window.location.href) !== setting.destLocation.href:
                   break;
                 case checker.length === checker.filter(function () { return this.clientWidth || this.clientHeight || jQuery(this).is(':hidden'); }).length:
                   rendered(callback);
@@ -615,7 +614,7 @@ module MODULE {
               if (UTIL.fire(callbacks_update.css.before, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE_CSS; }
 
               var css: JQuery, save, adds = [], removes = jQuery(selector).not(jQuery(setting.area).find(selector));
-              cache = jQuery[M.NAME].getCache(url);
+              cache = jQuery[M.NAME].getCache(setting.destLocation.href);
               save = cache && !cache.css;
               css = cache && cache.css ? jQuery(cache.css) : jQuery(selector, srcDocument).not(jQuery(setting.area, srcDocument).find(selector));
               css = css.not(setting.load.ignore);
@@ -659,7 +658,7 @@ module MODULE {
               if (UTIL.fire(callbacks_update.script.before, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE_SCRIPT; }
 
               var script: JQuery, save, execs = [];
-              cache = jQuery[M.NAME].getCache(url);
+              cache = jQuery[M.NAME].getCache(setting.destLocation.href);
               save = cache && !cache.script;
               script = cache && cache.script ? jQuery(cache.script) : jQuery('script', srcDocument);
               script = script.not(setting.load.ignore);
@@ -703,14 +702,13 @@ module MODULE {
           /* verify */
           UPDATE_VERIFY: {
             UTIL.fire(callbacks_update.verify.before, null, [event, setting.param]);
-            var curr = UTIL.canonicalizeUrl(window.location.href).replace(/(?:%\w{2})+/g, function (str) { return String(url.match(str.toLowerCase()) || str); });
-            if (url === curr) {
+            if (setting.destLocation.href === UTIL.canonicalizeUrl(window.location.href)) {
               setting.retry = true;
               new APP.stock(setting.uuid);
             } else if (setting.retry) {
               setting.retry = false;
-              setting.destLocation.href = curr;
-              APP.drive(setting, event, false, setting.cache[event.type.toLowerCase()] && jQuery[M.NAME].getCache(UTIL.canonicalizeUrl(window.location.href)));
+              setting.destLocation.href = UTIL.canonicalizeUrl(window.location.href);
+              APP.drive(setting, event, false, setting.cache[event.type.toLowerCase()] && jQuery[M.NAME].getCache(setting.destLocation.href));
             } else {
               throw new Error('throw: location mismatch');
             }
@@ -741,7 +739,7 @@ module MODULE {
           if (UTIL.fire(setting.callback, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE; }
         } catch (err) {
           /* cache delete */
-          cache && jQuery[M.NAME].removeCache(url);
+          cache && jQuery[M.NAME].removeCache(setting.destLocation.href);
 
           if (UTIL.fire(callbacks_update.error, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE; }
           if (UTIL.fire(callbacks_update.complete, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE; }
