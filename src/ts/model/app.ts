@@ -67,7 +67,6 @@ module MODULE {
             wait: 0,
             scroll: { delay: 300 },
             fix: { location: true, history: true, scroll: true, reset: false },
-            hashquery: false,
             fallback: true,
             database: true,
             speedcheck: false,
@@ -428,11 +427,11 @@ module MODULE {
           UPDATE_TITLE: {
             if (UTIL.fire(callbacks_update.title.before, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE_TITLE; }
             dstDocument.title = title;
-            setting.database && setting.fix.history && APP.saveTitleToDB(setting.destLocation.href, setting.hashquery, title);
+            setting.database && setting.fix.history && APP.saveTitleToDB(setting.destLocation.href, title);
             if (UTIL.fire(callbacks_update.title.after, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE_TITLE; }
           }; // label: UPDATE_TITLE
 
-          setting.database && DATA.updateCurrentPage(setting.hashquery);
+          setting.database && DATA.updateCurrentPage();
 
           /* head */
           var load_head = function(): void {
@@ -547,10 +546,10 @@ module MODULE {
                 scrollY = scrollY === false || scrollY === null ? jQuery(window).scrollTop() : parseInt(Number(scrollY) + '', 10);
 
                 (jQuery(window).scrollTop() === scrollY && jQuery(window).scrollLeft() === scrollX) || window.scrollTo(scrollX, scrollY);
-                call && setting.database && setting.fix.scroll && APP.saveScrollPositionToCacheAndDB(setting.destLocation.href, setting.hashquery, scrollX, scrollY);
+                call && setting.database && setting.fix.scroll && APP.saveScrollPositionToCacheAndDB(setting.destLocation.href, scrollX, scrollY);
                 break;
               case 'popstate':
-                call && setting.fix.scroll && setting.database && setting.scroll.record && APP.loadScrollPositionByCacheOrDB(setting.destLocation.href, setting.hashquery);
+                call && setting.fix.scroll && setting.database && setting.scroll.record && APP.loadScrollPositionByCacheOrDB(setting.destLocation.href);
                 break;
             }
             if (UTIL.fire(callbacks_update.scroll.after, null, [event, setting.param]) === false) { return; }
@@ -933,18 +932,18 @@ module MODULE {
 
     }
 
-    loadTitleByDB(unsafe_url: string, isIncludeHash: boolean): void {
-      var keyUrl = UTIL.canonicalizeUrl(M.convertUrlToUrlKey(unsafe_url, isIncludeHash));
-      DATA.loadTitle(keyUrl, isIncludeHash);
+    loadTitleByDB(unsafe_url: string): void {
+      var keyUrl = UTIL.canonicalizeUrl(M.convertUrlToUrlKey(unsafe_url));
+      DATA.loadTitle(keyUrl);
     }
 
-    saveTitleToDB(unsafe_url: string, isIncludeHash: boolean, title: string): void {
-      var keyUrl = UTIL.canonicalizeUrl(M.convertUrlToUrlKey(unsafe_url, isIncludeHash));
+    saveTitleToDB(unsafe_url: string, title: string): void {
+      var keyUrl = UTIL.canonicalizeUrl(M.convertUrlToUrlKey(unsafe_url));
       DATA.saveTitle(keyUrl, title);
     }
 
-    loadScrollPositionByCacheOrDB(unsafe_url: string, isIncludeHash: boolean): void {
-      var keyUrl = UTIL.canonicalizeUrl(M.convertUrlToUrlKey(unsafe_url, isIncludeHash));
+    loadScrollPositionByCacheOrDB(unsafe_url: string): void {
+      var keyUrl = UTIL.canonicalizeUrl(M.convertUrlToUrlKey(unsafe_url));
       var cache: CacheInterface = jQuery[M.NAME].getCache(keyUrl);
       if (cache && 'number' === typeof cache.scrollX) {
         window.scrollTo(parseInt(Number(cache.scrollX) + '', 10), parseInt(Number(cache.scrollY) + '', 10));
@@ -953,8 +952,8 @@ module MODULE {
       }
     }
 
-    saveScrollPositionToCacheAndDB(unsafe_url: string, isIncludeHash: boolean, scrollX: number, scrollY: number): void {
-      var keyUrl = UTIL.canonicalizeUrl(M.convertUrlToUrlKey(unsafe_url, isIncludeHash));
+    saveScrollPositionToCacheAndDB(unsafe_url: string, scrollX: number, scrollY: number): void {
+      var keyUrl = UTIL.canonicalizeUrl(M.convertUrlToUrlKey(unsafe_url));
       jQuery.extend(jQuery[M.NAME].getCache(keyUrl), { scrollX: scrollX, scrollY: scrollY });
       DATA.saveScrollPosition(keyUrl, scrollX, scrollY);
     }

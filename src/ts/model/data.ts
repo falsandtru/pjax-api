@@ -58,9 +58,9 @@ module MODULE {
               IDBObjectStore.get('_version').onsuccess = function () {
                 if (!this.result || version === this.result.title) {
                   DATA.updateVersionNumber_(version);
-                  DATA.updateCurrentPage(setting.hashquery);
-                  DATA.saveTitle(M.convertUrlToUrlKey(setting.origLocation.href, setting.hashquery), document.title);
-                  DATA.saveScrollPosition(M.convertUrlToUrlKey(setting.origLocation.href, setting.hashquery), jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+                  DATA.updateCurrentPage();
+                  DATA.saveTitle(M.convertUrlToUrlKey(setting.origLocation.href), document.title);
+                  DATA.saveScrollPosition(M.convertUrlToUrlKey(setting.origLocation.href), jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
                   setting.database = true;
                 } else {
@@ -92,11 +92,11 @@ module MODULE {
       return null;
     }
 
-    updateCurrentPage(isIncludeHash: boolean): void {
+    updateCurrentPage(): void {
       var IDBObjectStore = DATA.createStore_();
 
       if (!IDBObjectStore) { return; }
-      var secure_url: string = UTIL.canonicalizeUrl(M.convertUrlToUrlKey(window.location.href, isIncludeHash));
+      var secure_url: string = M.convertUrlToUrlKey(UTIL.canonicalizeUrl(window.location.href));
       IDBObjectStore.put({ id: '_current', title: secure_url });
     }
 
@@ -114,9 +114,9 @@ module MODULE {
       IDBObjectStore.get(keyUrl).onsuccess = success;
     }
 
-    loadTitle(keyUrl: string, isIncludeHash): void {
+    loadTitle(keyUrl: string): void {
       DATA.accessRecord_(keyUrl, function () {
-        keyUrl === UTIL.canonicalizeUrl(M.convertUrlToUrlKey(window.location.href, isIncludeHash)) &&
+        keyUrl === M.convertUrlToUrlKey(UTIL.canonicalizeUrl(window.location.href)) &&
         this.result && this.result.title && (document.title = this.result.title);
       });
     }
