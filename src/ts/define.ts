@@ -78,7 +78,7 @@ module MODULE {
     
     // Model機能
     main_(context: ContextInterface, ...args: any[]): ContextInterface
-    convertUrlToUrlKey(unsafe_url: string, isIncludeHash: boolean): string
+    convertUrlToUrlKey(unsafe_url: string): string
     isImmediateLoadable(unsafe_url: string): boolean
     isImmediateLoadable(event: JQueryEventObject): boolean
     getActiveSetting(): CommonSettingInterface
@@ -122,10 +122,10 @@ module MODULE {
     drive(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: any): void
     chooseAreas(areas: string[], srcDocument: Document, dstDocument: Document): string
 
-    loadTitleByDB(unsafe_url: string, isIncludeHash: boolean): void
-    saveTitleToDB(unsafe_url: string, isIncludeHash: boolean, title: string): void
-    loadScrollPositionByCacheOrDB(unsafe_url: string, isIncludeHash: boolean): void
-    saveScrollPositionToCacheAndDB(unsafe_url: string, isIncludeHash: boolean, scrollX: number, scrollY: number): void
+    loadTitleByDB(unsafe_url: string): void
+    saveTitleToDB(unsafe_url: string, title: string): void
+    loadScrollPositionByCacheOrDB(unsafe_url: string): void
+    saveScrollPositionToCacheAndDB(unsafe_url: string, scrollX: number, scrollY: number): void
   }
   export declare class ModelDataInterface {
     createStore_(): IDBObjectStore
@@ -134,8 +134,8 @@ module MODULE {
     clean_(): void
 
     openDB(setting: SettingInterface, count?: number): void
-    updateCurrentPage(isIncludeHash: boolean): void
-    loadTitle(keyUrl: string, isIncludeHash: boolean): void
+    updateCurrentPage(): void
+    loadTitle(keyUrl: string): void
     saveTitle(keyUrl: string, title: string): void
     loadScrollPosition(keyUrl: string): void
     saveScrollPosition(keyUrl: string, scrollX: number, scrollY: number): void
@@ -188,7 +188,6 @@ module MODULE {
     fix: {
       history: boolean
     }
-    hashquery: boolean
     database: boolean
     
     nss: {
@@ -257,7 +256,6 @@ module MODULE {
       scroll: boolean
       reset: boolean
     }
-    hashquery: boolean
     fallback: boolean
     database: boolean
     server: {

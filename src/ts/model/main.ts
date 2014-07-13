@@ -60,8 +60,8 @@ module MODULE {
       return $context;
     }
 
-    convertUrlToUrlKey(unsafe_url: string, isIncludeHash: boolean): string {
-      return isIncludeHash ? unsafe_url : unsafe_url.replace(/#.*/, '')
+    convertUrlToUrlKey(unsafe_url: string): string {
+      return unsafe_url.replace(/#.*/, '')
     }
 
     isImmediateLoadable(url: string): boolean
@@ -99,7 +99,7 @@ module MODULE {
 
       var setting: SettingInterface = APP.configure(M.getActiveSetting(), origLocation.href, destLocation.href);
       if (setting.disable) { return; }
-      if (!setting.hashquery && destLocation.hash && origLocation.href.replace(/#.*/, '') === destLocation.href.replace(/#.*/, '')) { return false; }
+      if (destLocation.hash && origLocation.href.replace(/#.*/, '') === destLocation.href.replace(/#.*/, '')) { return false; }
       setting.area = UTIL.fire(setting.area, null, [event, setting.param, origLocation.href, destLocation.href]);
       setting.area = setting.area instanceof Array ? setting.area : [setting.area];
       if (!jQuery(event.currentTarget).filter(setting.filter).length) { return false; }
@@ -135,7 +135,7 @@ module MODULE {
       if (setting.cache.mix && jQuery[M.NAME].getCache(setting.destLocation.href)) { return; }
       setting.area = UTIL.fire(setting.area, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
       setting.area = setting.area instanceof Array ? setting.area : [setting.area];
-      setting.database && setting.scroll.record && APP.saveScrollPositionToCacheAndDB(setting.destLocation.href, setting.hashquery, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+      setting.database && setting.scroll.record && APP.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
       var cache: CacheInterface;
       if (setting.cache[event.type.toLowerCase()]) { cache = jQuery[M.NAME].getCache(setting.destLocation.href); }
@@ -159,7 +159,7 @@ module MODULE {
       setting.area = UTIL.fire(setting.area, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
       setting.area = setting.area instanceof Array ? setting.area : [setting.area];
       if (!setting.area[0] || !jQuery(setting.area.join(','))[0]) { return; }
-      setting.database && setting.scroll.record && APP.saveScrollPositionToCacheAndDB(setting.destLocation.href, setting.hashquery, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+      setting.database && setting.scroll.record && APP.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
       var cache: CacheInterface;
       if (setting.cache[event.type.toLowerCase()] && setting.cache[context.method.toLowerCase()]) { cache = jQuery[M.NAME].getCache(setting.destLocation.href); }
@@ -177,8 +177,7 @@ module MODULE {
       if (setting.origLocation.href === setting.destLocation.href) { return; }
 
       if (setting.origLocation.hash !== setting.destLocation.hash &&
-          setting.origLocation.pathname + setting.origLocation.search === setting.destLocation.pathname + setting.destLocation.search &&
-          !setting.hashquery) {
+          setting.origLocation.pathname + setting.origLocation.search === setting.destLocation.pathname + setting.destLocation.search) {
         return;
       }
 
@@ -187,7 +186,7 @@ module MODULE {
       setting.area = setting.area instanceof Array ? setting.area : [setting.area];
       if (!setting.area[0] || !jQuery(setting.area.join(','))[0]) { return; }
 
-      setting.database && setting.fix.history && APP.loadTitleByDB(setting.destLocation.href, setting.hashquery);
+      setting.database && setting.fix.history && APP.loadTitleByDB(setting.destLocation.href);
 
       var cache: CacheInterface;
       if (setting.cache[event.type.toLowerCase()]) { cache = jQuery[M.NAME].getCache(setting.destLocation.href); }
@@ -201,13 +200,13 @@ module MODULE {
       if (M.state_ !== State.ready || event.isDefaultPrevented()) { return; }
 
       if (!common.scroll.delay) {
-        common.scroll.record && APP.saveScrollPositionToCacheAndDB(window.location.href, common.hashquery, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+        common.scroll.record && APP.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
       } else {
         var id: number;
         while (id = common.scroll.queue.shift()) { clearTimeout(id); }
         id = setTimeout(() => {
           while (id = common.scroll.queue.shift()) { clearTimeout(id); }
-          common.scroll.record && APP.saveScrollPositionToCacheAndDB(window.location.href, common.hashquery, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+          common.scroll.record && APP.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
         }, common.scroll.delay);
         common.scroll.queue.push(id);
       }
@@ -226,10 +225,9 @@ module MODULE {
           recent: RecentInterface = APP.recent;
       if (!common || !recent) { return false; }
 
-      var secure_url: string = UTIL.canonicalizeUrl(unsafe_url);
+      var secure_url: string = M.convertUrlToUrlKey(UTIL.canonicalizeUrl(unsafe_url));
       unsafe_url = null;
 
-      secure_url = common.hashquery ? secure_url : secure_url.replace(/#.*/, '');
       recent.data[secure_url] && new Date().getTime() > recent.data[secure_url].expires && jQuery[M.NAME].removeCache(secure_url);
       recent.data[secure_url] && !recent.data[secure_url].data && !recent.data[secure_url].XMLHttpRequest && jQuery[M.NAME].removeCache(secure_url);
       return recent.data[secure_url];
@@ -244,10 +242,9 @@ module MODULE {
           timeStamp: number,
           expires: number;
 
-      var secure_url: string = UTIL.canonicalizeUrl(unsafe_url);
+      var secure_url: string = M.convertUrlToUrlKey(UTIL.canonicalizeUrl(unsafe_url));
       unsafe_url = null;
 
-      secure_url = common.hashquery ? secure_url : secure_url.replace(/#.*/, '');
       recent.order.unshift(secure_url);
       for (var i = 1, key; key = recent.order[i]; i++) { if (secure_url === key) { recent.order.splice(i, 1); } }
 
@@ -302,7 +299,7 @@ module MODULE {
       }
       if (XMLHttpRequest || cache && cache.XMLHttpRequest) {
         var title: string = ((XMLHttpRequest || cache && cache.XMLHttpRequest).responseText || '').slice(0, 10000).match(/<title[^>]*>(.*?)<\/title>/i).pop() || '';
-        common.database && common.fix.history && APP.saveTitleToDB(secure_url, common.hashquery, title);
+        common.database && common.fix.history && APP.saveTitleToDB(secure_url, title);
       }
     }
     
@@ -311,10 +308,9 @@ module MODULE {
           recent: RecentInterface = APP.recent;
       if (!common || !recent) { return; }
 
-      var secure_url: string = UTIL.canonicalizeUrl(unsafe_url);
+      var secure_url: string = M.convertUrlToUrlKey(UTIL.canonicalizeUrl(unsafe_url));
       unsafe_url = null;
 
-      secure_url = common.hashquery ? secure_url : secure_url.replace(/#.*/, '');
       for (var i = 0, key; key = recent.order[i]; i++) {
         if (secure_url === key) {
           recent.order.splice(i, 1);

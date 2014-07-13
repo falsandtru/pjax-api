@@ -67,7 +67,6 @@ module MODULE {
             wait: 0,
             scroll: { delay: 300 },
             fix: { location: true, history: true, scroll: true, reset: false },
-            hashquery: false,
             fallback: true,
             database: true,
             speedcheck: false,
@@ -301,7 +300,6 @@ module MODULE {
 
         M.setActiveSetting(setting);
 
-        var url: string = setting.destLocation.href;
         var callbacks_update = setting.callbacks.update;
 
         if (UTIL.fire(callbacks_update.before, null, [event, setting.param, data, textStatus, XMLHttpRequest, cache]) === false) { break UPDATE; }
@@ -322,8 +320,8 @@ module MODULE {
             if (event.type.toLowerCase() === 'submit' && !setting.cache[(<HTMLFormElement>event.currentTarget).method.toLowerCase()]) { break UPDATE_CACHE; }
             if (UTIL.fire(callbacks_update.cache.before, null, [event, setting.param, cache]) === false) { break UPDATE_CACHE; }
 
-            jQuery[M.NAME].setCache(url, cache && cache.data || null, textStatus, XMLHttpRequest);
-            cache = jQuery[M.NAME].getCache(url);
+            jQuery[M.NAME].setCache(setting.destLocation.href, cache && cache.data || null, textStatus, XMLHttpRequest);
+            cache = jQuery[M.NAME].getCache(setting.destLocation.href);
 
             if (UTIL.fire(callbacks_update.cache.after, null, [event, setting.param, cache]) === false) { break UPDATE_CACHE; }
           }; // label: UPDATE_CACHE
@@ -408,13 +406,13 @@ module MODULE {
           UPDATE_URL: {
             if (UTIL.fire(callbacks_update.url.before, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE_URL; };
 
-            register && url !== setting.origLocation.href &&
+            register && setting.destLocation.href !== setting.origLocation.href &&
             window.history.pushState(
               UTIL.fire(setting.state, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]),
               window.opera || ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? title : dstDocument.title,
-              url);
+              setting.destLocation.href);
 
-            setting.origLocation.href = url;
+            setting.origLocation.href = setting.destLocation.href;
             if (register && setting.fix.location) {
               jQuery[M.NAME].disable();
               window.history.back();
@@ -429,11 +427,11 @@ module MODULE {
           UPDATE_TITLE: {
             if (UTIL.fire(callbacks_update.title.before, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE_TITLE; }
             dstDocument.title = title;
-            setting.database && setting.fix.history && APP.saveTitleToDB(url, setting.hashquery, title);
+            setting.database && setting.fix.history && APP.saveTitleToDB(setting.destLocation.href, title);
             if (UTIL.fire(callbacks_update.title.after, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE_TITLE; }
           }; // label: UPDATE_TITLE
 
-          setting.database && DATA.updateCurrentPage(setting.hashquery);
+          setting.database && DATA.updateCurrentPage();
 
           /* head */
           var load_head = function(): void {
@@ -548,10 +546,10 @@ module MODULE {
                 scrollY = scrollY === false || scrollY === null ? jQuery(window).scrollTop() : parseInt(Number(scrollY) + '', 10);
 
                 (jQuery(window).scrollTop() === scrollY && jQuery(window).scrollLeft() === scrollX) || window.scrollTo(scrollX, scrollY);
-                call && setting.database && setting.fix.scroll && APP.saveScrollPositionToCacheAndDB(url, setting.hashquery, scrollX, scrollY);
+                call && setting.database && setting.fix.scroll && APP.saveScrollPositionToCacheAndDB(setting.destLocation.href, scrollX, scrollY);
                 break;
               case 'popstate':
-                call && setting.fix.scroll && setting.database && setting.scroll.record && APP.loadScrollPositionByCacheOrDB(url, setting.hashquery);
+                call && setting.fix.scroll && setting.database && setting.scroll.record && APP.loadScrollPositionByCacheOrDB(setting.destLocation.href);
                 break;
             }
             if (UTIL.fire(callbacks_update.scroll.after, null, [event, setting.param]) === false) { return; }
@@ -563,13 +561,15 @@ module MODULE {
 
             var count = 0;
             (function check() {
-              if (checker.filter(function () { return this.clientWidth || this.clientHeight || jQuery(this).is(':hidden'); }).length === checker.length || count >= 100) {
-
-                rendered(callback);
-
-              } else if (checker.length) {
-                count++;
-                setTimeout(check, setting.interval);
+              switch (true) {
+                case 100 <= count:
+                case UTIL.canonicalizeUrl(window.location.href) !== setting.destLocation.href:
+                  break;
+                case checker.length === checker.filter(function () { return this.clientWidth || this.clientHeight || jQuery(this).is(':hidden'); }).length:
+                  rendered(callback);
+                  break;
+                case 0 < checker.length:
+                  ++count && setTimeout(check, setting.interval);
               }
             })();
           } // function: rendering
@@ -581,7 +581,7 @@ module MODULE {
             setting.scroll.record = true;
             if ('popstate' !== event.type.toLowerCase()) {
               APP.scrollByHash_(setting.destLocation.hash) || scroll(true);
-              setTimeout(function () { APP.scrollByHash_(setting.destLocation.hash); }, 300);
+              setTimeout(function () { APP.scrollByHash_(setting.destLocation.hash); }, 50);
             } else {
               scroll(true);
             }
@@ -613,7 +613,7 @@ module MODULE {
               if (UTIL.fire(callbacks_update.css.before, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE_CSS; }
 
               var css: JQuery, save, adds = [], removes = jQuery(selector).not(jQuery(setting.area).find(selector));
-              cache = jQuery[M.NAME].getCache(url);
+              cache = jQuery[M.NAME].getCache(setting.destLocation.href);
               save = cache && !cache.css;
               css = cache && cache.css ? jQuery(cache.css) : jQuery(selector, srcDocument).not(jQuery(setting.area, srcDocument).find(selector));
               css = css.not(setting.load.ignore);
@@ -657,7 +657,7 @@ module MODULE {
               if (UTIL.fire(callbacks_update.script.before, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE_SCRIPT; }
 
               var script: JQuery, save, execs = [];
-              cache = jQuery[M.NAME].getCache(url);
+              cache = jQuery[M.NAME].getCache(setting.destLocation.href);
               save = cache && !cache.script;
               script = cache && cache.script ? jQuery(cache.script) : jQuery('script', srcDocument);
               script = script.not(setting.load.ignore);
@@ -701,14 +701,13 @@ module MODULE {
           /* verify */
           UPDATE_VERIFY: {
             UTIL.fire(callbacks_update.verify.before, null, [event, setting.param]);
-            var curr = UTIL.canonicalizeUrl(window.location.href).replace(/(?:%\w{2})+/g, function (str) { return String(url.match(str.toLowerCase()) || str); });
-            if (url === curr) {
+            if (setting.destLocation.href === UTIL.canonicalizeUrl(window.location.href)) {
               setting.retry = true;
               new APP.stock(setting.uuid);
             } else if (setting.retry) {
               setting.retry = false;
-              setting.destLocation.href = curr;
-              APP.drive(setting, event, false, setting.cache[event.type.toLowerCase()] && jQuery[M.NAME].getCache(UTIL.canonicalizeUrl(window.location.href)));
+              setting.destLocation.href = UTIL.canonicalizeUrl(window.location.href);
+              APP.drive(setting, event, false, setting.cache[event.type.toLowerCase()] && jQuery[M.NAME].getCache(setting.destLocation.href));
             } else {
               throw new Error('throw: location mismatch');
             }
@@ -739,7 +738,7 @@ module MODULE {
           if (UTIL.fire(setting.callback, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE; }
         } catch (err) {
           /* cache delete */
-          cache && jQuery[M.NAME].removeCache(url);
+          cache && jQuery[M.NAME].removeCache(setting.destLocation.href);
 
           if (UTIL.fire(callbacks_update.error, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE; }
           if (UTIL.fire(callbacks_update.complete, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE; }
@@ -933,18 +932,18 @@ module MODULE {
 
     }
 
-    loadTitleByDB(unsafe_url: string, isIncludeHash: boolean): void {
-      var keyUrl = UTIL.canonicalizeUrl(M.convertUrlToUrlKey(unsafe_url, isIncludeHash));
-      DATA.loadTitle(keyUrl, isIncludeHash);
+    loadTitleByDB(unsafe_url: string): void {
+      var keyUrl = UTIL.canonicalizeUrl(M.convertUrlToUrlKey(unsafe_url));
+      DATA.loadTitle(keyUrl);
     }
 
-    saveTitleToDB(unsafe_url: string, isIncludeHash: boolean, title: string): void {
-      var keyUrl = UTIL.canonicalizeUrl(M.convertUrlToUrlKey(unsafe_url, isIncludeHash));
+    saveTitleToDB(unsafe_url: string, title: string): void {
+      var keyUrl = UTIL.canonicalizeUrl(M.convertUrlToUrlKey(unsafe_url));
       DATA.saveTitle(keyUrl, title);
     }
 
-    loadScrollPositionByCacheOrDB(unsafe_url: string, isIncludeHash: boolean): void {
-      var keyUrl = UTIL.canonicalizeUrl(M.convertUrlToUrlKey(unsafe_url, isIncludeHash));
+    loadScrollPositionByCacheOrDB(unsafe_url: string): void {
+      var keyUrl = UTIL.canonicalizeUrl(M.convertUrlToUrlKey(unsafe_url));
       var cache: CacheInterface = jQuery[M.NAME].getCache(keyUrl);
       if (cache && 'number' === typeof cache.scrollX) {
         window.scrollTo(parseInt(Number(cache.scrollX) + '', 10), parseInt(Number(cache.scrollY) + '', 10));
@@ -953,8 +952,8 @@ module MODULE {
       }
     }
 
-    saveScrollPositionToCacheAndDB(unsafe_url: string, isIncludeHash: boolean, scrollX: number, scrollY: number): void {
-      var keyUrl = UTIL.canonicalizeUrl(M.convertUrlToUrlKey(unsafe_url, isIncludeHash));
+    saveScrollPositionToCacheAndDB(unsafe_url: string, scrollX: number, scrollY: number): void {
+      var keyUrl = UTIL.canonicalizeUrl(M.convertUrlToUrlKey(unsafe_url));
       jQuery.extend(jQuery[M.NAME].getCache(keyUrl), { scrollX: scrollX, scrollY: scrollY });
       DATA.saveScrollPosition(keyUrl, scrollX, scrollY);
     }

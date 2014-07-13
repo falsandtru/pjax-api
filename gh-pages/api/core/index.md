@@ -26,9 +26,6 @@ pjaxを設定します。
 ### [scope:](api/core/setting/scope/)
 ページ遷移にpjaxを使用するURLを設定します。
 
-### [hashquery:](api/core/setting/hashquery/)
-ハッシュごとにページを更新するかを設定します。
-
 ### [state:](api/core/setting/state/)
 ページ遷移時に設定する`window.history.state`の値を設定します。
 
