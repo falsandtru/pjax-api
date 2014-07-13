@@ -5,17 +5,22 @@ module.exports = function(grunt) {
     filename: 'jquery.pjax',
 
     typescript: {
+      options: {
+        sourceMap: false,
+        comments: true
+      },
       build: {
         options: {
-          sourceMap: false,
-          comments: false
+          watch: false
         },
-        src: [
-          'src/ts/define.ts',
-          'src/ts/model/*.ts',
-          'src/ts/view/*.ts',
-          'src/ts/controller/*.ts'
-        ],
+        src: 'src/ts/**/*.ts',
+        dest: 'temp/<%= filename %>.js'
+      },
+      watch: {
+        options: {
+          watch: true
+        },
+        src: 'src/ts/**/*.ts',
         dest: 'temp/<%= filename %>.js'
       }
     },
@@ -105,11 +110,8 @@ module.exports = function(grunt) {
         livereload: true
       },
       ts: {
-        options: {
-          interrupt: true
-        },
-        files: ['src/**/*.ts'],
-        tasks: ['typescript', 'concat', 'copy:test']
+        files: ['temp/**/*.js'],
+        tasks: ['concat', 'copy:test']
       },
       cp: {
         files: ['test/**'],
@@ -161,6 +163,9 @@ module.exports = function(grunt) {
         stdout: true,
         stderr: true
       },
+      typescript: {
+        command: 'grunt typescript:watch'
+      },
       watch: {
         command: 'grunt watch'
       },
@@ -190,9 +195,9 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-jekyll');
   grunt.loadNpmTasks('grunt-shell-spawn');
 
-  grunt.registerTask('build', ['typescript', 'concat', 'copy', 'uglify']);
-  grunt.registerTask('view', ['build', 'shell:watch', 'jekyll:serve']);
-  grunt.registerTask('dev', ['build', 'shell:watch', 'shell:jekyll', 'karma:dev']);
+  grunt.registerTask('build', ['typescript:build', 'concat', 'copy', 'uglify']);
+  grunt.registerTask('view', ['build', 'shell:typescript', 'shell:watch', 'jekyll:serve']);
+  grunt.registerTask('dev', ['build', 'shell:typescript', 'shell:watch', 'shell:jekyll', 'karma:dev']);
   grunt.registerTask('test', ['build', 'karma:test']);
   grunt.registerTask('travis', ['dist', 'karma:ci']);
   grunt.registerTask('dist', ['clean:dest', 'build', 'clean:temp']);
