@@ -7,6 +7,10 @@ nav: nav
 
 # ChangeLog
 
+## 2.2.0
+
+* `hashquery`パラメータを削除
+
 ## 2.1.0
 
 * `server.query`パラメータをオブジェクトで設定できるよう拡張

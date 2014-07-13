@@ -3,7 +3,7 @@
  * jquery.pjax.js
  * 
  * @name jquery.pjax.js
- * @version 2.1.0
+ * @version 2.2.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
  * @copyright 2014, falsandtru
@@ -13,6 +13,7 @@
 
 new (function(window, document, undefined, $) {
 "use strict";
+/// <reference path="type/jquery.d.ts"/>
 
 var MODULE;
 (function (MODULE) {
@@ -25,6 +26,7 @@ var MODULE;
 
     
 
+    // enum
     (function (State) {
         State[State["wait"] = -1] = "wait";
         State[State["ready"] = 0] = "ready";
@@ -39,19 +41,81 @@ var MODULE;
 
     
 })(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
+/* MODEL */
 var MODULE;
 (function (MODULE) {
+    /**
+    * Model of MVC
+    *
+    * @class Model
+    */
     var ModelTemplate = (function () {
         function ModelTemplate() {
+            /**
+            * 拡張モジュール名。ネームスペースにこの名前のプロパティでモジュールが追加される。
+            *
+            * @property NAME
+            * @type String
+            */
             this.NAME = MODULE.NAME;
+            /**
+            * ネームスペース。ここにモジュールが追加される。
+            *
+            * @property NAMESPACE
+            * @type Window|JQuery
+            */
             this.NAMESPACE = MODULE.NAMESPACE;
+            /**
+            * Modelの遷移状態を持つ
+            *
+            * @property state_
+            * @type {State}
+            */
             this.state_ = -1 /* wait */;
+            /**
+            * UUIDを生成する。
+            *
+            * @method GEN_UUID
+            */
             this.GEN_UUID = function () {
+                // version 4
                 return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
                     var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
                     return v.toString(16).toUpperCase();
                 });
             };
+            /**
+            * `new`をつけて実行した場合、MVCインスタンスごとの個別データ保存用のデータオブジェクトの操作となる。
+            * メソッドとして実行した場合、MVCインスタンスをまたぐ共有データ保存用の操作となる。
+            *
+            * 個別データ操作
+            * + add: new stock()
+            *   インスタンス別のデータオブジェクトを返す。`uuid`プロパティにuuidが設定される。
+            * + add: new stock(Data: object/function/array, ...)
+            *   データオブジェクトに可変数の引数のオブジェクトのプロパティを追加して返す。`uuid`プロパティは上書きされない。
+            * + get: stock(uuid: string)
+            *   データオブジェクトを取得する。
+            * + del: new stock(uuid: string)
+            *   データオブジェクトを削除する。
+            *
+            * 共有データ操作
+            * + set: stock(key: string, value: any)
+            *   key-valueで共有データを保存する。
+            * + set: stock(key: string, value: any, true)
+            *   共有データをマージ保存する。
+            * + set: stock(data: object)
+            *   オブジェクトのプロパティをkey-valueのセットとして共有データを保存する。
+            * + get: stock(key: string)
+            *   共有データを取得する。
+            * + del: stock(key: string, undefined)
+            *   共有データを空データの保存により削除する。
+            *
+            * @method stock
+            * @param {String} key
+            * @param {Any} value
+            * @param {Boolean} merge
+            */
             this.stock = function stock(key, value, merge) {
                 if (this instanceof stock) {
                     switch (typeof key) {
@@ -64,6 +128,7 @@ var MODULE;
                             return delete stock[key];
                     }
                 } else if ('object' === typeof key) {
+                    // 共有データ操作
                     var keys = key, iKeys;
                     for (iKeys in keys) {
                         MODULE.Model.store(iKeys, keys[iKeys]);
@@ -71,10 +136,13 @@ var MODULE;
                 } else {
                     switch (arguments.length) {
                         case 0:
+                            // `new stock()`にリダイレクト
                             return new this.stock();
                         case 1:
+                            // インスタンス別のデータオブジェクトまたは共有データを取得
                             return this.stock[key] || MODULE.Model.store(key);
                         case 2:
+                            // 共有データを保存
                             return MODULE.Model.store(key, value);
                         case 3:
                             return MODULE.Model.store(key, value, merge);
@@ -83,6 +151,11 @@ var MODULE;
             };
             this.UUID = this.GEN_UUID();
         }
+        /**
+        * 拡張モジュール本体を実行したときに呼び出される。実装ごとに書き変えない。
+        *
+        * @method MAIN
+        */
         ModelTemplate.prototype.MAIN = function (context) {
             var args = [];
             for (var _i = 0; _i < (arguments.length - 1); _i++) {
@@ -91,6 +164,13 @@ var MODULE;
             return this.main_.apply(this, [context].concat(args));
         };
 
+        /**
+        * 拡張モジュール本体を実行したときに呼び出される。実装ごとに書き換える。
+        *
+        * @method main_
+        * @param {Object} context
+        * @param {Any} [params]* args
+        */
         ModelTemplate.prototype.main_ = function (context) {
             var args = [];
             for (var _i = 0; _i < (arguments.length - 1); _i++) {
@@ -105,8 +185,10 @@ var MODULE;
                 case 0:
                     break;
                 case 1:
+                    // 共有データを取得
                     return MODULE.Model.store[key];
                 case 2:
+                    // 共有データを設定
                     return MODULE.Model.store[key] = value;
                 case 3:
                     return MODULE.Model.store[key] = jQuery.extend(true, MODULE.Model.store[key], value);
@@ -116,14 +198,20 @@ var MODULE;
     })();
     MODULE.ModelTemplate = ModelTemplate;
 })(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
+/// <reference path="_template.ts"/>
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     __.prototype = b.prototype;
     d.prototype = new __();
 };
+/* MODEL */
 var MODULE;
 (function (MODULE) {
+    // Allow access:
+    //  -
+    // Deny access
     var M, V, C, APP, DATA;
 
     var ModelUtil = (function (_super) {
@@ -134,17 +222,22 @@ var MODULE;
         ModelUtil.prototype.canonicalizeUrl = function (url) {
             var ret;
 
+            // Trim
             ret = this.trim(url);
 
+            // Remove string starting with an invalid character
             ret = ret.replace(/["`^|\\<>{}\[\]\s].*/, '');
 
+            // Deny value beginning with the string of HTTP(S) other than
             ret = /^https?:/i.test(ret) ? ret : (function (url, a) {
                 a.href = url;
                 return a.href;
             })(ret, document.createElement('a'));
 
+            // Unify to UTF-8 encoded values
             ret = encodeURI(decodeURI(ret));
 
+            // Fix case
             ret = ret.replace(/(?:%\w{2})+/g, function (str) {
                 return url.match(str.toLowerCase()) || str;
             });
@@ -183,10 +276,18 @@ var MODULE;
     })(MODULE.ModelTemplate);
     MODULE.ModelUtil = ModelUtil;
 
+    // 短縮登録
     MODULE.UTIL = new ModelUtil();
 })(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
+/// <reference path="_template.ts"/>
+/// <reference path="util.ts"/>
+/* MODEL */
 var MODULE;
 (function (MODULE) {
+    // Allow access:
+    //  M, APP, DATA
+    // Deny access
     var V, C;
 
     var ModelApp = (function (_super) {
@@ -223,7 +324,7 @@ var MODULE;
                 contentType: 'text/html',
                 cache: {
                     click: false, submit: false, popstate: false, get: true, post: true, mix: false,
-                    page: 100, size: 1 * 1024 * 1024, expires: { max: null, min: 5 * 60 * 1000 }
+                    page: 100 /* pages */ , size: 1 * 1024 * 1024 /* 1MB */ , expires: { max: null, min: 5 * 60 * 1000 /* 5min */  }
                 },
                 callback: null,
                 callbacks: {
@@ -243,7 +344,6 @@ var MODULE;
                 wait: 0,
                 scroll: { delay: 300 },
                 fix: { location: true, history: true, scroll: true, reset: false },
-                hashquery: false,
                 fallback: true,
                 database: true,
                 speedcheck: false,
@@ -364,6 +464,7 @@ var MODULE;
             }
 
             if (cache && cache.XMLHttpRequest) {
+                // cache
                 speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
                 MODULE.M.setActiveXHR(null);
                 if (MODULE.M.isDeferrable) {
@@ -374,6 +475,7 @@ var MODULE;
                     MODULE.APP.update_(setting, event, register, cache.data, cache.textStatus, cache.XMLHttpRequest, cache);
                 }
             } else if (activeXHR && activeXHR.follow && 'abort' !== activeXHR.statusText) {
+                // preload
                 speedcheck && speed.time.splice(0, 1, activeXHR.timeStamp - speed.fire);
                 speedcheck && speed.name.splice(0, 1, 'preload(' + speed.time.slice(-1) + ')');
                 speedcheck && speed.time.push(speed.now() - speed.fire);
@@ -381,6 +483,7 @@ var MODULE;
                 var wait = setting.wait && isFinite(activeXHR.timeStamp) ? Math.max(setting.wait - new Date().getTime() + activeXHR.timeStamp, 0) : 0;
                 jQuery.when(activeXHR, MODULE.APP.wait_(wait)).done(done).fail(fail).always(always);
             } else {
+                // default
                 var ajax = {}, callbacks = {};
 
                 ajax.url = !setting.server.query ? setting.destLocation.href : [
@@ -415,6 +518,9 @@ var MODULE;
                         XMLHttpRequest = MODULE.UTIL.fire(setting.callbacks.ajax.xhr, this, [event, setting.param]);
                         XMLHttpRequest = 'object' === typeof XMLHttpRequest && XMLHttpRequest || jQuery.ajaxSettings.xhr();
 
+                        //if (XMLHttpRequest instanceof Object && XMLHttpRequest instanceof window.XMLHttpRequest && 'onprogress' in XMLHttpRequest) {
+                        //  XMLHttpRequest.addEventListener('progress', function(event) {dataSize = event.loaded;}, false);
+                        //}
                         return XMLHttpRequest;
                     },
                     beforeSend: !setting.callbacks.ajax.beforeSend && !setting.server.header ? undefined : function (XMLHttpRequest, ajaxSetting) {
@@ -484,7 +590,6 @@ var MODULE;
 
                 MODULE.M.setActiveSetting(setting);
 
-                var url = setting.destLocation.href;
                 var callbacks_update = setting.callbacks.update;
 
                 if (MODULE.UTIL.fire(callbacks_update.before, null, [event, setting.param, data, textStatus, XMLHttpRequest, cache]) === false) {
@@ -513,8 +618,8 @@ var MODULE;
                             break UPDATE_CACHE;
                         }
 
-                        jQuery[MODULE.M.NAME].setCache(url, cache && cache.data || null, textStatus, XMLHttpRequest);
-                        cache = jQuery[MODULE.M.NAME].getCache(url);
+                        jQuery[MODULE.M.NAME].setCache(setting.destLocation.href, cache && cache.data || null, textStatus, XMLHttpRequest);
+                        cache = jQuery[MODULE.M.NAME].getCache(setting.destLocation.href);
 
                         if (MODULE.UTIL.fire(callbacks_update.cache.after, null, [event, setting.param, cache]) === false) {
                             break UPDATE_CACHE;
@@ -522,6 +627,7 @@ var MODULE;
                     }
                     ;
 
+                    /* variable initialization */
                     var srcDocument = MODULE.APP.createHTMLDocument_(XMLHttpRequest.responseText), dstDocument = document, cacheDocument, checker, loadwaits = [];
 
                     var title = jQuery('title', srcDocument).text();
@@ -549,6 +655,7 @@ var MODULE;
                     speedcheck && speed.time.push(speed.now() - speed.fire);
                     speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
 
+                    /* escape */
                     jQuery('noscript', srcDocument).children().parent().each(function () {
                         this.children.length && jQuery(this).text(this.innerHTML);
                     });
@@ -611,9 +718,9 @@ var MODULE;
                         }
                         ;
 
-                        register && url !== setting.origLocation.href && window.history.pushState(MODULE.UTIL.fire(setting.state, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]), window.opera || ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? title : dstDocument.title, url);
+                        register && setting.destLocation.href !== setting.origLocation.href && window.history.pushState(MODULE.UTIL.fire(setting.state, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]), window.opera || ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? title : dstDocument.title, setting.destLocation.href);
 
-                        setting.origLocation.href = url;
+                        setting.origLocation.href = setting.destLocation.href;
                         if (register && setting.fix.location) {
                             jQuery[MODULE.M.NAME].disable();
                             window.history.back();
@@ -633,15 +740,16 @@ var MODULE;
                             break UPDATE_TITLE;
                         }
                         dstDocument.title = title;
-                        setting.database && setting.fix.history && MODULE.APP.saveTitleToDB(url, setting.hashquery, title);
+                        setting.database && setting.fix.history && MODULE.APP.saveTitleToDB(setting.destLocation.href, title);
                         if (MODULE.UTIL.fire(callbacks_update.title.after, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) {
                             break UPDATE_TITLE;
                         }
                     }
                     ;
 
-                    setting.database && MODULE.DATA.updateCurrentPage(setting.hashquery);
+                    setting.database && MODULE.DATA.updateCurrentPage();
 
+                    /* head */
                     var load_head = function () {
                         UPDATE_HEAD:
                          {
@@ -750,6 +858,7 @@ var MODULE;
                     speedcheck && speed.time.push(speed.now() - speed.fire);
                     speedcheck && speed.name.push('content(' + speed.time.slice(-1) + ')');
 
+                    /* scroll */
                     var scroll = function (call) {
                         if (MODULE.UTIL.fire(callbacks_update.scroll.before, null, [event, setting.param]) === false) {
                             return;
@@ -767,10 +876,10 @@ var MODULE;
                                 scrollY = scrollY === false || scrollY === null ? jQuery(window).scrollTop() : parseInt(Number(scrollY) + '', 10);
 
                                 (jQuery(window).scrollTop() === scrollY && jQuery(window).scrollLeft() === scrollX) || window.scrollTo(scrollX, scrollY);
-                                call && setting.database && setting.fix.scroll && MODULE.APP.saveScrollPositionToCacheAndDB(url, setting.hashquery, scrollX, scrollY);
+                                call && setting.database && setting.fix.scroll && MODULE.APP.saveScrollPositionToCacheAndDB(setting.destLocation.href, scrollX, scrollY);
                                 break;
                             case 'popstate':
-                                call && setting.fix.scroll && setting.database && setting.scroll.record && MODULE.APP.loadScrollPositionByCacheOrDB(url, setting.hashquery);
+                                call && setting.fix.scroll && setting.database && setting.scroll.record && MODULE.APP.loadScrollPositionByCacheOrDB(setting.destLocation.href);
                                 break;
                         }
                         if (MODULE.UTIL.fire(callbacks_update.scroll.after, null, [event, setting.param]) === false) {
@@ -778,6 +887,7 @@ var MODULE;
                         }
                     };
 
+                    /* rendering */
                     var rendering = function (callback) {
                         if (MODULE.UTIL.fire(callbacks_update.render.before, null, [event, setting.param]) === false) {
                             return;
@@ -785,13 +895,17 @@ var MODULE;
 
                         var count = 0;
                         (function check() {
-                            if (checker.filter(function () {
-                                return this.clientWidth || this.clientHeight || jQuery(this).is(':hidden');
-                            }).length === checker.length || count >= 100) {
-                                rendered(callback);
-                            } else if (checker.length) {
-                                count++;
-                                setTimeout(check, setting.interval);
+                            switch (true) {
+                                case 100 <= count:
+                                case MODULE.UTIL.canonicalizeUrl(window.location.href) !== setting.destLocation.href:
+                                    break;
+                                case checker.length === checker.filter(function () {
+                                    return this.clientWidth || this.clientHeight || jQuery(this).is(':hidden');
+                                }).length:
+                                    rendered(callback);
+                                    break;
+                                case 0 < checker.length:
+                                    ++count && setTimeout(check, setting.interval);
                             }
                         })();
                     };
@@ -805,7 +919,7 @@ var MODULE;
                             MODULE.APP.scrollByHash_(setting.destLocation.hash) || scroll(true);
                             setTimeout(function () {
                                 MODULE.APP.scrollByHash_(setting.destLocation.hash);
-                            }, 300);
+                            }, 50);
                         } else {
                             scroll(true);
                         }
@@ -829,8 +943,10 @@ var MODULE;
                         }
                     };
 
+                    /* escape */
                     jQuery('noscript', srcDocument).remove();
 
+                    /* css */
                     var load_css = function (selector) {
                         UPDATE_CSS:
                          {
@@ -842,7 +958,7 @@ var MODULE;
                             }
 
                             var css, save, adds = [], removes = jQuery(selector).not(jQuery(setting.area).find(selector));
-                            cache = jQuery[MODULE.M.NAME].getCache(url);
+                            cache = jQuery[MODULE.M.NAME].getCache(setting.destLocation.href);
                             save = cache && !cache.css;
                             css = cache && cache.css ? jQuery(cache.css) : jQuery(selector, srcDocument).not(jQuery(setting.area, srcDocument).find(selector));
                             css = css.not(setting.load.ignore);
@@ -888,6 +1004,7 @@ var MODULE;
                         ;
                     };
 
+                    /* script */
                     var load_script = function (selector) {
                         UPDATE_SCRIPT:
                          {
@@ -899,7 +1016,7 @@ var MODULE;
                             }
 
                             var script, save, execs = [];
-                            cache = jQuery[MODULE.M.NAME].getCache(url);
+                            cache = jQuery[MODULE.M.NAME].getCache(setting.destLocation.href);
                             save = cache && !cache.script;
                             script = cache && cache.script ? jQuery(cache.script) : jQuery('script', srcDocument);
                             script = script.not(setting.load.ignore);
@@ -913,6 +1030,7 @@ var MODULE;
 
                             var executed = MODULE.APP.stock('executed');
                             for (var i = 0, element; element = script[i]; i++) {
+                                //element = dstDocument.importNode ? dstDocument.importNode(element, true) : jQuery(element.outerHTML);
                                 element = 'function' === typeof setting.load.rewrite ? MODULE.UTIL.fire(setting.load.rewrite, null, [element]) || element : element;
                                 if (save) {
                                     cache.script[i] = element;
@@ -958,16 +1076,13 @@ var MODULE;
                     UPDATE_VERIFY:
                      {
                         MODULE.UTIL.fire(callbacks_update.verify.before, null, [event, setting.param]);
-                        var curr = MODULE.UTIL.canonicalizeUrl(window.location.href).replace(/(?:%\w{2})+/g, function (str) {
-                            return String(url.match(str.toLowerCase()) || str);
-                        });
-                        if (url === curr) {
+                        if (setting.destLocation.href === MODULE.UTIL.canonicalizeUrl(window.location.href)) {
                             setting.retry = true;
                             new MODULE.APP.stock(setting.uuid);
                         } else if (setting.retry) {
                             setting.retry = false;
-                            setting.destLocation.href = curr;
-                            MODULE.APP.drive(setting, event, false, setting.cache[event.type.toLowerCase()] && jQuery[MODULE.M.NAME].getCache(MODULE.UTIL.canonicalizeUrl(window.location.href)));
+                            setting.destLocation.href = MODULE.UTIL.canonicalizeUrl(window.location.href);
+                            MODULE.APP.drive(setting, event, false, setting.cache[event.type.toLowerCase()] && jQuery[MODULE.M.NAME].getCache(setting.destLocation.href));
                         } else {
                             throw new Error('throw: location mismatch');
                         }
@@ -975,6 +1090,7 @@ var MODULE;
                     }
                     ;
 
+                    /* load */
                     load_css('link[rel~="stylesheet"], style');
                     jQuery(window).one(setting.gns + '.rendering', function (event) {
                         event.preventDefault();
@@ -1003,7 +1119,8 @@ var MODULE;
                         break UPDATE;
                     }
                 } catch (err) {
-                    cache && jQuery[MODULE.M.NAME].removeCache(url);
+                    /* cache delete */
+                    cache && jQuery[MODULE.M.NAME].removeCache(setting.destLocation.href);
 
                     if (MODULE.UTIL.fire(callbacks_update.error, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) {
                         break UPDATE;
@@ -1170,6 +1287,7 @@ var MODULE;
 
         ModelApp.prototype.createHTMLDocument_ = function (html) {
             if (typeof html === "undefined") { html = ''; }
+            // chrome, firefox
             this.createHTMLDocument_ = function (html) {
                 return window.DOMParser && window.DOMParser.prototype && new window.DOMParser().parseFromString(html || '', 'text/html');
             };
@@ -1177,6 +1295,7 @@ var MODULE;
                 return;
             }
 
+            // ie10+, opera
             this.createHTMLDocument_ = function (html) {
                 html = html || '';
                 if (document.implementation && document.implementation.createHTMLDocument) {
@@ -1201,6 +1320,7 @@ var MODULE;
                 return;
             }
 
+            // msafari
             this.createHTMLDocument_ = function (html) {
                 html = html || '';
                 if (document.implementation && document.implementation.createHTMLDocument) {
@@ -1226,18 +1346,18 @@ var MODULE;
             }
         };
 
-        ModelApp.prototype.loadTitleByDB = function (unsafe_url, isIncludeHash) {
-            var keyUrl = MODULE.UTIL.canonicalizeUrl(MODULE.M.convertUrlToUrlKey(unsafe_url, isIncludeHash));
-            MODULE.DATA.loadTitle(keyUrl, isIncludeHash);
+        ModelApp.prototype.loadTitleByDB = function (unsafe_url) {
+            var keyUrl = MODULE.UTIL.canonicalizeUrl(MODULE.M.convertUrlToUrlKey(unsafe_url));
+            MODULE.DATA.loadTitle(keyUrl);
         };
 
-        ModelApp.prototype.saveTitleToDB = function (unsafe_url, isIncludeHash, title) {
-            var keyUrl = MODULE.UTIL.canonicalizeUrl(MODULE.M.convertUrlToUrlKey(unsafe_url, isIncludeHash));
+        ModelApp.prototype.saveTitleToDB = function (unsafe_url, title) {
+            var keyUrl = MODULE.UTIL.canonicalizeUrl(MODULE.M.convertUrlToUrlKey(unsafe_url));
             MODULE.DATA.saveTitle(keyUrl, title);
         };
 
-        ModelApp.prototype.loadScrollPositionByCacheOrDB = function (unsafe_url, isIncludeHash) {
-            var keyUrl = MODULE.UTIL.canonicalizeUrl(MODULE.M.convertUrlToUrlKey(unsafe_url, isIncludeHash));
+        ModelApp.prototype.loadScrollPositionByCacheOrDB = function (unsafe_url) {
+            var keyUrl = MODULE.UTIL.canonicalizeUrl(MODULE.M.convertUrlToUrlKey(unsafe_url));
             var cache = jQuery[MODULE.M.NAME].getCache(keyUrl);
             if (cache && 'number' === typeof cache.scrollX) {
                 window.scrollTo(parseInt(Number(cache.scrollX) + '', 10), parseInt(Number(cache.scrollY) + '', 10));
@@ -1246,8 +1366,8 @@ var MODULE;
             }
         };
 
-        ModelApp.prototype.saveScrollPositionToCacheAndDB = function (unsafe_url, isIncludeHash, scrollX, scrollY) {
-            var keyUrl = MODULE.UTIL.canonicalizeUrl(MODULE.M.convertUrlToUrlKey(unsafe_url, isIncludeHash));
+        ModelApp.prototype.saveScrollPositionToCacheAndDB = function (unsafe_url, scrollX, scrollY) {
+            var keyUrl = MODULE.UTIL.canonicalizeUrl(MODULE.M.convertUrlToUrlKey(unsafe_url));
             jQuery.extend(jQuery[MODULE.M.NAME].getCache(keyUrl), { scrollX: scrollX, scrollY: scrollY });
             MODULE.DATA.saveScrollPosition(keyUrl, scrollX, scrollY);
         };
@@ -1255,10 +1375,18 @@ var MODULE;
     })(MODULE.ModelTemplate);
     MODULE.ModelApp = ModelApp;
 
+    // 短縮登録
     MODULE.APP = new ModelApp();
 })(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
+/// <reference path="_template.ts"/>
+/// <reference path="util.ts"/>
+/* MODEL */
 var MODULE;
 (function (MODULE) {
+    // Allow access:
+    //  M, APP, DATA
+    // Deny access
     var V, C;
 
     var ModelData = (function (_super) {
@@ -1310,9 +1438,9 @@ var MODULE;
                             IDBObjectStore.get('_version').onsuccess = function () {
                                 if (!this.result || version === this.result.title) {
                                     MODULE.DATA.updateVersionNumber_(version);
-                                    MODULE.DATA.updateCurrentPage(setting.hashquery);
-                                    MODULE.DATA.saveTitle(MODULE.M.convertUrlToUrlKey(setting.origLocation.href, setting.hashquery), document.title);
-                                    MODULE.DATA.saveScrollPosition(MODULE.M.convertUrlToUrlKey(setting.origLocation.href, setting.hashquery), jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+                                    MODULE.DATA.updateCurrentPage();
+                                    MODULE.DATA.saveTitle(MODULE.M.convertUrlToUrlKey(setting.origLocation.href), document.title);
+                                    MODULE.DATA.saveScrollPosition(MODULE.M.convertUrlToUrlKey(setting.origLocation.href), jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
                                     setting.database = true;
                                 } else {
@@ -1344,13 +1472,13 @@ var MODULE;
             return null;
         };
 
-        ModelData.prototype.updateCurrentPage = function (isIncludeHash) {
+        ModelData.prototype.updateCurrentPage = function () {
             var IDBObjectStore = MODULE.DATA.createStore_();
 
             if (!IDBObjectStore) {
                 return;
             }
-            var secure_url = MODULE.UTIL.canonicalizeUrl(MODULE.M.convertUrlToUrlKey(window.location.href, isIncludeHash));
+            var secure_url = MODULE.M.convertUrlToUrlKey(MODULE.UTIL.canonicalizeUrl(window.location.href));
             IDBObjectStore.put({ id: '_current', title: secure_url });
         };
 
@@ -1372,9 +1500,9 @@ var MODULE;
             IDBObjectStore.get(keyUrl).onsuccess = success;
         };
 
-        ModelData.prototype.loadTitle = function (keyUrl, isIncludeHash) {
+        ModelData.prototype.loadTitle = function (keyUrl) {
             MODULE.DATA.accessRecord_(keyUrl, function () {
-                keyUrl === MODULE.UTIL.canonicalizeUrl(MODULE.M.convertUrlToUrlKey(window.location.href, isIncludeHash)) && this.result && this.result.title && (document.title = this.result.title);
+                keyUrl === MODULE.M.convertUrlToUrlKey(MODULE.UTIL.canonicalizeUrl(window.location.href)) && this.result && this.result.title && (document.title = this.result.title);
             });
         };
 
@@ -1429,10 +1557,20 @@ var MODULE;
     })(MODULE.ModelTemplate);
     MODULE.ModelData = ModelData;
 
+    // 短縮登録
     MODULE.DATA = new ModelData();
 })(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
+/// <reference path="_template.ts"/>
+/// <reference path="app.ts"/>
+/// <reference path="data.ts"/>
+/// <reference path="util.ts"/>
+/* MODEL */
 var MODULE;
 (function (MODULE) {
+    // Allow access:
+    //  M, C, APP
+    // Deny access
     var V, DATA;
 
     var ModelMain = (function (_super) {
@@ -1469,6 +1607,7 @@ var MODULE;
                 }
             });
 
+            //$context._uuid = setting.uuid;
             if ('pushState' in window.history && window.history['pushState']) {
                 jQuery(function () {
                     MODULE.APP.registrate($context, setting);
@@ -1479,8 +1618,8 @@ var MODULE;
             return $context;
         };
 
-        ModelMain.prototype.convertUrlToUrlKey = function (unsafe_url, isIncludeHash) {
-            return isIncludeHash ? unsafe_url : unsafe_url.replace(/#.*/, '');
+        ModelMain.prototype.convertUrlToUrlKey = function (unsafe_url) {
+            return unsafe_url.replace(/#.*/, '');
         };
 
         ModelMain.prototype.isImmediateLoadable = function (param) {
@@ -1521,7 +1660,7 @@ var MODULE;
             if (setting.disable) {
                 return;
             }
-            if (!setting.hashquery && destLocation.hash && origLocation.href.replace(/#.*/, '') === destLocation.href.replace(/#.*/, '')) {
+            if (destLocation.hash && origLocation.href.replace(/#.*/, '') === destLocation.href.replace(/#.*/, '')) {
                 return false;
             }
             setting.area = MODULE.UTIL.fire(setting.area, null, [event, setting.param, origLocation.href, destLocation.href]);
@@ -1568,7 +1707,7 @@ var MODULE;
             }
             setting.area = MODULE.UTIL.fire(setting.area, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
             setting.area = setting.area instanceof Array ? setting.area : [setting.area];
-            setting.database && setting.scroll.record && MODULE.APP.saveScrollPositionToCacheAndDB(setting.destLocation.href, setting.hashquery, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+            setting.database && setting.scroll.record && MODULE.APP.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
             var cache;
             if (setting.cache[event.type.toLowerCase()]) {
@@ -1601,7 +1740,7 @@ var MODULE;
             if (!setting.area[0] || !jQuery(setting.area.join(','))[0]) {
                 return;
             }
-            setting.database && setting.scroll.record && MODULE.APP.saveScrollPositionToCacheAndDB(setting.destLocation.href, setting.hashquery, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+            setting.database && setting.scroll.record && MODULE.APP.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
             var cache;
             if (setting.cache[event.type.toLowerCase()] && setting.cache[context.method.toLowerCase()]) {
@@ -1626,7 +1765,7 @@ var MODULE;
                 return;
             }
 
-            if (setting.origLocation.hash !== setting.destLocation.hash && setting.origLocation.pathname + setting.origLocation.search === setting.destLocation.pathname + setting.destLocation.search && !setting.hashquery) {
+            if (setting.origLocation.hash !== setting.destLocation.hash && setting.origLocation.pathname + setting.origLocation.search === setting.destLocation.pathname + setting.destLocation.search) {
                 return;
             }
 
@@ -1639,7 +1778,7 @@ var MODULE;
                 return;
             }
 
-            setting.database && setting.fix.history && MODULE.APP.loadTitleByDB(setting.destLocation.href, setting.hashquery);
+            setting.database && setting.fix.history && MODULE.APP.loadTitleByDB(setting.destLocation.href);
 
             var cache;
             if (setting.cache[event.type.toLowerCase()]) {
@@ -1657,7 +1796,7 @@ var MODULE;
             }
 
             if (!common.scroll.delay) {
-                common.scroll.record && MODULE.APP.saveScrollPositionToCacheAndDB(window.location.href, common.hashquery, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+                common.scroll.record && MODULE.APP.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
             } else {
                 var id;
                 while (id = common.scroll.queue.shift()) {
@@ -1667,7 +1806,7 @@ var MODULE;
                     while (id = common.scroll.queue.shift()) {
                         clearTimeout(id);
                     }
-                    common.scroll.record && MODULE.APP.saveScrollPositionToCacheAndDB(window.location.href, common.hashquery, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+                    common.scroll.record && MODULE.APP.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
                 }, common.scroll.delay);
                 common.scroll.queue.push(id);
             }
@@ -1687,10 +1826,9 @@ var MODULE;
                 return false;
             }
 
-            var secure_url = MODULE.UTIL.canonicalizeUrl(unsafe_url);
+            var secure_url = MODULE.M.convertUrlToUrlKey(MODULE.UTIL.canonicalizeUrl(unsafe_url));
             unsafe_url = null;
 
-            secure_url = common.hashquery ? secure_url : secure_url.replace(/#.*/, '');
             recent.data[secure_url] && new Date().getTime() > recent.data[secure_url].expires && jQuery[MODULE.M.NAME].removeCache(secure_url);
             recent.data[secure_url] && !recent.data[secure_url].data && !recent.data[secure_url].XMLHttpRequest && jQuery[MODULE.M.NAME].removeCache(secure_url);
             return recent.data[secure_url];
@@ -1703,10 +1841,9 @@ var MODULE;
             }
             var cache, size, timeStamp, expires;
 
-            var secure_url = MODULE.UTIL.canonicalizeUrl(unsafe_url);
+            var secure_url = MODULE.M.convertUrlToUrlKey(MODULE.UTIL.canonicalizeUrl(unsafe_url));
             unsafe_url = null;
 
-            secure_url = common.hashquery ? secure_url : secure_url.replace(/#.*/, '');
             recent.order.unshift(secure_url);
             for (var i = 1, key; key = recent.order[i]; i++) {
                 if (secure_url === key) {
@@ -1752,6 +1889,8 @@ var MODULE;
                 XMLHttpRequest: XMLHttpRequest,
                 textStatus: textStatus,
                 data: data,
+                //css: undefined,
+                //script: undefined,
                 size: size,
                 expires: expires,
                 scrollX: null,
@@ -1763,7 +1902,7 @@ var MODULE;
             }
             if (XMLHttpRequest || cache && cache.XMLHttpRequest) {
                 var title = ((XMLHttpRequest || cache && cache.XMLHttpRequest).responseText || '').slice(0, 10000).match(/<title[^>]*>(.*?)<\/title>/i).pop() || '';
-                common.database && common.fix.history && MODULE.APP.saveTitleToDB(secure_url, common.hashquery, title);
+                common.database && common.fix.history && MODULE.APP.saveTitleToDB(secure_url, title);
             }
         };
 
@@ -1773,10 +1912,9 @@ var MODULE;
                 return;
             }
 
-            var secure_url = MODULE.UTIL.canonicalizeUrl(unsafe_url);
+            var secure_url = MODULE.M.convertUrlToUrlKey(MODULE.UTIL.canonicalizeUrl(unsafe_url));
             unsafe_url = null;
 
-            secure_url = common.hashquery ? secure_url : secure_url.replace(/#.*/, '');
             for (var i = 0, key; key = recent.order[i]; i++) {
                 if (secure_url === key) {
                     recent.order.splice(i, 1);
@@ -1816,140 +1954,38 @@ var MODULE;
     })(MODULE.ModelTemplate);
     MODULE.ModelMain = ModelMain;
 
+    // 短縮登録
     MODULE.Model = ModelMain;
     MODULE.M = new MODULE.Model();
 })(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
+/// <reference path="../model/main.ts"/>
+/* CONTROLLER */
 var MODULE;
 (function (MODULE) {
-    var ViewTemplate = (function () {
-        function ViewTemplate(context) {
-            this.state_ = -1 /* wait */;
-            this.queue_ = [];
-            this.HANDLERS = {};
-            this.UUID = MODULE.M.GEN_UUID();
-            switch (arguments.length) {
-                case 0:
-                    break;
-                case 1:
-                    this.CONTEXT = context;
-                    this.OBSERVE();
-                    break;
-            }
-            this.state_ = 0;
-        }
-        ViewTemplate.prototype.OBSERVE = function () {
-        };
-
-        ViewTemplate.prototype.RELEASE = function () {
-        };
-
-        ViewTemplate.prototype.BIND = function () {
-            var args = [];
-            for (var _i = 0; _i < (arguments.length - 0); _i++) {
-                args[_i] = arguments[_i + 0];
-            }
-            this.UNBIND();
-            return this;
-        };
-
-        ViewTemplate.prototype.UNBIND = function () {
-            var args = [];
-            for (var _i = 0; _i < (arguments.length - 0); _i++) {
-                args[_i] = arguments[_i + 0];
-            }
-            return this;
-        };
-
-        ViewTemplate.EVENTS = {};
-
-        ViewTemplate.TRIGGERS = {};
-        return ViewTemplate;
-    })();
-    MODULE.ViewTemplate = ViewTemplate;
-})(MODULE || (MODULE = {}));
-var MODULE;
-(function (MODULE) {
-    var APP, DATA;
-
-    var ViewMain = (function (_super) {
-        __extends(ViewMain, _super);
-        function ViewMain() {
-            _super.apply(this, arguments);
-            this.HANDLERS = {
-                CLICK: function () {
-                    var args = [];
-                    for (var _i = 0; _i < (arguments.length - 0); _i++) {
-                        args[_i] = arguments[_i + 0];
-                    }
-                    MODULE.C.CLICK.apply(MODULE.C, args);
-                },
-                SUBMIT: function () {
-                    var args = [];
-                    for (var _i = 0; _i < (arguments.length - 0); _i++) {
-                        args[_i] = arguments[_i + 0];
-                    }
-                    MODULE.C.SUBMIT.apply(MODULE.C, args);
-                },
-                POPSTATE: function () {
-                    var args = [];
-                    for (var _i = 0; _i < (arguments.length - 0); _i++) {
-                        args[_i] = arguments[_i + 0];
-                    }
-                    MODULE.C.POPSTATE.apply(MODULE.C, args);
-                },
-                SCROLL: function () {
-                    var args = [];
-                    for (var _i = 0; _i < (arguments.length - 0); _i++) {
-                        args[_i] = arguments[_i + 0];
-                    }
-                    MODULE.C.SCROLL.apply(MODULE.C, args);
-                }
-            };
-        }
-        ViewMain.prototype.BIND = function (setting) {
-            this.UNBIND(setting);
-            this.CONTEXT.delegate(setting.link, setting.nss.click, this.HANDLERS.CLICK).delegate(setting.form, setting.nss.submit, this.HANDLERS.SUBMIT);
-            jQuery(window).bind(setting.nss.popstate, this.HANDLERS.POPSTATE);
-
-            setting.fix.scroll && jQuery(window).bind(setting.nss.scroll, this.HANDLERS.SCROLL);
-            return this;
-        };
-        ViewMain.prototype.UNBIND = function (setting) {
-            this.CONTEXT.undelegate(setting.link, setting.nss.click).undelegate(setting.form, setting.nss.submit);
-            jQuery(window).unbind(setting.nss.popstate);
-
-            setting.fix.scroll && jQuery(window).unbind(setting.nss.scroll);
-            return this;
-        };
-
-        ViewMain.prototype.OBSERVE = function () {
-            this.RELEASE();
-            return this;
-        };
-        ViewMain.prototype.RELEASE = function () {
-            return this;
-        };
-
-        ViewMain.EVENTS = {
-            CHANGE: MODULE.M.NAME + '.change'
-        };
-
-        ViewMain.TRIGGERS = {};
-        return ViewMain;
-    })(MODULE.ViewTemplate);
-    MODULE.ViewMain = ViewMain;
-
-    MODULE.View = ViewMain;
-    MODULE.V = new MODULE.View();
-})(MODULE || (MODULE = {}));
-var MODULE;
-(function (MODULE) {
+    /**
+    * @class Controller
+    */
     var ControllerTemplate = (function () {
         function ControllerTemplate() {
+            /**
+            * Controllerの遷移状態を持つ
+            *
+            * @property state_
+            * @type {State}
+            */
             this.state_ = -1 /* wait */;
+            /**
+            * Controllerが待ち受けるイベントに設定されるイベントハンドラのリスト
+            *
+            * @property HANDLERS
+            * @type {Object}
+            */
             this.HANDLERS = {};
             this.UUID = MODULE.M.GEN_UUID();
 
+            // プラグインに関数を設定してネームスペースに登録
+            // $.mvc.func, $().mvc.funcとして実行できるようにするための処理
             if (MODULE.M.NAMESPACE && MODULE.M.NAMESPACE == MODULE.M.NAMESPACE.window) {
                 MODULE.M.NAMESPACE[MODULE.M.NAME] = this.EXEC;
             } else {
@@ -1958,31 +1994,51 @@ var MODULE;
 
             var f = 'function' === typeof MODULE.ControllerFunction && new MODULE.ControllerFunction() || MODULE.ControllerFunction;
 
+            // コンテクストに関数を設定
             this.REGISTER_FUNCTIONS(MODULE.M.NAMESPACE[MODULE.M.NAME], f);
 
+            // コンテクストのプロパティを更新
             this.UPDATE_PROPERTIES(MODULE.M.NAMESPACE[MODULE.M.NAME], f);
             this.OBSERVE();
             this.state_ = 0;
         }
+        /**
+        * 与えられたコンテクストに拡張機能を設定する。
+        *
+        * @method EXTEND
+        * @param {JQuery|Object|Function} context コンテクスト
+        * @chainable
+        */
         ControllerTemplate.prototype.EXTEND = function (context) {
             if (context === MODULE.M.NAMESPACE || MODULE.M.NAMESPACE && MODULE.M.NAMESPACE == MODULE.M.NAMESPACE.window) {
+                // コンテクストをプラグインに変更
                 context = MODULE.M.NAMESPACE[MODULE.M.NAME];
-            } else if (context instanceof MODULE.M.NAMESPACE) {
+            } else // $().mvc()として実行された場合の処理
+            if (context instanceof MODULE.M.NAMESPACE) {
                 if (context instanceof jQuery) {
+                    // コンテクストへの変更をend()で戻せるようadd()
                     context = context.add();
                 } else {
                 }
             }
             var f = 'function' === typeof MODULE.ControllerFunction && new MODULE.ControllerFunction() || MODULE.ControllerFunction, m = 'function' === typeof MODULE.ControllerMethod && new MODULE.ControllerMethod() || MODULE.ControllerMethod;
 
+            // コンテクストに関数とメソッドを設定
             this.REGISTER_FUNCTIONS(context, f);
             this.REGISTER_FUNCTIONS(context, m);
 
+            // コンテクストのプロパティを更新
             this.UPDATE_PROPERTIES(context, f);
             this.UPDATE_PROPERTIES(context, m);
             return context;
         };
 
+        /**
+        * 拡張モジュール本体のインターフェイス。
+        *
+        * @method EXEC
+        * @param {Any} [params]* パラメータ
+        */
         ControllerTemplate.prototype.EXEC = function () {
             var args = [];
             for (var _i = 0; _i < (arguments.length - 0); _i++) {
@@ -1995,6 +2051,13 @@ var MODULE;
             return MODULE.M.MAIN.apply(MODULE.M, args);
         };
 
+        /**
+        * 拡張モジュール本体を実行したときに呼び出される。実装ごとに書き換える。戻り値の配列が`MAIN`および`main_`へ渡す引数のリストとなる。
+        *
+        * @method exec_
+        * @param {Object} context
+        * @param {Any} [params]* args
+        */
         ControllerTemplate.prototype.exec_ = function (context) {
             var args = [];
             for (var _i = 0; _i < (arguments.length - 1); _i++) {
@@ -2003,6 +2066,13 @@ var MODULE;
             return [context].concat(args);
         };
 
+        /**
+        * 拡張の関数を更新する
+        *
+        * @method REGISTER_FUNCTIONS
+        * @param {JQuery|Object|Function} context コンテクスト
+        * @return {JQuery|Object|Function} context コンテクスト
+        */
         ControllerTemplate.prototype.REGISTER_FUNCTIONS = function (context, funcs) {
             var props = MODULE.Controller.PROPERTIES;
 
@@ -2013,6 +2083,14 @@ var MODULE;
             return context;
         };
 
+        /**
+        * 拡張のプロパティを更新する
+        *
+        * @method UPDATE_PROPERTIES
+        * @param {JQuery|Object|Function} context コンテクスト
+        * @param {Object} funcs プロパティのリスト
+        * @return {JQuery|Object|Function} context コンテクスト
+        */
         ControllerTemplate.prototype.UPDATE_PROPERTIES = function (context, funcs) {
             var props = MODULE.Controller.PROPERTIES;
 
@@ -2026,9 +2104,19 @@ var MODULE;
             return context;
         };
 
+        /**
+        * 内部イベントを監視する。
+        *
+        * @method OBSERVE
+        */
         ControllerTemplate.prototype.OBSERVE = function () {
         };
 
+        /**
+        * 内部イベントの監視を終了する。
+        *
+        * @method RELEASE
+        */
         ControllerTemplate.prototype.RELEASE = function () {
         };
 
@@ -2045,8 +2133,14 @@ var MODULE;
     })();
     MODULE.ControllerTemplate = ControllerTemplate;
 })(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
+/// <reference path="../model/main.ts"/>
+/* CONTROLLER */
 var MODULE;
 (function (MODULE) {
+    // Allow access:
+    //  M, V, C
+    // Deny access
     var APP, DATA;
 
     var ControllerFunction = (function () {
@@ -2174,14 +2268,22 @@ var MODULE;
     })();
     MODULE.ControllerFunction = ControllerFunction;
 })(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
+/// <reference path="_template.ts"/>
+/// <reference path="../model/main.ts"/>
+/* CONTROLLER */
 var MODULE;
 (function (MODULE) {
+    // Allow access:
+    //  M, C
+    // Deny access
     var V, APP, DATA;
 
     var ControllerMain = (function (_super) {
         __extends(ControllerMain, _super);
         function ControllerMain() {
             _super.apply(this, arguments);
+            // CONTROLLERの待ち受けるイベントに登録されるハンドラ
             this.HANDLERS = {};
         }
         ControllerMain.prototype.exec_ = function ($context, option) {
@@ -2199,6 +2301,7 @@ var MODULE;
             return [$context, option];
         };
 
+        // CONTROLLERが監視する内部イベントを登録
         ControllerMain.prototype.OBSERVE = function () {
         };
 
@@ -2240,11 +2343,18 @@ var MODULE;
     })(MODULE.ControllerTemplate);
     MODULE.ControllerMain = ControllerMain;
 
+    // 短縮登録
     MODULE.Controller = ControllerMain;
     MODULE.C = new MODULE.Controller();
 })(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
+/// <reference path="../model/main.ts"/>
+/* CONTROLLER */
 var MODULE;
 (function (MODULE) {
+    // Allow access:
+    //  M, V, C
+    // Deny access
     var APP, DATA;
 
     var ControllerMethod = (function (_super) {
@@ -2255,5 +2365,185 @@ var MODULE;
         return ControllerMethod;
     })(MODULE.ControllerFunction);
     MODULE.ControllerMethod = ControllerMethod;
+})(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
+/// <reference path="../model/main.ts"/>
+/* VIEW */
+var MODULE;
+(function (MODULE) {
+    /**
+    * View of MVC
+    *
+    * @class View
+    * @constructor
+    * @param {JQuery|HTMLElement} [context] 監視するDOM要素を設定する。
+    */
+    var ViewTemplate = (function () {
+        function ViewTemplate(context) {
+            /**
+            * Viewの遷移状態を持つ
+            *
+            * @property state_
+            * @type {State}
+            */
+            this.state_ = -1 /* wait */;
+            this.queue_ = [];
+            /**
+            * Viewが待ち受けるイベントに設定されるイベントハンドラのリスト
+            *
+            * @property HANDLERS
+            * @type {Object}
+            */
+            this.HANDLERS = {};
+            this.UUID = MODULE.M.GEN_UUID();
+            switch (arguments.length) {
+                case 0:
+                    break;
+                case 1:
+                    this.CONTEXT = context;
+                    this.OBSERVE();
+                    break;
+            }
+            this.state_ = 0;
+        }
+        /**
+        * 内部イベントを監視する。
+        *
+        * @method OBSERVE
+        */
+        ViewTemplate.prototype.OBSERVE = function () {
+        };
+
+        /**
+        * 内部イベントの監視を終了する。
+        *
+        * @method RELEASE
+        */
+        ViewTemplate.prototype.RELEASE = function () {
+        };
+
+        /**
+        * 外部イベントを監視する。
+        *
+        * @method BIND
+        * @param {String} selector jQueryセレクタ
+        * @chainable
+        */
+        ViewTemplate.prototype.BIND = function () {
+            var args = [];
+            for (var _i = 0; _i < (arguments.length - 0); _i++) {
+                args[_i] = arguments[_i + 0];
+            }
+            this.UNBIND();
+            return this;
+        };
+
+        /**
+        * 外部イベントの監視を解除する。
+        *
+        * @method UNBIND
+        * @param {String} selector jQueryセレクタ
+        * @chainable
+        */
+        ViewTemplate.prototype.UNBIND = function () {
+            var args = [];
+            for (var _i = 0; _i < (arguments.length - 0); _i++) {
+                args[_i] = arguments[_i + 0];
+            }
+            return this;
+        };
+
+        ViewTemplate.EVENTS = {};
+
+        ViewTemplate.TRIGGERS = {};
+        return ViewTemplate;
+    })();
+    MODULE.ViewTemplate = ViewTemplate;
+})(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
+/// <reference path="_template.ts"/>
+/// <reference path="../model/main.ts"/>
+/* VIEW */
+var MODULE;
+(function (MODULE) {
+    // Allow access:
+    //  M, V, C
+    // Deny access
+    var APP, DATA;
+
+    var ViewMain = (function (_super) {
+        __extends(ViewMain, _super);
+        function ViewMain() {
+            _super.apply(this, arguments);
+            // VIEWの待ち受けるイベントに登録されるハンドラ
+            this.HANDLERS = {
+                CLICK: function () {
+                    var args = [];
+                    for (var _i = 0; _i < (arguments.length - 0); _i++) {
+                        args[_i] = arguments[_i + 0];
+                    }
+                    MODULE.C.CLICK.apply(MODULE.C, args);
+                },
+                SUBMIT: function () {
+                    var args = [];
+                    for (var _i = 0; _i < (arguments.length - 0); _i++) {
+                        args[_i] = arguments[_i + 0];
+                    }
+                    MODULE.C.SUBMIT.apply(MODULE.C, args);
+                },
+                POPSTATE: function () {
+                    var args = [];
+                    for (var _i = 0; _i < (arguments.length - 0); _i++) {
+                        args[_i] = arguments[_i + 0];
+                    }
+                    MODULE.C.POPSTATE.apply(MODULE.C, args);
+                },
+                SCROLL: function () {
+                    var args = [];
+                    for (var _i = 0; _i < (arguments.length - 0); _i++) {
+                        args[_i] = arguments[_i + 0];
+                    }
+                    MODULE.C.SCROLL.apply(MODULE.C, args);
+                }
+            };
+        }
+        // VIEWにする要素を選択/解除する
+        ViewMain.prototype.BIND = function (setting) {
+            this.UNBIND(setting);
+            this.CONTEXT.delegate(setting.link, setting.nss.click, this.HANDLERS.CLICK).delegate(setting.form, setting.nss.submit, this.HANDLERS.SUBMIT);
+            jQuery(window).bind(setting.nss.popstate, this.HANDLERS.POPSTATE);
+
+            setting.fix.scroll && jQuery(window).bind(setting.nss.scroll, this.HANDLERS.SCROLL);
+            return this;
+        };
+        ViewMain.prototype.UNBIND = function (setting) {
+            this.CONTEXT.undelegate(setting.link, setting.nss.click).undelegate(setting.form, setting.nss.submit);
+            jQuery(window).unbind(setting.nss.popstate);
+
+            setting.fix.scroll && jQuery(window).unbind(setting.nss.scroll);
+            return this;
+        };
+
+        // VIEWが監視する内部イベントを登録
+        ViewMain.prototype.OBSERVE = function () {
+            this.RELEASE();
+            return this;
+        };
+        ViewMain.prototype.RELEASE = function () {
+            return this;
+        };
+
+        ViewMain.EVENTS = {
+            CHANGE: MODULE.M.NAME + '.change'
+        };
+
+        ViewMain.TRIGGERS = {};
+        return ViewMain;
+    })(MODULE.ViewTemplate);
+    MODULE.ViewMain = ViewMain;
+
+    // 短縮登録
+    MODULE.View = ViewMain;
+    MODULE.V = new MODULE.View();
 })(MODULE || (MODULE = {}));
 })(window, window.document, void 0, jQuery);
