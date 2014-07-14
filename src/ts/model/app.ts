@@ -12,10 +12,6 @@ module MODULE {
   var V: void, C: void;
 
   export class ModelApp extends ModelTemplate implements ModelAppInterface {
-    constructor() {
-      super();
-      this.createHTMLDocument_();
-    }
 
     landing: string = UTIL.canonicalizeUrl(window.location.href)
     recent: RecentInterface = { order: [], data: {}, size: 0 }
@@ -132,6 +128,7 @@ module MODULE {
 
       DATA.openDB(setting);
       new View($context).BIND(setting);
+      setTimeout(() => APP.createHTMLDocument_(), 50);
       setTimeout(() => APP.landing = null, 1500);
     }
 
@@ -882,21 +879,22 @@ module MODULE {
 
     createHTMLDocument_(html: string = ''): Document {
       // chrome, firefox
-      this.createHTMLDocument_ = function (html) { return window.DOMParser && window.DOMParser.prototype && new window.DOMParser().parseFromString(html || '', 'text/html'); };
-      if (test(this.createHTMLDocument_)) { return; }
+      this.createHTMLDocument_ = function (html: string = '') {
+        return window.DOMParser && window.DOMParser.prototype && new window.DOMParser().parseFromString(html, 'text/html');
+      };
+      if (test(this.createHTMLDocument_)) { return this.createHTMLDocument_(html); }
 
       // ie10+, opera
-      this.createHTMLDocument_ = function (html) {
-        html = html || '';
+      this.createHTMLDocument_ = function (html: string = '') {
         if (document.implementation && document.implementation.createHTMLDocument) {
           var doc = document.implementation.createHTMLDocument('');
           var root = document.createElement('html');
-          var attrs = (<string>(html.slice(0, 1024).match(/<html ([^>]+)>/im) || [0, ''])[1]).match(/\w+\="[^"]*.|\w+\='[^']*.|\w+/gm) || [];
+          var attrs = (<string>(html.match(/<html([^>]+)>/im) || [0, ''])[1]).match(/[\w\-]+\="[^"]*.|[\w\-]+\='[^']*.|\w+/gm) || [];
           for (var i = 0, attr; attr = attrs[i]; i++) {
             attr = attr.split('=', 2);
-            doc.documentElement.setAttribute(attr[0], attr[1].replace(/^["']|["']$/g, ''));
+            doc.documentElement.setAttribute(attr[0], attr[1].slice(1, -1));
           }
-          root.innerHTML = html.replace(/^.*?<html[^>]*>|<\/html>.*$/ig, '');
+          root.innerHTML = html.slice(0, html.search(/<\/html>/i)).replace(/^.*?<html[^>]*>/i, '');
           doc.documentElement.removeChild(doc.head);
           doc.documentElement.removeChild(doc.body);
           var element;
@@ -906,11 +904,10 @@ module MODULE {
         }
         return doc;
       };
-      if (test(this.createHTMLDocument_)) { return; }
+      if (test(this.createHTMLDocument_)) { return this.createHTMLDocument_(html); }
 
       // msafari
-      this.createHTMLDocument_ = function (html) {
-        html = html || '';
+      this.createHTMLDocument_ = function (html: string = '') {
         if (document.implementation && document.implementation.createHTMLDocument) {
           var doc = document.implementation.createHTMLDocument('');
           if ('object' === typeof doc.activeElement) {
@@ -921,11 +918,11 @@ module MODULE {
         }
         return doc;
       };
-      if (test(this.createHTMLDocument_)) { return; }
+      if (test(this.createHTMLDocument_)) { return this.createHTMLDocument_(html); }
 
       function test(createHTMLDocument_) {
         try {
-          var doc = createHTMLDocument_ && createHTMLDocument_('<html lang="en" class="html a b"><head><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript></body></html>');
+          var doc = createHTMLDocument_ && createHTMLDocument_('<html lang="en" class="html"><head><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript></body></html>');
           return doc && jQuery('html', doc).is('.html[lang=en]') && jQuery('head>noscript', doc).html() && jQuery('body>noscript', doc).text() === 'noscript';
         } catch (err) { }
       }
