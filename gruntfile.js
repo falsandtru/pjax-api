@@ -133,7 +133,7 @@ module.exports = function(grunt) {
         }
       },
       dev: {
-        browsers: ['PhantomJS', 'Chrome'],
+        browsers: ['PhantomJS'],
         singleRun: false
       },
       test: {
