@@ -211,7 +211,7 @@ module MODULE {
 
           case 'submit':
             ajax.type = (<HTMLFormElement>event.currentTarget).method.toUpperCase();
-            if (ajax.type === 'POST') { ajax.data = jQuery(event.currentTarget).serializeArray(); }
+            if ('POST' === ajax.type) { ajax.data = jQuery(event.currentTarget).serializeArray(); }
             break;
 
           case 'popstate':
@@ -301,7 +301,7 @@ module MODULE {
 
         if (UTIL.fire(callbacks_update.before, null, [event, setting.param, data, textStatus, XMLHttpRequest, cache]) === false) { break UPDATE; }
 
-        if (setting.cache.mix && event.type.toLowerCase() !== 'popstate' && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
+        if (setting.cache.mix && 'popstate' !== event.type.toLowerCase() && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
           return 'function' === typeof setting.fallback ? UTIL.fire(setting.fallback, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]) : APP.fallback_(event);
         }
 
@@ -314,7 +314,7 @@ module MODULE {
           /* cache */
           UPDATE_CACHE: {
             if (cache && cache.XMLHttpRequest || !setting.cache.click && !setting.cache.submit && !setting.cache.popstate) { break UPDATE_CACHE; }
-            if (event.type.toLowerCase() === 'submit' && !setting.cache[(<HTMLFormElement>event.currentTarget).method.toLowerCase()]) { break UPDATE_CACHE; }
+            if ('submit' === event.type.toLowerCase() && !setting.cache[(<HTMLFormElement>event.currentTarget).method.toLowerCase()]) { break UPDATE_CACHE; }
             if (UTIL.fire(callbacks_update.cache.before, null, [event, setting.param, cache]) === false) { break UPDATE_CACHE; }
 
             jQuery[M.NAME].setCache(setting.destLocation.href, cache && cache.data || null, textStatus, XMLHttpRequest);
@@ -691,7 +691,7 @@ module MODULE {
 
               if (UTIL.fire(callbacks_update.script.after, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE_SCRIPT; }
               speedcheck && speed.time.push(speed.now() - speed.fire);
-              speedcheck && speed.name.push((selector === '[src][defer]' ? 'defer' : 'script') + '(' + speed.time.slice(-1) + ')');
+              speedcheck && speed.name.push(('[src][defer]' === selector ? 'defer' : 'script') + '(' + speed.time.slice(-1) + ')');
             }; // label: UPDATE_SCRIPT
           } // function: script
 
