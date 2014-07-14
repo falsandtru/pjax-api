@@ -25,5 +25,5 @@ $.pjax({area: 'body'});
 `link`パラメータと`form`パラメータはコンテキストにより絞り込まれますが、`area`パラメータは絞り込まれません。
 
 <pre class="sh brush: js;">
-$('body').pjax({area: 'body'});
+$('body').pjax({area: '#pjax'});
 </pre>
