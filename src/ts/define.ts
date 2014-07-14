@@ -241,8 +241,8 @@ module MODULE {
       sync: boolean
       ajax: JQueryAjaxSettings
       rewrite(): any
-      redirect: boolean
     }
+    redirect: boolean
     interval: number
     wait: number
     scroll: {

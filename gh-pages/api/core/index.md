@@ -50,6 +50,9 @@ pjaxを設定します。
 ### [cache:](api/core/setting/cache/)
 キャッシュの使用を設定します。
 
+### [redirect:](api/core/setting/redirect/)
+リダイレクト先への再移動にpjaxを使用するかを設定します。
+
 ### [interval:](api/core/setting/interval/)
 更新されたコンテンツの描画を確認する間隔を設定します。
 

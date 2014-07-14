@@ -60,9 +60,9 @@ module MODULE {
               head: 'base, meta, link',
               reload: '',
               ignore: '[src*="jquery.js"], [src*="jquery.min.js"], [href^="chrome-extension://"]',
-              sync: true, ajax: { dataType: 'script', cache: true }, rewrite: null,
-              redirect: true
+              sync: true, ajax: { dataType: 'script', cache: true }, rewrite: null
             },
+            redirect: true,
             interval: 100,
             wait: 0,
             scroll: { delay: 300 },
@@ -367,7 +367,7 @@ module MODULE {
 
             redirect = <HTMLAnchorElement>jQuery('<a>', { href: jQuery(redirect).attr('content').match(/\w+:\/\/[^;\s]+/i) })[0];
             switch (true) {
-              case !setting.load.redirect:
+              case !setting.redirect:
               case redirect.protocol !== setting.destLocation.protocol:
               case redirect.host !== setting.destLocation.host:
               case 'submit' === event.type.toLowerCase() && 'GET' === (<HTMLFormElement>event.currentTarget).method.toUpperCase():

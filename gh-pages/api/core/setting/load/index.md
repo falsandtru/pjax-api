@@ -62,7 +62,4 @@ $.pjax({
 ## load.rewrite: function( element )
 JavaScriptまたはCSSとして読み込まれる要素を戻り値の要素で置換します。初期値は`null`です。
 
-CloudFlareのRocketLoaderを使用するなどして要素が書き換えられている場合に有効です。
-
-## load.redirect: boolean
-リダイレクト先への再移動にpjaxを使用するかを設定します。レスポンスヘッダによるリダイレクトは動作が不確実であるためHTMLのMETAタグによるリダイレクトと併用してください。また、レスポンスヘッダによるリダイレクトはリダイレクト前のURLでリダイレクト後のページが表示されるため注意してください。初期値は`true`です。
+CloudFlareのRocketLoaderを使用するなどして要素が書き換えられている場合に有用です。

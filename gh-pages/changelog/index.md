@@ -7,6 +7,10 @@ nav: nav
 
 # ChangeLog
 
+## 2.3.0
+
+* `load.redirect`パラメータを`redirect`パラメータに変更
+
 ## 2.2.0
 
 * `hashquery`パラメータを削除
