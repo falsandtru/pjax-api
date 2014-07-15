@@ -140,7 +140,7 @@ module MODULE {
       var cache: CacheInterface;
       if (setting.cache[event.type.toLowerCase()]) { cache = jQuery[M.NAME].getCache(setting.destLocation.href); }
 
-      APP.drive(setting, event, true, cache);
+      APP.drive(setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
       return event.preventDefault();
     }
 
@@ -164,7 +164,7 @@ module MODULE {
       var cache: CacheInterface;
       if (setting.cache[event.type.toLowerCase()] && setting.cache[context.method.toLowerCase()]) { cache = jQuery[M.NAME].getCache(setting.destLocation.href); }
 
-      APP.drive(setting, event, true, cache);
+      APP.drive(setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
       return event.preventDefault();
     }
 

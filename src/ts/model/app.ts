@@ -402,7 +402,7 @@ module MODULE {
           UPDATE_URL: {
             if (UTIL.fire(callbacks_update.url.before, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE_URL; };
 
-            register && setting.destLocation.href !== setting.origLocation.href &&
+            register &&
             window.history.pushState(
               UTIL.fire(setting.state, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]),
               window.opera || ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? title : dstDocument.title,
