@@ -164,8 +164,7 @@ module MODULE {
         } else if (setting.fallback && 'abort' !== xhrArgs.statusText) {
           XMLHttpRequest = xhrArgs;
 
-          'function' === typeof setting.fallback ? UTIL.fire(setting.fallback, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href])
-                                                 : APP.fallback_(event);
+          M.fallback_(event, setting);
         }
       }
 
@@ -265,8 +264,7 @@ module MODULE {
                 APP.update_(setting, event, register, data, textStatus, XMLHttpRequest, null);
               }
             } else if (setting.fallback && 'abort' !== textStatus) {
-              'function' === typeof setting.fallback ? UTIL.fire(setting.fallback, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href])
-                                                     : APP.fallback_(event);
+              M.fallback_(event, setting);
             }
           }
         };
@@ -301,7 +299,7 @@ module MODULE {
         if (UTIL.fire(callbacks_update.before, null, [event, setting.param, data, textStatus, XMLHttpRequest, cache]) === false) { break UPDATE; }
 
         if (setting.cache.mix && 'popstate' !== event.type.toLowerCase() && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
-          return 'function' === typeof setting.fallback ? UTIL.fire(setting.fallback, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]) : APP.fallback_(event);
+          return M.fallback_(event, setting);
         }
 
         /* variable initialization */
@@ -739,7 +737,7 @@ module MODULE {
 
           if (UTIL.fire(callbacks_update.error, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE; }
           if (UTIL.fire(callbacks_update.complete, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE; }
-          if (setting.fallback) { return 'function' === typeof setting.fallback ? UTIL.fire(setting.fallback, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]) : APP.fallback_(event); }
+          M.fallback_(event, setting);
         };
 
         if (UTIL.fire(callbacks_update.after, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE; }

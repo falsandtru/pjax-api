@@ -85,6 +85,7 @@ module MODULE {
     setActiveSetting(setting: CommonSettingInterface): CommonSettingInterface
     getActiveXHR(): JQueryXHR
     setActiveXHR(xhr: JQueryXHR): JQueryXHR
+    fallback_(event: JQueryEventObject, setting: SettingInterface): void
 
     // View機能実体
     CLICK(event: JQueryEventObject): void

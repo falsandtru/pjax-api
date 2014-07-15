@@ -31,7 +31,7 @@ module MODULE {
 
       switch (typeof url) {
         case 'object':
-          $anchor = jQuery(url);
+          $anchor = jQuery(url).clone();
           break;
 
         case 'string':
@@ -43,7 +43,7 @@ module MODULE {
         default:
           return this;
       }
-      return $anchor.first().bind(common.nss.click, (event) => V.HANDLERS.CLICK(event)).click().unbind(common.nss.click);
+      return $anchor.first().one(common.nss.click, (event) => V.HANDLERS.CLICK(event)).click();
     }
     
     submit(url: string, attr: { action?: string; method?: string; }, data: any): any
@@ -58,7 +58,7 @@ module MODULE {
 
       switch (true) {
         case typeof url === 'object':
-          $form = jQuery(url);
+          $form = jQuery(url).clone();
           break;
 
         case !!data:
@@ -86,7 +86,7 @@ module MODULE {
         default:
           return this;
       }
-      return $form.first().bind(common.nss.submit, (event) => V.HANDLERS.SUBMIT(event)).submit().unbind(common.nss.submit);
+      return $form.first().one(common.nss.submit, (event) => V.HANDLERS.SUBMIT(event)).submit();
     }
     
     getCache()
