@@ -3,7 +3,7 @@
  * jquery.pjax.js
  * 
  * @name jquery.pjax.js
- * @version 2.2.0
+ * @version 2.3.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
  * @copyright 2014, falsandtru
@@ -293,10 +293,9 @@ var MODULE;
     var ModelApp = (function (_super) {
         __extends(ModelApp, _super);
         function ModelApp() {
-            _super.call(this);
+            _super.apply(this, arguments);
             this.landing = MODULE.UTIL.canonicalizeUrl(window.location.href);
             this.recent = { order: [], data: {}, size: 0 };
-            this.createHTMLDocument_();
         }
         ModelApp.prototype.configure = function (option, origURL, destURL, isBidirectional) {
             if (typeof isBidirectional === "undefined") { isBidirectional = false; }
@@ -304,7 +303,7 @@ var MODULE;
             destURL = MODULE.UTIL.canonicalizeUrl(destURL || option.destLocation.href);
             option = option.option || option;
 
-            var scope = option.scope ? jQuery.extend(true, {}, option, MODULE.APP.scope_(option, origURL, destURL, null) || isBidirectional && MODULE.APP.scope_(option, destURL, origURL, null) || { disable: true }) : jQuery.extend(true, {}, option);
+            var scope = option.scope ? jQuery.extend(true, {}, option, MODULE.APP.scope_(option, origURL, destURL) || isBidirectional && MODULE.APP.scope_(option, destURL, origURL) || { disable: true }) : jQuery.extend(true, {}, option);
 
             var initial = {
                 gns: MODULE.M.NAME,
@@ -333,13 +332,12 @@ var MODULE;
                 },
                 param: null,
                 load: {
-                    css: false, script: false, execute: true,
-                    head: 'base, meta, link',
+                    head: '', css: false, script: false, execute: true,
                     reload: '',
                     ignore: '[src*="jquery.js"], [src*="jquery.min.js"], [href^="chrome-extension://"]',
-                    sync: true, ajax: { dataType: 'script', cache: true }, rewrite: null,
-                    redirect: true
+                    sync: true, ajax: { dataType: 'script', cache: true }, rewrite: null
                 },
+                redirect: true,
                 interval: 100,
                 wait: 0,
                 scroll: { delay: 300 },
@@ -419,6 +417,9 @@ var MODULE;
 
             MODULE.DATA.openDB(setting);
             new MODULE.View($context).BIND(setting);
+            setTimeout(function () {
+                return MODULE.APP.createHTMLDocument_();
+            }, 50);
             setTimeout(function () {
                 return MODULE.APP.landing = null;
             }, 1500);
@@ -501,7 +502,7 @@ var MODULE;
 
                     case 'submit':
                         ajax.type = event.currentTarget.method.toUpperCase();
-                        if (ajax.type === 'POST') {
+                        if ('POST' === ajax.type) {
                             ajax.data = jQuery(event.currentTarget).serializeArray();
                         }
                         break;
@@ -596,7 +597,7 @@ var MODULE;
                     break UPDATE;
                 }
 
-                if (setting.cache.mix && event.type.toLowerCase() !== 'popstate' && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
+                if (setting.cache.mix && 'popstate' !== event.type.toLowerCase() && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
                     return 'function' === typeof setting.fallback ? MODULE.UTIL.fire(setting.fallback, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]) : MODULE.APP.fallback_(event);
                 }
 
@@ -611,7 +612,7 @@ var MODULE;
                         if (cache && cache.XMLHttpRequest || !setting.cache.click && !setting.cache.submit && !setting.cache.popstate) {
                             break UPDATE_CACHE;
                         }
-                        if (event.type.toLowerCase() === 'submit' && !setting.cache[event.currentTarget.method.toLowerCase()]) {
+                        if ('submit' === event.type.toLowerCase() && !setting.cache[event.currentTarget.method.toLowerCase()]) {
                             break UPDATE_CACHE;
                         }
                         if (MODULE.UTIL.fire(callbacks_update.cache.before, null, [event, setting.param, cache]) === false) {
@@ -673,7 +674,7 @@ var MODULE;
 
                         redirect = jQuery('<a>', { href: jQuery(redirect).attr('content').match(/\w+:\/\/[^;\s]+/i) })[0];
                         switch (true) {
-                            case !setting.load.redirect:
+                            case !setting.redirect:
                             case redirect.protocol !== setting.destLocation.protocol:
                             case redirect.host !== setting.destLocation.host:
                             case 'submit' === event.type.toLowerCase() && 'GET' === event.currentTarget.method.toUpperCase():
@@ -753,6 +754,9 @@ var MODULE;
                     var load_head = function () {
                         UPDATE_HEAD:
                          {
+                            if (!setting.load.head) {
+                                break UPDATE_HEAD;
+                            }
                             if (MODULE.UTIL.fire(callbacks_update.head.before, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) {
                                 break UPDATE_HEAD;
                             }
@@ -1068,7 +1072,7 @@ var MODULE;
                                 break UPDATE_SCRIPT;
                             }
                             speedcheck && speed.time.push(speed.now() - speed.fire);
-                            speedcheck && speed.name.push((selector === '[src][defer]' ? 'defer' : 'script') + '(' + speed.time.slice(-1) + ')');
+                            speedcheck && speed.name.push(('[src][defer]' === selector ? 'defer' : 'script') + '(' + speed.time.slice(-1) + ')');
                         }
                         ;
                     };
@@ -1156,19 +1160,21 @@ var MODULE;
             }
         };
 
-        ModelApp.prototype.scope_ = function (common, origURL, destURL, relocation) {
+        ModelApp.prototype.scope_ = function (common, origURL, destURL, rewriteKeyUrl) {
+            if (typeof rewriteKeyUrl === "undefined") { rewriteKeyUrl = ''; }
             var origKeyUrl, destKeyUrl, scp = common.scope, dirs, keys, key, pattern, not, reg, rewrite, inherit, hit_src, hit_dst, option;
 
-            origKeyUrl = origURL.replace(/.+?\w(\/[^#?]*).*/, '$1');
-            destKeyUrl = destURL.replace(/.+?\w(\/[^#?]*).*/, '$1');
+            origKeyUrl = MODULE.M.convertUrlToUrlKey(origURL).match(/.+?\w(\/.*)/).pop();
+            destKeyUrl = MODULE.M.convertUrlToUrlKey(destURL).match(/.+?\w(\/.*)/).pop();
+            rewriteKeyUrl = rewriteKeyUrl.replace(/[#?].*/, '');
 
-            keys = (relocation || destKeyUrl).replace(/^\//, '').replace(/([?#])/g, '/$1').split('/');
-            if (relocation) {
-                if (!~relocation.indexOf('*')) {
+            keys = (rewriteKeyUrl || destKeyUrl).replace(/^\/|\/$/g, '').split('/');
+            if (rewriteKeyUrl) {
+                if (!~rewriteKeyUrl.indexOf('*')) {
                     return undefined;
                 }
                 dirs = [];
-                var arr = origKeyUrl.replace(/^\//, '').replace(/([?#])/g, '/$1').split('/');
+                var arr = origKeyUrl.replace(/^\/|\/$/g, '').split('/');
                 for (var i = 0, len = keys.length; i < len; i++) {
                     '*' === keys[i] && dirs.push(arr[i]);
                 }
@@ -1176,8 +1182,8 @@ var MODULE;
 
             for (var i = keys.length + 1; i--;) {
                 rewrite = inherit = option = hit_src = hit_dst = undefined;
-                key = keys.slice(0, i).join('/').replace(/\/([?#])/g, '$1');
-                key = '/' + key + ((relocation || origKeyUrl).charAt(key.length + 1) === '/' ? '/' : '');
+                key = keys.slice(0, i).join('/');
+                key = '/' + key + ('/' === (rewriteKeyUrl || origKeyUrl).charAt(key.length + 1) ? '/' : '');
 
                 if (!key || !(key in scp)) {
                     continue;
@@ -1193,8 +1199,8 @@ var MODULE;
                 for (var j = 0; pattern = scp[key][j]; j++) {
                     if (hit_src === false || hit_dst === false) {
                         break;
-                    } else if ('rewrite' === pattern && 'function' === typeof scp.rewrite && !relocation) {
-                        rewrite = this.scope_.apply(this, [].slice.call(arguments).slice(0, -1).concat([MODULE.UTIL.fire(scp.rewrite, null, [destKeyUrl])]));
+                    } else if ('rewrite' === pattern && 'function' === typeof scp.rewrite && !rewriteKeyUrl) {
+                        rewrite = this.scope_.apply(this, [].slice.call(arguments).slice(0, 3).concat([MODULE.UTIL.fire(scp.rewrite, null, [destKeyUrl])]));
                         if (rewrite) {
                             hit_src = hit_dst = true;
                             break;
@@ -1209,7 +1215,7 @@ var MODULE;
                         reg = '*' === pattern.charAt(0);
                         pattern = reg ? pattern.slice(1) : pattern;
 
-                        if (relocation && ~pattern.indexOf('/*/')) {
+                        if (rewriteKeyUrl && ~pattern.indexOf('/*/')) {
                             for (var k = 0, len = dirs.length; k < len; k++) {
                                 pattern = pattern.replace('/*/', '/' + dirs[k] + '/');
                             }
@@ -1289,24 +1295,25 @@ var MODULE;
             if (typeof html === "undefined") { html = ''; }
             // chrome, firefox
             this.createHTMLDocument_ = function (html) {
-                return window.DOMParser && window.DOMParser.prototype && new window.DOMParser().parseFromString(html || '', 'text/html');
+                if (typeof html === "undefined") { html = ''; }
+                return window.DOMParser && window.DOMParser.prototype && new window.DOMParser().parseFromString(html, 'text/html');
             };
             if (test(this.createHTMLDocument_)) {
-                return;
+                return this.createHTMLDocument_(html);
             }
 
             // ie10+, opera
             this.createHTMLDocument_ = function (html) {
-                html = html || '';
+                if (typeof html === "undefined") { html = ''; }
                 if (document.implementation && document.implementation.createHTMLDocument) {
                     var doc = document.implementation.createHTMLDocument('');
                     var root = document.createElement('html');
-                    var attrs = (html.slice(0, 1024).match(/<html ([^>]+)>/im) || [0, ''])[1].match(/\w+\="[^"]*.|\w+\='[^']*.|\w+/gm) || [];
+                    var attrs = (html.match(/<html([^>]+)>/im) || [0, ''])[1].match(/[\w\-]+\="[^"]*.|[\w\-]+\='[^']*.|\w+/gm) || [];
                     for (var i = 0, attr; attr = attrs[i]; i++) {
                         attr = attr.split('=', 2);
-                        doc.documentElement.setAttribute(attr[0], attr[1].replace(/^["']|["']$/g, ''));
+                        doc.documentElement.setAttribute(attr[0], attr[1].slice(1, -1));
                     }
-                    root.innerHTML = html.replace(/^.*?<html[^>]*>|<\/html>.*$/ig, '');
+                    root.innerHTML = html.slice(0, html.search(/<\/html>/i)).replace(/^.*?<html[^>]*>/i, '');
                     doc.documentElement.removeChild(doc.head);
                     doc.documentElement.removeChild(doc.body);
                     var element;
@@ -1317,12 +1324,12 @@ var MODULE;
                 return doc;
             };
             if (test(this.createHTMLDocument_)) {
-                return;
+                return this.createHTMLDocument_(html);
             }
 
             // msafari
             this.createHTMLDocument_ = function (html) {
-                html = html || '';
+                if (typeof html === "undefined") { html = ''; }
                 if (document.implementation && document.implementation.createHTMLDocument) {
                     var doc = document.implementation.createHTMLDocument('');
                     if ('object' === typeof doc.activeElement) {
@@ -1334,12 +1341,12 @@ var MODULE;
                 return doc;
             };
             if (test(this.createHTMLDocument_)) {
-                return;
+                return this.createHTMLDocument_(html);
             }
 
             function test(createHTMLDocument_) {
                 try  {
-                    var doc = createHTMLDocument_ && createHTMLDocument_('<html lang="en" class="html a b"><head><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript></body></html>');
+                    var doc = createHTMLDocument_ && createHTMLDocument_('<html lang="en" class="html"><head><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript></body></html>');
                     return doc && jQuery('html', doc).is('.html[lang=en]') && jQuery('head>noscript', doc).html() && jQuery('body>noscript', doc).text() === 'noscript';
                 } catch (err) {
                 }
@@ -1730,7 +1737,7 @@ var MODULE;
                 return;
             }
 
-            var serializedURL = setting.destLocation.href.replace(/[?#].*/, '') + (context.method.toUpperCase() === 'GET' ? '?' + jQuery(context).serialize() : '');
+            var serializedURL = setting.destLocation.href.replace(/[?#].*/, '') + ('GET' === context.method.toUpperCase() ? '?' + jQuery(context).serialize() : '');
             setting.destLocation.href = MODULE.UTIL.canonicalizeUrl(serializedURL);
             if (setting.cache.mix && jQuery[MODULE.M.NAME].getCache(setting.destLocation.href)) {
                 return;
