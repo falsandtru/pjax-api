@@ -19,7 +19,7 @@ CSS等は自動的に同期されるためページ間のJavaScriptの干渉に�
 <pre class="sh brush: js;">
 $.pjax({
   area: 'body',
-  load: { css: true, script: true },
+  load: { head: 'base, meta, link', css: true, script: true },
   cache: { click: true, submit: false, popstate: true },
   server: { query: null }
 });

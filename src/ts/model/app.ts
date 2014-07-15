@@ -12,10 +12,6 @@ module MODULE {
   var V: void, C: void;
 
   export class ModelApp extends ModelTemplate implements ModelAppInterface {
-    constructor() {
-      super();
-      this.createHTMLDocument_();
-    }
 
     landing: string = UTIL.canonicalizeUrl(window.location.href)
     recent: RecentInterface = { order: [], data: {}, size: 0 }
@@ -27,7 +23,7 @@ module MODULE {
       destURL = UTIL.canonicalizeUrl(destURL || option.destLocation.href);
       option = option.option || option;
 
-      var scope = option.scope ? jQuery.extend(true, {}, option, APP.scope_(option, origURL, destURL, null) || isBidirectional && APP.scope_(option, destURL, origURL, null) || { disable: true })
+      var scope = option.scope ? jQuery.extend(true, {}, option, APP.scope_(option, origURL, destURL) || isBidirectional && APP.scope_(option, destURL, origURL) || { disable: true })
                                : jQuery.extend(true, {}, option);
 
       var initial = {
@@ -56,13 +52,12 @@ module MODULE {
             },
             param: null,
             load: {
-              css: false, script: false, execute: true,
-              head: 'base, meta, link',
+              head: '', css: false, script: false, execute: true,
               reload: '',
               ignore: '[src*="jquery.js"], [src*="jquery.min.js"], [href^="chrome-extension://"]',
-              sync: true, ajax: { dataType: 'script', cache: true }, rewrite: null,
-              redirect: true
+              sync: true, ajax: { dataType: 'script', cache: true }, rewrite: null
             },
+            redirect: true,
             interval: 100,
             wait: 0,
             scroll: { delay: 300 },
@@ -132,6 +127,7 @@ module MODULE {
 
       DATA.openDB(setting);
       new View($context).BIND(setting);
+      setTimeout(() => APP.createHTMLDocument_(), 50);
       setTimeout(() => APP.landing = null, 1500);
     }
 
@@ -214,7 +210,7 @@ module MODULE {
 
           case 'submit':
             ajax.type = (<HTMLFormElement>event.currentTarget).method.toUpperCase();
-            if (ajax.type === 'POST') { ajax.data = jQuery(event.currentTarget).serializeArray(); }
+            if ('POST' === ajax.type) { ajax.data = jQuery(event.currentTarget).serializeArray(); }
             break;
 
           case 'popstate':
@@ -304,7 +300,7 @@ module MODULE {
 
         if (UTIL.fire(callbacks_update.before, null, [event, setting.param, data, textStatus, XMLHttpRequest, cache]) === false) { break UPDATE; }
 
-        if (setting.cache.mix && event.type.toLowerCase() !== 'popstate' && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
+        if (setting.cache.mix && 'popstate' !== event.type.toLowerCase() && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
           return 'function' === typeof setting.fallback ? UTIL.fire(setting.fallback, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]) : APP.fallback_(event);
         }
 
@@ -317,7 +313,7 @@ module MODULE {
           /* cache */
           UPDATE_CACHE: {
             if (cache && cache.XMLHttpRequest || !setting.cache.click && !setting.cache.submit && !setting.cache.popstate) { break UPDATE_CACHE; }
-            if (event.type.toLowerCase() === 'submit' && !setting.cache[(<HTMLFormElement>event.currentTarget).method.toLowerCase()]) { break UPDATE_CACHE; }
+            if ('submit' === event.type.toLowerCase() && !setting.cache[(<HTMLFormElement>event.currentTarget).method.toLowerCase()]) { break UPDATE_CACHE; }
             if (UTIL.fire(callbacks_update.cache.before, null, [event, setting.param, cache]) === false) { break UPDATE_CACHE; }
 
             jQuery[M.NAME].setCache(setting.destLocation.href, cache && cache.data || null, textStatus, XMLHttpRequest);
@@ -367,7 +363,7 @@ module MODULE {
 
             redirect = <HTMLAnchorElement>jQuery('<a>', { href: jQuery(redirect).attr('content').match(/\w+:\/\/[^;\s]+/i) })[0];
             switch (true) {
-              case !setting.load.redirect:
+              case !setting.redirect:
               case redirect.protocol !== setting.destLocation.protocol:
               case redirect.host !== setting.destLocation.host:
               case 'submit' === event.type.toLowerCase() && 'GET' === (<HTMLFormElement>event.currentTarget).method.toUpperCase():
@@ -436,6 +432,7 @@ module MODULE {
           /* head */
           var load_head = function(): void {
             UPDATE_HEAD: {
+              if (!setting.load.head) { break UPDATE_HEAD; }
               if (UTIL.fire(callbacks_update.head.before, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE_HEAD; }
 
               var title: JQuery = jQuery('title'),
@@ -694,7 +691,7 @@ module MODULE {
 
               if (UTIL.fire(callbacks_update.script.after, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE_SCRIPT; }
               speedcheck && speed.time.push(speed.now() - speed.fire);
-              speedcheck && speed.name.push((selector === '[src][defer]' ? 'defer' : 'script') + '(' + speed.time.slice(-1) + ')');
+              speedcheck && speed.name.push(('[src][defer]' === selector ? 'defer' : 'script') + '(' + speed.time.slice(-1) + ')');
             }; // label: UPDATE_SCRIPT
           } // function: script
 
@@ -763,7 +760,7 @@ module MODULE {
       }
     }
 
-    scope_(common: CommonSettingInterface, origURL: string, destURL: string, relocation: string): any {
+    scope_(common: CommonSettingInterface, origURL: string, destURL: string, rewriteKeyUrl: string = ''): any {
       var origKeyUrl: string,
           destKeyUrl: string,
           scp: any = common.scope,
@@ -779,21 +776,22 @@ module MODULE {
           hit_dst: boolean,
           option: Object;
 
-      origKeyUrl = origURL.replace(/.+?\w(\/[^#?]*).*/, '$1');
-      destKeyUrl = destURL.replace(/.+?\w(\/[^#?]*).*/, '$1');
+      origKeyUrl = M.convertUrlToUrlKey(origURL).match(/.+?\w(\/.*)/).pop();
+      destKeyUrl = M.convertUrlToUrlKey(destURL).match(/.+?\w(\/.*)/).pop();
+      rewriteKeyUrl = rewriteKeyUrl.replace(/[#?].*/, '');
 
-      keys = (relocation || destKeyUrl).replace(/^\//, '').replace(/([?#])/g, '/$1').split('/');
-      if (relocation) {
-        if (!~relocation.indexOf('*')) { return undefined; }
+      keys = (rewriteKeyUrl || destKeyUrl).replace(/^\/|\/$/g, '').split('/');
+      if (rewriteKeyUrl) {
+        if (!~rewriteKeyUrl.indexOf('*')) { return undefined; }
         dirs = [];
-        var arr: string[] = origKeyUrl.replace(/^\//, '').replace(/([?#])/g, '/$1').split('/');
+        var arr: string[] = origKeyUrl.replace(/^\/|\/$/g, '').split('/');
         for (var i = 0, len = keys.length; i < len; i++) { '*' === keys[i] && dirs.push(arr[i]); }
       }
 
       for (var i = keys.length + 1; i--;) {
         rewrite = inherit = option = hit_src = hit_dst = undefined;
-        key = keys.slice(0, i).join('/').replace(/\/([?#])/g, '$1');
-        key = '/' + key + ((relocation || origKeyUrl).charAt(key.length + 1) === '/' ? '/' : '');
+        key = keys.slice(0, i).join('/');
+        key = '/' + key + ('/' === (rewriteKeyUrl || origKeyUrl).charAt(key.length + 1) ? '/' : '');
 
         if (!key || !(key in scp)) { continue; }
 
@@ -805,8 +803,8 @@ module MODULE {
         for (var j = 0; pattern = scp[key][j]; j++) {
           if (hit_src === false || hit_dst === false) {
             break;
-          } else if ('rewrite' === pattern && 'function' === typeof scp.rewrite && !relocation) {
-            rewrite = this.scope_.apply(this, [].slice.call(arguments).slice(0, -1).concat([UTIL.fire(scp.rewrite, null, [destKeyUrl])]));
+          } else if ('rewrite' === pattern && 'function' === typeof scp.rewrite && !rewriteKeyUrl) {
+            rewrite = this.scope_.apply(this, [].slice.call(arguments).slice(0, 3).concat([UTIL.fire(scp.rewrite, null, [destKeyUrl])]));
             if (rewrite) {
               hit_src = hit_dst = true;
               break;
@@ -821,7 +819,7 @@ module MODULE {
             reg = '*' === pattern.charAt(0);
             pattern = reg ? pattern.slice(1) : pattern;
 
-            if (relocation && ~pattern.indexOf('/*/')) {
+            if (rewriteKeyUrl && ~pattern.indexOf('/*/')) {
               for (var k = 0, len = dirs.length; k < len; k++) { pattern = pattern.replace('/*/', '/' + dirs[k] + '/'); }
             }
 
@@ -882,21 +880,22 @@ module MODULE {
 
     createHTMLDocument_(html: string = ''): Document {
       // chrome, firefox
-      this.createHTMLDocument_ = function (html) { return window.DOMParser && window.DOMParser.prototype && new window.DOMParser().parseFromString(html || '', 'text/html'); };
-      if (test(this.createHTMLDocument_)) { return; }
+      this.createHTMLDocument_ = function (html: string = '') {
+        return window.DOMParser && window.DOMParser.prototype && new window.DOMParser().parseFromString(html, 'text/html');
+      };
+      if (test(this.createHTMLDocument_)) { return this.createHTMLDocument_(html); }
 
       // ie10+, opera
-      this.createHTMLDocument_ = function (html) {
-        html = html || '';
+      this.createHTMLDocument_ = function (html: string = '') {
         if (document.implementation && document.implementation.createHTMLDocument) {
           var doc = document.implementation.createHTMLDocument('');
           var root = document.createElement('html');
-          var attrs = (<string>(html.slice(0, 1024).match(/<html ([^>]+)>/im) || [0, ''])[1]).match(/\w+\="[^"]*.|\w+\='[^']*.|\w+/gm) || [];
+          var attrs = (<string>(html.match(/<html([^>]+)>/im) || [0, ''])[1]).match(/[\w\-]+\="[^"]*.|[\w\-]+\='[^']*.|\w+/gm) || [];
           for (var i = 0, attr; attr = attrs[i]; i++) {
             attr = attr.split('=', 2);
-            doc.documentElement.setAttribute(attr[0], attr[1].replace(/^["']|["']$/g, ''));
+            doc.documentElement.setAttribute(attr[0], attr[1].slice(1, -1));
           }
-          root.innerHTML = html.replace(/^.*?<html[^>]*>|<\/html>.*$/ig, '');
+          root.innerHTML = html.slice(0, html.search(/<\/html>/i)).replace(/^.*?<html[^>]*>/i, '');
           doc.documentElement.removeChild(doc.head);
           doc.documentElement.removeChild(doc.body);
           var element;
@@ -906,11 +905,10 @@ module MODULE {
         }
         return doc;
       };
-      if (test(this.createHTMLDocument_)) { return; }
+      if (test(this.createHTMLDocument_)) { return this.createHTMLDocument_(html); }
 
       // msafari
-      this.createHTMLDocument_ = function (html) {
-        html = html || '';
+      this.createHTMLDocument_ = function (html: string = '') {
         if (document.implementation && document.implementation.createHTMLDocument) {
           var doc = document.implementation.createHTMLDocument('');
           if ('object' === typeof doc.activeElement) {
@@ -921,11 +919,11 @@ module MODULE {
         }
         return doc;
       };
-      if (test(this.createHTMLDocument_)) { return; }
+      if (test(this.createHTMLDocument_)) { return this.createHTMLDocument_(html); }
 
       function test(createHTMLDocument_) {
         try {
-          var doc = createHTMLDocument_ && createHTMLDocument_('<html lang="en" class="html a b"><head><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript></body></html>');
+          var doc = createHTMLDocument_ && createHTMLDocument_('<html lang="en" class="html"><head><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript></body></html>');
           return doc && jQuery('html', doc).is('.html[lang=en]') && jQuery('head>noscript', doc).html() && jQuery('body>noscript', doc).text() === 'noscript';
         } catch (err) { }
       }

@@ -111,7 +111,7 @@ module MODULE {
     activeSetting: CommonSettingInterface
 
     update_(setting: SettingInterface, event: JQueryEventObject, register: boolean, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest, cache: CacheInterface): void
-    scope_(common: CommonSettingInterface, src: string, dst: string, relocation: string): any
+    scope_(common: CommonSettingInterface, src: string, dst: string, rewriteKeyUrl?: string): any
     scrollByHash_(hash: string): boolean
     fallback_(event: JQueryEventObject): void
     wait_(ms: number): JQueryPromise<any>
@@ -241,8 +241,8 @@ module MODULE {
       sync: boolean
       ajax: JQueryAjaxSettings
       rewrite(): any
-      redirect: boolean
     }
+    redirect: boolean
     interval: number
     wait: number
     scroll: {

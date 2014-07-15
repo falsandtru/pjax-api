@@ -153,7 +153,7 @@ module MODULE {
       if (M.state_ !== State.ready || setting.disable || event.isDefaultPrevented()) { return; }
       if (!M.isImmediateLoadable(event)) { return; }
 
-      var serializedURL = setting.destLocation.href.replace(/[?#].*/, '') + (context.method.toUpperCase() === 'GET' ? '?' + jQuery(context).serialize() : '');
+      var serializedURL = setting.destLocation.href.replace(/[?#].*/, '') + ('GET' === context.method.toUpperCase() ? '?' + jQuery(context).serialize() : '');
       setting.destLocation.href = UTIL.canonicalizeUrl(serializedURL);
       if (setting.cache.mix && jQuery[M.NAME].getCache(setting.destLocation.href)) { return; }
       setting.area = UTIL.fire(setting.area, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);

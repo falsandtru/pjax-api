@@ -71,7 +71,7 @@ suite("Scope", function () {
         defer = self.$.Deferred();
         setTimeout(defer.resolve, 1000);
         window.$(window).one('pjax.load', function () { setTimeout(defer.reject, 0); });
-        $.pjax.click('../bar/index.html');
+        $.pjax.click('bar/index.html');
 
         return defer;
       })
@@ -190,7 +190,7 @@ suite("Scope", function () {
         defer = self.$.Deferred();
         setTimeout(defer.resolve, 1000);
         window.$(window).one('pjax.load', function () { setTimeout(defer.reject, 0); });
-        $.pjax.click('../bar/index.html');
+        $.pjax.click('bar/index.html');
 
         return defer;
       })
@@ -228,7 +228,7 @@ suite("Scope", function () {
 
         defer = self.$.Deferred();
         $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
-        $.pjax.click('../foo/2.html');
+        $.pjax.click('foo/2.html');
 
         return defer;
       })
@@ -238,7 +238,7 @@ suite("Scope", function () {
         defer = self.$.Deferred();
         setTimeout(defer.resolve, 1000);
         window.$(window).one('pjax.load', function () { setTimeout(defer.reject, 0); });
-        $.pjax.click('../bar/index.html');
+        $.pjax.click('bar/index.html');
 
         return defer;
       })
