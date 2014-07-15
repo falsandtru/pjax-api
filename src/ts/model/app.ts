@@ -52,8 +52,7 @@ module MODULE {
             },
             param: null,
             load: {
-              css: false, script: false, execute: true,
-              head: 'base, meta, link',
+              head: '', css: false, script: false, execute: true,
               reload: '',
               ignore: '[src*="jquery.js"], [src*="jquery.min.js"], [href^="chrome-extension://"]',
               sync: true, ajax: { dataType: 'script', cache: true }, rewrite: null
@@ -433,6 +432,7 @@ module MODULE {
           /* head */
           var load_head = function(): void {
             UPDATE_HEAD: {
+              if (!setting.load.head) { break UPDATE_HEAD; }
               if (UTIL.fire(callbacks_update.head.before, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE_HEAD; }
 
               var title: JQuery = jQuery('title'),

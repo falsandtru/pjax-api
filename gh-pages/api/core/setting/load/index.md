@@ -9,13 +9,13 @@ class: style-api style-api-detail
 # load
 遷移先のCSSやJavaScriptなどの読み込みを設定します。
 
-## load.head: boolean
-HEAD要素内で同期させる要素をjQueryセレクタで設定します。対応している要素は`base`、`meta`、`link`要素のみです。CSSは除外されます。初期値は`base, meta, link`です。
+## load.head: string
+HEAD要素内で同期させる要素をjQueryセレクタで設定します。対応している要素は`base`、`meta`、`link`要素のみです。CSSは除外されます。初期値は`''`です。
 
 <pre class="sh brush: js;">
 $.pjax({
   load: {
-    head: true
+    head: 'base, meta, link'
   }
 });
 </pre>

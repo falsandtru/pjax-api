@@ -127,6 +127,7 @@
         }
       },
       load: {
+        head: 'base, meta, link',
         css: true,
         script: true
       },
