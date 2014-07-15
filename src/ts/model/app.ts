@@ -760,7 +760,7 @@ module MODULE {
       }
     }
 
-    scope_(common: CommonSettingInterface, origURL: string, destURL: string, relocation: string = ''): any {
+    scope_(common: CommonSettingInterface, origURL: string, destURL: string, rewriteKeyUrl: string = ''): any {
       var origKeyUrl: string,
           destKeyUrl: string,
           scp: any = common.scope,
@@ -778,11 +778,11 @@ module MODULE {
 
       origKeyUrl = M.convertUrlToUrlKey(origURL).match(/.+?\w(\/.*)/).pop();
       destKeyUrl = M.convertUrlToUrlKey(destURL).match(/.+?\w(\/.*)/).pop();
-      relocation = relocation.replace(/[#?].*/, '');
+      rewriteKeyUrl = rewriteKeyUrl.replace(/[#?].*/, '');
 
-      keys = (relocation || destKeyUrl).replace(/^\/|\/$/g, '').split('/');
-      if (relocation) {
-        if (!~relocation.indexOf('*')) { return undefined; }
+      keys = (rewriteKeyUrl || destKeyUrl).replace(/^\/|\/$/g, '').split('/');
+      if (rewriteKeyUrl) {
+        if (!~rewriteKeyUrl.indexOf('*')) { return undefined; }
         dirs = [];
         var arr: string[] = origKeyUrl.replace(/^\/|\/$/g, '').split('/');
         for (var i = 0, len = keys.length; i < len; i++) { '*' === keys[i] && dirs.push(arr[i]); }
@@ -791,7 +791,7 @@ module MODULE {
       for (var i = keys.length + 1; i--;) {
         rewrite = inherit = option = hit_src = hit_dst = undefined;
         key = keys.slice(0, i).join('/');
-        key = '/' + key + ('/' === (relocation || origKeyUrl).charAt(key.length + 1) ? '/' : '');
+        key = '/' + key + ('/' === (rewriteKeyUrl || origKeyUrl).charAt(key.length + 1) ? '/' : '');
 
         if (!key || !(key in scp)) { continue; }
 
@@ -803,7 +803,7 @@ module MODULE {
         for (var j = 0; pattern = scp[key][j]; j++) {
           if (hit_src === false || hit_dst === false) {
             break;
-          } else if ('rewrite' === pattern && 'function' === typeof scp.rewrite && !relocation) {
+          } else if ('rewrite' === pattern && 'function' === typeof scp.rewrite && !rewriteKeyUrl) {
             rewrite = this.scope_.apply(this, [].slice.call(arguments).slice(0, 3).concat([UTIL.fire(scp.rewrite, null, [destKeyUrl])]));
             if (rewrite) {
               hit_src = hit_dst = true;
@@ -819,7 +819,7 @@ module MODULE {
             reg = '*' === pattern.charAt(0);
             pattern = reg ? pattern.slice(1) : pattern;
 
-            if (relocation && ~pattern.indexOf('/*/')) {
+            if (rewriteKeyUrl && ~pattern.indexOf('/*/')) {
               for (var k = 0, len = dirs.length; k < len; k++) { pattern = pattern.replace('/*/', '/' + dirs[k] + '/'); }
             }
 
