@@ -164,7 +164,7 @@ module MODULE {
         } else if (setting.fallback && 'abort' !== xhrArgs.statusText) {
           XMLHttpRequest = xhrArgs;
 
-          M.fallback_(event, setting);
+          M.fallback(event, setting);
         }
       }
 
@@ -264,7 +264,7 @@ module MODULE {
                 APP.update_(setting, event, register, data, textStatus, XMLHttpRequest, null);
               }
             } else if (setting.fallback && 'abort' !== textStatus) {
-              M.fallback_(event, setting);
+              M.fallback(event, setting);
             }
           }
         };
@@ -299,7 +299,7 @@ module MODULE {
         if (UTIL.fire(callbacks_update.before, null, [event, setting.param, data, textStatus, XMLHttpRequest, cache]) === false) { break UPDATE; }
 
         if (setting.cache.mix && 'popstate' !== event.type.toLowerCase() && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
-          return M.fallback_(event, setting);
+          return M.fallback(event, setting);
         }
 
         /* variable initialization */
@@ -737,7 +737,7 @@ module MODULE {
 
           if (UTIL.fire(callbacks_update.error, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE; }
           if (UTIL.fire(callbacks_update.complete, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE; }
-          M.fallback_(event, setting);
+          M.fallback(event, setting);
         };
 
         if (UTIL.fire(callbacks_update.after, null, [event, setting.param, data, textStatus, XMLHttpRequest]) === false) { break UPDATE; }

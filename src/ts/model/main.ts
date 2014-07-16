@@ -145,7 +145,7 @@ module MODULE {
         event.preventDefault();
         return;
       };
-      !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context)[0] && M.fallback_(event, setting);
+      !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context)[0] && M.fallback(event, setting);
     }
 
     SUBMIT(event: JQueryEventObject): void {
@@ -173,7 +173,7 @@ module MODULE {
         event.preventDefault();
         return;
       };
-      !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context)[0] && M.fallback_(event, setting);
+      !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context)[0] && M.fallback(event, setting);
     }
 
     POPSTATE(event: JQueryEventObject): void {
@@ -202,7 +202,7 @@ module MODULE {
         APP.drive(setting, event, false, cache);
         return;
       };
-      M.fallback_(event, setting);
+      M.fallback(event, setting);
     }
 
     SCROLL(event: JQueryEventObject, end: boolean): void {
@@ -222,7 +222,7 @@ module MODULE {
       }
     }
 
-    fallback_(event: JQueryEventObject, setting: SettingInterface): void {
+    fallback(event: JQueryEventObject, setting: SettingInterface): void {
       if ('function' === typeof setting.fallback) {
         UTIL.fire(setting.fallback, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
       } else {
