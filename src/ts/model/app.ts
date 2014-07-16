@@ -82,7 +82,7 @@ module MODULE {
             var query: string = setting.server.query;
             switch (query && typeof query) {
               case 'string':
-                query = eval('({' + query.replace(/"/g, '\\"').replace(/([^?=&]+)=([^&]+)/g, '"$1": "$2"').replace(/&/g, ',') + '})');
+                query = eval('({' + query.replace(/"/g, '\\"').replace(/([^?=&]+)=([^&]*)/g, '"$1": "$2"').replace(/&/g, ',') + '})');
               case 'object':
                 query = jQuery.param(query);
                 break;
