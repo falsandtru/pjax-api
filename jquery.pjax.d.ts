@@ -50,7 +50,7 @@ interface PjaxSetting {
     ajax?: JQueryAjaxSettings;
     contentType?: string;
     load?: {
-        head?: boolean;
+        head?: string;
         css?: boolean;
         script?: boolean;
         execute?: boolean;
@@ -113,44 +113,44 @@ interface PjaxSetting {
             before?: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
             after?: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
             cache?: {
-                before: (event: JQueryEventObject, param: any, cache: any) => any;
-                after: (event: JQueryEventObject, param: any, cache: any) => any;
+                before?: (event: JQueryEventObject, param: any, cache: any) => any;
+                after?: (event: JQueryEventObject, param: any, cache: any) => any;
             };
             redirect?: {
-                before: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
-                after: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
+                before?: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
+                after?: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
             };
             url?: {
-                before: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
-                after: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
+                before?: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
+                after?: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
             };
             title?: {
-                before: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
-                after: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
+                before?: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
+                after?: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
             };
             head?: {
-                before: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
-                after: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
+                before?: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
+                after?: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
             };
             content?: {
-                before: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
-                after: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
+                before?: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
+                after?: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
             };
             scroll?: {
-                before: (event: JQueryEventObject, param: any) => any;
-                after: (event: JQueryEventObject, param: any) => any;
+                before?: (event: JQueryEventObject, param: any) => any;
+                after?: (event: JQueryEventObject, param: any) => any;
             };
             css?: {
-                before: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
-                after: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
+                before?: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
+                after?: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
             };
             script?: {
-                before: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
-                after: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
+                before?: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
+                after?: (event: JQueryEventObject, param: any, data: any, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
             };
             render?: {
-                before: (event: JQueryEventObject, param: any) => any;
-                after: (event: JQueryEventObject, param: any) => any;
+                before?: (event: JQueryEventObject, param: any) => any;
+                after?: (event: JQueryEventObject, param: any) => any;
             };
             verify?: {
                 before?: (event: JQueryEventObject, param: any) => any;
@@ -186,7 +186,7 @@ interface PjaxSetting {
 
 interface JQueryStatic {
     pjax: {
-        (setting: PjaxSetting): any;
+        (setting?: PjaxSetting): any;
         enable(): any;
         disable(): any;
         click(url: string, attr: { href?: string; }): any;
@@ -211,5 +211,5 @@ interface JQueryStatic {
 }
 
 interface JQuery {
-    pjax(setting: PjaxSetting): any;
+    pjax(setting?: PjaxSetting): any;
 }
