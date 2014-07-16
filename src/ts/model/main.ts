@@ -226,7 +226,7 @@ module MODULE {
       if ('function' === typeof setting.fallback) {
         UTIL.fire(setting.fallback, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
       } else {
-        APP.fallback_(event);
+        APP.movePageNormally(event);
       }
     }
 

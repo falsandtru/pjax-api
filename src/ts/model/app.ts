@@ -862,7 +862,7 @@ module MODULE {
       return defer;
     }
 
-    fallback_(event: JQueryEventObject): void {
+    movePageNormally(event: JQueryEventObject): void {
       switch (event.type.toLowerCase()) {
         case 'click':
           window.location.assign((<HTMLAnchorElement>event.currentTarget).href);

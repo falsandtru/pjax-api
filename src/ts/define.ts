@@ -114,7 +114,6 @@ module MODULE {
     update_(setting: SettingInterface, event: JQueryEventObject, register: boolean, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest, cache: CacheInterface): void
     scope_(common: CommonSettingInterface, src: string, dst: string, rewriteKeyUrl?: string): any
     scrollByHash_(hash: string): boolean
-    fallback_(event: JQueryEventObject): void
     wait_(ms: number): JQueryPromise<any>
     createHTMLDocument_(html: string): Document
     
@@ -122,6 +121,7 @@ module MODULE {
     registrate($context: ContextInterface, setting: SettingInterface): void
     drive(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: any): void
     chooseAreas(areas: string[], srcDocument: Document, dstDocument: Document): string
+    movePageNormally(event: JQueryEventObject): void
 
     loadTitleByDB(unsafe_url: string): void
     saveTitleToDB(unsafe_url: string, title: string): void
