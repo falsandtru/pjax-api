@@ -141,7 +141,7 @@ module MODULE {
         var cache: CacheInterface;
         if (setting.cache[event.type.toLowerCase()]) { cache = jQuery[M.NAME].getCache(setting.destLocation.href); }
 
-        APP.drive(setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
+        new ModelAppUpdate(setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
         event.preventDefault();
         return;
       };
@@ -169,7 +169,7 @@ module MODULE {
         var cache: CacheInterface;
         if (setting.cache[event.type.toLowerCase()] && setting.cache[context.method.toLowerCase()]) { cache = jQuery[M.NAME].getCache(setting.destLocation.href); }
 
-        APP.drive(setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
+        new ModelAppUpdate(setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
         event.preventDefault();
         return;
       };
@@ -199,7 +199,7 @@ module MODULE {
         var cache: CacheInterface;
         if (setting.cache[event.type.toLowerCase()]) { cache = jQuery[M.NAME].getCache(setting.destLocation.href); }
 
-        APP.drive(setting, event, false, cache);
+        new ModelAppUpdate(setting, event, false, cache);
         return;
       };
       M.fallback(event, setting);

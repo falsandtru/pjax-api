@@ -111,22 +111,35 @@ module MODULE {
     activeXHR: JQueryXHR
     activeSetting: CommonSettingInterface
 
-    update_(setting: SettingInterface, event: JQueryEventObject, register: boolean, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest, cache: CacheInterface): void
     scope_(common: CommonSettingInterface, src: string, dst: string, rewriteKeyUrl?: string): any
-    scrollByHash_(hash: string): boolean
-    wait_(ms: number): JQueryPromise<any>
     createHTMLDocument_(html: string): Document
     
     configure(option: any, origURL: string, destURL: string, isBidirectional?: boolean): void
     registrate($context: ContextInterface, setting: SettingInterface): void
-    drive(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: any): void
     chooseAreas(areas: string[], srcDocument: Document, dstDocument: Document): string
     movePageNormally(event: JQueryEventObject): void
+    scrollByHash(hash: string): boolean
 
     loadTitleByDB(unsafe_url: string): void
     saveTitleToDB(unsafe_url: string, title: string): void
     loadScrollPositionByCacheOrDB(unsafe_url: string): void
     saveScrollPositionToCacheAndDB(unsafe_url: string, scrollX: number, scrollY: number): void
+  }
+  export declare class ModelAppUpdateInterface {
+    constructor(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface)
+    update_(setting: SettingInterface, event: JQueryEventObject, register: boolean, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest, cache: CacheInterface): void
+    updateCache_(setting: SettingInterface, cache: CacheInterface, textStatus: string, XMLHttpRequest: XMLHttpRequest): CacheInterface
+    updateRedirect_(setting: SettingInterface, register: boolean, title: string, srcDocument: Document, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest): void
+    updateUrl_(setting: SettingInterface, register: boolean, title: string, dstDocument: Document, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest): void
+    updateTitle_(setting: SettingInterface, title: string, dstDocument: Document, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest): void
+    updateHead_(setting: SettingInterface, srcDocument: Document, dstDocument: Document, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest): void
+    updateContent_(setting: SettingInterface, srcDocument: Document, dstDocument: Document, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest): JQueryDeferred<any>[]
+    updateScroll_(setting: SettingInterface, call: boolean): void
+    updateCSS_(selector: string, setting: SettingInterface, cache: CacheInterface, srcDocument: Document, dstDocument: Document, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest): void
+    updateScript_(selector: string, setting: SettingInterface, cache: CacheInterface, srcDocument: Document, dstDocument: Document, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest): void
+    updateRender_(callback: () => void, setting: SettingInterface, checker: JQuery, loadwaits: JQueryDeferred<any>[]): void
+    updateVerify_(setting: SettingInterface, event: JQueryEventObject): void
+    wait_(ms: number): JQueryPromise<any>
   }
   export declare class ModelDataInterface {
     createStore_(): IDBObjectStore
