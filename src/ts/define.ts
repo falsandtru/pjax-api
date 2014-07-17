@@ -1,4 +1,4 @@
-/// <reference path="type/jquery.d.ts"/>
+/// <reference path=".d/jquery.d.ts"/>
 
 interface Window {
   DOMParser?: any
