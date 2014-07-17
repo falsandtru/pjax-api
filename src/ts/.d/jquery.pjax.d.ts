@@ -136,29 +136,33 @@ interface PjaxSetting {
         }
     }
 }
+interface PjaxCache {
+    data: string
+    textStatus: string
+    jqXHR: JQueryXHR
+    expires: number
+}
 
 interface JQueryPjax {
     (setting?: PjaxSetting): JQueryPjax
-    enable(): any
-    disable(): any
-    click(url: string, attr: { href?: string; }): any
-    click(url: HTMLAnchorElement, attr: { href?: string; }): any
-    click(url: JQuery, attr: { href?: string; }): any
-    click(url: any, attr: { href?: string; }): any
-    submit(url: string, attr: { action?: string; method?: string; }, data: any): any
-    submit(url: HTMLFormElement, attr?: { action?: string; method?: string; }, data?: any): any
-    submit(url: JQuery, attr?: { action?: string; method?: string; }, data?: any): any
-    submit(url: any, attr?: { action?: string; method?: string; }, data?: any): any
-    follow(event: JQueryEventObject, ajax: JQueryXHR, timeStamp?: number): boolean
-    setCache(): any
-    setCache(url: string): any
-    setCache(url: string, data: string): any
-    setCache(url: string, data: string, textStatus: string, jqXHR: JQueryXHR): any
-    getCache(): any
-    getCache(url: string): any
-    removeCache(url: string): any
-    removeCache(): any
-    clearCache(): any
+    enable(): JQueryPjax
+    disable(): JQueryPjax
+    click(url: string, attr?: { href?: string; }): JQueryPjax
+    click(url: HTMLAnchorElement, attr: { href?: string; }): JQueryPjax
+    click(url: JQuery, attr: { href?: string; }): JQueryPjax
+    submit(url: string, attr: { action?: string; method?: string; }, data: any): JQueryPjax
+    submit(url: HTMLFormElement, attr?: { action?: string; method?: string; }, data?: any): JQueryPjax
+    submit(url: JQuery, attr?: { action?: string; method?: string; }, data?: any): JQueryPjax
+    follow(event: JQueryEventObject, ajax: JQueryXHR): boolean
+    setCache(): JQueryPjax
+    setCache(url: string): JQueryPjax
+    setCache(url: string, data: string): JQueryPjax
+    setCache(url: string, data: string, textStatus: string, jqXHR: JQueryXHR): JQueryPjax
+    getCache(): PjaxCache
+    getCache(url: string): PjaxCache
+    removeCache(url: string): JQueryPjax
+    removeCache(): JQueryPjax
+    clearCache(): JQueryPjax
     
     end(): JQuery
 }

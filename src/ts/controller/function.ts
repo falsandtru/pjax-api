@@ -91,8 +91,8 @@ module MODULE {
     
     getCache()
     getCache(url: string)
-    getCache(url: string = window.location.href): CacheInterface {
-      var cache: CacheInterface = M.getCache(url);
+    getCache(url: string = window.location.href): PjaxCache {
+      var cache: PjaxCache = <PjaxCache>M.getCache(url);
       if (cache) {
         cache = {
           data: cache.data,
