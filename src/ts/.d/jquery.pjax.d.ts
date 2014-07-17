@@ -9,164 +9,164 @@
 /// <reference path="jquery.d.ts"/>
 
 interface PjaxSetting {
-    area?: any; // string, array, function( event, param, origUrl, destUrl )
-    link?: string;
-    filter?: any; // string, function()
-    form?: string;
-    scope?: Object;
-    state?: any; // any, function(event, param, origUrl, destUrl )
-    scrollTop?: any; // number, function( event, param, origUrl, destUrl ), null, false
-    scrollLeft?: any; // number, function( event, param, origUrl, destUrl ), null, false
+    area?: any // string, array, function( event, param, origUrl, destUrl )
+    link?: string
+    filter?: any // string, function()
+    form?: string
+    scope?: Object
+    state?: any // any, function(event, param, origUrl, destUrl )
+    scrollTop?: any // number, function( event, param, origUrl, destUrl ), null, false
+    scrollLeft?: any // number, function( event, param, origUrl, destUrl ), null, false
     scroll?: {
-        delay?: number;
-    };
-    ajax?: JQueryAjaxSettings;
-    contentType?: string;
+        delay?: number
+    }
+    ajax?: JQueryAjaxSettings
+    contentType?: string
     load?: {
-        head?: string;
-        css?: boolean;
-        script?: boolean;
-        execute?: boolean;
-        reload?: string;
-        ignore?: string;
-        sync?: boolean;
-        ajax?: JQueryAjaxSettings;
-        rewrite?: (element: any) => any;
-    };
-    redirect?: boolean;
-    interval?: number;
+        head?: string
+        css?: boolean
+        script?: boolean
+        execute?: boolean
+        reload?: string
+        ignore?: string
+        sync?: boolean
+        ajax?: JQueryAjaxSettings
+        rewrite?: (element: any) => any
+    }
+    redirect?: boolean
+    interval?: number
     cache?: {
-        click?: boolean;
-        submit?: boolean;
-        popstate?: boolean;
-        get?: boolean;
-        post?: boolean;
-        page?: boolean;
-        size?: number;
-        mix?: number;
+        click?: boolean
+        submit?: boolean
+        popstate?: boolean
+        get?: boolean
+        post?: boolean
+        page?: boolean
+        size?: number
+        mix?: number
         expires?: {
-            min?: number;
-            max?: number;
-        };
-    };
-    wait?: any; // number, function( event, param, origUrl, destUrl ): number
-    fallback?: any; // boolean, function( event, param, origUrl, destUrl ): boolean
+            min?: number
+            max?: number
+        }
+    }
+    wait?: any // number, function( event, param, origUrl, destUrl ): number
+    fallback?: any // boolean, function( event, param, origUrl, destUrl ): boolean
     fix?: {
-        location?: boolean;
-        history?: boolean;
-        scroll?: boolean;
-        reset?: boolean;
-    };
-    database?: boolean;
+        location?: boolean
+        history?: boolean
+        scroll?: boolean
+        reset?: boolean
+    }
+    database?: boolean
     server?: {
-        query?: any; // string, object
+        query?: any // string, object
         header?: {
-            area?: boolean;
-            head?: boolean;
-            css?: boolean;
-            script?: boolean;
-        };
-    };
-    callback?: (event: JQueryEventObject, param: any) => any;
-    param?: any;
+            area?: boolean
+            head?: boolean
+            css?: boolean
+            script?: boolean
+        }
+    }
+    callback?: (event: JQueryEventObject, param: any) => any
+    param?: any
     callbacks?: {
-        before?: (event: JQueryEventObject, param: any) => any;
-        after?: (event: JQueryEventObject, param: any) => any;
+        before?: (event: JQueryEventObject, param: any) => any
+        after?: (event: JQueryEventObject, param: any) => any
         ajax?: {
-            xhr?: (event: JQueryEventObject, param: any) => any;
-            beforeSend?: (event: JQueryEventObject, param: any, data: string, ajaxSettings: any) => any;
-            dataFilter?: (event: JQueryEventObject, param: any, data: string, dataType: any) => any;
-            success?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
-            error?: (event: JQueryEventObject, param: any, XMLHttpRequest: XMLHttpRequest, textStatus: string, errorThrown: any) => any;
-            complete?: (event: JQueryEventObject, param: any, XMLHttpRequest: XMLHttpRequest, textStatus: string) => any;
-            done?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
-            fail?: (event: JQueryEventObject, param: any, XMLHttpRequest: XMLHttpRequest, textStatus: string, errorThrown: any) => any;
-            always?: (event: JQueryEventObject, param: any, XMLHttpRequest: XMLHttpRequest, textStatus: string) => any;
-        };
+            xhr?: (event: JQueryEventObject, param: any) => any
+            beforeSend?: (event: JQueryEventObject, param: any, data: string, ajaxSettings: any) => any
+            dataFilter?: (event: JQueryEventObject, param: any, data: string, dataType: any) => any
+            success?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+            error?: (event: JQueryEventObject, param: any, XMLHttpRequest: XMLHttpRequest, textStatus: string, errorThrown: any) => any
+            complete?: (event: JQueryEventObject, param: any, XMLHttpRequest: XMLHttpRequest, textStatus: string) => any
+            done?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+            fail?: (event: JQueryEventObject, param: any, XMLHttpRequest: XMLHttpRequest, textStatus: string, errorThrown: any) => any
+            always?: (event: JQueryEventObject, param: any, XMLHttpRequest: XMLHttpRequest, textStatus: string) => any
+        }
         update?: {
-            before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
-            after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
+            before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+            after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
             cache?: {
-                before?: (event: JQueryEventObject, param: any, cache: any) => any;
-                after?: (event: JQueryEventObject, param: any, cache: any) => any;
-            };
+                before?: (event: JQueryEventObject, param: any, cache: any) => any
+                after?: (event: JQueryEventObject, param: any, cache: any) => any
+            }
             redirect?: {
-                before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
-                after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
-            };
+                before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+                after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+            }
             url?: {
-                before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
-                after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
-            };
+                before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+                after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+            }
             title?: {
-                before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
-                after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
-            };
+                before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+                after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+            }
             head?: {
-                before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
-                after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
-            };
+                before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+                after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+            }
             content?: {
-                before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
-                after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
-            };
+                before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+                after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+            }
             scroll?: {
-                before?: (event: JQueryEventObject, param: any) => any;
-                after?: (event: JQueryEventObject, param: any) => any;
-            };
+                before?: (event: JQueryEventObject, param: any) => any
+                after?: (event: JQueryEventObject, param: any) => any
+            }
             css?: {
-                before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
-                after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
-            };
+                before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+                after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+            }
             script?: {
-                before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
-                after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
-            };
+                before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+                after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+            }
             render?: {
-                before?: (event: JQueryEventObject, param: any) => any;
-                after?: (event: JQueryEventObject, param: any) => any;
-            };
+                before?: (event: JQueryEventObject, param: any) => any
+                after?: (event: JQueryEventObject, param: any) => any
+            }
             verify?: {
-                before?: (event: JQueryEventObject, param: any) => any;
-                after?: (event: JQueryEventObject, param: any) => any;
-            };
-            success?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
-            error?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
-            complete?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any;
-        };
-    };
+                before?: (event: JQueryEventObject, param: any) => any
+                after?: (event: JQueryEventObject, param: any) => any
+            }
+            success?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+            error?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+            complete?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+        }
+    }
 }
 
 interface JQueryPjax {
-    (setting?: PjaxSetting): JQueryPjax;
-    enable(): any;
-    disable(): any;
-    click(url: string, attr: { href?: string; }): any;
-    click(url: HTMLAnchorElement, attr: { href?: string; }): any;
-    click(url: JQuery, attr: { href?: string; }): any;
-    click(url: any, attr: { href?: string; }): any;
-    submit(url: string, attr: { action?: string; method?: string; }, data: any): any;
-    submit(url: HTMLFormElement, attr?: { action?: string; method?: string; }, data?: any): any;
-    submit(url: JQuery, attr?: { action?: string; method?: string; }, data?: any): any;
-    submit(url: any, attr?: { action?: string; method?: string; }, data?: any): any;
-    follow(event: JQueryEventObject, ajax: JQueryXHR, timeStamp?: number): boolean;
-    setCache(): any;
-    setCache(url: string): any;
-    setCache(url: string, data: string): any;
-    setCache(url: string, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest): any;
-    getCache(): any;
-    getCache(url: string): any;
-    removeCache(url: string): any;
-    removeCache(): any;
-    clearCache(): any;
+    (setting?: PjaxSetting): JQueryPjax
+    enable(): any
+    disable(): any
+    click(url: string, attr: { href?: string; }): any
+    click(url: HTMLAnchorElement, attr: { href?: string; }): any
+    click(url: JQuery, attr: { href?: string; }): any
+    click(url: any, attr: { href?: string; }): any
+    submit(url: string, attr: { action?: string; method?: string; }, data: any): any
+    submit(url: HTMLFormElement, attr?: { action?: string; method?: string; }, data?: any): any
+    submit(url: JQuery, attr?: { action?: string; method?: string; }, data?: any): any
+    submit(url: any, attr?: { action?: string; method?: string; }, data?: any): any
+    follow(event: JQueryEventObject, ajax: JQueryXHR, timeStamp?: number): boolean
+    setCache(): any
+    setCache(url: string): any
+    setCache(url: string, data: string): any
+    setCache(url: string, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest): any
+    getCache(): any
+    getCache(url: string): any
+    removeCache(url: string): any
+    removeCache(): any
+    clearCache(): any
     
-    end(): JQuery;
+    end(): JQuery
 }
 
 interface JQueryStatic {
-    pjax: JQueryPjax;
+    pjax: JQueryPjax
 }
 
 interface JQuery {
-    pjax: JQueryPjax;
+    pjax: JQueryPjax
 }
