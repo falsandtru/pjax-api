@@ -9,13 +9,13 @@
 /// <reference path="jquery.d.ts"/>
 
 interface PjaxSetting {
-    area?: any // string, array, function( event, param, origUrl, destUrl )
+    area?: any       // string, array, function( event, param, origUrl, destUrl )
     link?: string
-    filter?: any // string, function()
+    filter?: any     // string, function()
     form?: string
     scope?: Object
-    state?: any // any, function(event, param, origUrl, destUrl )
-    scrollTop?: any // number, function( event, param, origUrl, destUrl ), null, false
+    state?: any      // any, function(event, param, origUrl, destUrl )
+    scrollTop?: any  // number, function( event, param, origUrl, destUrl ), null, false
     scrollLeft?: any // number, function( event, param, origUrl, destUrl ), null, false
     scroll?: {
         delay?: number
@@ -49,7 +49,7 @@ interface PjaxSetting {
             max?: number
         }
     }
-    wait?: any // number, function( event, param, origUrl, destUrl ): number
+    wait?: any     // number, function( event, param, origUrl, destUrl ): number
     fallback?: any // boolean, function( event, param, origUrl, destUrl ): boolean
     fix?: {
         location?: boolean
