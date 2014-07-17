@@ -113,10 +113,10 @@ module MODULE {
     activeSetting: CommonSettingInterface
 
     scope_(common: CommonSettingInterface, src: string, dst: string, rewriteKeyUrl?: string): any
-    createHTMLDocument_(html: string): Document
     
     configure(option: any, origURL: string, destURL: string, isBidirectional?: boolean): void
     registrate($context: ContextInterface, setting: SettingInterface): void
+    createHTMLDocument(html: string): Document
     chooseAreas(areas: string[], srcDocument: Document, dstDocument: Document): string
     movePageNormally(event: JQueryEventObject): void
     scrollByHash(hash: string): boolean

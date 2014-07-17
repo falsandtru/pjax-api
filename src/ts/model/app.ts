@@ -127,7 +127,7 @@ module MODULE {
 
       DATA.openDB(setting);
       new View($context).BIND(setting);
-      setTimeout(() => APP.createHTMLDocument_(), 50);
+      setTimeout(() => APP.createHTMLDocument(), 50);
       setTimeout(() => APP.landing = null, 1500);
     }
 
@@ -255,15 +255,15 @@ module MODULE {
       }
     }
 
-    createHTMLDocument_(html: string = ''): Document {
+    createHTMLDocument(html: string = ''): Document {
       // chrome, firefox
-      this.createHTMLDocument_ = function (html: string = '') {
+      this.createHTMLDocument = function (html: string = '') {
         return window.DOMParser && window.DOMParser.prototype && new window.DOMParser().parseFromString(html, 'text/html');
       };
-      if (test(this.createHTMLDocument_)) { return this.createHTMLDocument_(html); }
+      if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html); }
 
       // ie10+, opera
-      this.createHTMLDocument_ = function (html: string = '') {
+      this.createHTMLDocument = function (html: string = '') {
         if (document.implementation && document.implementation.createHTMLDocument) {
           var doc = document.implementation.createHTMLDocument('');
           var root = document.createElement('html');
@@ -282,10 +282,10 @@ module MODULE {
         }
         return doc;
       };
-      if (test(this.createHTMLDocument_)) { return this.createHTMLDocument_(html); }
+      if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html); }
 
       // msafari
-      this.createHTMLDocument_ = function (html: string = '') {
+      this.createHTMLDocument = function (html: string = '') {
         if (document.implementation && document.implementation.createHTMLDocument) {
           var doc = document.implementation.createHTMLDocument('');
           if ('object' === typeof doc.activeElement) {
@@ -296,11 +296,11 @@ module MODULE {
         }
         return doc;
       };
-      if (test(this.createHTMLDocument_)) { return this.createHTMLDocument_(html); }
+      if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html); }
 
-      function test(createHTMLDocument_) {
+      function test(createHTMLDocument) {
         try {
-          var doc = createHTMLDocument_ && createHTMLDocument_('<html lang="en" class="html"><head><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript></body></html>');
+          var doc = createHTMLDocument && createHTMLDocument('<html lang="en" class="html"><head><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript></body></html>');
           return doc && jQuery('html', doc).is('.html[lang=en]') && jQuery('head>noscript', doc).html() && jQuery('body>noscript', doc).text() === 'noscript';
         } catch (err) { }
       }

@@ -218,7 +218,7 @@ module MODULE {
           
           /* variable define */
           DEFINE : {
-            this.srcDocument_ = APP.createHTMLDocument_(XMLHttpRequest.responseText);
+            this.srcDocument_ = APP.createHTMLDocument(XMLHttpRequest.responseText);
             this.dstDocument_ = document;
             
             var srcDocument: Document = this.srcDocument_,
@@ -331,7 +331,7 @@ module MODULE {
       this.cache_ = cache;
 
       if (cache && cache.data) {
-        var cacheDocument: Document = APP.createHTMLDocument_(cache.data),
+        var cacheDocument: Document = APP.createHTMLDocument(cache.data),
             srcDocument: Document = this.srcDocument_;
 
         srcDocument.title = cacheDocument.title;
