@@ -217,7 +217,7 @@ module MODULE {
           if (!~(XMLHttpRequest.getResponseHeader('Content-Type') || '').toLowerCase().search(setting.contentType)) { throw new Error("throw: content-type mismatch"); }
           
           /* variable define */
-          DEFINE : {
+          DEFINE: {
             this.srcDocument_ = APP.createHTMLDocument(XMLHttpRequest.responseText);
             this.dstDocument_ = document;
             
@@ -227,7 +227,6 @@ module MODULE {
             setting.area = APP.chooseAreas(setting.area, srcDocument, dstDocument);
             setting.area = setting.area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
             if (!setting.area) { throw new Error('throw: area notfound'); }
-            
           }; // label: DEFINE
           
           /* cache */
