@@ -45,7 +45,7 @@ suite("Method - getCache", function () {
 
         $.pjax.setCache();
 
-        assert.equal($.pjax.getCache(window.location.href), $.pjax.getCache(), "$.pjax.getCache(url)");
+        assert.equal($.pjax.getCache(window.location.href).jqXHR, $.pjax.getCache().jqXHR, "$.pjax.getCache(url)");
 
         done();
       });

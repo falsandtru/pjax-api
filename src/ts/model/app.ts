@@ -319,7 +319,7 @@ module MODULE {
 
     loadScrollPositionByCacheOrDB(unsafe_url: string): void {
       var keyUrl = UTIL.canonicalizeUrl(M.convertUrlToUrlKey(unsafe_url));
-      var cache: CacheInterface = jQuery[M.NAME].getCache(keyUrl);
+      var cache: CacheInterface = M.getCache(keyUrl);
       if (cache && 'number' === typeof cache.scrollX) {
         window.scrollTo(parseInt(Number(cache.scrollX) + '', 10), parseInt(Number(cache.scrollY) + '', 10));
       } else {
@@ -329,7 +329,7 @@ module MODULE {
 
     saveScrollPositionToCacheAndDB(unsafe_url: string, scrollX: number, scrollY: number): void {
       var keyUrl = UTIL.canonicalizeUrl(M.convertUrlToUrlKey(unsafe_url));
-      jQuery.extend(jQuery[M.NAME].getCache(keyUrl), { scrollX: scrollX, scrollY: scrollY });
+      jQuery.extend(M.getCache(keyUrl), { scrollX: scrollX, scrollY: scrollY });
       DATA.saveScrollPosition(keyUrl, scrollX, scrollY);
     }
 

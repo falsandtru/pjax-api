@@ -101,7 +101,7 @@ suite("Method - setCache", function () {
 
         $.pjax.setCache(window.location.href, null, testStatus, XMLHttpRequest);
 
-        assert.equal($.pjax.getCache().XMLHttpRequest.responseText, XMLHttpRequest.responseText, "$.pjax.setCache(url, body, null, testStatus, XMLHttpRequest)");
+        assert.equal($.pjax.getCache().jqXHR.responseText, XMLHttpRequest.responseText, "$.pjax.setCache(url, body, null, testStatus, XMLHttpRequest)");
 
         done();
       });

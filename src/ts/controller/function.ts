@@ -91,15 +91,24 @@ module MODULE {
     
     getCache()
     getCache(url: string)
-    getCache(url: string = window.location.href): any {
-      return M.getCache(url);
+    getCache(url: string = window.location.href): CacheInterface {
+      var cache: CacheInterface = M.getCache(url);
+      if (cache) {
+        cache = {
+          data: cache.data,
+          textStatus: cache.textStatus,
+          jqXHR: cache.jqXHR,
+          expires: cache.expires
+        }
+      }
+      return cache;
     }
     
     setCache(): any
     setCache(url: string): any
     setCache(url: string, data: string): any
-    setCache(url: string, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest): any
-    setCache(url: string = window.location.href, data?: string, textStatus?: string, XMLHttpRequest?: XMLHttpRequest): any {
+    setCache(url: string, data: string, textStatus: string, jqXHR: JQueryXHR): any
+    setCache(url: string = window.location.href, data?: string, textStatus?: string, jqXHR?: JQueryXHR): any {
       switch (arguments.length) {
         case 0:
           return this.setCache(url, document.documentElement.outerHTML);
@@ -109,7 +118,7 @@ module MODULE {
         case 3:
         case 4:
         default:
-          M.setCache(url, data, textStatus, XMLHttpRequest);
+          M.setCache(url, data, textStatus, jqXHR);
       }
       return this;
     }
@@ -134,7 +143,7 @@ module MODULE {
       M.setActiveXHR($XHR);
       jQuery.when($XHR)
       .done(function () {
-        !jQuery[M.NAME].getCache(anchor.href) && M.isImmediateLoadable(event) && jQuery[M.NAME].setCache(anchor.href, undefined, undefined, $XHR);
+        !M.getCache(anchor.href) && M.isImmediateLoadable(event) && M.setCache(anchor.href, undefined, undefined, $XHR);
       });
       jQuery[M.NAME].click(anchor.href);
       return true;

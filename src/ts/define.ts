@@ -97,8 +97,8 @@ module MODULE {
     // Controller機能実体
     enable(): void
     disable(): void
-    getCache(unsafe_url: string): any
-    setCache(unsafe_url: string, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest): any
+    getCache(unsafe_url: string): CacheInterface
+    setCache(unsafe_url: string, data: string, textStatus: string, jqXHR: JQueryXHR): any
     removeCache(unsafe_url: string): void
     clearCache(): void
     cleanCache(): void
@@ -137,7 +137,7 @@ module MODULE {
     event_: JQueryEventObject
     data_: string
     textStatus_: string
-    XMLHttpRequest_: XMLHttpRequest
+    jqXHR_: JQueryXHR
     errorThrown_: string
     register_: boolean
     srcDocument_: Document
@@ -264,51 +264,51 @@ module MODULE {
         xhr?: (event: JQueryEventObject, param: any) => any
         beforeSend?: (event: JQueryEventObject, param: any, data: string, ajaxSettings: any) => any
         dataFilter?: (event: JQueryEventObject, param: any, data: string, dataType: any) => any
-        success?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
-        error?: (event: JQueryEventObject, param: any, XMLHttpRequest: XMLHttpRequest, textStatus: string, errorThrown: any) => any
-        complete?: (event: JQueryEventObject, param: any, XMLHttpRequest: XMLHttpRequest, textStatus: string) => any
-        done?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
-        fail?: (event: JQueryEventObject, param: any, XMLHttpRequest: XMLHttpRequest, textStatus: string, errorThrown: any) => any
-        always?: (event: JQueryEventObject, param: any, XMLHttpRequest: XMLHttpRequest, textStatus: string) => any
+        success?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
+        error?: (event: JQueryEventObject, param: any, jqXHR: JQueryXHR, textStatus: string, errorThrown: any) => any
+        complete?: (event: JQueryEventObject, param: any, jqXHR: JQueryXHR, textStatus: string) => any
+        done?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
+        fail?: (event: JQueryEventObject, param: any, jqXHR: JQueryXHR, textStatus: string, errorThrown: any) => any
+        always?: (event: JQueryEventObject, param: any, jqXHR: JQueryXHR, textStatus: string) => any
       }
       update: {
-        before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
-        after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+        before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
+        after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
         cache: {
           before?: (event: JQueryEventObject, param: any, cache: any) => any
           after?: (event: JQueryEventObject, param: any, cache: any) => any
         }
         redirect: {
-          before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
-          after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+          before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
+          after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
         }
         url: {
-          before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
-          after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+          before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
+          after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
         }
         title: {
-          before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
-          after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+          before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
+          after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
         }
         head: {
-          before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
-          after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+          before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
+          after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
         }
         content: {
-          before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
-          after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+          before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
+          after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
         }
         scroll: {
           before?: (event: JQueryEventObject, param: any) => any
           after?: (event: JQueryEventObject, param: any) => any
         }
         css: {
-          before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
-          after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+          before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
+          after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
         }
         script: {
-          before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
-          after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+          before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
+          after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
         }
         render: {
           before?: (event: JQueryEventObject, param: any) => any
@@ -318,9 +318,9 @@ module MODULE {
           before?: (event: JQueryEventObject, param: any) => any
           after?: (event: JQueryEventObject, param: any) => any
         }
-        success?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
-        error?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
-        complete?: (event: JQueryEventObject, param: any, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest) => any
+        success?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
+        error?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
+        complete?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
       }
     }
     param: any
@@ -387,7 +387,7 @@ module MODULE {
   // Member
   export interface ContextInterface extends JQuery { }
   export interface CacheInterface {
-    XMLHttpRequest: JQueryXHR
+    jqXHR: JQueryXHR
     data: string
     textStatus: string
     css?: HTMLElement[]
