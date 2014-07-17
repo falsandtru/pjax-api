@@ -128,18 +128,33 @@ module MODULE {
   }
   export declare class ModelAppUpdateInterface {
     constructor(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface)
-    update_(setting: SettingInterface, event: JQueryEventObject, register: boolean, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest, cache: CacheInterface): void
-    updateCache_(setting: SettingInterface, cache: CacheInterface, textStatus: string, XMLHttpRequest: XMLHttpRequest): CacheInterface
-    updateRedirect_(setting: SettingInterface, register: boolean, title: string, srcDocument: Document, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest): void
-    updateUrl_(setting: SettingInterface, register: boolean, title: string, dstDocument: Document, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest): void
-    updateTitle_(setting: SettingInterface, title: string, dstDocument: Document, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest): void
-    updateHead_(setting: SettingInterface, srcDocument: Document, dstDocument: Document, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest): void
-    updateContent_(setting: SettingInterface, srcDocument: Document, dstDocument: Document, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest): JQueryDeferred<any>[]
-    updateScroll_(setting: SettingInterface, call: boolean): void
-    updateCSS_(selector: string, setting: SettingInterface, cache: CacheInterface, srcDocument: Document, dstDocument: Document, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest): void
-    updateScript_(selector: string, setting: SettingInterface, cache: CacheInterface, srcDocument: Document, dstDocument: Document, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest): void
-    updateRender_(callback: () => void, setting: SettingInterface, checker: JQuery, loadwaits: JQueryDeferred<any>[]): void
-    updateVerify_(setting: SettingInterface, event: JQueryEventObject): void
+
+    setting_: SettingInterface
+    cache_: CacheInterface
+    checker_: JQuery
+    loadwaits_: JQueryDeferred<any>[]
+
+    event_: JQueryEventObject
+    data_: string
+    textStatus_: string
+    XMLHttpRequest_: XMLHttpRequest
+    errorThrown_: string
+    register_: boolean
+    srcDocument_: Document
+    dstDocument_: Document
+
+    update_(): void
+    updateCache_(): void
+    updateRedirect_(): void
+    updateUrl_(): void
+    updateTitle_(): void
+    updateHead_(): void
+    updateContent_(): JQueryDeferred<any>[]
+    updateScroll_(call: boolean): void
+    updateCSS_(selector: string): void
+    updateScript_(selector: string): void
+    updateRender_(callback: () => void): void
+    updateVerify_(): void
     wait_(ms: number): JQueryPromise<any>
   }
   export declare class ModelDataInterface {
