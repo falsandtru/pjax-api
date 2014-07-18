@@ -46,6 +46,10 @@ module MODULE {
               click: false, submit: false, popstate: false, get: true, post: true, mix: false,
               limit: 100 /* pages */, size: 1 * 1024 * 1024 /* 1MB */, expires: { max: null, min: 5 * 60 * 1000 /* 5min */}
             },
+            buffer: {
+              limit: 30,
+              delay: 500 
+            },
             callback: null,
             callbacks: {
               ajax: {},
@@ -129,6 +133,7 @@ module MODULE {
       DATA.openDB(setting);
       new View($context).BIND(setting);
       setTimeout(() => APP.createHTMLDocument(), 50);
+      setTimeout(() => APP.loadBuffer(setting.buffer.limit), setting.buffer.delay);
       setTimeout(() => APP.landing = null, 1500);
     }
 
@@ -310,19 +315,25 @@ module MODULE {
 
     loadTitleByDB(unsafe_url: string): void {
       var keyUrl = UTIL.canonicalizeUrl(M.convertUrlToUrlKey(unsafe_url));
-      DATA.loadTitle(keyUrl);
+      var buffer = DATA.buffer[keyUrl];
+      if (buffer && 'string' === typeof buffer.title) {
+        document.title = buffer.title;
+      } else {
+        DATA.loadTitle(keyUrl);
+      }
     }
 
     saveTitleToDB(unsafe_url: string, title: string): void {
       var keyUrl = UTIL.canonicalizeUrl(M.convertUrlToUrlKey(unsafe_url));
+      DATA.buffer[keyUrl] = jQuery.extend({}, DATA.buffer[keyUrl], { title: title });
       DATA.saveTitle(keyUrl, title);
     }
 
     loadScrollPositionByCacheOrDB(unsafe_url: string): void {
       var keyUrl = UTIL.canonicalizeUrl(M.convertUrlToUrlKey(unsafe_url));
-      var cache: CacheInterface = M.getCache(keyUrl);
-      if (cache && 'number' === typeof cache.scrollX) {
-        window.scrollTo(parseInt(Number(cache.scrollX) + '', 10), parseInt(Number(cache.scrollY) + '', 10));
+      var buffer = DATA.buffer[keyUrl];
+      if (buffer && 'number' === typeof buffer.scrollX) {
+        window.scrollTo(parseInt(Number(buffer.scrollX) + '', 10), parseInt(Number(buffer.scrollY) + '', 10));
       } else {
         DATA.loadScrollPosition(keyUrl);
       }
@@ -330,8 +341,17 @@ module MODULE {
 
     saveScrollPositionToCacheAndDB(unsafe_url: string, scrollX: number, scrollY: number): void {
       var keyUrl = UTIL.canonicalizeUrl(M.convertUrlToUrlKey(unsafe_url));
-      jQuery.extend(M.getCache(keyUrl), { scrollX: scrollX, scrollY: scrollY });
+      DATA.buffer[keyUrl] = jQuery.extend({}, DATA.buffer[keyUrl], { scrollX: scrollX, scrollY: scrollY });
       DATA.saveScrollPosition(keyUrl, scrollX, scrollY);
+    }
+
+    loadBuffer(limit: number): void {
+      0 < limit && 
+      DATA.loadBuffer(limit);
+    }
+
+    saveBuffer(): void {
+      DATA.saveBuffer();
     }
 
   }
