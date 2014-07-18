@@ -226,7 +226,7 @@ module MODULE {
     scope: {}
     cache: {
       mix: number
-      page: number
+      limit: number
       size: number
       expires: {
         max: number
@@ -266,13 +266,13 @@ module MODULE {
       popstate: boolean
       get: boolean
       post: boolean
-      mix: number
-      page: number
+      limit: number
       size: number
       expires: {
         max: number
         min: number
       }
+      mix: number
     }
     callback(): any
     callbacks: {

@@ -44,7 +44,7 @@ module MODULE {
             contentType: 'text/html',
             cache: {
               click: false, submit: false, popstate: false, get: true, post: true, mix: false,
-              page: 100 /* pages */, size: 1 * 1024 * 1024 /* 1MB */, expires: { max: null, min: 5 * 60 * 1000 /* 5min */}
+              limit: 100 /* pages */, size: 1 * 1024 * 1024 /* 1MB */, expires: { max: null, min: 5 * 60 * 1000 /* 5min */}
             },
             callback: null,
             callbacks: {
