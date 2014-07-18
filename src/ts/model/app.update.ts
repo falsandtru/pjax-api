@@ -135,18 +135,20 @@ module MODULE {
           },
           success: function (data: string, textStatus: string, jqXHR: JQueryXHR) {
             that.data_ = data;
-            UTIL.fire(setting.callbacks.ajax.success, this, [event, setting.param, that.data_, that.textStatus_, that.jqXHR_]);
+            UTIL.fire(setting.callbacks.ajax.success, this, [event, setting.param, data, textStatus, jqXHR]);
           },
           error: function (jqXHR: JQueryXHR, textStatus: string, errorThrown: string) {
             that.errorThrown_ = errorThrown;
-            UTIL.fire(setting.callbacks.ajax.error, this, [event, setting.param, that.jqXHR_, that.textStatus_, that.errorThrown_]);
+            UTIL.fire(setting.callbacks.ajax.error, this, [event, setting.param, jqXHR, textStatus, errorThrown]);
           },
           complete: function (jqXHR: JQueryXHR, textStatus: string) {
-            UTIL.fire(setting.callbacks.ajax.complete, this, [event, setting.param, that.jqXHR_, that.textStatus_]);
+            UTIL.fire(setting.callbacks.ajax.complete, this, [event, setting.param, jqXHR, textStatus]);
 
             M.setActiveXHR(null);
             if (!that.errorThrown_) {
               if (!M.isDeferrable) {
+                that.textStatus_ = textStatus;
+                that.jqXHR_ = jqXHR;
                 that.update_();
               }
             } else if (setting.fallback && 'abort' !== textStatus) {
