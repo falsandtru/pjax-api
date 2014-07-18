@@ -9,6 +9,7 @@ suite("Method - clearCache", function () {
     var url = iframe.src = (window.__karma__ ? "/base/test/" : "./") + "fixture/index.html" + query;
 
     iframe.onload = function () {
+      iframe.onload = null;
       var window, document, $, defer;
 
       self.$.Deferred().resolve()

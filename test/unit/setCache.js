@@ -9,6 +9,7 @@ suite("Method - setCache", function () {
     var url = iframe.src = (window.__karma__ ? "/base/test/" : "./") + "fixture/index.html" + query;
 
     iframe.onload = function () {
+      iframe.onload = null;
       var window, document, $, defer;
 
       self.$.Deferred().resolve()
@@ -33,6 +34,7 @@ suite("Method - setCache", function () {
     var url = iframe.src = (window.__karma__ ? "/base/test/" : "./") + "fixture/index.html" + query;
 
     iframe.onload = function () {
+      iframe.onload = null;
       var window, document, $, defer;
 
       self.$.Deferred().resolve()
@@ -57,6 +59,7 @@ suite("Method - setCache", function () {
     var url = iframe.src = (window.__karma__ ? "/base/test/" : "./") + "fixture/index.html" + query;
 
     iframe.onload = function () {
+      iframe.onload = null;
       var window, document, $, defer;
 
       self.$.Deferred().resolve()
@@ -81,6 +84,7 @@ suite("Method - setCache", function () {
     var url = iframe.src = (window.__karma__ ? "/base/test/" : "./") + "fixture/index.html" + query;
 
     iframe.onload = function () {
+      iframe.onload = null;
       var window, document, $, defer;
 
       self.$.Deferred().resolve()
@@ -97,7 +101,7 @@ suite("Method - setCache", function () {
 
         $.pjax.setCache(window.location.href, null, testStatus, XMLHttpRequest);
 
-        assert.equal($.pjax.getCache().XMLHttpRequest.responseText, XMLHttpRequest.responseText, "$.pjax.setCache(url, body, null, testStatus, XMLHttpRequest)");
+        assert.equal($.pjax.getCache().jqXHR.responseText, XMLHttpRequest.responseText, "$.pjax.setCache(url, body, null, testStatus, XMLHttpRequest)");
 
         done();
       });

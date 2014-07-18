@@ -7,7 +7,7 @@ class: style-api style-api-detail
 ---
 
 # submit() <small><span class="label label-info">chainable</span></small>
-フォーム送信によるpjaxを使用したページ遷移を行います。
+フォーム送信によるpjaxを使用したページ遷移を行います。pjaxを使用できない場合は通常のページ遷移にフォールバックされます。
 
 ## submit( Form: jQuery ): this
 渡されたフォームを使用します。
