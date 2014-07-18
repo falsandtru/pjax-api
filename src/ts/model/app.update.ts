@@ -1,4 +1,4 @@
-/// <reference path="app.ts"/>
+/// <reference path="../define.ts"/>
 
 /* MODEL */
 

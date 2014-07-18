@@ -1,5 +1,6 @@
 /// <reference path="../define.ts"/>
 /// <reference path="_template.ts"/>
+/// <reference path="app.update.ts"/>
 /// <reference path="util.ts"/>
 
 /* MODEL */
