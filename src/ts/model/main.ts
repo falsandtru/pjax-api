@@ -307,8 +307,8 @@ module MODULE {
           //script: undefined,
           size: size,
           expires: expires,
-          scrollX: null,
-          scrollY: null,
+          //scrollX: undefined,
+          //scrollY: undefined,
           timeStamp: timeStamp
         }
         );
