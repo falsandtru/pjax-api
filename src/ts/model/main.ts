@@ -20,7 +20,7 @@ module MODULE {
     }
 
     state: State
-    isDeferrable: boolean = jQuery.when && 1.6 <= Number(jQuery().jquery.match(/\d+\.\d+/))
+    isDeferrable: boolean = jQuery.when && 1.06 <= Number(jQuery().jquery.replace(/\D*(\d+)\.(\d+).*$/, '$1.0$2').replace(/\d+(\d{2})$/, '$1'))
 
     main_($context: JQuery, option): JQuery {
 
@@ -124,75 +124,85 @@ module MODULE {
     }
 
     CLICK(event: JQueryEventObject): void {
-      event.timeStamp = new Date().getTime();
-      var context = <HTMLAnchorElement>event.currentTarget,
-          $context: ContextInterface = jQuery(context);
-      var setting: SettingInterface = APP.configure(M.getActiveSetting(), window.location.href, context.href);
+      PROCESS: {
+        event.timeStamp = new Date().getTime();
+        var context = <HTMLAnchorElement>event.currentTarget,
+            $context: ContextInterface = jQuery(context);
+        var setting: SettingInterface = APP.configure(M.getActiveSetting(), window.location.href, context.href);
 
-      if (M.state_ !== State.ready || setting.disable || event.isDefaultPrevented()) { return; }
-      if (!M.isImmediateLoadable(event)) { return; }
+        if (M.state_ !== State.ready || setting.disable || event.isDefaultPrevented()) { break PROCESS; }
+        if (!M.isImmediateLoadable(event)) { break PROCESS; }
 
-      if (setting.cache.mix && jQuery[M.NAME].getCache(setting.destLocation.href)) { return; }
-      setting.area = UTIL.fire(setting.area, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
-      setting.area = setting.area instanceof Array ? setting.area : [setting.area];
-      setting.database && setting.scroll.record && APP.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+        if (setting.cache.mix && M.getCache(setting.destLocation.href)) { break PROCESS; }
+        setting.area = UTIL.fire(setting.area, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
+        setting.area = setting.area instanceof Array ? setting.area : [setting.area];
+        setting.database && setting.scroll.record && APP.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
-      var cache: CacheInterface;
-      if (setting.cache[event.type.toLowerCase()]) { cache = jQuery[M.NAME].getCache(setting.destLocation.href); }
+        var cache: CacheInterface;
+        if (setting.cache[event.type.toLowerCase()]) { cache = M.getCache(setting.destLocation.href); }
 
-      APP.drive(setting, event, true, cache);
-      return event.preventDefault();
+        new ModelAppUpdate(setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
+        event.preventDefault();
+        return;
+      };
+      !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context)[0] && M.fallback(event, setting);
     }
 
     SUBMIT(event: JQueryEventObject): void {
-      event.timeStamp = new Date().getTime();
-      var context = <HTMLFormElement>event.currentTarget,
-          $context: ContextInterface = jQuery(context);
-      var setting: SettingInterface = APP.configure(M.getActiveSetting(), window.location.href, context.action);
+      PROCESS: {
+        event.timeStamp = new Date().getTime();
+        var context = <HTMLFormElement>event.currentTarget,
+            $context: ContextInterface = jQuery(context);
+        var setting: SettingInterface = APP.configure(M.getActiveSetting(), window.location.href, context.action);
 
-      if (M.state_ !== State.ready || setting.disable || event.isDefaultPrevented()) { return; }
-      if (!M.isImmediateLoadable(event)) { return; }
+        if (M.state_ !== State.ready || setting.disable || event.isDefaultPrevented()) { break PROCESS; }
+        if (!M.isImmediateLoadable(event)) { break PROCESS; }
 
-      var serializedURL = setting.destLocation.href.replace(/[?#].*/, '') + ('GET' === context.method.toUpperCase() ? '?' + jQuery(context).serialize() : '');
-      setting.destLocation.href = UTIL.canonicalizeUrl(serializedURL);
-      if (setting.cache.mix && jQuery[M.NAME].getCache(setting.destLocation.href)) { return; }
-      setting.area = UTIL.fire(setting.area, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
-      setting.area = setting.area instanceof Array ? setting.area : [setting.area];
-      if (!setting.area[0] || !jQuery(setting.area.join(','))[0]) { return; }
-      setting.database && setting.scroll.record && APP.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+        var serializedURL = setting.destLocation.href.replace(/[?#].*/, '') + ('GET' === context.method.toUpperCase() ? '?' + jQuery(context).serialize() : '');
+        setting.destLocation.href = UTIL.canonicalizeUrl(serializedURL);
+        if (setting.cache.mix && M.getCache(setting.destLocation.href)) { break PROCESS; }
+        setting.area = UTIL.fire(setting.area, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
+        setting.area = setting.area instanceof Array ? setting.area : [setting.area];
+        if (!setting.area[0] || !jQuery(setting.area.join(','))[0]) { break PROCESS; }
+        setting.database && setting.scroll.record && APP.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
-      var cache: CacheInterface;
-      if (setting.cache[event.type.toLowerCase()] && setting.cache[context.method.toLowerCase()]) { cache = jQuery[M.NAME].getCache(setting.destLocation.href); }
+        var cache: CacheInterface;
+        if (setting.cache[event.type.toLowerCase()] && setting.cache[context.method.toLowerCase()]) { cache = M.getCache(setting.destLocation.href); }
 
-      APP.drive(setting, event, true, cache);
-      return event.preventDefault();
+        new ModelAppUpdate(setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
+        event.preventDefault();
+        return;
+      };
+      !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context)[0] && M.fallback(event, setting);
     }
 
     POPSTATE(event: JQueryEventObject): void {
-      event.timeStamp = new Date().getTime();
-      var setting: SettingInterface = APP.configure(M.getActiveSetting(), null, window.location.href, true);
-      if (APP.landing && APP.landing === UTIL.canonicalizeUrl(window.location.href)) { return; }
+      PROCESS: {
+        event.timeStamp = new Date().getTime();
+        var setting: SettingInterface = APP.configure(M.getActiveSetting(), null, window.location.href, true);
+        if (APP.landing && APP.landing === UTIL.canonicalizeUrl(window.location.href)) { return; }
+        if (setting.origLocation.href === setting.destLocation.href) { return; }
 
-      if (M.state_ !== State.ready || setting.disable || event.isDefaultPrevented()) { return; }
-      if (setting.origLocation.href === setting.destLocation.href) { return; }
+        if (M.state_ !== State.ready || setting.disable) { break PROCESS; }
 
-      if (setting.origLocation.hash !== setting.destLocation.hash &&
-          setting.origLocation.pathname + setting.origLocation.search === setting.destLocation.pathname + setting.destLocation.search) {
+        if (setting.origLocation.hash !== setting.destLocation.hash &&
+            setting.origLocation.pathname + setting.origLocation.search === setting.destLocation.pathname + setting.destLocation.search) {
+          break PROCESS;
+        }
+        
+        setting.area = UTIL.fire(setting.area, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
+        setting.area = setting.area instanceof Array ? setting.area : [setting.area];
+        if (!setting.area[0] || !jQuery(setting.area.join(','))[0]) { break PROCESS; }
+
+        setting.database && setting.fix.history && APP.loadTitleByDB(setting.destLocation.href);
+
+        var cache: CacheInterface;
+        if (setting.cache[event.type.toLowerCase()]) { cache = M.getCache(setting.destLocation.href); }
+
+        new ModelAppUpdate(setting, event, false, cache);
         return;
-      }
-
-      if (setting.cache.mix && jQuery[M.NAME].getCache(setting.destLocation.href)) { return; }
-      setting.area = UTIL.fire(setting.area, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
-      setting.area = setting.area instanceof Array ? setting.area : [setting.area];
-      if (!setting.area[0] || !jQuery(setting.area.join(','))[0]) { return; }
-
-      setting.database && setting.fix.history && APP.loadTitleByDB(setting.destLocation.href);
-
-      var cache: CacheInterface;
-      if (setting.cache[event.type.toLowerCase()]) { cache = jQuery[M.NAME].getCache(setting.destLocation.href); }
-
-      APP.drive(setting, event, false, cache);
-      return event.preventDefault();
+      };
+      M.fallback(event, setting);
     }
 
     SCROLL(event: JQueryEventObject, end: boolean): void {
@@ -212,6 +222,14 @@ module MODULE {
       }
     }
 
+    fallback(event: JQueryEventObject, setting: SettingInterface): void {
+      if ('function' === typeof setting.fallback) {
+        UTIL.fire(setting.fallback, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
+      } else {
+        APP.movePageNormally(event);
+      }
+    }
+
     enable(): void {
       M.state_ = State.ready;
     }
@@ -220,20 +238,20 @@ module MODULE {
       M.state_ = State.lock;
     }
 
-    getCache(unsafe_url: string): any {
+    getCache(unsafe_url: string): CacheInterface {
       var common: CommonSettingInterface = M.getActiveSetting(),
           recent: RecentInterface = APP.recent;
-      if (!common || !recent) { return false; }
+      if (!common || !recent) { return null; }
 
       var secure_url: string = M.convertUrlToUrlKey(UTIL.canonicalizeUrl(unsafe_url));
       unsafe_url = null;
 
-      recent.data[secure_url] && new Date().getTime() > recent.data[secure_url].expires && jQuery[M.NAME].removeCache(secure_url);
-      recent.data[secure_url] && !recent.data[secure_url].data && !recent.data[secure_url].XMLHttpRequest && jQuery[M.NAME].removeCache(secure_url);
+      recent.data[secure_url] && new Date().getTime() > recent.data[secure_url].expires && M.removeCache(secure_url);
+      recent.data[secure_url] && !recent.data[secure_url].data && !recent.data[secure_url].jqXHR && M.removeCache(secure_url);
       return recent.data[secure_url];
     }
     
-    setCache(unsafe_url: string, data: string, textStatus: string, XMLHttpRequest: XMLHttpRequest): any {
+    setCache(unsafe_url: string, data: string, textStatus: string, jqXHR: JQueryXHR): any {
       var common: CommonSettingInterface = M.getActiveSetting(),
           recent: RecentInterface = APP.recent;
       if (!common || !recent) { return this; }
@@ -249,31 +267,31 @@ module MODULE {
       for (var i = 1, key; key = recent.order[i]; i++) { if (secure_url === key) { recent.order.splice(i, 1); } }
 
       recent.size > common.cache.size && M.cleanCache();
-      cache = jQuery[M.NAME].getCache(secure_url);
-      if (!data && !XMLHttpRequest && (!cache || !cache.data && !cache.XMLHttpRequest)) { return; }
+      cache = M.getCache(secure_url);
+      if (!data && !jqXHR && (!cache || !cache.data && !cache.jqXHR)) { return; }
 
-      var html: string = (XMLHttpRequest || <XMLHttpRequest>{}).responseText || '';
+      var html: string = (jqXHR || <XMLHttpRequest>{}).responseText || '';
       size = parseInt(html.length * 1.8 + '' || 1024 * 1024 + '', 10);
       timeStamp = new Date().getTime();
       expires = (function (timeStamp: number): number {
         var expires = common.cache.expires,
-            expire: any;
+            age: any;
         if (!common.cache.expires) { return 0; }
-        if (recent.data[secure_url] && !XMLHttpRequest) { return recent.data[secure_url].expires; }
+        if (recent.data[secure_url] && !jqXHR) { return recent.data[secure_url].expires; }
 
-        if (!XMLHttpRequest) {
-        } else if (/no-store|no-cache/.test(XMLHttpRequest.getResponseHeader('Cache-Control'))) {
-        } else if (~String(expire = XMLHttpRequest.getResponseHeader('Cache-Control')).indexOf('max-age=')) {
-          expire = expire.match(/max-age=(\d+)/)[1] * 1000;
-        } else if (expire = XMLHttpRequest.getResponseHeader('Expires')) {
-          expire = new Date(expire).getTime() - new Date().getTime();
+        if (!jqXHR) {
+        } else if (/no-store|no-cache/.test(jqXHR.getResponseHeader('Cache-Control'))) {
+        } else if (~String(age = jqXHR.getResponseHeader('Cache-Control')).indexOf('max-age=')) {
+          age = age.match(/max-age=(\d+)/)[1] * 1000;
+        } else if (age = jqXHR.getResponseHeader('Expires')) {
+          age = new Date(age).getTime() - new Date().getTime();
         } else {
-          expire = Number(common.cache.expires);
+          age = Number(common.cache.expires);
         }
-        expire = Math.max(expire, 0) || 0;
-        expire = 'object' === typeof common.cache.expires && 'number' === typeof common.cache.expires.min ? Math.max(common.cache.expires.min, expire) : expire;
-        expire = 'object' === typeof common.cache.expires && 'number' === typeof common.cache.expires.max ? Math.min(common.cache.expires.max, expire) : expire;
-        return timeStamp + expire;
+        age = Math.max(age, 0) || 0;
+        age = 'object' === typeof common.cache.expires && 'number' === typeof common.cache.expires.min ? Math.max(common.cache.expires.min, age) : age;
+        age = 'object' === typeof common.cache.expires && 'number' === typeof common.cache.expires.max ? Math.min(common.cache.expires.max, age) : age;
+        return timeStamp + age;
       })(timeStamp);
       recent.size = recent.size || 0;
       recent.size += recent.data[secure_url] ? 0 : size;
@@ -282,7 +300,7 @@ module MODULE {
         {},
         cache,
         {
-          XMLHttpRequest: XMLHttpRequest,
+          jqXHR: jqXHR,
           textStatus: textStatus,
           data: data,
           //css: undefined,
@@ -294,11 +312,11 @@ module MODULE {
           timeStamp: timeStamp
         }
         );
-      if (!recent.data[secure_url].data && !recent.data[secure_url].XMLHttpRequest) {
-        jQuery[M.NAME].removeCache(secure_url);
+      if (!recent.data[secure_url].data && !recent.data[secure_url].jqXHR) {
+        M.removeCache(secure_url);
       }
-      if (XMLHttpRequest || cache && cache.XMLHttpRequest) {
-        var title: string = ((XMLHttpRequest || cache && cache.XMLHttpRequest).responseText || '').slice(0, 10000).match(/<title[^>]*>(.*?)<\/title>/i).pop() || '';
+      if (jqXHR || cache && cache.jqXHR) {
+        var title: string = ((jqXHR || cache && cache.jqXHR).responseText || '').slice(0, 10000).match(/<title[^>]*>(.*?)<\/title>/i).pop() || '';
         common.database && common.fix.history && APP.saveTitleToDB(secure_url, title);
       }
     }

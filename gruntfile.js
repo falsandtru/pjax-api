@@ -25,15 +25,6 @@ module.exports = function(grunt) {
       }
     },
     
-    tslint: {
-      options: {
-        configuration: grunt.file.readJSON("src/ts/tslint.json")
-      },
-      files: {
-        src: ['src/ts/**/*.ts']
-      }
-    },
-
     concat: {
       ts: {
         options: {
@@ -46,7 +37,7 @@ module.exports = function(grunt) {
             ' * @version <%= pkg.version %>',
             ' * ---',
             ' * @author <%= pkg.author %> <%= pkg.homepage %>',
-            ' * @copyright 2014, <%= pkg.author %>',
+            ' * @copyright 2012, <%= pkg.author %>',
             ' * @license <%= pkg.license %>',
             ' * ',
             ' */',
@@ -183,7 +174,7 @@ module.exports = function(grunt) {
 
 
   grunt.loadNpmTasks('grunt-typescript');
-  grunt.loadNpmTasks('grunt-tslint');
+  //grunt.loadNpmTasks('grunt-tslint');
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-uglify');

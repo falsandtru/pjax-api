@@ -4,6 +4,8 @@
 **[Document](http://falsandtru.github.io/jquery.pjax.js/)**
  | 
 **[Download](https://github.com/falsandtru/jquery.pjax.js/releases)**
+ | 
+**[d.ts](src/ts/.d/jquery.pjax.d.ts)**
 
 
 pjaxはリクエストと描画を最小限に抑えることで高速かつシームレスなページ遷移機能を提供します。
