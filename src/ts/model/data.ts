@@ -39,7 +39,7 @@ module MODULE {
           wait ? setTimeout(() => void DATA.openDB(setting, ++count), wait) : void DATA.openDB(setting, ++count);
         }
 
-        version = parseInt(days - days % 7 + version + '', 10);
+        version = parseInt(days - days % 10 + version + '', 10);
         IDBOpenDBRequest = IDBFactory.open(name);
         IDBOpenDBRequest.onblocked = function () { };
         IDBOpenDBRequest.onupgradeneeded = function () {
