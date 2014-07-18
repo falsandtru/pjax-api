@@ -74,7 +74,7 @@ module.exports = function(grunt) {
     uglify: {
       js: {
         options: {
-          banner: '/*! <%= pkg.name %> v<%= pkg.version %> | (c) 2014, <%= pkg.author %> | <%= pkg.license %> Licence */\n'
+          banner: '/*! <%= pkg.name %> v<%= pkg.version %> | (c) 2012, <%= pkg.author %> | <%= pkg.license %> Licence */\n'
         },
         src: 'dist/raw/<%= filename %>.js',
         dest: 'dist/min/<%= filename %>.min.js'
