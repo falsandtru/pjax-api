@@ -358,12 +358,11 @@ module MODULE {
           register: boolean = this.register_;
       var callbacks_update = setting.callbacks.update;
 
-      var redirect = <HTMLAnchorElement>jQuery('head meta[http-equiv="Refresh"][content*="URL="]', this.srcDocument_)[0];
-      if (!redirect) { return; }
+      if (!<HTMLAnchorElement>jQuery('head meta[http-equiv="Refresh"][content*="URL="]', this.srcDocument_)[0]) { return; }
 
       if (UTIL.fire(callbacks_update.redirect.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; };
 
-      redirect = <HTMLAnchorElement>jQuery('<a>', { href: jQuery(redirect).attr('content').match(/\w+:\/\/[^;\s]+/i) })[0];
+      var redirect = <HTMLAnchorElement>jQuery('<a>', { href: jQuery(redirect).attr('content').match(/\w+:\/\/[^;\s]+/i) })[0];
       switch (true) {
         case !setting.redirect:
         case redirect.protocol !== setting.destLocation.protocol:
