@@ -307,8 +307,6 @@ module MODULE {
           //script: undefined,
           size: size,
           expires: expires,
-          scrollX: null,
-          scrollY: null,
           timeStamp: timeStamp
         }
         );
@@ -355,7 +353,7 @@ module MODULE {
         recent: RecentInterface = APP.recent;
       if (!common || !recent) { return; }
       for (var i = recent.order.length, url; url = recent.order[--i];) {
-        if (i >= common.cache.page || url in recent.data && new Date().getTime() > recent.data[url].expires) {
+        if (i >= common.cache.limit || url in recent.data && new Date().getTime() > recent.data[url].expires) {
           recent.order.splice(i, 1);
           recent.size -= recent.data[url].size;
           delete recent.data[url];

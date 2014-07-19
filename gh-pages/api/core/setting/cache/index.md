@@ -48,7 +48,7 @@ $.pjax({
 ## cache.post: boolean
 フォームのPOST送信により取得したページをキャッシュするかを設定します。初期値は`true`です。
 
-## cache.page: boolean
+## cache.limit: boolean
 プラグインキャッシュを保持するページ数の上限を設定します。初期値は`100`です。
 
 ## cache.size: number

@@ -17,6 +17,8 @@ module MODULE {
     IDBDatabase: IDBDatabase
     IDBKeyRange: IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.mozIDBKeyRange || window.msIDBKeyRange
 
+    buffer: BufferInterface = {}
+
     openDB(setting: SettingInterface, count: number = 0): void {
       var name: string = setting.gns,
           version: number = 1,
@@ -39,7 +41,7 @@ module MODULE {
           wait ? setTimeout(() => void DATA.openDB(setting, ++count), wait) : void DATA.openDB(setting, ++count);
         }
 
-        version = parseInt(days - days % 7 + version + '', 10);
+        version = parseInt(days - days % 10 + version + '', 10);
         IDBOpenDBRequest = IDBFactory.open(name);
         IDBOpenDBRequest.onblocked = function () { };
         IDBOpenDBRequest.onupgradeneeded = function () {
@@ -97,14 +99,14 @@ module MODULE {
 
       if (!IDBObjectStore) { return; }
       var secure_url: string = M.convertUrlToUrlKey(UTIL.canonicalizeUrl(window.location.href));
-      IDBObjectStore.put({ id: '_current', title: secure_url });
+      IDBObjectStore.put({ id: '_current', title: secure_url, date: new Date().getTime() });
     }
 
     updateVersionNumber_(version: number): void {
       var IDBObjectStore = DATA.createStore_();
 
       if (!IDBObjectStore) { return; }
-      IDBObjectStore.put({ id: '_version', title: version });
+      IDBObjectStore.put({ id: '_version', title: version, date: new Date().getTime() });
     }
 
     accessRecord_(keyUrl: string, success: (event?: Event) => void): void {
@@ -142,9 +144,26 @@ module MODULE {
       DATA.accessRecord_(keyUrl, function () {
         if (!this.result || !this.result.id || keyUrl !== this.result.id) { return; }
         this.source.get(keyUrl).onsuccess = function () {
-          this.source.put(jQuery.extend(true, {}, this.result || {}, { scrollX: parseInt(Number(scrollX) + '', 10), scrollY: parseInt(Number(scrollY) + '', 10) }));
+          this.source.put(jQuery.extend(true, {}, this.result || {}, { scrollX: parseInt(Number(scrollX) + '', 10), scrollY: parseInt(Number(scrollY) + '', 10), date: new Date().getTime() }));
         }
       });
+    }
+
+    loadBuffer(limit: number): void {
+      var IDBObjectStore = DATA.createStore_();
+      IDBObjectStore.index('date').openCursor(DATA.IDBKeyRange.lowerBound(0), 'prev').onsuccess = function () {
+        if (!this.result) { return; }
+
+        var IDBCursor = this.result,
+            data = IDBCursor.value;
+        DATA.buffer[data.id] = data;
+        if ('_' !== data.id.charAt(0) && !--limit) { return; }
+
+        IDBCursor['continue'] && IDBCursor['continue']();
+      }
+    }
+
+    saveBuffer(): void {
     }
 
     clean_(): void {
@@ -152,10 +171,12 @@ module MODULE {
       IDBObjectStore.count().onsuccess = function () {
         if (1000 < this.result) {
           IDBObjectStore.index('date').openCursor(DATA.IDBKeyRange.upperBound(new Date().getTime() - (3 * 24 * 60 * 60 * 1000))).onsuccess = function () {
+            if (!this.result) { return; }
+
             var IDBCursor = this.result;
             if (IDBCursor) {
               IDBCursor['delete'](IDBCursor.value.id);
-              IDBCursor['continue']();
+              IDBCursor['continue'] && IDBCursor['continue']();
             } else {
               IDBObjectStore.count().onsuccess = function () { 1000 < this.result && IDBObjectStore.clear(); }
             }

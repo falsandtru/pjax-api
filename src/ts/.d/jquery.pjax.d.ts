@@ -49,6 +49,10 @@ interface PjaxSetting {
             max?: number
         }
     }
+    buffer: {
+      limit: number
+      delay: number
+    }
     wait?: any     // number, function( event, param, origUrl, destUrl ): number
     fallback?: any // boolean, function( event, param, origUrl, destUrl ): boolean
     fix?: {

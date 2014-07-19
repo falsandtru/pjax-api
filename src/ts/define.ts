@@ -125,6 +125,8 @@ module MODULE {
     saveTitleToDB(unsafe_url: string, title: string): void
     loadScrollPositionByCacheOrDB(unsafe_url: string): void
     saveScrollPositionToCacheAndDB(unsafe_url: string, scrollX: number, scrollY: number): void
+    loadBuffer(limit: number): void
+    saveBuffer(): void
   }
   export declare class ModelAppUpdateInterface {
     constructor(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface)
@@ -163,12 +165,16 @@ module MODULE {
     updateVersionNumber_(version: number): void
     clean_(): void
 
+    buffer: BufferInterface
+
     openDB(setting: SettingInterface, count?: number): void
     updateCurrentPage(): void
     loadTitle(keyUrl: string): void
     saveTitle(keyUrl: string, title: string): void
     loadScrollPosition(keyUrl: string): void
     saveScrollPosition(keyUrl: string, scrollX: number, scrollY: number): void
+    loadBuffer(limit: number): void
+    saveBuffer(): void
   }
   // View
   export declare class ViewInterface {
@@ -226,7 +232,7 @@ module MODULE {
     scope: {}
     cache: {
       mix: number
-      page: number
+      limit: number
       size: number
       expires: {
         max: number
@@ -266,13 +272,17 @@ module MODULE {
       popstate: boolean
       get: boolean
       post: boolean
-      mix: number
-      page: number
+      limit: number
       size: number
       expires: {
         max: number
         min: number
       }
+      mix: number
+    }
+    buffer: {
+      limit: number
+      delay: number
     }
     callback(): any
     callbacks: {
@@ -404,6 +414,22 @@ module MODULE {
 
   // Member
   export interface ContextInterface extends JQuery { }
+  export interface BufferInterface {
+    [index: string]: {
+      title: string
+      scrollX?: number
+      scrollY?: number
+    }
+  }
+  export interface RecentInterface {
+    order: string[]
+    data: {
+      [index: string]: CacheInterface
+    }
+    size: number
+  }
+
+  // Object
   export interface CacheInterface {
     jqXHR: JQueryXHR
     data: string
@@ -412,18 +438,7 @@ module MODULE {
     script?: HTMLElement[]
     size?: number
     expires?: number
-    scrollX?: number
-    scrollY?: number
     timeStamp?: number
-  }
-
-  // Object
-  export interface RecentInterface {
-    order: string[]
-    data: {
-      [index: string]: CacheInterface
-    }
-    size: number
   }
 
 }
