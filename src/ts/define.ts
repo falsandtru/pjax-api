@@ -284,7 +284,44 @@ module MODULE {
       limit: number
       delay: number
     }
+    load: {
+      css: boolean
+      script: boolean
+      execute: boolean
+      head: string
+      reload: string
+      ignore: string
+      sync: boolean
+      ajax: JQueryAjaxSettings
+      rewrite(): any
+    }
+    redirect: boolean
+    interval: number
+    wait: number
+    scroll: {
+      delay: number
+      record: boolean //internal
+      queue: number[] //internal
+    }
+    fix: {
+      location: boolean
+      history: boolean
+      scroll: boolean
+      reset: boolean
+    }
+    fallback: boolean
+    database: boolean
+    server: {
+      query: any
+      header: {
+        area: boolean
+        head: boolean
+        css: boolean
+        script: boolean
+      }
+    }
     callback(): any
+    param: any
     callbacks: {
       before?: (event: JQueryEventObject, param: any) => any
       after?: (event: JQueryEventObject, param: any) => any
@@ -349,43 +386,6 @@ module MODULE {
         success?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
         error?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
         complete?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-      }
-    }
-    param: any
-    load: {
-      css: boolean
-      script: boolean
-      execute: boolean
-      head: string
-      reload: string
-      ignore: string
-      sync: boolean
-      ajax: JQueryAjaxSettings
-      rewrite(): any
-    }
-    redirect: boolean
-    interval: number
-    wait: number
-    scroll: {
-      delay: number
-      record: boolean //internal
-      queue: number[] //internal
-    }
-    fix: {
-      location: boolean
-      history: boolean
-      scroll: boolean
-      reset: boolean
-    }
-    fallback: boolean
-    database: boolean
-    server: {
-      query: any
-      header: {
-        area: boolean
-        head: boolean
-        css: boolean
-        script: boolean
       }
     }
     
