@@ -7,6 +7,11 @@ nav: nav
 
 # ChangeLog
 
+## 2.5.1
+
+* Android・iOSで動作しないバグを修正
+  * バージョン: v2.4.0-2.5.0
+
 ## 2.5.0
 
 * `cache.page`パラメータを`cache.limit`パラメータに変更

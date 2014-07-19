@@ -202,7 +202,7 @@ module MODULE {
         new ModelAppUpdate(setting, event, false, cache);
         return;
       };
-      M.fallback(event, setting);
+      (!event.originalEvent || setting.gns === event.namespace) && M.fallback(event, setting);
     }
 
     SCROLL(event: JQueryEventObject, end: boolean): void {

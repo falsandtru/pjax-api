@@ -390,7 +390,7 @@ module MODULE {
                 window.history.forward();
                 jQuery[M.NAME].enable();
               }
-              return void jQuery(window).trigger('popstate');
+              return void jQuery(window).trigger('popstate.' + setting.gns);
           }
       }
 
