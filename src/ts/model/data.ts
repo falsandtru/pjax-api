@@ -151,6 +151,8 @@ module MODULE {
 
     loadBuffer(limit: number): void {
       var IDBObjectStore = DATA.createStore_();
+
+      if (!IDBObjectStore) { return; }
       IDBObjectStore.index('date').openCursor(DATA.IDBKeyRange.lowerBound(0), 'prev').onsuccess = function () {
         if (!this.result) { return; }
 
@@ -168,6 +170,8 @@ module MODULE {
 
     clean_(): void {
       var IDBObjectStore = DATA.createStore_();
+
+      if (!IDBObjectStore) { return; }
       IDBObjectStore.count().onsuccess = function () {
         if (1000 < this.result) {
           IDBObjectStore.index('date').openCursor(DATA.IDBKeyRange.upperBound(new Date().getTime() - (3 * 24 * 60 * 60 * 1000))).onsuccess = function () {
