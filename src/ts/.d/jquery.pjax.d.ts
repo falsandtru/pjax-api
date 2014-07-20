@@ -151,9 +151,11 @@ interface JQueryPjax {
     (setting?: PjaxSetting): JQueryPjax
     enable(): JQueryPjax
     disable(): JQueryPjax
+    click(): JQueryPjax
     click(url: string, attr?: { href?: string; }): JQueryPjax
-    click(url: HTMLAnchorElement, attr: { href?: string; }): JQueryPjax
-    click(url: JQuery, attr: { href?: string; }): JQueryPjax
+    click(url: HTMLAnchorElement, attr?: { href?: string; }): JQueryPjax
+    click(url: JQuery, attr?: { href?: string; }): JQueryPjax
+    submit(): JQueryPjax
     submit(url: string, attr: { action?: string; method?: string; }, data: any): JQueryPjax
     submit(url: HTMLFormElement, attr?: { action?: string; method?: string; }, data?: any): JQueryPjax
     submit(url: JQuery, attr?: { action?: string; method?: string; }, data?: any): JQueryPjax

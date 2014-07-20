@@ -27,7 +27,10 @@ module MODULE {
       pattern += option ? ({}).toString.call(option).split(' ').pop().slice(0, -1).toLowerCase() : option;
       switch (pattern.toLowerCase()) {
         case 'm:object':
+          break;
         case 'm:undefined':
+          if ($context.is('a, form')) { return $context; }
+          option = {};
           break;
         default:
           return $context;

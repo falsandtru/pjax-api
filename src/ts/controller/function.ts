@@ -20,15 +20,20 @@ module MODULE {
       M.disable();
       return this;
     }
-
-    click(url: string, attr: { href?: string; }): any
-    click(url: HTMLAnchorElement, attr: { href?: string; }): any
-    click(url: JQuery, attr: { href?: string; }): any
-    click(url: any, attr: { href?: string; }): any {
-      var common: CommonSettingInterface = M.getActiveSetting(),
+    
+    click(): any
+    click(url: string, attr?: { href?: string; }): any
+    click(url: HTMLAnchorElement, attr?: { href?: string; }): any
+    click(url: JQuery, attr?: { href?: string; }): any
+    click(url?: any, attr?: { href?: string; }): any {
+      var common: SettingInterface = M.getActiveSetting(),
           $anchor: JQuery;
 
       switch (typeof url) {
+        case 'undefined':
+          $anchor = (<JQuery>this['end']()).filter('a').first().clone();
+          break;
+
         case 'object':
           $anchor = jQuery(url).clone();
           break;
@@ -45,17 +50,22 @@ module MODULE {
       return $anchor.first().one(common.nss.click, (event) => V.HANDLERS.CLICK(event)).click();
     }
     
+    submit(): any
     submit(url: string, attr: { action?: string; method?: string; }, data: any): any
     submit(url: HTMLFormElement, attr?: { action?: string; method?: string; }, data?: any): any
     submit(url: JQuery, attr?: { action?: string; method?: string; }, data?: any): any
-    submit(url: any, attr?: { action?: string; method?: string; }, data?: any): any {
-      var common: CommonSettingInterface = M.getActiveSetting(),
+    submit(url?: any, attr?: { action?: string; method?: string; }, data?: any): any {
+      var common: SettingInterface = M.getActiveSetting(),
           $form: JQuery,
           df: DocumentFragment = document.createDocumentFragment(),
           type: any,
           $element: JQuery;
 
       switch (true) {
+        case typeof url === 'undefined':
+          $form = (<JQuery>this['end']()).filter('form').first().clone();
+          break;
+
         case typeof url === 'object':
           $form = jQuery(url).clone();
           break;

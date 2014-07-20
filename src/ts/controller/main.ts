@@ -20,9 +20,6 @@ module MODULE {
       pattern = $context instanceof NAMESPACE ? 'm:' : 'f:';
       pattern += option ? ({}).toString.call(option).split(' ').pop().slice(0, -1).toLowerCase() : option;
       switch (pattern.toLowerCase()) {
-        case 'm:undefined':
-          option = {};
-          break;
       }
 
       return [$context, option];
