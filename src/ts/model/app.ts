@@ -217,10 +217,21 @@ module MODULE {
             }
 
             if ((not || !hit_src) && (reg ? !origKeyUrl.search(pattern) : !origKeyUrl.indexOf(pattern))) {
-              if (not) { return false; } else { hit_src = true; }
+              if (not) {
+                return false;
+              } else {
+                hit_src = true;
+              }
             }
             if ((not || !hit_dst) && (reg ? !destKeyUrl.search(pattern) : !destKeyUrl.indexOf(pattern))) {
-              if (not) { return false; } else { hit_dst = true; }
+              if (not) {
+                return false;
+              } else {
+                hit_dst = true;
+                if (scp['$' + pattern]) {
+                  option = scp['$' + pattern];
+                }
+              }
             }
           } else if ('object' === typeof pattern) {
             option = pattern;
