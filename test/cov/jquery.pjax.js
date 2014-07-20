@@ -3,7 +3,7 @@
  * jquery.pjax.js
  * 
  * @name jquery.pjax.js
- * @version 2.5.0
+ * @version 2.6.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
  * @copyright 2012, falsandtru
@@ -35,6 +35,8 @@ var MODULE;
         State[State["seal"] = 2] = "seal";
     })(MODULE.State || (MODULE.State = {}));
     var State = MODULE.State;
+
+    
 
     
 
@@ -204,20 +206,22 @@ var MODULE;
 var MODULE;
 (function (MODULE) {
     // Allow access:
-    //  M, APP, DATA
+    //  M
     // Deny access
     var V, C;
 
-    var ModelAppUpdate = (function () {
-        function ModelAppUpdate(setting, event, register, cache) {
+    var AppUpdate = (function () {
+        function AppUpdate(APP, setting, event, register, cache) {
             this.checker_ = jQuery();
             this.loadwaits_ = [];
-            var speedcheck = setting.speedcheck, speed = MODULE.APP.stock('speed');
+            var speedcheck = setting.speedcheck, speed = MODULE.M.stock('speed');
             speedcheck && (speed.fire = event.timeStamp);
             speedcheck && speed.time.splice(0, 100, 0);
             speedcheck && speed.name.splice(0, 100, 'pjax(' + speed.time.slice(-1) + ')');
 
             var that = this;
+
+            this.APP_ = APP;
 
             if (MODULE.UTIL.fire(setting.callbacks.before, null, [event, setting.param]) === false) {
                 return;
@@ -375,15 +379,15 @@ var MODULE;
                 return;
             }
         }
-        ModelAppUpdate.prototype.update_ = function () {
+        AppUpdate.prototype.update_ = function () {
             var _this = this;
             UPDATE:
              {
-                var that = this;
+                var that = this, APP = this.APP_;
                 var setting = this.setting_, cache = this.cache_, event = this.event_, register = this.register_, data = this.data_, textStatus = this.textStatus_, jqXHR = this.jqXHR_;
                 var callbacks_update = setting.callbacks.update;
 
-                var speedcheck = setting.speedcheck, speed = MODULE.APP.stock('speed');
+                var speedcheck = setting.speedcheck, speed = MODULE.M.stock('speed');
                 speedcheck && speed.time.push(speed.now() - speed.fire);
                 speedcheck && speed.name.push('load(' + speed.time.slice(-1) + ')');
 
@@ -398,19 +402,19 @@ var MODULE;
                 }
 
                 try  {
-                    MODULE.APP.landing = null;
+                    APP.landing = null;
                     if (!~(jqXHR.getResponseHeader('Content-Type') || '').toLowerCase().search(setting.contentType)) {
                         throw new Error("throw: content-type mismatch");
                     }
 
                     DEFINE:
                      {
-                        this.srcDocument_ = MODULE.APP.createHTMLDocument(jqXHR.responseText);
+                        this.srcDocument_ = APP.createHTMLDocument(jqXHR.responseText);
                         this.dstDocument_ = document;
 
                         var srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
 
-                        setting.area = MODULE.APP.chooseAreas(setting.area, srcDocument, dstDocument);
+                        setting.area = APP.chooseAreas(setting.area, srcDocument, dstDocument);
                         setting.area = setting.area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
                         if (!setting.area) {
                             throw new Error('throw: area notfound');
@@ -442,8 +446,6 @@ var MODULE;
 
                     /* title */
                     this.updateTitle_();
-
-                    setting.database && MODULE.DATA.updateCurrentPage();
 
                     /* head */
                     this.updateHead_();
@@ -516,7 +518,7 @@ var MODULE;
             ;
         };
 
-        ModelAppUpdate.prototype.updateCache_ = function () {
+        AppUpdate.prototype.updateCache_ = function () {
             var setting = this.setting_, cache = this.cache_, event = this.event_, data = this.data_, textStatus = this.textStatus_, jqXHR = this.jqXHR_;
             var callbacks_update = setting.callbacks.update;
 
@@ -536,7 +538,7 @@ var MODULE;
             this.cache_ = cache;
 
             if (cache && cache.data) {
-                var cacheDocument = MODULE.APP.createHTMLDocument(cache.data), srcDocument = this.srcDocument_;
+                var cacheDocument = this.APP_.createHTMLDocument(cache.data), srcDocument = this.srcDocument_;
 
                 srcDocument.title = cacheDocument.title;
                 var i = -1, $srcAreas, $dstAreas;
@@ -557,12 +559,11 @@ var MODULE;
             return;
         };
 
-        ModelAppUpdate.prototype.updateRedirect_ = function () {
+        AppUpdate.prototype.updateRedirect_ = function () {
             var setting = this.setting_, event = this.event_, register = this.register_;
             var callbacks_update = setting.callbacks.update;
 
-            var redirect = jQuery('head meta[http-equiv="Refresh"][content*="URL="]', this.srcDocument_)[0];
-            if (!redirect) {
+            if (!jQuery('head meta[http-equiv="Refresh"][content*="URL="]', this.srcDocument_)[0]) {
                 return;
             }
 
@@ -571,7 +572,7 @@ var MODULE;
             }
             ;
 
-            redirect = jQuery('<a>', { href: jQuery(redirect).attr('content').match(/\w+:\/\/[^;\s]+/i) })[0];
+            var redirect = jQuery('<a>', { href: jQuery(redirect).attr('content').match(/\w+:\/\/[^;\s]+/i) })[0];
             switch (true) {
                 case !setting.redirect:
                 case redirect.protocol !== setting.destLocation.protocol:
@@ -599,7 +600,7 @@ var MODULE;
                                 window.history.forward();
                                 jQuery[MODULE.M.NAME].enable();
                             }
-                            return void jQuery(window).trigger('popstate');
+                            return void jQuery(window).trigger('popstate.' + setting.gns);
                     }
             }
 
@@ -608,7 +609,7 @@ var MODULE;
             }
         };
 
-        ModelAppUpdate.prototype.updateUrl_ = function () {
+        AppUpdate.prototype.updateUrl_ = function () {
             var setting = this.setting_, event = this.event_, register = this.register_;
             var callbacks_update = setting.callbacks.update;
 
@@ -631,7 +632,7 @@ var MODULE;
             }
         };
 
-        ModelAppUpdate.prototype.updateTitle_ = function () {
+        AppUpdate.prototype.updateTitle_ = function () {
             var setting = this.setting_, event = this.event_;
             var callbacks_update = setting.callbacks.update;
 
@@ -639,13 +640,13 @@ var MODULE;
                 return;
             }
             this.dstDocument_.title = this.srcDocument_.title;
-            setting.database && setting.fix.history && MODULE.APP.saveTitleToDB(setting.destLocation.href, this.srcDocument_.title);
+            setting.database && setting.fix.history && this.APP_.saveTitleToDB(setting.destLocation.href, this.srcDocument_.title);
             if (MODULE.UTIL.fire(callbacks_update.title.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                 return;
             }
         };
 
-        ModelAppUpdate.prototype.updateHead_ = function () {
+        AppUpdate.prototype.updateHead_ = function () {
             var setting = this.setting_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
             var callbacks_update = setting.callbacks.update;
 
@@ -714,7 +715,7 @@ var MODULE;
             }
         };
 
-        ModelAppUpdate.prototype.updateContent_ = function () {
+        AppUpdate.prototype.updateContent_ = function () {
             var setting = this.setting_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
             var callbacks_update = setting.callbacks.update;
             var checker = jQuery(), loadwaits = [];
@@ -756,7 +757,7 @@ var MODULE;
             return loadwaits;
         };
 
-        ModelAppUpdate.prototype.updateScroll_ = function (call) {
+        AppUpdate.prototype.updateScroll_ = function (call) {
             var setting = this.setting_, event = this.event_;
             var callbacks_update = setting.callbacks.update;
 
@@ -777,19 +778,19 @@ var MODULE;
                     scrollY = scrollY === false || scrollY === null ? jQuery(window).scrollTop() : parseInt(Number(scrollY) + '', 10);
 
                     (jQuery(window).scrollTop() === scrollY && jQuery(window).scrollLeft() === scrollX) || window.scrollTo(scrollX, scrollY);
-                    call && setting.database && setting.fix.scroll && MODULE.APP.saveScrollPositionToCacheAndDB(setting.destLocation.href, scrollX, scrollY);
                     break;
                 case 'popstate':
-                    call && setting.fix.scroll && setting.database && setting.scroll.record && MODULE.APP.loadScrollPositionByCacheOrDB(setting.destLocation.href);
+                    call && setting.fix.scroll && setting.database && setting.scroll.record && this.APP_.loadScrollPositionByCacheOrDB(setting.destLocation.href);
                     break;
             }
+            call && setting.database && setting.fix.scroll && this.APP_.saveScrollPositionToCacheAndDB(setting.destLocation.href, scrollX, scrollY);
 
             if (MODULE.UTIL.fire(callbacks_update.scroll.after, null, [event, setting.param]) === false) {
                 return;
             }
         };
 
-        ModelAppUpdate.prototype.updateCSS_ = function (selector) {
+        AppUpdate.prototype.updateCSS_ = function (selector) {
             var setting = this.setting_, cache = this.cache_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
             var callbacks_update = setting.callbacks.update;
 
@@ -843,12 +844,12 @@ var MODULE;
                 return;
             }
 
-            var speedcheck = setting.speedcheck, speed = MODULE.APP.stock('speed');
+            var speedcheck = setting.speedcheck, speed = MODULE.M.stock('speed');
             speedcheck && speed.time.push(speed.now() - speed.fire);
             speedcheck && speed.name.push('css(' + speed.time.slice(-1) + ')');
         };
 
-        ModelAppUpdate.prototype.updateScript_ = function (selector) {
+        AppUpdate.prototype.updateScript_ = function (selector) {
             var setting = this.setting_, cache = this.cache_, event = this.event_, srcDocument = this.srcDocument_;
             var callbacks_update = setting.callbacks.update;
 
@@ -873,7 +874,7 @@ var MODULE;
                 cache.script = [];
             }
 
-            var executed = MODULE.APP.stock('executed');
+            var executed = this.APP_.stock('executed');
             for (var i = 0, element; element = script[i]; i++) {
                 //element = dstDocument.importNode ? dstDocument.importNode(element, true) : jQuery(element.outerHTML);
                 element = 'function' === typeof setting.load.rewrite ? MODULE.UTIL.fire(setting.load.rewrite, null, [element]) || element : element;
@@ -913,28 +914,28 @@ var MODULE;
                 return;
             }
 
-            var speedcheck = setting.speedcheck, speed = MODULE.APP.stock('speed');
+            var speedcheck = setting.speedcheck, speed = MODULE.M.stock('speed');
             speedcheck && speed.time.push(speed.now() - speed.fire);
             speedcheck && speed.name.push(('[src][defer]' === selector ? 'defer' : 'script') + '(' + speed.time.slice(-1) + ')');
         };
 
-        ModelAppUpdate.prototype.updateRender_ = function (callback) {
+        AppUpdate.prototype.updateRender_ = function (callback) {
             var _this = this;
             var setting = this.setting_, event = this.event_, checker = this.checker_, loadwaits = this.loadwaits_;
 
             var callbacks_update = setting.callbacks.update;
 
             var rendered = function (callback) {
-                var speedcheck = setting.speedcheck, speed = MODULE.APP.stock('speed');
+                var speedcheck = setting.speedcheck, speed = MODULE.M.stock('speed');
                 speedcheck && speed.time.push(speed.now() - speed.fire);
                 speedcheck && speed.name.push('renderd(' + speed.time.slice(-1) + ')');
 
                 checker.remove();
                 setting.scroll.record = true;
                 if ('popstate' !== event.type.toLowerCase()) {
-                    MODULE.APP.scrollByHash(setting.destLocation.hash) || _this.updateScroll_(true);
+                    _this.APP_.scrollByHash(setting.destLocation.hash) || _this.updateScroll_(true);
                     setTimeout(function () {
-                        MODULE.APP.scrollByHash(setting.destLocation.hash);
+                        return _this.APP_.scrollByHash(setting.destLocation.hash);
                     }, 50);
                 } else {
                     _this.updateScroll_(true);
@@ -980,7 +981,7 @@ var MODULE;
             })();
         };
 
-        ModelAppUpdate.prototype.updateVerify_ = function () {
+        AppUpdate.prototype.updateVerify_ = function () {
             var setting = this.setting_, event = this.event_;
             var callbacks_update = setting.callbacks.update;
 
@@ -988,11 +989,11 @@ var MODULE;
 
             if (setting.destLocation.href === MODULE.UTIL.canonicalizeUrl(window.location.href)) {
                 setting.retry = true;
-                new MODULE.APP.stock(setting.uuid);
+                new this.APP_.stock(setting.uuid);
             } else if (setting.retry) {
                 setting.retry = false;
                 setting.destLocation.href = MODULE.UTIL.canonicalizeUrl(window.location.href);
-                new ModelAppUpdate(setting, event, false, setting.cache[event.type.toLowerCase()] && MODULE.M.getCache(setting.destLocation.href));
+                new AppUpdate(this.APP_, setting, event, false, setting.cache[event.type.toLowerCase()] && MODULE.M.getCache(setting.destLocation.href));
             } else {
                 throw new Error('throw: location mismatch');
             }
@@ -1000,7 +1001,7 @@ var MODULE;
             MODULE.UTIL.fire(callbacks_update.verify.after, null, [event, setting.param]);
         };
 
-        ModelAppUpdate.prototype.wait_ = function (ms) {
+        AppUpdate.prototype.wait_ = function (ms) {
             var defer = jQuery.Deferred();
             if (!ms) {
                 return defer.resolve();
@@ -1011,9 +1012,9 @@ var MODULE;
             }, ms);
             return defer;
         };
-        return ModelAppUpdate;
+        return AppUpdate;
     })();
-    MODULE.ModelAppUpdate = ModelAppUpdate;
+    MODULE.AppUpdate = AppUpdate;
 })(MODULE || (MODULE = {}));
 /// <reference path="../define.ts"/>
 /// <reference path="_template.ts"/>
@@ -1027,9 +1028,8 @@ var __extends = this.__extends || function (d, b) {
 var MODULE;
 (function (MODULE) {
     // Allow access:
-    //  -
     // Deny access
-    var M, V, C, APP, DATA;
+    var M, V, C;
 
     var ModelUtil = (function (_super) {
         __extends(ModelUtil, _super);
@@ -1104,7 +1104,7 @@ var MODULE;
 var MODULE;
 (function (MODULE) {
     // Allow access:
-    //  M, APP, DATA
+    //  M
     // Deny access
     var V, C;
 
@@ -1112,6 +1112,7 @@ var MODULE;
         __extends(ModelApp, _super);
         function ModelApp() {
             _super.apply(this, arguments);
+            this.DATA_ = new MODULE.ModelData();
             this.landing = MODULE.UTIL.canonicalizeUrl(window.location.href);
             this.recent = { order: [], data: {}, size: 0 };
         }
@@ -1121,7 +1122,7 @@ var MODULE;
             destURL = MODULE.UTIL.canonicalizeUrl(destURL || option.destLocation.href);
             option = option.option || option;
 
-            var scope = option.scope ? jQuery.extend(true, {}, option, MODULE.APP.scope_(option, origURL, destURL) || isBidirectional && MODULE.APP.scope_(option, destURL, origURL) || { disable: true }) : jQuery.extend(true, {}, option);
+            var scope = option.scope ? jQuery.extend(true, {}, option, this.scope_(option, origURL, destURL) || isBidirectional && this.scope_(option, destURL, origURL) || { disable: true }) : jQuery.extend(true, {}, option);
 
             var initial = {
                 gns: MODULE.M.NAME,
@@ -1221,11 +1222,12 @@ var MODULE;
             setting = jQuery.extend(true, initial, scope, force);
             setting = jQuery.extend(true, setting, compute());
 
-            return new MODULE.APP.stock(setting);
+            return new this.stock(setting);
         };
 
         ModelApp.prototype.registrate = function ($context, setting) {
-            var executed = MODULE.APP.stock('executed');
+            var _this = this;
+            var executed = this.stock('executed');
             setting.load.script && jQuery('script').each(function () {
                 var element = this;
                 element = 'function' === typeof setting.load.rewrite ? MODULE.UTIL.fire(setting.load.rewrite, null, [element.cloneNode(true)]) || element : element;
@@ -1237,16 +1239,16 @@ var MODULE;
                 }
             });
 
-            MODULE.DATA.openDB(setting);
+            setting.database && this.DATA_.DB.opendb(setting);
             new MODULE.View($context).BIND(setting);
             setTimeout(function () {
-                return MODULE.APP.createHTMLDocument();
+                return _this.createHTMLDocument();
             }, 50);
             setTimeout(function () {
-                return MODULE.APP.loadBuffer(setting.buffer.limit);
+                return _this.loadBuffer(setting.buffer.limit);
             }, setting.buffer.delay);
             setTimeout(function () {
-                return MODULE.APP.landing = null;
+                return _this.landing = null;
             }, 1500);
         };
 
@@ -1269,8 +1271,8 @@ var MODULE;
             if (typeof rewriteKeyUrl === "undefined") { rewriteKeyUrl = ''; }
             var origKeyUrl, destKeyUrl, scp = common.scope, dirs, keys, key, pattern, not, reg, rewrite, inherit, hit_src, hit_dst, option;
 
-            origKeyUrl = MODULE.M.convertUrlToUrlKey(origURL).match(/.+?\w(\/.*)/).pop();
-            destKeyUrl = MODULE.M.convertUrlToUrlKey(destURL).match(/.+?\w(\/.*)/).pop();
+            origKeyUrl = MODULE.M.convertUrlToKeyUrl(origURL).match(/.+?\w(\/.*)/).pop();
+            destKeyUrl = MODULE.M.convertUrlToKeyUrl(destURL).match(/.+?\w(\/.*)/).pop();
             rewriteKeyUrl = rewriteKeyUrl.replace(/[#?].*/, '');
 
             keys = (rewriteKeyUrl || destKeyUrl).replace(/^\/|\/$/g, '').split('/');
@@ -1447,218 +1449,86 @@ var MODULE;
         };
 
         ModelApp.prototype.loadTitleByDB = function (unsafe_url) {
-            var keyUrl = MODULE.UTIL.canonicalizeUrl(MODULE.M.convertUrlToUrlKey(unsafe_url));
-            var buffer = MODULE.DATA.buffer[keyUrl];
-            if (buffer && 'string' === typeof buffer.title) {
-                document.title = buffer.title;
+            var keyUrl = MODULE.M.convertUrlToKeyUrl(MODULE.UTIL.canonicalizeUrl(unsafe_url)), data = this.DATA_.DB.getBuffer(this.DATA_.DB.store.history.name, keyUrl);
+
+            if (data && 'string' === typeof data.title) {
+                document.title = data.title;
             } else {
-                MODULE.DATA.loadTitle(keyUrl);
+                this.DATA_.DB.loadTitle(keyUrl);
             }
         };
 
         ModelApp.prototype.saveTitleToDB = function (unsafe_url, title) {
-            var keyUrl = MODULE.UTIL.canonicalizeUrl(MODULE.M.convertUrlToUrlKey(unsafe_url));
-            MODULE.DATA.buffer[keyUrl] = jQuery.extend({}, MODULE.DATA.buffer[keyUrl], { title: title });
-            MODULE.DATA.saveTitle(keyUrl, title);
+            var keyUrl = MODULE.M.convertUrlToKeyUrl(MODULE.UTIL.canonicalizeUrl(unsafe_url));
+
+            this.DATA_.DB.setBuffer(this.DATA_.DB.store.history.name, keyUrl, { title: title }, true);
+            this.DATA_.DB.saveTitle(keyUrl, title);
         };
 
         ModelApp.prototype.loadScrollPositionByCacheOrDB = function (unsafe_url) {
-            var keyUrl = MODULE.UTIL.canonicalizeUrl(MODULE.M.convertUrlToUrlKey(unsafe_url));
-            var buffer = MODULE.DATA.buffer[keyUrl];
-            if (buffer && 'number' === typeof buffer.scrollX) {
-                window.scrollTo(parseInt(Number(buffer.scrollX) + '', 10), parseInt(Number(buffer.scrollY) + '', 10));
+            var keyUrl = MODULE.M.convertUrlToKeyUrl(MODULE.UTIL.canonicalizeUrl(unsafe_url)), data = this.DATA_.DB.getBuffer(this.DATA_.DB.store.history.name, keyUrl);
+
+            if (data && 'number' === typeof data.scrollX) {
+                window.scrollTo(parseInt(Number(data.scrollX) + '', 10), parseInt(Number(data.scrollY) + '', 10));
             } else {
-                MODULE.DATA.loadScrollPosition(keyUrl);
+                this.DATA_.DB.loadScrollPosition(keyUrl);
             }
         };
 
         ModelApp.prototype.saveScrollPositionToCacheAndDB = function (unsafe_url, scrollX, scrollY) {
-            var keyUrl = MODULE.UTIL.canonicalizeUrl(MODULE.M.convertUrlToUrlKey(unsafe_url));
-            MODULE.DATA.buffer[keyUrl] = jQuery.extend({}, MODULE.DATA.buffer[keyUrl], { scrollX: scrollX, scrollY: scrollY });
-            MODULE.DATA.saveScrollPosition(keyUrl, scrollX, scrollY);
+            var keyUrl = MODULE.M.convertUrlToKeyUrl(MODULE.UTIL.canonicalizeUrl(unsafe_url));
+
+            this.DATA_.DB.setBuffer(this.DATA_.DB.store.history.name, keyUrl, { scrollX: scrollX, scrollY: scrollY }, true);
+            this.DATA_.DB.saveScrollPosition(keyUrl, scrollX, scrollY);
         };
 
         ModelApp.prototype.loadBuffer = function (limit) {
-            0 < limit && MODULE.DATA.loadBuffer(limit);
+            0 < limit && this.DATA_.DB.loadBuffer(this.DATA_.DB.store.history.name, limit);
         };
 
         ModelApp.prototype.saveBuffer = function () {
-            MODULE.DATA.saveBuffer();
+            this.DATA_.DB.saveBuffer(this.DATA_.DB.store.history.name);
         };
         return ModelApp;
     })(MODULE.ModelTemplate);
     MODULE.ModelApp = ModelApp;
-
-    // 短縮登録
-    MODULE.APP = new ModelApp();
 })(MODULE || (MODULE = {}));
 /// <reference path="../define.ts"/>
-/// <reference path="_template.ts"/>
 /// <reference path="util.ts"/>
 /* MODEL */
 var MODULE;
 (function (MODULE) {
     // Allow access:
-    //  M, APP, DATA
+    //  M
     // Deny access
     var V, C;
 
-    var ModelData = (function (_super) {
-        __extends(ModelData, _super);
-        function ModelData() {
-            _super.apply(this, arguments);
-            this.IDBFactory = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB;
-            this.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.mozIDBKeyRange || window.msIDBKeyRange;
-            this.buffer = {};
+    var DataStore = (function () {
+        function DataStore(DB) {
+            var _this = this;
+            this.buffer_ = {};
+            this.accessStore = function (mode) {
+                if (typeof mode === "undefined") { mode = 'readwrite'; }
+                return _this.DB_.accessStore(_this.name, mode);
+            };
+            this.accessRecord = function (key, success) {
+                return _this.DB_.accessRecord(_this.name, key, success);
+            };
+            this.DB_ = DB;
         }
-        ModelData.prototype.openDB = function (setting, count) {
-            if (typeof count === "undefined") { count = 0; }
-            var name = setting.gns, version = 1, days = Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24)), IDBFactory = MODULE.DATA.IDBFactory, IDBDatabase = MODULE.DATA.IDBDatabase, IDBOpenDBRequest, IDBObjectStore;
-
-            setting.database = false;
-            if (!IDBFactory || !name || count > 3) {
+        DataStore.prototype.loadBuffer = function (limit) {
+            var that = this, store = this.accessStore();
+            if (!store) {
                 return;
             }
 
-            try  {
-                var retry = function (wait) {
-                    MODULE.DATA.IDBDatabase = undefined;
-                    IDBDatabase && IDBDatabase.close && IDBDatabase.close();
-                    IDBFactory.deleteDatabase(name);
-                    wait ? setTimeout(function () {
-                        return void MODULE.DATA.openDB(setting, ++count);
-                    }, wait) : void MODULE.DATA.openDB(setting, ++count);
-                };
-
-                version = parseInt(days - days % 10 + version + '', 10);
-                IDBOpenDBRequest = IDBFactory.open(name);
-                IDBOpenDBRequest.onblocked = function () {
-                };
-                IDBOpenDBRequest.onupgradeneeded = function () {
-                    var IDBDatabase = this.result;
-                    try  {
-                        for (var i = IDBDatabase.objectStoreNames ? IDBDatabase.objectStoreNames.length : 0; i--;) {
-                            IDBDatabase.deleteObjectStore(IDBDatabase.objectStoreNames[i]);
-                        }
-                        IDBDatabase.createObjectStore(setting.gns, { keyPath: 'id', autoIncrement: false }).createIndex('date', 'date', { unique: false });
-                    } catch (err) {
-                    }
-                };
-                IDBOpenDBRequest.onsuccess = function () {
-                    try  {
-                        IDBDatabase:
-                        IDBDatabase = this.result;
-                        MODULE.DATA.IDBDatabase = IDBDatabase;
-                        if (IDBObjectStore = MODULE.DATA.createStore_()) {
-                            IDBObjectStore.get('_version').onsuccess = function () {
-                                if (!this.result || version === this.result.title) {
-                                    MODULE.DATA.updateVersionNumber_(version);
-                                    MODULE.DATA.updateCurrentPage();
-                                    MODULE.DATA.saveTitle(MODULE.M.convertUrlToUrlKey(setting.origLocation.href), document.title);
-                                    MODULE.DATA.saveScrollPosition(MODULE.M.convertUrlToUrlKey(setting.origLocation.href), jQuery(window).scrollLeft(), jQuery(window).scrollTop());
-
-                                    setting.database = true;
-                                } else {
-                                    retry();
-                                }
-                            };
-                        } else {
-                            retry();
-                        }
-                    } catch (err) {
-                        retry(1000);
-                    }
-                };
-                IDBOpenDBRequest.onerror = function (event) {
-                    retry(1000);
-                };
-            } catch (err) {
-                retry(1000);
-            }
-        };
-
-        ModelData.prototype.createStore_ = function () {
-            var IDBDatabase = MODULE.DATA.IDBDatabase;
-            for (var i = IDBDatabase && IDBDatabase.objectStoreNames ? IDBDatabase.objectStoreNames.length : 0; i--;) {
-                if (MODULE.M.NAME === IDBDatabase.objectStoreNames[i]) {
-                    return IDBDatabase && IDBDatabase.transaction && IDBDatabase.transaction(MODULE.M.NAME, 'readwrite').objectStore(MODULE.M.NAME);
-                }
-            }
-            return null;
-        };
-
-        ModelData.prototype.updateCurrentPage = function () {
-            var IDBObjectStore = MODULE.DATA.createStore_();
-
-            if (!IDBObjectStore) {
-                return;
-            }
-            var secure_url = MODULE.M.convertUrlToUrlKey(MODULE.UTIL.canonicalizeUrl(window.location.href));
-            IDBObjectStore.put({ id: '_current', title: secure_url, date: new Date().getTime() });
-        };
-
-        ModelData.prototype.updateVersionNumber_ = function (version) {
-            var IDBObjectStore = MODULE.DATA.createStore_();
-
-            if (!IDBObjectStore) {
-                return;
-            }
-            IDBObjectStore.put({ id: '_version', title: version, date: new Date().getTime() });
-        };
-
-        ModelData.prototype.accessRecord_ = function (keyUrl, success) {
-            var IDBObjectStore = MODULE.DATA.createStore_();
-
-            if (!IDBObjectStore) {
-                return;
-            }
-            IDBObjectStore.get(keyUrl).onsuccess = success;
-        };
-
-        ModelData.prototype.loadTitle = function (keyUrl) {
-            MODULE.DATA.accessRecord_(keyUrl, function () {
-                keyUrl === MODULE.M.convertUrlToUrlKey(MODULE.UTIL.canonicalizeUrl(window.location.href)) && this.result && this.result.title && (document.title = this.result.title);
-            });
-        };
-
-        ModelData.prototype.saveTitle = function (keyUrl, title) {
-            MODULE.DATA.accessRecord_(keyUrl, function () {
-                this.source.put(jQuery.extend(true, {}, this.result || {}, { id: keyUrl, title: title, date: new Date().getTime() }));
-                MODULE.DATA.clean_();
-            });
-        };
-
-        ModelData.prototype.loadScrollPosition = function (keyUrl) {
-            MODULE.DATA.accessRecord_(keyUrl, function () {
-                if (!this.result || !this.result.id || keyUrl !== this.result.id) {
-                    return;
-                }
-                this.source.get(keyUrl).onsuccess = function () {
-                    this.result && isFinite(this.result.scrollX) && isFinite(this.result.scrollY) && window.scrollTo(parseInt(Number(this.result.scrollX) + '', 10), parseInt(Number(this.result.scrollY) + '', 10));
-                };
-            });
-        };
-
-        ModelData.prototype.saveScrollPosition = function (keyUrl, scrollX, scrollY) {
-            MODULE.DATA.accessRecord_(keyUrl, function () {
-                if (!this.result || !this.result.id || keyUrl !== this.result.id) {
-                    return;
-                }
-                this.source.get(keyUrl).onsuccess = function () {
-                    this.source.put(jQuery.extend(true, {}, this.result || {}, { scrollX: parseInt(Number(scrollX) + '', 10), scrollY: parseInt(Number(scrollY) + '', 10), date: new Date().getTime() }));
-                };
-            });
-        };
-
-        ModelData.prototype.loadBuffer = function (limit) {
-            var IDBObjectStore = MODULE.DATA.createStore_();
-            IDBObjectStore.index('date').openCursor(MODULE.DATA.IDBKeyRange.lowerBound(0), 'prev').onsuccess = function () {
+            store.index('date').openCursor(this.DB_.IDBKeyRange.lowerBound(0), 'prev').onsuccess = function () {
                 if (!this.result) {
                     return;
                 }
 
                 var IDBCursor = this.result, data = IDBCursor.value;
-                MODULE.DATA.buffer[data.id] = data;
+                that.buffer_[data.id] = data;
                 if ('_' !== data.id.charAt(0) && !--limit) {
                     return;
                 }
@@ -1667,14 +1537,70 @@ var MODULE;
             };
         };
 
-        ModelData.prototype.saveBuffer = function () {
+        DataStore.prototype.saveBuffer = function () {
         };
 
-        ModelData.prototype.clean_ = function () {
-            var IDBObjectStore = MODULE.DATA.createStore_();
-            IDBObjectStore.count().onsuccess = function () {
+        DataStore.prototype.getBuffer = function (key) {
+            return key ? this.buffer_[key] : this.buffer_;
+        };
+
+        DataStore.prototype.setBuffer = function (key, value, isMerge) {
+            this.buffer_[key] = !isMerge ? value : jQuery.extend(true, {}, this.buffer_[key], value);
+            return this.buffer_[key];
+        };
+        return DataStore;
+    })();
+    MODULE.DataStore = DataStore;
+})(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
+/// <reference path="data.store.ts"/>
+/// <reference path="util.ts"/>
+/* MODEL */
+var MODULE;
+(function (MODULE) {
+    // Allow access:
+    //  M
+    // Deny access
+    var V, C;
+
+    var DataStoreMeta = (function (_super) {
+        __extends(DataStoreMeta, _super);
+        function DataStoreMeta() {
+            _super.apply(this, arguments);
+            this.name = 'meta';
+            this.buffer_ = {};
+        }
+        return DataStoreMeta;
+    })(MODULE.DataStore);
+    MODULE.DataStoreMeta = DataStoreMeta;
+})(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
+/// <reference path="data.store.ts"/>
+/// <reference path="util.ts"/>
+/* MODEL */
+var MODULE;
+(function (MODULE) {
+    // Allow access:
+    //  M
+    // Deny access
+    var V, C;
+
+    var DataStoreHistory = (function (_super) {
+        __extends(DataStoreHistory, _super);
+        function DataStoreHistory() {
+            _super.apply(this, arguments);
+            this.name = 'history';
+            this.buffer_ = {};
+        }
+        DataStoreHistory.prototype.clean_ = function () {
+            var that = this, store = this.accessStore();
+            if (!store) {
+                return;
+            }
+
+            store.count().onsuccess = function () {
                 if (1000 < this.result) {
-                    IDBObjectStore.index('date').openCursor(MODULE.DATA.IDBKeyRange.upperBound(new Date().getTime() - (3 * 24 * 60 * 60 * 1000))).onsuccess = function () {
+                    store.index('date').openCursor(that.DB_.IDBKeyRange.upperBound(new Date().getTime() - (3 * 24 * 60 * 60 * 1000))).onsuccess = function () {
                         if (!this.result) {
                             return;
                         }
@@ -1684,20 +1610,253 @@ var MODULE;
                             IDBCursor['delete'](IDBCursor.value.id);
                             IDBCursor['continue'] && IDBCursor['continue']();
                         } else {
-                            IDBObjectStore.count().onsuccess = function () {
-                                1000 < this.result && IDBObjectStore.clear();
+                            store.count().onsuccess = function () {
+                                1000 < this.result && store.clear();
                             };
                         }
                     };
                 }
             };
         };
-        return ModelData;
-    })(MODULE.ModelTemplate);
-    MODULE.ModelData = ModelData;
 
-    // 短縮登録
-    MODULE.DATA = new ModelData();
+        DataStoreHistory.prototype.loadTitle = function (keyUrl) {
+            this.accessRecord(keyUrl, function () {
+                keyUrl === MODULE.M.convertUrlToKeyUrl(MODULE.UTIL.canonicalizeUrl(window.location.href)) && this.result && this.result.title && (document.title = this.result.title);
+            });
+        };
+
+        DataStoreHistory.prototype.saveTitle = function (keyUrl, title) {
+            this.accessRecord(keyUrl, function () {
+                this.source.put(jQuery.extend(true, {}, this.result, { id: keyUrl, title: title, date: new Date().getTime() }));
+            });
+            this.clean_();
+        };
+
+        DataStoreHistory.prototype.loadScrollPosition = function (keyUrl) {
+            this.accessRecord(keyUrl, function () {
+                if (!this.result || !this.result.id || keyUrl !== this.result.id) {
+                    return;
+                }
+                isFinite(this.result.scrollX) && isFinite(this.result.scrollY) && window.scrollTo(parseInt(Number(this.result.scrollX) + '', 10), parseInt(Number(this.result.scrollY) + '', 10));
+            });
+        };
+
+        DataStoreHistory.prototype.saveScrollPosition = function (keyUrl, scrollX, scrollY) {
+            this.accessRecord(keyUrl, function () {
+                if (!this.result || !this.result.id || keyUrl !== this.result.id) {
+                    return;
+                }
+                this.source.put(jQuery.extend(true, {}, this.result, { scrollX: parseInt(Number(scrollX) + '', 10), scrollY: parseInt(Number(scrollY) + '', 10), date: new Date().getTime() }));
+            });
+        };
+        return DataStoreHistory;
+    })(MODULE.DataStore);
+    MODULE.DataStoreHistory = DataStoreHistory;
+})(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
+/// <reference path="data.store.meta.ts"/>
+/// <reference path="data.store.history.ts"/>
+/// <reference path="util.ts"/>
+/* MODEL */
+var MODULE;
+(function (MODULE) {
+    // Allow access:
+    //  M
+    // Deny access
+    var V, C;
+
+    var DataDB = (function () {
+        function DataDB() {
+            this.IDBFactory = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB;
+            this.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.mozIDBKeyRange || window.msIDBKeyRange;
+            this.name_ = MODULE.NAME;
+            this.version_ = 2;
+            this.retry_ = 0;
+            this.store = {
+                meta: new MODULE.DataStoreMeta(this),
+                history: new MODULE.DataStoreHistory(this)
+            };
+            this.meta_ = {
+                version: 'version'
+            };
+        }
+        DataDB.prototype.opendb = function (setting) {
+            var that = this, IDBDatabase = that.database_, IDBOpenDBRequest;
+
+            setting.database = false;
+            if (!that.IDBFactory) {
+                return;
+            }
+
+            try  {
+                var days = Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24)), version = parseInt(days - days % 10 + that.version_ + '', 10);
+
+                IDBOpenDBRequest = that.IDBFactory.open(that.name_);
+
+                IDBOpenDBRequest.onblocked = function () {
+                };
+
+                IDBOpenDBRequest.onupgradeneeded = function () {
+                    var IDBDatabase = this.result;
+                    try  {
+                        for (var i = IDBDatabase.objectStoreNames ? IDBDatabase.objectStoreNames.length : 0; i--;) {
+                            IDBDatabase.deleteObjectStore(IDBDatabase.objectStoreNames[i]);
+                        }
+                        IDBDatabase.createObjectStore(that.store.meta.name, { keyPath: 'id', autoIncrement: false });
+                        IDBDatabase.createObjectStore(that.store.history.name, { keyPath: 'id', autoIncrement: false }).createIndex('date', 'date', { unique: false });
+                    } catch (err) {
+                        3 > that.retry_++ && setTimeout(function () {
+                            return that.initdb_(setting);
+                        }, 1000);
+                    }
+                };
+
+                IDBOpenDBRequest.onsuccess = function () {
+                    try  {
+                        IDBDatabase:
+                        IDBDatabase = this.result;
+                        that.database_ = IDBDatabase;
+
+                        that.checkdb_(setting, version, function () {
+                            that.saveTitle(MODULE.M.convertUrlToKeyUrl(setting.origLocation.href), document.title);
+                            that.saveScrollPosition(MODULE.M.convertUrlToKeyUrl(setting.origLocation.href), jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+                        });
+                    } catch (err) {
+                        3 > that.retry_++ && setTimeout(function () {
+                            return that.initdb_(setting);
+                        }, 'number' === typeof err ? err : 1000);
+                    }
+                };
+
+                IDBOpenDBRequest.onerror = function (event) {
+                    3 > that.retry_++ && setTimeout(function () {
+                        return that.initdb_(setting);
+                    }, 1000);
+                };
+            } catch (err) {
+                3 > that.retry_++ && setTimeout(function () {
+                    return that.initdb_(setting);
+                }, 1000);
+            }
+        };
+
+        DataDB.prototype.closedb = function () {
+            var database = this.database_;
+            database && database.close && database.close();
+        };
+
+        DataDB.prototype.deletedb = function () {
+            this.closedb();
+            var IDBFactory = this.IDBFactory;
+            IDBFactory && IDBFactory.deleteDatabase && IDBFactory.deleteDatabase(this.name_);
+        };
+
+        DataDB.prototype.initdb_ = function (setting) {
+            this.deletedb();
+            this.opendb(setting);
+        };
+
+        DataDB.prototype.checkdb_ = function (setting, version, success) {
+            var that = this;
+            if (!that.accessStore(that.store.meta.name)) {
+                throw 0;
+            }
+
+            this.accessRecord(this.store.meta.name, this.meta_.version, function () {
+                // version check
+                var data = this.result;
+                if (!data) {
+                    this.source.put({ id: that.meta_.version, value: version });
+                } else if (version !== data.value) {
+                    return that.initdb_(setting);
+                }
+
+                // store check
+                var storeHistory = that.accessStore(that.store.history.name);
+                if (!storeHistory) {
+                    3 > that.retry_++ && setTimeout(function () {
+                        return that.initdb_(setting);
+                    }, 1000);
+                }
+
+                success();
+
+                setting.database = true;
+            });
+        };
+
+        DataDB.prototype.accessStore = function (name, mode) {
+            if (typeof mode === "undefined") { mode = 'readwrite'; }
+            var IDBDatabase = this.database_;
+            for (var i = IDBDatabase && IDBDatabase.objectStoreNames ? IDBDatabase.objectStoreNames.length : 0; i--;) {
+                if (name === IDBDatabase.objectStoreNames[i]) {
+                    return IDBDatabase && IDBDatabase.transaction && IDBDatabase.transaction(name, mode).objectStore(name);
+                }
+            }
+            return null;
+        };
+
+        DataDB.prototype.accessRecord = function (storeName, key, success) {
+            var store = this.accessStore(storeName);
+            if (!store) {
+                return;
+            }
+
+            store.get(key).onsuccess = success;
+        };
+
+        DataDB.prototype.loadBuffer = function (storeName, limit) {
+            this.store[storeName].loadBuffer(limit);
+        };
+
+        DataDB.prototype.saveBuffer = function (storeName) {
+            this.store[storeName].saveBuffer();
+        };
+
+        DataDB.prototype.getBuffer = function (storeName, key) {
+            return this.store[storeName].getBuffer(key);
+        };
+
+        DataDB.prototype.setBuffer = function (storeName, key, value, isMerge) {
+            return this.store[storeName].setBuffer(key, value, isMerge);
+        };
+
+        DataDB.prototype.loadTitle = function (keyUrl) {
+            this.store.history.loadTitle(keyUrl);
+        };
+
+        DataDB.prototype.saveTitle = function (keyUrl, title) {
+            this.store.history.saveTitle(keyUrl, title);
+        };
+
+        DataDB.prototype.loadScrollPosition = function (keyUrl) {
+            this.store.history.loadScrollPosition(keyUrl);
+        };
+
+        DataDB.prototype.saveScrollPosition = function (keyUrl, scrollX, scrollY) {
+            this.store.history.saveScrollPosition(keyUrl, scrollX, scrollY);
+        };
+        return DataDB;
+    })();
+    MODULE.DataDB = DataDB;
+})(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
+/// <reference path="data.db.ts"/>
+/// <reference path="util.ts"/>
+/* MODEL */
+var MODULE;
+(function (MODULE) {
+    // Allow access:
+    // Deny access
+    var M, V, C;
+
+    var ModelData = (function () {
+        function ModelData() {
+            this.DB = new MODULE.DataDB();
+        }
+        return ModelData;
+    })();
+    MODULE.ModelData = ModelData;
 })(MODULE || (MODULE = {}));
 /// <reference path="../define.ts"/>
 /// <reference path="_template.ts"/>
@@ -1708,18 +1867,20 @@ var MODULE;
 var MODULE;
 (function (MODULE) {
     // Allow access:
-    //  M, C, APP
+    //  M, C
     // Deny access
-    var V, DATA;
+    var V;
 
     var ModelMain = (function (_super) {
         __extends(ModelMain, _super);
         function ModelMain() {
-            _super.call(this);
+            _super.apply(this, arguments);
+            this.state = -1 /* wait */;
             this.isDeferrable = jQuery.when && 1.06 <= Number(jQuery().jquery.replace(/\D*(\d+)\.(\d+).*$/, '$1.0$2').replace(/\d+(\d{2})$/, '$1'));
-            this.state_ = -1 /* wait */;
+            this.APP_ = new MODULE.ModelApp();
         }
         ModelMain.prototype.main_ = function ($context, option) {
+            var _this = this;
             var pattern;
             pattern = $context instanceof MODULE.NAMESPACE ? 'm:' : 'f:';
             pattern += option ? ({}).toString.call(option).split(' ').pop().slice(0, -1).toLowerCase() : option;
@@ -1731,10 +1892,10 @@ var MODULE;
                     return $context;
             }
 
-            var setting = MODULE.APP.configure(option, window.location.href, window.location.href);
+            var setting = this.APP_.configure(option, window.location.href, window.location.href);
             MODULE.M.setActiveSetting(setting);
 
-            MODULE.APP.stock({
+            this.APP_.stock({
                 executed: {},
                 speed: {
                     fire: 0,
@@ -1749,7 +1910,7 @@ var MODULE;
             //$context._uuid = setting.uuid;
             if ('pushState' in window.history && window.history['pushState']) {
                 jQuery(function () {
-                    MODULE.APP.registrate($context, setting);
+                    _this.APP_.registrate($context, setting);
                     MODULE.M.state_ = ~MODULE.M.state_ ? MODULE.M.state_ : 0 /* ready */;
                 });
             }
@@ -1757,7 +1918,7 @@ var MODULE;
             return $context;
         };
 
-        ModelMain.prototype.convertUrlToUrlKey = function (unsafe_url) {
+        ModelMain.prototype.convertUrlToKeyUrl = function (unsafe_url) {
             return unsafe_url.replace(/#.*/, '');
         };
 
@@ -1795,7 +1956,7 @@ var MODULE;
                 return false;
             }
 
-            var setting = MODULE.APP.configure(MODULE.M.getActiveSetting(), origLocation.href, destLocation.href);
+            var setting = this.APP_.configure(MODULE.M.getActiveSetting(), origLocation.href, destLocation.href);
             if (setting.disable) {
                 return;
             }
@@ -1815,18 +1976,18 @@ var MODULE;
         };
 
         ModelMain.prototype.getActiveSetting = function () {
-            return MODULE.APP.activeSetting;
+            return this.APP_.activeSetting;
         };
         ModelMain.prototype.setActiveSetting = function (setting) {
-            return MODULE.APP.activeSetting = setting;
+            return this.APP_.activeSetting = setting;
         };
 
         ModelMain.prototype.getActiveXHR = function () {
-            return MODULE.APP.activeXHR;
+            return this.APP_.activeXHR;
         };
         ModelMain.prototype.setActiveXHR = function (xhr) {
-            MODULE.APP.activeXHR && MODULE.APP.activeXHR.readyState < 4 && MODULE.APP.activeXHR.abort();
-            return MODULE.APP.activeXHR = xhr;
+            this.APP_.activeXHR && this.APP_.activeXHR.readyState < 4 && this.APP_.activeXHR.abort();
+            return this.APP_.activeXHR = xhr;
         };
 
         ModelMain.prototype.CLICK = function (event) {
@@ -1834,7 +1995,7 @@ var MODULE;
              {
                 event.timeStamp = new Date().getTime();
                 var context = event.currentTarget, $context = jQuery(context);
-                var setting = MODULE.APP.configure(MODULE.M.getActiveSetting(), window.location.href, context.href);
+                var setting = this.APP_.configure(MODULE.M.getActiveSetting(), window.location.href, context.href);
 
                 if (MODULE.M.state_ !== 0 /* ready */ || setting.disable || event.isDefaultPrevented()) {
                     break PROCESS;
@@ -1848,14 +2009,14 @@ var MODULE;
                 }
                 setting.area = MODULE.UTIL.fire(setting.area, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
                 setting.area = setting.area instanceof Array ? setting.area : [setting.area];
-                setting.database && setting.scroll.record && MODULE.APP.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+                setting.database && setting.scroll.record && this.APP_.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
                 var cache;
                 if (setting.cache[event.type.toLowerCase()]) {
                     cache = MODULE.M.getCache(setting.destLocation.href);
                 }
 
-                new MODULE.ModelAppUpdate(setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
+                new MODULE.AppUpdate(this.APP_, setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
                 event.preventDefault();
                 return;
             }
@@ -1868,7 +2029,7 @@ var MODULE;
              {
                 event.timeStamp = new Date().getTime();
                 var context = event.currentTarget, $context = jQuery(context);
-                var setting = MODULE.APP.configure(MODULE.M.getActiveSetting(), window.location.href, context.action);
+                var setting = this.APP_.configure(MODULE.M.getActiveSetting(), window.location.href, context.action);
 
                 if (MODULE.M.state_ !== 0 /* ready */ || setting.disable || event.isDefaultPrevented()) {
                     break PROCESS;
@@ -1887,14 +2048,14 @@ var MODULE;
                 if (!setting.area[0] || !jQuery(setting.area.join(','))[0]) {
                     break PROCESS;
                 }
-                setting.database && setting.scroll.record && MODULE.APP.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+                setting.database && setting.scroll.record && this.APP_.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
                 var cache;
                 if (setting.cache[event.type.toLowerCase()] && setting.cache[context.method.toLowerCase()]) {
                     cache = MODULE.M.getCache(setting.destLocation.href);
                 }
 
-                new MODULE.ModelAppUpdate(setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
+                new MODULE.AppUpdate(this.APP_, setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
                 event.preventDefault();
                 return;
             }
@@ -1906,8 +2067,8 @@ var MODULE;
             PROCESS:
              {
                 event.timeStamp = new Date().getTime();
-                var setting = MODULE.APP.configure(MODULE.M.getActiveSetting(), null, window.location.href, true);
-                if (MODULE.APP.landing && MODULE.APP.landing === MODULE.UTIL.canonicalizeUrl(window.location.href)) {
+                var setting = this.APP_.configure(MODULE.M.getActiveSetting(), null, window.location.href, true);
+                if (this.APP_.landing && this.APP_.landing === MODULE.UTIL.canonicalizeUrl(window.location.href)) {
                     return;
                 }
                 if (setting.origLocation.href === setting.destLocation.href) {
@@ -1928,28 +2089,29 @@ var MODULE;
                     break PROCESS;
                 }
 
-                setting.database && setting.fix.history && MODULE.APP.loadTitleByDB(setting.destLocation.href);
+                setting.database && setting.fix.history && this.APP_.loadTitleByDB(setting.destLocation.href);
 
                 var cache;
                 if (setting.cache[event.type.toLowerCase()]) {
                     cache = MODULE.M.getCache(setting.destLocation.href);
                 }
 
-                new MODULE.ModelAppUpdate(setting, event, false, cache);
+                new MODULE.AppUpdate(this.APP_, setting, event, false, cache);
                 return;
             }
             ;
-            MODULE.M.fallback(event, setting);
+            (!event.originalEvent || setting.gns === event.namespace) && MODULE.M.fallback(event, setting);
         };
 
         ModelMain.prototype.SCROLL = function (event, end) {
+            var _this = this;
             var common = MODULE.M.getActiveSetting();
             if (MODULE.M.state_ !== 0 /* ready */ || event.isDefaultPrevented()) {
                 return;
             }
 
             if (!common.scroll.delay) {
-                common.scroll.record && MODULE.APP.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+                common.scroll.record && this.APP_.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
             } else {
                 var id;
                 while (id = common.scroll.queue.shift()) {
@@ -1959,7 +2121,7 @@ var MODULE;
                     while (id = common.scroll.queue.shift()) {
                         clearTimeout(id);
                     }
-                    common.scroll.record && MODULE.APP.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+                    common.scroll.record && _this.APP_.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
                 }, common.scroll.delay);
                 common.scroll.queue.push(id);
             }
@@ -1969,7 +2131,7 @@ var MODULE;
             if ('function' === typeof setting.fallback) {
                 MODULE.UTIL.fire(setting.fallback, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
             } else {
-                MODULE.APP.movePageNormally(event);
+                this.APP_.movePageNormally(event);
             }
         };
 
@@ -1982,12 +2144,12 @@ var MODULE;
         };
 
         ModelMain.prototype.getCache = function (unsafe_url) {
-            var common = MODULE.M.getActiveSetting(), recent = MODULE.APP.recent;
+            var common = MODULE.M.getActiveSetting(), recent = this.APP_.recent;
             if (!common || !recent) {
                 return null;
             }
 
-            var secure_url = MODULE.M.convertUrlToUrlKey(MODULE.UTIL.canonicalizeUrl(unsafe_url));
+            var secure_url = MODULE.M.convertUrlToKeyUrl(MODULE.UTIL.canonicalizeUrl(unsafe_url));
             unsafe_url = null;
 
             recent.data[secure_url] && new Date().getTime() > recent.data[secure_url].expires && MODULE.M.removeCache(secure_url);
@@ -1996,13 +2158,13 @@ var MODULE;
         };
 
         ModelMain.prototype.setCache = function (unsafe_url, data, textStatus, jqXHR) {
-            var common = MODULE.M.getActiveSetting(), recent = MODULE.APP.recent;
+            var common = MODULE.M.getActiveSetting(), recent = this.APP_.recent;
             if (!common || !recent) {
                 return this;
             }
             var cache, size, timeStamp, expires;
 
-            var secure_url = MODULE.M.convertUrlToUrlKey(MODULE.UTIL.canonicalizeUrl(unsafe_url));
+            var secure_url = MODULE.M.convertUrlToKeyUrl(MODULE.UTIL.canonicalizeUrl(unsafe_url));
             unsafe_url = null;
 
             recent.order.unshift(secure_url);
@@ -2061,17 +2223,17 @@ var MODULE;
             }
             if (jqXHR || cache && cache.jqXHR) {
                 var title = ((jqXHR || cache && cache.jqXHR).responseText || '').slice(0, 10000).match(/<title[^>]*>(.*?)<\/title>/i).pop() || '';
-                common.database && common.fix.history && MODULE.APP.saveTitleToDB(secure_url, title);
+                common.database && common.fix.history && this.APP_.saveTitleToDB(secure_url, title);
             }
         };
 
         ModelMain.prototype.removeCache = function (unsafe_url) {
-            var common = MODULE.M.getActiveSetting(), recent = MODULE.APP.recent;
+            var common = MODULE.M.getActiveSetting(), recent = this.APP_.recent;
             if (!common || !recent) {
                 return;
             }
 
-            var secure_url = MODULE.M.convertUrlToUrlKey(MODULE.UTIL.canonicalizeUrl(unsafe_url));
+            var secure_url = MODULE.M.convertUrlToKeyUrl(MODULE.UTIL.canonicalizeUrl(unsafe_url));
             unsafe_url = null;
 
             for (var i = 0, key; key = recent.order[i]; i++) {
@@ -2085,7 +2247,7 @@ var MODULE;
         };
 
         ModelMain.prototype.clearCache = function () {
-            var common = MODULE.M.getActiveSetting(), recent = MODULE.APP.recent;
+            var common = MODULE.M.getActiveSetting(), recent = this.APP_.recent;
             if (!common || !recent) {
                 return;
             }
@@ -2097,7 +2259,7 @@ var MODULE;
         };
 
         ModelMain.prototype.cleanCache = function () {
-            var common = MODULE.M.getActiveSetting(), recent = MODULE.APP.recent;
+            var common = MODULE.M.getActiveSetting(), recent = this.APP_.recent;
             if (!common || !recent) {
                 return;
             }
@@ -2300,8 +2462,6 @@ var MODULE;
     // Allow access:
     //  M, V, C
     // Deny access
-    var APP, DATA;
-
     var ControllerFunction = (function () {
         function ControllerFunction() {
         }
@@ -2445,7 +2605,7 @@ var MODULE;
     // Allow access:
     //  M, C
     // Deny access
-    var V, APP, DATA;
+    var V;
 
     var ControllerMain = (function (_super) {
         __extends(ControllerMain, _super);
@@ -2523,8 +2683,6 @@ var MODULE;
     // Allow access:
     //  M, V, C
     // Deny access
-    var APP, DATA;
-
     var ControllerMethod = (function (_super) {
         __extends(ControllerMethod, _super);
         function ControllerMethod() {
@@ -2637,8 +2795,6 @@ var MODULE;
     // Allow access:
     //  M, V, C
     // Deny access
-    var APP, DATA;
-
     var ViewMain = (function (_super) {
         __extends(ViewMain, _super);
         function ViewMain() {
