@@ -7,12 +7,14 @@
 
 module MODULE {
   // Allow access:
-  //  M, APP, DATA
+  //  M
 
   // Deny access
   var V: void, C: void;
 
   export class ModelApp extends ModelTemplate implements ModelAppInterface {
+
+    DATA_: ModelData = new ModelData()
 
     landing: string = UTIL.canonicalizeUrl(window.location.href)
     recent: RecentInterface = { order: [], data: {}, size: 0 }
@@ -24,7 +26,7 @@ module MODULE {
       destURL = UTIL.canonicalizeUrl(destURL || option.destLocation.href);
       option = option.option || option;
 
-      var scope = option.scope ? jQuery.extend(true, {}, option, APP.scope_(option, origURL, destURL) || isBidirectional && APP.scope_(option, destURL, origURL) || { disable: true })
+      var scope = option.scope ? jQuery.extend(true, {}, option, this.scope_(option, origURL, destURL) || isBidirectional && this.scope_(option, destURL, origURL) || { disable: true })
                                : jQuery.extend(true, {}, option);
 
       var initial = {
@@ -118,11 +120,11 @@ module MODULE {
       setting = jQuery.extend(true, initial, scope, force);
       setting = jQuery.extend(true, setting, compute());
 
-      return new APP.stock(setting);
+      return new this.stock(setting);
     }
 
     registrate($context: ContextInterface, setting: SettingInterface): void {
-      var executed: { [index: string]: boolean; } = APP.stock('executed');
+      var executed: { [index: string]: boolean; } = this.stock('executed');
       setting.load.script && jQuery('script').each(function () {
         var element = this;
         element = 'function' === typeof setting.load.rewrite ? UTIL.fire(setting.load.rewrite, null, [element.cloneNode(true)]) || element : element;
@@ -130,11 +132,11 @@ module MODULE {
         if (element.src && (!setting.load.reload || !jQuery(element).is(setting.load.reload))) { executed[element.src] = true; }
       });
 
-      DATA.openDB(setting);
+      setting.database && this.DATA_.DB.opendb(setting);
       new View($context).BIND(setting);
-      setTimeout(() => APP.createHTMLDocument(), 50);
-      setTimeout(() => APP.loadBuffer(setting.buffer.limit), setting.buffer.delay);
-      setTimeout(() => APP.landing = null, 1500);
+      setTimeout(() => this.createHTMLDocument(), 50);
+      setTimeout(() => this.loadBuffer(setting.buffer.limit), setting.buffer.delay);
+      setTimeout(() => this.landing = null, 1500);
     }
 
     chooseAreas(areas: string[], srcDocument: Document, dstDocument: Document): string {
@@ -167,8 +169,8 @@ module MODULE {
           hit_dst: boolean,
           option: Object;
 
-      origKeyUrl = M.convertUrlToUrlKey(origURL).match(/.+?\w(\/.*)/).pop();
-      destKeyUrl = M.convertUrlToUrlKey(destURL).match(/.+?\w(\/.*)/).pop();
+      origKeyUrl = M.convertUrlToKeyUrl(origURL).match(/.+?\w(\/.*)/).pop();
+      destKeyUrl = M.convertUrlToKeyUrl(destURL).match(/.+?\w(\/.*)/).pop();
       rewriteKeyUrl = rewriteKeyUrl.replace(/[#?].*/, '');
 
       keys = (rewriteKeyUrl || destKeyUrl).replace(/^\/|\/$/g, '').split('/');
@@ -314,47 +316,49 @@ module MODULE {
     }
 
     loadTitleByDB(unsafe_url: string): void {
-      var keyUrl = UTIL.canonicalizeUrl(M.convertUrlToUrlKey(unsafe_url));
-      var buffer = DATA.buffer[keyUrl];
-      if (buffer && 'string' === typeof buffer.title) {
-        document.title = buffer.title;
+      var keyUrl: string = M.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url)),
+          data: BufferDataInterface = this.DATA_.DB.getBuffer(this.DATA_.DB.store.history.name, keyUrl);
+
+      if (data && 'string' === typeof data.title) {
+        document.title = data.title;
       } else {
-        DATA.loadTitle(keyUrl);
+        this.DATA_.DB.loadTitle(keyUrl);
       }
     }
 
     saveTitleToDB(unsafe_url: string, title: string): void {
-      var keyUrl = UTIL.canonicalizeUrl(M.convertUrlToUrlKey(unsafe_url));
-      DATA.buffer[keyUrl] = jQuery.extend({}, DATA.buffer[keyUrl], { title: title });
-      DATA.saveTitle(keyUrl, title);
+      var keyUrl = M.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
+
+      this.DATA_.DB.setBuffer(this.DATA_.DB.store.history.name, keyUrl, { title: title }, true);
+      this.DATA_.DB.saveTitle(keyUrl, title);
     }
 
     loadScrollPositionByCacheOrDB(unsafe_url: string): void {
-      var keyUrl = UTIL.canonicalizeUrl(M.convertUrlToUrlKey(unsafe_url));
-      var buffer = DATA.buffer[keyUrl];
-      if (buffer && 'number' === typeof buffer.scrollX) {
-        window.scrollTo(parseInt(Number(buffer.scrollX) + '', 10), parseInt(Number(buffer.scrollY) + '', 10));
+      var keyUrl: string = M.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url)),
+          data: BufferDataInterface = this.DATA_.DB.getBuffer(this.DATA_.DB.store.history.name, keyUrl);
+
+      if (data && 'number' === typeof data.scrollX) {
+        window.scrollTo(parseInt(Number(data.scrollX) + '', 10), parseInt(Number(data.scrollY) + '', 10));
       } else {
-        DATA.loadScrollPosition(keyUrl);
+        this.DATA_.DB.loadScrollPosition(keyUrl);
       }
     }
 
     saveScrollPositionToCacheAndDB(unsafe_url: string, scrollX: number, scrollY: number): void {
-      var keyUrl = UTIL.canonicalizeUrl(M.convertUrlToUrlKey(unsafe_url));
-      DATA.buffer[keyUrl] = jQuery.extend({}, DATA.buffer[keyUrl], { scrollX: scrollX, scrollY: scrollY });
-      DATA.saveScrollPosition(keyUrl, scrollX, scrollY);
+      var keyUrl = M.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
+
+      this.DATA_.DB.setBuffer(this.DATA_.DB.store.history.name, keyUrl, { scrollX: scrollX, scrollY: scrollY }, true);
+      this.DATA_.DB.saveScrollPosition(keyUrl, scrollX, scrollY);
     }
 
     loadBuffer(limit: number): void {
       0 < limit && 
-      DATA.loadBuffer(limit);
+      this.DATA_.DB.loadBuffer(this.DATA_.DB.store.history.name, limit);
     }
 
     saveBuffer(): void {
-      DATA.saveBuffer();
+      this.DATA_.DB.saveBuffer(this.DATA_.DB.store.history.name);
     }
 
   }
-  // 短縮登録
-  export var APP = new ModelApp();
 }

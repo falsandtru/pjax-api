@@ -78,8 +78,9 @@ module MODULE {
     isDeferrable: boolean
     
     // Model機能
+    APP_: ModelApp
     main_(context: ContextInterface, ...args: any[]): ContextInterface
-    convertUrlToUrlKey(unsafe_url: string): string
+    convertUrlToKeyUrl(unsafe_url: string): string
     isImmediateLoadable(unsafe_url: string): boolean
     isImmediateLoadable(event: JQueryEventObject): boolean
     getActiveSetting(): CommonSettingInterface
@@ -104,8 +105,7 @@ module MODULE {
     cleanCache(): void
   }
   export declare class ModelAppInterface {
-    stock(key: string): any
-    stock(key: 'executed'): { [index: string]: boolean }
+    DATA_: ModelData
 
     landing: string
     recent: RecentInterface
@@ -114,7 +114,7 @@ module MODULE {
 
     scope_(common: CommonSettingInterface, src: string, dst: string, rewriteKeyUrl?: string): any
     
-    configure(option: any, origURL: string, destURL: string, isBidirectional?: boolean): void
+    configure(option: any, origURL: string, destURL: string, isBidirectional?: boolean): SettingInterface
     registrate($context: ContextInterface, setting: SettingInterface): void
     createHTMLDocument(html: string): Document
     chooseAreas(areas: string[], srcDocument: Document, dstDocument: Document): string
@@ -128,8 +128,10 @@ module MODULE {
     loadBuffer(limit: number): void
     saveBuffer(): void
   }
-  export declare class ModelAppUpdateInterface {
-    constructor(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface)
+  export declare class AppUpdateInterface {
+    constructor(APP: ModelApp, setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface)
+
+    APP_: ModelApp
 
     setting_: SettingInterface
     cache_: CacheInterface
@@ -160,21 +162,71 @@ module MODULE {
     wait_(ms: number): JQueryPromise<any>
   }
   export declare class ModelDataInterface {
-    createStore_(): IDBObjectStore
-    accessRecord_(keyUrl: string, success: (event?: Event) => void): void
-    updateVersionNumber_(version: number): void
-    clean_(): void
+    DB: DataDB
+  }
+  export declare class DataDBInterface {
 
-    buffer: BufferInterface
+    IDBFactory: IDBFactory
+    IDBKeyRange: IDBKeyRange
 
-    openDB(setting: SettingInterface, count?: number): void
-    updateCurrentPage(): void
+    database_: IDBDatabase
+    name_: string
+    version_: number
+    retry_: number
+    store: {
+      meta: DataStoreMetaInterface
+      history: DataStoreHistoryInterface
+    }
+    meta_: {
+      version: string
+    }
+    
+    initdb_(setting: SettingInterface): void
+    checkdb_(setting: SettingInterface, version: number, success: () => void): void;
+
+    opendb(setting: SettingInterface): void
+    closedb(): void
+    deletedb(): void
+    accessStore(name: string, mode?: string): IDBObjectStore
+    accessRecord(storeName: string, key: string, success: (event?: Event) => void): void
+
+    loadBuffer(storeName: string, limit: number): void
+    saveBuffer(storeName: string): void
+    getBuffer(storeName: string): BufferInterface
+    getBuffer(storeName: string, key: string): BufferDataInterface
+    setBuffer(storeName: string, key: string, value: BufferDataInterface, isMerge?: boolean): BufferDataInterface
+
     loadTitle(keyUrl: string): void
     saveTitle(keyUrl: string, title: string): void
     loadScrollPosition(keyUrl: string): void
     saveScrollPosition(keyUrl: string, scrollX: number, scrollY: number): void
+  }
+  export declare class DataStoreInterface {
+    constructor(DB: DataDBInterface)
+
+    DB_: DataDB
+
+    name: string
+
+    buffer_: BufferInterface
+
+    accessStore(mode?: string): IDBObjectStore
+    accessRecord(key: string, success: (event?: Event) => void): void
+
     loadBuffer(limit: number): void
     saveBuffer(): void
+    getBuffer(): BufferInterface
+    getBuffer(key: string): BufferDataInterface
+    setBuffer(key: string, value: BufferDataInterface, isMerge?: boolean): BufferDataInterface
+  }
+  export declare class DataStoreMetaInterface extends DataStoreInterface {
+  }
+  export declare class DataStoreHistoryInterface extends DataStoreInterface {
+    clean_(): void
+    loadTitle(keyUrl: string): void
+    saveTitle(keyUrl: string, title: string): void
+    loadScrollPosition(keyUrl: string): void
+    saveScrollPosition(keyUrl: string, scrollX: number, scrollY: number): void
   }
   // View
   export declare class ViewInterface {
@@ -284,7 +336,44 @@ module MODULE {
       limit: number
       delay: number
     }
+    load: {
+      css: boolean
+      script: boolean
+      execute: boolean
+      head: string
+      reload: string
+      ignore: string
+      sync: boolean
+      ajax: JQueryAjaxSettings
+      rewrite(): any
+    }
+    redirect: boolean
+    interval: number
+    wait: number
+    scroll: {
+      delay: number
+      record: boolean //internal
+      queue: number[] //internal
+    }
+    fix: {
+      location: boolean
+      history: boolean
+      scroll: boolean
+      reset: boolean
+    }
+    fallback: boolean
+    database: boolean
+    server: {
+      query: any
+      header: {
+        area: boolean
+        head: boolean
+        css: boolean
+        script: boolean
+      }
+    }
     callback(): any
+    param: any
     callbacks: {
       before?: (event: JQueryEventObject, param: any) => any
       after?: (event: JQueryEventObject, param: any) => any
@@ -351,43 +440,6 @@ module MODULE {
         complete?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
       }
     }
-    param: any
-    load: {
-      css: boolean
-      script: boolean
-      execute: boolean
-      head: string
-      reload: string
-      ignore: string
-      sync: boolean
-      ajax: JQueryAjaxSettings
-      rewrite(): any
-    }
-    redirect: boolean
-    interval: number
-    wait: number
-    scroll: {
-      delay: number
-      record: boolean //internal
-      queue: number[] //internal
-    }
-    fix: {
-      location: boolean
-      history: boolean
-      scroll: boolean
-      reset: boolean
-    }
-    fallback: boolean
-    database: boolean
-    server: {
-      query: any
-      header: {
-        area: boolean
-        head: boolean
-        css: boolean
-        script: boolean
-      }
-    }
     
     // internal
     uuid: string
@@ -415,11 +467,12 @@ module MODULE {
   // Member
   export interface ContextInterface extends JQuery { }
   export interface BufferInterface {
-    [index: string]: {
-      title: string
-      scrollX?: number
-      scrollY?: number
-    }
+    [index: string]: BufferDataInterface
+  }
+  export interface BufferDataInterface {
+    title?: string
+    scrollX?: number
+    scrollY?: number
   }
   export interface RecentInterface {
     order: string[]
@@ -439,6 +492,19 @@ module MODULE {
     size?: number
     expires?: number
     timeStamp?: number
+  }
+
+  // Database
+  export interface MetaSchema {
+    id: string
+    value: string
+  }
+  export interface HistorySchema {
+    id: string
+    title: string
+    date: number
+    scrollX: number
+    scrollY: number
   }
 
 }

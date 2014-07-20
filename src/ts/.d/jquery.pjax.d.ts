@@ -71,72 +71,72 @@ interface PjaxSetting {
             script?: boolean
         }
     }
-    callback?: (event: JQueryEventObject, param: any) => any
+    callback?: (event?: JQueryEventObject, param?: any) => any
     param?: any
     callbacks?: {
-        before?: (event: JQueryEventObject, param: any) => any
-        after?: (event: JQueryEventObject, param: any) => any
+        before?: (event?: JQueryEventObject, param?: any) => any
+        after?: (event?: JQueryEventObject, param?: any) => any
         ajax?: {
-            xhr?: (event: JQueryEventObject, param: any) => any
-            beforeSend?: (event: JQueryEventObject, param: any, data: string, ajaxSettings: any) => any
-            dataFilter?: (event: JQueryEventObject, param: any, data: string, dataType: any) => any
-            success?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-            error?: (event: JQueryEventObject, param: any, jqXHR: JQueryXHR, textStatus: string, errorThrown: any) => any
-            complete?: (event: JQueryEventObject, param: any, jqXHR: JQueryXHR, textStatus: string) => any
-            done?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-            fail?: (event: JQueryEventObject, param: any, jqXHR: JQueryXHR, textStatus: string, errorThrown: any) => any
-            always?: (event: JQueryEventObject, param: any, jqXHR: JQueryXHR, textStatus: string) => any
+            xhr?: (event?: JQueryEventObject, param?: any) => any
+            beforeSend?: (event?: JQueryEventObject, param?: any, data?: string, ajaxSettings?: any) => any
+            dataFilter?: (event?: JQueryEventObject, param?: any, data?: string, dataType?: any) => any
+            success?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+            error?: (event?: JQueryEventObject, param?: any, jqXHR?: JQueryXHR, textStatus?: string, errorThrown?: any) => any
+            complete?: (event?: JQueryEventObject, param?: any, jqXHR?: JQueryXHR, textStatus?: string) => any
+            done?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+            fail?: (event?: JQueryEventObject, param?: any, jqXHR?: JQueryXHR, textStatus?: string, errorThrown?: any) => any
+            always?: (event?: JQueryEventObject, param?: any, jqXHR?: JQueryXHR, textStatus?: string) => any
         }
         update?: {
-            before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-            after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
+            before?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+            after?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
             cache?: {
-                before?: (event: JQueryEventObject, param: any, cache: any) => any
-                after?: (event: JQueryEventObject, param: any, cache: any) => any
+                before?: (event?: JQueryEventObject, param?: any, cache?: any) => any
+                after?: (event?: JQueryEventObject, param?: any, cache?: any) => any
             }
             redirect?: {
-                before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-                after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
+                before?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+                after?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
             }
             url?: {
-                before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-                after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
+                before?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+                after?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
             }
             title?: {
-                before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-                after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
+                before?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+                after?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
             }
             head?: {
-                before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-                after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
+                before?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+                after?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
             }
             content?: {
-                before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-                after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
+                before?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+                after?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
             }
             scroll?: {
-                before?: (event: JQueryEventObject, param: any) => any
-                after?: (event: JQueryEventObject, param: any) => any
+                before?: (event?: JQueryEventObject, param?: any) => any
+                after?: (event?: JQueryEventObject, param?: any) => any
             }
             css?: {
-                before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-                after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
+                before?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+                after?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
             }
             script?: {
-                before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-                after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
+                before?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+                after?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
             }
             render?: {
-                before?: (event: JQueryEventObject, param: any) => any
-                after?: (event: JQueryEventObject, param: any) => any
+                before?: (event?: JQueryEventObject, param?: any) => any
+                after?: (event?: JQueryEventObject, param?: any) => any
             }
             verify?: {
-                before?: (event: JQueryEventObject, param: any) => any
-                after?: (event: JQueryEventObject, param: any) => any
+                before?: (event?: JQueryEventObject, param?: any) => any
+                after?: (event?: JQueryEventObject, param?: any) => any
             }
-            success?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-            error?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-            complete?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
+            success?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+            error?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+            complete?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
         }
     }
 }

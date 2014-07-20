@@ -8,7 +8,6 @@ module MODULE {
   //  M, V, C
 
   // Deny access
-  var APP: void, DATA: void;
 
   export class ControllerMethod extends ControllerFunction implements MethodInterface {
 
