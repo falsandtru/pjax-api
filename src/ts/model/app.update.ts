@@ -4,20 +4,24 @@
 
 module MODULE {
   // Allow access:
-  //  M, APP, DATA
+  //  M
 
   // Deny access
   var V: void, C: void;
 
-  export class ModelAppUpdate implements ModelAppUpdateInterface {
+  export class AppUpdate implements AppUpdateInterface {
 
-    constructor(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface) {
-      var speedcheck = setting.speedcheck, speed = APP.stock('speed');
+    APP_: ModelApp
+
+    constructor(APP: ModelApp,setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface) {
+      var speedcheck = setting.speedcheck, speed = M.stock('speed');
       speedcheck && (speed.fire = event.timeStamp);
       speedcheck && speed.time.splice(0, 100, 0);
       speedcheck && speed.name.splice(0, 100, 'pjax(' + speed.time.slice(-1) + ')');
 
       var that = this;
+
+      this.APP_ = APP
 
       if (UTIL.fire(setting.callbacks.before, null, [event, setting.param]) === false) { return; }
 
@@ -190,7 +194,8 @@ module MODULE {
 
     update_(): void {
       UPDATE: {
-        var that = this;
+        var that = this,
+            APP = this.APP_;
         var setting: SettingInterface = this.setting_,
             cache: CacheInterface = this.cache_,
             event: JQueryEventObject = this.event_,
@@ -200,7 +205,7 @@ module MODULE {
             jqXHR: JQueryXHR = this.jqXHR_;
         var callbacks_update = setting.callbacks.update;
 
-        var speedcheck = setting.speedcheck, speed = APP.stock('speed');
+        var speedcheck = setting.speedcheck, speed = M.stock('speed');
         speedcheck && speed.time.push(speed.now() - speed.fire);
         speedcheck && speed.name.push('load(' + speed.time.slice(-1) + ')');
 
@@ -253,8 +258,6 @@ module MODULE {
           
           /* title */
           this.updateTitle_();
-
-          setting.database && DATA.updateCurrentPage();
 
           /* head */
           this.updateHead_();
@@ -332,7 +335,7 @@ module MODULE {
       this.cache_ = cache;
 
       if (cache && cache.data) {
-        var cacheDocument: Document = APP.createHTMLDocument(cache.data),
+        var cacheDocument: Document = this.APP_.createHTMLDocument(cache.data),
             srcDocument: Document = this.srcDocument_;
 
         srcDocument.title = cacheDocument.title;
@@ -428,7 +431,7 @@ module MODULE {
 
       if (UTIL.fire(callbacks_update.title.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
       this.dstDocument_.title = this.srcDocument_.title;
-      setting.database && setting.fix.history && APP.saveTitleToDB(setting.destLocation.href, this.srcDocument_.title);
+      setting.database && setting.fix.history && this.APP_.saveTitleToDB(setting.destLocation.href, this.srcDocument_.title);
       if (UTIL.fire(callbacks_update.title.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
 
@@ -559,12 +562,12 @@ module MODULE {
           scrollY = scrollY === false || scrollY === null ? jQuery(window).scrollTop() : parseInt(Number(scrollY) + '', 10);
 
           (jQuery(window).scrollTop() === scrollY && jQuery(window).scrollLeft() === scrollX) || window.scrollTo(scrollX, scrollY);
-          call && setting.database && setting.fix.scroll && APP.saveScrollPositionToCacheAndDB(setting.destLocation.href, scrollX, scrollY);
           break;
         case 'popstate':
-          call && setting.fix.scroll && setting.database && setting.scroll.record && APP.loadScrollPositionByCacheOrDB(setting.destLocation.href);
+          call && setting.fix.scroll && setting.database && setting.scroll.record && this.APP_.loadScrollPositionByCacheOrDB(setting.destLocation.href);
           break;
       }
+      call && setting.database && setting.fix.scroll && this.APP_.saveScrollPositionToCacheAndDB(setting.destLocation.href, scrollX, scrollY);
 
       if (UTIL.fire(callbacks_update.scroll.after, null, [event, setting.param]) === false) { return; }
     }
@@ -615,7 +618,7 @@ module MODULE {
 
       if (UTIL.fire(callbacks_update.css.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
 
-      var speedcheck = setting.speedcheck, speed = APP.stock('speed');
+      var speedcheck = setting.speedcheck, speed = M.stock('speed');
       speedcheck && speed.time.push(speed.now() - speed.fire);
       speedcheck && speed.name.push('css(' + speed.time.slice(-1) + ')');
     }
@@ -640,7 +643,7 @@ module MODULE {
       if (cache && cache.script && script && script.length !== cache.script.length) { save = true; }
       if (save) { cache.script = []; }
 
-      var executed: { [index: string]: boolean; } = APP.stock('executed');
+      var executed: { [index: string]: boolean; } = this.APP_.stock('executed');
       for (var i = 0, element; element = script[i]; i++) {
         //element = dstDocument.importNode ? dstDocument.importNode(element, true) : jQuery(element.outerHTML);
         element = 'function' === typeof setting.load.rewrite ? UTIL.fire(setting.load.rewrite, null, [element]) || element : element;
@@ -669,7 +672,7 @@ module MODULE {
 
       if (UTIL.fire(callbacks_update.script.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
 
-      var speedcheck = setting.speedcheck, speed = APP.stock('speed');
+      var speedcheck = setting.speedcheck, speed = M.stock('speed');
       speedcheck && speed.time.push(speed.now() - speed.fire);
       speedcheck && speed.name.push(('[src][defer]' === selector ? 'defer' : 'script') + '(' + speed.time.slice(-1) + ')');
     }
@@ -683,15 +686,15 @@ module MODULE {
       var callbacks_update = setting.callbacks.update;
 
       var rendered = (callback) => {
-        var speedcheck = setting.speedcheck, speed = APP.stock('speed');
+        var speedcheck = setting.speedcheck, speed = M.stock('speed');
         speedcheck && speed.time.push(speed.now() - speed.fire);
         speedcheck && speed.name.push('renderd(' + speed.time.slice(-1) + ')');
 
         checker.remove();
         setting.scroll.record = true;
         if ('popstate' !== event.type.toLowerCase()) {
-          APP.scrollByHash(setting.destLocation.hash) || this.updateScroll_(true);
-          setTimeout(function () { APP.scrollByHash(setting.destLocation.hash); }, 50);
+          this.APP_.scrollByHash(setting.destLocation.hash) || this.updateScroll_(true);
+          setTimeout(() => this.APP_.scrollByHash(setting.destLocation.hash), 50);
         } else {
           this.updateScroll_(true);
         }
@@ -739,11 +742,11 @@ module MODULE {
 
       if (setting.destLocation.href === UTIL.canonicalizeUrl(window.location.href)) {
         setting.retry = true;
-        new APP.stock(setting.uuid);
+        new this.APP_.stock(setting.uuid);
       } else if (setting.retry) {
         setting.retry = false;
         setting.destLocation.href = UTIL.canonicalizeUrl(window.location.href);
-        new ModelAppUpdate(setting, event, false, setting.cache[event.type.toLowerCase()] && M.getCache(setting.destLocation.href));
+        new AppUpdate(this.APP_, setting, event, false, setting.cache[event.type.toLowerCase()] && M.getCache(setting.destLocation.href));
       } else {
         throw new Error('throw: location mismatch');
       }

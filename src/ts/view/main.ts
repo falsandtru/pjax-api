@@ -9,7 +9,6 @@ module MODULE {
   //  M, V, C
 
   // Deny access
-  var APP: void, DATA: void;
 
   export class ViewMain extends ViewTemplate implements ViewInterface {
 

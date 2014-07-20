@@ -9,7 +9,7 @@ module MODULE {
   //  M, C
 
   // Deny access
-  var V: void, APP: void, DATA: void;
+  var V: void;
 
   export class ControllerMain extends ControllerTemplate implements ControllerInterface {
 
