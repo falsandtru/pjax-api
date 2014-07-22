@@ -1,6 +1,7 @@
 /// <reference path="../define.ts"/>
 /// <reference path="_template.ts"/>
 /// <reference path="app.update.ts"/>
+/// <reference path="app.data.ts"/>
 /// <reference path="util.ts"/>
 
 /* MODEL */
@@ -14,19 +15,19 @@ module MODULE {
 
   export class ModelApp extends ModelTemplate implements ModelAppInterface {
 
-    DATA_: ModelData = new ModelData()
+    DATA: AppData = new AppData(this)
 
     landing: string = UTIL.canonicalizeUrl(window.location.href)
     recent: RecentInterface = { order: [], data: {}, size: 0 }
     activeXHR: JQueryXHR
-    activeSetting: CommonSettingInterface
+    activeSetting: SettingInterface
 
-    configure(option: any, origURL: string, destURL: string, isBidirectional: boolean = false): SettingInterface {
+    configure(option: SettingInterface, origURL: string, destURL: string): SettingInterface {
       origURL = UTIL.canonicalizeUrl(origURL || option.origLocation.href);
       destURL = UTIL.canonicalizeUrl(destURL || option.destLocation.href);
       option = option.option || option;
 
-      var scope = option.scope ? jQuery.extend(true, {}, option, this.scope_(option, origURL, destURL) || isBidirectional && this.scope_(option, destURL, origURL) || { disable: true })
+      var scope = option.scope ? jQuery.extend(true, {}, option, this.scope_(option, origURL, destURL) || { disable: true })
                                : jQuery.extend(true, {}, option);
 
       var initial = {
@@ -52,18 +53,53 @@ module MODULE {
               limit: 30,
               delay: 500 
             },
+            load: {
+              sync: true,
+              head: '',
+              css: false,
+              script: false,
+              execute: true,
+              reload: '',
+              ignore: '[src*="jquery.js"], [src*="jquery.min.js"], [href^="chrome-extension://"]',
+              ajax: { dataType: 'script', cache: true },
+              rewrite: null
+            },
+            balance: {
+              self: false,
+              weight: 3,
+              client: {
+                support: /chrome|firefox|safari/i,
+                exclude: /msie|trident|mobile|phone|android|iphone|ipad|blackberry/i,
+                cookie: 'balanceable'
+              },
+              server: {
+                header: 'X-Ajax-Host',
+                preclude: 10 * 60 * 1000,
+              },
+              log: {
+                expires: 1.5 * 24 * 60 * 60 * 1000,
+                limit: 10
+              },
+              option: {
+                server: {
+                  header: false
+                },
+                ajax: {
+                  crossDomain: true
+                },
+                callbacks: {
+                  ajax: {
+                    beforeSend: null
+                  }
+                }
+              }
+            },
             callback: null,
             callbacks: {
               ajax: {},
-              update: { redirect: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, cache: {}, render: {}, verify: {} }
+              update: { redirect: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, cache: {}, render: {}, verify: {}, balance: {} }
             },
             param: null,
-            load: {
-              head: '', css: false, script: false, execute: true,
-              reload: '',
-              ignore: '[src*="jquery.js"], [src*="jquery.min.js"], [href^="chrome-extension://"]',
-              sync: true, ajax: { dataType: 'script', cache: true }, rewrite: null
-            },
             redirect: true,
             interval: 100,
             wait: 0,
@@ -71,17 +107,23 @@ module MODULE {
             fix: { location: true, history: true, scroll: true, reset: false },
             fallback: true,
             database: true,
-            speedcheck: false,
             server: {
               query: 'pjax=1',
               header: true
-            }
+            },
+            speedcheck: false
           },
           force = {
             origLocation: (function (url, a) { a.href = url; return a; })(origURL, document.createElement('a')),
             destLocation: (function (url, a) { a.href = url; return a; })(destURL, document.createElement('a')),
+            balance: {
+              server: {
+                host: ''
+              }
+            },
             scroll: { record: true, queue: [] },
-            retry: true,
+            loadtime: null,
+            retriable: true,
             option: option
           },
           compute = function () {
@@ -117,10 +159,11 @@ module MODULE {
           };
 
       var setting: SettingInterface;
-      setting = jQuery.extend(true, initial, scope, force);
+      setting = jQuery.extend(true, initial, scope);
+      setting = jQuery.extend(true, setting, setting.balance.self && setting.balance.option, force);
       setting = jQuery.extend(true, setting, compute());
 
-      return new this.stock(setting);
+      return setting; //new this.stock(setting);
     }
 
     registrate($context: ContextInterface, setting: SettingInterface): void {
@@ -132,11 +175,97 @@ module MODULE {
         if (element.src && (!setting.load.reload || !jQuery(element).is(setting.load.reload))) { executed[element.src] = true; }
       });
 
-      setting.database && this.DATA_.DB.opendb(setting);
       new View($context).BIND(setting);
       setTimeout(() => this.createHTMLDocument(), 50);
-      setTimeout(() => this.loadBuffer(setting.buffer.limit), setting.buffer.delay);
+      setTimeout(() => this.DATA.loadBufferAll(setting.buffer.limit), setting.buffer.delay);
+      setTimeout(() => setting.balance.self && this.enableBalance(), setting.buffer.delay);
       setTimeout(() => this.landing = null, 1500);
+    }
+    
+    chooseRequestServer(setting: SettingInterface): void {
+      if (setting.balance.self && !~document.cookie.indexOf(setting.balance.client.cookie + '=1')) {
+        this.enableBalance();
+      }
+      if (!setting.balance.self || !~document.cookie.indexOf(setting.balance.client.cookie + '=1')) {
+        this.disableBalance();
+        return;
+      }
+
+      this.DATA.loadBufferAll(setting.buffer.limit);
+
+      var expires: number;
+      var historyBufferData = <HistorySchema>this.DATA.getBuffer(this.DATA.storeNames.history, M.convertUrlToKeyUrl(setting.destLocation.href));
+
+      expires = historyBufferData && historyBufferData.expires;
+      if (expires && expires >= new Date().getTime()) {
+        M.requestHost = historyBufferData.host;
+        setting.balance.server.host = historyBufferData.host;
+        return;
+      }
+
+      var logBuffer = <{ [index: number]: LogSchema }>this.DATA.getBuffer(this.DATA.storeNames.log),
+          timeList: number[] = [],
+          logTable: { [index: number]: LogSchema } = {},
+          now: number = new Date().getTime();
+
+      if (!logBuffer) {
+        this.disableBalance();
+        return;
+      }
+      for (var i in logBuffer) {
+        if (now > logBuffer[i].date + setting.balance.log.expires) { continue; }
+        timeList.push(logBuffer[i].response);
+        logTable[logBuffer[i].response] = logBuffer[i];
+      }
+
+
+      function compareNumbers(a, b) {
+        return a - b;
+      }
+      timeList = timeList.sort(compareNumbers);
+      var serverBuffer = <{ [index: string]: ServerSchema }>this.DATA.getBuffer(this.DATA.storeNames.server),
+          time: number = timeList.shift();
+
+      M.requestHost = '';
+      if (!serverBuffer) {
+        this.disableBalance();
+        return;
+      }
+      var host: string = '',
+          time: number;
+      for (var j = setting.balance.log.limit; time = i-- && timeList.shift();) {
+        host = logTable[time].host.split('//').pop() || '';
+        if (!serverBuffer[host] || serverBuffer[host].state && new Date().getTime() < serverBuffer[host].state + setting.balance.server.preclude) {
+          continue;
+        }
+        if (!host && setting.balance.weight && !(Math.floor(Math.random()) * setting.balance.weight)) {
+          continue;
+        }
+        M.requestHost = host;
+        setting.balance.server.host = host;
+        return;
+      }
+      this.disableBalance();
+    }
+    
+    enableBalance(): void {
+      var setting: SettingInterface = M.getActiveSetting();
+
+      if (!setting.balance.client.support.test(window.navigator.userAgent) || setting.balance.client.exclude.test(window.navigator.userAgent)) {
+        return;
+      }
+
+      document.cookie = setting.balance.client.cookie + '=1'
+      if (!~document.cookie.indexOf(setting.balance.client.cookie + '=1') || !setting.database) {
+        return void this.disableBalance();
+      }
+    }
+
+    disableBalance(): void {
+      var setting: SettingInterface = M.getActiveSetting();
+
+      M.requestHost = '';
+      document.cookie = setting.balance.client.cookie + '=0'
     }
 
     chooseAreas(areas: string[], srcDocument: Document, dstDocument: Document): string {
@@ -153,10 +282,10 @@ module MODULE {
       }
     }
 
-    scope_(common: CommonSettingInterface, origURL: string, destURL: string, rewriteKeyUrl: string = ''): any {
+    scope_(setting: SettingInterface, origURL: string, destURL: string, rewriteKeyUrl: string = ''): any {
       var origKeyUrl: string,
           destKeyUrl: string,
-          scp: any = common.scope,
+          scp: any = setting.scope,
           dirs: string[],
           keys: string[],
           key: string,
@@ -216,14 +345,14 @@ module MODULE {
               for (var k = 0, len = dirs.length; k < len; k++) { pattern = pattern.replace('/*/', '/' + dirs[k] + '/'); }
             }
 
-            if ((not || !hit_src) && (reg ? !origKeyUrl.search(pattern) : !origKeyUrl.indexOf(pattern))) {
+            if (reg ? !origKeyUrl.search(pattern) : !origKeyUrl.indexOf(pattern)) {
               if (not) {
                 return false;
               } else {
                 hit_src = true;
               }
             }
-            if ((not || !hit_dst) && (reg ? !destKeyUrl.search(pattern) : !destKeyUrl.indexOf(pattern))) {
+            if (reg ? !destKeyUrl.search(pattern) : !destKeyUrl.indexOf(pattern)) {
               if (not) {
                 return false;
               } else {
@@ -239,7 +368,7 @@ module MODULE {
         }
 
         if (hit_src && hit_dst) {
-          return jQuery.extend(true, {}, common, ('object' === typeof rewrite ? rewrite : option) || {});
+          return jQuery.extend(true, {}, setting, ('object' === typeof rewrite ? rewrite : option) || {});
         }
         if (inherit) { continue; }
         break;
@@ -326,49 +455,23 @@ module MODULE {
 
     }
 
-    loadTitleByDB(unsafe_url: string): void {
-      var keyUrl: string = M.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url)),
-          data: BufferDataInterface = this.DATA_.DB.getBuffer(this.DATA_.DB.store.history.name, keyUrl);
+    calAge(jqXHR: JQueryXHR): number {
+      var age: any;
 
-      if (data && 'string' === typeof data.title) {
-        document.title = data.title;
-      } else {
-        this.DATA_.DB.loadTitle(keyUrl);
+      switch (true) {
+        case /no-store|no-cache/.test(jqXHR.getResponseHeader('Cache-Control')):
+          return 0;
+        case !!~String(jqXHR.getResponseHeader('Cache-Control')).indexOf('max-age='):
+          return Number(jqXHR.getResponseHeader('Cache-Control').match(/max-age=(\d+)/).pop()) * 1000;
+        case !!String(jqXHR.getResponseHeader('Expires')):
+          return new Date(jqXHR.getResponseHeader('Expires')).getTime() - new Date().getTime();
+        default:
+          return 0;
       }
     }
 
-    saveTitleToDB(unsafe_url: string, title: string): void {
-      var keyUrl = M.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
-
-      this.DATA_.DB.setBuffer(this.DATA_.DB.store.history.name, keyUrl, { title: title }, true);
-      this.DATA_.DB.saveTitle(keyUrl, title);
-    }
-
-    loadScrollPositionByCacheOrDB(unsafe_url: string): void {
-      var keyUrl: string = M.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url)),
-          data: BufferDataInterface = this.DATA_.DB.getBuffer(this.DATA_.DB.store.history.name, keyUrl);
-
-      if (data && 'number' === typeof data.scrollX) {
-        window.scrollTo(parseInt(Number(data.scrollX) + '', 10), parseInt(Number(data.scrollY) + '', 10));
-      } else {
-        this.DATA_.DB.loadScrollPosition(keyUrl);
-      }
-    }
-
-    saveScrollPositionToCacheAndDB(unsafe_url: string, scrollX: number, scrollY: number): void {
-      var keyUrl = M.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
-
-      this.DATA_.DB.setBuffer(this.DATA_.DB.store.history.name, keyUrl, { scrollX: scrollX, scrollY: scrollY }, true);
-      this.DATA_.DB.saveScrollPosition(keyUrl, scrollX, scrollY);
-    }
-
-    loadBuffer(limit: number): void {
-      0 < limit && 
-      this.DATA_.DB.loadBuffer(this.DATA_.DB.store.history.name, limit);
-    }
-
-    saveBuffer(): void {
-      this.DATA_.DB.saveBuffer(this.DATA_.DB.store.history.name);
+    calExpires(jqXHR: JQueryXHR): number {
+      return new Date().getTime() + this.calAge(jqXHR);
     }
 
   }

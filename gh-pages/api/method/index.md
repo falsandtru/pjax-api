@@ -23,6 +23,9 @@ pjaxを使用してフォーム送信によりページを移動します。
 ## [follow()](api/method/follow/) <small><span class="label label-primary">jQuery1.6+</span></small>
 外部のajax処理を引き継いでページ移動を行います。
 
+## [host()](api/method/host/)
+現在設定されているリクエスト先のホストを取得します。
+
 ## [setCache()](api/method/setCache/) <small><span class="label label-info">chainable</span></small>
 プラグインキャッシュを設定します。
 

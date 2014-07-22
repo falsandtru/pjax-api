@@ -11,9 +11,9 @@ module MODULE {
   // Deny access
   var V: void, C: void;
 
-  export class DataStoreMeta<T> extends DataStore<T> implements DataStoreMetaInterface<T> {
+  export class DataStoreServer<T> extends DataStore<T> implements DataStoreServerInterface<T> {
 
-    name: string = 'meta'
+    name: string = 'server'
     keyPath: string = 'id'
 
   }

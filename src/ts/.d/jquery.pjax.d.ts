@@ -22,17 +22,6 @@ interface PjaxSetting {
     }
     ajax?: JQueryAjaxSettings
     contentType?: string
-    load?: {
-        head?: string
-        css?: boolean
-        script?: boolean
-        execute?: boolean
-        reload?: string
-        ignore?: string
-        sync?: boolean
-        ajax?: JQueryAjaxSettings
-        rewrite?: (element: any) => any
-    }
     redirect?: boolean
     interval?: number
     cache?: {
@@ -52,6 +41,36 @@ interface PjaxSetting {
     buffer: {
       limit: number
       delay: number
+    }
+    load?: {
+        head?: string
+        css?: boolean
+        script?: boolean
+        execute?: boolean
+        reload?: string
+        ignore?: string
+        sync?: boolean
+        ajax?: JQueryAjaxSettings
+        rewrite?: (element: any) => any
+    }
+    balance: {
+        self: boolean
+        weight: number
+        client: {
+            support: RegExp
+            exclude: RegExp
+            cookie: string
+        }
+        server: {
+            header: string
+            preclude: number
+            host: string //internal
+        }
+        log: {
+            expires: number
+            limit: number
+        }
+        option: PjaxSetting
     }
     wait?: any     // number, function( event, param, origUrl, destUrl ): number
     fallback?: any // boolean, function( event, param, origUrl, destUrl ): boolean
@@ -134,6 +153,10 @@ interface PjaxSetting {
                 before?: (event?: JQueryEventObject, param?: any) => any
                 after?: (event?: JQueryEventObject, param?: any) => any
             }
+            balance?: {
+              before?: (event?: JQueryEventObject, param?: any) => any
+              after?: (event?: JQueryEventObject, param?: any) => any
+            }
             success?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
             error?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
             complete?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
@@ -169,6 +192,7 @@ interface JQueryPjax {
     removeCache(url: string): JQueryPjax
     removeCache(): JQueryPjax
     clearCache(): JQueryPjax
+    host(): string
     
     end(): JQuery
 }

@@ -34,6 +34,7 @@ module MODULE {
     }
 
     trim(text: string): string {
+      text = text || '';
       if (String.prototype.trim) {
         text = text.toString().trim();
       } else {

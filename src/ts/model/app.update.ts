@@ -53,6 +53,10 @@ module MODULE {
 
           that.update_();
         } else if (setting.fallback && 'abort' !== xhrArgs.statusText) {
+          if (setting.balance.self) {
+            that.APP_.DATA.saveServerToDB(setting.balance.server.host, new Date().getTime());
+            that.APP_.disableBalance();
+          }
           M.fallback(event, setting);
         }
       }
@@ -60,6 +64,7 @@ module MODULE {
       if (cache && cache.jqXHR) {
         // cache
         speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
+        setting.loadtime = 0;
         M.setActiveXHR(null);
         this.data_ = cache.data;
         this.textStatus_ = cache.textStatus;
@@ -70,29 +75,34 @@ module MODULE {
         } else {
           that.update_();
         }
-      } else if (activeXHR && activeXHR.follow && 'abort' !== activeXHR.statusText) {
+      } else if (activeXHR && activeXHR.follow && 'abort' !== activeXHR.statusText && 'error' !== activeXHR.statusText) {
         // preload
         speedcheck && speed.time.splice(0, 1, activeXHR.timeStamp - speed.fire);
         speedcheck && speed.name.splice(0, 1, 'preload(' + speed.time.slice(-1) + ')');
         speedcheck && speed.time.push(speed.now() - speed.fire);
         speedcheck && speed.name.push('continue(' + speed.time.slice(-1) + ')');
+        setting.loadtime = activeXHR.timeStamp;
         var wait = setting.wait && isFinite(activeXHR.timeStamp) ? Math.max(setting.wait - new Date().getTime() + activeXHR.timeStamp, 0) : 0;
         jQuery.when(activeXHR, that.wait_(wait))
         .done(done).fail(fail).always(always);
 
       } else {
         // default
-        var ajax: JQueryAjaxSettings = {},
+        setting.loadtime = event.timeStamp;
+        var requestLocation = <HTMLAnchorElement>setting.destLocation.cloneNode(),
+            ajax: JQueryAjaxSettings = {},
             callbacks = {};
 
-        ajax.url = !setting.server.query ? setting.destLocation.href
+        this.APP_.chooseRequestServer(setting);
+        requestLocation.host = setting.balance.self && M.requestHost.split('//').pop() || setting.destLocation.host;
+        ajax.url = !setting.server.query ? requestLocation.href
                                          : [
-                                             setting.destLocation.protocol,
+                                             requestLocation.protocol,
                                              '//',
-                                             setting.destLocation.host,
-                                             '/' === setting.destLocation.pathname.charAt(0) ? setting.destLocation.pathname : '/' + setting.destLocation.pathname,
-                                             (1 < setting.destLocation.search.length ? setting.destLocation.search + '&' : '?') + setting.server.query,
-                                             setting.destLocation.hash
+                                             requestLocation.host,
+                                             '/' === requestLocation.pathname.charAt(0) ? requestLocation.pathname : '/' + requestLocation.pathname,
+                                             (1 < requestLocation.search.length ? requestLocation.search + '&' : '?') + setting.server.query,
+                                             requestLocation.hash
                                            ].join('');
         switch (event.type.toLowerCase()) {
           case 'click':
@@ -156,6 +166,9 @@ module MODULE {
                 that.update_();
               }
             } else if (setting.fallback && 'abort' !== textStatus) {
+              if (setting.balance.self) {
+                that.APP_.disableBalance();
+              }
               M.fallback(event, setting);
             }
           }
@@ -166,9 +179,9 @@ module MODULE {
         speedcheck && speed.time.push(speed.now() - speed.fire);
         speedcheck && speed.name.push('request(' + speed.time.slice(-1) + ')');
 
-        jQuery(document).trigger(setting.gns + '.request');
-        
         activeXHR = M.setActiveXHR(jQuery.ajax(ajax));
+        jQuery(document).trigger(jQuery.Event(setting.gns + '.request', activeXHR));
+        
         if (M.isDeferrable) {
           jQuery.when(activeXHR, that.wait_(UTIL.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href])))
           .done(done).fail(fail).always(always);
@@ -205,6 +218,9 @@ module MODULE {
             jqXHR: JQueryXHR = this.jqXHR_;
         var callbacks_update = setting.callbacks.update;
 
+        setting.loadtime = setting.loadtime && new Date().getTime() - setting.loadtime;
+        setting.loadtime = setting.loadtime < 100 ? 0 : setting.loadtime;
+
         var speedcheck = setting.speedcheck, speed = M.stock('speed');
         speedcheck && speed.time.push(speed.now() - speed.fire);
         speedcheck && speed.name.push('load(' + speed.time.slice(-1) + ')');
@@ -236,13 +252,13 @@ module MODULE {
             if (!setting.area) { throw new Error('throw: area notfound'); }
           }; // label: DEFINE
           
-          /* cache */
-          this.updateCache_();
-          
           /* check point */
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
 
+          /* cache */
+          this.updateCache_();
+          
           /* escape */
           jQuery('noscript', srcDocument).children().parent().each(function () { this.children.length && jQuery(this).text(this.innerHTML); });
 
@@ -276,9 +292,12 @@ module MODULE {
 
           /* escape */
           jQuery('noscript', srcDocument).remove();
-
+          
           /* verify */
           this.updateVerify_();
+          
+          /* balance */
+          this.updateBalance_();
 
           /* load */
           this.updateCSS_('link[rel~="stylesheet"], style');
@@ -304,6 +323,8 @@ module MODULE {
           if (UTIL.fire(callbacks_update.complete, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { break UPDATE; }
           if (UTIL.fire(setting.callback, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { break UPDATE; }
         } catch (err) {
+          if (!err) { return; }
+
           /* cache delete */
           cache && M.removeCache(setting.destLocation.href);
 
@@ -365,7 +386,8 @@ module MODULE {
 
       if (UTIL.fire(callbacks_update.redirect.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; };
 
-      var redirect = <HTMLAnchorElement>jQuery('<a>', { href: jQuery(redirect).attr('content').match(/\w+:\/\/[^;\s]+/i) })[0];
+      var redirect = <HTMLAnchorElement>setting.destLocation.cloneNode();
+      redirect.href = jQuery(redirect).attr('content').match(/\w+:\/\/[^;\s]+/i).shift();
       switch (true) {
         case !setting.redirect:
         case redirect.protocol !== setting.destLocation.protocol:
@@ -431,7 +453,7 @@ module MODULE {
 
       if (UTIL.fire(callbacks_update.title.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
       this.dstDocument_.title = this.srcDocument_.title;
-      setting.database && setting.fix.history && this.APP_.saveTitleToDB(setting.destLocation.href, this.srcDocument_.title);
+      setting.database && setting.fix.history && this.APP_.DATA.saveTitleToDB(setting.destLocation.href, this.srcDocument_.title);
       if (UTIL.fire(callbacks_update.title.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
 
@@ -513,7 +535,7 @@ module MODULE {
 
       if (UTIL.fire(callbacks_update.content.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return loadwaits; }
 
-      jQuery(setting.area).children('.' + setting.nss.class4html + '-check').remove();
+      jQuery(setting.area.join(',')).children('.' + setting.nss.class4html + '-check').remove();
       checker = jQuery('<div/>', {
         'class': setting.nss.class4html + '-check',
         'style': 'background: none !important; display: block !important; visibility: hidden !important; position: absolute !important; top: 0 !important; left: 0 !important; z-index: -9999 !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; font-size: 12px !important; text-indent: 0 !important;'
@@ -564,17 +586,16 @@ module MODULE {
           (jQuery(window).scrollTop() === scrollY && jQuery(window).scrollLeft() === scrollX) || window.scrollTo(scrollX, scrollY);
           break;
         case 'popstate':
-          call && setting.fix.scroll && setting.database && setting.scroll.record && this.APP_.loadScrollPositionByCacheOrDB(setting.destLocation.href);
+          call && setting.fix.scroll && setting.database && setting.scroll.record && this.APP_.DATA.loadScrollPositionFromCacheOrDB(setting.destLocation.href);
           break;
       }
-      call && setting.database && setting.fix.scroll && this.APP_.saveScrollPositionToCacheAndDB(setting.destLocation.href, scrollX, scrollY);
+      call && setting.database && setting.fix.scroll && this.APP_.DATA.saveScrollPositionToCacheAndDB(setting.destLocation.href, scrollX, scrollY);
 
       if (UTIL.fire(callbacks_update.scroll.after, null, [event, setting.param]) === false) { return; }
     }
 
     updateCSS_(selector: string): void {
       var setting: SettingInterface = this.setting_,
-          cache: CacheInterface = this.cache_,
           event: JQueryEventObject = this.event_,
           srcDocument: Document = this.srcDocument_,
           dstDocument: Document = this.dstDocument_;
@@ -584,25 +605,20 @@ module MODULE {
 
       if (UTIL.fire(callbacks_update.css.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
 
-      var css: JQuery, save, adds = [], removes = jQuery(selector, dstDocument).not(jQuery(setting.area).find(selector));
-      cache = M.getCache(setting.destLocation.href);
-      save = cache && !cache.css;
-      css = cache && cache.css ? jQuery(cache.css) : jQuery(selector, srcDocument).not(jQuery(setting.area, srcDocument).find(selector));
-      css = css.not(setting.load.ignore);
-
-      if (cache && cache.css && css && css.length !== cache.css.length) { save = true; }
-      if (save) { cache.css = []; }
+      var css: JQuery = jQuery(selector, srcDocument).not(jQuery(setting.area.join(','), srcDocument).find(selector)).not(setting.load.ignore),
+          removes = jQuery(selector, dstDocument).not(jQuery(setting.area.join(','), dstDocument).find(selector)).not(setting.load.ignore),
+          adds: HTMLElement[] = [];
 
       for (var i = 0, element; element = css[i]; i++) {
-        element = dstDocument.importNode ? dstDocument.importNode(element, true) : jQuery(element.outerHTML);
-        element = 'function' === typeof setting.load.rewrite ? UTIL.fire(setting.load.rewrite, null, [element]) || element : element;
-        if (save) { cache.css[i] = element; }
+        element = 'function' === typeof setting.load.rewrite && void UTIL.fire(setting.load.rewrite, null, [element]) || element;
+
+        //element = dstDocument.importNode ? dstDocument.importNode(element, true) : jQuery(element).clone()[0];
 
         for (var j = 0; removes[j]; j++) {
           if (UTIL.trim((<HTMLLinkElement>removes[j]).href || (<HTMLStyleElement>removes[j]).innerHTML || '') === UTIL.trim(element.href || element.innerHTML || '')) {
             if (adds.length) {
               element = removes.eq(j).prevAll(selector).first();
-              element[0] ? element.after(adds) : removes.eq(j).before(adds);
+              element[0] ? element.after(jQuery(adds).clone()) : removes.eq(j).before(jQuery(adds).clone());
               adds = [];
             }
             removes = removes.not(removes[j]);
@@ -613,8 +629,9 @@ module MODULE {
         }
         element && adds.push(element);
       }
-      removes[0] ? removes.last().after(adds) : jQuery('head').append(adds);
-      removes.not(setting.load.ignore).remove();
+      jQuery('head', dstDocument).append(jQuery('head', srcDocument).find(jQuery(adds)).clone());
+      jQuery('body', dstDocument).append(jQuery('body', srcDocument).find(jQuery(adds)).clone());
+      removes.remove();
 
       if (UTIL.fire(callbacks_update.css.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
 
@@ -625,7 +642,6 @@ module MODULE {
 
     updateScript_(selector: string): void {
       var setting: SettingInterface = this.setting_,
-          cache: CacheInterface = this.cache_,
           event: JQueryEventObject = this.event_,
           srcDocument: Document = this.srcDocument_;
       var callbacks_update = setting.callbacks.update;
@@ -634,20 +650,14 @@ module MODULE {
 
       if (UTIL.fire(callbacks_update.script.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
 
-      var script: JQuery, save, execs = [];
-      cache = M.getCache(setting.destLocation.href);
-      save = cache && !cache.script;
-      script = cache && cache.script ? jQuery(cache.script) : jQuery('script', srcDocument);
-      script = script.not(setting.load.ignore);
-
-      if (cache && cache.script && script && script.length !== cache.script.length) { save = true; }
-      if (save) { cache.script = []; }
+      var script: JQuery = jQuery('script', srcDocument).not(setting.load.ignore),
+          execs: HTMLElement[] = [];
 
       var executed: { [index: string]: boolean; } = this.APP_.stock('executed');
       for (var i = 0, element; element = script[i]; i++) {
+        element = 'function' === typeof setting.load.rewrite && void UTIL.fire(setting.load.rewrite, null, [element]) || element;
+        
         //element = dstDocument.importNode ? dstDocument.importNode(element, true) : jQuery(element.outerHTML);
-        element = 'function' === typeof setting.load.rewrite ? UTIL.fire(setting.load.rewrite, null, [element]) || element : element;
-        if (save) { cache.script[i] = element; }
 
         if (!jQuery(element).is(selector)) { continue; }
         if (!element.src && !UTIL.trim(element.innerHTML)) { continue; }
@@ -738,20 +748,42 @@ module MODULE {
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
-      UTIL.fire(callbacks_update.verify.before, null, [event, setting.param]);
+      if (UTIL.fire(callbacks_update.verify.before, null, [event, setting.param]) === false) { return; }
 
-      if (setting.destLocation.href === UTIL.canonicalizeUrl(window.location.href)) {
-        setting.retry = true;
-        new this.APP_.stock(setting.uuid);
-      } else if (setting.retry) {
-        setting.retry = false;
+      // モバイルブラウザでアドレスバーのURLのパーセントエンコーディングの大文字小文字がアンカーと一致しないため揃える必要がある
+      if (setting.destLocation.href === UTIL.canonicalizeUrl(window.location.href).replace(/(?:%\w{2})+/g, function (str) { return String(setting.destLocation.href.match(str.toLowerCase()) || str); })) {
+        setting.retriable = true;
+      } else if (setting.retriable) {
+        setting.retriable = false;
         setting.destLocation.href = UTIL.canonicalizeUrl(window.location.href);
         new AppUpdate(this.APP_, setting, event, false, setting.cache[event.type.toLowerCase()] && M.getCache(setting.destLocation.href));
+        throw false;
       } else {
         throw new Error('throw: location mismatch');
       }
 
-      UTIL.fire(callbacks_update.verify.after, null, [event, setting.param]);
+      if (UTIL.fire(callbacks_update.verify.after, null, [event, setting.param]) === false) { return; }
+    }
+
+    updateBalance_(): void {
+      var setting: SettingInterface = this.setting_,
+          event: JQueryEventObject = this.event_;
+      var callbacks_update = setting.callbacks.update;
+
+      if (!setting.balance.self || !setting.loadtime) { return; }
+
+      if (UTIL.fire(callbacks_update.balance.before, null, [event, setting.param]) === false) { return; }
+
+      var host = (this.jqXHR_.getResponseHeader(setting.balance.server.header) || '').split('//').pop();
+      this.APP_.DATA.saveLogToDB({
+        host: host,
+        response: setting.loadtime,
+        date: new Date().getTime()
+      });
+      this.APP_.DATA.saveServerToDB(host, 0, setting.destLocation.href, this.APP_.calExpires(this.jqXHR_));
+      this.APP_.chooseRequestServer(setting);
+
+      if (UTIL.fire(callbacks_update.balance.after, null, [event, setting.param]) === false) { return; }
     }
 
     wait_(ms: number): JQueryPromise<any> {

@@ -60,6 +60,6 @@ $.pjax({
 外部参照JavaScriptを読み込む際に`ajax`パラメータにマージして使用する`$.ajax`のパラメータを設定します。初期値は`'{dataType: 'script', cache: true}'`です。非同期設定は要素の`async`属性により設定されます。
 
 ## load.rewrite: function( element )
-JavaScriptまたはCSSとして読み込まれる要素を戻り値の要素で置換します。初期値は`null`です。
+読み込まれるJavaScriptおよびCSSの要素をあらかじめパラメータとして受け取り書き換えます。初期値は`null`です。
 
 CloudFlareのRocketLoaderを使用するなどして要素が書き換えられている場合に有用です。

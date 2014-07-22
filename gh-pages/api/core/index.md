@@ -53,6 +53,9 @@ pjaxを設定します。
 ### [buffer:](api/core/setting/buffer/)
 データベースバッファを設定します。
 
+### [balance:](api/core/setting/balance/)
+ロードバランスを設定します。
+
 ### [redirect:](api/core/setting/redirect/)
 リダイレクト先への再移動にpjaxを使用するかを設定します。
 

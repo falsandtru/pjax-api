@@ -41,6 +41,12 @@ preloadによる高速化を利用できます。[>>more](introduction/)
 </div>
 
 <div class="col-md-4">
+## Load Balancer
+回線帯域約30～150%(1.3-2.5倍)分の増設・分散効果を得られます。専用機器や大容量回線の追加が不要であるため非常に安価にトラフィックの増加に対応できます。[>>more](loadbalancer/)
+
+</div>
+
+<div class="col-md-4">
 ## Browser
 主要ブラウザに対応しています。[>>more](browser/)
 
@@ -53,6 +59,9 @@ preloadによる高速化を利用できます。[>>more](introduction/)
 * iOS
 </div>
 
+</div>
+
+<div class="row">
 <div class="col-md-4">
 ## jQuery
 jQuery1.6以降を推奨します。jQuery1.4.2から対応していますが機能が制限されます。[>>more](jquery/)
@@ -63,9 +72,6 @@ jQuery1.6以降を推奨します。jQuery1.4.2から対応していますが機
 * v2.1.1
 </div>
 
-</div>
-
-<div class="row">
 <div class="col-md-4">
 ## Wordpress
 Wordpressプラグインをサンプルとして提供しています。使用方法はインストールするだけで、基本的に設定は不要です。[>>more](http://wordpress.org/plugins/wp-preload-pjax/)
@@ -76,14 +82,14 @@ Wordpressプラグインをサンプルとして提供しています。使用�
 TypeScriptとMVCモデルを使用したフレームワーク｢*TypeScriptMVCTemplate*｣で開発されています。[>>more](http://falsandtru.github.io/TypeScriptMVCTemplate/)
 </div>
 
+</div>
+
+<div class="row">
 <div class="col-md-4">
 ## ChangeLog
 変更履歴です。[>>more](changelog/)
 </div>
 
-</div>
-
-<div class="row">
 <div class="col-md-4">
 ## License
 MIT Licenseで公開しています。商用非商用を問わず無償無許諾で使用・改変できます。すべてのコンテンツは無保証であり開発者は一切責任を負いません。著作権表示と本許諾表示は必要です。[>>more](https://github.com/falsandtru/jquery.pjax.js/blob/master/LICENSE)

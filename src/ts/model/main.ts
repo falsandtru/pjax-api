@@ -17,10 +17,11 @@ module MODULE {
 
     state: State = State.wait
     isDeferrable: boolean = jQuery.when && 1.06 <= Number(jQuery().jquery.replace(/\D*(\d+)\.(\d+).*$/, '$1.0$2').replace(/\d+(\d{2})$/, '$1'))
+    requestHost: string = ''
 
     APP_: ModelApp = new ModelApp()
 
-    main_($context: JQuery, option): JQuery {
+    main_($context: JQuery, option: PjaxSetting): JQuery {
 
       var pattern;
       pattern = $context instanceof NAMESPACE ? 'm:' : 'f:';
@@ -30,14 +31,15 @@ module MODULE {
           break;
         case 'm:undefined':
           if ($context.is('a, form')) { return $context; }
-          option = {};
+          option = <PjaxSetting>{};
           break;
         default:
           return $context;
       }
 
-      var setting: SettingInterface = this.APP_.configure(option, window.location.href, window.location.href);
+      var setting: SettingInterface = this.APP_.configure(<SettingInterface>option, window.location.href, window.location.href);
       M.setActiveSetting(setting);
+      setting.database && this.APP_.DATA.opendb(setting);
 
       this.APP_.stock({
         executed: {},
@@ -109,10 +111,10 @@ module MODULE {
       return true;
     }
 
-    getActiveSetting(): CommonSettingInterface {
+    getActiveSetting(): SettingInterface {
       return this.APP_.activeSetting;
     }
-    setActiveSetting(setting: CommonSettingInterface): CommonSettingInterface {
+    setActiveSetting(setting: SettingInterface): SettingInterface {
       return this.APP_.activeSetting = setting;
     }
 
@@ -137,7 +139,7 @@ module MODULE {
         if (setting.cache.mix && M.getCache(setting.destLocation.href)) { break PROCESS; }
         setting.area = UTIL.fire(setting.area, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
         setting.area = setting.area instanceof Array ? setting.area : [setting.area];
-        setting.database && setting.scroll.record && this.APP_.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+        setting.database && setting.scroll.record && this.APP_.DATA.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
         var cache: CacheInterface;
         if (setting.cache[event.type.toLowerCase()]) { cache = M.getCache(setting.destLocation.href); }
@@ -165,7 +167,7 @@ module MODULE {
         setting.area = UTIL.fire(setting.area, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
         setting.area = setting.area instanceof Array ? setting.area : [setting.area];
         if (!setting.area[0] || !jQuery(setting.area.join(','))[0]) { break PROCESS; }
-        setting.database && setting.scroll.record && this.APP_.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+        setting.database && setting.scroll.record && this.APP_.DATA.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
         var cache: CacheInterface;
         if (setting.cache[event.type.toLowerCase()] && setting.cache[context.method.toLowerCase()]) { cache = M.getCache(setting.destLocation.href); }
@@ -180,7 +182,7 @@ module MODULE {
     POPSTATE(event: JQueryEventObject): void {
       PROCESS: {
         event.timeStamp = new Date().getTime();
-        var setting: SettingInterface = this.APP_.configure(M.getActiveSetting(), null, window.location.href, true);
+        var setting: SettingInterface = this.APP_.configure(M.getActiveSetting(), null, window.location.href);
         if (this.APP_.landing && this.APP_.landing === UTIL.canonicalizeUrl(window.location.href)) { return; }
         if (setting.origLocation.href === setting.destLocation.href) { return; }
 
@@ -195,7 +197,7 @@ module MODULE {
         setting.area = setting.area instanceof Array ? setting.area : [setting.area];
         if (!setting.area[0] || !jQuery(setting.area.join(','))[0]) { break PROCESS; }
 
-        setting.database && setting.fix.history && this.APP_.loadTitleByDB(setting.destLocation.href);
+        setting.database && setting.fix.history && this.APP_.DATA.loadTitleFromDB(setting.destLocation.href);
 
         var cache: CacheInterface;
         if (setting.cache[event.type.toLowerCase()]) { cache = M.getCache(setting.destLocation.href); }
@@ -207,19 +209,19 @@ module MODULE {
     }
 
     SCROLL(event: JQueryEventObject, end: boolean): void {
-      var common: CommonSettingInterface = M.getActiveSetting();
+      var setting: SettingInterface = M.getActiveSetting();
       if (M.state_ !== State.ready || event.isDefaultPrevented()) { return; }
 
-      if (!common.scroll.delay) {
-        common.scroll.record && this.APP_.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+      if (!setting.scroll.delay) {
+        setting.scroll.record && this.APP_.DATA.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
       } else {
         var id: number;
-        while (id = common.scroll.queue.shift()) { clearTimeout(id); }
+        while (id = setting.scroll.queue.shift()) { clearTimeout(id); }
         id = setTimeout(() => {
-          while (id = common.scroll.queue.shift()) { clearTimeout(id); }
-          common.scroll.record && this.APP_.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
-        }, common.scroll.delay);
-        common.scroll.queue.push(id);
+          while (id = setting.scroll.queue.shift()) { clearTimeout(id); }
+          setting.scroll.record && this.APP_.DATA.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+        }, setting.scroll.delay);
+        setting.scroll.queue.push(id);
       }
     }
 
@@ -240,9 +242,9 @@ module MODULE {
     }
 
     getCache(unsafe_url: string): CacheInterface {
-      var common: CommonSettingInterface = M.getActiveSetting(),
+      var setting: SettingInterface = M.getActiveSetting(),
           recent: RecentInterface = this.APP_.recent;
-      if (!common || !recent) { return null; }
+      if (!setting || !recent) { return null; }
 
       var secure_url: string = M.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
       unsafe_url = null;
@@ -253,9 +255,9 @@ module MODULE {
     }
     
     setCache(unsafe_url: string, data: string, textStatus: string, jqXHR: JQueryXHR): any {
-      var common: CommonSettingInterface = M.getActiveSetting(),
+      var setting: SettingInterface = M.getActiveSetting(),
           recent: RecentInterface = this.APP_.recent;
-      if (!common || !recent) { return this; }
+      if (!setting || !recent) { return this; }
       var cache: CacheInterface,
           size: number,
           timeStamp: number,
@@ -267,31 +269,24 @@ module MODULE {
       recent.order.unshift(secure_url);
       for (var i = 1, key; key = recent.order[i]; i++) { if (secure_url === key) { recent.order.splice(i, 1); } }
 
-      recent.size > common.cache.size && M.cleanCache();
+      recent.size > setting.cache.size && M.cleanCache();
       cache = M.getCache(secure_url);
       if (!data && !jqXHR && (!cache || !cache.data && !cache.jqXHR)) { return; }
 
       var html: string = (jqXHR || <XMLHttpRequest>{}).responseText || '';
       size = parseInt(html.length * 1.8 + '' || 1024 * 1024 + '', 10);
       timeStamp = new Date().getTime();
-      expires = (function (timeStamp: number): number {
-        var expires = common.cache.expires,
+      expires = ((timeStamp: number): number => {
+        var expires = setting.cache.expires,
             age: any;
-        if (!common.cache.expires) { return 0; }
+        if (!setting.cache.expires) { return 0; }
         if (recent.data[secure_url] && !jqXHR) { return recent.data[secure_url].expires; }
 
-        if (!jqXHR) {
-        } else if (/no-store|no-cache/.test(jqXHR.getResponseHeader('Cache-Control'))) {
-        } else if (~String(age = jqXHR.getResponseHeader('Cache-Control')).indexOf('max-age=')) {
-          age = age.match(/max-age=(\d+)/)[1] * 1000;
-        } else if (age = jqXHR.getResponseHeader('Expires')) {
-          age = new Date(age).getTime() - new Date().getTime();
-        } else {
-          age = Number(common.cache.expires);
-        }
+        age = jqXHR && this.APP_.calAge(jqXHR) || Number(setting.cache.expires);
+
         age = Math.max(age, 0) || 0;
-        age = 'object' === typeof common.cache.expires && 'number' === typeof common.cache.expires.min ? Math.max(common.cache.expires.min, age) : age;
-        age = 'object' === typeof common.cache.expires && 'number' === typeof common.cache.expires.max ? Math.min(common.cache.expires.max, age) : age;
+        age = 'object' === typeof setting.cache.expires && 'number' === typeof setting.cache.expires.min ? Math.max(setting.cache.expires.min, age) : age;
+        age = 'object' === typeof setting.cache.expires && 'number' === typeof setting.cache.expires.max ? Math.min(setting.cache.expires.max, age) : age;
         return timeStamp + age;
       })(timeStamp);
       recent.size = recent.size || 0;
@@ -316,14 +311,14 @@ module MODULE {
       }
       if (jqXHR || cache && cache.jqXHR) {
         var title: string = ((jqXHR || cache && cache.jqXHR).responseText || '').slice(0, 10000).match(/<title[^>]*>(.*?)<\/title>/i).pop() || '';
-        common.database && common.fix.history && this.APP_.saveTitleToDB(secure_url, title);
+        setting.database && setting.fix.history && this.APP_.DATA.saveTitleToDB(secure_url, title);
       }
     }
     
     removeCache(unsafe_url: string): void {
-      var common: CommonSettingInterface = M.getActiveSetting(),
+      var setting: SettingInterface = M.getActiveSetting(),
           recent: RecentInterface = this.APP_.recent;
-      if (!common || !recent) { return; }
+      if (!setting || !recent) { return; }
 
       var secure_url: string = M.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
       unsafe_url = null;
@@ -339,9 +334,9 @@ module MODULE {
     }
 
     clearCache(): void {
-      var common: CommonSettingInterface = M.getActiveSetting(),
+      var setting: SettingInterface = M.getActiveSetting(),
           recent: RecentInterface = this.APP_.recent;
-      if (!common || !recent) { return; }
+      if (!setting || !recent) { return; }
       for (var i = recent.order.length, url; url = recent.order[--i];) {
         recent.order.splice(i, 1);
         recent.size -= recent.data[url].size;
@@ -350,16 +345,24 @@ module MODULE {
     }
 
     cleanCache(): void {
-      var common: CommonSettingInterface = M.getActiveSetting(),
+      var setting: SettingInterface = M.getActiveSetting(),
           recent: RecentInterface = this.APP_.recent;
-      if (!common || !recent) { return; }
+      if (!setting || !recent) { return; }
       for (var i = recent.order.length, url; url = recent.order[--i];) {
-        if (i >= common.cache.limit || url in recent.data && new Date().getTime() > recent.data[url].expires) {
+        if (i >= setting.cache.limit || url in recent.data && new Date().getTime() > recent.data[url].expires) {
           recent.order.splice(i, 1);
           recent.size -= recent.data[url].size;
           delete recent.data[url];
         }
       }
+    }
+
+    getRequestDomain(): string {
+      return M.requestHost;
+    }
+
+    setRequestDomain(host: string): any {
+      return M.requestHost = host.split('//').pop() || '';
     }
 
   }
