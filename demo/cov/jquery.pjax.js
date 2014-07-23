@@ -3,7 +3,7 @@
  * jquery.pjax.js
  * 
  * @name jquery.pjax.js
- * @version 2.6.0
+ * @version 2.7.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
  * @copyright 2012, falsandtru
@@ -255,6 +255,10 @@ var MODULE;
 
                     that.update_();
                 } else if (setting.fallback && 'abort' !== xhrArgs.statusText) {
+                    if (setting.balance.self) {
+                        that.APP_.DATA.saveServerToDB(setting.balance.server.host, new Date().getTime());
+                        that.APP_.disableBalance();
+                    }
                     MODULE.M.fallback(event, setting);
                 }
             }
@@ -262,6 +266,7 @@ var MODULE;
             if (cache && cache.jqXHR) {
                 // cache
                 speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
+                setting.loadtime = 0;
                 MODULE.M.setActiveXHR(null);
                 this.data_ = cache.data;
                 this.textStatus_ = cache.textStatus;
@@ -273,25 +278,29 @@ var MODULE;
                 } else {
                     that.update_();
                 }
-            } else if (activeXHR && activeXHR.follow && 'abort' !== activeXHR.statusText) {
+            } else if (activeXHR && activeXHR.follow && 'abort' !== activeXHR.statusText && 'error' !== activeXHR.statusText) {
                 // preload
                 speedcheck && speed.time.splice(0, 1, activeXHR.timeStamp - speed.fire);
                 speedcheck && speed.name.splice(0, 1, 'preload(' + speed.time.slice(-1) + ')');
                 speedcheck && speed.time.push(speed.now() - speed.fire);
                 speedcheck && speed.name.push('continue(' + speed.time.slice(-1) + ')');
+                setting.loadtime = activeXHR.timeStamp;
                 var wait = setting.wait && isFinite(activeXHR.timeStamp) ? Math.max(setting.wait - new Date().getTime() + activeXHR.timeStamp, 0) : 0;
                 jQuery.when(activeXHR, that.wait_(wait)).done(done).fail(fail).always(always);
             } else {
                 // default
-                var ajax = {}, callbacks = {};
+                setting.loadtime = event.timeStamp;
+                var requestLocation = setting.destLocation.cloneNode(), ajax = {}, callbacks = {};
 
-                ajax.url = !setting.server.query ? setting.destLocation.href : [
-                    setting.destLocation.protocol,
+                this.APP_.chooseRequestServer(setting);
+                requestLocation.host = setting.balance.self && MODULE.M.requestHost.split('//').pop() || setting.destLocation.host;
+                ajax.url = !setting.server.query ? requestLocation.href : [
+                    requestLocation.protocol,
                     '//',
-                    setting.destLocation.host,
-                    '/' === setting.destLocation.pathname.charAt(0) ? setting.destLocation.pathname : '/' + setting.destLocation.pathname,
-                    (1 < setting.destLocation.search.length ? setting.destLocation.search + '&' : '?') + setting.server.query,
-                    setting.destLocation.hash
+                    requestLocation.host,
+                    '/' === requestLocation.pathname.charAt(0) ? requestLocation.pathname : '/' + requestLocation.pathname,
+                    (1 < requestLocation.search.length ? requestLocation.search + '&' : '?') + setting.server.query,
+                    requestLocation.hash
                 ].join('');
                 switch (event.type.toLowerCase()) {
                     case 'click':
@@ -357,6 +366,9 @@ var MODULE;
                                 that.update_();
                             }
                         } else if (setting.fallback && 'abort' !== textStatus) {
+                            if (setting.balance.self) {
+                                that.APP_.disableBalance();
+                            }
                             MODULE.M.fallback(event, setting);
                         }
                     }
@@ -367,9 +379,9 @@ var MODULE;
                 speedcheck && speed.time.push(speed.now() - speed.fire);
                 speedcheck && speed.name.push('request(' + speed.time.slice(-1) + ')');
 
-                jQuery(document).trigger(setting.gns + '.request');
-
                 activeXHR = MODULE.M.setActiveXHR(jQuery.ajax(ajax));
+                jQuery(document).trigger(jQuery.Event(setting.gns + '.request', activeXHR));
+
                 if (MODULE.M.isDeferrable) {
                     jQuery.when(activeXHR, that.wait_(MODULE.UTIL.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]))).done(done).fail(fail).always(always);
                 }
@@ -386,6 +398,9 @@ var MODULE;
                 var that = this, APP = this.APP_;
                 var setting = this.setting_, cache = this.cache_, event = this.event_, register = this.register_, data = this.data_, textStatus = this.textStatus_, jqXHR = this.jqXHR_;
                 var callbacks_update = setting.callbacks.update;
+
+                setting.loadtime = setting.loadtime && new Date().getTime() - setting.loadtime;
+                setting.loadtime = setting.loadtime < 100 ? 0 : setting.loadtime;
 
                 var speedcheck = setting.speedcheck, speed = MODULE.M.stock('speed');
                 speedcheck && speed.time.push(speed.now() - speed.fire);
@@ -422,12 +437,12 @@ var MODULE;
                     }
                     ;
 
-                    /* cache */
-                    this.updateCache_();
-
                     /* check point */
                     speedcheck && speed.time.push(speed.now() - speed.fire);
                     speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
+
+                    /* cache */
+                    this.updateCache_();
 
                     /* escape */
                     jQuery('noscript', srcDocument).children().parent().each(function () {
@@ -468,6 +483,9 @@ var MODULE;
                     /* verify */
                     this.updateVerify_();
 
+                    /* balance */
+                    this.updateBalance_();
+
                     /* load */
                     this.updateCSS_('link[rel~="stylesheet"], style');
                     jQuery(window).one(setting.gns + '.rendering', function (event) {
@@ -498,6 +516,10 @@ var MODULE;
                         break UPDATE;
                     }
                 } catch (err) {
+                    if (!err) {
+                        return;
+                    }
+
                     /* cache delete */
                     cache && MODULE.M.removeCache(setting.destLocation.href);
 
@@ -572,7 +594,8 @@ var MODULE;
             }
             ;
 
-            var redirect = jQuery('<a>', { href: jQuery(redirect).attr('content').match(/\w+:\/\/[^;\s]+/i) })[0];
+            var redirect = setting.destLocation.cloneNode();
+            redirect.href = jQuery(redirect).attr('content').match(/\w+:\/\/[^;\s]+/i).shift();
             switch (true) {
                 case !setting.redirect:
                 case redirect.protocol !== setting.destLocation.protocol:
@@ -640,7 +663,7 @@ var MODULE;
                 return;
             }
             this.dstDocument_.title = this.srcDocument_.title;
-            setting.database && setting.fix.history && this.APP_.saveTitleToDB(setting.destLocation.href, this.srcDocument_.title);
+            setting.database && setting.fix.history && this.APP_.DATA.saveTitleToDB(setting.destLocation.href, this.srcDocument_.title);
             if (MODULE.UTIL.fire(callbacks_update.title.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                 return;
             }
@@ -724,7 +747,7 @@ var MODULE;
                 return loadwaits;
             }
 
-            jQuery(setting.area).children('.' + setting.nss.class4html + '-check').remove();
+            jQuery(setting.area.join(',')).children('.' + setting.nss.class4html + '-check').remove();
             checker = jQuery('<div/>', {
                 'class': setting.nss.class4html + '-check',
                 'style': 'background: none !important; display: block !important; visibility: hidden !important; position: absolute !important; top: 0 !important; left: 0 !important; z-index: -9999 !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; font-size: 12px !important; text-indent: 0 !important;'
@@ -780,10 +803,10 @@ var MODULE;
                     (jQuery(window).scrollTop() === scrollY && jQuery(window).scrollLeft() === scrollX) || window.scrollTo(scrollX, scrollY);
                     break;
                 case 'popstate':
-                    call && setting.fix.scroll && setting.database && setting.scroll.record && this.APP_.loadScrollPositionByCacheOrDB(setting.destLocation.href);
+                    call && setting.fix.scroll && setting.database && setting.scroll.record && this.APP_.DATA.loadScrollPositionFromCacheOrDB(setting.destLocation.href);
                     break;
             }
-            call && setting.database && setting.fix.scroll && this.APP_.saveScrollPositionToCacheAndDB(setting.destLocation.href, scrollX, scrollY);
+            call && setting.database && setting.fix.scroll && this.APP_.DATA.saveScrollPositionToCacheAndDB(setting.destLocation.href, scrollX, scrollY);
 
             if (MODULE.UTIL.fire(callbacks_update.scroll.after, null, [event, setting.param]) === false) {
                 return;
@@ -791,7 +814,7 @@ var MODULE;
         };
 
         AppUpdate.prototype.updateCSS_ = function (selector) {
-            var setting = this.setting_, cache = this.cache_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
+            var setting = this.setting_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
             var callbacks_update = setting.callbacks.update;
 
             if (!setting.load.css) {
@@ -802,31 +825,16 @@ var MODULE;
                 return;
             }
 
-            var css, save, adds = [], removes = jQuery(selector, dstDocument).not(jQuery(setting.area).find(selector));
-            cache = MODULE.M.getCache(setting.destLocation.href);
-            save = cache && !cache.css;
-            css = cache && cache.css ? jQuery(cache.css) : jQuery(selector, srcDocument).not(jQuery(setting.area, srcDocument).find(selector));
-            css = css.not(setting.load.ignore);
-
-            if (cache && cache.css && css && css.length !== cache.css.length) {
-                save = true;
-            }
-            if (save) {
-                cache.css = [];
-            }
+            var css = jQuery(selector, srcDocument).not(jQuery(setting.area.join(','), srcDocument).find(selector)).not(setting.load.ignore), removes = jQuery(selector, dstDocument).not(jQuery(setting.area.join(','), dstDocument).find(selector)).not(setting.load.ignore), adds = [];
 
             for (var i = 0, element; element = css[i]; i++) {
-                element = dstDocument.importNode ? dstDocument.importNode(element, true) : jQuery(element.outerHTML);
-                element = 'function' === typeof setting.load.rewrite ? MODULE.UTIL.fire(setting.load.rewrite, null, [element]) || element : element;
-                if (save) {
-                    cache.css[i] = element;
-                }
+                element = 'function' === typeof setting.load.rewrite && void MODULE.UTIL.fire(setting.load.rewrite, null, [element]) || element;
 
                 for (var j = 0; removes[j]; j++) {
                     if (MODULE.UTIL.trim(removes[j].href || removes[j].innerHTML || '') === MODULE.UTIL.trim(element.href || element.innerHTML || '')) {
                         if (adds.length) {
                             element = removes.eq(j).prevAll(selector).first();
-                            element[0] ? element.after(adds) : removes.eq(j).before(adds);
+                            element[0] ? element.after(jQuery(adds).clone()) : removes.eq(j).before(jQuery(adds).clone());
                             adds = [];
                         }
                         removes = removes.not(removes[j]);
@@ -837,8 +845,9 @@ var MODULE;
                 }
                 element && adds.push(element);
             }
-            removes[0] ? removes.last().after(adds) : jQuery('head').append(adds);
-            removes.not(setting.load.ignore).remove();
+            jQuery('head', dstDocument).append(jQuery('head', srcDocument).find(jQuery(adds)).clone());
+            jQuery('body', dstDocument).append(jQuery('body', srcDocument).find(jQuery(adds)).clone());
+            removes.remove();
 
             if (MODULE.UTIL.fire(callbacks_update.css.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                 return;
@@ -850,7 +859,7 @@ var MODULE;
         };
 
         AppUpdate.prototype.updateScript_ = function (selector) {
-            var setting = this.setting_, cache = this.cache_, event = this.event_, srcDocument = this.srcDocument_;
+            var setting = this.setting_, event = this.event_, srcDocument = this.srcDocument_;
             var callbacks_update = setting.callbacks.update;
 
             if (!setting.load.script) {
@@ -861,27 +870,13 @@ var MODULE;
                 return;
             }
 
-            var script, save, execs = [];
-            cache = MODULE.M.getCache(setting.destLocation.href);
-            save = cache && !cache.script;
-            script = cache && cache.script ? jQuery(cache.script) : jQuery('script', srcDocument);
-            script = script.not(setting.load.ignore);
-
-            if (cache && cache.script && script && script.length !== cache.script.length) {
-                save = true;
-            }
-            if (save) {
-                cache.script = [];
-            }
+            var script = jQuery('script', srcDocument).not(setting.load.ignore), execs = [];
 
             var executed = this.APP_.stock('executed');
             for (var i = 0, element; element = script[i]; i++) {
-                //element = dstDocument.importNode ? dstDocument.importNode(element, true) : jQuery(element.outerHTML);
-                element = 'function' === typeof setting.load.rewrite ? MODULE.UTIL.fire(setting.load.rewrite, null, [element]) || element : element;
-                if (save) {
-                    cache.script[i] = element;
-                }
+                element = 'function' === typeof setting.load.rewrite && void MODULE.UTIL.fire(setting.load.rewrite, null, [element]) || element;
 
+                //element = dstDocument.importNode ? dstDocument.importNode(element, true) : jQuery(element.outerHTML);
                 if (!jQuery(element).is(selector)) {
                     continue;
                 }
@@ -985,20 +980,53 @@ var MODULE;
             var setting = this.setting_, event = this.event_;
             var callbacks_update = setting.callbacks.update;
 
-            MODULE.UTIL.fire(callbacks_update.verify.before, null, [event, setting.param]);
+            if (MODULE.UTIL.fire(callbacks_update.verify.before, null, [event, setting.param]) === false) {
+                return;
+            }
 
-            if (setting.destLocation.href === MODULE.UTIL.canonicalizeUrl(window.location.href)) {
-                setting.retry = true;
-                new this.APP_.stock(setting.uuid);
-            } else if (setting.retry) {
-                setting.retry = false;
+            // モバイルブラウザでアドレスバーのURLのパーセントエンコーディングの大文字小文字がアンカーと一致しないため揃える必要がある
+            if (setting.destLocation.href === MODULE.UTIL.canonicalizeUrl(window.location.href).replace(/(?:%\w{2})+/g, function (str) {
+                return String(setting.destLocation.href.match(str.toLowerCase()) || str);
+            })) {
+                setting.retriable = true;
+            } else if (setting.retriable) {
+                setting.retriable = false;
                 setting.destLocation.href = MODULE.UTIL.canonicalizeUrl(window.location.href);
                 new AppUpdate(this.APP_, setting, event, false, setting.cache[event.type.toLowerCase()] && MODULE.M.getCache(setting.destLocation.href));
+                throw false;
             } else {
                 throw new Error('throw: location mismatch');
             }
 
-            MODULE.UTIL.fire(callbacks_update.verify.after, null, [event, setting.param]);
+            if (MODULE.UTIL.fire(callbacks_update.verify.after, null, [event, setting.param]) === false) {
+                return;
+            }
+        };
+
+        AppUpdate.prototype.updateBalance_ = function () {
+            var setting = this.setting_, event = this.event_;
+            var callbacks_update = setting.callbacks.update;
+
+            if (!setting.balance.self || !setting.loadtime) {
+                return;
+            }
+
+            if (MODULE.UTIL.fire(callbacks_update.balance.before, null, [event, setting.param]) === false) {
+                return;
+            }
+
+            var host = (this.jqXHR_.getResponseHeader(setting.balance.server.header) || '').split('//').pop();
+            this.APP_.DATA.saveLogToDB({
+                host: host,
+                response: setting.loadtime,
+                date: new Date().getTime()
+            });
+            this.APP_.DATA.saveServerToDB(host, 0, setting.destLocation.href, this.APP_.calExpires(this.jqXHR_));
+            this.APP_.chooseRequestServer(setting);
+
+            if (MODULE.UTIL.fire(callbacks_update.balance.after, null, [event, setting.param]) === false) {
+                return;
+            }
         };
 
         AppUpdate.prototype.wait_ = function (ms) {
@@ -1062,6 +1090,7 @@ var MODULE;
         };
 
         ModelUtil.prototype.trim = function (text) {
+            text = text || '';
             if (String.prototype.trim) {
                 text = text.toString().trim();
             } else {
@@ -1097,8 +1126,107 @@ var MODULE;
     MODULE.UTIL = new ModelUtil();
 })(MODULE || (MODULE = {}));
 /// <reference path="../define.ts"/>
+/// <reference path="util.ts"/>
+/* MODEL */
+var MODULE;
+(function (MODULE) {
+    // Allow access:
+    //  M
+    // Deny access
+    var V, C;
+
+    var AppData = (function () {
+        function AppData(APP) {
+            this.DATA_ = new MODULE.ModelData();
+            this.storeNames = this.DATA_.DB.storeNames;
+            this.APP_ = APP;
+        }
+        AppData.prototype.opendb = function (setting) {
+            this.DATA_.DB.opendb(setting);
+        };
+
+        AppData.prototype.getBuffer = function (storeName, key) {
+            return this.DATA_.DB.getBuffer(storeName, key);
+        };
+
+        AppData.prototype.setBuffer = function (storeName) {
+            return this.DATA_.DB.setBuffer(storeName);
+        };
+
+        AppData.prototype.loadBuffer = function (storeName, limit) {
+            if (typeof limit === "undefined") { limit = 0; }
+            return this.DATA_.DB.loadBuffer(storeName, limit);
+        };
+
+        AppData.prototype.saveBuffer = function (storeName) {
+            return this.DATA_.DB.saveBuffer(storeName);
+        };
+
+        AppData.prototype.loadBufferAll = function (limit) {
+            if (typeof limit === "undefined") { limit = 0; }
+            for (var i in this.storeNames) {
+                this.loadBuffer(i, limit);
+            }
+        };
+
+        AppData.prototype.saveBufferAll = function () {
+            for (var i in this.storeNames) {
+                this.saveBuffer(i);
+            }
+        };
+
+        AppData.prototype.loadTitleFromDB = function (unsafe_url) {
+            var keyUrl = MODULE.M.convertUrlToKeyUrl(MODULE.UTIL.canonicalizeUrl(unsafe_url));
+
+            this.DATA_.DB.loadTitle(keyUrl);
+        };
+
+        AppData.prototype.saveTitleToDB = function (unsafe_url, title) {
+            var keyUrl = MODULE.M.convertUrlToKeyUrl(MODULE.UTIL.canonicalizeUrl(unsafe_url));
+
+            this.DATA_.DB.saveTitle(keyUrl, title);
+        };
+
+        AppData.prototype.loadScrollPositionFromCacheOrDB = function (unsafe_url) {
+            var keyUrl = MODULE.M.convertUrlToKeyUrl(MODULE.UTIL.canonicalizeUrl(unsafe_url));
+
+            this.DATA_.DB.loadScrollPosition(keyUrl);
+        };
+
+        AppData.prototype.saveScrollPositionToCacheAndDB = function (unsafe_url, scrollX, scrollY) {
+            var keyUrl = MODULE.M.convertUrlToKeyUrl(MODULE.UTIL.canonicalizeUrl(unsafe_url));
+
+            this.DATA_.DB.saveScrollPosition(keyUrl, scrollX, scrollY);
+        };
+
+        AppData.prototype.loadLogFromDB = function () {
+        };
+
+        AppData.prototype.saveLogToDB = function (log) {
+            this.DATA_.DB.saveLog(log);
+        };
+
+        AppData.prototype.loadServerFromDB = function () {
+            this.DATA_.DB.loadServer();
+        };
+
+        AppData.prototype.saveServerToDB = function (host, state, unsafe_url, expires) {
+            if (typeof state === "undefined") { state = 0; }
+            if (typeof expires === "undefined") { expires = 0; }
+            this.DATA_.DB.saveServer(host, state);
+            if (unsafe_url) {
+                var keyUrl = MODULE.M.convertUrlToKeyUrl(MODULE.UTIL.canonicalizeUrl(unsafe_url));
+                this.DATA_.DB.saveExpires(keyUrl, host, expires);
+            }
+        };
+        return AppData;
+    })();
+    MODULE.AppData = AppData;
+})(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
 /// <reference path="_template.ts"/>
 /// <reference path="app.update.ts"/>
+/// <reference path="app.data.ts"/>
 /// <reference path="util.ts"/>
 /* MODEL */
 var MODULE;
@@ -1112,17 +1240,16 @@ var MODULE;
         __extends(ModelApp, _super);
         function ModelApp() {
             _super.apply(this, arguments);
-            this.DATA_ = new MODULE.ModelData();
+            this.DATA = new MODULE.AppData(this);
             this.landing = MODULE.UTIL.canonicalizeUrl(window.location.href);
             this.recent = { order: [], data: {}, size: 0 };
         }
-        ModelApp.prototype.configure = function (option, origURL, destURL, isBidirectional) {
-            if (typeof isBidirectional === "undefined") { isBidirectional = false; }
+        ModelApp.prototype.configure = function (option, origURL, destURL) {
             origURL = MODULE.UTIL.canonicalizeUrl(origURL || option.origLocation.href);
             destURL = MODULE.UTIL.canonicalizeUrl(destURL || option.destLocation.href);
             option = option.option || option;
 
-            var scope = option.scope ? jQuery.extend(true, {}, option, this.scope_(option, origURL, destURL) || isBidirectional && this.scope_(option, destURL, origURL) || { disable: true }) : jQuery.extend(true, {}, option);
+            var scope = option.scope ? jQuery.extend(true, {}, option, this.scope_(option, origURL, destURL) || { disable: true }) : jQuery.extend(true, {}, option);
 
             var initial = {
                 gns: MODULE.M.NAME,
@@ -1148,18 +1275,53 @@ var MODULE;
                     limit: 30,
                     delay: 500
                 },
+                load: {
+                    sync: true,
+                    head: '',
+                    css: false,
+                    script: false,
+                    execute: true,
+                    reload: '',
+                    ignore: '[src*="jquery.js"], [src*="jquery.min.js"], [href^="chrome-extension://"]',
+                    ajax: { dataType: 'script', cache: true },
+                    rewrite: null
+                },
+                balance: {
+                    self: false,
+                    weight: 3,
+                    client: {
+                        support: /chrome|firefox|safari/i,
+                        exclude: /msie|trident|mobile|phone|android|iphone|ipad|blackberry/i,
+                        cookie: 'balanceable'
+                    },
+                    server: {
+                        header: 'X-Ajax-Host',
+                        preclude: 10 * 60 * 1000
+                    },
+                    log: {
+                        expires: 1.5 * 24 * 60 * 60 * 1000,
+                        limit: 10
+                    },
+                    option: {
+                        server: {
+                            header: false
+                        },
+                        ajax: {
+                            crossDomain: true
+                        },
+                        callbacks: {
+                            ajax: {
+                                beforeSend: null
+                            }
+                        }
+                    }
+                },
                 callback: null,
                 callbacks: {
                     ajax: {},
-                    update: { redirect: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, cache: {}, render: {}, verify: {} }
+                    update: { redirect: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, cache: {}, render: {}, verify: {}, balance: {} }
                 },
                 param: null,
-                load: {
-                    head: '', css: false, script: false, execute: true,
-                    reload: '',
-                    ignore: '[src*="jquery.js"], [src*="jquery.min.js"], [href^="chrome-extension://"]',
-                    sync: true, ajax: { dataType: 'script', cache: true }, rewrite: null
-                },
                 redirect: true,
                 interval: 100,
                 wait: 0,
@@ -1167,11 +1329,11 @@ var MODULE;
                 fix: { location: true, history: true, scroll: true, reset: false },
                 fallback: true,
                 database: true,
-                speedcheck: false,
                 server: {
                     query: 'pjax=1',
                     header: true
-                }
+                },
+                speedcheck: false
             }, force = {
                 origLocation: (function (url, a) {
                     a.href = url;
@@ -1181,8 +1343,14 @@ var MODULE;
                     a.href = url;
                     return a;
                 })(destURL, document.createElement('a')),
+                balance: {
+                    server: {
+                        host: ''
+                    }
+                },
                 scroll: { record: true, queue: [] },
-                retry: true,
+                loadtime: null,
+                retriable: true,
                 option: option
             }, compute = function () {
                 var nsArray = [setting.gns || MODULE.M.NAME].concat(setting.ns && String(setting.ns).split('.') || []);
@@ -1219,10 +1387,11 @@ var MODULE;
             };
 
             var setting;
-            setting = jQuery.extend(true, initial, scope, force);
+            setting = jQuery.extend(true, initial, scope);
+            setting = jQuery.extend(true, setting, setting.balance.self && setting.balance.option, force);
             setting = jQuery.extend(true, setting, compute());
 
-            return new this.stock(setting);
+            return setting;
         };
 
         ModelApp.prototype.registrate = function ($context, setting) {
@@ -1239,17 +1408,101 @@ var MODULE;
                 }
             });
 
-            setting.database && this.DATA_.DB.opendb(setting);
             new MODULE.View($context).BIND(setting);
             setTimeout(function () {
                 return _this.createHTMLDocument();
             }, 50);
             setTimeout(function () {
-                return _this.loadBuffer(setting.buffer.limit);
+                return _this.DATA.loadBufferAll(setting.buffer.limit);
+            }, setting.buffer.delay);
+            setTimeout(function () {
+                return setting.balance.self && _this.enableBalance();
             }, setting.buffer.delay);
             setTimeout(function () {
                 return _this.landing = null;
             }, 1500);
+        };
+
+        ModelApp.prototype.chooseRequestServer = function (setting) {
+            if (setting.balance.self && !~document.cookie.indexOf(setting.balance.client.cookie + '=1')) {
+                this.enableBalance();
+            }
+            if (!setting.balance.self || !~document.cookie.indexOf(setting.balance.client.cookie + '=1')) {
+                this.disableBalance();
+                return;
+            }
+
+            this.DATA.loadBufferAll(setting.buffer.limit);
+
+            var expires;
+            var historyBufferData = this.DATA.getBuffer(this.DATA.storeNames.history, MODULE.M.convertUrlToKeyUrl(setting.destLocation.href));
+
+            expires = historyBufferData && historyBufferData.expires;
+            if (expires && expires >= new Date().getTime()) {
+                MODULE.M.requestHost = historyBufferData.host;
+                setting.balance.server.host = historyBufferData.host;
+                return;
+            }
+
+            var logBuffer = this.DATA.getBuffer(this.DATA.storeNames.log), timeList = [], logTable = {}, now = new Date().getTime();
+
+            if (!logBuffer) {
+                this.disableBalance();
+                return;
+            }
+            for (var i in logBuffer) {
+                if (now > logBuffer[i].date + setting.balance.log.expires) {
+                    continue;
+                }
+                timeList.push(logBuffer[i].response);
+                logTable[logBuffer[i].response] = logBuffer[i];
+            }
+
+            function compareNumbers(a, b) {
+                return a - b;
+            }
+            timeList = timeList.sort(compareNumbers);
+            var serverBuffer = this.DATA.getBuffer(this.DATA.storeNames.server), time = timeList.shift();
+
+            MODULE.M.requestHost = '';
+            if (!serverBuffer) {
+                this.disableBalance();
+                return;
+            }
+            var host = '', time;
+            for (var j = setting.balance.log.limit; time = i-- && timeList.shift();) {
+                host = logTable[time].host.split('//').pop() || '';
+                if (!serverBuffer[host] || serverBuffer[host].state && new Date().getTime() < serverBuffer[host].state + setting.balance.server.preclude) {
+                    continue;
+                }
+                if (!host && setting.balance.weight && !(Math.floor(Math.random()) * setting.balance.weight)) {
+                    continue;
+                }
+                MODULE.M.requestHost = host;
+                setting.balance.server.host = host;
+                return;
+            }
+            this.disableBalance();
+        };
+
+        ModelApp.prototype.enableBalance = function () {
+            var setting = MODULE.M.getActiveSetting();
+
+            if (!setting.balance.client.support.test(window.navigator.userAgent) || setting.balance.client.exclude.test(window.navigator.userAgent)) {
+                return;
+            }
+
+            document.cookie = setting.balance.client.cookie + '=1';
+            if (!~document.cookie.indexOf(setting.balance.client.cookie + '=1') || !setting.database) {
+                return void this.disableBalance();
+            }
+        };
+
+        ModelApp.prototype.disableBalance = function () {
+            var setting = MODULE.M.getActiveSetting();
+
+            MODULE.M.requestHost = '';
+            document.cookie = setting.balance.client.cookie + '=0';
         };
 
         ModelApp.prototype.chooseAreas = function (areas, srcDocument, dstDocument) {
@@ -1267,9 +1520,9 @@ var MODULE;
             }
         };
 
-        ModelApp.prototype.scope_ = function (common, origURL, destURL, rewriteKeyUrl) {
+        ModelApp.prototype.scope_ = function (setting, origURL, destURL, rewriteKeyUrl) {
             if (typeof rewriteKeyUrl === "undefined") { rewriteKeyUrl = ''; }
-            var origKeyUrl, destKeyUrl, scp = common.scope, dirs, keys, key, pattern, not, reg, rewrite, inherit, hit_src, hit_dst, option;
+            var origKeyUrl, destKeyUrl, scp = setting.scope, dirs, keys, key, pattern, not, reg, rewrite, inherit, hit_src, hit_dst, option;
 
             origKeyUrl = MODULE.M.convertUrlToKeyUrl(origURL).match(/.+?\w(\/.*)/).pop();
             destKeyUrl = MODULE.M.convertUrlToKeyUrl(destURL).match(/.+?\w(\/.*)/).pop();
@@ -1328,18 +1581,21 @@ var MODULE;
                             }
                         }
 
-                        if ((not || !hit_src) && (reg ? !origKeyUrl.search(pattern) : !origKeyUrl.indexOf(pattern))) {
+                        if (reg ? !origKeyUrl.search(pattern) : !origKeyUrl.indexOf(pattern)) {
                             if (not) {
                                 return false;
                             } else {
                                 hit_src = true;
                             }
                         }
-                        if ((not || !hit_dst) && (reg ? !destKeyUrl.search(pattern) : !destKeyUrl.indexOf(pattern))) {
+                        if (reg ? !destKeyUrl.search(pattern) : !destKeyUrl.indexOf(pattern)) {
                             if (not) {
                                 return false;
                             } else {
                                 hit_dst = true;
+                                if (scp['$' + pattern]) {
+                                    option = scp['$' + pattern];
+                                }
                             }
                         }
                     } else if ('object' === typeof pattern) {
@@ -1348,7 +1604,7 @@ var MODULE;
                 }
 
                 if (hit_src && hit_dst) {
-                    return jQuery.extend(true, {}, common, ('object' === typeof rewrite ? rewrite : option) || {});
+                    return jQuery.extend(true, {}, setting, ('object' === typeof rewrite ? rewrite : option) || {});
                 }
                 if (inherit) {
                     continue;
@@ -1448,46 +1704,23 @@ var MODULE;
             }
         };
 
-        ModelApp.prototype.loadTitleByDB = function (unsafe_url) {
-            var keyUrl = MODULE.M.convertUrlToKeyUrl(MODULE.UTIL.canonicalizeUrl(unsafe_url)), data = this.DATA_.DB.getBuffer(this.DATA_.DB.store.history.name, keyUrl);
+        ModelApp.prototype.calAge = function (jqXHR) {
+            var age;
 
-            if (data && 'string' === typeof data.title) {
-                document.title = data.title;
-            } else {
-                this.DATA_.DB.loadTitle(keyUrl);
+            switch (true) {
+                case /no-store|no-cache/.test(jqXHR.getResponseHeader('Cache-Control')):
+                    return 0;
+                case !!~String(jqXHR.getResponseHeader('Cache-Control')).indexOf('max-age='):
+                    return Number(jqXHR.getResponseHeader('Cache-Control').match(/max-age=(\d+)/).pop()) * 1000;
+                case !!String(jqXHR.getResponseHeader('Expires')):
+                    return new Date(jqXHR.getResponseHeader('Expires')).getTime() - new Date().getTime();
+                default:
+                    return 0;
             }
         };
 
-        ModelApp.prototype.saveTitleToDB = function (unsafe_url, title) {
-            var keyUrl = MODULE.M.convertUrlToKeyUrl(MODULE.UTIL.canonicalizeUrl(unsafe_url));
-
-            this.DATA_.DB.setBuffer(this.DATA_.DB.store.history.name, keyUrl, { title: title }, true);
-            this.DATA_.DB.saveTitle(keyUrl, title);
-        };
-
-        ModelApp.prototype.loadScrollPositionByCacheOrDB = function (unsafe_url) {
-            var keyUrl = MODULE.M.convertUrlToKeyUrl(MODULE.UTIL.canonicalizeUrl(unsafe_url)), data = this.DATA_.DB.getBuffer(this.DATA_.DB.store.history.name, keyUrl);
-
-            if (data && 'number' === typeof data.scrollX) {
-                window.scrollTo(parseInt(Number(data.scrollX) + '', 10), parseInt(Number(data.scrollY) + '', 10));
-            } else {
-                this.DATA_.DB.loadScrollPosition(keyUrl);
-            }
-        };
-
-        ModelApp.prototype.saveScrollPositionToCacheAndDB = function (unsafe_url, scrollX, scrollY) {
-            var keyUrl = MODULE.M.convertUrlToKeyUrl(MODULE.UTIL.canonicalizeUrl(unsafe_url));
-
-            this.DATA_.DB.setBuffer(this.DATA_.DB.store.history.name, keyUrl, { scrollX: scrollX, scrollY: scrollY }, true);
-            this.DATA_.DB.saveScrollPosition(keyUrl, scrollX, scrollY);
-        };
-
-        ModelApp.prototype.loadBuffer = function (limit) {
-            0 < limit && this.DATA_.DB.loadBuffer(this.DATA_.DB.store.history.name, limit);
-        };
-
-        ModelApp.prototype.saveBuffer = function () {
-            this.DATA_.DB.saveBuffer(this.DATA_.DB.store.history.name);
+        ModelApp.prototype.calExpires = function (jqXHR) {
+            return new Date().getTime() + this.calAge(jqXHR);
         };
         return ModelApp;
     })(MODULE.ModelTemplate);
@@ -1506,13 +1739,27 @@ var MODULE;
     var DataStore = (function () {
         function DataStore(DB) {
             var _this = this;
-            this.buffer_ = {};
+            this.buffer_ = [];
             this.accessStore = function (mode) {
                 if (typeof mode === "undefined") { mode = 'readwrite'; }
-                return _this.DB_.accessStore(_this.name, mode);
+                var database = _this.DB_.database_;
+                if (database && database.transaction && database.objectStoreNames) {
+                    var objectStoreNames = database.objectStoreNames;
+                    for (var i in objectStoreNames) {
+                        if (objectStoreNames[i] !== _this.name) {
+                            continue;
+                        }
+                        return database.transaction(_this.name, mode).objectStore(_this.name);
+                    }
+                }
             };
             this.accessRecord = function (key, success) {
-                return _this.DB_.accessRecord(_this.name, key, success);
+                var store = _this.accessStore();
+                if (!store) {
+                    return;
+                }
+
+                store.get(key).onsuccess = success;
             };
             this.DB_ = DB;
         }
@@ -1522,14 +1769,15 @@ var MODULE;
                 return;
             }
 
-            store.index('date').openCursor(this.DB_.IDBKeyRange.lowerBound(0), 'prev').onsuccess = function () {
+            var index = store.indexNames.length ? store.indexNames[0] : store.keyPath;
+            store.index(index).openCursor(this.DB_.IDBKeyRange.lowerBound(0), 'prev').onsuccess = function () {
                 if (!this.result) {
                     return;
                 }
 
                 var IDBCursor = this.result, data = IDBCursor.value;
-                that.buffer_[data.id] = data;
-                if ('_' !== data.id.charAt(0) && !--limit) {
+                that.buffer_[data[store.keyPath]] = data;
+                if (!--limit) {
                     return;
                 }
 
@@ -1547,6 +1795,37 @@ var MODULE;
         DataStore.prototype.setBuffer = function (key, value, isMerge) {
             this.buffer_[key] = !isMerge ? value : jQuery.extend(true, {}, this.buffer_[key], value);
             return this.buffer_[key];
+        };
+
+        DataStore.prototype.addBuffer = function (value) {
+            value[this.keyPath] = this.buffer_.length || 1;
+            this.buffer_.push(value);
+            return value;
+        };
+
+        DataStore.prototype.add = function (value) {
+            var store = this.accessStore();
+            if (!store) {
+                return;
+            }
+
+            delete value[this.keyPath];
+            store.add(value);
+        };
+
+        DataStore.prototype.put = function (value) {
+            this.accessRecord(value[this.keyPath], function () {
+                this.source.put(jQuery.extend(true, {}, this.result, value));
+            });
+        };
+
+        DataStore.prototype.get = function (key, success) {
+            var store = this.accessStore();
+            if (!store) {
+                return;
+            }
+
+            store.get(key).onsuccess = success;
         };
         return DataStore;
     })();
@@ -1568,7 +1847,7 @@ var MODULE;
         function DataStoreMeta() {
             _super.apply(this, arguments);
             this.name = 'meta';
-            this.buffer_ = {};
+            this.keyPath = 'id';
         }
         return DataStoreMeta;
     })(MODULE.DataStore);
@@ -1590,16 +1869,16 @@ var MODULE;
         function DataStoreHistory() {
             _super.apply(this, arguments);
             this.name = 'history';
-            this.buffer_ = {};
+            this.keyPath = 'id';
         }
-        DataStoreHistory.prototype.clean_ = function () {
+        DataStoreHistory.prototype.clean = function () {
             var that = this, store = this.accessStore();
             if (!store) {
                 return;
             }
 
             store.count().onsuccess = function () {
-                if (1000 < this.result) {
+                if (this.result > 1000) {
                     store.index('date').openCursor(that.DB_.IDBKeyRange.upperBound(new Date().getTime() - (3 * 24 * 60 * 60 * 1000))).onsuccess = function () {
                         if (!this.result) {
                             return;
@@ -1607,7 +1886,7 @@ var MODULE;
 
                         var IDBCursor = this.result;
                         if (IDBCursor) {
-                            IDBCursor['delete'](IDBCursor.value.id);
+                            IDBCursor['delete'](IDBCursor.value[store.keyPath]);
                             IDBCursor['continue'] && IDBCursor['continue']();
                         } else {
                             store.count().onsuccess = function () {
@@ -1618,44 +1897,84 @@ var MODULE;
                 }
             };
         };
-
-        DataStoreHistory.prototype.loadTitle = function (keyUrl) {
-            this.accessRecord(keyUrl, function () {
-                keyUrl === MODULE.M.convertUrlToKeyUrl(MODULE.UTIL.canonicalizeUrl(window.location.href)) && this.result && this.result.title && (document.title = this.result.title);
-            });
-        };
-
-        DataStoreHistory.prototype.saveTitle = function (keyUrl, title) {
-            this.accessRecord(keyUrl, function () {
-                this.source.put(jQuery.extend(true, {}, this.result, { id: keyUrl, title: title, date: new Date().getTime() }));
-            });
-            this.clean_();
-        };
-
-        DataStoreHistory.prototype.loadScrollPosition = function (keyUrl) {
-            this.accessRecord(keyUrl, function () {
-                if (!this.result || !this.result.id || keyUrl !== this.result.id) {
-                    return;
-                }
-                isFinite(this.result.scrollX) && isFinite(this.result.scrollY) && window.scrollTo(parseInt(Number(this.result.scrollX) + '', 10), parseInt(Number(this.result.scrollY) + '', 10));
-            });
-        };
-
-        DataStoreHistory.prototype.saveScrollPosition = function (keyUrl, scrollX, scrollY) {
-            this.accessRecord(keyUrl, function () {
-                if (!this.result || !this.result.id || keyUrl !== this.result.id) {
-                    return;
-                }
-                this.source.put(jQuery.extend(true, {}, this.result, { scrollX: parseInt(Number(scrollX) + '', 10), scrollY: parseInt(Number(scrollY) + '', 10), date: new Date().getTime() }));
-            });
-        };
         return DataStoreHistory;
     })(MODULE.DataStore);
     MODULE.DataStoreHistory = DataStoreHistory;
 })(MODULE || (MODULE = {}));
 /// <reference path="../define.ts"/>
+/// <reference path="data.store.ts"/>
+/// <reference path="util.ts"/>
+/* MODEL */
+var MODULE;
+(function (MODULE) {
+    // Allow access:
+    //  M
+    // Deny access
+    var V, C;
+
+    var DataStoreLog = (function (_super) {
+        __extends(DataStoreLog, _super);
+        function DataStoreLog() {
+            _super.apply(this, arguments);
+            this.name = 'log';
+            this.keyPath = 'id';
+        }
+        DataStoreLog.prototype.clean = function () {
+            var that = this, store = this.accessStore(), size = 50;
+            if (!store) {
+                return;
+            }
+
+            store.count().onsuccess = function () {
+                if (this.result > size + 10) {
+                    size = this.result - size;
+                    store.index(store.keyPath).openCursor(this.DB_.IDBKeyRange.lowerBound(0)).onsuccess = function () {
+                        if (!this.result) {
+                            return;
+                        }
+
+                        var IDBCursor = this.result;
+                        if (IDBCursor) {
+                            if (0 > --size) {
+                                IDBCursor['delete'](IDBCursor.value[store.keyPath]);
+                            }
+                            IDBCursor['continue'] && IDBCursor['continue']();
+                        }
+                    };
+                }
+            };
+        };
+        return DataStoreLog;
+    })(MODULE.DataStore);
+    MODULE.DataStoreLog = DataStoreLog;
+})(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
+/// <reference path="data.store.ts"/>
+/// <reference path="util.ts"/>
+/* MODEL */
+var MODULE;
+(function (MODULE) {
+    // Allow access:
+    //  M
+    // Deny access
+    var V, C;
+
+    var DataStoreServer = (function (_super) {
+        __extends(DataStoreServer, _super);
+        function DataStoreServer() {
+            _super.apply(this, arguments);
+            this.name = 'server';
+            this.keyPath = 'id';
+        }
+        return DataStoreServer;
+    })(MODULE.DataStore);
+    MODULE.DataStoreServer = DataStoreServer;
+})(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
 /// <reference path="data.store.meta.ts"/>
 /// <reference path="data.store.history.ts"/>
+/// <reference path="data.store.log.ts"/>
+/// <reference path="data.store.server.ts"/>
 /// <reference path="util.ts"/>
 /* MODEL */
 var MODULE;
@@ -1670,18 +1989,26 @@ var MODULE;
             this.IDBFactory = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB;
             this.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.mozIDBKeyRange || window.msIDBKeyRange;
             this.name_ = MODULE.NAME;
-            this.version_ = 2;
+            this.version_ = 3;
             this.retry_ = 0;
-            this.store = {
+            this.store_ = {
                 meta: new MODULE.DataStoreMeta(this),
-                history: new MODULE.DataStoreHistory(this)
+                history: new MODULE.DataStoreHistory(this),
+                log: new MODULE.DataStoreLog(this),
+                server: new MODULE.DataStoreServer(this)
             };
-            this.meta_ = {
+            this.storeNames = {
+                meta: this.store_.meta.name,
+                history: this.store_.history.name,
+                log: this.store_.log.name,
+                server: this.store_.server.name
+            };
+            this.metaNames = {
                 version: 'version'
             };
         }
         DataDB.prototype.opendb = function (setting) {
-            var that = this, IDBDatabase = that.database_, IDBOpenDBRequest;
+            var that = this;
 
             setting.database = false;
             if (!that.IDBFactory) {
@@ -1691,19 +2018,25 @@ var MODULE;
             try  {
                 var days = Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24)), version = parseInt(days - days % 10 + that.version_ + '', 10);
 
-                IDBOpenDBRequest = that.IDBFactory.open(that.name_);
+                var request = that.IDBFactory.open(that.name_);
 
-                IDBOpenDBRequest.onblocked = function () {
+                request.onblocked = function () {
                 };
 
-                IDBOpenDBRequest.onupgradeneeded = function () {
-                    var IDBDatabase = this.result;
+                request.onupgradeneeded = function () {
+                    var database = this.result;
                     try  {
-                        for (var i = IDBDatabase.objectStoreNames ? IDBDatabase.objectStoreNames.length : 0; i--;) {
-                            IDBDatabase.deleteObjectStore(IDBDatabase.objectStoreNames[i]);
+                        for (var i = database.objectStoreNames ? database.objectStoreNames.length : 0; i--;) {
+                            database.deleteObjectStore(database.objectStoreNames[i]);
                         }
-                        IDBDatabase.createObjectStore(that.store.meta.name, { keyPath: 'id', autoIncrement: false });
-                        IDBDatabase.createObjectStore(that.store.history.name, { keyPath: 'id', autoIncrement: false }).createIndex('date', 'date', { unique: false });
+
+                        database.createObjectStore(that.store_.meta.name, { keyPath: that.store_.meta.keyPath, autoIncrement: false }).createIndex(that.store_.meta.keyPath, that.store_.meta.keyPath, { unique: true });
+
+                        database.createObjectStore(that.store_.history.name, { keyPath: that.store_.history.keyPath, autoIncrement: false }).createIndex('date', 'date', { unique: false });
+
+                        database.createObjectStore(that.store_.log.name, { keyPath: that.store_.log.keyPath, autoIncrement: true }).createIndex('date', 'date', { unique: false });
+
+                        database.createObjectStore(that.store_.server.name, { keyPath: that.store_.server.keyPath, autoIncrement: false }).createIndex(that.store_.server.keyPath, that.store_.server.keyPath, { unique: true });
                     } catch (err) {
                         3 > that.retry_++ && setTimeout(function () {
                             return that.initdb_(setting);
@@ -1711,11 +2044,10 @@ var MODULE;
                     }
                 };
 
-                IDBOpenDBRequest.onsuccess = function () {
+                request.onsuccess = function () {
                     try  {
-                        IDBDatabase:
-                        IDBDatabase = this.result;
-                        that.database_ = IDBDatabase;
+                        var database = this.result;
+                        that.database_ = database;
 
                         that.checkdb_(setting, version, function () {
                             that.saveTitle(MODULE.M.convertUrlToKeyUrl(setting.origLocation.href), document.title);
@@ -1728,7 +2060,7 @@ var MODULE;
                     }
                 };
 
-                IDBOpenDBRequest.onerror = function (event) {
+                request.onerror = function (event) {
                     3 > that.retry_++ && setTimeout(function () {
                         return that.initdb_(setting);
                     }, 1000);
@@ -1758,21 +2090,21 @@ var MODULE;
 
         DataDB.prototype.checkdb_ = function (setting, version, success) {
             var that = this;
-            if (!that.accessStore(that.store.meta.name)) {
+            if (!that.accessStore(that.store_.meta.name)) {
                 throw 0;
             }
 
-            this.accessRecord(this.store.meta.name, this.meta_.version, function () {
+            this.accessRecord(this.store_.meta.name, this.metaNames.version, function () {
                 // version check
                 var data = this.result;
                 if (!data) {
-                    this.source.put({ id: that.meta_.version, value: version });
+                    this.source.put({ id: that.metaNames.version, value: version });
                 } else if (version !== data.value) {
                     return that.initdb_(setting);
                 }
 
                 // store check
-                var storeHistory = that.accessStore(that.store.history.name);
+                var storeHistory = that.accessStore(that.store_.history.name);
                 if (!storeHistory) {
                     3 > that.retry_++ && setTimeout(function () {
                         return that.initdb_(setting);
@@ -1787,54 +2119,103 @@ var MODULE;
 
         DataDB.prototype.accessStore = function (name, mode) {
             if (typeof mode === "undefined") { mode = 'readwrite'; }
-            var IDBDatabase = this.database_;
-            for (var i = IDBDatabase && IDBDatabase.objectStoreNames ? IDBDatabase.objectStoreNames.length : 0; i--;) {
-                if (name === IDBDatabase.objectStoreNames[i]) {
-                    return IDBDatabase && IDBDatabase.transaction && IDBDatabase.transaction(name, mode).objectStore(name);
-                }
-            }
-            return null;
+            return this.store_[name].accessStore();
         };
 
         DataDB.prototype.accessRecord = function (storeName, key, success) {
-            var store = this.accessStore(storeName);
-            if (!store) {
-                return;
-            }
-
-            store.get(key).onsuccess = success;
-        };
-
-        DataDB.prototype.loadBuffer = function (storeName, limit) {
-            this.store[storeName].loadBuffer(limit);
-        };
-
-        DataDB.prototype.saveBuffer = function (storeName) {
-            this.store[storeName].saveBuffer();
+            return this.store_[storeName].accessRecord(key, success);
         };
 
         DataDB.prototype.getBuffer = function (storeName, key) {
-            return this.store[storeName].getBuffer(key);
+            if (storeName && this.store_[storeName]) {
+                return this.store_[storeName].getBuffer(key);
+            }
         };
 
-        DataDB.prototype.setBuffer = function (storeName, key, value, isMerge) {
-            return this.store[storeName].setBuffer(key, value, isMerge);
+        DataDB.prototype.setBuffer = function (storeName) {
+            if (storeName && this.store_[storeName]) {
+                return this.store_[storeName].setBuffer();
+            }
+        };
+
+        DataDB.prototype.loadBuffer = function (storeName, limit) {
+            if (typeof limit === "undefined") { limit = 0; }
+            if (storeName && this.store_[storeName]) {
+                this.store_[storeName].loadBuffer(limit);
+            }
+        };
+
+        DataDB.prototype.saveBuffer = function (storeName) {
+            if (storeName && this.store_[storeName]) {
+                this.store_[storeName].saveBuffer();
+            }
         };
 
         DataDB.prototype.loadTitle = function (keyUrl) {
-            this.store.history.loadTitle(keyUrl);
+            var data = this.store_.history.getBuffer(keyUrl);
+
+            if (data && 'string' === typeof data.title) {
+                document.title = data.title;
+            } else {
+                this.store_.history.get(keyUrl, function () {
+                    keyUrl === MODULE.M.convertUrlToKeyUrl(MODULE.UTIL.canonicalizeUrl(window.location.href)) && this.result && this.result.title && (document.title = this.result.title);
+                });
+            }
         };
 
         DataDB.prototype.saveTitle = function (keyUrl, title) {
-            this.store.history.saveTitle(keyUrl, title);
+            var value = { id: keyUrl, title: title, date: new Date().getTime() };
+            this.store_.history.setBuffer(keyUrl, value, true);
+            this.store_.history.put(value);
+            this.store_.history.clean();
         };
 
         DataDB.prototype.loadScrollPosition = function (keyUrl) {
-            this.store.history.loadScrollPosition(keyUrl);
+            var data = this.store_.history.getBuffer(keyUrl);
+
+            if (data && 'number' === typeof data.scrollX) {
+                window.scrollTo(parseInt(Number(data.scrollX) + '', 10), parseInt(Number(data.scrollY) + '', 10));
+            } else {
+                this.store_.history.get(keyUrl, function () {
+                    if (!this.result || keyUrl !== this.result.id) {
+                        return;
+                    }
+                    isFinite(this.result.scrollX) && isFinite(this.result.scrollY) && window.scrollTo(parseInt(Number(this.result.scrollX) + '', 10), parseInt(Number(this.result.scrollY) + '', 10));
+                });
+            }
         };
 
         DataDB.prototype.saveScrollPosition = function (keyUrl, scrollX, scrollY) {
-            this.store.history.saveScrollPosition(keyUrl, scrollX, scrollY);
+            var value = { id: keyUrl, scrollX: scrollX, scrollY: scrollY, date: new Date().getTime() };
+            this.store_.history.setBuffer(keyUrl, value, true);
+            this.store_.history.put(value);
+        };
+
+        DataDB.prototype.loadExpires = function (keyUrl) {
+        };
+
+        DataDB.prototype.saveExpires = function (keyUrl, host, expires) {
+            var value = { id: keyUrl, host: host, expires: expires };
+            this.store_.history.setBuffer(keyUrl, value, true);
+            this.store_.history.put(value);
+        };
+
+        DataDB.prototype.loadLog = function () {
+        };
+
+        DataDB.prototype.saveLog = function (log) {
+            this.store_.log.addBuffer(log);
+            this.store_.log.add(log);
+            this.store_.log.clean();
+        };
+
+        DataDB.prototype.loadServer = function () {
+        };
+
+        DataDB.prototype.saveServer = function (host, state) {
+            var value = { id: host || '', state: state };
+            this.store_.server.setBuffer(host, value);
+            this.store_.server.put(value);
         };
         return DataDB;
     })();
@@ -1877,6 +2258,7 @@ var MODULE;
             _super.apply(this, arguments);
             this.state = -1 /* wait */;
             this.isDeferrable = jQuery.when && 1.06 <= Number(jQuery().jquery.replace(/\D*(\d+)\.(\d+).*$/, '$1.0$2').replace(/\d+(\d{2})$/, '$1'));
+            this.requestHost = '';
             this.APP_ = new MODULE.ModelApp();
         }
         ModelMain.prototype.main_ = function ($context, option) {
@@ -1886,7 +2268,12 @@ var MODULE;
             pattern += option ? ({}).toString.call(option).split(' ').pop().slice(0, -1).toLowerCase() : option;
             switch (pattern.toLowerCase()) {
                 case 'm:object':
+                    break;
                 case 'm:undefined':
+                    if ($context.is('a, form')) {
+                        return $context;
+                    }
+                    option = {};
                     break;
                 default:
                     return $context;
@@ -1894,6 +2281,7 @@ var MODULE;
 
             var setting = this.APP_.configure(option, window.location.href, window.location.href);
             MODULE.M.setActiveSetting(setting);
+            setting.database && this.APP_.DATA.opendb(setting);
 
             this.APP_.stock({
                 executed: {},
@@ -2009,7 +2397,7 @@ var MODULE;
                 }
                 setting.area = MODULE.UTIL.fire(setting.area, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
                 setting.area = setting.area instanceof Array ? setting.area : [setting.area];
-                setting.database && setting.scroll.record && this.APP_.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+                setting.database && setting.scroll.record && this.APP_.DATA.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
                 var cache;
                 if (setting.cache[event.type.toLowerCase()]) {
@@ -2048,7 +2436,7 @@ var MODULE;
                 if (!setting.area[0] || !jQuery(setting.area.join(','))[0]) {
                     break PROCESS;
                 }
-                setting.database && setting.scroll.record && this.APP_.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+                setting.database && setting.scroll.record && this.APP_.DATA.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
                 var cache;
                 if (setting.cache[event.type.toLowerCase()] && setting.cache[context.method.toLowerCase()]) {
@@ -2067,7 +2455,7 @@ var MODULE;
             PROCESS:
              {
                 event.timeStamp = new Date().getTime();
-                var setting = this.APP_.configure(MODULE.M.getActiveSetting(), null, window.location.href, true);
+                var setting = this.APP_.configure(MODULE.M.getActiveSetting(), null, window.location.href);
                 if (this.APP_.landing && this.APP_.landing === MODULE.UTIL.canonicalizeUrl(window.location.href)) {
                     return;
                 }
@@ -2089,7 +2477,7 @@ var MODULE;
                     break PROCESS;
                 }
 
-                setting.database && setting.fix.history && this.APP_.loadTitleByDB(setting.destLocation.href);
+                setting.database && setting.fix.history && this.APP_.DATA.loadTitleFromDB(setting.destLocation.href);
 
                 var cache;
                 if (setting.cache[event.type.toLowerCase()]) {
@@ -2105,25 +2493,25 @@ var MODULE;
 
         ModelMain.prototype.SCROLL = function (event, end) {
             var _this = this;
-            var common = MODULE.M.getActiveSetting();
+            var setting = MODULE.M.getActiveSetting();
             if (MODULE.M.state_ !== 0 /* ready */ || event.isDefaultPrevented()) {
                 return;
             }
 
-            if (!common.scroll.delay) {
-                common.scroll.record && this.APP_.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+            if (!setting.scroll.delay) {
+                setting.scroll.record && this.APP_.DATA.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
             } else {
                 var id;
-                while (id = common.scroll.queue.shift()) {
+                while (id = setting.scroll.queue.shift()) {
                     clearTimeout(id);
                 }
                 id = setTimeout(function () {
-                    while (id = common.scroll.queue.shift()) {
+                    while (id = setting.scroll.queue.shift()) {
                         clearTimeout(id);
                     }
-                    common.scroll.record && _this.APP_.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
-                }, common.scroll.delay);
-                common.scroll.queue.push(id);
+                    setting.scroll.record && _this.APP_.DATA.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+                }, setting.scroll.delay);
+                setting.scroll.queue.push(id);
             }
         };
 
@@ -2144,8 +2532,8 @@ var MODULE;
         };
 
         ModelMain.prototype.getCache = function (unsafe_url) {
-            var common = MODULE.M.getActiveSetting(), recent = this.APP_.recent;
-            if (!common || !recent) {
+            var setting = MODULE.M.getActiveSetting(), recent = this.APP_.recent;
+            if (!setting || !recent) {
                 return null;
             }
 
@@ -2158,8 +2546,9 @@ var MODULE;
         };
 
         ModelMain.prototype.setCache = function (unsafe_url, data, textStatus, jqXHR) {
-            var common = MODULE.M.getActiveSetting(), recent = this.APP_.recent;
-            if (!common || !recent) {
+            var _this = this;
+            var setting = MODULE.M.getActiveSetting(), recent = this.APP_.recent;
+            if (!setting || !recent) {
                 return this;
             }
             var cache, size, timeStamp, expires;
@@ -2174,7 +2563,7 @@ var MODULE;
                 }
             }
 
-            recent.size > common.cache.size && MODULE.M.cleanCache();
+            recent.size > setting.cache.size && MODULE.M.cleanCache();
             cache = MODULE.M.getCache(secure_url);
             if (!data && !jqXHR && (!cache || !cache.data && !cache.jqXHR)) {
                 return;
@@ -2184,26 +2573,19 @@ var MODULE;
             size = parseInt(html.length * 1.8 + '' || 1024 * 1024 + '', 10);
             timeStamp = new Date().getTime();
             expires = (function (timeStamp) {
-                var expires = common.cache.expires, age;
-                if (!common.cache.expires) {
+                var expires = setting.cache.expires, age;
+                if (!setting.cache.expires) {
                     return 0;
                 }
                 if (recent.data[secure_url] && !jqXHR) {
                     return recent.data[secure_url].expires;
                 }
 
-                if (!jqXHR) {
-                } else if (/no-store|no-cache/.test(jqXHR.getResponseHeader('Cache-Control'))) {
-                } else if (~String(age = jqXHR.getResponseHeader('Cache-Control')).indexOf('max-age=')) {
-                    age = age.match(/max-age=(\d+)/)[1] * 1000;
-                } else if (age = jqXHR.getResponseHeader('Expires')) {
-                    age = new Date(age).getTime() - new Date().getTime();
-                } else {
-                    age = Number(common.cache.expires);
-                }
+                age = jqXHR && _this.APP_.calAge(jqXHR) || Number(setting.cache.expires);
+
                 age = Math.max(age, 0) || 0;
-                age = 'object' === typeof common.cache.expires && 'number' === typeof common.cache.expires.min ? Math.max(common.cache.expires.min, age) : age;
-                age = 'object' === typeof common.cache.expires && 'number' === typeof common.cache.expires.max ? Math.min(common.cache.expires.max, age) : age;
+                age = 'object' === typeof setting.cache.expires && 'number' === typeof setting.cache.expires.min ? Math.max(setting.cache.expires.min, age) : age;
+                age = 'object' === typeof setting.cache.expires && 'number' === typeof setting.cache.expires.max ? Math.min(setting.cache.expires.max, age) : age;
                 return timeStamp + age;
             })(timeStamp);
             recent.size = recent.size || 0;
@@ -2223,13 +2605,13 @@ var MODULE;
             }
             if (jqXHR || cache && cache.jqXHR) {
                 var title = ((jqXHR || cache && cache.jqXHR).responseText || '').slice(0, 10000).match(/<title[^>]*>(.*?)<\/title>/i).pop() || '';
-                common.database && common.fix.history && this.APP_.saveTitleToDB(secure_url, title);
+                setting.database && setting.fix.history && this.APP_.DATA.saveTitleToDB(secure_url, title);
             }
         };
 
         ModelMain.prototype.removeCache = function (unsafe_url) {
-            var common = MODULE.M.getActiveSetting(), recent = this.APP_.recent;
-            if (!common || !recent) {
+            var setting = MODULE.M.getActiveSetting(), recent = this.APP_.recent;
+            if (!setting || !recent) {
                 return;
             }
 
@@ -2247,8 +2629,8 @@ var MODULE;
         };
 
         ModelMain.prototype.clearCache = function () {
-            var common = MODULE.M.getActiveSetting(), recent = this.APP_.recent;
-            if (!common || !recent) {
+            var setting = MODULE.M.getActiveSetting(), recent = this.APP_.recent;
+            if (!setting || !recent) {
                 return;
             }
             for (var i = recent.order.length, url; url = recent.order[--i];) {
@@ -2259,17 +2641,25 @@ var MODULE;
         };
 
         ModelMain.prototype.cleanCache = function () {
-            var common = MODULE.M.getActiveSetting(), recent = this.APP_.recent;
-            if (!common || !recent) {
+            var setting = MODULE.M.getActiveSetting(), recent = this.APP_.recent;
+            if (!setting || !recent) {
                 return;
             }
             for (var i = recent.order.length, url; url = recent.order[--i];) {
-                if (i >= common.cache.limit || url in recent.data && new Date().getTime() > recent.data[url].expires) {
+                if (i >= setting.cache.limit || url in recent.data && new Date().getTime() > recent.data[url].expires) {
                     recent.order.splice(i, 1);
                     recent.size -= recent.data[url].size;
                     delete recent.data[url];
                 }
             }
+        };
+
+        ModelMain.prototype.getRequestDomain = function () {
+            return MODULE.M.requestHost;
+        };
+
+        ModelMain.prototype.setRequestDomain = function (host) {
+            return MODULE.M.requestHost = host.split('//').pop() || '';
         };
         return ModelMain;
     })(MODULE.ModelTemplate);
@@ -2476,9 +2866,13 @@ var MODULE;
         };
 
         ControllerFunction.prototype.click = function (url, attr) {
-            var common = MODULE.M.getActiveSetting(), $anchor;
+            var setting = MODULE.M.getActiveSetting(), $anchor;
 
             switch (typeof url) {
+                case 'undefined':
+                    $anchor = this['end']().filter('a').first().clone();
+                    break;
+
                 case 'object':
                     $anchor = jQuery(url).clone();
                     break;
@@ -2492,15 +2886,19 @@ var MODULE;
                 default:
                     return this;
             }
-            return $anchor.first().one(common.nss.click, function (event) {
+            return $anchor.first().one(setting.nss.click, function (event) {
                 return MODULE.V.HANDLERS.CLICK(event);
             }).click();
         };
 
         ControllerFunction.prototype.submit = function (url, attr, data) {
-            var common = MODULE.M.getActiveSetting(), $form, df = document.createDocumentFragment(), type, $element;
+            var setting = MODULE.M.getActiveSetting(), $form, df = document.createDocumentFragment(), type, $element;
 
             switch (true) {
+                case typeof url === 'undefined':
+                    $form = this['end']().filter('form').first().clone();
+                    break;
+
                 case typeof url === 'object':
                     $form = jQuery(url).clone();
                     break;
@@ -2530,7 +2928,7 @@ var MODULE;
                 default:
                     return this;
             }
-            return $form.first().one(common.nss.submit, function (event) {
+            return $form.first().one(setting.nss.submit, function (event) {
                 return MODULE.V.HANDLERS.SUBMIT(event);
             }).submit();
         };
@@ -2592,6 +2990,10 @@ var MODULE;
             jQuery[MODULE.M.NAME].click(anchor.href);
             return true;
         };
+
+        ControllerFunction.prototype.host = function () {
+            return MODULE.M.requestHost;
+        };
         return ControllerFunction;
     })();
     MODULE.ControllerFunction = ControllerFunction;
@@ -2621,9 +3023,6 @@ var MODULE;
             pattern = $context instanceof MODULE.NAMESPACE ? 'm:' : 'f:';
             pattern += option ? ({}).toString.call(option).split(' ').pop().slice(0, -1).toLowerCase() : option;
             switch (pattern.toLowerCase()) {
-                case 'm:undefined':
-                    option = {};
-                    break;
             }
 
             return [$context, option];

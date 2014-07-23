@@ -7,6 +7,23 @@ nav: nav
 
 # ChangeLog
 
+## 2.7.0
+
+* ロードバランス機能を追加
+  * `balance.self`パラメータを追加
+  * `balance.weight`パラメータを追加
+  * `balance.client`パラメータを追加
+  * `balance.server`パラメータを追加
+  * `balance.log`パラメータを追加
+  * `balance.option`パラメータを追加
+  * `callbacks.update.balance`系コールバックを追加
+  * `requestDomain`メソッドを追加
+* `click`メソッドを拡張
+* `submit`メソッドを拡張
+* `scope`パラメータの仕様を変更
+* `load.rewrite`パラメータの仕様を変更
+* データベースを更新
+
 ## 2.6.0
 
 * Android・iOSで動作しないバグを修正

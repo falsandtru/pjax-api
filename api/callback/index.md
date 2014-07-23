@@ -13,7 +13,7 @@ class: style-api style-api-detail
 更新の描画後に実行されます。第二引数にpjax設定時に`param`パラメータに設定した値が渡されます。
 
 ## callbacks
-多数のコールバック実行タイミングを持ちます。`ajax`を除くすべてのコールバックは戻り値に`false`を設定することで現在の処理をキャンセルまたは抜けることができます。`before`では以降の処理をすべてキャンセルします。このときフォールバック処理は`fallback`の設定にかかわらず行われません。`update.any.before`では`update.verify`系を除きページ更新処理のうちanyの示す部分の更新処理をキャンセルします。ページ遷移でエラーが発生した際場合に`update.error`または`update.complete`で処理を抜けるとフォールバック処理が`fallback`の設定にかかわらず行われません。
+多数のコールバック実行タイミングを持ちます。`ajax`を除くすべてのコールバックは戻り値に`false`を設定することで現在の処理をキャンセルまたは抜けることができます。`before`では以降の処理をすべてキャンセルします。このときフォールバック処理は`fallback`の設定にかかわらず行われません。`update.any.before`ではページ更新処理のうちanyの示す部分の更新処理をキャンセルします。ページ遷移でエラーが発生した際場合に`update.error`または`update.complete`で処理を抜けるとフォールバック処理が`fallback`の設定にかかわらず行われません。
 
 `ajax.success`、`ajax.error`、`ajax.complete`はjQuery1.8以降非推奨となったためjQuery1.6以降では`ajax.done`、`ajax.fail`、`ajax.always`を使用してください。
 
@@ -117,10 +117,16 @@ ajax処理の完了後常に実行されます。外部から引き継いだリ�
 ページの更新処理において更新の描画を待機する内部イベント処理の実行後に実行されます。
 
 ### update.verify.before( event, param )
-ページの更新処理において更新結果の検証前に実行されます。キャンセル不可。
+ページの更新処理において更新結果の検証前に実行されます。
 
 ### update.verify.after( event, param )
 ページの更新処理において更新結果の検証後に実行されます。
+
+### update.balance.before( event, param )
+ページの更新処理においてロードバランスの周辺処理前に実行されます。
+
+### update.balance.after( event, param )
+ページの更新処理においてロードバランスの周辺処理後に実行されます。
 
 ### update.success( event, param, data, textStatus, XMLHttpRequest )
 ページの更新処理が成功したときに実行されます。
