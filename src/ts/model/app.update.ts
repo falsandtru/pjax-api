@@ -717,7 +717,7 @@ module MODULE.MODEL {
           } else {
             this.updateScroll_(true);
           }
-        }, 50);
+        }, 100);
 
         jQuery(document).trigger(setting.gns + '.render');
         UTIL.fire(callback);
