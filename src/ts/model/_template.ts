@@ -2,15 +2,15 @@
 
 /* MODEL */
 
-module MODULE {
+module MODULE.MODEL {
   /**
    * Model of MVC
    * 
    * @class Model
    */
-  export class ModelTemplate {
+  export class Template {
     constructor() {
-      this.UUID = this.GEN_UUID();
+      this.UUID = GEN_UUID();
     }
 
     /**
@@ -66,18 +66,6 @@ module MODULE {
     }
     
     /**
-     * UUIDを生成する。
-     * 
-     * @method GEN_UUID
-     */
-    GEN_UUID: () => string = function () {
-      // version 4
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16).toUpperCase();
-      });
-    }
-
     /**
      * 他のインスタンスとの共有データ保存用オブジェクト。
      * 
@@ -91,12 +79,12 @@ module MODULE {
           break;
         case 1:
           // 共有データを取得
-          return Model.store[key];
+          return Template.store[key];
         case 2:
           // 共有データを設定
-          return Model.store[key] = value;
+          return Template.store[key] = value;
         case 3:
-          return Model.store[key] = jQuery.extend(true, Model.store[key], value);
+          return Template.store[key] = jQuery.extend(true, Template.store[key], value);
       }
     }
 
@@ -131,13 +119,13 @@ module MODULE {
      * @param {Any} value
      * @param {Boolean} merge
      */
-    stock: any = function stock(key?: string, value?: any, merge?: boolean): any {
+    stock: any = function stock(key?: any, value?: any, merge?: boolean): any {
       if (this instanceof stock) {
         // 個別データ操作
         switch (typeof key) {
           case 'object':
           case 'function':
-            this.uuid = M.GEN_UUID();
+            this.uuid = GEN_UUID();
             stock[this.uuid] = this;
             return jQuery.extend.apply(jQuery, [true, this].concat([].slice.call(arguments)).concat({ uuid: this.uuid }));
           case 'string':
@@ -146,7 +134,7 @@ module MODULE {
       } else if ('object' === typeof key) {
         // 共有データ操作
         var keys = <Object>key, iKeys;
-        for (iKeys in keys) { Model.store(iKeys, keys[iKeys]); }
+        for (iKeys in keys) { Template.store(iKeys, keys[iKeys]); }
       } else {
         // 共有データ操作
         switch (arguments.length) {
@@ -155,12 +143,12 @@ module MODULE {
             return new this.stock();
           case 1:
             // インスタンス別のデータオブジェクトまたは共有データを取得
-            return this.stock[key] || Model.store(key);
+            return this.stock[key] || Template.store(key);
           case 2:
             // 共有データを保存
-            return Model.store(key, value);
+            return Template.store(key, value);
           case 3:
-            return Model.store(key, value, merge);
+            return Template.store(key, value, merge);
         }
       }
     }

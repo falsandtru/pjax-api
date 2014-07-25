@@ -1,20 +1,18 @@
 /// <reference path="../define.ts"/>
 /// <reference path="_template.ts"/>
-/// <reference path="../model/main.ts"/>
 
 /* CONTROLLER */
 
-module MODULE {
-  // Allow access:
-  //  M, C
+module MODULE.CONTROLLER {
 
-  // Deny access
-  var V: void;
+  export class Main extends Template implements ControllerInterface {
 
-  export class ControllerMain extends ControllerTemplate implements ControllerInterface {
+    constructor(public model_: ModelInterface) {
+      super(model_);
+    }
 
     exec_($context: JQuery, option) {
-      $context = $context instanceof jQuery ? $context : C.EXTEND(jQuery(document));
+      $context = $context instanceof jQuery ? $context : this.EXTEND(jQuery(document));
 
       var pattern;
       pattern = $context instanceof NAMESPACE ? 'm:' : 'f:';
@@ -29,16 +27,16 @@ module MODULE {
     OBSERVE() { }
 
     CLICK(...args: any[]): void {
-      M.CLICK.apply(M, args);
+      this.model_.CLICK.apply(this.model_, args);
     }
     SUBMIT(...args: any[]): void {
-      M.SUBMIT.apply(M, args);
+      this.model_.SUBMIT.apply(this.model_, args);
     }
     POPSTATE(...args: any[]): void {
-      M.POPSTATE.apply(M, args);
+      this.model_.POPSTATE.apply(this.model_, args);
     }
     SCROLL(...args: any[]): void {
-      M.SCROLL.apply(M, args);
+      this.model_.SCROLL.apply(this.model_, args);
     }
 
     //内部イベント
@@ -54,7 +52,5 @@ module MODULE {
     HANDLERS = { }
 
   }
-  // 短縮登録
-  export var Controller = ControllerMain;
-  export var C = new Controller();
+
 }

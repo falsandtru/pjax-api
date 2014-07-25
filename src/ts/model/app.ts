@@ -3,19 +3,19 @@
 /// <reference path="app.update.ts"/>
 /// <reference path="app.data.ts"/>
 /// <reference path="util.ts"/>
+/// <reference path="../view/main.ts"/>
 
 /* MODEL */
 
-module MODULE {
-  // Allow access:
-  //  M
+module MODULE.MODEL {
+  
+  export class App extends Template implements ModelAppInterface {
 
-  // Deny access
-  var V: void, C: void;
+    constructor(public model_: ModelInterface, public controller_: ControllerInterface) {
+      super();
+    }
 
-  export class ModelApp extends ModelTemplate implements ModelAppInterface {
-
-    DATA: AppData = new AppData(this)
+    DATA: AppDataInterface = new AppData(this.model_, this)
 
     landing: string = UTIL.canonicalizeUrl(window.location.href)
     recent: RecentInterface = { order: [], data: {}, size: 0 }
@@ -28,10 +28,10 @@ module MODULE {
       option = option.option || option;
 
       var scope = option.scope ? jQuery.extend(true, {}, option, this.scope_(option, origURL, destURL) || { disable: true })
-                               : jQuery.extend(true, {}, option);
+                                : jQuery.extend(true, {}, option);
 
       var initial = {
-            gns: M.NAME,
+            gns: NAME,
             ns: '',
             disable: false,
             
@@ -135,7 +135,7 @@ module MODULE {
             option: option
           },
           compute = function () {
-            var nsArray: string[] = [setting.gns || M.NAME].concat(setting.ns && String(setting.ns).split('.') || []);
+            var nsArray: string[] = [setting.gns || NAME].concat(setting.ns && String(setting.ns).split('.') || []);
             var query: string = setting.server.query;
             switch (query && typeof query) {
               case 'string':
@@ -182,15 +182,15 @@ module MODULE {
         if (element.src && (!setting.load.reload || !jQuery(element).is(setting.load.reload))) { executed[element.src] = true; }
       });
 
-      new View($context).BIND(setting);
+      new VIEW.Main(this.model_, this.controller_, $context).BIND(setting);
       setTimeout(() => this.createHTMLDocument(), 50);
       setTimeout(() => this.DATA.loadBufferAll(setting.buffer.limit), setting.buffer.delay);
-      setTimeout(() => setting.balance.self && this.enableBalance(), setting.buffer.delay);
+      setting.balance.self && setTimeout(() => this.enableBalance(), setting.buffer.delay);
       setTimeout(() => this.landing = null, 1500);
     }
 
     enableBalance(host?: string): void {
-      var setting: SettingInterface = M.getActiveSetting();
+      var setting: SettingInterface = this.model_.getActiveSetting();
 
       if (!setting.balance.client.support.userAgent.test(window.navigator.userAgent) || setting.balance.client.exclude.test(window.navigator.userAgent)) {
         return void this.disableBalance();
@@ -206,7 +206,7 @@ module MODULE {
     }
 
     disableBalance(): void {
-      var setting: SettingInterface = M.getActiveSetting();
+      var setting: SettingInterface = this.model_.getActiveSetting();
 
       this.DATA.setCookie(setting.balance.client.cookie.balance, '0');
       this.DATA.setCookie(setting.balance.client.cookie.redirect, '0');
@@ -215,8 +215,8 @@ module MODULE {
 
     switchRequestServer(host: string, setting: SettingInterface): void {
       host = host || '';
-      setting = setting || M.getActiveSetting();
-      M.requestHost = host;
+      setting = setting || this.model_.getActiveSetting();
+      this.model_.requestHost = host;
       setting.balance.server.host = host;
       this.DATA.setCookie(setting.balance.client.cookie.host, host);
     }
@@ -231,7 +231,7 @@ module MODULE {
       this.DATA.loadBufferAll(setting.buffer.limit);
 
       var expires: number;
-      var historyBufferData = <HistorySchema>this.DATA.getBuffer(this.DATA.storeNames.history, M.convertUrlToKeyUrl(setting.destLocation.href));
+      var historyBufferData = <HistorySchema>this.DATA.getBuffer(this.DATA.storeNames.history, this.model_.convertUrlToKeyUrl(setting.destLocation.href));
 
       expires = historyBufferData && historyBufferData.expires;
       if (expires && expires >= new Date().getTime()) {
@@ -318,8 +318,8 @@ module MODULE {
           hit_dst: boolean,
           option: Object;
 
-      origKeyUrl = M.convertUrlToKeyUrl(origURL).match(/.+?\w(\/.*)/).pop();
-      destKeyUrl = M.convertUrlToKeyUrl(destURL).match(/.+?\w(\/.*)/).pop();
+      origKeyUrl = this.model_.convertUrlToKeyUrl(origURL).match(/.+?\w(\/.*)/).pop();
+      destKeyUrl = this.model_.convertUrlToKeyUrl(destURL).match(/.+?\w(\/.*)/).pop();
       rewriteKeyUrl = rewriteKeyUrl.replace(/[#?].*/, '');
 
       keys = (rewriteKeyUrl || destKeyUrl).replace(/^\/|\/$/g, '').split('/');
@@ -495,4 +495,5 @@ module MODULE {
     }
 
   }
+
 }

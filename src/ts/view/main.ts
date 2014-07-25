@@ -1,16 +1,17 @@
 /// <reference path="../define.ts"/>
 /// <reference path="_template.ts"/>
-/// <reference path="../model/main.ts"/>
 
 /* VIEW */
 
-module MODULE {
-  // Allow access:
-  //  M, V, C
+module MODULE.VIEW {
+  var C: ControllerInterface
+  
+  export class Main extends Template implements ViewInterface {
 
-  // Deny access
-
-  export class ViewMain extends ViewTemplate implements ViewInterface {
+    constructor(public model_: ModelInterface, public controller_: ControllerInterface, context: ContextInterface) {
+      super(model_, controller_, context);
+      C = controller_;
+    }
 
     // VIEWにする要素を選択/解除する
     BIND(setting: SettingInterface): ViewInterface {
@@ -45,9 +46,7 @@ module MODULE {
     }
 
     //内部イベント
-    static EVENTS = {
-      CHANGE: M.NAME + '.change'
-    }
+    static EVENTS = { }
 
     // プラグインが実行するイベント名
     static TRIGGERS = { }
@@ -69,7 +68,5 @@ module MODULE {
     }
     
   }
-  // 短縮登録
-  export var View = ViewMain;
-  export var V = new View();
+
 }

@@ -1,15 +1,10 @@
 /// <reference path="../define.ts"/>
-/// <reference path="util.ts"/>
+/// <reference path="data.db.ts"/>
 
 /* MODEL */
 
-module MODULE {
-  // Allow access:
-  //  M
-
-  // Deny access
-  var V: void, C: void;
-
+module MODULE.MODEL {
+  
   export class DataStore<T> implements DataStoreInterface<T> {
     constructor(DB: DataDBInterface) {
       this.DB_ = DB;
@@ -61,7 +56,7 @@ module MODULE {
     saveBuffer(): void {
     }
     
-    getBuffer(): Object
+    getBuffer(): T[]
     getBuffer(key: string): T
     getBuffer(key: number): T
     getBuffer(key?: any): any {
@@ -111,4 +106,5 @@ module MODULE {
     }
     
   }
+
 }

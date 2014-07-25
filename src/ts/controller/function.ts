@@ -1,15 +1,18 @@
 /// <reference path="../define.ts"/>
-/// <reference path="../model/main.ts"/>
+/// <reference path="../view/main.ts"/>
 
 /* CONTROLLER */
 
-module MODULE {
-  // Allow access:
-  //  M, V, C
-
-  // Deny access
+module MODULE.CONTROLLER {
+  var M: ModelInterface
+  var C: ControllerInterface
 
   export class ControllerFunction implements FunctionInterface {
+
+    constructor(controller: ControllerInterface, model: ModelInterface) {
+      M = model;
+      C = controller;
+    }
 
     enable(): any {
       M.enable();
@@ -47,7 +50,7 @@ module MODULE {
         default:
           return this;
       }
-      return $anchor.first().one(setting.nss.click, (event) => V.HANDLERS.CLICK(event)).click();
+      return $anchor.first().one(setting.nss.click, (event) => new VIEW.Main(M, C, null).HANDLERS.CLICK(event)).click();
     }
     
     submit(): any
@@ -95,7 +98,7 @@ module MODULE {
         default:
           return this;
       }
-      return $form.first().one(setting.nss.submit, (event) => V.HANDLERS.SUBMIT(event)).submit();
+      return $form.first().one(setting.nss.submit, (event) => new VIEW.Main(M, C, null).HANDLERS.SUBMIT(event)).submit();
     }
     
     getCache()
@@ -154,7 +157,7 @@ module MODULE {
       .done(function () {
         !M.getCache(anchor.href) && M.isImmediateLoadable(event) && M.setCache(anchor.href, undefined, undefined, $XHR);
       });
-      jQuery[M.NAME].click(anchor.href);
+      jQuery[NAME].click(anchor.href);
       return true;
     }
 
@@ -163,4 +166,5 @@ module MODULE {
     }
 
   }
+
 }

@@ -14,14 +14,14 @@ module.exports = function(grunt) {
           watch: false
         },
         src: 'src/ts/**/*.ts',
-        dest: 'temp/<%= filename %>.js'
+        dest: 'temp/<%= filename %>.debug.js'
       },
       watch: {
         options: {
           watch: true
         },
         src: 'src/ts/**/*.ts',
-        dest: 'temp/<%= filename %>.js'
+        dest: 'temp/<%= filename %>.debug.js'
       }
     },
     
@@ -52,7 +52,7 @@ module.exports = function(grunt) {
           ].join('\n'),
           separator: ''
         },
-        src: ['temp/<%= filename %>.js'],
+        src: ['temp/<%= filename %>.debug.js'],
         dest: 'dist/raw/<%= filename %>.js'
       }
     },
@@ -101,7 +101,7 @@ module.exports = function(grunt) {
         livereload: true
       },
       ts: {
-        files: ['temp/**/*.js'],
+        files: ['temp/*.js'],
         tasks: ['concat', 'copy:test']
       },
       cp: {

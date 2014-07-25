@@ -1,15 +1,19 @@
 /// <reference path="../define.ts"/>
-/// <reference path="../model/main.ts"/>
+/// <reference path="function.ts"/>
+/// <reference path="../view/main.ts"/>
 
 /* CONTROLLER */
 
-module MODULE {
-  // Allow access:
-  //  M, V, C
-
-  // Deny access
+module MODULE.CONTROLLER {
+  var M: ModelInterface
+  var C: ControllerInterface
 
   export class ControllerMethod extends ControllerFunction implements MethodInterface {
 
+    constructor(controller: ControllerInterface, model: ModelInterface) {
+      super(controller, model);
+    }
+
   }
+
 }

@@ -1,29 +1,35 @@
 /// <reference path="../define.ts"/>
-/// <reference path="../model/main.ts"/>
+/// <reference path="function.ts"/>
+/// <reference path="method.ts"/>
 
 /* CONTROLLER */
 
-module MODULE {
+module MODULE.CONTROLLER {
   /**
    * @class Controller
    */
-  export class ControllerTemplate {
+  var M: ModelInterface
+  var C: Template
 
-    constructor() {
-      this.UUID = M.GEN_UUID();
+  export class Template {
+
+    constructor(model: ModelInterface) {
+      M = model;
+      C = this;
+      this.UUID = GEN_UUID();
       // プラグインに関数を設定してネームスペースに登録
       // $.mvc.func, $().mvc.funcとして実行できるようにするための処理
-      if (M.NAMESPACE && M.NAMESPACE == M.NAMESPACE.window) {
-        M.NAMESPACE[M.NAME] = this.EXEC;
+      if (NAMESPACE && NAMESPACE == NAMESPACE.window) {
+        NAMESPACE[NAME] = this.EXEC;
       } else {
-        M.NAMESPACE[M.NAME] = M.NAMESPACE.prototype[M.NAME] = this.EXEC;
+        NAMESPACE[NAME] = NAMESPACE.prototype[NAME] = this.EXEC;
       }
 
-      var f = 'function' === typeof ControllerFunction && new ControllerFunction() || ControllerFunction;
+      var f = new CONTROLLER.ControllerFunction(<Main>C, M);
       // コンテクストに関数を設定
-      this.REGISTER_FUNCTIONS(M.NAMESPACE[M.NAME], f);
+      this.REGISTER_FUNCTIONS(NAMESPACE[NAME], f);
       // コンテクストのプロパティを更新
-      this.UPDATE_PROPERTIES(M.NAMESPACE[M.NAME], f);
+      this.UPDATE_PROPERTIES(NAMESPACE[NAME], f);
       this.OBSERVE();
       this.state_ = 0;
     }
@@ -60,25 +66,24 @@ module MODULE {
      * @chainable
      */
     EXTEND(context): any {
-      if (context === M.NAMESPACE || M.NAMESPACE && M.NAMESPACE == M.NAMESPACE.window) {
+      if (context === NAMESPACE || NAMESPACE && NAMESPACE == NAMESPACE.window) {
+        var m = new CONTROLLER.ControllerFunction(<Main>C, M);
+
         // コンテクストをプラグインに変更
-        context = M.NAMESPACE[M.NAME];
+        context = NAMESPACE[NAME];
       } else
+        var m = new CONTROLLER.ControllerMethod(<Main>C, M);
+
         // $().mvc()として実行された場合の処理
-        if (context instanceof M.NAMESPACE) {
+        if (context instanceof NAMESPACE) {
           if (context instanceof jQuery) {
             // コンテクストへの変更をend()で戻せるようadd()
             context = context.add();
-          } else {
           }
+          // コンテクストに関数とメソッドを設定
+          this.REGISTER_FUNCTIONS(context, m);
         }
-      var f = 'function' === typeof ControllerFunction && new ControllerFunction() || ControllerFunction,
-          m = 'function' === typeof ControllerMethod && new ControllerMethod() || ControllerMethod;
-      // コンテクストに関数とメソッドを設定
-      this.REGISTER_FUNCTIONS(context, f);
-      this.REGISTER_FUNCTIONS(context, m);
       // コンテクストのプロパティを更新
-      this.UPDATE_PROPERTIES(context, f);
       this.UPDATE_PROPERTIES(context, m);
       return context;
     }
@@ -94,7 +99,7 @@ module MODULE {
       args = [context].concat(args);
       args = C.exec_.apply(C, args);
       args = args instanceof Array ? args : [args];
-      return M.MAIN.apply(M, args);
+      return (<MODEL.Main>M).MAIN.apply(M, args);
     }
     /**
      * 拡張モジュール本体を実行したときに呼び出される。実装ごとに書き換える。戻り値の配列が`MAIN`および`main_`へ渡す引数のリストとなる。
@@ -115,7 +120,7 @@ module MODULE {
      * @return {JQuery|Object|Function} context コンテクスト
      */
     REGISTER_FUNCTIONS(context, funcs): any {
-      var props = Controller.PROPERTIES;
+      var props = CONTROLLER.Template.PROPERTIES;
 
       var i;
       for (i in funcs) {
@@ -133,7 +138,7 @@ module MODULE {
      * @return {JQuery|Object|Function} context コンテクスト
      */
     UPDATE_PROPERTIES(context, funcs): any {
-      var props = Controller.PROPERTIES;
+      var props = CONTROLLER.Template.PROPERTIES;
 
       var i, len, prop;
       for (i = 0, len = props.length; i < len; i++) {
@@ -213,4 +218,5 @@ module MODULE {
     HANDLERS = { }
 
   }
+
 }

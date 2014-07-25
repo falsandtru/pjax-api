@@ -3,20 +3,17 @@
 
 /* MODEL */
 
-module MODULE {
-  // Allow access:
-
-  // Deny access
-  var M: void, V: void, C: void;
-
-  export interface ModelUtilInterface {
-    canonicalizeUrl(url: string): string
-    trim(text: string): string
-    fire(fn: any, context: Object, args: any[], async: boolean): any
+module MODULE.MODEL {
+  
+  export declare class UtilInterface {
+    static canonicalizeUrl(url: string): string
+    static trim(text: string): string
+    static fire(fn: any, context: Object, args: any[], async: boolean): any
   }
-  export class ModelUtil extends ModelTemplate implements ModelUtilInterface {
 
-    canonicalizeUrl(url: string): string {
+  export class Util implements UtilInterface {
+
+    static canonicalizeUrl(url: string): string {
       var ret;
       // Trim
       ret = this.trim(url);
@@ -33,7 +30,7 @@ module MODULE {
       return ret;
     }
 
-    trim(text: string): string {
+    static trim(text: string): string {
       text = text || '';
       if (String.prototype.trim) {
         text = text.toString().trim();
@@ -50,11 +47,12 @@ module MODULE {
       return text;
     }
 
-    fire(fn: any, context: Object = window, args: any[] = [], async: boolean = false): any {
+    static fire(fn: any, context: Object = window, args: any[]= [], async: boolean = false): any {
       if ('function' === typeof fn) { return async ? setTimeout(function () { fn.apply(context || window, args) }, 0) : fn.apply(context || window, args); } else { return fn; }
     }
 
   }
-  // 短縮登録
-  export var UTIL = new ModelUtil();
+
+  export var UTIL = MODEL.Util
+
 }

@@ -1,19 +1,10 @@
 /// <reference path="../define.ts"/>
-/// <reference path="data.store.meta.ts"/>
-/// <reference path="data.store.history.ts"/>
-/// <reference path="data.store.log.ts"/>
-/// <reference path="data.store.server.ts"/>
-/// <reference path="util.ts"/>
+/// <reference path="data.ts"/>
 
 /* MODEL */
 
-module MODULE {
-  // Allow access:
-  //  M
-
-  // Deny access
-  var V: void, C: void;
-
+module MODULE.MODEL {
+  
   export class DataCookie implements DataCookieInterface {
     constructor(age: number) {
       this.age_ = age;
@@ -41,4 +32,5 @@ module MODULE {
     }
 
   }
+
 }

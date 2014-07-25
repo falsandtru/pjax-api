@@ -1,28 +1,22 @@
 /// <reference path="../define.ts"/>
+/// <reference path="data.ts"/>
 /// <reference path="util.ts"/>
 
 /* MODEL */
 
-module MODULE {
-  // Allow access:
-  //  M
-
-  // Deny access
-  var V: void, C: void;
-
+module MODULE.MODEL {
+  
   export class AppData implements AppDataInterface {
 
-    APP_: ModelApp
-    DATA_: ModelData = new ModelData()
+    constructor(public model_: ModelInterface, public app_: ModelAppInterface) {
+    }
+
+    DATA_: ModelDataInterface = new MODEL.Data()
     storeNames = {
       meta: this.DATA_.DB.store.meta.name,
       history: this.DATA_.DB.store.history.name,
       log: this.DATA_.DB.store.log.name,
       server: this.DATA_.DB.store.server.name
-    }
-
-    constructor(APP: ModelApp) {
-      this.APP_ = APP;
     }
 
     getCookie(key: string): string {
@@ -74,7 +68,7 @@ module MODULE {
     }
 
     loadTitleFromDB(unsafe_url: string): void {
-      var keyUrl: string = M.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
+      var keyUrl: string = this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
 
       var data = <HistorySchema>this.DATA_.DB.store.history.getBuffer(keyUrl);
 
@@ -82,14 +76,14 @@ module MODULE {
         document.title = data.title;
       } else {
         this.DATA_.DB.store.history.get(keyUrl, function () {
-          keyUrl === M.convertUrlToKeyUrl(UTIL.canonicalizeUrl(window.location.href)) &&
+          keyUrl === this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(window.location.href)) &&
           this.result && this.result.title && (document.title = this.result.title);
         });
       }
     }
 
     saveTitleToDB(unsafe_url: string, title: string): void {
-      var keyUrl = M.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
+      var keyUrl = this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
 
       var value = <HistorySchema>{ id: keyUrl, title: title, date: new Date().getTime() };
       this.DATA_.DB.store.history.setBuffer(value, true);
@@ -98,7 +92,7 @@ module MODULE {
     }
 
     loadScrollPositionFromCacheOrDB(unsafe_url: string): void {
-      var keyUrl: string = M.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
+      var keyUrl: string = this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
 
       var data = <HistorySchema>this.DATA_.DB.store.history.getBuffer(keyUrl);
 
@@ -114,7 +108,7 @@ module MODULE {
     }
 
     saveScrollPositionToCacheAndDB(unsafe_url: string, scrollX: number, scrollY: number): void {
-      var keyUrl = M.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
+      var keyUrl = this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
 
       var value = <HistorySchema>{ id: keyUrl, scrollX: scrollX, scrollY: scrollY, date: new Date().getTime() };
       this.DATA_.DB.store.history.setBuffer(value, true);
@@ -152,4 +146,5 @@ module MODULE {
     }
 
   }
+
 }

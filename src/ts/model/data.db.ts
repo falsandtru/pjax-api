@@ -3,17 +3,11 @@
 /// <reference path="data.store.history.ts"/>
 /// <reference path="data.store.log.ts"/>
 /// <reference path="data.store.server.ts"/>
-/// <reference path="util.ts"/>
 
 /* MODEL */
 
-module MODULE {
-  // Allow access:
-  //  M
-
-  // Deny access
-  var V: void, C: void;
-
+module MODULE.MODEL {
+  
   export class DataDB implements DataDBInterface {
     constructor() {
       var check = () => {
@@ -30,7 +24,7 @@ module MODULE {
     IDBKeyRange: IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.mozIDBKeyRange || window.msIDBKeyRange
 
     database_: IDBDatabase
-    name_: string = MODULE.NAME
+    name_: string = NAME
     version_: number = 3
     refresh_: number = 10
     upgrade_: number = 1 // 0:virtual 1:naitive
@@ -42,10 +36,10 @@ module MODULE {
     conInterval_: number = 1000
     state(): State { return this.state_; }
     store = {
-      meta: new DataStoreMeta<MetaSchema>(this),
-      history: new DataStoreHistory<HistorySchema>(this),
-      log: new DataStoreLog<LogSchema>(this),
-      server: new DataStoreServer<ServerSchema>(this)
+      meta: new MODEL.DataStoreMeta<MetaSchema>(this),
+      history: new MODEL.DataStoreHistory<HistorySchema>(this),
+      log: new MODEL.DataStoreLog<LogSchema>(this),
+      server: new MODEL.DataStoreServer<ServerSchema>(this)
     }
     metaNames = {
       version: 'version',
@@ -178,4 +172,5 @@ module MODULE {
     }
 
   }
+
 }
