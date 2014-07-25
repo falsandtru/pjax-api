@@ -623,7 +623,8 @@ module MODULE.MODEL {
           adds: HTMLElement[] = [];
 
       for (var i = 0, element; element = css[i]; i++) {
-        //element = dstDocument.importNode ? dstDocument.importNode(element, true) : jQuery(element).clone()[0];
+        // href属性が設定されない場合があるので変換して認識させる
+        element = dstDocument.importNode ? dstDocument.importNode(element, true) : jQuery(element.outerHTML);
 
         for (var j = 0; removes[j]; j++) {
           if (UTIL.trim((<HTMLLinkElement>removes[j]).href || (<HTMLStyleElement>removes[j]).innerHTML || '') === UTIL.trim(element.href || element.innerHTML || '')) {
@@ -654,7 +655,8 @@ module MODULE.MODEL {
     updateScript_(selector: string): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
-          srcDocument: Document = this.srcDocument_;
+          srcDocument: Document = this.srcDocument_,
+          dstDocument: Document = this.dstDocument_;
       var callbacks_update = setting.callbacks.update;
 
       if (!setting.load.script) { return; }
@@ -666,7 +668,8 @@ module MODULE.MODEL {
 
       var executed: { [index: string]: boolean; } = this.app_.stock('executed');
       for (var i = 0, element; element = script[i]; i++) {
-        //element = dstDocument.importNode ? dstDocument.importNode(element, true) : jQuery(element.outerHTML);
+        // CSSに同じ
+        element = dstDocument.importNode ? dstDocument.importNode(element, true) : jQuery(element.outerHTML);
 
         if (!jQuery(element).is(selector)) { continue; }
         if (!element.src && !UTIL.trim(element.innerHTML)) { continue; }
