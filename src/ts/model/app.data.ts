@@ -95,14 +95,19 @@ module MODULE.MODEL {
       var keyUrl: string = this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
 
       var data = <HistorySchema>this.DATA_.DB.store.history.getBuffer(keyUrl);
+      function scroll(scrollX, scrollY) {
+        if ('number' !== typeof scrollX || 'number' !== typeof scrollY) { return; }
+
+        window.scrollTo(parseInt(Number(scrollX) + '', 10), parseInt(Number(scrollY) + '', 10));
+      }
 
       if (data && 'number' === typeof data.scrollX) {
-        window.scrollTo(parseInt(Number(data.scrollX) + '', 10), parseInt(Number(data.scrollY) + '', 10));
+        scroll(data.scrollX, data.scrollY);
       } else {
         this.DATA_.DB.store.history.get(keyUrl, function () {
           if (!this.result || keyUrl !== this.result.id) { return; }
-          isFinite(this.result.scrollX) && isFinite(this.result.scrollY) &&
-          window.scrollTo(parseInt(Number(this.result.scrollX) + '', 10), parseInt(Number(this.result.scrollY) + '', 10));
+          data = this.result;
+          scroll(data.scrollX, data.scrollY);
         });
       }
     }

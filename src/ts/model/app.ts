@@ -19,6 +19,7 @@ module MODULE.MODEL {
 
     landing: string = UTIL.canonicalizeUrl(window.location.href)
     recent: RecentInterface = { order: [], data: {}, size: 0 }
+    isScrollPosSavable: boolean = true
     activeXHR: JQueryXHR
     activeSetting: SettingInterface
 
@@ -129,7 +130,7 @@ module MODULE.MODEL {
                 host: ''
               }
             },
-            scroll: { record: true, queue: [] },
+            scroll: { queue: [] },
             loadtime: null,
             retriable: true,
             option: option
@@ -392,20 +393,6 @@ module MODULE.MODEL {
         }
         if (inherit) { continue; }
         break;
-      }
-    }
-
-    scrollByHash(hash: string): boolean {
-      hash = '#' === hash.charAt(0) ? hash.slice(1) : hash;
-      if (!hash) { return false; }
-
-      var $hashTargetElement = jQuery('#' + (hash ? hash : ', [name~=' + hash + ']')).first();
-      if ($hashTargetElement[0]) {
-        isFinite($hashTargetElement.offset().top) &&
-        window.scrollTo(jQuery(window).scrollLeft(), parseInt(Number($hashTargetElement.offset().top) + '', 10));
-        return true;
-      } else {
-        return false;
       }
     }
 

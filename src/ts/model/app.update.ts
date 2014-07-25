@@ -17,7 +17,7 @@ module MODULE.MODEL {
 
       if (UTIL.fire(setting.callbacks.before, null, [event, setting.param]) === false) { return; }
 
-      setting.scroll.record = false;
+      this.app_.isScrollPosSavable = false;
       setting.fix.reset && /click|submit/.test(event.type.toLowerCase()) && window.scrollTo(jQuery(window).scrollLeft(), 0);
 
       var activeXHR = this.model_.getActiveXHR();
@@ -597,12 +597,12 @@ module MODULE.MODEL {
           scrollY = scrollY === false || scrollY === null ? jQuery(window).scrollTop() : parseInt(Number(scrollY) + '', 10);
 
           (jQuery(window).scrollTop() === scrollY && jQuery(window).scrollLeft() === scrollX) || window.scrollTo(scrollX, scrollY);
+          call && setting.database && this.app_.isScrollPosSavable && setting.fix.scroll && this.app_.DATA.saveScrollPositionToCacheAndDB(setting.destLocation.href, scrollX, scrollY);
           break;
         case 'popstate':
-          call && setting.fix.scroll && setting.database && setting.scroll.record && this.app_.DATA.loadScrollPositionFromCacheOrDB(setting.destLocation.href);
+          call && setting.fix.scroll && setting.database && this.app_.DATA.loadScrollPositionFromCacheOrDB(setting.destLocation.href);
           break;
       }
-      call && setting.database && setting.fix.scroll && this.app_.DATA.saveScrollPositionToCacheAndDB(setting.destLocation.href, scrollX, scrollY);
 
       if (UTIL.fire(callbacks_update.scroll.after, null, [event, setting.param]) === false) { return; }
     }
@@ -710,13 +710,14 @@ module MODULE.MODEL {
         speedcheck && speed.name.push('renderd(' + speed.time.slice(-1) + ')');
 
         checker.remove();
-        setting.scroll.record = true;
-        if ('popstate' !== event.type.toLowerCase()) {
-          this.app_.scrollByHash(setting.destLocation.hash) || this.updateScroll_(true);
-          setTimeout(() => this.app_.scrollByHash(setting.destLocation.hash), 50);
-        } else {
-          this.updateScroll_(true);
-        }
+        setTimeout(() => {
+          this.app_.isScrollPosSavable = true;
+          if ('popstate' !== event.type.toLowerCase()) {
+            this.scrollByHash(setting.destLocation.hash) || this.updateScroll_(true);
+          } else {
+            this.updateScroll_(true);
+          }
+        }, 50);
 
         jQuery(document).trigger(setting.gns + '.render');
         UTIL.fire(callback);
@@ -801,6 +802,20 @@ module MODULE.MODEL {
 
       setTimeout(function () { defer.resolve(); }, ms);
       return defer;
+    }
+
+    scrollByHash(hash: string): boolean {
+      hash = '#' === hash.charAt(0) ? hash.slice(1) : hash;
+      if (!hash) { return false; }
+
+      var $hashTargetElement = jQuery('#' + (hash ? hash : ', [name~=' + hash + ']')).first();
+      if ($hashTargetElement[0]) {
+        isFinite($hashTargetElement.offset().top) &&
+        window.scrollTo(jQuery(window).scrollLeft(), parseInt(Number($hashTargetElement.offset().top) + '', 10));
+        return true;
+      } else {
+        return false;
+      }
     }
 
   }

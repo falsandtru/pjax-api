@@ -139,7 +139,7 @@ module MODULE.MODEL {
         if (setting.cache.mix && this.getCache(setting.destLocation.href)) { break PROCESS; }
         setting.area = UTIL.fire(setting.area, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
         setting.area = setting.area instanceof Array ? setting.area : [setting.area];
-        setting.database && setting.scroll.record && this.app_.DATA.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+        setting.database && this.app_.isScrollPosSavable && this.app_.DATA.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
         var cache: CacheInterface;
         if (setting.cache[event.type.toLowerCase()]) { cache = this.getCache(setting.destLocation.href); }
@@ -167,7 +167,7 @@ module MODULE.MODEL {
         setting.area = UTIL.fire(setting.area, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
         setting.area = setting.area instanceof Array ? setting.area : [setting.area];
         if (!setting.area[0] || !jQuery(setting.area.join(','))[0]) { break PROCESS; }
-        setting.database && setting.scroll.record && this.app_.DATA.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+        setting.database && this.app_.isScrollPosSavable && this.app_.DATA.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
         var cache: CacheInterface;
         if (setting.cache[event.type.toLowerCase()] && setting.cache[context.method.toLowerCase()]) { cache = this.getCache(setting.destLocation.href); }
@@ -213,13 +213,13 @@ module MODULE.MODEL {
       if (State.ready !== this.state() || event.isDefaultPrevented()) { return; }
 
       if (!setting.scroll.delay) {
-        setting.scroll.record && this.app_.DATA.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+        this.app_.isScrollPosSavable && this.app_.DATA.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
       } else {
         var id: number;
         while (id = setting.scroll.queue.shift()) { clearTimeout(id); }
         id = setTimeout(() => {
           while (id = setting.scroll.queue.shift()) { clearTimeout(id); }
-          setting.scroll.record && this.app_.DATA.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+          this.app_.isScrollPosSavable && this.app_.DATA.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
         }, setting.scroll.delay);
         setting.scroll.queue.push(id);
       }

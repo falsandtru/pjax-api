@@ -114,6 +114,7 @@ module MODULE {
 
     landing: string
     recent: RecentInterface
+    isScrollPosSavable: boolean
     activeXHR: JQueryXHR
     activeSetting: SettingInterface
 
@@ -128,7 +129,6 @@ module MODULE {
     switchRequestServer(host: string, setting: SettingInterface): void
     chooseRequestServer(setting: SettingInterface): void
     movePageNormally(event: JQueryEventObject): void
-    scrollByHash(hash: string): boolean
     calAge(jqXHR: JQueryXHR): number
     calExpires(jqXHR: JQueryXHR): number
   }
@@ -206,6 +206,7 @@ module MODULE {
     updateRender_(callback: () => void): void
     updateBalance_(): void
     updateVerify_(): void
+    scrollByHash(hash: string): boolean
     wait_(ms: number): JQueryPromise<any>
   }
   export declare class ModelDataInterface {
@@ -417,7 +418,6 @@ module MODULE {
     wait: number
     scroll: {
       delay: number
-      record: boolean //internal
       queue: number[] //internal
     }
     fix: {
