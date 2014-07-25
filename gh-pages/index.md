@@ -7,19 +7,19 @@ class: style-top
 
 {::options parse_block_html="true" /}
 
+**PJAX**はプリロードによる**0.5秒の高速化**とクライアントサイドロードバランサによる**最大2.0Gbpsの大容量回線**を提供します。
+
 <div class="row">
 <div class="col-md-4">
 ## Introduction
-pjaxはリクエストと描画を最小限に抑えることで高速かつシームレスなページ遷移機能を提供します。
+pjaxはリクエストと描画を最小限に抑えることで高速かつシームレスなページ遷移機能を提供する技術です。
 
-preloadによる高速化を利用できます。[>>more](introduction/)
+また、このpjaxではプリロードによる高速化とクライアントサイドロードバランサ(CsLB)によるネットワーク負荷分散を利用できます。[>>more](introduction/)
 </div>
 
 <div class="col-md-4">
 ## Installation
-既存のサイトを変更することなく、JavaScriptを2つ追加するだけでpjaxを導入することができます。
-
-さらにjquery.preload.jsを追加すれば、サイトのページロードを約0.5秒高速化できます。[>>more](installation/)
+既存のサイトを変更することなく、JavaScriptを2つ追加するだけでpjaxを導入することができます。[>>more](installation/)
 </div>
 
 <div class="col-md-4">
@@ -41,8 +41,10 @@ preloadによる高速化を利用できます。[>>more](introduction/)
 </div>
 
 <div class="col-md-4">
-## Load Balancer
-回線帯域約30～150%(1.3-2.5倍)分の増設・分散効果を得られます。専用機器や大容量回線の追加が不要であるため非常に安価にトラフィックの増加に対応できます。[>>more](loadbalancer/)
+## Cs Load Balancer
+回線帯域を**1.5-20倍**程度にスケールアウトします。100Mbps回線のサーバー群であれば**最大2.0Gbps(2000Mbps)**の大容量回線を疑似的に構築できます。
+
+専用機器や大容量回線を導入せずとも非常に安価に大量のトラフィックを処理できるようになります。[>>more](loadbalancer/)
 
 </div>
 

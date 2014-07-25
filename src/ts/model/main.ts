@@ -15,7 +15,8 @@ module MODULE {
 
   export class ModelMain extends ModelTemplate implements ModelInterface {
 
-    state: State = State.wait
+    state_: State = State.wait
+
     isDeferrable: boolean = jQuery.when && 1.06 <= Number(jQuery().jquery.replace(/\D*(\d+)\.(\d+).*$/, '$1.0$2').replace(/\d+(\d{2})$/, '$1'))
     requestHost: string = ''
 
@@ -56,12 +57,14 @@ module MODULE {
       if ('pushState' in window.history && window.history['pushState']) {
         jQuery(() => {
           this.APP_.registrate($context, setting);
-          M.state_ = ~M.state_ ? M.state_ : State.ready;
+          M.state_ = M.state() === State.wait ? State.ready : M.state();
         });
       }
 
       return $context;
     }
+
+    state(): State { return this.state_; }
 
     convertUrlToKeyUrl(unsafe_url: string): string {
       return unsafe_url.replace(/#.*/, '')
@@ -70,7 +73,7 @@ module MODULE {
     isImmediateLoadable(url: string): boolean
     isImmediateLoadable(event: JQueryEventObject): boolean
     isImmediateLoadable(param: any): boolean {
-      if (M.state_ !== State.ready) { return; }
+      if (State.ready !== M.state()) { return; }
 
       var origURL: string = UTIL.canonicalizeUrl(window.location.href),
           destURL: string,
@@ -133,7 +136,7 @@ module MODULE {
             $context: ContextInterface = jQuery(context);
         var setting: SettingInterface = this.APP_.configure(M.getActiveSetting(), window.location.href, context.href);
 
-        if (M.state_ !== State.ready || setting.disable || event.isDefaultPrevented()) { break PROCESS; }
+        if (State.ready !== M.state() || setting.disable || event.isDefaultPrevented()) { break PROCESS; }
         if (!M.isImmediateLoadable(event)) { break PROCESS; }
 
         if (setting.cache.mix && M.getCache(setting.destLocation.href)) { break PROCESS; }
@@ -158,7 +161,7 @@ module MODULE {
             $context: ContextInterface = jQuery(context);
         var setting: SettingInterface = this.APP_.configure(M.getActiveSetting(), window.location.href, context.action);
 
-        if (M.state_ !== State.ready || setting.disable || event.isDefaultPrevented()) { break PROCESS; }
+        if (State.ready !== M.state() || setting.disable || event.isDefaultPrevented()) { break PROCESS; }
         if (!M.isImmediateLoadable(event)) { break PROCESS; }
 
         var serializedURL = setting.destLocation.href.replace(/[?#].*/, '') + ('GET' === context.method.toUpperCase() ? '?' + jQuery(context).serialize() : '');
@@ -186,7 +189,7 @@ module MODULE {
         if (this.APP_.landing && this.APP_.landing === UTIL.canonicalizeUrl(window.location.href)) { return; }
         if (setting.origLocation.href === setting.destLocation.href) { return; }
 
-        if (M.state_ !== State.ready || setting.disable) { break PROCESS; }
+        if (State.ready !== M.state() || setting.disable) { break PROCESS; }
 
         if (setting.origLocation.hash !== setting.destLocation.hash &&
             setting.origLocation.pathname + setting.origLocation.search === setting.destLocation.pathname + setting.destLocation.search) {
@@ -210,7 +213,7 @@ module MODULE {
 
     SCROLL(event: JQueryEventObject, end: boolean): void {
       var setting: SettingInterface = M.getActiveSetting();
-      if (M.state_ !== State.ready || event.isDefaultPrevented()) { return; }
+      if (State.ready !== M.state() || event.isDefaultPrevented()) { return; }
 
       if (!setting.scroll.delay) {
         setting.scroll.record && this.APP_.DATA.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
@@ -254,7 +257,7 @@ module MODULE {
       return recent.data[secure_url];
     }
     
-    setCache(unsafe_url: string, data: string, textStatus: string, jqXHR: JQueryXHR): any {
+    setCache(unsafe_url: string, data: string, textStatus: string, jqXHR: JQueryXHR, host?: string): any {
       var setting: SettingInterface = M.getActiveSetting(),
           recent: RecentInterface = this.APP_.recent;
       if (!setting || !recent) { return this; }
@@ -303,6 +306,7 @@ module MODULE {
           //script: undefined,
           size: size,
           expires: expires,
+          host: host || '',
           timeStamp: timeStamp
         }
         );
@@ -362,7 +366,7 @@ module MODULE {
     }
 
     setRequestDomain(host: string): any {
-      return M.requestHost = host.split('//').pop() || '';
+      return this.APP_.switchRequestServer(host.split('//').pop(), null);
     }
 
   }

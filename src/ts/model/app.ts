@@ -40,6 +40,7 @@ module MODULE {
             filter: function(){return /(\/[^.]*|\.html?|\.php)$/.test('/' + this.pathname);},
             form: null,
             scope: null,
+            rewrite: null,
             state: null,
             scrollTop: 0,
             scrollLeft: 0,
@@ -61,24 +62,31 @@ module MODULE {
               execute: true,
               reload: '',
               ignore: '[src*="jquery.js"], [src*="jquery.min.js"], [href^="chrome-extension://"]',
-              ajax: { dataType: 'script', cache: true },
-              rewrite: null
+              ajax: { dataType: 'script', cache: true }
             },
             balance: {
               self: false,
               weight: 3,
               client: {
-                support: /chrome|firefox|safari/i,
-                exclude: /msie|trident|mobile|phone|android|iphone|ipad|blackberry/i,
-                cookie: 'balanceable'
+                support: {
+                  userAgent: /msie|trident.+ rv:|chrome|firefox|safari/i,
+                  redirect: /chrome|firefox|safari/i
+                },
+                exclude: /mobile|phone|android|iphone|blackberry/i,
+                cookie: {
+                  balance: 'ajax_balanceable',
+                  redirect: 'ajax_redirectable',
+                  host: 'ajax_host'
+                }
               },
               server: {
                 header: 'X-Ajax-Host',
-                preclude: 10 * 60 * 1000,
+                filter: null,
+                error: 10 * 60 * 1000,
               },
               log: {
-                expires: 1.5 * 24 * 60 * 60 * 1000,
-                limit: 10
+                expires: 10 * 24 * 60 * 60 * 1000,
+                limit: 30
               },
               option: {
                 server: {
@@ -97,7 +105,7 @@ module MODULE {
             callback: null,
             callbacks: {
               ajax: {},
-              update: { redirect: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, cache: {}, render: {}, verify: {}, balance: {} }
+              update: { rewrite: {}, cache: {}, redirect: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, render: {}, verify: {}, balance: {} }
             },
             param: null,
             redirect: true,
@@ -170,7 +178,6 @@ module MODULE {
       var executed: { [index: string]: boolean; } = this.stock('executed');
       setting.load.script && jQuery('script').each(function () {
         var element = this;
-        element = 'function' === typeof setting.load.rewrite ? UTIL.fire(setting.load.rewrite, null, [element.cloneNode(true)]) || element : element;
         if (element.src in executed) { return; }
         if (element.src && (!setting.load.reload || !jQuery(element).is(setting.load.reload))) { executed[element.src] = true; }
       });
@@ -181,12 +188,42 @@ module MODULE {
       setTimeout(() => setting.balance.self && this.enableBalance(), setting.buffer.delay);
       setTimeout(() => this.landing = null, 1500);
     }
-    
-    chooseRequestServer(setting: SettingInterface): void {
-      if (setting.balance.self && !~document.cookie.indexOf(setting.balance.client.cookie + '=1')) {
-        this.enableBalance();
+
+    enableBalance(host?: string): void {
+      var setting: SettingInterface = M.getActiveSetting();
+
+      if (!setting.balance.client.support.userAgent.test(window.navigator.userAgent) || setting.balance.client.exclude.test(window.navigator.userAgent)) {
+        return void this.disableBalance();
       }
-      if (!setting.balance.self || !~document.cookie.indexOf(setting.balance.client.cookie + '=1')) {
+
+      if (Number(!this.DATA.setCookie(setting.balance.client.cookie.balance, '1'))) {
+        return void this.disableBalance();
+      }
+      if (setting.balance.client.support.redirect.test(window.navigator.userAgent)) {
+        this.DATA.setCookie(setting.balance.client.cookie.redirect, '1');
+      }
+      host && this.switchRequestServer(host, setting);
+    }
+
+    disableBalance(): void {
+      var setting: SettingInterface = M.getActiveSetting();
+
+      this.DATA.setCookie(setting.balance.client.cookie.balance, '0');
+      this.DATA.setCookie(setting.balance.client.cookie.redirect, '0');
+      this.switchRequestServer(null, setting);
+    }
+
+    switchRequestServer(host: string, setting: SettingInterface): void {
+      host = host || '';
+      setting = setting || M.getActiveSetting();
+      M.requestHost = host;
+      setting.balance.server.host = host;
+      this.DATA.setCookie(setting.balance.client.cookie.host, host);
+    }
+
+    chooseRequestServer(setting: SettingInterface): void {
+      setting.balance.self && this.enableBalance();
+      if (!setting.balance.self || '1' !== this.DATA.getCookie(setting.balance.client.cookie.balance)) {
         this.disableBalance();
         return;
       }
@@ -198,8 +235,7 @@ module MODULE {
 
       expires = historyBufferData && historyBufferData.expires;
       if (expires && expires >= new Date().getTime()) {
-        M.requestHost = historyBufferData.host;
-        setting.balance.server.host = historyBufferData.host;
+        this.switchRequestServer(historyBufferData.host, setting);
         return;
       }
 
@@ -209,7 +245,12 @@ module MODULE {
           now: number = new Date().getTime();
 
       if (!logBuffer) {
-        this.disableBalance();
+        host = this.DATA.getCookie(setting.balance.client.cookie.host);
+        if (host) {
+          this.enableBalance(host);
+        } else {
+          this.disableBalance();
+        }
         return;
       }
       for (var i in logBuffer) {
@@ -226,7 +267,6 @@ module MODULE {
       var serverBuffer = <{ [index: string]: ServerSchema }>this.DATA.getBuffer(this.DATA.storeNames.server),
           time: number = timeList.shift();
 
-      M.requestHost = '';
       if (!serverBuffer) {
         this.disableBalance();
         return;
@@ -235,39 +275,19 @@ module MODULE {
           time: number;
       for (var j = setting.balance.log.limit; time = i-- && timeList.shift();) {
         host = logTable[time].host.split('//').pop() || '';
-        if (!serverBuffer[host] || serverBuffer[host].state && new Date().getTime() < serverBuffer[host].state + setting.balance.server.preclude) {
+        if (!serverBuffer[host] || serverBuffer[host].state && new Date().getTime() < serverBuffer[host].state + setting.balance.server.error) {
           continue;
         }
         if (!host && setting.balance.weight && !(Math.floor(Math.random()) * setting.balance.weight)) {
           continue;
         }
-        M.requestHost = host;
-        setting.balance.server.host = host;
+        this.switchRequestServer(host, setting);
         return;
       }
+
       this.disableBalance();
     }
     
-    enableBalance(): void {
-      var setting: SettingInterface = M.getActiveSetting();
-
-      if (!setting.balance.client.support.test(window.navigator.userAgent) || setting.balance.client.exclude.test(window.navigator.userAgent)) {
-        return;
-      }
-
-      document.cookie = setting.balance.client.cookie + '=1'
-      if (!~document.cookie.indexOf(setting.balance.client.cookie + '=1') || !setting.database) {
-        return void this.disableBalance();
-      }
-    }
-
-    disableBalance(): void {
-      var setting: SettingInterface = M.getActiveSetting();
-
-      M.requestHost = '';
-      document.cookie = setting.balance.client.cookie + '=0'
-    }
-
     chooseAreas(areas: string[], srcDocument: Document, dstDocument: Document): string {
       var i: number = -1, area: string;
       AREA: while (area = areas[++i]) {

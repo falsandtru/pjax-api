@@ -255,7 +255,10 @@ module MODULE {
           /* check point */
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
-
+          
+          /* rewrite */
+          this.updateRewrite_();
+          
           /* cache */
           this.updateCache_();
           
@@ -337,6 +340,24 @@ module MODULE {
       }; // label: UPDATE
     }
 
+    updateRewrite_(): void {
+      var setting: SettingInterface = this.setting_,
+          cache: CacheInterface = this.cache_,
+          event: JQueryEventObject = this.event_,
+          jqXHR: JQueryXHR = this.jqXHR_;
+      var callbacks_update = setting.callbacks.update;
+
+      if (!setting.rewrite) { return; }
+
+      if (UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) { return; }
+
+      var host = cache ? cache.host : setting.balance.self ? setting.balance.server.host : jqXHR.host || '';
+      UTIL.fire(setting.rewrite, null, [this.srcDocument_, setting.area[0], host])
+
+      if (UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) { return; }
+
+    }
+
     updateCache_(): void {
       var setting: SettingInterface = this.setting_,
           cache: CacheInterface = this.cache_,
@@ -360,8 +381,8 @@ module MODULE {
             srcDocument: Document = this.srcDocument_;
 
         srcDocument.title = cacheDocument.title;
-        var i: number = -1, $srcAreas: JQuery, $dstAreas: JQuery
-              while (setting.area[++i]) {
+        var i: number = -1, $srcAreas: JQuery, $dstAreas: JQuery;
+        while (setting.area[++i]) {
           $srcAreas = jQuery(setting.area[i], cacheDocument).clone();
           $dstAreas = jQuery(setting.area[i], srcDocument);
           var j: number = -1;
@@ -610,8 +631,6 @@ module MODULE {
           adds: HTMLElement[] = [];
 
       for (var i = 0, element; element = css[i]; i++) {
-        element = 'function' === typeof setting.load.rewrite && void UTIL.fire(setting.load.rewrite, null, [element]) || element;
-
         //element = dstDocument.importNode ? dstDocument.importNode(element, true) : jQuery(element).clone()[0];
 
         for (var j = 0; removes[j]; j++) {
@@ -655,8 +674,6 @@ module MODULE {
 
       var executed: { [index: string]: boolean; } = this.APP_.stock('executed');
       for (var i = 0, element; element = script[i]; i++) {
-        element = 'function' === typeof setting.load.rewrite && void UTIL.fire(setting.load.rewrite, null, [element]) || element;
-        
         //element = dstDocument.importNode ? dstDocument.importNode(element, true) : jQuery(element.outerHTML);
 
         if (!jQuery(element).is(selector)) { continue; }

@@ -13,6 +13,7 @@ interface Window {
 }
 interface JQueryXHR {
   follow: boolean
+  host: string
   timeStamp: number
 }
 module MODULE {
@@ -62,7 +63,7 @@ module MODULE {
    * - MVCモジュール間のアクセスは各モジュールのインターフェイスを経由し、内部機能(APP/DATA)に直接アクセスしない。
    * - UTILはどこからでも自由に使用してよい。
    * - モデルインターフェイスへ渡されるデータはすべて正規化、検疫されてないものとして自身で正規化、検疫する。
-   * - モデルのインターフェイスより下のレイヤーのメソッドは引数のパターンを省略を除いて固定し、ポリモーフィズムやオーバーロードを使用しない。
+   * - モデルのインターフェイスより下のレイヤーのメソッドは引数パターンの省略を除いて固定し、ポリモーフィズムやオーバーロードを使用しない。
    * - モデルインターフェイスもViewやControllerの機能の実体を実装するメソッドは同様とする。
    * 
    */
@@ -81,6 +82,7 @@ module MODULE {
     // Model機能
     APP_: ModelApp
     main_(context: ContextInterface, option: PjaxSetting): ContextInterface
+    state(): State
     convertUrlToKeyUrl(unsafe_url: string): string
     isImmediateLoadable(unsafe_url: string): boolean
     isImmediateLoadable(event: JQueryEventObject): boolean
@@ -100,7 +102,7 @@ module MODULE {
     enable(): void
     disable(): void
     getCache(unsafe_url: string): CacheInterface
-    setCache(unsafe_url: string, data: string, textStatus: string, jqXHR: JQueryXHR): any
+    setCache(unsafe_url: string, data: string, textStatus: string, jqXHR: JQueryXHR, host?: string): any
     removeCache(unsafe_url: string): void
     clearCache(): void
     cleanCache(): void
@@ -117,19 +119,25 @@ module MODULE {
     registrate($context: ContextInterface, setting: SettingInterface): void
     createHTMLDocument(html: string): Document
     chooseAreas(areas: string[], srcDocument: Document, dstDocument: Document): string
+    enableBalance(host?: string): void
+    disableBalance(): void
+    switchRequestServer(host: string, setting: SettingInterface): void
     chooseRequestServer(setting: SettingInterface): void
     movePageNormally(event: JQueryEventObject): void
     scrollByHash(hash: string): boolean
     calAge(jqXHR: JQueryXHR): number
     calExpires(jqXHR: JQueryXHR): number
-    
-    disableBalance(): void
-    enableBalance(): void
   }
   export declare class AppDataInterface {
     APP_: ModelApp
     DATA_: ModelData
 
+    //cookie
+    getCookie(key: string): string
+    setCookie(key: string, value: string, option?: Object): string
+
+    // db
+    opendb(setting: SettingInterface, success: () => void): void
     storeNames: {
       meta: string
       history: string
@@ -137,13 +145,11 @@ module MODULE {
       server: string
     }
     
-    opendb(setting: SettingInterface): void
-
     // buffer
     getBuffer(storeName: string): Object
     getBuffer(storeName: string, key: string): any
     getBuffer(storeName: string, key: number): any
-    setBuffer(storeName: string): any
+    setBuffer(storeName: string, key: string, value: Object, isMerge?: boolean): any
     loadBuffer(storeName: string, limit?: number): void
     saveBuffer(storeName: string): void
     loadBufferAll(limit?: number): void
@@ -185,6 +191,7 @@ module MODULE {
     dstDocument_: Document
 
     update_(): void
+    updateRewrite_(): void
     updateCache_(): void
     updateRedirect_(): void
     updateUrl_(): void
@@ -201,6 +208,7 @@ module MODULE {
   }
   export declare class ModelDataInterface {
     DB: DataDB
+    Cookie: DataCookie
   }
   export declare class DataDBInterface {
 
@@ -210,52 +218,28 @@ module MODULE {
     database_: IDBDatabase
     name_: string
     version_: number
-    retry_: number
-    store_: DatabaseSchema
-    storeNames: {
-      meta: string
-      history: string
-      log: string
-      server: string
-    }
+    refresh_: number
+    upgrade_: number
+    state_: State
+    nowInitializing: boolean
+    nowRetrying: boolean
+    conAge_: number
+    conExpires_: number
+    conInterval_: number
+    state(): State
+    store: DatabaseSchema
     metaNames: {
       version: string
+      update: string
     }
     
-    initdb_(setting: SettingInterface): void
-    checkdb_(setting: SettingInterface, version: number, success: () => void): void;
+    initdb_(success: () => void, delay?: number): void
+    checkdb_(database: IDBDatabase, version: number, success: () => void, upgrade: () => void): void;
+    conExtend_(): void
 
-    opendb(setting: SettingInterface): void
+    opendb(success: () => void, noRetry?: boolean): void
     closedb(): void
     deletedb(): void
-    accessStore(name: string, mode?: string): IDBObjectStore
-    accessRecord(storeName: string, key: string, success: (event?: Event) => void): void
-    
-    // buffer
-    getBuffer(storeName: string): Object
-    getBuffer(storeName: string, key: string): any
-    getBuffer(storeName: string, key: number): any
-    setBuffer(storeName: string): any
-    loadBuffer(storeName: string, limit?: number): void
-    saveBuffer(storeName: string): void
-
-    // meta
-
-    // history
-    loadTitle(keyUrl: string): void
-    saveTitle(keyUrl: string, title: string): void
-    loadScrollPosition(keyUrl: string): void
-    saveScrollPosition(keyUrl: string, scrollX: number, scrollY: number): void
-    loadExpires(keyUrl: string): void
-    saveExpires(keyUrl: string, host: string, expires: number): void
-
-    // log
-    loadLog(): void
-    saveLog(log: LogSchema): void
-
-    // server
-    loadServer(): void
-    saveServer(host: string, state: number): void
   }
   export declare class DataStoreInterface<T> {
     constructor(DB: DataDBInterface)
@@ -267,21 +251,23 @@ module MODULE {
 
     buffer_: Object
 
-    accessStore(mode?: string): IDBObjectStore
-    accessRecord(key: string, success: (event?: Event) => void): void
+    accessStore(success: (store?: IDBObjectStore) => void, mode?: string): void
+    accessRecord(key: string, success: (event?: Event) => void, mode?: string): void
 
     loadBuffer(limit?: number): void
     saveBuffer(): void
     getBuffer(): Object
     getBuffer(key: string): Object
     getBuffer(key: number): Object
-    setBuffer(key: string, value: T, isMerge?: boolean): Object
+    setBuffer(value: T, isMerge?: boolean): Object
     addBuffer(value: any): Object
     
     add(value: T): void
-    put(value: T): void
+    set(value: T): void
     get(key: number, success: (event: Event) => void): void
     get(key: string, success: (event: Event) => void): void
+    del(key: number): void
+    del(key: string): void
   }
   export declare class DataStoreMetaInterface<T> extends DataStoreInterface<T> {
   }
@@ -292,6 +278,13 @@ module MODULE {
     clean(): void
   }
   export declare class DataStoreServerInterface<T> extends DataStoreInterface<T> {
+  }
+  export declare class DataCookieInterface {
+    constructor(age: number)
+    age_: number
+
+    getCookie(key: string): string
+    setCookie(key: string, value: string, option?: CookieOptionInterface): string
   }
   // View
   export declare class ViewInterface {
@@ -345,7 +338,7 @@ module MODULE {
   }
 
   // enum
-  export enum State { wait = -1, ready, lock, seal }
+  export enum State { wait = -1, ready, lock, seal, error }
 
   // Parameter
   export interface SettingInterface {
@@ -355,6 +348,7 @@ module MODULE {
     filter(): boolean
     form: string
     scope: {}
+    rewrite: (document: Document, area: string, host: string) => void
     state: {}
     scrollTop: number
     scrollLeft: number
@@ -387,19 +381,26 @@ module MODULE {
       reload: string
       ignore: string
       ajax: JQueryAjaxSettings
-      rewrite(): any
     }
     balance: {
       self: boolean
       weight: number
       client: {
-        support: RegExp
+        support: {
+          userAgent: RegExp
+          redirect: RegExp
+        }
         exclude: RegExp
-        cookie: string
+        cookie: {
+          balance: string
+          redirect: string
+          host: string
+        }
       }
       server: {
         header: string
-        preclude: number
+        filter: RegExp
+        error: number
         host: string //internal
       }
       log: {
@@ -452,6 +453,10 @@ module MODULE {
       update: {
         before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
         after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
+        rewrite: {
+          before?: (event: JQueryEventObject, param: any, cache: any) => any
+          after?: (event: JQueryEventObject, param: any, cache: any) => any
+        }
         cache: {
           before?: (event: JQueryEventObject, param: any, cache: any) => any
           after?: (event: JQueryEventObject, param: any, cache: any) => any
@@ -547,7 +552,14 @@ module MODULE {
     textStatus: string
     size?: number
     expires?: number
+    host?: string
     timeStamp?: number
+  }
+  export interface CookieOptionInterface {
+    age: number
+    path: string
+    domain: string
+    secure: boolean
   }
 
   // Database

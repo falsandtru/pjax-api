@@ -7,6 +7,27 @@ nav: nav
 
 # ChangeLog
 
+## 2.8.0
+
+* ロードバランス機能を更新
+  * IEに対応
+  * Android, iOSに仮対応
+  * 回線帯域の増加率を大幅に向上
+  * `balance.client.support`パラメータを削除
+  * `balance.client.support.userAgent`パラメータを追加
+  * `balance.client.support.redirect`パラメータを追加
+  * `balance.client.exclude`パラメータの初期値を変更
+  * `balance.client.cookie`パラメータを削除
+  * `balance.client.cookie.balance`パラメータを追加
+  * `balance.client.cookie.redirect`パラメータを追加
+  * `balance.client.cookie.host`パラメータを追加
+  * `balance.server.preclude`パラメータを`balance.server.error`パラメータに変更
+  * `balance.log.expires`パラメータの初期値を変更
+  * `balance.log.limit`パラメータの初期値を変更
+* `load.rewrite`パラメータを削除
+* `rewrite`パラメータを追加
+* `callbacks.update.rewrite`系コールバックを追加
+
 ## 2.7.0
 
 * ロードバランス機能を追加

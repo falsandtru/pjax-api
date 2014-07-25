@@ -22,40 +22,40 @@ module MODULE {
 
     buffer_: T[] = []
 
-    accessStore = (mode: string = 'readwrite'): IDBObjectStore => {
+    accessStore(success: (store: IDBObjectStore) => void, mode: string = 'readwrite'): void {
       var database: IDBDatabase = this.DB_.database_;
-      if (database && database.transaction && database.objectStoreNames) {
-        var objectStoreNames = database.objectStoreNames;
-        for (var i in objectStoreNames) {
-          if (objectStoreNames[i] !== this.name) { continue; }
-          return database.transaction(this.name, mode).objectStore(this.name);
-        }
+
+      this.DB_.conExtend_();
+      if (database) {
+        success(database.transaction(this.name, mode).objectStore(this.name));
+      } else {
+        this.DB_.opendb(() => {
+          this.accessStore(success);
+        });
       }
     }
 
-    accessRecord = (key: string, success: (event?: Event) => void): void => {
-      var store = this.accessStore();
-      if (!store) { return; }
-
-      store.get(key).onsuccess = success;
+    accessRecord(key: string, success: (event?: Event) => void, mode: string = 'readwrite'): void {
+      this.accessStore((store) => {
+        store.get(key).onsuccess = success;
+      }, mode);
     }
     
     loadBuffer(limit?: number): void {
-      var that = this,
-          store = this.accessStore();
-      if (!store) { return; }
+      var that = this;
+      this.accessStore((store) => {
+        var index = store.indexNames.length ? store.indexNames[0] : store.keyPath;
+        store.index(index).openCursor(this.DB_.IDBKeyRange.lowerBound(0), 'prev').onsuccess = function () {
+          if (!this.result) { return; }
 
-      var index = store.indexNames.length ? store.indexNames[0] : store.keyPath;
-      store.index(index).openCursor(this.DB_.IDBKeyRange.lowerBound(0), 'prev').onsuccess = function () {
-        if (!this.result) { return; }
-
-        var IDBCursor = this.result,
+          var IDBCursor = this.result,
             data = <T>IDBCursor.value;
-        that.buffer_[data[store.keyPath]] = data;
-        if (!--limit) { return; }
+          that.buffer_[data[store.keyPath]] = data;
+          if (!--limit) { return; }
 
-        IDBCursor['continue'] && IDBCursor['continue']();
-      }
+          IDBCursor['continue'] && IDBCursor['continue']();
+        }
+      });
     }
 
     saveBuffer(): void {
@@ -68,9 +68,10 @@ module MODULE {
       return key ? this.buffer_[key] : this.buffer_;
     }
     
-    setBuffer(key: string, value: T, isMerge?: boolean): T {
+    setBuffer(value: T, isMerge?: boolean): T {
+      var key = value[this.keyPath];
       this.buffer_[key] = !isMerge ? value : jQuery.extend(true, {}, this.buffer_[key], value);
-      return this.buffer_[key];
+      return this.buffer_[value[this.keyPath]];
     }
 
     addBuffer(value: T): T {
@@ -80,15 +81,17 @@ module MODULE {
     }
 
     add(value: T): void {
-      var store = this.accessStore();
-      if (!store) { return; }
-
+      var key = value[this.keyPath];
       delete value[this.keyPath];
-      store.add(value);
+      this.accessRecord(key, function () {
+        'undefined' !== typeof key && this.source['delete'](key);
+        this.source.add(value);
+      });
     }
 
-    put(value: T): void {
-      this.accessRecord(value[this.keyPath], function () {
+    set(value: T): void {
+      var key = value[this.keyPath];
+      this.accessRecord(key, function () {
         this.source.put(jQuery.extend(true, {}, this.result, value));
       });
     }
@@ -96,11 +99,16 @@ module MODULE {
     get(key: number, success: (event: Event) => void): void
     get(key: string, success: (event: Event) => void): void
     get(key: any, success: (event: Event) => void): void {
-      var store = this.accessStore();
-      if (!store) { return; }
-
-      store.get(key).onsuccess = success;
+      this.accessRecord(key, success);
     }
-
+    
+    del(key: number): void
+    del(key: string): void
+    del(key: any): void {
+      this.accessRecord(key, function () {
+        this.source['delete'](key);
+      });
+    }
+    
   }
 }

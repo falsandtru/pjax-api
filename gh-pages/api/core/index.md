@@ -26,6 +26,9 @@ pjaxを設定します。
 ### [scope:](api/core/setting/scope/)
 ページ遷移にpjaxを使用するURLを設定します。
 
+### [rewrite:](api/core/setting/rewrite/)
+ページ遷移に使用するHTMLDocumentをあらかじめ書き換えます。
+
 ### [state:](api/core/setting/state/)
 ページ遷移時に設定する`window.history.state`の値を設定します。
 

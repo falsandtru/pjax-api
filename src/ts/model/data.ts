@@ -1,5 +1,6 @@
 /// <reference path="../define.ts"/>
 /// <reference path="data.db.ts"/>
+/// <reference path="data.cookie.ts"/>
 /// <reference path="util.ts"/>
 
 /* MODEL */
@@ -12,7 +13,8 @@ module MODULE {
 
   export class ModelData implements ModelDataInterface {
 
-    DB: DataDB = new DataDB()
+    DB: DataDBInterface = new DataDB()
+    Cookie: DataCookieInterface = new DataCookie(10 * 24 * 60 * 60)
 
   }
 }

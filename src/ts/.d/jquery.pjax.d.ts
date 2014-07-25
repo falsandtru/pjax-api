@@ -14,6 +14,7 @@ interface PjaxSetting {
     filter?: any     // string, function()
     form?: string
     scope?: Object
+    rewrite: (document: Document, area: string, host: string) => void
     state?: any      // any, function(event, param, origUrl, destUrl )
     scrollTop?: any  // number, function( event, param, origUrl, destUrl ), null, false
     scrollLeft?: any // number, function( event, param, origUrl, destUrl ), null, false
@@ -51,19 +52,26 @@ interface PjaxSetting {
         ignore?: string
         sync?: boolean
         ajax?: JQueryAjaxSettings
-        rewrite?: (element: any) => any
     }
     balance: {
         self: boolean
         weight: number
         client: {
-            support: RegExp
+            support: {
+                userAgent: RegExp
+                redirect: RegExp
+            }
             exclude: RegExp
-            cookie: string
+            cookie: {
+                balance: string
+                redirect: string
+                host: string
+            }
         }
         server: {
             header: string
-            preclude: number
+            filter: RegExp
+            error: number
             host: string //internal
         }
         log: {
@@ -109,6 +117,10 @@ interface PjaxSetting {
         update?: {
             before?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
             after?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+            rewrite?: {
+                before?: (event: JQueryEventObject, param: any, cache: any) => any
+                after?: (event: JQueryEventObject, param: any, cache: any) => any
+            }
             cache?: {
                 before?: (event?: JQueryEventObject, param?: any, cache?: any) => any
                 after?: (event?: JQueryEventObject, param?: any, cache?: any) => any
