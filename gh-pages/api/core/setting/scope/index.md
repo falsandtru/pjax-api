@@ -21,6 +21,30 @@ $.pjax({
 });
 </pre>
 
+文字列を値に設定するとその文字をキーとする値にリダイレクトします。
+
+<pre class="sh brush: js;">
+$.pjax({
+　　scope: {
+    // `/about/`と`/blog/`ディレクトリ下でのみpjaxを使用する。
+    'pattern': ['/about/', '/blog/'],
+    '/': 'pattern'
+  }
+});
+</pre>
+
+`'$'`接頭辞を使用してpjax設定を上書きできます。遷移先URLに一致するパターンのみ使用されます。
+
+<pre class="sh brush: js;">
+$.pjax({
+　　scope: {
+    // `/search/`ディレクトリ下ではGET送信フォームでpjaxを使用する。
+    '$/search/': {form: 'form:not([method])'},
+    '/search/': ['/search/']
+  }
+});
+</pre>
+
 `'*'`接頭辞により正規表現を使用できます。
 
 <pre class="sh brush: js;">
@@ -66,17 +90,6 @@ $.pjax({
     '/scope/': ['rewrite'],
     '/scope/*/': ['/scope/*/'],
     rewrite: function(key){return key.replace(/^(\/scope\/)\w+/, '$1*');}
-  }
-});
-</pre>
-
-pjax設定を指定するとこれにより設定を上書きします。
-
-<pre class="sh brush: js;">
-$.pjax({
-　　scope: {
-    // `/search/`ディレクトリ下ではGET送信フォームでpjaxを使用する。
-    '/search/': ['/search/', {form: 'form:not([method])'}]
   }
 });
 </pre>

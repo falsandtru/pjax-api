@@ -11,27 +11,29 @@ module MODULE {
   // Deny access
   var V: void, C: void;
 
-  export class DataStoreHistory<T> extends DataStore<T> implements DataStoreHistoryInterface<T> {
+  export class DataStoreLog<T> extends DataStore<T> implements DataStoreLogInterface<T> {
 
-    name: string = 'history'
+    name: string = 'log'
     keyPath: string = 'id'
 
     clean(): void {
       var that = this,
-          store = this.accessStore();
+          store = this.accessStore(),
+          size = 50;
       if (!store) { return; }
 
       store.count().onsuccess = function () {
-        if (this.result > 1000) {
-          store.index('date').openCursor(that.DB_.IDBKeyRange.upperBound(new Date().getTime() - (3 * 24 * 60 * 60 * 1000))).onsuccess = function () {
+        if (this.result > size + 10) {
+          size = this.result - size;
+          store.index(store.keyPath).openCursor(this.DB_.IDBKeyRange.lowerBound(0)).onsuccess = function () {
             if (!this.result) { return; }
 
             var IDBCursor = this.result;
             if (IDBCursor) {
-              IDBCursor['delete'](IDBCursor.value[store.keyPath]);
+              if (0 > --size) {
+                IDBCursor['delete'](IDBCursor.value[store.keyPath]);
+              }
               IDBCursor['continue'] && IDBCursor['continue']();
-            } else {
-              store.count().onsuccess = function () { 1000 < this.result && store.clear(); }
             }
           };
         }

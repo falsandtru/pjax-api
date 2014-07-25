@@ -9,6 +9,9 @@ class: style-api style-api-detail
 # click() <small><span class="label label-info">chainable</span></small>
 クリックによるpjaxを使用したページ遷移を行います。pjaxを使用できない場合は通常のページ遷移にフォールバックされます。
 
+## click(): this
+コンテキストのアンカーリンクを使用します。
+
 ## click( Anchor: jQuery): this
 渡されたアンカーリンクを使用します。
 
