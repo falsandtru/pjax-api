@@ -56,6 +56,12 @@ ajax処理の完了後常に実行されます。外部から引き継いだリ�
 ### update.after( event, param, data, textStatus, XMLHttpRequest )
 ページの更新処理において最後に実行されます。
 
+### update.rewrite.before( event, param, cache )
+ページの更新処理において更新元HTMLDocumentの書き換え前に実行されます。
+
+### update.rewrite.after( event, param, cache )
+ページの更新処理において更新元HTMLDocumentの書き換え後に実行されます。
+
 ### update.cache.before( event, param, cache )
 ページの更新処理においてキャッシュの作成前に実行されます。
 
