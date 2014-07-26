@@ -179,9 +179,13 @@ accelerate:
             $('div.loading').children().width('98.75%');
           }
         },
-        render: {
+        verify: {
           after: function(){
             $('div.loading').children().width('100%');
+          }
+        },
+        render: {
+          after: function(){
             $('div.loading').fadeOut(50);
           }
         }

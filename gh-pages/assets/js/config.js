@@ -70,7 +70,7 @@
     if (/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.navigator.userAgent)) {return;}
     
     $.pjax({
-      area: 'body',
+      area: ['#container', 'body'],
       scope: {
         '/': ['/', '^/TypeScriptMVCTemplate/test/']
       },
@@ -118,9 +118,13 @@
               $('div.loading').children().width('98.75%');
             }
           },
-          rendering: {
+          verify: {
             after: function() {
               $('div.loading').children().width('100%');
+            }
+          },
+          render: {
+            after: function () {
               $('div.loading').fadeOut(50);
             }
           }
