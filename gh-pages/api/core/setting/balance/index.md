@@ -12,7 +12,7 @@ class: style-api style-api-detail
 **実験的な機能であり動作検証中です。不具合やご意見等ありましたらお寄せください。**
 
 ## balance.self: boolean
-ブラウザでロードバランスを行うかを設定します。クッキーとIndexedDBを使用できる必要があります。初期値は`false`です。
+ブラウザでロードバランスを行うかを設定します。Cookieを使用できる必要があります。IndexedDBを使用できない場合、機能と性能が制限されます。初期値は`false`です。
 
 <pre class="sh brush: js;">
 $.pjax({
@@ -27,23 +27,32 @@ $.pjax({
 
 最適化により正規のサーバーが選択されるべき場合でも加重数値の確率でしか選択しません。サーバー数5加重5の場合、100回のリクエスト中正規サーバーの選択は20回中16回がキャンセルされ、実際に選択される確率は全体の4%(24:24:24:24:4)、他のサーバーの1/6となります。
 
-## balance.client.support: RegExp
-ロードバランスを使用するブラウザを設定します。初期値は`/chrome|firefox|safari/i`です。
+## balance.client.support.userAgent: RegExp
+ロードバランスを使用するブラウザを設定します。初期値は`/msie|trident.+ rv:|chrome|firefox|safari/i`です。
+
+## balance.client.support.redirect: RegExp
+リダイレクト可能なブラウザを設定します。初期値は`/chrome|firefox|safari/i`です。
 
 ## balance.client.exclude: RegExp
-除外するブラウザを設定します。初期値は`/msie|trident|mobile|phone|android|iphone|ipad|blackberry/i`です。
+除外するブラウザを設定します。初期値は`/mobile|phone|android|iphone|blackberry/i`です。
 
-## balance.client.cookie: string
-サーバーへのロードバランスの要求フラグを立てるクッキーのKeyを設定します。初期値は`'balanceable'`です。
+## balance.client.cookie.balance: string
+リクエストヘッダにロードバランスの要求フラグを立てるCookieのキーを設定します。初期値は`'ajax_balanceable'`です。
+
+## balance.client.cookie.redirect: string
+リクエストヘッダにリダイレクトの要求フラグを立てるCookieのキーを設定します。初期値は`'ajax_redirectable'`です。
+
+## balance.client.cookie.host: string
+IndexedDBが使用できない場合にリクエスト先の代替保存先として使用するCookieのキーを設定します。初期値は`'ajax_host'`です。
 
 ## balance.server.header: string
 リクエストのバランス先のサーバードメインを持つレスポンスヘッダフィールドを設定します。初期値は`'X-Ajax-Host'`です。
 
-## balance.server.preclude: number
+## balance.server.error: number
 通信エラーが発生した場合にそのサーバーを使用しない時間をミリ秒で設定します。初期値は`10 * 60 * 1000`(10分)です。
 
 ## balance.log.expires: number
-リクエスト先の候補を検索するサーバー通信ログの時間範囲を設定します。初期値は`1.5 * 24 * 60 * 60 * 1000`(過去1.5日)です。
+リクエスト先の候補を検索するサーバー通信ログの時間範囲を設定します。初期値は`10 * 24 * 60 * 60 * 1000`(過去10日)です。
 
 ## balance.log.limit: number
 リクエスト先の候補を検索するサーバー通信ログの件数範囲を設定します。初期値は`10`(過去10件)です。

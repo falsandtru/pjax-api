@@ -13,6 +13,7 @@ interface Window {
 }
 interface JQueryXHR {
   follow: boolean
+  host: string
   timeStamp: number
 }
 module MODULE {
@@ -34,25 +35,25 @@ module MODULE {
    * - Model(data-access)
    * 
    * Model:
-   * - class ModelMain (mvc-interface)
+   * - class Main (mvc-interface)
    *   single instance(M)
-   * - class ModelApp (application-logic)
+   * - class App (application-logic)
    *   single instance(APP)
-   * - class ModelData (data-access)
+   * - class Data (data-access)
    *   single instance(DATA)
-   * - class ModelUtil
-   *   single instance(UTIL)
+   * - class Util
+   *   static (UTIL)
    * 
    * View
-   * - class ViewMain (mvc-interface)
+   * - class Main (mvc-interface)
    *   multi instance
    * 
    * Controller
-   * - class ControllerMain (mvc-interface)
+   * - class Main (mvc-interface)
    *   single instance(C)
-   * - class ControllerFunction
+   * - class Function
    *   single instance
-   * - class ControllerMethod
+   * - class Method
    *   single instance
    * 
    * -----
@@ -62,25 +63,28 @@ module MODULE {
    * - MVCモジュール間のアクセスは各モジュールのインターフェイスを経由し、内部機能(APP/DATA)に直接アクセスしない。
    * - UTILはどこからでも自由に使用してよい。
    * - モデルインターフェイスへ渡されるデータはすべて正規化、検疫されてないものとして自身で正規化、検疫する。
-   * - モデルのインターフェイスより下のレイヤーのメソッドは引数のパターンを省略を除いて固定し、ポリモーフィズムやオーバーロードを使用しない。
+   * - モデルのインターフェイスより下のレイヤーのメソッドは引数パターンの省略を除いて固定し、ポリモーフィズムやオーバーロードを使用しない。
    * - モデルインターフェイスもViewやControllerの機能の実体を実装するメソッドは同様とする。
    * 
    */
+  export module MODEL { }
+  export module VIEW { }
+  export module CONTROLLER { }
+
   // Model
-  export declare class ModelInterface {
+  export declare class ModelInterface extends StockInterface {
     constructor()
-    // テンプレート
-    NAME: string
-    NAMESPACE: any
 
     // プロパティ
+    controller_: ControllerInterface
+    app_: ModelAppInterface
     state_: State
     isDeferrable: boolean
     requestHost: string
     
     // Model機能
-    APP_: ModelApp
     main_(context: ContextInterface, option: PjaxSetting): ContextInterface
+    state(): State
     convertUrlToKeyUrl(unsafe_url: string): string
     isImmediateLoadable(unsafe_url: string): boolean
     isImmediateLoadable(event: JQueryEventObject): boolean
@@ -100,14 +104,17 @@ module MODULE {
     enable(): void
     disable(): void
     getCache(unsafe_url: string): CacheInterface
-    setCache(unsafe_url: string, data: string, textStatus: string, jqXHR: JQueryXHR): any
+    setCache(unsafe_url: string, data: string, textStatus: string, jqXHR: JQueryXHR, host?: string): any
     removeCache(unsafe_url: string): void
     clearCache(): void
     cleanCache(): void
   }
-  export declare class ModelAppInterface {
+  export declare class ModelAppInterface extends StockInterface {
+    DATA: AppDataInterface
+
     landing: string
     recent: RecentInterface
+    isScrollPosSavable: boolean
     activeXHR: JQueryXHR
     activeSetting: SettingInterface
 
@@ -117,19 +124,24 @@ module MODULE {
     registrate($context: ContextInterface, setting: SettingInterface): void
     createHTMLDocument(html: string): Document
     chooseAreas(areas: string[], srcDocument: Document, dstDocument: Document): string
+    enableBalance(host?: string): void
+    disableBalance(): void
+    switchRequestServer(host: string, setting: SettingInterface): void
     chooseRequestServer(setting: SettingInterface): void
     movePageNormally(event: JQueryEventObject): void
-    scrollByHash(hash: string): boolean
     calAge(jqXHR: JQueryXHR): number
     calExpires(jqXHR: JQueryXHR): number
-    
-    disableBalance(): void
-    enableBalance(): void
   }
   export declare class AppDataInterface {
-    APP_: ModelApp
-    DATA_: ModelData
+    app_: ModelAppInterface
+    DATA_: ModelDataInterface
 
+    //cookie
+    getCookie(key: string): string
+    setCookie(key: string, value: string, option?: Object): string
+
+    // db
+    opendb(setting: SettingInterface): void
     storeNames: {
       meta: string
       history: string
@@ -137,13 +149,11 @@ module MODULE {
       server: string
     }
     
-    opendb(setting: SettingInterface): void
-
     // buffer
     getBuffer(storeName: string): Object
     getBuffer(storeName: string, key: string): any
     getBuffer(storeName: string, key: number): any
-    setBuffer(storeName: string): any
+    setBuffer(storeName: string, key: string, value: Object, isMerge?: boolean): any
     loadBuffer(storeName: string, limit?: number): void
     saveBuffer(storeName: string): void
     loadBufferAll(limit?: number): void
@@ -166,9 +176,7 @@ module MODULE {
     saveServerToDB(host: string, state?: number, unsafe_url?: string, expires?: number): void
   }
   export declare class AppUpdateInterface {
-    constructor(APP: ModelApp, setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface)
-
-    APP_: ModelApp
+    constructor(model_: ModelInterface, app_: ModelAppInterface, setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface)
 
     setting_: SettingInterface
     cache_: CacheInterface
@@ -185,6 +193,7 @@ module MODULE {
     dstDocument_: Document
 
     update_(): void
+    updateRewrite_(): void
     updateCache_(): void
     updateRedirect_(): void
     updateUrl_(): void
@@ -197,10 +206,12 @@ module MODULE {
     updateRender_(callback: () => void): void
     updateBalance_(): void
     updateVerify_(): void
+    scrollByHash(hash: string): boolean
     wait_(ms: number): JQueryPromise<any>
   }
   export declare class ModelDataInterface {
-    DB: DataDB
+    DB: DataDBInterface
+    Cookie: DataCookieInterface
   }
   export declare class DataDBInterface {
 
@@ -210,78 +221,56 @@ module MODULE {
     database_: IDBDatabase
     name_: string
     version_: number
-    retry_: number
-    store_: DatabaseSchema
-    storeNames: {
-      meta: string
-      history: string
-      log: string
-      server: string
-    }
+    refresh_: number
+    upgrade_: number
+    state_: State
+    nowInitializing: boolean
+    nowRetrying: boolean
+    conAge_: number
+    conExpires_: number
+    conInterval_: number
+    state(): State
+    store: DatabaseSchema
     metaNames: {
       version: string
+      update: string
     }
     
-    initdb_(setting: SettingInterface): void
-    checkdb_(setting: SettingInterface, version: number, success: () => void): void;
+    initdb_(success: () => void, delay?: number): void
+    checkdb_(database: IDBDatabase, version: number, success: () => void, upgrade: () => void): void;
+    conExtend_(): void
 
-    opendb(setting: SettingInterface): void
+    opendb(success: () => void, noRetry?: boolean): void
     closedb(): void
     deletedb(): void
-    accessStore(name: string, mode?: string): IDBObjectStore
-    accessRecord(storeName: string, key: string, success: (event?: Event) => void): void
-    
-    // buffer
-    getBuffer(storeName: string): Object
-    getBuffer(storeName: string, key: string): any
-    getBuffer(storeName: string, key: number): any
-    setBuffer(storeName: string): any
-    loadBuffer(storeName: string, limit?: number): void
-    saveBuffer(storeName: string): void
-
-    // meta
-
-    // history
-    loadTitle(keyUrl: string): void
-    saveTitle(keyUrl: string, title: string): void
-    loadScrollPosition(keyUrl: string): void
-    saveScrollPosition(keyUrl: string, scrollX: number, scrollY: number): void
-    loadExpires(keyUrl: string): void
-    saveExpires(keyUrl: string, host: string, expires: number): void
-
-    // log
-    loadLog(): void
-    saveLog(log: LogSchema): void
-
-    // server
-    loadServer(): void
-    saveServer(host: string, state: number): void
   }
   export declare class DataStoreInterface<T> {
     constructor(DB: DataDBInterface)
 
-    DB_: DataDB
+    DB_: DataDBInterface
 
     name: string
     keyPath: string
 
-    buffer_: Object
+    buffer_: T[]
 
-    accessStore(mode?: string): IDBObjectStore
-    accessRecord(key: string, success: (event?: Event) => void): void
+    accessStore(success: (store?: IDBObjectStore) => void, mode?: string): void
+    accessRecord(key: string, success: (event?: Event) => void, mode?: string): void
 
     loadBuffer(limit?: number): void
     saveBuffer(): void
-    getBuffer(): Object
-    getBuffer(key: string): Object
-    getBuffer(key: number): Object
-    setBuffer(key: string, value: T, isMerge?: boolean): Object
-    addBuffer(value: any): Object
+    getBuffer(): T[]
+    getBuffer(key: string): T
+    getBuffer(key: number): T
+    setBuffer(value: T, isMerge?: boolean): T
+    addBuffer(value: any): T
     
     add(value: T): void
-    put(value: T): void
+    set(value: T): void
     get(key: number, success: (event: Event) => void): void
     get(key: string, success: (event: Event) => void): void
+    del(key: number): void
+    del(key: string): void
   }
   export declare class DataStoreMetaInterface<T> extends DataStoreInterface<T> {
   }
@@ -293,9 +282,20 @@ module MODULE {
   }
   export declare class DataStoreServerInterface<T> extends DataStoreInterface<T> {
   }
+  export declare class DataCookieInterface {
+    constructor(age: number)
+    age_: number
+
+    getCookie(key: string): string
+    setCookie(key: string, value: string, option?: CookieOptionInterface): string
+  }
+  export declare class StockInterface {
+    stock(key?: string, value?: any, merge?: boolean): any
+    stock(key?: Object): any
+  }
   // View
   export declare class ViewInterface {
-    constructor(context?: ContextInterface)
+    constructor(context: ContextInterface)
     CONTEXT: ContextInterface
     state_: State
     
@@ -307,16 +307,13 @@ module MODULE {
   // Controller
   export declare class ControllerInterface {
     constructor()
-    state_: State
 
-    EXTEND(context: Object): Object
-    EXEC(...args: any[]): any
     exec_(context: ContextInterface, ...args: any[]): any
-    OBSERVE(): void
     
     CLICK(event: JQueryEventObject): void
     SUBMIT(event: JQueryEventObject): void
     POPSTATE(event: JQueryEventObject): void
+    SCROLL(event: JQueryEventObject): void
   }
   export interface FunctionInterface {
     enable(): JQueryPjax
@@ -345,7 +342,7 @@ module MODULE {
   }
 
   // enum
-  export enum State { wait = -1, ready, lock, seal }
+  export enum State { wait = -1, ready, lock, seal, error }
 
   // Parameter
   export interface SettingInterface {
@@ -355,6 +352,7 @@ module MODULE {
     filter(): boolean
     form: string
     scope: {}
+    rewrite: (document: Document, area: string, host: string) => void
     state: {}
     scrollTop: number
     scrollLeft: number
@@ -387,19 +385,26 @@ module MODULE {
       reload: string
       ignore: string
       ajax: JQueryAjaxSettings
-      rewrite(): any
     }
     balance: {
       self: boolean
       weight: number
       client: {
-        support: RegExp
+        support: {
+          userAgent: RegExp
+          redirect: RegExp
+        }
         exclude: RegExp
-        cookie: string
+        cookie: {
+          balance: string
+          redirect: string
+          host: string
+        }
       }
       server: {
         header: string
-        preclude: number
+        filter: RegExp
+        error: number
         host: string //internal
       }
       log: {
@@ -413,7 +418,6 @@ module MODULE {
     wait: number
     scroll: {
       delay: number
-      record: boolean //internal
       queue: number[] //internal
     }
     fix: {
@@ -452,6 +456,10 @@ module MODULE {
       update: {
         before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
         after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
+        rewrite: {
+          before?: (event: JQueryEventObject, param: any, cache: any) => any
+          after?: (event: JQueryEventObject, param: any, cache: any) => any
+        }
         cache: {
           before?: (event: JQueryEventObject, param: any, cache: any) => any
           after?: (event: JQueryEventObject, param: any, cache: any) => any
@@ -547,15 +555,22 @@ module MODULE {
     textStatus: string
     size?: number
     expires?: number
+    host?: string
     timeStamp?: number
+  }
+  export interface CookieOptionInterface {
+    age: number
+    path: string
+    domain: string
+    secure: boolean
   }
 
   // Database
   export interface DatabaseSchema {
-    meta: DataStoreMeta<MetaSchema>
-    history: DataStoreHistory<HistorySchema>
-    log: DataStoreLog<LogSchema>
-    server: DataStoreServer<ServerSchema>
+    meta: DataStoreMetaInterface<MetaSchema>
+    history: DataStoreHistoryInterface<HistorySchema>
+    log: DataStoreLogInterface<LogSchema>
+    server: DataStoreServerInterface<ServerSchema>
   }
   export interface MetaSchema {
     id: string
@@ -580,4 +595,11 @@ module MODULE {
     state: number // 0:正常, !0:異常発生時刻(ミリ秒)
   }
 
+  export var GEN_UUID: () => string = function () {
+    // version 4
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16).toUpperCase();
+    });
+  }
 }

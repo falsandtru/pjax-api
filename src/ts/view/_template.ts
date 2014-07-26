@@ -1,9 +1,8 @@
 /// <reference path="../define.ts"/>
-/// <reference path="../model/main.ts"/>
 
 /* VIEW */
 
-module MODULE {
+module MODULE.VIEW {
   /**
    * View of MVC
    * 
@@ -11,18 +10,15 @@ module MODULE {
    * @constructor
    * @param {JQuery|HTMLElement} [context] 監視するDOM要素を設定する。
    */
-  export class ViewTemplate {
-    
-    constructor(context?: ContextInterface) {
-      this.UUID = M.GEN_UUID();
-      switch (arguments.length) {
-        case 0:
-          break;
-        case 1:
-          this.CONTEXT = context;
-          this.OBSERVE();
-          break;
-      }
+  var C: ControllerInterface
+  
+  export class Template {
+
+    constructor(public model_: ModelInterface, public controller_: ControllerInterface, context: ContextInterface) {
+      C = controller_;
+      this.UUID = GEN_UUID();
+      this.CONTEXT = context;
+      this.OBSERVE();
       this.state_ = 0
     }
 

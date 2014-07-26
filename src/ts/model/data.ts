@@ -1,18 +1,16 @@
 /// <reference path="../define.ts"/>
 /// <reference path="data.db.ts"/>
-/// <reference path="util.ts"/>
+/// <reference path="data.cookie.ts"/>
 
 /* MODEL */
 
-module MODULE {
-  // Allow access:
+module MODULE.MODEL {
+  
+  export class Data implements ModelDataInterface {
 
-  // Deny access
-  var M: void, V: void, C: void;
-
-  export class ModelData implements ModelDataInterface {
-
-    DB: DataDB = new DataDB()
+    DB: DataDBInterface = new MODEL.DataDB()
+    Cookie: DataCookieInterface = new MODEL.DataCookie(10 * 24 * 60 * 60)
 
   }
+
 }
