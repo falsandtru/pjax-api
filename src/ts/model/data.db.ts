@@ -11,11 +11,13 @@ module MODULE.MODEL {
   export class DataDB implements DataDBInterface {
     constructor() {
       var check = () => {
-        if (new Date().getTime() > this.conExpires_) {
+        var now = new Date().getTime(),
+            expires = this.conExpires_;
+        if (expires && now > expires) {
           this.closedb();
-          this.conExpires_ = 10e9;
+          this.conExpires_ = 0;
         }
-        setTimeout(check, this.conInterval_);
+        setTimeout(check, Math.max(this.conExpires_ - now + 100, this.conInterval_));
       }
       this.conAge_ && setTimeout(check, this.conInterval_);
     }
@@ -64,8 +66,9 @@ module MODULE.MODEL {
         };
 
         request.onupgradeneeded = function () {
-          var database: IDBDatabase = this.result;
           try {
+            var database: IDBDatabase = this.result;
+            
             for (var i = database.objectStoreNames ? database.objectStoreNames.length : 0; i--;) { database.deleteObjectStore(database.objectStoreNames[i]); }
 
             database.createObjectStore(that.store.meta.name, { keyPath: that.store.meta.keyPath, autoIncrement: false }).createIndex(that.store.meta.keyPath, that.store.meta.keyPath, { unique: true });
