@@ -63,8 +63,6 @@ module MODULE {
    * - MVCモジュール間のアクセスは各モジュールのインターフェイスを経由し、内部機能(APP/DATA)に直接アクセスしない。
    * - UTILはどこからでも自由に使用してよい。
    * - モデルインターフェイスへ渡されるデータはすべて正規化、検疫されてないものとして自身で正規化、検疫する。
-   * - モデルのインターフェイスより下のレイヤーのメソッドは引数パターンの省略を除いて固定し、ポリモーフィズムやオーバーロードを使用しない。
-   * - モデルインターフェイスもViewやControllerの機能の実体を実装するメソッドは同様とする。
    * 
    */
   export module MODEL { }
@@ -86,8 +84,8 @@ module MODULE {
     main_(context: ContextInterface, option: PjaxSetting): ContextInterface
     state(): State
     convertUrlToKeyUrl(unsafe_url: string): string
-    isImmediateLoadable(unsafe_url: string): boolean
-    isImmediateLoadable(event: JQueryEventObject): boolean
+    isImmediateLoadable(unsafe_url: string, setting?: SettingInterface): boolean
+    isImmediateLoadable(event: JQueryEventObject, setting?: SettingInterface): boolean
     getActiveSetting(): SettingInterface
     setActiveSetting(setting: SettingInterface): SettingInterface
     getActiveXHR(): JQueryXHR
@@ -110,6 +108,7 @@ module MODULE {
     cleanCache(): void
   }
   export declare class ModelAppInterface extends StockInterface {
+    Update
     DATA: AppDataInterface
 
     landing: string
@@ -123,7 +122,8 @@ module MODULE {
     configure(option: SettingInterface, origURL: string, destURL: string): SettingInterface
     registrate($context: ContextInterface, setting: SettingInterface): void
     createHTMLDocument(html: string): Document
-    chooseAreas(areas: string[], srcDocument: Document, dstDocument: Document): string
+    chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
+    chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
     enableBalance(host?: string): void
     disableBalance(): void
     switchRequestServer(host: string, setting: SettingInterface): void
@@ -347,7 +347,7 @@ module MODULE {
   // Parameter
   export interface SettingInterface {
     // public
-    area: any
+    area: string
     link: string
     filter(): boolean
     form: string
@@ -531,6 +531,7 @@ module MODULE {
     }
     origLocation: HTMLAnchorElement
     destLocation: HTMLAnchorElement
+    areas: string[]
     loadtime: number
     retriable: boolean
     disable: boolean

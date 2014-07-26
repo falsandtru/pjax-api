@@ -128,7 +128,7 @@ module MODULE.MODEL {
             }
             if ('object' === typeof setting.server.header) {
               jqXHR.setRequestHeader(setting.nss.requestHeader, 'true');
-              setting.server.header.area && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Area', setting.area[0]);
+              setting.server.header.area && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Area', this.app_.chooseArea(setting.area, document, document));
               setting.server.header.head && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Head', setting.load.head);
               setting.server.header.css && jqXHR.setRequestHeader(setting.nss.requestHeader + '-CSS', setting.load.css.toString());
               setting.server.header.script && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Script', setting.load.script.toString());
@@ -239,9 +239,11 @@ module MODULE.MODEL {
             var srcDocument: Document = this.srcDocument_,
                 dstDocument: Document = this.dstDocument_;
 
-            setting.area = APP.chooseAreas(setting.area, srcDocument, dstDocument);
-            setting.area = setting.area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
+            // 更新範囲を選出
+            setting.area = this.app_.chooseArea(setting.area, srcDocument, dstDocument);
             if (!setting.area) { throw new Error('throw: area notfound'); }
+            // 更新範囲をセレクタごとに分割
+            setting.areas = setting.area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
           }; // label: DEFINE
           
           /* check point */
@@ -279,7 +281,7 @@ module MODULE.MODEL {
 
           /* content */
           this.loadwaits_ = this.updateContent_();
-          this.checker_ = jQuery(setting.area.join(',')).children('.' + setting.nss.class4html + '-check');
+          this.checker_ = jQuery(setting.area).children('.' + setting.nss.class4html + '-check');
           
           /* check point */
           speedcheck && speed.time.push(speed.now() - speed.fire);
@@ -344,7 +346,7 @@ module MODULE.MODEL {
       if (UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) { return; }
 
       var host = cache ? cache.host : setting.balance.self ? setting.balance.server.host : jqXHR.host || '';
-      UTIL.fire(setting.rewrite, null, [this.srcDocument_, setting.area[0], host])
+      UTIL.fire(setting.rewrite, null, [this.srcDocument_, setting.area, host])
 
       if (UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) { return; }
 
@@ -374,9 +376,9 @@ module MODULE.MODEL {
 
         srcDocument.title = cacheDocument.title;
         var i: number = -1, $srcAreas: JQuery, $dstAreas: JQuery;
-        while (setting.area[++i]) {
-          $srcAreas = jQuery(setting.area[i], cacheDocument).clone();
-          $dstAreas = jQuery(setting.area[i], srcDocument);
+        while (setting.areas[++i]) {
+          $srcAreas = jQuery(setting.areas[i], cacheDocument).clone();
+          $dstAreas = jQuery(setting.areas[i], srcDocument);
           var j: number = -1;
           while ($srcAreas[++j]) {
             $dstAreas.eq(j).replaceWith($srcAreas.eq(j));
@@ -548,15 +550,15 @@ module MODULE.MODEL {
 
       if (UTIL.fire(callbacks_update.content.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return loadwaits; }
 
-      jQuery(setting.area.join(',')).children('.' + setting.nss.class4html + '-check').remove();
+      jQuery(setting.area).children('.' + setting.nss.class4html + '-check').remove();
       checker = jQuery('<div/>', {
         'class': setting.nss.class4html + '-check',
         'style': 'background: none !important; display: block !important; visibility: hidden !important; position: absolute !important; top: 0 !important; left: 0 !important; z-index: -9999 !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; font-size: 12px !important; text-indent: 0 !important;'
       }).text(setting.gns);
       var i: number = -1, $srcAreas: JQuery, $dstAreas: JQuery;
-      while (setting.area[++i]) {
-        $srcAreas = jQuery(setting.area[i], srcDocument).clone().find('script').remove().end();
-        $dstAreas = jQuery(setting.area[i], dstDocument);
+      while (setting.areas[++i]) {
+        $srcAreas = jQuery(setting.areas[i], srcDocument).clone().find('script').remove().end();
+        $dstAreas = jQuery(setting.areas[i], dstDocument);
         if (!$srcAreas[0] || !$dstAreas[0] || $srcAreas.length !== $dstAreas.length) { throw new Error('throw: area mismatch'); }
         if (setting.load.sync && jQuery.when) {
           loadwaits.concat($srcAreas.find('img, iframe, frame').map(function () {
@@ -618,8 +620,8 @@ module MODULE.MODEL {
 
       if (UTIL.fire(callbacks_update.css.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
 
-      var css: JQuery = jQuery(selector, srcDocument).not(jQuery(setting.area.join(','), srcDocument).find(selector)).not(setting.load.ignore),
-          removes = jQuery(selector, dstDocument).not(jQuery(setting.area.join(','), dstDocument).find(selector)).not(setting.load.ignore),
+      var css: JQuery = jQuery(selector, srcDocument).not(jQuery(setting.area, srcDocument).find(selector)).not(setting.load.ignore),
+          removes = jQuery(selector, dstDocument).not(jQuery(setting.area, dstDocument).find(selector)).not(setting.load.ignore),
           adds: HTMLElement[] = [];
 
       for (var i = 0, element; element = css[i]; i++) {
@@ -769,7 +771,7 @@ module MODULE.MODEL {
       } else if (setting.retriable) {
         setting.retriable = false;
         setting.destLocation.href = UTIL.canonicalizeUrl(window.location.href);
-        new AppUpdate(this.model_, this.app_, setting, event, false, setting.cache[event.type.toLowerCase()] && this.model_.getCache(setting.destLocation.href));
+        new this.app_.Update(this.model_, this.app_, setting, event, false, setting.cache[event.type.toLowerCase()] && this.model_.getCache(setting.destLocation.href));
         throw false;
       } else {
         throw new Error('throw: location mismatch');

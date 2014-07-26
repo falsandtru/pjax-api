@@ -28,12 +28,3 @@ $.pjax({
 　　area: ['#header, #primary, #secondary', '#container', 'body']
 });
 </pre>
-
-## area: function( event, param, origUrl, destUrl )
-関数により更新する範囲を設定します。
-
-<pre class="sh brush: js;">
-$.pjax({
-　　area: function() { return 'body'; }
-});
-</pre>
