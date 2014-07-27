@@ -417,9 +417,24 @@ module MODULE.MODEL {
     }
 
     createHTMLDocument(html: string = ''): Document {
-      // chrome, firefox
+      // firefox
       this.createHTMLDocument = function (html: string = '') {
         return window.DOMParser && window.DOMParser.prototype && new window.DOMParser().parseFromString(html, 'text/html');
+      };
+      if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html); }
+
+      // chrome, safari
+      this.createHTMLDocument = function (html: string = '') {
+        if (document.implementation && document.implementation.createHTMLDocument) {
+          var doc = document.implementation.createHTMLDocument('');
+          // IE, Operaクラッシュ対策
+          if ('object' === typeof doc.activeElement && doc.activeElement) {
+            doc.open();
+            doc.write(html);
+            doc.close();
+          }
+        }
+        return doc;
       };
       if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html); }
 
@@ -445,24 +460,15 @@ module MODULE.MODEL {
       };
       if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html); }
 
-      // msafari
-      this.createHTMLDocument = function (html: string = '') {
-        if (document.implementation && document.implementation.createHTMLDocument) {
-          var doc = document.implementation.createHTMLDocument('');
-          if ('object' === typeof doc.activeElement) {
-            doc.open();
-            doc.write(html);
-            doc.close();
-          }
-        }
-        return doc;
-      };
-      if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html); }
-
       function test(createHTMLDocument) {
         try {
-          var doc = createHTMLDocument && createHTMLDocument('<html lang="en" class="html"><head><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript></body></html>');
-          return doc && jQuery('html', doc).is('.html[lang=en]') && jQuery('head>noscript', doc).html() && jQuery('body>noscript', doc).text() === 'noscript';
+          var doc = createHTMLDocument && createHTMLDocument('<html lang="en" class="html"><head><link href="/"><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript><a href="/"></a></body></html>');
+          return doc &&
+                 jQuery('html', doc).is('.html[lang=en]') &&
+                 jQuery('head>link', doc).prop('href') &&
+                 jQuery('head>noscript', doc).html() &&
+                 jQuery('body>noscript', doc).text() === 'noscript' &&
+                 jQuery('body>a', doc).prop('href');
         } catch (err) { }
       }
 
