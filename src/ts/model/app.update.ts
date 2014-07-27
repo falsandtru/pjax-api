@@ -626,7 +626,7 @@ module MODULE.MODEL {
 
       for (var i = 0, element; element = css[i]; i++) {
         // href属性が設定されない場合があるので変換して認識させる
-        element = dstDocument.importNode ? dstDocument.importNode(element, true) : jQuery(element.outerHTML);
+        element.href = dstDocument.importNode ? (<HTMLLinkElement>dstDocument.importNode(element, true)).href : (<HTMLLinkElement>jQuery(element.outerHTML)[0]).href;
 
         for (var j = 0; removes[j]; j++) {
           if (UTIL.trim((<HTMLLinkElement>removes[j]).href || (<HTMLStyleElement>removes[j]).innerHTML || '') === UTIL.trim(element.href || element.innerHTML || '')) {
@@ -671,7 +671,7 @@ module MODULE.MODEL {
       var executed: { [index: string]: boolean; } = this.app_.stock('executed');
       for (var i = 0, element; element = script[i]; i++) {
         // CSSに同じ
-        element = dstDocument.importNode ? dstDocument.importNode(element, true) : jQuery(element.outerHTML);
+        element.src = dstDocument.importNode ? (<HTMLScriptElement>dstDocument.importNode(element, true)).src : (<HTMLScriptElement>jQuery(element.outerHTML)[0]).src;
 
         if (!jQuery(element).is(selector)) { continue; }
         if (!element.src && !UTIL.trim(element.innerHTML)) { continue; }
