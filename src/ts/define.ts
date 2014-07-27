@@ -150,10 +150,10 @@ module MODULE {
     }
     
     // buffer
-    getBuffer(storeName: string): Object
-    getBuffer(storeName: string, key: string): any
-    getBuffer(storeName: string, key: number): any
-    setBuffer(storeName: string, key: string, value: Object, isMerge?: boolean): any
+    getBuffer<U>(storeName: string): U
+    getBuffer<T>(storeName: string, key: string): T
+    getBuffer<T>(storeName: string, key: number): T
+    setBuffer<T>(storeName: string, key: string, value: T, isMerge?: boolean): T
     loadBuffer(storeName: string, limit?: number): void
     saveBuffer(storeName: string): void
     loadBufferAll(limit?: number): void
@@ -229,6 +229,7 @@ module MODULE {
     conAge_: number
     conExpires_: number
     conInterval_: number
+    tasks_: { (): void }[]
     state(): State
     store: DatabaseSchema
     metaNames: {
@@ -236,13 +237,15 @@ module MODULE {
       update: string
     }
     
-    initdb_(success: () => void, delay?: number): void
+    initdb_(delay?: number): void
+    deletedb_(): void
     checkdb_(database: IDBDatabase, version: number, success: () => void, upgrade: () => void): void;
     conExtend_(): void
+    reserveTask_(task: () => void): void
+    digestTask_(limit?: number): void
 
-    opendb(success: () => void, noRetry?: boolean): void
+    opendb(task: () => void, noRetry?: boolean): void
     closedb(): void
-    deletedb(): void
   }
   export declare class DataStoreInterface<T> {
     constructor(DB: DataDBInterface)

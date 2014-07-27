@@ -18,6 +18,7 @@ module MODULE.MODEL {
           this.conExpires_ = 0;
         }
         setTimeout(check, Math.max(this.conExpires_ - now + 100, this.conInterval_));
+        this.tasks_[0] && this.opendb(null, true);
       }
       this.conAge_ && setTimeout(check, this.conInterval_);
     }
@@ -36,6 +37,7 @@ module MODULE.MODEL {
     conAge_: number = 10 * 1000
     conExpires_: number
     conInterval_: number = 1000
+    tasks_: { (): void }[] = []
     state(): State { return this.state_; }
     store = {
       meta: new MODEL.DataStoreMeta<MetaSchema>(this),
@@ -48,12 +50,13 @@ module MODULE.MODEL {
       update: 'update'
     }
 
-    opendb(success: () => void, noRetry?: boolean): void {
+    opendb(task: () => void, noRetry?: boolean): void {
       var that = this;
 
-      if (!that.IDBFactory) { return; }
+      if (!that.IDBFactory || !task && !that.tasks_[0]) { return; }
 
       that.conExtend_();
+      task && that.reserveTask_(task)
 
       try {
         that.nowInitializing = true;
@@ -62,7 +65,7 @@ module MODULE.MODEL {
 
         request.onblocked = function () {
           this.result.close();
-          !noRetry && that.initdb_(success, 1000);
+          !noRetry && that.initdb_(1000);
         };
 
         request.onupgradeneeded = function () {
@@ -79,7 +82,7 @@ module MODULE.MODEL {
 
             database.createObjectStore(that.store.server.name, { keyPath: that.store.server.keyPath, autoIncrement: false }).createIndex(that.store.server.keyPath, that.store.server.keyPath, { unique: true });
           } catch (err) {
-            !noRetry && that.initdb_(success, 1000);
+            !noRetry && that.initdb_(1000);
           }
         };
 
@@ -93,23 +96,23 @@ module MODULE.MODEL {
               that.conExtend_();
               that.nowInitializing = false;
 
-              success();
+              that.digestTask_();
 
               that.nowRetrying = false;
             }, () => {
-              !noRetry && that.initdb_(success);
+              !noRetry && that.initdb_();
             });
           } catch (err) {
             database.close();
-            !noRetry && that.initdb_(success, 1000);
+            !noRetry && that.initdb_(1000);
           }
         };
 
         request.onerror = function (event) {
-          !noRetry && that.initdb_(success, 1000);
+          !noRetry && that.initdb_(1000);
         };
       } catch (err) {
-        !noRetry && that.initdb_(success, 1000);
+        !noRetry && that.initdb_(1000);
       }
     }
 
@@ -120,19 +123,19 @@ module MODULE.MODEL {
       database && database.close && database.close();
     }
 
-    deletedb(): void {
+    deletedb_(): void {
       this.closedb();
       var IDBFactory = this.IDBFactory;
       IDBFactory && IDBFactory.deleteDatabase && IDBFactory.deleteDatabase(this.name_);
     }
 
-    initdb_(success: () => void, delay?: number): void {
+    initdb_(delay?: number): void {
       var retry = () => {
         if (!this.nowRetrying) {
           this.nowRetrying = true;
-          this.deletedb();
+          this.deletedb_();
         }
-        this.opendb(success, true);
+        this.opendb(null, true);
       };
 
       !delay ? retry() : void setTimeout(retry, delay);
@@ -172,6 +175,18 @@ module MODULE.MODEL {
 
     conExtend_(): void {
       this.conExpires_ = new Date().getTime() + this.conAge_;
+    }
+
+    reserveTask_(task: () => void): void {
+      this.tasks_.push(task);
+    }
+
+    digestTask_(limit: number = 0): void {
+      var task: () => void;
+      limit = limit || -1;
+      while (task = limit-- && this.tasks_.pop()) {
+        task();
+      }
     }
 
   }

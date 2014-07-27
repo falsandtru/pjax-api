@@ -233,7 +233,7 @@ module MODULE.MODEL {
       this.DATA.loadBufferAll(setting.buffer.limit);
 
       var expires: number;
-      var historyBufferData = <HistorySchema>this.DATA.getBuffer(this.DATA.storeNames.history, this.model_.convertUrlToKeyUrl(setting.destLocation.href));
+      var historyBufferData: HistorySchema = this.DATA.getBuffer<HistorySchema>(this.DATA.storeNames.history, this.model_.convertUrlToKeyUrl(setting.destLocation.href));
 
       expires = historyBufferData && historyBufferData.expires;
       if (expires && expires >= new Date().getTime()) {
@@ -241,7 +241,7 @@ module MODULE.MODEL {
         return;
       }
 
-      var logBuffer = <{ [index: number]: LogSchema }>this.DATA.getBuffer(this.DATA.storeNames.log),
+      var logBuffer = this.DATA.getBuffer<{ [index: number]: LogSchema }>(this.DATA.storeNames.log),
           timeList: number[] = [],
           logTable: { [index: number]: LogSchema } = {},
           now: number = new Date().getTime();
@@ -267,7 +267,7 @@ module MODULE.MODEL {
         return a - b;
       }
       timeList = timeList.sort(compareNumbers);
-      var serverBuffer = <{ [index: string]: ServerSchema }>this.DATA.getBuffer(this.DATA.storeNames.server),
+      var serverBuffer = this.DATA.getBuffer<{ [index: string]: ServerSchema }>(this.DATA.storeNames.server),
           time: number = timeList.shift();
 
       if (!serverBuffer) {
