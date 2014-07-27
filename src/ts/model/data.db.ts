@@ -27,7 +27,7 @@ module MODULE.MODEL {
 
     database_: IDBDatabase
     name_: string = NAME
-    version_: number = 3
+    version_: number = 4
     refresh_: number = 10
     upgrade_: number = 1 // 0:virtual 1:naitive
     state_: State = State.wait

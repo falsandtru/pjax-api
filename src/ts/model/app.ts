@@ -255,10 +255,11 @@ module MODULE.MODEL {
         }
         return;
       }
+      var time: number;
       for (var i in logBuffer) {
         if (now > logBuffer[i].date + setting.balance.log.expires) { continue; }
-        timeList.push(logBuffer[i].response);
-        logTable[logBuffer[i].response] = logBuffer[i];
+        timeList.push(logBuffer[i].performance);
+        logTable[logBuffer[i].performance] = logBuffer[i];
       }
 
 

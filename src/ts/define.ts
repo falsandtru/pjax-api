@@ -588,7 +588,7 @@ module MODULE {
   }
   export interface LogSchema {
     host: string
-    response: number
+    performance: number
     date: number
   }
   export interface ServerSchema {
