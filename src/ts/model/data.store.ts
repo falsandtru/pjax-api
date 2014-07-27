@@ -21,6 +21,7 @@ module MODULE.MODEL {
       var database: IDBDatabase = this.DB_.database_;
 
       this.DB_.conExtend_();
+
       if (database) {
         success(database.transaction(this.name, mode).objectStore(this.name));
       } else {

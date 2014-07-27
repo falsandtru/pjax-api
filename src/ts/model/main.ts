@@ -67,9 +67,9 @@ module MODULE.MODEL {
       return unsafe_url.replace(/#.*/, '')
     }
 
-    isImmediateLoadable(url: string): boolean
-    isImmediateLoadable(event: JQueryEventObject): boolean
-    isImmediateLoadable(param: any): boolean {
+    isImmediateLoadable(unsafe_url: string, setting?: SettingInterface): boolean
+    isImmediateLoadable(event: JQueryEventObject, setting?: SettingInterface): boolean
+    isImmediateLoadable(param: any, setting?: SettingInterface): boolean {
       if (State.ready !== this.state()) { return; }
 
       var origURL: string = UTIL.canonicalizeUrl(window.location.href),
@@ -100,13 +100,11 @@ module MODULE.MODEL {
 
       if (origLocation.protocol !== destLocation.protocol || origLocation.host !== destLocation.host) { return false; }
 
-      var setting: SettingInterface = this.app_.configure(this.getActiveSetting(), origLocation.href, destLocation.href);
+      setting = setting || this.app_.configure(this.getActiveSetting(), origLocation.href, destLocation.href);
       if (setting.disable) { return; }
       if (destLocation.hash && origLocation.href.replace(/#.*/, '') === destLocation.href.replace(/#.*/, '')) { return false; }
-      setting.area = UTIL.fire(setting.area, null, [event, setting.param, origLocation.href, destLocation.href]);
-      setting.area = setting.area instanceof Array ? setting.area : [setting.area];
+      if (!this.app_.chooseArea(setting.area, document, document)) { return false; }
       if (!jQuery(event.currentTarget).filter(setting.filter).length) { return false; }
-      if (!setting.area[0] || !jQuery(setting.area.join(','))[0]) { return false; }
 
       return true;
     }
@@ -134,17 +132,15 @@ module MODULE.MODEL {
         var setting: SettingInterface = this.app_.configure(this.getActiveSetting(), window.location.href, context.href);
 
         if (State.ready !== this.state() || setting.disable || event.isDefaultPrevented()) { break PROCESS; }
-        if (!this.isImmediateLoadable(event)) { break PROCESS; }
+        if (!this.isImmediateLoadable(event, setting)) { break PROCESS; }
 
         if (setting.cache.mix && this.getCache(setting.destLocation.href)) { break PROCESS; }
-        setting.area = UTIL.fire(setting.area, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
-        setting.area = setting.area instanceof Array ? setting.area : [setting.area];
         setting.database && this.app_.isScrollPosSavable && this.app_.DATA.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
         var cache: CacheInterface;
         if (setting.cache[event.type.toLowerCase()]) { cache = this.getCache(setting.destLocation.href); }
 
-        new AppUpdate(this, this.app_, setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
+        new this.app_.Update(this, this.app_, setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
         event.preventDefault();
         return;
       };
@@ -159,20 +155,17 @@ module MODULE.MODEL {
         var setting: SettingInterface = this.app_.configure(this.getActiveSetting(), window.location.href, context.action);
 
         if (State.ready !== this.state() || setting.disable || event.isDefaultPrevented()) { break PROCESS; }
-        if (!this.isImmediateLoadable(event)) { break PROCESS; }
+        if (!this.isImmediateLoadable(event, setting)) { break PROCESS; }
 
         var serializedURL = setting.destLocation.href.replace(/[?#].*/, '') + ('GET' === context.method.toUpperCase() ? '?' + jQuery(context).serialize() : '');
         setting.destLocation.href = UTIL.canonicalizeUrl(serializedURL);
         if (setting.cache.mix && this.getCache(setting.destLocation.href)) { break PROCESS; }
-        setting.area = UTIL.fire(setting.area, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
-        setting.area = setting.area instanceof Array ? setting.area : [setting.area];
-        if (!setting.area[0] || !jQuery(setting.area.join(','))[0]) { break PROCESS; }
         setting.database && this.app_.isScrollPosSavable && this.app_.DATA.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
         var cache: CacheInterface;
         if (setting.cache[event.type.toLowerCase()] && setting.cache[context.method.toLowerCase()]) { cache = this.getCache(setting.destLocation.href); }
 
-        new AppUpdate(this, this.app_, setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
+        new this.app_.Update(this, this.app_, setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
         event.preventDefault();
         return;
       };
@@ -187,22 +180,19 @@ module MODULE.MODEL {
         if (setting.origLocation.href === setting.destLocation.href) { return; }
 
         if (State.ready !== this.state() || setting.disable) { break PROCESS; }
+        if (!this.isImmediateLoadable(event, setting)) { break PROCESS; }
 
         if (setting.origLocation.hash !== setting.destLocation.hash &&
             setting.origLocation.pathname + setting.origLocation.search === setting.destLocation.pathname + setting.destLocation.search) {
           break PROCESS;
         }
         
-        setting.area = UTIL.fire(setting.area, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
-        setting.area = setting.area instanceof Array ? setting.area : [setting.area];
-        if (!setting.area[0] || !jQuery(setting.area.join(','))[0]) { break PROCESS; }
-
         setting.database && setting.fix.history && this.app_.DATA.loadTitleFromDB(setting.destLocation.href);
 
         var cache: CacheInterface;
         if (setting.cache[event.type.toLowerCase()]) { cache = this.getCache(setting.destLocation.href); }
 
-        new AppUpdate(this, this.app_, setting, event, false, cache);
+        new this.app_.Update(this, this.app_, setting, event, false, cache);
         return;
       };
       (!event.originalEvent || setting.gns === event.namespace) && this.fallback(event, setting);

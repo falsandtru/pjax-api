@@ -15,6 +15,7 @@ module MODULE.MODEL {
       super();
     }
 
+    Update = AppUpdate
     DATA: AppDataInterface = new AppData(this.model_, this)
 
     landing: string = UTIL.canonicalizeUrl(window.location.href)
@@ -254,10 +255,11 @@ module MODULE.MODEL {
         }
         return;
       }
+      var time: number;
       for (var i in logBuffer) {
         if (now > logBuffer[i].date + setting.balance.log.expires) { continue; }
-        timeList.push(logBuffer[i].response);
-        logTable[logBuffer[i].response] = logBuffer[i];
+        timeList.push(logBuffer[i].performance);
+        logTable[logBuffer[i].performance] = logBuffer[i];
       }
 
 
@@ -289,7 +291,11 @@ module MODULE.MODEL {
       this.disableBalance();
     }
     
-    chooseAreas(areas: string[], srcDocument: Document, dstDocument: Document): string {
+    chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
+    chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
+    chooseArea(areas: any, srcDocument: Document, dstDocument: Document): string {
+      areas = areas instanceof Array ? areas : [areas];
+
       var i: number = -1, area: string;
       AREA: while (area = areas[++i]) {
         var options: string[] = area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);

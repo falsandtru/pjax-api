@@ -68,7 +68,8 @@ module MODULE.MODEL {
     }
 
     loadTitleFromDB(unsafe_url: string): void {
-      var keyUrl: string = this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
+      var keyUrl: string = this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url)),
+          that = this;
 
       var data = <HistorySchema>this.DATA_.DB.store.history.getBuffer(keyUrl);
 
@@ -76,7 +77,7 @@ module MODULE.MODEL {
         document.title = data.title;
       } else {
         this.DATA_.DB.store.history.get(keyUrl, function () {
-          keyUrl === this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(window.location.href)) &&
+          keyUrl === that.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(window.location.href)) &&
           this.result && this.result.title && (document.title = this.result.title);
         });
       }
