@@ -184,6 +184,7 @@ module MODULE {
     loadwaits_: JQueryDeferred<any>[]
 
     event_: JQueryEventObject
+    host_: string
     data_: string
     textStatus_: string
     jqXHR_: JQueryXHR
@@ -329,7 +330,7 @@ module MODULE {
     submit(url: string, attr: { action?: string; method?: string; }, data: any): JQueryPjax
     submit(url: HTMLFormElement, attr?: { action?: string; method?: string; }, data?: any): JQueryPjax
     submit(url: JQuery, attr?: { action?: string; method?: string; }, data?: any): JQueryPjax
-    follow(event: JQueryEventObject, ajax: JQueryXHR): boolean
+    follow(event: JQueryEventObject, ajax: JQueryXHR, host?: string): boolean
     setCache(): JQueryPjax
     setCache(url: string): JQueryPjax
     setCache(url: string, data: string): JQueryPjax
@@ -557,10 +558,10 @@ module MODULE {
     jqXHR: JQueryXHR
     data: string
     textStatus: string
-    size?: number
-    expires?: number
-    host?: string
-    timeStamp?: number
+    size: number
+    expires: number
+    host: string
+    timeStamp: number
   }
   export interface CookieOptionInterface {
     age: number

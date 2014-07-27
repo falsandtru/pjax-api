@@ -147,10 +147,11 @@ module MODULE.CONTROLLER {
       return this;
     }
 
-    follow(event: JQueryEventObject, $XHR: JQueryXHR, timeStamp?: number): boolean {
+    follow(event: JQueryEventObject, $XHR: JQueryXHR, host?: string, timeStamp?: number): boolean {
       if (!M.isDeferrable) { return false; }
       var anchor = <HTMLAnchorElement>event.currentTarget;
       $XHR.follow = true;
+      $XHR.host = host || '';
       if (isFinite(event.timeStamp)) { $XHR.timeStamp = timeStamp || event.timeStamp; }
       M.setActiveXHR($XHR);
       jQuery.when($XHR)
