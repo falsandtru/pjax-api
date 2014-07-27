@@ -792,7 +792,7 @@ module MODULE.MODEL {
       var host = (this.jqXHR_.getResponseHeader(setting.balance.server.header) || '').split('//').pop();
       this.app_.DATA.saveLogToDB({
         host: host,
-        performance: Math.ceil(setting.loadtime / (this.jqXHR_.responseText.length || 1) * 10e7),
+        performance: Math.ceil(setting.loadtime / (this.jqXHR_.responseText.length || 1) * 1e5),
         date: new Date().getTime()
       });
       this.app_.DATA.saveServerToDB(host, 0, setting.destLocation.href, this.app_.calExpires(this.jqXHR_));
