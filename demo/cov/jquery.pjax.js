@@ -3,7 +3,7 @@
  * jquery.pjax.js
  * 
  * @name jquery.pjax.js
- * @version 2.9.0
+ * @version 2.10.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
  * @copyright 2012, falsandtru
@@ -371,12 +371,13 @@ var MODULE;
                 return this;
             };
 
-            ControllerFunction.prototype.follow = function (event, $XHR, timeStamp) {
+            ControllerFunction.prototype.follow = function (event, $XHR, host, timeStamp) {
                 if (!M.isDeferrable) {
                     return false;
                 }
                 var anchor = event.currentTarget;
                 $XHR.follow = true;
+                $XHR.host = host || '';
                 if (isFinite(event.timeStamp)) {
                     $XHR.timeStamp = timeStamp || event.timeStamp;
                 }
@@ -956,6 +957,7 @@ var MODULE;
                     speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
                     setting.loadtime = 0;
                     this.model_.setActiveXHR(null);
+                    this.host_ = cache.host || '';
                     this.data_ = cache.data;
                     this.textStatus_ = cache.textStatus;
                     this.jqXHR_ = cache.jqXHR;
@@ -972,6 +974,7 @@ var MODULE;
                     speedcheck && speed.name.splice(0, 1, 'preload(' + speed.time.slice(-1) + ')');
                     speedcheck && speed.time.push(speed.now() - speed.fire);
                     speedcheck && speed.name.push('continue(' + speed.time.slice(-1) + ')');
+                    this.host_ = activeXHR.host || '';
                     setting.loadtime = activeXHR.timeStamp;
                     var wait = setting.wait && isFinite(activeXHR.timeStamp) ? Math.max(setting.wait - new Date().getTime() + activeXHR.timeStamp, 0) : 0;
                     jQuery.when(activeXHR, that.wait_(wait)).done(done).fail(fail).always(always);
@@ -981,7 +984,8 @@ var MODULE;
                     var requestLocation = setting.destLocation.cloneNode(), ajax = {}, callbacks = {};
 
                     this.app_.chooseRequestServer(setting);
-                    requestLocation.host = setting.balance.self && this.model_.requestHost.split('//').pop() || setting.destLocation.host;
+                    this.host_ = setting.balance.self && this.model_.requestHost.split('//').pop() || '';
+                    requestLocation.host = this.host_ || setting.destLocation.host;
                     ajax.url = !setting.server.query ? requestLocation.href : [
                         requestLocation.protocol,
                         '//',
@@ -1235,7 +1239,7 @@ var MODULE;
             };
 
             AppUpdate.prototype.updateRewrite_ = function () {
-                var setting = this.setting_, cache = this.cache_, event = this.event_, jqXHR = this.jqXHR_;
+                var setting = this.setting_, cache = this.cache_, event = this.event_;
                 var callbacks_update = setting.callbacks.update;
 
                 if (!setting.rewrite) {
@@ -1246,8 +1250,7 @@ var MODULE;
                     return;
                 }
 
-                var host = cache ? cache.host : setting.balance.self ? setting.balance.server.host : jqXHR.host || '';
-                MODEL.UTIL.fire(setting.rewrite, null, [this.srcDocument_, setting.area, host]);
+                MODEL.UTIL.fire(setting.rewrite, null, [this.srcDocument_, setting.area, this.host_]);
 
                 if (MODEL.UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) {
                     return;
@@ -1542,9 +1545,6 @@ var MODULE;
                 var css = jQuery(selector, srcDocument).not(jQuery(setting.area, srcDocument).find(selector)).not(setting.load.ignore), removes = jQuery(selector, dstDocument).not(jQuery(setting.area, dstDocument).find(selector)).not(setting.load.ignore), adds = [];
 
                 for (var i = 0, element; element = css[i]; i++) {
-                    // href属性が設定されない場合があるので変換して認識させる
-                    element.href = dstDocument.importNode ? dstDocument.importNode(element, true).href : jQuery(element.outerHTML)[0].href;
-
                     for (var j = 0; removes[j]; j++) {
                         if (MODEL.UTIL.trim(removes[j].href || removes[j].innerHTML || '') === MODEL.UTIL.trim(element.href || element.innerHTML || '')) {
                             if (adds.length) {
@@ -1589,9 +1589,6 @@ var MODULE;
 
                 var executed = this.app_.stock('executed');
                 for (var i = 0, element; element = script[i]; i++) {
-                    // CSSに同じ
-                    element.src = dstDocument.importNode ? dstDocument.importNode(element, true).src : jQuery(element.outerHTML)[0].src;
-
                     if (!jQuery(element).is(selector)) {
                         continue;
                     }
@@ -1732,7 +1729,7 @@ var MODULE;
                 var host = (this.jqXHR_.getResponseHeader(setting.balance.server.header) || '').split('//').pop();
                 this.app_.DATA.saveLogToDB({
                     host: host,
-                    performance: Math.ceil(setting.loadtime / (this.jqXHR_.responseText.length || 1) * 10e7),
+                    performance: Math.ceil(setting.loadtime / (this.jqXHR_.responseText.length || 1) * 1e5),
                     date: new Date().getTime()
                 });
                 this.app_.DATA.saveServerToDB(host, 0, setting.destLocation.href, this.app_.calExpires(this.jqXHR_));
@@ -2028,6 +2025,7 @@ var MODULE;
                 this.nowRetrying = false;
                 this.conAge_ = 10 * 1000;
                 this.conInterval_ = 1000;
+                this.tasks_ = [];
                 this.store = {
                     meta: new MODEL.DataStoreMeta(this),
                     history: new MODEL.DataStoreHistory(this),
@@ -2045,6 +2043,7 @@ var MODULE;
                         _this.conExpires_ = 0;
                     }
                     setTimeout(check, Math.max(_this.conExpires_ - now + 100, _this.conInterval_));
+                    _this.tasks_[0] && _this.opendb(null, true);
                 };
                 this.conAge_ && setTimeout(check, this.conInterval_);
             }
@@ -2052,14 +2051,15 @@ var MODULE;
                 return this.state_;
             };
 
-            DataDB.prototype.opendb = function (success, noRetry) {
+            DataDB.prototype.opendb = function (task, noRetry) {
                 var that = this;
 
-                if (!that.IDBFactory) {
+                if (!that.IDBFactory || !task && !that.tasks_[0]) {
                     return;
                 }
 
                 that.conExtend_();
+                task && that.reserveTask_(task);
 
                 try  {
                     that.nowInitializing = true;
@@ -2068,7 +2068,7 @@ var MODULE;
 
                     request.onblocked = function () {
                         this.result.close();
-                        !noRetry && that.initdb_(success, 1000);
+                        !noRetry && that.initdb_(1000);
                     };
 
                     request.onupgradeneeded = function () {
@@ -2087,7 +2087,7 @@ var MODULE;
 
                             database.createObjectStore(that.store.server.name, { keyPath: that.store.server.keyPath, autoIncrement: false }).createIndex(that.store.server.keyPath, that.store.server.keyPath, { unique: true });
                         } catch (err) {
-                            !noRetry && that.initdb_(success, 1000);
+                            !noRetry && that.initdb_(1000);
                         }
                     };
 
@@ -2101,23 +2101,23 @@ var MODULE;
                                 that.conExtend_();
                                 that.nowInitializing = false;
 
-                                success();
+                                that.digestTask_();
 
                                 that.nowRetrying = false;
                             }, function () {
-                                !noRetry && that.initdb_(success);
+                                !noRetry && that.initdb_();
                             });
                         } catch (err) {
                             database.close();
-                            !noRetry && that.initdb_(success, 1000);
+                            !noRetry && that.initdb_(1000);
                         }
                     };
 
                     request.onerror = function (event) {
-                        !noRetry && that.initdb_(success, 1000);
+                        !noRetry && that.initdb_(1000);
                     };
                 } catch (err) {
-                    !noRetry && that.initdb_(success, 1000);
+                    !noRetry && that.initdb_(1000);
                 }
             };
 
@@ -2128,20 +2128,20 @@ var MODULE;
                 database && database.close && database.close();
             };
 
-            DataDB.prototype.deletedb = function () {
+            DataDB.prototype.deletedb_ = function () {
                 this.closedb();
                 var IDBFactory = this.IDBFactory;
                 IDBFactory && IDBFactory.deleteDatabase && IDBFactory.deleteDatabase(this.name_);
             };
 
-            DataDB.prototype.initdb_ = function (success, delay) {
+            DataDB.prototype.initdb_ = function (delay) {
                 var _this = this;
                 var retry = function () {
                     if (!_this.nowRetrying) {
                         _this.nowRetrying = true;
-                        _this.deletedb();
+                        _this.deletedb_();
                     }
-                    _this.opendb(success, true);
+                    _this.opendb(null, true);
                 };
 
                 !delay ? retry() : void setTimeout(retry, delay);
@@ -2181,6 +2181,19 @@ var MODULE;
 
             DataDB.prototype.conExtend_ = function () {
                 this.conExpires_ = new Date().getTime() + this.conAge_;
+            };
+
+            DataDB.prototype.reserveTask_ = function (task) {
+                this.tasks_.push(task);
+            };
+
+            DataDB.prototype.digestTask_ = function (limit) {
+                if (typeof limit === "undefined") { limit = 0; }
+                var task;
+                limit = limit || -1;
+                while (task = limit-- && this.tasks_.pop()) {
+                    task();
+                }
             };
             return DataDB;
         })();
@@ -2723,57 +2736,72 @@ var MODULE;
 
             App.prototype.scope_ = function (setting, origURL, destURL, rewriteKeyUrl) {
                 if (typeof rewriteKeyUrl === "undefined") { rewriteKeyUrl = ''; }
-                var origKeyUrl, destKeyUrl, scp = setting.scope, dirs, keys, key, pattern, not, reg, rewrite, inherit, hit_src, hit_dst, option;
+                var origKeyUrl, destKeyUrl, scpTable = setting.scope, dirs, scpKeys, scpKey, scpTag, patterns, inherit, hit_src, hit_dst, option;
 
                 origKeyUrl = this.model_.convertUrlToKeyUrl(origURL).match(/.+?\w(\/.*)/).pop();
                 destKeyUrl = this.model_.convertUrlToKeyUrl(destURL).match(/.+?\w(\/.*)/).pop();
                 rewriteKeyUrl = rewriteKeyUrl.replace(/[#?].*/, '');
 
-                keys = (rewriteKeyUrl || destKeyUrl).replace(/^\/|\/$/g, '').split('/');
+                scpKeys = (rewriteKeyUrl || destKeyUrl).replace(/^\/|\/$/g, '').split('/');
                 if (rewriteKeyUrl) {
                     if (!~rewriteKeyUrl.indexOf('*')) {
                         return undefined;
                     }
                     dirs = [];
                     var arr = origKeyUrl.replace(/^\/|\/$/g, '').split('/');
-                    for (var i = 0, len = keys.length; i < len; i++) {
-                        '*' === keys[i] && dirs.push(arr[i]);
+                    for (var i = 0, len = scpKeys.length; i < len; i++) {
+                        '*' === scpKeys[i] && dirs.push(arr[i]);
                     }
                 }
 
-                for (var i = keys.length + 1; i--;) {
-                    rewrite = inherit = option = hit_src = hit_dst = undefined;
-                    key = keys.slice(0, i).join('/');
-                    key = '/' + key + ('/' === (rewriteKeyUrl || origKeyUrl).charAt(key.length + 1) ? '/' : '');
+                for (var i = scpKeys.length + 1; i--;) {
+                    inherit = option = hit_src = hit_dst = undefined;
+                    scpKey = scpKeys.slice(0, i).join('/');
+                    scpKey = '/' + scpKey + ('/' === (rewriteKeyUrl || origKeyUrl).charAt(scpKey.length + 1) ? '/' : '');
 
-                    if (!key || !(key in scp)) {
+                    if (!scpKey || !(scpKey in scpTable)) {
                         continue;
                     }
 
-                    if ('string' === typeof scp[key]) {
-                        scp[key] = scp[scp[key]];
+                    if (scpTable[scpKey] instanceof Array) {
+                        scpTag = '';
+                        patterns = scpTable[scpKey];
+                    } else {
+                        scpTag = scpTable[scpKey];
+                        patterns = scpTable[scpTag];
                     }
-                    if (!scp[key] || !scp[key].length) {
+
+                    if (!patterns || !patterns[0]) {
                         return false;
                     }
 
-                    for (var j = 0; pattern = scp[key][j]; j++) {
+                    patterns = patterns.concat();
+                    for (var j = 0, pattern; pattern = patterns[j]; j++) {
                         if (hit_src === false || hit_dst === false) {
                             break;
-                        } else if ('rewrite' === pattern && 'function' === typeof scp.rewrite && !rewriteKeyUrl) {
-                            rewrite = this.scope_.apply(this, [].slice.call(arguments).slice(0, 3).concat([MODEL.UTIL.fire(scp.rewrite, null, [destKeyUrl])]));
+                        }
+
+                        if ('#' === pattern[0]) {
+                            scpTag = pattern.slice(1);
+                            [].splice.apply(patterns, [j, 1].concat(scpTable[scpTag]));
+                            pattern = patterns[j];
+                        }
+
+                        if ('inherit' === pattern) {
+                            inherit = true;
+                        } else if ('rewrite' === pattern && 'function' === typeof scpTable.rewrite && !rewriteKeyUrl) {
+                            var rewrite = this.scope_.apply(this, [].slice.call(arguments).slice(0, 3).concat([MODEL.UTIL.fire(scpTable.rewrite, null, [destKeyUrl])]));
                             if (rewrite) {
                                 hit_src = hit_dst = true;
+                                option = rewrite;
                                 break;
                             } else if (false === rewrite) {
                                 return false;
                             }
-                        } else if ('inherit' === pattern) {
-                            inherit = true;
                         } else if ('string' === typeof pattern) {
-                            not = '!' === pattern.charAt(0);
+                            var not = '!' === pattern[0];
                             pattern = not ? pattern.slice(1) : pattern;
-                            reg = '*' === pattern.charAt(0);
+                            var reg = '*' === pattern[0];
                             pattern = reg ? pattern.slice(1) : pattern;
 
                             if (rewriteKeyUrl && ~pattern.indexOf('/*/')) {
@@ -2794,18 +2822,14 @@ var MODULE;
                                     return false;
                                 } else {
                                     hit_dst = true;
-                                    if (scp['$' + pattern]) {
-                                        option = scp['$' + pattern];
-                                    }
+                                    option = scpTable['$' + scpTag] || scpTable['$' + pattern] || null;
                                 }
                             }
-                        } else if ('object' === typeof pattern) {
-                            option = pattern;
                         }
                     }
 
                     if (hit_src && hit_dst) {
-                        return jQuery.extend(true, {}, setting, ('object' === typeof rewrite ? rewrite : option) || {});
+                        return jQuery.extend(true, {}, setting, option);
                     }
                     if (inherit) {
                         continue;
@@ -2830,10 +2854,29 @@ var MODULE;
 
             App.prototype.createHTMLDocument = function (html) {
                 if (typeof html === "undefined") { html = ''; }
-                // chrome, firefox
+                // firefox
                 this.createHTMLDocument = function (html) {
                     if (typeof html === "undefined") { html = ''; }
                     return window.DOMParser && window.DOMParser.prototype && new window.DOMParser().parseFromString(html, 'text/html');
+                };
+                if (test(this.createHTMLDocument)) {
+                    return this.createHTMLDocument(html);
+                }
+
+                // chrome, safari
+                this.createHTMLDocument = function (html) {
+                    if (typeof html === "undefined") { html = ''; }
+                    if (document.implementation && document.implementation.createHTMLDocument) {
+                        var doc = document.implementation.createHTMLDocument('');
+
+                        // IE, Operaクラッシュ対策
+                        if ('object' === typeof doc.activeElement && doc.activeElement) {
+                            doc.open();
+                            doc.write(html);
+                            doc.close();
+                        }
+                    }
+                    return doc;
                 };
                 if (test(this.createHTMLDocument)) {
                     return this.createHTMLDocument(html);
@@ -2864,27 +2907,10 @@ var MODULE;
                     return this.createHTMLDocument(html);
                 }
 
-                // msafari
-                this.createHTMLDocument = function (html) {
-                    if (typeof html === "undefined") { html = ''; }
-                    if (document.implementation && document.implementation.createHTMLDocument) {
-                        var doc = document.implementation.createHTMLDocument('');
-                        if ('object' === typeof doc.activeElement) {
-                            doc.open();
-                            doc.write(html);
-                            doc.close();
-                        }
-                    }
-                    return doc;
-                };
-                if (test(this.createHTMLDocument)) {
-                    return this.createHTMLDocument(html);
-                }
-
                 function test(createHTMLDocument) {
                     try  {
-                        var doc = createHTMLDocument && createHTMLDocument('<html lang="en" class="html"><head><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript></body></html>');
-                        return doc && jQuery('html', doc).is('.html[lang=en]') && jQuery('head>noscript', doc).html() && jQuery('body>noscript', doc).text() === 'noscript';
+                        var doc = createHTMLDocument && createHTMLDocument('<html lang="en" class="html"><head><link href="/"><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript><a href="/"></a></body></html>');
+                        return doc && jQuery('html', doc).is('.html[lang=en]') && jQuery('head>link', doc)[0].href && jQuery('head>noscript', doc).html() && jQuery('body>noscript', doc).text() === 'noscript' && jQuery('body>a', doc)[0].href;
                     } catch (err) {
                     }
                 }
