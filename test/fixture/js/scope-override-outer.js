@@ -1,8 +1,8 @@
 var path = '/' + window.location.pathname.match(/\w.*\//);
 $.pjax({
   scope: {
-    '$/': { area: '#primary' },
-    'pattern': ['/'],
+    pattern: ['/'],
+    $pattern: { area: '#primary' },
     '/base/': 'pattern',
     '/jquery.pjax.js/': 'pattern'
   }

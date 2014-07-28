@@ -233,7 +233,7 @@ module MODULE.MODEL {
       this.DATA.loadBufferAll(setting.buffer.limit);
 
       var expires: number;
-      var historyBufferData = <HistorySchema>this.DATA.getBuffer(this.DATA.storeNames.history, this.model_.convertUrlToKeyUrl(setting.destLocation.href));
+      var historyBufferData: HistorySchema = this.DATA.getBuffer<HistorySchema>(this.DATA.storeNames.history, this.model_.convertUrlToKeyUrl(setting.destLocation.href));
 
       expires = historyBufferData && historyBufferData.expires;
       if (expires && expires >= new Date().getTime()) {
@@ -241,7 +241,7 @@ module MODULE.MODEL {
         return;
       }
 
-      var logBuffer = <{ [index: number]: LogSchema }>this.DATA.getBuffer(this.DATA.storeNames.log),
+      var logBuffer = this.DATA.getBuffer<{ [index: number]: LogSchema }>(this.DATA.storeNames.log),
           timeList: number[] = [],
           logTable: { [index: number]: LogSchema } = {},
           now: number = new Date().getTime();
@@ -267,7 +267,7 @@ module MODULE.MODEL {
         return a - b;
       }
       timeList = timeList.sort(compareNumbers);
-      var serverBuffer = <{ [index: string]: ServerSchema }>this.DATA.getBuffer(this.DATA.storeNames.server),
+      var serverBuffer = this.DATA.getBuffer<{ [index: string]: ServerSchema }>(this.DATA.storeNames.server),
           time: number = timeList.shift();
 
       if (!serverBuffer) {
@@ -312,14 +312,12 @@ module MODULE.MODEL {
     scope_(setting: SettingInterface, origURL: string, destURL: string, rewriteKeyUrl: string = ''): any {
       var origKeyUrl: string,
           destKeyUrl: string,
-          scp: any = setting.scope,
+          scpTable = setting.scope,
           dirs: string[],
-          keys: string[],
-          key: string,
-          pattern: any,
-          not: boolean,
-          reg: boolean,
-          rewrite: any,
+          scpKeys: string[],
+          scpKey: string,
+          scpTag: string,
+          patterns: string[],
           inherit: boolean,
           hit_src: boolean,
           hit_dst: boolean,
@@ -329,43 +327,56 @@ module MODULE.MODEL {
       destKeyUrl = this.model_.convertUrlToKeyUrl(destURL).match(/.+?\w(\/.*)/).pop();
       rewriteKeyUrl = rewriteKeyUrl.replace(/[#?].*/, '');
 
-      keys = (rewriteKeyUrl || destKeyUrl).replace(/^\/|\/$/g, '').split('/');
+      scpKeys = (rewriteKeyUrl || destKeyUrl).replace(/^\/|\/$/g, '').split('/');
       if (rewriteKeyUrl) {
         if (!~rewriteKeyUrl.indexOf('*')) { return undefined; }
         dirs = [];
         var arr: string[] = origKeyUrl.replace(/^\/|\/$/g, '').split('/');
-        for (var i = 0, len = keys.length; i < len; i++) { '*' === keys[i] && dirs.push(arr[i]); }
+        for (var i = 0, len = scpKeys.length; i < len; i++) { '*' === scpKeys[i] && dirs.push(arr[i]); }
       }
 
-      for (var i = keys.length + 1; i--;) {
-        rewrite = inherit = option = hit_src = hit_dst = undefined;
-        key = keys.slice(0, i).join('/');
-        key = '/' + key + ('/' === (rewriteKeyUrl || origKeyUrl).charAt(key.length + 1) ? '/' : '');
+      for (var i = scpKeys.length + 1; i--;) {
+        inherit = option = hit_src = hit_dst = undefined;
+        scpKey = scpKeys.slice(0, i).join('/');
+        scpKey = '/' + scpKey + ('/' === (rewriteKeyUrl || origKeyUrl).charAt(scpKey.length + 1) ? '/' : '');
 
-        if (!key || !(key in scp)) { continue; }
+        if (!scpKey || !(scpKey in scpTable)) { continue; }
 
-        if ('string' === typeof scp[key]) {
-          scp[key] = scp[scp[key]];
+        if (scpTable[scpKey] instanceof Array) {
+          scpTag = '';
+          patterns = scpTable[scpKey];
+        } else {
+          scpTag = scpTable[scpKey];
+          patterns = scpTable[scpTag];
         }
-        if (!scp[key] || !scp[key].length) { return false; }
 
-        for (var j = 0; pattern = scp[key][j]; j++) {
-          if (hit_src === false || hit_dst === false) {
-            break;
-          } else if ('rewrite' === pattern && 'function' === typeof scp.rewrite && !rewriteKeyUrl) {
-            rewrite = this.scope_.apply(this, [].slice.call(arguments).slice(0, 3).concat([UTIL.fire(scp.rewrite, null, [destKeyUrl])]));
+        if (!patterns || !patterns[0]) { return false; }
+
+        patterns = patterns.concat();
+        for (var j = 0, pattern; pattern = patterns[j]; j++) {
+          if (hit_src === false || hit_dst === false) { break; }
+
+          if ('#' === pattern[0]) {
+            scpTag = pattern.slice(1);
+            [].splice.apply(patterns, [j, 1].concat(scpTable[scpTag]));
+            pattern = patterns[j];
+          }
+
+          if ('inherit' === pattern) {
+            inherit = true;
+          } else if ('rewrite' === pattern && 'function' === typeof scpTable.rewrite && !rewriteKeyUrl) {
+            var rewrite: any = this.scope_.apply(this, [].slice.call(arguments).slice(0, 3).concat([UTIL.fire(scpTable.rewrite, null, [destKeyUrl])]));
             if (rewrite) {
               hit_src = hit_dst = true;
+              option = rewrite;
               break;
             } else if (false === rewrite) {
               return false;
             }
-          } else if ('inherit' === pattern) {
-            inherit = true;
           } else if ('string' === typeof pattern) {
-            not = '!' === pattern.charAt(0);
+            var not: boolean = '!' === pattern[0];
             pattern = not ? pattern.slice(1) : pattern;
-            reg = '*' === pattern.charAt(0);
+            var reg: boolean = '*' === pattern[0];
             pattern = reg ? pattern.slice(1) : pattern;
 
             if (rewriteKeyUrl && ~pattern.indexOf('/*/')) {
@@ -384,18 +395,14 @@ module MODULE.MODEL {
                 return false;
               } else {
                 hit_dst = true;
-                if (scp['$' + pattern]) {
-                  option = scp['$' + pattern];
-                }
+                option = scpTable['$' + scpTag] || scpTable['$' + pattern] || null;
               }
             }
-          } else if ('object' === typeof pattern) {
-            option = pattern;
           }
         }
 
         if (hit_src && hit_dst) {
-          return jQuery.extend(true, {}, setting, ('object' === typeof rewrite ? rewrite : option) || {});
+          return jQuery.extend(true, {}, setting, option);
         }
         if (inherit) { continue; }
         break;
@@ -417,9 +424,24 @@ module MODULE.MODEL {
     }
 
     createHTMLDocument(html: string = ''): Document {
-      // chrome, firefox
+      // firefox
       this.createHTMLDocument = function (html: string = '') {
         return window.DOMParser && window.DOMParser.prototype && new window.DOMParser().parseFromString(html, 'text/html');
+      };
+      if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html); }
+
+      // chrome, safari
+      this.createHTMLDocument = function (html: string = '') {
+        if (document.implementation && document.implementation.createHTMLDocument) {
+          var doc = document.implementation.createHTMLDocument('');
+          // IE, Operaクラッシュ対策
+          if ('object' === typeof doc.activeElement && doc.activeElement) {
+            doc.open();
+            doc.write(html);
+            doc.close();
+          }
+        }
+        return doc;
       };
       if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html); }
 
@@ -445,24 +467,15 @@ module MODULE.MODEL {
       };
       if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html); }
 
-      // msafari
-      this.createHTMLDocument = function (html: string = '') {
-        if (document.implementation && document.implementation.createHTMLDocument) {
-          var doc = document.implementation.createHTMLDocument('');
-          if ('object' === typeof doc.activeElement) {
-            doc.open();
-            doc.write(html);
-            doc.close();
-          }
-        }
-        return doc;
-      };
-      if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html); }
-
       function test(createHTMLDocument) {
         try {
-          var doc = createHTMLDocument && createHTMLDocument('<html lang="en" class="html"><head><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript></body></html>');
-          return doc && jQuery('html', doc).is('.html[lang=en]') && jQuery('head>noscript', doc).html() && jQuery('body>noscript', doc).text() === 'noscript';
+          var doc = createHTMLDocument && createHTMLDocument('<html lang="en" class="html"><head><link href="/"><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript><a href="/"></a></body></html>');
+          return doc &&
+                 jQuery('html', doc).is('.html[lang=en]') &&
+                 (<HTMLLinkElement>jQuery('head>link', doc)[0]).href &&
+                 jQuery('head>noscript', doc).html() &&
+                 jQuery('body>noscript', doc).text() === 'noscript' &&
+                 (<HTMLAnchorElement>jQuery('body>a', doc)[0]).href;
         } catch (err) { }
       }
 

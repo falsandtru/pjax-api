@@ -150,10 +150,10 @@ module MODULE {
     }
     
     // buffer
-    getBuffer(storeName: string): Object
-    getBuffer(storeName: string, key: string): any
-    getBuffer(storeName: string, key: number): any
-    setBuffer(storeName: string, key: string, value: Object, isMerge?: boolean): any
+    getBuffer<U>(storeName: string): U
+    getBuffer<T>(storeName: string, key: string): T
+    getBuffer<T>(storeName: string, key: number): T
+    setBuffer<T>(storeName: string, key: string, value: T, isMerge?: boolean): T
     loadBuffer(storeName: string, limit?: number): void
     saveBuffer(storeName: string): void
     loadBufferAll(limit?: number): void
@@ -184,6 +184,7 @@ module MODULE {
     loadwaits_: JQueryDeferred<any>[]
 
     event_: JQueryEventObject
+    host_: string
     data_: string
     textStatus_: string
     jqXHR_: JQueryXHR
@@ -229,6 +230,7 @@ module MODULE {
     conAge_: number
     conExpires_: number
     conInterval_: number
+    tasks_: { (): void }[]
     state(): State
     store: DatabaseSchema
     metaNames: {
@@ -236,13 +238,15 @@ module MODULE {
       update: string
     }
     
-    initdb_(success: () => void, delay?: number): void
+    initdb_(delay?: number): void
+    deletedb_(): void
     checkdb_(database: IDBDatabase, version: number, success: () => void, upgrade: () => void): void;
     conExtend_(): void
+    reserveTask_(task: () => void): void
+    digestTask_(limit?: number): void
 
-    opendb(success: () => void, noRetry?: boolean): void
+    opendb(task: () => void, noRetry?: boolean): void
     closedb(): void
-    deletedb(): void
   }
   export declare class DataStoreInterface<T> {
     constructor(DB: DataDBInterface)
@@ -326,7 +330,7 @@ module MODULE {
     submit(url: string, attr: { action?: string; method?: string; }, data: any): JQueryPjax
     submit(url: HTMLFormElement, attr?: { action?: string; method?: string; }, data?: any): JQueryPjax
     submit(url: JQuery, attr?: { action?: string; method?: string; }, data?: any): JQueryPjax
-    follow(event: JQueryEventObject, ajax: JQueryXHR): boolean
+    follow(event: JQueryEventObject, ajax: JQueryXHR, host?: string): boolean
     setCache(): JQueryPjax
     setCache(url: string): JQueryPjax
     setCache(url: string, data: string): JQueryPjax
@@ -351,7 +355,10 @@ module MODULE {
     link: string
     filter(): boolean
     form: string
-    scope: {}
+    scope: {
+      [index: string]: any
+      rewrite(url: string): string
+    }
     rewrite: (document: Document, area: string, host: string) => void
     state: {}
     scrollTop: number
@@ -554,10 +561,10 @@ module MODULE {
     jqXHR: JQueryXHR
     data: string
     textStatus: string
-    size?: number
-    expires?: number
-    host?: string
-    timeStamp?: number
+    size: number
+    expires: number
+    host: string
+    timeStamp: number
   }
   export interface CookieOptionInterface {
     age: number

@@ -58,6 +58,7 @@ module MODULE.MODEL {
         speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
         setting.loadtime = 0;
         this.model_.setActiveXHR(null);
+        this.host_ = cache.host || '';
         this.data_ = cache.data;
         this.textStatus_ = cache.textStatus;
         this.jqXHR_ = cache.jqXHR;
@@ -73,6 +74,7 @@ module MODULE.MODEL {
         speedcheck && speed.name.splice(0, 1, 'preload(' + speed.time.slice(-1) + ')');
         speedcheck && speed.time.push(speed.now() - speed.fire);
         speedcheck && speed.name.push('continue(' + speed.time.slice(-1) + ')');
+        this.host_ = activeXHR.host || '';
         setting.loadtime = activeXHR.timeStamp;
         var wait = setting.wait && isFinite(activeXHR.timeStamp) ? Math.max(setting.wait - new Date().getTime() + activeXHR.timeStamp, 0) : 0;
         jQuery.when(activeXHR, that.wait_(wait))
@@ -86,7 +88,8 @@ module MODULE.MODEL {
             callbacks = {};
 
         this.app_.chooseRequestServer(setting);
-        requestLocation.host = setting.balance.self && this.model_.requestHost.split('//').pop() || setting.destLocation.host;
+        this.host_ = setting.balance.self && this.model_.requestHost.split('//').pop() || '';
+        requestLocation.host = this.host_ || setting.destLocation.host;
         ajax.url = !setting.server.query ? requestLocation.href
                                          : [
                                              requestLocation.protocol,
@@ -189,6 +192,7 @@ module MODULE.MODEL {
     loadwaits_: JQueryDeferred<any>[] = []
 
     event_: JQueryEventObject
+    host_: string
     data_: string
     textStatus_: string
     jqXHR_: JQueryXHR
@@ -337,16 +341,14 @@ module MODULE.MODEL {
     updateRewrite_(): void {
       var setting: SettingInterface = this.setting_,
           cache: CacheInterface = this.cache_,
-          event: JQueryEventObject = this.event_,
-          jqXHR: JQueryXHR = this.jqXHR_;
+          event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
       if (!setting.rewrite) { return; }
 
       if (UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) { return; }
 
-      var host = cache ? cache.host : setting.balance.self ? setting.balance.server.host : jqXHR.host || '';
-      UTIL.fire(setting.rewrite, null, [this.srcDocument_, setting.area, host])
+      UTIL.fire(setting.rewrite, null, [this.srcDocument_, setting.area, this.host_])
 
       if (UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) { return; }
 
@@ -625,9 +627,6 @@ module MODULE.MODEL {
           adds: HTMLElement[] = [];
 
       for (var i = 0, element; element = css[i]; i++) {
-        // href属性が設定されない場合があるので変換して認識させる
-        element.href = dstDocument.importNode ? (<HTMLLinkElement>dstDocument.importNode(element, true)).href : (<HTMLLinkElement>jQuery(element.outerHTML)[0]).href;
-
         for (var j = 0; removes[j]; j++) {
           if (UTIL.trim((<HTMLLinkElement>removes[j]).href || (<HTMLStyleElement>removes[j]).innerHTML || '') === UTIL.trim(element.href || element.innerHTML || '')) {
             if (adds.length) {
@@ -670,9 +669,6 @@ module MODULE.MODEL {
 
       var executed: { [index: string]: boolean; } = this.app_.stock('executed');
       for (var i = 0, element; element = script[i]; i++) {
-        // CSSに同じ
-        element.src = dstDocument.importNode ? (<HTMLScriptElement>dstDocument.importNode(element, true)).src : (<HTMLScriptElement>jQuery(element.outerHTML)[0]).src;
-
         if (!jQuery(element).is(selector)) { continue; }
         if (!element.src && !UTIL.trim(element.innerHTML)) { continue; }
         if (element.src in executed || setting.load.ignore && jQuery(element).is(setting.load.ignore)) { continue; }
@@ -792,7 +788,7 @@ module MODULE.MODEL {
       var host = (this.jqXHR_.getResponseHeader(setting.balance.server.header) || '').split('//').pop();
       this.app_.DATA.saveLogToDB({
         host: host,
-        performance: Math.ceil(setting.loadtime / (this.jqXHR_.responseText.length || 1) * 10e7),
+        performance: Math.ceil(setting.loadtime / (this.jqXHR_.responseText.length || 1) * 1e5),
         date: new Date().getTime()
       });
       this.app_.DATA.saveServerToDB(host, 0, setting.destLocation.href, this.app_.calExpires(this.jqXHR_));

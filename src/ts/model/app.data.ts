@@ -36,14 +36,14 @@ module MODULE.MODEL {
       });
     }
 
-    getBuffer(storeName: string): Object
-    getBuffer(storeName: string, key: string): any
-    getBuffer(storeName: string, key: number): any
-    getBuffer(storeName: string, key?: any): any {
+    getBuffer<U>(storeName: string): U
+    getBuffer<T>(storeName: string, key: string): T
+    getBuffer<T>(storeName: string, key: number): T
+    getBuffer<T>(storeName: string, key?: any): any {
       return this.DATA_.DB.store[storeName].getBuffer(key);
     }
 
-    setBuffer(storeName: string, key: string, value: Object, isMerge?: boolean): any {
+    setBuffer<T>(storeName: string, key: string, value: T, isMerge?: boolean): T {
       return this.DATA_.DB.store[storeName].setBuffer(key, value, isMerge);
     }
 
@@ -71,7 +71,7 @@ module MODULE.MODEL {
       var keyUrl: string = this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url)),
           that = this;
 
-      var data = <HistorySchema>this.DATA_.DB.store.history.getBuffer(keyUrl);
+      var data: HistorySchema = this.DATA_.DB.store.history.getBuffer(keyUrl);
 
       if (data && 'string' === typeof data.title) {
         document.title = data.title;
@@ -86,7 +86,7 @@ module MODULE.MODEL {
     saveTitleToDB(unsafe_url: string, title: string): void {
       var keyUrl = this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
 
-      var value = <HistorySchema>{ id: keyUrl, title: title, date: new Date().getTime() };
+      var value: HistorySchema = <HistorySchema>{ id: keyUrl, title: title, date: new Date().getTime() };
       this.DATA_.DB.store.history.setBuffer(value, true);
       this.DATA_.DB.store.history.set(value);
       this.DATA_.DB.store.history.clean();
@@ -95,7 +95,7 @@ module MODULE.MODEL {
     loadScrollPositionFromCacheOrDB(unsafe_url: string): void {
       var keyUrl: string = this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
 
-      var data = <HistorySchema>this.DATA_.DB.store.history.getBuffer(keyUrl);
+      var data: HistorySchema = this.DATA_.DB.store.history.getBuffer(keyUrl);
       function scroll(scrollX, scrollY) {
         if ('number' !== typeof scrollX || 'number' !== typeof scrollY) { return; }
 
@@ -116,7 +116,7 @@ module MODULE.MODEL {
     saveScrollPositionToCacheAndDB(unsafe_url: string, scrollX: number, scrollY: number): void {
       var keyUrl = this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
 
-      var value = <HistorySchema>{ id: keyUrl, scrollX: scrollX, scrollY: scrollY, date: new Date().getTime() };
+      var value: HistorySchema = <HistorySchema>{ id: keyUrl, scrollX: scrollX, scrollY: scrollY, date: new Date().getTime() };
       this.DATA_.DB.store.history.setBuffer(value, true);
       this.DATA_.DB.store.history.set(value);
     }
@@ -125,7 +125,7 @@ module MODULE.MODEL {
     }
 
     saveExpiresToDB(keyUrl: string, host: string, expires: number): void {
-      var value = <HistorySchema>{ id: keyUrl, host: host, expires: expires };
+      var value: HistorySchema = <HistorySchema>{ id: keyUrl, host: host, expires: expires };
       this.DATA_.DB.store.history.setBuffer(value, true);
       this.DATA_.DB.store.history.set(value);
     }
@@ -143,7 +143,7 @@ module MODULE.MODEL {
     }
 
     saveServerToDB(host: string, state: number = 0, unsafe_url?: string, expires: number = 0): void {
-      var value = <ServerSchema>{ id: host || '', state: state };
+      var value: ServerSchema = <ServerSchema>{ id: host || '', state: state };
       this.DATA_.DB.store.server.setBuffer(value);
       this.DATA_.DB.store.server.set(value);
       if (unsafe_url) {

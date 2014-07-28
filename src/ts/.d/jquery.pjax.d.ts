@@ -13,7 +13,10 @@ interface PjaxSetting {
     link?: string
     filter?: any     // string, function()
     form?: string
-    scope?: Object
+    scope?: {
+        [index: string]: any
+        rewrite(url: string): string
+    }
     rewrite: (document: Document, area: string, host: string) => void
     state?: any      // any, function(event, param, origUrl, destUrl )
     scrollTop?: any  // number, function( event, param, origUrl, destUrl ), null, false
@@ -194,7 +197,7 @@ interface JQueryPjax {
     submit(url: string, attr: { action?: string; method?: string; }, data: any): JQueryPjax
     submit(url: HTMLFormElement, attr?: { action?: string; method?: string; }, data?: any): JQueryPjax
     submit(url: JQuery, attr?: { action?: string; method?: string; }, data?: any): JQueryPjax
-    follow(event: JQueryEventObject, ajax: JQueryXHR): boolean
+    follow(event: JQueryEventObject, ajax: JQueryXHR, host?: string): boolean
     setCache(): JQueryPjax
     setCache(url: string): JQueryPjax
     setCache(url: string, data: string): JQueryPjax

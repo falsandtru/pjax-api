@@ -67,12 +67,12 @@
   /* pjax
      -------------------------------------------------------------------------- */
   this.pjax = function(){
-    if (/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.navigator.userAgent)) {return;}
-    
     $.pjax({
       area: ['#container', 'body'],
       scope: {
-        '/': ['/', '^/TypeScriptMVCTemplate/test/']
+        test: '!*/[^/]+/test/',
+        $test: null,
+        '/': ['/', 'test']
       },
       callback: null,
       callbacks: {
