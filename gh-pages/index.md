@@ -66,7 +66,7 @@ pjaxはリクエストと描画を最小限に抑えることで高速かつシ�
 <div class="row">
 <div class="col-md-4">
 ## jQuery
-jQuery1.6以降を推奨します。jQuery1.4.2から対応していますが機能が制限されます。[>>more](jquery/)
+jQuery1.6+推奨です。jQuery1.4.2から動作しますが機能が制限されます。[>>more](jquery/)
 
 * v1.4.2
 * v1.7.2
@@ -89,7 +89,7 @@ TypeScriptとMVCモデルを使用したフレームワーク｢*TypeScriptMVCTe
 <div class="row">
 <div class="col-md-4">
 ## ChangeLog
-変更履歴です。[>>more](changelog/)
+[>>more](changelog/)
 </div>
 
 <div class="col-md-4">
