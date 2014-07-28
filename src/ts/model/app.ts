@@ -472,10 +472,10 @@ module MODULE.MODEL {
           var doc = createHTMLDocument && createHTMLDocument('<html lang="en" class="html"><head><link href="/"><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript><a href="/"></a></body></html>');
           return doc &&
                  jQuery('html', doc).is('.html[lang=en]') &&
-                 jQuery('head>link', doc).prop('href') &&
+                 (<HTMLLinkElement>jQuery('head>link', doc)[0]).href &&
                  jQuery('head>noscript', doc).html() &&
                  jQuery('body>noscript', doc).text() === 'noscript' &&
-                 jQuery('body>a', doc).prop('href');
+                 (<HTMLAnchorElement>jQuery('body>a', doc)[0]).href;
         } catch (err) { }
       }
 
