@@ -72,7 +72,9 @@
     $.pjax({
       area: ['#container', 'body'],
       scope: {
-        '/': ['/', '^/TypeScriptMVCTemplate/test/']
+        test: '!*/[^/]+/test/',
+        $test: null,
+        '/': ['/', 'test']
       },
       callback: null,
       callbacks: {

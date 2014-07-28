@@ -355,7 +355,10 @@ module MODULE {
     link: string
     filter(): boolean
     form: string
-    scope: {}
+    scope: {
+      [index: string]: any
+      rewrite(url: string): string
+    }
     rewrite: (document: Document, area: string, host: string) => void
     state: {}
     scrollTop: number

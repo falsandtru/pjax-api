@@ -312,14 +312,12 @@ module MODULE.MODEL {
     scope_(setting: SettingInterface, origURL: string, destURL: string, rewriteKeyUrl: string = ''): any {
       var origKeyUrl: string,
           destKeyUrl: string,
-          scp: any = setting.scope,
+          scpTable = setting.scope,
           dirs: string[],
-          keys: string[],
-          key: string,
-          pattern: any,
-          not: boolean,
-          reg: boolean,
-          rewrite: any,
+          scpKeys: string[],
+          scpKey: string,
+          scpTag: string,
+          patterns: string[],
           inherit: boolean,
           hit_src: boolean,
           hit_dst: boolean,
@@ -329,43 +327,56 @@ module MODULE.MODEL {
       destKeyUrl = this.model_.convertUrlToKeyUrl(destURL).match(/.+?\w(\/.*)/).pop();
       rewriteKeyUrl = rewriteKeyUrl.replace(/[#?].*/, '');
 
-      keys = (rewriteKeyUrl || destKeyUrl).replace(/^\/|\/$/g, '').split('/');
+      scpKeys = (rewriteKeyUrl || destKeyUrl).replace(/^\/|\/$/g, '').split('/');
       if (rewriteKeyUrl) {
         if (!~rewriteKeyUrl.indexOf('*')) { return undefined; }
         dirs = [];
         var arr: string[] = origKeyUrl.replace(/^\/|\/$/g, '').split('/');
-        for (var i = 0, len = keys.length; i < len; i++) { '*' === keys[i] && dirs.push(arr[i]); }
+        for (var i = 0, len = scpKeys.length; i < len; i++) { '*' === scpKeys[i] && dirs.push(arr[i]); }
       }
 
-      for (var i = keys.length + 1; i--;) {
-        rewrite = inherit = option = hit_src = hit_dst = undefined;
-        key = keys.slice(0, i).join('/');
-        key = '/' + key + ('/' === (rewriteKeyUrl || origKeyUrl).charAt(key.length + 1) ? '/' : '');
+      for (var i = scpKeys.length + 1; i--;) {
+        inherit = option = hit_src = hit_dst = undefined;
+        scpKey = scpKeys.slice(0, i).join('/');
+        scpKey = '/' + scpKey + ('/' === (rewriteKeyUrl || origKeyUrl).charAt(scpKey.length + 1) ? '/' : '');
 
-        if (!key || !(key in scp)) { continue; }
+        if (!scpKey || !(scpKey in scpTable)) { continue; }
 
-        if ('string' === typeof scp[key]) {
-          scp[key] = scp[scp[key]];
+        if (scpTable[scpKey] instanceof Array) {
+          scpTag = '';
+          patterns = scpTable[scpKey];
+        } else {
+          scpTag = scpTable[scpKey];
+          patterns = scpTable[scpTag];
         }
-        if (!scp[key] || !scp[key].length) { return false; }
 
-        for (var j = 0; pattern = scp[key][j]; j++) {
-          if (hit_src === false || hit_dst === false) {
-            break;
-          } else if ('rewrite' === pattern && 'function' === typeof scp.rewrite && !rewriteKeyUrl) {
-            rewrite = this.scope_.apply(this, [].slice.call(arguments).slice(0, 3).concat([UTIL.fire(scp.rewrite, null, [destKeyUrl])]));
+        if (!patterns || !patterns[0]) { return false; }
+
+        patterns = patterns.concat();
+        for (var j = 0, pattern; pattern = patterns[j]; j++) {
+          if (hit_src === false || hit_dst === false) { break; }
+
+          if ('#' === pattern[0]) {
+            scpTag = pattern.slice(1);
+            [].splice.apply(patterns, [j, 1].concat(scpTable[scpTag]));
+            pattern = patterns[j];
+          }
+
+          if ('inherit' === pattern) {
+            inherit = true;
+          } else if ('rewrite' === pattern && 'function' === typeof scpTable.rewrite && !rewriteKeyUrl) {
+            var rewrite: any = this.scope_.apply(this, [].slice.call(arguments).slice(0, 3).concat([UTIL.fire(scpTable.rewrite, null, [destKeyUrl])]));
             if (rewrite) {
               hit_src = hit_dst = true;
+              option = rewrite;
               break;
             } else if (false === rewrite) {
               return false;
             }
-          } else if ('inherit' === pattern) {
-            inherit = true;
           } else if ('string' === typeof pattern) {
-            not = '!' === pattern.charAt(0);
+            var not: boolean = '!' === pattern[0];
             pattern = not ? pattern.slice(1) : pattern;
-            reg = '*' === pattern.charAt(0);
+            var reg: boolean = '*' === pattern[0];
             pattern = reg ? pattern.slice(1) : pattern;
 
             if (rewriteKeyUrl && ~pattern.indexOf('/*/')) {
@@ -384,18 +395,14 @@ module MODULE.MODEL {
                 return false;
               } else {
                 hit_dst = true;
-                if (scp['$' + pattern]) {
-                  option = scp['$' + pattern];
-                }
+                option = scpTable['$' + scpTag] || scpTable['$' + pattern] || null;
               }
             }
-          } else if ('object' === typeof pattern) {
-            option = pattern;
           }
         }
 
         if (hit_src && hit_dst) {
-          return jQuery.extend(true, {}, setting, ('object' === typeof rewrite ? rewrite : option) || {});
+          return jQuery.extend(true, {}, setting, option);
         }
         if (inherit) { continue; }
         break;

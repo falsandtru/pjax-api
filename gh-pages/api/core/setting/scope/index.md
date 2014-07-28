@@ -21,7 +21,7 @@ $.pjax({
 });
 </pre>
 
-文字列を値に設定するとその文字をキーとする値にリダイレクトします。
+文字列を値に設定するとその文字をキーとする値を使用します。
 
 <pre class="sh brush: js;">
 $.pjax({
@@ -33,14 +33,27 @@ $.pjax({
 });
 </pre>
 
-`'$'`接頭辞を使用してpjax設定を上書きできます。遷移先URLに一致するパターンのみ使用されます。
+`'#'`接頭辞により配列内部で値を展開できます。
+
+<pre class="sh brush: js;">
+$.pjax({
+　　scope: {
+    // `/about/`と`/blog/`ディレクトリ下でのみpjaxを使用する。
+    'pattern': ['/about/', '/blog/'],
+    '/': ['#pattern']
+  }
+});
+</pre>
+
+`'$'`接頭辞によりpjax設定を上書きできます。遷移先URLに一致するパターンのみ使用されます。
 
 <pre class="sh brush: js;">
 $.pjax({
 　　scope: {
     // `/search/`ディレクトリ下ではGET送信フォームでpjaxを使用する。
-    '$/search/': {form: 'form:not([method])'},
-    '/search/': ['/search/']
+    search: ['/search/'],
+    $search: {form: 'form:not([method])'},
+    '/': ['/', '#search']
   }
 });
 </pre>

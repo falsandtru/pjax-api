@@ -13,7 +13,10 @@ interface PjaxSetting {
     link?: string
     filter?: any     // string, function()
     form?: string
-    scope?: Object
+    scope?: {
+        [index: string]: any
+        rewrite(url: string): string
+    }
     rewrite: (document: Document, area: string, host: string) => void
     state?: any      // any, function(event, param, origUrl, destUrl )
     scrollTop?: any  // number, function( event, param, origUrl, destUrl ), null, false
