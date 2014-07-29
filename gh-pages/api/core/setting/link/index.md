@@ -12,7 +12,7 @@ class: style-api style-api-detail
 <a href="demo/link/" target="_blank" class="btn btn-primary" role="button">demo</a>
 
 ## link: string
-文字列によりアンカーリンクを設定します。
+jQueryセレクタによりアンカーリンクを設定します。
 
 <pre class="sh brush: js;">
 $.pjax({
