@@ -185,7 +185,7 @@ module MODULE.MODEL {
       });
 
       new VIEW.Main(this.model_, this.controller_, $context).BIND(setting);
-      setTimeout(() => this.createHTMLDocument(), 50);
+      setTimeout(() => this.createHTMLDocument(''), 50);
       setTimeout(() => this.DATA.loadBufferAll(setting.buffer.limit), setting.buffer.delay);
       setting.balance.self && setTimeout(() => this.enableBalance(), setting.buffer.delay);
       setTimeout(() => this.landing = null, 1500);
@@ -423,15 +423,15 @@ module MODULE.MODEL {
       }
     }
 
-    createHTMLDocument(html: string = ''): Document {
+    createHTMLDocument(html: string): Document {
       // firefox
-      this.createHTMLDocument = function (html: string = '') {
+      this.createHTMLDocument = (html: string): Document => {
         return window.DOMParser && window.DOMParser.prototype && new window.DOMParser().parseFromString(html, 'text/html');
       };
       if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html); }
 
       // chrome, safari
-      this.createHTMLDocument = function (html: string = '') {
+      this.createHTMLDocument = (html: string): Document => {
         if (document.implementation && document.implementation.createHTMLDocument) {
           var doc = document.implementation.createHTMLDocument('');
           // IE, Operaクラッシュ対策
@@ -446,7 +446,7 @@ module MODULE.MODEL {
       if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html); }
 
       // ie10+, opera
-      this.createHTMLDocument = function (html: string = '') {
+      this.createHTMLDocument = (html: string): Document => {
         if (document.implementation && document.implementation.createHTMLDocument) {
           var doc = document.implementation.createHTMLDocument('');
           var root = document.createElement('html');
@@ -466,7 +466,7 @@ module MODULE.MODEL {
         return doc;
       };
       if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html); }
-
+      
       function test(createHTMLDocument) {
         try {
           var doc = createHTMLDocument && createHTMLDocument('<html lang="en" class="html"><head><link href="/"><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript><a href="/"></a></body></html>');
@@ -478,7 +478,7 @@ module MODULE.MODEL {
                  (<HTMLAnchorElement>jQuery('body>a', doc)[0]).href;
         } catch (err) { }
       }
-
+      
     }
 
     calAge(jqXHR: JQueryXHR): number {

@@ -289,8 +289,6 @@ module MODULE.MODEL {
           jqXHR: jqXHR,
           textStatus: textStatus,
           data: data,
-          //css: undefined,
-          //script: undefined,
           size: size,
           expires: expires,
           host: host || '',
