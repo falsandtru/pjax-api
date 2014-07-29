@@ -1,0 +1,3 @@
+$.pjax({
+  load: { css: true }
+});

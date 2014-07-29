@@ -7,6 +7,11 @@ nav: nav
 
 # ChangeLog
 
+## 2.11.0
+
+* SCRIPT要素をDOMに反映するよう変更
+* `load.log`パラメータを追加
+
 ## 2.10.1
 
 * 最適化
