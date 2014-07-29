@@ -17,7 +17,7 @@ class: style-api style-api-detail
 $.pjax({
   rewrite: function(document, area, host) {
     if (!host) {return;}
-    $('img', document).each(function(){
+    $(area, document).find('img').each(function(){
       this.src = this.src.replace(/\/[^/]+/, '/' + host);
     });
   }

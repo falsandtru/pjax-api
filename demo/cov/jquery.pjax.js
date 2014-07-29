@@ -3,7 +3,7 @@
  * jquery.pjax.js
  * 
  * @name jquery.pjax.js
- * @version 2.10.0
+ * @version 2.10.1
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
  * @copyright 2012, falsandtru
@@ -2460,7 +2460,7 @@ var MODULE;
                     ajax: { dataType: 'text' },
                     contentType: 'text/html',
                     cache: {
-                        click: false, submit: false, popstate: false, get: true, post: true, mix: false,
+                        click: false, submit: false, popstate: false, get: true, post: true, mix: 0,
                         limit: 100 /* pages */ , size: 1 * 1024 * 1024 /* 1MB */ , expires: { max: null, min: 5 * 60 * 1000 /* 5min */  }
                     },
                     buffer: {
@@ -2576,7 +2576,7 @@ var MODULE;
                                     return $0.toUpperCase();
                                 })].join('-')
                         },
-                        fix: !/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.navigator.userAgent) ? { location: false, reset: false } : {},
+                        fix: !/android|iphone os|like mac os x/i.test(window.navigator.userAgent) ? { location: false, reset: false } : {},
                         contentType: setting.contentType.replace(/\s*[,;]\s*/g, '|').toLowerCase(),
                         server: {
                             query: query
@@ -2608,7 +2608,7 @@ var MODULE;
 
                 new MODULE.VIEW.Main(this.model_, this.controller_, $context).BIND(setting);
                 setTimeout(function () {
-                    return _this.createHTMLDocument();
+                    return _this.createHTMLDocument('');
                 }, 50);
                 setTimeout(function () {
                     return _this.DATA.loadBufferAll(setting.buffer.limit);
@@ -2853,10 +2853,8 @@ var MODULE;
             };
 
             App.prototype.createHTMLDocument = function (html) {
-                if (typeof html === "undefined") { html = ''; }
                 // firefox
                 this.createHTMLDocument = function (html) {
-                    if (typeof html === "undefined") { html = ''; }
                     return window.DOMParser && window.DOMParser.prototype && new window.DOMParser().parseFromString(html, 'text/html');
                 };
                 if (test(this.createHTMLDocument)) {
@@ -2865,7 +2863,6 @@ var MODULE;
 
                 // chrome, safari
                 this.createHTMLDocument = function (html) {
-                    if (typeof html === "undefined") { html = ''; }
                     if (document.implementation && document.implementation.createHTMLDocument) {
                         var doc = document.implementation.createHTMLDocument('');
 
@@ -2884,7 +2881,6 @@ var MODULE;
 
                 // ie10+, opera
                 this.createHTMLDocument = function (html) {
-                    if (typeof html === "undefined") { html = ''; }
                     if (document.implementation && document.implementation.createHTMLDocument) {
                         var doc = document.implementation.createHTMLDocument('');
                         var root = document.createElement('html');
@@ -3286,8 +3282,6 @@ var MODULE;
                     jqXHR: jqXHR,
                     textStatus: textStatus,
                     data: data,
-                    //css: undefined,
-                    //script: undefined,
                     size: size,
                     expires: expires,
                     host: host || '',

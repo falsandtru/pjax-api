@@ -23,6 +23,6 @@ $.pjax({
 
 <pre class="sh brush: js;">
 $.pjax({
-  wait: 100
+  wait: function(){return 100;}
 });
 </pre>
