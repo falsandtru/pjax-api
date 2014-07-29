@@ -49,7 +49,7 @@ module MODULE.MODEL {
             ajax: { dataType: 'text' },
             contentType: 'text/html',
             cache: {
-              click: false, submit: false, popstate: false, get: true, post: true, mix: false,
+              click: false, submit: false, popstate: false, get: true, post: true, mix: 0,
               limit: 100 /* pages */, size: 1 * 1024 * 1024 /* 1MB */, expires: { max: null, min: 5 * 60 * 1000 /* 5min */}
             },
             buffer: {
@@ -159,7 +159,7 @@ module MODULE.MODEL {
                 scroll: ['scroll'].concat(nsArray.join(':')).join('.'),
                 requestHeader: ['X', nsArray[0].replace(/^\w/, function ($0) { return $0.toUpperCase(); })].join('-')
               },
-              fix: !/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.navigator.userAgent) ? { location: false, reset: false } : {},
+              fix: !/android|iphone os|like mac os x/i.test(window.navigator.userAgent) ? { location: false, reset: false } : {},
               contentType: setting.contentType.replace(/\s*[,;]\s*/g, '|').toLowerCase(),
               server: {
                 query: query
@@ -185,7 +185,7 @@ module MODULE.MODEL {
       });
 
       new VIEW.Main(this.model_, this.controller_, $context).BIND(setting);
-      setTimeout(() => this.createHTMLDocument(), 50);
+      setTimeout(() => this.createHTMLDocument(''), 50);
       setTimeout(() => this.DATA.loadBufferAll(setting.buffer.limit), setting.buffer.delay);
       setting.balance.self && setTimeout(() => this.enableBalance(), setting.buffer.delay);
       setTimeout(() => this.landing = null, 1500);
@@ -423,15 +423,15 @@ module MODULE.MODEL {
       }
     }
 
-    createHTMLDocument(html: string = ''): Document {
+    createHTMLDocument(html: string): Document {
       // firefox
-      this.createHTMLDocument = function (html: string = '') {
+      this.createHTMLDocument = (html: string): Document => {
         return window.DOMParser && window.DOMParser.prototype && new window.DOMParser().parseFromString(html, 'text/html');
       };
       if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html); }
 
       // chrome, safari
-      this.createHTMLDocument = function (html: string = '') {
+      this.createHTMLDocument = (html: string): Document => {
         if (document.implementation && document.implementation.createHTMLDocument) {
           var doc = document.implementation.createHTMLDocument('');
           // IE, Operaクラッシュ対策
@@ -446,7 +446,7 @@ module MODULE.MODEL {
       if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html); }
 
       // ie10+, opera
-      this.createHTMLDocument = function (html: string = '') {
+      this.createHTMLDocument = (html: string): Document => {
         if (document.implementation && document.implementation.createHTMLDocument) {
           var doc = document.implementation.createHTMLDocument('');
           var root = document.createElement('html');
@@ -466,7 +466,7 @@ module MODULE.MODEL {
         return doc;
       };
       if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html); }
-
+      
       function test(createHTMLDocument) {
         try {
           var doc = createHTMLDocument && createHTMLDocument('<html lang="en" class="html"><head><link href="/"><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript><a href="/"></a></body></html>');
@@ -478,7 +478,7 @@ module MODULE.MODEL {
                  (<HTMLAnchorElement>jQuery('body>a', doc)[0]).href;
         } catch (err) { }
       }
-
+      
     }
 
     calAge(jqXHR: JQueryXHR): number {

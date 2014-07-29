@@ -10,7 +10,7 @@ class: style-api style-api-detail
 `link`パラメータに一致したアンカーリンクを絞り込みます。初期値は`function(){return /(\/[^.]*|\.html?|\.php)$/.test('/' + this.pathname);}`です。
 
 ## filter: string
-文字列によりアンカーリンクを絞り込みます。
+jQueryセレクタによりアンカーリンクを絞り込みます。
 
 <pre class="sh brush: js;">
 $.pjax({

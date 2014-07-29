@@ -13,7 +13,7 @@ class: style-api style-api-detail
 更新の描画後に実行されます。第二引数にpjax設定時に`param`パラメータに設定した値が渡されます。
 
 ## callbacks
-多数のコールバック実行タイミングを持ちます。`ajax`を除くすべてのコールバックは戻り値に`false`を設定することで現在の処理をキャンセルまたは抜けることができます。`before`では以降の処理をすべてキャンセルします。このときフォールバック処理は`fallback`の設定にかかわらず行われません。`update.any.before`ではページ更新処理のうちanyの示す部分の更新処理をキャンセルします。ページ遷移でエラーが発生した際場合に`update.error`または`update.complete`で処理を抜けるとフォールバック処理が`fallback`の設定にかかわらず行われません。
+多数のコールバック実行タイミングを持ちます。`ajax`を除くすべてのコールバックは戻り値に`false`を設定することで現在の処理をキャンセルまたは抜けることができます。`before`では以降の処理をすべてキャンセルします。このときフォールバック処理は`fallback`の設定にかかわらず行われません。`update.any.before`ではページ更新処理のうちanyの示す部分の更新処理をキャンセルします。使用されない更新項目のコールバックは実行されません。ページ遷移でエラーが発生した際場合に`update.error`または`update.complete`で処理を抜けるとフォールバック処理が`fallback`の設定にかかわらず行われません。
 
 `ajax.success`、`ajax.error`、`ajax.complete`はjQuery1.8以降非推奨となったためjQuery1.6以降では`ajax.done`、`ajax.fail`、`ajax.always`を使用してください。
 

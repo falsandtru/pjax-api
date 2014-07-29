@@ -19,11 +19,11 @@ $.pjax({
 </pre>
 
 ## scrollLeft: function( event, param, origUrl, destUrl )
-スクロール位置を変更しません。
+スクロール位置を関数の戻り値で設定します。。
 
 <pre class="sh brush: js;">
 $.pjax({
-  scrollLeft: null
+  scrollLeft: function(){return 1;}
 });
 </pre>
 
@@ -41,6 +41,6 @@ $.pjax({
 
 <pre class="sh brush: js;">
 $.pjax({
-  scrollLeft: null
+  scrollLeft: false
 });
 </pre>

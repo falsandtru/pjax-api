@@ -10,7 +10,7 @@ class: style-api style-api-detail
 ページ遷移にpjaxを使用するフォームを設定します。初期値は`null`です。
 
 ## form: string
-文字列によりフォームを設定します。
+jQueryセレクタによりフォームを設定します。
 
 <pre class="sh brush: js;">
 $.pjax({
