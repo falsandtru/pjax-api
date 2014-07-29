@@ -159,7 +159,7 @@ module MODULE.MODEL {
                 scroll: ['scroll'].concat(nsArray.join(':')).join('.'),
                 requestHeader: ['X', nsArray[0].replace(/^\w/, function ($0) { return $0.toUpperCase(); })].join('-')
               },
-              fix: !/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.navigator.userAgent) ? { location: false, reset: false } : {},
+              fix: !/android|iphone os|like mac os x/i.test(window.navigator.userAgent) ? { location: false, reset: false } : {},
               contentType: setting.contentType.replace(/\s*[,;]\s*/g, '|').toLowerCase(),
               server: {
                 query: query
