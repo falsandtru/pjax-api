@@ -617,21 +617,29 @@ module MODULE.MODEL {
           srcDocument: Document = this.srcDocument_,
           dstDocument: Document = this.dstDocument_;
       var callbacks_update = setting.callbacks.update;
-
+      
       if (!setting.load.css) { return; }
-
+      
       if (UTIL.fire(callbacks_update.css.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
 
       var css: JQuery = jQuery(selector, srcDocument).not(jQuery(setting.area, srcDocument).find(selector)).not(setting.load.ignore),
           removes = jQuery(selector, dstDocument).not(jQuery(setting.area, dstDocument).find(selector)).not(setting.load.ignore),
           adds: HTMLElement[] = [];
-
-      for (var i = 0, element; element = css[i]; i++) {
-        for (var j = 0; removes[j]; j++) {
-          if (UTIL.trim((<HTMLLinkElement>removes[j]).href || (<HTMLStyleElement>removes[j]).innerHTML || '') === UTIL.trim(element.href || element.innerHTML || '')) {
+      
+      for (var i = 0, element: HTMLElement; element = css[i]; i++) {
+        for (var j = 0, isSameElement: boolean; removes[j]; j++) {
+          switch (element.tagName.toLowerCase()) {
+            case 'link':
+              isSameElement = (<HTMLLinkElement>element).href === (<HTMLLinkElement>removes[j]).href;
+              break;
+            case 'style':
+              isSameElement = UTIL.trim((<HTMLStyleElement>element).innerHTML) === UTIL.trim((<HTMLStyleElement>removes[j]).innerHTML);
+              break;
+          }
+          if (isSameElement) {
             if (adds.length) {
-              element = removes.eq(j).prevAll(selector).first();
-              element[0] ? element.after(jQuery(adds).clone()) : removes.eq(j).before(jQuery(adds).clone());
+              element = removes.eq(j).prevAll(selector)[0];
+              element ? jQuery(element).after(jQuery(adds).clone()) : removes.eq(j).before(jQuery(adds).clone());
               adds = [];
             }
             removes = removes.not(removes[j]);
@@ -645,7 +653,7 @@ module MODULE.MODEL {
       jQuery('head', dstDocument).append(jQuery('head', srcDocument).find(jQuery(adds)).clone());
       jQuery('body', dstDocument).append(jQuery('body', srcDocument).find(jQuery(adds)).clone());
       removes.remove();
-
+      
       if (UTIL.fire(callbacks_update.css.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
 
       var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
