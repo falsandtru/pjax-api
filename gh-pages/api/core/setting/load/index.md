@@ -34,7 +34,7 @@ $.pjax({
 ## load.script: boolean
 JavaScriptを読み込むかを設定します。初期値は`false`です。
 
-JavaScriptを実行順序を維持して読み込みます。同一の外部参照JavaScriptは1回だけ読み込まれます。インラインJavaScriptは繰り返し実行されます。SCRIPT要素はDOMに追加されないため、実行状態の確認は`rewrite`パラメータによる要素の存在確認またはグローバル変数の参照などによる必要があります。
+JavaScriptを実行順序を維持して読み込みます。同一の外部参照JavaScriptは1回だけ読み込まれ、インラインJavaScriptは繰り返し実行されます。
 
 <pre class="sh brush: js;">
 $.pjax({
@@ -47,6 +47,9 @@ $.pjax({
 ## load.execute: boolean
 インラインJavaScriptを実行するかを設定します。初期値は`true`です。
 
+## load.log: string
+実行した場合にDOMに追加するSCRIPT要素をその親要素を示すjQueryセレクタで設定します。jQueryセレクタにはIDまたはHEAD, BODYタグのみ使用できます。更新範囲内のSCRIPT要素はあらかじめ追加されるため除外されます。初期値は`head, body`です。
+
 ## load.reload: string
 繰り返し読み込む外部参照JavaScriptをjQueryセレクタで設定します。初期値は`''`です。
 
@@ -57,4 +60,4 @@ $.pjax({
 `defer`属性を持つJavaScriptの読み込みを更新されたコンテンツが描画されるまで待ちます。ただし、描画の確認回数が100回を超えた場合はその時点で読み込みます。初期値は`true`です。
 
 ## load.ajax: object
-外部参照JavaScriptを読み込む際に`ajax`パラメータへマージして使用する`$.ajax`のパラメータを設定します。設定値は初期値にマージされます。初期値は`'{dataType: 'script', cache: true}'`です。非同期設定は要素の`async`属性により設定されます。
+外部参照JavaScriptを読み込む際に`ajax`パラメータへマージして使用する`$.ajax`のパラメータを設定します。設定値は初期値にマージされます。初期値は`'{dataType: 'script', cache: true}'`です。非同期設定は要素の`async`属性により設定されます。`async`プロパティが`true`であっても属性が設定されてない場合は属性を優先して`false`とみなします。

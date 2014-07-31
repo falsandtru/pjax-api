@@ -207,7 +207,7 @@ module MODULE {
     updateRender_(callback: () => void): void
     updateBalance_(): void
     updateVerify_(): void
-    scrollByHash(hash: string): boolean
+    scrollByHash_(hash: string): boolean
     wait_(ms: number): JQueryPromise<any>
   }
   export declare class ModelDataInterface {
@@ -389,6 +389,7 @@ module MODULE {
       css: boolean
       script: boolean
       execute: boolean
+      log: string
       reload: string
       ignore: string
       ajax: JQueryAjaxSettings

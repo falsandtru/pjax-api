@@ -62,6 +62,7 @@ module MODULE.MODEL {
               css: false,
               script: false,
               execute: true,
+              log: 'head, body',
               reload: '',
               ignore: '[src*="jquery.js"], [src*="jquery.min.js"], [href^="chrome-extension://"]',
               ajax: { dataType: 'script', cache: true }
