@@ -137,7 +137,7 @@ class: style-info
 ※ 正規サーバにLB機能を持たせた場合復路に正規サーバの回線を使用するため回線負荷がやや増える
 
 ## ブラウザ対応
-少なくともクロスドメインAjaxとIndexedDBまたはCookieを使用できる必要があります。IndexedDBが使用できない場合でもCookieによりバランスしますがサーバー選択の最適化機能を使用できず性能がかなり劣化します。
+少なくともクロスドメインAjaxとIndexedDBまたはCookieを使用できる必要があります。IndexedDBが使用できない場合でもCookieによりバランスしますがサーバー選択の最適化機能を使用できず性能がかなり劣化します。現在モバイル端末の多くはCookieによる最低限の対応となりますが、端末の更新により今後IndexedDBが使用できるようになっていくでしょう。
 
 |ブラウザ|クロスドメイン|リダイレクト|IndexedDB|Cookie|
 |:---|:--:|:--:|:--:|:--:|
@@ -146,14 +146,14 @@ class: style-info
 |Safari|O|O|O|O|
 |IE10+|O|X|O|O|
 |Tablet|O|?|?|O|
-|Android|O|X|X|O|
-|iPhone|O|X|X|O|
+|Android|O|X|4.4|O|
+|iOS|O|X|8|O|
 
 ## サーバー設定
 サーバーでAjaxリクエストを振り分ける必要があります。振り分け先のサーバーは個別のグローバルIPと回線を持つものを用意する必要があります。通信の設定と流れは以下の通りです。
 
 1. `X-Requested-With: XMLHttpRequest`ヘッダによりAjaxリクエストを識別
-2. Cookieの`balance=1`フラグによりバランスするリクエストを識別
+2. Cookieの`ajax_balance=1`フラグによりバランスするリクエストを識別
 3. バランスするAjaxリクエストをソフトウェアロードバランサを入れたサーバーへ302リダイレクト
 4. ロードバランサで自身のリバースプロキシまたは他のAjaxサーバへバランス
 5. レスポンスヘッダに`Access-Control-Allow-Origin: <site-domain>`を追加

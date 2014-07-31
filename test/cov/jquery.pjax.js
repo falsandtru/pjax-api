@@ -3,7 +3,7 @@
  * jquery.pjax.js
  * 
  * @name jquery.pjax.js
- * @version 2.10.1
+ * @version 2.11.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
  * @copyright 2012, falsandtru
@@ -1458,7 +1458,36 @@ var MODULE;
             AppUpdate.prototype.updateContent_ = function () {
                 var setting = this.setting_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
                 var callbacks_update = setting.callbacks.update;
-                var checker = jQuery(), loadwaits = [];
+                var checker = jQuery(), marker = jQuery(), scripts = jQuery(), loadwaits = [];
+
+                function mark() {
+                    if (!this) {
+                        return;
+                    }
+                    scripts = scripts.add(this);
+                    return marker.clone();
+                }
+                function unmark() {
+                    if (!scripts[0]) {
+                        return;
+                    }
+                    var script = scripts.first()[0];
+                    scripts = scripts.not(script);
+                    var type = jQuery(script).is('[type]') ? script.type : undefined;
+                    script.type = setting.gns + '/noexec';
+                    this.parentNode.insertBefore(script, this.nextSibling);
+                    this.parentNode.removeChild(this);
+                    if ('string' === typeof type) {
+                        script.type = type;
+                    } else {
+                        script.removeAttribute('type');
+                    }
+                }
+                function map() {
+                    var defer = jQuery.Deferred();
+                    jQuery(this).one('load error', defer.resolve);
+                    return defer;
+                }
 
                 if (MODEL.UTIL.fire(callbacks_update.content.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                     return loadwaits;
@@ -1469,24 +1498,26 @@ var MODULE;
                     'class': setting.nss.class4html + '-check',
                     'style': 'background: none !important; display: block !important; visibility: hidden !important; position: absolute !important; top: 0 !important; left: 0 !important; z-index: -9999 !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; font-size: 12px !important; text-indent: 0 !important;'
                 }).text(setting.gns);
+                marker = checker.clone().removeAttr('class').addClass(setting.nss.class4html + '-mark');
                 var i = -1, $srcAreas, $dstAreas;
                 while (setting.areas[++i]) {
-                    $srcAreas = jQuery(setting.areas[i], srcDocument).clone().find('script').remove().end();
+                    $srcAreas = jQuery(setting.areas[i], srcDocument).clone();
                     $dstAreas = jQuery(setting.areas[i], dstDocument);
                     if (!$srcAreas[0] || !$dstAreas[0] || $srcAreas.length !== $dstAreas.length) {
                         throw new Error('throw: area mismatch');
                     }
+
+                    scripts = jQuery();
+                    $srcAreas.find('script').replaceWith(mark);
                     if (setting.load.sync && jQuery.when) {
-                        loadwaits.concat($srcAreas.find('img, iframe, frame').map(function () {
-                            var defer = jQuery.Deferred();
-                            jQuery(this).one('load error', defer.resolve);
-                            return defer;
-                        }).get());
+                        loadwaits.concat($srcAreas.find('img, iframe, frame').map(map).get());
                     }
+
                     var j = -1;
                     while ($srcAreas[++j]) {
                         $dstAreas.eq(j).replaceWith($srcAreas.eq(j).append(checker.clone()));
                     }
+                    jQuery(setting.areas[i], dstDocument).find('.' + setting.nss.class4html + '-mark').each(unmark);
                 }
                 jQuery(dstDocument).trigger(setting.gns + '.DOMContentLoaded');
 
@@ -1545,11 +1576,19 @@ var MODULE;
                 var css = jQuery(selector, srcDocument).not(jQuery(setting.area, srcDocument).find(selector)).not(setting.load.ignore), removes = jQuery(selector, dstDocument).not(jQuery(setting.area, dstDocument).find(selector)).not(setting.load.ignore), adds = [];
 
                 for (var i = 0, element; element = css[i]; i++) {
-                    for (var j = 0; removes[j]; j++) {
-                        if (MODEL.UTIL.trim(removes[j].href || removes[j].innerHTML || '') === MODEL.UTIL.trim(element.href || element.innerHTML || '')) {
+                    for (var j = 0, isSameElement; removes[j]; j++) {
+                        switch (element.tagName.toLowerCase()) {
+                            case 'link':
+                                isSameElement = element.href === removes[j].href;
+                                break;
+                            case 'style':
+                                isSameElement = MODEL.UTIL.trim(element.innerHTML) === MODEL.UTIL.trim(removes[j].innerHTML);
+                                break;
+                        }
+                        if (isSameElement) {
                             if (adds.length) {
-                                element = removes.eq(j).prevAll(selector).first();
-                                element[0] ? element.after(jQuery(adds).clone()) : removes.eq(j).before(jQuery(adds).clone());
+                                element = removes.eq(j).prevAll(selector)[0];
+                                element ? jQuery(element).after(jQuery(adds).clone()) : removes.eq(j).before(jQuery(adds).clone());
                                 adds = [];
                             }
                             removes = removes.not(removes[j]);
@@ -1560,8 +1599,12 @@ var MODULE;
                     }
                     element && adds.push(element);
                 }
-                jQuery('head', dstDocument).append(jQuery('head', srcDocument).find(jQuery(adds)).clone());
-                jQuery('body', dstDocument).append(jQuery('body', srcDocument).find(jQuery(adds)).clone());
+                jQuery('head', dstDocument).append(jQuery(jQuery.grep(adds, function (element) {
+                    return srcDocument.head === element.parentElement;
+                })).clone());
+                jQuery('body', dstDocument).append(jQuery(jQuery.grep(adds, function (element) {
+                    return srcDocument.head !== element.parentElement;
+                })).clone());
                 removes.remove();
 
                 if (MODEL.UTIL.fire(callbacks_update.css.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
@@ -1595,20 +1638,34 @@ var MODULE;
                     if (!element.src && !MODEL.UTIL.trim(element.innerHTML)) {
                         continue;
                     }
-                    if (element.src in executed || setting.load.ignore && jQuery(element).is(setting.load.ignore)) {
+                    if (element.src in executed) {
                         continue;
                     }
 
-                    if (element.src && (!setting.load.reload || !jQuery(element).is(setting.load.reload))) {
-                        executed[element.src] = true;
-                    }
-                    element && execs.push(element);
-                }
+                    LOG:
+                     {
+                        var logParent = jQuery(element).parent(setting.load.log);
+                        if (!logParent[0] || jQuery(element).parents(setting.area)[0]) {
+                            break LOG;
+                        }
 
-                for (var i = 0, element; element = execs[i]; i++) {
+                        var type = jQuery(element).is('[type]') ? element.type : undefined;
+                        element.type = setting.gns + '/noexec';
+                        jQuery(logParent[0].id || logParent[0].tagName, dstDocument)[0].appendChild(element);
+                        if ('string' === typeof type) {
+                            element.type = type;
+                        } else {
+                            element.removeAttribute('type');
+                        }
+                    }
+                    ;
+
                     try  {
                         if (element.src) {
-                            jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: !!element.async, global: false }));
+                            if (!setting.load.reload || !jQuery(element).is(setting.load.reload)) {
+                                executed[element.src] = true;
+                            }
+                            jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: !!element.getAttribute('async'), global: false }));
                         } else {
                             'object' === typeof element && (!element.type || ~element.type.toLowerCase().indexOf('text/javascript')) && eval.call(window, (element.text || element.textContent || element.innerHTML || '').replace(/^\s*<!(?:\[CDATA\[|\-\-)/, '/*$0*/'));
                         }
@@ -1641,7 +1698,7 @@ var MODULE;
                     setTimeout(function () {
                         _this.app_.isScrollPosSavable = true;
                         if ('popstate' !== event.type.toLowerCase()) {
-                            _this.scrollByHash(setting.destLocation.hash) || _this.updateScroll_(true);
+                            _this.scrollByHash_(setting.destLocation.hash) || _this.updateScroll_(true);
                         } else {
                             _this.updateScroll_(true);
                         }
@@ -1752,7 +1809,7 @@ var MODULE;
                 return defer;
             };
 
-            AppUpdate.prototype.scrollByHash = function (hash) {
+            AppUpdate.prototype.scrollByHash_ = function (hash) {
                 hash = '#' === hash.charAt(0) ? hash.slice(1) : hash;
                 if (!hash) {
                     return false;
@@ -2473,6 +2530,7 @@ var MODULE;
                         css: false,
                         script: false,
                         execute: true,
+                        log: 'head, body',
                         reload: '',
                         ignore: '[src*="jquery.js"], [src*="jquery.min.js"], [href^="chrome-extension://"]',
                         ajax: { dataType: 'script', cache: true }
