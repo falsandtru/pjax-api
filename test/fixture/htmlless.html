@@ -1,29 +1,27 @@
-﻿<!DOCTYPE html>
-<html lang="ja">
-<head>
+﻿<head>
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<title>pjax demo1</title>
+<title>pjax demo2</title>
 <script>document.write('<base href="' + window.location.href.match(/^.+\/fixture\//) + '"/>');</script>
 <meta name="description" content="">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive">
-
+  
 <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/normalize/3.0.1/normalize.min.css">
 <link rel="stylesheet" href="../lib/style.css">
 
 <style>
 #header{
-  background: #ee0;
+  background: #e00;
 }
 #footer{
-  background: #0ee;
+  background: #ee0;
 }
 #wrapper{
   background: #e0e;
 }
 #primary{
-  background: #e00;
+  background: #0ee;
 }
 #secondary{
   background: #0e0;
@@ -40,15 +38,15 @@
 <header id="header"><div class="wrapper clearfix">
 
   <h1>pjax demo</h1>
-  <p>header1</p>
+  <p>header2</p>
   <p>これはpjaxのデモページです</p>
 
 </div></header>
 <div id="wrapper" class="wrapper clearfix">
 <!-- ----- PRIMARY ------------------------------------------------------------ -->
-<div id="primary" class="chooseA"><div id="layout"><div class="wrapper clearfix">
+<div id="primary"><div id="layout"><div class="wrapper clearfix">
 
-  <p>primary1</p>
+  <p>primary2</p>
   <p>pjax enable あアｱ亜</p>
   <ul>
     <li><a href="./index.html">page1 enable</a></li>
@@ -60,7 +58,7 @@
 <!-- ----- SECONDARY ---------------------------------------------------------- -->
 <div id="secondary" class="chooseB"><div class="wrapper clearfix">
 
-  <p>secondary1</p>
+  <p>secondary2</p>
   <ul>
     <li><a href="./index.html">page1 enable</a></li>
     <li><a href="./2.html">page2 enable</a></li>
@@ -69,17 +67,17 @@
 
 </div></div>
 <!-- ----- TERTIARY ----------------------------------------------------------- -->
-<div id="tertiary"><div class="wrapper clearfix">
+<div id="tertiary" class="chooseC"><div class="wrapper clearfix">
 
-  <p>tertiary1</p>
+  <p>tertiary2</p>
 
 </div></div>
 </div>
 <!-- ----- FOOTER ------------------------------------------------------------- -->
 <footer id="footer"><div class="wrapper clearfix">
 
-  <p>footer1</p>
+  <p>footer2</p>
 
 </div></footer>
 </div>
-</body></html>
+</body>

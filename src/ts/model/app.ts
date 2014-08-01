@@ -456,7 +456,7 @@ module MODULE.MODEL {
             attr = attr.split('=', 2);
             doc.documentElement.setAttribute(attr[0], attr[1].slice(1, -1));
           }
-          root.innerHTML = html.slice(0, html.search(/<\/html>/i)).replace(/^.*?<html[^>]*>/i, '');
+          root.innerHTML = html.replace(/^.*?<html(?: [^>]*)?>/im, '');
           doc.documentElement.removeChild(doc.head);
           doc.documentElement.removeChild(doc.body);
           var element;
