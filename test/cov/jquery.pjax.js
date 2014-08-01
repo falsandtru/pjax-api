@@ -3,7 +3,7 @@
  * jquery.pjax.js
  * 
  * @name jquery.pjax.js
- * @version 2.11.0
+ * @version 2.11.1
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
  * @copyright 2012, falsandtru
@@ -2947,7 +2947,7 @@ var MODULE;
                             attr = attr.split('=', 2);
                             doc.documentElement.setAttribute(attr[0], attr[1].slice(1, -1));
                         }
-                        root.innerHTML = html.slice(0, html.search(/<\/html>/i)).replace(/^.*?<html[^>]*>/i, '');
+                        root.innerHTML = html.replace(/^.*?<html(?: [^>]*)?>/im, '');
                         doc.documentElement.removeChild(doc.head);
                         doc.documentElement.removeChild(doc.body);
                         var element;
