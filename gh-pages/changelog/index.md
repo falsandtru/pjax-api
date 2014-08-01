@@ -7,6 +7,10 @@ nav: nav
 
 # ChangeLog
 
+## 2.11.1
+
+* HTMLタグがないHTMLをパースできない場合があるバグを修正
+
 ## 2.11.0
 
 * SCRIPT要素をDOMに反映するよう変更
