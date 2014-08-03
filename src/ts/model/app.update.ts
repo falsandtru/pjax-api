@@ -27,24 +27,25 @@ module MODULE.MODEL {
       this.event_ = event;
       this.register_ = register;
 
-      function done(xhrArgs) {
+      function done(xhrArgs: any[]) {
         UTIL.fire(setting.callbacks.ajax.done, this, [event, setting.param].concat(xhrArgs));
       }
-      function fail(xhrArgs) {
+      function fail(xhrArgs: any[]) {
+        that.errorThrown_ = xhrArgs[2];
         UTIL.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat(xhrArgs));
       }
-      function always(xhrArgs) {
+      function always(xhrArgs: any[]) {
         UTIL.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat(xhrArgs));
 
         that.model_.setActiveXHR(null);
         var data: string, textStatus: string, jqXHR: JQueryXHR;
-        if (2 < xhrArgs.length) {
+        if (!that.errorThrown_) {
           that.data_ = xhrArgs[0];
           that.textStatus_ = xhrArgs[1];
           that.jqXHR_ = xhrArgs[2];
 
           that.update_();
-        } else if (setting.fallback && 'abort' !== xhrArgs.statusText) {
+        } else if (setting.fallback && 'abort' !== xhrArgs[0].statusText) {
           if (setting.balance.self) {
             that.app_.DATA.saveServerToDB(setting.balance.server.host, new Date().getTime());
             that.app_.disableBalance();
