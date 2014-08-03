@@ -273,6 +273,9 @@ module MODULE.MODEL {
 
           setting.origLocation.href = setting.destLocation.href;
           
+          /* verify */
+          this.updateVerify_();
+          
           /* title */
           this.updateTitle_();
 
@@ -293,9 +296,6 @@ module MODULE.MODEL {
 
           /* escape */
           jQuery('noscript', srcDocument).remove();
-          
-          /* verify */
-          this.updateVerify_();
           
           /* balance */
           this.updateBalance_();
