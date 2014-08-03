@@ -181,7 +181,7 @@ module MODULE {
     setting_: SettingInterface
     cache_: CacheInterface
     checker_: JQuery
-    loadwaits_: JQueryDeferred<any>[]
+    loadwaits_: JQueryDeferred<void>[]
 
     event_: JQueryEventObject
     host_: string
@@ -192,7 +192,8 @@ module MODULE {
     register_: boolean
     srcDocument_: Document
     dstDocument_: Document
-
+    
+    ready_(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface): void
     update_(): void
     updateRewrite_(): void
     updateCache_(): void
@@ -200,10 +201,11 @@ module MODULE {
     updateUrl_(): void
     updateTitle_(): void
     updateHead_(): void
-    updateContent_(): JQueryDeferred<any>[]
+    updateContent_(): JQueryDeferred<void>[]
+    updateLoad_(): void
     updateScroll_(call: boolean): void
     updateCSS_(selector: string): void
-    updateScript_(selector: string): void
+    updateScript_(selector: string): JQueryDeferred<string>[]
     updateRender_(callback: () => void): void
     updateBalance_(): void
     updateVerify_(): void

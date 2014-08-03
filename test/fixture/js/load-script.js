@@ -5,6 +5,7 @@ $.pjax({
     var script = document.createElement('script'), element;
     element = script.cloneNode();
     element.src = 'js/test.js';
+    element.defer = true;
     document.head.appendChild(element);
     element = script.cloneNode();
     element.innerHTML = "console.notice('inline');";

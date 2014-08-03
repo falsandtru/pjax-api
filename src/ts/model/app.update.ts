@@ -8,6 +8,25 @@ module MODULE.MODEL {
   export class AppUpdate implements AppUpdateInterface {
 
     constructor(public model_: ModelInterface, public app_: ModelAppInterface, setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface) {
+      this.ready_(setting, event, register, cache);
+    }
+
+    setting_: SettingInterface
+    cache_: CacheInterface
+    checker_: JQuery = jQuery()
+    loadwaits_: JQueryDeferred<void>[] = []
+
+    event_: JQueryEventObject
+    host_: string
+    data_: string
+    textStatus_: string
+    jqXHR_: JQueryXHR
+    errorThrown_: string
+    register_: boolean
+    srcDocument_: Document
+    dstDocument_: Document
+
+    ready_(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface): void {
       var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
       speedcheck && (speed.fire = event.timeStamp);
       speedcheck && speed.time.splice(0, 100, 0);
@@ -187,21 +206,6 @@ module MODULE.MODEL {
       if (UTIL.fire(setting.callbacks.after, null, [event, setting.param]) === false) { return; }
     }
 
-    setting_: SettingInterface
-    cache_: CacheInterface
-    checker_: JQuery = jQuery()
-    loadwaits_: JQueryDeferred<any>[] = []
-
-    event_: JQueryEventObject
-    host_: string
-    data_: string
-    textStatus_: string
-    jqXHR_: JQueryXHR
-    errorThrown_: string
-    register_: boolean
-    srcDocument_: Document
-    dstDocument_: Document
-
     update_(): void {
       UPDATE: {
         var that = this,
@@ -302,24 +306,7 @@ module MODULE.MODEL {
           this.updateBalance_();
 
           /* load */
-          this.updateCSS_('link[rel~="stylesheet"], style');
-          jQuery(window)
-          .one(setting.gns + '.rendering', (event) => {
-            event.preventDefault();
-            event.stopImmediatePropagation();
-
-            this.updateScroll_(false);
-            this.updateScript_(':not([defer]), :not([src])');
-            jQuery(dstDocument).trigger(setting.gns + '.ready');
-            if (setting.load.sync) {
-              var callback = () => this.updateScript_('[src][defer]');
-              this.updateRender_(callback);
-            } else {
-              this.updateRender_(null);
-              this.updateScript_('[src][defer]');
-            }
-          })
-          .trigger(setting.gns + '.rendering');
+          this.updateLoad_();
           
           if (UTIL.fire(callbacks_update.success, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { break UPDATE; }
           if (UTIL.fire(callbacks_update.complete, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { break UPDATE; }
@@ -551,7 +538,7 @@ module MODULE.MODEL {
       var checker: JQuery = jQuery(),
           marker: JQuery = jQuery(),
           scripts: JQuery = jQuery(),
-          loadwaits: JQueryDeferred<any>[] = [];
+          loadwaits: JQueryDeferred<void>[] = [];
 
       function mark() {
         if (!this) { return; }
@@ -609,6 +596,34 @@ module MODULE.MODEL {
       if (UTIL.fire(callbacks_update.content.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return loadwaits; }
 
       return loadwaits;
+    }
+
+    updateLoad_(): void {
+      var setting: SettingInterface = this.setting_,
+          dstDocument: Document = this.dstDocument_;
+
+      this.updateCSS_('link[rel~="stylesheet"], style');
+      jQuery(window)
+      .one(setting.gns + '.rendering', (event) => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        this.updateScroll_(false);
+
+        var scriptwaits = this.updateScript_(':not([defer]), :not([src])');
+        var ready = () => {
+          jQuery(dstDocument).trigger(setting.gns + '.ready');
+          if (setting.load.sync) {
+            var callback = () => this.updateScript_('[src][defer]');
+            this.updateRender_(callback);
+          } else {
+            this.updateRender_(null);
+            this.updateScript_('[src][defer]');
+          }
+        };
+        this.model_.isDeferrable ? jQuery.when.apply(null, scriptwaits).always(() => ready()) : ready();
+      })
+      .trigger(setting.gns + '.rendering');
     }
 
     updateScroll_(call: boolean): void {
@@ -691,7 +706,7 @@ module MODULE.MODEL {
       speedcheck && speed.name.push('css(' + speed.time.slice(-1) + ')');
     }
 
-    updateScript_(selector: string): void {
+    updateScript_(selector: string): JQueryDeferred<string>[] {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
           srcDocument: Document = this.srcDocument_,
@@ -703,7 +718,10 @@ module MODULE.MODEL {
       if (UTIL.fire(callbacks_update.script.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
 
       var script: JQuery = jQuery('script', srcDocument).not(setting.load.ignore),
-          execs: HTMLElement[] = [];
+          execs: HTMLScriptElement[] = [],
+          scriptwaits: JQueryDeferred<string>[] = [],
+          regType: RegExp = /^$|(?:application|text)\/(?:java|ecma)script/i,
+          regRemove: RegExp = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
 
       var executed: { [index: string]: boolean; } = this.app_.stock('executed');
       for (var i = 0, element: HTMLScriptElement; element = <HTMLScriptElement>script[i]; i++) {
@@ -725,17 +743,44 @@ module MODULE.MODEL {
           }
         };
 
-        try {
-          if (element.src) {
-            if (!setting.load.reload || !jQuery(element).is(setting.load.reload)) { executed[element.src] = true; }
-            jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: 'string' === typeof element.getAttribute('async'), global: false }));
-          } else {
-            'object' === typeof element && (!element.type || ~element.type.toLowerCase().indexOf('text/javascript')) &&
-            eval.call(window, (element.text || element.textContent || element.innerHTML || '').replace(/^\s*<!(?:\[CDATA\[|\-\-)/, '/*$0*/'));
-          }
-        } catch (err) {
-          break;
+        if (this.model_.isDeferrable) {
+          ((defer: JQueryDeferred<string>): void => {
+            if (element.src) {
+              if (!setting.load.reload || !jQuery(element).is(setting.load.reload)) { executed[element.src] = true; }
+              if ('string' === typeof element.getAttribute('async')) {
+                return void jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: true, global: false }));
+              }
+              jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, dataType: 'text', async: true, global: false }))
+              .always(() => 'string' === typeof arguments[0] && defer.resolve(<string>arguments[0]));
+            } else {
+              defer.resolve(<string>'object' === typeof element && (!element.type || regType.test(element.type)) &&
+              (element.text || element.textContent || element.innerHTML || '').replace(regRemove, ''));
+            }
+            scriptwaits.push(defer);
+          })(jQuery.Deferred());
+        } else {
+          execs.push(element);
         }
+      }
+
+      try {
+        if (this.model_.isDeferrable) {
+          jQuery.when.apply(null, scriptwaits)
+          .always(() => {
+            for (var i = 0, len = arguments.length; i < len; i++) { arguments[i] && eval.call(window, arguments[i]); }
+          });
+        } else {
+          for (var i = 0, element: HTMLScriptElement; element = <HTMLScriptElement>execs[i]; i++) {
+            if (element.src) {
+              if (!setting.load.reload || !jQuery(element).is(setting.load.reload)) { executed[element.src] = true; }
+              jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: 'string' === typeof element.getAttribute('async'), global: false }));
+            } else {
+              'object' === typeof element && (!element.type || regType.test(element.type)) &&
+              eval.call(window, (element.text || element.textContent || element.innerHTML || '').replace(regRemove, ''));
+            }
+          }
+        }
+      } catch (err) {
       }
       
       if (UTIL.fire(callbacks_update.script.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
@@ -743,6 +788,8 @@ module MODULE.MODEL {
       var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
       speedcheck && speed.time.push(speed.now() - speed.fire);
       speedcheck && speed.name.push(('[src][defer]' === selector ? 'defer' : 'script') + '(' + speed.time.slice(-1) + ')');
+
+      return scriptwaits;
     }
 
     updateRender_(callback: () => void): void {
@@ -775,7 +822,7 @@ module MODULE.MODEL {
           jQuery(window).trigger(setting.gns + '.load');
         }
         if (setting.load.sync && jQuery.when && loadwaits[0]) {
-          jQuery.when.apply(jQuery, loadwaits).always(onload);
+          jQuery.when.apply(null, loadwaits).always(onload);
         } else {
           onload();
         }
