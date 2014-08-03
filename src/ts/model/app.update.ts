@@ -727,7 +727,7 @@ module MODULE.MODEL {
         try {
           if (element.src) {
             if (!setting.load.reload || !jQuery(element).is(setting.load.reload)) { executed[element.src] = true; }
-            jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: !!element.getAttribute('async'), global: false }));
+            jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: 'string' === typeof element.getAttribute('async'), global: false }));
           } else {
             'object' === typeof element && (!element.type || ~element.type.toLowerCase().indexOf('text/javascript')) &&
             eval.call(window, (element.text || element.textContent || element.innerHTML || '').replace(/^\s*<!(?:\[CDATA\[|\-\-)/, '/*$0*/'));

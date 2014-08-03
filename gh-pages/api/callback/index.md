@@ -98,6 +98,18 @@ ajax処理の完了後常に実行されます。外部から引き継いだリ�
 ### update.content.after( event, param, data, textStatus, XMLHttpRequest )
 ページの更新処理においてコンテンツの更新後に実行されます。
 
+### update.verify.before( event, param )
+ページの更新処理において更新結果の検証前に実行されます。
+
+### update.verify.after( event, param )
+ページの更新処理において更新結果の検証後に実行されます。
+
+### update.balance.before( event, param )
+ページの更新処理においてロードバランスの周辺処理前に実行されます。
+
+### update.balance.after( event, param )
+ページの更新処理においてロードバランスの周辺処理後に実行されます。
+
 ### update.scroll.before( event, param )
 ページの更新処理においてスクロール位置の更新前に実行されます。
 
@@ -121,18 +133,6 @@ ajax処理の完了後常に実行されます。外部から引き継いだリ�
 
 ### update.render.after( event, param )
 ページの更新処理において更新の描画を待機する内部イベント処理の実行後に実行されます。
-
-### update.verify.before( event, param )
-ページの更新処理において更新結果の検証前に実行されます。
-
-### update.verify.after( event, param )
-ページの更新処理において更新結果の検証後に実行されます。
-
-### update.balance.before( event, param )
-ページの更新処理においてロードバランスの周辺処理前に実行されます。
-
-### update.balance.after( event, param )
-ページの更新処理においてロードバランスの周辺処理後に実行されます。
 
 ### update.success( event, param, data, textStatus, XMLHttpRequest )
 ページの更新処理が成功したときに実行されます。
