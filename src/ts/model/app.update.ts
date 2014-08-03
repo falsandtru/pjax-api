@@ -308,8 +308,8 @@ module MODULE.MODEL {
             event.stopImmediatePropagation();
 
             this.updateScroll_(false);
-            jQuery(dstDocument).trigger(setting.gns + '.ready');
             this.updateScript_(':not([defer]), :not([src])');
+            jQuery(dstDocument).trigger(setting.gns + '.ready');
             if (setting.load.sync) {
               var callback = () => this.updateScript_('[src][defer]');
               this.updateRender_(callback);
