@@ -66,7 +66,7 @@ module MODULE.MODEL {
           that.update_();
         } else if (setting.fallback && 'abort' !== xhrArgs[0].statusText) {
           if (setting.balance.self) {
-            that.app_.DATA.saveServerToDB(setting.balance.server.host, new Date().getTime());
+            that.app_.data.saveServerToDB(setting.balance.server.host, new Date().getTime());
             that.app_.disableBalance();
           }
           that.model_.fallback(event, setting);
@@ -458,7 +458,7 @@ module MODULE.MODEL {
 
       if (UTIL.fire(callbacks_update.title.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
       this.dstDocument_.title = this.srcDocument_.title;
-      setting.database && setting.fix.history && this.app_.DATA.saveTitleToDB(setting.destLocation.href, this.srcDocument_.title);
+      setting.database && setting.fix.history && this.app_.data.saveTitleToDB(setting.destLocation.href, this.srcDocument_.title);
       if (UTIL.fire(callbacks_update.title.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
 
@@ -646,10 +646,10 @@ module MODULE.MODEL {
           scrollY = scrollY === false || scrollY === null ? jQuery(window).scrollTop() : parseInt(Number(scrollY) + '', 10);
 
           (jQuery(window).scrollTop() === scrollY && jQuery(window).scrollLeft() === scrollX) || window.scrollTo(scrollX, scrollY);
-          call && setting.database && this.app_.isScrollPosSavable && setting.fix.scroll && this.app_.DATA.saveScrollPositionToCacheAndDB(setting.destLocation.href, scrollX, scrollY);
+          call && setting.database && this.app_.isScrollPosSavable && setting.fix.scroll && this.app_.data.saveScrollPositionToCacheAndDB(setting.destLocation.href, scrollX, scrollY);
           break;
         case 'popstate':
-          call && setting.fix.scroll && setting.database && this.app_.DATA.loadScrollPositionFromCacheOrDB(setting.destLocation.href);
+          call && setting.fix.scroll && setting.database && this.app_.data.loadScrollPositionFromCacheOrDB(setting.destLocation.href);
           break;
       }
 
@@ -881,12 +881,12 @@ module MODULE.MODEL {
       if (UTIL.fire(callbacks_update.balance.before, null, [event, setting.param]) === false) { return; }
 
       var host = (this.jqXHR_.getResponseHeader(setting.balance.server.header) || '').split('//').pop();
-      this.app_.DATA.saveLogToDB({
+      this.app_.data.saveLogToDB({
         host: host,
         performance: Math.ceil(setting.loadtime / (this.jqXHR_.responseText.length || 1) * 1e5),
         date: new Date().getTime()
       });
-      this.app_.DATA.saveServerToDB(host, 0, setting.destLocation.href, this.app_.calExpires(this.jqXHR_));
+      this.app_.data.saveServerToDB(host, 0, setting.destLocation.href, this.app_.calExpires(this.jqXHR_));
       this.app_.chooseRequestServer(setting);
 
       if (UTIL.fire(callbacks_update.balance.after, null, [event, setting.param]) === false) { return; }
