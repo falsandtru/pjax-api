@@ -302,7 +302,7 @@ module MODULE.MODEL {
         var options: string[] = area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
         var j: number = -1;
         while (options[++j]) {
-          if (!jQuery(options[j], srcDocument)[0] || !jQuery(options[j], dstDocument)[0]) {
+          if (!jQuery(options[j], srcDocument).length || !jQuery(options[j], dstDocument).length) {
             continue AREA;
           }
         }
@@ -351,7 +351,7 @@ module MODULE.MODEL {
           patterns = scpTable[scpTag];
         }
 
-        if (!patterns || !patterns[0]) { return false; }
+        if (!patterns || !patterns.length) { return false; }
 
         patterns = patterns.concat();
         for (var j = 0, pattern; pattern = patterns[j]; j++) {

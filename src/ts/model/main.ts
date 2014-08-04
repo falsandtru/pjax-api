@@ -144,7 +144,7 @@ module MODULE.MODEL {
         event.preventDefault();
         return;
       };
-      !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context)[0] && this.fallback(event, setting);
+      !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length && this.fallback(event, setting);
     }
 
     SUBMIT(event: JQueryEventObject): void {
@@ -169,7 +169,7 @@ module MODULE.MODEL {
         event.preventDefault();
         return;
       };
-      !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context)[0] && this.fallback(event, setting);
+      !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length && this.fallback(event, setting);
     }
 
     POPSTATE(event: JQueryEventObject): void {

@@ -18,7 +18,7 @@ module MODULE.MODEL {
           this.conExpires_ = 0;
         }
         setTimeout(check, Math.max(this.conExpires_ - now + 100, this.conInterval_));
-        this.tasks_[0] && this.opendb(null, true);
+        this.tasks_.length && this.opendb(null, true);
       }
       this.conAge_ && setTimeout(check, this.conInterval_);
     }
@@ -56,7 +56,7 @@ module MODULE.MODEL {
     opendb(task: () => void, noRetry?: boolean): void {
       var that = this;
 
-      if (!that.IDBFactory || !task && !that.tasks_[0]) { return; }
+      if (!that.IDBFactory || !task && !that.tasks_.length) { return; }
 
       that.conExtend();
       task && that.reserveTask_(task)

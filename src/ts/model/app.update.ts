@@ -387,7 +387,7 @@ module MODULE.MODEL {
           register: boolean = this.register_;
       var callbacks_update = setting.callbacks.update;
 
-      if (!<HTMLAnchorElement>jQuery('head meta[http-equiv="Refresh"][content*="URL="]', this.srcDocument_)[0]) { return; }
+      if (!jQuery('head meta[http-equiv="Refresh"][content*="URL="]', this.srcDocument_).length) { return; }
 
       if (UTIL.fire(callbacks_update.redirect.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; };
 
@@ -546,7 +546,7 @@ module MODULE.MODEL {
         return marker.clone();
       }
       function unmark() {
-        if (!scripts[0]) { return; }
+        if (!scripts.length) { return; }
         var script = <HTMLScriptElement>scripts.first()[0];
         scripts = scripts.not(script);
         var type: string = jQuery(script).is('[type]') ? script.type : undefined;
@@ -577,7 +577,7 @@ module MODULE.MODEL {
       while (setting.areas[++i]) {
         $srcAreas = jQuery(setting.areas[i], srcDocument).clone();
         $dstAreas = jQuery(setting.areas[i], dstDocument);
-        if (!$srcAreas[0] || !$dstAreas[0] || $srcAreas.length !== $dstAreas.length) { throw new Error('throw: area mismatch'); }
+        if (!$srcAreas.length || !$dstAreas.length || $srcAreas.length !== $dstAreas.length) { throw new Error('throw: area mismatch'); }
 
         scripts = jQuery();
         $srcAreas.find('script').replaceWith(mark);
@@ -731,7 +731,7 @@ module MODULE.MODEL {
 
         LOG: {
           var logParent: JQuery = jQuery(element).parent(setting.load.log);
-          if (!logParent[0] || jQuery(element).parents(setting.area)[0]) { break LOG; }
+          if (!logParent.length || jQuery(element).parents(setting.area).length) { break LOG; }
 
           var type: string = jQuery(element).is('[type]') ? element.type : undefined;
           element.type = setting.gns + '/noexec';
@@ -821,7 +821,7 @@ module MODULE.MODEL {
         function onload() {
           jQuery(window).trigger(setting.gns + '.load');
         }
-        if (setting.load.sync && jQuery.when && loadwaits[0]) {
+        if (setting.load.sync && jQuery.when && loadwaits.length) {
           jQuery.when.apply(null, loadwaits).always(onload);
         } else {
           onload();
@@ -905,7 +905,7 @@ module MODULE.MODEL {
       if (!hash) { return false; }
 
       var $hashTargetElement = jQuery('#' + (hash ? hash : ', [name~=' + hash + ']')).first();
-      if ($hashTargetElement[0]) {
+      if ($hashTargetElement.length) {
         isFinite($hashTargetElement.offset().top) &&
         window.scrollTo(jQuery(window).scrollLeft(), parseInt(Number($hashTargetElement.offset().top) + '', 10));
         return true;
