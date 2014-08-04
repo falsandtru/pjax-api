@@ -13,7 +13,6 @@ module MODULE.MODEL {
 
     setting_: SettingInterface
     cache_: CacheInterface
-    checker_: JQuery = jQuery()
     loadwaits_: JQueryDeferred<void>[] = []
 
     event_: JQueryEventObject
@@ -304,7 +303,6 @@ module MODULE.MODEL {
 
           /* content */
           this.loadwaits_ = this.updateContent_();
-          this.checker_ = jQuery(setting.area).children('.' + setting.nss.class4html + '-check');
           
           /* check point */
           speedcheck && speed.time.push(speed.now() - speed.fire);
@@ -467,8 +465,10 @@ module MODULE.MODEL {
       var callbacks_update = setting.callbacks.update;
 
       if (UTIL.fire(callbacks_update.title.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
+
       this.dstDocument_.title = this.srcDocument_.title;
       setting.database && setting.fix.history && this.app_.data.saveTitleToDB(setting.destLocation.href, this.srcDocument_.title);
+
       if (UTIL.fire(callbacks_update.title.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
 
@@ -484,9 +484,9 @@ module MODULE.MODEL {
       if (UTIL.fire(callbacks_update.head.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
 
       var title: JQuery = jQuery('title'),
-        adds = [],
-        srcElements: JQuery,
-        dstElements: JQuery;
+          adds = [],
+          srcElements: JQuery,
+          dstElements: JQuery;
 
       srcElements = jQuery('head', srcDocument).find(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script');
       dstElements = jQuery('head', dstDocument).find(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script');
@@ -545,10 +545,13 @@ module MODULE.MODEL {
           srcDocument: Document = this.srcDocument_,
           dstDocument: Document = this.dstDocument_;
       var callbacks_update = setting.callbacks.update;
+
       var checker: JQuery = jQuery(),
           marker: JQuery = jQuery(),
           scripts: JQuery = jQuery(),
           loadwaits: JQueryDeferred<void>[] = [];
+
+      if (UTIL.fire(callbacks_update.content.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return loadwaits; }
 
       function mark() {
         if (!this) { return; }
@@ -574,8 +577,6 @@ module MODULE.MODEL {
         jQuery(this).one('load error', defer.resolve);
         return defer;
       }
-
-      if (UTIL.fire(callbacks_update.content.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return loadwaits; }
 
       jQuery(setting.area).children('.' + setting.nss.class4html + '-check').remove();
       checker = jQuery('<div/>', {
@@ -808,7 +809,7 @@ module MODULE.MODEL {
     updateRender_(callback: () => void): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
-          checker = this.checker_,
+          checker = jQuery(setting.area).children('.' + setting.nss.class4html + '-check'),
           loadwaits = this.loadwaits_;
 
       var callbacks_update = setting.callbacks.update;
