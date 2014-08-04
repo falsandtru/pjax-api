@@ -56,8 +56,5 @@ $.pjax({
 ## load.ignore: string
 同期、読み込みの対象としない要素をjQueryセレクタで設定します。初期値は`'[src*="jquery.js"], [src*="jquery.min.js"], [href^="chrome-extension://"]'`です。
 
-## load.sync: boolean
-`defer`属性を持つJavaScriptの読み込みを更新されたコンテンツが描画されるまで待ちます。ただし、描画の確認回数が100回を超えた場合はその時点で読み込みます。初期値は`true`です。
-
 ## load.ajax: object
 外部参照JavaScriptを読み込む際に`ajax`パラメータへマージして使用する`$.ajax`のパラメータを設定します。設定値は初期値にマージされます。初期値は`'{dataType: 'script', cache: true}'`です。非同期設定は要素の`async`属性により設定されます。`async`プロパティが`true`であっても属性が設定されてない場合は属性を優先して`false`とみなします。

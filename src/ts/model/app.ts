@@ -57,7 +57,6 @@ module MODULE.MODEL {
               delay: 500 
             },
             load: {
-              sync: true,
               head: '',
               css: false,
               script: false,

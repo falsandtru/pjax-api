@@ -53,7 +53,6 @@ interface PjaxSetting {
         execute?: boolean
         reload?: string
         ignore?: string
-        sync?: boolean
         ajax?: JQueryAjaxSettings
     }
     balance: {

@@ -321,7 +321,6 @@ module MODULE {
       delay: number
     }
     load: {
-      sync: boolean
       head: string
       css: boolean
       script: boolean
