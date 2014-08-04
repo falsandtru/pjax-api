@@ -223,7 +223,6 @@ module MODULE.MODEL {
         var that = this,
             APP = this.app_;
         var setting: SettingInterface = this.setting_,
-            cache: CacheInterface = this.cache_,
             event: JQueryEventObject = this.event_,
             register: boolean = this.register_,
             data: string = this.data_,
@@ -240,7 +239,7 @@ module MODULE.MODEL {
 
         this.model_.setActiveSetting(setting);
 
-        if (UTIL.fire(callbacks_update.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_, cache]) === false) { break UPDATE; }
+        if (UTIL.fire(callbacks_update.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_, this.cache_]) === false) { break UPDATE; }
 
         if (setting.cache.mix && 'popstate' !== event.type.toLowerCase() && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
           return this.model_.fallback(event, setting);
@@ -327,7 +326,7 @@ module MODULE.MODEL {
           if (!err) { return; }
 
           /* cache delete */
-          cache && this.model_.removeCache(setting.destLocation.href);
+          this.cache_ && this.model_.removeCache(setting.destLocation.href);
 
           if (UTIL.fire(callbacks_update.error, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { break UPDATE; }
           if (UTIL.fire(callbacks_update.complete, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { break UPDATE; }
@@ -340,7 +339,6 @@ module MODULE.MODEL {
 
     updateRewrite_(): void {
       var setting: SettingInterface = this.setting_,
-          cache: CacheInterface = this.cache_,
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
