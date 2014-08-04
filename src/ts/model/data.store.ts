@@ -10,7 +10,7 @@ module MODULE.MODEL {
       this.DB_ = DB;
     }
 
-    DB_: DataDB
+    DB_: DataDBInterface
 
     name: string
     keyPath: string
@@ -18,9 +18,9 @@ module MODULE.MODEL {
     buffer_: T[] = []
 
     accessStore(success: (store: IDBObjectStore) => void, mode: string = 'readwrite'): void {
-      var database: IDBDatabase = this.DB_.database_;
+      var database: IDBDatabase = this.DB_.database();
 
-      this.DB_.conExtend_();
+      this.DB_.conExtend();
 
       if (database) {
         success(database.transaction(this.name, mode).objectStore(this.name));

@@ -16,7 +16,7 @@ module MODULE.MODEL {
     }
 
     Update = AppUpdate
-    DATA: AppDataInterface = new AppData(this.model_, this)
+    data: AppDataInterface = new AppData(this.model_, this)
 
     landing: string = UTIL.canonicalizeUrl(window.location.href)
     recent: RecentInterface = { order: [], data: {}, size: 0 }
@@ -187,7 +187,7 @@ module MODULE.MODEL {
 
       new VIEW.Main(this.model_, this.controller_, $context).BIND(setting);
       setTimeout(() => this.createHTMLDocument(''), 50);
-      setTimeout(() => this.DATA.loadBufferAll(setting.buffer.limit), setting.buffer.delay);
+      setTimeout(() => this.data.loadBufferAll(setting.buffer.limit), setting.buffer.delay);
       setting.balance.self && setTimeout(() => this.enableBalance(), setting.buffer.delay);
       setTimeout(() => this.landing = null, 1500);
     }
@@ -199,11 +199,11 @@ module MODULE.MODEL {
         return void this.disableBalance();
       }
 
-      if (Number(!this.DATA.setCookie(setting.balance.client.cookie.balance, '1'))) {
+      if (Number(!this.data.setCookie(setting.balance.client.cookie.balance, '1'))) {
         return void this.disableBalance();
       }
       if (setting.balance.client.support.redirect.test(window.navigator.userAgent)) {
-        this.DATA.setCookie(setting.balance.client.cookie.redirect, '1');
+        this.data.setCookie(setting.balance.client.cookie.redirect, '1');
       }
       host && this.switchRequestServer(host, setting);
     }
@@ -211,8 +211,8 @@ module MODULE.MODEL {
     disableBalance(): void {
       var setting: SettingInterface = this.model_.getActiveSetting();
 
-      this.DATA.setCookie(setting.balance.client.cookie.balance, '0');
-      this.DATA.setCookie(setting.balance.client.cookie.redirect, '0');
+      this.data.setCookie(setting.balance.client.cookie.balance, '0');
+      this.data.setCookie(setting.balance.client.cookie.redirect, '0');
       this.switchRequestServer(null, setting);
     }
 
@@ -221,20 +221,20 @@ module MODULE.MODEL {
       setting = setting || this.model_.getActiveSetting();
       this.model_.requestHost = host;
       setting.balance.server.host = host;
-      this.DATA.setCookie(setting.balance.client.cookie.host, host);
+      this.data.setCookie(setting.balance.client.cookie.host, host);
     }
 
     chooseRequestServer(setting: SettingInterface): void {
       setting.balance.self && this.enableBalance();
-      if (!setting.balance.self || '1' !== this.DATA.getCookie(setting.balance.client.cookie.balance)) {
+      if (!setting.balance.self || '1' !== this.data.getCookie(setting.balance.client.cookie.balance)) {
         this.disableBalance();
         return;
       }
 
-      this.DATA.loadBufferAll(setting.buffer.limit);
+      this.data.loadBufferAll(setting.buffer.limit);
 
       var expires: number;
-      var historyBufferData: HistorySchema = this.DATA.getBuffer<HistorySchema>(this.DATA.storeNames.history, this.model_.convertUrlToKeyUrl(setting.destLocation.href));
+      var historyBufferData: HistorySchema = this.data.getBuffer<HistorySchema>(this.data.storeNames.history, this.model_.convertUrlToKeyUrl(setting.destLocation.href));
 
       expires = historyBufferData && historyBufferData.expires;
       if (expires && expires >= new Date().getTime()) {
@@ -242,13 +242,13 @@ module MODULE.MODEL {
         return;
       }
 
-      var logBuffer = this.DATA.getBuffer<{ [index: number]: LogSchema }>(this.DATA.storeNames.log),
+      var logBuffer = this.data.getBuffer<{ [index: number]: LogSchema }>(this.data.storeNames.log),
           timeList: number[] = [],
           logTable: { [index: number]: LogSchema } = {},
           now: number = new Date().getTime();
 
       if (!logBuffer) {
-        host = this.DATA.getCookie(setting.balance.client.cookie.host);
+        host = this.data.getCookie(setting.balance.client.cookie.host);
         if (host) {
           this.enableBalance(host);
         } else {
@@ -268,7 +268,7 @@ module MODULE.MODEL {
         return a - b;
       }
       timeList = timeList.sort(compareNumbers);
-      var serverBuffer = this.DATA.getBuffer<{ [index: string]: ServerSchema }>(this.DATA.storeNames.server),
+      var serverBuffer = this.data.getBuffer<{ [index: string]: ServerSchema }>(this.data.storeNames.server),
           time: number = timeList.shift();
 
       if (!serverBuffer) {
@@ -302,7 +302,7 @@ module MODULE.MODEL {
         var options: string[] = area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
         var j: number = -1;
         while (options[++j]) {
-          if (!jQuery(options[j], srcDocument)[0] || !jQuery(options[j], dstDocument)[0]) {
+          if (!jQuery(options[j], srcDocument).length || !jQuery(options[j], dstDocument).length) {
             continue AREA;
           }
         }
@@ -351,7 +351,7 @@ module MODULE.MODEL {
           patterns = scpTable[scpTag];
         }
 
-        if (!patterns || !patterns[0]) { return false; }
+        if (!patterns || !patterns.length) { return false; }
 
         patterns = patterns.concat();
         for (var j = 0, pattern; pattern = patterns[j]; j++) {

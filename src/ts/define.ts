@@ -74,14 +74,10 @@ module MODULE {
     constructor()
 
     // プロパティ
-    controller_: ControllerInterface
-    app_: ModelAppInterface
-    state_: State
     isDeferrable: boolean
     requestHost: string
     
     // Model機能
-    main_(context: ContextInterface, option: PjaxSetting): ContextInterface
     state(): State
     convertUrlToKeyUrl(unsafe_url: string): string
     isImmediateLoadable(unsafe_url: string, setting?: SettingInterface): boolean
@@ -109,7 +105,7 @@ module MODULE {
   }
   export declare class ModelAppInterface extends StockInterface {
     Update
-    DATA: AppDataInterface
+    data: AppDataInterface
 
     landing: string
     recent: RecentInterface
@@ -117,8 +113,6 @@ module MODULE {
     activeXHR: JQueryXHR
     activeSetting: SettingInterface
 
-    scope_(setting: SettingInterface, src: string, dst: string, rewriteKeyUrl?: string): any
-    
     configure(option: SettingInterface, origURL: string, destURL: string): SettingInterface
     registrate($context: ContextInterface, setting: SettingInterface): void
     createHTMLDocument(html: string): Document
@@ -133,9 +127,6 @@ module MODULE {
     calExpires(jqXHR: JQueryXHR): number
   }
   export declare class AppDataInterface {
-    app_: ModelAppInterface
-    DATA_: ModelDataInterface
-
     //cookie
     getCookie(key: string): string
     setCookie(key: string, value: string, option?: Object): string
@@ -177,38 +168,6 @@ module MODULE {
   }
   export declare class AppUpdateInterface {
     constructor(model_: ModelInterface, app_: ModelAppInterface, setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface)
-
-    setting_: SettingInterface
-    cache_: CacheInterface
-    checker_: JQuery
-    loadwaits_: JQueryDeferred<any>[]
-
-    event_: JQueryEventObject
-    host_: string
-    data_: string
-    textStatus_: string
-    jqXHR_: JQueryXHR
-    errorThrown_: string
-    register_: boolean
-    srcDocument_: Document
-    dstDocument_: Document
-
-    update_(): void
-    updateRewrite_(): void
-    updateCache_(): void
-    updateRedirect_(): void
-    updateUrl_(): void
-    updateTitle_(): void
-    updateHead_(): void
-    updateContent_(): JQueryDeferred<any>[]
-    updateScroll_(call: boolean): void
-    updateCSS_(selector: string): void
-    updateScript_(selector: string): void
-    updateRender_(callback: () => void): void
-    updateBalance_(): void
-    updateVerify_(): void
-    scrollByHash_(hash: string): boolean
-    wait_(ms: number): JQueryPromise<any>
   }
   export declare class ModelDataInterface {
     DB: DataDBInterface
@@ -219,18 +178,9 @@ module MODULE {
     IDBFactory: IDBFactory
     IDBKeyRange: IDBKeyRange
 
-    database_: IDBDatabase
-    name_: string
-    version_: number
-    refresh_: number
-    upgrade_: number
-    state_: State
+    database(): IDBDatabase
     nowInitializing: boolean
     nowRetrying: boolean
-    conAge_: number
-    conExpires_: number
-    conInterval_: number
-    tasks_: { (): void }[]
     state(): State
     store: DatabaseSchema
     metaNames: {
@@ -238,12 +188,7 @@ module MODULE {
       update: string
     }
     
-    initdb_(delay?: number): void
-    deletedb_(): void
-    checkdb_(database: IDBDatabase, version: number, success: () => void, upgrade: () => void): void;
-    conExtend_(): void
-    reserveTask_(task: () => void): void
-    digestTask_(limit?: number): void
+    conExtend(): void
 
     opendb(task: () => void, noRetry?: boolean): void
     closedb(): void
@@ -251,12 +196,8 @@ module MODULE {
   export declare class DataStoreInterface<T> {
     constructor(DB: DataDBInterface)
 
-    DB_: DataDBInterface
-
     name: string
     keyPath: string
-
-    buffer_: T[]
 
     accessStore(success: (store?: IDBObjectStore) => void, mode?: string): void
     accessRecord(key: string, success: (event?: Event) => void, mode?: string): void
@@ -288,7 +229,6 @@ module MODULE {
   }
   export declare class DataCookieInterface {
     constructor(age: number)
-    age_: number
 
     getCookie(key: string): string
     setCookie(key: string, value: string, option?: CookieOptionInterface): string
@@ -301,7 +241,6 @@ module MODULE {
   export declare class ViewInterface {
     constructor(context: ContextInterface)
     CONTEXT: ContextInterface
-    state_: State
     
     BIND(setting: SettingInterface): ViewInterface
     UNBIND(setting: SettingInterface): ViewInterface
@@ -312,8 +251,6 @@ module MODULE {
   export declare class ControllerInterface {
     constructor()
 
-    exec_(context: ContextInterface, ...args: any[]): any
-    
     CLICK(event: JQueryEventObject): void
     SUBMIT(event: JQueryEventObject): void
     POPSTATE(event: JQueryEventObject): void

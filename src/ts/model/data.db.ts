@@ -18,7 +18,7 @@ module MODULE.MODEL {
           this.conExpires_ = 0;
         }
         setTimeout(check, Math.max(this.conExpires_ - now + 100, this.conInterval_));
-        this.tasks_[0] && this.opendb(null, true);
+        this.tasks_.length && this.opendb(null, true);
       }
       this.conAge_ && setTimeout(check, this.conInterval_);
     }
@@ -32,13 +32,16 @@ module MODULE.MODEL {
     refresh_: number = 10
     upgrade_: number = 1 // 0:virtual 1:naitive
     state_: State = State.wait
+    database = () => this.database_
+    state = () => this.state_
     nowInitializing: boolean = false
     nowRetrying: boolean = false
+
     conAge_: number = 10 * 1000
     conExpires_: number
     conInterval_: number = 1000
     tasks_: { (): void }[] = []
-    state(): State { return this.state_; }
+
     store = {
       meta: new MODEL.DataStoreMeta<MetaSchema>(this),
       history: new MODEL.DataStoreHistory<HistorySchema>(this),
@@ -53,9 +56,9 @@ module MODULE.MODEL {
     opendb(task: () => void, noRetry?: boolean): void {
       var that = this;
 
-      if (!that.IDBFactory || !task && !that.tasks_[0]) { return; }
+      if (!that.IDBFactory || !task && !that.tasks_.length) { return; }
 
-      that.conExtend_();
+      that.conExtend();
       task && that.reserveTask_(task)
 
       try {
@@ -93,7 +96,7 @@ module MODULE.MODEL {
             that.checkdb_(database, that.version_, () => {
               that.database_ = database;
               that.state_ = State.ready;
-              that.conExtend_();
+              that.conExtend();
               that.nowInitializing = false;
 
               that.digestTask_();
@@ -173,7 +176,7 @@ module MODULE.MODEL {
       };
     }
 
-    conExtend_(): void {
+    conExtend(): void {
       this.conExpires_ = new Date().getTime() + this.conAge_;
     }
 

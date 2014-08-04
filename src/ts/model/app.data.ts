@@ -11,25 +11,25 @@ module MODULE.MODEL {
     constructor(public model_: ModelInterface, public app_: ModelAppInterface) {
     }
 
-    DATA_: ModelDataInterface = new MODEL.Data()
+    data_: ModelDataInterface = new MODEL.Data()
     storeNames = {
-      meta: this.DATA_.DB.store.meta.name,
-      history: this.DATA_.DB.store.history.name,
-      log: this.DATA_.DB.store.log.name,
-      server: this.DATA_.DB.store.server.name
+      meta: this.data_.DB.store.meta.name,
+      history: this.data_.DB.store.history.name,
+      log: this.data_.DB.store.log.name,
+      server: this.data_.DB.store.server.name
     }
 
     getCookie(key: string): string {
-      return this.DATA_.Cookie.getCookie(key);
+      return this.data_.Cookie.getCookie(key);
     }
 
     setCookie(key: string, value: string, option?): string {
-      return this.DATA_.Cookie.setCookie(key, value, option);
+      return this.data_.Cookie.setCookie(key, value, option);
     }
 
     opendb(setting: SettingInterface): void {
       setting.database = false;
-      this.DATA_.DB.opendb(() => {
+      this.data_.DB.opendb(() => {
         this.saveTitleToDB(setting.origLocation.href, document.title);
         this.saveScrollPositionToCacheAndDB(setting.origLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
         setting.database = true;
@@ -40,19 +40,19 @@ module MODULE.MODEL {
     getBuffer<T>(storeName: string, key: string): T
     getBuffer<T>(storeName: string, key: number): T
     getBuffer<T>(storeName: string, key?: any): any {
-      return this.DATA_.DB.store[storeName].getBuffer(key);
+      return this.data_.DB.store[storeName].getBuffer(key);
     }
 
     setBuffer<T>(storeName: string, key: string, value: T, isMerge?: boolean): T {
-      return this.DATA_.DB.store[storeName].setBuffer(key, value, isMerge);
+      return this.data_.DB.store[storeName].setBuffer(key, value, isMerge);
     }
 
     loadBuffer(storeName: string, limit: number = 0): void {
-      return this.DATA_.DB.store[storeName].loadBuffer(limit);
+      return this.data_.DB.store[storeName].loadBuffer(limit);
     }
 
     saveBuffer(storeName: string): void {
-      return this.DATA_.DB.store[storeName].saveBuffer();
+      return this.data_.DB.store[storeName].saveBuffer();
     }
 
     loadBufferAll(limit: number = 0): void {
@@ -71,12 +71,12 @@ module MODULE.MODEL {
       var keyUrl: string = this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url)),
           that = this;
 
-      var data: HistorySchema = this.DATA_.DB.store.history.getBuffer(keyUrl);
+      var data: HistorySchema = this.data_.DB.store.history.getBuffer(keyUrl);
 
       if (data && 'string' === typeof data.title) {
         document.title = data.title;
       } else {
-        this.DATA_.DB.store.history.get(keyUrl, function () {
+        this.data_.DB.store.history.get(keyUrl, function () {
           keyUrl === that.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(window.location.href)) &&
           this.result && this.result.title && (document.title = this.result.title);
         });
@@ -87,15 +87,15 @@ module MODULE.MODEL {
       var keyUrl = this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
 
       var value: HistorySchema = <HistorySchema>{ id: keyUrl, title: title, date: new Date().getTime() };
-      this.DATA_.DB.store.history.setBuffer(value, true);
-      this.DATA_.DB.store.history.set(value);
-      this.DATA_.DB.store.history.clean();
+      this.data_.DB.store.history.setBuffer(value, true);
+      this.data_.DB.store.history.set(value);
+      this.data_.DB.store.history.clean();
     }
 
     loadScrollPositionFromCacheOrDB(unsafe_url: string): void {
       var keyUrl: string = this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
 
-      var data: HistorySchema = this.DATA_.DB.store.history.getBuffer(keyUrl);
+      var data: HistorySchema = this.data_.DB.store.history.getBuffer(keyUrl);
       function scroll(scrollX, scrollY) {
         if ('number' !== typeof scrollX || 'number' !== typeof scrollY) { return; }
 
@@ -105,7 +105,7 @@ module MODULE.MODEL {
       if (data && 'number' === typeof data.scrollX) {
         scroll(data.scrollX, data.scrollY);
       } else {
-        this.DATA_.DB.store.history.get(keyUrl, function () {
+        this.data_.DB.store.history.get(keyUrl, function () {
           if (!this.result || keyUrl !== this.result.id) { return; }
           data = this.result;
           scroll(data.scrollX, data.scrollY);
@@ -117,8 +117,8 @@ module MODULE.MODEL {
       var keyUrl = this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
 
       var value: HistorySchema = <HistorySchema>{ id: keyUrl, scrollX: scrollX, scrollY: scrollY, date: new Date().getTime() };
-      this.DATA_.DB.store.history.setBuffer(value, true);
-      this.DATA_.DB.store.history.set(value);
+      this.data_.DB.store.history.setBuffer(value, true);
+      this.data_.DB.store.history.set(value);
     }
 
     loadExpiresFromDB(keyUrl: string): void {
@@ -126,17 +126,17 @@ module MODULE.MODEL {
 
     saveExpiresToDB(keyUrl: string, host: string, expires: number): void {
       var value: HistorySchema = <HistorySchema>{ id: keyUrl, host: host, expires: expires };
-      this.DATA_.DB.store.history.setBuffer(value, true);
-      this.DATA_.DB.store.history.set(value);
+      this.data_.DB.store.history.setBuffer(value, true);
+      this.data_.DB.store.history.set(value);
     }
 
     loadLogFromDB(): void {
     }
 
     saveLogToDB(log: LogSchema): void {
-      this.DATA_.DB.store.log.addBuffer(log);
-      this.DATA_.DB.store.log.add(log);
-      this.DATA_.DB.store.log.clean();
+      this.data_.DB.store.log.addBuffer(log);
+      this.data_.DB.store.log.add(log);
+      this.data_.DB.store.log.clean();
     }
 
     loadServerFromDB(): void {
@@ -144,8 +144,8 @@ module MODULE.MODEL {
 
     saveServerToDB(host: string, state: number = 0, unsafe_url?: string, expires: number = 0): void {
       var value: ServerSchema = <ServerSchema>{ id: host || '', state: state };
-      this.DATA_.DB.store.server.setBuffer(value);
-      this.DATA_.DB.store.server.set(value);
+      this.data_.DB.store.server.setBuffer(value);
+      this.data_.DB.store.server.set(value);
       if (unsafe_url) {
         this.saveExpiresToDB(unsafe_url, host, expires);
       }

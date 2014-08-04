@@ -37,7 +37,7 @@ module MODULE.MODEL {
 
       var setting: SettingInterface = this.app_.configure(<SettingInterface>option, window.location.href, window.location.href);
       this.setActiveSetting(setting);
-      setting.database && this.app_.DATA.opendb(setting);
+      setting.database && this.app_.data.opendb(setting);
 
       this.app_.stock({
         executed: {},
@@ -135,7 +135,7 @@ module MODULE.MODEL {
         if (!this.isImmediateLoadable(event, setting)) { break PROCESS; }
 
         if (setting.cache.mix && this.getCache(setting.destLocation.href)) { break PROCESS; }
-        setting.database && this.app_.isScrollPosSavable && this.app_.DATA.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+        setting.database && this.app_.isScrollPosSavable && this.app_.data.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
         var cache: CacheInterface;
         if (setting.cache[event.type.toLowerCase()]) { cache = this.getCache(setting.destLocation.href); }
@@ -144,7 +144,7 @@ module MODULE.MODEL {
         event.preventDefault();
         return;
       };
-      !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context)[0] && this.fallback(event, setting);
+      !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length && this.fallback(event, setting);
     }
 
     SUBMIT(event: JQueryEventObject): void {
@@ -160,7 +160,7 @@ module MODULE.MODEL {
         var serializedURL = setting.destLocation.href.replace(/[?#].*/, '') + ('GET' === context.method.toUpperCase() ? '?' + jQuery(context).serialize() : '');
         setting.destLocation.href = UTIL.canonicalizeUrl(serializedURL);
         if (setting.cache.mix && this.getCache(setting.destLocation.href)) { break PROCESS; }
-        setting.database && this.app_.isScrollPosSavable && this.app_.DATA.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+        setting.database && this.app_.isScrollPosSavable && this.app_.data.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
         var cache: CacheInterface;
         if (setting.cache[event.type.toLowerCase()] && setting.cache[context.method.toLowerCase()]) { cache = this.getCache(setting.destLocation.href); }
@@ -169,7 +169,7 @@ module MODULE.MODEL {
         event.preventDefault();
         return;
       };
-      !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context)[0] && this.fallback(event, setting);
+      !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length && this.fallback(event, setting);
     }
 
     POPSTATE(event: JQueryEventObject): void {
@@ -187,7 +187,7 @@ module MODULE.MODEL {
           break PROCESS;
         }
         
-        setting.database && setting.fix.history && this.app_.DATA.loadTitleFromDB(setting.destLocation.href);
+        setting.database && setting.fix.history && this.app_.data.loadTitleFromDB(setting.destLocation.href);
 
         var cache: CacheInterface;
         if (setting.cache[event.type.toLowerCase()]) { cache = this.getCache(setting.destLocation.href); }
@@ -203,13 +203,13 @@ module MODULE.MODEL {
       if (State.ready !== this.state() || event.isDefaultPrevented()) { return; }
 
       if (!setting.scroll.delay) {
-        this.app_.isScrollPosSavable && this.app_.DATA.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+        this.app_.isScrollPosSavable && this.app_.data.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
       } else {
         var id: number;
         while (id = setting.scroll.queue.shift()) { clearTimeout(id); }
         id = setTimeout(() => {
           while (id = setting.scroll.queue.shift()) { clearTimeout(id); }
-          this.app_.isScrollPosSavable && this.app_.DATA.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+          this.app_.isScrollPosSavable && this.app_.data.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
         }, setting.scroll.delay);
         setting.scroll.queue.push(id);
       }
@@ -300,7 +300,7 @@ module MODULE.MODEL {
       }
       if (jqXHR || cache && cache.jqXHR) {
         var title: string = ((jqXHR || cache && cache.jqXHR).responseText || '').slice(0, 10000).match(/<title[^>]*>(.*?)<\/title>/i).pop() || '';
-        setting.database && setting.fix.history && this.app_.DATA.saveTitleToDB(secure_url, title);
+        setting.database && setting.fix.history && this.app_.data.saveTitleToDB(secure_url, title);
       }
     }
     
