@@ -126,7 +126,19 @@ module MODULE.MODEL {
 
           case 'submit':
             ajax.type = (<HTMLFormElement>event.currentTarget).method.toUpperCase();
-            if ('POST' === ajax.type) { ajax.data = jQuery(event.currentTarget).serializeArray(); }
+            switch (ajax.type) {
+              case 'POST':
+                if (!jQuery(event.currentTarget).has(':file').length) {
+                  ajax.data = jQuery(event.currentTarget).serializeArray();
+                } else if ('function' === typeof FormData) {
+                  ajax.data = new FormData(<HTMLFormElement>event.currentTarget);
+                  ajax.contentType = false;
+                  ajax.processData = false;
+                }
+                break;
+              case 'GET':
+                break;
+            }
             break;
 
           case 'popstate':
