@@ -791,6 +791,9 @@ module MODULE.MODEL {
           }
         }
       } catch (err) {
+        setTimeout(() => this.model_.fallback(event, setting), 50);
+        throw err;
+        return;
       }
       
       if (UTIL.fire(callbacks_update.script.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
