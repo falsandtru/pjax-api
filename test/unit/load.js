@@ -66,9 +66,9 @@ suite("Load", function () {
 
         defer = self.$.Deferred();
         window.console.notice = function (text) {
-          window.console.notice = 'external' === text && function (text) {
-            window.console.notice = 'area' === text && function (text) {
-              'inline' === text && $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+          window.console.notice = 'area' === text && function (text) {
+            window.console.notice = 'inline' === text && function (text) {
+              'external' === text && setTimeout(defer.resolve, 0);
             };
           };
         };

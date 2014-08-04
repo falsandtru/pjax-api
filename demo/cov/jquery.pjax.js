@@ -3,7 +3,7 @@
  * jquery.pjax.js
  * 
  * @name jquery.pjax.js
- * @version 2.11.2
+ * @version 2.12.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
  * @copyright 2012, falsandtru
@@ -905,6 +905,9 @@ var MODULE;
                 this.app_ = app_;
                 this.checker_ = jQuery();
                 this.loadwaits_ = [];
+                this.ready_(setting, event, register, cache);
+            }
+            AppUpdate.prototype.ready_ = function (setting, event, register, cache) {
                 var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
                 speedcheck && (speed.fire = event.timeStamp);
                 speedcheck && speed.time.splice(0, 100, 0);
@@ -930,6 +933,7 @@ var MODULE;
                     MODEL.UTIL.fire(setting.callbacks.ajax.done, this, [event, setting.param].concat(xhrArgs));
                 }
                 function fail(xhrArgs) {
+                    that.errorThrown_ = xhrArgs[2];
                     MODEL.UTIL.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat(xhrArgs));
                 }
                 function always(xhrArgs) {
@@ -937,15 +941,15 @@ var MODULE;
 
                     that.model_.setActiveXHR(null);
                     var data, textStatus, jqXHR;
-                    if (2 < xhrArgs.length) {
+                    if (!that.errorThrown_) {
                         that.data_ = xhrArgs[0];
                         that.textStatus_ = xhrArgs[1];
                         that.jqXHR_ = xhrArgs[2];
 
                         that.update_();
-                    } else if (setting.fallback && 'abort' !== xhrArgs.statusText) {
+                    } else if (setting.fallback && 'abort' !== xhrArgs[0].statusText) {
                         if (setting.balance.self) {
-                            that.app_.DATA.saveServerToDB(setting.balance.server.host, new Date().getTime());
+                            that.app_.data.saveServerToDB(setting.balance.server.host, new Date().getTime());
                             that.app_.disableBalance();
                         }
                         that.model_.fallback(event, setting);
@@ -1001,8 +1005,18 @@ var MODULE;
 
                         case 'submit':
                             ajax.type = event.currentTarget.method.toUpperCase();
-                            if ('POST' === ajax.type) {
-                                ajax.data = jQuery(event.currentTarget).serializeArray();
+                            switch (ajax.type) {
+                                case 'POST':
+                                    if (!jQuery(event.currentTarget).has(':file').length) {
+                                        ajax.data = jQuery(event.currentTarget).serializeArray();
+                                    } else if ('function' === typeof FormData) {
+                                        ajax.data = new FormData(event.currentTarget);
+                                        ajax.contentType = false;
+                                        ajax.processData = false;
+                                    }
+                                    break;
+                                case 'GET':
+                                    break;
                             }
                             break;
 
@@ -1082,13 +1096,13 @@ var MODULE;
                 if (MODEL.UTIL.fire(setting.callbacks.after, null, [event, setting.param]) === false) {
                     return;
                 }
-            }
+            };
+
             AppUpdate.prototype.update_ = function () {
-                var _this = this;
                 UPDATE:
                  {
                     var that = this, APP = this.app_;
-                    var setting = this.setting_, cache = this.cache_, event = this.event_, register = this.register_, data = this.data_, textStatus = this.textStatus_, jqXHR = this.jqXHR_;
+                    var setting = this.setting_, event = this.event_, register = this.register_, data = this.data_, textStatus = this.textStatus_, jqXHR = this.jqXHR_;
                     var callbacks_update = setting.callbacks.update;
 
                     setting.loadtime = setting.loadtime && new Date().getTime() - setting.loadtime;
@@ -1100,7 +1114,7 @@ var MODULE;
 
                     this.model_.setActiveSetting(setting);
 
-                    if (MODEL.UTIL.fire(callbacks_update.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_, cache]) === false) {
+                    if (MODEL.UTIL.fire(callbacks_update.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_, this.cache_]) === false) {
                         break UPDATE;
                     }
 
@@ -1157,6 +1171,9 @@ var MODULE;
 
                         setting.origLocation.href = setting.destLocation.href;
 
+                        /* verify */
+                        this.updateVerify_();
+
                         /* title */
                         this.updateTitle_();
 
@@ -1178,31 +1195,11 @@ var MODULE;
                         /* escape */
                         jQuery('noscript', srcDocument).remove();
 
-                        /* verify */
-                        this.updateVerify_();
-
                         /* balance */
                         this.updateBalance_();
 
                         /* load */
-                        this.updateCSS_('link[rel~="stylesheet"], style');
-                        jQuery(window).one(setting.gns + '.rendering', function (event) {
-                            event.preventDefault();
-                            event.stopImmediatePropagation();
-
-                            _this.updateScroll_(false);
-                            jQuery(dstDocument).trigger(setting.gns + '.ready');
-                            _this.updateScript_(':not([defer]), :not([src])');
-                            if (setting.load.sync) {
-                                var callback = function () {
-                                    return _this.updateScript_('[src][defer]');
-                                };
-                                _this.updateRender_(callback);
-                            } else {
-                                _this.updateRender_(null);
-                                _this.updateScript_('[src][defer]');
-                            }
-                        }).trigger(setting.gns + '.rendering');
+                        this.updateLoad_();
 
                         if (MODEL.UTIL.fire(callbacks_update.success, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                             break UPDATE;
@@ -1219,7 +1216,7 @@ var MODULE;
                         }
 
                         /* cache delete */
-                        cache && this.model_.removeCache(setting.destLocation.href);
+                        this.cache_ && this.model_.removeCache(setting.destLocation.href);
 
                         if (MODEL.UTIL.fire(callbacks_update.error, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                             break UPDATE;
@@ -1239,7 +1236,7 @@ var MODULE;
             };
 
             AppUpdate.prototype.updateRewrite_ = function () {
-                var setting = this.setting_, cache = this.cache_, event = this.event_;
+                var setting = this.setting_, event = this.event_;
                 var callbacks_update = setting.callbacks.update;
 
                 if (!setting.rewrite) {
@@ -1302,7 +1299,7 @@ var MODULE;
                 var setting = this.setting_, event = this.event_, register = this.register_;
                 var callbacks_update = setting.callbacks.update;
 
-                if (!jQuery('head meta[http-equiv="Refresh"][content*="URL="]', this.srcDocument_)[0]) {
+                if (!jQuery('head meta[http-equiv="Refresh"][content*="URL="]', this.srcDocument_).length) {
                     return;
                 }
 
@@ -1380,7 +1377,7 @@ var MODULE;
                     return;
                 }
                 this.dstDocument_.title = this.srcDocument_.title;
-                setting.database && setting.fix.history && this.app_.DATA.saveTitleToDB(setting.destLocation.href, this.srcDocument_.title);
+                setting.database && setting.fix.history && this.app_.data.saveTitleToDB(setting.destLocation.href, this.srcDocument_.title);
                 if (MODEL.UTIL.fire(callbacks_update.title.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                     return;
                 }
@@ -1468,7 +1465,7 @@ var MODULE;
                     return marker.clone();
                 }
                 function unmark() {
-                    if (!scripts[0]) {
+                    if (!scripts.length) {
                         return;
                     }
                     var script = scripts.first()[0];
@@ -1503,7 +1500,7 @@ var MODULE;
                 while (setting.areas[++i]) {
                     $srcAreas = jQuery(setting.areas[i], srcDocument).clone();
                     $dstAreas = jQuery(setting.areas[i], dstDocument);
-                    if (!$srcAreas[0] || !$dstAreas[0] || $srcAreas.length !== $dstAreas.length) {
+                    if (!$srcAreas.length || !$dstAreas.length || $srcAreas.length !== $dstAreas.length) {
                         throw new Error('throw: area mismatch');
                     }
 
@@ -1528,6 +1525,36 @@ var MODULE;
                 return loadwaits;
             };
 
+            AppUpdate.prototype.updateLoad_ = function () {
+                var _this = this;
+                var setting = this.setting_, dstDocument = this.dstDocument_;
+
+                this.updateCSS_('link[rel~="stylesheet"], style');
+                jQuery(window).one(setting.gns + '.rendering', function (event) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+
+                    _this.updateScroll_(false);
+
+                    var scriptwaits = _this.updateScript_(':not([defer]), :not([src])');
+                    var ready = function () {
+                        jQuery(dstDocument).trigger(setting.gns + '.ready');
+                        if (setting.load.sync) {
+                            var callback = function () {
+                                return _this.updateScript_('[src][defer]');
+                            };
+                            _this.updateRender_(callback);
+                        } else {
+                            _this.updateRender_(null);
+                            _this.updateScript_('[src][defer]');
+                        }
+                    };
+                    _this.model_.isDeferrable ? jQuery.when.apply(null, scriptwaits).always(function () {
+                        return ready();
+                    }) : ready();
+                }).trigger(setting.gns + '.rendering');
+            };
+
             AppUpdate.prototype.updateScroll_ = function (call) {
                 var setting = this.setting_, event = this.event_;
                 var callbacks_update = setting.callbacks.update;
@@ -1549,10 +1576,10 @@ var MODULE;
                         scrollY = scrollY === false || scrollY === null ? jQuery(window).scrollTop() : parseInt(Number(scrollY) + '', 10);
 
                         (jQuery(window).scrollTop() === scrollY && jQuery(window).scrollLeft() === scrollX) || window.scrollTo(scrollX, scrollY);
-                        call && setting.database && this.app_.isScrollPosSavable && setting.fix.scroll && this.app_.DATA.saveScrollPositionToCacheAndDB(setting.destLocation.href, scrollX, scrollY);
+                        call && setting.database && this.app_.isScrollPosSavable && setting.fix.scroll && this.app_.data.saveScrollPositionToCacheAndDB(setting.destLocation.href, scrollX, scrollY);
                         break;
                     case 'popstate':
-                        call && setting.fix.scroll && setting.database && this.app_.DATA.loadScrollPositionFromCacheOrDB(setting.destLocation.href);
+                        call && setting.fix.scroll && setting.database && this.app_.data.loadScrollPositionFromCacheOrDB(setting.destLocation.href);
                         break;
                 }
 
@@ -1617,6 +1644,7 @@ var MODULE;
             };
 
             AppUpdate.prototype.updateScript_ = function (selector) {
+                var _this = this;
                 var setting = this.setting_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
                 var callbacks_update = setting.callbacks.update;
 
@@ -1628,7 +1656,7 @@ var MODULE;
                     return;
                 }
 
-                var script = jQuery('script', srcDocument).not(setting.load.ignore), execs = [];
+                var script = jQuery('script', srcDocument).not(setting.load.ignore), execs = [], scriptwaits = [], regType = /^$|(?:application|text)\/(?:java|ecma)script/i, regRemove = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
 
                 var executed = this.app_.stock('executed');
                 for (var i = 0, element; element = script[i]; i++) {
@@ -1645,7 +1673,7 @@ var MODULE;
                     LOG:
                      {
                         var logParent = jQuery(element).parent(setting.load.log);
-                        if (!logParent[0] || jQuery(element).parents(setting.area)[0]) {
+                        if (!logParent.length || jQuery(element).parents(setting.area).length) {
                             break LOG;
                         }
 
@@ -1660,18 +1688,53 @@ var MODULE;
                     }
                     ;
 
-                    try  {
-                        if (element.src) {
-                            if (!setting.load.reload || !jQuery(element).is(setting.load.reload)) {
-                                executed[element.src] = true;
+                    if (this.model_.isDeferrable) {
+                        (function (defer) {
+                            if (element.src) {
+                                if (!setting.load.reload || !jQuery(element).is(setting.load.reload)) {
+                                    executed[element.src] = true;
+                                }
+                                if ('string' === typeof element.getAttribute('async')) {
+                                    return void jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: true, global: false }));
+                                }
+                                jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, dataType: 'text', async: true, global: false })).always(function () {
+                                    return 'string' === typeof arguments[0] && defer.resolve(arguments[0]);
+                                });
+                            } else {
+                                defer.resolve('object' === typeof element && (!element.type || regType.test(element.type)) && (element.text || element.textContent || element.innerHTML || '').replace(regRemove, ''));
                             }
-                            jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: 'string' === typeof element.getAttribute('async'), global: false }));
-                        } else {
-                            'object' === typeof element && (!element.type || ~element.type.toLowerCase().indexOf('text/javascript')) && eval.call(window, (element.text || element.textContent || element.innerHTML || '').replace(/^\s*<!(?:\[CDATA\[|\-\-)/, '/*$0*/'));
-                        }
-                    } catch (err) {
-                        break;
+                            scriptwaits.push(defer);
+                        })(jQuery.Deferred());
+                    } else {
+                        execs.push(element);
                     }
+                }
+
+                try  {
+                    if (this.model_.isDeferrable) {
+                        jQuery.when.apply(null, scriptwaits).always(function () {
+                            for (var i = 0, len = arguments.length; i < len; i++) {
+                                arguments[i] && eval.call(window, arguments[i]);
+                            }
+                        });
+                    } else {
+                        for (var i = 0, element; element = execs[i]; i++) {
+                            if (element.src) {
+                                if (!setting.load.reload || !jQuery(element).is(setting.load.reload)) {
+                                    executed[element.src] = true;
+                                }
+                                jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: 'string' === typeof element.getAttribute('async'), global: false }));
+                            } else {
+                                'object' === typeof element && (!element.type || regType.test(element.type)) && eval.call(window, (element.text || element.textContent || element.innerHTML || '').replace(regRemove, ''));
+                            }
+                        }
+                    }
+                } catch (err) {
+                    setTimeout(function () {
+                        return _this.model_.fallback(event, setting);
+                    }, 50);
+                    throw err;
+                    return;
                 }
 
                 if (MODEL.UTIL.fire(callbacks_update.script.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
@@ -1681,6 +1744,8 @@ var MODULE;
                 var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
                 speedcheck && speed.time.push(speed.now() - speed.fire);
                 speedcheck && speed.name.push(('[src][defer]' === selector ? 'defer' : 'script') + '(' + speed.time.slice(-1) + ')');
+
+                return scriptwaits;
             };
 
             AppUpdate.prototype.updateRender_ = function (callback) {
@@ -1710,8 +1775,8 @@ var MODULE;
                     function onload() {
                         jQuery(window).trigger(setting.gns + '.load');
                     }
-                    if (setting.load.sync && jQuery.when && loadwaits[0]) {
-                        jQuery.when.apply(jQuery, loadwaits).always(onload);
+                    if (setting.load.sync && jQuery.when && loadwaits.length) {
+                        jQuery.when.apply(null, loadwaits).always(onload);
                     } else {
                         onload();
                     }
@@ -1784,12 +1849,12 @@ var MODULE;
                 }
 
                 var host = (this.jqXHR_.getResponseHeader(setting.balance.server.header) || '').split('//').pop();
-                this.app_.DATA.saveLogToDB({
+                this.app_.data.saveLogToDB({
                     host: host,
                     performance: Math.ceil(setting.loadtime / (this.jqXHR_.responseText.length || 1) * 1e5),
                     date: new Date().getTime()
                 });
-                this.app_.DATA.saveServerToDB(host, 0, setting.destLocation.href, this.app_.calExpires(this.jqXHR_));
+                this.app_.data.saveServerToDB(host, 0, setting.destLocation.href, this.app_.calExpires(this.jqXHR_));
                 this.app_.chooseRequestServer(setting);
 
                 if (MODEL.UTIL.fire(callbacks_update.balance.after, null, [event, setting.param]) === false) {
@@ -1816,7 +1881,7 @@ var MODULE;
                 }
 
                 var $hashTargetElement = jQuery('#' + (hash ? hash : ', [name~=' + hash + ']')).first();
-                if ($hashTargetElement[0]) {
+                if ($hashTargetElement.length) {
                     isFinite($hashTargetElement.offset().top) && window.scrollTo(jQuery(window).scrollLeft(), parseInt(Number($hashTargetElement.offset().top) + '', 10));
                     return true;
                 } else {
@@ -1843,9 +1908,9 @@ var MODULE;
             DataStore.prototype.accessStore = function (success, mode) {
                 var _this = this;
                 if (typeof mode === "undefined") { mode = 'readwrite'; }
-                var database = this.DB_.database_;
+                var database = this.DB_.database();
 
-                this.DB_.conExtend_();
+                this.DB_.conExtend();
 
                 if (database) {
                     success(database.transaction(this.name, mode).objectStore(this.name));
@@ -2078,6 +2143,12 @@ var MODULE;
                 this.refresh_ = 10;
                 this.upgrade_ = 1;
                 this.state_ = -1 /* wait */;
+                this.database = function () {
+                    return _this.database_;
+                };
+                this.state = function () {
+                    return _this.state_;
+                };
                 this.nowInitializing = false;
                 this.nowRetrying = false;
                 this.conAge_ = 10 * 1000;
@@ -2100,22 +2171,18 @@ var MODULE;
                         _this.conExpires_ = 0;
                     }
                     setTimeout(check, Math.max(_this.conExpires_ - now + 100, _this.conInterval_));
-                    _this.tasks_[0] && _this.opendb(null, true);
+                    _this.tasks_.length && _this.opendb(null, true);
                 };
                 this.conAge_ && setTimeout(check, this.conInterval_);
             }
-            DataDB.prototype.state = function () {
-                return this.state_;
-            };
-
             DataDB.prototype.opendb = function (task, noRetry) {
                 var that = this;
 
-                if (!that.IDBFactory || !task && !that.tasks_[0]) {
+                if (!that.IDBFactory || !task && !that.tasks_.length) {
                     return;
                 }
 
-                that.conExtend_();
+                that.conExtend();
                 task && that.reserveTask_(task);
 
                 try  {
@@ -2155,7 +2222,7 @@ var MODULE;
                             that.checkdb_(database, that.version_, function () {
                                 that.database_ = database;
                                 that.state_ = 0 /* ready */;
-                                that.conExtend_();
+                                that.conExtend();
                                 that.nowInitializing = false;
 
                                 that.digestTask_();
@@ -2236,7 +2303,7 @@ var MODULE;
                 };
             };
 
-            DataDB.prototype.conExtend_ = function () {
+            DataDB.prototype.conExtend = function () {
                 this.conExpires_ = new Date().getTime() + this.conAge_;
             };
 
@@ -2269,6 +2336,10 @@ var MODULE;
                 this.age_ = age;
             }
             DataCookie.prototype.getCookie = function (key) {
+                if (!window.navigator.cookieEnabled) {
+                    return;
+                }
+
                 var reg = new RegExp('(?:^|; )(' + encodeURIComponent(key) + '=[^;]*)'), data = (document.cookie.match(reg) || []).pop();
 
                 return data && decodeURIComponent(data.split('=').pop());
@@ -2276,6 +2347,10 @@ var MODULE;
 
             DataCookie.prototype.setCookie = function (key, value, option) {
                 if (typeof option === "undefined") { option = {}; }
+                if (!window.navigator.cookieEnabled) {
+                    return;
+                }
+
                 option.age = option.age || this.age_;
                 document.cookie = [
                     encodeURIComponent(key) + '=' + encodeURIComponent(value),
@@ -2321,26 +2396,26 @@ var MODULE;
             function AppData(model_, app_) {
                 this.model_ = model_;
                 this.app_ = app_;
-                this.DATA_ = new MODEL.Data();
+                this.data_ = new MODEL.Data();
                 this.storeNames = {
-                    meta: this.DATA_.DB.store.meta.name,
-                    history: this.DATA_.DB.store.history.name,
-                    log: this.DATA_.DB.store.log.name,
-                    server: this.DATA_.DB.store.server.name
+                    meta: this.data_.DB.store.meta.name,
+                    history: this.data_.DB.store.history.name,
+                    log: this.data_.DB.store.log.name,
+                    server: this.data_.DB.store.server.name
                 };
             }
             AppData.prototype.getCookie = function (key) {
-                return this.DATA_.Cookie.getCookie(key);
+                return this.data_.Cookie.getCookie(key);
             };
 
             AppData.prototype.setCookie = function (key, value, option) {
-                return this.DATA_.Cookie.setCookie(key, value, option);
+                return this.data_.Cookie.setCookie(key, value, option);
             };
 
             AppData.prototype.opendb = function (setting) {
                 var _this = this;
                 setting.database = false;
-                this.DATA_.DB.opendb(function () {
+                this.data_.DB.opendb(function () {
                     _this.saveTitleToDB(setting.origLocation.href, document.title);
                     _this.saveScrollPositionToCacheAndDB(setting.origLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
                     setting.database = true;
@@ -2348,20 +2423,20 @@ var MODULE;
             };
 
             AppData.prototype.getBuffer = function (storeName, key) {
-                return this.DATA_.DB.store[storeName].getBuffer(key);
+                return this.data_.DB.store[storeName].getBuffer(key);
             };
 
             AppData.prototype.setBuffer = function (storeName, key, value, isMerge) {
-                return this.DATA_.DB.store[storeName].setBuffer(key, value, isMerge);
+                return this.data_.DB.store[storeName].setBuffer(key, value, isMerge);
             };
 
             AppData.prototype.loadBuffer = function (storeName, limit) {
                 if (typeof limit === "undefined") { limit = 0; }
-                return this.DATA_.DB.store[storeName].loadBuffer(limit);
+                return this.data_.DB.store[storeName].loadBuffer(limit);
             };
 
             AppData.prototype.saveBuffer = function (storeName) {
-                return this.DATA_.DB.store[storeName].saveBuffer();
+                return this.data_.DB.store[storeName].saveBuffer();
             };
 
             AppData.prototype.loadBufferAll = function (limit) {
@@ -2380,12 +2455,12 @@ var MODULE;
             AppData.prototype.loadTitleFromDB = function (unsafe_url) {
                 var keyUrl = this.model_.convertUrlToKeyUrl(MODEL.UTIL.canonicalizeUrl(unsafe_url)), that = this;
 
-                var data = this.DATA_.DB.store.history.getBuffer(keyUrl);
+                var data = this.data_.DB.store.history.getBuffer(keyUrl);
 
                 if (data && 'string' === typeof data.title) {
                     document.title = data.title;
                 } else {
-                    this.DATA_.DB.store.history.get(keyUrl, function () {
+                    this.data_.DB.store.history.get(keyUrl, function () {
                         keyUrl === that.model_.convertUrlToKeyUrl(MODEL.UTIL.canonicalizeUrl(window.location.href)) && this.result && this.result.title && (document.title = this.result.title);
                     });
                 }
@@ -2395,15 +2470,15 @@ var MODULE;
                 var keyUrl = this.model_.convertUrlToKeyUrl(MODEL.UTIL.canonicalizeUrl(unsafe_url));
 
                 var value = { id: keyUrl, title: title, date: new Date().getTime() };
-                this.DATA_.DB.store.history.setBuffer(value, true);
-                this.DATA_.DB.store.history.set(value);
-                this.DATA_.DB.store.history.clean();
+                this.data_.DB.store.history.setBuffer(value, true);
+                this.data_.DB.store.history.set(value);
+                this.data_.DB.store.history.clean();
             };
 
             AppData.prototype.loadScrollPositionFromCacheOrDB = function (unsafe_url) {
                 var keyUrl = this.model_.convertUrlToKeyUrl(MODEL.UTIL.canonicalizeUrl(unsafe_url));
 
-                var data = this.DATA_.DB.store.history.getBuffer(keyUrl);
+                var data = this.data_.DB.store.history.getBuffer(keyUrl);
                 function scroll(scrollX, scrollY) {
                     if ('number' !== typeof scrollX || 'number' !== typeof scrollY) {
                         return;
@@ -2415,7 +2490,7 @@ var MODULE;
                 if (data && 'number' === typeof data.scrollX) {
                     scroll(data.scrollX, data.scrollY);
                 } else {
-                    this.DATA_.DB.store.history.get(keyUrl, function () {
+                    this.data_.DB.store.history.get(keyUrl, function () {
                         if (!this.result || keyUrl !== this.result.id) {
                             return;
                         }
@@ -2429,8 +2504,8 @@ var MODULE;
                 var keyUrl = this.model_.convertUrlToKeyUrl(MODEL.UTIL.canonicalizeUrl(unsafe_url));
 
                 var value = { id: keyUrl, scrollX: scrollX, scrollY: scrollY, date: new Date().getTime() };
-                this.DATA_.DB.store.history.setBuffer(value, true);
-                this.DATA_.DB.store.history.set(value);
+                this.data_.DB.store.history.setBuffer(value, true);
+                this.data_.DB.store.history.set(value);
             };
 
             AppData.prototype.loadExpiresFromDB = function (keyUrl) {
@@ -2438,17 +2513,17 @@ var MODULE;
 
             AppData.prototype.saveExpiresToDB = function (keyUrl, host, expires) {
                 var value = { id: keyUrl, host: host, expires: expires };
-                this.DATA_.DB.store.history.setBuffer(value, true);
-                this.DATA_.DB.store.history.set(value);
+                this.data_.DB.store.history.setBuffer(value, true);
+                this.data_.DB.store.history.set(value);
             };
 
             AppData.prototype.loadLogFromDB = function () {
             };
 
             AppData.prototype.saveLogToDB = function (log) {
-                this.DATA_.DB.store.log.addBuffer(log);
-                this.DATA_.DB.store.log.add(log);
-                this.DATA_.DB.store.log.clean();
+                this.data_.DB.store.log.addBuffer(log);
+                this.data_.DB.store.log.add(log);
+                this.data_.DB.store.log.clean();
             };
 
             AppData.prototype.loadServerFromDB = function () {
@@ -2458,8 +2533,8 @@ var MODULE;
                 if (typeof state === "undefined") { state = 0; }
                 if (typeof expires === "undefined") { expires = 0; }
                 var value = { id: host || '', state: state };
-                this.DATA_.DB.store.server.setBuffer(value);
-                this.DATA_.DB.store.server.set(value);
+                this.data_.DB.store.server.setBuffer(value);
+                this.data_.DB.store.server.set(value);
                 if (unsafe_url) {
                     this.saveExpiresToDB(unsafe_url, host, expires);
                 }
@@ -2487,7 +2562,7 @@ var MODULE;
                 this.model_ = model_;
                 this.controller_ = controller_;
                 this.Update = MODEL.AppUpdate;
-                this.DATA = new MODEL.AppData(this.model_, this);
+                this.data = new MODEL.AppData(this.model_, this);
                 this.landing = MODEL.UTIL.canonicalizeUrl(window.location.href);
                 this.recent = { order: [], data: {}, size: 0 };
                 this.isScrollPosSavable = true;
@@ -2669,7 +2744,7 @@ var MODULE;
                     return _this.createHTMLDocument('');
                 }, 50);
                 setTimeout(function () {
-                    return _this.DATA.loadBufferAll(setting.buffer.limit);
+                    return _this.data.loadBufferAll(setting.buffer.limit);
                 }, setting.buffer.delay);
                 setting.balance.self && setTimeout(function () {
                     return _this.enableBalance();
@@ -2686,11 +2761,11 @@ var MODULE;
                     return void this.disableBalance();
                 }
 
-                if (Number(!this.DATA.setCookie(setting.balance.client.cookie.balance, '1'))) {
+                if (Number(!this.data.setCookie(setting.balance.client.cookie.balance, '1'))) {
                     return void this.disableBalance();
                 }
                 if (setting.balance.client.support.redirect.test(window.navigator.userAgent)) {
-                    this.DATA.setCookie(setting.balance.client.cookie.redirect, '1');
+                    this.data.setCookie(setting.balance.client.cookie.redirect, '1');
                 }
                 host && this.switchRequestServer(host, setting);
             };
@@ -2698,8 +2773,8 @@ var MODULE;
             App.prototype.disableBalance = function () {
                 var setting = this.model_.getActiveSetting();
 
-                this.DATA.setCookie(setting.balance.client.cookie.balance, '0');
-                this.DATA.setCookie(setting.balance.client.cookie.redirect, '0');
+                this.data.setCookie(setting.balance.client.cookie.balance, '0');
+                this.data.setCookie(setting.balance.client.cookie.redirect, '0');
                 this.switchRequestServer(null, setting);
             };
 
@@ -2708,20 +2783,20 @@ var MODULE;
                 setting = setting || this.model_.getActiveSetting();
                 this.model_.requestHost = host;
                 setting.balance.server.host = host;
-                this.DATA.setCookie(setting.balance.client.cookie.host, host);
+                this.data.setCookie(setting.balance.client.cookie.host, host);
             };
 
             App.prototype.chooseRequestServer = function (setting) {
                 setting.balance.self && this.enableBalance();
-                if (!setting.balance.self || '1' !== this.DATA.getCookie(setting.balance.client.cookie.balance)) {
+                if (!setting.balance.self || '1' !== this.data.getCookie(setting.balance.client.cookie.balance)) {
                     this.disableBalance();
                     return;
                 }
 
-                this.DATA.loadBufferAll(setting.buffer.limit);
+                this.data.loadBufferAll(setting.buffer.limit);
 
                 var expires;
-                var historyBufferData = this.DATA.getBuffer(this.DATA.storeNames.history, this.model_.convertUrlToKeyUrl(setting.destLocation.href));
+                var historyBufferData = this.data.getBuffer(this.data.storeNames.history, this.model_.convertUrlToKeyUrl(setting.destLocation.href));
 
                 expires = historyBufferData && historyBufferData.expires;
                 if (expires && expires >= new Date().getTime()) {
@@ -2729,10 +2804,10 @@ var MODULE;
                     return;
                 }
 
-                var logBuffer = this.DATA.getBuffer(this.DATA.storeNames.log), timeList = [], logTable = {}, now = new Date().getTime();
+                var logBuffer = this.data.getBuffer(this.data.storeNames.log), timeList = [], logTable = {}, now = new Date().getTime();
 
                 if (!logBuffer) {
-                    host = this.DATA.getCookie(setting.balance.client.cookie.host);
+                    host = this.data.getCookie(setting.balance.client.cookie.host);
                     if (host) {
                         this.enableBalance(host);
                     } else {
@@ -2753,7 +2828,7 @@ var MODULE;
                     return a - b;
                 }
                 timeList = timeList.sort(compareNumbers);
-                var serverBuffer = this.DATA.getBuffer(this.DATA.storeNames.server), time = timeList.shift();
+                var serverBuffer = this.data.getBuffer(this.data.storeNames.server), time = timeList.shift();
 
                 if (!serverBuffer) {
                     this.disableBalance();
@@ -2784,7 +2859,7 @@ var MODULE;
                     var options = area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
                     var j = -1;
                     while (options[++j]) {
-                        if (!jQuery(options[j], srcDocument)[0] || !jQuery(options[j], dstDocument)[0]) {
+                        if (!jQuery(options[j], srcDocument).length || !jQuery(options[j], dstDocument).length) {
                             continue AREA;
                         }
                     }
@@ -2829,7 +2904,7 @@ var MODULE;
                         patterns = scpTable[scpTag];
                     }
 
-                    if (!patterns || !patterns[0]) {
+                    if (!patterns || !patterns.length) {
                         return false;
                     }
 
@@ -3035,7 +3110,7 @@ var MODULE;
 
                 var setting = this.app_.configure(option, window.location.href, window.location.href);
                 this.setActiveSetting(setting);
-                setting.database && this.app_.DATA.opendb(setting);
+                setting.database && this.app_.data.opendb(setting);
 
                 this.app_.stock({
                     executed: {},
@@ -3151,7 +3226,7 @@ var MODULE;
                     if (setting.cache.mix && this.getCache(setting.destLocation.href)) {
                         break PROCESS;
                     }
-                    setting.database && this.app_.isScrollPosSavable && this.app_.DATA.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+                    setting.database && this.app_.isScrollPosSavable && this.app_.data.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
                     var cache;
                     if (setting.cache[event.type.toLowerCase()]) {
@@ -3163,7 +3238,7 @@ var MODULE;
                     return;
                 }
                 ;
-                !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context)[0] && this.fallback(event, setting);
+                !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length && this.fallback(event, setting);
             };
 
             Main.prototype.SUBMIT = function (event) {
@@ -3185,7 +3260,7 @@ var MODULE;
                     if (setting.cache.mix && this.getCache(setting.destLocation.href)) {
                         break PROCESS;
                     }
-                    setting.database && this.app_.isScrollPosSavable && this.app_.DATA.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+                    setting.database && this.app_.isScrollPosSavable && this.app_.data.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
                     var cache;
                     if (setting.cache[event.type.toLowerCase()] && setting.cache[context.method.toLowerCase()]) {
@@ -3197,7 +3272,7 @@ var MODULE;
                     return;
                 }
                 ;
-                !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context)[0] && this.fallback(event, setting);
+                !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length && this.fallback(event, setting);
             };
 
             Main.prototype.POPSTATE = function (event) {
@@ -3223,7 +3298,7 @@ var MODULE;
                         break PROCESS;
                     }
 
-                    setting.database && setting.fix.history && this.app_.DATA.loadTitleFromDB(setting.destLocation.href);
+                    setting.database && setting.fix.history && this.app_.data.loadTitleFromDB(setting.destLocation.href);
 
                     var cache;
                     if (setting.cache[event.type.toLowerCase()]) {
@@ -3245,7 +3320,7 @@ var MODULE;
                 }
 
                 if (!setting.scroll.delay) {
-                    this.app_.isScrollPosSavable && this.app_.DATA.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+                    this.app_.isScrollPosSavable && this.app_.data.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
                 } else {
                     var id;
                     while (id = setting.scroll.queue.shift()) {
@@ -3255,7 +3330,7 @@ var MODULE;
                         while (id = setting.scroll.queue.shift()) {
                             clearTimeout(id);
                         }
-                        _this.app_.isScrollPosSavable && _this.app_.DATA.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+                        _this.app_.isScrollPosSavable && _this.app_.data.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
                     }, setting.scroll.delay);
                     setting.scroll.queue.push(id);
                 }
@@ -3350,7 +3425,7 @@ var MODULE;
                 }
                 if (jqXHR || cache && cache.jqXHR) {
                     var title = ((jqXHR || cache && cache.jqXHR).responseText || '').slice(0, 10000).match(/<title[^>]*>(.*?)<\/title>/i).pop() || '';
-                    setting.database && setting.fix.history && this.app_.DATA.saveTitleToDB(secure_url, title);
+                    setting.database && setting.fix.history && this.app_.data.saveTitleToDB(secure_url, title);
                 }
             };
 
