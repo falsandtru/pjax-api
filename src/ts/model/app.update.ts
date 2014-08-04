@@ -636,7 +636,7 @@ module MODULE.MODEL {
                 this.updateRender_();
                 break;
               default:
-                setTimeout(check, setting.interval);
+                setTimeout(check, 100);
             }
           };
           check();

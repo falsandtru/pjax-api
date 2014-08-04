@@ -111,7 +111,6 @@ module MODULE.MODEL {
             },
             param: null,
             redirect: true,
-            interval: 100,
             wait: 0,
             scroll: { delay: 300 },
             fix: { location: true, history: true, scroll: true, reset: false },

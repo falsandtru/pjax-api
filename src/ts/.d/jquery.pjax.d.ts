@@ -27,7 +27,6 @@ interface PjaxSetting {
     ajax?: JQueryAjaxSettings
     contentType?: string
     redirect?: boolean
-    interval?: number
     cache?: {
         click?: boolean
         submit?: boolean

@@ -358,7 +358,6 @@ module MODULE {
       option: PjaxSetting
     }
     redirect: boolean
-    interval: number
     wait: number
     scroll: {
       delay: number
