@@ -449,17 +449,17 @@ module MODULE.MODEL {
         if (document.implementation && document.implementation.createHTMLDocument) {
           var doc = document.implementation.createHTMLDocument('');
           var root = document.createElement('html');
-          var attrs = (<string>(html.match(/<html([^>]+)>/im) || [0, ''])[1]).match(/[\w\-]+\="[^"]*.|[\w\-]+\='[^']*.|\w+/gm) || [];
-          for (var i = 0, attr; attr = attrs[i]; i++) {
-            attr = attr.split('=', 2);
-            doc.documentElement.setAttribute(attr[0], attr[1].slice(1, -1));
+          var wrapper = document.createElement('div');
+          wrapper.innerHTML = (html.match(/<html(?: [^>]*)?>/i) || ['<html>']).shift().replace(/html/i, 'div') + '</div>';
+          var attrs = wrapper.firstChild.attributes;
+          for (var i = 0, attr: Attr; attr = attrs[i]; i++) {
+            doc.documentElement.setAttribute(attr.name, attr.value);
           }
           root.innerHTML = html.replace(/^.*?<html(?: [^>]*)?>/im, '');
           doc.documentElement.removeChild(doc.head);
           doc.documentElement.removeChild(doc.body);
-          var element;
-          while (element = root.childNodes[0]) {
-            doc.documentElement.appendChild(element);
+          while (root.childNodes[0]) {
+            doc.documentElement.appendChild(root.childNodes[0]);
           }
         }
         return doc;
