@@ -18,16 +18,18 @@ module MODULE.MODEL {
     buffer_: T[] = []
 
     accessStore(success: (store: IDBObjectStore) => void, mode: string = 'readwrite'): void {
-      var database: IDBDatabase = this.DB_.database();
-
       this.DB_.conExtend();
 
-      if (database) {
-        success(database.transaction(this.name, mode).objectStore(this.name));
+      try {
+        var database: IDBDatabase = this.DB_.database(),
+            store: IDBObjectStore = database.transaction(this.name, mode).objectStore(this.name);
+      } catch (err) {
+      }
+
+      if (store) {
+        success(store);
       } else {
-        this.DB_.opendb(() => {
-          this.accessStore(success);
-        });
+        this.DB_.opendb(() => { this.accessStore(success); });
       }
     }
 
