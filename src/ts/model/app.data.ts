@@ -144,8 +144,16 @@ module MODULE.MODEL {
 
     saveServerToDB(host: string, state: number = 0, unsafe_url?: string, expires: number = 0): void {
       var value: ServerSchema = <ServerSchema>{ id: host || '', state: state };
-      this.data_.DB.store.server.setBuffer(value);
-      this.data_.DB.store.server.set(value);
+      this.data_.DB.store.server.accessRecord(host, function () {
+        var data: ServerSchema = this.result;
+        if (!data || !state) {
+          // 新規または正常登録
+          this.source.put(value);
+        } else if (data.state) {
+          // 2回目のエラーで登録削除
+          this.source['delete'](host);
+        }
+      });
       if (unsafe_url) {
         this.saveExpiresToDB(unsafe_url, host, expires);
       }

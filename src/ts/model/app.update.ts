@@ -897,6 +897,8 @@ module MODULE.MODEL {
       this.app_.data.saveServerToDB(host, 0, setting.destLocation.href, this.app_.calExpires(this.jqXHR_));
       this.app_.chooseRequestServer(setting);
 
+      this.app_.data.loadBufferAll(setting.buffer.limit);
+
       if (UTIL.fire(callbacks_update.balance.after, null, [event, setting.param]) === false) { return; }
     }
 
