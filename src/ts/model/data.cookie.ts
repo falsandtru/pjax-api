@@ -28,8 +28,8 @@ module MODULE.MODEL {
       document.cookie = [
         encodeURIComponent(key) + '=' + encodeURIComponent(value),
         option.age    ? '; expires=' + new Date(new Date().getTime() + option.age * 1000).toUTCString() : '',
-        option.path   ? '; path=' + option.path : '',
-        option.domain ? '; domain=' + option.domain : '',
+        //option.path   ? '; path=' + option.path : '',
+        //option.domain ? '; domain=' + option.domain : '',
         option.secure ? '; secure' : ''
       ].join('');
       return this.getCookie(key);
