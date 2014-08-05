@@ -62,9 +62,6 @@ pjaxを設定します。
 ### [redirect:](api/core/setting/redirect/)
 リダイレクト先への再移動にpjaxを使用するかを設定します。
 
-### [interval:](api/core/setting/interval/)
-更新されたコンテンツの描画を確認する間隔を設定します。
-
 ### [wait:](api/core/setting/wait/) <small><span class="label label-primary">jQuery1.6+</span></small>
 ページ遷移の最低待ち時間を設定します。
 

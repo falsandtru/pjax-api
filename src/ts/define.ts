@@ -321,7 +321,6 @@ module MODULE {
       delay: number
     }
     load: {
-      sync: boolean
       head: string
       css: boolean
       script: boolean
@@ -359,7 +358,6 @@ module MODULE {
       option: PjaxSetting
     }
     redirect: boolean
-    interval: number
     wait: number
     scroll: {
       delay: number

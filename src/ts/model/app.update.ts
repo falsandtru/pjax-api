@@ -13,7 +13,6 @@ module MODULE.MODEL {
 
     setting_: SettingInterface
     cache_: CacheInterface
-    checker_: JQuery = jQuery()
     loadwaits_: JQueryDeferred<void>[] = []
 
     event_: JQueryEventObject
@@ -304,7 +303,6 @@ module MODULE.MODEL {
 
           /* content */
           this.loadwaits_ = this.updateContent_();
-          this.checker_ = jQuery(setting.area).children('.' + setting.nss.class4html + '-check');
           
           /* check point */
           speedcheck && speed.time.push(speed.now() - speed.fire);
@@ -467,8 +465,10 @@ module MODULE.MODEL {
       var callbacks_update = setting.callbacks.update;
 
       if (UTIL.fire(callbacks_update.title.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
+
       this.dstDocument_.title = this.srcDocument_.title;
       setting.database && setting.fix.history && this.app_.data.saveTitleToDB(setting.destLocation.href, this.srcDocument_.title);
+
       if (UTIL.fire(callbacks_update.title.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
 
@@ -484,9 +484,9 @@ module MODULE.MODEL {
       if (UTIL.fire(callbacks_update.head.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
 
       var title: JQuery = jQuery('title'),
-        adds = [],
-        srcElements: JQuery,
-        dstElements: JQuery;
+          adds = [],
+          srcElements: JQuery,
+          dstElements: JQuery;
 
       srcElements = jQuery('head', srcDocument).find(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script');
       dstElements = jQuery('head', dstDocument).find(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script');
@@ -545,10 +545,13 @@ module MODULE.MODEL {
           srcDocument: Document = this.srcDocument_,
           dstDocument: Document = this.dstDocument_;
       var callbacks_update = setting.callbacks.update;
+
       var checker: JQuery = jQuery(),
           marker: JQuery = jQuery(),
           scripts: JQuery = jQuery(),
           loadwaits: JQueryDeferred<void>[] = [];
+
+      if (UTIL.fire(callbacks_update.content.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return loadwaits; }
 
       function mark() {
         if (!this) { return; }
@@ -575,8 +578,6 @@ module MODULE.MODEL {
         return defer;
       }
 
-      if (UTIL.fire(callbacks_update.content.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return loadwaits; }
-
       jQuery(setting.area).children('.' + setting.nss.class4html + '-check').remove();
       checker = jQuery('<div/>', {
         'class': setting.nss.class4html + '-check',
@@ -591,7 +592,7 @@ module MODULE.MODEL {
 
         scripts = jQuery();
         $srcAreas.find('script').replaceWith(mark);
-        if (setting.load.sync && jQuery.when) {
+        if (jQuery.when) {
           loadwaits.concat($srcAreas.find('img, iframe, frame').map(map).get());
         }
 
@@ -623,15 +624,24 @@ module MODULE.MODEL {
         var scriptwaits = this.updateScript_(':not([defer]), :not([src])');
         var ready = () => {
           jQuery(dstDocument).trigger(setting.gns + '.ready');
-          if (setting.load.sync) {
-            var callback = () => this.updateScript_('[src][defer]');
-            this.updateRender_(callback);
-          } else {
-            this.updateRender_(null);
-            this.updateScript_('[src][defer]');
-          }
+
+          var checker = jQuery(setting.area).children('.' + setting.nss.class4html + '-check'),
+              limit = new Date().getTime() + 5 * 1000;
+          var check = () => {
+            switch (true) {
+              case setting.destLocation.href !== UTIL.canonicalizeUrl(window.location.href).replace(/(?:%\w{2})+/g, function (str) { return String(setting.destLocation.href.match(str.toLowerCase()) || str); }):
+                break;
+              case new Date().getTime() > limit:
+              case checker.length === checker.filter(function () { return this.clientWidth || this.clientHeight || jQuery(this).is(':hidden'); }).length:
+                this.updateRender_();
+                break;
+              default:
+                setTimeout(check, 100);
+            }
+          };
+          check();
         };
-        this.model_.isDeferrable ? jQuery.when.apply(null, scriptwaits).always(() => ready()) : ready();
+        this.model_.isDeferrable ? jQuery.when.apply(jQuery, scriptwaits).always(() => ready()) : ready();
       })
       .trigger(setting.gns + '.rendering');
     }
@@ -775,7 +785,7 @@ module MODULE.MODEL {
 
       try {
         if (this.model_.isDeferrable) {
-          jQuery.when.apply(null, scriptwaits)
+          jQuery.when.apply(jQuery, scriptwaits)
           .always(() => {
             for (var i = 0, len = arguments.length; i < len; i++) { arguments[i] && eval.call(window, arguments[i]); }
           });
@@ -805,61 +815,46 @@ module MODULE.MODEL {
       return scriptwaits;
     }
 
-    updateRender_(callback: () => void): void {
+    updateRender_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
-          checker = this.checker_,
+          checker = jQuery(setting.area).children('.' + setting.nss.class4html + '-check'),
           loadwaits = this.loadwaits_;
 
       var callbacks_update = setting.callbacks.update;
 
-      var rendered = (callback) => {
-        var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
-        speedcheck && speed.time.push(speed.now() - speed.fire);
-        speedcheck && speed.name.push('renderd(' + speed.time.slice(-1) + ')');
-
-        checker.remove();
-        setTimeout(() => {
-          this.app_.isScrollPosSavable = true;
-          if ('popstate' !== event.type.toLowerCase()) {
-            this.scrollByHash_(setting.destLocation.hash) || this.updateScroll_(true);
-          } else {
-            this.updateScroll_(true);
-          }
-        }, 100);
-
-        jQuery(document).trigger(setting.gns + '.render');
-        UTIL.fire(callback);
-
-        function onload() {
-          jQuery(window).trigger(setting.gns + '.load');
-        }
-        if (setting.load.sync && jQuery.when && loadwaits.length) {
-          jQuery.when.apply(null, loadwaits).always(onload);
-        } else {
-          onload();
-        }
-
-        speedcheck && console.log(speed.time);
-        speedcheck && console.log(speed.name);
-        if (UTIL.fire(callbacks_update.render.after, null, [event, setting.param]) === false) { return; }
-      } // function: rendered
+      var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
+      speedcheck && speed.time.push(speed.now() - speed.fire);
+      speedcheck && speed.name.push('renderd(' + speed.time.slice(-1) + ')');
 
       if (UTIL.fire(callbacks_update.render.before, null, [event, setting.param]) === false) { return; }
 
-      var count = 0;
-      (function check() {
-        switch (true) {
-          case 100 <= count:
-          case UTIL.canonicalizeUrl(window.location.href) !== setting.destLocation.href:
-            break;
-          case checker.length === checker.filter(function () { return this.clientWidth || this.clientHeight || jQuery(this).is(':hidden'); }).length:
-            rendered(callback);
-            break;
-          case 0 < checker.length:
-            ++count && setTimeout(check, setting.interval);
+      checker.remove();
+      setTimeout(() => {
+        this.app_.isScrollPosSavable = true;
+        if ('popstate' !== event.type.toLowerCase()) {
+          this.scrollByHash_(setting.destLocation.hash) || this.updateScroll_(true);
+        } else {
+          this.updateScroll_(true);
         }
-      })();
+      }, 100);
+
+      jQuery(document).trigger(setting.gns + '.render');
+
+      var onload = () => {
+        jQuery(window).trigger(setting.gns + '.load');
+        this.updateScript_('[src][defer]');
+      }
+      if (jQuery.when && loadwaits.length) {
+        jQuery.when.apply(jQuery, loadwaits).always(onload);
+      } else {
+        onload();
+      }
+
+      speedcheck && console.log(speed.time);
+      speedcheck && console.log(speed.name);
+
+      if (UTIL.fire(callbacks_update.render.after, null, [event, setting.param]) === false) { return; }
     }
 
     updateVerify_(): void {
