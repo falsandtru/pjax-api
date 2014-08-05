@@ -3,7 +3,7 @@
  * jquery.pjax.js
  * 
  * @name jquery.pjax.js
- * @version 2.12.0
+ * @version 2.13.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
  * @copyright 2012, falsandtru
@@ -903,7 +903,6 @@ var MODULE;
             function AppUpdate(model_, app_, setting, event, register, cache) {
                 this.model_ = model_;
                 this.app_ = app_;
-                this.checker_ = jQuery();
                 this.loadwaits_ = [];
                 this.ready_(setting, event, register, cache);
             }
@@ -1186,7 +1185,6 @@ var MODULE;
 
                         /* content */
                         this.loadwaits_ = this.updateContent_();
-                        this.checker_ = jQuery(setting.area).children('.' + setting.nss.class4html + '-check');
 
                         /* check point */
                         speedcheck && speed.time.push(speed.now() - speed.fire);
@@ -1376,8 +1374,10 @@ var MODULE;
                 if (MODEL.UTIL.fire(callbacks_update.title.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                     return;
                 }
+
                 this.dstDocument_.title = this.srcDocument_.title;
                 setting.database && setting.fix.history && this.app_.data.saveTitleToDB(setting.destLocation.href, this.srcDocument_.title);
+
                 if (MODEL.UTIL.fire(callbacks_update.title.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                     return;
                 }
@@ -1455,7 +1455,12 @@ var MODULE;
             AppUpdate.prototype.updateContent_ = function () {
                 var setting = this.setting_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
                 var callbacks_update = setting.callbacks.update;
+
                 var checker = jQuery(), marker = jQuery(), scripts = jQuery(), loadwaits = [];
+
+                if (MODEL.UTIL.fire(callbacks_update.content.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    return loadwaits;
+                }
 
                 function mark() {
                     if (!this) {
@@ -1486,10 +1491,6 @@ var MODULE;
                     return defer;
                 }
 
-                if (MODEL.UTIL.fire(callbacks_update.content.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                    return loadwaits;
-                }
-
                 jQuery(setting.area).children('.' + setting.nss.class4html + '-check').remove();
                 checker = jQuery('<div/>', {
                     'class': setting.nss.class4html + '-check',
@@ -1506,7 +1507,7 @@ var MODULE;
 
                     scripts = jQuery();
                     $srcAreas.find('script').replaceWith(mark);
-                    if (setting.load.sync && jQuery.when) {
+                    if (jQuery.when) {
                         loadwaits.concat($srcAreas.find('img, iframe, frame').map(map).get());
                     }
 
@@ -1539,17 +1540,27 @@ var MODULE;
                     var scriptwaits = _this.updateScript_(':not([defer]), :not([src])');
                     var ready = function () {
                         jQuery(dstDocument).trigger(setting.gns + '.ready');
-                        if (setting.load.sync) {
-                            var callback = function () {
-                                return _this.updateScript_('[src][defer]');
-                            };
-                            _this.updateRender_(callback);
-                        } else {
-                            _this.updateRender_(null);
-                            _this.updateScript_('[src][defer]');
-                        }
+
+                        var checker = jQuery(setting.area).children('.' + setting.nss.class4html + '-check'), limit = new Date().getTime() + 5 * 1000;
+                        var check = function () {
+                            switch (true) {
+                                case setting.destLocation.href !== MODEL.UTIL.canonicalizeUrl(window.location.href).replace(/(?:%\w{2})+/g, function (str) {
+                                    return String(setting.destLocation.href.match(str.toLowerCase()) || str);
+                                }):
+                                    break;
+                                case new Date().getTime() > limit:
+                                case checker.length === checker.filter(function () {
+                                    return this.clientWidth || this.clientHeight || jQuery(this).is(':hidden');
+                                }).length:
+                                    _this.updateRender_();
+                                    break;
+                                default:
+                                    setTimeout(check, 100);
+                            }
+                        };
+                        check();
                     };
-                    _this.model_.isDeferrable ? jQuery.when.apply(null, scriptwaits).always(function () {
+                    _this.model_.isDeferrable ? jQuery.when.apply(jQuery, scriptwaits).always(function () {
                         return ready();
                     }) : ready();
                 }).trigger(setting.gns + '.rendering');
@@ -1712,7 +1723,7 @@ var MODULE;
 
                 try  {
                     if (this.model_.isDeferrable) {
-                        jQuery.when.apply(null, scriptwaits).always(function () {
+                        jQuery.when.apply(jQuery, scriptwaits).always(function () {
                             for (var i = 0, len = arguments.length; i < len; i++) {
                                 arguments[i] && eval.call(window, arguments[i]);
                             }
@@ -1748,65 +1759,48 @@ var MODULE;
                 return scriptwaits;
             };
 
-            AppUpdate.prototype.updateRender_ = function (callback) {
+            AppUpdate.prototype.updateRender_ = function () {
                 var _this = this;
-                var setting = this.setting_, event = this.event_, checker = this.checker_, loadwaits = this.loadwaits_;
+                var setting = this.setting_, event = this.event_, checker = jQuery(setting.area).children('.' + setting.nss.class4html + '-check'), loadwaits = this.loadwaits_;
 
                 var callbacks_update = setting.callbacks.update;
 
-                var rendered = function (callback) {
-                    var speedcheck = setting.speedcheck, speed = _this.model_.stock('speed');
-                    speedcheck && speed.time.push(speed.now() - speed.fire);
-                    speedcheck && speed.name.push('renderd(' + speed.time.slice(-1) + ')');
-
-                    checker.remove();
-                    setTimeout(function () {
-                        _this.app_.isScrollPosSavable = true;
-                        if ('popstate' !== event.type.toLowerCase()) {
-                            _this.scrollByHash_(setting.destLocation.hash) || _this.updateScroll_(true);
-                        } else {
-                            _this.updateScroll_(true);
-                        }
-                    }, 100);
-
-                    jQuery(document).trigger(setting.gns + '.render');
-                    MODEL.UTIL.fire(callback);
-
-                    function onload() {
-                        jQuery(window).trigger(setting.gns + '.load');
-                    }
-                    if (setting.load.sync && jQuery.when && loadwaits.length) {
-                        jQuery.when.apply(null, loadwaits).always(onload);
-                    } else {
-                        onload();
-                    }
-
-                    speedcheck && console.log(speed.time);
-                    speedcheck && console.log(speed.name);
-                    if (MODEL.UTIL.fire(callbacks_update.render.after, null, [event, setting.param]) === false) {
-                        return;
-                    }
-                };
+                var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
+                speedcheck && speed.time.push(speed.now() - speed.fire);
+                speedcheck && speed.name.push('renderd(' + speed.time.slice(-1) + ')');
 
                 if (MODEL.UTIL.fire(callbacks_update.render.before, null, [event, setting.param]) === false) {
                     return;
                 }
 
-                var count = 0;
-                (function check() {
-                    switch (true) {
-                        case 100 <= count:
-                        case MODEL.UTIL.canonicalizeUrl(window.location.href) !== setting.destLocation.href:
-                            break;
-                        case checker.length === checker.filter(function () {
-                            return this.clientWidth || this.clientHeight || jQuery(this).is(':hidden');
-                        }).length:
-                            rendered(callback);
-                            break;
-                        case 0 < checker.length:
-                            ++count && setTimeout(check, setting.interval);
+                checker.remove();
+                setTimeout(function () {
+                    _this.app_.isScrollPosSavable = true;
+                    if ('popstate' !== event.type.toLowerCase()) {
+                        _this.scrollByHash_(setting.destLocation.hash) || _this.updateScroll_(true);
+                    } else {
+                        _this.updateScroll_(true);
                     }
-                })();
+                }, 100);
+
+                jQuery(document).trigger(setting.gns + '.render');
+
+                var onload = function () {
+                    jQuery(window).trigger(setting.gns + '.load');
+                    _this.updateScript_('[src][defer]');
+                };
+                if (jQuery.when && loadwaits.length) {
+                    jQuery.when.apply(jQuery, loadwaits).always(onload);
+                } else {
+                    onload();
+                }
+
+                speedcheck && console.log(speed.time);
+                speedcheck && console.log(speed.name);
+
+                if (MODEL.UTIL.fire(callbacks_update.render.after, null, [event, setting.param]) === false) {
+                    return;
+                }
             };
 
             AppUpdate.prototype.updateVerify_ = function () {
@@ -1908,12 +1902,15 @@ var MODULE;
             DataStore.prototype.accessStore = function (success, mode) {
                 var _this = this;
                 if (typeof mode === "undefined") { mode = 'readwrite'; }
-                var database = this.DB_.database();
-
                 this.DB_.conExtend();
 
-                if (database) {
-                    success(database.transaction(this.name, mode).objectStore(this.name));
+                try  {
+                    var database = this.DB_.database(), store = database.transaction(this.name, mode).objectStore(this.name);
+                } catch (err) {
+                }
+
+                if (store) {
+                    success(store);
                 } else {
                     this.DB_.opendb(function () {
                         _this.accessStore(success);
@@ -2171,19 +2168,24 @@ var MODULE;
                         _this.conExpires_ = 0;
                     }
                     setTimeout(check, Math.max(_this.conExpires_ - now + 100, _this.conInterval_));
-                    _this.tasks_.length && _this.opendb(null, true);
+                    _this.tasks_.length && !_this.nowInitializing && !_this.nowRetrying && _this.opendb(null, true);
                 };
                 this.conAge_ && setTimeout(check, this.conInterval_);
             }
             DataDB.prototype.opendb = function (task, noRetry) {
                 var that = this;
 
+                that.conExtend();
+
                 if (!that.IDBFactory || !task && !that.tasks_.length) {
                     return;
                 }
 
-                that.conExtend();
-                task && that.reserveTask_(task);
+                'function' === typeof task && that.reserveTask_(task);
+
+                if (that.nowInitializing || that.nowRetrying) {
+                    return;
+                }
 
                 try  {
                     that.nowInitializing = true;
@@ -2191,8 +2193,15 @@ var MODULE;
                     var request = that.IDBFactory.open(that.name_, that.upgrade_ ? that.version_ : 1);
 
                     request.onblocked = function () {
-                        this.result.close();
-                        !noRetry && that.initdb_(1000);
+                        that.closedb(1 /* lock */);
+                        try  {
+                            this.result.close();
+                            !noRetry && setTimeout(function () {
+                                return that.opendb(null, true);
+                            }, 1000);
+                        } catch (err) {
+                            !noRetry && that.initdb_(1000);
+                        }
                     };
 
                     request.onupgradeneeded = function () {
@@ -2238,17 +2247,28 @@ var MODULE;
                     };
 
                     request.onerror = function (event) {
-                        !noRetry && that.initdb_(1000);
+                        that.closedb(3 /* error */);
+                        try  {
+                            this.result.close();
+                            !noRetry && setTimeout(function () {
+                                return that.opendb(null, true);
+                            }, 1000);
+                        } catch (err) {
+                            !noRetry && that.initdb_(1000);
+                        }
                     };
                 } catch (err) {
+                    that.closedb(3 /* error */);
                     !noRetry && that.initdb_(1000);
                 }
             };
 
-            DataDB.prototype.closedb = function () {
-                var database = this.database_;
+            DataDB.prototype.closedb = function (state) {
+                if (typeof state === "undefined") { state = -1 /* wait */; }
                 this.database_ = null;
-                this.state_ = -1 /* wait */;
+                this.state_ = state;
+
+                var database = this.database_;
                 database && database.close && database.close();
             };
 
@@ -2308,13 +2328,13 @@ var MODULE;
             };
 
             DataDB.prototype.reserveTask_ = function (task) {
-                this.tasks_.push(task);
+                (this.state() !== 3 /* error */ || this.tasks_.length < 100) && this.tasks_.push(task);
             };
 
             DataDB.prototype.digestTask_ = function (limit) {
                 if (typeof limit === "undefined") { limit = 0; }
-                var task;
                 limit = limit || -1;
+                var task;
                 while (task = limit-- && this.tasks_.pop()) {
                     task();
                 }
@@ -2355,8 +2375,6 @@ var MODULE;
                 document.cookie = [
                     encodeURIComponent(key) + '=' + encodeURIComponent(value),
                     option.age ? '; expires=' + new Date(new Date().getTime() + option.age * 1000).toUTCString() : '',
-                    option.path ? '; path=' + option.path : '',
-                    option.domain ? '; domain=' + option.domain : '',
                     option.secure ? '; secure' : ''
                 ].join('');
                 return this.getCookie(key);
@@ -2600,7 +2618,6 @@ var MODULE;
                         delay: 500
                     },
                     load: {
-                        sync: true,
                         head: '',
                         css: false,
                         script: false,
@@ -2655,7 +2672,6 @@ var MODULE;
                     },
                     param: null,
                     redirect: true,
-                    interval: 100,
                     wait: 0,
                     scroll: { delay: 300 },
                     fix: { location: true, history: true, scroll: true, reset: false },
@@ -3017,17 +3033,17 @@ var MODULE;
                     if (document.implementation && document.implementation.createHTMLDocument) {
                         var doc = document.implementation.createHTMLDocument('');
                         var root = document.createElement('html');
-                        var attrs = (html.match(/<html([^>]+)>/im) || [0, ''])[1].match(/[\w\-]+\="[^"]*.|[\w\-]+\='[^']*.|\w+/gm) || [];
+                        var wrapper = document.createElement('div');
+                        wrapper.innerHTML = (html.match(/<html(?: [^>]*)?>/i) || ['<html>']).shift().replace(/html/i, 'div') + '</div>';
+                        var attrs = wrapper.firstChild.attributes;
                         for (var i = 0, attr; attr = attrs[i]; i++) {
-                            attr = attr.split('=', 2);
-                            doc.documentElement.setAttribute(attr[0], attr[1].slice(1, -1));
+                            doc.documentElement.setAttribute(attr.name, attr.value);
                         }
                         root.innerHTML = html.replace(/^.*?<html(?: [^>]*)?>/im, '');
                         doc.documentElement.removeChild(doc.head);
                         doc.documentElement.removeChild(doc.body);
-                        var element;
-                        while (element = root.childNodes[0]) {
-                            doc.documentElement.appendChild(element);
+                        while (root.childNodes[0]) {
+                            doc.documentElement.appendChild(root.childNodes[0]);
                         }
                     }
                     return doc;

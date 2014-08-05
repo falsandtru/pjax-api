@@ -118,13 +118,9 @@
               $('div.loading').children().width('98.75%');
             }
           },
-          verify: {
-            after: function() {
-              $('div.loading').children().width('100%');
-            }
-          },
           render: {
             after: function () {
+              $('div.loading').children().width('100%');
               $('div.loading').fadeOut(50);
             }
           }
