@@ -236,16 +236,14 @@ module MODULE.MODEL {
         speedcheck && speed.time.push(speed.now() - speed.fire);
         speedcheck && speed.name.push('load(' + speed.time.slice(-1) + ')');
 
-        this.model_.setActiveSetting(setting);
-
         if (UTIL.fire(callbacks_update.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_, this.cache_]) === false) { break UPDATE; }
-
+        
         if (setting.cache.mix && 'popstate' !== event.type.toLowerCase() && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
           return this.model_.fallback(event, setting);
         }
-
+        
         /* variable initialization */
-
+        
         try {
           APP.landing = null;
           if (!~(jqXHR.getResponseHeader('Content-Type') || '').toLowerCase().search(setting.contentType)) { throw new Error("throw: content-type mismatch"); }
@@ -286,10 +284,11 @@ module MODULE.MODEL {
           /* url */
           this.updateUrl_();
 
-          setting.origLocation.href = setting.destLocation.href;
-          
           /* verify */
           this.updateVerify_();
+          
+          /* setting */
+          this.model_.setActiveSetting(jQuery.extend(true, {}, setting, { origLocation: setting.destLocation.cloneNode() }));
           
           /* title */
           this.updateTitle_();
@@ -347,7 +346,6 @@ module MODULE.MODEL {
       UTIL.fire(setting.rewrite, null, [this.srcDocument_, setting.area, this.host_])
 
       if (UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) { return; }
-
     }
 
     updateCache_(): void {
@@ -385,8 +383,6 @@ module MODULE.MODEL {
       }
 
       if (UTIL.fire(callbacks_update.cache.after, null, [event, setting.param, cache]) === false) { return; }
-
-      return;
     }
 
     updateRedirect_(): void {

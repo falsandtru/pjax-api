@@ -30,7 +30,7 @@ module MODULE.MODEL {
       option = option.option || option;
 
       var scope = option.scope ? jQuery.extend(true, {}, option, this.scope_(option, origURL, destURL) || { disable: true })
-                                : jQuery.extend(true, {}, option);
+                               : jQuery.extend(true, {}, option);
 
       var initial = {
             gns: NAME,
