@@ -14,6 +14,39 @@ pjaxはリクエストと描画を最小限に抑えた高速かつシームレ�
 
 プリロードによる高速化とクライアントサイドロードバランサ(CsLB)によるネットワーク負荷分散を利用できます。
 
+```javascript
+// Major feature activation
+$.pjax({
+  area: [
+    '#header, #primary, #secondary',
+    '#container',
+    'body'
+  ],
+  load: {
+    head: 'base, meta, link',
+    css: true,
+    script: true
+  },
+  cache: {
+    click: true, submit: true, popstate: true,
+    get: true, post: false
+  },
+  rewrite: function(document, area) {
+    $(area, document).addClass('area');
+  },
+  scope: {
+    search: ['/search/'],
+    $search: { form: 'form:not([method])' },
+    '/': ['/', '#search', '!/contact/']
+  }
+});
+
+// 6 events and 43 callbacks exists.
+$(document).bind('pjax.ready', function() {
+  console.log('ready');
+});
+```
+
 ## 特徴
 
 * プリロードによる高速化
