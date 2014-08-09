@@ -113,7 +113,12 @@ module MODULE.MODEL {
             redirect: true,
             wait: 0,
             scroll: { delay: 300 },
-            fix: { location: true, history: true, scroll: true, reset: false },
+            fix: {
+              location: true,
+              history: true,
+              scroll: true,
+              reset: false
+            },
             fallback: true,
             database: true,
             server: {
@@ -184,7 +189,7 @@ module MODULE.MODEL {
       });
 
       new VIEW.Main(this.model_, this.controller_, $context).BIND(setting);
-      setTimeout(() => this.createHTMLDocument(''), 50);
+      setTimeout(() => this.createHTMLDocument('', setting.destLocation.href), 50);
       setTimeout(() => this.data.loadBufferAll(setting.buffer.limit), setting.buffer.delay);
       setting.balance.self && setTimeout(() => this.enableBalance(), setting.buffer.delay);
       setTimeout(() => this.landing = null, 1500);
@@ -441,16 +446,27 @@ module MODULE.MODEL {
       }
     }
 
-    createHTMLDocument(html: string): Document {
+    createHTMLDocument(html: string, uri: string): Document {
       // firefox
-      this.createHTMLDocument = (html: string): Document => {
-        return window.DOMParser && window.DOMParser.prototype && new window.DOMParser().parseFromString(html, 'text/html');
+      this.createHTMLDocument = (html: string, uri: string): Document => {
+        if ('function' === typeof window.DOMParser) {
+          var backup = window.location.href;
+          window.history.replaceState(window.history.state, document.title, uri);
+
+          var doc = new window.DOMParser().parseFromString(html, 'text/html');
+
+          window.history.replaceState(window.history.state, document.title, backup);
+        }
+        return doc;
       };
-      if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html); }
+      if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html, uri); }
 
       // chrome, safari
-      this.createHTMLDocument = (html: string): Document => {
+      this.createHTMLDocument = (html: string, uri: string): Document => {
         if (document.implementation && document.implementation.createHTMLDocument) {
+          var backup = window.location.href;
+          window.history.replaceState(window.history.state, document.title, uri);
+
           var doc = document.implementation.createHTMLDocument('');
           // IE, Operaクラッシュ対策
           if ('object' === typeof doc.activeElement && doc.activeElement) {
@@ -458,14 +474,19 @@ module MODULE.MODEL {
             doc.write(html);
             doc.close();
           }
+
+          window.history.replaceState(window.history.state, document.title, backup);
         }
         return doc;
       };
-      if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html); }
+      if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html, uri); }
 
       // ie10+, opera
-      this.createHTMLDocument = (html: string): Document => {
+      this.createHTMLDocument = (html: string, uri: string): Document => {
         if (document.implementation && document.implementation.createHTMLDocument) {
+          var backup = window.location.href;
+          window.history.replaceState(window.history.state, document.title, uri);
+
           var doc = document.implementation.createHTMLDocument('');
           var root = document.createElement('html');
           var wrapper = document.createElement('div');
@@ -480,10 +501,12 @@ module MODULE.MODEL {
           while (root.childNodes[0]) {
             doc.documentElement.appendChild(root.childNodes[0]);
           }
+
+          window.history.replaceState(window.history.state, document.title, backup);
         }
         return doc;
       };
-      if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html); }
+      if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html, uri); }
       
       function test(createHTMLDocument) {
         try {

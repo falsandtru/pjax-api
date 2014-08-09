@@ -115,7 +115,7 @@ module MODULE {
 
     configure(option: SettingInterface, origURL: string, destURL: string): SettingInterface
     registrate($context: ContextInterface, setting: SettingInterface): void
-    createHTMLDocument(html: string): Document
+    createHTMLDocument(html: string, uri: string): Document
     chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
     enableBalance(host?: string): void

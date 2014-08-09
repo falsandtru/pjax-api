@@ -252,7 +252,7 @@ module MODULE.MODEL {
           
           /* variable define */
           DEFINE: {
-            this.srcDocument_ = APP.createHTMLDocument(jqXHR.responseText);
+            this.srcDocument_ = APP.createHTMLDocument(jqXHR.responseText, setting.destLocation.href);
             this.dstDocument_ = document;
             
             var srcDocument: Document = this.srcDocument_,
@@ -369,7 +369,7 @@ module MODULE.MODEL {
       this.cache_ = cache;
 
       if (cache && cache.data) {
-        var cacheDocument: Document = this.app_.createHTMLDocument(cache.data),
+        var cacheDocument: Document = this.app_.createHTMLDocument(cache.data, setting.destLocation.href),
             srcDocument: Document = this.srcDocument_;
 
         srcDocument.title = cacheDocument.title;
