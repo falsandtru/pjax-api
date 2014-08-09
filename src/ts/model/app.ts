@@ -189,7 +189,7 @@ module MODULE.MODEL {
       });
 
       new VIEW.Main(this.model_, this.controller_, $context).BIND(setting);
-      setTimeout(() => this.createHTMLDocument('', setting.destLocation.href), 50);
+      setTimeout(() => this.createHTMLDocument('', ''), 50);
       setTimeout(() => this.data.loadBufferAll(setting.buffer.limit), setting.buffer.delay);
       setting.balance.self && setTimeout(() => this.enableBalance(), setting.buffer.delay);
       setTimeout(() => this.landing = null, 1500);
@@ -447,79 +447,81 @@ module MODULE.MODEL {
     }
 
     createHTMLDocument(html: string, uri: string): Document {
-      // firefox
-      this.createHTMLDocument = (html: string, uri: string): Document => {
-        if ('function' === typeof window.DOMParser) {
-          var backup = window.location.href;
-          window.history.replaceState(window.history.state, document.title, uri);
+      var mode: string;
 
-          var doc = new window.DOMParser().parseFromString(html, 'text/html');
-
-          window.history.replaceState(window.history.state, document.title, backup);
-        }
-        return doc;
-      };
-      if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html, uri); }
-
-      // chrome, safari
-      this.createHTMLDocument = (html: string, uri: string): Document => {
-        if (document.implementation && document.implementation.createHTMLDocument) {
-          var backup = window.location.href;
-          window.history.replaceState(window.history.state, document.title, uri);
-
-          var doc = document.implementation.createHTMLDocument('');
-          // IE, Operaクラッシュ対策
-          if ('object' === typeof doc.activeElement && doc.activeElement) {
-            doc.open();
-            doc.write(html);
-            doc.close();
-          }
-
-          window.history.replaceState(window.history.state, document.title, backup);
-        }
-        return doc;
-      };
-      if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html, uri); }
-
-      // ie10+, opera
-      this.createHTMLDocument = (html: string, uri: string): Document => {
-        if (document.implementation && document.implementation.createHTMLDocument) {
-          var backup = window.location.href;
-          window.history.replaceState(window.history.state, document.title, uri);
-
-          var doc = document.implementation.createHTMLDocument('');
-          var root = document.createElement('html');
-          var wrapper = document.createElement('div');
-          wrapper.innerHTML = (html.match(/<html(?: [^>]*)?>/i) || ['<html>']).shift().replace(/html/i, 'div') + '</div>';
-          var attrs = wrapper.firstChild.attributes;
-          for (var i = 0, attr: Attr; attr = attrs[i]; i++) {
-            doc.documentElement.setAttribute(attr.name, attr.value);
-          }
-          root.innerHTML = html.replace(/^.*?<html(?: [^>]*)?>/im, '');
-          doc.documentElement.removeChild(doc.head);
-          doc.documentElement.removeChild(doc.body);
-          while (root.childNodes[0]) {
-            doc.documentElement.appendChild(root.childNodes[0]);
-          }
-
-          window.history.replaceState(window.history.state, document.title, backup);
-        }
-        return doc;
-      };
-      if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html, uri); }
-      
-      function test(createHTMLDocument) {
+      var test: (...args: any[]) => boolean = () => {
         try {
-          var doc = createHTMLDocument && createHTMLDocument('<html lang="en" class="html"><head><link href="/"><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript><a href="/"></a></body></html>');
+          var html = '<html lang="en" class="html"><head><link href="/"><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript><a href="/"></a></body></html>',
+              doc = this.createHTMLDocument(html, '');
           return doc &&
-                 jQuery('html', doc).is('.html[lang=en]') &&
-                 (<HTMLLinkElement>jQuery('head>link', doc)[0]).href &&
-                 jQuery('head>noscript', doc).html() &&
-                 jQuery('body>noscript', doc).text() === 'noscript' &&
-                 (<HTMLAnchorElement>jQuery('body>a', doc)[0]).href;
-        } catch (err) { }
-      }
+            jQuery('html', doc).is('.html[lang=en]') &&
+            (<HTMLLinkElement>jQuery('head>link', doc)[0]).href &&
+            jQuery('head>noscript', doc).html() &&
+            jQuery('body>noscript', doc).text() === 'noscript' &&
+            (<HTMLAnchorElement>jQuery('body>a', doc)[0]).href &&
+            true || false;
+        } catch (err) {
+          return false;
+        }
+      };
       
+      this.createHTMLDocument = (html: string, uri: string) => {
+        var backup = window.location.href;
+        window.history.replaceState(window.history.state, document.title, uri);
+
+        var doc: Document;
+        switch (mode) {
+          // firefox
+          case 'dom':
+            if ('function' === typeof window.DOMParser) {
+              doc = new window.DOMParser().parseFromString(html, 'text/html');
+            }
+            break;
+          
+          // chrome, safari
+          case 'doc':
+            if (document.implementation && document.implementation.createHTMLDocument) {
+              doc = document.implementation.createHTMLDocument('');
+              // IE, Operaクラッシュ対策
+              if ('object' === typeof doc.activeElement && doc.activeElement) {
+                doc.open();
+                doc.write(html);
+                doc.close();
+              }
+            }
+            break;
+          
+          // ie10+, opera
+          case 'manipulate':
+            if (document.implementation && document.implementation.createHTMLDocument) {
+              doc = document.implementation.createHTMLDocument('');
+              var root = document.createElement('html');
+              var wrapper = document.createElement('div');
+              wrapper.innerHTML = (html.match(/<html(?: [^>]*)?>/i) || ['<html>']).shift().replace(/html/i, 'div') + '</div>';
+              var attrs = wrapper.firstChild.attributes;
+              for (var i = 0, attr: Attr; attr = attrs[i]; i++) {
+                doc.documentElement.setAttribute(attr.name, attr.value);
+              }
+              root.innerHTML = html.replace(/^.*?<html(?: [^>]*)?>/im, '');
+              doc.documentElement.removeChild(doc.head);
+              doc.documentElement.removeChild(doc.body);
+              while (root.childNodes[0]) {
+                doc.documentElement.appendChild(root.childNodes[0]);
+              }
+            }
+            break;
+
+          default:
+            test(mode = 'dom') || test(mode = 'doc') || test(mode = 'manipulate');
+            doc = this.createHTMLDocument(html, uri);
+            break;
+        }
+
+        window.history.replaceState(window.history.state, document.title, backup);
+        return doc;
+      };
+
+      return this.createHTMLDocument(html, uri);
     }
 
     calAge(jqXHR: JQueryXHR): number {
