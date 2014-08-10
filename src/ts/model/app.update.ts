@@ -38,7 +38,7 @@ module MODULE.MODEL {
       this.app_.isScrollPosSavable = false;
       setting.fix.reset && /click|submit/.test(event.type.toLowerCase()) && window.scrollTo(jQuery(window).scrollLeft(), 0);
 
-      var activeXHR = this.model_.getGlobalXHR();
+      var globalXHR = this.model_.getGlobalXHR();
       event = jQuery.extend(true, {}, event);
       this.setting_ = setting;
       this.cache_ = cache;
@@ -87,16 +87,16 @@ module MODULE.MODEL {
         } else {
           that.update_();
         }
-      } else if (activeXHR && activeXHR.follow && 'abort' !== activeXHR.statusText && 'error' !== activeXHR.statusText) {
+      } else if (globalXHR && globalXHR.follow && 'abort' !== globalXHR.statusText && 'error' !== globalXHR.statusText) {
         // preload
-        speedcheck && speed.time.splice(0, 1, activeXHR.timeStamp - speed.fire);
+        speedcheck && speed.time.splice(0, 1, globalXHR.timeStamp - speed.fire);
         speedcheck && speed.name.splice(0, 1, 'preload(' + speed.time.slice(-1) + ')');
         speedcheck && speed.time.push(speed.now() - speed.fire);
         speedcheck && speed.name.push('continue(' + speed.time.slice(-1) + ')');
-        this.host_ = activeXHR.host || '';
-        setting.loadtime = activeXHR.timeStamp;
-        var wait = setting.wait && isFinite(activeXHR.timeStamp) ? Math.max(setting.wait - new Date().getTime() + activeXHR.timeStamp, 0) : 0;
-        jQuery.when(activeXHR, that.wait_(wait))
+        this.host_ = globalXHR.host || '';
+        setting.loadtime = globalXHR.timeStamp;
+        var wait = setting.wait && isFinite(globalXHR.timeStamp) ? Math.max(setting.wait - new Date().getTime() + globalXHR.timeStamp, 0) : 0;
+        jQuery.when(globalXHR, that.wait_(wait))
         .done(done).fail(fail).always(always);
 
       } else {
@@ -205,11 +205,11 @@ module MODULE.MODEL {
         speedcheck && speed.time.push(speed.now() - speed.fire);
         speedcheck && speed.name.push('request(' + speed.time.slice(-1) + ')');
 
-        activeXHR = this.model_.setGlobalXHR(jQuery.ajax(ajax));
-        jQuery(document).trigger(jQuery.Event(setting.gns + '.request', activeXHR));
+        globalXHR = this.model_.setGlobalXHR(jQuery.ajax(ajax));
+        jQuery(document).trigger(jQuery.Event(setting.gns + '.request', globalXHR));
         
         if (this.model_.isDeferrable) {
-          jQuery.when(activeXHR, that.wait_(UTIL.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href])))
+          jQuery.when(globalXHR, that.wait_(UTIL.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href])))
           .done(done).fail(fail).always(always);
         }
       }
