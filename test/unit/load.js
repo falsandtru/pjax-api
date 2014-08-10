@@ -78,7 +78,7 @@ suite("Load", function () {
       })
       .pipe(function () {
         assert.equal(document.title, 'pjax demo2', "title");
-        assert.equal($('head>script[src*="test"]').length, 1, "external");
+        assert.equal($('head>script[src$="test.js"]').length, 1, "external");
         assert.equal($('#primary>script:contains("console.notice")').length, 1, "inline");
         assert.equal($('body>script:contains("console.notice")').length, 1, "inline");
 
@@ -90,7 +90,7 @@ suite("Load", function () {
       })
       .pipe(function () {
         assert.equal(document.title, 'pjax demo3', "title");
-        assert.equal($('head>script[src*="test"]').length, 1, "external");
+        assert.equal($('head>script[src$="test.js"]').length, 1, "external");
         assert.equal($('#primary>script:contains("console.notice")').length, 1, "inline");
         assert.equal($('body>script:contains("console.notice")').length, 2, "inline");
 

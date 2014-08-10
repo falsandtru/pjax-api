@@ -3,7 +3,7 @@
  * jquery.pjax.js
  * 
  * @name jquery.pjax.js
- * @version 2.13.0
+ * @version 2.14.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
  * @copyright 2012, falsandtru
@@ -263,7 +263,7 @@ var MODULE;
             };
 
             ControllerFunction.prototype.click = function (url, attr) {
-                var setting = M.getActiveSetting(), $anchor;
+                var setting = M.getGlobalSetting(), $anchor;
 
                 switch (typeof url) {
                     case 'undefined':
@@ -289,7 +289,7 @@ var MODULE;
             };
 
             ControllerFunction.prototype.submit = function (url, attr, data) {
-                var setting = M.getActiveSetting(), $form, df = document.createDocumentFragment(), type, $element;
+                var setting = M.getGlobalSetting(), $form, df = document.createDocumentFragment(), type, $element;
 
                 switch (true) {
                     case typeof url === 'undefined':
@@ -381,7 +381,7 @@ var MODULE;
                 if (isFinite(event.timeStamp)) {
                     $XHR.timeStamp = timeStamp || event.timeStamp;
                 }
-                M.setActiveXHR($XHR);
+                M.setGlobalXHR($XHR);
                 jQuery.when($XHR).done(function () {
                     !M.getCache(anchor.href) && M.isImmediateLoadable(event) && M.setCache(anchor.href, undefined, undefined, $XHR);
                 });
@@ -921,7 +921,7 @@ var MODULE;
                 this.app_.isScrollPosSavable = false;
                 setting.fix.reset && /click|submit/.test(event.type.toLowerCase()) && window.scrollTo(jQuery(window).scrollLeft(), 0);
 
-                var activeXHR = this.model_.getActiveXHR();
+                var globalXHR = this.model_.getGlobalXHR();
                 event = jQuery.extend(true, {}, event);
                 this.setting_ = setting;
                 this.cache_ = cache;
@@ -938,7 +938,7 @@ var MODULE;
                 function always(xhrArgs) {
                     MODEL.UTIL.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat(xhrArgs));
 
-                    that.model_.setActiveXHR(null);
+                    that.model_.setGlobalXHR(null);
                     var data, textStatus, jqXHR;
                     if (!that.errorThrown_) {
                         that.data_ = xhrArgs[0];
@@ -959,7 +959,7 @@ var MODULE;
                     // cache
                     speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
                     setting.loadtime = 0;
-                    this.model_.setActiveXHR(null);
+                    this.model_.setGlobalXHR(null);
                     this.host_ = cache.host || '';
                     this.data_ = cache.data;
                     this.textStatus_ = cache.textStatus;
@@ -971,16 +971,16 @@ var MODULE;
                     } else {
                         that.update_();
                     }
-                } else if (activeXHR && activeXHR.follow && 'abort' !== activeXHR.statusText && 'error' !== activeXHR.statusText) {
+                } else if (globalXHR && globalXHR.follow && 'abort' !== globalXHR.statusText && 'error' !== globalXHR.statusText) {
                     // preload
-                    speedcheck && speed.time.splice(0, 1, activeXHR.timeStamp - speed.fire);
+                    speedcheck && speed.time.splice(0, 1, globalXHR.timeStamp - speed.fire);
                     speedcheck && speed.name.splice(0, 1, 'preload(' + speed.time.slice(-1) + ')');
                     speedcheck && speed.time.push(speed.now() - speed.fire);
                     speedcheck && speed.name.push('continue(' + speed.time.slice(-1) + ')');
-                    this.host_ = activeXHR.host || '';
-                    setting.loadtime = activeXHR.timeStamp;
-                    var wait = setting.wait && isFinite(activeXHR.timeStamp) ? Math.max(setting.wait - new Date().getTime() + activeXHR.timeStamp, 0) : 0;
-                    jQuery.when(activeXHR, that.wait_(wait)).done(done).fail(fail).always(always);
+                    this.host_ = globalXHR.host || '';
+                    setting.loadtime = globalXHR.timeStamp;
+                    var wait = setting.wait && isFinite(globalXHR.timeStamp) ? Math.max(setting.wait - new Date().getTime() + globalXHR.timeStamp, 0) : 0;
+                    jQuery.when(globalXHR, that.wait_(wait)).done(done).fail(fail).always(always);
                 } else {
                     // default
                     setting.loadtime = event.timeStamp;
@@ -1063,7 +1063,7 @@ var MODULE;
                         complete: function (jqXHR, textStatus) {
                             MODEL.UTIL.fire(setting.callbacks.ajax.complete, this, [event, setting.param, jqXHR, textStatus]);
 
-                            that.model_.setActiveXHR(null);
+                            that.model_.setGlobalXHR(null);
                             if (!that.errorThrown_) {
                                 if (!that.model_.isDeferrable) {
                                     that.textStatus_ = textStatus;
@@ -1084,11 +1084,11 @@ var MODULE;
                     speedcheck && speed.time.push(speed.now() - speed.fire);
                     speedcheck && speed.name.push('request(' + speed.time.slice(-1) + ')');
 
-                    activeXHR = this.model_.setActiveXHR(jQuery.ajax(ajax));
-                    jQuery(document).trigger(jQuery.Event(setting.gns + '.request', activeXHR));
+                    globalXHR = this.model_.setGlobalXHR(jQuery.ajax(ajax));
+                    jQuery(document).trigger(jQuery.Event(setting.gns + '.request', globalXHR));
 
                     if (this.model_.isDeferrable) {
-                        jQuery.when(activeXHR, that.wait_(MODEL.UTIL.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]))).done(done).fail(fail).always(always);
+                        jQuery.when(globalXHR, that.wait_(MODEL.UTIL.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]))).done(done).fail(fail).always(always);
                     }
                 }
 
@@ -1111,8 +1111,6 @@ var MODULE;
                     speedcheck && speed.time.push(speed.now() - speed.fire);
                     speedcheck && speed.name.push('load(' + speed.time.slice(-1) + ')');
 
-                    this.model_.setActiveSetting(setting);
-
                     if (MODEL.UTIL.fire(callbacks_update.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_, this.cache_]) === false) {
                         break UPDATE;
                     }
@@ -1129,7 +1127,7 @@ var MODULE;
 
                         DEFINE:
                          {
-                            this.srcDocument_ = APP.createHTMLDocument(jqXHR.responseText);
+                            this.srcDocument_ = APP.createHTMLDocument(jqXHR.responseText, setting.destLocation.href);
                             this.dstDocument_ = document;
 
                             var srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
@@ -1168,10 +1166,11 @@ var MODULE;
                         /* url */
                         this.updateUrl_();
 
-                        setting.origLocation.href = setting.destLocation.href;
-
                         /* verify */
                         this.updateVerify_();
+
+                        /* setting */
+                        this.model_.setGlobalSetting(jQuery.extend(true, {}, setting, { origLocation: setting.destLocation.cloneNode() }));
 
                         /* title */
                         this.updateTitle_();
@@ -1272,7 +1271,7 @@ var MODULE;
                 this.cache_ = cache;
 
                 if (cache && cache.data) {
-                    var cacheDocument = this.app_.createHTMLDocument(cache.data), srcDocument = this.srcDocument_;
+                    var cacheDocument = this.app_.createHTMLDocument(cache.data, setting.destLocation.href), srcDocument = this.srcDocument_;
 
                     srcDocument.title = cacheDocument.title;
                     var i = -1, $srcAreas, $dstAreas;
@@ -1289,8 +1288,6 @@ var MODULE;
                 if (MODEL.UTIL.fire(callbacks_update.cache.after, null, [event, setting.param, cache]) === false) {
                     return;
                 }
-
-                return;
             };
 
             AppUpdate.prototype.updateRedirect_ = function () {
@@ -1851,6 +1848,8 @@ var MODULE;
                 this.app_.data.saveServerToDB(host, 0, setting.destLocation.href, this.app_.calExpires(this.jqXHR_));
                 this.app_.chooseRequestServer(setting);
 
+                this.app_.data.loadBufferAll(setting.buffer.limit);
+
                 if (MODEL.UTIL.fire(callbacks_update.balance.after, null, [event, setting.param]) === false) {
                     return;
                 }
@@ -1913,7 +1912,7 @@ var MODULE;
                     success(store);
                 } else {
                     this.DB_.opendb(function () {
-                        _this.accessStore(success);
+                        return _this.accessStore(success);
                     });
                 }
             };
@@ -1927,6 +1926,7 @@ var MODULE;
 
             DataStore.prototype.loadBuffer = function (limit) {
                 var _this = this;
+                if (typeof limit === "undefined") { limit = 0; }
                 var that = this;
                 this.accessStore(function (store) {
                     var index = store.indexNames.length ? store.indexNames[0] : store.keyPath;
@@ -2551,8 +2551,16 @@ var MODULE;
                 if (typeof state === "undefined") { state = 0; }
                 if (typeof expires === "undefined") { expires = 0; }
                 var value = { id: host || '', state: state };
-                this.data_.DB.store.server.setBuffer(value);
-                this.data_.DB.store.server.set(value);
+                this.data_.DB.store.server.accessRecord(host, function () {
+                    var data = this.result;
+                    if (!data || !state) {
+                        // 新規または正常登録
+                        this.source.put(value);
+                    } else if (data.state) {
+                        // 2回目のエラーで登録削除
+                        this.source['delete'](host);
+                    }
+                });
                 if (unsafe_url) {
                     this.saveExpiresToDB(unsafe_url, host, expires);
                 }
@@ -2674,7 +2682,12 @@ var MODULE;
                     redirect: true,
                     wait: 0,
                     scroll: { delay: 300 },
-                    fix: { location: true, history: true, scroll: true, reset: false },
+                    fix: {
+                        location: true,
+                        history: true,
+                        scroll: true,
+                        reset: false
+                    },
                     fallback: true,
                     database: true,
                     server: {
@@ -2757,7 +2770,7 @@ var MODULE;
 
                 new MODULE.VIEW.Main(this.model_, this.controller_, $context).BIND(setting);
                 setTimeout(function () {
-                    return _this.createHTMLDocument('');
+                    return _this.createHTMLDocument('', '');
                 }, 50);
                 setTimeout(function () {
                     return _this.data.loadBufferAll(setting.buffer.limit);
@@ -2771,7 +2784,7 @@ var MODULE;
             };
 
             App.prototype.enableBalance = function (host) {
-                var setting = this.model_.getActiveSetting();
+                var setting = this.model_.getGlobalSetting();
 
                 if (!setting.balance.client.support.userAgent.test(window.navigator.userAgent) || setting.balance.client.exclude.test(window.navigator.userAgent)) {
                     return void this.disableBalance();
@@ -2787,7 +2800,7 @@ var MODULE;
             };
 
             App.prototype.disableBalance = function () {
-                var setting = this.model_.getActiveSetting();
+                var setting = this.model_.getGlobalSetting();
 
                 this.data.setCookie(setting.balance.client.cookie.balance, '0');
                 this.data.setCookie(setting.balance.client.cookie.redirect, '0');
@@ -2796,7 +2809,7 @@ var MODULE;
 
             App.prototype.switchRequestServer = function (host, setting) {
                 host = host || '';
-                setting = setting || this.model_.getActiveSetting();
+                setting = setting || this.model_.getGlobalSetting();
                 this.model_.requestHost = host;
                 setting.balance.server.host = host;
                 this.data.setCookie(setting.balance.client.cookie.host, host);
@@ -2809,8 +2822,7 @@ var MODULE;
                     return;
                 }
 
-                this.data.loadBufferAll(setting.buffer.limit);
-
+                // キャッシュの有効期限内の再リクエストは同じサーバーを選択してキャッシュを使用させる
                 var expires;
                 var historyBufferData = this.data.getBuffer(this.data.storeNames.history, this.model_.convertUrlToKeyUrl(setting.destLocation.href));
 
@@ -2820,6 +2832,7 @@ var MODULE;
                     return;
                 }
 
+                // ログから最適なサーバーを選択する
                 var logBuffer = this.data.getBuffer(this.data.storeNames.log), timeList = [], logTable = {}, now = new Date().getTime();
 
                 if (!logBuffer) {
@@ -2843,20 +2856,38 @@ var MODULE;
                 function compareNumbers(a, b) {
                     return a - b;
                 }
-                timeList = timeList.sort(compareNumbers);
-                var serverBuffer = this.data.getBuffer(this.data.storeNames.server), time = timeList.shift();
+                timeList = timeList.sort(compareNumbers).slice(0, 15);
+                var serverBuffer = this.data.getBuffer(this.data.storeNames.server);
 
                 if (!serverBuffer) {
                     this.disableBalance();
                     return;
                 }
                 var host = '', time;
-                for (var j = setting.balance.log.limit; time = i-- && timeList.shift();) {
+                while (timeList.length) {
+                    r = Math.floor(Math.random() * timeList.length);
+                    time = timeList[r];
+                    timeList.splice(r, 1);
+
                     host = logTable[time].host.split('//').pop() || '';
                     if (!serverBuffer[host] || serverBuffer[host].state && new Date().getTime() < serverBuffer[host].state + setting.balance.server.error) {
                         continue;
                     }
                     if (!host && setting.balance.weight && !(Math.floor(Math.random()) * setting.balance.weight)) {
+                        continue;
+                    }
+                    this.switchRequestServer(host, setting);
+                    return;
+                }
+
+                // サーバーリストからランダムにサーバーを選択する
+                var hosts = Object.keys(serverBuffer), host, r;
+                while (hosts.length) {
+                    r = Math.floor(Math.random() * hosts.length);
+                    host = hosts[r];
+                    hosts.splice(r, 1);
+
+                    if (serverBuffer[host].state && new Date().getTime() < serverBuffer[host].state + setting.balance.server.error) {
                         continue;
                     }
                     this.switchRequestServer(host, setting);
@@ -3001,64 +3032,74 @@ var MODULE;
                 }
             };
 
-            App.prototype.createHTMLDocument = function (html) {
-                // firefox
-                this.createHTMLDocument = function (html) {
-                    return window.DOMParser && window.DOMParser.prototype && new window.DOMParser().parseFromString(html, 'text/html');
-                };
-                if (test(this.createHTMLDocument)) {
-                    return this.createHTMLDocument(html);
-                }
+            App.prototype.createHTMLDocument = function (html, uri) {
+                var _this = this;
+                var mode;
 
-                // chrome, safari
-                this.createHTMLDocument = function (html) {
-                    if (document.implementation && document.implementation.createHTMLDocument) {
-                        var doc = document.implementation.createHTMLDocument('');
-
-                        // IE, Operaクラッシュ対策
-                        if ('object' === typeof doc.activeElement && doc.activeElement) {
-                            doc.open();
-                            doc.write(html);
-                            doc.close();
-                        }
-                    }
-                    return doc;
-                };
-                if (test(this.createHTMLDocument)) {
-                    return this.createHTMLDocument(html);
-                }
-
-                // ie10+, opera
-                this.createHTMLDocument = function (html) {
-                    if (document.implementation && document.implementation.createHTMLDocument) {
-                        var doc = document.implementation.createHTMLDocument('');
-                        var root = document.createElement('html');
-                        var wrapper = document.createElement('div');
-                        wrapper.innerHTML = (html.match(/<html(?: [^>]*)?>/i) || ['<html>']).shift().replace(/html/i, 'div') + '</div>';
-                        var attrs = wrapper.firstChild.attributes;
-                        for (var i = 0, attr; attr = attrs[i]; i++) {
-                            doc.documentElement.setAttribute(attr.name, attr.value);
-                        }
-                        root.innerHTML = html.replace(/^.*?<html(?: [^>]*)?>/im, '');
-                        doc.documentElement.removeChild(doc.head);
-                        doc.documentElement.removeChild(doc.body);
-                        while (root.childNodes[0]) {
-                            doc.documentElement.appendChild(root.childNodes[0]);
-                        }
-                    }
-                    return doc;
-                };
-                if (test(this.createHTMLDocument)) {
-                    return this.createHTMLDocument(html);
-                }
-
-                function test(createHTMLDocument) {
+                var test = function () {
                     try  {
-                        var doc = createHTMLDocument && createHTMLDocument('<html lang="en" class="html"><head><link href="/"><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript><a href="/"></a></body></html>');
-                        return doc && jQuery('html', doc).is('.html[lang=en]') && jQuery('head>link', doc)[0].href && jQuery('head>noscript', doc).html() && jQuery('body>noscript', doc).text() === 'noscript' && jQuery('body>a', doc)[0].href;
+                        var html = '<html lang="en" class="html"><head><link href="/"><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript><a href="/"></a></body></html>', doc = _this.createHTMLDocument(html, '');
+                        return doc && jQuery('html', doc).is('.html[lang=en]') && jQuery('head>link', doc)[0].href && jQuery('head>noscript', doc).html() && jQuery('body>noscript', doc).text() === 'noscript' && jQuery('body>a', doc)[0].href && true || false;
                     } catch (err) {
+                        return false;
                     }
-                }
+                };
+
+                this.createHTMLDocument = function (html, uri) {
+                    var backup = window.location.href;
+                    uri && window.history.replaceState(window.history.state, document.title, uri);
+
+                    var doc;
+                    switch (mode) {
+                        case 'dom':
+                            if ('function' === typeof window.DOMParser) {
+                                doc = new window.DOMParser().parseFromString(html, 'text/html');
+                            }
+                            break;
+
+                        case 'doc':
+                            if (document.implementation && document.implementation.createHTMLDocument) {
+                                doc = document.implementation.createHTMLDocument('');
+
+                                // IE, Operaクラッシュ対策
+                                if ('object' === typeof doc.activeElement && doc.activeElement) {
+                                    doc.open();
+                                    doc.write(html);
+                                    doc.close();
+                                }
+                            }
+                            break;
+
+                        case 'manipulate':
+                            if (document.implementation && document.implementation.createHTMLDocument) {
+                                doc = document.implementation.createHTMLDocument('');
+                                var wrapper = document.createElement('div');
+                                wrapper.innerHTML = (html.match(/<html(?: [^>]*)?>/i) || ['<html>']).shift().replace(/html/i, 'div') + '</div>';
+                                var attrs = wrapper.firstChild.attributes;
+                                for (var i = 0, attr; attr = attrs[i]; i++) {
+                                    doc.documentElement.setAttribute(attr.name, attr.value);
+                                }
+                                var wrapper = document.createElement('html');
+                                wrapper.innerHTML = html.replace(/^.*?<html(?: [^>]*)?>/im, '');
+                                doc.documentElement.removeChild(doc.head);
+                                doc.documentElement.removeChild(doc.body);
+                                while (wrapper.childNodes.length) {
+                                    doc.documentElement.appendChild(wrapper.childNodes[0]);
+                                }
+                            }
+                            break;
+
+                        default:
+                            test(mode = 'dom') || test(mode = 'doc') || test(mode = 'manipulate');
+                            doc = _this.createHTMLDocument(html, uri);
+                            break;
+                    }
+
+                    uri && window.history.replaceState(window.history.state, document.title, backup);
+                    return doc;
+                };
+
+                return this.createHTMLDocument(html, uri);
             };
 
             App.prototype.calAge = function (jqXHR) {
@@ -3125,7 +3166,7 @@ var MODULE;
                 }
 
                 var setting = this.app_.configure(option, window.location.href, window.location.href);
-                this.setActiveSetting(setting);
+                this.setGlobalSetting(setting);
                 setting.database && this.app_.data.opendb(setting);
 
                 this.app_.stock({
@@ -3193,7 +3234,7 @@ var MODULE;
                     return false;
                 }
 
-                setting = setting || this.app_.configure(this.getActiveSetting(), origLocation.href, destLocation.href);
+                setting = setting || this.app_.configure(this.getGlobalSetting(), origLocation.href, destLocation.href);
                 if (setting.disable) {
                     return;
                 }
@@ -3210,19 +3251,19 @@ var MODULE;
                 return true;
             };
 
-            Main.prototype.getActiveSetting = function () {
-                return this.app_.activeSetting;
+            Main.prototype.getGlobalSetting = function () {
+                return this.app_.globalSetting;
             };
-            Main.prototype.setActiveSetting = function (setting) {
-                return this.app_.activeSetting = setting;
+            Main.prototype.setGlobalSetting = function (setting) {
+                return this.app_.globalSetting = setting;
             };
 
-            Main.prototype.getActiveXHR = function () {
-                return this.app_.activeXHR;
+            Main.prototype.getGlobalXHR = function () {
+                return this.app_.globalXHR;
             };
-            Main.prototype.setActiveXHR = function (xhr) {
-                this.app_.activeXHR && this.app_.activeXHR.readyState < 4 && this.app_.activeXHR.abort();
-                return this.app_.activeXHR = xhr;
+            Main.prototype.setGlobalXHR = function (xhr) {
+                this.app_.globalXHR && this.app_.globalXHR.readyState < 4 && this.app_.globalXHR.abort();
+                return this.app_.globalXHR = xhr;
             };
 
             Main.prototype.CLICK = function (event) {
@@ -3230,7 +3271,7 @@ var MODULE;
                  {
                     event.timeStamp = new Date().getTime();
                     var context = event.currentTarget, $context = jQuery(context);
-                    var setting = this.app_.configure(this.getActiveSetting(), window.location.href, context.href);
+                    var setting = this.app_.configure(this.getGlobalSetting(), window.location.href, context.href);
 
                     if (0 /* ready */ !== this.state() || setting.disable || event.isDefaultPrevented()) {
                         break PROCESS;
@@ -3262,7 +3303,7 @@ var MODULE;
                  {
                     event.timeStamp = new Date().getTime();
                     var context = event.currentTarget, $context = jQuery(context);
-                    var setting = this.app_.configure(this.getActiveSetting(), window.location.href, context.action);
+                    var setting = this.app_.configure(this.getGlobalSetting(), window.location.href, context.action);
 
                     if (0 /* ready */ !== this.state() || setting.disable || event.isDefaultPrevented()) {
                         break PROCESS;
@@ -3295,7 +3336,7 @@ var MODULE;
                 PROCESS:
                  {
                     event.timeStamp = new Date().getTime();
-                    var setting = this.app_.configure(this.getActiveSetting(), null, window.location.href);
+                    var setting = this.app_.configure(this.getGlobalSetting(), null, window.location.href);
                     if (this.app_.landing && this.app_.landing === MODEL.UTIL.canonicalizeUrl(window.location.href)) {
                         return;
                     }
@@ -3330,7 +3371,7 @@ var MODULE;
 
             Main.prototype.SCROLL = function (event, end) {
                 var _this = this;
-                var setting = this.getActiveSetting();
+                var setting = this.getGlobalSetting();
                 if (0 /* ready */ !== this.state() || event.isDefaultPrevented()) {
                     return;
                 }
@@ -3369,7 +3410,7 @@ var MODULE;
             };
 
             Main.prototype.getCache = function (unsafe_url) {
-                var setting = this.getActiveSetting(), recent = this.app_.recent;
+                var setting = this.getGlobalSetting(), recent = this.app_.recent;
                 if (!setting || !recent) {
                     return null;
                 }
@@ -3384,7 +3425,7 @@ var MODULE;
 
             Main.prototype.setCache = function (unsafe_url, data, textStatus, jqXHR, host) {
                 var _this = this;
-                var setting = this.getActiveSetting(), recent = this.app_.recent;
+                var setting = this.getGlobalSetting(), recent = this.app_.recent;
                 if (!setting || !recent) {
                     return this;
                 }
@@ -3446,7 +3487,7 @@ var MODULE;
             };
 
             Main.prototype.removeCache = function (unsafe_url) {
-                var setting = this.getActiveSetting(), recent = this.app_.recent;
+                var setting = this.getGlobalSetting(), recent = this.app_.recent;
                 if (!setting || !recent) {
                     return;
                 }
@@ -3465,7 +3506,7 @@ var MODULE;
             };
 
             Main.prototype.clearCache = function () {
-                var setting = this.getActiveSetting(), recent = this.app_.recent;
+                var setting = this.getGlobalSetting(), recent = this.app_.recent;
                 if (!setting || !recent) {
                     return;
                 }
@@ -3477,7 +3518,7 @@ var MODULE;
             };
 
             Main.prototype.cleanCache = function () {
-                var setting = this.getActiveSetting(), recent = this.app_.recent;
+                var setting = this.getGlobalSetting(), recent = this.app_.recent;
                 if (!setting || !recent) {
                     return;
                 }
