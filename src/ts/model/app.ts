@@ -21,8 +21,8 @@ module MODULE.MODEL {
     landing: string = UTIL.canonicalizeUrl(window.location.href)
     recent: RecentInterface = { order: [], data: {}, size: 0 }
     isScrollPosSavable: boolean = true
-    activeXHR: JQueryXHR
-    activeSetting: SettingInterface
+    globalXHR: JQueryXHR
+    globalSetting: SettingInterface
 
     configure(option: SettingInterface, origURL: string, destURL: string): SettingInterface {
       origURL = UTIL.canonicalizeUrl(origURL || option.origLocation.href);
@@ -30,7 +30,7 @@ module MODULE.MODEL {
       option = option.option || option;
 
       var scope = option.scope ? jQuery.extend(true, {}, option, this.scope_(option, origURL, destURL) || { disable: true })
-                                : jQuery.extend(true, {}, option);
+                               : jQuery.extend(true, {}, option);
 
       var initial = {
             gns: NAME,
@@ -113,7 +113,12 @@ module MODULE.MODEL {
             redirect: true,
             wait: 0,
             scroll: { delay: 300 },
-            fix: { location: true, history: true, scroll: true, reset: false },
+            fix: {
+              location: true,
+              history: true,
+              scroll: true,
+              reset: false
+            },
             fallback: true,
             database: true,
             server: {
@@ -184,14 +189,14 @@ module MODULE.MODEL {
       });
 
       new VIEW.Main(this.model_, this.controller_, $context).BIND(setting);
-      setTimeout(() => this.createHTMLDocument(''), 50);
+      setTimeout(() => this.createHTMLDocument('', ''), 50);
       setTimeout(() => this.data.loadBufferAll(setting.buffer.limit), setting.buffer.delay);
       setting.balance.self && setTimeout(() => this.enableBalance(), setting.buffer.delay);
       setTimeout(() => this.landing = null, 1500);
     }
 
     enableBalance(host?: string): void {
-      var setting: SettingInterface = this.model_.getActiveSetting();
+      var setting: SettingInterface = this.model_.getGlobalSetting();
 
       if (!setting.balance.client.support.userAgent.test(window.navigator.userAgent) || setting.balance.client.exclude.test(window.navigator.userAgent)) {
         return void this.disableBalance();
@@ -207,7 +212,7 @@ module MODULE.MODEL {
     }
 
     disableBalance(): void {
-      var setting: SettingInterface = this.model_.getActiveSetting();
+      var setting: SettingInterface = this.model_.getGlobalSetting();
 
       this.data.setCookie(setting.balance.client.cookie.balance, '0');
       this.data.setCookie(setting.balance.client.cookie.redirect, '0');
@@ -216,7 +221,7 @@ module MODULE.MODEL {
 
     switchRequestServer(host: string, setting: SettingInterface): void {
       host = host || '';
-      setting = setting || this.model_.getActiveSetting();
+      setting = setting || this.model_.getGlobalSetting();
       this.model_.requestHost = host;
       setting.balance.server.host = host;
       this.data.setCookie(setting.balance.client.cookie.host, host);
@@ -229,8 +234,7 @@ module MODULE.MODEL {
         return;
       }
 
-      this.data.loadBufferAll(setting.buffer.limit);
-
+      // キャッシュの有効期限内の再リクエストは同じサーバーを選択してキャッシュを使用させる
       var expires: number;
       var historyBufferData: HistorySchema = this.data.getBuffer<HistorySchema>(this.data.storeNames.history, this.model_.convertUrlToKeyUrl(setting.destLocation.href));
 
@@ -240,6 +244,7 @@ module MODULE.MODEL {
         return;
       }
 
+      // ログから最適なサーバーを選択する
       var logBuffer = this.data.getBuffer<{ [index: number]: LogSchema }>(this.data.storeNames.log),
           timeList: number[] = [],
           logTable: { [index: number]: LogSchema } = {},
@@ -265,9 +270,8 @@ module MODULE.MODEL {
       function compareNumbers(a, b) {
         return a - b;
       }
-      timeList = timeList.sort(compareNumbers);
-      var serverBuffer = this.data.getBuffer<{ [index: string]: ServerSchema }>(this.data.storeNames.server),
-          time: number = timeList.shift();
+      timeList = timeList.sort(compareNumbers).slice(0, 15);
+      var serverBuffer = this.data.getBuffer<{ [index: string]: ServerSchema }>(this.data.storeNames.server);
 
       if (!serverBuffer) {
         this.disableBalance();
@@ -275,12 +279,32 @@ module MODULE.MODEL {
       }
       var host: string = '',
           time: number;
-      for (var j = setting.balance.log.limit; time = i-- && timeList.shift();) {
+      while (timeList.length) {
+        r = Math.floor(Math.random() * timeList.length);
+        time = timeList[r];
+        timeList.splice(r, 1);
+
         host = logTable[time].host.split('//').pop() || '';
         if (!serverBuffer[host] || serverBuffer[host].state && new Date().getTime() < serverBuffer[host].state + setting.balance.server.error) {
           continue;
         }
         if (!host && setting.balance.weight && !(Math.floor(Math.random()) * setting.balance.weight)) {
+          continue;
+        }
+        this.switchRequestServer(host, setting);
+        return;
+      }
+
+      // サーバーリストからランダムにサーバーを選択する
+      var hosts = Object.keys(serverBuffer),
+          host: string,
+          r: number;
+      while (hosts.length) {
+        r = Math.floor(Math.random() * hosts.length);
+        host = hosts[r];
+        hosts.splice(r, 1);
+
+        if (serverBuffer[host].state && new Date().getTime() < serverBuffer[host].state + setting.balance.server.error) {
           continue;
         }
         this.switchRequestServer(host, setting);
@@ -422,62 +446,82 @@ module MODULE.MODEL {
       }
     }
 
-    createHTMLDocument(html: string): Document {
-      // firefox
-      this.createHTMLDocument = (html: string): Document => {
-        return window.DOMParser && window.DOMParser.prototype && new window.DOMParser().parseFromString(html, 'text/html');
-      };
-      if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html); }
+    createHTMLDocument(html: string, uri: string): Document {
+      var mode: string;
 
-      // chrome, safari
-      this.createHTMLDocument = (html: string): Document => {
-        if (document.implementation && document.implementation.createHTMLDocument) {
-          var doc = document.implementation.createHTMLDocument('');
-          // IE, Operaクラッシュ対策
-          if ('object' === typeof doc.activeElement && doc.activeElement) {
-            doc.open();
-            doc.write(html);
-            doc.close();
-          }
-        }
-        return doc;
-      };
-      if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html); }
-
-      // ie10+, opera
-      this.createHTMLDocument = (html: string): Document => {
-        if (document.implementation && document.implementation.createHTMLDocument) {
-          var doc = document.implementation.createHTMLDocument('');
-          var root = document.createElement('html');
-          var wrapper = document.createElement('div');
-          wrapper.innerHTML = (html.match(/<html(?: [^>]*)?>/i) || ['<html>']).shift().replace(/html/i, 'div') + '</div>';
-          var attrs = wrapper.firstChild.attributes;
-          for (var i = 0, attr: Attr; attr = attrs[i]; i++) {
-            doc.documentElement.setAttribute(attr.name, attr.value);
-          }
-          root.innerHTML = html.replace(/^.*?<html(?: [^>]*)?>/im, '');
-          doc.documentElement.removeChild(doc.head);
-          doc.documentElement.removeChild(doc.body);
-          while (root.childNodes[0]) {
-            doc.documentElement.appendChild(root.childNodes[0]);
-          }
-        }
-        return doc;
-      };
-      if (test(this.createHTMLDocument)) { return this.createHTMLDocument(html); }
-      
-      function test(createHTMLDocument) {
+      var test: (...args: any[]) => boolean = () => {
         try {
-          var doc = createHTMLDocument && createHTMLDocument('<html lang="en" class="html"><head><link href="/"><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript><a href="/"></a></body></html>');
+          var html = '<html lang="en" class="html"><head><link href="/"><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript><a href="/"></a></body></html>',
+              doc = this.createHTMLDocument(html, '');
           return doc &&
-                 jQuery('html', doc).is('.html[lang=en]') &&
-                 (<HTMLLinkElement>jQuery('head>link', doc)[0]).href &&
-                 jQuery('head>noscript', doc).html() &&
-                 jQuery('body>noscript', doc).text() === 'noscript' &&
-                 (<HTMLAnchorElement>jQuery('body>a', doc)[0]).href;
-        } catch (err) { }
-      }
+            jQuery('html', doc).is('.html[lang=en]') &&
+            (<HTMLLinkElement>jQuery('head>link', doc)[0]).href &&
+            jQuery('head>noscript', doc).html() &&
+            jQuery('body>noscript', doc).text() === 'noscript' &&
+            (<HTMLAnchorElement>jQuery('body>a', doc)[0]).href &&
+            true || false;
+        } catch (err) {
+          return false;
+        }
+      };
       
+      this.createHTMLDocument = (html: string, uri: string) => {
+        var backup = window.location.href;
+        uri && window.history.replaceState(window.history.state, document.title, uri);
+
+        var doc: Document;
+        switch (mode) {
+          // firefox
+          case 'dom':
+            if ('function' === typeof window.DOMParser) {
+              doc = new window.DOMParser().parseFromString(html, 'text/html');
+            }
+            break;
+          
+          // chrome, safari
+          case 'doc':
+            if (document.implementation && document.implementation.createHTMLDocument) {
+              doc = document.implementation.createHTMLDocument('');
+              // IE, Operaクラッシュ対策
+              if ('object' === typeof doc.activeElement && doc.activeElement) {
+                doc.open();
+                doc.write(html);
+                doc.close();
+              }
+            }
+            break;
+          
+          // ie10+, opera
+          case 'manipulate':
+            if (document.implementation && document.implementation.createHTMLDocument) {
+              doc = document.implementation.createHTMLDocument('');
+              var wrapper = <HTMLElement>document.createElement('div');
+              wrapper.innerHTML = (html.match(/<html(?: [^>]*)?>/i) || ['<html>']).shift().replace(/html/i, 'div') + '</div>';
+              var attrs = wrapper.firstChild.attributes;
+              for (var i = 0, attr: Attr; attr = attrs[i]; i++) {
+                doc.documentElement.setAttribute(attr.name, attr.value);
+              }
+              var wrapper = <HTMLElement>document.createElement('html');
+              wrapper.innerHTML = html.replace(/^.*?<html(?: [^>]*)?>/im, '');
+              doc.documentElement.removeChild(doc.head);
+              doc.documentElement.removeChild(doc.body);
+              while (wrapper.childNodes.length) {
+                doc.documentElement.appendChild(wrapper.childNodes[0]);
+              }
+            }
+            break;
+
+          default:
+            test(mode = 'dom') || test(mode = 'doc') || test(mode = 'manipulate');
+            doc = this.createHTMLDocument(html, uri);
+            break;
+        }
+
+        uri && window.history.replaceState(window.history.state, document.title, backup);
+        return doc;
+      };
+
+      return this.createHTMLDocument(html, uri);
     }
 
     calAge(jqXHR: JQueryXHR): number {

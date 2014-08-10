@@ -7,25 +7,66 @@
  | 
 **[d.ts](src/ts/.d/jquery.pjax.d.ts)**
 
+This pjax has a extremely high flexibility and compatibility.
 
-pjaxはリクエストと描画を最小限に抑えるた高速かつシームレスなページ遷移を提供する技術です。
+You will be able most of your want.
 
-主にページ遷移の高速化やウェブサービスのハイエンドなインターフェイスの実装に利用されます。
+## Feature
 
-また、このpjaxではプリロードによる高速化とクライアントサイドロードバランサ(CsLB)によるネットワーク負荷分散を利用できます。
+* Faster by preloading
+* Network Load Balancing by CsLB
+* Sync the HEAD element, such as CSS, SCRIPT, RSS
+* Updated Disabling itemized such as URL, TITLE
+* Resolution of common problems of pjax
+* etc...
 
-※ リリースバージョン(マスターブランチ)以外を本番環境で使用しないでください。データベースをアップデートできずデータベーススキーマの不整合によるエラーが発生する可能性があります。
+## Usage
 
-## 特徴
+```javascript
+// Major feature activation
+$.pjax({
+  // Multiple area update
+  // Fallback area matching
+  area: [
+    '#header, #primary, #secondary',
+    '#container',
+    'body'
+  ],
+  // Sync and load
+  load: {
+    head: 'base, meta, link',
+    css: true,
+    script: true
+  },
+  // On memory cache
+  cache: {
+    click: true, submit: true, popstate: true,
+    get: true, post: false
+  },
+  // Rewrite source document
+  rewrite: function(document, area) {
+    $(area, document).addClass('area');
+  },
+  // Override setting
+  // Enabling control
+  scope: {
+    search: ['/search/'],
+    $search: { form: 'form:not([method])' },
+    '/': ['/', '#search', '!/contact/']
+  }
+});
 
-* プリロードによる高速化
-* CsLBによるネットワーク負荷分散
-* CSS・SCRIPT・RSSなどHEAD要素の同期
-* URL・TITLEなど項目別の更新無効化
-* pjaxの一般的諸問題の解決
+// 6 events and 43 callbacks exists.
+$(document).bind('pjax.ready', function() {
+  console.log('ready');
+});
+```
 
-## ブラウザ
-主要ブラウザに対応。
+## API
+Sorry, there are only Japanese documents. I welcome translation.
+
+## Browser
+Support major browsers.
 
 * IE10+
 * Chrome
@@ -36,9 +77,15 @@ pjaxはリクエストと描画を最小限に抑えるた高速かつシーム�
 * iOS
 
 ## jQuery
-jQuery1.6+推奨。
+jQuery1.6+ Recommended.
 
 * v1.4.2
 * v1.7.2
 * v1.11.1
 * v2.1.1
+
+## Caution
+Please do not use in a production environment the release version (master branch) other than. You may receive an error due to mismatch of the database schema is generated can not update the database.
+
+## License
+MIT License

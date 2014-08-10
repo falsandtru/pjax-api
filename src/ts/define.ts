@@ -82,10 +82,10 @@ module MODULE {
     convertUrlToKeyUrl(unsafe_url: string): string
     isImmediateLoadable(unsafe_url: string, setting?: SettingInterface): boolean
     isImmediateLoadable(event: JQueryEventObject, setting?: SettingInterface): boolean
-    getActiveSetting(): SettingInterface
-    setActiveSetting(setting: SettingInterface): SettingInterface
-    getActiveXHR(): JQueryXHR
-    setActiveXHR(xhr: JQueryXHR): JQueryXHR
+    getGlobalSetting(): SettingInterface
+    setGlobalSetting(setting: SettingInterface): SettingInterface
+    getGlobalXHR(): JQueryXHR
+    setGlobalXHR(xhr: JQueryXHR): JQueryXHR
     fallback(event: JQueryEventObject, setting: SettingInterface): void
     
     // View機能実体
@@ -110,12 +110,12 @@ module MODULE {
     landing: string
     recent: RecentInterface
     isScrollPosSavable: boolean
-    activeXHR: JQueryXHR
-    activeSetting: SettingInterface
+    globalXHR: JQueryXHR
+    globalSetting: SettingInterface
 
     configure(option: SettingInterface, origURL: string, destURL: string): SettingInterface
     registrate($context: ContextInterface, setting: SettingInterface): void
-    createHTMLDocument(html: string): Document
+    createHTMLDocument(html: string, uri: string): Document
     chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
     enableBalance(host?: string): void

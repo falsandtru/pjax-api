@@ -11,6 +11,8 @@ class: style-info
 
 CSS等は自動的に同期されるためページ間のJavaScriptの干渉にだけ気をつければpjaxを使用していることを意識する必要はありません。
 
+※ **リリースバージョン(マスターブランチ)以外を本番環境で使用しないでください。データベースをアップデートできずデータベーススキーマの不整合によるエラーが発生する可能性があります。**
+
 <pre class="sh brush: html;">
 &lt;script charset="utf-8" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"&gt;&lt;/script&gt;
 &lt;script charset="utf-8" src="/js/jquery.pjax.js"&gt;&lt;/script&gt;

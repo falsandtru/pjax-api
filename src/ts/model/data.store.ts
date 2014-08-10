@@ -29,7 +29,7 @@ module MODULE.MODEL {
       if (store) {
         success(store);
       } else {
-        this.DB_.opendb(() => { this.accessStore(success); });
+        this.DB_.opendb(() => this.accessStore(success));
       }
     }
 
@@ -39,7 +39,7 @@ module MODULE.MODEL {
       }, mode);
     }
     
-    loadBuffer(limit?: number): void {
+    loadBuffer(limit: number = 0): void {
       var that = this;
       this.accessStore((store) => {
         var index = store.indexNames.length ? store.indexNames[0] : store.keyPath;

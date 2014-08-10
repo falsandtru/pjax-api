@@ -38,7 +38,7 @@ module MODULE.MODEL {
       this.app_.isScrollPosSavable = false;
       setting.fix.reset && /click|submit/.test(event.type.toLowerCase()) && window.scrollTo(jQuery(window).scrollLeft(), 0);
 
-      var activeXHR = this.model_.getActiveXHR();
+      var globalXHR = this.model_.getGlobalXHR();
       event = jQuery.extend(true, {}, event);
       this.setting_ = setting;
       this.cache_ = cache;
@@ -55,7 +55,7 @@ module MODULE.MODEL {
       function always(xhrArgs: any[]) {
         UTIL.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat(xhrArgs));
 
-        that.model_.setActiveXHR(null);
+        that.model_.setGlobalXHR(null);
         var data: string, textStatus: string, jqXHR: JQueryXHR;
         if (!that.errorThrown_) {
           that.data_ = xhrArgs[0];
@@ -76,7 +76,7 @@ module MODULE.MODEL {
         // cache
         speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
         setting.loadtime = 0;
-        this.model_.setActiveXHR(null);
+        this.model_.setGlobalXHR(null);
         this.host_ = cache.host || '';
         this.data_ = cache.data;
         this.textStatus_ = cache.textStatus;
@@ -87,16 +87,16 @@ module MODULE.MODEL {
         } else {
           that.update_();
         }
-      } else if (activeXHR && activeXHR.follow && 'abort' !== activeXHR.statusText && 'error' !== activeXHR.statusText) {
+      } else if (globalXHR && globalXHR.follow && 'abort' !== globalXHR.statusText && 'error' !== globalXHR.statusText) {
         // preload
-        speedcheck && speed.time.splice(0, 1, activeXHR.timeStamp - speed.fire);
+        speedcheck && speed.time.splice(0, 1, globalXHR.timeStamp - speed.fire);
         speedcheck && speed.name.splice(0, 1, 'preload(' + speed.time.slice(-1) + ')');
         speedcheck && speed.time.push(speed.now() - speed.fire);
         speedcheck && speed.name.push('continue(' + speed.time.slice(-1) + ')');
-        this.host_ = activeXHR.host || '';
-        setting.loadtime = activeXHR.timeStamp;
-        var wait = setting.wait && isFinite(activeXHR.timeStamp) ? Math.max(setting.wait - new Date().getTime() + activeXHR.timeStamp, 0) : 0;
-        jQuery.when(activeXHR, that.wait_(wait))
+        this.host_ = globalXHR.host || '';
+        setting.loadtime = globalXHR.timeStamp;
+        var wait = setting.wait && isFinite(globalXHR.timeStamp) ? Math.max(setting.wait - new Date().getTime() + globalXHR.timeStamp, 0) : 0;
+        jQuery.when(globalXHR, that.wait_(wait))
         .done(done).fail(fail).always(always);
 
       } else {
@@ -184,7 +184,7 @@ module MODULE.MODEL {
           complete: function (jqXHR: JQueryXHR, textStatus: string) {
             UTIL.fire(setting.callbacks.ajax.complete, this, [event, setting.param, jqXHR, textStatus]);
 
-            that.model_.setActiveXHR(null);
+            that.model_.setGlobalXHR(null);
             if (!that.errorThrown_) {
               if (!that.model_.isDeferrable) {
                 that.textStatus_ = textStatus;
@@ -205,11 +205,11 @@ module MODULE.MODEL {
         speedcheck && speed.time.push(speed.now() - speed.fire);
         speedcheck && speed.name.push('request(' + speed.time.slice(-1) + ')');
 
-        activeXHR = this.model_.setActiveXHR(jQuery.ajax(ajax));
-        jQuery(document).trigger(jQuery.Event(setting.gns + '.request', activeXHR));
+        globalXHR = this.model_.setGlobalXHR(jQuery.ajax(ajax));
+        jQuery(document).trigger(jQuery.Event(setting.gns + '.request', globalXHR));
         
         if (this.model_.isDeferrable) {
-          jQuery.when(activeXHR, that.wait_(UTIL.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href])))
+          jQuery.when(globalXHR, that.wait_(UTIL.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href])))
           .done(done).fail(fail).always(always);
         }
       }
@@ -236,23 +236,21 @@ module MODULE.MODEL {
         speedcheck && speed.time.push(speed.now() - speed.fire);
         speedcheck && speed.name.push('load(' + speed.time.slice(-1) + ')');
 
-        this.model_.setActiveSetting(setting);
-
         if (UTIL.fire(callbacks_update.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_, this.cache_]) === false) { break UPDATE; }
-
+        
         if (setting.cache.mix && 'popstate' !== event.type.toLowerCase() && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
           return this.model_.fallback(event, setting);
         }
-
+        
         /* variable initialization */
-
+        
         try {
           APP.landing = null;
           if (!~(jqXHR.getResponseHeader('Content-Type') || '').toLowerCase().search(setting.contentType)) { throw new Error("throw: content-type mismatch"); }
           
           /* variable define */
           DEFINE: {
-            this.srcDocument_ = APP.createHTMLDocument(jqXHR.responseText);
+            this.srcDocument_ = APP.createHTMLDocument(jqXHR.responseText, setting.destLocation.href);
             this.dstDocument_ = document;
             
             var srcDocument: Document = this.srcDocument_,
@@ -286,10 +284,11 @@ module MODULE.MODEL {
           /* url */
           this.updateUrl_();
 
-          setting.origLocation.href = setting.destLocation.href;
-          
           /* verify */
           this.updateVerify_();
+          
+          /* setting */
+          this.model_.setGlobalSetting(jQuery.extend(true, {}, setting, { origLocation: setting.destLocation.cloneNode() }));
           
           /* title */
           this.updateTitle_();
@@ -347,7 +346,6 @@ module MODULE.MODEL {
       UTIL.fire(setting.rewrite, null, [this.srcDocument_, setting.area, this.host_])
 
       if (UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) { return; }
-
     }
 
     updateCache_(): void {
@@ -369,7 +367,7 @@ module MODULE.MODEL {
       this.cache_ = cache;
 
       if (cache && cache.data) {
-        var cacheDocument: Document = this.app_.createHTMLDocument(cache.data),
+        var cacheDocument: Document = this.app_.createHTMLDocument(cache.data, setting.destLocation.href),
             srcDocument: Document = this.srcDocument_;
 
         srcDocument.title = cacheDocument.title;
@@ -385,8 +383,6 @@ module MODULE.MODEL {
       }
 
       if (UTIL.fire(callbacks_update.cache.after, null, [event, setting.param, cache]) === false) { return; }
-
-      return;
     }
 
     updateRedirect_(): void {
@@ -896,6 +892,8 @@ module MODULE.MODEL {
       });
       this.app_.data.saveServerToDB(host, 0, setting.destLocation.href, this.app_.calExpires(this.jqXHR_));
       this.app_.chooseRequestServer(setting);
+
+      this.app_.data.loadBufferAll(setting.buffer.limit);
 
       if (UTIL.fire(callbacks_update.balance.after, null, [event, setting.param]) === false) { return; }
     }
