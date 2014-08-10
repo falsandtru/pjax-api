@@ -371,13 +371,17 @@ module MODULE.MODEL {
             srcDocument: Document = this.srcDocument_;
 
         srcDocument.title = cacheDocument.title;
-        var i: number = -1, $srcAreas: JQuery, $dstAreas: JQuery;
-        while (setting.areas[++i]) {
+
+        var $srcAreas: JQuery,
+            $dstAreas: JQuery;
+        for (var i = 0; setting.areas[i]; i++) {
           $srcAreas = jQuery(setting.areas[i], cacheDocument).clone();
           $dstAreas = jQuery(setting.areas[i], srcDocument);
-          var j: number = -1;
-          while ($srcAreas[++j]) {
-            $dstAreas.eq(j).replaceWith($srcAreas.eq(j));
+          if (!$srcAreas.length || !$dstAreas.length || $srcAreas.length !== $dstAreas.length) { throw new Error('throw: area mismatch'); }
+
+          for (var j = 0; $srcAreas[j]; j++) {
+            $dstAreas[j].parentNode.insertBefore($srcAreas[j], $dstAreas[j].nextSibling);
+            $dstAreas[j].parentNode.removeChild($dstAreas[j]);
           }
         }
       }
@@ -487,8 +491,7 @@ module MODULE.MODEL {
       srcElements = jQuery('head', srcDocument).find(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script');
       dstElements = jQuery('head', dstDocument).find(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script');
 
-      for (var i = 0, element, selector; element = srcElements[i]; i++) {
-        element = dstDocument.importNode ? dstDocument.importNode(element, true) : jQuery(element.outerHTML);
+      for (var i = 0, element: HTMLElement, selector: string; element = srcElements[i]; i++) {
         switch (element.tagName.toLowerCase()) {
           case 'base':
             selector = '*';
@@ -497,18 +500,18 @@ module MODULE.MODEL {
             selector = '[rel="' + element.getAttribute('rel') + '"]';
             switch ((element.getAttribute('rel') || '').toLowerCase()) {
               case 'alternate':
-                selector += 'string' === typeof element.getAttribute('type') ? '[type="' + element.getAttribute('type') + '"]' : ':not([type])';
+                selector += element.hasAttribute('type') ? '[type="' + element.getAttribute('type') + '"]' : ':not([type])';
                 break;
             }
             break;
           case 'meta':
-            if (element.getAttribute('charset')) {
+            if (element.hasAttribute('charset')) {
               selector = '[charset]';
-            } else if (element.getAttribute('http-equiv')) {
+            } else if (element.hasAttribute('http-equiv')) {
               selector = '[http-equiv="' + element.getAttribute('http-equiv') + '"]';
-            } else if (element.getAttribute('name')) {
+            } else if (element.hasAttribute('name')) {
               selector = '[name="' + element.getAttribute('name') + '"]';
-            } else if (element.getAttribute('property')) {
+            } else if (element.hasAttribute('property')) {
               selector = '[property="' + element.getAttribute('property') + '"]';
             } else {
               continue;
@@ -527,7 +530,7 @@ module MODULE.MODEL {
             break;
           }
         }
-        element && adds.push(element);
+        element && adds.push(element.cloneNode(true));
       }
       title.before(adds);
       dstElements.remove();
@@ -542,32 +545,11 @@ module MODULE.MODEL {
           dstDocument: Document = this.dstDocument_;
       var callbacks_update = setting.callbacks.update;
 
-      var checker: JQuery = jQuery(),
-          marker: JQuery = jQuery(),
-          scripts: JQuery = jQuery(),
+      var checker: JQuery,
           loadwaits: JQueryDeferred<void>[] = [];
 
       if (UTIL.fire(callbacks_update.content.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return loadwaits; }
 
-      function mark() {
-        if (!this) { return; }
-        scripts = scripts.add(this);
-        return marker.clone();
-      }
-      function unmark() {
-        if (!scripts.length) { return; }
-        var script = <HTMLScriptElement>scripts.first()[0];
-        scripts = scripts.not(script);
-        var type: string = jQuery(script).is('[type]') ? script.type : undefined;
-        script.type = setting.gns + '/noexec';
-        this.parentNode.insertBefore(script, this.nextSibling);
-        this.parentNode.removeChild(this);
-        if ('string' === typeof type) {
-          script.type = type;
-        } else {
-          script.removeAttribute('type');
-        }
-      }
       function map() {
         var defer = jQuery.Deferred();
         jQuery(this).one('load error', defer.resolve);
@@ -579,24 +561,27 @@ module MODULE.MODEL {
         'class': setting.nss.class4html + '-check',
         'style': 'background: none !important; display: block !important; visibility: hidden !important; position: absolute !important; top: 0 !important; left: 0 !important; z-index: -9999 !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; font-size: 12px !important; text-indent: 0 !important;'
       }).text(setting.gns);
-      marker = checker.clone().removeAttr('class').addClass(setting.nss.class4html + '-mark');
-      var i: number = -1, $srcAreas: JQuery, $dstAreas: JQuery;
-      while (setting.areas[++i]) {
+
+      var $srcAreas: JQuery,
+          $dstAreas: JQuery;
+      for (var i = 0; setting.areas[i]; i++) {
         $srcAreas = jQuery(setting.areas[i], srcDocument).clone();
         $dstAreas = jQuery(setting.areas[i], dstDocument);
         if (!$srcAreas.length || !$dstAreas.length || $srcAreas.length !== $dstAreas.length) { throw new Error('throw: area mismatch'); }
 
-        scripts = jQuery();
-        $srcAreas.find('script').replaceWith(mark);
+        $srcAreas.find('script').each((i, elem) => this.escapeScript_(<HTMLScriptElement>elem));
         if (jQuery.when) {
           loadwaits.concat($srcAreas.find('img, iframe, frame').map(map).get());
         }
 
-        var j: number = -1;
-        while ($srcAreas[++j]) {
-          $dstAreas.eq(j).replaceWith($srcAreas.eq(j).append(checker.clone()));
+        for (var j = 0; $srcAreas[j]; j++) {
+          $dstAreas[j].parentNode.insertBefore($srcAreas[j], $dstAreas[j].nextSibling);
+          $dstAreas[j].parentNode.removeChild($dstAreas[j]);
         }
-        jQuery(setting.areas[i], dstDocument).find('.' + setting.nss.class4html + '-mark').each(unmark);
+
+        $dstAreas = jQuery(setting.areas[i], dstDocument);
+        $dstAreas.append(checker[0].outerHTML);
+        $dstAreas.find('script').each((i, elem) => this.restoreScript_(<HTMLScriptElement>elem));
       }
       jQuery(dstDocument).trigger(setting.gns + '.DOMContentLoaded');
 
@@ -722,7 +707,7 @@ module MODULE.MODEL {
       speedcheck && speed.name.push('css(' + speed.time.slice(-1) + ')');
     }
 
-    updateScript_(selector: string): JQueryDeferred<string>[] {
+    updateScript_(selector: string): JQueryDeferred<any[]>[] {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
           srcDocument: Document = this.srcDocument_,
@@ -733,47 +718,49 @@ module MODULE.MODEL {
       
       if (UTIL.fire(callbacks_update.script.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
 
-      var script: JQuery = jQuery('script', srcDocument).not(setting.load.ignore),
+      var script: JQuery = jQuery('script', srcDocument).filter(selector).not(setting.load.ignore),
           execs: HTMLScriptElement[] = [],
-          scriptwaits: JQueryDeferred<string>[] = [],
+          scriptwaits: JQueryDeferred<any[]>[] = [],
           regType: RegExp = /^$|(?:application|text)\/(?:java|ecma)script/i,
           regRemove: RegExp = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
 
       var executed: { [index: string]: boolean; } = this.app_.stock('executed');
       for (var i = 0, element: HTMLScriptElement; element = <HTMLScriptElement>script[i]; i++) {
-        if (!jQuery(element).is(selector)) { continue; }
         if (!element.src && !UTIL.trim(element.innerHTML)) { continue; }
         if (element.src in executed) { continue; }
 
         LOG: {
-          var logParent: JQuery = jQuery(element).parent(setting.load.log);
-          if (!logParent.length || jQuery(element).parents(setting.area).length) { break LOG; }
+          var srcLogParent = jQuery(element).parent(setting.load.log)[0];
+          if (!srcLogParent || jQuery(element).parents(setting.area).length) { break LOG; }
 
-          var type: string = jQuery(element).is('[type]') ? element.type : undefined;
-          element.type = setting.gns + '/noexec';
-          jQuery(logParent[0].id || logParent[0].tagName, dstDocument)[0].appendChild(element);
-          if ('string' === typeof type) {
-            element.type = type;
-          } else {
-            element.removeAttribute('type');
-          }
+          var dstLogParent = jQuery(srcLogParent.id || srcLogParent.tagName, dstDocument)[0],
+              log = <HTMLScriptElement>element.cloneNode(true);
+          this.escapeScript_(log);
+          dstLogParent.appendChild(log);
+          this.restoreScript_(log);
         };
 
         if (this.model_.isDeferrable) {
-          ((defer: JQueryDeferred<string>): void => {
+          ((defer: JQueryDeferred<any[]>, element: HTMLScriptElement): void => {
             if (element.src) {
               if (!setting.load.reload || !jQuery(element).is(setting.load.reload)) { executed[element.src] = true; }
-              if ('string' === typeof element.getAttribute('async')) {
-                return void jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: true, global: false }));
+              if (element.hasAttribute('async')) {
+                jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: true, global: false }))
+                .done(() => this.dispatchScriptEvent_(element, 'load'))
+                .fail(() => this.dispatchScriptEvent_(element, 'error'));
+              } else {
+                jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, dataType: 'text', async: true, global: false }))
+                .done(() => defer.resolve([element, <string>arguments[0]]))
+                .fail(() => defer.resolve([element, new Error()]));
+                scriptwaits.push(defer);
               }
-              jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, dataType: 'text', async: true, global: false }))
-              .always(() => 'string' === typeof arguments[0] && defer.resolve(<string>arguments[0]));
             } else {
-              defer.resolve(<string>'object' === typeof element && (!element.type || regType.test(element.type)) &&
-              (element.text || element.textContent || element.innerHTML || '').replace(regRemove, ''));
+              if ('object' === typeof element && (!element.type || regType.test(element.type))) {
+                defer.resolve([element, (element.text || element.textContent || element.innerHTML || '').replace(regRemove, '')]);
+                scriptwaits.push(defer);
+              }
             }
-            scriptwaits.push(defer);
-          })(jQuery.Deferred());
+          })(jQuery.Deferred(), element);
         } else {
           execs.push(element);
         }
@@ -783,13 +770,27 @@ module MODULE.MODEL {
         if (this.model_.isDeferrable) {
           jQuery.when.apply(jQuery, scriptwaits)
           .always(() => {
-            for (var i = 0, len = arguments.length; i < len; i++) { arguments[i] && eval.call(window, arguments[i]); }
+            for (var i = 0, len = arguments.length; i < len; i++) {
+              var element: HTMLScriptElement = arguments[i][0],
+                  response = arguments[i][1];
+              if ('string' === typeof response) {
+                eval.call(window, response);
+                element.src && this.dispatchScriptEvent_(element, 'load');
+              } else {
+                element.src && this.dispatchScriptEvent_(element, 'error');
+              }
+            }
           });
         } else {
           for (var i = 0, element: HTMLScriptElement; element = <HTMLScriptElement>execs[i]; i++) {
             if (element.src) {
               if (!setting.load.reload || !jQuery(element).is(setting.load.reload)) { executed[element.src] = true; }
-              jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: 'string' === typeof element.getAttribute('async'), global: false }));
+              ((element) => {
+                jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: element.hasAttribute('async'), global: false }, {
+                  success: () => this.dispatchScriptEvent_(element, 'load'),
+                  error: () => this.dispatchScriptEvent_(element, 'error')
+                }));
+              })(element);
             } else {
               'object' === typeof element && (!element.type || regType.test(element.type)) &&
               eval.call(window, (element.text || element.textContent || element.innerHTML || '').replace(regRemove, ''));
@@ -918,6 +919,41 @@ module MODULE.MODEL {
       } else {
         return false;
       }
+    }
+    
+    escapeScript_(script: HTMLScriptElement): void {
+      jQuery.data(script, 'source', script.src);
+      jQuery.data(script, 'code', script.innerHTML);
+      script.removeAttribute('src');
+      script.innerHTML = '';
+    }
+
+    restoreScript_(script: HTMLScriptElement): void {
+      if (undefined === jQuery.data(script, 'code')) { return; }
+
+      var backup = script.innerHTML;
+
+      script.innerHTML = ' ';
+
+      if (jQuery.data(script, 'source')) {
+        script.src = jQuery.data(script, 'source');
+        jQuery.removeData(script, 'source');
+      } else {
+        script.removeAttribute('src');
+      }
+
+      if (jQuery.data(script, 'code')) {
+        script.innerHTML = jQuery.data(script, 'code');
+        jQuery.removeData(script, 'code');
+      } else {
+        script.innerHTML = backup;
+      }
+    }
+
+    dispatchScriptEvent_(script: HTMLScriptElement, eventType: string): void {
+      var evt = document.createEvent("HTMLEvents");
+      evt.initEvent(eventType, false, true);
+      script.dispatchEvent(evt);
     }
 
   }
