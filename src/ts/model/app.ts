@@ -467,7 +467,7 @@ module MODULE.MODEL {
       
       this.createHTMLDocument = (html: string, uri: string) => {
         var backup = window.location.href;
-        window.history.replaceState(window.history.state, document.title, uri);
+        uri && window.history.replaceState(window.history.state, document.title, uri);
 
         var doc: Document;
         switch (mode) {
@@ -495,18 +495,18 @@ module MODULE.MODEL {
           case 'manipulate':
             if (document.implementation && document.implementation.createHTMLDocument) {
               doc = document.implementation.createHTMLDocument('');
-              var root = document.createElement('html');
-              var wrapper = document.createElement('div');
+              var wrapper = <HTMLElement>document.createElement('div');
               wrapper.innerHTML = (html.match(/<html(?: [^>]*)?>/i) || ['<html>']).shift().replace(/html/i, 'div') + '</div>';
               var attrs = wrapper.firstChild.attributes;
               for (var i = 0, attr: Attr; attr = attrs[i]; i++) {
                 doc.documentElement.setAttribute(attr.name, attr.value);
               }
-              root.innerHTML = html.replace(/^.*?<html(?: [^>]*)?>/im, '');
+              var wrapper = <HTMLElement>document.createElement('html');
+              wrapper.innerHTML = html.replace(/^.*?<html(?: [^>]*)?>/im, '');
               doc.documentElement.removeChild(doc.head);
               doc.documentElement.removeChild(doc.body);
-              while (root.childNodes[0]) {
-                doc.documentElement.appendChild(root.childNodes[0]);
+              while (wrapper.childNodes.length) {
+                doc.documentElement.appendChild(wrapper.childNodes[0]);
               }
             }
             break;
@@ -517,7 +517,7 @@ module MODULE.MODEL {
             break;
         }
 
-        window.history.replaceState(window.history.state, document.title, backup);
+        uri && window.history.replaceState(window.history.state, document.title, backup);
         return doc;
       };
 
