@@ -36,7 +36,7 @@ module MODULE.MODEL {
       }
 
       var setting: SettingInterface = this.app_.configure(<SettingInterface>option, window.location.href, window.location.href);
-      this.setActiveSetting(setting);
+      this.setGlobalSetting(setting);
       setting.database && this.app_.data.opendb(setting);
 
       this.app_.stock({
@@ -100,7 +100,7 @@ module MODULE.MODEL {
 
       if (origLocation.protocol !== destLocation.protocol || origLocation.host !== destLocation.host) { return false; }
 
-      setting = setting || this.app_.configure(this.getActiveSetting(), origLocation.href, destLocation.href);
+      setting = setting || this.app_.configure(this.getGlobalSetting(), origLocation.href, destLocation.href);
       if (setting.disable) { return; }
       if (destLocation.hash && origLocation.href.replace(/#.*/, '') === destLocation.href.replace(/#.*/, '')) { return false; }
       if (!this.app_.chooseArea(setting.area, document, document)) { return false; }
@@ -109,19 +109,19 @@ module MODULE.MODEL {
       return true;
     }
 
-    getActiveSetting(): SettingInterface {
-      return this.app_.activeSetting;
+    getGlobalSetting(): SettingInterface {
+      return this.app_.globalSetting;
     }
-    setActiveSetting(setting: SettingInterface): SettingInterface {
-      return this.app_.activeSetting = setting;
+    setGlobalSetting(setting: SettingInterface): SettingInterface {
+      return this.app_.globalSetting = setting;
     }
 
-    getActiveXHR(): JQueryXHR {
-      return this.app_.activeXHR;
+    getGlobalXHR(): JQueryXHR {
+      return this.app_.globalXHR;
     }
-    setActiveXHR(xhr: JQueryXHR): JQueryXHR {
-      this.app_.activeXHR && this.app_.activeXHR.readyState < 4 && this.app_.activeXHR.abort();
-      return this.app_.activeXHR = xhr;
+    setGlobalXHR(xhr: JQueryXHR): JQueryXHR {
+      this.app_.globalXHR && this.app_.globalXHR.readyState < 4 && this.app_.globalXHR.abort();
+      return this.app_.globalXHR = xhr;
     }
 
     CLICK(event: JQueryEventObject): void {
@@ -129,7 +129,7 @@ module MODULE.MODEL {
         event.timeStamp = new Date().getTime();
         var context = <HTMLAnchorElement>event.currentTarget,
             $context: ContextInterface = jQuery(context);
-        var setting: SettingInterface = this.app_.configure(this.getActiveSetting(), window.location.href, context.href);
+        var setting: SettingInterface = this.app_.configure(this.getGlobalSetting(), window.location.href, context.href);
 
         if (State.ready !== this.state() || setting.disable || event.isDefaultPrevented()) { break PROCESS; }
         if (!this.isImmediateLoadable(event, setting)) { break PROCESS; }
@@ -152,7 +152,7 @@ module MODULE.MODEL {
         event.timeStamp = new Date().getTime();
         var context = <HTMLFormElement>event.currentTarget,
             $context: ContextInterface = jQuery(context);
-        var setting: SettingInterface = this.app_.configure(this.getActiveSetting(), window.location.href, context.action);
+        var setting: SettingInterface = this.app_.configure(this.getGlobalSetting(), window.location.href, context.action);
 
         if (State.ready !== this.state() || setting.disable || event.isDefaultPrevented()) { break PROCESS; }
         if (!this.isImmediateLoadable(event, setting)) { break PROCESS; }
@@ -175,7 +175,7 @@ module MODULE.MODEL {
     POPSTATE(event: JQueryEventObject): void {
       PROCESS: {
         event.timeStamp = new Date().getTime();
-        var setting: SettingInterface = this.app_.configure(this.getActiveSetting(), null, window.location.href);
+        var setting: SettingInterface = this.app_.configure(this.getGlobalSetting(), null, window.location.href);
         if (this.app_.landing && this.app_.landing === UTIL.canonicalizeUrl(window.location.href)) { return; }
         if (setting.origLocation.href === setting.destLocation.href) { return; }
 
@@ -199,7 +199,7 @@ module MODULE.MODEL {
     }
 
     SCROLL(event: JQueryEventObject, end: boolean): void {
-      var setting: SettingInterface = this.getActiveSetting();
+      var setting: SettingInterface = this.getGlobalSetting();
       if (State.ready !== this.state() || event.isDefaultPrevented()) { return; }
 
       if (!setting.scroll.delay) {
@@ -232,7 +232,7 @@ module MODULE.MODEL {
     }
 
     getCache(unsafe_url: string): CacheInterface {
-      var setting: SettingInterface = this.getActiveSetting(),
+      var setting: SettingInterface = this.getGlobalSetting(),
           recent: RecentInterface = this.app_.recent;
       if (!setting || !recent) { return null; }
 
@@ -245,7 +245,7 @@ module MODULE.MODEL {
     }
     
     setCache(unsafe_url: string, data: string, textStatus: string, jqXHR: JQueryXHR, host?: string): any {
-      var setting: SettingInterface = this.getActiveSetting(),
+      var setting: SettingInterface = this.getGlobalSetting(),
           recent: RecentInterface = this.app_.recent;
       if (!setting || !recent) { return this; }
       var cache: CacheInterface,
@@ -305,7 +305,7 @@ module MODULE.MODEL {
     }
     
     removeCache(unsafe_url: string): void {
-      var setting: SettingInterface = this.getActiveSetting(),
+      var setting: SettingInterface = this.getGlobalSetting(),
           recent: RecentInterface = this.app_.recent;
       if (!setting || !recent) { return; }
 
@@ -323,7 +323,7 @@ module MODULE.MODEL {
     }
 
     clearCache(): void {
-      var setting: SettingInterface = this.getActiveSetting(),
+      var setting: SettingInterface = this.getGlobalSetting(),
           recent: RecentInterface = this.app_.recent;
       if (!setting || !recent) { return; }
       for (var i = recent.order.length, url; url = recent.order[--i];) {
@@ -334,7 +334,7 @@ module MODULE.MODEL {
     }
 
     cleanCache(): void {
-      var setting: SettingInterface = this.getActiveSetting(),
+      var setting: SettingInterface = this.getGlobalSetting(),
           recent: RecentInterface = this.app_.recent;
       if (!setting || !recent) { return; }
       for (var i = recent.order.length, url; url = recent.order[--i];) {

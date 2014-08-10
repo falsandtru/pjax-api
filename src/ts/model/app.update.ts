@@ -38,7 +38,7 @@ module MODULE.MODEL {
       this.app_.isScrollPosSavable = false;
       setting.fix.reset && /click|submit/.test(event.type.toLowerCase()) && window.scrollTo(jQuery(window).scrollLeft(), 0);
 
-      var activeXHR = this.model_.getActiveXHR();
+      var activeXHR = this.model_.getGlobalXHR();
       event = jQuery.extend(true, {}, event);
       this.setting_ = setting;
       this.cache_ = cache;
@@ -55,7 +55,7 @@ module MODULE.MODEL {
       function always(xhrArgs: any[]) {
         UTIL.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat(xhrArgs));
 
-        that.model_.setActiveXHR(null);
+        that.model_.setGlobalXHR(null);
         var data: string, textStatus: string, jqXHR: JQueryXHR;
         if (!that.errorThrown_) {
           that.data_ = xhrArgs[0];
@@ -76,7 +76,7 @@ module MODULE.MODEL {
         // cache
         speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
         setting.loadtime = 0;
-        this.model_.setActiveXHR(null);
+        this.model_.setGlobalXHR(null);
         this.host_ = cache.host || '';
         this.data_ = cache.data;
         this.textStatus_ = cache.textStatus;
@@ -184,7 +184,7 @@ module MODULE.MODEL {
           complete: function (jqXHR: JQueryXHR, textStatus: string) {
             UTIL.fire(setting.callbacks.ajax.complete, this, [event, setting.param, jqXHR, textStatus]);
 
-            that.model_.setActiveXHR(null);
+            that.model_.setGlobalXHR(null);
             if (!that.errorThrown_) {
               if (!that.model_.isDeferrable) {
                 that.textStatus_ = textStatus;
@@ -205,7 +205,7 @@ module MODULE.MODEL {
         speedcheck && speed.time.push(speed.now() - speed.fire);
         speedcheck && speed.name.push('request(' + speed.time.slice(-1) + ')');
 
-        activeXHR = this.model_.setActiveXHR(jQuery.ajax(ajax));
+        activeXHR = this.model_.setGlobalXHR(jQuery.ajax(ajax));
         jQuery(document).trigger(jQuery.Event(setting.gns + '.request', activeXHR));
         
         if (this.model_.isDeferrable) {
@@ -288,7 +288,7 @@ module MODULE.MODEL {
           this.updateVerify_();
           
           /* setting */
-          this.model_.setActiveSetting(jQuery.extend(true, {}, setting, { origLocation: setting.destLocation.cloneNode() }));
+          this.model_.setGlobalSetting(jQuery.extend(true, {}, setting, { origLocation: setting.destLocation.cloneNode() }));
           
           /* title */
           this.updateTitle_();

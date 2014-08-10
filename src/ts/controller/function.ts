@@ -29,7 +29,7 @@ module MODULE.CONTROLLER {
     click(url: HTMLAnchorElement, attr?: { href?: string; }): any
     click(url: JQuery, attr?: { href?: string; }): any
     click(url?: any, attr?: { href?: string; }): any {
-      var setting: SettingInterface = M.getActiveSetting(),
+      var setting: SettingInterface = M.getGlobalSetting(),
           $anchor: JQuery;
 
       switch (typeof url) {
@@ -58,7 +58,7 @@ module MODULE.CONTROLLER {
     submit(url: HTMLFormElement, attr?: { action?: string; method?: string; }, data?: any): any
     submit(url: JQuery, attr?: { action?: string; method?: string; }, data?: any): any
     submit(url?: any, attr?: { action?: string; method?: string; }, data?: any): any {
-      var setting: SettingInterface = M.getActiveSetting(),
+      var setting: SettingInterface = M.getGlobalSetting(),
           $form: JQuery,
           df: DocumentFragment = document.createDocumentFragment(),
           type: any,
@@ -153,7 +153,7 @@ module MODULE.CONTROLLER {
       $XHR.follow = true;
       $XHR.host = host || '';
       if (isFinite(event.timeStamp)) { $XHR.timeStamp = timeStamp || event.timeStamp; }
-      M.setActiveXHR($XHR);
+      M.setGlobalXHR($XHR);
       jQuery.when($XHR)
       .done(function () {
         !M.getCache(anchor.href) && M.isImmediateLoadable(event) && M.setCache(anchor.href, undefined, undefined, $XHR);

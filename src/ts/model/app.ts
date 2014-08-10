@@ -21,8 +21,8 @@ module MODULE.MODEL {
     landing: string = UTIL.canonicalizeUrl(window.location.href)
     recent: RecentInterface = { order: [], data: {}, size: 0 }
     isScrollPosSavable: boolean = true
-    activeXHR: JQueryXHR
-    activeSetting: SettingInterface
+    globalXHR: JQueryXHR
+    globalSetting: SettingInterface
 
     configure(option: SettingInterface, origURL: string, destURL: string): SettingInterface {
       origURL = UTIL.canonicalizeUrl(origURL || option.origLocation.href);
@@ -196,7 +196,7 @@ module MODULE.MODEL {
     }
 
     enableBalance(host?: string): void {
-      var setting: SettingInterface = this.model_.getActiveSetting();
+      var setting: SettingInterface = this.model_.getGlobalSetting();
 
       if (!setting.balance.client.support.userAgent.test(window.navigator.userAgent) || setting.balance.client.exclude.test(window.navigator.userAgent)) {
         return void this.disableBalance();
@@ -212,7 +212,7 @@ module MODULE.MODEL {
     }
 
     disableBalance(): void {
-      var setting: SettingInterface = this.model_.getActiveSetting();
+      var setting: SettingInterface = this.model_.getGlobalSetting();
 
       this.data.setCookie(setting.balance.client.cookie.balance, '0');
       this.data.setCookie(setting.balance.client.cookie.redirect, '0');
@@ -221,7 +221,7 @@ module MODULE.MODEL {
 
     switchRequestServer(host: string, setting: SettingInterface): void {
       host = host || '';
-      setting = setting || this.model_.getActiveSetting();
+      setting = setting || this.model_.getGlobalSetting();
       this.model_.requestHost = host;
       setting.balance.server.host = host;
       this.data.setCookie(setting.balance.client.cookie.host, host);
