@@ -64,34 +64,47 @@ suite("Load", function () {
 
         assert.equal(document.title, 'pjax demo1', "title");
 
-        defer = self.$.Deferred();
+        var defer = self.$.Deferred();
+        var count = 0;
         window.console.notice = function (text) {
-          window.console.notice = 'area' === text && function (text) {
-            window.console.notice = 'inline' === text && function (text) {
-              'external' === text && setTimeout(defer.resolve, 0);
-            };
-          };
+          switch (text) {
+            case 'area':
+              count++;
+              1 !== count && setTimeout(defer.reject, 0);
+              break;
+            case 'inline':
+              count++;
+              2 !== count && setTimeout(defer.reject, 0);
+              break;
+            case 'external':
+              count++;
+              3 !== count && setTimeout(defer.reject, 0);
+              3 === count && setTimeout(defer.resolve, 0);
+              break;
+            default:
+              setTimeout(defer.reject, 0);
+          }
         };
-        $('#primary a:eq(1)', document).each(function () { url = this.href; }).click();
+        $('#primary a:eq(1)', document).pjax().click();
 
         return defer;
       })
       .pipe(function () {
         assert.equal(document.title, 'pjax demo2', "title");
         assert.equal($('head>script[src$="test.js"]').length, 1, "external");
-        assert.equal($('#primary>script:contains("console.notice")').length, 1, "inline");
+        assert.equal($('#primary>script:contains("console.notice")').length, 1, "area");
         assert.equal($('body>script:contains("console.notice")').length, 1, "inline");
 
-        defer = self.$.Deferred();
+        var defer = self.$.Deferred();
         $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
-        $('#primary a:eq(2)', document).each(function () { url = this.href; }).click();
+        $('#primary a:eq(2)', document).pjax().click();
 
         return defer;
       })
       .pipe(function () {
         assert.equal(document.title, 'pjax demo3', "title");
         assert.equal($('head>script[src$="test.js"]').length, 1, "external");
-        assert.equal($('#primary>script:contains("console.notice")').length, 1, "inline");
+        assert.equal($('#primary>script:contains("console.notice")').length, 1, "area");
         assert.equal($('body>script:contains("console.notice")').length, 2, "inline");
 
         done();
