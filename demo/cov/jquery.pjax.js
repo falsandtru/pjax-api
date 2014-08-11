@@ -3,7 +3,7 @@
  * jquery.pjax.js
  * 
  * @name jquery.pjax.js
- * @version 2.14.0
+ * @version 2.15.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
  * @copyright 2012, falsandtru
@@ -1274,13 +1274,18 @@ var MODULE;
                     var cacheDocument = this.app_.createHTMLDocument(cache.data, setting.destLocation.href), srcDocument = this.srcDocument_;
 
                     srcDocument.title = cacheDocument.title;
-                    var i = -1, $srcAreas, $dstAreas;
-                    while (setting.areas[++i]) {
+
+                    var $srcAreas, $dstAreas;
+                    for (var i = 0; setting.areas[i]; i++) {
                         $srcAreas = jQuery(setting.areas[i], cacheDocument).clone();
                         $dstAreas = jQuery(setting.areas[i], srcDocument);
-                        var j = -1;
-                        while ($srcAreas[++j]) {
-                            $dstAreas.eq(j).replaceWith($srcAreas.eq(j));
+                        if (!$srcAreas.length || !$dstAreas.length || $srcAreas.length !== $dstAreas.length) {
+                            throw new Error('throw: area mismatch');
+                        }
+
+                        for (var j = 0; $srcAreas[j]; j++) {
+                            $dstAreas[j].parentNode.insertBefore($srcAreas[j], $dstAreas[j].nextSibling);
+                            $dstAreas[j].parentNode.removeChild($dstAreas[j]);
                         }
                     }
                 }
@@ -1398,7 +1403,6 @@ var MODULE;
                 dstElements = jQuery('head', dstDocument).find(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script');
 
                 for (var i = 0, element, selector; element = srcElements[i]; i++) {
-                    element = dstDocument.importNode ? dstDocument.importNode(element, true) : jQuery(element.outerHTML);
                     switch (element.tagName.toLowerCase()) {
                         case 'base':
                             selector = '*';
@@ -1407,18 +1411,18 @@ var MODULE;
                             selector = '[rel="' + element.getAttribute('rel') + '"]';
                             switch ((element.getAttribute('rel') || '').toLowerCase()) {
                                 case 'alternate':
-                                    selector += 'string' === typeof element.getAttribute('type') ? '[type="' + element.getAttribute('type') + '"]' : ':not([type])';
+                                    selector += element.hasAttribute('type') ? '[type="' + element.getAttribute('type') + '"]' : ':not([type])';
                                     break;
                             }
                             break;
                         case 'meta':
-                            if (element.getAttribute('charset')) {
+                            if (element.hasAttribute('charset')) {
                                 selector = '[charset]';
-                            } else if (element.getAttribute('http-equiv')) {
+                            } else if (element.hasAttribute('http-equiv')) {
                                 selector = '[http-equiv="' + element.getAttribute('http-equiv') + '"]';
-                            } else if (element.getAttribute('name')) {
+                            } else if (element.hasAttribute('name')) {
                                 selector = '[name="' + element.getAttribute('name') + '"]';
-                            } else if (element.getAttribute('property')) {
+                            } else if (element.hasAttribute('property')) {
                                 selector = '[property="' + element.getAttribute('property') + '"]';
                             } else {
                                 continue;
@@ -1439,7 +1443,7 @@ var MODULE;
                             break;
                         }
                     }
-                    element && adds.push(element);
+                    element && adds.push(element.cloneNode(true));
                 }
                 title.before(adds);
                 dstElements.remove();
@@ -1450,38 +1454,16 @@ var MODULE;
             };
 
             AppUpdate.prototype.updateContent_ = function () {
+                var _this = this;
                 var setting = this.setting_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
                 var callbacks_update = setting.callbacks.update;
 
-                var checker = jQuery(), marker = jQuery(), scripts = jQuery(), loadwaits = [];
+                var checker, loadwaits = [];
 
                 if (MODEL.UTIL.fire(callbacks_update.content.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                     return loadwaits;
                 }
 
-                function mark() {
-                    if (!this) {
-                        return;
-                    }
-                    scripts = scripts.add(this);
-                    return marker.clone();
-                }
-                function unmark() {
-                    if (!scripts.length) {
-                        return;
-                    }
-                    var script = scripts.first()[0];
-                    scripts = scripts.not(script);
-                    var type = jQuery(script).is('[type]') ? script.type : undefined;
-                    script.type = setting.gns + '/noexec';
-                    this.parentNode.insertBefore(script, this.nextSibling);
-                    this.parentNode.removeChild(this);
-                    if ('string' === typeof type) {
-                        script.type = type;
-                    } else {
-                        script.removeAttribute('type');
-                    }
-                }
                 function map() {
                     var defer = jQuery.Deferred();
                     jQuery(this).one('load error', defer.resolve);
@@ -1493,26 +1475,32 @@ var MODULE;
                     'class': setting.nss.class4html + '-check',
                     'style': 'background: none !important; display: block !important; visibility: hidden !important; position: absolute !important; top: 0 !important; left: 0 !important; z-index: -9999 !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; font-size: 12px !important; text-indent: 0 !important;'
                 }).text(setting.gns);
-                marker = checker.clone().removeAttr('class').addClass(setting.nss.class4html + '-mark');
-                var i = -1, $srcAreas, $dstAreas;
-                while (setting.areas[++i]) {
+
+                var $srcAreas, $dstAreas;
+                for (var i = 0; setting.areas[i]; i++) {
                     $srcAreas = jQuery(setting.areas[i], srcDocument).clone();
                     $dstAreas = jQuery(setting.areas[i], dstDocument);
                     if (!$srcAreas.length || !$dstAreas.length || $srcAreas.length !== $dstAreas.length) {
                         throw new Error('throw: area mismatch');
                     }
 
-                    scripts = jQuery();
-                    $srcAreas.find('script').replaceWith(mark);
+                    $srcAreas.find('script').each(function (i, elem) {
+                        return _this.escapeScript_(elem);
+                    });
                     if (jQuery.when) {
                         loadwaits.concat($srcAreas.find('img, iframe, frame').map(map).get());
                     }
 
-                    var j = -1;
-                    while ($srcAreas[++j]) {
-                        $dstAreas.eq(j).replaceWith($srcAreas.eq(j).append(checker.clone()));
+                    for (var j = 0; $srcAreas[j]; j++) {
+                        $dstAreas[j].parentNode.insertBefore($srcAreas[j], $dstAreas[j].nextSibling);
+                        $dstAreas[j].parentNode.removeChild($dstAreas[j]);
                     }
-                    jQuery(setting.areas[i], dstDocument).find('.' + setting.nss.class4html + '-mark').each(unmark);
+
+                    $dstAreas = jQuery(setting.areas[i], dstDocument);
+                    $dstAreas.append(checker[0].outerHTML);
+                    $dstAreas.find('script').each(function (i, elem) {
+                        return _this.restoreScript_(elem);
+                    });
                 }
                 jQuery(dstDocument).trigger(setting.gns + '.DOMContentLoaded');
 
@@ -1664,13 +1652,10 @@ var MODULE;
                     return;
                 }
 
-                var script = jQuery('script', srcDocument).not(setting.load.ignore), execs = [], scriptwaits = [], regType = /^$|(?:application|text)\/(?:java|ecma)script/i, regRemove = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
+                var script = jQuery('script', srcDocument).filter(selector).not(setting.load.ignore), execs = [], scriptwaits = [], regType = /^$|(?:application|text)\/(?:java|ecma)script/i, regRemove = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
 
                 var executed = this.app_.stock('executed');
                 for (var i = 0, element; element = script[i]; i++) {
-                    if (!jQuery(element).is(selector)) {
-                        continue;
-                    }
                     if (!element.src && !MODEL.UTIL.trim(element.innerHTML)) {
                         continue;
                     }
@@ -1680,39 +1665,45 @@ var MODULE;
 
                     LOG:
                      {
-                        var logParent = jQuery(element).parent(setting.load.log);
-                        if (!logParent.length || jQuery(element).parents(setting.area).length) {
+                        var srcLogParent = jQuery(element).parent(setting.load.log)[0];
+                        if (!srcLogParent || jQuery(element).parents(setting.area).length) {
                             break LOG;
                         }
 
-                        var type = jQuery(element).is('[type]') ? element.type : undefined;
-                        element.type = setting.gns + '/noexec';
-                        jQuery(logParent[0].id || logParent[0].tagName, dstDocument)[0].appendChild(element);
-                        if ('string' === typeof type) {
-                            element.type = type;
-                        } else {
-                            element.removeAttribute('type');
-                        }
+                        var dstLogParent = jQuery(srcLogParent.id || srcLogParent.tagName, dstDocument)[0], log = element.cloneNode(true);
+                        this.escapeScript_(log);
+                        dstLogParent.appendChild(log);
+                        this.restoreScript_(log);
                     }
                     ;
 
                     if (this.model_.isDeferrable) {
-                        (function (defer) {
+                        (function (defer, element) {
                             if (element.src) {
                                 if (!setting.load.reload || !jQuery(element).is(setting.load.reload)) {
                                     executed[element.src] = true;
                                 }
-                                if ('string' === typeof element.getAttribute('async')) {
-                                    return void jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: true, global: false }));
+                                if (element.hasAttribute('async')) {
+                                    jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: true, global: false })).done(function () {
+                                        return _this.dispatchScriptEvent_(element, 'load');
+                                    }).fail(function () {
+                                        return _this.dispatchScriptEvent_(element, 'error');
+                                    });
+                                } else {
+                                    jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, dataType: 'text', async: true, global: false })).done(function () {
+                                        return defer.resolve([element, arguments[0]]);
+                                    }).fail(function () {
+                                        return defer.resolve([element, new Error()]);
+                                    });
+                                    scriptwaits.push(defer);
                                 }
-                                jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, dataType: 'text', async: true, global: false })).always(function () {
-                                    return 'string' === typeof arguments[0] && defer.resolve(arguments[0]);
-                                });
                             } else {
-                                defer.resolve('object' === typeof element && (!element.type || regType.test(element.type)) && (element.text || element.textContent || element.innerHTML || '').replace(regRemove, ''));
+                                if ('object' === typeof element && (!element.type || regType.test(element.type))) {
+                                    defer.resolve([element, (element.text || element.textContent || element.innerHTML || '').replace(regRemove, '')]);
+                                    scriptwaits.push(defer);
+                                }
                             }
-                            scriptwaits.push(defer);
-                        })(jQuery.Deferred());
+                        })(jQuery.Deferred(), element);
                     } else {
                         execs.push(element);
                     }
@@ -1722,7 +1713,13 @@ var MODULE;
                     if (this.model_.isDeferrable) {
                         jQuery.when.apply(jQuery, scriptwaits).always(function () {
                             for (var i = 0, len = arguments.length; i < len; i++) {
-                                arguments[i] && eval.call(window, arguments[i]);
+                                var element = arguments[i][0], response = arguments[i][1];
+                                if ('string' === typeof response) {
+                                    eval.call(window, response);
+                                    element.src && _this.dispatchScriptEvent_(element, 'load');
+                                } else {
+                                    element.src && _this.dispatchScriptEvent_(element, 'error');
+                                }
                             }
                         });
                     } else {
@@ -1731,7 +1728,16 @@ var MODULE;
                                 if (!setting.load.reload || !jQuery(element).is(setting.load.reload)) {
                                     executed[element.src] = true;
                                 }
-                                jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: 'string' === typeof element.getAttribute('async'), global: false }));
+                                (function (element) {
+                                    jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: element.hasAttribute('async'), global: false }, {
+                                        success: function () {
+                                            return _this.dispatchScriptEvent_(element, 'load');
+                                        },
+                                        error: function () {
+                                            return _this.dispatchScriptEvent_(element, 'error');
+                                        }
+                                    }));
+                                })(element);
                             } else {
                                 'object' === typeof element && (!element.type || regType.test(element.type)) && eval.call(window, (element.text || element.textContent || element.innerHTML || '').replace(regRemove, ''));
                             }
@@ -1880,6 +1886,43 @@ var MODULE;
                 } else {
                     return false;
                 }
+            };
+
+            AppUpdate.prototype.escapeScript_ = function (script) {
+                jQuery.data(script, 'source', script.src);
+                jQuery.data(script, 'code', script.innerHTML);
+                script.removeAttribute('src');
+                script.innerHTML = '';
+            };
+
+            AppUpdate.prototype.restoreScript_ = function (script) {
+                if (undefined === jQuery.data(script, 'code')) {
+                    return;
+                }
+
+                var backup = script.innerHTML;
+
+                script.innerHTML = ' ';
+
+                if (jQuery.data(script, 'source')) {
+                    script.src = jQuery.data(script, 'source');
+                    jQuery.removeData(script, 'source');
+                } else {
+                    script.removeAttribute('src');
+                }
+
+                if (jQuery.data(script, 'code')) {
+                    script.innerHTML = jQuery.data(script, 'code');
+                    jQuery.removeData(script, 'code');
+                } else {
+                    script.innerHTML = backup;
+                }
+            };
+
+            AppUpdate.prototype.dispatchScriptEvent_ = function (script, eventType) {
+                var evt = document.createEvent("HTMLEvents");
+                evt.initEvent(eventType, false, true);
+                script.dispatchEvent(evt);
             };
             return AppUpdate;
         })();
@@ -3036,16 +3079,38 @@ var MODULE;
                 var _this = this;
                 var mode;
 
-                var test = function () {
-                    try  {
-                        var html = '<html lang="en" class="html"><head><link href="/"><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript><a href="/"></a></body></html>', doc = _this.createHTMLDocument(html, '');
-                        return doc && jQuery('html', doc).is('.html[lang=en]') && jQuery('head>link', doc)[0].href && jQuery('head>noscript', doc).html() && jQuery('body>noscript', doc).text() === 'noscript' && jQuery('body>a', doc)[0].href && true || false;
-                    } catch (err) {
-                        return false;
-                    }
-                };
-
                 this.createHTMLDocument = function (html, uri) {
+                    function test_(conv) {
+                        var args = [];
+                        for (var _i = 0; _i < (arguments.length - 1); _i++) {
+                            args[_i] = arguments[_i + 1];
+                        }
+                        try  {
+                            var html = '<html lang="en" class="html"><head><link href="/"><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript><a href="/"></a></body></html>', doc = conv(html, '');
+                            return doc && jQuery('html', doc).is('.html[lang=en]') && jQuery('head>link', doc)[0].href && jQuery('head>noscript', doc).html() && jQuery('body>noscript', doc).text() === 'noscript' && jQuery('body>a', doc)[0].href && true || false;
+                        } catch (err) {
+                            return false;
+                        }
+                    }
+                    ;
+                    function manipulate(doc, html) {
+                        var wrapper = document.createElement('div');
+                        wrapper.innerHTML = (html.match(/<html(?:\s.*?[^\\])?>/i) || ['<html>']).shift().replace(/html/i, 'div') + '</div>';
+                        var attrs = wrapper.firstChild.attributes;
+                        for (var i = 0, attr; attr = attrs[i]; i++) {
+                            doc.documentElement.setAttribute(attr.name, attr.value);
+                        }
+                        var wrapper = document.createElement('html');
+                        wrapper.innerHTML = html.replace(/^.*?<html(?:\s.*?[^\\])?>/im, '');
+                        doc.documentElement.removeChild(doc.head);
+                        doc.documentElement.removeChild(doc.body);
+                        while (wrapper.childNodes.length) {
+                            doc.documentElement.appendChild(wrapper.childNodes[0]);
+                        }
+                        return doc;
+                    }
+                    ;
+
                     var backup = window.location.href;
                     uri && window.history.replaceState(window.history.state, document.title, uri);
 
@@ -3062,35 +3127,27 @@ var MODULE;
                                 doc = document.implementation.createHTMLDocument('');
 
                                 // IE, Operaクラッシュ対策
-                                if ('object' === typeof doc.activeElement && doc.activeElement) {
-                                    doc.open();
-                                    doc.write(html);
-                                    doc.close();
+                                if ('object' !== typeof doc.activeElement || !doc.activeElement) {
+                                    break;
                                 }
+
+                                doc.open();
+                                doc.write(html);
+                                doc.close();
                             }
                             break;
 
                         case 'manipulate':
                             if (document.implementation && document.implementation.createHTMLDocument) {
-                                doc = document.implementation.createHTMLDocument('');
-                                var wrapper = document.createElement('div');
-                                wrapper.innerHTML = (html.match(/<html(?: [^>]*)?>/i) || ['<html>']).shift().replace(/html/i, 'div') + '</div>';
-                                var attrs = wrapper.firstChild.attributes;
-                                for (var i = 0, attr; attr = attrs[i]; i++) {
-                                    doc.documentElement.setAttribute(attr.name, attr.value);
-                                }
-                                var wrapper = document.createElement('html');
-                                wrapper.innerHTML = html.replace(/^.*?<html(?: [^>]*)?>/im, '');
-                                doc.documentElement.removeChild(doc.head);
-                                doc.documentElement.removeChild(doc.body);
-                                while (wrapper.childNodes.length) {
-                                    doc.documentElement.appendChild(wrapper.childNodes[0]);
-                                }
+                                doc = manipulate(document.implementation.createHTMLDocument(''), html);
                             }
                             break;
 
                         default:
-                            test(mode = 'dom') || test(mode = 'doc') || test(mode = 'manipulate');
+                            var test = function (mode_) {
+                                return test_(_this.createHTMLDocument, mode = mode_);
+                            };
+                            test('dom') || test('doc') || test('manipulate');
                             doc = _this.createHTMLDocument(html, uri);
                             break;
                     }
