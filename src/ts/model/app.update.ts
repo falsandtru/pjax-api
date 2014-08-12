@@ -510,57 +510,30 @@ module MODULE.MODEL {
 
       if (UTIL.fire(callbacks_update.head.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
 
-      var title: JQuery = jQuery('title'),
-          adds = [],
-          srcElements: JQuery,
-          dstElements: JQuery;
+      var prefilter: string = 'base, meta, link',
+          $srcElements: JQuery = jQuery('head', srcDocument).children(prefilter).filter(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script'),
+          $dstElements: JQuery = jQuery('head', dstDocument).children(prefilter).filter(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script'),
+          $addElements: JQuery = jQuery(),
+          $delElements: JQuery = $dstElements,
+          $title: JQuery = jQuery('title', dstDocument);
 
-      srcElements = jQuery('head', srcDocument).find(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script');
-      dstElements = jQuery('head', dstDocument).find(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script');
-
-      for (var i = 0, element: HTMLElement, selector: string; element = srcElements[i]; i++) {
-        switch (element.tagName.toLowerCase()) {
-          case 'base':
-            selector = '*';
-            break;
-          case 'link':
-            selector = '[rel="' + element.getAttribute('rel') + '"]';
-            switch ((element.getAttribute('rel') || '').toLowerCase()) {
-              case 'alternate':
-                selector += element.hasAttribute('type') ? '[type="' + element.getAttribute('type') + '"]' : ':not([type])';
-                break;
+      for (var i = 0, element: HTMLElement, selector: string; element = $srcElements[i]; i++) {
+        for (var j = 0; $delElements[j]; j++) {
+          if ($delElements[j].tagName === element.tagName && $delElements[j].outerHTML === element.outerHTML) {
+            if ($addElements.length) {
+              element = $dstElements[$dstElements.index($delElements[j]) - 1];
+              element ? jQuery(element).after($addElements.clone()) : $delElements.eq(j).before($addElements.clone());
+              $addElements = jQuery();
             }
-            break;
-          case 'meta':
-            if (element.hasAttribute('charset')) {
-              selector = '[charset]';
-            } else if (element.hasAttribute('http-equiv')) {
-              selector = '[http-equiv="' + element.getAttribute('http-equiv') + '"]';
-            } else if (element.hasAttribute('name')) {
-              selector = '[name="' + element.getAttribute('name') + '"]';
-            } else if (element.hasAttribute('property')) {
-              selector = '[property="' + element.getAttribute('property') + '"]';
-            } else {
-              continue;
-            }
-            break;
-          default:
-            selector = null;
-        }
-        if (!selector) { continue; }
-
-        var targets = dstElements.filter(element.tagName).filter(selector);
-        for (var j = targets.length; j--;) {
-          if (targets[j].outerHTML === element.outerHTML) {
-            dstElements = dstElements.not(targets[j]);
+            $delElements = $delElements.not($delElements[j]);
             element = null;
             break;
           }
         }
-        element && adds.push(element.cloneNode(true));
+        $addElements = $addElements.add(element);
       }
-      title.before(adds);
-      dstElements.remove();
+      $title.before($addElements.clone());
+      $delElements.remove();
 
       if (UTIL.fire(callbacks_update.head.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
@@ -717,37 +690,39 @@ module MODULE.MODEL {
       
       if (UTIL.fire(callbacks_update.css.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
 
-      var css: JQuery = jQuery(selector, srcDocument).not(jQuery(setting.area, srcDocument).find(selector)).not(setting.load.ignore),
-          removes = jQuery(selector, dstDocument).not(jQuery(setting.area, dstDocument).find(selector)).not(setting.load.ignore),
-          adds: HTMLElement[] = [];
+      var prefilter: string = 'link, style',
+          $srcElements: JQuery = jQuery(prefilter, srcDocument).filter(selector).not(setting.load.ignore).not(jQuery('noscript', srcDocument).find(prefilter)),
+          $dstElements: JQuery = jQuery(prefilter, dstDocument).filter(selector).not(setting.load.ignore).not(jQuery('noscript', srcDocument).find(prefilter)),
+          $addElements: JQuery = jQuery(),
+          $delElements: JQuery = $dstElements;
       
-      for (var i = 0, element: HTMLElement; element = css[i]; i++) {
-        for (var j = 0, isSameElement: boolean; removes[j]; j++) {
+      for (var i = 0, element: HTMLElement; element = $srcElements[i]; i++) {
+        for (var j = 0, isSameElement: boolean; $delElements[j]; j++) {
           switch (element.tagName.toLowerCase()) {
             case 'link':
-              isSameElement = (<HTMLLinkElement>element).href === (<HTMLLinkElement>removes[j]).href;
+              isSameElement = (<HTMLLinkElement>element).href === (<HTMLLinkElement>$delElements[j]).href;
               break;
             case 'style':
-              isSameElement = (<HTMLStyleElement>element).innerHTML.trim() === (<HTMLStyleElement>removes[j]).innerHTML.trim();
+              isSameElement = (<HTMLStyleElement>element).innerHTML.trim() === (<HTMLStyleElement>$delElements[j]).innerHTML.trim();
               break;
           }
           if (isSameElement) {
-            if (adds.length) {
-              element = removes.eq(j).prevAll(selector)[0];
-              element ? jQuery(element).after(jQuery(adds).clone()) : removes.eq(j).before(jQuery(adds).clone());
-              adds = [];
+            if ($addElements.length) {
+              element = $dstElements[$dstElements.index($delElements[j]) - 1];
+              element ? jQuery(element).after($addElements.clone()) : $delElements.eq(j).before($addElements.clone());
+              $addElements = jQuery();
             }
-            removes = removes.not(removes[j]);
+            $delElements = $delElements.not($delElements[j]);
             j -= Number(!!j);
             element = null;
             break;
           }
         }
-        element && adds.push(element);
+        $addElements = $addElements.add(element);
       }
-      jQuery('head', dstDocument).append(jQuery(jQuery.grep(adds, function (element) { return srcDocument.head === element.parentElement; })).clone());
-      jQuery('body', dstDocument).append(jQuery(jQuery.grep(adds, function (element) { return srcDocument.head !== element.parentElement; })).clone());
-      removes.remove();
+      jQuery('head', dstDocument).append($addElements.filter(function () { return jQuery.contains(srcDocument.head, this); }).clone());
+      jQuery('body', dstDocument).append($addElements.filter(function () { return jQuery.contains(srcDocument.body, this); }).clone());
+      $delElements.remove();
       
       if (UTIL.fire(callbacks_update.css.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
 
@@ -766,16 +741,17 @@ module MODULE.MODEL {
       if (!setting.load.script) { return; }
       
       if (UTIL.fire(callbacks_update.script.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
-
-      var script: JQuery = jQuery('script', srcDocument).filter(selector).not(setting.load.ignore),
-          execs: HTMLScriptElement[] = [],
+      
+      var prefilter: string = 'script',
+          $scriptElements: JQuery = jQuery(prefilter, srcDocument).filter(selector).not(setting.load.ignore).not(jQuery('noscript', srcDocument).find(prefilter)),
+          $execElements: JQuery = jQuery(),
           scriptwaits: JQueryDeferred<any[]>[] = [],
+          loadedScripts = this.app_.loadedScripts,
           regType: RegExp = /^$|(?:application|text)\/(?:java|ecma)script/i,
           regRemove: RegExp = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
 
-      var executed: { [index: string]: boolean; } = this.app_.stock('executed');
-      for (var i = 0, element: HTMLScriptElement; element = <HTMLScriptElement>script[i]; i++) {
-        if (element.hasAttribute('src') ? element.src in executed : !element.innerHTML.trim()) { continue; }
+      for (var i = 0, element: HTMLScriptElement; element = <HTMLScriptElement>$scriptElements[i]; i++) {
+        if (element.hasAttribute('src') ? element.src in loadedScripts : !element.innerHTML.trim()) { continue; }
 
         LOG: {
           var srcLogParent = jQuery(element).parent(setting.load.log)[0];
@@ -791,7 +767,7 @@ module MODULE.MODEL {
         if (this.model_.isDeferrable) {
           ((defer: JQueryDeferred<any[]>, element: HTMLScriptElement): void => {
             if (element.hasAttribute('src')) {
-              if (!setting.load.reload || !jQuery(element).is(setting.load.reload)) { executed[element.src] = true; }
+              if (!setting.load.reload || !jQuery(element).is(setting.load.reload)) { loadedScripts[element.src] = true; }
               if (element.hasAttribute('async')) {
                 jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: true, global: false }))
                 .done(() => this.dispatchEvent_(element, 'load', false, true))
@@ -810,7 +786,7 @@ module MODULE.MODEL {
             }
           })(jQuery.Deferred(), element);
         } else {
-          execs.push(element);
+          $execElements = $execElements.add(element);
         }
       }
 
@@ -830,9 +806,9 @@ module MODULE.MODEL {
             }
           });
         } else {
-          for (var i = 0, element: HTMLScriptElement; element = <HTMLScriptElement>execs[i]; i++) {
+          for (var i = 0, element: HTMLScriptElement; element = <HTMLScriptElement>$execElements[i]; i++) {
             if (element.hasAttribute('src')) {
-              if (!setting.load.reload || !jQuery(element).is(setting.load.reload)) { executed[element.src] = true; }
+              if (!setting.load.reload || !jQuery(element).is(setting.load.reload)) { loadedScripts[element.src] = true; }
               ((element) => {
                 jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: element.hasAttribute('async'), global: false }, {
                   success: () => this.dispatchEvent_(element, 'load', false, true),

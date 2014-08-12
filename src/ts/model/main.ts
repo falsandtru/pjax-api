@@ -40,7 +40,6 @@ module MODULE.MODEL {
       setting.database && this.app_.data.opendb(setting);
 
       this.app_.stock({
-        executed: {},
         speed: {
           fire: 0,
           time: [],
