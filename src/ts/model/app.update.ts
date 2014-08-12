@@ -206,7 +206,7 @@ module MODULE.MODEL {
         speedcheck && speed.name.push('request(' + speed.time.slice(-1) + ')');
 
         globalXHR = this.model_.setGlobalXHR(jQuery.ajax(ajax));
-        jQuery(document).trigger(jQuery.Event(setting.gns + '.request', globalXHR));
+        jQuery(document).trigger(setting.gns + '.request');
         
         if (this.model_.isDeferrable) {
           jQuery.when(globalXHR, that.wait_(UTIL.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href])))
@@ -744,8 +744,8 @@ module MODULE.MODEL {
               if (!setting.load.reload || !jQuery(element).is(setting.load.reload)) { executed[element.src] = true; }
               if (element.hasAttribute('async')) {
                 jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: true, global: false }))
-                .done(() => this.dispatchScriptEvent_(element, 'load'))
-                .fail(() => this.dispatchScriptEvent_(element, 'error'));
+                .done(() => this.dispatchEvent_(element, 'load', false, true))
+                .fail(() => this.dispatchEvent_(element, 'error', false, true));
               } else {
                 jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, dataType: 'text', async: true, global: false }))
                 .done(() => defer.resolve([element, <string>arguments[0]]))
@@ -773,9 +773,9 @@ module MODULE.MODEL {
                   response = arguments[i][1];
               if ('string' === typeof response) {
                 eval.call(window, response);
-                element.src && this.dispatchScriptEvent_(element, 'load');
+                element.src && this.dispatchEvent_(element, 'load', false, true);
               } else {
-                element.src && this.dispatchScriptEvent_(element, 'error');
+                element.src && this.dispatchEvent_(element, 'error', false, true);
               }
             }
           });
@@ -785,8 +785,8 @@ module MODULE.MODEL {
               if (!setting.load.reload || !jQuery(element).is(setting.load.reload)) { executed[element.src] = true; }
               ((element) => {
                 jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: element.hasAttribute('async'), global: false }, {
-                  success: () => this.dispatchScriptEvent_(element, 'load'),
-                  error: () => this.dispatchScriptEvent_(element, 'error')
+                  success: () => this.dispatchEvent_(element, 'load', false, true),
+                  error: () => this.dispatchEvent_(element, 'error', false, true)
                 }));
               })(element);
             } else {
@@ -947,11 +947,13 @@ module MODULE.MODEL {
         script.innerHTML = backup;
       }
     }
-
-    dispatchScriptEvent_(script: HTMLScriptElement, eventType: string): void {
-      var evt = document.createEvent("HTMLEvents");
-      evt.initEvent(eventType, false, true);
-      script.dispatchEvent(evt);
+    
+    dispatchEvent_(target: Window, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent_(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent_(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent_(target: any, eventType: string, bubbling: boolean, cancelable: boolean): void {
+      var event = document.createEvent('HTMLEvents').initEvent(eventType, bubbling, cancelable);
+      target.dispatchEvent(event);
     }
 
   }
