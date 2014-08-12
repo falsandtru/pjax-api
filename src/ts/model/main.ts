@@ -144,6 +144,7 @@ module MODULE.MODEL {
         event.preventDefault();
         return;
       };
+      // clickメソッド用
       !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length && this.fallback(event, setting);
     }
 
@@ -169,6 +170,7 @@ module MODULE.MODEL {
         event.preventDefault();
         return;
       };
+      // submitメソッド用
       !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length && this.fallback(event, setting);
     }
 
@@ -195,7 +197,6 @@ module MODULE.MODEL {
         new this.app_.Update(this, this.app_, setting, event, false, cache);
         return;
       };
-      (!event.originalEvent || setting.gns === event.namespace) && this.fallback(event, setting);
     }
 
     SCROLL(event: JQueryEventObject, end: boolean): void {

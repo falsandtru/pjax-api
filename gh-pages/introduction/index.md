@@ -14,7 +14,7 @@ pjaxはリクエストと描画を最小限に抑えた高速かつシームレ�
 
 プリロードによる高速化とクライアントサイドロードバランサ(CsLB)によるネットワーク負荷分散を利用できます。
 
-```javascript
+<pre class="sh brush: js;">
 // Major feature activation
 $.pjax({
   area: [
@@ -32,7 +32,10 @@ $.pjax({
     get: true, post: false
   },
   rewrite: function(document, area) {
-    $(area, document).addClass('area');
+    $(area, document).find('img').each(function(){
+      this.setAttribute('data-original', this.getAttribute('src'));
+      this.setAttribute('src', '/img/gray.gif');
+    })//.lazyload();
   },
   scope: {
     search: ['/search/'],
@@ -45,7 +48,7 @@ $.pjax({
 $(document).bind('pjax.ready', function() {
   console.log('ready');
 });
-```
+</pre>
 
 ## 特徴
 
@@ -108,34 +111,36 @@ ajax通信が強制終了されたページのタイトルが直近の正常に�
 
 この問題は3000pxスクロールしているページから1000pxの高さのページに移動して前のページに戻ると1000px付近までしかスクロールされないといった形で確認できます。当プラグインではこの問題をブラウザに内蔵されているデータベースを利用することで概ね解決しています。
 
-## defunkt版との比較
+## Turbolinks・defunkt版との比較
 このpjaxプラグインは独自に開発されており、本家defunkt版の派生ではないため仕様が異なります。
 
-defunkt版は一部のページに存在するコンポーネントの操作が主眼となる実装であるのに対し、当プラグインのpjaxはサイト全体で通常のページ遷移と置き換えての高速化が主目的となっています(コンポーネントへのみの限定的な使用もできます)。なお、高速化はプリロードとの併用が前提です。
+defunkt版は一部のページに存在するコンポーネントの操作が主眼となる実装であるのに対し、当プラグインのpjaxはサイト全体で通常のページ遷移と置き換えての高速化が主目的となっており、RailsのTurbolinksの高機能版に近いものです(コンポーネントへのみの限定的な使用もできます)。なお、高速化はプリロードとの併用が前提です。
 
 defunkt版（v1.7.0/2013年6月時点最新版）との主な違いは次のとおりです。
 
-|項目|defunkt版|falsandtru版|
-|:---|:-------:|:----------:|
-|jQueryバージョン対応|1.8.x|1.4.2|
-|プリロードとの併用|×|○|
-|Android・iOSへの対応<br><small>- locationオブジェクトの更新</small>|**×**|○|
-|Android・iOSへの対応<br><small>- スクロール位置の操作</small>|×|○|
-|間違った履歴の修復|**×**|○|
-|スクロール位置の復元|**×**|○|
-|ページ移動方法の自動切替<br><small>- HTML以外のコンテントタイプの除外</small>|×|○|
-|JavaScriptの実行順序維持|×|○|
-|インラインJavaScriptの実行|×|○|
-|CSSの同期|×|○|
-|RSS等HEAD要素の同期|×|○|
-|キャッシュ制御|×|○|
-|キャッシュ無効|×|○|
-|キャッシュ作成タイミング|ページ離脱時|ページ取得時＋任意|
-|適用URL範囲の設定|×|○|
-|適用URL範囲別の設定|×|○|
-|複数範囲の更新|×|○|
-|更新範囲の候補設定|×|○|
-|ユーザー定義関数の実行形式|イベント|コールバック＋イベント|
-|ユーザー定義関数の設定箇所|9|43+6|
-|部分更新キャンセル|×|○|
-|比較デモ|<a href="demo/defunkt/" target="_blank">defunkt</a>|<a href="demo/falsandtru/" target="_blank">falsandtru</a>|
+|項目|defunkt版|falsandtru版|Turbolinks|
+|:---|:-------:|:----------:|:----------:|
+|jQueryバージョン対応|1.8.x|1.4.2|-|
+|プリロードの利用|×|○|×|
+|ロードバランス機能|×|○|×|
+|Android・iOSへの対応<br><small>- locationオブジェクトの更新</small>|**×**|○|?|
+|Android・iOSへの対応<br><small>- スクロール位置の操作</small>|×|○|○|
+|間違った履歴の修復|**×**|○|**×**|
+|スクロール位置の復元|**×**|○|**×**|
+|ページ移動方法の自動切替<br><small>- HTML以外のコンテントタイプの除外</small>|×|○|○|
+|外部JavaScriptの実行|○|○|×|
+|インラインJavaScriptの実行|×|○|○|
+|JavaScriptの実行順序維持|×|○|○|
+|CSSの同期|×|○|×|
+|RSS等HEAD要素の同期|×|○|×|
+|キャッシュ制御|×|○|×|
+|キャッシュ無効|×|○|○|
+|キャッシュ作成タイミング|ページ離脱時|ページ取得時＋任意|ページ取得時|
+|適用URL範囲の設定|×|○|×|
+|適用URL範囲別の設定|×|○|×|
+|複数範囲の更新|×|○|×|
+|更新範囲の候補設定|×|○|×|
+|ユーザー定義関数の実行形式|イベント|コールバック＋イベント|イベント|
+|ユーザー定義関数の設定箇所|9|43+6|7|
+|部分更新キャンセル|×|○|×|
+|比較デモ|<a href="demo/defunkt/" target="_blank">defunkt</a>|<a href="demo/falsandtru/" target="_blank">falsandtru</a>|-|

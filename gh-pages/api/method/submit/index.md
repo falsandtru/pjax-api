@@ -21,7 +21,7 @@ class: style-api style-api-detail
 ## submit( Url: string, Attribute: object, Data: object ): this
 渡されたデータを元に生成したフォームを使用します。第二引数のプロパティがフォームの属性となります。第三引数のプロパティが送信データの名前と値の組になります。送信データはすべてTEXTAREA要素を使用して設定されます。
 
-## submit( Url: string, Attribute: object, Data: array ): this
+## submit( Url: string, Attribute: object, Data: json/array ): this
 渡されたデータを元に生成したフォームを使用します。第二引数のプロパティがフォームの属性となります。第三引数はフォームの構成要素の仕様をJSONまたは配列で渡します。
 
 ### JSON
