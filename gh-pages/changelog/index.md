@@ -7,6 +7,10 @@ nav: nav
 
 # ChangeLog
 
+## 2.17.0
+
+* Rewrite処理の実行タイミングを修正
+
 ## 2.16.1
 
 * JavaScriptの実行に失敗するバグを修正

@@ -267,15 +267,15 @@ module MODULE.MODEL {
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
           
-          /* rewrite */
-          this.updateRewrite_();
-          
           /* cache */
           this.updateCache_();
           
           /* escape */
           jQuery('noscript', srcDocument).children().parent().each(function () { this.children.length && jQuery(this).text(this.innerHTML); });
 
+          /* rewrite */
+          this.updateRewrite_();
+          
           /* redirect */
           this.updateRedirect_();
 
@@ -334,20 +334,6 @@ module MODULE.MODEL {
       }; // label: UPDATE
     }
 
-    updateRewrite_(): void {
-      var setting: SettingInterface = this.setting_,
-          event: JQueryEventObject = this.event_;
-      var callbacks_update = setting.callbacks.update;
-
-      if (!setting.rewrite) { return; }
-
-      if (UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) { return; }
-
-      UTIL.fire(setting.rewrite, null, [this.srcDocument_, setting.area, this.host_])
-
-      if (UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) { return; }
-    }
-
     updateCache_(): void {
       var setting: SettingInterface = this.setting_,
           cache: CacheInterface = this.cache_,
@@ -386,6 +372,20 @@ module MODULE.MODEL {
       }
 
       if (UTIL.fire(callbacks_update.cache.after, null, [event, setting.param, cache]) === false) { return; }
+    }
+    
+    updateRewrite_(): void {
+      var setting: SettingInterface = this.setting_,
+          event: JQueryEventObject = this.event_;
+      var callbacks_update = setting.callbacks.update;
+
+      if (!setting.rewrite) { return; }
+
+      if (UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) { return; }
+
+      UTIL.fire(setting.rewrite, null, [this.srcDocument_, setting.area, this.host_])
+
+      if (UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) { return; }
     }
 
     updateRedirect_(): void {
@@ -462,6 +462,28 @@ module MODULE.MODEL {
       }
 
       if (UTIL.fire(callbacks_update.url.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
+    }
+    
+    updateVerify_(): void {
+      var setting: SettingInterface = this.setting_,
+          event: JQueryEventObject = this.event_;
+      var callbacks_update = setting.callbacks.update;
+
+      if (UTIL.fire(callbacks_update.verify.before, null, [event, setting.param]) === false) { return; }
+
+      // モバイルブラウザでアドレスバーのURLのパーセントエンコーディングの大文字小文字がアンカーと一致しないため揃える必要がある
+      if (setting.destLocation.href === UTIL.canonicalizeUrl(window.location.href).replace(/(?:%\w{2})+/g, function (str) { return String(setting.destLocation.href.match(str.toLowerCase()) || str); })) {
+        setting.retriable = true;
+      } else if (setting.retriable) {
+        setting.retriable = false;
+        setting.destLocation.href = UTIL.canonicalizeUrl(window.location.href);
+        new this.app_.Update(this.model_, this.app_, setting, event, false, setting.cache[event.type.toLowerCase()] && this.model_.getCache(setting.destLocation.href));
+        throw false;
+      } else {
+        throw new Error('throw: location mismatch');
+      }
+
+      if (UTIL.fire(callbacks_update.verify.after, null, [event, setting.param]) === false) { return; }
     }
 
     updateTitle_(): void {
@@ -592,6 +614,29 @@ module MODULE.MODEL {
       if (UTIL.fire(callbacks_update.content.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return loadwaits; }
 
       return loadwaits;
+    }
+    
+    updateBalance_(): void {
+      var setting: SettingInterface = this.setting_,
+          event: JQueryEventObject = this.event_;
+      var callbacks_update = setting.callbacks.update;
+
+      if (!setting.balance.self || !setting.loadtime) { return; }
+
+      if (UTIL.fire(callbacks_update.balance.before, null, [event, setting.param]) === false) { return; }
+
+      var host = (this.jqXHR_.getResponseHeader(setting.balance.server.header) || '').split('//').pop();
+      this.app_.data.saveLogToDB({
+        host: host,
+        performance: Math.ceil(setting.loadtime / (this.jqXHR_.responseText.length || 1) * 1e5),
+        date: new Date().getTime()
+      });
+      this.app_.data.saveServerToDB(host, 0, setting.destLocation.href, this.app_.calExpires(this.jqXHR_));
+      this.app_.chooseRequestServer(setting);
+
+      this.app_.data.loadBufferAll(setting.buffer.limit);
+
+      if (UTIL.fire(callbacks_update.balance.after, null, [event, setting.param]) === false) { return; }
     }
 
     updateLoad_(): void {
@@ -855,51 +900,6 @@ module MODULE.MODEL {
       speedcheck && console.log(speed.name);
 
       if (UTIL.fire(callbacks_update.render.after, null, [event, setting.param]) === false) { return; }
-    }
-
-    updateVerify_(): void {
-      var setting: SettingInterface = this.setting_,
-          event: JQueryEventObject = this.event_;
-      var callbacks_update = setting.callbacks.update;
-
-      if (UTIL.fire(callbacks_update.verify.before, null, [event, setting.param]) === false) { return; }
-
-      // モバイルブラウザでアドレスバーのURLのパーセントエンコーディングの大文字小文字がアンカーと一致しないため揃える必要がある
-      if (setting.destLocation.href === UTIL.canonicalizeUrl(window.location.href).replace(/(?:%\w{2})+/g, function (str) { return String(setting.destLocation.href.match(str.toLowerCase()) || str); })) {
-        setting.retriable = true;
-      } else if (setting.retriable) {
-        setting.retriable = false;
-        setting.destLocation.href = UTIL.canonicalizeUrl(window.location.href);
-        new this.app_.Update(this.model_, this.app_, setting, event, false, setting.cache[event.type.toLowerCase()] && this.model_.getCache(setting.destLocation.href));
-        throw false;
-      } else {
-        throw new Error('throw: location mismatch');
-      }
-
-      if (UTIL.fire(callbacks_update.verify.after, null, [event, setting.param]) === false) { return; }
-    }
-
-    updateBalance_(): void {
-      var setting: SettingInterface = this.setting_,
-          event: JQueryEventObject = this.event_;
-      var callbacks_update = setting.callbacks.update;
-
-      if (!setting.balance.self || !setting.loadtime) { return; }
-
-      if (UTIL.fire(callbacks_update.balance.before, null, [event, setting.param]) === false) { return; }
-
-      var host = (this.jqXHR_.getResponseHeader(setting.balance.server.header) || '').split('//').pop();
-      this.app_.data.saveLogToDB({
-        host: host,
-        performance: Math.ceil(setting.loadtime / (this.jqXHR_.responseText.length || 1) * 1e5),
-        date: new Date().getTime()
-      });
-      this.app_.data.saveServerToDB(host, 0, setting.destLocation.href, this.app_.calExpires(this.jqXHR_));
-      this.app_.chooseRequestServer(setting);
-
-      this.app_.data.loadBufferAll(setting.buffer.limit);
-
-      if (UTIL.fire(callbacks_update.balance.after, null, [event, setting.param]) === false) { return; }
     }
 
     wait_(ms: number): JQueryPromise<any> {
