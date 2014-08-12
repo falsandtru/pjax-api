@@ -183,9 +183,9 @@ module MODULE.MODEL {
     registrate($context: ContextInterface, setting: SettingInterface): void {
       var executed: { [index: string]: boolean; } = this.stock('executed');
       setting.load.script && jQuery('script').each(function () {
-        var element: HTMLScriptElement = this;
-        if (!element.hasAttribute('src') || element.src in executed) { return; }
-        if (element.src && (!setting.load.reload || !jQuery(element).is(setting.load.reload))) { executed[element.src] = true; }
+        var script: HTMLScriptElement = this;
+        if (!script.hasAttribute('src') || script.src in executed) { return; }
+        if (script.src && (!setting.load.reload || !jQuery(script).is(setting.load.reload))) { executed[script.src] = true; }
       });
 
       new VIEW.Main(this.model_, this.controller_, $context).BIND(setting);
