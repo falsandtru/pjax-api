@@ -183,8 +183,8 @@ module MODULE.MODEL {
     registrate($context: ContextInterface, setting: SettingInterface): void {
       var executed: { [index: string]: boolean; } = this.stock('executed');
       setting.load.script && jQuery('script').each(function () {
-        var element = this;
-        if (element.src in executed) { return; }
+        var element: HTMLScriptElement = this;
+        if (!element.hasAttribute('src') || element.src in executed) { return; }
         if (element.src && (!setting.load.reload || !jQuery(element).is(setting.load.reload))) { executed[element.src] = true; }
       });
 

@@ -730,8 +730,7 @@ module MODULE.MODEL {
 
       var executed: { [index: string]: boolean; } = this.app_.stock('executed');
       for (var i = 0, element: HTMLScriptElement; element = <HTMLScriptElement>script[i]; i++) {
-        if (!element.src && !UTIL.trim(element.innerHTML)) { continue; }
-        if (element.src in executed) { continue; }
+        if (element.hasAttribute('src') ? element.src in executed : !UTIL.trim(element.innerHTML)) { continue; }
 
         LOG: {
           var srcLogParent = jQuery(element).parent(setting.load.log)[0];
@@ -746,7 +745,7 @@ module MODULE.MODEL {
 
         if (this.model_.isDeferrable) {
           ((defer: JQueryDeferred<any[]>, element: HTMLScriptElement): void => {
-            if (element.src) {
+            if (element.hasAttribute('src')) {
               if (!setting.load.reload || !jQuery(element).is(setting.load.reload)) { executed[element.src] = true; }
               if (element.hasAttribute('async')) {
                 jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: true, global: false }))
@@ -779,15 +778,15 @@ module MODULE.MODEL {
                   response = arguments[i][1];
               if ('string' === typeof response) {
                 eval.call(window, response);
-                element.src && this.dispatchEvent_(element, 'load', false, true);
+                element.hasAttribute('src') && this.dispatchEvent_(element, 'load', false, true);
               } else {
-                element.src && this.dispatchEvent_(element, 'error', false, true);
+                element.hasAttribute('src') && this.dispatchEvent_(element, 'error', false, true);
               }
             }
           });
         } else {
           for (var i = 0, element: HTMLScriptElement; element = <HTMLScriptElement>execs[i]; i++) {
-            if (element.src) {
+            if (element.hasAttribute('src')) {
               if (!setting.load.reload || !jQuery(element).is(setting.load.reload)) { executed[element.src] = true; }
               ((element) => {
                 jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: element.hasAttribute('async'), global: false }, {
@@ -796,7 +795,7 @@ module MODULE.MODEL {
                 }));
               })(element);
             } else {
-              'object' === typeof element && (!element.type || regType.test(element.type)) &&
+              'object' === typeof element && (!element.hasAttribute('type') || regType.test(element.type)) &&
               eval.call(window, (element.text || element.textContent || element.innerHTML || '').replace(regRemove, ''));
             }
           }
