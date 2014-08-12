@@ -270,9 +270,6 @@ module MODULE.MODEL {
           /* cache */
           this.updateCache_();
           
-          /* escape */
-          jQuery('noscript', srcDocument).children().parent().each(function () { this.children.length && jQuery(this).text(this.innerHTML); });
-
           /* rewrite */
           this.updateRewrite_();
           
@@ -307,9 +304,6 @@ module MODULE.MODEL {
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('content(' + speed.time.slice(-1) + ')');
 
-          /* escape */
-          jQuery('noscript', srcDocument).remove();
-          
           /* balance */
           this.updateBalance_();
 
