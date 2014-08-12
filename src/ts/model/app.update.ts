@@ -380,8 +380,7 @@ module MODULE.MODEL {
           if (!$srcAreas.length || !$dstAreas.length || $srcAreas.length !== $dstAreas.length) { throw new Error('throw: area mismatch'); }
 
           for (var j = 0; $srcAreas[j]; j++) {
-            $dstAreas[j].parentNode.insertBefore($srcAreas[j], $dstAreas[j].nextSibling);
-            $dstAreas[j].parentNode.removeChild($dstAreas[j]);
+            $dstAreas[j].parentNode.replaceChild($srcAreas[j], $dstAreas[j]);
           }
         }
       }
@@ -575,8 +574,7 @@ module MODULE.MODEL {
         }
 
         for (var j = 0; $srcAreas[j]; j++) {
-          $dstAreas[j].parentNode.insertBefore($srcAreas[j], $dstAreas[j].nextSibling);
-          $dstAreas[j].parentNode.removeChild($dstAreas[j]);
+          $dstAreas[j].parentNode.replaceChild($srcAreas[j], $dstAreas[j]);
         }
 
         $dstAreas = jQuery(setting.areas[i], dstDocument);
