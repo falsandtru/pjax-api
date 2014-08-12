@@ -3,7 +3,7 @@
  * jquery.pjax.js
  * 
  * @name jquery.pjax.js
- * @version 2.16.0
+ * @version 2.16.1
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
  * @copyright 2012, falsandtru
@@ -1929,7 +1929,8 @@ var MODULE;
             };
 
             AppUpdate.prototype.dispatchEvent_ = function (target, eventType, bubbling, cancelable) {
-                var event = document.createEvent('HTMLEvents').initEvent(eventType, bubbling, cancelable);
+                var event = document.createEvent('HTMLEvents');
+                event.initEvent(eventType, bubbling, cancelable);
                 target.dispatchEvent(event);
             };
             return AppUpdate;

@@ -7,6 +7,11 @@ nav: nav
 
 # ChangeLog
 
+## 2.16.1
+
+* JavaScriptの実行に失敗するバグを修正
+  * Version: 2.16.0
+
 ## 2.16.0
 
 * リダイレクト処理を改善
