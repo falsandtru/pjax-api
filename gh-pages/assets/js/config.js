@@ -138,7 +138,7 @@
       speedcheck: true
     });
 
-    $(document).bind('pjax.ready', accessor.reset);
+    $(document).bind('pjax:ready', accessor.reset);
   };
 
   /* visibilitytrigger

@@ -206,6 +206,7 @@ module MODULE.MODEL {
         speedcheck && speed.name.push('request(' + speed.time.slice(-1) + ')');
 
         globalXHR = this.model_.setGlobalXHR(jQuery.ajax(ajax));
+        this.dispatchEvent_(document, setting.gns + ':request', false, true);
         jQuery(document).trigger(setting.gns + '.request');
         
         if (this.model_.isDeferrable) {
@@ -275,7 +276,8 @@ module MODULE.MODEL {
           
           /* redirect */
           this.updateRedirect_();
-
+          
+          this.dispatchEvent_(window, setting.gns + ':unload', false, true);
           jQuery(window).trigger(setting.gns + '.unload');
           
           /* url */
@@ -576,7 +578,8 @@ module MODULE.MODEL {
         $dstAreas.append(checker[0].outerHTML);
         $dstAreas.find('script').each((i, elem) => this.restoreScript_(<HTMLScriptElement>elem));
       }
-      jQuery(dstDocument).trigger(setting.gns + '.DOMContentLoaded');
+      this.dispatchEvent_(document, setting.gns + ':DOMContentLoaded', false, true);
+      jQuery(document).trigger(setting.gns + '.DOMContentLoaded');
 
       if (UTIL.fire(callbacks_update.content.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return loadwaits; }
 
@@ -612,7 +615,7 @@ module MODULE.MODEL {
 
       this.updateCSS_('link[rel~="stylesheet"], style');
       jQuery(window)
-      .one(setting.gns + '.rendering', (event) => {
+      .one(setting.gns + ':rendering', (event) => {
         event.preventDefault();
         event.stopImmediatePropagation();
 
@@ -620,7 +623,8 @@ module MODULE.MODEL {
 
         var scriptwaits = this.updateScript_(':not([defer]), :not([src])');
         var ready = () => {
-          jQuery(dstDocument).trigger(setting.gns + '.ready');
+          this.dispatchEvent_(document, setting.gns + ':ready', false, true);
+          jQuery(document).trigger(setting.gns + '.ready');
 
           var checker = jQuery(setting.area).children('.' + setting.nss.class4html + '-check'),
               limit = new Date().getTime() + 5 * 1000;
@@ -640,7 +644,7 @@ module MODULE.MODEL {
         };
         this.model_.isDeferrable ? jQuery.when.apply(jQuery, scriptwaits).always(() => ready()) : ready();
       })
-      .trigger(setting.gns + '.rendering');
+      .trigger(setting.gns + ':rendering');
     }
 
     updateScroll_(call: boolean): void {
@@ -854,9 +858,11 @@ module MODULE.MODEL {
         }
       }, 100);
 
+      this.dispatchEvent_(document, setting.gns + ':render', false, true);
       jQuery(document).trigger(setting.gns + '.render');
 
       var onload = () => {
+        this.dispatchEvent_(window, setting.gns + ':load', false, true);
         jQuery(window).trigger(setting.gns + '.load');
         this.updateScript_('[src][defer]');
       }

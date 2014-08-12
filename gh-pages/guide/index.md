@@ -44,7 +44,7 @@ accelerate:
       speedcheck: true
     });
     
-    $(document).bind('pjax.ready', function() {$(document).trigger('preload');});
+    $(document).bind('pjax:ready', function() {$(document).trigger('preload');});
   }
 </pre>
 
@@ -94,10 +94,10 @@ accelerate:
   $.pjax({
     wait: 1000
   });
-  $(document).bind('pjax.request', function () {
+  $(document).bind('pjax:request', function () {
     $('div.loading').fadeIn(100);
   });
-  $(document).bind('pjax.render', function(){
+  $(document).bind('pjax:render', function(){
     $('div.loading').fadeOut(500);
   });
 </pre>
@@ -118,11 +118,11 @@ accelerate:
   $.pjax({
     wait: 100
   });
-  $(document).bind('pjax.request', function () {
+  $(document).bind('pjax:request', function () {
       clearTimeout($.data($('div.loading').get(0), 'pjax-effect-id'));
       $.data($('div.loading').get(0), 'pjax-effect-id', setTimeout(function(){ $('div.loading').fadeIn(100); }, 1000));
   });
-  $(document).bind('pjax.render', function(){
+  $(document).bind('pjax:render', function(){
     clearTimeout($.data($('div.loading').get(0), 'pjax-effect-id'));
     $('div.loading').fadeOut(500);
     $.data($('div.loading').get(0), 'pjax-effect-id', 0);
