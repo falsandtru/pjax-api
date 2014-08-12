@@ -958,7 +958,8 @@ module MODULE.MODEL {
     dispatchEvent_(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
     dispatchEvent_(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
     dispatchEvent_(target: any, eventType: string, bubbling: boolean, cancelable: boolean): void {
-      var event = document.createEvent('HTMLEvents').initEvent(eventType, bubbling, cancelable);
+      var event = document.createEvent('HTMLEvents');
+      event.initEvent(eventType, bubbling, cancelable);
       target.dispatchEvent(event);
     }
 
