@@ -7,6 +7,10 @@ nav: nav
 
 # ChangeLog
 
+## 2.16.0
+
+* リダイレクト処理を改善
+
 ## 2.15.0
 
 * Android, iOSでSCRIPT要素がDOMへ追加する際に実行されるバグを修正

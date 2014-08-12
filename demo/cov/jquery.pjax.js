@@ -3,7 +3,7 @@
  * jquery.pjax.js
  * 
  * @name jquery.pjax.js
- * @version 2.15.0
+ * @version 2.16.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
  * @copyright 2012, falsandtru
@@ -1085,7 +1085,7 @@ var MODULE;
                     speedcheck && speed.name.push('request(' + speed.time.slice(-1) + ')');
 
                     globalXHR = this.model_.setGlobalXHR(jQuery.ajax(ajax));
-                    jQuery(document).trigger(jQuery.Event(setting.gns + '.request', globalXHR));
+                    jQuery(document).trigger(setting.gns + '.request');
 
                     if (this.model_.isDeferrable) {
                         jQuery.when(globalXHR, that.wait_(MODEL.UTIL.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]))).done(done).fail(fail).always(always);
@@ -1284,8 +1284,7 @@ var MODULE;
                         }
 
                         for (var j = 0; $srcAreas[j]; j++) {
-                            $dstAreas[j].parentNode.insertBefore($srcAreas[j], $dstAreas[j].nextSibling);
-                            $dstAreas[j].parentNode.removeChild($dstAreas[j]);
+                            $dstAreas[j].parentNode.replaceChild($srcAreas[j], $dstAreas[j]);
                         }
                     }
                 }
@@ -1296,6 +1295,7 @@ var MODULE;
             };
 
             AppUpdate.prototype.updateRedirect_ = function () {
+                var _this = this;
                 var setting = this.setting_, event = this.event_, register = this.register_;
                 var callbacks_update = setting.callbacks.update;
 
@@ -1314,21 +1314,27 @@ var MODULE;
                     case !setting.redirect:
                     case redirect.protocol !== setting.destLocation.protocol:
                     case redirect.host !== setting.destLocation.host:
-                    case 'submit' === event.type.toLowerCase() && 'GET' === event.currentTarget.method.toUpperCase():
+                    case 'submit' === event.type.toLowerCase() && 'GET' !== event.currentTarget.method.toUpperCase():
                         switch (event.type.toLowerCase()) {
                             case 'click':
                             case 'submit':
-                                return window.location.assign(redirect.href);
+                                window.location.assign(redirect.href);
+                                break;
                             case 'popstate':
-                                return window.location.replace(redirect.href);
+                                window.location.replace(redirect.href);
+                                break;
                         }
+                        throw false;
+
                     default:
                         jQuery[MODULE.NAME].enable();
                         switch (event.type.toLowerCase()) {
                             case 'click':
-                                return void jQuery[MODULE.NAME].click(redirect.href);
                             case 'submit':
-                                return void 'GET' === event.currentTarget.method.toUpperCase() ? jQuery[MODULE.NAME].click(redirect) : window.location.assign(redirect.href);
+                                setTimeout(function () {
+                                    return jQuery[MODULE.NAME].click(redirect.href);
+                                }, 0);
+                                break;
                             case 'popstate':
                                 window.history.replaceState(window.history.state, this.srcDocument_.title, redirect.href);
                                 if (register && setting.fix.location) {
@@ -1337,8 +1343,12 @@ var MODULE;
                                     window.history.forward();
                                     jQuery[MODULE.NAME].enable();
                                 }
-                                return void jQuery(window).trigger('popstate.' + setting.gns);
+                                setTimeout(function () {
+                                    return _this.dispatchEvent_(window, 'popstate', false, false);
+                                }, 0);
+                                break;
                         }
+                        throw false;
                 }
 
                 if (MODEL.UTIL.fire(callbacks_update.redirect.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
@@ -1492,8 +1502,7 @@ var MODULE;
                     }
 
                     for (var j = 0; $srcAreas[j]; j++) {
-                        $dstAreas[j].parentNode.insertBefore($srcAreas[j], $dstAreas[j].nextSibling);
-                        $dstAreas[j].parentNode.removeChild($dstAreas[j]);
+                        $dstAreas[j].parentNode.replaceChild($srcAreas[j], $dstAreas[j]);
                     }
 
                     $dstAreas = jQuery(setting.areas[i], dstDocument);
@@ -1685,9 +1694,9 @@ var MODULE;
                                 }
                                 if (element.hasAttribute('async')) {
                                     jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: true, global: false })).done(function () {
-                                        return _this.dispatchScriptEvent_(element, 'load');
+                                        return _this.dispatchEvent_(element, 'load', false, true);
                                     }).fail(function () {
-                                        return _this.dispatchScriptEvent_(element, 'error');
+                                        return _this.dispatchEvent_(element, 'error', false, true);
                                     });
                                 } else {
                                     jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, dataType: 'text', async: true, global: false })).done(function () {
@@ -1716,9 +1725,9 @@ var MODULE;
                                 var element = arguments[i][0], response = arguments[i][1];
                                 if ('string' === typeof response) {
                                     eval.call(window, response);
-                                    element.src && _this.dispatchScriptEvent_(element, 'load');
+                                    element.src && _this.dispatchEvent_(element, 'load', false, true);
                                 } else {
-                                    element.src && _this.dispatchScriptEvent_(element, 'error');
+                                    element.src && _this.dispatchEvent_(element, 'error', false, true);
                                 }
                             }
                         });
@@ -1731,10 +1740,10 @@ var MODULE;
                                 (function (element) {
                                     jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: element.hasAttribute('async'), global: false }, {
                                         success: function () {
-                                            return _this.dispatchScriptEvent_(element, 'load');
+                                            return _this.dispatchEvent_(element, 'load', false, true);
                                         },
                                         error: function () {
-                                            return _this.dispatchScriptEvent_(element, 'error');
+                                            return _this.dispatchEvent_(element, 'error', false, true);
                                         }
                                     }));
                                 })(element);
@@ -1919,10 +1928,9 @@ var MODULE;
                 }
             };
 
-            AppUpdate.prototype.dispatchScriptEvent_ = function (script, eventType) {
-                var evt = document.createEvent("HTMLEvents");
-                evt.initEvent(eventType, false, true);
-                script.dispatchEvent(evt);
+            AppUpdate.prototype.dispatchEvent_ = function (target, eventType, bubbling, cancelable) {
+                var event = document.createEvent('HTMLEvents').initEvent(eventType, bubbling, cancelable);
+                target.dispatchEvent(event);
             };
             return AppUpdate;
         })();
@@ -3352,6 +3360,8 @@ var MODULE;
                     return;
                 }
                 ;
+
+                // clickメソッド用
                 !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length && this.fallback(event, setting);
             };
 
@@ -3386,6 +3396,8 @@ var MODULE;
                     return;
                 }
                 ;
+
+                // submitメソッド用
                 !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length && this.fallback(event, setting);
             };
 
@@ -3423,7 +3435,6 @@ var MODULE;
                     return;
                 }
                 ;
-                (!event.originalEvent || setting.gns === event.namespace) && this.fallback(event, setting);
             };
 
             Main.prototype.SCROLL = function (event, end) {
