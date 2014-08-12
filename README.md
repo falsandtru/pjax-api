@@ -3,7 +3,7 @@
 
 **[Document](http://falsandtru.github.io/jquery.pjax.js/)**
  | 
-**[Download](https://github.com/falsandtru/jquery.pjax.js/releases)**
+**[js](https://github.com/falsandtru/jquery.pjax.js/releases)**
  | 
 **[d.ts](src/ts/.d/jquery.pjax.d.ts)**
 
@@ -45,7 +45,10 @@ $.pjax({
   },
   // Rewrite source document
   rewrite: function(document, area) {
-    $(area, document).addClass('area');
+    $(area, document).find('img').each(function(){
+      this.setAttribute('data-original', this.getAttribute('src'));
+      this.setAttribute('src', '/img/gray.gif');
+    })//.lazyload();
   },
   // Override setting
   // Enabling control
