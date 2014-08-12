@@ -404,21 +404,25 @@ module MODULE.MODEL {
         case !setting.redirect:
         case redirect.protocol !== setting.destLocation.protocol:
         case redirect.host !== setting.destLocation.host:
-        case 'submit' === event.type.toLowerCase() && 'GET' === (<HTMLFormElement>event.currentTarget).method.toUpperCase():
+        case 'submit' === event.type.toLowerCase() && 'GET' !== (<HTMLFormElement>event.currentTarget).method.toUpperCase():
           switch (event.type.toLowerCase()) {
             case 'click':
             case 'submit':
-              return window.location.assign(redirect.href);
+              window.location.assign(redirect.href);
+              break;
             case 'popstate':
-              return window.location.replace(redirect.href);
+              window.location.replace(redirect.href);
+              break;
           }
+          throw false;
+
         default:
           jQuery[NAME].enable();
           switch (event.type.toLowerCase()) {
             case 'click':
-              return void jQuery[NAME].click(redirect.href);
             case 'submit':
-              return void 'GET' === (<HTMLFormElement>event.currentTarget).method.toUpperCase() ? jQuery[NAME].click(redirect) : window.location.assign(redirect.href);
+              setTimeout(() => jQuery[NAME].click(redirect.href), 0);
+              break;
             case 'popstate':
               window.history.replaceState(window.history.state, this.srcDocument_.title, redirect.href);
               if (register && setting.fix.location) {
@@ -427,8 +431,10 @@ module MODULE.MODEL {
                 window.history.forward();
                 jQuery[NAME].enable();
               }
-              return void jQuery(window).trigger('popstate.' + setting.gns);
+              setTimeout(() => this.dispatchEvent_(window, 'popstate', false, false), 0);
+              break;
           }
+          throw false;
       }
 
       if (UTIL.fire(callbacks_update.redirect.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
