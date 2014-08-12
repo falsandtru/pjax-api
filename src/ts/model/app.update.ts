@@ -683,7 +683,7 @@ module MODULE.MODEL {
               isSameElement = (<HTMLLinkElement>element).href === (<HTMLLinkElement>removes[j]).href;
               break;
             case 'style':
-              isSameElement = UTIL.trim((<HTMLStyleElement>element).innerHTML) === UTIL.trim((<HTMLStyleElement>removes[j]).innerHTML);
+              isSameElement = (<HTMLStyleElement>element).innerHTML.trim() === (<HTMLStyleElement>removes[j]).innerHTML.trim();
               break;
           }
           if (isSameElement) {
@@ -730,7 +730,7 @@ module MODULE.MODEL {
 
       var executed: { [index: string]: boolean; } = this.app_.stock('executed');
       for (var i = 0, element: HTMLScriptElement; element = <HTMLScriptElement>script[i]; i++) {
-        if (element.hasAttribute('src') ? element.src in executed : !UTIL.trim(element.innerHTML)) { continue; }
+        if (element.hasAttribute('src') ? element.src in executed : !element.innerHTML.trim()) { continue; }
 
         LOG: {
           var srcLogParent = jQuery(element).parent(setting.load.log)[0];
