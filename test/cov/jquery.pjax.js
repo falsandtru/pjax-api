@@ -3,7 +3,7 @@
  * jquery.pjax.js
  * 
  * @name jquery.pjax.js
- * @version 2.17.0
+ * @version 2.18.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
  * @copyright 2012, falsandtru
@@ -1157,6 +1157,11 @@ var MODULE;
 
                         /* cache */
                         this.updateCache_();
+
+                        /* escape */
+                        setting.fix.noscript && jQuery('noscript', document).children().parent().each(function () {
+                            jQuery(this).text(this.innerHTML);
+                        });
 
                         /* rewrite */
                         this.updateRewrite_();
@@ -2709,6 +2714,7 @@ var MODULE;
                         location: true,
                         history: true,
                         scroll: true,
+                        noscript: true,
                         reset: false
                     },
                     fallback: true,
