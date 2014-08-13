@@ -1,11 +1,8 @@
-(function () {
-  var spec = this,
-      initialize = true,
-      always = true,
-      finish = false;
+new Function().apply.apply(function (accessor) {
+  var spec = accessor, initialize = true, always = true, finish = false;
 
-  /* init
-     ========================================================================== */
+/* init
+  ========================================================================== */
   $(spec.init);
   spec.init = spec.clientenv;
   spec.init = spec.preload;
@@ -15,11 +12,11 @@
     initialize = false;
   };
 
-  /* component
-     ========================================================================== */
+/* component
+  ========================================================================== */
 
-  /* clientenv
-     -------------------------------------------------------------------------- */
+/* clientenv
+  -------------------------------------------------------------------------- */
   spec.clientenv = function () {
     if (initialize) {
       $.clientenv({ font: { lang: 'ja' } })
@@ -30,8 +27,8 @@
     }
   };
 
-  /* preload
-     -------------------------------------------------------------------------- */
+/* preload
+  -------------------------------------------------------------------------- */
   spec.preload = function () {
     if (/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.navigator.userAgent)) { return; }
     
@@ -73,8 +70,8 @@
     }
   };
 
-  /* pjax
-     -------------------------------------------------------------------------- */
+/* pjax
+  -------------------------------------------------------------------------- */
   spec.pjax = function () {
     if (initialize) {
       $.pjax({
@@ -163,8 +160,8 @@
     }
   };
 
-  /* visibilitytrigger
-     -------------------------------------------------------------------------- */
+/* visibilitytrigger
+  -------------------------------------------------------------------------- */
   spec.visibilitytrigger = function () {
     if (always) {
       $.visibilitytrigger();
@@ -209,12 +206,11 @@
   };
 
   return this;
-}).call(new FuncManager(
-  [
-    'init',
-    'preload',
-    'pjax',
-    'visibilitytrigger',
-    'clientenv'
-  ]
-).accessor);
+},
+FuncManager([
+  'init',
+  'preload',
+  'pjax',
+  'visibilitytrigger',
+  'clientenv'
+]).contextArguments);
