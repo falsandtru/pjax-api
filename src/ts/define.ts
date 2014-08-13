@@ -109,6 +109,7 @@ module MODULE {
 
     landing: string
     recent: RecentInterface
+    loadedScripts: { [index: string]: boolean }
     isScrollPosSavable: boolean
     globalXHR: JQueryXHR
     globalSetting: SettingInterface

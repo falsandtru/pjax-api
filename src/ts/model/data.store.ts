@@ -22,7 +22,7 @@ module MODULE.MODEL {
 
       try {
         var database: IDBDatabase = this.DB_.database(),
-            store: IDBObjectStore = database.transaction(this.name, mode).objectStore(this.name);
+            store: IDBObjectStore = database && database.transaction(this.name, mode).objectStore(this.name);
       } catch (err) {
       }
 

@@ -45,7 +45,7 @@ $.pjax({
 });
 
 // 6 events and 43 callbacks exists.
-$(document).bind('pjax.ready', function() {
+$(document).bind('pjax:ready', function() {
   console.log('ready');
 });
 </pre>

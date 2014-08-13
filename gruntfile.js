@@ -129,7 +129,7 @@ module.exports = function(grunt) {
       },
       test: {
         browsers: ['PhantomJS', 'Chrome', 'Firefox', 'IE10', 'IE11'],
-        singleRun: false
+        singleRun: true
       },
       ci: {
         //reporters: process.env.output ? ['progress', 'coverage', 'coveralls'] : ['progress', 'coverage'],
@@ -189,7 +189,7 @@ module.exports = function(grunt) {
   grunt.registerTask('build', ['typescript:build', 'concat', 'copy', 'uglify']);
   grunt.registerTask('view', ['build', 'shell:typescript', 'shell:watch', 'jekyll:serve']);
   grunt.registerTask('dev', ['build', 'shell:typescript', 'shell:watch', 'shell:jekyll', 'karma:dev']);
-  grunt.registerTask('test', ['build', 'shell:typescript', 'shell:watch', 'karma:test']);
+  grunt.registerTask('test', ['build', 'karma:test']);
   grunt.registerTask('travis', ['dist', 'karma:ci']);
   grunt.registerTask('dist', ['clean:dest', 'build', 'clean:temp']);
 };

@@ -20,6 +20,7 @@ module MODULE.MODEL {
 
     landing: string = UTIL.canonicalizeUrl(window.location.href)
     recent: RecentInterface = { order: [], data: {}, size: 0 }
+    loadedScripts: { [index: string]: boolean } = {}
     isScrollPosSavable: boolean = true
     globalXHR: JQueryXHR
     globalSetting: SettingInterface
@@ -181,11 +182,11 @@ module MODULE.MODEL {
     }
 
     registrate($context: ContextInterface, setting: SettingInterface): void {
-      var executed: { [index: string]: boolean; } = this.stock('executed');
+      var loadedScripts = this.loadedScripts;
       setting.load.script && jQuery('script').each(function () {
-        var element = this;
-        if (element.src in executed) { return; }
-        if (element.src && (!setting.load.reload || !jQuery(element).is(setting.load.reload))) { executed[element.src] = true; }
+        var script: HTMLScriptElement = this;
+        if (!script.hasAttribute('src') || script.src in loadedScripts) { return; }
+        if (script.src && (!setting.load.reload || !jQuery(script).is(setting.load.reload))) { loadedScripts[script.src] = true; }
       });
 
       new VIEW.Main(this.model_, this.controller_, $context).BIND(setting);
