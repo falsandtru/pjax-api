@@ -87,6 +87,7 @@ interface PjaxSetting {
         location?: boolean
         history?: boolean
         scroll?: boolean
+        noscript?: boolean
         reset?: boolean
     }
     database?: boolean

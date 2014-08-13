@@ -368,6 +368,7 @@ module MODULE {
       location: boolean
       history: boolean
       scroll: boolean
+      noscript: boolean
       reset: boolean
     }
     fallback: boolean
