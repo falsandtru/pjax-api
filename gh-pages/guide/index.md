@@ -247,19 +247,16 @@ pjaxではJavaScriptの実行状態がページ移動後も維持されるため
 pjaxは移動先のページのJavaScriptが読み込み済みであり、コードが外部ファイルに記述されている場合はこれを読み込まず、同一ページに埋め込まれている場合は再度読み込み実行します。このため、併用するJavaScriptによっては正常に動作させるために適宜再実行により実行状態をリセットするか、または読み込ませずリセットさせない処理を追加する必要があります。
 
 ## JavaScriptの状態管理
-このサイトでは次のようにJavaScriptの実行状態を管理しています。
+当サイトでは次のようにJavaScriptの実行状態を管理しています。
 
-仕様書のようにJavaScriptを管理できます。
+[FunctionManager](https://github.com/falsandtru/funcmanager.js)によりドキュメントのようにJavaScriptを記述・管理できます。
 
 <pre class="sh brush: js;">
-(function () {
-  var spec = this,
-      initialize = true,
-      always = true,
-      finish = false;
+new Function().apply.apply(function (accessor) {
+  var spec = accessor, initialize = true, always = true, finish = false;
 
-  /* init
-     ========================================================================== */
+/* init
+  ========================================================================== */
   $(spec.init);
   spec.init = spec.clientenv;
   spec.init = spec.preload;
@@ -269,11 +266,11 @@ pjaxは移動先のページのJavaScriptが読み込み済みであり、コー
     initialize = false;
   };
 
-  /* component
-     ========================================================================== */
+/* component
+  ========================================================================== */
 
-  /* clientenv
-     -------------------------------------------------------------------------- */
+/* clientenv
+  -------------------------------------------------------------------------- */
   spec.clientenv = function () {
     if (initialize) {
       $.clientenv({ font: { lang: 'ja' } })
@@ -284,8 +281,8 @@ pjaxは移動先のページのJavaScriptが読み込み済みであり、コー
     }
   };
 
-  /* preload
-     -------------------------------------------------------------------------- */
+/* preload
+  -------------------------------------------------------------------------- */
   spec.preload = function () {
     if (/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.navigator.userAgent)) { return; }
     
@@ -327,8 +324,8 @@ pjaxは移動先のページのJavaScriptが読み込み済みであり、コー
     }
   };
 
-  /* pjax
-     -------------------------------------------------------------------------- */
+/* pjax
+  -------------------------------------------------------------------------- */
   spec.pjax = function () {
     if (initialize) {
       $.pjax({
@@ -417,8 +414,8 @@ pjaxは移動先のページのJavaScriptが読み込み済みであり、コー
     }
   };
 
-  /* visibilitytrigger
-     -------------------------------------------------------------------------- */
+/* visibilitytrigger
+  -------------------------------------------------------------------------- */
   spec.visibilitytrigger = function () {
     if (always) {
       $.visibilitytrigger();
@@ -463,13 +460,12 @@ pjaxは移動先のページのJavaScriptが読み込み済みであり、コー
   };
 
   return this;
-}).call(new FuncManager(
-  [
-    'init',
-    'preload',
-    'pjax',
-    'visibilitytrigger',
-    'clientenv'
-  ]
-).accessor);
+},
+FuncManager([
+  'init',
+  'preload',
+  'pjax',
+  'visibilitytrigger',
+  'clientenv'
+]).contextArguments);
 </pre>
