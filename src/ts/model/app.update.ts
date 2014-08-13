@@ -45,30 +45,37 @@ module MODULE.MODEL {
       this.event_ = event;
       this.register_ = register;
 
-      function done(xhrArgs: any[]) {
-        UTIL.fire(setting.callbacks.ajax.done, this, [event, setting.param].concat(xhrArgs));
+      function done(ajax, wait) {
+        that.data_ = ajax[0];
+        that.textStatus_ = ajax[1]
+        that.jqXHR_ = ajax[2];
+        UTIL.fire(setting.callbacks.ajax.done, this, [event, setting.param].concat(ajax));
       }
-      function fail(xhrArgs: any[]) {
-        that.errorThrown_ = xhrArgs[2];
-        UTIL.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat(xhrArgs));
+      function fail(jqXHR: JQueryXHR, textStatus: string, errorThrown: string) {
+        that.jqXHR_ = jqXHR;
+        that.textStatus_ = textStatus;
+        that.errorThrown_ = errorThrown;
+        UTIL.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat(arguments));
       }
-      function always(xhrArgs: any[]) {
-        UTIL.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat(xhrArgs));
-
+      function always() {
         that.model_.setGlobalXHR(null);
-        var data: string, textStatus: string, jqXHR: JQueryXHR;
-        if (!that.errorThrown_) {
-          that.data_ = xhrArgs[0];
-          that.textStatus_ = xhrArgs[1];
-          that.jqXHR_ = xhrArgs[2];
 
-          that.update_();
-        } else if (setting.fallback && 'abort' !== xhrArgs[0].statusText) {
-          if (setting.balance.self) {
-            that.app_.data.saveServerToDB(setting.balance.server.host, new Date().getTime());
-            that.app_.disableBalance();
-          }
-          that.model_.fallback(event, setting);
+        switch ('string') {
+          case typeof that.data_:
+            UTIL.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat([that.data_, that.textStatus_, that.jqXHR_]));
+            that.update_();
+            break;
+
+          case typeof that.errorThrown_:
+            UTIL.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat([that.jqXHR_, that.textStatus_, that.errorThrown_]));
+            if ('abort' !== that.textStatus_) {
+              if (setting.balance.self) {
+                that.app_.data.saveServerToDB(setting.balance.server.host, new Date().getTime());
+                that.app_.disableBalance();
+              }
+              setting.fallback && that.model_.fallback(event, setting);
+            }
+            break;
         }
       }
 
