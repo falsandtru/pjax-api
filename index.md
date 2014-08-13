@@ -38,6 +38,7 @@ pjaxはリクエストと描画を最小限に抑えた高速かつシームレ�
 * Loading Effect
 * Progressbar
 * Wordpress Plugin
+* JavaScriptの状態管理
 </div>
 
 <div class="col-md-4">

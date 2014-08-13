@@ -3,7 +3,7 @@
  * jquery.pjax.js
  * 
  * @name jquery.pjax.js
- * @version 2.16.1
+ * @version 2.17.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
  * @copyright 2012, falsandtru
@@ -928,30 +928,37 @@ var MODULE;
                 this.event_ = event;
                 this.register_ = register;
 
-                function done(xhrArgs) {
-                    MODEL.UTIL.fire(setting.callbacks.ajax.done, this, [event, setting.param].concat(xhrArgs));
+                function done(ajax, wait) {
+                    that.data_ = ajax[0];
+                    that.textStatus_ = ajax[1];
+                    that.jqXHR_ = ajax[2];
+                    MODEL.UTIL.fire(setting.callbacks.ajax.done, this, [event, setting.param].concat(ajax));
                 }
-                function fail(xhrArgs) {
-                    that.errorThrown_ = xhrArgs[2];
-                    MODEL.UTIL.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat(xhrArgs));
+                function fail(jqXHR, textStatus, errorThrown) {
+                    that.jqXHR_ = jqXHR;
+                    that.textStatus_ = textStatus;
+                    that.errorThrown_ = errorThrown;
+                    MODEL.UTIL.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat(arguments));
                 }
-                function always(xhrArgs) {
-                    MODEL.UTIL.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat(xhrArgs));
-
+                function always() {
                     that.model_.setGlobalXHR(null);
-                    var data, textStatus, jqXHR;
-                    if (!that.errorThrown_) {
-                        that.data_ = xhrArgs[0];
-                        that.textStatus_ = xhrArgs[1];
-                        that.jqXHR_ = xhrArgs[2];
 
-                        that.update_();
-                    } else if (setting.fallback && 'abort' !== xhrArgs[0].statusText) {
-                        if (setting.balance.self) {
-                            that.app_.data.saveServerToDB(setting.balance.server.host, new Date().getTime());
-                            that.app_.disableBalance();
-                        }
-                        that.model_.fallback(event, setting);
+                    switch ('string') {
+                        case typeof that.data_:
+                            MODEL.UTIL.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat([that.data_, that.textStatus_, that.jqXHR_]));
+                            that.update_();
+                            break;
+
+                        case typeof that.errorThrown_:
+                            MODEL.UTIL.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat([that.jqXHR_, that.textStatus_, that.errorThrown_]));
+                            if ('abort' !== that.textStatus_) {
+                                if (setting.balance.self) {
+                                    that.app_.data.saveServerToDB(setting.balance.server.host, new Date().getTime());
+                                    that.app_.disableBalance();
+                                }
+                                setting.fallback && that.model_.fallback(event, setting);
+                            }
+                            break;
                     }
                 }
 
@@ -1085,6 +1092,7 @@ var MODULE;
                     speedcheck && speed.name.push('request(' + speed.time.slice(-1) + ')');
 
                     globalXHR = this.model_.setGlobalXHR(jQuery.ajax(ajax));
+                    this.dispatchEvent_(document, setting.gns + ':request', false, true);
                     jQuery(document).trigger(setting.gns + '.request');
 
                     if (this.model_.isDeferrable) {
@@ -1147,20 +1155,16 @@ var MODULE;
                         speedcheck && speed.time.push(speed.now() - speed.fire);
                         speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
 
-                        /* rewrite */
-                        this.updateRewrite_();
-
                         /* cache */
                         this.updateCache_();
 
-                        /* escape */
-                        jQuery('noscript', srcDocument).children().parent().each(function () {
-                            this.children.length && jQuery(this).text(this.innerHTML);
-                        });
+                        /* rewrite */
+                        this.updateRewrite_();
 
                         /* redirect */
                         this.updateRedirect_();
 
+                        this.dispatchEvent_(window, setting.gns + ':unload', false, true);
                         jQuery(window).trigger(setting.gns + '.unload');
 
                         /* url */
@@ -1188,9 +1192,6 @@ var MODULE;
                         /* check point */
                         speedcheck && speed.time.push(speed.now() - speed.fire);
                         speedcheck && speed.name.push('content(' + speed.time.slice(-1) + ')');
-
-                        /* escape */
-                        jQuery('noscript', srcDocument).remove();
 
                         /* balance */
                         this.updateBalance_();
@@ -1232,25 +1233,6 @@ var MODULE;
                 ;
             };
 
-            AppUpdate.prototype.updateRewrite_ = function () {
-                var setting = this.setting_, event = this.event_;
-                var callbacks_update = setting.callbacks.update;
-
-                if (!setting.rewrite) {
-                    return;
-                }
-
-                if (MODEL.UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) {
-                    return;
-                }
-
-                MODEL.UTIL.fire(setting.rewrite, null, [this.srcDocument_, setting.area, this.host_]);
-
-                if (MODEL.UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) {
-                    return;
-                }
-            };
-
             AppUpdate.prototype.updateCache_ = function () {
                 var setting = this.setting_, cache = this.cache_, event = this.event_, data = this.data_, textStatus = this.textStatus_, jqXHR = this.jqXHR_;
                 var callbacks_update = setting.callbacks.update;
@@ -1290,6 +1272,25 @@ var MODULE;
                 }
 
                 if (MODEL.UTIL.fire(callbacks_update.cache.after, null, [event, setting.param, cache]) === false) {
+                    return;
+                }
+            };
+
+            AppUpdate.prototype.updateRewrite_ = function () {
+                var setting = this.setting_, event = this.event_;
+                var callbacks_update = setting.callbacks.update;
+
+                if (!setting.rewrite) {
+                    return;
+                }
+
+                if (MODEL.UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) {
+                    return;
+                }
+
+                MODEL.UTIL.fire(setting.rewrite, null, [this.srcDocument_, setting.area, this.host_]);
+
+                if (MODEL.UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) {
                     return;
                 }
             };
@@ -1379,6 +1380,33 @@ var MODULE;
                 }
             };
 
+            AppUpdate.prototype.updateVerify_ = function () {
+                var setting = this.setting_, event = this.event_;
+                var callbacks_update = setting.callbacks.update;
+
+                if (MODEL.UTIL.fire(callbacks_update.verify.before, null, [event, setting.param]) === false) {
+                    return;
+                }
+
+                // モバイルブラウザでアドレスバーのURLのパーセントエンコーディングの大文字小文字がアンカーと一致しないため揃える必要がある
+                if (setting.destLocation.href === MODEL.UTIL.canonicalizeUrl(window.location.href).replace(/(?:%\w{2})+/g, function (str) {
+                    return String(setting.destLocation.href.match(str.toLowerCase()) || str);
+                })) {
+                    setting.retriable = true;
+                } else if (setting.retriable) {
+                    setting.retriable = false;
+                    setting.destLocation.href = MODEL.UTIL.canonicalizeUrl(window.location.href);
+                    new this.app_.Update(this.model_, this.app_, setting, event, false, setting.cache[event.type.toLowerCase()] && this.model_.getCache(setting.destLocation.href));
+                    throw false;
+                } else {
+                    throw new Error('throw: location mismatch');
+                }
+
+                if (MODEL.UTIL.fire(callbacks_update.verify.after, null, [event, setting.param]) === false) {
+                    return;
+                }
+            };
+
             AppUpdate.prototype.updateTitle_ = function () {
                 var setting = this.setting_, event = this.event_;
                 var callbacks_update = setting.callbacks.update;
@@ -1407,56 +1435,25 @@ var MODULE;
                     return;
                 }
 
-                var title = jQuery('title'), adds = [], srcElements, dstElements;
+                var prefilter = 'base, meta, link', $srcElements = jQuery('head', srcDocument).children(prefilter).filter(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script'), $dstElements = jQuery('head', dstDocument).children(prefilter).filter(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script'), $addElements = jQuery(), $delElements = $dstElements, $title = jQuery('title', dstDocument);
 
-                srcElements = jQuery('head', srcDocument).find(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script');
-                dstElements = jQuery('head', dstDocument).find(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script');
-
-                for (var i = 0, element, selector; element = srcElements[i]; i++) {
-                    switch (element.tagName.toLowerCase()) {
-                        case 'base':
-                            selector = '*';
-                            break;
-                        case 'link':
-                            selector = '[rel="' + element.getAttribute('rel') + '"]';
-                            switch ((element.getAttribute('rel') || '').toLowerCase()) {
-                                case 'alternate':
-                                    selector += element.hasAttribute('type') ? '[type="' + element.getAttribute('type') + '"]' : ':not([type])';
-                                    break;
+                for (var i = 0, element, selector; element = $srcElements[i]; i++) {
+                    for (var j = 0; $delElements[j]; j++) {
+                        if ($delElements[j].tagName === element.tagName && $delElements[j].outerHTML === element.outerHTML) {
+                            if ($addElements.length) {
+                                element = $dstElements[$dstElements.index($delElements[j]) - 1];
+                                element ? jQuery(element).after($addElements.clone()) : $delElements.eq(j).before($addElements.clone());
+                                $addElements = jQuery();
                             }
-                            break;
-                        case 'meta':
-                            if (element.hasAttribute('charset')) {
-                                selector = '[charset]';
-                            } else if (element.hasAttribute('http-equiv')) {
-                                selector = '[http-equiv="' + element.getAttribute('http-equiv') + '"]';
-                            } else if (element.hasAttribute('name')) {
-                                selector = '[name="' + element.getAttribute('name') + '"]';
-                            } else if (element.hasAttribute('property')) {
-                                selector = '[property="' + element.getAttribute('property') + '"]';
-                            } else {
-                                continue;
-                            }
-                            break;
-                        default:
-                            selector = null;
-                    }
-                    if (!selector) {
-                        continue;
-                    }
-
-                    var targets = dstElements.filter(element.tagName).filter(selector);
-                    for (var j = targets.length; j--;) {
-                        if (targets[j].outerHTML === element.outerHTML) {
-                            dstElements = dstElements.not(targets[j]);
+                            $delElements = $delElements.not($delElements[j]);
                             element = null;
                             break;
                         }
                     }
-                    element && adds.push(element.cloneNode(true));
+                    $addElements = $addElements.add(element);
                 }
-                title.before(adds);
-                dstElements.remove();
+                $title.before($addElements.clone());
+                $delElements.remove();
 
                 if (MODEL.UTIL.fire(callbacks_update.head.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                     return;
@@ -1511,7 +1508,8 @@ var MODULE;
                         return _this.restoreScript_(elem);
                     });
                 }
-                jQuery(dstDocument).trigger(setting.gns + '.DOMContentLoaded');
+                this.dispatchEvent_(document, setting.gns + ':DOMContentLoaded', false, true);
+                jQuery(document).trigger(setting.gns + '.DOMContentLoaded');
 
                 if (MODEL.UTIL.fire(callbacks_update.content.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                     return loadwaits;
@@ -1520,12 +1518,40 @@ var MODULE;
                 return loadwaits;
             };
 
+            AppUpdate.prototype.updateBalance_ = function () {
+                var setting = this.setting_, event = this.event_;
+                var callbacks_update = setting.callbacks.update;
+
+                if (!setting.balance.self || !setting.loadtime) {
+                    return;
+                }
+
+                if (MODEL.UTIL.fire(callbacks_update.balance.before, null, [event, setting.param]) === false) {
+                    return;
+                }
+
+                var host = (this.jqXHR_.getResponseHeader(setting.balance.server.header) || '').split('//').pop();
+                this.app_.data.saveLogToDB({
+                    host: host,
+                    performance: Math.ceil(setting.loadtime / (this.jqXHR_.responseText.length || 1) * 1e5),
+                    date: new Date().getTime()
+                });
+                this.app_.data.saveServerToDB(host, 0, setting.destLocation.href, this.app_.calExpires(this.jqXHR_));
+                this.app_.chooseRequestServer(setting);
+
+                this.app_.data.loadBufferAll(setting.buffer.limit);
+
+                if (MODEL.UTIL.fire(callbacks_update.balance.after, null, [event, setting.param]) === false) {
+                    return;
+                }
+            };
+
             AppUpdate.prototype.updateLoad_ = function () {
                 var _this = this;
                 var setting = this.setting_, dstDocument = this.dstDocument_;
 
                 this.updateCSS_('link[rel~="stylesheet"], style');
-                jQuery(window).one(setting.gns + '.rendering', function (event) {
+                jQuery(window).one(setting.gns + ':rendering', function (event) {
                     event.preventDefault();
                     event.stopImmediatePropagation();
 
@@ -1533,7 +1559,8 @@ var MODULE;
 
                     var scriptwaits = _this.updateScript_(':not([defer]), :not([src])');
                     var ready = function () {
-                        jQuery(dstDocument).trigger(setting.gns + '.ready');
+                        _this.dispatchEvent_(document, setting.gns + ':ready', false, true);
+                        jQuery(document).trigger(setting.gns + '.ready');
 
                         var checker = jQuery(setting.area).children('.' + setting.nss.class4html + '-check'), limit = new Date().getTime() + 5 * 1000;
                         var check = function () {
@@ -1557,7 +1584,7 @@ var MODULE;
                     _this.model_.isDeferrable ? jQuery.when.apply(jQuery, scriptwaits).always(function () {
                         return ready();
                     }) : ready();
-                }).trigger(setting.gns + '.rendering');
+                }).trigger(setting.gns + ':rendering');
             };
 
             AppUpdate.prototype.updateScroll_ = function (call) {
@@ -1605,39 +1632,39 @@ var MODULE;
                     return;
                 }
 
-                var css = jQuery(selector, srcDocument).not(jQuery(setting.area, srcDocument).find(selector)).not(setting.load.ignore), removes = jQuery(selector, dstDocument).not(jQuery(setting.area, dstDocument).find(selector)).not(setting.load.ignore), adds = [];
+                var prefilter = 'link, style', $srcElements = jQuery(prefilter, srcDocument).filter(selector).not(setting.load.ignore).not(jQuery('noscript', srcDocument).find(prefilter)), $dstElements = jQuery(prefilter, dstDocument).filter(selector).not(setting.load.ignore).not(jQuery('noscript', srcDocument).find(prefilter)), $addElements = jQuery(), $delElements = $dstElements;
 
-                for (var i = 0, element; element = css[i]; i++) {
-                    for (var j = 0, isSameElement; removes[j]; j++) {
+                for (var i = 0, element; element = $srcElements[i]; i++) {
+                    for (var j = 0, isSameElement; $delElements[j]; j++) {
                         switch (element.tagName.toLowerCase()) {
                             case 'link':
-                                isSameElement = element.href === removes[j].href;
+                                isSameElement = element.href === $delElements[j].href;
                                 break;
                             case 'style':
-                                isSameElement = MODEL.UTIL.trim(element.innerHTML) === MODEL.UTIL.trim(removes[j].innerHTML);
+                                isSameElement = element.innerHTML.trim() === $delElements[j].innerHTML.trim();
                                 break;
                         }
                         if (isSameElement) {
-                            if (adds.length) {
-                                element = removes.eq(j).prevAll(selector)[0];
-                                element ? jQuery(element).after(jQuery(adds).clone()) : removes.eq(j).before(jQuery(adds).clone());
-                                adds = [];
+                            if ($addElements.length) {
+                                element = $dstElements[$dstElements.index($delElements[j]) - 1];
+                                element ? jQuery(element).after($addElements.clone()) : $delElements.eq(j).before($addElements.clone());
+                                $addElements = jQuery();
                             }
-                            removes = removes.not(removes[j]);
+                            $delElements = $delElements.not($delElements[j]);
                             j -= Number(!!j);
                             element = null;
                             break;
                         }
                     }
-                    element && adds.push(element);
+                    $addElements = $addElements.add(element);
                 }
-                jQuery('head', dstDocument).append(jQuery(jQuery.grep(adds, function (element) {
-                    return srcDocument.head === element.parentElement;
-                })).clone());
-                jQuery('body', dstDocument).append(jQuery(jQuery.grep(adds, function (element) {
-                    return srcDocument.head !== element.parentElement;
-                })).clone());
-                removes.remove();
+                jQuery('head', dstDocument).append($addElements.filter(function () {
+                    return jQuery.contains(srcDocument.head, this);
+                }).clone());
+                jQuery('body', dstDocument).append($addElements.filter(function () {
+                    return jQuery.contains(srcDocument.body, this);
+                }).clone());
+                $delElements.remove();
 
                 if (MODEL.UTIL.fire(callbacks_update.css.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                     return;
@@ -1661,14 +1688,10 @@ var MODULE;
                     return;
                 }
 
-                var script = jQuery('script', srcDocument).filter(selector).not(setting.load.ignore), execs = [], scriptwaits = [], regType = /^$|(?:application|text)\/(?:java|ecma)script/i, regRemove = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
+                var prefilter = 'script', $scriptElements = jQuery(prefilter, srcDocument).filter(selector).not(setting.load.ignore).not(jQuery('noscript', srcDocument).find(prefilter)), $execElements = jQuery(), scriptwaits = [], loadedScripts = this.app_.loadedScripts, regType = /^$|(?:application|text)\/(?:java|ecma)script/i, regRemove = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
 
-                var executed = this.app_.stock('executed');
-                for (var i = 0, element; element = script[i]; i++) {
-                    if (!element.src && !MODEL.UTIL.trim(element.innerHTML)) {
-                        continue;
-                    }
-                    if (element.src in executed) {
+                for (var i = 0, element; element = $scriptElements[i]; i++) {
+                    if (element.hasAttribute('src') ? element.src in loadedScripts : !element.innerHTML.trim()) {
                         continue;
                     }
 
@@ -1688,9 +1711,9 @@ var MODULE;
 
                     if (this.model_.isDeferrable) {
                         (function (defer, element) {
-                            if (element.src) {
+                            if (element.hasAttribute('src')) {
                                 if (!setting.load.reload || !jQuery(element).is(setting.load.reload)) {
-                                    executed[element.src] = true;
+                                    loadedScripts[element.src] = true;
                                 }
                                 if (element.hasAttribute('async')) {
                                     jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: true, global: false })).done(function () {
@@ -1714,7 +1737,7 @@ var MODULE;
                             }
                         })(jQuery.Deferred(), element);
                     } else {
-                        execs.push(element);
+                        $execElements = $execElements.add(element);
                     }
                 }
 
@@ -1725,17 +1748,17 @@ var MODULE;
                                 var element = arguments[i][0], response = arguments[i][1];
                                 if ('string' === typeof response) {
                                     eval.call(window, response);
-                                    element.src && _this.dispatchEvent_(element, 'load', false, true);
+                                    element.hasAttribute('src') && _this.dispatchEvent_(element, 'load', false, true);
                                 } else {
-                                    element.src && _this.dispatchEvent_(element, 'error', false, true);
+                                    element.hasAttribute('src') && _this.dispatchEvent_(element, 'error', false, true);
                                 }
                             }
                         });
                     } else {
-                        for (var i = 0, element; element = execs[i]; i++) {
-                            if (element.src) {
+                        for (var i = 0, element; element = $execElements[i]; i++) {
+                            if (element.hasAttribute('src')) {
                                 if (!setting.load.reload || !jQuery(element).is(setting.load.reload)) {
-                                    executed[element.src] = true;
+                                    loadedScripts[element.src] = true;
                                 }
                                 (function (element) {
                                     jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: element.hasAttribute('async'), global: false }, {
@@ -1748,7 +1771,7 @@ var MODULE;
                                     }));
                                 })(element);
                             } else {
-                                'object' === typeof element && (!element.type || regType.test(element.type)) && eval.call(window, (element.text || element.textContent || element.innerHTML || '').replace(regRemove, ''));
+                                'object' === typeof element && (!element.hasAttribute('type') || regType.test(element.type)) && eval.call(window, (element.text || element.textContent || element.innerHTML || '').replace(regRemove, ''));
                             }
                         }
                     }
@@ -1795,9 +1818,11 @@ var MODULE;
                     }
                 }, 100);
 
+                this.dispatchEvent_(document, setting.gns + ':render', false, true);
                 jQuery(document).trigger(setting.gns + '.render');
 
                 var onload = function () {
+                    _this.dispatchEvent_(window, setting.gns + ':load', false, true);
                     jQuery(window).trigger(setting.gns + '.load');
                     _this.updateScript_('[src][defer]');
                 };
@@ -1811,61 +1836,6 @@ var MODULE;
                 speedcheck && console.log(speed.name);
 
                 if (MODEL.UTIL.fire(callbacks_update.render.after, null, [event, setting.param]) === false) {
-                    return;
-                }
-            };
-
-            AppUpdate.prototype.updateVerify_ = function () {
-                var setting = this.setting_, event = this.event_;
-                var callbacks_update = setting.callbacks.update;
-
-                if (MODEL.UTIL.fire(callbacks_update.verify.before, null, [event, setting.param]) === false) {
-                    return;
-                }
-
-                // モバイルブラウザでアドレスバーのURLのパーセントエンコーディングの大文字小文字がアンカーと一致しないため揃える必要がある
-                if (setting.destLocation.href === MODEL.UTIL.canonicalizeUrl(window.location.href).replace(/(?:%\w{2})+/g, function (str) {
-                    return String(setting.destLocation.href.match(str.toLowerCase()) || str);
-                })) {
-                    setting.retriable = true;
-                } else if (setting.retriable) {
-                    setting.retriable = false;
-                    setting.destLocation.href = MODEL.UTIL.canonicalizeUrl(window.location.href);
-                    new this.app_.Update(this.model_, this.app_, setting, event, false, setting.cache[event.type.toLowerCase()] && this.model_.getCache(setting.destLocation.href));
-                    throw false;
-                } else {
-                    throw new Error('throw: location mismatch');
-                }
-
-                if (MODEL.UTIL.fire(callbacks_update.verify.after, null, [event, setting.param]) === false) {
-                    return;
-                }
-            };
-
-            AppUpdate.prototype.updateBalance_ = function () {
-                var setting = this.setting_, event = this.event_;
-                var callbacks_update = setting.callbacks.update;
-
-                if (!setting.balance.self || !setting.loadtime) {
-                    return;
-                }
-
-                if (MODEL.UTIL.fire(callbacks_update.balance.before, null, [event, setting.param]) === false) {
-                    return;
-                }
-
-                var host = (this.jqXHR_.getResponseHeader(setting.balance.server.header) || '').split('//').pop();
-                this.app_.data.saveLogToDB({
-                    host: host,
-                    performance: Math.ceil(setting.loadtime / (this.jqXHR_.responseText.length || 1) * 1e5),
-                    date: new Date().getTime()
-                });
-                this.app_.data.saveServerToDB(host, 0, setting.destLocation.href, this.app_.calExpires(this.jqXHR_));
-                this.app_.chooseRequestServer(setting);
-
-                this.app_.data.loadBufferAll(setting.buffer.limit);
-
-                if (MODEL.UTIL.fire(callbacks_update.balance.after, null, [event, setting.param]) === false) {
                     return;
                 }
             };
@@ -1956,7 +1926,7 @@ var MODULE;
                 this.DB_.conExtend();
 
                 try  {
-                    var database = this.DB_.database(), store = database.transaction(this.name, mode).objectStore(this.name);
+                    var database = this.DB_.database(), store = database && database.transaction(this.name, mode).objectStore(this.name);
                 } catch (err) {
                 }
 
@@ -2643,6 +2613,7 @@ var MODULE;
                 this.data = new MODEL.AppData(this.model_, this);
                 this.landing = MODEL.UTIL.canonicalizeUrl(window.location.href);
                 this.recent = { order: [], data: {}, size: 0 };
+                this.loadedScripts = {};
                 this.isScrollPosSavable = true;
             }
             App.prototype.configure = function (option, origURL, destURL) {
@@ -2809,14 +2780,14 @@ var MODULE;
 
             App.prototype.registrate = function ($context, setting) {
                 var _this = this;
-                var executed = this.stock('executed');
+                var loadedScripts = this.loadedScripts;
                 setting.load.script && jQuery('script').each(function () {
-                    var element = this;
-                    if (element.src in executed) {
+                    var script = this;
+                    if (!script.hasAttribute('src') || script.src in loadedScripts) {
                         return;
                     }
-                    if (element.src && (!setting.load.reload || !jQuery(element).is(setting.load.reload))) {
-                        executed[element.src] = true;
+                    if (script.src && (!setting.load.reload || !jQuery(script).is(setting.load.reload))) {
+                        loadedScripts[script.src] = true;
                     }
                 });
 
@@ -3236,7 +3207,6 @@ var MODULE;
                 setting.database && this.app_.data.opendb(setting);
 
                 this.app_.stock({
-                    executed: {},
                     speed: {
                         fire: 0,
                         time: [],

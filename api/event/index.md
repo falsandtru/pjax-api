@@ -7,21 +7,22 @@ class: style-api style-api-detail
 ---
 
 # Event
+ドット区切りによる旧イベントはすべて削除予定であり非推奨です。
 
-## pjax.request
+## pjax:request
 ajaxリクエスト送信前に`document`オブジェクトから発生します。
 
-## pjax.unload
+## pjax:unload
 ページデータの取得後、更新処理開始前に`window`オブジェクトから発生します。
 
-## pjax.DOMContentLoaded
+## pjax:DOMContentLoaded
 `area`で指定された範囲のDOMの更新後、`document`オブジェクトから発生します。CSSの更新とSCRIPTの実行は完了していません。
 
-## pjax.ready
+## pjax:ready
 すべてのDOMの更新後、`document`オブジェクトから発生します。
 
-## pjax.render
+## pjax:render
 すべての更新範囲の描画後、`document`オブジェクトから発生します。
 
-## pjax.load
+## pjax:load
 すべての画像とフレームの読み込み後、`window`オブジェクトから発生します。

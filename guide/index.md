@@ -44,7 +44,7 @@ accelerate:
       speedcheck: true
     });
     
-    $(document).bind('pjax.ready', function() {$(document).trigger('preload');});
+    $(document).bind('pjax:ready', function() {$(document).trigger('preload');});
   }
 </pre>
 
@@ -94,10 +94,10 @@ accelerate:
   $.pjax({
     wait: 1000
   });
-  $(document).bind('pjax.request', function () {
+  $(document).bind('pjax:request', function () {
     $('div.loading').fadeIn(100);
   });
-  $(document).bind('pjax.render', function(){
+  $(document).bind('pjax:render', function(){
     $('div.loading').fadeOut(500);
   });
 </pre>
@@ -118,11 +118,11 @@ accelerate:
   $.pjax({
     wait: 100
   });
-  $(document).bind('pjax.request', function () {
+  $(document).bind('pjax:request', function () {
       clearTimeout($.data($('div.loading').get(0), 'pjax-effect-id'));
       $.data($('div.loading').get(0), 'pjax-effect-id', setTimeout(function(){ $('div.loading').fadeIn(100); }, 1000));
   });
-  $(document).bind('pjax.render', function(){
+  $(document).bind('pjax:render', function(){
     clearTimeout($.data($('div.loading').get(0), 'pjax-effect-id'));
     $('div.loading').fadeOut(500);
     $.data($('div.loading').get(0), 'pjax-effect-id', 0);
@@ -245,3 +245,231 @@ pjaxではJavaScriptの実行状態がページ移動後も維持されるため
 
 ### WordpressプラグインのJavaScriptを使用するページへの再アクセス
 pjaxは移動先のページのJavaScriptが読み込み済みであり、コードが外部ファイルに記述されている場合はこれを読み込まず、同一ページに埋め込まれている場合は再度読み込み実行します。このため、併用するJavaScriptによっては正常に動作させるために適宜再実行により実行状態をリセットするか、または読み込ませずリセットさせない処理を追加する必要があります。
+
+## JavaScriptの状態管理
+このサイトでは次のようにJavaScriptの実行状態を管理しています。
+
+仕様書のようにJavaScriptを管理できます。
+
+<pre class="sh brush: js;">
+(function () {
+  var spec = this,
+      initialize = true,
+      always = true,
+      finish = false;
+
+  /* init
+     ========================================================================== */
+  $(spec.init);
+  spec.init = spec.clientenv;
+  spec.init = spec.preload;
+  spec.init = spec.pjax;
+  spec.init = spec.visibilitytrigger;
+  spec.init = function () {
+    initialize = false;
+  };
+
+  /* component
+     ========================================================================== */
+
+  /* clientenv
+     -------------------------------------------------------------------------- */
+  spec.clientenv = function () {
+    if (initialize) {
+      $.clientenv({ font: { lang: 'ja' } })
+      .addClass('hardware platform os windowsXP:lte windowsXP:gt browser ie ie8:lte')
+      .addClass('font', 'Meiryo, メイリオ', 'meiryo')
+      .clientenv({ not: false })
+      .addClass('touch');
+    }
+  };
+
+  /* preload
+     -------------------------------------------------------------------------- */
+  spec.preload = function () {
+    if (/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.navigator.userAgent)) { return; }
+    
+    if (initialize) {
+      $.preload({
+        forward: $.pjax.follow,
+        check: $.pjax.getCache,
+        encode: true,
+        ajax: {
+          timeout: 2000,
+          xhr: function () {
+            var xhr = jQuery.ajaxSettings.xhr();
+
+            $('div.loading').children().width('5%');
+            if (xhr instanceof Object && 'onprogress' in xhr) {
+              xhr.addEventListener('progress', function (event) {
+                var percentage = event.total ? event.loaded / event.total : 0.4;
+                percentage = percentage * 90 + 5;
+                $('div.loading').children().width(percentage + '%');
+              }, false);
+              xhr.addEventListener('load', function (event) {
+                $('div.loading').children().width('95%');
+              }, false);
+              xhr.addEventListener('error', function (event) {
+                $('div.loading').children().css('background-color', '#00f');
+              }, false);
+            }
+            return xhr;
+          },
+          success: function (data, textStatus, XMLHttpRequest) {
+            !$.pjax.getCache(this.url) && $.pjax.setCache(this.url, null, textStatus, XMLHttpRequest);
+          }
+        }
+      });
+    }
+    
+    if (always) {
+      $(document).trigger('preload');
+    }
+  };
+
+  /* pjax
+     -------------------------------------------------------------------------- */
+  spec.pjax = function () {
+    if (initialize) {
+      $.pjax({
+        area: ['#container', 'body'],
+        rewrite: function (document) {
+          function escapeImage() {
+            this.setAttribute('data-original', this.getAttribute('src'));
+            this.setAttribute('src', '/img/gray.gif');
+          }
+          $('#primary, #secondary', document).find('img').each(escapeImage);
+
+          function escapeIframe() {
+            this.setAttribute('data-original', this.getAttribute('src'));
+            this.setAttribute('src', 'javascript:false');
+          }
+          $('#primary', document).find('iframe').each(escapeIframe);
+        },
+        load: { css: true, script: true },
+        cache: { click: true, submit: false, popstate: true },
+        ajax: { cache: true, timeout: 3000 },
+        scope: {
+          test: '!*/[^/]+/test/',
+          '/': ['/', '#test']
+        },
+        callbacks: {
+          //async: true,
+          before: function () {
+            $('div.loading').children().width('');
+            $('div.loading').fadeIn(0);
+          },
+          ajax: {
+            xhr: function () {
+              var xhr = jQuery.ajaxSettings.xhr();
+
+              $('div.loading').children().width('5%');
+              if (xhr instanceof Object && 'onprogress' in xhr) {
+                xhr.addEventListener('progress', function (event) {
+                  var percentage = event.loaded / event.total;
+                  percentage = isFinite(percentage) ? percentage : 0.4;
+                  percentage = percentage * 90 + 5;
+                  $('div.loading').children().width(percentage + '%');
+                }, false);
+                xhr.addEventListener('loadend', function (event) {
+                }, false);
+              }
+              return xhr;
+            }
+          },
+          update: {
+            before: function () {
+              $('div.loading').children().width('95%');
+            },
+            content: {
+              after: function () {
+                $('div.loading').children().width('96.25%');
+              }
+            },
+            css: {
+              after: function () {
+                $('div.loading').children().width('97.5%');
+              }
+            },
+            script: {
+              after: function () {
+                $('div.loading').children().width('98.75%');
+              }
+            },
+            render: {
+              after: function () {
+                $('div.loading').children().width('100%');
+                $('div.loading').fadeOut(50);
+              }
+            }
+          }
+        },
+        load: {
+          head: 'base, meta, link',
+          css: true,
+          script: true
+        },
+        server: { query: null },
+        speedcheck: true
+      });
+      
+      $(document).bind('pjax:ready', spec.init);
+    }
+  };
+
+  /* visibilitytrigger
+     -------------------------------------------------------------------------- */
+  spec.visibilitytrigger = function () {
+    if (always) {
+      $.visibilitytrigger();
+
+      $.vt({
+        ns: '.img.primary',
+        trigger: '#primary img[data-original]',
+        callback: function () { this.src = $(this).attr('data-original') },
+        ahead: [0, .1],
+        skip: true,
+        terminate: false
+      }).disable();
+
+      $.vt({
+        ns: '.img.secondary',
+        trigger: '#secondary img[data-original]',
+        callback: function () { this.src = $(this).attr('data-original') },
+        ahead: [0, .1],
+        skip: true,
+        terminate: false
+      }).disable();
+
+      $.vt({
+        ns: '.iframe.primary',
+        trigger: '#primary iframe[data-original]',
+        callback: function () { this.src = $(this).attr('data-original') },
+        ahead: [0, .1],
+        skip: true
+      }).disable();
+
+      $.vt({
+        ns: ".sh.primary",
+        trigger: "#primary pre.sh",
+        callback: function () { SyntaxHighlighter && SyntaxHighlighter.highlight(SyntaxHighlighter.defaults, this); },
+        ahead: [0, .1],
+        step: 0,
+        skip: true
+      }).disable();
+
+      $.vt.enable().vtrigger();
+    }
+  };
+
+  return this;
+}).call(new FuncManager(
+  [
+    'init',
+    'preload',
+    'pjax',
+    'visibilitytrigger',
+    'clientenv'
+  ]
+).accessor);
+</pre>
