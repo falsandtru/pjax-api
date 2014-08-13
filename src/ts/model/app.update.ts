@@ -278,6 +278,9 @@ module MODULE.MODEL {
           /* cache */
           this.updateCache_();
           
+          /* escape */
+          setting.fix.noscript && jQuery('noscript', document).children().parent().each(function () { jQuery(this).text(this.innerHTML); });
+
           /* rewrite */
           this.updateRewrite_();
           

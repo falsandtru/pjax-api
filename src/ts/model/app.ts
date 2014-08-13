@@ -118,6 +118,7 @@ module MODULE.MODEL {
               location: true,
               history: true,
               scroll: true,
+              noscript: true,
               reset: false
             },
             fallback: true,
