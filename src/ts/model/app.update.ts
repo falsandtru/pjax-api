@@ -261,11 +261,8 @@ module MODULE.MODEL {
             this.srcDocument_ = APP.createHTMLDocument(jqXHR.responseText, setting.destLocation.href);
             this.dstDocument_ = document;
             
-            var srcDocument: Document = this.srcDocument_,
-                dstDocument: Document = this.dstDocument_;
-
             // 更新範囲を選出
-            setting.area = this.app_.chooseArea(setting.area, srcDocument, dstDocument);
+            setting.area = this.app_.chooseArea(setting.area, this.srcDocument_, this.dstDocument_);
             if (!setting.area) { throw new Error('throw: area notfound'); }
             // 更新範囲をセレクタごとに分割
             setting.areas = setting.area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
@@ -279,7 +276,7 @@ module MODULE.MODEL {
           this.updateCache_();
           
           /* escape */
-          setting.fix.noscript && jQuery('noscript', document).children().parent().each(function () { jQuery(this).text(this.innerHTML); });
+          setting.fix.noscript && jQuery('noscript', this.srcDocument_).children().parent().each(function () { jQuery(this).text(this.innerHTML); });
 
           /* rewrite */
           this.updateRewrite_();
@@ -520,15 +517,14 @@ module MODULE.MODEL {
           $srcElements: JQuery = jQuery('head', srcDocument).children(prefilter).filter(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script'),
           $dstElements: JQuery = jQuery('head', dstDocument).children(prefilter).filter(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script'),
           $addElements: JQuery = jQuery(),
-          $delElements: JQuery = $dstElements,
-          $title: JQuery = jQuery('title', dstDocument);
+          $delElements: JQuery = $dstElements;
 
       for (var i = 0, element: HTMLElement, selector: string; element = $srcElements[i]; i++) {
         for (var j = 0; $delElements[j]; j++) {
           if ($delElements[j].tagName === element.tagName && $delElements[j].outerHTML === element.outerHTML) {
             if ($addElements.length) {
-              element = $dstElements[$dstElements.index($delElements[j]) - 1];
-              element ? jQuery(element).after($addElements.clone()) : $delElements.eq(j).before($addElements.clone());
+              var ref = $dstElements[$dstElements.index($delElements[j]) - 1];
+              ref ? jQuery(ref).after($addElements.clone()) : $delElements.eq(j).before($addElements.clone());
               $addElements = jQuery();
             }
             $delElements = $delElements.not($delElements[j]);
@@ -538,7 +534,7 @@ module MODULE.MODEL {
         }
         $addElements = $addElements.add(element);
       }
-      $title.before($addElements.clone());
+      jQuery('title', dstDocument).before($addElements.clone());
       $delElements.remove();
 
       if (UTIL.fire(callbacks_update.head.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
@@ -716,8 +712,13 @@ module MODULE.MODEL {
           }
           if (isSameElement) {
             if ($addElements.length) {
-              element = $dstElements[$dstElements.index($delElements[j]) - 1];
-              element ? jQuery(element).after($addElements.clone()) : $delElements.eq(j).before($addElements.clone());
+              if (jQuery.contains(dstDocument.body, $delElements[j]) && $addElements.parents('head').length) {
+                jQuery(dstDocument.head).append($addElements.filter(function () { return jQuery.contains(srcDocument.head, this); }).clone());
+                $delElements.eq(j).before($addElements.filter(function () { return jQuery.contains(srcDocument.body, this); }).clone());
+              } else {
+                var ref = $dstElements[$dstElements.index($delElements[j]) - 1];
+                ref ? jQuery(ref).after($addElements.clone()) : $delElements.eq(j).before($addElements.clone());
+              }
               $addElements = jQuery();
             }
             $delElements = $delElements.not($delElements[j]);
@@ -728,8 +729,8 @@ module MODULE.MODEL {
         }
         $addElements = $addElements.add(element);
       }
-      jQuery('head', dstDocument).append($addElements.filter(function () { return jQuery.contains(srcDocument.head, this); }).clone());
-      jQuery('body', dstDocument).append($addElements.filter(function () { return jQuery.contains(srcDocument.body, this); }).clone());
+      jQuery(dstDocument.head).append($addElements.filter(function () { return jQuery.contains(srcDocument.head, this); }).clone());
+      jQuery(dstDocument.body).append($addElements.filter(function () { return jQuery.contains(srcDocument.body, this); }).clone());
       $delElements.remove();
       
       if (UTIL.fire(callbacks_update.css.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
