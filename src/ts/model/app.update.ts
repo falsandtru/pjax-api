@@ -243,7 +243,7 @@ module MODULE.MODEL {
         var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
         speedcheck && speed.time.push(speed.now() - speed.fire);
         speedcheck && speed.name.push('load(' + speed.time.slice(-1) + ')');
-
+        
         if (UTIL.fire(callbacks_update.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_, this.cache_]) === false) { break UPDATE; }
         
         if (setting.cache.mix && 'popstate' !== event.type.toLowerCase() && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
@@ -288,36 +288,16 @@ module MODULE.MODEL {
           jQuery(window).trigger(setting.gns + '.unload');
           
           /* url */
-          this.updateUrl_();
+          this.updateURL_();
 
           /* verify */
           this.updateVerify_();
           
-          /* setting */
+          /* save */
           this.model_.setGlobalSetting(jQuery.extend(true, {}, setting, { origLocation: setting.destLocation.cloneNode() }));
           
-          /* title */
-          this.updateTitle_();
-
-          /* head */
-          this.updateHead_();
-          
-          /* check point */
-          speedcheck && speed.time.push(speed.now() - speed.fire);
-          speedcheck && speed.name.push('head(' + speed.time.slice(-1) + ')');
-
-          /* content */
-          this.loadwaits_ = this.updateContent_();
-          
-          /* check point */
-          speedcheck && speed.time.push(speed.now() - speed.fire);
-          speedcheck && speed.name.push('content(' + speed.time.slice(-1) + ')');
-
-          /* balance */
-          this.updateBalance_();
-
           /* load */
-          this.updateLoad_();
+          this.updateDOM_();
           
           if (UTIL.fire(callbacks_update.success, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { break UPDATE; }
           if (UTIL.fire(callbacks_update.complete, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { break UPDATE; }
@@ -443,28 +423,8 @@ module MODULE.MODEL {
       if (UTIL.fire(callbacks_update.redirect.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
 
-    updateUrl_(): void {
-      var setting: SettingInterface = this.setting_,
-          event: JQueryEventObject = this.event_,
-          register: boolean = this.register_;
-      var callbacks_update = setting.callbacks.update;
-
-      if (UTIL.fire(callbacks_update.url.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; };
-
-      register &&
-      window.history.pushState(
-        UTIL.fire(setting.state, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]),
-        window.opera || ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstDocument_.title : this.srcDocument_.title,
-        setting.destLocation.href);
-
-      if (register && setting.fix.location) {
-        jQuery[NAME].disable();
-        window.history.back();
-        window.history.forward();
-        jQuery[NAME].enable();
-      }
-
-      if (UTIL.fire(callbacks_update.url.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
+    updateURL_(): void {
+      this.url_();
     }
     
     updateVerify_(): void {
@@ -488,8 +448,85 @@ module MODULE.MODEL {
 
       if (UTIL.fire(callbacks_update.verify.after, null, [event, setting.param]) === false) { return; }
     }
+    
+    updateDOM_(): void {
+      var setting: SettingInterface = this.setting_,
+          dstDocument: Document = this.dstDocument_;
 
-    updateTitle_(): void {
+      this.title_();
+
+      this.head_();
+
+      var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
+      speedcheck && speed.time.push(speed.now() - speed.fire);
+      speedcheck && speed.name.push('head(' + speed.time.slice(-1) + ')');
+
+      this.loadwaits_ = this.area_();
+
+      speedcheck && speed.time.push(speed.now() - speed.fire);
+      speedcheck && speed.name.push('content(' + speed.time.slice(-1) + ')');
+
+      this.balance_();
+
+      this.css_('link[rel~="stylesheet"], style');
+      jQuery(window)
+      .one(setting.gns + ':rendering', (event) => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        this.scroll_(false);
+
+        var scriptwaits = this.script_(':not([defer]), :not([src])');
+        var ready = () => {
+          this.dispatchEvent_(document, setting.gns + ':ready', false, true);
+          jQuery(document).trigger(setting.gns + '.ready');
+
+          var checker = jQuery(setting.area).children('.' + setting.nss.class4html + '-check'),
+              limit = new Date().getTime() + 5 * 1000;
+          var check = () => {
+            switch (true) {
+              case setting.destLocation.href !== UTIL.canonicalizeUrl(window.location.href).replace(/(?:%\w{2})+/g, function (str) { return String(setting.destLocation.href.match(str.toLowerCase()) || str); }):
+                break;
+              case new Date().getTime() > limit:
+              case checker.length === checker.filter(function () { return this.clientWidth || this.clientHeight || jQuery(this).is(':hidden'); }).length:
+                this.render_();
+                break;
+              default:
+                setTimeout(check, 100);
+            }
+          };
+          check();
+        };
+        this.model_.isDeferrable ? jQuery.when.apply(jQuery, scriptwaits).always(() => ready()) : ready();
+      })
+      .trigger(setting.gns + ':rendering');
+    }
+
+    url_(): void {
+      var setting: SettingInterface = this.setting_,
+        event: JQueryEventObject = this.event_,
+        register: boolean = this.register_;
+      var callbacks_update = setting.callbacks.update;
+
+      if (UTIL.fire(callbacks_update.url.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; };
+
+      register &&
+      window.history.pushState(
+        UTIL.fire(setting.state, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]),
+        window.opera || ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstDocument_.title : this.srcDocument_.title,
+        setting.destLocation.href);
+
+      if (register && setting.fix.location) {
+        jQuery[NAME].disable();
+        window.history.back();
+        window.history.forward();
+        jQuery[NAME].enable();
+      }
+
+      if (UTIL.fire(callbacks_update.url.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
+    }
+    
+    title_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
@@ -502,7 +539,7 @@ module MODULE.MODEL {
       if (UTIL.fire(callbacks_update.title.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
 
-    updateHead_(): void {
+    head_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
           srcDocument: Document = this.srcDocument_,
@@ -514,8 +551,8 @@ module MODULE.MODEL {
       if (UTIL.fire(callbacks_update.head.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
 
       var prefilter: string = 'base, meta, link',
-          $srcElements: JQuery = jQuery('head', srcDocument).children(prefilter).filter(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script'),
-          $dstElements: JQuery = jQuery('head', dstDocument).children(prefilter).filter(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script'),
+          $srcElements: JQuery = jQuery(srcDocument.head).children(prefilter).filter(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script'),
+          $dstElements: JQuery = jQuery(dstDocument.head).children(prefilter).filter(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script'),
           $addElements: JQuery = jQuery(),
           $delElements: JQuery = $dstElements;
 
@@ -540,7 +577,7 @@ module MODULE.MODEL {
       if (UTIL.fire(callbacks_update.head.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
 
-    updateContent_(): JQueryDeferred<any>[] {
+    area_(): JQueryDeferred<any>[] {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
           srcDocument: Document = this.srcDocument_,
@@ -592,7 +629,7 @@ module MODULE.MODEL {
       return loadwaits;
     }
     
-    updateBalance_(): void {
+    balance_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
@@ -615,45 +652,7 @@ module MODULE.MODEL {
       if (UTIL.fire(callbacks_update.balance.after, null, [event, setting.param]) === false) { return; }
     }
 
-    updateLoad_(): void {
-      var setting: SettingInterface = this.setting_,
-          dstDocument: Document = this.dstDocument_;
-
-      this.updateCSS_('link[rel~="stylesheet"], style');
-      jQuery(window)
-      .one(setting.gns + ':rendering', (event) => {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-
-        this.updateScroll_(false);
-
-        var scriptwaits = this.updateScript_(':not([defer]), :not([src])');
-        var ready = () => {
-          this.dispatchEvent_(document, setting.gns + ':ready', false, true);
-          jQuery(document).trigger(setting.gns + '.ready');
-
-          var checker = jQuery(setting.area).children('.' + setting.nss.class4html + '-check'),
-              limit = new Date().getTime() + 5 * 1000;
-          var check = () => {
-            switch (true) {
-              case setting.destLocation.href !== UTIL.canonicalizeUrl(window.location.href).replace(/(?:%\w{2})+/g, function (str) { return String(setting.destLocation.href.match(str.toLowerCase()) || str); }):
-                break;
-              case new Date().getTime() > limit:
-              case checker.length === checker.filter(function () { return this.clientWidth || this.clientHeight || jQuery(this).is(':hidden'); }).length:
-                this.updateRender_();
-                break;
-              default:
-                setTimeout(check, 100);
-            }
-          };
-          check();
-        };
-        this.model_.isDeferrable ? jQuery.when.apply(jQuery, scriptwaits).always(() => ready()) : ready();
-      })
-      .trigger(setting.gns + ':rendering');
-    }
-
-    updateScroll_(call: boolean): void {
+    scroll_(call: boolean): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
@@ -683,7 +682,7 @@ module MODULE.MODEL {
       if (UTIL.fire(callbacks_update.scroll.after, null, [event, setting.param]) === false) { return; }
     }
 
-    updateCSS_(selector: string): void {
+    css_(selector: string): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
           srcDocument: Document = this.srcDocument_,
@@ -712,7 +711,7 @@ module MODULE.MODEL {
           }
           if (isSameElement) {
             if ($addElements.length) {
-              if (jQuery.contains(dstDocument.body, $delElements[j]) && $addElements.parents('head').length) {
+              if (jQuery.contains(dstDocument.body, $delElements[j]) && $addElements.first().parents('head').length) {
                 jQuery(dstDocument.head).append($addElements.filter(function () { return jQuery.contains(srcDocument.head, this); }).clone());
                 $delElements.eq(j).before($addElements.filter(function () { return jQuery.contains(srcDocument.body, this); }).clone());
               } else {
@@ -740,7 +739,7 @@ module MODULE.MODEL {
       speedcheck && speed.name.push('css(' + speed.time.slice(-1) + ')');
     }
 
-    updateScript_(selector: string): JQueryDeferred<any[]>[] {
+    script_(selector: string): JQueryDeferred<any[]>[] {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
           srcDocument: Document = this.srcDocument_,
@@ -851,7 +850,7 @@ module MODULE.MODEL {
       return scriptwaits;
     }
 
-    updateRender_(): void {
+    render_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
           checker = jQuery(setting.area).children('.' + setting.nss.class4html + '-check'),
@@ -869,9 +868,9 @@ module MODULE.MODEL {
       setTimeout(() => {
         this.app_.isScrollPosSavable = true;
         if ('popstate' !== event.type.toLowerCase()) {
-          this.scrollByHash_(setting.destLocation.hash) || this.updateScroll_(true);
+          this.scrollByHash_(setting.destLocation.hash) || this.scroll_(true);
         } else {
-          this.updateScroll_(true);
+          this.scroll_(true);
         }
       }, 100);
 
@@ -881,7 +880,7 @@ module MODULE.MODEL {
       var onload = () => {
         this.dispatchEvent_(window, setting.gns + ':load', false, true);
         jQuery(window).trigger(setting.gns + '.load');
-        this.updateScript_('[src][defer]');
+        this.script_('[src][defer]');
       }
       if (jQuery.when && loadwaits.length) {
         jQuery.when.apply(jQuery, loadwaits).always(onload);
