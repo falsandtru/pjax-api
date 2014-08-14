@@ -517,15 +517,14 @@ module MODULE.MODEL {
           $srcElements: JQuery = jQuery('head', srcDocument).children(prefilter).filter(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script'),
           $dstElements: JQuery = jQuery('head', dstDocument).children(prefilter).filter(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script'),
           $addElements: JQuery = jQuery(),
-          $delElements: JQuery = $dstElements,
-          $title: JQuery = jQuery('title', dstDocument);
+          $delElements: JQuery = $dstElements;
 
       for (var i = 0, element: HTMLElement, selector: string; element = $srcElements[i]; i++) {
         for (var j = 0; $delElements[j]; j++) {
           if ($delElements[j].tagName === element.tagName && $delElements[j].outerHTML === element.outerHTML) {
             if ($addElements.length) {
-              element = $dstElements[$dstElements.index($delElements[j]) - 1];
-              element ? jQuery(element).after($addElements.clone()) : $delElements.eq(j).before($addElements.clone());
+              var ref = $dstElements[$dstElements.index($delElements[j]) - 1];
+              ref ? jQuery(ref).after($addElements.clone()) : $delElements.eq(j).before($addElements.clone());
               $addElements = jQuery();
             }
             $delElements = $delElements.not($delElements[j]);
@@ -535,7 +534,7 @@ module MODULE.MODEL {
         }
         $addElements = $addElements.add(element);
       }
-      $title.before($addElements.clone());
+      jQuery('title', dstDocument).before($addElements.clone());
       $delElements.remove();
 
       if (UTIL.fire(callbacks_update.head.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
