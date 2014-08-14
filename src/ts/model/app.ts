@@ -185,9 +185,8 @@ module MODULE.MODEL {
     registrate($context: ContextInterface, setting: SettingInterface): void {
       var loadedScripts = this.loadedScripts;
       setting.load.script && jQuery('script').each(function () {
-        var script: HTMLScriptElement = this;
-        if (!script.hasAttribute('src') || script.src in loadedScripts) { return; }
-        if (script.src && (!setting.load.reload || !jQuery(script).is(setting.load.reload))) { loadedScripts[script.src] = true; }
+        var element: HTMLScriptElement = this;
+        if (element.src) { loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload); }
       });
 
       new VIEW.Main(this.model_, this.controller_, $context).BIND(setting);

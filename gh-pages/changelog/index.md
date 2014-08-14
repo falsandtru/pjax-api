@@ -7,6 +7,10 @@ nav: nav
 
 # ChangeLog
 
+## 2.18.2
+
+* JavaScript読み込みを改善
+
 ## 2.18.1
 
 * NOSCRIPT要素のエスケープ処理が動作しないバグを修正

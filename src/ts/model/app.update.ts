@@ -760,7 +760,8 @@ module MODULE.MODEL {
           regRemove: RegExp = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
 
       for (var i = 0, element: HTMLScriptElement; element = <HTMLScriptElement>$scriptElements[i]; i++) {
-        if (element.hasAttribute('src') ? element.src in loadedScripts : !element.innerHTML.trim()) { continue; }
+        if (!regType.test(element.type || '')) { continue; }
+        if (element.hasAttribute('src') ? loadedScripts[element.src] : !element.innerHTML.trim()) { continue; }
 
         LOG: {
           var srcLogParent = jQuery(element).parent(setting.load.log)[0];
@@ -776,7 +777,7 @@ module MODULE.MODEL {
         if (this.model_.isDeferrable) {
           ((defer: JQueryDeferred<any[]>, element: HTMLScriptElement): void => {
             if (element.hasAttribute('src')) {
-              if (!setting.load.reload || !jQuery(element).is(setting.load.reload)) { loadedScripts[element.src] = true; }
+              if (!element.getAttribute('src')) { return; }
               if (element.hasAttribute('async')) {
                 jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: true, global: false }))
                 .done(() => this.dispatchEvent_(element, 'load', false, true))
@@ -788,14 +789,17 @@ module MODULE.MODEL {
                 scriptwaits.push(defer);
               }
             } else {
-              if ('object' === typeof element && (!element.type || regType.test(element.type))) {
-                defer.resolve([element, (element.text || element.textContent || element.innerHTML || '').replace(regRemove, '')]);
-                scriptwaits.push(defer);
-              }
+              defer.resolve([element, (element.text || element.textContent || element.innerHTML || '').replace(regRemove, '')]);
+              scriptwaits.push(defer);
             }
           })(jQuery.Deferred(), element);
         } else {
-          $execElements = $execElements.add(element);
+          if (element.hasAttribute('src')) {
+            if (!element.getAttribute('src')) { continue; }
+            $execElements = $execElements.add(element);
+          } else {
+            $execElements = $execElements.add(element);
+          }
         }
       }
 
@@ -804,8 +808,11 @@ module MODULE.MODEL {
           jQuery.when.apply(jQuery, scriptwaits)
           .always(() => {
             for (var i = 0, len = arguments.length; i < len; i++) {
-              var element: HTMLScriptElement = arguments[i][0],
-                  response = arguments[i][1];
+              var result = arguments[i],
+                  element: HTMLScriptElement = result[0],
+                  response = result[1];
+
+              if (element.src) { loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload); }
               if ('string' === typeof response) {
                 eval.call(window, response);
                 element.hasAttribute('src') && this.dispatchEvent_(element, 'load', false, true);
@@ -817,7 +824,7 @@ module MODULE.MODEL {
         } else {
           for (var i = 0, element: HTMLScriptElement; element = <HTMLScriptElement>$execElements[i]; i++) {
             if (element.hasAttribute('src')) {
-              if (!setting.load.reload || !jQuery(element).is(setting.load.reload)) { loadedScripts[element.src] = true; }
+              if (element.src) { loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload); }
               ((element) => {
                 jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: element.hasAttribute('async'), global: false }, {
                   success: () => this.dispatchEvent_(element, 'load', false, true),
@@ -825,7 +832,6 @@ module MODULE.MODEL {
                 }));
               })(element);
             } else {
-              'object' === typeof element && (!element.hasAttribute('type') || regType.test(element.type)) &&
               eval.call(window, (element.text || element.textContent || element.innerHTML || '').replace(regRemove, ''));
             }
           }
