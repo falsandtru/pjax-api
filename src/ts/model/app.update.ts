@@ -261,11 +261,8 @@ module MODULE.MODEL {
             this.srcDocument_ = APP.createHTMLDocument(jqXHR.responseText, setting.destLocation.href);
             this.dstDocument_ = document;
             
-            var srcDocument: Document = this.srcDocument_,
-                dstDocument: Document = this.dstDocument_;
-
             // 更新範囲を選出
-            setting.area = this.app_.chooseArea(setting.area, srcDocument, dstDocument);
+            setting.area = this.app_.chooseArea(setting.area, this.srcDocument_, this.dstDocument_);
             if (!setting.area) { throw new Error('throw: area notfound'); }
             // 更新範囲をセレクタごとに分割
             setting.areas = setting.area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
