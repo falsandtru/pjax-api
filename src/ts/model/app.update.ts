@@ -712,8 +712,13 @@ module MODULE.MODEL {
           }
           if (isSameElement) {
             if ($addElements.length) {
-              element = $dstElements[$dstElements.index($delElements[j]) - 1];
-              element ? jQuery(element).after($addElements.clone()) : $delElements.eq(j).before($addElements.clone());
+              if (jQuery.contains(dstDocument.body, $delElements[j]) && $addElements.parents('head').length) {
+                jQuery(dstDocument.head).append($addElements.filter(function () { return jQuery.contains(srcDocument.head, this); }).clone());
+                $delElements.eq(j).before($addElements.filter(function () { return jQuery.contains(srcDocument.body, this); }).clone());
+              } else {
+                var ref = $dstElements[$dstElements.index($delElements[j]) - 1];
+                ref ? jQuery(ref).after($addElements.clone()) : $delElements.eq(j).before($addElements.clone());
+              }
               $addElements = jQuery();
             }
             $delElements = $delElements.not($delElements[j]);
@@ -724,8 +729,8 @@ module MODULE.MODEL {
         }
         $addElements = $addElements.add(element);
       }
-      jQuery('head', dstDocument).append($addElements.filter(function () { return jQuery.contains(srcDocument.head, this); }).clone());
-      jQuery('body', dstDocument).append($addElements.filter(function () { return jQuery.contains(srcDocument.body, this); }).clone());
+      jQuery(dstDocument.head).append($addElements.filter(function () { return jQuery.contains(srcDocument.head, this); }).clone());
+      jQuery(dstDocument.body).append($addElements.filter(function () { return jQuery.contains(srcDocument.body, this); }).clone());
       $delElements.remove();
       
       if (UTIL.fire(callbacks_update.css.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
