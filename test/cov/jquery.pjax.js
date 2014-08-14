@@ -3,7 +3,7 @@
  * jquery.pjax.js
  * 
  * @name jquery.pjax.js
- * @version 2.18.0
+ * @version 2.18.1
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
  * @copyright 2012, falsandtru
@@ -1138,10 +1138,8 @@ var MODULE;
                             this.srcDocument_ = APP.createHTMLDocument(jqXHR.responseText, setting.destLocation.href);
                             this.dstDocument_ = document;
 
-                            var srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
-
                             // 更新範囲を選出
-                            setting.area = this.app_.chooseArea(setting.area, srcDocument, dstDocument);
+                            setting.area = this.app_.chooseArea(setting.area, this.srcDocument_, this.dstDocument_);
                             if (!setting.area) {
                                 throw new Error('throw: area notfound');
                             }
@@ -1159,7 +1157,7 @@ var MODULE;
                         this.updateCache_();
 
                         /* escape */
-                        setting.fix.noscript && jQuery('noscript', document).children().parent().each(function () {
+                        setting.fix.noscript && jQuery('noscript', this.srcDocument_).children().parent().each(function () {
                             jQuery(this).text(this.innerHTML);
                         });
 
@@ -1440,14 +1438,14 @@ var MODULE;
                     return;
                 }
 
-                var prefilter = 'base, meta, link', $srcElements = jQuery('head', srcDocument).children(prefilter).filter(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script'), $dstElements = jQuery('head', dstDocument).children(prefilter).filter(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script'), $addElements = jQuery(), $delElements = $dstElements, $title = jQuery('title', dstDocument);
+                var prefilter = 'base, meta, link', $srcElements = jQuery('head', srcDocument).children(prefilter).filter(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script'), $dstElements = jQuery('head', dstDocument).children(prefilter).filter(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script'), $addElements = jQuery(), $delElements = $dstElements;
 
                 for (var i = 0, element, selector; element = $srcElements[i]; i++) {
                     for (var j = 0; $delElements[j]; j++) {
                         if ($delElements[j].tagName === element.tagName && $delElements[j].outerHTML === element.outerHTML) {
                             if ($addElements.length) {
-                                element = $dstElements[$dstElements.index($delElements[j]) - 1];
-                                element ? jQuery(element).after($addElements.clone()) : $delElements.eq(j).before($addElements.clone());
+                                var ref = $dstElements[$dstElements.index($delElements[j]) - 1];
+                                ref ? jQuery(ref).after($addElements.clone()) : $delElements.eq(j).before($addElements.clone());
                                 $addElements = jQuery();
                             }
                             $delElements = $delElements.not($delElements[j]);
@@ -1457,7 +1455,7 @@ var MODULE;
                     }
                     $addElements = $addElements.add(element);
                 }
-                $title.before($addElements.clone());
+                jQuery('title', dstDocument).before($addElements.clone());
                 $delElements.remove();
 
                 if (MODEL.UTIL.fire(callbacks_update.head.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
@@ -1651,8 +1649,17 @@ var MODULE;
                         }
                         if (isSameElement) {
                             if ($addElements.length) {
-                                element = $dstElements[$dstElements.index($delElements[j]) - 1];
-                                element ? jQuery(element).after($addElements.clone()) : $delElements.eq(j).before($addElements.clone());
+                                if (jQuery.contains(dstDocument.body, $delElements[j]) && $addElements.parents('head').length) {
+                                    jQuery(dstDocument.head).append($addElements.filter(function () {
+                                        return jQuery.contains(srcDocument.head, this);
+                                    }).clone());
+                                    $delElements.eq(j).before($addElements.filter(function () {
+                                        return jQuery.contains(srcDocument.body, this);
+                                    }).clone());
+                                } else {
+                                    var ref = $dstElements[$dstElements.index($delElements[j]) - 1];
+                                    ref ? jQuery(ref).after($addElements.clone()) : $delElements.eq(j).before($addElements.clone());
+                                }
                                 $addElements = jQuery();
                             }
                             $delElements = $delElements.not($delElements[j]);
@@ -1663,10 +1670,10 @@ var MODULE;
                     }
                     $addElements = $addElements.add(element);
                 }
-                jQuery('head', dstDocument).append($addElements.filter(function () {
+                jQuery(dstDocument.head).append($addElements.filter(function () {
                     return jQuery.contains(srcDocument.head, this);
                 }).clone());
-                jQuery('body', dstDocument).append($addElements.filter(function () {
+                jQuery(dstDocument.body).append($addElements.filter(function () {
                     return jQuery.contains(srcDocument.body, this);
                 }).clone());
                 $delElements.remove();
