@@ -7,6 +7,10 @@ nav: nav
 
 # ChangeLog
 
+## 2.18.1
+
+* NOSCRIPT要素のエスケープ処理が動作しないバグを修正
+
 ## 2.18.0
 
 * `fix.noscript`パラメータを追加
