@@ -39,10 +39,6 @@ $(function(){
     area: '#primary',
     callback: function(){ ga('send', 'pageview', window.location.pathname+window.location.search); },
     callbacks: {
-      before: function(){
-        $('div.loading').children().width('');
-        $('div.loading').fadeIn(0);
-      },
       ajax: {
         xhr: function(){
           var xhr = jQuery.ajaxSettings.xhr();
@@ -79,17 +75,20 @@ $(function(){
           after: function(){
             $('div.loading').children().width('98.75%');
           }
-        },
-        render: {
-          after: function(){
-            $('div.loading').children().width('100%');
-            $('div.loading').fadeOut(50);
-          }
         }
       }
     },
     ajax: { timeout: 3000 },
     wait: 1000
+  });
+
+  $(document).bind('pjax:fetch', function () {
+    $('div.loading').children().width('');
+    $('div.loading').fadeIn(0);
+  });
+  $(document).bind('pjax:render', function () {
+    $('div.loading').children().width('100%');
+    $('div.loading').fadeOut(50);
   });
 });
 </script>

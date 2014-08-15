@@ -40,7 +40,7 @@ $(function(){
     callback: function(){ ga('send', 'pageview', window.location.pathname+window.location.search); },
     wait: 1000
   });
-  $(document).bind('pjax.request', function () {
+  $(document).bind('pjax.fetch', function () {
     $('div.loading').fadeIn(100);
   });
   $(document).bind('pjax.render', function () {

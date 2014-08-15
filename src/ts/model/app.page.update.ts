@@ -1,249 +1,62 @@
 /// <reference path="../define.ts"/>
+/// <reference path="app.page.ts"/>
 /// <reference path="util.ts"/>
 
 /* MODEL */
 
 module MODULE.MODEL {
-  
-  export class AppUpdate implements AppUpdateInterface {
 
-    constructor(public model_: ModelInterface, public app_: ModelAppInterface, setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface) {
-      this.ready_(setting, event, register, cache);
+  setTimeout(() => AppPageUpdate.createHTMLDocument_('', ''), 50);
+
+  export class AppPageUpdate extends AppPage implements AppPageUpdateInterface {
+    
+    constructor(
+
+    public model_: ModelInterface,
+    public app_: ModelAppInterface,
+    public setting_: SettingInterface,
+    public event_: JQueryEventObject,
+    public register_: boolean,
+    public cache_: CacheInterface,
+    public data_: string,
+    public textStatus_: string,
+    public jqXHR_: JQueryXHR,
+    public errorThrown_: string,
+    public host_: string
+    ) {
+      super();
+      this.createHTMLDocument_ = AppPageUpdate.createHTMLDocument_;
+      this.main_();
     }
 
-    setting_: SettingInterface
-    cache_: CacheInterface
-    loadwaits_: JQueryDeferred<void>[] = []
-
-    event_: JQueryEventObject
-    host_: string
-    data_: string
-    textStatus_: string
-    jqXHR_: JQueryXHR
-    errorThrown_: string
-    register_: boolean
     srcDocument_: Document
     dstDocument_: Document
+    loadwaits_: JQueryDeferred<any[]>[] = []
 
-    ready_(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface): void {
+    main_(): void {
+      var that = this,
+          app = this.app_,
+          setting = this.setting_,
+          event = this.event_,
+          register = this.register_,
+          cache = this.cache_;
+
+      var setting: SettingInterface = this.setting_,
+          event: JQueryEventObject = this.event_,
+          register: boolean = this.register_,
+          data: string = this.data_,
+          textStatus: string = this.textStatus_,
+          jqXHR: JQueryXHR = this.jqXHR_;
+      var callbacks_update = setting.callbacks.update;
+
       var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
-      speedcheck && (speed.fire = event.timeStamp);
-      speedcheck && speed.time.splice(0, 100, 0);
-      speedcheck && speed.name.splice(0, 100, 'pjax(' + speed.time.slice(-1) + ')');
-
-      var that = this;
-
-      if (UTIL.fire(setting.callbacks.before, null, [event, setting.param]) === false) { return; }
-
-      this.app_.isScrollPosSavable = false;
-      setting.fix.reset && /click|submit/.test(event.type.toLowerCase()) && window.scrollTo(jQuery(window).scrollLeft(), 0);
-
-      var globalXHR = this.model_.getGlobalXHR();
-      event = jQuery.extend(true, {}, event);
-      this.setting_ = setting;
-      this.cache_ = cache;
-      this.event_ = event;
-      this.register_ = register;
-
-      function done(ajax, wait) {
-        that.data_ = ajax[0];
-        that.textStatus_ = ajax[1]
-        that.jqXHR_ = ajax[2];
-        UTIL.fire(setting.callbacks.ajax.done, this, [event, setting.param].concat(ajax));
-      }
-      function fail(jqXHR: JQueryXHR, textStatus: string, errorThrown: string) {
-        that.jqXHR_ = jqXHR;
-        that.textStatus_ = textStatus;
-        that.errorThrown_ = errorThrown;
-        UTIL.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat(arguments));
-      }
-      function always() {
-        that.model_.setGlobalXHR(null);
-
-        switch ('string') {
-          case typeof that.data_:
-            UTIL.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat([that.data_, that.textStatus_, that.jqXHR_]));
-            that.update_();
-            break;
-
-          case typeof that.errorThrown_:
-            UTIL.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat([that.jqXHR_, that.textStatus_, that.errorThrown_]));
-            if ('abort' !== that.textStatus_) {
-              if (setting.balance.self) {
-                that.app_.data.saveServerToDB(setting.balance.server.host, new Date().getTime());
-                that.app_.disableBalance();
-              }
-              setting.fallback && that.model_.fallback(event, setting);
-            }
-            break;
-        }
-      }
-
-      if (cache && cache.jqXHR) {
-        // cache
-        speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
-        setting.loadtime = 0;
-        this.model_.setGlobalXHR(null);
-        this.host_ = cache.host || '';
-        this.data_ = cache.data;
-        this.textStatus_ = cache.textStatus;
-        this.jqXHR_ = cache.jqXHR;
-        if (this.model_.isDeferrable) {
-          jQuery.when(jQuery.Deferred().resolve(), that.wait_(UTIL.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href])))
-          .done(() => that.update_()) && undefined
-        } else {
-          that.update_();
-        }
-      } else if (globalXHR && globalXHR.follow && 'abort' !== globalXHR.statusText && 'error' !== globalXHR.statusText) {
-        // preload
-        speedcheck && speed.time.splice(0, 1, globalXHR.timeStamp - speed.fire);
-        speedcheck && speed.name.splice(0, 1, 'preload(' + speed.time.slice(-1) + ')');
-        speedcheck && speed.time.push(speed.now() - speed.fire);
-        speedcheck && speed.name.push('continue(' + speed.time.slice(-1) + ')');
-        this.host_ = globalXHR.host || '';
-        setting.loadtime = globalXHR.timeStamp;
-        var wait = setting.wait && isFinite(globalXHR.timeStamp) ? Math.max(setting.wait - new Date().getTime() + globalXHR.timeStamp, 0) : 0;
-        jQuery.when(globalXHR, that.wait_(wait))
-        .done(done).fail(fail).always(always);
-
-      } else {
-        // default
-        setting.loadtime = event.timeStamp;
-        var requestLocation = <HTMLAnchorElement>setting.destLocation.cloneNode(),
-            ajax: JQueryAjaxSettings = {},
-            callbacks = {};
-
-        this.app_.chooseRequestServer(setting);
-        this.host_ = setting.balance.self && this.model_.requestHost.split('//').pop() || '';
-        requestLocation.host = this.host_ || setting.destLocation.host;
-        ajax.url = !setting.server.query ? requestLocation.href
-                                         : [
-                                             requestLocation.protocol,
-                                             '//',
-                                             requestLocation.host,
-                                             '/' === requestLocation.pathname.charAt(0) ? requestLocation.pathname : '/' + requestLocation.pathname,
-                                             (1 < requestLocation.search.length ? requestLocation.search + '&' : '?') + setting.server.query,
-                                             requestLocation.hash
-                                           ].join('');
-        switch (event.type.toLowerCase()) {
-          case 'click':
-            ajax.type = 'GET';
-            break;
-
-          case 'submit':
-            ajax.type = (<HTMLFormElement>event.currentTarget).method.toUpperCase();
-            switch (ajax.type) {
-              case 'POST':
-                if (!jQuery(event.currentTarget).has(':file').length) {
-                  ajax.data = jQuery(event.currentTarget).serializeArray();
-                } else if ('function' === typeof FormData) {
-                  ajax.data = new FormData(<HTMLFormElement>event.currentTarget);
-                  ajax.contentType = false;
-                  ajax.processData = false;
-                }
-                break;
-              case 'GET':
-                break;
-            }
-            break;
-
-          case 'popstate':
-            ajax.type = 'GET';
-            break;
-        }
-
-        callbacks = {
-          xhr: !setting.callbacks.ajax.xhr ? undefined : function () {
-            var jqXHR: JQueryXHR;
-            jqXHR = UTIL.fire(setting.callbacks.ajax.xhr, this, [event, setting.param]);
-            jqXHR = 'object' === typeof jqXHR && jqXHR || jQuery.ajaxSettings.xhr();
-
-            //if (jqXHR instanceof Object && jqXHR instanceof window.XMLHttpRequest && 'onprogress' in jqXHR) {
-            //  jqXHR.addEventListener('progress', function(event) {dataSize = event.loaded;}, false);
-            //}
-            return jqXHR;
-          },
-          beforeSend: !setting.callbacks.ajax.beforeSend && !setting.server.header ? undefined : function (jqXHR: JQueryXHR, ajaxSetting: JQueryAjaxSettings) {
-            if (setting.server.header) {
-              jqXHR.setRequestHeader(setting.nss.requestHeader, 'true');
-            }
-            if ('object' === typeof setting.server.header) {
-              jqXHR.setRequestHeader(setting.nss.requestHeader, 'true');
-              setting.server.header.area && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Area', this.app_.chooseArea(setting.area, document, document));
-              setting.server.header.head && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Head', setting.load.head);
-              setting.server.header.css && jqXHR.setRequestHeader(setting.nss.requestHeader + '-CSS', setting.load.css.toString());
-              setting.server.header.script && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Script', setting.load.script.toString());
-            }
-
-            UTIL.fire(setting.callbacks.ajax.beforeSend, this, [event, setting.param, jqXHR, ajaxSetting]);
-          },
-          dataFilter: !setting.callbacks.ajax.dataFilter ? undefined : function (data: string, type: Object) {
-            return UTIL.fire(setting.callbacks.ajax.dataFilter, this, [event, setting.param, data, type]) || data;
-          },
-          success: function (data: string, textStatus: string, jqXHR: JQueryXHR) {
-            that.data_ = data;
-            UTIL.fire(setting.callbacks.ajax.success, this, [event, setting.param, data, textStatus, jqXHR]);
-          },
-          error: function (jqXHR: JQueryXHR, textStatus: string, errorThrown: string) {
-            that.errorThrown_ = errorThrown;
-            UTIL.fire(setting.callbacks.ajax.error, this, [event, setting.param, jqXHR, textStatus, errorThrown]);
-          },
-          complete: function (jqXHR: JQueryXHR, textStatus: string) {
-            UTIL.fire(setting.callbacks.ajax.complete, this, [event, setting.param, jqXHR, textStatus]);
-
-            that.model_.setGlobalXHR(null);
-            if (!that.errorThrown_) {
-              if (!that.model_.isDeferrable) {
-                that.textStatus_ = textStatus;
-                that.jqXHR_ = jqXHR;
-                that.update_();
-              }
-            } else if (setting.fallback && 'abort' !== textStatus) {
-              if (setting.balance.self) {
-                that.app_.disableBalance();
-              }
-              that.model_.fallback(event, setting);
-            }
-          }
-        };
-
-        ajax = jQuery.extend(true, {}, setting.ajax, callbacks, ajax);
-
-        speedcheck && speed.time.push(speed.now() - speed.fire);
-        speedcheck && speed.name.push('request(' + speed.time.slice(-1) + ')');
-
-        globalXHR = this.model_.setGlobalXHR(jQuery.ajax(ajax));
-        this.dispatchEvent_(document, setting.gns + ':request', false, true);
-        jQuery(document).trigger(setting.gns + '.request');
-        
-        if (this.model_.isDeferrable) {
-          jQuery.when(globalXHR, that.wait_(UTIL.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href])))
-          .done(done).fail(fail).always(always);
-        }
-      }
-
-      if (UTIL.fire(setting.callbacks.after, null, [event, setting.param]) === false) { return; }
-    }
-
-    update_(): void {
+      speedcheck && speed.time.push(speed.now() - speed.fire);
+      speedcheck && speed.name.push('fetch(' + speed.time.slice(-1) + ')');
+      
       UPDATE: {
-        var that = this,
-            APP = this.app_;
-        var setting: SettingInterface = this.setting_,
-            event: JQueryEventObject = this.event_,
-            register: boolean = this.register_,
-            data: string = this.data_,
-            textStatus: string = this.textStatus_,
-            jqXHR: JQueryXHR = this.jqXHR_;
-        var callbacks_update = setting.callbacks.update;
-
         setting.loadtime = setting.loadtime && new Date().getTime() - setting.loadtime;
         setting.loadtime = setting.loadtime < 100 ? 0 : setting.loadtime;
 
-        var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
-        speedcheck && speed.time.push(speed.now() - speed.fire);
-        speedcheck && speed.name.push('load(' + speed.time.slice(-1) + ')');
-        
         if (UTIL.fire(callbacks_update.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_, this.cache_]) === false) { break UPDATE; }
         
         if (setting.cache.mix && 'popstate' !== event.type.toLowerCase() && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
@@ -253,12 +66,12 @@ module MODULE.MODEL {
         /* variable initialization */
         
         try {
-          APP.landing = null;
+          app.landing = null;
           if (!~(jqXHR.getResponseHeader('Content-Type') || '').toLowerCase().search(setting.contentType)) { throw new Error("throw: content-type mismatch"); }
           
           /* variable define */
           DEFINE: {
-            this.srcDocument_ = APP.createHTMLDocument(jqXHR.responseText, setting.destLocation.href);
+            this.srcDocument_ = this.createHTMLDocument_(jqXHR.responseText, setting.destLocation.href);
             this.dstDocument_ = document;
             
             // 更新範囲を選出
@@ -272,32 +85,29 @@ module MODULE.MODEL {
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
           
+          /* redirect */
+          this.redirect_();
+          
           /* cache */
           this.updateCache_();
           
           /* escape */
           setting.fix.noscript && jQuery('noscript', this.srcDocument_).children().parent().each(function () { jQuery(this).text(this.innerHTML); });
 
-          /* rewrite */
-          this.updateRewrite_();
-          
-          /* redirect */
-          this.updateRedirect_();
-          
           this.dispatchEvent_(window, setting.gns + ':unload', false, true);
           jQuery(window).trigger(setting.gns + '.unload');
           
           /* url */
-          this.updateURL_();
+          this.updateUrl_();
 
           /* verify */
-          this.updateVerify_();
+          this.verify_();
           
           /* save */
           this.model_.setGlobalSetting(jQuery.extend(true, {}, setting, { origLocation: setting.destLocation.cloneNode() }));
           
           /* load */
-          this.updateDOM_();
+          this.updateDocument_();
           
           if (UTIL.fire(callbacks_update.success, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { break UPDATE; }
           if (UTIL.fire(callbacks_update.complete, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { break UPDATE; }
@@ -336,7 +146,7 @@ module MODULE.MODEL {
       this.cache_ = cache;
 
       if (cache && cache.data) {
-        var cacheDocument: Document = this.app_.createHTMLDocument(cache.data, setting.destLocation.href),
+        var cacheDocument: Document = this.createHTMLDocument_(cache.data, setting.destLocation.href),
             srcDocument: Document = this.srcDocument_;
 
         srcDocument.title = cacheDocument.title;
@@ -357,7 +167,7 @@ module MODULE.MODEL {
       if (UTIL.fire(callbacks_update.cache.after, null, [event, setting.param, cache]) === false) { return; }
     }
     
-    updateRewrite_(): void {
+    rewrite_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
@@ -371,7 +181,7 @@ module MODULE.MODEL {
       if (UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) { return; }
     }
 
-    updateRedirect_(): void {
+    redirect_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
           register: boolean = this.register_;
@@ -422,90 +232,11 @@ module MODULE.MODEL {
 
       if (UTIL.fire(callbacks_update.redirect.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
-
-    updateURL_(): void {
-      this.url_();
-    }
     
-    updateVerify_(): void {
+    updateUrl_(): void {
       var setting: SettingInterface = this.setting_,
-          event: JQueryEventObject = this.event_;
-      var callbacks_update = setting.callbacks.update;
-
-      if (UTIL.fire(callbacks_update.verify.before, null, [event, setting.param]) === false) { return; }
-
-      // モバイルブラウザでアドレスバーのURLのパーセントエンコーディングの大文字小文字がアンカーと一致しないため揃える必要がある
-      if (setting.destLocation.href === UTIL.canonicalizeUrl(window.location.href).replace(/(?:%\w{2})+/g, function (str) { return String(setting.destLocation.href.match(str.toLowerCase()) || str); })) {
-        setting.retriable = true;
-      } else if (setting.retriable) {
-        setting.retriable = false;
-        setting.destLocation.href = UTIL.canonicalizeUrl(window.location.href);
-        new this.app_.Update(this.model_, this.app_, setting, event, false, setting.cache[event.type.toLowerCase()] && this.model_.getCache(setting.destLocation.href));
-        throw false;
-      } else {
-        throw new Error('throw: location mismatch');
-      }
-
-      if (UTIL.fire(callbacks_update.verify.after, null, [event, setting.param]) === false) { return; }
-    }
-    
-    updateDOM_(): void {
-      var setting: SettingInterface = this.setting_,
-          dstDocument: Document = this.dstDocument_;
-
-      this.title_();
-
-      this.head_();
-
-      var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
-      speedcheck && speed.time.push(speed.now() - speed.fire);
-      speedcheck && speed.name.push('head(' + speed.time.slice(-1) + ')');
-
-      this.loadwaits_ = this.area_();
-
-      speedcheck && speed.time.push(speed.now() - speed.fire);
-      speedcheck && speed.name.push('content(' + speed.time.slice(-1) + ')');
-
-      this.balance_();
-
-      this.css_('link[rel~="stylesheet"], style');
-      jQuery(window)
-      .one(setting.gns + ':rendering', (event) => {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-
-        this.scroll_(false);
-
-        var scriptwaits = this.script_(':not([defer]), :not([src])');
-        var ready = () => {
-          this.dispatchEvent_(document, setting.gns + ':ready', false, true);
-          jQuery(document).trigger(setting.gns + '.ready');
-
-          var checker = jQuery(setting.area).children('.' + setting.nss.class4html + '-check'),
-              limit = new Date().getTime() + 5 * 1000;
-          var check = () => {
-            switch (true) {
-              case setting.destLocation.href !== UTIL.canonicalizeUrl(window.location.href).replace(/(?:%\w{2})+/g, function (str) { return String(setting.destLocation.href.match(str.toLowerCase()) || str); }):
-                break;
-              case new Date().getTime() > limit:
-              case checker.length === checker.filter(function () { return this.clientWidth || this.clientHeight || jQuery(this).is(':hidden'); }).length:
-                this.render_();
-                break;
-              default:
-                setTimeout(check, 100);
-            }
-          };
-          check();
-        };
-        this.model_.isDeferrable ? jQuery.when.apply(jQuery, scriptwaits).always(() => ready()) : ready();
-      })
-      .trigger(setting.gns + ':rendering');
-    }
-
-    url_(): void {
-      var setting: SettingInterface = this.setting_,
-        event: JQueryEventObject = this.event_,
-        register: boolean = this.register_;
+          event: JQueryEventObject = this.event_,
+          register: boolean = this.register_;
       var callbacks_update = setting.callbacks.update;
 
       if (UTIL.fire(callbacks_update.url.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; };
@@ -526,6 +257,113 @@ module MODULE.MODEL {
       if (UTIL.fire(callbacks_update.url.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
     
+    verify_(): void {
+      var setting: SettingInterface = this.setting_,
+          event: JQueryEventObject = this.event_;
+      var callbacks_update = setting.callbacks.update;
+
+      if (UTIL.fire(callbacks_update.verify.before, null, [event, setting.param]) === false) { return; }
+
+      // モバイルブラウザでアドレスバーのURLのパーセントエンコーディングの大文字小文字がアンカーと一致しないため揃える必要がある
+      if (setting.destLocation.href === UTIL.canonicalizeUrl(window.location.href).replace(/(?:%\w{2})+/g, function (str) { return String(setting.destLocation.href.match(str.toLowerCase()) || str); })) {
+        setting.retriable = true;
+      } else if (setting.retriable) {
+        setting.retriable = false;
+        setting.destLocation.href = UTIL.canonicalizeUrl(window.location.href);
+        new AppPageUpdate(this.model_, this.app_, setting, event, false, setting.cache[event.type.toLowerCase()] && this.model_.getCache(setting.destLocation.href), this.data_, this.textStatus_, this.jqXHR_, this.errorThrown_, this.host_);
+        throw false;
+      } else {
+        throw new Error('throw: location mismatch');
+      }
+
+      if (UTIL.fire(callbacks_update.verify.after, null, [event, setting.param]) === false) { return; }
+    }
+    
+    updateDocument_(): void {
+      var setting: SettingInterface = this.setting_,
+          dstDocument: Document = this.dstDocument_;
+
+      this.rewrite_();
+
+      this.title_();
+      this.head_();
+
+      var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
+      speedcheck && speed.time.push(speed.now() - speed.fire);
+      speedcheck && speed.name.push('head(' + speed.time.slice(-1) + ')');
+
+      this.loadwaits_ = this.area_();
+
+      speedcheck && speed.time.push(speed.now() - speed.fire);
+      speedcheck && speed.name.push('content(' + speed.time.slice(-1) + ')');
+
+      this.balance_();
+
+      this.css_('link[rel~="stylesheet"], style');
+      jQuery(window)
+      .one(setting.gns + ':rendering', (event) => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        var onready = (callback?: () => void) => {
+          this.dispatchEvent_(document, setting.gns + ':ready', false, true);
+          jQuery(document).trigger(setting.gns + '.ready');
+
+          return jQuery.when ? this.render_(jQuery.Deferred().resolve) : this.render_(callback);
+        };
+
+        var onrender = (callback?: () => void) => {
+          setTimeout(() => {
+            this.app_.isScrollPosSavable = true;
+            if ('popstate' !== event.type.toLowerCase()) {
+              this.scrollByHash_(setting.destLocation.hash) || this.scroll_(true);
+            } else {
+              this.scroll_(true);
+            }
+          }, 100);
+
+          this.dispatchEvent_(document, setting.gns + ':render', false, true);
+          jQuery(document).trigger(setting.gns + '.render');
+
+          speedcheck && speed.time.push(speed.now() - speed.fire);
+          speedcheck && speed.name.push('render(' + speed.time.slice(-1) + ')');
+
+          return jQuery.when ? jQuery.when.apply(jQuery, this.loadwaits_) : callback();
+        };
+
+        var onload = () => {
+          this.dispatchEvent_(window, setting.gns + ':load', false, true);
+          jQuery(window).trigger(setting.gns + '.load');
+
+          speedcheck && speed.time.push(speed.now() - speed.fire);
+          speedcheck && speed.name.push('load(' + speed.time.slice(-1) + ')');
+
+          speedcheck && console.log(speed.time);
+          speedcheck && console.log(speed.name);
+
+          this.script_('[src][defer]');
+
+          // 未定義を返すとエラー
+          return jQuery.when && jQuery.Deferred();
+        };
+
+        this.scroll_(false);
+        var scriptwaits = this.script_(':not([defer]), :not([src])');
+
+        if (jQuery.when) {
+          // 1.7.2のthenは壊れてるのでpipe
+          var then = jQuery.Deferred().pipe ? 'pipe' : 'then';
+          jQuery.when.apply(jQuery, scriptwaits)
+          [then](() => onready() , () => onready())
+          [then](() => onrender(), () => onrender())
+          [then](() => onload()  , () => onload());
+        } else {
+          onready(() => onrender(() => onload()));
+        }
+      })
+      .trigger(setting.gns + ':rendering');
+    }
+
     title_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
@@ -577,7 +415,7 @@ module MODULE.MODEL {
       if (UTIL.fire(callbacks_update.head.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
 
-    area_(): JQueryDeferred<any>[] {
+    area_(): JQueryDeferred<any[]>[] {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
           srcDocument: Document = this.srcDocument_,
@@ -585,7 +423,7 @@ module MODULE.MODEL {
       var callbacks_update = setting.callbacks.update;
 
       var checker: JQuery,
-          loadwaits: JQueryDeferred<void>[] = [];
+          loadwaits: JQueryDeferred<any[]>[] = [];
 
       if (UTIL.fire(callbacks_update.content.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return loadwaits; }
 
@@ -610,7 +448,7 @@ module MODULE.MODEL {
 
         $srcAreas.find('script').each((i, elem) => this.escapeScript_(<HTMLScriptElement>elem));
         if (jQuery.when) {
-          loadwaits.concat($srcAreas.find('img, iframe, frame').map(map).get());
+          loadwaits = loadwaits.concat($srcAreas.find('img, iframe, frame').map(map).get());
         }
 
         for (var j = 0; $srcAreas[j]; j++) {
@@ -618,7 +456,7 @@ module MODULE.MODEL {
         }
 
         $dstAreas = jQuery(setting.areas[i], dstDocument);
-        $dstAreas.append(checker[0].outerHTML);
+        $dstAreas.append(checker.clone());
         $dstAreas.find('script').each((i, elem) => this.restoreScript_(<HTMLScriptElement>elem));
       }
       this.dispatchEvent_(document, setting.gns + ':DOMContentLoaded', false, true);
@@ -746,9 +584,9 @@ module MODULE.MODEL {
           dstDocument: Document = this.dstDocument_;
       var callbacks_update = setting.callbacks.update;
       
-      if (!setting.load.script) { return; }
+      if (!setting.load.script) { return []; }
       
-      if (UTIL.fire(callbacks_update.script.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
+      if (UTIL.fire(callbacks_update.script.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return []; }
       
       var prefilter: string = 'script',
           $scriptElements: JQuery = jQuery(prefilter, srcDocument).filter(selector).not(setting.load.ignore).not(jQuery('noscript', srcDocument).find(prefilter)),
@@ -841,65 +679,43 @@ module MODULE.MODEL {
         return;
       }
       
-      if (UTIL.fire(callbacks_update.script.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
+      if (UTIL.fire(callbacks_update.script.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return scriptwaits; }
 
       var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
       speedcheck && speed.time.push(speed.now() - speed.fire);
-      speedcheck && speed.name.push(('[src][defer]' === selector ? 'defer' : 'script') + '(' + speed.time.slice(-1) + ')');
+      speedcheck && speed.name.push('script(' + speed.time.slice(-1) + ')');
 
       return scriptwaits;
     }
-
-    render_(): void {
+    
+    render_(callback: JQueryDeferred<any>): JQueryDeferred<any>
+    render_(callback: () => void): void
+    render_(callback: any) {
       var setting: SettingInterface = this.setting_,
-          event: JQueryEventObject = this.event_,
-          checker = jQuery(setting.area).children('.' + setting.nss.class4html + '-check'),
-          loadwaits = this.loadwaits_;
-
+          event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
-      var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
-      speedcheck && speed.time.push(speed.now() - speed.fire);
-      speedcheck && speed.name.push('renderd(' + speed.time.slice(-1) + ')');
+      var areas = jQuery(setting.area),
+          checker = areas.children('.' + setting.nss.class4html + '-check'),
+          limit = new Date().getTime() + 5 * 1000;
 
-      if (UTIL.fire(callbacks_update.render.before, null, [event, setting.param]) === false) { return; }
-
-      checker.remove();
-      setTimeout(() => {
-        this.app_.isScrollPosSavable = true;
-        if ('popstate' !== event.type.toLowerCase()) {
-          this.scrollByHash_(setting.destLocation.hash) || this.scroll_(true);
-        } else {
-          this.scroll_(true);
+      var check = () => {
+        switch (true) {
+          case setting.destLocation.href !== UTIL.canonicalizeUrl(window.location.href).replace(/(?:%\w{2})+/g, function (str) { return String(setting.destLocation.href.match(str.toLowerCase()) || str); }):
+            break;
+          case new Date().getTime() > limit:
+          case checker.length !== areas.length:
+          case checker.length === checker.filter(function () { return this.clientWidth || this.clientHeight || jQuery(this).is(':hidden'); }).length:
+            checker.remove();
+            callback();
+            break;
+          default:
+            setTimeout(check, 100);
         }
-      }, 100);
+      };
+      check();
 
-      this.dispatchEvent_(document, setting.gns + ':render', false, true);
-      jQuery(document).trigger(setting.gns + '.render');
-
-      var onload = () => {
-        this.dispatchEvent_(window, setting.gns + ':load', false, true);
-        jQuery(window).trigger(setting.gns + '.load');
-        this.script_('[src][defer]');
-      }
-      if (jQuery.when && loadwaits.length) {
-        jQuery.when.apply(jQuery, loadwaits).always(onload);
-      } else {
-        onload();
-      }
-
-      speedcheck && console.log(speed.time);
-      speedcheck && console.log(speed.name);
-
-      if (UTIL.fire(callbacks_update.render.after, null, [event, setting.param]) === false) { return; }
-    }
-
-    wait_(ms: number): JQueryPromise<any> {
-      var defer = jQuery.Deferred();
-      if (!ms) { return defer.resolve(); }
-
-      setTimeout(function () { defer.resolve(); }, ms);
-      return defer;
+      return jQuery.when && callback;
     }
 
     scrollByHash_(hash: string): boolean {
@@ -945,13 +761,89 @@ module MODULE.MODEL {
       }
     }
     
-    dispatchEvent_(target: Window, eventType: string, bubbling: boolean, cancelable: boolean): void
-    dispatchEvent_(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
-    dispatchEvent_(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
-    dispatchEvent_(target: any, eventType: string, bubbling: boolean, cancelable: boolean): void {
-      var event = document.createEvent('HTMLEvents');
-      event.initEvent(eventType, bubbling, cancelable);
-      target.dispatchEvent(event);
+    createHTMLDocument_: (html: string, uri: string) => Document
+
+    static createHTMLDocument_(html: string, uri: string): Document {
+      var mode: string;
+
+      this.createHTMLDocument_ = (html: string, uri: string) => {
+        function test_(conv: (html: string, uri: string) => Document, ...args): boolean {
+          try {
+            var html = '<html lang="en" class="html"><head><link href="/"><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript><a href="/"></a></body></html>',
+                doc = conv(html, '');
+            return doc &&
+              jQuery('html', doc).is('.html[lang=en]') &&
+              (<HTMLLinkElement>jQuery('head>link', doc)[0]).href &&
+              jQuery('head>noscript', doc).html() &&
+              jQuery('body>noscript', doc).text() === 'noscript' &&
+              (<HTMLAnchorElement>jQuery('body>a', doc)[0]).href &&
+              true || false;
+          } catch (err) {
+            return false;
+          }
+        };
+        function manipulate(doc: Document, html: string): Document {
+          var wrapper = <HTMLElement>document.createElement('div');
+          wrapper.innerHTML = (html.match(/<html(?:\s.*?[^\\])?>/i) || ['<html>']).shift().replace(/html/i, 'div') + '</div>';
+          var attrs = wrapper.firstChild.attributes;
+          for (var i = 0, attr: Attr; attr = attrs[i]; i++) {
+            doc.documentElement.setAttribute(attr.name, attr.value);
+          }
+          var wrapper = <HTMLElement>document.createElement('html');
+          wrapper.innerHTML = html.replace(/^.*?<html(?:\s.*?[^\\])?>/im, '');
+          doc.documentElement.removeChild(doc.head);
+          doc.documentElement.removeChild(doc.body);
+          while (wrapper.childNodes.length) {
+            doc.documentElement.appendChild(wrapper.childNodes[0]);
+          }
+          return doc;
+        };
+
+        var backup = window.location.href;
+        uri && window.history.replaceState(window.history.state, document.title, uri);
+
+        var doc: Document;
+        switch (mode) {
+          // firefox
+          case 'dom':
+            if ('function' === typeof window.DOMParser) {
+              doc = new window.DOMParser().parseFromString(html, 'text/html');
+            }
+            break;
+
+          // chrome, safari
+          case 'doc':
+            if (document.implementation && document.implementation.createHTMLDocument) {
+              doc = document.implementation.createHTMLDocument('');
+              
+              // IE, Operaクラッシュ対策
+              if ('object' !== typeof doc.activeElement || !doc.activeElement) { break; }
+
+              doc.open();
+              doc.write(html);
+              doc.close();
+            }
+            break;
+          
+          // ie10+, opera
+          case 'manipulate':
+            if (document.implementation && document.implementation.createHTMLDocument) {
+              doc = manipulate(document.implementation.createHTMLDocument(''), html);
+            }
+            break;
+
+          default:
+            var test = (mode_: string): boolean => test_(this.createHTMLDocument_, mode = mode_);
+            test('dom') || test('doc') || test('manipulate');
+            doc = this.createHTMLDocument_(html, uri);
+            break;
+        }
+
+        uri && window.history.replaceState(window.history.state, document.title, backup);
+        return doc;
+      };
+
+      return this.createHTMLDocument_(html, uri);
     }
 
   }
