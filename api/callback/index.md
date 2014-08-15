@@ -32,28 +32,28 @@ ajaxの同名のメソッド内で実行されます。外部から引き継い�
 ### ajax.dataFilter( event, param, data, dataType )
 〃
 
-### ajax.success( event, param, data, textStatus, XMLHttpRequest ) <small><span class="label label-warning">deprecated</span></small>
+### ajax.success( event, param, data, textStatus, jqXHR ) <small><span class="label label-warning">deprecated</span></small>
 〃
 
-### ajax.error( event, param, XMLHttpRequest, textStatus, errorThrown ) <small><span class="label label-warning">deprecated</span></small>
+### ajax.error( event, param, jqXHR, textStatus, errorThrown ) <small><span class="label label-warning">deprecated</span></small>
 〃
 
-### ajax.complete( event, param, XMLHttpRequest, textStatus ) <small><span class="label label-warning">deprecated</span></small>
+### ajax.complete( event, param, jqXHR, textStatus ) <small><span class="label label-warning">deprecated</span></small>
 〃
 
-### ajax.done( event, param, data, textStatus, XMLHttpRequest ) <small><span class="label label-primary">jQuery1.6+</span></small>
+### ajax.done( event, param, data, textStatus, jqXHR ) <small><span class="label label-primary">jQuery1.6+</span></small>
 ajax処理の成功時に実行されます。外部から引き継いだリクエストでも実行されます。
 
-### ajax.fail( event, param, XMLHttpRequest, textStatus, errorThrown ) <small><span class="label label-primary">jQuery1.6+</span></small>
+### ajax.fail( event, param, jqXHR, textStatus, errorThrown ) <small><span class="label label-primary">jQuery1.6+</span></small>
 ajax処理の失敗時に実行されます。外部から引き継いだリクエストでも実行されます。
 
-### ajax.always( event, param, XMLHttpRequest, textStatus ) <small><span class="label label-primary">jQuery1.6+</span></small>
+### ajax.always( event, param, jqXHR, textStatus ) <small><span class="label label-primary">jQuery1.6+</span></small>
 ajax処理の完了後常に実行されます。外部から引き継いだリクエストでも実行されます。
 
-### update.before( event, param, data, textStatus, XMLHttpRequest )
+### update.before( event, param, data, textStatus, jqXHR )
 ページの更新処理において最初に実行されます。
 
-### update.after( event, param, data, textStatus, XMLHttpRequest )
+### update.after( event, param, data, textStatus, jqXHR )
 ページの更新処理において最後に実行されます。
 
 ### update.cache.before( event, param, cache )
@@ -62,22 +62,16 @@ ajax処理の完了後常に実行されます。外部から引き継いだリ�
 ### update.cache.after( event, param, cache )
 ページの更新処理においてキャッシュの作成後に実行されます。
 
-### update.rewrite.before( event, param, cache )
-ページの更新処理において更新元HTMLDocumentの書き換え前に実行されます。
-
-### update.rewrite.after( event, param, cache )
-ページの更新処理において更新元HTMLDocumentの書き換え後に実行されます。
-
-### update.redirect.before( event, param, data, textStatus, XMLHttpRequest )
+### update.redirect.before( event, param, data, textStatus, jqXHR )
 ページの更新処理においてリダイレクトの確認前に実行されます。
 
-### update.redirect.after( event, param, data, textStatus, XMLHttpRequest )
+### update.redirect.after( event, param, data, textStatus, jqXHR )
 ページの更新処理においてリダイレクトの確認後に実行されます。
 
-### update.url.before( event, param, data, textStatus, XMLHttpRequest )
+### update.url.before( event, param, data, textStatus, jqXHR )
 ページの更新処理においてURLの更新前に実行されます。
 
-### update.url.after( event, param, data, textStatus, XMLHttpRequest )
+### update.url.after( event, param, data, textStatus, jqXHR )
 ページの更新処理においてURLの更新後に実行されます。
 
 ### update.verify.before( event, param )
@@ -86,22 +80,28 @@ ajax処理の完了後常に実行されます。外部から引き継いだリ�
 ### update.verify.after( event, param )
 ページの更新処理において更新結果の検証後に実行されます。
 
-### update.title.before( event, param, data, textStatus, XMLHttpRequest )
+### update.rewrite.before( event, param, cache )
+ページの更新処理において更新元HTMLDocumentの書き換え前に実行されます。
+
+### update.rewrite.after( event, param, cache )
+ページの更新処理において更新元HTMLDocumentの書き換え後に実行されます。
+
+### update.title.before( event, param, data, textStatus, jqXHR )
 ページの更新処理においてタイトルの更新前に実行されます。
 
-### update.title.after( event, param, data, textStatus, XMLHttpRequest )
+### update.title.after( event, param, data, textStatus, jqXHR )
 ページの更新処理においてタイトルの更新後に実行されます。
 
-### update.head.before( event, param, data, textStatus, XMLHttpRequest )
+### update.head.before( event, param, data, textStatus, jqXHR )
 ページの更新処理においてHEAD要素の更新前に実行されます。
 
-### update.head.after( event, param, data, textStatus, XMLHttpRequest )
+### update.head.after( event, param, data, textStatus, jqXHR )
 ページの更新処理においてHEAD要素の更新後に実行されます。
 
-### update.content.before( event, param, data, textStatus, XMLHttpRequest )
+### update.content.before( event, param, data, textStatus, jqXHR )
 ページの更新処理においてコンテンツの更新前に実行されます。
 
-### update.content.after( event, param, data, textStatus, XMLHttpRequest )
+### update.content.after( event, param, data, textStatus, jqXHR )
 ページの更新処理においてコンテンツの更新後に実行されます。
 
 ### update.balance.before( event, param )
@@ -116,29 +116,23 @@ ajax処理の完了後常に実行されます。外部から引き継いだリ�
 ### update.scroll.after( event, param )
 ページの更新処理においてスクロール位置の更新後に実行されます。
 
-### update.css.before( event, param, data, textStatus, XMLHttpRequest )
+### update.css.before( event, param, data, textStatus, jqXHR )
 ページの更新処理においてCSSの読み込み前に実行されます。
 
-### update.css.after( event, param, data, textStatus, XMLHttpRequest )
+### update.css.after( event, param, data, textStatus, jqXHR )
 ページの更新処理においてCSSの読み込み後に実行されます。
 
-### update.script.before( event, param, data, textStatus, XMLHttpRequest )
+### update.script.before( event, param, data, textStatus, jqXHR )
 ページの更新処理においてJavaScriptの読み込み前に実行されます。
 
-### update.script.after( event, param, data, textStatus, XMLHttpRequest )
+### update.script.after( event, param, data, textStatus, jqXHR )
 ページの更新処理においてJavaScriptの読み込み後に実行されます。
 
-### update.render.before( event, param )
-ページの更新処理において更新の描画を待機する内部イベント処理の実行前に実行されます。
-
-### update.render.after( event, param )
-ページの更新処理において更新の描画を待機する内部イベント処理の実行後に実行されます。
-
-### update.success( event, param, data, textStatus, XMLHttpRequest )
+### update.success( event, param, data, textStatus, jqXHR )
 ページの更新処理が成功したときに実行されます。
 
-### update.error( event, param, data, textStatus, XMLHttpRequest )
+### update.error( event, param, data, textStatus, jqXHR )
 ページの更新処理が失敗したときに実行されます。
 
-### update.complete( event, param, data, textStatus, XMLHttpRequest )
+### update.complete( event, param, data, textStatus, jqXHR )
 ページの更新処理が完了したときに実行されます。
