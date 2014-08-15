@@ -1,6 +1,7 @@
 /// <reference path="../define.ts"/>
 /// <reference path="_template.ts"/>
 /// <reference path="app.page.request.ts"/>
+/// <reference path="app.page.update.ts"/>
 /// <reference path="app.data.ts"/>
 /// <reference path="util.ts"/>
 /// <reference path="../view/main.ts"/>
