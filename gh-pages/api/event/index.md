@@ -7,10 +7,15 @@ class: style-api style-api-detail
 ---
 
 # Event
+ページの更新処理において発生します。
+
 ドット区切りによる旧イベントはすべて削除予定であり非推奨です。
 
+## pjax:fetch
+Ajaxリクエストの送信、引き継ぎ、キャッシュ適用、いずれかのデータ取得処理前に`document`オブジェクトから発生します。
+
 ## pjax:unload
-ページデータの取得後、更新処理開始前に`window`オブジェクトから発生します。
+データの取得後、ページの更新前に`window`オブジェクトから発生します。
 
 ## pjax:DOMContentLoaded
 `area`で指定された範囲のDOMの更新後、`document`オブジェクトから発生します。CSSの更新とSCRIPTの実行は完了していません。

@@ -11,6 +11,7 @@ nav: nav
 
 * アーキテクチャを改善
 * 定義ファイルを修正
+* `pjax.fetch`イベントを追加
 * `pjax.request`イベントを削除
 * `callbacks.update.render`系コールバックを削除
 

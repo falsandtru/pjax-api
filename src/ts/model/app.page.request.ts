@@ -98,6 +98,9 @@ module MODULE.MODEL {
         }
       }
 
+      this.dispatchEvent_(document, setting.gns + ':fetch', false, true);
+      jQuery(document).trigger(setting.gns + '.fetch');
+
       if (cache && cache.jqXHR) {
         // cache
         speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
