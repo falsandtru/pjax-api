@@ -1,6 +1,6 @@
 /// <reference path="../define.ts"/>
 /// <reference path="_template.ts"/>
-/// <reference path="app.update.ts"/>
+/// <reference path="app.page.request.ts"/>
 /// <reference path="app.data.ts"/>
 /// <reference path="util.ts"/>
 /// <reference path="../view/main.ts"/>
@@ -15,7 +15,6 @@ module MODULE.MODEL {
       super();
     }
 
-    Update = AppUpdate
     data: AppDataInterface = new AppData(this.model_, this)
 
     landing: string = UTIL.canonicalizeUrl(window.location.href)
@@ -24,6 +23,23 @@ module MODULE.MODEL {
     isScrollPosSavable: boolean = true
     globalXHR: JQueryXHR
     globalSetting: SettingInterface
+
+    initialize($context: ContextInterface, setting: SettingInterface): void {
+      var loadedScripts = this.loadedScripts;
+      setting.load.script && jQuery('script').each(function () {
+        var element: HTMLScriptElement = this;
+        if (element.src) { loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload); }
+      });
+
+      new VIEW.Main(this.model_, this.controller_, $context).BIND(setting);
+      setTimeout(() => this.data.loadBufferAll(setting.buffer.limit), setting.buffer.delay);
+      setting.balance.self && setTimeout(() => this.enableBalance(), setting.buffer.delay);
+      setTimeout(() => this.landing = null, 1500);
+    }
+
+    transfer(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface): void {
+      new AppPageRequest(this.model_, this, setting, event, register, cache);
+    }
 
     configure(option: SettingInterface, origURL: string, destURL: string): SettingInterface {
       origURL = UTIL.canonicalizeUrl(origURL || option.origLocation.href);
@@ -180,20 +196,6 @@ module MODULE.MODEL {
       setting = jQuery.extend(true, setting, compute());
 
       return setting; //new this.stock(setting);
-    }
-
-    registrate($context: ContextInterface, setting: SettingInterface): void {
-      var loadedScripts = this.loadedScripts;
-      setting.load.script && jQuery('script').each(function () {
-        var element: HTMLScriptElement = this;
-        if (element.src) { loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload); }
-      });
-
-      new VIEW.Main(this.model_, this.controller_, $context).BIND(setting);
-      setTimeout(() => this.createHTMLDocument('', ''), 50);
-      setTimeout(() => this.data.loadBufferAll(setting.buffer.limit), setting.buffer.delay);
-      setting.balance.self && setTimeout(() => this.enableBalance(), setting.buffer.delay);
-      setTimeout(() => this.landing = null, 1500);
     }
 
     enableBalance(host?: string): void {
@@ -445,89 +447,6 @@ module MODULE.MODEL {
           window.location.reload();
           break;
       }
-    }
-
-    createHTMLDocument(html: string, uri: string): Document {
-      var mode: string;
-
-      this.createHTMLDocument = (html: string, uri: string) => {
-        function test_(conv: (html: string, uri: string) => Document, ...args): boolean {
-          try {
-            var html = '<html lang="en" class="html"><head><link href="/"><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript><a href="/"></a></body></html>',
-                doc = conv(html, '');
-            return doc &&
-              jQuery('html', doc).is('.html[lang=en]') &&
-              (<HTMLLinkElement>jQuery('head>link', doc)[0]).href &&
-              jQuery('head>noscript', doc).html() &&
-              jQuery('body>noscript', doc).text() === 'noscript' &&
-              (<HTMLAnchorElement>jQuery('body>a', doc)[0]).href &&
-              true || false;
-          } catch (err) {
-            return false;
-          }
-        };
-        function manipulate(doc: Document, html: string): Document {
-          var wrapper = <HTMLElement>document.createElement('div');
-          wrapper.innerHTML = (html.match(/<html(?:\s.*?[^\\])?>/i) || ['<html>']).shift().replace(/html/i, 'div') + '</div>';
-          var attrs = wrapper.firstChild.attributes;
-          for (var i = 0, attr: Attr; attr = attrs[i]; i++) {
-            doc.documentElement.setAttribute(attr.name, attr.value);
-          }
-          var wrapper = <HTMLElement>document.createElement('html');
-          wrapper.innerHTML = html.replace(/^.*?<html(?:\s.*?[^\\])?>/im, '');
-          doc.documentElement.removeChild(doc.head);
-          doc.documentElement.removeChild(doc.body);
-          while (wrapper.childNodes.length) {
-            doc.documentElement.appendChild(wrapper.childNodes[0]);
-          }
-          return doc;
-        };
-
-        var backup = window.location.href;
-        uri && window.history.replaceState(window.history.state, document.title, uri);
-
-        var doc: Document;
-        switch (mode) {
-          // firefox
-          case 'dom':
-            if ('function' === typeof window.DOMParser) {
-              doc = new window.DOMParser().parseFromString(html, 'text/html');
-            }
-            break;
-
-          // chrome, safari
-          case 'doc':
-            if (document.implementation && document.implementation.createHTMLDocument) {
-              doc = document.implementation.createHTMLDocument('');
-              
-              // IE, Operaクラッシュ対策
-              if ('object' !== typeof doc.activeElement || !doc.activeElement) { break; }
-
-              doc.open();
-              doc.write(html);
-              doc.close();
-            }
-            break;
-          
-          // ie10+, opera
-          case 'manipulate':
-            if (document.implementation && document.implementation.createHTMLDocument) {
-              doc = manipulate(document.implementation.createHTMLDocument(''), html);
-            }
-            break;
-
-          default:
-            var test = (mode_: string): boolean => test_(this.createHTMLDocument, mode = mode_);
-            test('dom') || test('doc') || test('manipulate');
-            doc = this.createHTMLDocument(html, uri);
-            break;
-        }
-
-        uri && window.history.replaceState(window.history.state, document.title, backup);
-        return doc;
-      };
-
-      return this.createHTMLDocument(html, uri);
     }
 
     calAge(jqXHR: JQueryXHR): number {

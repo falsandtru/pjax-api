@@ -52,7 +52,7 @@ module MODULE.MODEL {
 
       if ('pushState' in window.history && window.history['pushState']) {
         jQuery(() => {
-          this.app_.registrate($context, setting);
+          this.app_.initialize($context, setting);
           this.state_ = this.state() === State.wait ? State.ready : this.state();
         });
       }
@@ -139,7 +139,7 @@ module MODULE.MODEL {
         var cache: CacheInterface;
         if (setting.cache[event.type.toLowerCase()]) { cache = this.getCache(setting.destLocation.href); }
 
-        new this.app_.Update(this, this.app_, setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
+        this.app_.transfer(setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
         event.preventDefault();
         return;
       };
@@ -165,7 +165,7 @@ module MODULE.MODEL {
         var cache: CacheInterface;
         if (setting.cache[event.type.toLowerCase()] && setting.cache[context.method.toLowerCase()]) { cache = this.getCache(setting.destLocation.href); }
 
-        new this.app_.Update(this, this.app_, setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
+        this.app_.transfer(setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
         event.preventDefault();
         return;
       };
@@ -193,7 +193,7 @@ module MODULE.MODEL {
         var cache: CacheInterface;
         if (setting.cache[event.type.toLowerCase()]) { cache = this.getCache(setting.destLocation.href); }
 
-        new this.app_.Update(this, this.app_, setting, event, false, cache);
+        this.app_.transfer(setting, event, false, cache);
         return;
       };
     }

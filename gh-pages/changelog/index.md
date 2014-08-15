@@ -7,6 +7,10 @@ nav: nav
 
 # ChangeLog
 
+## 2.19.0
+
+* アーキテクチャを改善
+
 ## 2.18.2
 
 * JavaScript読み込みを改善

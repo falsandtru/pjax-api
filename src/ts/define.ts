@@ -104,7 +104,6 @@ module MODULE {
     cleanCache(): void
   }
   export declare class ModelAppInterface extends StockInterface {
-    Update
     data: AppDataInterface
 
     landing: string
@@ -113,10 +112,11 @@ module MODULE {
     isScrollPosSavable: boolean
     globalXHR: JQueryXHR
     globalSetting: SettingInterface
-
+    
+    initialize($context: ContextInterface, setting: SettingInterface): void
+    transfer(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface): void
     configure(option: SettingInterface, origURL: string, destURL: string): SettingInterface
-    registrate($context: ContextInterface, setting: SettingInterface): void
-    createHTMLDocument(html: string, uri: string): Document
+
     chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
     enableBalance(host?: string): void
@@ -167,8 +167,32 @@ module MODULE {
     loadServerFromDB(): void
     saveServerToDB(host: string, state?: number, unsafe_url?: string, expires?: number): void
   }
-  export declare class AppUpdateInterface {
-    constructor(model_: ModelInterface, app_: ModelAppInterface, setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface)
+  export declare class AppPageInterface {
+    dispatchEvent_(target: Window, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent_(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent_(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
+    wait_(ms: number): JQueryDeferred<any>
+  }
+  export declare class AppPageRequestInterface {
+    constructor(model: ModelInterface,
+                app: ModelAppInterface,
+                setting: SettingInterface,
+                event: JQueryEventObject,
+                register: boolean,
+                cache: CacheInterface)
+  }
+  export declare class AppPageUpdateInterface {
+    constructor(model: ModelInterface,
+                app: ModelAppInterface,
+                setting: SettingInterface,
+                event: JQueryEventObject,
+                register: boolean,
+                cache: CacheInterface,
+                data: string,
+                textStatus: string,
+                jqXHR: JQueryXHR,
+                errorThrown: string,
+                host: string)
   }
   export declare class ModelDataInterface {
     DB: DataDBInterface
