@@ -94,7 +94,7 @@ accelerate:
   $.pjax({
     wait: 1000
   });
-  $(document).bind('pjax:request', function () {
+  $(document).bind('pjax:fetch', function () {
     $('div.loading').fadeIn(100);
   });
   $(document).bind('pjax:render', function(){
@@ -118,7 +118,7 @@ accelerate:
   $.pjax({
     wait: 100
   });
-  $(document).bind('pjax:request', function () {
+  $(document).bind('pjax:fetch', function () {
       clearTimeout($.data($('div.loading').get(0), 'pjax-effect-id'));
       $.data($('div.loading').get(0), 'pjax-effect-id', setTimeout(function(){ $('div.loading').fadeIn(100); }, 1000));
   });
@@ -138,10 +138,6 @@ accelerate:
   $.pjax({
     area: 'div.pjax',
     callbacks: {
-      before: function(){
-        $('div.loading').children().width('');
-        $('div.loading').fadeIn(0);
-      },
       ajax: {
         xhr: function(){
           var xhr = jQuery.ajaxSettings.xhr();
@@ -178,17 +174,20 @@ accelerate:
           after: function(){
             $('div.loading').children().width('98.75%');
           }
-        },
-        render: {
-          after: function(){
-            $('div.loading').children().width('100%');
-            $('div.loading').fadeOut(50);
-          }
         }
       }
     },
     ajax: { timeout: 3000 },
     wait: 1000
+  });
+
+  $(document).bind('pjax:fetch', function () {
+    $('div.loading').children().width('');
+    $('div.loading').fadeIn(0);
+  });
+  $(document).bind('pjax:render', function(){
+    $('div.loading').children().width('100%');
+    $('div.loading').fadeOut(50);
   });
 </pre>
 
@@ -351,11 +350,6 @@ new Function().apply.apply(function (accessor) {
           '/': ['/', '#test']
         },
         callbacks: {
-          //async: true,
-          before: function () {
-            $('div.loading').children().width('');
-            $('div.loading').fadeIn(0);
-          },
           ajax: {
             xhr: function () {
               var xhr = jQuery.ajaxSettings.xhr();
@@ -392,12 +386,6 @@ new Function().apply.apply(function (accessor) {
               after: function () {
                 $('div.loading').children().width('98.75%');
               }
-            },
-            render: {
-              after: function () {
-                $('div.loading').children().width('100%');
-                $('div.loading').fadeOut(50);
-              }
             }
           }
         },
@@ -411,6 +399,14 @@ new Function().apply.apply(function (accessor) {
       });
       
       $(document).bind('pjax:ready', spec.init);
+      $(document).bind('pjax:fetch', function () {
+        $('div.loading').children().width('');
+        $('div.loading').fadeIn(0);
+      });
+      $(document).bind('pjax:render', function () {
+        $('div.loading').children().width('100%');
+        $('div.loading').fadeOut(50);
+      });
     }
   };
 

@@ -97,11 +97,6 @@ new Function().apply.apply(function (accessor) {
           '/': ['/', '#test']
         },
         callbacks: {
-          //async: true,
-          before: function () {
-            $('div.loading').children().width('');
-            $('div.loading').fadeIn(0);
-          },
           ajax: {
             xhr: function () {
               var xhr = jQuery.ajaxSettings.xhr();
@@ -138,12 +133,6 @@ new Function().apply.apply(function (accessor) {
               after: function () {
                 $('div.loading').children().width('98.75%');
               }
-            },
-            render: {
-              after: function () {
-                $('div.loading').children().width('100%');
-                $('div.loading').fadeOut(50);
-              }
             }
           }
         },
@@ -157,6 +146,14 @@ new Function().apply.apply(function (accessor) {
       });
       
       $(document).bind('pjax:ready', spec.init);
+      $(document).bind('pjax:fetch', function () {
+        $('div.loading').children().width('');
+        $('div.loading').fadeIn(0);
+      });
+      $(document).bind('pjax:render', function () {
+        $('div.loading').children().width('100%');
+        $('div.loading').fadeOut(50);
+      });
     }
   };
 
