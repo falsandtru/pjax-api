@@ -9,9 +9,6 @@ class: style-api style-api-detail
 # Event
 ドット区切りによる旧イベントはすべて削除予定であり非推奨です。
 
-## pjax:request
-ajaxリクエスト送信前に`document`オブジェクトから発生します。
-
 ## pjax:unload
 ページデータの取得後、更新処理開始前に`window`オブジェクトから発生します。
 

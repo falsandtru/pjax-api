@@ -209,12 +209,7 @@ module MODULE.MODEL {
 
         ajax = jQuery.extend(true, {}, setting.ajax, callbacks, ajax);
 
-        speedcheck && speed.time.push(speed.now() - speed.fire);
-        speedcheck && speed.name.push('request(' + speed.time.slice(-1) + ')');
-
         globalXHR = this.model_.setGlobalXHR(jQuery.ajax(ajax));
-        this.dispatchEvent_(document, setting.gns + ':request', false, true);
-        jQuery(document).trigger(setting.gns + '.request');
 
         if (this.model_.isDeferrable) {
           jQuery.when(globalXHR, that.wait_(wait))
