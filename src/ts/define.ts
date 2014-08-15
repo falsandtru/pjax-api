@@ -467,10 +467,6 @@ module MODULE {
           before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
           after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
         }
-        render: {
-          before?: (event: JQueryEventObject, param: any) => any
-          after?: (event: JQueryEventObject, param: any) => any
-        }
         verify: {
           before?: (event: JQueryEventObject, param: any) => any
           after?: (event: JQueryEventObject, param: any) => any

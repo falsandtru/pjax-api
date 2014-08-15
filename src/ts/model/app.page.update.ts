@@ -695,8 +695,6 @@ module MODULE.MODEL {
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
-      if (UTIL.fire(callbacks_update.render.before, null, [event, setting.param]) === false) { return; }
-
       var checker = jQuery(setting.area).children('.' + setting.nss.class4html + '-check'),
           limit = new Date().getTime() + 5 * 1000;
 
@@ -714,8 +712,6 @@ module MODULE.MODEL {
         }
       };
       check();
-
-      if (UTIL.fire(callbacks_update.render.after, null, [event, setting.param]) === false) { return; }
 
       return jQuery.when && callback;
     }

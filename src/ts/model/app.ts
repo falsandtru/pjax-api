@@ -144,7 +144,7 @@ module MODULE.MODEL {
             callback: null,
             callbacks: {
               ajax: {},
-              update: { rewrite: {}, cache: {}, redirect: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, render: {}, verify: {}, balance: {} }
+              update: { redirect: {}, cache: {}, rewrite: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, verify: {}, balance: {} }
             },
             param: null,
             redirect: true,
