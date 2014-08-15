@@ -456,7 +456,7 @@ module MODULE.MODEL {
         }
 
         $dstAreas = jQuery(setting.areas[i], dstDocument);
-        $dstAreas.append(checker[0].outerHTML);
+        $dstAreas.append(checker.clone());
         $dstAreas.find('script').each((i, elem) => this.restoreScript_(<HTMLScriptElement>elem));
       }
       this.dispatchEvent_(document, setting.gns + ':DOMContentLoaded', false, true);
@@ -695,7 +695,8 @@ module MODULE.MODEL {
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
-      var checker = jQuery(setting.area).children('.' + setting.nss.class4html + '-check'),
+      var areas = jQuery(setting.area),
+          checker = areas.children('.' + setting.nss.class4html + '-check'),
           limit = new Date().getTime() + 5 * 1000;
 
       var check = () => {
@@ -703,6 +704,7 @@ module MODULE.MODEL {
           case setting.destLocation.href !== UTIL.canonicalizeUrl(window.location.href).replace(/(?:%\w{2})+/g, function (str) { return String(setting.destLocation.href.match(str.toLowerCase()) || str); }):
             break;
           case new Date().getTime() > limit:
+          case checker.length !== areas.length:
           case checker.length === checker.filter(function () { return this.clientWidth || this.clientHeight || jQuery(this).is(':hidden'); }).length:
             checker.remove();
             callback();
