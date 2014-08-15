@@ -419,25 +419,23 @@ new Function().apply.apply(function (accessor) {
       $.vt({
         ns: '.img.primary',
         trigger: '#primary img[data-original]',
-        callback: function () { this.src = $(this).attr('data-original') },
+        callback: function () { this.src = this.getAttribute('data-original'); },
         ahead: [0, .1],
-        skip: true,
-        terminate: false
+        skip: true
       }).disable();
 
       $.vt({
         ns: '.img.secondary',
         trigger: '#secondary img[data-original]',
-        callback: function () { this.src = $(this).attr('data-original') },
+        callback: function () { this.src = this.getAttribute('data-original'); },
         ahead: [0, .1],
-        skip: true,
-        terminate: false
+        skip: true
       }).disable();
 
       $.vt({
         ns: '.iframe.primary',
         trigger: '#primary iframe[data-original]',
-        callback: function () { this.src = $(this).attr('data-original') },
+        callback: function () { this.src = this.getAttribute('data-original'); },
         ahead: [0, .1],
         skip: true
       }).disable();

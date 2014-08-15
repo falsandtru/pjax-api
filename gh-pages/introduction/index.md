@@ -35,7 +35,7 @@ $.pjax({
     $(area, document).find('img').each(function(){
       this.setAttribute('data-original', this.src);
       this.setAttribute('src', '/img/gray.gif');
-    })//.lazyload();
+    }).addClass('delay');
   },
   scope: {
     search: ['/search/'],
@@ -46,7 +46,7 @@ $.pjax({
 
 // 6 events and 41 callbacks exists.
 $(document).bind('pjax:ready', function() {
-  console.log('ready');
+  //$("img.delay").lazyload();
 });
 </pre>
 
