@@ -163,7 +163,7 @@ module MODULE.CONTROLLER {
     }
 
     host(): string {
-      return M.requestHost;
+      return M.host();
     }
 
   }

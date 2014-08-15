@@ -73,11 +73,11 @@ module MODULE {
   export declare class ModelInterface extends StockInterface {
     constructor()
 
-    // プロパティ
+    // Property
     isDeferrable: boolean
-    requestHost: string
+    host(): string
     
-    // Model機能
+    // Model
     state(): State
     convertUrlToKeyUrl(unsafe_url: string): string
     isImmediateLoadable(unsafe_url: string, setting?: SettingInterface): boolean
@@ -88,13 +88,13 @@ module MODULE {
     setGlobalXHR(xhr: JQueryXHR): JQueryXHR
     fallback(event: JQueryEventObject, setting: SettingInterface): void
     
-    // View機能実体
+    // View
     CLICK(event: JQueryEventObject): void
     SUBMIT(event: JQueryEventObject): void
     POPSTATE(event: JQueryEventObject): void
     SCROLL(event: JQueryEventObject, end: boolean): void
     
-    // Controller機能実体
+    // Controller
     enable(): void
     disable(): void
     getCache(unsafe_url: string): CacheInterface
@@ -104,7 +104,25 @@ module MODULE {
     cleanCache(): void
   }
   export declare class AppLayerInterface extends StockInterface {
+    balance: AppBalanceInterface
+    page: AppPageInterface
     data: AppDataInterface
+
+    initialize($context: ContextInterface, setting: SettingInterface): void
+    configure(option: SettingInterface, origURL: string, destURL: string): SettingInterface
+  }
+  export declare class AppBalanceInterface {
+    constructor(model: ModelInterface, app: AppLayerInterface)
+    host(): string
+    
+    check(setting: SettingInterface): boolean
+    enable(setting: SettingInterface): void
+    disable(setting: SettingInterface): void
+    changeServer(host: string, setting?: SettingInterface): void
+    chooseServer(setting: SettingInterface): void
+  }
+  export declare class AppPageInterface extends AppPageUtilityInterface {
+    constructor(model: ModelInterface, app: AppLayerInterface)
 
     landing: string
     recent: RecentInterface
@@ -113,16 +131,42 @@ module MODULE {
     globalXHR: JQueryXHR
     globalSetting: SettingInterface
     
-    initialize($context: ContextInterface, setting: SettingInterface): void
     transfer(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface): void
-    configure(option: SettingInterface, origURL: string, destURL: string): SettingInterface
-
+    request(setting: SettingInterface,
+      event: JQueryEventObject,
+      register: boolean,
+      cache: CacheInterface,
+      done: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void,
+      fail: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void
+      ): void
+    update(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string): void
+  }
+  export declare class AppPageRequestInterface extends AppPageUtilityInterface {
+    constructor(model: ModelInterface,
+      app: AppLayerInterface,
+      setting: SettingInterface,
+      event: JQueryEventObject,
+      register: boolean,
+      cache: CacheInterface,
+      done: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any,
+      fail: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any)
+  }
+  export declare class AppPageUpdateInterface extends AppPageUtilityInterface {
+    constructor(model: ModelInterface,
+      app: AppLayerInterface,
+      setting: SettingInterface,
+      event: JQueryEventObject,
+      register: boolean,
+      cache: CacheInterface,
+      data: string,
+      textStatus: string,
+      jqXHR: JQueryXHR,
+      errorThrown: string,
+      host: string)
+  }
+  export declare class AppPageUtilityInterface {
     chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
-    enableBalance(host?: string): void
-    disableBalance(): void
-    switchRequestServer(host: string, setting: SettingInterface): void
-    chooseRequestServer(setting: SettingInterface): void
     movePageNormally(event: JQueryEventObject): void
     calAge(jqXHR: JQueryXHR): number
     calExpires(jqXHR: JQueryXHR): number
@@ -166,35 +210,6 @@ module MODULE {
     // server
     loadServerFromDB(): void
     saveServerToDB(host: string, state?: number, unsafe_url?: string, expires?: number): void
-  }
-  export declare class AppPageInterface {
-    dispatchEvent_(target: Window, eventType: string, bubbling: boolean, cancelable: boolean): void
-    dispatchEvent_(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
-    dispatchEvent_(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
-    wait_(ms: number): JQueryDeferred<any>
-  }
-  export declare class AppPageRequestInterface {
-    constructor(model: ModelInterface,
-                app: AppLayerInterface,
-                setting: SettingInterface,
-                event: JQueryEventObject,
-                register: boolean,
-                cache: CacheInterface,
-                done: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any,
-                fail: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any)
-  }
-  export declare class AppPageUpdateInterface {
-    constructor(model: ModelInterface,
-                app: AppLayerInterface,
-                setting: SettingInterface,
-                event: JQueryEventObject,
-                register: boolean,
-                cache: CacheInterface,
-                data: string,
-                textStatus: string,
-                jqXHR: JQueryXHR,
-                errorThrown: string,
-                host: string)
   }
   export declare class DataLayerInterface {
     DB: DataDBInterface

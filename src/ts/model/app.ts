@@ -1,7 +1,7 @@
 /// <reference path="../define.ts"/>
 /// <reference path="_template.ts"/>
-/// <reference path="app.page.request.ts"/>
-/// <reference path="app.page.update.ts"/>
+/// <reference path="app.balance.ts"/>
+/// <reference path="app.page.ts"/>
 /// <reference path="app.data.ts"/>
 /// <reference path="utility.ts"/>
 /// <reference path="../view/main.ts"/>
@@ -16,17 +16,12 @@ module MODULE.MODEL {
       super();
     }
 
+    balance: AppBalanceInterface = new AppBalance(this.model_, this)
+    page: AppPageInterface = new AppPage(this.model_, this)
     data: AppDataInterface = new AppData(this.model_, this)
 
-    landing: string = UTIL.canonicalizeUrl(window.location.href)
-    recent: RecentInterface = { order: [], data: {}, size: 0 }
-    loadedScripts: { [index: string]: boolean } = {}
-    isScrollPosSavable: boolean = true
-    globalXHR: JQueryXHR
-    globalSetting: SettingInterface
-
     initialize($context: ContextInterface, setting: SettingInterface): void {
-      var loadedScripts = this.loadedScripts;
+      var loadedScripts = this.page.loadedScripts;
       setting.load.script && jQuery('script').each(function () {
         var element: HTMLScriptElement = this;
         if (element.src) { loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload); }
@@ -34,41 +29,19 @@ module MODULE.MODEL {
 
       new VIEW.Main(this.model_, this.controller_, $context).BIND(setting);
       setTimeout(() => this.data.loadBufferAll(setting.buffer.limit), setting.buffer.delay);
-      setting.balance.self && setTimeout(() => this.enableBalance(), setting.buffer.delay);
-      setTimeout(() => this.landing = null, 1500);
-    }
-
-    transfer(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface): void {
-      this.request_(setting, event, register, cache);
-    }
-    request_(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface): void {
-      var app = this;
-
-      function done(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) {
-        new AppPageUpdate(app.model_, app, setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host);
-      }
-      function fail(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) {
-        if (setting.fallback && 'abort' !== textStatus) {
-          if (setting.balance.self) {
-            app.disableBalance();
-          }
-          app.model_.fallback(event, setting);
-        }
-      }
-
-      new AppPageRequest(app.model_, app, setting, event, register, cache, done, fail);
-    }
-    update_(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string): void {
-      new AppPageUpdate(this.model_, this, setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host);
+      setting.balance.self && setTimeout(() => this.balance.enable(setting), setting.buffer.delay);
+      setTimeout(() => this.page.landing = null, 1500);
     }
 
     configure(option: SettingInterface, origURL: string, destURL: string): SettingInterface {
+      var that = this;
+
       origURL = UTIL.canonicalizeUrl(origURL || option.origLocation.href);
       destURL = UTIL.canonicalizeUrl(destURL || option.destLocation.href);
-      option = option.option || option;
+      option = jQuery.extend(true, {}, option.option || option, { option: option.option || option });
 
-      var scope = option.scope ? jQuery.extend(true, {}, option, this.scope_(option, origURL, destURL) || { disable: true })
-                               : jQuery.extend(true, {}, option);
+      option = option.scope ? jQuery.extend(true, {}, option, scope(option, origURL, destURL) || { disable: true })
+                            : jQuery.extend(true, {}, option);
 
       var initial = {
             gns: NAME,
@@ -177,7 +150,7 @@ module MODULE.MODEL {
             scroll: { queue: [] },
             loadtime: null,
             retriable: true,
-            option: option
+            option: option.option
           },
           compute = function () {
             var nsArray: string[] = [setting.gns || NAME].concat(setting.ns && String(setting.ns).split('.') || []);
@@ -200,7 +173,7 @@ module MODULE.MODEL {
                 submit: ['submit'].concat(nsArray.join(':')).join('.'),
                 popstate: ['popstate'].concat(nsArray.join(':')).join('.'),
                 scroll: ['scroll'].concat(nsArray.join(':')).join('.'),
-                requestHeader: ['X', nsArray[0].replace(/^\w/, function ($0) { return $0.toUpperCase(); })].join('-')
+                requestHeader: ['X', nsArray[0].replace(/^\w/, function (str) { return str.toUpperCase(); })].join('-')
               },
               fix: !/android|iphone os|like mac os x/i.test(window.navigator.userAgent) ? { location: false, reset: false } : {},
               contentType: setting.contentType.replace(/\s*[,;]\s*/g, '|').toLowerCase(),
@@ -212,281 +185,112 @@ module MODULE.MODEL {
           };
 
       var setting: SettingInterface;
-      setting = jQuery.extend(true, initial, scope);
+      setting = jQuery.extend(true, initial, option);
       setting = jQuery.extend(true, setting, setting.balance.self && setting.balance.option, force);
       setting = jQuery.extend(true, setting, compute());
 
       return setting; //new this.stock(setting);
-    }
 
-    enableBalance(host?: string): void {
-      var setting: SettingInterface = this.model_.getGlobalSetting();
+      function scope(setting: SettingInterface, origURL: string, destURL: string, rewriteKeyUrl: string = ''): any {
+        var origKeyUrl: string,
+            destKeyUrl: string,
+            scpTable = setting.scope,
+            dirs: string[],
+            scpKeys: string[],
+            scpKey: string,
+            scpTag: string,
+            patterns: string[],
+            inherit: boolean,
+            hit_src: boolean,
+            hit_dst: boolean,
+            option: Object;
 
-      if (!setting.balance.client.support.userAgent.test(window.navigator.userAgent) || setting.balance.client.exclude.test(window.navigator.userAgent)) {
-        return void this.disableBalance();
-      }
+        origKeyUrl = that.model_.convertUrlToKeyUrl(origURL).match(/.+?\w(\/.*)/).pop();
+        destKeyUrl = that.model_.convertUrlToKeyUrl(destURL).match(/.+?\w(\/.*)/).pop();
+        rewriteKeyUrl = rewriteKeyUrl.replace(/[#?].*/, '');
 
-      if (Number(!this.data.setCookie(setting.balance.client.cookie.balance, '1'))) {
-        return void this.disableBalance();
-      }
-      if (setting.balance.client.support.redirect.test(window.navigator.userAgent)) {
-        this.data.setCookie(setting.balance.client.cookie.redirect, '1');
-      }
-      host && this.switchRequestServer(host, setting);
-    }
-
-    disableBalance(): void {
-      var setting: SettingInterface = this.model_.getGlobalSetting();
-
-      this.data.setCookie(setting.balance.client.cookie.balance, '0');
-      this.data.setCookie(setting.balance.client.cookie.redirect, '0');
-      this.switchRequestServer(null, setting);
-    }
-
-    switchRequestServer(host: string, setting: SettingInterface): void {
-      host = host || '';
-      setting = setting || this.model_.getGlobalSetting();
-      this.model_.requestHost = host;
-      setting.balance.server.host = host;
-      this.data.setCookie(setting.balance.client.cookie.host, host);
-    }
-
-    chooseRequestServer(setting: SettingInterface): void {
-      setting.balance.self && this.enableBalance();
-      if (!setting.balance.self || '1' !== this.data.getCookie(setting.balance.client.cookie.balance)) {
-        this.disableBalance();
-        return;
-      }
-
-      // キャッシュの有効期限内の再リクエストは同じサーバーを選択してキャッシュを使用させる
-      var expires: number;
-      var historyBufferData: HistorySchema = this.data.getBuffer<HistorySchema>(this.data.storeNames.history, this.model_.convertUrlToKeyUrl(setting.destLocation.href));
-
-      expires = historyBufferData && historyBufferData.expires;
-      if (expires && expires >= new Date().getTime()) {
-        this.switchRequestServer(historyBufferData.host, setting);
-        return;
-      }
-
-      // ログから最適なサーバーを選択する
-      var logBuffer = this.data.getBuffer<{ [index: number]: LogSchema }>(this.data.storeNames.log),
-          timeList: number[] = [],
-          logTable: { [index: number]: LogSchema } = {},
-          now: number = new Date().getTime();
-
-      if (!logBuffer) {
-        host = this.data.getCookie(setting.balance.client.cookie.host);
-        if (host) {
-          this.enableBalance(host);
-        } else {
-          this.disableBalance();
+        scpKeys = (rewriteKeyUrl || destKeyUrl).replace(/^\/|\/$/g, '').split('/');
+        if (rewriteKeyUrl) {
+          if (!~rewriteKeyUrl.indexOf('*')) { return undefined; }
+          dirs = [];
+          var arr: string[] = origKeyUrl.replace(/^\/|\/$/g, '').split('/');
+          for (var i = 0, len = scpKeys.length; i < len; i++) { '*' === scpKeys[i] && dirs.push(arr[i]); }
         }
-        return;
-      }
-      var time: number;
-      for (var i in logBuffer) {
-        if (now > logBuffer[i].date + setting.balance.log.expires) { continue; }
-        timeList.push(logBuffer[i].performance);
-        logTable[logBuffer[i].performance] = logBuffer[i];
-      }
 
+        for (var i = scpKeys.length + 1; i--;) {
+          inherit = option = hit_src = hit_dst = undefined;
+          scpKey = scpKeys.slice(0, i).join('/');
+          scpKey = '/' + scpKey + ('/' === (rewriteKeyUrl || origKeyUrl).charAt(scpKey.length + 1) ? '/' : '');
 
-      function compareNumbers(a, b) {
-        return a - b;
-      }
-      timeList = timeList.sort(compareNumbers).slice(0, 15);
-      var serverBuffer = this.data.getBuffer<{ [index: string]: ServerSchema }>(this.data.storeNames.server);
+          if (!scpKey || !(scpKey in scpTable)) { continue; }
 
-      if (!serverBuffer) {
-        this.disableBalance();
-        return;
-      }
-      var host: string = '',
-          time: number;
-      while (timeList.length) {
-        r = Math.floor(Math.random() * timeList.length);
-        time = timeList[r];
-        timeList.splice(r, 1);
+          if (scpTable[scpKey] instanceof Array) {
+            scpTag = '';
+            patterns = scpTable[scpKey];
+          } else {
+            scpTag = scpTable[scpKey];
+            patterns = scpTable[scpTag];
+          }
 
-        host = logTable[time].host.split('//').pop() || '';
-        if (!serverBuffer[host] || serverBuffer[host].state && new Date().getTime() < serverBuffer[host].state + setting.balance.server.error) {
-          continue;
+          if (!patterns || !patterns.length) { return false; }
+
+          patterns = patterns.concat();
+          for (var j = 0, pattern; pattern = patterns[j]; j++) {
+            if (hit_src === false || hit_dst === false) { break; }
+
+            if ('#' === pattern[0]) {
+              scpTag = pattern.slice(1);
+              [].splice.apply(patterns, [j, 1].concat(scpTable[scpTag]));
+              pattern = patterns[j];
+            }
+
+            if ('inherit' === pattern) {
+              inherit = true;
+            } else if ('rewrite' === pattern && 'function' === typeof scpTable.rewrite && !rewriteKeyUrl) {
+              var rewrite: any = scope.apply(this, [].slice.call(arguments).slice(0, 3).concat([UTIL.fire(scpTable.rewrite, null, [destKeyUrl])]));
+              if (rewrite) {
+                hit_src = hit_dst = true;
+                option = rewrite;
+                break;
+              } else if (false === rewrite) {
+                return false;
+              }
+            } else if ('string' === typeof pattern) {
+              var not: boolean = '!' === pattern[0];
+              pattern = not ? pattern.slice(1) : pattern;
+              var reg: boolean = '*' === pattern[0];
+              pattern = reg ? pattern.slice(1) : pattern;
+
+              if (rewriteKeyUrl && ~pattern.indexOf('/*/')) {
+                for (var k = 0, len = dirs.length; k < len; k++) { pattern = pattern.replace('/*/', '/' + dirs[k] + '/'); }
+              }
+
+              if (reg ? !origKeyUrl.search(pattern) : !origKeyUrl.indexOf(pattern)) {
+                if (not) {
+                  return false;
+                } else {
+                  hit_src = true;
+                }
+              }
+              if (reg ? !destKeyUrl.search(pattern) : !destKeyUrl.indexOf(pattern)) {
+                if (not) {
+                  return false;
+                } else {
+                  hit_dst = true;
+                  option = scpTable['$' + scpTag] || scpTable['$' + pattern] || null;
+                }
+              }
+            }
+          }
+
+          if (hit_src && hit_dst) {
+            return jQuery.extend(true, {}, setting, option);
+          }
+          if (inherit) { continue; }
+          break;
         }
-        if (!host && setting.balance.weight && !(Math.floor(Math.random()) * setting.balance.weight)) {
-          continue;
-        }
-        this.switchRequestServer(host, setting);
-        return;
       }
-
-      // サーバーリストからランダムにサーバーを選択する
-      var hosts = Object.keys(serverBuffer),
-          host: string,
-          r: number;
-      while (hosts.length) {
-        r = Math.floor(Math.random() * hosts.length);
-        host = hosts[r];
-        hosts.splice(r, 1);
-
-        if (serverBuffer[host].state && new Date().getTime() < serverBuffer[host].state + setting.balance.server.error) {
-          continue;
-        }
-        this.switchRequestServer(host, setting);
-        return;
-      }
-
-      this.disableBalance();
-    }
     
-    chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
-    chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
-    chooseArea(areas: any, srcDocument: Document, dstDocument: Document): string {
-      areas = areas instanceof Array ? areas : [areas];
-
-      var i: number = -1, area: string;
-      AREA: while (area = areas[++i]) {
-        var options: string[] = area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
-        var j: number = -1;
-        while (options[++j]) {
-          if (!jQuery(options[j], srcDocument).length || !jQuery(options[j], dstDocument).length) {
-            continue AREA;
-          }
-        }
-        return area;
-      }
-    }
-
-    scope_(setting: SettingInterface, origURL: string, destURL: string, rewriteKeyUrl: string = ''): any {
-      var origKeyUrl: string,
-          destKeyUrl: string,
-          scpTable = setting.scope,
-          dirs: string[],
-          scpKeys: string[],
-          scpKey: string,
-          scpTag: string,
-          patterns: string[],
-          inherit: boolean,
-          hit_src: boolean,
-          hit_dst: boolean,
-          option: Object;
-
-      origKeyUrl = this.model_.convertUrlToKeyUrl(origURL).match(/.+?\w(\/.*)/).pop();
-      destKeyUrl = this.model_.convertUrlToKeyUrl(destURL).match(/.+?\w(\/.*)/).pop();
-      rewriteKeyUrl = rewriteKeyUrl.replace(/[#?].*/, '');
-
-      scpKeys = (rewriteKeyUrl || destKeyUrl).replace(/^\/|\/$/g, '').split('/');
-      if (rewriteKeyUrl) {
-        if (!~rewriteKeyUrl.indexOf('*')) { return undefined; }
-        dirs = [];
-        var arr: string[] = origKeyUrl.replace(/^\/|\/$/g, '').split('/');
-        for (var i = 0, len = scpKeys.length; i < len; i++) { '*' === scpKeys[i] && dirs.push(arr[i]); }
-      }
-
-      for (var i = scpKeys.length + 1; i--;) {
-        inherit = option = hit_src = hit_dst = undefined;
-        scpKey = scpKeys.slice(0, i).join('/');
-        scpKey = '/' + scpKey + ('/' === (rewriteKeyUrl || origKeyUrl).charAt(scpKey.length + 1) ? '/' : '');
-
-        if (!scpKey || !(scpKey in scpTable)) { continue; }
-
-        if (scpTable[scpKey] instanceof Array) {
-          scpTag = '';
-          patterns = scpTable[scpKey];
-        } else {
-          scpTag = scpTable[scpKey];
-          patterns = scpTable[scpTag];
-        }
-
-        if (!patterns || !patterns.length) { return false; }
-
-        patterns = patterns.concat();
-        for (var j = 0, pattern; pattern = patterns[j]; j++) {
-          if (hit_src === false || hit_dst === false) { break; }
-
-          if ('#' === pattern[0]) {
-            scpTag = pattern.slice(1);
-            [].splice.apply(patterns, [j, 1].concat(scpTable[scpTag]));
-            pattern = patterns[j];
-          }
-
-          if ('inherit' === pattern) {
-            inherit = true;
-          } else if ('rewrite' === pattern && 'function' === typeof scpTable.rewrite && !rewriteKeyUrl) {
-            var rewrite: any = this.scope_.apply(this, [].slice.call(arguments).slice(0, 3).concat([UTIL.fire(scpTable.rewrite, null, [destKeyUrl])]));
-            if (rewrite) {
-              hit_src = hit_dst = true;
-              option = rewrite;
-              break;
-            } else if (false === rewrite) {
-              return false;
-            }
-          } else if ('string' === typeof pattern) {
-            var not: boolean = '!' === pattern[0];
-            pattern = not ? pattern.slice(1) : pattern;
-            var reg: boolean = '*' === pattern[0];
-            pattern = reg ? pattern.slice(1) : pattern;
-
-            if (rewriteKeyUrl && ~pattern.indexOf('/*/')) {
-              for (var k = 0, len = dirs.length; k < len; k++) { pattern = pattern.replace('/*/', '/' + dirs[k] + '/'); }
-            }
-
-            if (reg ? !origKeyUrl.search(pattern) : !origKeyUrl.indexOf(pattern)) {
-              if (not) {
-                return false;
-              } else {
-                hit_src = true;
-              }
-            }
-            if (reg ? !destKeyUrl.search(pattern) : !destKeyUrl.indexOf(pattern)) {
-              if (not) {
-                return false;
-              } else {
-                hit_dst = true;
-                option = scpTable['$' + scpTag] || scpTable['$' + pattern] || null;
-              }
-            }
-          }
-        }
-
-        if (hit_src && hit_dst) {
-          return jQuery.extend(true, {}, setting, option);
-        }
-        if (inherit) { continue; }
-        break;
-      }
-    }
-
-    movePageNormally(event: JQueryEventObject): void {
-      switch (event.type.toLowerCase()) {
-        case 'click':
-          window.location.assign((<HTMLAnchorElement>event.currentTarget).href);
-          break;
-        case 'submit':
-          (<HTMLFormElement>event.currentTarget).submit();
-          break;
-        case 'popstate':
-          window.location.reload();
-          break;
-      }
-    }
-
-    calAge(jqXHR: JQueryXHR): number {
-      var age: any;
-
-      switch (true) {
-        case /no-store|no-cache/.test(jqXHR.getResponseHeader('Cache-Control')):
-          return 0;
-        case !!~String(jqXHR.getResponseHeader('Cache-Control')).indexOf('max-age='):
-          return Number(jqXHR.getResponseHeader('Cache-Control').match(/max-age=(\d+)/).pop()) * 1000;
-        case !!String(jqXHR.getResponseHeader('Expires')):
-          return new Date(jqXHR.getResponseHeader('Expires')).getTime() - new Date().getTime();
-        default:
-          return 0;
-      }
-    }
-
-    calExpires(jqXHR: JQueryXHR): number {
-      return new Date().getTime() + this.calAge(jqXHR);
     }
 
   }

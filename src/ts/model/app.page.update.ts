@@ -1,5 +1,6 @@
 /// <reference path="../define.ts"/>
-/// <reference path="app.page.ts"/>
+/// <reference path="app.page.utility.ts"/>
+/// <reference path="app.data.ts"/>
 /// <reference path="utility.ts"/>
 
 /* MODEL */
@@ -8,7 +9,7 @@ module MODULE.MODEL {
 
   setTimeout(() => AppPageUpdate.createHTMLDocument_('', ''), 50);
 
-  export class AppPageUpdate extends AppPage implements AppPageUpdateInterface {
+  export class AppPageUpdate extends AppPageUtility implements AppPageUpdateInterface {
     
     constructor(
 
@@ -66,7 +67,7 @@ module MODULE.MODEL {
         /* variable initialization */
         
         try {
-          app.landing = null;
+          app.page.landing = null;
           if (!~(jqXHR.getResponseHeader('Content-Type') || '').toLowerCase().search(setting.contentType)) { throw new Error("throw: content-type mismatch"); }
           
           /* variable define */
@@ -75,7 +76,7 @@ module MODULE.MODEL {
             this.dstDocument_ = document;
             
             // 更新範囲を選出
-            setting.area = this.app_.chooseArea(setting.area, this.srcDocument_, this.dstDocument_);
+            setting.area = this.chooseArea(setting.area, this.srcDocument_, this.dstDocument_);
             if (!setting.area) { throw new Error('throw: area notfound'); }
             // 更新範囲をセレクタごとに分割
             setting.areas = setting.area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
@@ -282,8 +283,7 @@ module MODULE.MODEL {
     }
     
     updateDocument_(): void {
-      var setting: SettingInterface = this.setting_,
-          dstDocument: Document = this.dstDocument_;
+      var setting: SettingInterface = this.setting_;
 
       this.rewrite_();
 
@@ -316,7 +316,7 @@ module MODULE.MODEL {
 
         var onrender = (callback?: () => void) => {
           setTimeout(() => {
-            this.app_.isScrollPosSavable = true;
+            this.app_.page.isScrollPosSavable = true;
             if ('popstate' !== event.type.toLowerCase()) {
               this.scrollByHash_(setting.destLocation.hash) || this.scroll_(true);
             } else {
@@ -484,8 +484,8 @@ module MODULE.MODEL {
         performance: Math.ceil(setting.loadtime / (this.jqXHR_.responseText.length || 1) * 1e5),
         date: new Date().getTime()
       });
-      this.app_.data.saveServerToDB(host, 0, setting.destLocation.href, this.app_.calExpires(this.jqXHR_));
-      this.app_.chooseRequestServer(setting);
+      this.app_.data.saveServerToDB(host, 0, setting.destLocation.href, this.calExpires(this.jqXHR_));
+      this.app_.balance.chooseServer(setting);
 
       this.app_.data.loadBufferAll(setting.buffer.limit);
 
@@ -512,7 +512,7 @@ module MODULE.MODEL {
           scrollY = scrollY === false || scrollY === null ? jQuery(window).scrollTop() : parseInt(Number(scrollY) + '', 10);
 
           (jQuery(window).scrollTop() === scrollY && jQuery(window).scrollLeft() === scrollX) || window.scrollTo(scrollX, scrollY);
-          call && setting.database && this.app_.isScrollPosSavable && setting.fix.scroll && this.app_.data.saveScrollPositionToCacheAndDB(setting.destLocation.href, scrollX, scrollY);
+          call && setting.database && this.app_.page.isScrollPosSavable && setting.fix.scroll && this.app_.data.saveScrollPositionToCacheAndDB(setting.destLocation.href, scrollX, scrollY);
           break;
         case 'popstate':
           call && setting.fix.scroll && setting.database && this.app_.data.loadScrollPositionFromCacheOrDB(setting.destLocation.href);
@@ -594,7 +594,7 @@ module MODULE.MODEL {
           $scriptElements: JQuery = jQuery(prefilter, srcDocument).filter(selector).not(setting.load.ignore).not(jQuery('noscript', srcDocument).find(prefilter)),
           $execElements: JQuery = jQuery(),
           scriptwaits: JQueryDeferred<any[]>[] = [],
-          loadedScripts = this.app_.loadedScripts,
+          loadedScripts = this.app_.page.loadedScripts,
           regType: RegExp = /^$|(?:application|text)\/(?:java|ecma)script/i,
           regRemove: RegExp = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
 

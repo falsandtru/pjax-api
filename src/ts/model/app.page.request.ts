@@ -1,12 +1,12 @@
 /// <reference path="../define.ts"/>
-/// <reference path="app.page.ts"/>
+/// <reference path="app.page.utility.ts"/>
 /// <reference path="utility.ts"/>
 
 /* MODEL */
 
 module MODULE.MODEL {
   
-  export class AppPageRequest extends AppPage implements AppPageRequestInterface {
+  export class AppPageRequest extends AppPageUtility implements AppPageRequestInterface {
 
     constructor(
 
@@ -45,7 +45,7 @@ module MODULE.MODEL {
 
       if (UTIL.fire(setting.callbacks.before, null, [event, setting.param]) === false) { return; }
 
-      this.app_.isScrollPosSavable = false;
+      this.app_.page.isScrollPosSavable = false;
       setting.fix.reset && /click|submit/.test(event.type.toLowerCase()) && window.scrollTo(jQuery(window).scrollLeft(), 0);
 
       function done(ajax: any[], wait: void) {
@@ -137,8 +137,8 @@ module MODULE.MODEL {
             ajax: JQueryAjaxSettings = {},
             callbacks = {};
 
-        this.app_.chooseRequestServer(setting);
-        this.host_ = setting.balance.self && this.model_.requestHost.split('//').pop() || '';
+        this.app_.balance.chooseServer(setting);
+        this.host_ = setting.balance.self && this.app_.balance.host().split('//').pop() || '';
         requestLocation.host = this.host_ || setting.destLocation.host;
         ajax.url = !setting.server.query ? requestLocation.href
                                          : [
