@@ -85,32 +85,29 @@ module MODULE.MODEL {
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
           
+          /* redirect */
+          this.redirect_();
+          
           /* cache */
           this.updateCache_();
           
           /* escape */
           setting.fix.noscript && jQuery('noscript', this.srcDocument_).children().parent().each(function () { jQuery(this).text(this.innerHTML); });
 
-          /* rewrite */
-          this.updateRewrite_();
-          
-          /* redirect */
-          this.updateRedirect_();
-          
           this.dispatchEvent_(window, setting.gns + ':unload', false, true);
           jQuery(window).trigger(setting.gns + '.unload');
           
           /* url */
-          this.updateURL_();
+          this.updateUrl_();
 
           /* verify */
-          this.updateVerify_();
+          this.verify_();
           
           /* save */
           this.model_.setGlobalSetting(jQuery.extend(true, {}, setting, { origLocation: setting.destLocation.cloneNode() }));
           
           /* load */
-          this.updateDOM_();
+          this.updateDocument_();
           
           if (UTIL.fire(callbacks_update.success, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { break UPDATE; }
           if (UTIL.fire(callbacks_update.complete, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { break UPDATE; }
@@ -170,7 +167,7 @@ module MODULE.MODEL {
       if (UTIL.fire(callbacks_update.cache.after, null, [event, setting.param, cache]) === false) { return; }
     }
     
-    updateRewrite_(): void {
+    rewrite_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
@@ -184,7 +181,7 @@ module MODULE.MODEL {
       if (UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) { return; }
     }
 
-    updateRedirect_(): void {
+    redirect_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
           register: boolean = this.register_;
@@ -235,12 +232,32 @@ module MODULE.MODEL {
 
       if (UTIL.fire(callbacks_update.redirect.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
+    
+    updateUrl_(): void {
+      var setting: SettingInterface = this.setting_,
+          event: JQueryEventObject = this.event_,
+          register: boolean = this.register_;
+      var callbacks_update = setting.callbacks.update;
 
-    updateURL_(): void {
-      this.url_();
+      if (UTIL.fire(callbacks_update.url.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; };
+
+      register &&
+      window.history.pushState(
+        UTIL.fire(setting.state, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]),
+        window.opera || ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstDocument_.title : this.srcDocument_.title,
+        setting.destLocation.href);
+
+      if (register && setting.fix.location) {
+        jQuery[NAME].disable();
+        window.history.back();
+        window.history.forward();
+        jQuery[NAME].enable();
+      }
+
+      if (UTIL.fire(callbacks_update.url.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
     
-    updateVerify_(): void {
+    verify_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
@@ -262,9 +279,11 @@ module MODULE.MODEL {
       if (UTIL.fire(callbacks_update.verify.after, null, [event, setting.param]) === false) { return; }
     }
     
-    updateDOM_(): void {
+    updateDocument_(): void {
       var setting: SettingInterface = this.setting_,
           dstDocument: Document = this.dstDocument_;
+
+      this.rewrite_();
 
       this.title_();
       this.head_();
@@ -315,7 +334,6 @@ module MODULE.MODEL {
         var onload = () => {
           this.dispatchEvent_(window, setting.gns + ':load', false, true);
           jQuery(window).trigger(setting.gns + '.load');
-          this.script_('[src][defer]');
 
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('load(' + speed.time.slice(-1) + ')');
@@ -346,30 +364,6 @@ module MODULE.MODEL {
       .trigger(setting.gns + ':rendering');
     }
 
-    url_(): void {
-      var setting: SettingInterface = this.setting_,
-        event: JQueryEventObject = this.event_,
-        register: boolean = this.register_;
-      var callbacks_update = setting.callbacks.update;
-
-      if (UTIL.fire(callbacks_update.url.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; };
-
-      register &&
-      window.history.pushState(
-        UTIL.fire(setting.state, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]),
-        window.opera || ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstDocument_.title : this.srcDocument_.title,
-        setting.destLocation.href);
-
-      if (register && setting.fix.location) {
-        jQuery[NAME].disable();
-        window.history.back();
-        window.history.forward();
-        jQuery[NAME].enable();
-      }
-
-      if (UTIL.fire(callbacks_update.url.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
-    }
-    
     title_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
@@ -454,7 +448,7 @@ module MODULE.MODEL {
 
         $srcAreas.find('script').each((i, elem) => this.escapeScript_(<HTMLScriptElement>elem));
         if (jQuery.when) {
-          loadwaits.concat($srcAreas.find('img, iframe, frame').map(map).get());
+          loadwaits = loadwaits.concat($srcAreas.find('img, iframe, frame').map(map).get());
         }
 
         for (var j = 0; $srcAreas[j]; j++) {
@@ -689,7 +683,7 @@ module MODULE.MODEL {
 
       var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
       speedcheck && speed.time.push(speed.now() - speed.fire);
-      speedcheck && speed.name.push(('[src][defer]' === selector ? 'defer' : 'script') + '(' + speed.time.slice(-1) + ')');
+      speedcheck && speed.name.push('script(' + speed.time.slice(-1) + ')');
 
       return scriptwaits;
     }

@@ -38,7 +38,27 @@ module MODULE.MODEL {
     }
 
     transfer(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface): void {
-      new AppPageRequest(this.model_, this, setting, event, register, cache);
+      this.request_(setting, event, register, cache);
+    }
+    request_(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface): void {
+      var app = this;
+
+      function done(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) {
+        new AppPageUpdate(app.model_, app, setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host);
+      }
+      function fail(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) {
+        if (setting.fallback && 'abort' !== textStatus) {
+          if (setting.balance.self) {
+            app.disableBalance();
+          }
+          app.model_.fallback(event, setting);
+        }
+      }
+
+      new AppPageRequest(app.model_, app, setting, event, register, cache, done, fail);
+    }
+    update_(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string): void {
+      new AppPageUpdate(this.model_, this, setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host);
     }
 
     configure(option: SettingInterface, origURL: string, destURL: string): SettingInterface {

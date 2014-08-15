@@ -16,7 +16,9 @@ module MODULE.MODEL {
     public setting_: SettingInterface,
     public event_: JQueryEventObject,
     public register_: boolean,
-    public cache_: CacheInterface
+    public cache_: CacheInterface,
+    public done_: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any,
+    public fail_: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any
     ) {
       super();
       this.main_();
@@ -31,9 +33,11 @@ module MODULE.MODEL {
     main_(): void {
       var that = this,
           setting = this.setting_,
-          event = this.event_,
+          event = this.event_ = jQuery.extend(true, {}, this.event_),
           register = this.register_,
-          cache = this.cache_;
+          cache = this.cache_,
+          globalXHR = this.model_.getGlobalXHR(),
+          wait: number = UTIL.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
 
       var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
       speedcheck && (speed.fire = event.timeStamp);
@@ -45,16 +49,9 @@ module MODULE.MODEL {
       this.app_.isScrollPosSavable = false;
       setting.fix.reset && /click|submit/.test(event.type.toLowerCase()) && window.scrollTo(jQuery(window).scrollLeft(), 0);
 
-      var globalXHR = this.model_.getGlobalXHR();
-      event = jQuery.extend(true, {}, event);
-      this.setting_ = setting;
-      this.cache_ = cache;
-      this.event_ = event;
-      this.register_ = register;
-
-      function done(ajax, wait) {
+      function done(ajax: any[], wait: void) {
         that.data_ = ajax[0];
-        that.textStatus_ = ajax[1]
+        that.textStatus_ = ajax[1];
         that.jqXHR_ = ajax[2];
         UTIL.fire(setting.callbacks.ajax.done, this, [event, setting.param].concat(ajax));
       }
@@ -65,24 +62,39 @@ module MODULE.MODEL {
         UTIL.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat(arguments));
       }
       function always() {
+        UTIL.fire(setting.callbacks.ajax.always, this, [event, setting.param].concat(arguments));
         that.model_.setGlobalXHR(null);
 
-        switch ('string') {
-          case typeof that.data_:
-            UTIL.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat([that.data_, that.textStatus_, that.jqXHR_]));
-            new AppPageUpdate(that.model_, that.app_, that.setting_, that.event_, that.register_, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
-            break;
+        if (that.model_.isDeferrable) {
+          if (that.data_) {
+            that.done_(setting, event, register, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
+          } else {
+            that.fail_(setting, event, register, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
+          }
+        }
+      }
+      function success(data: string, textStatus: string, jqXHR: JQueryXHR) {
+        that.data_ = data;
+        that.textStatus_ = textStatus;
+        that.jqXHR_ = jqXHR;
+        UTIL.fire(setting.callbacks.ajax.success, this, [event, setting.param, data, textStatus, jqXHR]);
+      }
+      function error(jqXHR: JQueryXHR, textStatus: string, errorThrown: string) {
+        that.jqXHR_ = jqXHR;
+        that.textStatus_ = textStatus;
+        that.errorThrown_ = errorThrown;
+        UTIL.fire(setting.callbacks.ajax.error, this, [event, setting.param, jqXHR, textStatus, errorThrown]);
+      }
+      function complete(jqXHR: JQueryXHR, textStatus: string) {
+        UTIL.fire(setting.callbacks.ajax.complete, this, [event, setting.param, jqXHR, textStatus]);
+        that.model_.setGlobalXHR(null);
 
-          case typeof that.errorThrown_:
-            UTIL.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat([that.jqXHR_, that.textStatus_, that.errorThrown_]));
-            if ('abort' !== that.textStatus_) {
-              if (setting.balance.self) {
-                that.app_.data.saveServerToDB(setting.balance.server.host, new Date().getTime());
-                that.app_.disableBalance();
-              }
-              setting.fallback && that.model_.fallback(event, setting);
-            }
-            break;
+        if (!that.model_.isDeferrable) {
+          if (that.data_) {
+            that.done_(setting, event, register, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
+          } else {
+            that.fail_(setting, event, register, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
+          }
         }
       }
 
@@ -92,14 +104,17 @@ module MODULE.MODEL {
         setting.loadtime = 0;
         this.model_.setGlobalXHR(null);
         this.host_ = cache.host || '';
-        this.data_ = cache.data;
+        this.data_ = cache.jqXHR.responseText;
         this.textStatus_ = cache.textStatus;
         this.jqXHR_ = cache.jqXHR;
         if (this.model_.isDeferrable) {
-          jQuery.when(jQuery.Deferred().resolve(), that.wait_(UTIL.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href])))
-          .done(() => new AppPageUpdate(that.model_, that.app_, that.setting_, that.event_, that.register_, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_))
+          jQuery.when(jQuery.Deferred().resolve([that.data_, that.textStatus_, that.jqXHR_]), this.wait_(wait))
+          .done(done).fail(fail).always(always);
         } else {
-          new AppPageUpdate(that.model_, that.app_, that.setting_, that.event_, that.register_, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
+          var context: JQueryAjaxSettings = jQuery.extend({}, jQuery.ajaxSettings, setting.ajax);
+          context = context.context || context;
+          success.call(context, that.data_, that.textStatus_, that.jqXHR_);
+          complete.call(context, that.jqXHR_, that.textStatus_);
         }
       } else if (globalXHR && globalXHR.follow && 'abort' !== globalXHR.statusText && 'error' !== globalXHR.statusText) {
         // preload
@@ -109,7 +124,7 @@ module MODULE.MODEL {
         speedcheck && speed.name.push('continue(' + speed.time.slice(-1) + ')');
         this.host_ = globalXHR.host || '';
         setting.loadtime = globalXHR.timeStamp;
-        var wait = setting.wait && isFinite(globalXHR.timeStamp) ? Math.max(setting.wait - new Date().getTime() + globalXHR.timeStamp, 0) : 0;
+        var wait = setting.wait && isFinite(globalXHR.timeStamp) ? Math.max(wait - new Date().getTime() + globalXHR.timeStamp, 0) : 0;
         jQuery.when(globalXHR, that.wait_(wait))
         .done(done).fail(fail).always(always);
 
@@ -187,31 +202,9 @@ module MODULE.MODEL {
           dataFilter: !setting.callbacks.ajax.dataFilter ? undefined : function (data: string, type: Object) {
             return UTIL.fire(setting.callbacks.ajax.dataFilter, this, [event, setting.param, data, type]) || data;
           },
-          success: function (data: string, textStatus: string, jqXHR: JQueryXHR) {
-            that.data_ = data;
-            UTIL.fire(setting.callbacks.ajax.success, this, [event, setting.param, data, textStatus, jqXHR]);
-          },
-          error: function (jqXHR: JQueryXHR, textStatus: string, errorThrown: string) {
-            that.errorThrown_ = errorThrown;
-            UTIL.fire(setting.callbacks.ajax.error, this, [event, setting.param, jqXHR, textStatus, errorThrown]);
-          },
-          complete: function (jqXHR: JQueryXHR, textStatus: string) {
-            UTIL.fire(setting.callbacks.ajax.complete, this, [event, setting.param, jqXHR, textStatus]);
-
-            that.model_.setGlobalXHR(null);
-            if (!that.errorThrown_) {
-              if (!that.model_.isDeferrable) {
-                that.textStatus_ = textStatus;
-                that.jqXHR_ = jqXHR;
-                new AppPageUpdate(that.model_, that.app_, that.setting_, that.event_, that.register_, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
-              }
-            } else if (setting.fallback && 'abort' !== textStatus) {
-              if (setting.balance.self) {
-                that.app_.disableBalance();
-              }
-              that.model_.fallback(event, setting);
-            }
-          }
+          success: success,
+          error: error,
+          complete: complete
         };
 
         ajax = jQuery.extend(true, {}, setting.ajax, callbacks, ajax);
@@ -222,9 +215,9 @@ module MODULE.MODEL {
         globalXHR = this.model_.setGlobalXHR(jQuery.ajax(ajax));
         this.dispatchEvent_(document, setting.gns + ':request', false, true);
         jQuery(document).trigger(setting.gns + '.request');
-        
+
         if (this.model_.isDeferrable) {
-          jQuery.when(globalXHR, that.wait_(UTIL.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href])))
+          jQuery.when(globalXHR, that.wait_(wait))
           .done(done).fail(fail).always(always);
         }
       }

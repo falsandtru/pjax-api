@@ -179,7 +179,9 @@ module MODULE {
                 setting: SettingInterface,
                 event: JQueryEventObject,
                 register: boolean,
-                cache: CacheInterface)
+                cache: CacheInterface,
+                done: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any,
+                fail: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any)
   }
   export declare class AppPageUpdateInterface {
     constructor(model: ModelInterface,
