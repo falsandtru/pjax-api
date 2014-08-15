@@ -772,12 +772,13 @@ module MODULE.MODEL {
             var html = '<html lang="en" class="html"><head><link href="/"><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript><a href="/"></a></body></html>',
                 doc = conv(html, '');
             return doc &&
-              jQuery('html', doc).is('.html[lang=en]') &&
-              (<HTMLLinkElement>jQuery('head>link', doc)[0]).href &&
-              jQuery('head>noscript', doc).html() &&
-              jQuery('body>noscript', doc).text() === 'noscript' &&
-              (<HTMLAnchorElement>jQuery('body>a', doc)[0]).href &&
-              true || false;
+                   doc.URL && decodeURI(doc.URL) === decodeURI(uri || window.location.href) &&
+                   doc.querySelector('html.html[lang="en"]') &&
+                   doc.querySelector('head>link')['href'] &&
+                   doc.querySelector('head>noscript')['innerHTML'] &&
+                   doc.querySelector('body>noscript')['innerHTML'] === 'noscript' &&
+                   doc.querySelector('body>a')['href'] &&
+                   true || false;
           } catch (err) {
             return false;
           }
@@ -834,7 +835,19 @@ module MODULE.MODEL {
 
           default:
             var test = (mode_: string): boolean => test_(this.createHTMLDocument_, mode = mode_);
-            test('dom') || test('doc') || test('manipulate');
+            switch (/webkit|firefox|trident|$/i.exec(window.navigator.userAgent.toLowerCase()).shift()) {
+              case 'webkit':
+                test('doc') || test('dom') || test('manipulate');
+                break;
+              case 'firefox':
+                test('dom') || test('doc') || test('manipulate');
+                break;
+              case 'trident':
+                test('manipulate') || test('dom') || test('doc');
+                break;
+              default:
+                test('dom') || test('doc') || test('manipulate');
+            }
             doc = this.createHTMLDocument_(html, uri);
             break;
         }
