@@ -171,9 +171,12 @@ interface PjaxSetting {
               before?: (event?: JQueryEventObject, param?: any) => any
               after?: (event?: JQueryEventObject, param?: any) => any
             }
+            done?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+            fail?: (event?: JQueryEventObject, param?: any, jqXHR?: JQueryXHR, textStatus?: string, errorThrown?: string) => any
+            always?: (event?: JQueryEventObject, param?: any, ...args: any[]) => any
             success?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
-            error?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
-            complete?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+            error?: (event?: JQueryEventObject, param?: any, jqXHR?: JQueryXHR, textStatus?: string, errorThrown?: string) => any
+            complete?: (event?: JQueryEventObject, param?: any, jqXHR?: JQueryXHR, textStatus?: string) => any
         }
     }
 }

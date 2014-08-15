@@ -480,8 +480,8 @@ module MODULE {
           after?: (event: JQueryEventObject, param: any) => any
         }
         success?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-        error?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-        complete?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
+        error?: (event: JQueryEventObject, param: any, jqXHR: JQueryXHR, textStatus: string, errorThrown: string) => any
+        complete?: (event: JQueryEventObject, param: any, jqXHR: JQueryXHR, textStatus: string) => any
       }
     }
     
