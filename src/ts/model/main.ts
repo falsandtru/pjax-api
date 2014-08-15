@@ -2,7 +2,7 @@
 /// <reference path="_template.ts"/>
 /// <reference path="app.ts"/>
 /// <reference path="data.ts"/>
-/// <reference path="util.ts"/>
+/// <reference path="utility.ts"/>
 /// <reference path="../view/main.ts"/>
 /// <reference path="../controller/main.ts"/>
 

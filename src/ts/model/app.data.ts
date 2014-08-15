@@ -1,6 +1,6 @@
 /// <reference path="../define.ts"/>
 /// <reference path="data.ts"/>
-/// <reference path="util.ts"/>
+/// <reference path="utility.ts"/>
 
 /* MODEL */
 

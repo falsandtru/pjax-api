@@ -3,7 +3,7 @@
 /// <reference path="app.page.request.ts"/>
 /// <reference path="app.page.update.ts"/>
 /// <reference path="app.data.ts"/>
-/// <reference path="util.ts"/>
+/// <reference path="utility.ts"/>
 /// <reference path="../view/main.ts"/>
 
 /* MODEL */

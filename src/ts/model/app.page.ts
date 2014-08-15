@@ -1,5 +1,5 @@
 /// <reference path="../define.ts"/>
-/// <reference path="util.ts"/>
+/// <reference path="utility.ts"/>
 
 /* MODEL */
 
