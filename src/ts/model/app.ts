@@ -10,7 +10,7 @@
 
 module MODULE.MODEL {
   
-  export class App extends Template implements ModelAppInterface {
+  export class App extends Template implements AppLayerInterface {
 
     constructor(public model_: ModelInterface, public controller_: ControllerInterface) {
       super();

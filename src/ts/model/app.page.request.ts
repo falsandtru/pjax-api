@@ -11,7 +11,7 @@ module MODULE.MODEL {
     constructor(
 
     public model_: ModelInterface,
-    public app_: ModelAppInterface,
+    public app_: AppLayerInterface,
     public setting_: SettingInterface,
     public event_: JQueryEventObject,
     public register_: boolean,

@@ -13,7 +13,7 @@ module MODULE.MODEL {
   export class Main extends Template implements ModelInterface {
 
     controller_: ControllerInterface = new CONTROLLER.Main(this)
-    app_: ModelAppInterface = new MODEL.App(this, this.controller_)
+    app_: AppLayerInterface = new MODEL.App(this, this.controller_)
     state_: State = State.wait
 
     isDeferrable: boolean = jQuery.when && 1.06 <= Number(jQuery().jquery.replace(/\D*(\d+)\.(\d+).*$/, '$1.0$2').replace(/\d+(\d{2})$/, '$1'))

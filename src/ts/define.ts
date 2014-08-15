@@ -103,7 +103,7 @@ module MODULE {
     clearCache(): void
     cleanCache(): void
   }
-  export declare class ModelAppInterface extends StockInterface {
+  export declare class AppLayerInterface extends StockInterface {
     data: AppDataInterface
 
     landing: string
@@ -175,7 +175,7 @@ module MODULE {
   }
   export declare class AppPageRequestInterface {
     constructor(model: ModelInterface,
-                app: ModelAppInterface,
+                app: AppLayerInterface,
                 setting: SettingInterface,
                 event: JQueryEventObject,
                 register: boolean,
@@ -185,7 +185,7 @@ module MODULE {
   }
   export declare class AppPageUpdateInterface {
     constructor(model: ModelInterface,
-                app: ModelAppInterface,
+                app: AppLayerInterface,
                 setting: SettingInterface,
                 event: JQueryEventObject,
                 register: boolean,
@@ -196,7 +196,7 @@ module MODULE {
                 errorThrown: string,
                 host: string)
   }
-  export declare class ModelDataInterface {
+  export declare class DataLayerInterface {
     DB: DataDBInterface
     Cookie: DataCookieInterface
   }
