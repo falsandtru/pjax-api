@@ -331,13 +331,13 @@ new Function().apply.apply(function (accessor) {
         area: ['#container', 'body'],
         rewrite: function (document) {
           function escapeImage() {
-            this.setAttribute('data-original', this.getAttribute('src'));
+            this.setAttribute('data-original', this.src);
             this.setAttribute('src', '/img/gray.gif');
           }
           $('#primary, #secondary', document).find('img').each(escapeImage);
 
           function escapeIframe() {
-            this.setAttribute('data-original', this.getAttribute('src'));
+            this.setAttribute('data-original', this.src);
             this.setAttribute('src', 'javascript:false');
           }
           $('#primary', document).find('iframe').each(escapeIframe);

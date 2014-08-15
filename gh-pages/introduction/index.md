@@ -33,7 +33,7 @@ $.pjax({
   },
   rewrite: function(document, area) {
     $(area, document).find('img').each(function(){
-      this.setAttribute('data-original', this.getAttribute('src'));
+      this.setAttribute('data-original', this.src);
       this.setAttribute('src', '/img/gray.gif');
     })//.lazyload();
   },
@@ -44,7 +44,7 @@ $.pjax({
   }
 });
 
-// 6 events and 43 callbacks exists.
+// 6 events and 41 callbacks exists.
 $(document).bind('pjax:ready', function() {
   console.log('ready');
 });
@@ -141,6 +141,6 @@ Turbolinks、defunkt版（v1.7.0/2013年6月時点最新版）との主な違い
 |複数範囲の更新|×|○|×|
 |更新範囲の候補設定|×|○|×|
 |ユーザー定義関数の実行形式|イベント|コールバック＋イベント|イベント|
-|ユーザー定義関数の設定箇所|9|43+6|7|
+|ユーザー定義関数の設定箇所|9|41+6|7|
 |部分更新キャンセル|×|○|×|
 |比較デモ|<a href="demo/defunkt/" target="_blank">defunkt</a>|<a href="demo/falsandtru/" target="_blank">falsandtru</a>|-|
