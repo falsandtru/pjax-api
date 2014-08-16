@@ -44,7 +44,11 @@ accelerate:
       speedcheck: true
     });
     
-    $(document).bind('pjax:ready', function() {$(document).trigger('preload');});
+    $(document).bind('pjax:ready', function() {
+      setTimeout(function () {
+        $(document).trigger('preload');
+      }, 2000);
+　　　});
   }
 </pre>
 
@@ -319,7 +323,9 @@ new Function().apply.apply(function (accessor) {
     }
     
     if (always) {
-      $(document).trigger('preload');
+      setTimeout(function () {
+        $(document).trigger('preload');
+      }, 2000);
     }
   };
 
