@@ -43,8 +43,6 @@ module MODULE.MODEL {
       speedcheck && speed.time.splice(0, 100, 0);
       speedcheck && speed.name.splice(0, 100, 'pjax(' + speed.time.slice(-1) + ')');
 
-      if (UTIL.fire(setting.callbacks.before, null, [event, setting.param]) === false) { return; }
-
       this.app_.page.isScrollPosSavable = false;
       setting.fix.reset && /click|submit/.test(event.type.toLowerCase()) && window.scrollTo(jQuery(window).scrollLeft(), 0);
 
@@ -219,7 +217,6 @@ module MODULE.MODEL {
         }
       }
 
-      if (UTIL.fire(setting.callbacks.after, null, [event, setting.param]) === false) { return; }
     }
 
   }

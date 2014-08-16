@@ -118,7 +118,7 @@ module MODULE.MODEL {
             callback: null,
             callbacks: {
               ajax: {},
-              update: { redirect: {}, cache: {}, rewrite: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, verify: {}, balance: {} }
+              update: { redirect: {}, rewrite: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, balance: {} }
             },
             param: null,
             redirect: true,

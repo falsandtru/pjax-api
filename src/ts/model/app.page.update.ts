@@ -50,10 +50,6 @@ module MODULE.MODEL {
           jqXHR: JQueryXHR = this.jqXHR_;
       var callbacks_update = setting.callbacks.update;
 
-      function eachNoscriptEscape() {
-        jQuery(this).text(this.innerHTML);
-      }
-
       var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
       speedcheck && speed.time.push(speed.now() - speed.fire);
       speedcheck && speed.name.push('fetch(' + speed.time.slice(-1) + ')');
@@ -61,8 +57,6 @@ module MODULE.MODEL {
       UPDATE: {
         setting.loadtime = setting.loadtime && new Date().getTime() - setting.loadtime;
         setting.loadtime = setting.loadtime < 100 ? 0 : setting.loadtime;
-
-        if (UTIL.fire(callbacks_update.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_, this.cache_]) === false) { break UPDATE; }
         
         if (setting.cache.mix && 'popstate' !== event.type.toLowerCase() && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
           return this.model_.fallback(event, setting);
@@ -75,117 +69,54 @@ module MODULE.MODEL {
           if (!~(jqXHR.getResponseHeader('Content-Type') || '').toLowerCase().search(setting.contentType)) { throw new Error("throw: content-type mismatch"); }
           
           /* variable define */
-          DEFINE: {
-            this.srcDocument_ = this.createHTMLDocument_(jqXHR.responseText, setting.destLocation.href);
-            this.dstDocument_ = document;
+          this.srcDocument_ = this.createHTMLDocument_(jqXHR.responseText, setting.destLocation.href);
+          this.dstDocument_ = document;
             
-            // 更新範囲を選出
-            setting.area = this.chooseArea(setting.area, this.srcDocument_, this.dstDocument_);
-            if (!setting.area) { throw new Error('throw: area notfound'); }
-            // 更新範囲をセレクタごとに分割
-            setting.areas = setting.area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
-          }; // label: DEFINE
+          // 更新範囲を選出
+          setting.area = this.chooseArea(setting.area, this.srcDocument_, this.dstDocument_);
+          if (!setting.area) { throw new Error('throw: area notfound'); }
+          // 更新範囲をセレクタごとに分割
+          setting.areas = setting.area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
+          // キャッシュを設定
+          if (this.isCacheUsable_(setting, event)) {
+            this.model_.setCache(setting.destLocation.href, cache && cache.data || null, this.textStatus_, this.jqXHR_);
+            cache = this.model_.getCache(setting.destLocation.href);
+            this.cache_ = cache;
+          }
           
-          /* check point */
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
           
-          /* redirect */
           this.checkRedirect_();
           
-          /* cache */
-          this.updateCache_();
-          
-          /* escape */
-          setting.fix.noscript && jQuery('noscript', this.srcDocument_).children().parent().each(eachNoscriptEscape);
-
           this.dispatchEvent_(window, setting.gns + ':unload', false, true);
           jQuery(window).trigger(setting.gns + '.unload');
           
-          /* url */
           this.updateUrl_();
-
-          /* verify */
-          this.verify_();
           
-          /* save */
           this.model_.setGlobalSetting(jQuery.extend(true, {}, setting, { origLocation: setting.destLocation.cloneNode() }));
           
-          /* document */
           this.updateDocument_();
           
-          if (UTIL.fire(callbacks_update.success, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { break UPDATE; }
-          if (UTIL.fire(callbacks_update.complete, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { break UPDATE; }
-          if (UTIL.fire(setting.callback, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { break UPDATE; }
         } catch (err) {
           if (!err) { return; }
 
-          /* cache delete */
-          this.cache_ && this.model_.removeCache(setting.destLocation.href);
+          this.cache_ &&
+          this.model_.removeCache(setting.destLocation.href);
 
-          if (UTIL.fire(callbacks_update.error, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { break UPDATE; }
-          if (UTIL.fire(callbacks_update.complete, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { break UPDATE; }
           this.model_.fallback(event, setting);
         };
-
-        if (UTIL.fire(callbacks_update.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { break UPDATE; }
       }; // label: UPDATE
     }
 
-    updateCache_(): void {
-      var setting: SettingInterface = this.setting_,
-          cache: CacheInterface = this.cache_,
-          event: JQueryEventObject = this.event_,
-          data: string = this.data_,
-          textStatus: string = this.textStatus_,
-          jqXHR: JQueryXHR = this.jqXHR_;
-      var callbacks_update = setting.callbacks.update;
-
-      if (!setting.cache.click && !setting.cache.submit && !setting.cache.popstate) { return; }
-      if ('submit' === event.type.toLowerCase() && !setting.cache[(<HTMLFormElement>event.currentTarget).method.toLowerCase()]) { return; }
-
-      if (UTIL.fire(callbacks_update.cache.before, null, [event, setting.param, cache]) === false) { return; }
-
-      this.model_.setCache(setting.destLocation.href, cache && cache.data || null, textStatus, jqXHR);
-      cache = this.model_.getCache(setting.destLocation.href);
-      this.cache_ = cache;
-
-      if (cache && cache.data) {
-        var $span = jQuery('<span/>'),
-            html: string = setting.fix.noscript ? cache.data.replace(/(<noscript>)([^<>]+?)(<\/noscript>)/gim, ($0, $1, $2, $3) => $1 + $span.html($2).text() + $3) : cache.data,
-            cacheDocument: Document = this.createHTMLDocument_(html, setting.destLocation.href),
-            srcDocument: Document = this.srcDocument_;
-
-        srcDocument.title = cacheDocument.title;
-
-        var $srcAreas: JQuery,
-            $dstAreas: JQuery;
-        for (var i = 0; setting.areas[i]; i++) {
-          $srcAreas = jQuery(setting.areas[i], cacheDocument).clone();
-          $dstAreas = jQuery(setting.areas[i], srcDocument);
-          if (!$srcAreas.length || !$dstAreas.length || $srcAreas.length !== $dstAreas.length) { throw new Error('throw: area mismatch'); }
-
-          for (var j = 0; $srcAreas[j]; j++) {
-            $dstAreas[j].parentNode.replaceChild($srcAreas[j], $dstAreas[j]);
-          }
-        }
+    isCacheUsable_(setting: SettingInterface, event: JQueryEventObject): boolean {
+      switch (true) {
+        case !setting.cache.click && !setting.cache.submit && !setting.cache.popstate:
+        case 'submit' === event.type.toLowerCase() && !setting.cache[(<HTMLFormElement>event.currentTarget).method.toLowerCase()]:
+          return false;
+        default:
+          return true;
       }
-
-      if (UTIL.fire(callbacks_update.cache.after, null, [event, setting.param, cache]) === false) { return; }
-    }
-    
-    rewrite_(): void {
-      var setting: SettingInterface = this.setting_,
-          event: JQueryEventObject = this.event_;
-      var callbacks_update = setting.callbacks.update;
-
-      if (!setting.rewrite) { return; }
-
-      if (UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) { return; }
-
-      UTIL.fire(setting.rewrite, null, [this.srcDocument_, setting.area, this.host_])
-
-      if (UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) { return; }
     }
 
     checkRedirect_(): void {
@@ -261,17 +192,7 @@ module MODULE.MODEL {
         jQuery[NAME].enable();
       }
 
-      if (UTIL.fire(callbacks_update.url.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
-    }
-    
-    verify_(): void {
-      var setting: SettingInterface = this.setting_,
-          event: JQueryEventObject = this.event_;
-      var callbacks_update = setting.callbacks.update;
-
-      if (UTIL.fire(callbacks_update.verify.before, null, [event, setting.param]) === false) { return; }
-
-      // モバイルブラウザでアドレスバーのURLのパーセントエンコーディングの大文字小文字がアンカーと一致しないため揃える必要がある
+      // verify
       if (UTIL.compareUrl(setting.destLocation.href, UTIL.canonicalizeUrl(window.location.href))) {
         setting.retriable = true;
       } else if (setting.retriable) {
@@ -283,11 +204,17 @@ module MODULE.MODEL {
         throw new Error('throw: location mismatch');
       }
 
-      if (UTIL.fire(callbacks_update.verify.after, null, [event, setting.param]) === false) { return; }
+      if (UTIL.fire(callbacks_update.url.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
     
     updateDocument_(): void {
-      var setting: SettingInterface = this.setting_;
+      var setting: SettingInterface = this.setting_,
+          event: JQueryEventObject = this.event_;
+
+      this.overwriteDocumentByCache_();
+
+      setting.fix.noscript &&
+      this.escapeNoscript_(this.srcDocument_);
 
       this.rewrite_();
 
@@ -307,13 +234,15 @@ module MODULE.MODEL {
 
       this.css_('link[rel~="stylesheet"], style');
       jQuery(window)
-      .one(setting.gns + ':rendering', (event) => {
-        event.preventDefault();
-        event.stopImmediatePropagation();
+      .one(setting.gns + ':rendering', (e) => {
+        e.preventDefault();
+        e.stopImmediatePropagation();
 
         var onready = (callback?: () => void) => {
           this.dispatchEvent_(document, setting.gns + ':ready', false, true);
           jQuery(document).trigger(setting.gns + '.ready');
+
+          UTIL.fire(setting.callback, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]);
 
           return jQuery.when ? this.waitRender_(jQuery.Deferred().resolve) : this.waitRender_(callback);
         };
@@ -368,6 +297,48 @@ module MODULE.MODEL {
         }
       })
       .trigger(setting.gns + ':rendering');
+    }
+    
+    overwriteDocumentByCache_(): void {
+      var setting: SettingInterface = this.setting_,
+          event: JQueryEventObject = this.event_,
+          cache: CacheInterface = this.cache_;
+
+      if (!this.isCacheUsable_(setting, event)) { return; }
+
+      if (cache && cache.data) {
+        var html: string = setting.fix.noscript ? this.restoreNoscript_(cache.data) : cache.data,
+            cacheDocument: Document = this.createHTMLDocument_(html, setting.destLocation.href),
+            srcDocument: Document = this.srcDocument_;
+
+        srcDocument.title = cacheDocument.title;
+
+        var $srcAreas: JQuery,
+            $dstAreas: JQuery;
+        for (var i = 0; setting.areas[i]; i++) {
+          $srcAreas = jQuery(setting.areas[i], cacheDocument).clone();
+          $dstAreas = jQuery(setting.areas[i], srcDocument);
+          if (!$srcAreas.length || !$dstAreas.length || $srcAreas.length !== $dstAreas.length) { throw new Error('throw: area mismatch'); }
+
+          for (var j = 0; $srcAreas[j]; j++) {
+            $dstAreas[j].parentNode.replaceChild($srcAreas[j], $dstAreas[j]);
+          }
+        }
+      }
+    }
+    
+    rewrite_(): void {
+      var setting: SettingInterface = this.setting_,
+          event: JQueryEventObject = this.event_;
+      var callbacks_update = setting.callbacks.update;
+
+      if (!setting.rewrite) { return; }
+
+      if (UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) { return; }
+
+      UTIL.fire(setting.rewrite, null, [this.srcDocument_, setting.area, this.host_])
+
+      if (UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) { return; }
     }
 
     title_(): void {
@@ -496,36 +467,6 @@ module MODULE.MODEL {
       if (UTIL.fire(callbacks_update.balance.after, null, [event, setting.param]) === false) { return; }
     }
 
-    scroll_(call: boolean): void {
-      var setting: SettingInterface = this.setting_,
-          event: JQueryEventObject = this.event_;
-      var callbacks_update = setting.callbacks.update;
-
-      if (UTIL.fire(callbacks_update.scroll.before, null, [event, setting.param]) === false) { return; }
-
-      var scrollX: any, scrollY: any;
-      switch (event.type.toLowerCase()) {
-        case 'click':
-        case 'submit':
-          scrollX = call && 'function' === typeof setting.scrollLeft ? UTIL.fire(setting.scrollLeft, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]) : setting.scrollLeft;
-          scrollX = 0 <= scrollX ? scrollX : 0;
-          scrollX = scrollX === false || scrollX === null ? jQuery(window).scrollLeft() : parseInt(Number(scrollX) + '', 10);
-
-          scrollY = call && 'function' === typeof setting.scrollTop ? UTIL.fire(setting.scrollTop, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]) : setting.scrollTop;
-          scrollY = 0 <= scrollY ? scrollY : 0;
-          scrollY = scrollY === false || scrollY === null ? jQuery(window).scrollTop() : parseInt(Number(scrollY) + '', 10);
-
-          (jQuery(window).scrollTop() === scrollY && jQuery(window).scrollLeft() === scrollX) || window.scrollTo(scrollX, scrollY);
-          call && setting.database && this.app_.page.isScrollPosSavable && setting.fix.scroll && this.app_.data.saveScrollPositionToDB(setting.destLocation.href, scrollX, scrollY);
-          break;
-        case 'popstate':
-          call && setting.fix.scroll && setting.database && this.app_.data.loadScrollPositionFromDB(setting.destLocation.href);
-          break;
-      }
-
-      if (UTIL.fire(callbacks_update.scroll.after, null, [event, setting.param]) === false) { return; }
-    }
-
     css_(selector: string): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
@@ -596,15 +537,16 @@ module MODULE.MODEL {
           srcDocument: Document = this.srcDocument_,
           dstDocument: Document = this.dstDocument_;
       var callbacks_update = setting.callbacks.update;
+
+      var scriptwaits: JQueryDeferred<any[]>[] = [];
+
+      if (!setting.load.script) { return scriptwaits; }
       
-      if (!setting.load.script) { return []; }
-      
-      if (UTIL.fire(callbacks_update.script.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return []; }
+      if (UTIL.fire(callbacks_update.script.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return scriptwaits; }
       
       var prefilter: string = 'script',
           $scriptElements: JQuery = jQuery(prefilter, srcDocument).filter(selector).not(setting.load.ignore).not(jQuery('noscript', srcDocument).find(prefilter)),
           $execElements: JQuery = jQuery(),
-          scriptwaits: JQueryDeferred<any[]>[] = [],
           loadedScripts = this.app_.page.loadedScripts,
           regType: RegExp = /^$|(?:application|text)\/(?:java|ecma)script/i,
           regRemove: RegExp = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
@@ -701,6 +643,36 @@ module MODULE.MODEL {
       return scriptwaits;
     }
     
+    scroll_(call: boolean): void {
+      var setting: SettingInterface = this.setting_,
+          event: JQueryEventObject = this.event_;
+      var callbacks_update = setting.callbacks.update;
+
+      if (UTIL.fire(callbacks_update.scroll.before, null, [event, setting.param]) === false) { return; }
+
+      var scrollX: any, scrollY: any;
+      switch (event.type.toLowerCase()) {
+        case 'click':
+        case 'submit':
+          scrollX = call && 'function' === typeof setting.scrollLeft ? UTIL.fire(setting.scrollLeft, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]) : setting.scrollLeft;
+          scrollX = 0 <= scrollX ? scrollX : 0;
+          scrollX = scrollX === false || scrollX === null ? jQuery(window).scrollLeft() : parseInt(Number(scrollX) + '', 10);
+
+          scrollY = call && 'function' === typeof setting.scrollTop ? UTIL.fire(setting.scrollTop, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]) : setting.scrollTop;
+          scrollY = 0 <= scrollY ? scrollY : 0;
+          scrollY = scrollY === false || scrollY === null ? jQuery(window).scrollTop() : parseInt(Number(scrollY) + '', 10);
+
+          (jQuery(window).scrollTop() === scrollY && jQuery(window).scrollLeft() === scrollX) || window.scrollTo(scrollX, scrollY);
+          call && setting.database && this.app_.page.isScrollPosSavable && setting.fix.scroll && this.app_.data.saveScrollPositionToDB(setting.destLocation.href, scrollX, scrollY);
+          break;
+        case 'popstate':
+          call && setting.fix.scroll && setting.database && this.app_.data.loadScrollPositionFromDB(setting.destLocation.href);
+          break;
+      }
+
+      if (UTIL.fire(callbacks_update.scroll.after, null, [event, setting.param]) === false) { return; }
+    }
+
     waitRender_(callback: JQueryDeferred<any>): JQueryDeferred<any>
     waitRender_(callback: () => void): void
     waitRender_(callback: any) {
@@ -749,6 +721,18 @@ module MODULE.MODEL {
       }
     }
     
+    escapeNoscript_(srcDocument: Document): void {
+      jQuery('noscript', srcDocument).children().parent().each(eachNoscript);
+      function eachNoscript() {
+        jQuery(this).text(this.innerHTML);
+      }
+    }
+
+    restoreNoscript_(html: string): string {
+      var $span = jQuery('<span/>');
+      return html.replace(/(<noscript>)([^<>]+?)(<\/noscript>)/gim, ($0, $1, $2, $3) => $1 + $span.html($2).text() + $3);
+    }
+
     escapeScript_(script: HTMLScriptElement): void {
       jQuery.data(script, 'source', script.src);
       jQuery.data(script, 'code', script.innerHTML);

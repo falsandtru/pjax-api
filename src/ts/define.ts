@@ -426,8 +426,6 @@ module MODULE {
     callback(): any
     param: any
     callbacks: {
-      before?: (event: JQueryEventObject, param: any) => any
-      after?: (event: JQueryEventObject, param: any) => any
       ajax: {
         xhr?: (event: JQueryEventObject, param: any) => any
         beforeSend?: (event: JQueryEventObject, param: any, data: string, ajaxSettings: any) => any
@@ -440,16 +438,6 @@ module MODULE {
         always?: (event: JQueryEventObject, param: any, jqXHR: JQueryXHR, textStatus: string) => any
       }
       update: {
-        before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-        after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-        rewrite: {
-          before?: (event: JQueryEventObject, param: any, cache: any) => any
-          after?: (event: JQueryEventObject, param: any, cache: any) => any
-        }
-        cache: {
-          before?: (event: JQueryEventObject, param: any, cache: any) => any
-          after?: (event: JQueryEventObject, param: any, cache: any) => any
-        }
         redirect: {
           before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
           after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
@@ -457,6 +445,10 @@ module MODULE {
         url: {
           before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
           after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
+        }
+        rewrite: {
+          before?: (event: JQueryEventObject, param: any, cache: any) => any
+          after?: (event: JQueryEventObject, param: any, cache: any) => any
         }
         title: {
           before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
@@ -470,10 +462,6 @@ module MODULE {
           before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
           after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
         }
-        scroll: {
-          before?: (event: JQueryEventObject, param: any) => any
-          after?: (event: JQueryEventObject, param: any) => any
-        }
         css: {
           before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
           after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
@@ -482,7 +470,7 @@ module MODULE {
           before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
           after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
         }
-        verify: {
+        scroll: {
           before?: (event: JQueryEventObject, param: any) => any
           after?: (event: JQueryEventObject, param: any) => any
         }
@@ -490,9 +478,6 @@ module MODULE {
           before?: (event: JQueryEventObject, param: any) => any
           after?: (event: JQueryEventObject, param: any) => any
         }
-        success?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-        error?: (event: JQueryEventObject, param: any, jqXHR: JQueryXHR, textStatus: string, errorThrown: string) => any
-        complete?: (event: JQueryEventObject, param: any, jqXHR: JQueryXHR, textStatus: string) => any
       }
     }
     

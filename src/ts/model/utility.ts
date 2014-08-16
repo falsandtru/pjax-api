@@ -5,13 +5,7 @@
 
 module MODULE.MODEL {
   
-  export declare class UtilityInterface {
-    static canonicalizeUrl(url: string): string
-    static trim(text: string): string
-    static fire(fn: any, context: Object, args: any[], async: boolean): any
-  }
-
-  export class Utility implements UtilityInterface {
+  export class Utility {
 
     static fire(fn: any, context: Object = window, args: any[]= [], async?: boolean): any {
       if ('function' === typeof fn) { return async ? setTimeout(function () { fn.apply(context || window, args) }, 0) : fn.apply(context || window, args); } else { return fn; }

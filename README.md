@@ -59,7 +59,7 @@ $.pjax({
   }
 });
 
-// 6 events and 41 callbacks exists.
+// 6 events and 30 callbacks exists.
 $(document).bind('pjax:ready', function() {
   //$("img.delay").lazyload();
 });
