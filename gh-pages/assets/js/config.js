@@ -66,7 +66,9 @@ new Function().apply.apply(function (accessor) {
     }
     
     if (always) {
-      $(document).trigger('preload');
+      setTimeout(function () {
+        $(document).trigger('preload');
+      }, 2000);
     }
   };
 
