@@ -87,7 +87,7 @@ module MODULE.MODEL {
           speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
           
           /* redirect */
-          this.redirect_();
+          this.checkRedirect_();
           
           /* cache */
           this.updateCache_();
@@ -107,7 +107,7 @@ module MODULE.MODEL {
           /* save */
           this.model_.setGlobalSetting(jQuery.extend(true, {}, setting, { origLocation: setting.destLocation.cloneNode() }));
           
-          /* load */
+          /* document */
           this.updateDocument_();
           
           if (UTIL.fire(callbacks_update.success, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { break UPDATE; }
@@ -184,7 +184,7 @@ module MODULE.MODEL {
       if (UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) { return; }
     }
 
-    redirect_(): void {
+    checkRedirect_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
           register: boolean = this.register_;
@@ -311,7 +311,7 @@ module MODULE.MODEL {
           this.dispatchEvent_(document, setting.gns + ':ready', false, true);
           jQuery(document).trigger(setting.gns + '.ready');
 
-          return jQuery.when ? this.render_(jQuery.Deferred().resolve) : this.render_(callback);
+          return jQuery.when ? this.waitRender_(jQuery.Deferred().resolve) : this.waitRender_(callback);
         };
 
         var onrender = (callback?: () => void) => {
@@ -512,10 +512,10 @@ module MODULE.MODEL {
           scrollY = scrollY === false || scrollY === null ? jQuery(window).scrollTop() : parseInt(Number(scrollY) + '', 10);
 
           (jQuery(window).scrollTop() === scrollY && jQuery(window).scrollLeft() === scrollX) || window.scrollTo(scrollX, scrollY);
-          call && setting.database && this.app_.page.isScrollPosSavable && setting.fix.scroll && this.app_.data.saveScrollPositionToCacheAndDB(setting.destLocation.href, scrollX, scrollY);
+          call && setting.database && this.app_.page.isScrollPosSavable && setting.fix.scroll && this.app_.data.saveScrollPositionToDB(setting.destLocation.href, scrollX, scrollY);
           break;
         case 'popstate':
-          call && setting.fix.scroll && setting.database && this.app_.data.loadScrollPositionFromCacheOrDB(setting.destLocation.href);
+          call && setting.fix.scroll && setting.database && this.app_.data.loadScrollPositionFromDB(setting.destLocation.href);
           break;
       }
 
@@ -690,9 +690,9 @@ module MODULE.MODEL {
       return scriptwaits;
     }
     
-    render_(callback: JQueryDeferred<any>): JQueryDeferred<any>
-    render_(callback: () => void): void
-    render_(callback: any) {
+    waitRender_(callback: JQueryDeferred<any>): JQueryDeferred<any>
+    waitRender_(callback: () => void): void
+    waitRender_(callback: any) {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;

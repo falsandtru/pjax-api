@@ -200,8 +200,8 @@ module MODULE {
     // history
     loadTitleFromDB(unsafe_url: string): void
     saveTitleToDB(unsafe_url: string, title: string): void
-    loadScrollPositionFromCacheOrDB(unsafe_url: string): void
-    saveScrollPositionToCacheAndDB(unsafe_url: string, scrollX: number, scrollY: number): void
+    loadScrollPositionFromDB(unsafe_url: string): void
+    saveScrollPositionToDB(unsafe_url: string, scrollX: number, scrollY: number): void
 
     // log
     loadLogFromDB(): void

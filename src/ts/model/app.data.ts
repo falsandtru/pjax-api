@@ -31,7 +31,7 @@ module MODULE.MODEL {
       setting.database = false;
       this.data_.DB.opendb(() => {
         this.saveTitleToDB(setting.origLocation.href, document.title);
-        this.saveScrollPositionToCacheAndDB(setting.origLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+        this.saveScrollPositionToDB(setting.origLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
         setting.database = true;
       });
     }
@@ -92,8 +92,8 @@ module MODULE.MODEL {
       this.data_.DB.store.history.clean();
     }
 
-    loadScrollPositionFromCacheOrDB(unsafe_url: string): void {
       var keyUrl: string = this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
+    loadScrollPositionFromDB(unsafe_url: string): void {
 
       var data: HistorySchema = this.data_.DB.store.history.getBuffer(keyUrl);
       function scroll(scrollX, scrollY) {
@@ -113,7 +113,7 @@ module MODULE.MODEL {
       }
     }
 
-    saveScrollPositionToCacheAndDB(unsafe_url: string, scrollX: number, scrollY: number): void {
+    saveScrollPositionToDB(unsafe_url: string, scrollX: number, scrollY: number): void {
       var keyUrl = this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
 
       var value: HistorySchema = <HistorySchema>{ id: keyUrl, scrollX: scrollX, scrollY: scrollY, date: new Date().getTime() };
