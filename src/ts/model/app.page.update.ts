@@ -744,8 +744,6 @@ module MODULE.MODEL {
     restoreScript_(script: HTMLScriptElement): void {
       if (undefined === jQuery.data(script, 'code')) { return; }
 
-      var backup = script.innerHTML;
-
       script.innerHTML = ' ';
 
       if (jQuery.data(script, 'source')) {
@@ -755,12 +753,8 @@ module MODULE.MODEL {
         script.removeAttribute('src');
       }
 
-      if (jQuery.data(script, 'code')) {
-        script.innerHTML = jQuery.data(script, 'code');
-        jQuery.removeData(script, 'code');
-      } else {
-        script.innerHTML = backup;
-      }
+      script.innerHTML = jQuery.data(script, 'code');
+      jQuery.removeData(script, 'code');
     }
     
     createHTMLDocument_: (html: string, uri: string) => Document
