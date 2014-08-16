@@ -146,7 +146,9 @@ module MODULE.MODEL {
       this.cache_ = cache;
 
       if (cache && cache.data) {
-        var cacheDocument: Document = this.createHTMLDocument_(cache.data, setting.destLocation.href),
+        var $span = jQuery('<span/>'),
+            html: string = setting.fix.noscript ? cache.data.replace(/(<noscript>)([^<>]+?)(<\/noscript>)/gim, ($0, $1, $2, $3) => $1 + $span.html($2).text() + $3) : cache.data,
+            cacheDocument: Document = this.createHTMLDocument_(html, setting.destLocation.href),
             srcDocument: Document = this.srcDocument_;
 
         srcDocument.title = cacheDocument.title;
