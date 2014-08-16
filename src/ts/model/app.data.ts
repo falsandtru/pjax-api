@@ -1,6 +1,6 @@
 /// <reference path="../define.ts"/>
 /// <reference path="data.ts"/>
-/// <reference path="util.ts"/>
+/// <reference path="utility.ts"/>
 
 /* MODEL */
 
@@ -8,10 +8,10 @@ module MODULE.MODEL {
   
   export class AppData implements AppDataInterface {
 
-    constructor(public model_: ModelInterface, public app_: ModelAppInterface) {
+    constructor(public model_: ModelInterface, public app_: AppLayerInterface) {
     }
 
-    data_: ModelDataInterface = new MODEL.Data()
+    data_: DataLayerInterface = new MODEL.Data()
     storeNames = {
       meta: this.data_.DB.store.meta.name,
       history: this.data_.DB.store.history.name,

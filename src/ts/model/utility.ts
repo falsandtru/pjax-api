@@ -5,13 +5,13 @@
 
 module MODULE.MODEL {
   
-  export declare class UtilInterface {
+  export declare class UtilityInterface {
     static canonicalizeUrl(url: string): string
     static trim(text: string): string
     static fire(fn: any, context: Object, args: any[], async: boolean): any
   }
 
-  export class Util implements UtilInterface {
+  export class Utility implements UtilityInterface {
 
     static canonicalizeUrl(url: string): string {
       var ret;
@@ -53,6 +53,6 @@ module MODULE.MODEL {
 
   }
 
-  export var UTIL = MODEL.Util
+  export var UTIL = MODEL.Utility
 
 }

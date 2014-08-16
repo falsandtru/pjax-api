@@ -2,7 +2,7 @@
 /// <reference path="_template.ts"/>
 /// <reference path="app.ts"/>
 /// <reference path="data.ts"/>
-/// <reference path="util.ts"/>
+/// <reference path="utility.ts"/>
 /// <reference path="../view/main.ts"/>
 /// <reference path="../controller/main.ts"/>
 
@@ -13,11 +13,11 @@ module MODULE.MODEL {
   export class Main extends Template implements ModelInterface {
 
     controller_: ControllerInterface = new CONTROLLER.Main(this)
-    app_: ModelAppInterface = new MODEL.App(this, this.controller_)
+    app_: AppLayerInterface = new MODEL.App(this, this.controller_)
     state_: State = State.wait
 
     isDeferrable: boolean = jQuery.when && 1.06 <= Number(jQuery().jquery.replace(/\D*(\d+)\.(\d+).*$/, '$1.0$2').replace(/\d+(\d{2})$/, '$1'))
-    requestHost: string = ''
+    host = () => this.app_.balance.host()
 
     main_($context: JQuery, option: PjaxSetting): JQuery {
 
@@ -102,25 +102,25 @@ module MODULE.MODEL {
       setting = setting || this.app_.configure(this.getGlobalSetting(), origLocation.href, destLocation.href);
       if (setting.disable) { return; }
       if (destLocation.hash && origLocation.href.replace(/#.*/, '') === destLocation.href.replace(/#.*/, '')) { return false; }
-      if (!this.app_.chooseArea(setting.area, document, document)) { return false; }
+      if (!this.app_.page.chooseArea(setting.area, document, document)) { return false; }
       if (!jQuery(event.currentTarget).filter(setting.filter).length) { return false; }
 
       return true;
     }
 
     getGlobalSetting(): SettingInterface {
-      return this.app_.globalSetting;
+      return this.app_.page.globalSetting;
     }
     setGlobalSetting(setting: SettingInterface): SettingInterface {
-      return this.app_.globalSetting = setting;
+      return this.app_.page.globalSetting = setting;
     }
 
     getGlobalXHR(): JQueryXHR {
-      return this.app_.globalXHR;
+      return this.app_.page.globalXHR;
     }
     setGlobalXHR(xhr: JQueryXHR): JQueryXHR {
-      this.app_.globalXHR && this.app_.globalXHR.readyState < 4 && this.app_.globalXHR.abort();
-      return this.app_.globalXHR = xhr;
+      this.app_.page.globalXHR && this.app_.page.globalXHR.readyState < 4 && this.app_.page.globalXHR.abort();
+      return this.app_.page.globalXHR = xhr;
     }
 
     CLICK(event: JQueryEventObject): void {
@@ -134,12 +134,12 @@ module MODULE.MODEL {
         if (!this.isImmediateLoadable(event, setting)) { break PROCESS; }
 
         if (setting.cache.mix && this.getCache(setting.destLocation.href)) { break PROCESS; }
-        setting.database && this.app_.isScrollPosSavable && this.app_.data.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+        setting.database && this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
         var cache: CacheInterface;
         if (setting.cache[event.type.toLowerCase()]) { cache = this.getCache(setting.destLocation.href); }
 
-        this.app_.transfer(setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
+        this.app_.page.transfer(setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
         event.preventDefault();
         return;
       };
@@ -160,12 +160,12 @@ module MODULE.MODEL {
         var serializedURL = setting.destLocation.href.replace(/[?#].*/, '') + ('GET' === context.method.toUpperCase() ? '?' + jQuery(context).serialize() : '');
         setting.destLocation.href = UTIL.canonicalizeUrl(serializedURL);
         if (setting.cache.mix && this.getCache(setting.destLocation.href)) { break PROCESS; }
-        setting.database && this.app_.isScrollPosSavable && this.app_.data.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+        setting.database && this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
         var cache: CacheInterface;
         if (setting.cache[event.type.toLowerCase()] && setting.cache[context.method.toLowerCase()]) { cache = this.getCache(setting.destLocation.href); }
 
-        this.app_.transfer(setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
+      this.app_.page.transfer(setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
         event.preventDefault();
         return;
       };
@@ -177,7 +177,7 @@ module MODULE.MODEL {
       PROCESS: {
         event.timeStamp = new Date().getTime();
         var setting: SettingInterface = this.app_.configure(this.getGlobalSetting(), null, window.location.href);
-        if (this.app_.landing && this.app_.landing === UTIL.canonicalizeUrl(window.location.href)) { return; }
+        if (this.app_.page.landing && this.app_.page.landing === UTIL.canonicalizeUrl(window.location.href)) { return; }
         if (setting.origLocation.href === setting.destLocation.href) { return; }
 
         if (State.ready !== this.state() || setting.disable) { break PROCESS; }
@@ -193,7 +193,7 @@ module MODULE.MODEL {
         var cache: CacheInterface;
         if (setting.cache[event.type.toLowerCase()]) { cache = this.getCache(setting.destLocation.href); }
 
-        this.app_.transfer(setting, event, false, cache);
+        this.app_.page.transfer(setting, event, false, cache);
         return;
       };
     }
@@ -203,13 +203,13 @@ module MODULE.MODEL {
       if (State.ready !== this.state() || event.isDefaultPrevented()) { return; }
 
       if (!setting.scroll.delay) {
-        this.app_.isScrollPosSavable && this.app_.data.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+        this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
       } else {
         var id: number;
         while (id = setting.scroll.queue.shift()) { clearTimeout(id); }
         id = setTimeout(() => {
           while (id = setting.scroll.queue.shift()) { clearTimeout(id); }
-          this.app_.isScrollPosSavable && this.app_.data.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+          this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
         }, setting.scroll.delay);
         setting.scroll.queue.push(id);
       }
@@ -219,7 +219,7 @@ module MODULE.MODEL {
       if ('function' === typeof setting.fallback) {
         UTIL.fire(setting.fallback, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
       } else {
-        this.app_.movePageNormally(event);
+        this.app_.page.movePageNormally(event);
       }
     }
 
@@ -233,7 +233,7 @@ module MODULE.MODEL {
 
     getCache(unsafe_url: string): CacheInterface {
       var setting: SettingInterface = this.getGlobalSetting(),
-          recent: RecentInterface = this.app_.recent;
+          recent: RecentInterface = this.app_.page.recent;
       if (!setting || !recent) { return null; }
 
       var secure_url: string = this.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
@@ -246,7 +246,7 @@ module MODULE.MODEL {
     
     setCache(unsafe_url: string, data: string, textStatus: string, jqXHR: JQueryXHR, host?: string): any {
       var setting: SettingInterface = this.getGlobalSetting(),
-          recent: RecentInterface = this.app_.recent;
+          recent: RecentInterface = this.app_.page.recent;
       if (!setting || !recent) { return this; }
       var cache: CacheInterface,
           size: number,
@@ -272,7 +272,7 @@ module MODULE.MODEL {
         if (!setting.cache.expires) { return 0; }
         if (recent.data[secure_url] && !jqXHR) { return recent.data[secure_url].expires; }
 
-        age = jqXHR && this.app_.calAge(jqXHR) || Number(setting.cache.expires);
+        age = jqXHR && this.app_.page.calAge(jqXHR) || Number(setting.cache.expires);
 
         age = Math.max(age, 0) || 0;
         age = 'object' === typeof setting.cache.expires && 'number' === typeof setting.cache.expires.min ? Math.max(setting.cache.expires.min, age) : age;
@@ -306,7 +306,7 @@ module MODULE.MODEL {
     
     removeCache(unsafe_url: string): void {
       var setting: SettingInterface = this.getGlobalSetting(),
-          recent: RecentInterface = this.app_.recent;
+          recent: RecentInterface = this.app_.page.recent;
       if (!setting || !recent) { return; }
 
       var secure_url: string = this.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
@@ -324,7 +324,7 @@ module MODULE.MODEL {
 
     clearCache(): void {
       var setting: SettingInterface = this.getGlobalSetting(),
-          recent: RecentInterface = this.app_.recent;
+          recent: RecentInterface = this.app_.page.recent;
       if (!setting || !recent) { return; }
       for (var i = recent.order.length, url; url = recent.order[--i];) {
         recent.order.splice(i, 1);
@@ -335,7 +335,7 @@ module MODULE.MODEL {
 
     cleanCache(): void {
       var setting: SettingInterface = this.getGlobalSetting(),
-          recent: RecentInterface = this.app_.recent;
+          recent: RecentInterface = this.app_.page.recent;
       if (!setting || !recent) { return; }
       for (var i = recent.order.length, url; url = recent.order[--i];) {
         if (i >= setting.cache.limit || url in recent.data && new Date().getTime() > recent.data[url].expires) {
@@ -347,11 +347,11 @@ module MODULE.MODEL {
     }
 
     getRequestDomain(): string {
-      return this.requestHost;
+      return this.host();
     }
 
     setRequestDomain(host: string): any {
-      return this.app_.switchRequestServer(host.split('//').pop(), null);
+      return this.app_.balance.changeServer(host.split('//').pop(), null);
     }
 
   }

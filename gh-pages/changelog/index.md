@@ -7,12 +7,16 @@ nav: nav
 
 # ChangeLog
 
+## 2.20.0
+
+* アーキテクチャを改善
+
 ## 2.19.0
 
 * アーキテクチャを改善
 * 定義ファイルを修正
-* `pjax.fetch`イベントを追加
-* `pjax.request`イベントを削除
+* `pjax:fetch`イベントを追加
+* `pjax:request`イベントを削除
 * `callbacks.update.render`系コールバックを削除
 * `callbacks.ajax`系コールバックが適切に実行されない場合があるバグを修正
 * `pjax:load`イベントが適切に待機されないバグを修正

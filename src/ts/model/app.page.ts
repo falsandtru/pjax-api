@@ -1,29 +1,64 @@
 /// <reference path="../define.ts"/>
-/// <reference path="util.ts"/>
+/// <reference path="app.page.request.ts"/>
+/// <reference path="app.page.update.ts"/>
+/// <reference path="app.page.utility.ts"/>
 
 /* MODEL */
 
 module MODULE.MODEL {
 
-  export class AppPage implements AppPageInterface {
+  export class AppPage extends AppPageUtility implements AppPageInterface {
 
-    dispatchEvent_(target: Window, eventType: string, bubbling: boolean, cancelable: boolean): void
-    dispatchEvent_(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
-    dispatchEvent_(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
-    dispatchEvent_(target: any, eventType: string, bubbling: boolean, cancelable: boolean): void {
-      var event = document.createEvent('HTMLEvents');
-      event.initEvent(eventType, bubbling, cancelable);
-      target.dispatchEvent(event);
+    constructor(public model_: ModelInterface, public app_: AppLayerInterface) {
+      super();
     }
 
-    wait_(ms: number): JQueryDeferred<any> {
-      var defer = jQuery.Deferred();
-      if (!ms) { return defer.resolve(); }
+    landing: string = UTIL.canonicalizeUrl(window.location.href)
+    recent: RecentInterface = { order: [], data: {}, size: 0 }
+    loadedScripts: { [index: string]: boolean } = {}
+    isScrollPosSavable: boolean = true
+    globalXHR: JQueryXHR
+    globalSetting: SettingInterface
+    
+    transfer(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface): void {
+      var done = (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => {
+        this.update(setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host);
+      };
+      var fail = (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => {
+        if (setting.fallback && 'abort' !== textStatus) {
+          if (setting.balance.self) {
+            this.app_.balance.disable(setting);
+          }
+          this.model_.fallback(event, setting);
+        }
+      };
 
-      setTimeout(function () { defer.resolve(); }, ms);
-      return defer;
+      this.request(setting, event, register, cache, done, fail);
     }
 
+    request(setting: SettingInterface,
+            event: JQueryEventObject,
+            register: boolean,
+            cache: CacheInterface,
+            done: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void,
+            fail: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void
+           ): void {
+      new AppPageRequest(this.model_, this.app_, setting, event, register, cache, done, fail);
+    }
+
+    update(setting: SettingInterface,
+           event: JQueryEventObject,
+           register: boolean,
+           cache: CacheInterface,
+           data: string,
+           textStatus: string,
+           jqXHR: JQueryXHR,
+           errorThrown: string,
+           host: string
+          ): void {
+      new AppPageUpdate(this.model_, this.app_, setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host);
+    }
+    
   }
 
 }

@@ -6,7 +6,7 @@
 
 module MODULE.MODEL {
   
-  export class Data implements ModelDataInterface {
+  export class Data implements DataLayerInterface {
 
     DB: DataDBInterface = new MODEL.DataDB()
     Cookie: DataCookieInterface = new MODEL.DataCookie(10 * 24 * 60 * 60)
