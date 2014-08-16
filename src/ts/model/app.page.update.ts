@@ -50,6 +50,10 @@ module MODULE.MODEL {
           jqXHR: JQueryXHR = this.jqXHR_;
       var callbacks_update = setting.callbacks.update;
 
+      function eachNoscriptEscape() {
+        jQuery(this).text(this.innerHTML);
+      }
+
       var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
       speedcheck && speed.time.push(speed.now() - speed.fire);
       speedcheck && speed.name.push('fetch(' + speed.time.slice(-1) + ')');
@@ -93,7 +97,7 @@ module MODULE.MODEL {
           this.updateCache_();
           
           /* escape */
-          setting.fix.noscript && jQuery('noscript', this.srcDocument_).children().parent().each(function () { jQuery(this).text(this.innerHTML); });
+          setting.fix.noscript && jQuery('noscript', this.srcDocument_).children().parent().each(eachNoscriptEscape);
 
           this.dispatchEvent_(window, setting.gns + ':unload', false, true);
           jQuery(window).trigger(setting.gns + '.unload');
@@ -539,6 +543,13 @@ module MODULE.MODEL {
           $addElements: JQuery = jQuery(),
           $delElements: JQuery = $dstElements;
       
+      function filterHeadContent() {
+        return jQuery.contains(srcDocument.head, this);
+      }
+      function filterBodyContent() {
+        return jQuery.contains(srcDocument.body, this);
+      }
+
       for (var i = 0, element: HTMLElement; element = $srcElements[i]; i++) {
         for (var j = 0, isSameElement: boolean; $delElements[j]; j++) {
           switch (element.tagName.toLowerCase()) {
@@ -552,8 +563,8 @@ module MODULE.MODEL {
           if (isSameElement) {
             if ($addElements.length) {
               if (jQuery.contains(dstDocument.body, $delElements[j]) && $addElements.first().parents('head').length) {
-                jQuery(dstDocument.head).append($addElements.filter(function () { return jQuery.contains(srcDocument.head, this); }).clone());
-                $delElements.eq(j).before($addElements.filter(function () { return jQuery.contains(srcDocument.body, this); }).clone());
+                jQuery(dstDocument.head).append($addElements.filter(filterHeadContent).clone());
+                $delElements.eq(j).before($addElements.filter(filterBodyContent).clone());
               } else {
                 var ref = $dstElements[$dstElements.index($delElements[j]) - 1];
                 ref ? jQuery(ref).after($addElements.clone()) : $delElements.eq(j).before($addElements.clone());
@@ -568,8 +579,8 @@ module MODULE.MODEL {
         }
         $addElements = $addElements.add(element);
       }
-      jQuery(dstDocument.head).append($addElements.filter(function () { return jQuery.contains(srcDocument.head, this); }).clone());
-      jQuery(dstDocument.body).append($addElements.filter(function () { return jQuery.contains(srcDocument.body, this); }).clone());
+      jQuery(dstDocument.head).append($addElements.filter(filterHeadContent).clone());
+      jQuery(dstDocument.body).append($addElements.filter(filterBodyContent).clone());
       $delElements.remove();
       
       if (UTIL.fire(callbacks_update.css.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
@@ -701,13 +712,17 @@ module MODULE.MODEL {
           checker = areas.children('.' + setting.nss.class4html + '-check'),
           limit = new Date().getTime() + 5 * 1000;
 
+      function filterChecker() {
+        return this.clientWidth || this.clientHeight || jQuery(this).is(':hidden');
+      }
+
       var check = () => {
         switch (true) {
           case !UTIL.compareUrl(setting.destLocation.href, UTIL.canonicalizeUrl(window.location.href)):
             break;
           case new Date().getTime() > limit:
           case checker.length !== areas.length:
-          case checker.length === checker.filter(function () { return this.clientWidth || this.clientHeight || jQuery(this).is(':hidden'); }).length:
+          case checker.length === checker.filter(filterChecker).length:
             checker.remove();
             callback();
             break;
