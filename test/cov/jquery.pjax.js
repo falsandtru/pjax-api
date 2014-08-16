@@ -3,7 +3,7 @@
  * jquery.pjax.js
  * 
  * @name jquery.pjax.js
- * @version 2.19.0
+ * @version 2.20.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
  * @copyright 2012, falsandtru
@@ -390,7 +390,7 @@ var MODULE;
             };
 
             ControllerFunction.prototype.host = function () {
-                return M.requestHost;
+                return M.host();
             };
             return ControllerFunction;
         })();
@@ -819,1260 +819,6 @@ var MODULE;
             return Template;
         })();
         MODEL.Template = Template;
-    })(MODULE.MODEL || (MODULE.MODEL = {}));
-    var MODEL = MODULE.MODEL;
-})(MODULE || (MODULE = {}));
-/// <reference path="../define.ts"/>
-/// <reference path="_template.ts"/>
-var MODULE;
-(function (MODULE) {
-    /* MODEL */
-    (function (MODEL) {
-        var Util = (function () {
-            function Util() {
-            }
-            Util.canonicalizeUrl = function (url) {
-                var ret;
-
-                // Trim
-                ret = this.trim(url);
-
-                // Remove string starting with an invalid character
-                ret = ret.replace(/["`^|\\<>{}\[\]\s].*/, '');
-
-                // Deny value beginning with the string of HTTP(S) other than
-                ret = /^https?:/i.test(ret) ? ret : (function (url, a) {
-                    a.href = url;
-                    return a.href;
-                })(ret, document.createElement('a'));
-
-                // Unify to UTF-8 encoded values
-                ret = encodeURI(decodeURI(ret));
-
-                // Fix case
-                ret = ret.replace(/(?:%\w{2})+/g, function (str) {
-                    return url.match(str.toLowerCase()) || str;
-                });
-                return ret;
-            };
-
-            Util.trim = function (text) {
-                text = text || '';
-                if (String.prototype.trim) {
-                    text = text.toString().trim();
-                } else {
-                    if (text = String(text).replace(/^[\s\uFEFF\xA0]+/, '')) {
-                        for (var i = text.length; --i;) {
-                            if (/[^\s\uFEFF\xA0]/.test(text.charAt(i))) {
-                                text = text.substring(0, i + 1);
-                                break;
-                            }
-                        }
-                    }
-                }
-                return text;
-            };
-
-            Util.fire = function (fn, context, args, async) {
-                if (typeof context === "undefined") { context = window; }
-                if (typeof args === "undefined") { args = []; }
-                if (typeof async === "undefined") { async = false; }
-                if ('function' === typeof fn) {
-                    return async ? setTimeout(function () {
-                        fn.apply(context || window, args);
-                    }, 0) : fn.apply(context || window, args);
-                } else {
-                    return fn;
-                }
-            };
-            return Util;
-        })();
-        MODEL.Util = Util;
-
-        MODEL.UTIL = MODEL.Util;
-    })(MODULE.MODEL || (MODULE.MODEL = {}));
-    var MODEL = MODULE.MODEL;
-})(MODULE || (MODULE = {}));
-/// <reference path="../define.ts"/>
-/// <reference path="util.ts"/>
-var MODULE;
-(function (MODULE) {
-    /* MODEL */
-    (function (MODEL) {
-        var AppPage = (function () {
-            function AppPage() {
-            }
-            AppPage.prototype.dispatchEvent_ = function (target, eventType, bubbling, cancelable) {
-                var event = document.createEvent('HTMLEvents');
-                event.initEvent(eventType, bubbling, cancelable);
-                target.dispatchEvent(event);
-            };
-
-            AppPage.prototype.wait_ = function (ms) {
-                var defer = jQuery.Deferred();
-                if (!ms) {
-                    return defer.resolve();
-                }
-
-                setTimeout(function () {
-                    defer.resolve();
-                }, ms);
-                return defer;
-            };
-            return AppPage;
-        })();
-        MODEL.AppPage = AppPage;
-    })(MODULE.MODEL || (MODULE.MODEL = {}));
-    var MODEL = MODULE.MODEL;
-})(MODULE || (MODULE = {}));
-/// <reference path="../define.ts"/>
-/// <reference path="app.page.ts"/>
-/// <reference path="util.ts"/>
-var MODULE;
-(function (MODULE) {
-    /* MODEL */
-    (function (MODEL) {
-        setTimeout(function () {
-            return AppPageUpdate.createHTMLDocument_('', '');
-        }, 50);
-
-        var AppPageUpdate = (function (_super) {
-            __extends(AppPageUpdate, _super);
-            function AppPageUpdate(model_, app_, setting_, event_, register_, cache_, data_, textStatus_, jqXHR_, errorThrown_, host_) {
-                _super.call(this);
-                this.model_ = model_;
-                this.app_ = app_;
-                this.setting_ = setting_;
-                this.event_ = event_;
-                this.register_ = register_;
-                this.cache_ = cache_;
-                this.data_ = data_;
-                this.textStatus_ = textStatus_;
-                this.jqXHR_ = jqXHR_;
-                this.errorThrown_ = errorThrown_;
-                this.host_ = host_;
-                this.loadwaits_ = [];
-                this.createHTMLDocument_ = AppPageUpdate.createHTMLDocument_;
-                this.main_();
-            }
-            AppPageUpdate.prototype.main_ = function () {
-                var that = this, app = this.app_, setting = this.setting_, event = this.event_, register = this.register_, cache = this.cache_;
-
-                var setting = this.setting_, event = this.event_, register = this.register_, data = this.data_, textStatus = this.textStatus_, jqXHR = this.jqXHR_;
-                var callbacks_update = setting.callbacks.update;
-
-                var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
-                speedcheck && speed.time.push(speed.now() - speed.fire);
-                speedcheck && speed.name.push('fetch(' + speed.time.slice(-1) + ')');
-
-                UPDATE:
-                 {
-                    setting.loadtime = setting.loadtime && new Date().getTime() - setting.loadtime;
-                    setting.loadtime = setting.loadtime < 100 ? 0 : setting.loadtime;
-
-                    if (MODEL.UTIL.fire(callbacks_update.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_, this.cache_]) === false) {
-                        break UPDATE;
-                    }
-
-                    if (setting.cache.mix && 'popstate' !== event.type.toLowerCase() && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
-                        return this.model_.fallback(event, setting);
-                    }
-
-                    try  {
-                        app.landing = null;
-                        if (!~(jqXHR.getResponseHeader('Content-Type') || '').toLowerCase().search(setting.contentType)) {
-                            throw new Error("throw: content-type mismatch");
-                        }
-
-                        DEFINE:
-                         {
-                            this.srcDocument_ = this.createHTMLDocument_(jqXHR.responseText, setting.destLocation.href);
-                            this.dstDocument_ = document;
-
-                            // 更新範囲を選出
-                            setting.area = this.app_.chooseArea(setting.area, this.srcDocument_, this.dstDocument_);
-                            if (!setting.area) {
-                                throw new Error('throw: area notfound');
-                            }
-
-                            // 更新範囲をセレクタごとに分割
-                            setting.areas = setting.area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
-                        }
-                        ;
-
-                        /* check point */
-                        speedcheck && speed.time.push(speed.now() - speed.fire);
-                        speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
-
-                        /* redirect */
-                        this.redirect_();
-
-                        /* cache */
-                        this.updateCache_();
-
-                        /* escape */
-                        setting.fix.noscript && jQuery('noscript', this.srcDocument_).children().parent().each(function () {
-                            jQuery(this).text(this.innerHTML);
-                        });
-
-                        this.dispatchEvent_(window, setting.gns + ':unload', false, true);
-                        jQuery(window).trigger(setting.gns + '.unload');
-
-                        /* url */
-                        this.updateUrl_();
-
-                        /* verify */
-                        this.verify_();
-
-                        /* save */
-                        this.model_.setGlobalSetting(jQuery.extend(true, {}, setting, { origLocation: setting.destLocation.cloneNode() }));
-
-                        /* load */
-                        this.updateDocument_();
-
-                        if (MODEL.UTIL.fire(callbacks_update.success, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                            break UPDATE;
-                        }
-                        if (MODEL.UTIL.fire(callbacks_update.complete, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                            break UPDATE;
-                        }
-                        if (MODEL.UTIL.fire(setting.callback, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                            break UPDATE;
-                        }
-                    } catch (err) {
-                        if (!err) {
-                            return;
-                        }
-
-                        /* cache delete */
-                        this.cache_ && this.model_.removeCache(setting.destLocation.href);
-
-                        if (MODEL.UTIL.fire(callbacks_update.error, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                            break UPDATE;
-                        }
-                        if (MODEL.UTIL.fire(callbacks_update.complete, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                            break UPDATE;
-                        }
-                        this.model_.fallback(event, setting);
-                    }
-                    ;
-
-                    if (MODEL.UTIL.fire(callbacks_update.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                        break UPDATE;
-                    }
-                }
-                ;
-            };
-
-            AppPageUpdate.prototype.updateCache_ = function () {
-                var setting = this.setting_, cache = this.cache_, event = this.event_, data = this.data_, textStatus = this.textStatus_, jqXHR = this.jqXHR_;
-                var callbacks_update = setting.callbacks.update;
-
-                if (!setting.cache.click && !setting.cache.submit && !setting.cache.popstate) {
-                    return;
-                }
-                if ('submit' === event.type.toLowerCase() && !setting.cache[event.currentTarget.method.toLowerCase()]) {
-                    return;
-                }
-
-                if (MODEL.UTIL.fire(callbacks_update.cache.before, null, [event, setting.param, cache]) === false) {
-                    return;
-                }
-
-                this.model_.setCache(setting.destLocation.href, cache && cache.data || null, textStatus, jqXHR);
-                cache = this.model_.getCache(setting.destLocation.href);
-                this.cache_ = cache;
-
-                if (cache && cache.data) {
-                    var cacheDocument = this.createHTMLDocument_(cache.data, setting.destLocation.href), srcDocument = this.srcDocument_;
-
-                    srcDocument.title = cacheDocument.title;
-
-                    var $srcAreas, $dstAreas;
-                    for (var i = 0; setting.areas[i]; i++) {
-                        $srcAreas = jQuery(setting.areas[i], cacheDocument).clone();
-                        $dstAreas = jQuery(setting.areas[i], srcDocument);
-                        if (!$srcAreas.length || !$dstAreas.length || $srcAreas.length !== $dstAreas.length) {
-                            throw new Error('throw: area mismatch');
-                        }
-
-                        for (var j = 0; $srcAreas[j]; j++) {
-                            $dstAreas[j].parentNode.replaceChild($srcAreas[j], $dstAreas[j]);
-                        }
-                    }
-                }
-
-                if (MODEL.UTIL.fire(callbacks_update.cache.after, null, [event, setting.param, cache]) === false) {
-                    return;
-                }
-            };
-
-            AppPageUpdate.prototype.rewrite_ = function () {
-                var setting = this.setting_, event = this.event_;
-                var callbacks_update = setting.callbacks.update;
-
-                if (!setting.rewrite) {
-                    return;
-                }
-
-                if (MODEL.UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) {
-                    return;
-                }
-
-                MODEL.UTIL.fire(setting.rewrite, null, [this.srcDocument_, setting.area, this.host_]);
-
-                if (MODEL.UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) {
-                    return;
-                }
-            };
-
-            AppPageUpdate.prototype.redirect_ = function () {
-                var _this = this;
-                var setting = this.setting_, event = this.event_, register = this.register_;
-                var callbacks_update = setting.callbacks.update;
-
-                if (!jQuery('head meta[http-equiv="Refresh"][content*="URL="]', this.srcDocument_).length) {
-                    return;
-                }
-
-                if (MODEL.UTIL.fire(callbacks_update.redirect.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                    return;
-                }
-                ;
-
-                var redirect = setting.destLocation.cloneNode();
-                redirect.href = jQuery(redirect).attr('content').match(/\w+:\/\/[^;\s]+/i).shift();
-                switch (true) {
-                    case !setting.redirect:
-                    case redirect.protocol !== setting.destLocation.protocol:
-                    case redirect.host !== setting.destLocation.host:
-                    case 'submit' === event.type.toLowerCase() && 'GET' !== event.currentTarget.method.toUpperCase():
-                        switch (event.type.toLowerCase()) {
-                            case 'click':
-                            case 'submit':
-                                window.location.assign(redirect.href);
-                                break;
-                            case 'popstate':
-                                window.location.replace(redirect.href);
-                                break;
-                        }
-                        throw false;
-
-                    default:
-                        jQuery[MODULE.NAME].enable();
-                        switch (event.type.toLowerCase()) {
-                            case 'click':
-                            case 'submit':
-                                setTimeout(function () {
-                                    return jQuery[MODULE.NAME].click(redirect.href);
-                                }, 0);
-                                break;
-                            case 'popstate':
-                                window.history.replaceState(window.history.state, this.srcDocument_.title, redirect.href);
-                                if (register && setting.fix.location) {
-                                    jQuery[MODULE.NAME].disable();
-                                    window.history.back();
-                                    window.history.forward();
-                                    jQuery[MODULE.NAME].enable();
-                                }
-                                setTimeout(function () {
-                                    return _this.dispatchEvent_(window, 'popstate', false, false);
-                                }, 0);
-                                break;
-                        }
-                        throw false;
-                }
-
-                if (MODEL.UTIL.fire(callbacks_update.redirect.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                    return;
-                }
-            };
-
-            AppPageUpdate.prototype.updateUrl_ = function () {
-                var setting = this.setting_, event = this.event_, register = this.register_;
-                var callbacks_update = setting.callbacks.update;
-
-                if (MODEL.UTIL.fire(callbacks_update.url.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                    return;
-                }
-                ;
-
-                register && window.history.pushState(MODEL.UTIL.fire(setting.state, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]), window.opera || ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstDocument_.title : this.srcDocument_.title, setting.destLocation.href);
-
-                if (register && setting.fix.location) {
-                    jQuery[MODULE.NAME].disable();
-                    window.history.back();
-                    window.history.forward();
-                    jQuery[MODULE.NAME].enable();
-                }
-
-                if (MODEL.UTIL.fire(callbacks_update.url.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                    return;
-                }
-            };
-
-            AppPageUpdate.prototype.verify_ = function () {
-                var setting = this.setting_, event = this.event_;
-                var callbacks_update = setting.callbacks.update;
-
-                if (MODEL.UTIL.fire(callbacks_update.verify.before, null, [event, setting.param]) === false) {
-                    return;
-                }
-
-                // モバイルブラウザでアドレスバーのURLのパーセントエンコーディングの大文字小文字がアンカーと一致しないため揃える必要がある
-                if (setting.destLocation.href === MODEL.UTIL.canonicalizeUrl(window.location.href).replace(/(?:%\w{2})+/g, function (str) {
-                    return String(setting.destLocation.href.match(str.toLowerCase()) || str);
-                })) {
-                    setting.retriable = true;
-                } else if (setting.retriable) {
-                    setting.retriable = false;
-                    setting.destLocation.href = MODEL.UTIL.canonicalizeUrl(window.location.href);
-                    new AppPageUpdate(this.model_, this.app_, setting, event, false, setting.cache[event.type.toLowerCase()] && this.model_.getCache(setting.destLocation.href), this.data_, this.textStatus_, this.jqXHR_, this.errorThrown_, this.host_);
-                    throw false;
-                } else {
-                    throw new Error('throw: location mismatch');
-                }
-
-                if (MODEL.UTIL.fire(callbacks_update.verify.after, null, [event, setting.param]) === false) {
-                    return;
-                }
-            };
-
-            AppPageUpdate.prototype.updateDocument_ = function () {
-                var _this = this;
-                var setting = this.setting_, dstDocument = this.dstDocument_;
-
-                this.rewrite_();
-
-                this.title_();
-                this.head_();
-
-                var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
-                speedcheck && speed.time.push(speed.now() - speed.fire);
-                speedcheck && speed.name.push('head(' + speed.time.slice(-1) + ')');
-
-                this.loadwaits_ = this.area_();
-
-                speedcheck && speed.time.push(speed.now() - speed.fire);
-                speedcheck && speed.name.push('content(' + speed.time.slice(-1) + ')');
-
-                this.balance_();
-
-                this.css_('link[rel~="stylesheet"], style');
-                jQuery(window).one(setting.gns + ':rendering', function (event) {
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
-
-                    var onready = function (callback) {
-                        _this.dispatchEvent_(document, setting.gns + ':ready', false, true);
-                        jQuery(document).trigger(setting.gns + '.ready');
-
-                        return jQuery.when ? _this.render_(jQuery.Deferred().resolve) : _this.render_(callback);
-                    };
-
-                    var onrender = function (callback) {
-                        setTimeout(function () {
-                            _this.app_.isScrollPosSavable = true;
-                            if ('popstate' !== event.type.toLowerCase()) {
-                                _this.scrollByHash_(setting.destLocation.hash) || _this.scroll_(true);
-                            } else {
-                                _this.scroll_(true);
-                            }
-                        }, 100);
-
-                        _this.dispatchEvent_(document, setting.gns + ':render', false, true);
-                        jQuery(document).trigger(setting.gns + '.render');
-
-                        speedcheck && speed.time.push(speed.now() - speed.fire);
-                        speedcheck && speed.name.push('render(' + speed.time.slice(-1) + ')');
-
-                        return jQuery.when ? jQuery.when.apply(jQuery, _this.loadwaits_) : callback();
-                    };
-
-                    var onload = function () {
-                        _this.dispatchEvent_(window, setting.gns + ':load', false, true);
-                        jQuery(window).trigger(setting.gns + '.load');
-
-                        speedcheck && speed.time.push(speed.now() - speed.fire);
-                        speedcheck && speed.name.push('load(' + speed.time.slice(-1) + ')');
-
-                        speedcheck && console.log(speed.time);
-                        speedcheck && console.log(speed.name);
-
-                        _this.script_('[src][defer]');
-
-                        // 未定義を返すとエラー
-                        return jQuery.when && jQuery.Deferred();
-                    };
-
-                    _this.scroll_(false);
-                    var scriptwaits = _this.script_(':not([defer]), :not([src])');
-
-                    if (jQuery.when) {
-                        // 1.7.2のthenは壊れてるのでpipe
-                        var then = jQuery.Deferred().pipe ? 'pipe' : 'then';
-                        jQuery.when.apply(jQuery, scriptwaits)[then](function () {
-                            return onready();
-                        }, function () {
-                            return onready();
-                        })[then](function () {
-                            return onrender();
-                        }, function () {
-                            return onrender();
-                        })[then](function () {
-                            return onload();
-                        }, function () {
-                            return onload();
-                        });
-                    } else {
-                        onready(function () {
-                            return onrender(function () {
-                                return onload();
-                            });
-                        });
-                    }
-                }).trigger(setting.gns + ':rendering');
-            };
-
-            AppPageUpdate.prototype.title_ = function () {
-                var setting = this.setting_, event = this.event_;
-                var callbacks_update = setting.callbacks.update;
-
-                if (MODEL.UTIL.fire(callbacks_update.title.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                    return;
-                }
-
-                this.dstDocument_.title = this.srcDocument_.title;
-                setting.database && setting.fix.history && this.app_.data.saveTitleToDB(setting.destLocation.href, this.srcDocument_.title);
-
-                if (MODEL.UTIL.fire(callbacks_update.title.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                    return;
-                }
-            };
-
-            AppPageUpdate.prototype.head_ = function () {
-                var setting = this.setting_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
-                var callbacks_update = setting.callbacks.update;
-
-                if (!setting.load.head) {
-                    return;
-                }
-
-                if (MODEL.UTIL.fire(callbacks_update.head.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                    return;
-                }
-
-                var prefilter = 'base, meta, link', $srcElements = jQuery(srcDocument.head).children(prefilter).filter(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script'), $dstElements = jQuery(dstDocument.head).children(prefilter).filter(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script'), $addElements = jQuery(), $delElements = $dstElements;
-
-                for (var i = 0, element, selector; element = $srcElements[i]; i++) {
-                    for (var j = 0; $delElements[j]; j++) {
-                        if ($delElements[j].tagName === element.tagName && $delElements[j].outerHTML === element.outerHTML) {
-                            if ($addElements.length) {
-                                var ref = $dstElements[$dstElements.index($delElements[j]) - 1];
-                                ref ? jQuery(ref).after($addElements.clone()) : $delElements.eq(j).before($addElements.clone());
-                                $addElements = jQuery();
-                            }
-                            $delElements = $delElements.not($delElements[j]);
-                            element = null;
-                            break;
-                        }
-                    }
-                    $addElements = $addElements.add(element);
-                }
-                jQuery('title', dstDocument).before($addElements.clone());
-                $delElements.remove();
-
-                if (MODEL.UTIL.fire(callbacks_update.head.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                    return;
-                }
-            };
-
-            AppPageUpdate.prototype.area_ = function () {
-                var _this = this;
-                var setting = this.setting_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
-                var callbacks_update = setting.callbacks.update;
-
-                var checker, loadwaits = [];
-
-                if (MODEL.UTIL.fire(callbacks_update.content.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                    return loadwaits;
-                }
-
-                function map() {
-                    var defer = jQuery.Deferred();
-                    jQuery(this).one('load error', defer.resolve);
-                    return defer;
-                }
-
-                jQuery(setting.area).children('.' + setting.nss.class4html + '-check').remove();
-                checker = jQuery('<div/>', {
-                    'class': setting.nss.class4html + '-check',
-                    'style': 'background: none !important; display: block !important; visibility: hidden !important; position: absolute !important; top: 0 !important; left: 0 !important; z-index: -9999 !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; font-size: 12px !important; text-indent: 0 !important;'
-                }).text(setting.gns);
-
-                var $srcAreas, $dstAreas;
-                for (var i = 0; setting.areas[i]; i++) {
-                    $srcAreas = jQuery(setting.areas[i], srcDocument).clone();
-                    $dstAreas = jQuery(setting.areas[i], dstDocument);
-                    if (!$srcAreas.length || !$dstAreas.length || $srcAreas.length !== $dstAreas.length) {
-                        throw new Error('throw: area mismatch');
-                    }
-
-                    $srcAreas.find('script').each(function (i, elem) {
-                        return _this.escapeScript_(elem);
-                    });
-                    if (jQuery.when) {
-                        loadwaits = loadwaits.concat($srcAreas.find('img, iframe, frame').map(map).get());
-                    }
-
-                    for (var j = 0; $srcAreas[j]; j++) {
-                        $dstAreas[j].parentNode.replaceChild($srcAreas[j], $dstAreas[j]);
-                    }
-
-                    $dstAreas = jQuery(setting.areas[i], dstDocument);
-                    $dstAreas.append(checker.clone());
-                    $dstAreas.find('script').each(function (i, elem) {
-                        return _this.restoreScript_(elem);
-                    });
-                }
-                this.dispatchEvent_(document, setting.gns + ':DOMContentLoaded', false, true);
-                jQuery(document).trigger(setting.gns + '.DOMContentLoaded');
-
-                if (MODEL.UTIL.fire(callbacks_update.content.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                    return loadwaits;
-                }
-
-                return loadwaits;
-            };
-
-            AppPageUpdate.prototype.balance_ = function () {
-                var setting = this.setting_, event = this.event_;
-                var callbacks_update = setting.callbacks.update;
-
-                if (!setting.balance.self || !setting.loadtime) {
-                    return;
-                }
-
-                if (MODEL.UTIL.fire(callbacks_update.balance.before, null, [event, setting.param]) === false) {
-                    return;
-                }
-
-                var host = (this.jqXHR_.getResponseHeader(setting.balance.server.header) || '').split('//').pop();
-                this.app_.data.saveLogToDB({
-                    host: host,
-                    performance: Math.ceil(setting.loadtime / (this.jqXHR_.responseText.length || 1) * 1e5),
-                    date: new Date().getTime()
-                });
-                this.app_.data.saveServerToDB(host, 0, setting.destLocation.href, this.app_.calExpires(this.jqXHR_));
-                this.app_.chooseRequestServer(setting);
-
-                this.app_.data.loadBufferAll(setting.buffer.limit);
-
-                if (MODEL.UTIL.fire(callbacks_update.balance.after, null, [event, setting.param]) === false) {
-                    return;
-                }
-            };
-
-            AppPageUpdate.prototype.scroll_ = function (call) {
-                var setting = this.setting_, event = this.event_;
-                var callbacks_update = setting.callbacks.update;
-
-                if (MODEL.UTIL.fire(callbacks_update.scroll.before, null, [event, setting.param]) === false) {
-                    return;
-                }
-
-                var scrollX, scrollY;
-                switch (event.type.toLowerCase()) {
-                    case 'click':
-                    case 'submit':
-                        scrollX = call && 'function' === typeof setting.scrollLeft ? MODEL.UTIL.fire(setting.scrollLeft, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]) : setting.scrollLeft;
-                        scrollX = 0 <= scrollX ? scrollX : 0;
-                        scrollX = scrollX === false || scrollX === null ? jQuery(window).scrollLeft() : parseInt(Number(scrollX) + '', 10);
-
-                        scrollY = call && 'function' === typeof setting.scrollTop ? MODEL.UTIL.fire(setting.scrollTop, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]) : setting.scrollTop;
-                        scrollY = 0 <= scrollY ? scrollY : 0;
-                        scrollY = scrollY === false || scrollY === null ? jQuery(window).scrollTop() : parseInt(Number(scrollY) + '', 10);
-
-                        (jQuery(window).scrollTop() === scrollY && jQuery(window).scrollLeft() === scrollX) || window.scrollTo(scrollX, scrollY);
-                        call && setting.database && this.app_.isScrollPosSavable && setting.fix.scroll && this.app_.data.saveScrollPositionToCacheAndDB(setting.destLocation.href, scrollX, scrollY);
-                        break;
-                    case 'popstate':
-                        call && setting.fix.scroll && setting.database && this.app_.data.loadScrollPositionFromCacheOrDB(setting.destLocation.href);
-                        break;
-                }
-
-                if (MODEL.UTIL.fire(callbacks_update.scroll.after, null, [event, setting.param]) === false) {
-                    return;
-                }
-            };
-
-            AppPageUpdate.prototype.css_ = function (selector) {
-                var setting = this.setting_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
-                var callbacks_update = setting.callbacks.update;
-
-                if (!setting.load.css) {
-                    return;
-                }
-
-                if (MODEL.UTIL.fire(callbacks_update.css.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                    return;
-                }
-
-                var prefilter = 'link, style', $srcElements = jQuery(prefilter, srcDocument).filter(selector).not(setting.load.ignore).not(jQuery('noscript', srcDocument).find(prefilter)), $dstElements = jQuery(prefilter, dstDocument).filter(selector).not(setting.load.ignore).not(jQuery('noscript', srcDocument).find(prefilter)), $addElements = jQuery(), $delElements = $dstElements;
-
-                for (var i = 0, element; element = $srcElements[i]; i++) {
-                    for (var j = 0, isSameElement; $delElements[j]; j++) {
-                        switch (element.tagName.toLowerCase()) {
-                            case 'link':
-                                isSameElement = element.href === $delElements[j].href;
-                                break;
-                            case 'style':
-                                isSameElement = element.innerHTML.trim() === $delElements[j].innerHTML.trim();
-                                break;
-                        }
-                        if (isSameElement) {
-                            if ($addElements.length) {
-                                if (jQuery.contains(dstDocument.body, $delElements[j]) && $addElements.first().parents('head').length) {
-                                    jQuery(dstDocument.head).append($addElements.filter(function () {
-                                        return jQuery.contains(srcDocument.head, this);
-                                    }).clone());
-                                    $delElements.eq(j).before($addElements.filter(function () {
-                                        return jQuery.contains(srcDocument.body, this);
-                                    }).clone());
-                                } else {
-                                    var ref = $dstElements[$dstElements.index($delElements[j]) - 1];
-                                    ref ? jQuery(ref).after($addElements.clone()) : $delElements.eq(j).before($addElements.clone());
-                                }
-                                $addElements = jQuery();
-                            }
-                            $delElements = $delElements.not($delElements[j]);
-                            j -= Number(!!j);
-                            element = null;
-                            break;
-                        }
-                    }
-                    $addElements = $addElements.add(element);
-                }
-                jQuery(dstDocument.head).append($addElements.filter(function () {
-                    return jQuery.contains(srcDocument.head, this);
-                }).clone());
-                jQuery(dstDocument.body).append($addElements.filter(function () {
-                    return jQuery.contains(srcDocument.body, this);
-                }).clone());
-                $delElements.remove();
-
-                if (MODEL.UTIL.fire(callbacks_update.css.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                    return;
-                }
-
-                var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
-                speedcheck && speed.time.push(speed.now() - speed.fire);
-                speedcheck && speed.name.push('css(' + speed.time.slice(-1) + ')');
-            };
-
-            AppPageUpdate.prototype.script_ = function (selector) {
-                var _this = this;
-                var setting = this.setting_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
-                var callbacks_update = setting.callbacks.update;
-
-                if (!setting.load.script) {
-                    return [];
-                }
-
-                if (MODEL.UTIL.fire(callbacks_update.script.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                    return [];
-                }
-
-                var prefilter = 'script', $scriptElements = jQuery(prefilter, srcDocument).filter(selector).not(setting.load.ignore).not(jQuery('noscript', srcDocument).find(prefilter)), $execElements = jQuery(), scriptwaits = [], loadedScripts = this.app_.loadedScripts, regType = /^$|(?:application|text)\/(?:java|ecma)script/i, regRemove = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
-
-                for (var i = 0, element; element = $scriptElements[i]; i++) {
-                    if (!regType.test(element.type || '')) {
-                        continue;
-                    }
-                    if (element.hasAttribute('src') ? loadedScripts[element.src] : !element.innerHTML.trim()) {
-                        continue;
-                    }
-
-                    LOG:
-                     {
-                        var srcLogParent = jQuery(element).parent(setting.load.log)[0];
-                        if (!srcLogParent || jQuery(element).parents(setting.area).length) {
-                            break LOG;
-                        }
-
-                        var dstLogParent = jQuery(srcLogParent.id || srcLogParent.tagName, dstDocument)[0], log = element.cloneNode(true);
-                        this.escapeScript_(log);
-                        dstLogParent.appendChild(log);
-                        this.restoreScript_(log);
-                    }
-                    ;
-
-                    if (this.model_.isDeferrable) {
-                        (function (defer, element) {
-                            if (element.hasAttribute('src')) {
-                                if (!element.getAttribute('src')) {
-                                    return;
-                                }
-                                if (element.hasAttribute('async')) {
-                                    jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: true, global: false })).done(function () {
-                                        return _this.dispatchEvent_(element, 'load', false, true);
-                                    }).fail(function () {
-                                        return _this.dispatchEvent_(element, 'error', false, true);
-                                    });
-                                } else {
-                                    jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, dataType: 'text', async: true, global: false })).done(function () {
-                                        return defer.resolve([element, arguments[0]]);
-                                    }).fail(function () {
-                                        return defer.resolve([element, new Error()]);
-                                    });
-                                    scriptwaits.push(defer);
-                                }
-                            } else {
-                                defer.resolve([element, (element.text || element.textContent || element.innerHTML || '').replace(regRemove, '')]);
-                                scriptwaits.push(defer);
-                            }
-                        })(jQuery.Deferred(), element);
-                    } else {
-                        if (element.hasAttribute('src')) {
-                            if (!element.getAttribute('src')) {
-                                continue;
-                            }
-                            $execElements = $execElements.add(element);
-                        } else {
-                            $execElements = $execElements.add(element);
-                        }
-                    }
-                }
-
-                try  {
-                    if (this.model_.isDeferrable) {
-                        jQuery.when.apply(jQuery, scriptwaits).always(function () {
-                            for (var i = 0, len = arguments.length; i < len; i++) {
-                                var result = arguments[i], element = result[0], response = result[1];
-
-                                if (element.src) {
-                                    loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload);
-                                }
-                                if ('string' === typeof response) {
-                                    eval.call(window, response);
-                                    element.hasAttribute('src') && _this.dispatchEvent_(element, 'load', false, true);
-                                } else {
-                                    element.hasAttribute('src') && _this.dispatchEvent_(element, 'error', false, true);
-                                }
-                            }
-                        });
-                    } else {
-                        for (var i = 0, element; element = $execElements[i]; i++) {
-                            if (element.hasAttribute('src')) {
-                                if (element.src) {
-                                    loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload);
-                                }
-                                (function (element) {
-                                    jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: element.hasAttribute('async'), global: false }, {
-                                        success: function () {
-                                            return _this.dispatchEvent_(element, 'load', false, true);
-                                        },
-                                        error: function () {
-                                            return _this.dispatchEvent_(element, 'error', false, true);
-                                        }
-                                    }));
-                                })(element);
-                            } else {
-                                eval.call(window, (element.text || element.textContent || element.innerHTML || '').replace(regRemove, ''));
-                            }
-                        }
-                    }
-                } catch (err) {
-                    setTimeout(function () {
-                        return _this.model_.fallback(event, setting);
-                    }, 50);
-                    throw err;
-                    return;
-                }
-
-                if (MODEL.UTIL.fire(callbacks_update.script.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                    return scriptwaits;
-                }
-
-                var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
-                speedcheck && speed.time.push(speed.now() - speed.fire);
-                speedcheck && speed.name.push('script(' + speed.time.slice(-1) + ')');
-
-                return scriptwaits;
-            };
-
-            AppPageUpdate.prototype.render_ = function (callback) {
-                var setting = this.setting_, event = this.event_;
-                var callbacks_update = setting.callbacks.update;
-
-                var areas = jQuery(setting.area), checker = areas.children('.' + setting.nss.class4html + '-check'), limit = new Date().getTime() + 5 * 1000;
-
-                var check = function () {
-                    switch (true) {
-                        case setting.destLocation.href !== MODEL.UTIL.canonicalizeUrl(window.location.href).replace(/(?:%\w{2})+/g, function (str) {
-                            return String(setting.destLocation.href.match(str.toLowerCase()) || str);
-                        }):
-                            break;
-                        case new Date().getTime() > limit:
-                        case checker.length !== areas.length:
-                        case checker.length === checker.filter(function () {
-                            return this.clientWidth || this.clientHeight || jQuery(this).is(':hidden');
-                        }).length:
-                            checker.remove();
-                            callback();
-                            break;
-                        default:
-                            setTimeout(check, 100);
-                    }
-                };
-                check();
-
-                return jQuery.when && callback;
-            };
-
-            AppPageUpdate.prototype.scrollByHash_ = function (hash) {
-                hash = '#' === hash.charAt(0) ? hash.slice(1) : hash;
-                if (!hash) {
-                    return false;
-                }
-
-                var $hashTargetElement = jQuery('#' + (hash ? hash : ', [name~=' + hash + ']')).first();
-                if ($hashTargetElement.length) {
-                    isFinite($hashTargetElement.offset().top) && window.scrollTo(jQuery(window).scrollLeft(), parseInt(Number($hashTargetElement.offset().top) + '', 10));
-                    return true;
-                } else {
-                    return false;
-                }
-            };
-
-            AppPageUpdate.prototype.escapeScript_ = function (script) {
-                jQuery.data(script, 'source', script.src);
-                jQuery.data(script, 'code', script.innerHTML);
-                script.removeAttribute('src');
-                script.innerHTML = '';
-            };
-
-            AppPageUpdate.prototype.restoreScript_ = function (script) {
-                if (undefined === jQuery.data(script, 'code')) {
-                    return;
-                }
-
-                var backup = script.innerHTML;
-
-                script.innerHTML = ' ';
-
-                if (jQuery.data(script, 'source')) {
-                    script.src = jQuery.data(script, 'source');
-                    jQuery.removeData(script, 'source');
-                } else {
-                    script.removeAttribute('src');
-                }
-
-                if (jQuery.data(script, 'code')) {
-                    script.innerHTML = jQuery.data(script, 'code');
-                    jQuery.removeData(script, 'code');
-                } else {
-                    script.innerHTML = backup;
-                }
-            };
-
-            AppPageUpdate.createHTMLDocument_ = function (html, uri) {
-                var _this = this;
-                var mode;
-
-                this.createHTMLDocument_ = function (html, uri) {
-                    function test_(conv) {
-                        var args = [];
-                        for (var _i = 0; _i < (arguments.length - 1); _i++) {
-                            args[_i] = arguments[_i + 1];
-                        }
-                        try  {
-                            var html = '<html lang="en" class="html"><head><link href="/"><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript><a href="/"></a></body></html>', doc = conv(html, '');
-                            return doc && jQuery('html', doc).is('.html[lang=en]') && jQuery('head>link', doc)[0].href && jQuery('head>noscript', doc).html() && jQuery('body>noscript', doc).text() === 'noscript' && jQuery('body>a', doc)[0].href && true || false;
-                        } catch (err) {
-                            return false;
-                        }
-                    }
-                    ;
-                    function manipulate(doc, html) {
-                        var wrapper = document.createElement('div');
-                        wrapper.innerHTML = (html.match(/<html(?:\s.*?[^\\])?>/i) || ['<html>']).shift().replace(/html/i, 'div') + '</div>';
-                        var attrs = wrapper.firstChild.attributes;
-                        for (var i = 0, attr; attr = attrs[i]; i++) {
-                            doc.documentElement.setAttribute(attr.name, attr.value);
-                        }
-                        var wrapper = document.createElement('html');
-                        wrapper.innerHTML = html.replace(/^.*?<html(?:\s.*?[^\\])?>/im, '');
-                        doc.documentElement.removeChild(doc.head);
-                        doc.documentElement.removeChild(doc.body);
-                        while (wrapper.childNodes.length) {
-                            doc.documentElement.appendChild(wrapper.childNodes[0]);
-                        }
-                        return doc;
-                    }
-                    ;
-
-                    var backup = window.location.href;
-                    uri && window.history.replaceState(window.history.state, document.title, uri);
-
-                    var doc;
-                    switch (mode) {
-                        case 'dom':
-                            if ('function' === typeof window.DOMParser) {
-                                doc = new window.DOMParser().parseFromString(html, 'text/html');
-                            }
-                            break;
-
-                        case 'doc':
-                            if (document.implementation && document.implementation.createHTMLDocument) {
-                                doc = document.implementation.createHTMLDocument('');
-
-                                // IE, Operaクラッシュ対策
-                                if ('object' !== typeof doc.activeElement || !doc.activeElement) {
-                                    break;
-                                }
-
-                                doc.open();
-                                doc.write(html);
-                                doc.close();
-                            }
-                            break;
-
-                        case 'manipulate':
-                            if (document.implementation && document.implementation.createHTMLDocument) {
-                                doc = manipulate(document.implementation.createHTMLDocument(''), html);
-                            }
-                            break;
-
-                        default:
-                            var test = function (mode_) {
-                                return test_(_this.createHTMLDocument_, mode = mode_);
-                            };
-                            test('dom') || test('doc') || test('manipulate');
-                            doc = _this.createHTMLDocument_(html, uri);
-                            break;
-                    }
-
-                    uri && window.history.replaceState(window.history.state, document.title, backup);
-                    return doc;
-                };
-
-                return this.createHTMLDocument_(html, uri);
-            };
-            return AppPageUpdate;
-        })(MODEL.AppPage);
-        MODEL.AppPageUpdate = AppPageUpdate;
-    })(MODULE.MODEL || (MODULE.MODEL = {}));
-    var MODEL = MODULE.MODEL;
-})(MODULE || (MODULE = {}));
-/// <reference path="../define.ts"/>
-/// <reference path="app.page.ts"/>
-/// <reference path="app.page.update.ts"/>
-/// <reference path="util.ts"/>
-var MODULE;
-(function (MODULE) {
-    /* MODEL */
-    (function (MODEL) {
-        var AppPageRequest = (function (_super) {
-            __extends(AppPageRequest, _super);
-            function AppPageRequest(model_, app_, setting_, event_, register_, cache_, done_, fail_) {
-                _super.call(this);
-                this.model_ = model_;
-                this.app_ = app_;
-                this.setting_ = setting_;
-                this.event_ = event_;
-                this.register_ = register_;
-                this.cache_ = cache_;
-                this.done_ = done_;
-                this.fail_ = fail_;
-                this.main_();
-            }
-            AppPageRequest.prototype.main_ = function () {
-                var that = this, setting = this.setting_, event = this.event_ = jQuery.extend(true, {}, this.event_), register = this.register_, cache = this.cache_, globalXHR = this.model_.getGlobalXHR(), wait = MODEL.UTIL.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
-
-                var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
-                speedcheck && (speed.fire = event.timeStamp);
-                speedcheck && speed.time.splice(0, 100, 0);
-                speedcheck && speed.name.splice(0, 100, 'pjax(' + speed.time.slice(-1) + ')');
-
-                if (MODEL.UTIL.fire(setting.callbacks.before, null, [event, setting.param]) === false) {
-                    return;
-                }
-
-                this.app_.isScrollPosSavable = false;
-                setting.fix.reset && /click|submit/.test(event.type.toLowerCase()) && window.scrollTo(jQuery(window).scrollLeft(), 0);
-
-                function done(ajax, wait) {
-                    that.data_ = ajax[0];
-                    that.textStatus_ = ajax[1];
-                    that.jqXHR_ = ajax[2];
-                    MODEL.UTIL.fire(setting.callbacks.ajax.done, this, [event, setting.param].concat(ajax));
-                }
-                function fail(jqXHR, textStatus, errorThrown) {
-                    that.jqXHR_ = jqXHR;
-                    that.textStatus_ = textStatus;
-                    that.errorThrown_ = errorThrown;
-                    MODEL.UTIL.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat(arguments));
-                }
-                function always() {
-                    MODEL.UTIL.fire(setting.callbacks.ajax.always, this, [event, setting.param].concat(arguments));
-                    that.model_.setGlobalXHR(null);
-
-                    if (that.model_.isDeferrable) {
-                        if (that.data_) {
-                            that.done_(setting, event, register, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
-                        } else {
-                            that.fail_(setting, event, register, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
-                        }
-                    }
-                }
-                function success(data, textStatus, jqXHR) {
-                    that.data_ = data;
-                    that.textStatus_ = textStatus;
-                    that.jqXHR_ = jqXHR;
-                    MODEL.UTIL.fire(setting.callbacks.ajax.success, this, [event, setting.param, data, textStatus, jqXHR]);
-                }
-                function error(jqXHR, textStatus, errorThrown) {
-                    that.jqXHR_ = jqXHR;
-                    that.textStatus_ = textStatus;
-                    that.errorThrown_ = errorThrown;
-                    MODEL.UTIL.fire(setting.callbacks.ajax.error, this, [event, setting.param, jqXHR, textStatus, errorThrown]);
-                }
-                function complete(jqXHR, textStatus) {
-                    MODEL.UTIL.fire(setting.callbacks.ajax.complete, this, [event, setting.param, jqXHR, textStatus]);
-                    that.model_.setGlobalXHR(null);
-
-                    if (!that.model_.isDeferrable) {
-                        if (that.data_) {
-                            that.done_(setting, event, register, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
-                        } else {
-                            that.fail_(setting, event, register, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
-                        }
-                    }
-                }
-
-                this.dispatchEvent_(document, setting.gns + ':fetch', false, true);
-                jQuery(document).trigger(setting.gns + '.fetch');
-
-                if (cache && cache.jqXHR) {
-                    // cache
-                    speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
-                    setting.loadtime = 0;
-                    this.model_.setGlobalXHR(null);
-                    this.host_ = cache.host || '';
-                    this.data_ = cache.jqXHR.responseText;
-                    this.textStatus_ = cache.textStatus;
-                    this.jqXHR_ = cache.jqXHR;
-                    if (this.model_.isDeferrable) {
-                        jQuery.when(jQuery.Deferred().resolve([that.data_, that.textStatus_, that.jqXHR_]), this.wait_(wait)).done(done).fail(fail).always(always);
-                    } else {
-                        var context = jQuery.extend({}, jQuery.ajaxSettings, setting.ajax);
-                        context = context.context || context;
-                        success.call(context, that.data_, that.textStatus_, that.jqXHR_);
-                        complete.call(context, that.jqXHR_, that.textStatus_);
-                    }
-                } else if (globalXHR && globalXHR.follow && 'abort' !== globalXHR.statusText && 'error' !== globalXHR.statusText) {
-                    // preload
-                    speedcheck && speed.time.splice(0, 1, globalXHR.timeStamp - speed.fire);
-                    speedcheck && speed.name.splice(0, 1, 'preload(' + speed.time.slice(-1) + ')');
-                    speedcheck && speed.time.push(speed.now() - speed.fire);
-                    speedcheck && speed.name.push('continue(' + speed.time.slice(-1) + ')');
-                    this.host_ = globalXHR.host || '';
-                    setting.loadtime = globalXHR.timeStamp;
-                    var wait = setting.wait && isFinite(globalXHR.timeStamp) ? Math.max(wait - new Date().getTime() + globalXHR.timeStamp, 0) : 0;
-                    jQuery.when(globalXHR, that.wait_(wait)).done(done).fail(fail).always(always);
-                } else {
-                    // default
-                    setting.loadtime = event.timeStamp;
-                    var requestLocation = setting.destLocation.cloneNode(), ajax = {}, callbacks = {};
-
-                    this.app_.chooseRequestServer(setting);
-                    this.host_ = setting.balance.self && this.model_.requestHost.split('//').pop() || '';
-                    requestLocation.host = this.host_ || setting.destLocation.host;
-                    ajax.url = !setting.server.query ? requestLocation.href : [
-                        requestLocation.protocol,
-                        '//',
-                        requestLocation.host,
-                        '/' === requestLocation.pathname.charAt(0) ? requestLocation.pathname : '/' + requestLocation.pathname,
-                        (1 < requestLocation.search.length ? requestLocation.search + '&' : '?') + setting.server.query,
-                        requestLocation.hash
-                    ].join('');
-                    switch (event.type.toLowerCase()) {
-                        case 'click':
-                            ajax.type = 'GET';
-                            break;
-
-                        case 'submit':
-                            ajax.type = event.currentTarget.method.toUpperCase();
-                            switch (ajax.type) {
-                                case 'POST':
-                                    if (!jQuery(event.currentTarget).has(':file').length) {
-                                        ajax.data = jQuery(event.currentTarget).serializeArray();
-                                    } else if ('function' === typeof FormData) {
-                                        ajax.data = new FormData(event.currentTarget);
-                                        ajax.contentType = false;
-                                        ajax.processData = false;
-                                    }
-                                    break;
-                                case 'GET':
-                                    break;
-                            }
-                            break;
-
-                        case 'popstate':
-                            ajax.type = 'GET';
-                            break;
-                    }
-
-                    callbacks = {
-                        xhr: !setting.callbacks.ajax.xhr ? undefined : function () {
-                            var jqXHR;
-                            jqXHR = MODEL.UTIL.fire(setting.callbacks.ajax.xhr, this, [event, setting.param]);
-                            jqXHR = 'object' === typeof jqXHR && jqXHR || jQuery.ajaxSettings.xhr();
-
-                            //if (jqXHR instanceof Object && jqXHR instanceof window.XMLHttpRequest && 'onprogress' in jqXHR) {
-                            //  jqXHR.addEventListener('progress', function(event) {dataSize = event.loaded;}, false);
-                            //}
-                            return jqXHR;
-                        },
-                        beforeSend: !setting.callbacks.ajax.beforeSend && !setting.server.header ? undefined : function (jqXHR, ajaxSetting) {
-                            if (setting.server.header) {
-                                jqXHR.setRequestHeader(setting.nss.requestHeader, 'true');
-                            }
-                            if ('object' === typeof setting.server.header) {
-                                jqXHR.setRequestHeader(setting.nss.requestHeader, 'true');
-                                setting.server.header.area && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Area', this.app_.chooseArea(setting.area, document, document));
-                                setting.server.header.head && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Head', setting.load.head);
-                                setting.server.header.css && jqXHR.setRequestHeader(setting.nss.requestHeader + '-CSS', setting.load.css.toString());
-                                setting.server.header.script && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Script', setting.load.script.toString());
-                            }
-
-                            MODEL.UTIL.fire(setting.callbacks.ajax.beforeSend, this, [event, setting.param, jqXHR, ajaxSetting]);
-                        },
-                        dataFilter: !setting.callbacks.ajax.dataFilter ? undefined : function (data, type) {
-                            return MODEL.UTIL.fire(setting.callbacks.ajax.dataFilter, this, [event, setting.param, data, type]) || data;
-                        },
-                        success: success,
-                        error: error,
-                        complete: complete
-                    };
-
-                    ajax = jQuery.extend(true, {}, setting.ajax, callbacks, ajax);
-
-                    globalXHR = this.model_.setGlobalXHR(jQuery.ajax(ajax));
-
-                    if (this.model_.isDeferrable) {
-                        jQuery.when(globalXHR, that.wait_(wait)).done(done).fail(fail).always(always);
-                    }
-                }
-
-                if (MODEL.UTIL.fire(setting.callbacks.after, null, [event, setting.param]) === false) {
-                    return;
-                }
-            };
-            return AppPageRequest;
-        })(MODEL.AppPage);
-        MODEL.AppPageRequest = AppPageRequest;
     })(MODULE.MODEL || (MODULE.MODEL = {}));
     var MODEL = MODULE.MODEL;
 })(MODULE || (MODULE = {}));
@@ -2593,8 +1339,79 @@ var MODULE;
     var MODEL = MODULE.MODEL;
 })(MODULE || (MODULE = {}));
 /// <reference path="../define.ts"/>
+/// <reference path="_template.ts"/>
+var MODULE;
+(function (MODULE) {
+    /* MODEL */
+    (function (MODEL) {
+        var Utility = (function () {
+            function Utility() {
+            }
+            Utility.canonicalizeUrl = function (url) {
+                var ret;
+
+                // Trim
+                ret = this.trim(url);
+
+                // Remove string starting with an invalid character
+                ret = ret.replace(/["`^|\\<>{}\[\]\s].*/, '');
+
+                // Deny value beginning with the string of HTTP(S) other than
+                ret = /^https?:/i.test(ret) ? ret : (function (url, a) {
+                    a.href = url;
+                    return a.href;
+                })(ret, document.createElement('a'));
+
+                // Unify to UTF-8 encoded values
+                ret = encodeURI(decodeURI(ret));
+
+                // Fix case
+                ret = ret.replace(/(?:%\w{2})+/g, function (str) {
+                    return url.match(str.toLowerCase()) || str;
+                });
+                return ret;
+            };
+
+            Utility.trim = function (text) {
+                text = text || '';
+                if (String.prototype.trim) {
+                    text = text.toString().trim();
+                } else {
+                    if (text = String(text).replace(/^[\s\uFEFF\xA0]+/, '')) {
+                        for (var i = text.length; --i;) {
+                            if (/[^\s\uFEFF\xA0]/.test(text.charAt(i))) {
+                                text = text.substring(0, i + 1);
+                                break;
+                            }
+                        }
+                    }
+                }
+                return text;
+            };
+
+            Utility.fire = function (fn, context, args, async) {
+                if (typeof context === "undefined") { context = window; }
+                if (typeof args === "undefined") { args = []; }
+                if (typeof async === "undefined") { async = false; }
+                if ('function' === typeof fn) {
+                    return async ? setTimeout(function () {
+                        fn.apply(context || window, args);
+                    }, 0) : fn.apply(context || window, args);
+                } else {
+                    return fn;
+                }
+            };
+            return Utility;
+        })();
+        MODEL.Utility = Utility;
+
+        MODEL.UTIL = MODEL.Utility;
+    })(MODULE.MODEL || (MODULE.MODEL = {}));
+    var MODEL = MODULE.MODEL;
+})(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
 /// <reference path="data.ts"/>
-/// <reference path="util.ts"/>
+/// <reference path="utility.ts"/>
 var MODULE;
 (function (MODULE) {
     /* MODEL */
@@ -2761,10 +1578,1444 @@ var MODULE;
     var MODEL = MODULE.MODEL;
 })(MODULE || (MODULE = {}));
 /// <reference path="../define.ts"/>
-/// <reference path="_template.ts"/>
-/// <reference path="app.page.request.ts"/>
 /// <reference path="app.data.ts"/>
-/// <reference path="util.ts"/>
+var MODULE;
+(function (MODULE) {
+    /* MODEL */
+    (function (MODEL) {
+        var AppBalance = (function () {
+            function AppBalance(model_, app_) {
+                var _this = this;
+                this.model_ = model_;
+                this.app_ = app_;
+                this.host_ = '';
+                this.host = function () {
+                    return _this.host_;
+                };
+            }
+            AppBalance.prototype.check = function (setting) {
+                return setting.balance.self && !!Number(this.app_.data.getCookie(setting.balance.client.cookie.balance));
+            };
+
+            AppBalance.prototype.enable = function (setting) {
+                if (!setting.balance.client.support.userAgent.test(window.navigator.userAgent) || setting.balance.client.exclude.test(window.navigator.userAgent)) {
+                    return void this.disable(setting);
+                }
+
+                if (Number(!this.app_.data.setCookie(setting.balance.client.cookie.balance, '1'))) {
+                    return void this.disable(setting);
+                }
+                if (setting.balance.client.support.redirect.test(window.navigator.userAgent)) {
+                    this.app_.data.setCookie(setting.balance.client.cookie.redirect, '1');
+                }
+            };
+
+            AppBalance.prototype.disable = function (setting) {
+                this.app_.data.setCookie(setting.balance.client.cookie.balance, '0');
+                this.app_.data.setCookie(setting.balance.client.cookie.redirect, '0');
+                this.changeServer(null, setting);
+            };
+
+            AppBalance.prototype.changeServer = function (host, setting) {
+                if (typeof setting === "undefined") { setting = this.model_.getGlobalSetting(); }
+                if (!this.check(setting)) {
+                    return;
+                }
+
+                host = host || '';
+
+                this.host_ = host;
+                setting.balance.server.host = host;
+                this.app_.data.setCookie(setting.balance.client.cookie.host, host);
+            };
+
+            AppBalance.prototype.chooseServer = function (setting) {
+                if (!this.check(setting)) {
+                    return;
+                }
+
+                // キャッシュの有効期限内の再リクエストは同じサーバーを選択してキャッシュを使用させる
+                var expires;
+                var historyBufferData = this.app_.data.getBuffer(this.app_.data.storeNames.history, this.model_.convertUrlToKeyUrl(setting.destLocation.href));
+
+                expires = historyBufferData && historyBufferData.expires;
+                if (expires && expires >= new Date().getTime()) {
+                    this.changeServer(historyBufferData.host, setting);
+                    return;
+                }
+
+                // ログから最適なサーバーを選択する
+                var logBuffer = this.app_.data.getBuffer(this.app_.data.storeNames.log), timeList = [], logTable = {}, now = new Date().getTime();
+
+                if (!logBuffer) {
+                    host = this.app_.data.getCookie(setting.balance.client.cookie.host);
+                    if (host) {
+                        this.enable(setting);
+                        this.changeServer(host);
+                    } else {
+                        this.disable(setting);
+                    }
+                    return;
+                }
+                var time;
+                for (var i in logBuffer) {
+                    if (now > logBuffer[i].date + setting.balance.log.expires) {
+                        continue;
+                    }
+                    timeList.push(logBuffer[i].performance);
+                    logTable[logBuffer[i].performance] = logBuffer[i];
+                }
+
+                function compareNumbers(a, b) {
+                    return a - b;
+                }
+                timeList = timeList.sort(compareNumbers).slice(0, 15);
+                var serverBuffer = this.app_.data.getBuffer(this.app_.data.storeNames.server);
+
+                if (!serverBuffer) {
+                    this.disable(setting);
+                    return;
+                }
+                var host = '', time;
+                while (timeList.length) {
+                    r = Math.floor(Math.random() * timeList.length);
+                    time = timeList[r];
+                    timeList.splice(r, 1);
+
+                    host = logTable[time].host.split('//').pop() || '';
+                    if (!serverBuffer[host] || serverBuffer[host].state && new Date().getTime() < serverBuffer[host].state + setting.balance.server.error) {
+                        continue;
+                    }
+                    if (!host && setting.balance.weight && !(Math.floor(Math.random()) * setting.balance.weight)) {
+                        continue;
+                    }
+                    this.changeServer(host, setting);
+                    return;
+                }
+
+                // サーバーリストからランダムにサーバーを選択する
+                var hosts = Object.keys(serverBuffer), host, r;
+                while (hosts.length) {
+                    r = Math.floor(Math.random() * hosts.length);
+                    host = hosts[r];
+                    hosts.splice(r, 1);
+
+                    if (serverBuffer[host].state && new Date().getTime() < serverBuffer[host].state + setting.balance.server.error) {
+                        continue;
+                    }
+                    this.changeServer(host, setting);
+                    return;
+                }
+
+                this.disable(setting);
+            };
+            return AppBalance;
+        })();
+        MODEL.AppBalance = AppBalance;
+    })(MODULE.MODEL || (MODULE.MODEL = {}));
+    var MODEL = MODULE.MODEL;
+})(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
+var MODULE;
+(function (MODULE) {
+    /* MODEL */
+    (function (MODEL) {
+        var AppPageUtility = (function () {
+            function AppPageUtility() {
+            }
+            AppPageUtility.prototype.chooseArea = function (areas, srcDocument, dstDocument) {
+                areas = areas instanceof Array ? areas : [areas];
+
+                var i = -1, area;
+                AREA:
+                while (area = areas[++i]) {
+                    var options = area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
+                    var j = -1;
+                    while (options[++j]) {
+                        if (!jQuery(options[j], srcDocument).length || !jQuery(options[j], dstDocument).length) {
+                            continue AREA;
+                        }
+                    }
+                    return area;
+                }
+            };
+
+            AppPageUtility.prototype.movePageNormally = function (event) {
+                switch (event.type.toLowerCase()) {
+                    case 'click':
+                        window.location.assign(event.currentTarget.href);
+                        break;
+                    case 'submit':
+                        event.currentTarget.submit();
+                        break;
+                    case 'popstate':
+                        window.location.reload();
+                        break;
+                }
+            };
+
+            AppPageUtility.prototype.calAge = function (jqXHR) {
+                var age;
+
+                switch (true) {
+                    case /no-store|no-cache/.test(jqXHR.getResponseHeader('Cache-Control')):
+                        return 0;
+                    case !!~String(jqXHR.getResponseHeader('Cache-Control')).indexOf('max-age='):
+                        return Number(jqXHR.getResponseHeader('Cache-Control').match(/max-age=(\d+)/).pop()) * 1000;
+                    case !!String(jqXHR.getResponseHeader('Expires')):
+                        return new Date(jqXHR.getResponseHeader('Expires')).getTime() - new Date().getTime();
+                    default:
+                        return 0;
+                }
+            };
+
+            AppPageUtility.prototype.calExpires = function (jqXHR) {
+                return new Date().getTime() + this.calAge(jqXHR);
+            };
+
+            AppPageUtility.prototype.dispatchEvent_ = function (target, eventType, bubbling, cancelable) {
+                var event = document.createEvent('HTMLEvents');
+                event.initEvent(eventType, bubbling, cancelable);
+                target.dispatchEvent(event);
+            };
+
+            AppPageUtility.prototype.wait_ = function (ms) {
+                var defer = jQuery.Deferred();
+                if (!ms) {
+                    return defer.resolve();
+                }
+
+                setTimeout(function () {
+                    defer.resolve();
+                }, ms);
+                return defer;
+            };
+            return AppPageUtility;
+        })();
+        MODEL.AppPageUtility = AppPageUtility;
+    })(MODULE.MODEL || (MODULE.MODEL = {}));
+    var MODEL = MODULE.MODEL;
+})(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
+/// <reference path="app.page.utility.ts"/>
+/// <reference path="utility.ts"/>
+var MODULE;
+(function (MODULE) {
+    /* MODEL */
+    (function (MODEL) {
+        var AppPageRequest = (function (_super) {
+            __extends(AppPageRequest, _super);
+            function AppPageRequest(model_, app_, setting_, event_, register_, cache_, done_, fail_) {
+                _super.call(this);
+                this.model_ = model_;
+                this.app_ = app_;
+                this.setting_ = setting_;
+                this.event_ = event_;
+                this.register_ = register_;
+                this.cache_ = cache_;
+                this.done_ = done_;
+                this.fail_ = fail_;
+                this.main_();
+            }
+            AppPageRequest.prototype.main_ = function () {
+                var that = this, setting = this.setting_, event = this.event_ = jQuery.extend(true, {}, this.event_), register = this.register_, cache = this.cache_, globalXHR = this.model_.getGlobalXHR(), wait = MODEL.UTIL.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
+
+                var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
+                speedcheck && (speed.fire = event.timeStamp);
+                speedcheck && speed.time.splice(0, 100, 0);
+                speedcheck && speed.name.splice(0, 100, 'pjax(' + speed.time.slice(-1) + ')');
+
+                if (MODEL.UTIL.fire(setting.callbacks.before, null, [event, setting.param]) === false) {
+                    return;
+                }
+
+                this.app_.page.isScrollPosSavable = false;
+                setting.fix.reset && /click|submit/.test(event.type.toLowerCase()) && window.scrollTo(jQuery(window).scrollLeft(), 0);
+
+                function done(ajax, wait) {
+                    that.data_ = ajax[0];
+                    that.textStatus_ = ajax[1];
+                    that.jqXHR_ = ajax[2];
+                    MODEL.UTIL.fire(setting.callbacks.ajax.done, this, [event, setting.param].concat(ajax));
+                }
+                function fail(jqXHR, textStatus, errorThrown) {
+                    that.jqXHR_ = jqXHR;
+                    that.textStatus_ = textStatus;
+                    that.errorThrown_ = errorThrown;
+                    MODEL.UTIL.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat(arguments));
+                }
+                function always() {
+                    MODEL.UTIL.fire(setting.callbacks.ajax.always, this, [event, setting.param].concat(arguments));
+                    that.model_.setGlobalXHR(null);
+
+                    if (that.model_.isDeferrable) {
+                        if (that.data_) {
+                            that.done_(setting, event, register, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
+                        } else {
+                            that.fail_(setting, event, register, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
+                        }
+                    }
+                }
+                function success(data, textStatus, jqXHR) {
+                    that.data_ = data;
+                    that.textStatus_ = textStatus;
+                    that.jqXHR_ = jqXHR;
+                    MODEL.UTIL.fire(setting.callbacks.ajax.success, this, [event, setting.param, data, textStatus, jqXHR]);
+                }
+                function error(jqXHR, textStatus, errorThrown) {
+                    that.jqXHR_ = jqXHR;
+                    that.textStatus_ = textStatus;
+                    that.errorThrown_ = errorThrown;
+                    MODEL.UTIL.fire(setting.callbacks.ajax.error, this, [event, setting.param, jqXHR, textStatus, errorThrown]);
+                }
+                function complete(jqXHR, textStatus) {
+                    MODEL.UTIL.fire(setting.callbacks.ajax.complete, this, [event, setting.param, jqXHR, textStatus]);
+                    that.model_.setGlobalXHR(null);
+
+                    if (!that.model_.isDeferrable) {
+                        if (that.data_) {
+                            that.done_(setting, event, register, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
+                        } else {
+                            that.fail_(setting, event, register, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
+                        }
+                    }
+                }
+
+                this.dispatchEvent_(document, setting.gns + ':fetch', false, true);
+                jQuery(document).trigger(setting.gns + '.fetch');
+
+                if (cache && cache.jqXHR) {
+                    // cache
+                    speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
+                    setting.loadtime = 0;
+                    this.model_.setGlobalXHR(null);
+                    this.host_ = cache.host || '';
+                    this.data_ = cache.jqXHR.responseText;
+                    this.textStatus_ = cache.textStatus;
+                    this.jqXHR_ = cache.jqXHR;
+                    if (this.model_.isDeferrable) {
+                        jQuery.when(jQuery.Deferred().resolve([that.data_, that.textStatus_, that.jqXHR_]), this.wait_(wait)).done(done).fail(fail).always(always);
+                    } else {
+                        var context = jQuery.extend({}, jQuery.ajaxSettings, setting.ajax);
+                        context = context.context || context;
+                        success.call(context, that.data_, that.textStatus_, that.jqXHR_);
+                        complete.call(context, that.jqXHR_, that.textStatus_);
+                    }
+                } else if (globalXHR && globalXHR.follow && 'abort' !== globalXHR.statusText && 'error' !== globalXHR.statusText) {
+                    // preload
+                    speedcheck && speed.time.splice(0, 1, globalXHR.timeStamp - speed.fire);
+                    speedcheck && speed.name.splice(0, 1, 'preload(' + speed.time.slice(-1) + ')');
+                    speedcheck && speed.time.push(speed.now() - speed.fire);
+                    speedcheck && speed.name.push('continue(' + speed.time.slice(-1) + ')');
+                    this.host_ = globalXHR.host || '';
+                    setting.loadtime = globalXHR.timeStamp;
+                    var wait = setting.wait && isFinite(globalXHR.timeStamp) ? Math.max(wait - new Date().getTime() + globalXHR.timeStamp, 0) : 0;
+                    jQuery.when(globalXHR, that.wait_(wait)).done(done).fail(fail).always(always);
+                } else {
+                    // default
+                    setting.loadtime = event.timeStamp;
+                    var requestLocation = setting.destLocation.cloneNode(), ajax = {}, callbacks = {};
+
+                    this.app_.balance.chooseServer(setting);
+                    this.host_ = setting.balance.self && this.app_.balance.host().split('//').pop() || '';
+                    requestLocation.host = this.host_ || setting.destLocation.host;
+                    ajax.url = !setting.server.query ? requestLocation.href : [
+                        requestLocation.protocol,
+                        '//',
+                        requestLocation.host,
+                        '/' === requestLocation.pathname.charAt(0) ? requestLocation.pathname : '/' + requestLocation.pathname,
+                        (1 < requestLocation.search.length ? requestLocation.search + '&' : '?') + setting.server.query,
+                        requestLocation.hash
+                    ].join('');
+                    switch (event.type.toLowerCase()) {
+                        case 'click':
+                            ajax.type = 'GET';
+                            break;
+
+                        case 'submit':
+                            ajax.type = event.currentTarget.method.toUpperCase();
+                            switch (ajax.type) {
+                                case 'POST':
+                                    if (!jQuery(event.currentTarget).has(':file').length) {
+                                        ajax.data = jQuery(event.currentTarget).serializeArray();
+                                    } else if ('function' === typeof FormData) {
+                                        ajax.data = new FormData(event.currentTarget);
+                                        ajax.contentType = false;
+                                        ajax.processData = false;
+                                    }
+                                    break;
+                                case 'GET':
+                                    break;
+                            }
+                            break;
+
+                        case 'popstate':
+                            ajax.type = 'GET';
+                            break;
+                    }
+
+                    callbacks = {
+                        xhr: !setting.callbacks.ajax.xhr ? undefined : function () {
+                            var jqXHR;
+                            jqXHR = MODEL.UTIL.fire(setting.callbacks.ajax.xhr, this, [event, setting.param]);
+                            jqXHR = 'object' === typeof jqXHR && jqXHR || jQuery.ajaxSettings.xhr();
+
+                            //if (jqXHR instanceof Object && jqXHR instanceof window.XMLHttpRequest && 'onprogress' in jqXHR) {
+                            //  jqXHR.addEventListener('progress', function(event) {dataSize = event.loaded;}, false);
+                            //}
+                            return jqXHR;
+                        },
+                        beforeSend: !setting.callbacks.ajax.beforeSend && !setting.server.header ? undefined : function (jqXHR, ajaxSetting) {
+                            if (setting.server.header) {
+                                jqXHR.setRequestHeader(setting.nss.requestHeader, 'true');
+                            }
+                            if ('object' === typeof setting.server.header) {
+                                jqXHR.setRequestHeader(setting.nss.requestHeader, 'true');
+                                setting.server.header.area && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Area', this.app_.chooseArea(setting.area, document, document));
+                                setting.server.header.head && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Head', setting.load.head);
+                                setting.server.header.css && jqXHR.setRequestHeader(setting.nss.requestHeader + '-CSS', setting.load.css.toString());
+                                setting.server.header.script && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Script', setting.load.script.toString());
+                            }
+
+                            MODEL.UTIL.fire(setting.callbacks.ajax.beforeSend, this, [event, setting.param, jqXHR, ajaxSetting]);
+                        },
+                        dataFilter: !setting.callbacks.ajax.dataFilter ? undefined : function (data, type) {
+                            return MODEL.UTIL.fire(setting.callbacks.ajax.dataFilter, this, [event, setting.param, data, type]) || data;
+                        },
+                        success: success,
+                        error: error,
+                        complete: complete
+                    };
+
+                    ajax = jQuery.extend(true, {}, setting.ajax, callbacks, ajax);
+
+                    globalXHR = this.model_.setGlobalXHR(jQuery.ajax(ajax));
+
+                    if (this.model_.isDeferrable) {
+                        jQuery.when(globalXHR, that.wait_(wait)).done(done).fail(fail).always(always);
+                    }
+                }
+
+                if (MODEL.UTIL.fire(setting.callbacks.after, null, [event, setting.param]) === false) {
+                    return;
+                }
+            };
+            return AppPageRequest;
+        })(MODEL.AppPageUtility);
+        MODEL.AppPageRequest = AppPageRequest;
+    })(MODULE.MODEL || (MODULE.MODEL = {}));
+    var MODEL = MODULE.MODEL;
+})(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
+/// <reference path="app.page.utility.ts"/>
+/// <reference path="app.data.ts"/>
+/// <reference path="utility.ts"/>
+var MODULE;
+(function (MODULE) {
+    /* MODEL */
+    (function (MODEL) {
+        setTimeout(function () {
+            return AppPageUpdate.createHTMLDocument_('', '');
+        }, 50);
+
+        var AppPageUpdate = (function (_super) {
+            __extends(AppPageUpdate, _super);
+            function AppPageUpdate(model_, app_, setting_, event_, register_, cache_, data_, textStatus_, jqXHR_, errorThrown_, host_) {
+                _super.call(this);
+                this.model_ = model_;
+                this.app_ = app_;
+                this.setting_ = setting_;
+                this.event_ = event_;
+                this.register_ = register_;
+                this.cache_ = cache_;
+                this.data_ = data_;
+                this.textStatus_ = textStatus_;
+                this.jqXHR_ = jqXHR_;
+                this.errorThrown_ = errorThrown_;
+                this.host_ = host_;
+                this.loadwaits_ = [];
+                this.createHTMLDocument_ = AppPageUpdate.createHTMLDocument_;
+                this.main_();
+            }
+            AppPageUpdate.prototype.main_ = function () {
+                var that = this, app = this.app_, setting = this.setting_, event = this.event_, register = this.register_, cache = this.cache_;
+
+                var setting = this.setting_, event = this.event_, register = this.register_, data = this.data_, textStatus = this.textStatus_, jqXHR = this.jqXHR_;
+                var callbacks_update = setting.callbacks.update;
+
+                var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
+                speedcheck && speed.time.push(speed.now() - speed.fire);
+                speedcheck && speed.name.push('fetch(' + speed.time.slice(-1) + ')');
+
+                UPDATE:
+                 {
+                    setting.loadtime = setting.loadtime && new Date().getTime() - setting.loadtime;
+                    setting.loadtime = setting.loadtime < 100 ? 0 : setting.loadtime;
+
+                    if (MODEL.UTIL.fire(callbacks_update.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_, this.cache_]) === false) {
+                        break UPDATE;
+                    }
+
+                    if (setting.cache.mix && 'popstate' !== event.type.toLowerCase() && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
+                        return this.model_.fallback(event, setting);
+                    }
+
+                    try  {
+                        app.page.landing = null;
+                        if (!~(jqXHR.getResponseHeader('Content-Type') || '').toLowerCase().search(setting.contentType)) {
+                            throw new Error("throw: content-type mismatch");
+                        }
+
+                        DEFINE:
+                         {
+                            this.srcDocument_ = this.createHTMLDocument_(jqXHR.responseText, setting.destLocation.href);
+                            this.dstDocument_ = document;
+
+                            // 更新範囲を選出
+                            setting.area = this.chooseArea(setting.area, this.srcDocument_, this.dstDocument_);
+                            if (!setting.area) {
+                                throw new Error('throw: area notfound');
+                            }
+
+                            // 更新範囲をセレクタごとに分割
+                            setting.areas = setting.area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
+                        }
+                        ;
+
+                        /* check point */
+                        speedcheck && speed.time.push(speed.now() - speed.fire);
+                        speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
+
+                        /* redirect */
+                        this.redirect_();
+
+                        /* cache */
+                        this.updateCache_();
+
+                        /* escape */
+                        setting.fix.noscript && jQuery('noscript', this.srcDocument_).children().parent().each(function () {
+                            jQuery(this).text(this.innerHTML);
+                        });
+
+                        this.dispatchEvent_(window, setting.gns + ':unload', false, true);
+                        jQuery(window).trigger(setting.gns + '.unload');
+
+                        /* url */
+                        this.updateUrl_();
+
+                        /* verify */
+                        this.verify_();
+
+                        /* save */
+                        this.model_.setGlobalSetting(jQuery.extend(true, {}, setting, { origLocation: setting.destLocation.cloneNode() }));
+
+                        /* load */
+                        this.updateDocument_();
+
+                        if (MODEL.UTIL.fire(callbacks_update.success, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                            break UPDATE;
+                        }
+                        if (MODEL.UTIL.fire(callbacks_update.complete, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                            break UPDATE;
+                        }
+                        if (MODEL.UTIL.fire(setting.callback, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                            break UPDATE;
+                        }
+                    } catch (err) {
+                        if (!err) {
+                            return;
+                        }
+
+                        /* cache delete */
+                        this.cache_ && this.model_.removeCache(setting.destLocation.href);
+
+                        if (MODEL.UTIL.fire(callbacks_update.error, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                            break UPDATE;
+                        }
+                        if (MODEL.UTIL.fire(callbacks_update.complete, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                            break UPDATE;
+                        }
+                        this.model_.fallback(event, setting);
+                    }
+                    ;
+
+                    if (MODEL.UTIL.fire(callbacks_update.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                        break UPDATE;
+                    }
+                }
+                ;
+            };
+
+            AppPageUpdate.prototype.updateCache_ = function () {
+                var setting = this.setting_, cache = this.cache_, event = this.event_, data = this.data_, textStatus = this.textStatus_, jqXHR = this.jqXHR_;
+                var callbacks_update = setting.callbacks.update;
+
+                if (!setting.cache.click && !setting.cache.submit && !setting.cache.popstate) {
+                    return;
+                }
+                if ('submit' === event.type.toLowerCase() && !setting.cache[event.currentTarget.method.toLowerCase()]) {
+                    return;
+                }
+
+                if (MODEL.UTIL.fire(callbacks_update.cache.before, null, [event, setting.param, cache]) === false) {
+                    return;
+                }
+
+                this.model_.setCache(setting.destLocation.href, cache && cache.data || null, textStatus, jqXHR);
+                cache = this.model_.getCache(setting.destLocation.href);
+                this.cache_ = cache;
+
+                if (cache && cache.data) {
+                    var $span = jQuery('<span/>'), html = setting.fix.noscript ? cache.data.replace(/(<noscript>)([^<>]+?)(<\/noscript>)/gim, function ($0, $1, $2, $3) {
+                        return $1 + $span.html($2).text() + $3;
+                    }) : cache.data, cacheDocument = this.createHTMLDocument_(html, setting.destLocation.href), srcDocument = this.srcDocument_;
+
+                    srcDocument.title = cacheDocument.title;
+
+                    var $srcAreas, $dstAreas;
+                    for (var i = 0; setting.areas[i]; i++) {
+                        $srcAreas = jQuery(setting.areas[i], cacheDocument).clone();
+                        $dstAreas = jQuery(setting.areas[i], srcDocument);
+                        if (!$srcAreas.length || !$dstAreas.length || $srcAreas.length !== $dstAreas.length) {
+                            throw new Error('throw: area mismatch');
+                        }
+
+                        for (var j = 0; $srcAreas[j]; j++) {
+                            $dstAreas[j].parentNode.replaceChild($srcAreas[j], $dstAreas[j]);
+                        }
+                    }
+                }
+
+                if (MODEL.UTIL.fire(callbacks_update.cache.after, null, [event, setting.param, cache]) === false) {
+                    return;
+                }
+            };
+
+            AppPageUpdate.prototype.rewrite_ = function () {
+                var setting = this.setting_, event = this.event_;
+                var callbacks_update = setting.callbacks.update;
+
+                if (!setting.rewrite) {
+                    return;
+                }
+
+                if (MODEL.UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) {
+                    return;
+                }
+
+                MODEL.UTIL.fire(setting.rewrite, null, [this.srcDocument_, setting.area, this.host_]);
+
+                if (MODEL.UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) {
+                    return;
+                }
+            };
+
+            AppPageUpdate.prototype.redirect_ = function () {
+                var _this = this;
+                var setting = this.setting_, event = this.event_, register = this.register_;
+                var callbacks_update = setting.callbacks.update;
+
+                if (!jQuery('head meta[http-equiv="Refresh"][content*="URL="]', this.srcDocument_).length) {
+                    return;
+                }
+
+                if (MODEL.UTIL.fire(callbacks_update.redirect.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    return;
+                }
+                ;
+
+                var redirect = setting.destLocation.cloneNode();
+                redirect.href = jQuery(redirect).attr('content').match(/\w+:\/\/[^;\s]+/i).shift();
+                switch (true) {
+                    case !setting.redirect:
+                    case redirect.protocol !== setting.destLocation.protocol:
+                    case redirect.host !== setting.destLocation.host:
+                    case 'submit' === event.type.toLowerCase() && 'GET' !== event.currentTarget.method.toUpperCase():
+                        switch (event.type.toLowerCase()) {
+                            case 'click':
+                            case 'submit':
+                                window.location.assign(redirect.href);
+                                break;
+                            case 'popstate':
+                                window.location.replace(redirect.href);
+                                break;
+                        }
+                        throw false;
+
+                    default:
+                        jQuery[MODULE.NAME].enable();
+                        switch (event.type.toLowerCase()) {
+                            case 'click':
+                            case 'submit':
+                                setTimeout(function () {
+                                    return jQuery[MODULE.NAME].click(redirect.href);
+                                }, 0);
+                                break;
+                            case 'popstate':
+                                window.history.replaceState(window.history.state, this.srcDocument_.title, redirect.href);
+                                if (register && setting.fix.location) {
+                                    jQuery[MODULE.NAME].disable();
+                                    window.history.back();
+                                    window.history.forward();
+                                    jQuery[MODULE.NAME].enable();
+                                }
+                                setTimeout(function () {
+                                    return _this.dispatchEvent_(window, 'popstate', false, false);
+                                }, 0);
+                                break;
+                        }
+                        throw false;
+                }
+
+                if (MODEL.UTIL.fire(callbacks_update.redirect.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    return;
+                }
+            };
+
+            AppPageUpdate.prototype.updateUrl_ = function () {
+                var setting = this.setting_, event = this.event_, register = this.register_;
+                var callbacks_update = setting.callbacks.update;
+
+                if (MODEL.UTIL.fire(callbacks_update.url.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    return;
+                }
+                ;
+
+                register && window.history.pushState(MODEL.UTIL.fire(setting.state, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]), window.opera || ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstDocument_.title : this.srcDocument_.title, setting.destLocation.href);
+
+                if (register && setting.fix.location) {
+                    jQuery[MODULE.NAME].disable();
+                    window.history.back();
+                    window.history.forward();
+                    jQuery[MODULE.NAME].enable();
+                }
+
+                if (MODEL.UTIL.fire(callbacks_update.url.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    return;
+                }
+            };
+
+            AppPageUpdate.prototype.verify_ = function () {
+                var setting = this.setting_, event = this.event_;
+                var callbacks_update = setting.callbacks.update;
+
+                if (MODEL.UTIL.fire(callbacks_update.verify.before, null, [event, setting.param]) === false) {
+                    return;
+                }
+
+                // モバイルブラウザでアドレスバーのURLのパーセントエンコーディングの大文字小文字がアンカーと一致しないため揃える必要がある
+                if (setting.destLocation.href === MODEL.UTIL.canonicalizeUrl(window.location.href).replace(/(?:%\w{2})+/g, function (str) {
+                    return String(setting.destLocation.href.match(str.toLowerCase()) || str);
+                })) {
+                    setting.retriable = true;
+                } else if (setting.retriable) {
+                    setting.retriable = false;
+                    setting.destLocation.href = MODEL.UTIL.canonicalizeUrl(window.location.href);
+                    new AppPageUpdate(this.model_, this.app_, setting, event, false, setting.cache[event.type.toLowerCase()] && this.model_.getCache(setting.destLocation.href), this.data_, this.textStatus_, this.jqXHR_, this.errorThrown_, this.host_);
+                    throw false;
+                } else {
+                    throw new Error('throw: location mismatch');
+                }
+
+                if (MODEL.UTIL.fire(callbacks_update.verify.after, null, [event, setting.param]) === false) {
+                    return;
+                }
+            };
+
+            AppPageUpdate.prototype.updateDocument_ = function () {
+                var _this = this;
+                var setting = this.setting_;
+
+                this.rewrite_();
+
+                this.title_();
+                this.head_();
+
+                var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
+                speedcheck && speed.time.push(speed.now() - speed.fire);
+                speedcheck && speed.name.push('head(' + speed.time.slice(-1) + ')');
+
+                this.loadwaits_ = this.area_();
+
+                speedcheck && speed.time.push(speed.now() - speed.fire);
+                speedcheck && speed.name.push('content(' + speed.time.slice(-1) + ')');
+
+                this.balance_();
+
+                this.css_('link[rel~="stylesheet"], style');
+                jQuery(window).one(setting.gns + ':rendering', function (event) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+
+                    var onready = function (callback) {
+                        _this.dispatchEvent_(document, setting.gns + ':ready', false, true);
+                        jQuery(document).trigger(setting.gns + '.ready');
+
+                        return jQuery.when ? _this.render_(jQuery.Deferred().resolve) : _this.render_(callback);
+                    };
+
+                    var onrender = function (callback) {
+                        setTimeout(function () {
+                            _this.app_.page.isScrollPosSavable = true;
+                            if ('popstate' !== event.type.toLowerCase()) {
+                                _this.scrollByHash_(setting.destLocation.hash) || _this.scroll_(true);
+                            } else {
+                                _this.scroll_(true);
+                            }
+                        }, 100);
+
+                        _this.dispatchEvent_(document, setting.gns + ':render', false, true);
+                        jQuery(document).trigger(setting.gns + '.render');
+
+                        speedcheck && speed.time.push(speed.now() - speed.fire);
+                        speedcheck && speed.name.push('render(' + speed.time.slice(-1) + ')');
+
+                        return jQuery.when ? jQuery.when.apply(jQuery, _this.loadwaits_) : callback();
+                    };
+
+                    var onload = function () {
+                        _this.dispatchEvent_(window, setting.gns + ':load', false, true);
+                        jQuery(window).trigger(setting.gns + '.load');
+
+                        speedcheck && speed.time.push(speed.now() - speed.fire);
+                        speedcheck && speed.name.push('load(' + speed.time.slice(-1) + ')');
+
+                        speedcheck && console.log(speed.time);
+                        speedcheck && console.log(speed.name);
+
+                        _this.script_('[src][defer]');
+
+                        // 未定義を返すとエラー
+                        return jQuery.when && jQuery.Deferred();
+                    };
+
+                    _this.scroll_(false);
+                    var scriptwaits = _this.script_(':not([defer]), :not([src])');
+
+                    if (jQuery.when) {
+                        // 1.7.2のthenは壊れてるのでpipe
+                        var then = jQuery.Deferred().pipe ? 'pipe' : 'then';
+                        jQuery.when.apply(jQuery, scriptwaits)[then](function () {
+                            return onready();
+                        }, function () {
+                            return onready();
+                        })[then](function () {
+                            return onrender();
+                        }, function () {
+                            return onrender();
+                        })[then](function () {
+                            return onload();
+                        }, function () {
+                            return onload();
+                        });
+                    } else {
+                        onready(function () {
+                            return onrender(function () {
+                                return onload();
+                            });
+                        });
+                    }
+                }).trigger(setting.gns + ':rendering');
+            };
+
+            AppPageUpdate.prototype.title_ = function () {
+                var setting = this.setting_, event = this.event_;
+                var callbacks_update = setting.callbacks.update;
+
+                if (MODEL.UTIL.fire(callbacks_update.title.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    return;
+                }
+
+                this.dstDocument_.title = this.srcDocument_.title;
+                setting.database && setting.fix.history && this.app_.data.saveTitleToDB(setting.destLocation.href, this.srcDocument_.title);
+
+                if (MODEL.UTIL.fire(callbacks_update.title.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    return;
+                }
+            };
+
+            AppPageUpdate.prototype.head_ = function () {
+                var setting = this.setting_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
+                var callbacks_update = setting.callbacks.update;
+
+                if (!setting.load.head) {
+                    return;
+                }
+
+                if (MODEL.UTIL.fire(callbacks_update.head.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    return;
+                }
+
+                var prefilter = 'base, meta, link', $srcElements = jQuery(srcDocument.head).children(prefilter).filter(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script'), $dstElements = jQuery(dstDocument.head).children(prefilter).filter(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script'), $addElements = jQuery(), $delElements = $dstElements;
+
+                for (var i = 0, element, selector; element = $srcElements[i]; i++) {
+                    for (var j = 0; $delElements[j]; j++) {
+                        if ($delElements[j].tagName === element.tagName && $delElements[j].outerHTML === element.outerHTML) {
+                            if ($addElements.length) {
+                                var ref = $dstElements[$dstElements.index($delElements[j]) - 1];
+                                ref ? jQuery(ref).after($addElements.clone()) : $delElements.eq(j).before($addElements.clone());
+                                $addElements = jQuery();
+                            }
+                            $delElements = $delElements.not($delElements[j]);
+                            element = null;
+                            break;
+                        }
+                    }
+                    $addElements = $addElements.add(element);
+                }
+                jQuery('title', dstDocument).before($addElements.clone());
+                $delElements.remove();
+
+                if (MODEL.UTIL.fire(callbacks_update.head.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    return;
+                }
+            };
+
+            AppPageUpdate.prototype.area_ = function () {
+                var _this = this;
+                var setting = this.setting_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
+                var callbacks_update = setting.callbacks.update;
+
+                var checker, loadwaits = [];
+
+                if (MODEL.UTIL.fire(callbacks_update.content.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    return loadwaits;
+                }
+
+                function map() {
+                    var defer = jQuery.Deferred();
+                    jQuery(this).one('load error', defer.resolve);
+                    return defer;
+                }
+
+                jQuery(setting.area).children('.' + setting.nss.class4html + '-check').remove();
+                checker = jQuery('<div/>', {
+                    'class': setting.nss.class4html + '-check',
+                    'style': 'background: none !important; display: block !important; visibility: hidden !important; position: absolute !important; top: 0 !important; left: 0 !important; z-index: -9999 !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; font-size: 12px !important; text-indent: 0 !important;'
+                }).text(setting.gns);
+
+                var $srcAreas, $dstAreas;
+                for (var i = 0; setting.areas[i]; i++) {
+                    $srcAreas = jQuery(setting.areas[i], srcDocument).clone();
+                    $dstAreas = jQuery(setting.areas[i], dstDocument);
+                    if (!$srcAreas.length || !$dstAreas.length || $srcAreas.length !== $dstAreas.length) {
+                        throw new Error('throw: area mismatch');
+                    }
+
+                    $srcAreas.find('script').each(function (i, elem) {
+                        return _this.escapeScript_(elem);
+                    });
+                    if (jQuery.when) {
+                        loadwaits = loadwaits.concat($srcAreas.find('img, iframe, frame').map(map).get());
+                    }
+
+                    for (var j = 0; $srcAreas[j]; j++) {
+                        $dstAreas[j].parentNode.replaceChild($srcAreas[j], $dstAreas[j]);
+                    }
+
+                    $dstAreas = jQuery(setting.areas[i], dstDocument);
+                    $dstAreas.append(checker.clone());
+                    $dstAreas.find('script').each(function (i, elem) {
+                        return _this.restoreScript_(elem);
+                    });
+                }
+                this.dispatchEvent_(document, setting.gns + ':DOMContentLoaded', false, true);
+                jQuery(document).trigger(setting.gns + '.DOMContentLoaded');
+
+                if (MODEL.UTIL.fire(callbacks_update.content.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    return loadwaits;
+                }
+
+                return loadwaits;
+            };
+
+            AppPageUpdate.prototype.balance_ = function () {
+                var setting = this.setting_, event = this.event_;
+                var callbacks_update = setting.callbacks.update;
+
+                if (!setting.balance.self || !setting.loadtime) {
+                    return;
+                }
+
+                if (MODEL.UTIL.fire(callbacks_update.balance.before, null, [event, setting.param]) === false) {
+                    return;
+                }
+
+                var host = (this.jqXHR_.getResponseHeader(setting.balance.server.header) || '').split('//').pop();
+                this.app_.data.saveLogToDB({
+                    host: host,
+                    performance: Math.ceil(setting.loadtime / (this.jqXHR_.responseText.length || 1) * 1e5),
+                    date: new Date().getTime()
+                });
+                this.app_.data.saveServerToDB(host, 0, setting.destLocation.href, this.calExpires(this.jqXHR_));
+                this.app_.balance.chooseServer(setting);
+
+                this.app_.data.loadBufferAll(setting.buffer.limit);
+
+                if (MODEL.UTIL.fire(callbacks_update.balance.after, null, [event, setting.param]) === false) {
+                    return;
+                }
+            };
+
+            AppPageUpdate.prototype.scroll_ = function (call) {
+                var setting = this.setting_, event = this.event_;
+                var callbacks_update = setting.callbacks.update;
+
+                if (MODEL.UTIL.fire(callbacks_update.scroll.before, null, [event, setting.param]) === false) {
+                    return;
+                }
+
+                var scrollX, scrollY;
+                switch (event.type.toLowerCase()) {
+                    case 'click':
+                    case 'submit':
+                        scrollX = call && 'function' === typeof setting.scrollLeft ? MODEL.UTIL.fire(setting.scrollLeft, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]) : setting.scrollLeft;
+                        scrollX = 0 <= scrollX ? scrollX : 0;
+                        scrollX = scrollX === false || scrollX === null ? jQuery(window).scrollLeft() : parseInt(Number(scrollX) + '', 10);
+
+                        scrollY = call && 'function' === typeof setting.scrollTop ? MODEL.UTIL.fire(setting.scrollTop, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]) : setting.scrollTop;
+                        scrollY = 0 <= scrollY ? scrollY : 0;
+                        scrollY = scrollY === false || scrollY === null ? jQuery(window).scrollTop() : parseInt(Number(scrollY) + '', 10);
+
+                        (jQuery(window).scrollTop() === scrollY && jQuery(window).scrollLeft() === scrollX) || window.scrollTo(scrollX, scrollY);
+                        call && setting.database && this.app_.page.isScrollPosSavable && setting.fix.scroll && this.app_.data.saveScrollPositionToCacheAndDB(setting.destLocation.href, scrollX, scrollY);
+                        break;
+                    case 'popstate':
+                        call && setting.fix.scroll && setting.database && this.app_.data.loadScrollPositionFromCacheOrDB(setting.destLocation.href);
+                        break;
+                }
+
+                if (MODEL.UTIL.fire(callbacks_update.scroll.after, null, [event, setting.param]) === false) {
+                    return;
+                }
+            };
+
+            AppPageUpdate.prototype.css_ = function (selector) {
+                var setting = this.setting_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
+                var callbacks_update = setting.callbacks.update;
+
+                if (!setting.load.css) {
+                    return;
+                }
+
+                if (MODEL.UTIL.fire(callbacks_update.css.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    return;
+                }
+
+                var prefilter = 'link, style', $srcElements = jQuery(prefilter, srcDocument).filter(selector).not(setting.load.ignore).not(jQuery('noscript', srcDocument).find(prefilter)), $dstElements = jQuery(prefilter, dstDocument).filter(selector).not(setting.load.ignore).not(jQuery('noscript', srcDocument).find(prefilter)), $addElements = jQuery(), $delElements = $dstElements;
+
+                for (var i = 0, element; element = $srcElements[i]; i++) {
+                    for (var j = 0, isSameElement; $delElements[j]; j++) {
+                        switch (element.tagName.toLowerCase()) {
+                            case 'link':
+                                isSameElement = element.href === $delElements[j].href;
+                                break;
+                            case 'style':
+                                isSameElement = element.innerHTML.trim() === $delElements[j].innerHTML.trim();
+                                break;
+                        }
+                        if (isSameElement) {
+                            if ($addElements.length) {
+                                if (jQuery.contains(dstDocument.body, $delElements[j]) && $addElements.first().parents('head').length) {
+                                    jQuery(dstDocument.head).append($addElements.filter(function () {
+                                        return jQuery.contains(srcDocument.head, this);
+                                    }).clone());
+                                    $delElements.eq(j).before($addElements.filter(function () {
+                                        return jQuery.contains(srcDocument.body, this);
+                                    }).clone());
+                                } else {
+                                    var ref = $dstElements[$dstElements.index($delElements[j]) - 1];
+                                    ref ? jQuery(ref).after($addElements.clone()) : $delElements.eq(j).before($addElements.clone());
+                                }
+                                $addElements = jQuery();
+                            }
+                            $delElements = $delElements.not($delElements[j]);
+                            j -= Number(!!j);
+                            element = null;
+                            break;
+                        }
+                    }
+                    $addElements = $addElements.add(element);
+                }
+                jQuery(dstDocument.head).append($addElements.filter(function () {
+                    return jQuery.contains(srcDocument.head, this);
+                }).clone());
+                jQuery(dstDocument.body).append($addElements.filter(function () {
+                    return jQuery.contains(srcDocument.body, this);
+                }).clone());
+                $delElements.remove();
+
+                if (MODEL.UTIL.fire(callbacks_update.css.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    return;
+                }
+
+                var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
+                speedcheck && speed.time.push(speed.now() - speed.fire);
+                speedcheck && speed.name.push('css(' + speed.time.slice(-1) + ')');
+            };
+
+            AppPageUpdate.prototype.script_ = function (selector) {
+                var _this = this;
+                var setting = this.setting_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
+                var callbacks_update = setting.callbacks.update;
+
+                if (!setting.load.script) {
+                    return [];
+                }
+
+                if (MODEL.UTIL.fire(callbacks_update.script.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    return [];
+                }
+
+                var prefilter = 'script', $scriptElements = jQuery(prefilter, srcDocument).filter(selector).not(setting.load.ignore).not(jQuery('noscript', srcDocument).find(prefilter)), $execElements = jQuery(), scriptwaits = [], loadedScripts = this.app_.page.loadedScripts, regType = /^$|(?:application|text)\/(?:java|ecma)script/i, regRemove = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
+
+                for (var i = 0, element; element = $scriptElements[i]; i++) {
+                    if (!regType.test(element.type || '')) {
+                        continue;
+                    }
+                    if (element.hasAttribute('src') ? loadedScripts[element.src] : !element.innerHTML.trim()) {
+                        continue;
+                    }
+
+                    LOG:
+                     {
+                        var srcLogParent = jQuery(element).parent(setting.load.log)[0];
+                        if (!srcLogParent || jQuery(element).parents(setting.area).length) {
+                            break LOG;
+                        }
+
+                        var dstLogParent = jQuery(srcLogParent.id || srcLogParent.tagName, dstDocument)[0], log = element.cloneNode(true);
+                        this.escapeScript_(log);
+                        dstLogParent.appendChild(log);
+                        this.restoreScript_(log);
+                    }
+                    ;
+
+                    if (this.model_.isDeferrable) {
+                        (function (defer, element) {
+                            if (element.hasAttribute('src')) {
+                                if (!element.getAttribute('src')) {
+                                    return;
+                                }
+                                if (element.hasAttribute('async')) {
+                                    jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: true, global: false })).done(function () {
+                                        return _this.dispatchEvent_(element, 'load', false, true);
+                                    }).fail(function () {
+                                        return _this.dispatchEvent_(element, 'error', false, true);
+                                    });
+                                } else {
+                                    jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, dataType: 'text', async: true, global: false })).done(function () {
+                                        return defer.resolve([element, arguments[0]]);
+                                    }).fail(function () {
+                                        return defer.resolve([element, new Error()]);
+                                    });
+                                    scriptwaits.push(defer);
+                                }
+                            } else {
+                                defer.resolve([element, (element.text || element.textContent || element.innerHTML || '').replace(regRemove, '')]);
+                                scriptwaits.push(defer);
+                            }
+                        })(jQuery.Deferred(), element);
+                    } else {
+                        if (element.hasAttribute('src')) {
+                            if (!element.getAttribute('src')) {
+                                continue;
+                            }
+                            $execElements = $execElements.add(element);
+                        } else {
+                            $execElements = $execElements.add(element);
+                        }
+                    }
+                }
+
+                try  {
+                    if (this.model_.isDeferrable) {
+                        jQuery.when.apply(jQuery, scriptwaits).always(function () {
+                            for (var i = 0, len = arguments.length; i < len; i++) {
+                                var result = arguments[i], element = result[0], response = result[1];
+
+                                if (element.src) {
+                                    loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload);
+                                }
+                                if ('string' === typeof response) {
+                                    eval.call(window, response);
+                                    element.hasAttribute('src') && _this.dispatchEvent_(element, 'load', false, true);
+                                } else {
+                                    element.hasAttribute('src') && _this.dispatchEvent_(element, 'error', false, true);
+                                }
+                            }
+                        });
+                    } else {
+                        for (var i = 0, element; element = $execElements[i]; i++) {
+                            if (element.hasAttribute('src')) {
+                                if (element.src) {
+                                    loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload);
+                                }
+                                (function (element) {
+                                    jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: element.hasAttribute('async'), global: false }, {
+                                        success: function () {
+                                            return _this.dispatchEvent_(element, 'load', false, true);
+                                        },
+                                        error: function () {
+                                            return _this.dispatchEvent_(element, 'error', false, true);
+                                        }
+                                    }));
+                                })(element);
+                            } else {
+                                eval.call(window, (element.text || element.textContent || element.innerHTML || '').replace(regRemove, ''));
+                            }
+                        }
+                    }
+                } catch (err) {
+                    setTimeout(function () {
+                        return _this.model_.fallback(event, setting);
+                    }, 50);
+                    throw err;
+                    return;
+                }
+
+                if (MODEL.UTIL.fire(callbacks_update.script.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    return scriptwaits;
+                }
+
+                var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
+                speedcheck && speed.time.push(speed.now() - speed.fire);
+                speedcheck && speed.name.push('script(' + speed.time.slice(-1) + ')');
+
+                return scriptwaits;
+            };
+
+            AppPageUpdate.prototype.render_ = function (callback) {
+                var setting = this.setting_, event = this.event_;
+                var callbacks_update = setting.callbacks.update;
+
+                var areas = jQuery(setting.area), checker = areas.children('.' + setting.nss.class4html + '-check'), limit = new Date().getTime() + 5 * 1000;
+
+                var check = function () {
+                    switch (true) {
+                        case setting.destLocation.href !== MODEL.UTIL.canonicalizeUrl(window.location.href).replace(/(?:%\w{2})+/g, function (str) {
+                            return String(setting.destLocation.href.match(str.toLowerCase()) || str);
+                        }):
+                            break;
+                        case new Date().getTime() > limit:
+                        case checker.length !== areas.length:
+                        case checker.length === checker.filter(function () {
+                            return this.clientWidth || this.clientHeight || jQuery(this).is(':hidden');
+                        }).length:
+                            checker.remove();
+                            callback();
+                            break;
+                        default:
+                            setTimeout(check, 100);
+                    }
+                };
+                check();
+
+                return jQuery.when && callback;
+            };
+
+            AppPageUpdate.prototype.scrollByHash_ = function (hash) {
+                hash = '#' === hash.charAt(0) ? hash.slice(1) : hash;
+                if (!hash) {
+                    return false;
+                }
+
+                var $hashTargetElement = jQuery('#' + (hash ? hash : ', [name~=' + hash + ']')).first();
+                if ($hashTargetElement.length) {
+                    isFinite($hashTargetElement.offset().top) && window.scrollTo(jQuery(window).scrollLeft(), parseInt(Number($hashTargetElement.offset().top) + '', 10));
+                    return true;
+                } else {
+                    return false;
+                }
+            };
+
+            AppPageUpdate.prototype.escapeScript_ = function (script) {
+                jQuery.data(script, 'source', script.src);
+                jQuery.data(script, 'code', script.innerHTML);
+                script.removeAttribute('src');
+                script.innerHTML = '';
+            };
+
+            AppPageUpdate.prototype.restoreScript_ = function (script) {
+                if (undefined === jQuery.data(script, 'code')) {
+                    return;
+                }
+
+                var backup = script.innerHTML;
+
+                script.innerHTML = ' ';
+
+                if (jQuery.data(script, 'source')) {
+                    script.src = jQuery.data(script, 'source');
+                    jQuery.removeData(script, 'source');
+                } else {
+                    script.removeAttribute('src');
+                }
+
+                if (jQuery.data(script, 'code')) {
+                    script.innerHTML = jQuery.data(script, 'code');
+                    jQuery.removeData(script, 'code');
+                } else {
+                    script.innerHTML = backup;
+                }
+            };
+
+            AppPageUpdate.createHTMLDocument_ = function (html, uri) {
+                var _this = this;
+                var mode;
+
+                this.createHTMLDocument_ = function (html, uri) {
+                    function test_(conv) {
+                        var args = [];
+                        for (var _i = 0; _i < (arguments.length - 1); _i++) {
+                            args[_i] = arguments[_i + 1];
+                        }
+                        try  {
+                            var html = '<html lang="en" class="html"><head><link href="/"><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript><a href="/"></a></body></html>', doc = conv(html, '');
+                            return doc && doc.URL && decodeURI(doc.URL) === decodeURI(uri || window.location.href) && doc.querySelector('html.html[lang="en"]') && doc.querySelector('head>link')['href'] && doc.querySelector('head>noscript')['innerHTML'] && doc.querySelector('body>noscript')['innerHTML'] === 'noscript' && doc.querySelector('body>a')['href'] && true || false;
+                        } catch (err) {
+                            return false;
+                        }
+                    }
+                    ;
+                    function manipulate(doc, html) {
+                        var wrapper = document.createElement('div');
+                        wrapper.innerHTML = (html.match(/<html(?:\s.*?[^\\])?>/i) || ['<html>']).shift().replace(/html/i, 'div') + '</div>';
+                        var attrs = wrapper.firstChild.attributes;
+                        for (var i = 0, attr; attr = attrs[i]; i++) {
+                            doc.documentElement.setAttribute(attr.name, attr.value);
+                        }
+                        var wrapper = document.createElement('html');
+                        wrapper.innerHTML = html.replace(/^.*?<html(?:\s.*?[^\\])?>/im, '');
+                        doc.documentElement.removeChild(doc.head);
+                        doc.documentElement.removeChild(doc.body);
+                        while (wrapper.childNodes.length) {
+                            doc.documentElement.appendChild(wrapper.childNodes[0]);
+                        }
+                        return doc;
+                    }
+                    ;
+
+                    var backup = window.location.href;
+                    uri && window.history.replaceState(window.history.state, document.title, uri);
+
+                    var doc;
+                    switch (mode) {
+                        case 'dom':
+                            if ('function' === typeof window.DOMParser) {
+                                doc = new window.DOMParser().parseFromString(html, 'text/html');
+                            }
+                            break;
+
+                        case 'doc':
+                            if (document.implementation && document.implementation.createHTMLDocument) {
+                                doc = document.implementation.createHTMLDocument('');
+
+                                // IE, Operaクラッシュ対策
+                                if ('object' !== typeof doc.activeElement || !doc.activeElement) {
+                                    break;
+                                }
+
+                                doc.open();
+                                doc.write(html);
+                                doc.close();
+                            }
+                            break;
+
+                        case 'manipulate':
+                            if (document.implementation && document.implementation.createHTMLDocument) {
+                                doc = manipulate(document.implementation.createHTMLDocument(''), html);
+                            }
+                            break;
+
+                        default:
+                            var test = function (mode_) {
+                                return test_(_this.createHTMLDocument_, mode = mode_);
+                            };
+                            switch (/webkit|firefox|trident|$/i.exec(window.navigator.userAgent.toLowerCase()).shift()) {
+                                case 'webkit':
+                                    test('doc') || test('dom') || test('manipulate');
+                                    break;
+                                case 'firefox':
+                                    test('dom') || test('doc') || test('manipulate');
+                                    break;
+                                case 'trident':
+                                    test('manipulate') || test('dom') || test('doc');
+                                    break;
+                                default:
+                                    test('dom') || test('doc') || test('manipulate');
+                            }
+                            doc = _this.createHTMLDocument_(html, uri);
+                            break;
+                    }
+
+                    uri && window.history.replaceState(window.history.state, document.title, backup);
+                    return doc;
+                };
+
+                return this.createHTMLDocument_(html, uri);
+            };
+            return AppPageUpdate;
+        })(MODEL.AppPageUtility);
+        MODEL.AppPageUpdate = AppPageUpdate;
+    })(MODULE.MODEL || (MODULE.MODEL = {}));
+    var MODEL = MODULE.MODEL;
+})(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
+/// <reference path="app.page.request.ts"/>
+/// <reference path="app.page.update.ts"/>
+/// <reference path="app.page.utility.ts"/>
+var MODULE;
+(function (MODULE) {
+    /* MODEL */
+    (function (MODEL) {
+        var AppPage = (function (_super) {
+            __extends(AppPage, _super);
+            function AppPage(model_, app_) {
+                _super.call(this);
+                this.model_ = model_;
+                this.app_ = app_;
+                this.landing = MODEL.UTIL.canonicalizeUrl(window.location.href);
+                this.recent = { order: [], data: {}, size: 0 };
+                this.loadedScripts = {};
+                this.isScrollPosSavable = true;
+            }
+            AppPage.prototype.transfer = function (setting, event, register, cache) {
+                var _this = this;
+                var done = function (setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host) {
+                    _this.update(setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host);
+                };
+                var fail = function (setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host) {
+                    if (setting.fallback && 'abort' !== textStatus) {
+                        if (setting.balance.self) {
+                            _this.app_.balance.disable(setting);
+                        }
+                        _this.model_.fallback(event, setting);
+                    }
+                };
+
+                this.request(setting, event, register, cache, done, fail);
+            };
+
+            AppPage.prototype.request = function (setting, event, register, cache, done, fail) {
+                new MODEL.AppPageRequest(this.model_, this.app_, setting, event, register, cache, done, fail);
+            };
+
+            AppPage.prototype.update = function (setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host) {
+                new MODEL.AppPageUpdate(this.model_, this.app_, setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host);
+            };
+            return AppPage;
+        })(MODEL.AppPageUtility);
+        MODEL.AppPage = AppPage;
+    })(MODULE.MODEL || (MODULE.MODEL = {}));
+    var MODEL = MODULE.MODEL;
+})(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
+/// <reference path="_template.ts"/>
+/// <reference path="app.balance.ts"/>
+/// <reference path="app.page.ts"/>
+/// <reference path="app.data.ts"/>
+/// <reference path="utility.ts"/>
 /// <reference path="../view/main.ts"/>
 var MODULE;
 (function (MODULE) {
@@ -2776,15 +3027,13 @@ var MODULE;
                 _super.call(this);
                 this.model_ = model_;
                 this.controller_ = controller_;
+                this.balance = new MODEL.AppBalance(this.model_, this);
+                this.page = new MODEL.AppPage(this.model_, this);
                 this.data = new MODEL.AppData(this.model_, this);
-                this.landing = MODEL.UTIL.canonicalizeUrl(window.location.href);
-                this.recent = { order: [], data: {}, size: 0 };
-                this.loadedScripts = {};
-                this.isScrollPosSavable = true;
             }
             App.prototype.initialize = function ($context, setting) {
                 var _this = this;
-                var loadedScripts = this.loadedScripts;
+                var loadedScripts = this.page.loadedScripts;
                 setting.load.script && jQuery('script').each(function () {
                     var element = this;
                     if (element.src) {
@@ -2797,43 +3046,21 @@ var MODULE;
                     return _this.data.loadBufferAll(setting.buffer.limit);
                 }, setting.buffer.delay);
                 setting.balance.self && setTimeout(function () {
-                    return _this.enableBalance();
+                    return _this.balance.enable(setting);
                 }, setting.buffer.delay);
                 setTimeout(function () {
-                    return _this.landing = null;
+                    return _this.page.landing = null;
                 }, 1500);
             };
 
-            App.prototype.transfer = function (setting, event, register, cache) {
-                this.request_(setting, event, register, cache);
-            };
-            App.prototype.request_ = function (setting, event, register, cache) {
-                var app = this;
-
-                function done(setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host) {
-                    new MODEL.AppPageUpdate(app.model_, app, setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host);
-                }
-                function fail(setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host) {
-                    if (setting.fallback && 'abort' !== textStatus) {
-                        if (setting.balance.self) {
-                            app.disableBalance();
-                        }
-                        app.model_.fallback(event, setting);
-                    }
-                }
-
-                new MODEL.AppPageRequest(app.model_, app, setting, event, register, cache, done, fail);
-            };
-            App.prototype.update_ = function (setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host) {
-                new MODEL.AppPageUpdate(this.model_, this, setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host);
-            };
-
             App.prototype.configure = function (option, origURL, destURL) {
+                var that = this;
+
                 origURL = MODEL.UTIL.canonicalizeUrl(origURL || option.origLocation.href);
                 destURL = MODEL.UTIL.canonicalizeUrl(destURL || option.destLocation.href);
-                option = option.option || option;
+                option = jQuery.extend(true, {}, option.option || option, { option: option.option || option });
 
-                var scope = option.scope ? jQuery.extend(true, {}, option, this.scope_(option, origURL, destURL) || { disable: true }) : jQuery.extend(true, {}, option);
+                option = option.scope ? jQuery.extend(true, {}, option, scope(option, origURL, destURL) || { disable: true }) : jQuery.extend(true, {}, option);
 
                 var initial = {
                     gns: MODULE.NAME,
@@ -2948,7 +3175,7 @@ var MODULE;
                     scroll: { queue: [] },
                     loadtime: null,
                     retriable: true,
-                    option: option
+                    option: option.option
                 }, compute = function () {
                     var nsArray = [setting.gns || MODULE.NAME].concat(setting.ns && String(setting.ns).split('.') || []);
                     var query = setting.server.query;
@@ -2970,8 +3197,8 @@ var MODULE;
                             submit: ['submit'].concat(nsArray.join(':')).join('.'),
                             popstate: ['popstate'].concat(nsArray.join(':')).join('.'),
                             scroll: ['scroll'].concat(nsArray.join(':')).join('.'),
-                            requestHeader: ['X', nsArray[0].replace(/^\w/, function ($0) {
-                                    return $0.toUpperCase();
+                            requestHeader: ['X', nsArray[0].replace(/^\w/, function (str) {
+                                    return str.toUpperCase();
                                 })].join('-')
                         },
                         fix: !/android|iphone os|like mac os x/i.test(window.navigator.userAgent) ? { location: false, reset: false } : {},
@@ -2984,279 +3211,115 @@ var MODULE;
                 };
 
                 var setting;
-                setting = jQuery.extend(true, initial, scope);
+                setting = jQuery.extend(true, initial, option);
                 setting = jQuery.extend(true, setting, setting.balance.self && setting.balance.option, force);
                 setting = jQuery.extend(true, setting, compute());
 
                 return setting;
-            };
 
-            App.prototype.enableBalance = function (host) {
-                var setting = this.model_.getGlobalSetting();
+                function scope(setting, origURL, destURL, rewriteKeyUrl) {
+                    if (typeof rewriteKeyUrl === "undefined") { rewriteKeyUrl = ''; }
+                    var origKeyUrl, destKeyUrl, scpTable = setting.scope, dirs, scpKeys, scpKey, scpTag, patterns, inherit, hit_src, hit_dst, option;
 
-                if (!setting.balance.client.support.userAgent.test(window.navigator.userAgent) || setting.balance.client.exclude.test(window.navigator.userAgent)) {
-                    return void this.disableBalance();
-                }
+                    origKeyUrl = that.model_.convertUrlToKeyUrl(origURL).match(/.+?\w(\/.*)/).pop();
+                    destKeyUrl = that.model_.convertUrlToKeyUrl(destURL).match(/.+?\w(\/.*)/).pop();
+                    rewriteKeyUrl = rewriteKeyUrl.replace(/[#?].*/, '');
 
-                if (Number(!this.data.setCookie(setting.balance.client.cookie.balance, '1'))) {
-                    return void this.disableBalance();
-                }
-                if (setting.balance.client.support.redirect.test(window.navigator.userAgent)) {
-                    this.data.setCookie(setting.balance.client.cookie.redirect, '1');
-                }
-                host && this.switchRequestServer(host, setting);
-            };
-
-            App.prototype.disableBalance = function () {
-                var setting = this.model_.getGlobalSetting();
-
-                this.data.setCookie(setting.balance.client.cookie.balance, '0');
-                this.data.setCookie(setting.balance.client.cookie.redirect, '0');
-                this.switchRequestServer(null, setting);
-            };
-
-            App.prototype.switchRequestServer = function (host, setting) {
-                host = host || '';
-                setting = setting || this.model_.getGlobalSetting();
-                this.model_.requestHost = host;
-                setting.balance.server.host = host;
-                this.data.setCookie(setting.balance.client.cookie.host, host);
-            };
-
-            App.prototype.chooseRequestServer = function (setting) {
-                setting.balance.self && this.enableBalance();
-                if (!setting.balance.self || '1' !== this.data.getCookie(setting.balance.client.cookie.balance)) {
-                    this.disableBalance();
-                    return;
-                }
-
-                // キャッシュの有効期限内の再リクエストは同じサーバーを選択してキャッシュを使用させる
-                var expires;
-                var historyBufferData = this.data.getBuffer(this.data.storeNames.history, this.model_.convertUrlToKeyUrl(setting.destLocation.href));
-
-                expires = historyBufferData && historyBufferData.expires;
-                if (expires && expires >= new Date().getTime()) {
-                    this.switchRequestServer(historyBufferData.host, setting);
-                    return;
-                }
-
-                // ログから最適なサーバーを選択する
-                var logBuffer = this.data.getBuffer(this.data.storeNames.log), timeList = [], logTable = {}, now = new Date().getTime();
-
-                if (!logBuffer) {
-                    host = this.data.getCookie(setting.balance.client.cookie.host);
-                    if (host) {
-                        this.enableBalance(host);
-                    } else {
-                        this.disableBalance();
-                    }
-                    return;
-                }
-                var time;
-                for (var i in logBuffer) {
-                    if (now > logBuffer[i].date + setting.balance.log.expires) {
-                        continue;
-                    }
-                    timeList.push(logBuffer[i].performance);
-                    logTable[logBuffer[i].performance] = logBuffer[i];
-                }
-
-                function compareNumbers(a, b) {
-                    return a - b;
-                }
-                timeList = timeList.sort(compareNumbers).slice(0, 15);
-                var serverBuffer = this.data.getBuffer(this.data.storeNames.server);
-
-                if (!serverBuffer) {
-                    this.disableBalance();
-                    return;
-                }
-                var host = '', time;
-                while (timeList.length) {
-                    r = Math.floor(Math.random() * timeList.length);
-                    time = timeList[r];
-                    timeList.splice(r, 1);
-
-                    host = logTable[time].host.split('//').pop() || '';
-                    if (!serverBuffer[host] || serverBuffer[host].state && new Date().getTime() < serverBuffer[host].state + setting.balance.server.error) {
-                        continue;
-                    }
-                    if (!host && setting.balance.weight && !(Math.floor(Math.random()) * setting.balance.weight)) {
-                        continue;
-                    }
-                    this.switchRequestServer(host, setting);
-                    return;
-                }
-
-                // サーバーリストからランダムにサーバーを選択する
-                var hosts = Object.keys(serverBuffer), host, r;
-                while (hosts.length) {
-                    r = Math.floor(Math.random() * hosts.length);
-                    host = hosts[r];
-                    hosts.splice(r, 1);
-
-                    if (serverBuffer[host].state && new Date().getTime() < serverBuffer[host].state + setting.balance.server.error) {
-                        continue;
-                    }
-                    this.switchRequestServer(host, setting);
-                    return;
-                }
-
-                this.disableBalance();
-            };
-
-            App.prototype.chooseArea = function (areas, srcDocument, dstDocument) {
-                areas = areas instanceof Array ? areas : [areas];
-
-                var i = -1, area;
-                AREA:
-                while (area = areas[++i]) {
-                    var options = area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
-                    var j = -1;
-                    while (options[++j]) {
-                        if (!jQuery(options[j], srcDocument).length || !jQuery(options[j], dstDocument).length) {
-                            continue AREA;
+                    scpKeys = (rewriteKeyUrl || destKeyUrl).replace(/^\/|\/$/g, '').split('/');
+                    if (rewriteKeyUrl) {
+                        if (!~rewriteKeyUrl.indexOf('*')) {
+                            return undefined;
+                        }
+                        dirs = [];
+                        var arr = origKeyUrl.replace(/^\/|\/$/g, '').split('/');
+                        for (var i = 0, len = scpKeys.length; i < len; i++) {
+                            '*' === scpKeys[i] && dirs.push(arr[i]);
                         }
                     }
-                    return area;
-                }
-            };
 
-            App.prototype.scope_ = function (setting, origURL, destURL, rewriteKeyUrl) {
-                if (typeof rewriteKeyUrl === "undefined") { rewriteKeyUrl = ''; }
-                var origKeyUrl, destKeyUrl, scpTable = setting.scope, dirs, scpKeys, scpKey, scpTag, patterns, inherit, hit_src, hit_dst, option;
+                    for (var i = scpKeys.length + 1; i--;) {
+                        inherit = option = hit_src = hit_dst = undefined;
+                        scpKey = scpKeys.slice(0, i).join('/');
+                        scpKey = '/' + scpKey + ('/' === (rewriteKeyUrl || origKeyUrl).charAt(scpKey.length + 1) ? '/' : '');
 
-                origKeyUrl = this.model_.convertUrlToKeyUrl(origURL).match(/.+?\w(\/.*)/).pop();
-                destKeyUrl = this.model_.convertUrlToKeyUrl(destURL).match(/.+?\w(\/.*)/).pop();
-                rewriteKeyUrl = rewriteKeyUrl.replace(/[#?].*/, '');
-
-                scpKeys = (rewriteKeyUrl || destKeyUrl).replace(/^\/|\/$/g, '').split('/');
-                if (rewriteKeyUrl) {
-                    if (!~rewriteKeyUrl.indexOf('*')) {
-                        return undefined;
-                    }
-                    dirs = [];
-                    var arr = origKeyUrl.replace(/^\/|\/$/g, '').split('/');
-                    for (var i = 0, len = scpKeys.length; i < len; i++) {
-                        '*' === scpKeys[i] && dirs.push(arr[i]);
-                    }
-                }
-
-                for (var i = scpKeys.length + 1; i--;) {
-                    inherit = option = hit_src = hit_dst = undefined;
-                    scpKey = scpKeys.slice(0, i).join('/');
-                    scpKey = '/' + scpKey + ('/' === (rewriteKeyUrl || origKeyUrl).charAt(scpKey.length + 1) ? '/' : '');
-
-                    if (!scpKey || !(scpKey in scpTable)) {
-                        continue;
-                    }
-
-                    if (scpTable[scpKey] instanceof Array) {
-                        scpTag = '';
-                        patterns = scpTable[scpKey];
-                    } else {
-                        scpTag = scpTable[scpKey];
-                        patterns = scpTable[scpTag];
-                    }
-
-                    if (!patterns || !patterns.length) {
-                        return false;
-                    }
-
-                    patterns = patterns.concat();
-                    for (var j = 0, pattern; pattern = patterns[j]; j++) {
-                        if (hit_src === false || hit_dst === false) {
-                            break;
+                        if (!scpKey || !(scpKey in scpTable)) {
+                            continue;
                         }
 
-                        if ('#' === pattern[0]) {
-                            scpTag = pattern.slice(1);
-                            [].splice.apply(patterns, [j, 1].concat(scpTable[scpTag]));
-                            pattern = patterns[j];
+                        if (scpTable[scpKey] instanceof Array) {
+                            scpTag = '';
+                            patterns = scpTable[scpKey];
+                        } else {
+                            scpTag = scpTable[scpKey];
+                            patterns = scpTable[scpTag];
                         }
 
-                        if ('inherit' === pattern) {
-                            inherit = true;
-                        } else if ('rewrite' === pattern && 'function' === typeof scpTable.rewrite && !rewriteKeyUrl) {
-                            var rewrite = this.scope_.apply(this, [].slice.call(arguments).slice(0, 3).concat([MODEL.UTIL.fire(scpTable.rewrite, null, [destKeyUrl])]));
-                            if (rewrite) {
-                                hit_src = hit_dst = true;
-                                option = rewrite;
+                        if (!patterns || !patterns.length) {
+                            return false;
+                        }
+
+                        patterns = patterns.concat();
+                        for (var j = 0, pattern; pattern = patterns[j]; j++) {
+                            if (hit_src === false || hit_dst === false) {
                                 break;
-                            } else if (false === rewrite) {
-                                return false;
-                            }
-                        } else if ('string' === typeof pattern) {
-                            var not = '!' === pattern[0];
-                            pattern = not ? pattern.slice(1) : pattern;
-                            var reg = '*' === pattern[0];
-                            pattern = reg ? pattern.slice(1) : pattern;
-
-                            if (rewriteKeyUrl && ~pattern.indexOf('/*/')) {
-                                for (var k = 0, len = dirs.length; k < len; k++) {
-                                    pattern = pattern.replace('/*/', '/' + dirs[k] + '/');
-                                }
                             }
 
-                            if (reg ? !origKeyUrl.search(pattern) : !origKeyUrl.indexOf(pattern)) {
-                                if (not) {
-                                    return false;
-                                } else {
-                                    hit_src = true;
-                                }
+                            if ('#' === pattern[0]) {
+                                scpTag = pattern.slice(1);
+                                [].splice.apply(patterns, [j, 1].concat(scpTable[scpTag]));
+                                pattern = patterns[j];
                             }
-                            if (reg ? !destKeyUrl.search(pattern) : !destKeyUrl.indexOf(pattern)) {
-                                if (not) {
+
+                            if ('inherit' === pattern) {
+                                inherit = true;
+                            } else if ('rewrite' === pattern && 'function' === typeof scpTable.rewrite && !rewriteKeyUrl) {
+                                var rewrite = scope.apply(this, [].slice.call(arguments).slice(0, 3).concat([MODEL.UTIL.fire(scpTable.rewrite, null, [destKeyUrl])]));
+                                if (rewrite) {
+                                    hit_src = hit_dst = true;
+                                    option = rewrite;
+                                    break;
+                                } else if (false === rewrite) {
                                     return false;
-                                } else {
-                                    hit_dst = true;
-                                    option = scpTable['$' + scpTag] || scpTable['$' + pattern] || null;
+                                }
+                            } else if ('string' === typeof pattern) {
+                                var not = '!' === pattern[0];
+                                pattern = not ? pattern.slice(1) : pattern;
+                                var reg = '*' === pattern[0];
+                                pattern = reg ? pattern.slice(1) : pattern;
+
+                                if (rewriteKeyUrl && ~pattern.indexOf('/*/')) {
+                                    for (var k = 0, len = dirs.length; k < len; k++) {
+                                        pattern = pattern.replace('/*/', '/' + dirs[k] + '/');
+                                    }
+                                }
+
+                                if (reg ? !origKeyUrl.search(pattern) : !origKeyUrl.indexOf(pattern)) {
+                                    if (not) {
+                                        return false;
+                                    } else {
+                                        hit_src = true;
+                                    }
+                                }
+                                if (reg ? !destKeyUrl.search(pattern) : !destKeyUrl.indexOf(pattern)) {
+                                    if (not) {
+                                        return false;
+                                    } else {
+                                        hit_dst = true;
+                                        option = scpTable['$' + scpTag] || scpTable['$' + pattern] || null;
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    if (hit_src && hit_dst) {
-                        return jQuery.extend(true, {}, setting, option);
-                    }
-                    if (inherit) {
-                        continue;
-                    }
-                    break;
-                }
-            };
-
-            App.prototype.movePageNormally = function (event) {
-                switch (event.type.toLowerCase()) {
-                    case 'click':
-                        window.location.assign(event.currentTarget.href);
+                        if (hit_src && hit_dst) {
+                            return jQuery.extend(true, {}, setting, option);
+                        }
+                        if (inherit) {
+                            continue;
+                        }
                         break;
-                    case 'submit':
-                        event.currentTarget.submit();
-                        break;
-                    case 'popstate':
-                        window.location.reload();
-                        break;
+                    }
                 }
-            };
-
-            App.prototype.calAge = function (jqXHR) {
-                var age;
-
-                switch (true) {
-                    case /no-store|no-cache/.test(jqXHR.getResponseHeader('Cache-Control')):
-                        return 0;
-                    case !!~String(jqXHR.getResponseHeader('Cache-Control')).indexOf('max-age='):
-                        return Number(jqXHR.getResponseHeader('Cache-Control').match(/max-age=(\d+)/).pop()) * 1000;
-                    case !!String(jqXHR.getResponseHeader('Expires')):
-                        return new Date(jqXHR.getResponseHeader('Expires')).getTime() - new Date().getTime();
-                    default:
-                        return 0;
-                }
-            };
-
-            App.prototype.calExpires = function (jqXHR) {
-                return new Date().getTime() + this.calAge(jqXHR);
             };
             return App;
         })(MODEL.Template);
@@ -3268,7 +3331,7 @@ var MODULE;
 /// <reference path="_template.ts"/>
 /// <reference path="app.ts"/>
 /// <reference path="data.ts"/>
-/// <reference path="util.ts"/>
+/// <reference path="utility.ts"/>
 /// <reference path="../view/main.ts"/>
 /// <reference path="../controller/main.ts"/>
 var MODULE;
@@ -3279,11 +3342,14 @@ var MODULE;
             __extends(Main, _super);
             function Main() {
                 _super.apply(this, arguments);
+                var _this = this;
                 this.controller_ = new MODULE.CONTROLLER.Main(this);
                 this.app_ = new MODEL.App(this, this.controller_);
                 this.state_ = -1 /* wait */;
                 this.isDeferrable = jQuery.when && 1.06 <= Number(jQuery().jquery.replace(/\D*(\d+)\.(\d+).*$/, '$1.0$2').replace(/\d+(\d{2})$/, '$1'));
-                this.requestHost = '';
+                this.host = function () {
+                    return _this.app_.balance.host();
+                };
             }
             Main.prototype.main_ = function ($context, option) {
                 var _this = this;
@@ -3378,7 +3444,7 @@ var MODULE;
                 if (destLocation.hash && origLocation.href.replace(/#.*/, '') === destLocation.href.replace(/#.*/, '')) {
                     return false;
                 }
-                if (!this.app_.chooseArea(setting.area, document, document)) {
+                if (!this.app_.page.chooseArea(setting.area, document, document)) {
                     return false;
                 }
                 if (!jQuery(event.currentTarget).filter(setting.filter).length) {
@@ -3389,18 +3455,18 @@ var MODULE;
             };
 
             Main.prototype.getGlobalSetting = function () {
-                return this.app_.globalSetting;
+                return this.app_.page.globalSetting;
             };
             Main.prototype.setGlobalSetting = function (setting) {
-                return this.app_.globalSetting = setting;
+                return this.app_.page.globalSetting = setting;
             };
 
             Main.prototype.getGlobalXHR = function () {
-                return this.app_.globalXHR;
+                return this.app_.page.globalXHR;
             };
             Main.prototype.setGlobalXHR = function (xhr) {
-                this.app_.globalXHR && this.app_.globalXHR.readyState < 4 && this.app_.globalXHR.abort();
-                return this.app_.globalXHR = xhr;
+                this.app_.page.globalXHR && this.app_.page.globalXHR.readyState < 4 && this.app_.page.globalXHR.abort();
+                return this.app_.page.globalXHR = xhr;
             };
 
             Main.prototype.CLICK = function (event) {
@@ -3420,14 +3486,14 @@ var MODULE;
                     if (setting.cache.mix && this.getCache(setting.destLocation.href)) {
                         break PROCESS;
                     }
-                    setting.database && this.app_.isScrollPosSavable && this.app_.data.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+                    setting.database && this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
                     var cache;
                     if (setting.cache[event.type.toLowerCase()]) {
                         cache = this.getCache(setting.destLocation.href);
                     }
 
-                    this.app_.transfer(setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
+                    this.app_.page.transfer(setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
                     event.preventDefault();
                     return;
                 }
@@ -3456,14 +3522,14 @@ var MODULE;
                     if (setting.cache.mix && this.getCache(setting.destLocation.href)) {
                         break PROCESS;
                     }
-                    setting.database && this.app_.isScrollPosSavable && this.app_.data.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+                    setting.database && this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
                     var cache;
                     if (setting.cache[event.type.toLowerCase()] && setting.cache[context.method.toLowerCase()]) {
                         cache = this.getCache(setting.destLocation.href);
                     }
 
-                    this.app_.transfer(setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
+                    this.app_.page.transfer(setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
                     event.preventDefault();
                     return;
                 }
@@ -3478,7 +3544,7 @@ var MODULE;
                  {
                     event.timeStamp = new Date().getTime();
                     var setting = this.app_.configure(this.getGlobalSetting(), null, window.location.href);
-                    if (this.app_.landing && this.app_.landing === MODEL.UTIL.canonicalizeUrl(window.location.href)) {
+                    if (this.app_.page.landing && this.app_.page.landing === MODEL.UTIL.canonicalizeUrl(window.location.href)) {
                         return;
                     }
                     if (setting.origLocation.href === setting.destLocation.href) {
@@ -3503,7 +3569,7 @@ var MODULE;
                         cache = this.getCache(setting.destLocation.href);
                     }
 
-                    this.app_.transfer(setting, event, false, cache);
+                    this.app_.page.transfer(setting, event, false, cache);
                     return;
                 }
                 ;
@@ -3517,7 +3583,7 @@ var MODULE;
                 }
 
                 if (!setting.scroll.delay) {
-                    this.app_.isScrollPosSavable && this.app_.data.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+                    this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
                 } else {
                     var id;
                     while (id = setting.scroll.queue.shift()) {
@@ -3527,7 +3593,7 @@ var MODULE;
                         while (id = setting.scroll.queue.shift()) {
                             clearTimeout(id);
                         }
-                        _this.app_.isScrollPosSavable && _this.app_.data.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+                        _this.app_.page.isScrollPosSavable && _this.app_.data.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
                     }, setting.scroll.delay);
                     setting.scroll.queue.push(id);
                 }
@@ -3537,7 +3603,7 @@ var MODULE;
                 if ('function' === typeof setting.fallback) {
                     MODEL.UTIL.fire(setting.fallback, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
                 } else {
-                    this.app_.movePageNormally(event);
+                    this.app_.page.movePageNormally(event);
                 }
             };
 
@@ -3550,7 +3616,7 @@ var MODULE;
             };
 
             Main.prototype.getCache = function (unsafe_url) {
-                var setting = this.getGlobalSetting(), recent = this.app_.recent;
+                var setting = this.getGlobalSetting(), recent = this.app_.page.recent;
                 if (!setting || !recent) {
                     return null;
                 }
@@ -3565,7 +3631,7 @@ var MODULE;
 
             Main.prototype.setCache = function (unsafe_url, data, textStatus, jqXHR, host) {
                 var _this = this;
-                var setting = this.getGlobalSetting(), recent = this.app_.recent;
+                var setting = this.getGlobalSetting(), recent = this.app_.page.recent;
                 if (!setting || !recent) {
                     return this;
                 }
@@ -3599,7 +3665,7 @@ var MODULE;
                         return recent.data[secure_url].expires;
                     }
 
-                    age = jqXHR && _this.app_.calAge(jqXHR) || Number(setting.cache.expires);
+                    age = jqXHR && _this.app_.page.calAge(jqXHR) || Number(setting.cache.expires);
 
                     age = Math.max(age, 0) || 0;
                     age = 'object' === typeof setting.cache.expires && 'number' === typeof setting.cache.expires.min ? Math.max(setting.cache.expires.min, age) : age;
@@ -3627,7 +3693,7 @@ var MODULE;
             };
 
             Main.prototype.removeCache = function (unsafe_url) {
-                var setting = this.getGlobalSetting(), recent = this.app_.recent;
+                var setting = this.getGlobalSetting(), recent = this.app_.page.recent;
                 if (!setting || !recent) {
                     return;
                 }
@@ -3646,7 +3712,7 @@ var MODULE;
             };
 
             Main.prototype.clearCache = function () {
-                var setting = this.getGlobalSetting(), recent = this.app_.recent;
+                var setting = this.getGlobalSetting(), recent = this.app_.page.recent;
                 if (!setting || !recent) {
                     return;
                 }
@@ -3658,7 +3724,7 @@ var MODULE;
             };
 
             Main.prototype.cleanCache = function () {
-                var setting = this.getGlobalSetting(), recent = this.app_.recent;
+                var setting = this.getGlobalSetting(), recent = this.app_.page.recent;
                 if (!setting || !recent) {
                     return;
                 }
@@ -3672,11 +3738,11 @@ var MODULE;
             };
 
             Main.prototype.getRequestDomain = function () {
-                return this.requestHost;
+                return this.host();
             };
 
             Main.prototype.setRequestDomain = function (host) {
-                return this.app_.switchRequestServer(host.split('//').pop(), null);
+                return this.app_.balance.changeServer(host.split('//').pop(), null);
             };
             return Main;
         })(MODEL.Template);

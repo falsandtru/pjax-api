@@ -44,7 +44,11 @@ accelerate:
       speedcheck: true
     });
     
-    $(document).bind('pjax:ready', function() {$(document).trigger('preload');});
+    $(document).bind('pjax:ready', function() {
+      setTimeout(function () {
+        $(document).trigger('preload');
+      }, 2000);
+　　　});
   }
 </pre>
 
@@ -319,7 +323,9 @@ new Function().apply.apply(function (accessor) {
     }
     
     if (always) {
-      $(document).trigger('preload');
+      setTimeout(function () {
+        $(document).trigger('preload');
+      }, 2000);
     }
   };
 
@@ -331,13 +337,13 @@ new Function().apply.apply(function (accessor) {
         area: ['#container', 'body'],
         rewrite: function (document) {
           function escapeImage() {
-            this.setAttribute('data-original', this.getAttribute('src'));
+            this.setAttribute('data-original', this.src);
             this.setAttribute('src', '/img/gray.gif');
           }
           $('#primary, #secondary', document).find('img').each(escapeImage);
 
           function escapeIframe() {
-            this.setAttribute('data-original', this.getAttribute('src'));
+            this.setAttribute('data-original', this.src);
             this.setAttribute('src', 'javascript:false');
           }
           $('#primary', document).find('iframe').each(escapeIframe);
@@ -419,25 +425,23 @@ new Function().apply.apply(function (accessor) {
       $.vt({
         ns: '.img.primary',
         trigger: '#primary img[data-original]',
-        callback: function () { this.src = $(this).attr('data-original') },
+        callback: function () { this.src = this.getAttribute('data-original'); },
         ahead: [0, .1],
-        skip: true,
-        terminate: false
+        skip: true
       }).disable();
 
       $.vt({
         ns: '.img.secondary',
         trigger: '#secondary img[data-original]',
-        callback: function () { this.src = $(this).attr('data-original') },
+        callback: function () { this.src = this.getAttribute('data-original'); },
         ahead: [0, .1],
-        skip: true,
-        terminate: false
+        skip: true
       }).disable();
 
       $.vt({
         ns: '.iframe.primary',
         trigger: '#primary iframe[data-original]',
-        callback: function () { this.src = $(this).attr('data-original') },
+        callback: function () { this.src = this.getAttribute('data-original'); },
         ahead: [0, .1],
         skip: true
       }).disable();
