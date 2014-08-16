@@ -268,7 +268,7 @@ module MODULE.MODEL {
       if (UTIL.fire(callbacks_update.verify.before, null, [event, setting.param]) === false) { return; }
 
       // モバイルブラウザでアドレスバーのURLのパーセントエンコーディングの大文字小文字がアンカーと一致しないため揃える必要がある
-      if (setting.destLocation.href === UTIL.canonicalizeUrl(window.location.href).replace(/(?:%\w{2})+/g, function (str) { return String(setting.destLocation.href.match(str.toLowerCase()) || str); })) {
+      if (UTIL.compareUrl(setting.destLocation.href, UTIL.canonicalizeUrl(window.location.href))) {
         setting.retriable = true;
       } else if (setting.retriable) {
         setting.retriable = false;
@@ -703,7 +703,7 @@ module MODULE.MODEL {
 
       var check = () => {
         switch (true) {
-          case setting.destLocation.href !== UTIL.canonicalizeUrl(window.location.href).replace(/(?:%\w{2})+/g, function (str) { return String(setting.destLocation.href.match(str.toLowerCase()) || str); }):
+          case !UTIL.compareUrl(setting.destLocation.href, UTIL.canonicalizeUrl(window.location.href)):
             break;
           case new Date().getTime() > limit:
           case checker.length !== areas.length:

@@ -77,8 +77,12 @@ module MODULE.MODEL {
         document.title = data.title;
       } else {
         this.data_.DB.store.history.get(keyUrl, function () {
-          keyUrl === that.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(window.location.href)) &&
-          this.result && this.result.title && (document.title = this.result.title);
+          data = this.result;
+          if (data && data.title) {
+            if (UTIL.compareUrl(keyUrl, that.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(window.location.href)))) {
+              document.title = data.title;
+            }
+          }
         });
       }
     }
@@ -92,8 +96,9 @@ module MODULE.MODEL {
       this.data_.DB.store.history.clean();
     }
 
-      var keyUrl: string = this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
     loadScrollPositionFromDB(unsafe_url: string): void {
+      var keyUrl: string = this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url)),
+          that = this;
 
       var data: HistorySchema = this.data_.DB.store.history.getBuffer(keyUrl);
       function scroll(scrollX, scrollY) {
@@ -106,9 +111,12 @@ module MODULE.MODEL {
         scroll(data.scrollX, data.scrollY);
       } else {
         this.data_.DB.store.history.get(keyUrl, function () {
-          if (!this.result || keyUrl !== this.result.id) { return; }
           data = this.result;
-          scroll(data.scrollX, data.scrollY);
+          if (data && 'number' === typeof data.scrollX) {
+            if (UTIL.compareUrl(keyUrl, that.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(window.location.href)))) {
+              scroll(data.scrollX, data.scrollY);
+            }
+          }
         });
       }
     }
