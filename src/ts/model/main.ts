@@ -216,10 +216,12 @@ module MODULE.MODEL {
     }
 
     fallback(event: JQueryEventObject, setting: SettingInterface): void {
-      if ('function' === typeof setting.fallback) {
-        UTIL.fire(setting.fallback, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
-      } else {
-        this.app_.page.movePageNormally(event);
+      switch (true) {
+        case !setting.fallback:
+        case false === UTIL.fire(setting.fallback, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]):
+          break;
+        default:
+          this.app_.page.movePageNormally(event);
       }
     }
 
