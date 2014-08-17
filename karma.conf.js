@@ -48,7 +48,7 @@ module.exports = function (config) {
     // list of files / patterns to load in the browser
     files: [
       // dependencies
-      { pattern: 'test/lib/*', watched: true, served: true, included: true },
+      { pattern: 'test/env/*', watched: true, served: true, included: true },
 
       // fixtures
       { pattern: 'test/**.html', watched: true, served: true, included: false },
