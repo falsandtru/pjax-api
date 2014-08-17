@@ -6,7 +6,7 @@
 
 module MODULE.MODEL {
   
-  export class AppPageRequest extends AppPageUtility implements AppPageRequestInterface {
+  export class AppPageFetch extends AppPageUtility implements AppPageFetchInterface {
 
     constructor(
 

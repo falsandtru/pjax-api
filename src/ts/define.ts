@@ -132,16 +132,16 @@ module MODULE {
     globalSetting: SettingInterface
     
     transfer(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface): void
-    request(setting: SettingInterface,
-      event: JQueryEventObject,
-      register: boolean,
-      cache: CacheInterface,
-      done: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void,
-      fail: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void
-      ): void
+    fetch(setting: SettingInterface,
+          event: JQueryEventObject,
+          register: boolean,
+          cache: CacheInterface,
+          done: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void,
+          fail: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void
+         ): void
     update(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string): void
   }
-  export declare class AppPageRequestInterface extends AppPageUtilityInterface {
+  export declare class AppPageFetchInterface extends AppPageUtilityInterface {
     constructor(model: ModelInterface,
       app: AppLayerInterface,
       setting: SettingInterface,
