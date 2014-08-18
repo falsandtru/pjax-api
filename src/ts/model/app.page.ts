@@ -13,7 +13,7 @@ module MODULE.MODEL {
       super();
     }
 
-    landing: string = UTIL.canonicalizeUrl(window.location.href)
+    landing: string = Util.canonicalizeUrl(window.location.href)
     recent: RecentInterface = { order: [], data: {}, size: 0 }
     loadedScripts: { [index: string]: boolean } = {}
     isScrollPosSavable: boolean = true

@@ -36,8 +36,8 @@ module MODULE.MODEL {
     configure(option: SettingInterface, origURL: string, destURL: string): SettingInterface {
       var that = this;
 
-      origURL = UTIL.canonicalizeUrl(origURL || option.origLocation.href);
-      destURL = UTIL.canonicalizeUrl(destURL || option.destLocation.href);
+      origURL = Util.canonicalizeUrl(origURL || option.origLocation.href);
+      destURL = Util.canonicalizeUrl(destURL || option.destLocation.href);
       option = jQuery.extend(true, {}, option.option || option, { option: option.option || option });
 
       option = option.scope ? jQuery.extend(true, {}, option, scope(option, origURL, destURL) || { disable: true })
@@ -247,7 +247,7 @@ module MODULE.MODEL {
             if ('inherit' === pattern) {
               inherit = true;
             } else if ('rewrite' === pattern && 'function' === typeof scpTable.rewrite && !rewriteKeyUrl) {
-              var rewrite: any = scope.apply(this, [].slice.call(arguments).slice(0, 3).concat([UTIL.fire(scpTable.rewrite, null, [destKeyUrl])]));
+              var rewrite: any = scope.apply(this, [].slice.call(arguments).slice(0, 3).concat([Util.fire(scpTable.rewrite, null, [destKeyUrl])]));
               if (rewrite) {
                 hit_src = hit_dst = true;
                 option = rewrite;

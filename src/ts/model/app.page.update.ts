@@ -127,7 +127,7 @@ module MODULE.MODEL {
 
       if (!jQuery('head meta[http-equiv="Refresh"][content*="URL="]', this.srcDocument_).length) { return; }
 
-      if (UTIL.fire(callbacks_update.redirect.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; };
+      if (Util.fire(callbacks_update.redirect.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; };
 
       var redirect = <HTMLAnchorElement>setting.destLocation.cloneNode();
       redirect.href = jQuery(redirect).attr('content').match(/\w+:\/\/[^;\s]+/i).shift();
@@ -168,7 +168,7 @@ module MODULE.MODEL {
           throw false;
       }
 
-      if (UTIL.fire(callbacks_update.redirect.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
+      if (Util.fire(callbacks_update.redirect.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
     
     updateUrl_(): void {
@@ -177,11 +177,11 @@ module MODULE.MODEL {
           register: boolean = this.register_;
       var callbacks_update = setting.callbacks.update;
 
-      if (UTIL.fire(callbacks_update.url.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; };
+      if (Util.fire(callbacks_update.url.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; };
 
       register &&
       window.history.pushState(
-        UTIL.fire(setting.state, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]),
+        Util.fire(setting.state, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]),
         window.opera || ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstDocument_.title : this.srcDocument_.title,
         setting.destLocation.href);
 
@@ -193,18 +193,18 @@ module MODULE.MODEL {
       }
 
       // verify
-      if (UTIL.compareUrl(setting.destLocation.href, UTIL.canonicalizeUrl(window.location.href))) {
+      if (Util.compareUrl(setting.destLocation.href, Util.canonicalizeUrl(window.location.href))) {
         setting.retriable = true;
       } else if (setting.retriable) {
         setting.retriable = false;
-        setting.destLocation.href = UTIL.canonicalizeUrl(window.location.href);
+        setting.destLocation.href = Util.canonicalizeUrl(window.location.href);
         new AppPageUpdate(this.model_, this.app_, setting, event, false, setting.cache[event.type.toLowerCase()] && this.model_.getCache(setting.destLocation.href), this.data_, this.textStatus_, this.jqXHR_, this.errorThrown_, this.host_);
         throw false;
       } else {
         throw new Error('throw: location mismatch');
       }
 
-      if (UTIL.fire(callbacks_update.url.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
+      if (Util.fire(callbacks_update.url.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
     
     updateDocument_(): void {
@@ -242,7 +242,7 @@ module MODULE.MODEL {
           this.dispatchEvent_(document, setting.gns + ':ready', false, true);
           jQuery(document).trigger(setting.gns + '.ready');
 
-          UTIL.fire(setting.callback, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]);
+          Util.fire(setting.callback, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]);
 
           return jQuery.when ? this.waitRender_(jQuery.Deferred().resolve) : this.waitRender_(callback);
         };
@@ -334,11 +334,11 @@ module MODULE.MODEL {
 
       if (!setting.rewrite) { return; }
 
-      if (UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) { return; }
+      if (Util.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) { return; }
 
-      UTIL.fire(setting.rewrite, null, [this.srcDocument_, setting.area, this.host_])
+      Util.fire(setting.rewrite, null, [this.srcDocument_, setting.area, this.host_])
 
-      if (UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) { return; }
+      if (Util.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) { return; }
     }
 
     title_(): void {
@@ -346,12 +346,12 @@ module MODULE.MODEL {
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
-      if (UTIL.fire(callbacks_update.title.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
+      if (Util.fire(callbacks_update.title.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
 
       this.dstDocument_.title = this.srcDocument_.title;
       setting.database && setting.fix.history && this.app_.data.saveTitleToDB(setting.destLocation.href, this.srcDocument_.title);
 
-      if (UTIL.fire(callbacks_update.title.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
+      if (Util.fire(callbacks_update.title.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
 
     head_(): void {
@@ -363,7 +363,7 @@ module MODULE.MODEL {
 
       if (!setting.load.head) { return; }
 
-      if (UTIL.fire(callbacks_update.head.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
+      if (Util.fire(callbacks_update.head.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
 
       var prefilter: string = 'base, meta, link',
           $srcElements: JQuery = jQuery(srcDocument.head).children(prefilter).filter(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script'),
@@ -389,7 +389,7 @@ module MODULE.MODEL {
       jQuery('title', dstDocument).before($addElements.clone());
       $delElements.remove();
 
-      if (UTIL.fire(callbacks_update.head.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
+      if (Util.fire(callbacks_update.head.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
 
     area_(): JQueryDeferred<any[]>[] {
@@ -402,7 +402,7 @@ module MODULE.MODEL {
       var checker: JQuery,
           loadwaits: JQueryDeferred<any[]>[] = [];
 
-      if (UTIL.fire(callbacks_update.content.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return loadwaits; }
+      if (Util.fire(callbacks_update.content.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return loadwaits; }
 
       function map() {
         var defer = jQuery.Deferred();
@@ -439,7 +439,7 @@ module MODULE.MODEL {
       this.dispatchEvent_(document, setting.gns + ':DOMContentLoaded', false, true);
       jQuery(document).trigger(setting.gns + '.DOMContentLoaded');
 
-      if (UTIL.fire(callbacks_update.content.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return loadwaits; }
+      if (Util.fire(callbacks_update.content.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return loadwaits; }
 
       return loadwaits;
     }
@@ -451,7 +451,7 @@ module MODULE.MODEL {
 
       if (!setting.balance.self || !setting.loadtime) { return; }
 
-      if (UTIL.fire(callbacks_update.balance.before, null, [event, setting.param]) === false) { return; }
+      if (Util.fire(callbacks_update.balance.before, null, [event, setting.param]) === false) { return; }
 
       var host = (this.jqXHR_.getResponseHeader(setting.balance.server.header) || '').split('//').pop();
       this.app_.data.saveLogToDB({
@@ -464,7 +464,7 @@ module MODULE.MODEL {
 
       this.app_.data.loadBufferAll(setting.buffer.limit);
 
-      if (UTIL.fire(callbacks_update.balance.after, null, [event, setting.param]) === false) { return; }
+      if (Util.fire(callbacks_update.balance.after, null, [event, setting.param]) === false) { return; }
     }
 
     css_(selector: string): void {
@@ -476,7 +476,7 @@ module MODULE.MODEL {
       
       if (!setting.load.css) { return; }
       
-      if (UTIL.fire(callbacks_update.css.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
+      if (Util.fire(callbacks_update.css.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
 
       var prefilter: string = 'link, style',
           $srcElements: JQuery = jQuery(prefilter, srcDocument).filter(selector).not(setting.load.ignore).not(jQuery('noscript', srcDocument).find(prefilter)),
@@ -524,7 +524,7 @@ module MODULE.MODEL {
       jQuery(dstDocument.body).append($addElements.filter(filterBodyContent).clone());
       $delElements.remove();
       
-      if (UTIL.fire(callbacks_update.css.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
+      if (Util.fire(callbacks_update.css.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
 
       var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
       speedcheck && speed.time.push(speed.now() - speed.fire);
@@ -542,7 +542,7 @@ module MODULE.MODEL {
 
       if (!setting.load.script) { return scriptwaits; }
       
-      if (UTIL.fire(callbacks_update.script.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return scriptwaits; }
+      if (Util.fire(callbacks_update.script.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return scriptwaits; }
       
       var prefilter: string = 'script',
           $scriptElements: JQuery = jQuery(prefilter, srcDocument).filter(selector).not(setting.load.ignore).not(jQuery('noscript', srcDocument).find(prefilter)),
@@ -634,7 +634,7 @@ module MODULE.MODEL {
         return;
       }
       
-      if (UTIL.fire(callbacks_update.script.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return scriptwaits; }
+      if (Util.fire(callbacks_update.script.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return scriptwaits; }
 
       var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
       speedcheck && speed.time.push(speed.now() - speed.fire);
@@ -648,17 +648,17 @@ module MODULE.MODEL {
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
-      if (UTIL.fire(callbacks_update.scroll.before, null, [event, setting.param]) === false) { return; }
+      if (Util.fire(callbacks_update.scroll.before, null, [event, setting.param]) === false) { return; }
 
       var scrollX: any, scrollY: any;
       switch (event.type.toLowerCase()) {
         case 'click':
         case 'submit':
-          scrollX = call && 'function' === typeof setting.scrollLeft ? UTIL.fire(setting.scrollLeft, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]) : setting.scrollLeft;
+          scrollX = call && 'function' === typeof setting.scrollLeft ? Util.fire(setting.scrollLeft, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]) : setting.scrollLeft;
           scrollX = 0 <= scrollX ? scrollX : 0;
           scrollX = scrollX === false || scrollX === null ? jQuery(window).scrollLeft() : parseInt(Number(scrollX) + '', 10);
 
-          scrollY = call && 'function' === typeof setting.scrollTop ? UTIL.fire(setting.scrollTop, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]) : setting.scrollTop;
+          scrollY = call && 'function' === typeof setting.scrollTop ? Util.fire(setting.scrollTop, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]) : setting.scrollTop;
           scrollY = 0 <= scrollY ? scrollY : 0;
           scrollY = scrollY === false || scrollY === null ? jQuery(window).scrollTop() : parseInt(Number(scrollY) + '', 10);
 
@@ -670,7 +670,7 @@ module MODULE.MODEL {
           break;
       }
 
-      if (UTIL.fire(callbacks_update.scroll.after, null, [event, setting.param]) === false) { return; }
+      if (Util.fire(callbacks_update.scroll.after, null, [event, setting.param]) === false) { return; }
     }
 
     waitRender_(callback: JQueryDeferred<any>): JQueryDeferred<any>
@@ -690,7 +690,7 @@ module MODULE.MODEL {
 
       var check = () => {
         switch (true) {
-          case !UTIL.compareUrl(setting.destLocation.href, UTIL.canonicalizeUrl(window.location.href)):
+          case !Util.compareUrl(setting.destLocation.href, Util.canonicalizeUrl(window.location.href)):
             break;
           case new Date().getTime() > limit:
           case checker.length !== areas.length:

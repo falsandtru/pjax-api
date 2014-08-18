@@ -68,7 +68,7 @@ module MODULE.MODEL {
     }
 
     loadTitleFromDB(unsafe_url: string): void {
-      var keyUrl: string = this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url)),
+      var keyUrl: string = this.model_.convertUrlToKeyUrl(Util.canonicalizeUrl(unsafe_url)),
           that = this;
 
       var data: HistorySchema = this.data_.DB.store.history.getBuffer(keyUrl);
@@ -79,7 +79,7 @@ module MODULE.MODEL {
         this.data_.DB.store.history.get(keyUrl, function () {
           data = this.result;
           if (data && data.title) {
-            if (UTIL.compareUrl(keyUrl, that.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(window.location.href)))) {
+            if (Util.compareUrl(keyUrl, that.model_.convertUrlToKeyUrl(Util.canonicalizeUrl(window.location.href)))) {
               document.title = data.title;
             }
           }
@@ -88,7 +88,7 @@ module MODULE.MODEL {
     }
 
     saveTitleToDB(unsafe_url: string, title: string): void {
-      var keyUrl = this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
+      var keyUrl = this.model_.convertUrlToKeyUrl(Util.canonicalizeUrl(unsafe_url));
 
       var value: HistorySchema = <HistorySchema>{ id: keyUrl, title: title, date: new Date().getTime() };
       this.data_.DB.store.history.setBuffer(value, true);
@@ -97,7 +97,7 @@ module MODULE.MODEL {
     }
 
     loadScrollPositionFromDB(unsafe_url: string): void {
-      var keyUrl: string = this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url)),
+      var keyUrl: string = this.model_.convertUrlToKeyUrl(Util.canonicalizeUrl(unsafe_url)),
           that = this;
 
       var data: HistorySchema = this.data_.DB.store.history.getBuffer(keyUrl);
@@ -113,7 +113,7 @@ module MODULE.MODEL {
         this.data_.DB.store.history.get(keyUrl, function () {
           data = this.result;
           if (data && 'number' === typeof data.scrollX) {
-            if (UTIL.compareUrl(keyUrl, that.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(window.location.href)))) {
+            if (Util.compareUrl(keyUrl, that.model_.convertUrlToKeyUrl(Util.canonicalizeUrl(window.location.href)))) {
               scroll(data.scrollX, data.scrollY);
             }
           }
@@ -122,7 +122,7 @@ module MODULE.MODEL {
     }
 
     saveScrollPositionToDB(unsafe_url: string, scrollX: number, scrollY: number): void {
-      var keyUrl = this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
+      var keyUrl = this.model_.convertUrlToKeyUrl(Util.canonicalizeUrl(unsafe_url));
 
       var value: HistorySchema = <HistorySchema>{ id: keyUrl, scrollX: scrollX, scrollY: scrollY, date: new Date().getTime() };
       this.data_.DB.store.history.setBuffer(value, true);
