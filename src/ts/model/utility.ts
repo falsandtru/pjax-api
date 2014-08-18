@@ -28,18 +28,21 @@ module MODULE.MODEL {
       return text;
     }
 
-    static canonicalizeUrl(url: string): string {
+    static canonicalizeUrl(url: string, inherit: boolean = true): string {
       var ret;
       // Trim
       ret = this.trim(url);
-      // Remove string starting with an invalid character
-      ret = ret.replace(/["`^|\\<>{}\[\]\s].*/, '');
-      // Deny value beginning with the string of HTTP(S) other than
-      ret = /^https?:/i.test(ret) ? ret : (function (url, a) { a.href = url; return a.href; })(ret, document.createElement('a'));
-      // Unify to UTF-8 encoded values
+      // Remove string of starting with an invalid character
+      ret = ret.replace(/["`^|\\<>{}\[\]\s!'()*].*/, '');
+      // Convert to absolute path
+      ret = /^[\w\-]+:/i.test(ret) ? ret : (function (url, a) { a.href = url; return a.href; })(ret, document.createElement('a'));
+      // Convert to UTF-8 encoded values
       ret = encodeURI(decodeURI(ret));
-      // Fix case
-      ret = justifyPercentEncodingUrlCase(url, ret);
+      // Fix case of percent encoding
+      ret = inherit ? justifyPercentEncodingUrlCase(url, ret) : ret.replace(/(?:%\w{2})+/g, replaceLowerToUpper);
+      function replaceLowerToUpper(str) {
+        return str.toUpperCase();
+      }
       return ret;
     }
 
