@@ -13,7 +13,7 @@ module MODULE.MODEL {
     age_: number
 
     getCookie(key: string): string {
-      if (!window.navigator.cookieEnabled) { return; }
+      if (!key || !window.navigator.cookieEnabled) { return; }
 
       var reg = new RegExp('(?:^|; )(' + encodeURIComponent(key) + '=[^;]*)'),
           data = (document.cookie.match(reg) || []).pop();
@@ -22,7 +22,7 @@ module MODULE.MODEL {
     }
 
     setCookie(key: string, value: string, option: CookieOptionInterface = <CookieOptionInterface>{}): string {
-      if (!window.navigator.cookieEnabled) { return; }
+      if (!key || !window.navigator.cookieEnabled) { return; }
 
       option.age = option.age || this.age_;
       document.cookie = [
