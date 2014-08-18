@@ -12,16 +12,14 @@ module MODULE.MODEL {
     }
 
     static trim(text: string): string {
-      text = text || '';
+      text = String(text || 0 === <any>text && text.toString() || '');
       if (String.prototype.trim) {
         text = text.toString().trim();
-      } else {
-        if (text = String(text).replace(/^[\s\uFEFF\xA0]+/, '')) {
-          for (var i = text.length; --i;) {
-            if (/[^\s\uFEFF\xA0]/.test(text.charAt(i))) {
-              text = text.substring(0, i + 1);
-              break;
-            }
+      } else if (text = String(text).replace(/^[\s\uFEFF\xA0]+/, '')) {
+        for (var i = text.length, regNotSpace = /[^\s\uFEFF\xA0]/; --i;) {
+          if (regNotSpace.test(text.charAt(i))) {
+            text = text.substring(0, i + 1);
+            break;
           }
         }
       }
