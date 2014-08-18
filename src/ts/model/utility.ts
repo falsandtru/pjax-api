@@ -12,16 +12,29 @@ module MODULE.MODEL {
     }
 
     static trim(text: string): string {
-      text = String(text || 0 === <any>text && text.toString() || '');
+      text = 'string' === typeof text ? text : String(0 === <any>text && text.toString() || '');
       if (String.prototype.trim) {
         text = text.toString().trim();
-      } else if (text = String(text).replace(/^[\s\uFEFF\xA0]+/, '')) {
-        for (var i = text.length, regNotSpace = /[^\s\uFEFF\xA0]/; --i;) {
-          if (regNotSpace.test(text.charAt(i))) {
-            text = text.substring(0, i + 1);
-            break;
+      } else if (text = text.replace(/^[\s\uFEFF\xA0]+/, '')) {
+        var regSpace = /[\s\uFEFF\xA0]/;
+        var i = text.length, r = i % 8;
+        DUFF: {
+          while (r--) {
+            if (!regSpace.test(text.charAt(--i))) { break DUFF; }
+          }
+          while (i) {
+            if (!regSpace.test(text.charAt(--i))) { break DUFF; }
+            if (!regSpace.test(text.charAt(--i))) { break DUFF; }
+            if (!regSpace.test(text.charAt(--i))) { break DUFF; }
+            if (!regSpace.test(text.charAt(--i))) { break DUFF; }
+            if (!regSpace.test(text.charAt(--i))) { break DUFF; }
+            if (!regSpace.test(text.charAt(--i))) { break DUFF; }
+            if (!regSpace.test(text.charAt(--i))) { break DUFF; }
+            if (!regSpace.test(text.charAt(--i))) { break DUFF; }
           }
         }
+        
+        text = text.substring(0, i + 1);
       }
       return text;
     }
