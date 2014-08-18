@@ -64,8 +64,8 @@ module MODULE.MODEL {
   function justifyPercentEncodingUrlCase(base: string, target: string): string {
     return base === target ? target : target.replace(/(?:%\w{2})+/g, replace);
     function replace(str) {
-      var i = base.indexOf(str.toLowerCase());
-      return ~i ? base.substr(i, str.length) : str;
+      var i = ~base.indexOf(str.toUpperCase()) || ~base.indexOf(str.toLowerCase());
+      return i ? base.substr(~i, str.length) : str;
     }
   }
 
