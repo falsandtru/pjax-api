@@ -14,11 +14,11 @@ module MODULE.VIEW {
   
   export class Template {
 
-    constructor(public model_: ModelInterface, public controller_: ControllerInterface, context: ContextInterface) {
+    constructor(public model_: ModelInterface, public controller_: ControllerInterface, context: ContextInterface, ...args: any[]) {
       C = controller_;
       this.UUID = GEN_UUID();
       this.CONTEXT = context;
-      this.OBSERVE();
+      this.OBSERVE.apply(this, args);
       this.state_ = 0
     }
 
@@ -53,14 +53,14 @@ module MODULE.VIEW {
      * 
      * @method OBSERVE
      */
-    OBSERVE(): any { }
+    OBSERVE(...args: any[]): any { }
 
     /**
      * 内部イベントの監視を終了する。
      * 
      * @method RELEASE
      */
-    RELEASE(): any { }
+    RELEASE(...args: any[]): any { }
 
     /**
      * 外部イベントを監視する。
