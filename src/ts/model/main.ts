@@ -358,6 +358,4 @@ module MODULE.MODEL {
 
   }
   
-  export var Util = MODEL.Utility
-
 }
