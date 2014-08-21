@@ -1,5 +1,3 @@
-/// <reference path="../define.ts"/>
-/// <reference path="_template.ts"/>
 
 /* MODEL */
 
@@ -143,18 +141,26 @@ module MODULE.MODEL {
 
     /* other */
 
-    static canonicalizeUrl(url: string, strict: boolean = false): string {
-      var ret;
+    static normalizeUrl(url: string, transparent: boolean = true): string {
+      var ret: string;
       // Trim
       ret = that.trim(url);
-      // Remove string of starting with an invalid character
-      ret = ret.replace(/["`^|\\<>{}\[\]\s!'()*].*/, '');
       // Convert to absolute path
-      ret = /^[\w\-]+:/i.test(ret) ? ret : (function (url, a) { a.href = url; return a.href; })(ret, document.createElement('a'));
+      ret = /^([^:/?#]+):\/\/[^/?#.]+\.[^/?#]+/i.test(ret) ? ret : (function (url, a) { a.href = url; return a.href; })(ret, document.createElement('a'));
       // Convert to UTF-8 encoded string
       ret = encodeURI(decodeURI(ret));
+      // Remove string of starting with an invalid character
+      ret = ret.replace(/["`^|\\<>{}\[\]\s].*/, '');
       // Fix case of percent encoding
-      ret = strict ? ret.replace(/(?:%\w{2})+/g, replaceLowerToUpper) : justifyPercentEncodingUrlCase(url, ret);
+      ret = transparent ? justifyPercentEncodingUrlCase(url, ret) : ret;
+
+      return ret;
+    }
+
+    static canonicalizeUrl(url: string): string {
+      var ret: string = that.normalizeUrl(url, false);
+      // Fix case of percent encoding
+      ret = ret.replace(/(?:%\w{2})+/g, replaceLowerToUpper);
       function replaceLowerToUpper(str) {
         return str.toUpperCase();
       }

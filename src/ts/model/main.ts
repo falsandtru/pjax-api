@@ -71,22 +71,22 @@ module MODULE.MODEL {
     isImmediateLoadable(param: any, setting?: SettingInterface): boolean {
       if (State.ready !== this.state()) { return; }
 
-      var origURL: string = Util.canonicalizeUrl(window.location.href),
+      var origURL: string = Util.normalizeUrl(window.location.href),
           destURL: string,
           event: JQueryEventObject;
       switch (typeof param) {
         case 'string':
           event = null;
-          destURL = Util.canonicalizeUrl(param);
+          destURL = Util.normalizeUrl(param);
           break;
         case 'object':
           event = param;
           switch (event.type.toLowerCase()) {
             case 'click':
-              destURL = Util.canonicalizeUrl((<HTMLAnchorElement>event.currentTarget).href);
+              destURL = Util.normalizeUrl((<HTMLAnchorElement>event.currentTarget).href);
               break;
             case 'submit':
-              destURL = Util.canonicalizeUrl((<HTMLFormElement>event.currentTarget).action);
+              destURL = Util.normalizeUrl((<HTMLFormElement>event.currentTarget).action);
               break;
             case 'popstate':
               return true;
@@ -158,7 +158,7 @@ module MODULE.MODEL {
         if (!this.isImmediateLoadable(event, setting)) { break PROCESS; }
 
         var serializedURL = setting.destLocation.href.replace(/[?#].*/, '') + ('GET' === context.method.toUpperCase() ? '?' + jQuery(context).serialize() : '');
-        setting.destLocation.href = Util.canonicalizeUrl(serializedURL);
+        setting.destLocation.href = Util.normalizeUrl(serializedURL);
         if (setting.cache.mix && this.getCache(setting.destLocation.href)) { break PROCESS; }
         setting.database && this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPositionToDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
@@ -177,7 +177,7 @@ module MODULE.MODEL {
       PROCESS: {
         event.timeStamp = new Date().getTime();
         var setting: SettingInterface = this.app_.configure(this.getGlobalSetting(), null, window.location.href);
-        if (this.app_.page.landing && this.app_.page.landing === Util.canonicalizeUrl(window.location.href)) { return; }
+        if (this.app_.page.landing && this.app_.page.landing === Util.normalizeUrl(window.location.href)) { return; }
         if (setting.origLocation.href === setting.destLocation.href) { return; }
 
         if (State.ready !== this.state() || setting.disable) { break PROCESS; }
@@ -238,7 +238,7 @@ module MODULE.MODEL {
           recent: RecentInterface = this.app_.page.recent;
       if (!setting || !recent) { return null; }
 
-      var secure_url: string = this.convertUrlToKeyUrl(Util.canonicalizeUrl(unsafe_url));
+      var secure_url: string = this.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
       unsafe_url = null;
 
       recent.data[secure_url] && new Date().getTime() > recent.data[secure_url].expires && this.removeCache(secure_url);
@@ -255,7 +255,7 @@ module MODULE.MODEL {
           timeStamp: number,
           expires: number;
 
-      var secure_url: string = this.convertUrlToKeyUrl(Util.canonicalizeUrl(unsafe_url));
+      var secure_url: string = this.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
       unsafe_url = null;
 
       recent.order.unshift(secure_url);
@@ -311,7 +311,7 @@ module MODULE.MODEL {
           recent: RecentInterface = this.app_.page.recent;
       if (!setting || !recent) { return; }
 
-      var secure_url: string = this.convertUrlToKeyUrl(Util.canonicalizeUrl(unsafe_url));
+      var secure_url: string = this.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
       unsafe_url = null;
 
       for (var i = 0, key; key = recent.order[i]; i++) {

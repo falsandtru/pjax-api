@@ -36,8 +36,8 @@ module MODULE.MODEL {
     configure(option: SettingInterface, origURL: string, destURL: string): SettingInterface {
       var that = this;
 
-      origURL = Util.canonicalizeUrl(origURL || option.origLocation.href);
-      destURL = Util.canonicalizeUrl(destURL || option.destLocation.href);
+      origURL = Util.normalizeUrl(origURL || option.origLocation.href);
+      destURL = Util.normalizeUrl(destURL || option.destLocation.href);
       option = jQuery.extend(true, {}, option.option || option, { option: option.option || option });
 
       option = option.scope ? jQuery.extend(true, {}, option, scope(option, origURL, destURL) || { disable: true })

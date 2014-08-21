@@ -193,11 +193,11 @@ module MODULE.MODEL {
       }
 
       // verify
-      if (Util.compareUrl(setting.destLocation.href, Util.canonicalizeUrl(window.location.href))) {
+      if (Util.compareUrl(setting.destLocation.href, Util.normalizeUrl(window.location.href))) {
         setting.retriable = true;
       } else if (setting.retriable) {
         setting.retriable = false;
-        setting.destLocation.href = Util.canonicalizeUrl(window.location.href);
+        setting.destLocation.href = Util.normalizeUrl(window.location.href);
         new AppPageUpdate(this.model_, this.app_, setting, event, false, setting.cache[event.type.toLowerCase()] && this.model_.getCache(setting.destLocation.href), this.data_, this.textStatus_, this.jqXHR_, this.errorThrown_, this.host_);
         throw false;
       } else {
@@ -690,7 +690,7 @@ module MODULE.MODEL {
 
       var check = () => {
         switch (true) {
-          case !Util.compareUrl(setting.destLocation.href, Util.canonicalizeUrl(window.location.href)):
+          case !Util.compareUrl(setting.destLocation.href, Util.normalizeUrl(window.location.href)):
             break;
           case new Date().getTime() > limit:
           case checker.length !== areas.length:
