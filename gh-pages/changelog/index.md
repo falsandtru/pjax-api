@@ -9,6 +9,7 @@ nav: nav
 
 ## 2.21.0
 
+* `filter`パラメータの初期値を変更
 * `fallback`パラメータの仕様を変更
 * `callbacks.before`コールバックを削除
 * `callbacks.after`コールバックを削除

@@ -50,7 +50,8 @@ module MODULE.MODEL {
             
             area: 'body',
             link: 'a:not([target])',
-            filter: function(){return /(\/[^.]*|\.html?|\.php)$/.test('/' + this.pathname);},
+            // this.protocolはIEでエラー
+            filter: function(){return /^https?:/.test(this.href) && /(\/[^.]*|\.html?|\.php)$/.test('/' + this.pathname);},
             form: null,
             scope: null,
             rewrite: null,
