@@ -70,19 +70,19 @@ suite("Load", function () {
           switch (text) {
             case 'area':
               count++;
-              1 !== count && setTimeout(defer.reject, 0);
+              1 !== count && setTimeout(done = defer.reject, 0);
               break;
             case 'inline':
               count++;
-              2 !== count && setTimeout(defer.reject, 0);
+              2 !== count && setTimeout(done = defer.reject, 0);
               break;
             case 'external':
               count++;
-              3 !== count && setTimeout(defer.reject, 0);
+              3 !== count && setTimeout(done = defer.reject, 0);
               3 === count && setTimeout(defer.resolve, 0);
               break;
             default:
-              setTimeout(defer.reject, 0);
+              setTimeout(done = defer.reject, 0);
           }
         };
         $('#primary a:eq(1)', document).pjax().click();
@@ -90,6 +90,8 @@ suite("Load", function () {
         return defer;
       })
       .pipe(function () {
+        window.console.notice = new Function();
+
         assert.equal(document.title, 'pjax demo2', "title");
         assert.equal($('head>script[src$="test.js"]').length, 1, "external");
         assert.equal($('#primary>script:contains("console.notice")').length, 1, "area");
