@@ -6,7 +6,7 @@
 
 module MODULE.MODEL {
   
-  export class AppPageRequest extends AppPageUtility implements AppPageRequestInterface {
+  export class AppPageFetch extends AppPageUtility implements AppPageFetchInterface {
 
     constructor(
 
@@ -36,14 +36,12 @@ module MODULE.MODEL {
           register = this.register_,
           cache = this.cache_,
           globalXHR = this.model_.getGlobalXHR(),
-          wait: number = UTIL.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
+          wait: number = Util.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
 
       var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
       speedcheck && (speed.fire = event.timeStamp);
       speedcheck && speed.time.splice(0, 100, 0);
       speedcheck && speed.name.splice(0, 100, 'pjax(' + speed.time.slice(-1) + ')');
-
-      if (UTIL.fire(setting.callbacks.before, null, [event, setting.param]) === false) { return; }
 
       this.app_.page.isScrollPosSavable = false;
       setting.fix.reset && /click|submit/.test(event.type.toLowerCase()) && window.scrollTo(jQuery(window).scrollLeft(), 0);
@@ -52,16 +50,16 @@ module MODULE.MODEL {
         that.data_ = ajax[0];
         that.textStatus_ = ajax[1];
         that.jqXHR_ = ajax[2];
-        UTIL.fire(setting.callbacks.ajax.done, this, [event, setting.param].concat(ajax));
+        Util.fire(setting.callbacks.ajax.done, this, [event, setting.param].concat(ajax));
       }
       function fail(jqXHR: JQueryXHR, textStatus: string, errorThrown: string) {
         that.jqXHR_ = jqXHR;
         that.textStatus_ = textStatus;
         that.errorThrown_ = errorThrown;
-        UTIL.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat(arguments));
+        Util.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat(arguments));
       }
       function always() {
-        UTIL.fire(setting.callbacks.ajax.always, this, [event, setting.param].concat(arguments));
+        Util.fire(setting.callbacks.ajax.always, this, [event, setting.param].concat(arguments));
         that.model_.setGlobalXHR(null);
 
         if (that.model_.isDeferrable) {
@@ -76,16 +74,16 @@ module MODULE.MODEL {
         that.data_ = data;
         that.textStatus_ = textStatus;
         that.jqXHR_ = jqXHR;
-        UTIL.fire(setting.callbacks.ajax.success, this, [event, setting.param, data, textStatus, jqXHR]);
+        Util.fire(setting.callbacks.ajax.success, this, [event, setting.param, data, textStatus, jqXHR]);
       }
       function error(jqXHR: JQueryXHR, textStatus: string, errorThrown: string) {
         that.jqXHR_ = jqXHR;
         that.textStatus_ = textStatus;
         that.errorThrown_ = errorThrown;
-        UTIL.fire(setting.callbacks.ajax.error, this, [event, setting.param, jqXHR, textStatus, errorThrown]);
+        Util.fire(setting.callbacks.ajax.error, this, [event, setting.param, jqXHR, textStatus, errorThrown]);
       }
       function complete(jqXHR: JQueryXHR, textStatus: string) {
-        UTIL.fire(setting.callbacks.ajax.complete, this, [event, setting.param, jqXHR, textStatus]);
+        Util.fire(setting.callbacks.ajax.complete, this, [event, setting.param, jqXHR, textStatus]);
         that.model_.setGlobalXHR(null);
 
         if (!that.model_.isDeferrable) {
@@ -179,7 +177,7 @@ module MODULE.MODEL {
         callbacks = {
           xhr: !setting.callbacks.ajax.xhr ? undefined : function () {
             var jqXHR: JQueryXHR;
-            jqXHR = UTIL.fire(setting.callbacks.ajax.xhr, this, [event, setting.param]);
+            jqXHR = Util.fire(setting.callbacks.ajax.xhr, this, [event, setting.param]);
             jqXHR = 'object' === typeof jqXHR && jqXHR || jQuery.ajaxSettings.xhr();
 
             //if (jqXHR instanceof Object && jqXHR instanceof window.XMLHttpRequest && 'onprogress' in jqXHR) {
@@ -199,10 +197,10 @@ module MODULE.MODEL {
               setting.server.header.script && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Script', setting.load.script.toString());
             }
 
-            UTIL.fire(setting.callbacks.ajax.beforeSend, this, [event, setting.param, jqXHR, ajaxSetting]);
+            Util.fire(setting.callbacks.ajax.beforeSend, this, [event, setting.param, jqXHR, ajaxSetting]);
           },
           dataFilter: !setting.callbacks.ajax.dataFilter ? undefined : function (data: string, type: Object) {
-            return UTIL.fire(setting.callbacks.ajax.dataFilter, this, [event, setting.param, data, type]) || data;
+            return Util.fire(setting.callbacks.ajax.dataFilter, this, [event, setting.param, data, type]) || data;
           },
           success: success,
           error: error,
@@ -219,7 +217,6 @@ module MODULE.MODEL {
         }
       }
 
-      if (UTIL.fire(setting.callbacks.after, null, [event, setting.param]) === false) { return; }
     }
 
   }

@@ -31,7 +31,7 @@ module MODULE.MODEL {
       setting.database = false;
       this.data_.DB.opendb(() => {
         this.saveTitleToDB(setting.origLocation.href, document.title);
-        this.saveScrollPositionToCacheAndDB(setting.origLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+        this.saveScrollPositionToDB(setting.origLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
         setting.database = true;
       });
     }
@@ -68,7 +68,7 @@ module MODULE.MODEL {
     }
 
     loadTitleFromDB(unsafe_url: string): void {
-      var keyUrl: string = this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url)),
+      var keyUrl: string = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url)),
           that = this;
 
       var data: HistorySchema = this.data_.DB.store.history.getBuffer(keyUrl);
@@ -77,14 +77,18 @@ module MODULE.MODEL {
         document.title = data.title;
       } else {
         this.data_.DB.store.history.get(keyUrl, function () {
-          keyUrl === that.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(window.location.href)) &&
-          this.result && this.result.title && (document.title = this.result.title);
+          data = this.result;
+          if (data && data.title) {
+            if (Util.compareUrl(keyUrl, that.model_.convertUrlToKeyUrl(Util.normalizeUrl(window.location.href)))) {
+              document.title = data.title;
+            }
+          }
         });
       }
     }
 
     saveTitleToDB(unsafe_url: string, title: string): void {
-      var keyUrl = this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
+      var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
 
       var value: HistorySchema = <HistorySchema>{ id: keyUrl, title: title, date: new Date().getTime() };
       this.data_.DB.store.history.setBuffer(value, true);
@@ -92,8 +96,9 @@ module MODULE.MODEL {
       this.data_.DB.store.history.clean();
     }
 
-    loadScrollPositionFromCacheOrDB(unsafe_url: string): void {
-      var keyUrl: string = this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
+    loadScrollPositionFromDB(unsafe_url: string): void {
+      var keyUrl: string = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url)),
+          that = this;
 
       var data: HistorySchema = this.data_.DB.store.history.getBuffer(keyUrl);
       function scroll(scrollX, scrollY) {
@@ -106,15 +111,18 @@ module MODULE.MODEL {
         scroll(data.scrollX, data.scrollY);
       } else {
         this.data_.DB.store.history.get(keyUrl, function () {
-          if (!this.result || keyUrl !== this.result.id) { return; }
           data = this.result;
-          scroll(data.scrollX, data.scrollY);
+          if (data && 'number' === typeof data.scrollX) {
+            if (Util.compareUrl(keyUrl, that.model_.convertUrlToKeyUrl(Util.normalizeUrl(window.location.href)))) {
+              scroll(data.scrollX, data.scrollY);
+            }
+          }
         });
       }
     }
 
-    saveScrollPositionToCacheAndDB(unsafe_url: string, scrollX: number, scrollY: number): void {
-      var keyUrl = this.model_.convertUrlToKeyUrl(UTIL.canonicalizeUrl(unsafe_url));
+    saveScrollPositionToDB(unsafe_url: string, scrollX: number, scrollY: number): void {
+      var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
 
       var value: HistorySchema = <HistorySchema>{ id: keyUrl, scrollX: scrollX, scrollY: scrollY, date: new Date().getTime() };
       this.data_.DB.store.history.setBuffer(value, true);

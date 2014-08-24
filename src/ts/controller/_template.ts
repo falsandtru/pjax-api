@@ -13,7 +13,7 @@ module MODULE.CONTROLLER {
 
   export class Template {
 
-    constructor(model: ModelInterface) {
+    constructor(model: ModelInterface, ...args: any[]) {
       M = model;
       C = this;
       this.UUID = GEN_UUID();
@@ -30,7 +30,7 @@ module MODULE.CONTROLLER {
       this.REGISTER_FUNCTIONS(NAMESPACE[NAME], f);
       // コンテクストのプロパティを更新
       this.UPDATE_PROPERTIES(NAMESPACE[NAME], f);
-      this.OBSERVE();
+      this.OBSERVE.apply(this, args);
       this.state_ = 0;
     }
 
@@ -155,14 +155,14 @@ module MODULE.CONTROLLER {
      * 
      * @method OBSERVE
      */
-    OBSERVE(): any { }
+    OBSERVE(...args: any[]): any { }
 
     /**
      * 内部イベントの監視を終了する。
      * 
      * @method RELEASE
      */
-    RELEASE(): any { }
+    RELEASE(...args: any[]): any { }
     
     /**
      * Controllerが監視する内部イベント名のリスト

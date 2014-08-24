@@ -1,5 +1,5 @@
 /// <reference path="../define.ts"/>
-/// <reference path="app.page.request.ts"/>
+/// <reference path="app.page.fetch.ts"/>
 /// <reference path="app.page.update.ts"/>
 /// <reference path="app.page.utility.ts"/>
 
@@ -13,7 +13,7 @@ module MODULE.MODEL {
       super();
     }
 
-    landing: string = UTIL.canonicalizeUrl(window.location.href)
+    landing: string = Util.normalizeUrl(window.location.href)
     recent: RecentInterface = { order: [], data: {}, size: 0 }
     loadedScripts: { [index: string]: boolean } = {}
     isScrollPosSavable: boolean = true
@@ -33,17 +33,17 @@ module MODULE.MODEL {
         }
       };
 
-      this.request(setting, event, register, cache, done, fail);
+      this.fetch(setting, event, register, cache, done, fail);
     }
 
-    request(setting: SettingInterface,
-            event: JQueryEventObject,
-            register: boolean,
-            cache: CacheInterface,
-            done: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void,
-            fail: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void
-           ): void {
-      new AppPageRequest(this.model_, this.app_, setting, event, register, cache, done, fail);
+    fetch(setting: SettingInterface,
+          event: JQueryEventObject,
+          register: boolean,
+          cache: CacheInterface,
+          done: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void,
+          fail: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void
+         ): void {
+      new AppPageFetch(this.model_, this.app_, setting, event, register, cache, done, fail);
     }
 
     update(setting: SettingInterface,

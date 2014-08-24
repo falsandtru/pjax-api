@@ -22,6 +22,8 @@ You will be able most of your want.
 
 ## Usage
 
+### pjax
+
 ```javascript
 // Major feature activation
 $.pjax({
@@ -59,10 +61,45 @@ $.pjax({
   }
 });
 
-// 6 events and 41 callbacks exists.
+// 6 events and 30 callbacks exists.
 $(document).bind('pjax:ready', function() {
   //$("img.delay").lazyload();
 });
+```
+
+### preload
+
+```javascript
+// console
+// [-310, 1, 361, 379, 403, 424, 450, 486, 487, 491]
+// ["preload(-310)", "continue(1)", "load(361)", "parse(379)", "head(403)", "content(424)", "css(450)", "script(486)", "renderd(487)", "defer(491)"]
+
+if (!/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.navigator.userAgent)) {
+  $.preload({
+    forward: $.pjax.follow,
+    check: $.pjax.getCache,
+    encode: true,
+    ajax: {
+      done: function ( data, textStatus, XMLHttpRequest ) {
+        !$.pjax.getCache( this.url ) && $.pjax.setCache( this.url, null, textStatus, XMLHttpRequest );
+      }
+    }
+  });
+   
+  $.pjax({
+    area: 'body',
+    load: { head: 'base, meta, link', css: true, script: true },
+    cache: { click: true, submit: false, popstate: true },
+    server: { query: null },
+    speedcheck: true
+  });
+   
+  $(document).bind('pjax:ready', function() {
+    setTimeout(function () {
+      $(document).trigger('preload');
+    }, 2000);
+　 });
+}
 ```
 
 ## API

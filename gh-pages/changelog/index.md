@@ -7,6 +7,20 @@ nav: nav
 
 # ChangeLog
 
+## 2.21.0
+
+* `filter`パラメータの初期値を変更
+* `fallback`パラメータの仕様を変更
+* `callbacks.before`コールバックを削除
+* `callbacks.after`コールバックを削除
+* `callbacks.update.before`コールバックを削除
+* `callbacks.update.after`コールバックを削除
+* `callbacks.update.success`コールバックを削除
+* `callbacks.update.error`コールバックを削除
+* `callbacks.update.complete`コールバックを削除
+* `callbacks.update.cache`系コールバックを削除
+* `callbacks.update.verify`系コールバックを削除
+
 ## 2.20.0
 
 * アーキテクチャを改善

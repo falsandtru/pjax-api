@@ -36,8 +36,8 @@ module MODULE.MODEL {
     configure(option: SettingInterface, origURL: string, destURL: string): SettingInterface {
       var that = this;
 
-      origURL = UTIL.canonicalizeUrl(origURL || option.origLocation.href);
-      destURL = UTIL.canonicalizeUrl(destURL || option.destLocation.href);
+      origURL = Util.normalizeUrl(origURL || option.origLocation.href);
+      destURL = Util.normalizeUrl(destURL || option.destLocation.href);
       option = jQuery.extend(true, {}, option.option || option, { option: option.option || option });
 
       option = option.scope ? jQuery.extend(true, {}, option, scope(option, origURL, destURL) || { disable: true })
@@ -50,7 +50,8 @@ module MODULE.MODEL {
             
             area: 'body',
             link: 'a:not([target])',
-            filter: function(){return /(\/[^.]*|\.html?|\.php)$/.test('/' + this.pathname);},
+            // this.protocolはIEでエラー
+            filter: function(){return /^https?:/.test(this.href) && /(\/[^.]*|\.html?|\.php)$/.test('/' + this.pathname);},
             form: null,
             scope: null,
             rewrite: null,
@@ -118,7 +119,7 @@ module MODULE.MODEL {
             callback: null,
             callbacks: {
               ajax: {},
-              update: { redirect: {}, cache: {}, rewrite: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, verify: {}, balance: {} }
+              update: { redirect: {}, rewrite: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, balance: {} }
             },
             param: null,
             redirect: true,
@@ -247,7 +248,7 @@ module MODULE.MODEL {
             if ('inherit' === pattern) {
               inherit = true;
             } else if ('rewrite' === pattern && 'function' === typeof scpTable.rewrite && !rewriteKeyUrl) {
-              var rewrite: any = scope.apply(this, [].slice.call(arguments).slice(0, 3).concat([UTIL.fire(scpTable.rewrite, null, [destKeyUrl])]));
+              var rewrite: any = scope.apply(this, [].slice.call(arguments).slice(0, 3).concat([Util.fire(scpTable.rewrite, null, [destKeyUrl])]));
               if (rewrite) {
                 hit_src = hit_dst = true;
                 option = rewrite;

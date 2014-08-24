@@ -30,7 +30,14 @@ module MODULE.MODEL {
           window.location.assign((<HTMLAnchorElement>event.currentTarget).href);
           break;
         case 'submit':
-          (<HTMLFormElement>event.currentTarget).submit();
+          switch ((<HTMLFormElement>event.currentTarget).method.toUpperCase()) {
+            case 'GET':
+              window.location.assign((<HTMLFormElement>event.currentTarget).action.replace(/[?#].*/, '') + '?' + jQuery(event.currentTarget).serialize());
+              break;
+            case 'POST':
+              window.location.assign((<HTMLFormElement>event.currentTarget).action);
+              break;
+          }
           break;
         case 'popstate':
           window.location.reload();
