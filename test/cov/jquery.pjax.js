@@ -3,7 +3,7 @@
  * jquery.pjax.js
  * 
  * @name jquery.pjax.js
- * @version 2.20.0
+ * @version 2.21.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
  * @copyright 2012, falsandtru
@@ -71,6 +71,10 @@ var MODULE;
 
         var Template = (function () {
             function Template(model_, controller_, context) {
+                var args = [];
+                for (var _i = 0; _i < (arguments.length - 3); _i++) {
+                    args[_i] = arguments[_i + 3];
+                }
                 this.model_ = model_;
                 this.controller_ = controller_;
                 /**
@@ -91,7 +95,7 @@ var MODULE;
                 C = controller_;
                 this.UUID = MODULE.GEN_UUID();
                 this.CONTEXT = context;
-                this.OBSERVE();
+                this.OBSERVE.apply(this, args);
                 this.state_ = 0;
             }
             /**
@@ -100,6 +104,10 @@ var MODULE;
             * @method OBSERVE
             */
             Template.prototype.OBSERVE = function () {
+                var args = [];
+                for (var _i = 0; _i < (arguments.length - 0); _i++) {
+                    args[_i] = arguments[_i + 0];
+                }
             };
 
             /**
@@ -108,6 +116,10 @@ var MODULE;
             * @method RELEASE
             */
             Template.prototype.RELEASE = function () {
+                var args = [];
+                for (var _i = 0; _i < (arguments.length - 0); _i++) {
+                    args[_i] = arguments[_i + 0];
+                }
             };
 
             /**
@@ -434,6 +446,10 @@ var MODULE;
 
         var Template = (function () {
             function Template(model) {
+                var args = [];
+                for (var _i = 0; _i < (arguments.length - 1); _i++) {
+                    args[_i] = arguments[_i + 1];
+                }
                 /**
                 * Controllerの遷移状態を持つ
                 *
@@ -467,7 +483,7 @@ var MODULE;
 
                 // コンテクストのプロパティを更新
                 this.UPDATE_PROPERTIES(MODULE.NAMESPACE[MODULE.NAME], f);
-                this.OBSERVE();
+                this.OBSERVE.apply(this, args);
                 this.state_ = 0;
             }
             /**
@@ -579,6 +595,10 @@ var MODULE;
             * @method OBSERVE
             */
             Template.prototype.OBSERVE = function () {
+                var args = [];
+                for (var _i = 0; _i < (arguments.length - 0); _i++) {
+                    args[_i] = arguments[_i + 0];
+                }
             };
 
             /**
@@ -587,6 +607,10 @@ var MODULE;
             * @method RELEASE
             */
             Template.prototype.RELEASE = function () {
+                var args = [];
+                for (var _i = 0; _i < (arguments.length - 0); _i++) {
+                    args[_i] = arguments[_i + 0];
+                }
             };
 
             Template.EVENTS = {};
@@ -1291,7 +1315,7 @@ var MODULE;
                 this.age_ = age;
             }
             DataCookie.prototype.getCookie = function (key) {
-                if (!window.navigator.cookieEnabled) {
+                if (!key || !window.navigator.cookieEnabled) {
                     return;
                 }
 
@@ -1302,7 +1326,7 @@ var MODULE;
 
             DataCookie.prototype.setCookie = function (key, value, option) {
                 if (typeof option === "undefined") { option = {}; }
-                if (!window.navigator.cookieEnabled) {
+                if (!key || !window.navigator.cookieEnabled) {
                     return;
                 }
 
@@ -1338,61 +1362,88 @@ var MODULE;
     })(MODULE.MODEL || (MODULE.MODEL = {}));
     var MODEL = MODULE.MODEL;
 })(MODULE || (MODULE = {}));
-/// <reference path="../define.ts"/>
-/// <reference path="_template.ts"/>
+/* MODEL */
 var MODULE;
 (function (MODULE) {
-    /* MODEL */
     (function (MODEL) {
         var Utility = (function () {
             function Utility() {
             }
-            Utility.canonicalizeUrl = function (url) {
-                var ret;
-
-                // Trim
-                ret = this.trim(url);
-
-                // Remove string starting with an invalid character
-                ret = ret.replace(/["`^|\\<>{}\[\]\s].*/, '');
-
-                // Deny value beginning with the string of HTTP(S) other than
-                ret = /^https?:/i.test(ret) ? ret : (function (url, a) {
-                    a.href = url;
-                    return a.href;
-                })(ret, document.createElement('a'));
-
-                // Unify to UTF-8 encoded values
-                ret = encodeURI(decodeURI(ret));
-
-                // Fix case
-                ret = ret.replace(/(?:%\w{2})+/g, function (str) {
-                    return url.match(str.toLowerCase()) || str;
-                });
-                return ret;
-            };
-
+            /* string */
             Utility.trim = function (text) {
-                text = text || '';
-                if (String.prototype.trim) {
-                    text = text.toString().trim();
-                } else {
-                    if (text = String(text).replace(/^[\s\uFEFF\xA0]+/, '')) {
-                        for (var i = text.length; --i;) {
-                            if (/[^\s\uFEFF\xA0]/.test(text.charAt(i))) {
-                                text = text.substring(0, i + 1);
-                                break;
+                text = 'string' === typeof text ? text : String(0 === text && text.toString() || '');
+                if (text.trim) {
+                    text = text.trim();
+                } else if (text = text.replace(/^[\s\uFEFF\xA0]+/, '')) {
+                    var regSpace = /[\s\uFEFF\xA0]/;
+                    var i = text.length, r = i % 8;
+                    DUFF:
+                     {
+                        while (r--) {
+                            if (!regSpace.test(text.charAt(--i))) {
+                                break DUFF;
+                            }
+                        }
+                        while (i) {
+                            if (!regSpace.test(text.charAt(--i))) {
+                                break DUFF;
+                            }
+                            if (!regSpace.test(text.charAt(--i))) {
+                                break DUFF;
+                            }
+                            if (!regSpace.test(text.charAt(--i))) {
+                                break DUFF;
+                            }
+                            if (!regSpace.test(text.charAt(--i))) {
+                                break DUFF;
+                            }
+                            if (!regSpace.test(text.charAt(--i))) {
+                                break DUFF;
+                            }
+                            if (!regSpace.test(text.charAt(--i))) {
+                                break DUFF;
+                            }
+                            if (!regSpace.test(text.charAt(--i))) {
+                                break DUFF;
+                            }
+                            if (!regSpace.test(text.charAt(--i))) {
+                                break DUFF;
                             }
                         }
                     }
+
+                    text = text.substring(0, i + 1);
                 }
                 return text;
             };
 
+            Utility.repeat = function (arg, size) {
+                switch (arg instanceof Array && 'array' || typeof arg) {
+                    case 'string':
+                        var text = arg;
+                        return Array(size + 1).join(text);
+                    case 'array':
+                        var len = arg.length;
+                        if (size < 300) {
+                            var arr = Array(size);
+                            that.duff(-size, function (i) {
+                                return arr[i] = arg[i % len];
+                            });
+                        } else {
+                            var arr = arg.slice();
+                            while (arr.length * 2 <= size) {
+                                arr = arr.concat(arr);
+                            }
+                            arr = arr.concat(arr.slice(0, size - arr.length));
+                        }
+                        return arr;
+                }
+            };
+
+            /* function */
             Utility.fire = function (fn, context, args, async) {
                 if (typeof context === "undefined") { context = window; }
                 if (typeof args === "undefined") { args = []; }
-                if (typeof async === "undefined") { async = false; }
                 if ('function' === typeof fn) {
                     return async ? setTimeout(function () {
                         fn.apply(context || window, args);
@@ -1401,11 +1452,178 @@ var MODULE;
                     return fn;
                 }
             };
+
+            Utility.duff = function (loop, proc) {
+                if (loop < 0) {
+                    var i = -loop, r = i % 8;
+                    while (r--) {
+                        proc(--i);
+                    }
+                    while (i) {
+                        proc(--i);
+                        proc(--i);
+                        proc(--i);
+                        proc(--i);
+                        proc(--i);
+                        proc(--i);
+                        proc(--i);
+                        proc(--i);
+                    }
+                } else {
+                    var l = loop, i = 0, r = l % 8, q = l / 8 ^ 0;
+                    while (r--) {
+                        proc(i++);
+                    }
+                    while (q--) {
+                        proc(i++);
+                        proc(i++);
+                        proc(i++);
+                        proc(i++);
+                        proc(i++);
+                        proc(i++);
+                        proc(i++);
+                        proc(i++);
+                    }
+                }
+            };
+
+            Utility.duffEx = function (loop, proc) {
+                if (loop < 0) {
+                    var i = -loop, r = i % 8;
+                    DUFF:
+                     {
+                        while (r--) {
+                            if (false === proc(--i)) {
+                                break DUFF;
+                            }
+                        }
+                        while (i) {
+                            if (false === proc(--i)) {
+                                break DUFF;
+                            }
+                            if (false === proc(--i)) {
+                                break DUFF;
+                            }
+                            if (false === proc(--i)) {
+                                break DUFF;
+                            }
+                            if (false === proc(--i)) {
+                                break DUFF;
+                            }
+                            if (false === proc(--i)) {
+                                break DUFF;
+                            }
+                            if (false === proc(--i)) {
+                                break DUFF;
+                            }
+                            if (false === proc(--i)) {
+                                break DUFF;
+                            }
+                            if (false === proc(--i)) {
+                                break DUFF;
+                            }
+                        }
+                    }
+                } else {
+                    var l = loop, i = 0, r = l % 8, q = l / 8 ^ 0;
+                    DUFF:
+                     {
+                        while (r--) {
+                            if (false === proc(i++)) {
+                                break DUFF;
+                            }
+                        }
+                        while (q--) {
+                            if (false === proc(i++)) {
+                                break DUFF;
+                            }
+                            if (false === proc(i++)) {
+                                break DUFF;
+                            }
+                            if (false === proc(i++)) {
+                                break DUFF;
+                            }
+                            if (false === proc(i++)) {
+                                break DUFF;
+                            }
+                            if (false === proc(i++)) {
+                                break DUFF;
+                            }
+                            if (false === proc(i++)) {
+                                break DUFF;
+                            }
+                            if (false === proc(i++)) {
+                                break DUFF;
+                            }
+                            if (false === proc(i++)) {
+                                break DUFF;
+                            }
+                        }
+                    }
+                }
+            };
+
+            /* other */
+            Utility.normalizeUrl = function (url, transparent) {
+                if (typeof transparent === "undefined") { transparent = true; }
+                var ret;
+
+                // Trim
+                ret = that.trim(url);
+
+                // Convert to absolute path
+                ret = /^([^:/?#]+):\/\/[^/?#.]+\.[^/?#]+/i.test(ret) ? ret : (function (url, a) {
+                    a.href = url;
+                    return a.href;
+                })(ret, document.createElement('a'));
+
+                // Convert to UTF-8 encoded string
+                ret = encodeURI(decodeURI(ret));
+
+                // Remove string of starting with an invalid character
+                ret = ret.replace(/["`^|\\<>{}\[\]\s].*/, '');
+
+                // Fix case of percent encoding
+                ret = transparent ? justifyPercentEncodingUrlCase(url, ret) : ret;
+
+                return ret;
+            };
+
+            Utility.canonicalizeUrl = function (url) {
+                var ret = that.normalizeUrl(url, false);
+
+                // Fix case of percent encoding
+                ret = ret.replace(/(?:%\w{2})+/g, replaceLowerToUpper);
+                function replaceLowerToUpper(str) {
+                    return str.toUpperCase();
+                }
+                return ret;
+            };
+
+            Utility.compareUrl = function (first, second, canonicalize) {
+                if (canonicalize) {
+                    first = that.canonicalizeUrl(first);
+                    second = that.canonicalizeUrl(second);
+                }
+
+                // URLのパーセントエンコーディングの大文字小文字がAndroidのアドレスバーとリンクで異なるためそろえる
+                return first === justifyPercentEncodingUrlCase(first, second);
+            };
             return Utility;
         })();
         MODEL.Utility = Utility;
 
-        MODEL.UTIL = MODEL.Utility;
+        var that = Utility;
+        MODEL.Util = MODEL.Utility;
+
+        // private
+        function justifyPercentEncodingUrlCase(base, target) {
+            return base === target ? target : target.replace(/(?:%\w{2})+/g, replace);
+            function replace(str) {
+                var i = ~base.indexOf(str.toUpperCase()) || ~base.indexOf(str.toLowerCase());
+                return i ? base.substr(~i, str.length) : str;
+            }
+        }
     })(MODULE.MODEL || (MODULE.MODEL = {}));
     var MODEL = MODULE.MODEL;
 })(MODULE || (MODULE = {}));
@@ -1441,7 +1659,7 @@ var MODULE;
                 setting.database = false;
                 this.data_.DB.opendb(function () {
                     _this.saveTitleToDB(setting.origLocation.href, document.title);
-                    _this.saveScrollPositionToCacheAndDB(setting.origLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+                    _this.saveScrollPositionToDB(setting.origLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
                     setting.database = true;
                 });
             };
@@ -1477,7 +1695,7 @@ var MODULE;
             };
 
             AppData.prototype.loadTitleFromDB = function (unsafe_url) {
-                var keyUrl = this.model_.convertUrlToKeyUrl(MODEL.UTIL.canonicalizeUrl(unsafe_url)), that = this;
+                var keyUrl = this.model_.convertUrlToKeyUrl(MODEL.Util.normalizeUrl(unsafe_url)), that = this;
 
                 var data = this.data_.DB.store.history.getBuffer(keyUrl);
 
@@ -1485,13 +1703,18 @@ var MODULE;
                     document.title = data.title;
                 } else {
                     this.data_.DB.store.history.get(keyUrl, function () {
-                        keyUrl === that.model_.convertUrlToKeyUrl(MODEL.UTIL.canonicalizeUrl(window.location.href)) && this.result && this.result.title && (document.title = this.result.title);
+                        data = this.result;
+                        if (data && data.title) {
+                            if (MODEL.Util.compareUrl(keyUrl, that.model_.convertUrlToKeyUrl(MODEL.Util.normalizeUrl(window.location.href)))) {
+                                document.title = data.title;
+                            }
+                        }
                     });
                 }
             };
 
             AppData.prototype.saveTitleToDB = function (unsafe_url, title) {
-                var keyUrl = this.model_.convertUrlToKeyUrl(MODEL.UTIL.canonicalizeUrl(unsafe_url));
+                var keyUrl = this.model_.convertUrlToKeyUrl(MODEL.Util.normalizeUrl(unsafe_url));
 
                 var value = { id: keyUrl, title: title, date: new Date().getTime() };
                 this.data_.DB.store.history.setBuffer(value, true);
@@ -1499,8 +1722,8 @@ var MODULE;
                 this.data_.DB.store.history.clean();
             };
 
-            AppData.prototype.loadScrollPositionFromCacheOrDB = function (unsafe_url) {
-                var keyUrl = this.model_.convertUrlToKeyUrl(MODEL.UTIL.canonicalizeUrl(unsafe_url));
+            AppData.prototype.loadScrollPositionFromDB = function (unsafe_url) {
+                var keyUrl = this.model_.convertUrlToKeyUrl(MODEL.Util.normalizeUrl(unsafe_url)), that = this;
 
                 var data = this.data_.DB.store.history.getBuffer(keyUrl);
                 function scroll(scrollX, scrollY) {
@@ -1515,17 +1738,18 @@ var MODULE;
                     scroll(data.scrollX, data.scrollY);
                 } else {
                     this.data_.DB.store.history.get(keyUrl, function () {
-                        if (!this.result || keyUrl !== this.result.id) {
-                            return;
-                        }
                         data = this.result;
-                        scroll(data.scrollX, data.scrollY);
+                        if (data && 'number' === typeof data.scrollX) {
+                            if (MODEL.Util.compareUrl(keyUrl, that.model_.convertUrlToKeyUrl(MODEL.Util.normalizeUrl(window.location.href)))) {
+                                scroll(data.scrollX, data.scrollY);
+                            }
+                        }
                     });
                 }
             };
 
-            AppData.prototype.saveScrollPositionToCacheAndDB = function (unsafe_url, scrollX, scrollY) {
-                var keyUrl = this.model_.convertUrlToKeyUrl(MODEL.UTIL.canonicalizeUrl(unsafe_url));
+            AppData.prototype.saveScrollPositionToDB = function (unsafe_url, scrollX, scrollY) {
+                var keyUrl = this.model_.convertUrlToKeyUrl(MODEL.Util.normalizeUrl(unsafe_url));
 
                 var value = { id: keyUrl, scrollX: scrollX, scrollY: scrollY, date: new Date().getTime() };
                 this.data_.DB.store.history.setBuffer(value, true);
@@ -1746,7 +1970,14 @@ var MODULE;
                         window.location.assign(event.currentTarget.href);
                         break;
                     case 'submit':
-                        event.currentTarget.submit();
+                        switch (event.currentTarget.method.toUpperCase()) {
+                            case 'GET':
+                                window.location.assign(event.currentTarget.action.replace(/[?#].*/, '') + '?' + jQuery(event.currentTarget).serialize());
+                                break;
+                            case 'POST':
+                                window.location.assign(event.currentTarget.action);
+                                break;
+                        }
                         break;
                     case 'popstate':
                         window.location.reload();
@@ -1803,9 +2034,9 @@ var MODULE;
 (function (MODULE) {
     /* MODEL */
     (function (MODEL) {
-        var AppPageRequest = (function (_super) {
-            __extends(AppPageRequest, _super);
-            function AppPageRequest(model_, app_, setting_, event_, register_, cache_, done_, fail_) {
+        var AppPageFetch = (function (_super) {
+            __extends(AppPageFetch, _super);
+            function AppPageFetch(model_, app_, setting_, event_, register_, cache_, done_, fail_) {
                 _super.call(this);
                 this.model_ = model_;
                 this.app_ = app_;
@@ -1817,17 +2048,13 @@ var MODULE;
                 this.fail_ = fail_;
                 this.main_();
             }
-            AppPageRequest.prototype.main_ = function () {
-                var that = this, setting = this.setting_, event = this.event_ = jQuery.extend(true, {}, this.event_), register = this.register_, cache = this.cache_, globalXHR = this.model_.getGlobalXHR(), wait = MODEL.UTIL.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
+            AppPageFetch.prototype.main_ = function () {
+                var that = this, setting = this.setting_, event = this.event_ = jQuery.extend(true, {}, this.event_), register = this.register_, cache = this.cache_, globalXHR = this.model_.getGlobalXHR(), wait = MODEL.Util.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
 
                 var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
                 speedcheck && (speed.fire = event.timeStamp);
                 speedcheck && speed.time.splice(0, 100, 0);
                 speedcheck && speed.name.splice(0, 100, 'pjax(' + speed.time.slice(-1) + ')');
-
-                if (MODEL.UTIL.fire(setting.callbacks.before, null, [event, setting.param]) === false) {
-                    return;
-                }
 
                 this.app_.page.isScrollPosSavable = false;
                 setting.fix.reset && /click|submit/.test(event.type.toLowerCase()) && window.scrollTo(jQuery(window).scrollLeft(), 0);
@@ -1836,16 +2063,16 @@ var MODULE;
                     that.data_ = ajax[0];
                     that.textStatus_ = ajax[1];
                     that.jqXHR_ = ajax[2];
-                    MODEL.UTIL.fire(setting.callbacks.ajax.done, this, [event, setting.param].concat(ajax));
+                    MODEL.Util.fire(setting.callbacks.ajax.done, this, [event, setting.param].concat(ajax));
                 }
                 function fail(jqXHR, textStatus, errorThrown) {
                     that.jqXHR_ = jqXHR;
                     that.textStatus_ = textStatus;
                     that.errorThrown_ = errorThrown;
-                    MODEL.UTIL.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat(arguments));
+                    MODEL.Util.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat(arguments));
                 }
                 function always() {
-                    MODEL.UTIL.fire(setting.callbacks.ajax.always, this, [event, setting.param].concat(arguments));
+                    MODEL.Util.fire(setting.callbacks.ajax.always, this, [event, setting.param].concat(arguments));
                     that.model_.setGlobalXHR(null);
 
                     if (that.model_.isDeferrable) {
@@ -1860,16 +2087,16 @@ var MODULE;
                     that.data_ = data;
                     that.textStatus_ = textStatus;
                     that.jqXHR_ = jqXHR;
-                    MODEL.UTIL.fire(setting.callbacks.ajax.success, this, [event, setting.param, data, textStatus, jqXHR]);
+                    MODEL.Util.fire(setting.callbacks.ajax.success, this, [event, setting.param, data, textStatus, jqXHR]);
                 }
                 function error(jqXHR, textStatus, errorThrown) {
                     that.jqXHR_ = jqXHR;
                     that.textStatus_ = textStatus;
                     that.errorThrown_ = errorThrown;
-                    MODEL.UTIL.fire(setting.callbacks.ajax.error, this, [event, setting.param, jqXHR, textStatus, errorThrown]);
+                    MODEL.Util.fire(setting.callbacks.ajax.error, this, [event, setting.param, jqXHR, textStatus, errorThrown]);
                 }
                 function complete(jqXHR, textStatus) {
-                    MODEL.UTIL.fire(setting.callbacks.ajax.complete, this, [event, setting.param, jqXHR, textStatus]);
+                    MODEL.Util.fire(setting.callbacks.ajax.complete, this, [event, setting.param, jqXHR, textStatus]);
                     that.model_.setGlobalXHR(null);
 
                     if (!that.model_.isDeferrable) {
@@ -1957,7 +2184,7 @@ var MODULE;
                     callbacks = {
                         xhr: !setting.callbacks.ajax.xhr ? undefined : function () {
                             var jqXHR;
-                            jqXHR = MODEL.UTIL.fire(setting.callbacks.ajax.xhr, this, [event, setting.param]);
+                            jqXHR = MODEL.Util.fire(setting.callbacks.ajax.xhr, this, [event, setting.param]);
                             jqXHR = 'object' === typeof jqXHR && jqXHR || jQuery.ajaxSettings.xhr();
 
                             //if (jqXHR instanceof Object && jqXHR instanceof window.XMLHttpRequest && 'onprogress' in jqXHR) {
@@ -1977,10 +2204,10 @@ var MODULE;
                                 setting.server.header.script && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Script', setting.load.script.toString());
                             }
 
-                            MODEL.UTIL.fire(setting.callbacks.ajax.beforeSend, this, [event, setting.param, jqXHR, ajaxSetting]);
+                            MODEL.Util.fire(setting.callbacks.ajax.beforeSend, this, [event, setting.param, jqXHR, ajaxSetting]);
                         },
                         dataFilter: !setting.callbacks.ajax.dataFilter ? undefined : function (data, type) {
-                            return MODEL.UTIL.fire(setting.callbacks.ajax.dataFilter, this, [event, setting.param, data, type]) || data;
+                            return MODEL.Util.fire(setting.callbacks.ajax.dataFilter, this, [event, setting.param, data, type]) || data;
                         },
                         success: success,
                         error: error,
@@ -1995,14 +2222,10 @@ var MODULE;
                         jQuery.when(globalXHR, that.wait_(wait)).done(done).fail(fail).always(always);
                     }
                 }
-
-                if (MODEL.UTIL.fire(setting.callbacks.after, null, [event, setting.param]) === false) {
-                    return;
-                }
             };
-            return AppPageRequest;
+            return AppPageFetch;
         })(MODEL.AppPageUtility);
-        MODEL.AppPageRequest = AppPageRequest;
+        MODEL.AppPageFetch = AppPageFetch;
     })(MODULE.MODEL || (MODULE.MODEL = {}));
     var MODEL = MODULE.MODEL;
 })(MODULE || (MODULE = {}));
@@ -2052,10 +2275,6 @@ var MODULE;
                     setting.loadtime = setting.loadtime && new Date().getTime() - setting.loadtime;
                     setting.loadtime = setting.loadtime < 100 ? 0 : setting.loadtime;
 
-                    if (MODEL.UTIL.fire(callbacks_update.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_, this.cache_]) === false) {
-                        break UPDATE;
-                    }
-
                     if (setting.cache.mix && 'popstate' !== event.type.toLowerCase() && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
                         return this.model_.fallback(event, setting);
                     }
@@ -2066,151 +2285,64 @@ var MODULE;
                             throw new Error("throw: content-type mismatch");
                         }
 
-                        DEFINE:
-                         {
-                            this.srcDocument_ = this.createHTMLDocument_(jqXHR.responseText, setting.destLocation.href);
-                            this.dstDocument_ = document;
+                        /* variable define */
+                        this.srcDocument_ = this.createHTMLDocument_(jqXHR.responseText, setting.destLocation.href);
+                        this.dstDocument_ = document;
 
-                            // 更新範囲を選出
-                            setting.area = this.chooseArea(setting.area, this.srcDocument_, this.dstDocument_);
-                            if (!setting.area) {
-                                throw new Error('throw: area notfound');
-                            }
-
-                            // 更新範囲をセレクタごとに分割
-                            setting.areas = setting.area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
+                        // 更新範囲を選出
+                        setting.area = this.chooseArea(setting.area, this.srcDocument_, this.dstDocument_);
+                        if (!setting.area) {
+                            throw new Error('throw: area notfound');
                         }
-                        ;
 
-                        /* check point */
+                        // 更新範囲をセレクタごとに分割
+                        setting.areas = setting.area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
+
+                        // キャッシュを設定
+                        if (this.isCacheUsable_(setting, event)) {
+                            this.model_.setCache(setting.destLocation.href, cache && cache.data || null, this.textStatus_, this.jqXHR_);
+                            cache = this.model_.getCache(setting.destLocation.href);
+                            this.cache_ = cache;
+                        }
+
                         speedcheck && speed.time.push(speed.now() - speed.fire);
                         speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
 
-                        /* redirect */
-                        this.redirect_();
-
-                        /* cache */
-                        this.updateCache_();
-
-                        /* escape */
-                        setting.fix.noscript && jQuery('noscript', this.srcDocument_).children().parent().each(function () {
-                            jQuery(this).text(this.innerHTML);
-                        });
+                        this.checkRedirect_();
 
                         this.dispatchEvent_(window, setting.gns + ':unload', false, true);
                         jQuery(window).trigger(setting.gns + '.unload');
 
-                        /* url */
                         this.updateUrl_();
 
-                        /* verify */
-                        this.verify_();
-
-                        /* save */
                         this.model_.setGlobalSetting(jQuery.extend(true, {}, setting, { origLocation: setting.destLocation.cloneNode() }));
 
-                        /* load */
                         this.updateDocument_();
-
-                        if (MODEL.UTIL.fire(callbacks_update.success, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                            break UPDATE;
-                        }
-                        if (MODEL.UTIL.fire(callbacks_update.complete, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                            break UPDATE;
-                        }
-                        if (MODEL.UTIL.fire(setting.callback, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                            break UPDATE;
-                        }
                     } catch (err) {
                         if (!err) {
                             return;
                         }
 
-                        /* cache delete */
                         this.cache_ && this.model_.removeCache(setting.destLocation.href);
 
-                        if (MODEL.UTIL.fire(callbacks_update.error, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                            break UPDATE;
-                        }
-                        if (MODEL.UTIL.fire(callbacks_update.complete, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                            break UPDATE;
-                        }
                         this.model_.fallback(event, setting);
                     }
                     ;
-
-                    if (MODEL.UTIL.fire(callbacks_update.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                        break UPDATE;
-                    }
                 }
                 ;
             };
 
-            AppPageUpdate.prototype.updateCache_ = function () {
-                var setting = this.setting_, cache = this.cache_, event = this.event_, data = this.data_, textStatus = this.textStatus_, jqXHR = this.jqXHR_;
-                var callbacks_update = setting.callbacks.update;
-
-                if (!setting.cache.click && !setting.cache.submit && !setting.cache.popstate) {
-                    return;
-                }
-                if ('submit' === event.type.toLowerCase() && !setting.cache[event.currentTarget.method.toLowerCase()]) {
-                    return;
-                }
-
-                if (MODEL.UTIL.fire(callbacks_update.cache.before, null, [event, setting.param, cache]) === false) {
-                    return;
-                }
-
-                this.model_.setCache(setting.destLocation.href, cache && cache.data || null, textStatus, jqXHR);
-                cache = this.model_.getCache(setting.destLocation.href);
-                this.cache_ = cache;
-
-                if (cache && cache.data) {
-                    var $span = jQuery('<span/>'), html = setting.fix.noscript ? cache.data.replace(/(<noscript>)([^<>]+?)(<\/noscript>)/gim, function ($0, $1, $2, $3) {
-                        return $1 + $span.html($2).text() + $3;
-                    }) : cache.data, cacheDocument = this.createHTMLDocument_(html, setting.destLocation.href), srcDocument = this.srcDocument_;
-
-                    srcDocument.title = cacheDocument.title;
-
-                    var $srcAreas, $dstAreas;
-                    for (var i = 0; setting.areas[i]; i++) {
-                        $srcAreas = jQuery(setting.areas[i], cacheDocument).clone();
-                        $dstAreas = jQuery(setting.areas[i], srcDocument);
-                        if (!$srcAreas.length || !$dstAreas.length || $srcAreas.length !== $dstAreas.length) {
-                            throw new Error('throw: area mismatch');
-                        }
-
-                        for (var j = 0; $srcAreas[j]; j++) {
-                            $dstAreas[j].parentNode.replaceChild($srcAreas[j], $dstAreas[j]);
-                        }
-                    }
-                }
-
-                if (MODEL.UTIL.fire(callbacks_update.cache.after, null, [event, setting.param, cache]) === false) {
-                    return;
+            AppPageUpdate.prototype.isCacheUsable_ = function (setting, event) {
+                switch (true) {
+                    case !setting.cache.click && !setting.cache.submit && !setting.cache.popstate:
+                    case 'submit' === event.type.toLowerCase() && !setting.cache[event.currentTarget.method.toLowerCase()]:
+                        return false;
+                    default:
+                        return true;
                 }
             };
 
-            AppPageUpdate.prototype.rewrite_ = function () {
-                var setting = this.setting_, event = this.event_;
-                var callbacks_update = setting.callbacks.update;
-
-                if (!setting.rewrite) {
-                    return;
-                }
-
-                if (MODEL.UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) {
-                    return;
-                }
-
-                MODEL.UTIL.fire(setting.rewrite, null, [this.srcDocument_, setting.area, this.host_]);
-
-                if (MODEL.UTIL.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) {
-                    return;
-                }
-            };
-
-            AppPageUpdate.prototype.redirect_ = function () {
+            AppPageUpdate.prototype.checkRedirect_ = function () {
                 var _this = this;
                 var setting = this.setting_, event = this.event_, register = this.register_;
                 var callbacks_update = setting.callbacks.update;
@@ -2219,7 +2351,7 @@ var MODULE;
                     return;
                 }
 
-                if (MODEL.UTIL.fire(callbacks_update.redirect.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                if (MODEL.Util.fire(callbacks_update.redirect.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                     return;
                 }
                 ;
@@ -2267,7 +2399,7 @@ var MODULE;
                         throw false;
                 }
 
-                if (MODEL.UTIL.fire(callbacks_update.redirect.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                if (MODEL.Util.fire(callbacks_update.redirect.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                     return;
                 }
             };
@@ -2276,12 +2408,12 @@ var MODULE;
                 var setting = this.setting_, event = this.event_, register = this.register_;
                 var callbacks_update = setting.callbacks.update;
 
-                if (MODEL.UTIL.fire(callbacks_update.url.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                if (MODEL.Util.fire(callbacks_update.url.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                     return;
                 }
                 ;
 
-                register && window.history.pushState(MODEL.UTIL.fire(setting.state, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]), window.opera || ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstDocument_.title : this.srcDocument_.title, setting.destLocation.href);
+                register && window.history.pushState(MODEL.Util.fire(setting.state, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]), window.opera || ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstDocument_.title : this.srcDocument_.title, setting.destLocation.href);
 
                 if (register && setting.fix.location) {
                     jQuery[MODULE.NAME].disable();
@@ -2290,41 +2422,30 @@ var MODULE;
                     jQuery[MODULE.NAME].enable();
                 }
 
-                if (MODEL.UTIL.fire(callbacks_update.url.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                    return;
-                }
-            };
-
-            AppPageUpdate.prototype.verify_ = function () {
-                var setting = this.setting_, event = this.event_;
-                var callbacks_update = setting.callbacks.update;
-
-                if (MODEL.UTIL.fire(callbacks_update.verify.before, null, [event, setting.param]) === false) {
-                    return;
-                }
-
-                // モバイルブラウザでアドレスバーのURLのパーセントエンコーディングの大文字小文字がアンカーと一致しないため揃える必要がある
-                if (setting.destLocation.href === MODEL.UTIL.canonicalizeUrl(window.location.href).replace(/(?:%\w{2})+/g, function (str) {
-                    return String(setting.destLocation.href.match(str.toLowerCase()) || str);
-                })) {
+                // verify
+                if (MODEL.Util.compareUrl(setting.destLocation.href, MODEL.Util.normalizeUrl(window.location.href))) {
                     setting.retriable = true;
                 } else if (setting.retriable) {
                     setting.retriable = false;
-                    setting.destLocation.href = MODEL.UTIL.canonicalizeUrl(window.location.href);
+                    setting.destLocation.href = MODEL.Util.normalizeUrl(window.location.href);
                     new AppPageUpdate(this.model_, this.app_, setting, event, false, setting.cache[event.type.toLowerCase()] && this.model_.getCache(setting.destLocation.href), this.data_, this.textStatus_, this.jqXHR_, this.errorThrown_, this.host_);
                     throw false;
                 } else {
                     throw new Error('throw: location mismatch');
                 }
 
-                if (MODEL.UTIL.fire(callbacks_update.verify.after, null, [event, setting.param]) === false) {
+                if (MODEL.Util.fire(callbacks_update.url.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                     return;
                 }
             };
 
             AppPageUpdate.prototype.updateDocument_ = function () {
                 var _this = this;
-                var setting = this.setting_;
+                var setting = this.setting_, event = this.event_;
+
+                this.overwriteDocumentByCache_();
+
+                setting.fix.noscript && this.escapeNoscript_(this.srcDocument_);
 
                 this.rewrite_();
 
@@ -2343,15 +2464,17 @@ var MODULE;
                 this.balance_();
 
                 this.css_('link[rel~="stylesheet"], style');
-                jQuery(window).one(setting.gns + ':rendering', function (event) {
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
+                jQuery(window).one(setting.gns + ':rendering', function (e) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
 
                     var onready = function (callback) {
                         _this.dispatchEvent_(document, setting.gns + ':ready', false, true);
                         jQuery(document).trigger(setting.gns + '.ready');
 
-                        return jQuery.when ? _this.render_(jQuery.Deferred().resolve) : _this.render_(callback);
+                        MODEL.Util.fire(setting.callback, null, [event, setting.param, _this.data_, _this.textStatus_, _this.jqXHR_]);
+
+                        return jQuery.when ? _this.waitRender_(jQuery.Deferred().resolve) : _this.waitRender_(callback);
                     };
 
                     var onrender = function (callback) {
@@ -2418,18 +2541,64 @@ var MODULE;
                 }).trigger(setting.gns + ':rendering');
             };
 
+            AppPageUpdate.prototype.overwriteDocumentByCache_ = function () {
+                var setting = this.setting_, event = this.event_, cache = this.cache_;
+
+                if (!this.isCacheUsable_(setting, event)) {
+                    return;
+                }
+
+                if (cache && cache.data) {
+                    var html = setting.fix.noscript ? this.restoreNoscript_(cache.data) : cache.data, cacheDocument = this.createHTMLDocument_(html, setting.destLocation.href), srcDocument = this.srcDocument_;
+
+                    srcDocument.title = cacheDocument.title;
+
+                    var $srcAreas, $dstAreas;
+                    for (var i = 0; setting.areas[i]; i++) {
+                        $srcAreas = jQuery(setting.areas[i], cacheDocument).clone();
+                        $dstAreas = jQuery(setting.areas[i], srcDocument);
+                        if (!$srcAreas.length || !$dstAreas.length || $srcAreas.length !== $dstAreas.length) {
+                            throw new Error('throw: area mismatch');
+                        }
+
+                        for (var j = 0; $srcAreas[j]; j++) {
+                            $dstAreas[j].parentNode.replaceChild($srcAreas[j], $dstAreas[j]);
+                        }
+                    }
+                }
+            };
+
+            AppPageUpdate.prototype.rewrite_ = function () {
+                var setting = this.setting_, event = this.event_;
+                var callbacks_update = setting.callbacks.update;
+
+                if (!setting.rewrite) {
+                    return;
+                }
+
+                if (MODEL.Util.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) {
+                    return;
+                }
+
+                MODEL.Util.fire(setting.rewrite, null, [this.srcDocument_, setting.area, this.host_]);
+
+                if (MODEL.Util.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) {
+                    return;
+                }
+            };
+
             AppPageUpdate.prototype.title_ = function () {
                 var setting = this.setting_, event = this.event_;
                 var callbacks_update = setting.callbacks.update;
 
-                if (MODEL.UTIL.fire(callbacks_update.title.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                if (MODEL.Util.fire(callbacks_update.title.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                     return;
                 }
 
                 this.dstDocument_.title = this.srcDocument_.title;
                 setting.database && setting.fix.history && this.app_.data.saveTitleToDB(setting.destLocation.href, this.srcDocument_.title);
 
-                if (MODEL.UTIL.fire(callbacks_update.title.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                if (MODEL.Util.fire(callbacks_update.title.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                     return;
                 }
             };
@@ -2442,7 +2611,7 @@ var MODULE;
                     return;
                 }
 
-                if (MODEL.UTIL.fire(callbacks_update.head.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                if (MODEL.Util.fire(callbacks_update.head.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                     return;
                 }
 
@@ -2466,7 +2635,7 @@ var MODULE;
                 jQuery('title', dstDocument).before($addElements.clone());
                 $delElements.remove();
 
-                if (MODEL.UTIL.fire(callbacks_update.head.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                if (MODEL.Util.fire(callbacks_update.head.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                     return;
                 }
             };
@@ -2478,7 +2647,7 @@ var MODULE;
 
                 var checker, loadwaits = [];
 
-                if (MODEL.UTIL.fire(callbacks_update.content.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                if (MODEL.Util.fire(callbacks_update.content.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                     return loadwaits;
                 }
 
@@ -2522,7 +2691,7 @@ var MODULE;
                 this.dispatchEvent_(document, setting.gns + ':DOMContentLoaded', false, true);
                 jQuery(document).trigger(setting.gns + '.DOMContentLoaded');
 
-                if (MODEL.UTIL.fire(callbacks_update.content.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                if (MODEL.Util.fire(callbacks_update.content.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                     return loadwaits;
                 }
 
@@ -2537,7 +2706,7 @@ var MODULE;
                     return;
                 }
 
-                if (MODEL.UTIL.fire(callbacks_update.balance.before, null, [event, setting.param]) === false) {
+                if (MODEL.Util.fire(callbacks_update.balance.before, null, [event, setting.param]) === false) {
                     return;
                 }
 
@@ -2552,40 +2721,7 @@ var MODULE;
 
                 this.app_.data.loadBufferAll(setting.buffer.limit);
 
-                if (MODEL.UTIL.fire(callbacks_update.balance.after, null, [event, setting.param]) === false) {
-                    return;
-                }
-            };
-
-            AppPageUpdate.prototype.scroll_ = function (call) {
-                var setting = this.setting_, event = this.event_;
-                var callbacks_update = setting.callbacks.update;
-
-                if (MODEL.UTIL.fire(callbacks_update.scroll.before, null, [event, setting.param]) === false) {
-                    return;
-                }
-
-                var scrollX, scrollY;
-                switch (event.type.toLowerCase()) {
-                    case 'click':
-                    case 'submit':
-                        scrollX = call && 'function' === typeof setting.scrollLeft ? MODEL.UTIL.fire(setting.scrollLeft, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]) : setting.scrollLeft;
-                        scrollX = 0 <= scrollX ? scrollX : 0;
-                        scrollX = scrollX === false || scrollX === null ? jQuery(window).scrollLeft() : parseInt(Number(scrollX) + '', 10);
-
-                        scrollY = call && 'function' === typeof setting.scrollTop ? MODEL.UTIL.fire(setting.scrollTop, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]) : setting.scrollTop;
-                        scrollY = 0 <= scrollY ? scrollY : 0;
-                        scrollY = scrollY === false || scrollY === null ? jQuery(window).scrollTop() : parseInt(Number(scrollY) + '', 10);
-
-                        (jQuery(window).scrollTop() === scrollY && jQuery(window).scrollLeft() === scrollX) || window.scrollTo(scrollX, scrollY);
-                        call && setting.database && this.app_.page.isScrollPosSavable && setting.fix.scroll && this.app_.data.saveScrollPositionToCacheAndDB(setting.destLocation.href, scrollX, scrollY);
-                        break;
-                    case 'popstate':
-                        call && setting.fix.scroll && setting.database && this.app_.data.loadScrollPositionFromCacheOrDB(setting.destLocation.href);
-                        break;
-                }
-
-                if (MODEL.UTIL.fire(callbacks_update.scroll.after, null, [event, setting.param]) === false) {
+                if (MODEL.Util.fire(callbacks_update.balance.after, null, [event, setting.param]) === false) {
                     return;
                 }
             };
@@ -2598,11 +2734,18 @@ var MODULE;
                     return;
                 }
 
-                if (MODEL.UTIL.fire(callbacks_update.css.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                if (MODEL.Util.fire(callbacks_update.css.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                     return;
                 }
 
                 var prefilter = 'link, style', $srcElements = jQuery(prefilter, srcDocument).filter(selector).not(setting.load.ignore).not(jQuery('noscript', srcDocument).find(prefilter)), $dstElements = jQuery(prefilter, dstDocument).filter(selector).not(setting.load.ignore).not(jQuery('noscript', srcDocument).find(prefilter)), $addElements = jQuery(), $delElements = $dstElements;
+
+                function filterHeadContent() {
+                    return jQuery.contains(srcDocument.head, this);
+                }
+                function filterBodyContent() {
+                    return jQuery.contains(srcDocument.body, this);
+                }
 
                 for (var i = 0, element; element = $srcElements[i]; i++) {
                     for (var j = 0, isSameElement; $delElements[j]; j++) {
@@ -2617,12 +2760,8 @@ var MODULE;
                         if (isSameElement) {
                             if ($addElements.length) {
                                 if (jQuery.contains(dstDocument.body, $delElements[j]) && $addElements.first().parents('head').length) {
-                                    jQuery(dstDocument.head).append($addElements.filter(function () {
-                                        return jQuery.contains(srcDocument.head, this);
-                                    }).clone());
-                                    $delElements.eq(j).before($addElements.filter(function () {
-                                        return jQuery.contains(srcDocument.body, this);
-                                    }).clone());
+                                    jQuery(dstDocument.head).append($addElements.filter(filterHeadContent).clone());
+                                    $delElements.eq(j).before($addElements.filter(filterBodyContent).clone());
                                 } else {
                                     var ref = $dstElements[$dstElements.index($delElements[j]) - 1];
                                     ref ? jQuery(ref).after($addElements.clone()) : $delElements.eq(j).before($addElements.clone());
@@ -2637,15 +2776,11 @@ var MODULE;
                     }
                     $addElements = $addElements.add(element);
                 }
-                jQuery(dstDocument.head).append($addElements.filter(function () {
-                    return jQuery.contains(srcDocument.head, this);
-                }).clone());
-                jQuery(dstDocument.body).append($addElements.filter(function () {
-                    return jQuery.contains(srcDocument.body, this);
-                }).clone());
+                jQuery(dstDocument.head).append($addElements.filter(filterHeadContent).clone());
+                jQuery(dstDocument.body).append($addElements.filter(filterBodyContent).clone());
                 $delElements.remove();
 
-                if (MODEL.UTIL.fire(callbacks_update.css.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                if (MODEL.Util.fire(callbacks_update.css.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                     return;
                 }
 
@@ -2659,15 +2794,17 @@ var MODULE;
                 var setting = this.setting_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
                 var callbacks_update = setting.callbacks.update;
 
+                var scriptwaits = [];
+
                 if (!setting.load.script) {
-                    return [];
+                    return scriptwaits;
                 }
 
-                if (MODEL.UTIL.fire(callbacks_update.script.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                    return [];
+                if (MODEL.Util.fire(callbacks_update.script.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    return scriptwaits;
                 }
 
-                var prefilter = 'script', $scriptElements = jQuery(prefilter, srcDocument).filter(selector).not(setting.load.ignore).not(jQuery('noscript', srcDocument).find(prefilter)), $execElements = jQuery(), scriptwaits = [], loadedScripts = this.app_.page.loadedScripts, regType = /^$|(?:application|text)\/(?:java|ecma)script/i, regRemove = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
+                var prefilter = 'script', $scriptElements = jQuery(prefilter, srcDocument).filter(selector).not(setting.load.ignore).not(jQuery('noscript', srcDocument).find(prefilter)), $execElements = jQuery(), loadedScripts = this.app_.page.loadedScripts, regType = /^$|(?:application|text)\/(?:java|ecma)script/i, regRemove = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
 
                 for (var i = 0, element; element = $scriptElements[i]; i++) {
                     if (!regType.test(element.type || '')) {
@@ -2774,7 +2911,7 @@ var MODULE;
                     return;
                 }
 
-                if (MODEL.UTIL.fire(callbacks_update.script.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                if (MODEL.Util.fire(callbacks_update.script.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                     return scriptwaits;
                 }
 
@@ -2785,23 +2922,56 @@ var MODULE;
                 return scriptwaits;
             };
 
-            AppPageUpdate.prototype.render_ = function (callback) {
+            AppPageUpdate.prototype.scroll_ = function (call) {
+                var setting = this.setting_, event = this.event_;
+                var callbacks_update = setting.callbacks.update;
+
+                if (MODEL.Util.fire(callbacks_update.scroll.before, null, [event, setting.param]) === false) {
+                    return;
+                }
+
+                var scrollX, scrollY;
+                switch (event.type.toLowerCase()) {
+                    case 'click':
+                    case 'submit':
+                        scrollX = call && 'function' === typeof setting.scrollLeft ? MODEL.Util.fire(setting.scrollLeft, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]) : setting.scrollLeft;
+                        scrollX = 0 <= scrollX ? scrollX : 0;
+                        scrollX = scrollX === false || scrollX === null ? jQuery(window).scrollLeft() : parseInt(Number(scrollX) + '', 10);
+
+                        scrollY = call && 'function' === typeof setting.scrollTop ? MODEL.Util.fire(setting.scrollTop, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]) : setting.scrollTop;
+                        scrollY = 0 <= scrollY ? scrollY : 0;
+                        scrollY = scrollY === false || scrollY === null ? jQuery(window).scrollTop() : parseInt(Number(scrollY) + '', 10);
+
+                        (jQuery(window).scrollTop() === scrollY && jQuery(window).scrollLeft() === scrollX) || window.scrollTo(scrollX, scrollY);
+                        call && setting.database && this.app_.page.isScrollPosSavable && setting.fix.scroll && this.app_.data.saveScrollPositionToDB(setting.destLocation.href, scrollX, scrollY);
+                        break;
+                    case 'popstate':
+                        call && setting.fix.scroll && setting.database && this.app_.data.loadScrollPositionFromDB(setting.destLocation.href);
+                        break;
+                }
+
+                if (MODEL.Util.fire(callbacks_update.scroll.after, null, [event, setting.param]) === false) {
+                    return;
+                }
+            };
+
+            AppPageUpdate.prototype.waitRender_ = function (callback) {
                 var setting = this.setting_, event = this.event_;
                 var callbacks_update = setting.callbacks.update;
 
                 var areas = jQuery(setting.area), checker = areas.children('.' + setting.nss.class4html + '-check'), limit = new Date().getTime() + 5 * 1000;
 
+                function filterChecker() {
+                    return this.clientWidth || this.clientHeight || jQuery(this).is(':hidden');
+                }
+
                 var check = function () {
                     switch (true) {
-                        case setting.destLocation.href !== MODEL.UTIL.canonicalizeUrl(window.location.href).replace(/(?:%\w{2})+/g, function (str) {
-                            return String(setting.destLocation.href.match(str.toLowerCase()) || str);
-                        }):
+                        case !MODEL.Util.compareUrl(setting.destLocation.href, MODEL.Util.normalizeUrl(window.location.href)):
                             break;
                         case new Date().getTime() > limit:
                         case checker.length !== areas.length:
-                        case checker.length === checker.filter(function () {
-                            return this.clientWidth || this.clientHeight || jQuery(this).is(':hidden');
-                        }).length:
+                        case checker.length === checker.filter(filterChecker).length:
                             checker.remove();
                             callback();
                             break;
@@ -2829,6 +2999,20 @@ var MODULE;
                 }
             };
 
+            AppPageUpdate.prototype.escapeNoscript_ = function (srcDocument) {
+                jQuery('noscript', srcDocument).children().parent().each(eachNoscript);
+                function eachNoscript() {
+                    jQuery(this).text(this.innerHTML);
+                }
+            };
+
+            AppPageUpdate.prototype.restoreNoscript_ = function (html) {
+                var $span = jQuery('<span/>');
+                return html.replace(/(<noscript>)([^<>]+?)(<\/noscript>)/gim, function ($0, $1, $2, $3) {
+                    return $1 + $span.html($2).text() + $3;
+                });
+            };
+
             AppPageUpdate.prototype.escapeScript_ = function (script) {
                 jQuery.data(script, 'source', script.src);
                 jQuery.data(script, 'code', script.innerHTML);
@@ -2841,8 +3025,6 @@ var MODULE;
                     return;
                 }
 
-                var backup = script.innerHTML;
-
                 script.innerHTML = ' ';
 
                 if (jQuery.data(script, 'source')) {
@@ -2852,12 +3034,8 @@ var MODULE;
                     script.removeAttribute('src');
                 }
 
-                if (jQuery.data(script, 'code')) {
-                    script.innerHTML = jQuery.data(script, 'code');
-                    jQuery.removeData(script, 'code');
-                } else {
-                    script.innerHTML = backup;
-                }
+                script.innerHTML = jQuery.data(script, 'code');
+                jQuery.removeData(script, 'code');
             };
 
             AppPageUpdate.createHTMLDocument_ = function (html, uri) {
@@ -2962,7 +3140,7 @@ var MODULE;
     var MODEL = MODULE.MODEL;
 })(MODULE || (MODULE = {}));
 /// <reference path="../define.ts"/>
-/// <reference path="app.page.request.ts"/>
+/// <reference path="app.page.fetch.ts"/>
 /// <reference path="app.page.update.ts"/>
 /// <reference path="app.page.utility.ts"/>
 var MODULE;
@@ -2975,7 +3153,7 @@ var MODULE;
                 _super.call(this);
                 this.model_ = model_;
                 this.app_ = app_;
-                this.landing = MODEL.UTIL.canonicalizeUrl(window.location.href);
+                this.landing = MODEL.Util.normalizeUrl(window.location.href);
                 this.recent = { order: [], data: {}, size: 0 };
                 this.loadedScripts = {};
                 this.isScrollPosSavable = true;
@@ -2994,11 +3172,11 @@ var MODULE;
                     }
                 };
 
-                this.request(setting, event, register, cache, done, fail);
+                this.fetch(setting, event, register, cache, done, fail);
             };
 
-            AppPage.prototype.request = function (setting, event, register, cache, done, fail) {
-                new MODEL.AppPageRequest(this.model_, this.app_, setting, event, register, cache, done, fail);
+            AppPage.prototype.fetch = function (setting, event, register, cache, done, fail) {
+                new MODEL.AppPageFetch(this.model_, this.app_, setting, event, register, cache, done, fail);
             };
 
             AppPage.prototype.update = function (setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host) {
@@ -3056,8 +3234,8 @@ var MODULE;
             App.prototype.configure = function (option, origURL, destURL) {
                 var that = this;
 
-                origURL = MODEL.UTIL.canonicalizeUrl(origURL || option.origLocation.href);
-                destURL = MODEL.UTIL.canonicalizeUrl(destURL || option.destLocation.href);
+                origURL = MODEL.Util.normalizeUrl(origURL || option.origLocation.href);
+                destURL = MODEL.Util.normalizeUrl(destURL || option.destLocation.href);
                 option = jQuery.extend(true, {}, option.option || option, { option: option.option || option });
 
                 option = option.scope ? jQuery.extend(true, {}, option, scope(option, origURL, destURL) || { disable: true }) : jQuery.extend(true, {}, option);
@@ -3068,8 +3246,9 @@ var MODULE;
                     disable: false,
                     area: 'body',
                     link: 'a:not([target])',
+                    // this.protocolはIEでエラー
                     filter: function () {
-                        return /(\/[^.]*|\.html?|\.php)$/.test('/' + this.pathname);
+                        return /^https?:/.test(this.href) && /(\/[^.]*|\.html?|\.php)$/.test('/' + this.pathname);
                     },
                     form: null,
                     scope: null,
@@ -3138,7 +3317,7 @@ var MODULE;
                     callback: null,
                     callbacks: {
                         ajax: {},
-                        update: { redirect: {}, cache: {}, rewrite: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, verify: {}, balance: {} }
+                        update: { redirect: {}, rewrite: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, balance: {} }
                     },
                     param: null,
                     redirect: true,
@@ -3273,7 +3452,7 @@ var MODULE;
                             if ('inherit' === pattern) {
                                 inherit = true;
                             } else if ('rewrite' === pattern && 'function' === typeof scpTable.rewrite && !rewriteKeyUrl) {
-                                var rewrite = scope.apply(this, [].slice.call(arguments).slice(0, 3).concat([MODEL.UTIL.fire(scpTable.rewrite, null, [destKeyUrl])]));
+                                var rewrite = scope.apply(this, [].slice.call(arguments).slice(0, 3).concat([MODEL.Util.fire(scpTable.rewrite, null, [destKeyUrl])]));
                                 if (rewrite) {
                                     hit_src = hit_dst = true;
                                     option = rewrite;
@@ -3408,20 +3587,20 @@ var MODULE;
                     return;
                 }
 
-                var origURL = MODEL.UTIL.canonicalizeUrl(window.location.href), destURL, event;
+                var origURL = MODEL.Util.normalizeUrl(window.location.href), destURL, event;
                 switch (typeof param) {
                     case 'string':
                         event = null;
-                        destURL = MODEL.UTIL.canonicalizeUrl(param);
+                        destURL = MODEL.Util.normalizeUrl(param);
                         break;
                     case 'object':
                         event = param;
                         switch (event.type.toLowerCase()) {
                             case 'click':
-                                destURL = MODEL.UTIL.canonicalizeUrl(event.currentTarget.href);
+                                destURL = MODEL.Util.normalizeUrl(event.currentTarget.href);
                                 break;
                             case 'submit':
-                                destURL = MODEL.UTIL.canonicalizeUrl(event.currentTarget.action);
+                                destURL = MODEL.Util.normalizeUrl(event.currentTarget.action);
                                 break;
                             case 'popstate':
                                 return true;
@@ -3486,7 +3665,7 @@ var MODULE;
                     if (setting.cache.mix && this.getCache(setting.destLocation.href)) {
                         break PROCESS;
                     }
-                    setting.database && this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+                    setting.database && this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPositionToDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
                     var cache;
                     if (setting.cache[event.type.toLowerCase()]) {
@@ -3518,11 +3697,11 @@ var MODULE;
                     }
 
                     var serializedURL = setting.destLocation.href.replace(/[?#].*/, '') + ('GET' === context.method.toUpperCase() ? '?' + jQuery(context).serialize() : '');
-                    setting.destLocation.href = MODEL.UTIL.canonicalizeUrl(serializedURL);
+                    setting.destLocation.href = MODEL.Util.normalizeUrl(serializedURL);
                     if (setting.cache.mix && this.getCache(setting.destLocation.href)) {
                         break PROCESS;
                     }
-                    setting.database && this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPositionToCacheAndDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+                    setting.database && this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPositionToDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
 
                     var cache;
                     if (setting.cache[event.type.toLowerCase()] && setting.cache[context.method.toLowerCase()]) {
@@ -3544,7 +3723,7 @@ var MODULE;
                  {
                     event.timeStamp = new Date().getTime();
                     var setting = this.app_.configure(this.getGlobalSetting(), null, window.location.href);
-                    if (this.app_.page.landing && this.app_.page.landing === MODEL.UTIL.canonicalizeUrl(window.location.href)) {
+                    if (this.app_.page.landing && this.app_.page.landing === MODEL.Util.normalizeUrl(window.location.href)) {
                         return;
                     }
                     if (setting.origLocation.href === setting.destLocation.href) {
@@ -3583,7 +3762,7 @@ var MODULE;
                 }
 
                 if (!setting.scroll.delay) {
-                    this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+                    this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPositionToDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
                 } else {
                     var id;
                     while (id = setting.scroll.queue.shift()) {
@@ -3593,17 +3772,19 @@ var MODULE;
                         while (id = setting.scroll.queue.shift()) {
                             clearTimeout(id);
                         }
-                        _this.app_.page.isScrollPosSavable && _this.app_.data.saveScrollPositionToCacheAndDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+                        _this.app_.page.isScrollPosSavable && _this.app_.data.saveScrollPositionToDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
                     }, setting.scroll.delay);
                     setting.scroll.queue.push(id);
                 }
             };
 
             Main.prototype.fallback = function (event, setting) {
-                if ('function' === typeof setting.fallback) {
-                    MODEL.UTIL.fire(setting.fallback, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
-                } else {
-                    this.app_.page.movePageNormally(event);
+                switch (true) {
+                    case !setting.fallback:
+                    case false === MODEL.Util.fire(setting.fallback, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]):
+                        break;
+                    default:
+                        this.app_.page.movePageNormally(event);
                 }
             };
 
@@ -3621,7 +3802,7 @@ var MODULE;
                     return null;
                 }
 
-                var secure_url = this.convertUrlToKeyUrl(MODEL.UTIL.canonicalizeUrl(unsafe_url));
+                var secure_url = this.convertUrlToKeyUrl(MODEL.Util.normalizeUrl(unsafe_url));
                 unsafe_url = null;
 
                 recent.data[secure_url] && new Date().getTime() > recent.data[secure_url].expires && this.removeCache(secure_url);
@@ -3637,7 +3818,7 @@ var MODULE;
                 }
                 var cache, size, timeStamp, expires;
 
-                var secure_url = this.convertUrlToKeyUrl(MODEL.UTIL.canonicalizeUrl(unsafe_url));
+                var secure_url = this.convertUrlToKeyUrl(MODEL.Util.normalizeUrl(unsafe_url));
                 unsafe_url = null;
 
                 recent.order.unshift(secure_url);
@@ -3698,7 +3879,7 @@ var MODULE;
                     return;
                 }
 
-                var secure_url = this.convertUrlToKeyUrl(MODEL.UTIL.canonicalizeUrl(unsafe_url));
+                var secure_url = this.convertUrlToKeyUrl(MODEL.Util.normalizeUrl(unsafe_url));
                 unsafe_url = null;
 
                 for (var i = 0, key; key = recent.order[i]; i++) {
