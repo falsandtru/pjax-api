@@ -90,7 +90,6 @@ module MODULE.MODEL {
           this.checkRedirect_();
           
           this.dispatchEvent_(window, setting.gns + ':unload', false, true);
-          jQuery(window).trigger(setting.gns + '.unload');
           
           this.updateUrl_();
           
@@ -240,7 +239,6 @@ module MODULE.MODEL {
 
         var onready = (callback?: () => void) => {
           this.dispatchEvent_(document, setting.gns + ':ready', false, true);
-          jQuery(document).trigger(setting.gns + '.ready');
 
           Util.fire(setting.callback, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]);
 
@@ -258,7 +256,6 @@ module MODULE.MODEL {
           }, 100);
 
           this.dispatchEvent_(document, setting.gns + ':render', false, true);
-          jQuery(document).trigger(setting.gns + '.render');
 
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('render(' + speed.time.slice(-1) + ')');
@@ -268,7 +265,6 @@ module MODULE.MODEL {
 
         var onload = () => {
           this.dispatchEvent_(window, setting.gns + ':load', false, true);
-          jQuery(window).trigger(setting.gns + '.load');
 
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('load(' + speed.time.slice(-1) + ')');
@@ -437,7 +433,6 @@ module MODULE.MODEL {
         $dstAreas.find('script').each((i, elem) => this.restoreScript_(<HTMLScriptElement>elem));
       }
       this.dispatchEvent_(document, setting.gns + ':DOMContentLoaded', false, true);
-      jQuery(document).trigger(setting.gns + '.DOMContentLoaded');
 
       if (Util.fire(callbacks_update.content.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return loadwaits; }
 
