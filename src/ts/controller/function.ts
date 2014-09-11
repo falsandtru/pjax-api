@@ -83,8 +83,9 @@ module MODULE.CONTROLLER {
                 break;
               case Array:
                 data[i].attrs = data[i].attrs || {};
-                data[i].attrs.name = data[i].name;
-                $element = jQuery(!data[i].tag.indexOf('<') ? data[i].tag : '<' + data[i].tag + '/>', data[i].attrs || {}).val(data[i].value);
+                data[i].attrs.name = data[i].name || data[i].attrs.name;
+                data[i].attrs.type = data[i].type || data[i].attrs.type;
+                $element = jQuery('<' + data[i].tag + '/>', data[i].attrs).val(data[i].value);
                 break;
               default:
                 continue;

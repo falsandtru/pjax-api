@@ -35,5 +35,5 @@ $.pjax.submit('', {method: 'POST'}, {name: "data"});
 ### Array
 
 <pre class="sh brush: js;">
-$.pjax.submit('', {method: 'POST'}, [{tag: 'input', name: 'name', value: 'data', attrs: {type: 'text'}}]);
+$.pjax.submit('', {method: 'POST'}, [{tag: 'input', name: 'name', value: 'data', type: 'text', attrs: null}]);
 </pre>
