@@ -22,7 +22,7 @@ suite("Load", function () {
         assert.equal($('#header', document).css('background-color').toLowerCase(), 'rgb(238, 238, 0)', "css");
 
         defer = self.$.Deferred();
-        $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         $('#primary a:eq(1)', document).each(function () { url = this.href; }).click();
 
         return defer;
@@ -32,7 +32,7 @@ suite("Load", function () {
         assert.equal($('#header', document).css('background-color').toLowerCase(), 'rgb(238, 0, 0)', "css");
 
         defer = self.$.Deferred();
-        $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         $('#primary a:eq(2)', document).each(function () { url = this.href; }).click();
 
         return defer;
@@ -98,7 +98,7 @@ suite("Load", function () {
         assert.equal($('body>script:contains("console.notice")').length, 1, "inline");
 
         var defer = self.$.Deferred();
-        $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         $('#primary a:eq(2)', document).pjax().click();
 
         return defer;

@@ -3,7 +3,7 @@
  * jquery.pjax.js
  * 
  * @name jquery.pjax.js
- * @version 2.21.0
+ * @version 2.22.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
  * @copyright 2012, falsandtru
@@ -2109,7 +2109,6 @@ var MODULE;
                 }
 
                 this.dispatchEvent_(document, setting.gns + ':fetch', false, true);
-                jQuery(document).trigger(setting.gns + '.fetch');
 
                 if (cache && cache.jqXHR) {
                     // cache
@@ -2311,7 +2310,6 @@ var MODULE;
                         this.checkRedirect_();
 
                         this.dispatchEvent_(window, setting.gns + ':unload', false, true);
-                        jQuery(window).trigger(setting.gns + '.unload');
 
                         this.updateUrl_();
 
@@ -2470,7 +2468,6 @@ var MODULE;
 
                     var onready = function (callback) {
                         _this.dispatchEvent_(document, setting.gns + ':ready', false, true);
-                        jQuery(document).trigger(setting.gns + '.ready');
 
                         MODEL.Util.fire(setting.callback, null, [event, setting.param, _this.data_, _this.textStatus_, _this.jqXHR_]);
 
@@ -2488,7 +2485,6 @@ var MODULE;
                         }, 100);
 
                         _this.dispatchEvent_(document, setting.gns + ':render', false, true);
-                        jQuery(document).trigger(setting.gns + '.render');
 
                         speedcheck && speed.time.push(speed.now() - speed.fire);
                         speedcheck && speed.name.push('render(' + speed.time.slice(-1) + ')');
@@ -2498,7 +2494,6 @@ var MODULE;
 
                     var onload = function () {
                         _this.dispatchEvent_(window, setting.gns + ':load', false, true);
-                        jQuery(window).trigger(setting.gns + '.load');
 
                         speedcheck && speed.time.push(speed.now() - speed.fire);
                         speedcheck && speed.name.push('load(' + speed.time.slice(-1) + ')');
@@ -2689,7 +2684,6 @@ var MODULE;
                     });
                 }
                 this.dispatchEvent_(document, setting.gns + ':DOMContentLoaded', false, true);
-                jQuery(document).trigger(setting.gns + '.DOMContentLoaded');
 
                 if (MODEL.Util.fire(callbacks_update.content.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                     return loadwaits;
@@ -3049,8 +3043,8 @@ var MODULE;
                             args[_i] = arguments[_i + 1];
                         }
                         try  {
-                            var html = '<html lang="en" class="html"><head><link href="/"><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript><a href="/"></a></body></html>', doc = conv(html, '');
-                            return doc && doc.URL && decodeURI(doc.URL) === decodeURI(uri || window.location.href) && doc.querySelector('html.html[lang="en"]') && doc.querySelector('head>link')['href'] && doc.querySelector('head>noscript')['innerHTML'] && doc.querySelector('body>noscript')['innerHTML'] === 'noscript' && doc.querySelector('body>a')['href'] && true || false;
+                            var html = '<html lang="en" class="html"><head><title>pjax</title><link href="/"><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript><a href="/"></a></body></html>', doc = conv(html, '');
+                            return doc && doc.URL && decodeURI(doc.URL) === decodeURI(uri || window.location.href) && doc.title === 'pjax' && doc.querySelector('html.html[lang="en"]') && doc.querySelector('head>link')['href'] && doc.querySelector('head>noscript')['innerHTML'] && doc.querySelector('body>noscript')['innerHTML'] === 'noscript' && doc.querySelector('body>a')['href'] && true || false;
                         } catch (err) {
                             return false;
                         }
@@ -3094,6 +3088,10 @@ var MODULE;
                                     break;
                                 }
 
+                                // titleプロパティの値をChromeで事後に変更できなくなったため事前に設定する必要がある
+                                if ('function' === typeof window.DOMParser) {
+                                    doc.title = new window.DOMParser().parseFromString(html.match(/<title(?:\s.*?[^\\])?>(?:.*?[^\\])?<\/title>/i), 'text/html').title;
+                                }
                                 doc.open();
                                 doc.write(html);
                                 doc.close();

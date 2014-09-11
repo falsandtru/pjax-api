@@ -48,7 +48,7 @@ accelerate:
       setTimeout(function () {
         $(document).trigger('preload');
       }, 2000);
-　　　});
+  　});
   }
 </pre>
 
