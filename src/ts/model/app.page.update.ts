@@ -764,10 +764,11 @@ module MODULE.MODEL {
       this.createHTMLDocument_ = (html: string, uri: string) => {
         function test_(conv: (html: string, uri: string) => Document, ...args): boolean {
           try {
-            var html = '<html lang="en" class="html"><head><link href="/"><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript><a href="/"></a></body></html>',
+            var html = '<html lang="en" class="html"><head><title>pjax</title><link href="/"><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript><a href="/"></a></body></html>',
                 doc = conv(html, '');
             return doc &&
                    doc.URL && decodeURI(doc.URL) === decodeURI(uri || window.location.href) &&
+                   doc.title === 'pjax' &&
                    doc.querySelector('html.html[lang="en"]') &&
                    doc.querySelector('head>link')['href'] &&
                    doc.querySelector('head>noscript')['innerHTML'] &&
@@ -815,6 +816,10 @@ module MODULE.MODEL {
               // IE, Operaクラッシュ対策
               if ('object' !== typeof doc.activeElement || !doc.activeElement) { break; }
 
+              // titleプロパティの値をChromeで事後に変更できなくなったため事前に設定する必要がある
+              if ('function' === typeof window.DOMParser) {
+                doc.title = new window.DOMParser().parseFromString(html.match(/<title(?:\s.*?[^\\])?>(?:.*?[^\\])?<\/title>/i), 'text/html').title;
+              }
               doc.open();
               doc.write(html);
               doc.close();
