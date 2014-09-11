@@ -25,7 +25,7 @@ suite("Server", function () {
         assert.equal($('#tertiary p:first').text(), 'tertiary1', "tertiary");
 
         defer = self.$.Deferred();
-        $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         $.pjax.click('htmlless.html');
 
         return defer;
@@ -66,7 +66,7 @@ suite("Server", function () {
         assert.equal($('#tertiary p:first').text(), 'tertiary1', "tertiary");
 
         defer = self.$.Deferred();
-        $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         $.pjax.click('bodyless.html');
 
         return defer;

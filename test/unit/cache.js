@@ -19,7 +19,7 @@ suite("Cache", function () {
         $ = window.$;
 
         defer = self.$.Deferred();
-        window.$(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        window.$(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         window.$('#secondary a:eq(1)', document).each(function () { url = this.href; }).click();
 
         return defer;
@@ -28,14 +28,14 @@ suite("Cache", function () {
         $.pjax.removeCache();
 
         defer = self.$.Deferred();
-        window.$(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        window.$(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         window.history.back();
 
         return defer;
       })
       .pipe(function () {
         defer = self.$.Deferred();
-        window.$(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        window.$(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         window.history.forward();
 
         return defer;

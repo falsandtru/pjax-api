@@ -20,7 +20,7 @@ suite("Fallback", function () {
 
         defer = self.$.Deferred();
         setTimeout(defer.resolve, 1000);
-        window.$(window).one('pjax.load', function () { setTimeout(defer.reject, 0); });
+        window.$(window).one('pjax:load', function () { setTimeout(defer.reject, 0); });
         window.$('#secondary a:eq(1)', document).each(function () { url = this.href; }).click();
 
         return defer;

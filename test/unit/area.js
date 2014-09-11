@@ -25,7 +25,7 @@ suite("Area", function () {
         assert.equal($('#tertiary p:first').text(), 'tertiary1', "tertiary");
 
         defer = self.$.Deferred();
-        $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         $('#primary ul a:eq(1)').each(function () { url = this.href; }).click();
 
         return defer;
@@ -40,7 +40,7 @@ suite("Area", function () {
         assert.equal($('#primary div').length, 2, "length");
 
         defer = self.$.Deferred();
-        $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         window.history.back();
 
         return defer;
@@ -74,7 +74,7 @@ suite("Area", function () {
         assert.equal($('#tertiary p:first').text(), 'tertiary1', "tertiary");
 
         defer = self.$.Deferred();
-        $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         $('#primary ul a:eq(1)').each(function () { url = this.href; }).click();
 
         return defer;
@@ -88,7 +88,7 @@ suite("Area", function () {
         assert.equal($('#tertiary p:first').text(), 'tertiary1', "tertiary");
 
         defer = self.$.Deferred();
-        $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         $('#primary ul a:eq(2)').each(function () { url = this.href; }).click();
 
         return defer;

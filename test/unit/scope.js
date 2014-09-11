@@ -21,7 +21,7 @@ suite("Scope", function () {
         assert.equal(document.title, 'pjax demo1', "title");
 
         defer = self.$.Deferred();
-        $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         $('#primary ul a:eq(1)').each(function () { url = this.href; }).click();
 
         return defer;
@@ -32,7 +32,7 @@ suite("Scope", function () {
         
         defer = self.$.Deferred();
         setTimeout(defer.resolve, 1000);
-        window.$(window).one('pjax.load', function () { setTimeout(defer.reject, 0); });
+        window.$(window).one('pjax:load', function () { setTimeout(defer.reject, 0); });
         window.$('#secondary a:eq(2)', document).each(function () { url = this.href; }).click();
 
         return defer;
@@ -62,7 +62,7 @@ suite("Scope", function () {
         assert.equal(document.title, 'pjax demo1', "title");
 
         defer = self.$.Deferred();
-        $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         $.pjax.click('foo/index.html');
 
         return defer;
@@ -72,7 +72,7 @@ suite("Scope", function () {
 
         defer = self.$.Deferred();
         setTimeout(defer.resolve, 1000);
-        window.$(window).one('pjax.load', function () { setTimeout(defer.reject, 0); });
+        window.$(window).one('pjax:load', function () { setTimeout(defer.reject, 0); });
         $.pjax.click('../bar/index.html');
 
         return defer;
@@ -102,7 +102,7 @@ suite("Scope", function () {
         assert.equal(document.title, 'pjax demo1', "title");
 
         defer = self.$.Deferred();
-        $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         $('#primary ul a:eq(1)').each(function () { url = this.href; }).click();
 
         return defer;
@@ -113,7 +113,7 @@ suite("Scope", function () {
 
         defer = self.$.Deferred();
         setTimeout(defer.resolve, 1000);
-        window.$(window).one('pjax.load', function () { setTimeout(defer.reject, 0); });
+        window.$(window).one('pjax:load', function () { setTimeout(defer.reject, 0); });
         window.$('#secondary a:eq(2)', document).each(function () { url = this.href; }).click();
 
         return defer;
@@ -143,7 +143,7 @@ suite("Scope", function () {
         assert.equal(document.title, 'pjax demo1', "title");
 
         defer = self.$.Deferred();
-        $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         $('#primary ul a:eq(1)').each(function () { url = this.href; }).click();
 
         return defer;
@@ -154,7 +154,7 @@ suite("Scope", function () {
 
         defer = self.$.Deferred();
         setTimeout(defer.resolve, 1000);
-        window.$(window).one('pjax.load', function () { setTimeout(defer.reject, 0); });
+        window.$(window).one('pjax:load', function () { setTimeout(defer.reject, 0); });
         window.$('#secondary a:eq(2)', document).each(function () { url = this.href; }).click();
 
         return defer;
@@ -184,7 +184,7 @@ suite("Scope", function () {
         assert.equal(document.title, 'pjax demo1', "title");
 
         defer = self.$.Deferred();
-        $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         $.pjax.click('foo/index.html');
 
         return defer;
@@ -194,7 +194,7 @@ suite("Scope", function () {
 
         defer = self.$.Deferred();
         setTimeout(defer.resolve, 1000);
-        window.$(window).one('pjax.load', function () { setTimeout(defer.reject, 0); });
+        window.$(window).one('pjax:load', function () { setTimeout(defer.reject, 0); });
         $.pjax.click('../bar/index.html');
 
         return defer;
@@ -224,7 +224,7 @@ suite("Scope", function () {
         assert.equal(document.title, 'pjax demo1', "title");
 
         defer = self.$.Deferred();
-        $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         $.pjax.click('foo/index.html');
 
         return defer;
@@ -233,7 +233,7 @@ suite("Scope", function () {
         assert.equal(document.title, 'pjax demo1', "title");
 
         defer = self.$.Deferred();
-        $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         $.pjax.click('../foo/2.html');
 
         return defer;
@@ -243,7 +243,7 @@ suite("Scope", function () {
 
         defer = self.$.Deferred();
         setTimeout(defer.resolve, 1000);
-        window.$(window).one('pjax.load', function () { setTimeout(defer.reject, 0); });
+        window.$(window).one('pjax:load', function () { setTimeout(defer.reject, 0); });
         $.pjax.click('../bar/index.html');
 
         return defer;
@@ -274,7 +274,7 @@ suite("Scope", function () {
         assert.equal($('#primary p:first').text(), 'primary1', "primary");
 
         defer = self.$.Deferred();
-        $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         $('#primary ul a:eq(1)').each(function () { url = this.href; }).click();
 
         return defer;
@@ -308,7 +308,7 @@ suite("Scope", function () {
         assert.equal($('#primary p:first').text(), 'primary1', "primary");
 
         defer = self.$.Deferred();
-        $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         $('#primary ul a:eq(1)').each(function () { url = this.href; }).click();
 
         return defer;

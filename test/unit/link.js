@@ -24,7 +24,7 @@ suite("Link", function () {
         assert.equal($('#primary p:first').text(), 'primary1', "primary");
 
         defer = self.$.Deferred();
-        $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         $('#primary ul a:eq(1)').each(function () { url = this.href; }).click();
 
         return defer;
@@ -35,7 +35,7 @@ suite("Link", function () {
 
         defer = self.$.Deferred();
         setTimeout(defer.resolve, 1000);
-        window.$(window).one('pjax.load', function () { setTimeout(defer.reject, 0); });
+        window.$(window).one('pjax:load', function () { setTimeout(defer.reject, 0); });
         window.$('#secondary a:eq(2)', document).each(function () { url = this.href; }).click();
 
         return defer;
