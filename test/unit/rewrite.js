@@ -21,7 +21,7 @@ suite("Rewrite", function () {
         assert.equal(document.title, 'pjax demo1', "title");
 
         defer = self.$.Deferred();
-        $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         $('#primary ul a:eq(1)').each(function () { url = this.href; }).click();
 
         return defer;
@@ -31,7 +31,7 @@ suite("Rewrite", function () {
         assert.equal($('.rewrite').text(), 'rewrite', "rewrite");
 
         defer = self.$.Deferred();
-        $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         window.history.back();
 
         done();

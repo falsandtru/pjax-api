@@ -24,7 +24,7 @@ suite("Method - click", function () {
         assert.equal($('#primary p:first').text(), 'primary1', "primary");
 
         defer = self.$.Deferred();
-        $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         $.pjax.click($('#primary ul a:eq(1)').each(function () { url = this.href; })[0].href);
 
         return defer;
@@ -60,7 +60,7 @@ suite("Method - click", function () {
         assert.equal($('#primary p:first').text(), 'primary1', "primary");
 
         defer = self.$.Deferred();
-        $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         $.pjax.click($('#primary ul a:eq(1)').each(function () { url = this.href; })[0]);
 
         return defer;
@@ -96,7 +96,7 @@ suite("Method - click", function () {
         assert.equal($('#primary p:first').text(), 'primary1', "primary");
 
         defer = self.$.Deferred();
-        $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         $.pjax.click($('#primary ul a:eq(1)').each(function () { url = this.href; }));
 
         return defer;

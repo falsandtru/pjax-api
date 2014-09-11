@@ -98,7 +98,7 @@ if (!/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.nav
     setTimeout(function () {
       $(document).trigger('preload');
     }, 2000);
-　 });
+  });
 }
 ```
 

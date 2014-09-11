@@ -28,7 +28,7 @@ suite("Method - enable", function () {
 
         defer = self.$.Deferred();
         setTimeout(defer.resolve, 1000);
-        $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         $.pjax.click($('#primary ul a:eq(1)').each(function () { url = this.href; })[0]);
 
         return defer;

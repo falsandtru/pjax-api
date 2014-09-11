@@ -96,7 +96,6 @@ module MODULE.MODEL {
       }
 
       this.dispatchEvent_(document, setting.gns + ':fetch', false, true);
-      jQuery(document).trigger(setting.gns + '.fetch');
 
       if (cache && cache.jqXHR) {
         // cache

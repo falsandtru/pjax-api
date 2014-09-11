@@ -25,7 +25,7 @@ suite("Multibyte", function () {
         assert.equal($('#tertiary p:first').text(), 'tertiary1', "tertiary");
 
         defer = self.$.Deferred();
-        $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         $.pjax.click(url = 'あアｱ亜/2.html');
 
         return defer;
@@ -36,7 +36,7 @@ suite("Multibyte", function () {
         assert.equal($('#primary p:first').text(), 'primary2', "primary");
 
         defer = self.$.Deferred();
-        $(window).one('pjax.load', function () { setTimeout(defer.resolve, 0); });
+        $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         window.history.back();
 
         return defer;
