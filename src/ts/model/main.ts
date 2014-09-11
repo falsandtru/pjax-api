@@ -21,6 +21,8 @@ module MODULE.MODEL {
 
     main_($context: JQuery, option: PjaxSetting): JQuery {
 
+      if (!option && $context.is('a, form')) { return $context; }
+
       var pattern;
       pattern = $context instanceof NAMESPACE ? 'm:' : 'f:';
       pattern += option ? ({}).toString.call(option).split(' ').pop().slice(0, -1).toLowerCase() : option;
@@ -28,7 +30,6 @@ module MODULE.MODEL {
         case 'm:object':
           break;
         case 'm:undefined':
-          if ($context.is('a, form')) { return $context; }
           option = <PjaxSetting>{};
           break;
         default:

@@ -12,20 +12,28 @@ class: style-api style-api-detail
 ## submit(): this
 コンテキストのフォームを使用します。
 
-## submit( Form: jQuery ): this
+<pre class="sh brush: js;">
+$('form').pjax().submit();
+</pre>
+
+## submit( Form: element/jQuery ): this
 渡されたフォームを使用します。
 
-## submit( Form: element ): this
-渡されたフォームを使用します。
+<pre class="sh brush: js;">
+$.pjax.submit($('form'));
+</pre>
 
-## submit( Url: string, Attribute: object, Data: object ): this
-渡されたデータを元に生成したフォームを使用します。第二引数のプロパティがフォームの属性となります。第三引数のプロパティが送信データの名前と値の組になります。送信データはすべてTEXTAREA要素を使用して設定されます。
+## submit( Url: string, Attributes: object, Data: object/array ): this
+渡されたデータを元に生成したフォームを使用します。第二引数のプロパティがフォームの属性となります。第三引数は送信するデータセットをオブジェクトで、またはフォームの構成要素の仕様を配列で渡します。
 
-## submit( Url: string, Attribute: object, Data: json/array ): this
-渡されたデータを元に生成したフォームを使用します。第二引数のプロパティがフォームの属性となります。第三引数はフォームの構成要素の仕様をJSONまたは配列で渡します。
+### Object
 
-### JSON
-`$.pjax.submit('/', {method: 'POST'}, {"name": "data"})`
+<pre class="sh brush: js;">
+$.pjax.submit('', {method: 'POST'}, {name: "data"});
+</pre>
 
 ### Array
-`$.pjax.submit('/', {method: 'POST'}, [{tag: 'input', name: 'name', value: 'data', attr: {type: 'text'}}])`
+
+<pre class="sh brush: js;">
+$.pjax.submit('', {method: 'POST'}, [{tag: 'input', name: 'name', value: 'data', attrs: {type: 'text'}}]);
+</pre>

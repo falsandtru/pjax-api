@@ -25,16 +25,16 @@ module MODULE.CONTROLLER {
     }
     
     click(): any
-    click(url: string, attr?: { href?: string; }): any
-    click(url: HTMLAnchorElement, attr?: { href?: string; }): any
-    click(url: JQuery, attr?: { href?: string; }): any
-    click(url?: any, attr?: { href?: string; }): any {
+    click(url: string, attrs?: { [index: string]: any; }): any
+    click(url: HTMLAnchorElement): any
+    click(url: JQuery): any
+    click(url?: any, attrs?: { [index: string]: any; }): any {
       var setting: SettingInterface = M.getGlobalSetting(),
           $anchor: JQuery;
 
       switch (typeof url) {
         case 'undefined':
-          $anchor = (<JQuery>this['end']()).filter('a').first().clone();
+          $anchor = jQuery(this).filter('a').first().clone();
           break;
 
         case 'object':
@@ -42,9 +42,8 @@ module MODULE.CONTROLLER {
           break;
 
         case 'string':
-          attr = attr || {};
-          attr.href = url;
-          $anchor = jQuery('<a/>', attr);
+          attrs = jQuery.extend(true, {}, attrs, { href: url });
+          $anchor = jQuery('<a/>', attrs);
           break;
 
         default:
@@ -54,45 +53,45 @@ module MODULE.CONTROLLER {
     }
     
     submit(): any
-    submit(url: string, attr: { action?: string; method?: string; }, data: any): any
-    submit(url: HTMLFormElement, attr?: { action?: string; method?: string; }, data?: any): any
-    submit(url: JQuery, attr?: { action?: string; method?: string; }, data?: any): any
-    submit(url?: any, attr?: { action?: string; method?: string; }, data?: any): any {
+    submit(url: string, attrs: { [index: string]: any; }, data: any): any
+    submit(url: HTMLFormElement): any
+    submit(url: JQuery): any
+    submit(url?: any, attrs?: { [index: string]: any; }, data?: any): any {
       var setting: SettingInterface = M.getGlobalSetting(),
           $form: JQuery,
           df: DocumentFragment = document.createDocumentFragment(),
           type: any,
           $element: JQuery;
 
-      switch (true) {
-        case typeof url === 'undefined':
-          $form = (<JQuery>this['end']()).filter('form').first().clone();
+      switch (typeof url) {
+        case 'undefined':
+          $form = jQuery(this).filter('form').first().clone();
           break;
 
-        case typeof url === 'object':
+        case 'object':
           $form = jQuery(url).clone();
           break;
 
-        case !!data:
-          attr = attr || {};
-          attr.action = url;
+        case 'string':
+          attrs = jQuery.extend(true, {}, attrs, { action: url });
           type = data instanceof Array && Array || data instanceof Object && Object || undefined;
           for (var i in data) {
             switch (type) {
               case Object:
+                if (!Object.prototype.hasOwnProperty.call(data, i)) { continue; }
                 $element = jQuery('<textarea/>', { name: i }).val(data[i]);
                 break;
               case Array:
-                data[i].attr = data[i].attr || {};
-                data[i].attr.name = data[i].name;
-                $element = jQuery(!data[i].tag.indexOf('<') ? data[i].tag : '<' + data[i].tag + '/>', data[i].attr || {}).val(data[i].value);
+                data[i].attrs = data[i].attrs || {};
+                data[i].attrs.name = data[i].name;
+                $element = jQuery(!data[i].tag.indexOf('<') ? data[i].tag : '<' + data[i].tag + '/>', data[i].attrs || {}).val(data[i].value);
                 break;
               default:
                 continue;
             }
             df.appendChild($element[0]);
           }
-          $form = jQuery('<form/>', <Object>attr).append(<HTMLElement>df);
+          $form = jQuery('<form/>', attrs).append(<HTMLElement>df);
           break;
 
         default:
