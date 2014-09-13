@@ -14,21 +14,21 @@ module MODULE.CONTROLLER {
       C = controller;
     }
 
-    enable(): any {
+    enable(): JQueryPjax {
       M.enable();
-      return this;
+      return <JQueryPjax>this;
     }
 
-    disable(): any {
+    disable(): JQueryPjax {
       M.disable();
-      return this;
+      return <JQueryPjax>this;
     }
     
-    click(): any
-    click(url: string, attrs?: { [index: string]: any; }): any
-    click(url: HTMLAnchorElement): any
-    click(url: JQuery): any
-    click(url?: any, attrs?: { [index: string]: any; }): any {
+    click(): JQueryPjax
+    click(url: string, attrs?: { [index: string]: any; }): JQueryPjax
+    click(url: HTMLAnchorElement): JQueryPjax
+    click(url: JQuery): JQueryPjax
+    click(url?: any, attrs?: { [index: string]: any; }): JQueryPjax {
       var setting: SettingInterface = M.getGlobalSetting(),
           $anchor: JQuery;
 
@@ -47,16 +47,17 @@ module MODULE.CONTROLLER {
           break;
 
         default:
-          return this;
+          return <JQueryPjax>this;
       }
-      return $anchor.first().one(setting.nss.click, (event) => new View(M, C, null).HANDLERS.CLICK(event)).click();
+      $anchor.first().one(setting.nss.click, (event) => new View(M, C, null).HANDLERS.CLICK(event)).click();
+      return <JQueryPjax>this;
     }
     
-    submit(): any
-    submit(url: string, attrs: { [index: string]: any; }, data: any): any
-    submit(url: HTMLFormElement): any
-    submit(url: JQuery): any
-    submit(url?: any, attrs?: { [index: string]: any; }, data?: any): any {
+    submit(): JQueryPjax
+    submit(url: string, attrs: { [index: string]: any; }, data: any): JQueryPjax
+    submit(url: HTMLFormElement): JQueryPjax
+    submit(url: JQuery): JQueryPjax
+    submit(url?: any, attrs?: { [index: string]: any; }, data?: any): JQueryPjax {
       var setting: SettingInterface = M.getGlobalSetting(),
           $form: JQuery,
           df: DocumentFragment = document.createDocumentFragment(),
@@ -96,13 +97,14 @@ module MODULE.CONTROLLER {
           break;
 
         default:
-          return this;
+          return <JQueryPjax>this;
       }
-      return $form.first().one(setting.nss.submit, (event) => new View(M, C, null).HANDLERS.SUBMIT(event)).submit();
+      $form.first().one(setting.nss.submit, (event) => new View(M, C, null).HANDLERS.SUBMIT(event)).submit();
+      return <JQueryPjax>this;
     }
     
-    getCache()
-    getCache(url: string)
+    getCache(): PjaxCache
+    getCache(url: string): PjaxCache
     getCache(url: string = window.location.href): PjaxCache {
       var cache: PjaxCache = <PjaxCache>M.getCache(url);
       if (cache) {
@@ -116,11 +118,11 @@ module MODULE.CONTROLLER {
       return cache;
     }
     
-    setCache(): any
-    setCache(url: string): any
-    setCache(url: string, data: string): any
-    setCache(url: string, data: string, textStatus: string, jqXHR: JQueryXHR): any
-    setCache(url: string = window.location.href, data?: string, textStatus?: string, jqXHR?: JQueryXHR): any {
+    setCache(): JQueryPjax
+    setCache(url: string): JQueryPjax
+    setCache(url: string, data: string): JQueryPjax
+    setCache(url: string, data: string, textStatus: string, jqXHR: JQueryXHR): JQueryPjax
+    setCache(url: string = window.location.href, data?: string, textStatus?: string, jqXHR?: JQueryXHR): JQueryPjax {
       switch (arguments.length) {
         case 0:
           return this.setCache(url, document.documentElement.outerHTML);
@@ -132,19 +134,19 @@ module MODULE.CONTROLLER {
         default:
           M.setCache(url, data, textStatus, jqXHR);
       }
-      return this;
+      return <JQueryPjax>this;
     }
     
-    removeCache(): any
-    removeCache(url: string): any
-    removeCache(url: string = window.location.href): any {
+    removeCache(): JQueryPjax
+    removeCache(url: string): JQueryPjax
+    removeCache(url: string = window.location.href): JQueryPjax {
       M.removeCache(url);
-      return this;
+      return <JQueryPjax>this;
     }
 
-    clearCache(): any {
+    clearCache(): JQueryPjax {
       M.clearCache();
-      return this;
+      return <JQueryPjax>this;
     }
 
     follow(event: JQueryEventObject, $XHR: JQueryXHR, host?: string, timeStamp?: number): boolean {
