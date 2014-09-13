@@ -262,7 +262,7 @@ module MODULE.MODEL {
       recent.order.unshift(secure_url);
       for (var i = 1, key; key = recent.order[i]; i++) { if (secure_url === key) { recent.order.splice(i, 1); } }
 
-      recent.size > setting.cache.size && this.cleanCache();
+      setting.cache.size && recent.size > setting.cache.size && this.cleanCache();
       cache = this.getCache(secure_url);
       if (!data && !jqXHR && (!cache || !cache.data && !cache.jqXHR)) { return; }
 

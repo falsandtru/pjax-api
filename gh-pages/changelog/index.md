@@ -13,6 +13,7 @@ nav: nav
 * `submit`メソッドの仕様を修正
 * `submit`メソッドの仕様を拡張
 * `cache.limit`パラメータの仕様を拡張
+* `cache.size`パラメータの仕様を拡張
 
 ## 2.22.0
 
