@@ -50,7 +50,7 @@ module MODULE.CONTROLLER {
         default:
           return this;
       }
-      return $anchor.first().one(setting.nss.click, (event) => new VIEW.Main(M, C, null).HANDLERS.CLICK(event)).click();
+      return $anchor.first().one(setting.nss.click, (event) => new View(M, C, null).HANDLERS.CLICK(event)).click();
     }
     
     submit(): any
@@ -98,7 +98,7 @@ module MODULE.CONTROLLER {
         default:
           return this;
       }
-      return $form.first().one(setting.nss.submit, (event) => new VIEW.Main(M, C, null).HANDLERS.SUBMIT(event)).submit();
+      return $form.first().one(setting.nss.submit, (event) => new View(M, C, null).HANDLERS.SUBMIT(event)).submit();
     }
     
     getCache()

@@ -54,3 +54,7 @@ module MODULE.CONTROLLER {
   }
 
 }
+
+module MODULE {
+  export var Controller = CONTROLLER.Main
+}

@@ -12,7 +12,7 @@ module MODULE.MODEL {
   
   export class Main extends Template implements ModelInterface {
 
-    controller_: ControllerInterface = new CONTROLLER.Main(this)
+    controller_: ControllerInterface = new Controller(this)
     app_: AppLayerInterface = new MODEL.App(this, this.controller_)
     state_: State = State.wait
 
@@ -358,4 +358,8 @@ module MODULE.MODEL {
 
   }
   
+}
+
+module MODULE {
+  export var Model = MODEL.Main
 }
