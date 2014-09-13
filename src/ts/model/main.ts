@@ -341,7 +341,7 @@ module MODULE.MODEL {
           recent: RecentInterface = this.app_.page.recent;
       if (!setting || !recent) { return; }
       for (var i = recent.order.length, url; url = recent.order[--i];) {
-        if (i >= setting.cache.limit || url in recent.data && new Date().getTime() > recent.data[url].expires) {
+        if (setting.cache.limit && i >= setting.cache.limit || url in recent.data && new Date().getTime() > recent.data[url].expires) {
           recent.order.splice(i, 1);
           recent.size -= recent.data[url].size;
           delete recent.data[url];
