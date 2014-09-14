@@ -22,13 +22,24 @@ suite("Rewrite", function () {
 
         defer = self.$.Deferred();
         $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
+        $.pjax.rewrite();
+
+        return defer;
+      })
+      .pipe(function () {
+        assert.equal(document.title, 'pjax demo1', "title");
+        assert.equal($('.rewrite').text(), 'rewrite', "rewrite");
+        assert.equal($('.rewrite').length, 1, "rewrite");
+
+        defer = self.$.Deferred();
+        $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
         $('#primary ul a:eq(1)').each(function () { url = this.href; }).click();
 
         return defer;
       })
       .pipe(function () {
         assert.equal(document.title, 'pjax demo2', "title");
-        assert.equal($('.rewrite').text(), 'rewrite', "rewrite");
+        assert.equal($('.rewrite').length, 1, "rewrite");
 
         defer = self.$.Deferred();
         $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });

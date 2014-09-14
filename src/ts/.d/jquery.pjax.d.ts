@@ -186,6 +186,7 @@ interface JQueryPjax {
     removeCache(url: string): JQueryPjax
     removeCache(): JQueryPjax
     clearCache(): JQueryPjax
+    rewrite(): JQueryPjax
     follow(event: JQueryEventObject, ajax: JQueryXHR, host?: string): boolean
     host(): string
     

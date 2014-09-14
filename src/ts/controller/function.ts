@@ -149,6 +149,33 @@ module MODULE.CONTROLLER {
       return <JQueryPjax>this;
     }
 
+    rewrite(): JQueryPjax {
+      setTimeout(() => {
+        jQuery(() => {
+          var setting = M.getGlobalSetting(),
+              backup = <{ setting: SettingInterface; cache: PjaxCache; }>{};
+          backup.setting = jQuery.extend(true, {}, setting);
+          backup.cache = this.getCache();
+
+          setting.load.head = null;
+          setting.load.css = false;
+          setting.load.script = false;
+          setting.cache.limit = 0;
+          setting.cache.size = 0;
+          setting.cache.mix = 0;
+          setting.fallback = false;
+
+          this.click(window.location.href);
+
+          setting.load = backup.setting.load;
+          setting.cache = backup.setting.cache;
+          setting.fallback = backup.setting.fallback;
+          backup.cache ? this.setCache(undefined, backup.cache.data, backup.cache.textStatus, backup.cache.jqXHR) : this.removeCache();
+        });
+      }, 1);
+      return <JQueryPjax>this;
+    }
+
     follow(event: JQueryEventObject, $XHR: JQueryXHR, host?: string, timeStamp?: number): boolean {
       if (!M.isDeferrable) { return false; }
       var anchor = <HTMLAnchorElement>event.currentTarget;
