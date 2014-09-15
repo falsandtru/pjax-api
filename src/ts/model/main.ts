@@ -332,10 +332,9 @@ module MODULE.MODEL {
       var setting: SettingInterface = this.getGlobalSetting(),
           recent: RecentInterface = this.app_.page.recent;
       if (!setting || !recent) { return; }
-      for (var i = recent.order.length, url; url = recent.order[--i];) {
-        recent.order.splice(i, 1);
-        recent.size -= recent.data[url].size;
-        delete recent.data[url];
+
+      while (recent.order.length) {
+        this.removeCache(recent.order.slice(-1).pop());
       }
     }
 
