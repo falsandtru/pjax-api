@@ -251,6 +251,7 @@ module MODULE.MODEL {
       var setting: SettingInterface = this.getGlobalSetting(),
           recent: RecentInterface = this.app_.page.recent;
       if (!setting || !recent) { return this; }
+
       var cache: CacheInterface,
           size: number,
           timeStamp: number,
@@ -309,22 +310,35 @@ module MODULE.MODEL {
         setting.database && setting.fix.history && this.app_.data.saveTitleToDB(secure_url, title);
       }
     }
-    
-    removeCache(unsafe_url: string): void {
+
+    removeCache(unsafe_url: string): void
+    removeCache(index: number): void
+    removeCache(param: any): void {
       var setting: SettingInterface = this.getGlobalSetting(),
           recent: RecentInterface = this.app_.page.recent;
       if (!setting || !recent) { return; }
 
-      var secure_url: string = this.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
-      unsafe_url = null;
+      switch (typeof param) {
+        case 'string':
+          var secure_url: string = this.convertUrlToKeyUrl(Util.normalizeUrl(param));
+          param = null;
 
-      for (var i = 0, key; key = recent.order[i]; i++) {
-        if (secure_url === key) {
+          for (var i = 0, key: string; key = recent.order[i]; i++) {
+            if (secure_url === key) {
+              this.removeCache(i);
+              break;
+            }
+          }
+          break;
+
+        case 'number':
+          var i: number = param,
+              key: string = recent.order[i];
           recent.order.splice(i, 1);
           recent.size -= recent.data[key].size;
           recent.data[key] = null;
           delete recent.data[key];
-        }
+          break;
       }
     }
 
@@ -334,7 +348,7 @@ module MODULE.MODEL {
       if (!setting || !recent) { return; }
 
       while (recent.order.length) {
-        this.removeCache(recent.order.slice(-1).pop());
+        this.removeCache(~-recent.order.length);
       }
     }
 
@@ -349,7 +363,7 @@ module MODULE.MODEL {
         }
       }
       while (setting.cache.limit && recent.order.length > setting.cache.limit || setting.cache.size && recent.size > setting.cache.size) {
-        this.removeCache(recent.order.slice(-1).pop());
+        this.removeCache(~-recent.order.length);
       }
     }
 
