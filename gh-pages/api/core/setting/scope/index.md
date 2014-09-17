@@ -14,7 +14,7 @@ class: style-api style-api-detail
 
 <pre class="sh brush: js;">
 $.pjax({
-　　scope: {
+  scope: {
     // `/about/`と`/blog/`ディレクトリ下でのみpjaxを使用する。
     '/': ['/about/', '/blog/']
   }
@@ -25,7 +25,7 @@ $.pjax({
 
 <pre class="sh brush: js;">
 $.pjax({
-　　scope: {
+  scope: {
     // `/about/`と`/blog/`ディレクトリ下でのみpjaxを使用する。
     'pattern': ['/about/', '/blog/'],
     '/': 'pattern'
@@ -37,7 +37,7 @@ $.pjax({
 
 <pre class="sh brush: js;">
 $.pjax({
-　　scope: {
+  scope: {
     // `/about/`と`/blog/`ディレクトリ下でのみpjaxを使用する。
     'pattern': ['/about/', '/blog/'],
     '/': ['#pattern']
@@ -49,7 +49,7 @@ $.pjax({
 
 <pre class="sh brush: js;">
 $.pjax({
-　　scope: {
+  scope: {
     // `/search/`ディレクトリ下ではGET送信フォームでpjaxを使用する。
     search: ['/search/'],
     $search: {form: 'form:not([method])'},
@@ -62,7 +62,7 @@ $.pjax({
 
 <pre class="sh brush: js;">
 $.pjax({
-　　scope: {
+  scope: {
     // `/about/`と`/blog/`ディレクトリ下でのみpjaxを使用する。
     '/': ['*/(about|blog)/']
   }
@@ -73,7 +73,7 @@ $.pjax({
 
 <pre class="sh brush: js;">
 $.pjax({
-　　scope: {
+  scope: {
     // `/board/`と`/contact/`ディレクトリ下を除くすべてのページでpjaxを使用する。
     '/': ['/', '!*/(board|contact)/']
   }
@@ -84,7 +84,7 @@ $.pjax({
 
 <pre class="sh brush: js;">
 $.pjax({
-　　scope: {
+  scope: {
     // `/contact/*.php`を除くすべてのページでpjaxを使用する。
     '/': ['/', '!*/contact/.+\.php'],
     '/contact/': ['!*/contact/.+\.php', 'inherit']
@@ -96,7 +96,7 @@ $.pjax({
 
 <pre class="sh brush: js;">
 $.pjax({
-　　scope: {
+  scope: {
     // `/scope/`ディレクトリ下で直下のディレクトリをまたがないページ遷移のみpjaxを使用する。
     // /scope/foo/fizz/  >>  /scope/foo/buzz/  OK
     // /scope/foo/fizz/  >>  /scope/bar/buzz/  NG

@@ -16,7 +16,7 @@ class: style-api style-api-detail
 
 <pre class="sh brush: js;">
 $.pjax({
-　　area: '#header, #primary, #secondary'
+  area: '#header, #primary, #secondary'
 });
 </pre>
 
@@ -25,6 +25,6 @@ $.pjax({
 
 <pre class="sh brush: js;">
 $.pjax({
-　　area: ['#header, #primary, #secondary', '#container', 'body']
+  area: ['#header, #primary, #secondary', '#container', 'body']
 });
 </pre>
