@@ -204,7 +204,7 @@ module MODULE.MODEL {
     }
 
     digestTask_(limit: number = 0): void {
-      limit = limit || -1;
+      ++limit;
       var task: () => void;
       while (task = limit-- && this.tasks_.pop()) {
         task();

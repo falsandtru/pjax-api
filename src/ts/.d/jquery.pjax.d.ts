@@ -73,7 +73,6 @@ interface PjaxSetting {
             header: string
             filter: RegExp
             error: number
-            host: string //internal
         }
         log: {
             expires: number

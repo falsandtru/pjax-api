@@ -10,10 +10,9 @@
 
 module MODULE.MODEL {
   
-  export class App extends Template implements AppLayerInterface {
+  export class App implements AppLayerInterface {
 
     constructor(public model_: ModelInterface, public controller_: ControllerInterface) {
-      super();
     }
 
     balance: AppBalanceInterface = new AppBalance(this.model_, this)
@@ -153,7 +152,8 @@ module MODULE.MODEL {
             retriable: true,
             option: option.option
           },
-          compute = function () {
+          compute = () => {
+            setting.ns = setting.ns && setting.ns.split('.').sort().join('.') || '';
             var nsArray: string[] = [setting.gns || NAME].concat(setting.ns && String(setting.ns).split('.') || []);
             var query: string = setting.server.query;
             switch (query && typeof query) {

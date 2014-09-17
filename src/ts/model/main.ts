@@ -17,7 +17,10 @@ module MODULE.MODEL {
     state_: State = State.wait
 
     isDeferrable: boolean = jQuery.when && 1.06 <= Number(jQuery().jquery.replace(/\D*(\d+)\.(\d+).*$/, '$1.0$2').replace(/\d+(\d{2})$/, '$1'))
-    host = () => this.app_.balance.host()
+    queue: number[] = []
+
+    host(): string { return this.app_.balance.host() }
+    state(): State { return this.state_; }
 
     main_($context: JQuery, option: PjaxSetting): JQuery {
 
@@ -40,7 +43,7 @@ module MODULE.MODEL {
       this.setGlobalSetting(setting);
       setting.database && this.app_.data.opendb(setting);
 
-      this.app_.stock({
+      this.stock({
         speed: {
           fire: 0,
           time: [],
@@ -60,8 +63,6 @@ module MODULE.MODEL {
 
       return $context;
     }
-
-    state(): State { return this.state_; }
 
     convertUrlToKeyUrl(unsafe_url: string): string {
       return unsafe_url.replace(/#.*/, '')
@@ -207,12 +208,12 @@ module MODULE.MODEL {
         this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPositionToDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
       } else {
         var id: number;
-        while (id = setting.scroll.queue.shift()) { clearTimeout(id); }
+        while (id = this.queue.shift()) { clearTimeout(id); }
         id = setTimeout(() => {
-          while (id = setting.scroll.queue.shift()) { clearTimeout(id); }
+          while (id = this.queue.shift()) { clearTimeout(id); }
           this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPositionToDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
         }, setting.scroll.delay);
-        setting.scroll.queue.push(id);
+        this.queue.push(id);
       }
     }
 
