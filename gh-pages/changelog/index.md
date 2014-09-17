@@ -7,6 +7,15 @@ nav: nav
 
 # ChangeLog
 
+## 2.23.0
+
+* `click`メソッドの仕様を修正
+* `submit`メソッドの仕様を修正
+* `submit`メソッドの仕様を拡張
+* `cache.limit`パラメータの仕様を拡張
+* `cache.size`パラメータの仕様を拡張
+* HTMLのパース処理を高速化
+
 ## 2.22.0
 
 * Chromeの仕様変更による不具合を修正

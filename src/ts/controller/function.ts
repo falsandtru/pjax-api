@@ -14,27 +14,27 @@ module MODULE.CONTROLLER {
       C = controller;
     }
 
-    enable(): any {
+    enable(): JQueryPjax {
       M.enable();
-      return this;
+      return <JQueryPjax>this;
     }
 
-    disable(): any {
+    disable(): JQueryPjax {
       M.disable();
-      return this;
+      return <JQueryPjax>this;
     }
     
-    click(): any
-    click(url: string, attr?: { href?: string; }): any
-    click(url: HTMLAnchorElement, attr?: { href?: string; }): any
-    click(url: JQuery, attr?: { href?: string; }): any
-    click(url?: any, attr?: { href?: string; }): any {
+    click(): JQueryPjax
+    click(url: string, attrs?: { [index: string]: any; }): JQueryPjax
+    click(url: HTMLAnchorElement): JQueryPjax
+    click(url: JQuery): JQueryPjax
+    click(url?: any, attrs?: { [index: string]: any; }): JQueryPjax {
       var setting: SettingInterface = M.getGlobalSetting(),
           $anchor: JQuery;
 
       switch (typeof url) {
         case 'undefined':
-          $anchor = (<JQuery>this['end']()).filter('a').first().clone();
+          $anchor = jQuery(this).filter('a').first().clone();
           break;
 
         case 'object':
@@ -42,67 +42,69 @@ module MODULE.CONTROLLER {
           break;
 
         case 'string':
-          attr = attr || {};
-          attr.href = url;
-          $anchor = jQuery('<a/>', attr);
+          attrs = jQuery.extend(true, {}, attrs, { href: url });
+          $anchor = jQuery('<a/>', attrs);
           break;
 
         default:
-          return this;
+          return <JQueryPjax>this;
       }
-      return $anchor.first().one(setting.nss.click, (event) => new VIEW.Main(M, C, null).HANDLERS.CLICK(event)).click();
+      $anchor.first().one(setting.nss.click, (event) => new View(M, C, null).HANDLERS.CLICK(event)).click();
+      return <JQueryPjax>this;
     }
     
-    submit(): any
-    submit(url: string, attr: { action?: string; method?: string; }, data: any): any
-    submit(url: HTMLFormElement, attr?: { action?: string; method?: string; }, data?: any): any
-    submit(url: JQuery, attr?: { action?: string; method?: string; }, data?: any): any
-    submit(url?: any, attr?: { action?: string; method?: string; }, data?: any): any {
+    submit(): JQueryPjax
+    submit(url: string, attrs: { [index: string]: any; }, data: any): JQueryPjax
+    submit(url: HTMLFormElement): JQueryPjax
+    submit(url: JQuery): JQueryPjax
+    submit(url?: any, attrs?: { [index: string]: any; }, data?: any): JQueryPjax {
       var setting: SettingInterface = M.getGlobalSetting(),
           $form: JQuery,
           df: DocumentFragment = document.createDocumentFragment(),
           type: any,
           $element: JQuery;
 
-      switch (true) {
-        case typeof url === 'undefined':
-          $form = (<JQuery>this['end']()).filter('form').first().clone();
+      switch (typeof url) {
+        case 'undefined':
+          $form = jQuery(this).filter('form').first().clone();
           break;
 
-        case typeof url === 'object':
+        case 'object':
           $form = jQuery(url).clone();
           break;
 
-        case !!data:
-          attr = attr || {};
-          attr.action = url;
+        case 'string':
+          attrs = jQuery.extend(true, {}, attrs, { action: url });
           type = data instanceof Array && Array || data instanceof Object && Object || undefined;
           for (var i in data) {
             switch (type) {
               case Object:
+                if (!Object.prototype.hasOwnProperty.call(data, i)) { continue; }
                 $element = jQuery('<textarea/>', { name: i }).val(data[i]);
                 break;
               case Array:
-                data[i].attr = data[i].attr || {};
-                data[i].attr.name = data[i].name;
-                $element = jQuery(!data[i].tag.indexOf('<') ? data[i].tag : '<' + data[i].tag + '/>', data[i].attr || {}).val(data[i].value);
+                data[i].attrs = data[i].attrs || {};
+                data[i].attrs.name = data[i].name || data[i].attrs.name;
+                data[i].attrs.type = data[i].type || data[i].attrs.type;
+                $element = jQuery('<' + data[i].tag + '/>', data[i].attrs).val(data[i].value);
                 break;
               default:
                 continue;
             }
             df.appendChild($element[0]);
           }
-          $form = jQuery('<form/>', <Object>attr).append(<HTMLElement>df);
+          $form = jQuery('<form/>', attrs).append(<HTMLElement>df);
           break;
 
         default:
-          return this;
+          return <JQueryPjax>this;
       }
-      return $form.first().one(setting.nss.submit, (event) => new VIEW.Main(M, C, null).HANDLERS.SUBMIT(event)).submit();
+      $form.first().one(setting.nss.submit, (event) => new View(M, C, null).HANDLERS.SUBMIT(event)).submit();
+      return <JQueryPjax>this;
     }
     
-    getCache()
-    getCache(url: string)
+    getCache(): PjaxCache
+    getCache(url: string): PjaxCache
     getCache(url: string = window.location.href): PjaxCache {
       var cache: PjaxCache = <PjaxCache>M.getCache(url);
       if (cache) {
@@ -116,11 +118,11 @@ module MODULE.CONTROLLER {
       return cache;
     }
     
-    setCache(): any
-    setCache(url: string): any
-    setCache(url: string, data: string): any
-    setCache(url: string, data: string, textStatus: string, jqXHR: JQueryXHR): any
-    setCache(url: string = window.location.href, data?: string, textStatus?: string, jqXHR?: JQueryXHR): any {
+    setCache(): JQueryPjax
+    setCache(url: string): JQueryPjax
+    setCache(url: string, data: string): JQueryPjax
+    setCache(url: string, data: string, textStatus: string, jqXHR: JQueryXHR): JQueryPjax
+    setCache(url: string = window.location.href, data?: string, textStatus?: string, jqXHR?: JQueryXHR): JQueryPjax {
       switch (arguments.length) {
         case 0:
           return this.setCache(url, document.documentElement.outerHTML);
@@ -132,19 +134,19 @@ module MODULE.CONTROLLER {
         default:
           M.setCache(url, data, textStatus, jqXHR);
       }
-      return this;
+      return <JQueryPjax>this;
     }
     
-    removeCache(): any
-    removeCache(url: string): any
-    removeCache(url: string = window.location.href): any {
+    removeCache(): JQueryPjax
+    removeCache(url: string): JQueryPjax
+    removeCache(url: string = window.location.href): JQueryPjax {
       M.removeCache(url);
-      return this;
+      return <JQueryPjax>this;
     }
 
-    clearCache(): any {
+    clearCache(): JQueryPjax {
       M.clearCache();
-      return this;
+      return <JQueryPjax>this;
     }
 
     follow(event: JQueryEventObject, $XHR: JQueryXHR, host?: string, timeStamp?: number): boolean {

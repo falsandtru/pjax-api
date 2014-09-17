@@ -132,13 +132,13 @@ module.exports = function(grunt) {
         singleRun: true
       },
       ci: {
-        //reporters: process.env.output ? ['progress', 'coverage', 'coveralls'] : ['progress', 'coverage'],
+        //reporters: process.env.deploy ? ['progress', 'coverage', 'coveralls'] : ['progress', 'coverage'],
         browsers: ['PhantomJS'],
         singleRun: true
       }
     },
     /*
-    coveralls: process.env.output ? {
+    coveralls: process.env.deploy ? {
       options: {
         debug: true,
         coverage_dir: 'gh-pages/coverage',

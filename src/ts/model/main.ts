@@ -12,7 +12,7 @@ module MODULE.MODEL {
   
   export class Main extends Template implements ModelInterface {
 
-    controller_: ControllerInterface = new CONTROLLER.Main(this)
+    controller_: ControllerInterface = new Controller(this)
     app_: AppLayerInterface = new MODEL.App(this, this.controller_)
     state_: State = State.wait
 
@@ -21,6 +21,8 @@ module MODULE.MODEL {
 
     main_($context: JQuery, option: PjaxSetting): JQuery {
 
+      if (!option && $context.is('a, form')) { return $context; }
+
       var pattern;
       pattern = $context instanceof NAMESPACE ? 'm:' : 'f:';
       pattern += option ? ({}).toString.call(option).split(' ').pop().slice(0, -1).toLowerCase() : option;
@@ -28,7 +30,6 @@ module MODULE.MODEL {
         case 'm:object':
           break;
         case 'm:undefined':
-          if ($context.is('a, form')) { return $context; }
           option = <PjaxSetting>{};
           break;
         default:
@@ -250,6 +251,7 @@ module MODULE.MODEL {
       var setting: SettingInterface = this.getGlobalSetting(),
           recent: RecentInterface = this.app_.page.recent;
       if (!setting || !recent) { return this; }
+
       var cache: CacheInterface,
           size: number,
           timeStamp: number,
@@ -261,7 +263,10 @@ module MODULE.MODEL {
       recent.order.unshift(secure_url);
       for (var i = 1, key; key = recent.order[i]; i++) { if (secure_url === key) { recent.order.splice(i, 1); } }
 
-      recent.size > setting.cache.size && this.cleanCache();
+      if (setting.cache.limit && recent.order.length > setting.cache.limit || setting.cache.size && recent.size > setting.cache.size) {
+        this.cleanCache();
+      }
+
       cache = this.getCache(secure_url);
       if (!data && !jqXHR && (!cache || !cache.data && !cache.jqXHR)) { return; }
 
@@ -305,22 +310,35 @@ module MODULE.MODEL {
         setting.database && setting.fix.history && this.app_.data.saveTitleToDB(secure_url, title);
       }
     }
-    
-    removeCache(unsafe_url: string): void {
+
+    removeCache(unsafe_url: string): void
+    removeCache(index: number): void
+    removeCache(param: any): void {
       var setting: SettingInterface = this.getGlobalSetting(),
           recent: RecentInterface = this.app_.page.recent;
       if (!setting || !recent) { return; }
 
-      var secure_url: string = this.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
-      unsafe_url = null;
+      switch (typeof param) {
+        case 'string':
+          var secure_url: string = this.convertUrlToKeyUrl(Util.normalizeUrl(param));
+          param = null;
 
-      for (var i = 0, key; key = recent.order[i]; i++) {
-        if (secure_url === key) {
+          for (var i = 0, key: string; key = recent.order[i]; i++) {
+            if (secure_url === key) {
+              this.removeCache(i);
+              break;
+            }
+          }
+          break;
+
+        case 'number':
+          var i: number = param,
+              key: string = recent.order[i];
           recent.order.splice(i, 1);
           recent.size -= recent.data[key].size;
           recent.data[key] = null;
           delete recent.data[key];
-        }
+          break;
       }
     }
 
@@ -328,10 +346,9 @@ module MODULE.MODEL {
       var setting: SettingInterface = this.getGlobalSetting(),
           recent: RecentInterface = this.app_.page.recent;
       if (!setting || !recent) { return; }
-      for (var i = recent.order.length, url; url = recent.order[--i];) {
-        recent.order.splice(i, 1);
-        recent.size -= recent.data[url].size;
-        delete recent.data[url];
+
+      while (recent.order.length) {
+        this.removeCache(~-recent.order.length);
       }
     }
 
@@ -339,12 +356,14 @@ module MODULE.MODEL {
       var setting: SettingInterface = this.getGlobalSetting(),
           recent: RecentInterface = this.app_.page.recent;
       if (!setting || !recent) { return; }
-      for (var i = recent.order.length, url; url = recent.order[--i];) {
-        if (i >= setting.cache.limit || url in recent.data && new Date().getTime() > recent.data[url].expires) {
-          recent.order.splice(i, 1);
-          recent.size -= recent.data[url].size;
-          delete recent.data[url];
+
+      for (var i = recent.order.length, now = new Date().getTime(), url: string; url = recent.order[--i];) {
+        if (now > recent.data[url].expires) {
+          this.removeCache(url);
         }
+      }
+      while (setting.cache.limit && recent.order.length > setting.cache.limit || setting.cache.size && recent.size > setting.cache.size) {
+        this.removeCache(~-recent.order.length);
       }
     }
 
@@ -358,4 +377,8 @@ module MODULE.MODEL {
 
   }
   
+}
+
+module MODULE {
+  export var Model = MODEL.Main
 }

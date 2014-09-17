@@ -12,11 +12,20 @@ class: style-api style-api-detail
 ## click(): this
 コンテキストのアンカーリンクを使用します。
 
-## click( Anchor: jQuery): this
+<pre class="sh brush: js;">
+$('a').pjax().click();
+</pre>
+
+## click( Anchor: element/jQuery): this
 渡されたアンカーリンクを使用します。
 
-## click( Anchor: element ): this
-渡されたアンカーリンクを使用します。
+<pre class="sh brush: js;">
+$.pjax.click($('a'));
+</pre>
 
-## click( Url: string [, Attribute: object ] ): this
+## click( Url: string [, Attributes: object ] ): this
 渡されたデータを元にアンカーリンクを生成して使用します。第二引数のプロパティがアンカーリンクの属性となります。
+
+<pre class="sh brush: js;">
+$.pjax.click('');
+</pre>

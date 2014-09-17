@@ -14,7 +14,7 @@ jQueryセレクタによりアンカーリンクを絞り込みます。
 
 <pre class="sh brush: js;">
 $.pjax({
-　　filter: '*'
+  filter: '*'
 });
 </pre>
 
@@ -23,6 +23,6 @@ $.pjax({
 
 <pre class="sh brush: js;">
 $.pjax({
-　　filter: function(){return /^https?:/.test(this.href) && /(\/[^.]*|\.html?|\.php)$/.test('/' + this.pathname);}
+  filter: function(){return /^https?:/.test(this.href) && /(\/[^.]*|\.html?|\.php)$/.test('/' + this.pathname);}
 });
 </pre>

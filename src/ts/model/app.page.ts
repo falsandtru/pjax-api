@@ -11,6 +11,7 @@ module MODULE.MODEL {
 
     constructor(public model_: ModelInterface, public app_: AppLayerInterface) {
       super();
+      setTimeout(() => this.createHTMLDocument('', '') || this.model_.disable(), 50);
     }
 
     landing: string = Util.normalizeUrl(window.location.href)

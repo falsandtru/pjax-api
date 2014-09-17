@@ -16,6 +16,6 @@ jQueryセレクタによりアンカーリンクを設定します。
 
 <pre class="sh brush: js;">
 $.pjax({
-　　link: '.pjax a:not([target])'
+  link: '.pjax a:not([target])'
 });
 </pre>

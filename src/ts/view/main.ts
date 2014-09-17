@@ -70,3 +70,7 @@ module MODULE.VIEW {
   }
 
 }
+
+module MODULE {
+  export var View = VIEW.Main
+}

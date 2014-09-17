@@ -27,7 +27,7 @@ module MODULE.MODEL {
         if (element.src) { loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload); }
       });
 
-      new VIEW.Main(this.model_, this.controller_, $context).BIND(setting);
+      new View(this.model_, this.controller_, $context).BIND(setting);
       setTimeout(() => this.data.loadBufferAll(setting.buffer.limit), setting.buffer.delay);
       setting.balance.self && setTimeout(() => this.balance.enable(setting), setting.buffer.delay);
       setTimeout(() => this.page.landing = null, 1500);

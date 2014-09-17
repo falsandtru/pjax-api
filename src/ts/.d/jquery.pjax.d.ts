@@ -170,14 +170,13 @@ interface JQueryPjax {
     enable(): JQueryPjax
     disable(): JQueryPjax
     click(): JQueryPjax
-    click(url: string, attr?: { href?: string; }): JQueryPjax
-    click(url: HTMLAnchorElement, attr?: { href?: string; }): JQueryPjax
-    click(url: JQuery, attr?: { href?: string; }): JQueryPjax
+    click(url: string, attrs?: { [index:string]: any; }): JQueryPjax
+    click(url: HTMLAnchorElement): JQueryPjax
+    click(url: JQuery): JQueryPjax
     submit(): JQueryPjax
-    submit(url: string, attr: { action?: string; method?: string; }, data: any): JQueryPjax
-    submit(url: HTMLFormElement, attr?: { action?: string; method?: string; }, data?: any): JQueryPjax
-    submit(url: JQuery, attr?: { action?: string; method?: string; }, data?: any): JQueryPjax
-    follow(event: JQueryEventObject, ajax: JQueryXHR, host?: string): boolean
+    submit(url: string, attrs: { [index: string]: any; }, data: any): JQueryPjax
+    submit(url: HTMLFormElement): JQueryPjax
+    submit(url: JQuery): JQueryPjax
     setCache(): JQueryPjax
     setCache(url: string): JQueryPjax
     setCache(url: string, data: string): JQueryPjax
@@ -187,6 +186,7 @@ interface JQueryPjax {
     removeCache(url: string): JQueryPjax
     removeCache(): JQueryPjax
     clearCache(): JQueryPjax
+    follow(event: JQueryEventObject, ajax: JQueryXHR, host?: string): boolean
     host(): string
     
     end(): JQuery

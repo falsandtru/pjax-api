@@ -16,6 +16,6 @@ jQueryセレクタによりフォームを設定します。
 
 <pre class="sh brush: js;">
 $.pjax({
-　　form: 'form:not([method])'
+  form: 'form:not([method])'
 });
 </pre>

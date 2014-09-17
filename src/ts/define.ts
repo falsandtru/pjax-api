@@ -165,6 +165,7 @@ module MODULE {
       host: string)
   }
   export declare class AppPageUtilityInterface {
+    createHTMLDocument(html: string, uri: string): Document
     chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
     movePageNormally(event: JQueryEventObject): void

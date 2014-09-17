@@ -16,8 +16,8 @@ You will be able most of your want.
 * Faster by preloading
 * Network Load Balancing by CsLB
 * Sync the HEAD element, such as CSS, SCRIPT, RSS
-* Updated Disabling itemized such as URL, TITLE
-* Resolution of common problems of pjax
+* Disabling update itemes such as URL, TITLE
+* Resolution of pjax common problems
 * etc...
 
 ## Usage
