@@ -177,7 +177,6 @@ interface JQueryPjax {
     submit(url: string, attrs: { [index: string]: any; }, data: any): JQueryPjax
     submit(url: HTMLFormElement): JQueryPjax
     submit(url: JQuery): JQueryPjax
-    follow(event: JQueryEventObject, ajax: JQueryXHR, host?: string): boolean
     setCache(): JQueryPjax
     setCache(url: string): JQueryPjax
     setCache(url: string, data: string): JQueryPjax
@@ -187,6 +186,7 @@ interface JQueryPjax {
     removeCache(url: string): JQueryPjax
     removeCache(): JQueryPjax
     clearCache(): JQueryPjax
+    follow(event: JQueryEventObject, ajax: JQueryXHR, host?: string): boolean
     host(): string
     
     end(): JQuery
