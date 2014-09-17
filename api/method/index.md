@@ -20,12 +20,6 @@ pjaxを使用してクリックによりページを移動します。
 ## [submit()](api/method/submit/) <small><span class="label label-info">chainable</span></small>
 pjaxを使用してフォーム送信によりページを移動します。
 
-## [follow()](api/method/follow/) <small><span class="label label-primary">jQuery1.6+</span></small>
-外部のajax処理を引き継いでページ移動を行います。
-
-## [host()](api/method/host/)
-現在設定されているリクエスト先のホストを取得します。
-
 ## [setCache()](api/method/setCache/) <small><span class="label label-info">chainable</span></small>
 プラグインキャッシュを設定します。
 
@@ -37,3 +31,9 @@ pjaxを使用してフォーム送信によりページを移動します。
 
 ## [clearCache()](api/method/clearCache/) <small><span class="label label-info">chainable</span></small>
 プラグインキャッシュをすべて削除します。
+
+## [follow()](api/method/follow/) <small><span class="label label-primary">jQuery1.6+</span></small>
+外部のajax処理を引き継いでページ移動を行います。
+
+## [host()](api/method/host/)
+現在設定されているリクエスト先のホストを取得します。

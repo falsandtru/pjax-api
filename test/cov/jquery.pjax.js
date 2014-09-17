@@ -3,7 +3,7 @@
  * jquery.pjax.js
  * 
  * @name jquery.pjax.js
- * @version 2.22.0
+ * @version 2.23.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
  * @copyright 2012, falsandtru
@@ -250,6 +250,11 @@ var MODULE;
     })(MODULE.VIEW || (MODULE.VIEW = {}));
     var VIEW = MODULE.VIEW;
 })(MODULE || (MODULE = {}));
+
+var MODULE;
+(function (MODULE) {
+    MODULE.View = MODULE.VIEW.Main;
+})(MODULE || (MODULE = {}));
 /// <reference path="../define.ts"/>
 /// <reference path="../view/main.ts"/>
 var MODULE;
@@ -274,12 +279,12 @@ var MODULE;
                 return this;
             };
 
-            ControllerFunction.prototype.click = function (url, attr) {
+            ControllerFunction.prototype.click = function (url, attrs) {
                 var setting = M.getGlobalSetting(), $anchor;
 
                 switch (typeof url) {
                     case 'undefined':
-                        $anchor = this['end']().filter('a').first().clone();
+                        $anchor = jQuery(this).filter('a').first().clone();
                         break;
 
                     case 'object':
@@ -287,59 +292,63 @@ var MODULE;
                         break;
 
                     case 'string':
-                        attr = attr || {};
-                        attr.href = url;
-                        $anchor = jQuery('<a/>', attr);
+                        attrs = jQuery.extend(true, {}, attrs, { href: url });
+                        $anchor = jQuery('<a/>', attrs);
                         break;
 
                     default:
                         return this;
                 }
-                return $anchor.first().one(setting.nss.click, function (event) {
-                    return new MODULE.VIEW.Main(M, C, null).HANDLERS.CLICK(event);
+                $anchor.first().one(setting.nss.click, function (event) {
+                    return new MODULE.View(M, C, null).HANDLERS.CLICK(event);
                 }).click();
+                return this;
             };
 
-            ControllerFunction.prototype.submit = function (url, attr, data) {
+            ControllerFunction.prototype.submit = function (url, attrs, data) {
                 var setting = M.getGlobalSetting(), $form, df = document.createDocumentFragment(), type, $element;
 
-                switch (true) {
-                    case typeof url === 'undefined':
-                        $form = this['end']().filter('form').first().clone();
+                switch (typeof url) {
+                    case 'undefined':
+                        $form = jQuery(this).filter('form').first().clone();
                         break;
 
-                    case typeof url === 'object':
+                    case 'object':
                         $form = jQuery(url).clone();
                         break;
 
-                    case !!data:
-                        attr = attr || {};
-                        attr.action = url;
+                    case 'string':
+                        attrs = jQuery.extend(true, {}, attrs, { action: url });
                         type = data instanceof Array && Array || data instanceof Object && Object || undefined;
                         for (var i in data) {
                             switch (type) {
                                 case Object:
+                                    if (!Object.prototype.hasOwnProperty.call(data, i)) {
+                                        continue;
+                                    }
                                     $element = jQuery('<textarea/>', { name: i }).val(data[i]);
                                     break;
                                 case Array:
-                                    data[i].attr = data[i].attr || {};
-                                    data[i].attr.name = data[i].name;
-                                    $element = jQuery(!data[i].tag.indexOf('<') ? data[i].tag : '<' + data[i].tag + '/>', data[i].attr || {}).val(data[i].value);
+                                    data[i].attrs = data[i].attrs || {};
+                                    data[i].attrs.name = data[i].name || data[i].attrs.name;
+                                    data[i].attrs.type = data[i].type || data[i].attrs.type;
+                                    $element = jQuery('<' + data[i].tag + '/>', data[i].attrs).val(data[i].value);
                                     break;
                                 default:
                                     continue;
                             }
                             df.appendChild($element[0]);
                         }
-                        $form = jQuery('<form/>', attr).append(df);
+                        $form = jQuery('<form/>', attrs).append(df);
                         break;
 
                     default:
                         return this;
                 }
-                return $form.first().one(setting.nss.submit, function (event) {
-                    return new MODULE.VIEW.Main(M, C, null).HANDLERS.SUBMIT(event);
+                $form.first().one(setting.nss.submit, function (event) {
+                    return new MODULE.View(M, C, null).HANDLERS.SUBMIT(event);
                 }).submit();
+                return this;
             };
 
             ControllerFunction.prototype.getCache = function (url) {
@@ -697,6 +706,11 @@ var MODULE;
         CONTROLLER.Main = Main;
     })(MODULE.CONTROLLER || (MODULE.CONTROLLER = {}));
     var CONTROLLER = MODULE.CONTROLLER;
+})(MODULE || (MODULE = {}));
+
+var MODULE;
+(function (MODULE) {
+    MODULE.Controller = MODULE.CONTROLLER.Main;
 })(MODULE || (MODULE = {}));
 /// <reference path="../define.ts"/>
 var MODULE;
@@ -1944,9 +1958,114 @@ var MODULE;
 (function (MODULE) {
     /* MODEL */
     (function (MODEL) {
+        var mode;
+
         var AppPageUtility = (function () {
             function AppPageUtility() {
             }
+            AppPageUtility.prototype.createHTMLDocument = function (html, uri) {
+                var _this = this;
+                var test = function (mode_) {
+                    try  {
+                        mode = mode_;
+                        var html = '<html lang="en" class="html"><head><title>&amp;</title><link href="/"><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript><a href="/"></a></body></html>', doc = _this.createHTMLDocument(html, '');
+                        switch (false) {
+                            case !!doc:
+                            case doc.URL && decodeURI(doc.URL) === decodeURI(uri || window.location.href):
+                            case doc.title === '&':
+                            case !!doc.querySelector('html.html[lang="en"]'):
+                            case !!doc.querySelector('head>link')['href']:
+                            case !!doc.querySelector('head>noscript')['innerHTML']:
+                            case !!doc.querySelector('body>noscript')['innerHTML']:
+                            case !!doc.querySelector('body>a')['href']:
+                                throw true;
+                        }
+                        return true;
+                    } catch (err) {
+                        mode = null;
+                        return false;
+                    }
+                };
+                function manipulate(doc, html) {
+                    var wrapper = document.createElement('div');
+                    wrapper.innerHTML = html.match(/<html(?:\s.*?[^\\])?>|$/i).shift().replace(/html/i, 'div') || '<div>';
+                    var attrs = wrapper.firstChild.attributes;
+                    for (var i = 0, attr; attr = attrs[i]; i++) {
+                        doc.documentElement.setAttribute(attr.name, attr.value);
+                    }
+                    var wrapper = document.createElement('html');
+                    wrapper.innerHTML = html.replace(/^.*?<html(?:\s.*?[^\\])?>/im, '');
+                    doc.documentElement.removeChild(doc.head);
+                    doc.documentElement.removeChild(doc.body);
+                    while (wrapper.childNodes.length) {
+                        doc.documentElement.appendChild(wrapper.childNodes[0]);
+                    }
+                    return doc;
+                }
+                ;
+
+                var backup = window.location.href;
+                uri && window.history.replaceState(window.history.state, document.title, uri);
+
+                var doc;
+                switch (mode) {
+                    case 'dom':
+                        if ('function' === typeof window.DOMParser) {
+                            doc = new window.DOMParser().parseFromString(html, 'text/html');
+                        }
+                        break;
+
+                    case 'doc':
+                        if (document.implementation && document.implementation.createHTMLDocument) {
+                            doc = document.implementation.createHTMLDocument('');
+
+                            // IE, Operaクラッシュ対策
+                            if ('object' !== typeof doc.activeElement || !doc.activeElement) {
+                                break;
+                            }
+
+                            // titleプロパティの値をChromeで事後に変更できなくなったため事前に設定する必要がある
+                            if ('function' === typeof window.DOMParser) {
+                                doc.title = new window.DOMParser().parseFromString(html.match(/<title(?:\s.*?[^\\])?>(?:.*?[^\\])?<\/title>/i), 'text/html').title;
+                            }
+                            doc.open();
+                            doc.write(html);
+                            doc.close();
+                        }
+                        break;
+
+                    case 'manipulate':
+                        if (document.implementation && document.implementation.createHTMLDocument) {
+                            doc = manipulate(document.implementation.createHTMLDocument(''), html);
+                        }
+                        break;
+
+                    case null:
+                        doc = null;
+                        break;
+
+                    default:
+                        switch (/webkit|firefox|trident|$/i.exec(window.navigator.userAgent.toLowerCase()).shift()) {
+                            case 'webkit':
+                                test('doc') || test('dom') || test('manipulate');
+                                break;
+                            case 'firefox':
+                                test('dom') || test('doc') || test('manipulate');
+                                break;
+                            case 'trident':
+                                test('manipulate') || test('dom') || test('doc');
+                                break;
+                            default:
+                                test('dom') || test('doc') || test('manipulate');
+                        }
+                        doc = this.createHTMLDocument(html, uri);
+                        break;
+                }
+
+                uri && window.history.replaceState(window.history.state, document.title, backup);
+                return doc;
+            };
+
             AppPageUtility.prototype.chooseArea = function (areas, srcDocument, dstDocument) {
                 areas = areas instanceof Array ? areas : [areas];
 
@@ -2236,10 +2355,6 @@ var MODULE;
 (function (MODULE) {
     /* MODEL */
     (function (MODEL) {
-        setTimeout(function () {
-            return AppPageUpdate.createHTMLDocument_('', '');
-        }, 50);
-
         var AppPageUpdate = (function (_super) {
             __extends(AppPageUpdate, _super);
             function AppPageUpdate(model_, app_, setting_, event_, register_, cache_, data_, textStatus_, jqXHR_, errorThrown_, host_) {
@@ -2256,7 +2371,6 @@ var MODULE;
                 this.errorThrown_ = errorThrown_;
                 this.host_ = host_;
                 this.loadwaits_ = [];
-                this.createHTMLDocument_ = AppPageUpdate.createHTMLDocument_;
                 this.main_();
             }
             AppPageUpdate.prototype.main_ = function () {
@@ -2285,7 +2399,7 @@ var MODULE;
                         }
 
                         /* variable define */
-                        this.srcDocument_ = this.createHTMLDocument_(jqXHR.responseText, setting.destLocation.href);
+                        this.srcDocument_ = this.createHTMLDocument(jqXHR.responseText, setting.destLocation.href);
                         this.dstDocument_ = document;
 
                         // 更新範囲を選出
@@ -2544,7 +2658,7 @@ var MODULE;
                 }
 
                 if (cache && cache.data) {
-                    var html = setting.fix.noscript ? this.restoreNoscript_(cache.data) : cache.data, cacheDocument = this.createHTMLDocument_(html, setting.destLocation.href), srcDocument = this.srcDocument_;
+                    var html = setting.fix.noscript ? this.restoreNoscript_(cache.data) : cache.data, cacheDocument = this.createHTMLDocument(html, setting.destLocation.href), srcDocument = this.srcDocument_;
 
                     srcDocument.title = cacheDocument.title;
 
@@ -3031,106 +3145,6 @@ var MODULE;
                 script.innerHTML = jQuery.data(script, 'code');
                 jQuery.removeData(script, 'code');
             };
-
-            AppPageUpdate.createHTMLDocument_ = function (html, uri) {
-                var _this = this;
-                var mode;
-
-                this.createHTMLDocument_ = function (html, uri) {
-                    function test_(conv) {
-                        var args = [];
-                        for (var _i = 0; _i < (arguments.length - 1); _i++) {
-                            args[_i] = arguments[_i + 1];
-                        }
-                        try  {
-                            var html = '<html lang="en" class="html"><head><title>pjax</title><link href="/"><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript><a href="/"></a></body></html>', doc = conv(html, '');
-                            return doc && doc.URL && decodeURI(doc.URL) === decodeURI(uri || window.location.href) && doc.title === 'pjax' && doc.querySelector('html.html[lang="en"]') && doc.querySelector('head>link')['href'] && doc.querySelector('head>noscript')['innerHTML'] && doc.querySelector('body>noscript')['innerHTML'] === 'noscript' && doc.querySelector('body>a')['href'] && true || false;
-                        } catch (err) {
-                            return false;
-                        }
-                    }
-                    ;
-                    function manipulate(doc, html) {
-                        var wrapper = document.createElement('div');
-                        wrapper.innerHTML = (html.match(/<html(?:\s.*?[^\\])?>/i) || ['<html>']).shift().replace(/html/i, 'div') + '</div>';
-                        var attrs = wrapper.firstChild.attributes;
-                        for (var i = 0, attr; attr = attrs[i]; i++) {
-                            doc.documentElement.setAttribute(attr.name, attr.value);
-                        }
-                        var wrapper = document.createElement('html');
-                        wrapper.innerHTML = html.replace(/^.*?<html(?:\s.*?[^\\])?>/im, '');
-                        doc.documentElement.removeChild(doc.head);
-                        doc.documentElement.removeChild(doc.body);
-                        while (wrapper.childNodes.length) {
-                            doc.documentElement.appendChild(wrapper.childNodes[0]);
-                        }
-                        return doc;
-                    }
-                    ;
-
-                    var backup = window.location.href;
-                    uri && window.history.replaceState(window.history.state, document.title, uri);
-
-                    var doc;
-                    switch (mode) {
-                        case 'dom':
-                            if ('function' === typeof window.DOMParser) {
-                                doc = new window.DOMParser().parseFromString(html, 'text/html');
-                            }
-                            break;
-
-                        case 'doc':
-                            if (document.implementation && document.implementation.createHTMLDocument) {
-                                doc = document.implementation.createHTMLDocument('');
-
-                                // IE, Operaクラッシュ対策
-                                if ('object' !== typeof doc.activeElement || !doc.activeElement) {
-                                    break;
-                                }
-
-                                // titleプロパティの値をChromeで事後に変更できなくなったため事前に設定する必要がある
-                                if ('function' === typeof window.DOMParser) {
-                                    doc.title = new window.DOMParser().parseFromString(html.match(/<title(?:\s.*?[^\\])?>(?:.*?[^\\])?<\/title>/i), 'text/html').title;
-                                }
-                                doc.open();
-                                doc.write(html);
-                                doc.close();
-                            }
-                            break;
-
-                        case 'manipulate':
-                            if (document.implementation && document.implementation.createHTMLDocument) {
-                                doc = manipulate(document.implementation.createHTMLDocument(''), html);
-                            }
-                            break;
-
-                        default:
-                            var test = function (mode_) {
-                                return test_(_this.createHTMLDocument_, mode = mode_);
-                            };
-                            switch (/webkit|firefox|trident|$/i.exec(window.navigator.userAgent.toLowerCase()).shift()) {
-                                case 'webkit':
-                                    test('doc') || test('dom') || test('manipulate');
-                                    break;
-                                case 'firefox':
-                                    test('dom') || test('doc') || test('manipulate');
-                                    break;
-                                case 'trident':
-                                    test('manipulate') || test('dom') || test('doc');
-                                    break;
-                                default:
-                                    test('dom') || test('doc') || test('manipulate');
-                            }
-                            doc = _this.createHTMLDocument_(html, uri);
-                            break;
-                    }
-
-                    uri && window.history.replaceState(window.history.state, document.title, backup);
-                    return doc;
-                };
-
-                return this.createHTMLDocument_(html, uri);
-            };
             return AppPageUpdate;
         })(MODEL.AppPageUtility);
         MODEL.AppPageUpdate = AppPageUpdate;
@@ -3148,6 +3162,7 @@ var MODULE;
         var AppPage = (function (_super) {
             __extends(AppPage, _super);
             function AppPage(model_, app_) {
+                var _this = this;
                 _super.call(this);
                 this.model_ = model_;
                 this.app_ = app_;
@@ -3155,6 +3170,9 @@ var MODULE;
                 this.recent = { order: [], data: {}, size: 0 };
                 this.loadedScripts = {};
                 this.isScrollPosSavable = true;
+                setTimeout(function () {
+                    return _this.createHTMLDocument('', '') || _this.model_.disable();
+                }, 50);
             }
             AppPage.prototype.transfer = function (setting, event, register, cache) {
                 var _this = this;
@@ -3217,7 +3235,7 @@ var MODULE;
                     }
                 });
 
-                new MODULE.VIEW.Main(this.model_, this.controller_, $context).BIND(setting);
+                new MODULE.View(this.model_, this.controller_, $context).BIND(setting);
                 setTimeout(function () {
                     return _this.data.loadBufferAll(setting.buffer.limit);
                 }, setting.buffer.delay);
@@ -3520,7 +3538,7 @@ var MODULE;
             function Main() {
                 _super.apply(this, arguments);
                 var _this = this;
-                this.controller_ = new MODULE.CONTROLLER.Main(this);
+                this.controller_ = new MODULE.Controller(this);
                 this.app_ = new MODEL.App(this, this.controller_);
                 this.state_ = -1 /* wait */;
                 this.isDeferrable = jQuery.when && 1.06 <= Number(jQuery().jquery.replace(/\D*(\d+)\.(\d+).*$/, '$1.0$2').replace(/\d+(\d{2})$/, '$1'));
@@ -3530,6 +3548,10 @@ var MODULE;
             }
             Main.prototype.main_ = function ($context, option) {
                 var _this = this;
+                if (!option && $context.is('a, form')) {
+                    return $context;
+                }
+
                 var pattern;
                 pattern = $context instanceof MODULE.NAMESPACE ? 'm:' : 'f:';
                 pattern += option ? ({}).toString.call(option).split(' ').pop().slice(0, -1).toLowerCase() : option;
@@ -3537,9 +3559,6 @@ var MODULE;
                     case 'm:object':
                         break;
                     case 'm:undefined':
-                        if ($context.is('a, form')) {
-                            return $context;
-                        }
                         option = {};
                         break;
                     default:
@@ -3814,6 +3833,7 @@ var MODULE;
                 if (!setting || !recent) {
                     return this;
                 }
+
                 var cache, size, timeStamp, expires;
 
                 var secure_url = this.convertUrlToKeyUrl(MODEL.Util.normalizeUrl(unsafe_url));
@@ -3826,7 +3846,10 @@ var MODULE;
                     }
                 }
 
-                recent.size > setting.cache.size && this.cleanCache();
+                if (setting.cache.limit && recent.order.length > setting.cache.limit || setting.cache.size && recent.size > setting.cache.size) {
+                    this.cleanCache();
+                }
+
                 cache = this.getCache(secure_url);
                 if (!data && !jqXHR && (!cache || !cache.data && !cache.jqXHR)) {
                     return;
@@ -3871,22 +3894,32 @@ var MODULE;
                 }
             };
 
-            Main.prototype.removeCache = function (unsafe_url) {
+            Main.prototype.removeCache = function (param) {
                 var setting = this.getGlobalSetting(), recent = this.app_.page.recent;
                 if (!setting || !recent) {
                     return;
                 }
 
-                var secure_url = this.convertUrlToKeyUrl(MODEL.Util.normalizeUrl(unsafe_url));
-                unsafe_url = null;
+                switch (typeof param) {
+                    case 'string':
+                        var secure_url = this.convertUrlToKeyUrl(MODEL.Util.normalizeUrl(param));
+                        param = null;
 
-                for (var i = 0, key; key = recent.order[i]; i++) {
-                    if (secure_url === key) {
+                        for (var i = 0, key; key = recent.order[i]; i++) {
+                            if (secure_url === key) {
+                                this.removeCache(i);
+                                break;
+                            }
+                        }
+                        break;
+
+                    case 'number':
+                        var i = param, key = recent.order[i];
                         recent.order.splice(i, 1);
                         recent.size -= recent.data[key].size;
                         recent.data[key] = null;
                         delete recent.data[key];
-                    }
+                        break;
                 }
             };
 
@@ -3895,10 +3928,9 @@ var MODULE;
                 if (!setting || !recent) {
                     return;
                 }
-                for (var i = recent.order.length, url; url = recent.order[--i];) {
-                    recent.order.splice(i, 1);
-                    recent.size -= recent.data[url].size;
-                    delete recent.data[url];
+
+                while (recent.order.length) {
+                    this.removeCache(~-recent.order.length);
                 }
             };
 
@@ -3907,12 +3939,14 @@ var MODULE;
                 if (!setting || !recent) {
                     return;
                 }
-                for (var i = recent.order.length, url; url = recent.order[--i];) {
-                    if (i >= setting.cache.limit || url in recent.data && new Date().getTime() > recent.data[url].expires) {
-                        recent.order.splice(i, 1);
-                        recent.size -= recent.data[url].size;
-                        delete recent.data[url];
+
+                for (var i = recent.order.length, now = new Date().getTime(), url; url = recent.order[--i];) {
+                    if (now > recent.data[url].expires) {
+                        this.removeCache(url);
                     }
+                }
+                while (setting.cache.limit && recent.order.length > setting.cache.limit || setting.cache.size && recent.size > setting.cache.size) {
+                    this.removeCache(~-recent.order.length);
                 }
             };
 
@@ -3929,6 +3963,20 @@ var MODULE;
     })(MODULE.MODEL || (MODULE.MODEL = {}));
     var MODEL = MODULE.MODEL;
 })(MODULE || (MODULE = {}));
+
+var MODULE;
+(function (MODULE) {
+    MODULE.Model = MODULE.MODEL.Main;
+})(MODULE || (MODULE = {}));
 /// <reference path="model/main.ts"/>
-new MODULE.MODEL.Main();
+/// <reference path="view/main.ts"/>
+/// <reference path="controller/main.ts"/>
+var Module = (function () {
+    function Module() {
+        new MODULE.Model();
+    }
+    return Module;
+})();
+
+new Module();
 })(window, window.document, void 0, jQuery);
