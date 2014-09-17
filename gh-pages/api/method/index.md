@@ -32,9 +32,6 @@ pjaxを使用してフォーム送信によりページを移動します。
 ## [clearCache()](api/method/clearCache/) <small><span class="label label-info">chainable</span></small>
 プラグインキャッシュをすべて削除します。
 
-## [rewrite()](api/method/rewrite/)
-`rewrite`パラメータに設定した関数により現在のページを書き換えます。
-
 ## [follow()](api/method/follow/) <small><span class="label label-primary">jQuery1.6+</span></small>
 外部のajax処理を引き継いでページ移動を行います。
 
