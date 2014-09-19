@@ -8,7 +8,7 @@ module MODULE.CONTROLLER {
   var M: ModelInterface
   var C: ControllerInterface
 
-  export class ControllerMethod extends ControllerFunction implements MethodInterface {
+  export class ControllerMethod extends ControllerFunction {
 
     constructor(controller: ControllerInterface, model: ModelInterface) {
       super(controller, model);

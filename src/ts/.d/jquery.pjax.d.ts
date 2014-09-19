@@ -8,6 +8,14 @@
 
 /// <reference path="jquery.d.ts"/>
 
+interface JQueryStatic {
+  pjax: JQueryPjaxStatic
+}
+
+interface JQuery {
+  pjax: JQueryPjax
+}
+
 interface PjaxSetting {
     area?: any       // string, array, function( event, param, origUrl, destUrl )
     link?: string
@@ -164,37 +172,41 @@ interface PjaxCache {
     expires: number
 }
 
-interface JQueryPjax {
+interface Pjax<T> {
     (setting?: PjaxSetting): JQueryPjax
-    enable(): JQueryPjax
-    disable(): JQueryPjax
+    enable(): T
+    disable(): T
+    setCache(): T
+    setCache(url: string): T
+    setCache(url: string, data: string): T
+    setCache(url: string, data: string, textStatus: string, jqXHR: JQueryXHR): T
+    getCache(): PjaxCache
+    getCache(url: string): PjaxCache
+    removeCache(url: string): T
+    removeCache(): T
+    clearCache(): T
+    follow(event: JQueryEventObject, ajax: JQueryXHR, host?: string): boolean
+    host(): string
+}
+
+interface JQueryPjaxStatic extends Pjax<JQueryPjaxStatic>, JQueryStatic {
+    click(): JQueryPjaxStatic
+    click(url: string, attrs?: {}): JQueryPjaxStatic
+    click(url: HTMLAnchorElement): JQueryPjaxStatic
+    click(url: JQuery): JQueryPjaxStatic
+    submit(): JQueryPjaxStatic
+    submit(url: string, attrs: {}, data: any): JQueryPjaxStatic
+    submit(url: HTMLFormElement): JQueryPjaxStatic
+    submit(url: JQuery): JQueryPjaxStatic
+}
+
+interface JQueryPjax extends Pjax<JQueryPjax>, JQuery {
     click(): JQueryPjax
-    click(url: string, attrs?: { [index:string]: any; }): JQueryPjax
+    click(url: string, attrs?: {}): JQueryPjax
     click(url: HTMLAnchorElement): JQueryPjax
     click(url: JQuery): JQueryPjax
     submit(): JQueryPjax
-    submit(url: string, attrs: { [index: string]: any; }, data: any): JQueryPjax
+    submit(url: string, attrs: {}, data: any): JQueryPjax
     submit(url: HTMLFormElement): JQueryPjax
     submit(url: JQuery): JQueryPjax
-    setCache(): JQueryPjax
-    setCache(url: string): JQueryPjax
-    setCache(url: string, data: string): JQueryPjax
-    setCache(url: string, data: string, textStatus: string, jqXHR: JQueryXHR): JQueryPjax
-    getCache(): PjaxCache
-    getCache(url: string): PjaxCache
-    removeCache(url: string): JQueryPjax
-    removeCache(): JQueryPjax
-    clearCache(): JQueryPjax
-    follow(event: JQueryEventObject, ajax: JQueryXHR, host?: string): boolean
-    host(): string
-    
-    end(): JQuery
-}
-
-interface JQueryStatic {
-    pjax: JQueryPjax
-}
-
-interface JQuery {
-    pjax: JQueryPjax
 }

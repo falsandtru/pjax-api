@@ -300,31 +300,6 @@ module MODULE {
     POPSTATE(event: JQueryEventObject): void
     SCROLL(event: JQueryEventObject): void
   }
-  export interface FunctionInterface {
-    enable(): JQueryPjax
-    disable(): JQueryPjax
-    click(): JQueryPjax
-    click(url: string, attr?: { href?: string; }): JQueryPjax
-    click(url: HTMLAnchorElement, attr?: { href?: string; }): JQueryPjax
-    click(url: JQuery, attr?: { href?: string; }): JQueryPjax
-    submit(): JQueryPjax
-    submit(url: string, attr: { action?: string; method?: string; }, data: any): JQueryPjax
-    submit(url: HTMLFormElement, attr?: { action?: string; method?: string; }, data?: any): JQueryPjax
-    submit(url: JQuery, attr?: { action?: string; method?: string; }, data?: any): JQueryPjax
-    follow(event: JQueryEventObject, ajax: JQueryXHR, host?: string): boolean
-    setCache(): JQueryPjax
-    setCache(url: string): JQueryPjax
-    setCache(url: string, data: string): JQueryPjax
-    setCache(url: string, data: string, textStatus: string, jqXHR: JQueryXHR): JQueryPjax
-    getCache(): PjaxCache
-    getCache(url: string): PjaxCache
-    removeCache(url: string): JQueryPjax
-    removeCache(): JQueryPjax
-    clearCache(): JQueryPjax
-    host(): string
-  }
-  export interface MethodInterface {
-  }
 
   // enum
   export enum State { wait = -1, ready, lock, seal, error }
