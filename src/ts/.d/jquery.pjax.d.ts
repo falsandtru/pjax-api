@@ -17,15 +17,15 @@ interface JQuery {
 }
 
 interface PjaxSetting {
-    area?: any       // string, array, function( event, param, origUrl, destUrl )
+    area?: any       // string, array
     link?: string
     filter?: any     // string, function()
     form?: string
     scope?: {
         [index: string]: any
-        rewrite(url: string): string
+        rewrite?(url: string): string
     }
-    rewrite: (document: Document, area: string, host: string) => void
+    rewrite?: (document: Document, area: string, host: string) => void
     state?: any      // any, function(event, param, origUrl, destUrl )
     scrollTop?: any  // number, function( event, param, origUrl, destUrl ), null, false
     scrollLeft?: any // number, function( event, param, origUrl, destUrl ), null, false
@@ -41,7 +41,7 @@ interface PjaxSetting {
         popstate?: boolean
         get?: boolean
         post?: boolean
-        page?: boolean
+        limit?: number
         size?: number
         mix?: number
         expires?: {
@@ -49,9 +49,9 @@ interface PjaxSetting {
             max?: number
         }
     }
-    buffer: {
-      limit: number
-      delay: number
+    buffer?: {
+      limit?: number
+      delay?: number
     }
     load?: {
         head?: string
@@ -60,33 +60,34 @@ interface PjaxSetting {
         execute?: boolean
         reload?: string
         ignore?: string
+        log?: string
         ajax?: JQueryAjaxSettings
     }
-    balance: {
-        self: boolean
-        weight: number
-        client: {
-            support: {
-                userAgent: RegExp
-                redirect: RegExp
+    balance?: {
+        self?: boolean
+        weight?: number
+        client?: {
+            support?: {
+                userAgent?: RegExp
+                redirect?: RegExp
             }
-            exclude: RegExp
-            cookie: {
-                balance: string
-                redirect: string
-                host: string
+            exclude?: RegExp
+            cookie?: {
+                balance?: string
+                redirect?: string
+                host?: string
             }
         }
-        server: {
-            header: string
-            filter: RegExp
-            error: number
+        server?: {
+            header?: string
+            filter?: RegExp
+            error?: number
         }
-        log: {
-            expires: number
-            limit: number
+        log?: {
+            expires?: number
+            limit?: number
         }
-        option: PjaxSetting
+        option?: PjaxSetting
     }
     wait?: any     // number, function( event, param, origUrl, destUrl ): number
     fallback?: any // boolean, function( event, param, origUrl, destUrl ): boolean
