@@ -110,7 +110,7 @@ module MODULE {
     data: AppDataInterface
 
     initialize($context: ContextInterface, setting: SettingInterface): void
-    configure(option: SettingInterface, origURL: string, destURL: string): SettingInterface
+    configure(option: PjaxSetting, origURL: string, destURL: string): SettingInterface
   }
   export declare class AppBalanceInterface {
     constructor(model: ModelInterface, app: AppLayerInterface)
@@ -307,12 +307,11 @@ module MODULE {
   // Parameter
   export interface SettingInterface extends PjaxSetting {
     // internal
-    uuid: string
     gns: string
     ns: string
     nss: {
       name: string
-      event: string[]
+      event: string
       click: string
       submit: string
       popstate: string
@@ -326,7 +325,7 @@ module MODULE {
     areas: string[]
     loadtime: number
     retriable: boolean
-    disable: boolean
+    cancel: boolean
     option: PjaxSetting
     speedcheck: boolean
   }

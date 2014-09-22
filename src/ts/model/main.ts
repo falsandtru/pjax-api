@@ -102,7 +102,7 @@ module MODULE.MODEL {
       if (origLocation.protocol !== destLocation.protocol || origLocation.host !== destLocation.host) { return false; }
 
       setting = setting || this.app_.configure(this.getGlobalSetting(), origLocation.href, destLocation.href);
-      if (setting.disable) { return; }
+      if (setting.cancel) { return; }
       if (destLocation.hash && origLocation.href.replace(/#.*/, '') === destLocation.href.replace(/#.*/, '')) { return false; }
       if (!this.app_.page.chooseArea(setting.area, document, document)) { return false; }
       if (!jQuery(event.currentTarget).filter(setting.filter).length) { return false; }
@@ -132,7 +132,7 @@ module MODULE.MODEL {
             $context: ContextInterface = jQuery(context);
         var setting: SettingInterface = this.app_.configure(this.getGlobalSetting(), window.location.href, context.href);
 
-        if (State.ready !== this.state() || setting.disable || event.isDefaultPrevented()) { break PROCESS; }
+        if (State.ready !== this.state() || setting.cancel || event.isDefaultPrevented()) { break PROCESS; }
         if (!this.isImmediateLoadable(event, setting)) { break PROCESS; }
 
         if (setting.cache.mix && this.getCache(setting.destLocation.href)) { break PROCESS; }
@@ -156,7 +156,7 @@ module MODULE.MODEL {
             $context: ContextInterface = jQuery(context);
         var setting: SettingInterface = this.app_.configure(this.getGlobalSetting(), window.location.href, context.action);
 
-        if (State.ready !== this.state() || setting.disable || event.isDefaultPrevented()) { break PROCESS; }
+        if (State.ready !== this.state() || setting.cancel || event.isDefaultPrevented()) { break PROCESS; }
         if (!this.isImmediateLoadable(event, setting)) { break PROCESS; }
 
         var serializedURL = setting.destLocation.href.replace(/[?#].*/, '') + ('GET' === context.method.toUpperCase() ? '?' + jQuery(context).serialize() : '');
@@ -182,7 +182,7 @@ module MODULE.MODEL {
         if (this.app_.page.landing && this.app_.page.landing === Util.normalizeUrl(window.location.href)) { return; }
         if (setting.origLocation.href === setting.destLocation.href) { return; }
 
-        if (State.ready !== this.state() || setting.disable) { break PROCESS; }
+        if (State.ready !== this.state() || setting.cancel) { break PROCESS; }
         if (!this.isImmediateLoadable(event, setting)) { break PROCESS; }
 
         if (setting.origLocation.hash !== setting.destLocation.hash &&
