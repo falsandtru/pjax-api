@@ -3,9 +3,9 @@
 
 /* MODEL */
 
-module MODULE.MODEL {
+module MODULE.MODEL.APP {
   
-  export class AppBalance implements AppBalanceInterface {
+  export class Balance implements BalanceInterface {
 
     constructor(public model_: ModelInterface, public app_: AppLayerInterface) { }
 

@@ -3,9 +3,9 @@
 
 /* MODEL */
 
-module MODULE.MODEL {
+module MODULE.MODEL.APP.DATA {
   
-  export class DataCookie implements DataCookieInterface {
+  export class Cookie implements CookieInterface {
     constructor(age: number) {
       this.age_ = age;
     }

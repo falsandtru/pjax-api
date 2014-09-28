@@ -1,7 +1,7 @@
 
 /* MODEL */
 
-module MODULE.MODEL {
+module MODULE.LIBRARY {
 
   export class Utility {
 
@@ -180,7 +180,6 @@ module MODULE.MODEL {
   }
 
   var that = Utility
-  export var Util = MODEL.Utility
 
   // private
 

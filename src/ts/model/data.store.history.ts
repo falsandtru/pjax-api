@@ -3,9 +3,9 @@
 
 /* MODEL */
 
-module MODULE.MODEL {
+module MODULE.MODEL.APP.DATA {
   
-  export class DataStoreHistory<T> extends DataStore<T> implements DataStoreHistoryInterface<T> {
+  export class StoreHistory<T> extends Store<T> implements StoreHistoryInterface<T> {
 
     name: string = 'history'
     keyPath: string = 'id'

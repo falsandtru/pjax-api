@@ -3,9 +3,9 @@
 
 /* MODEL */
 
-module MODULE.MODEL {
+module MODULE.MODEL.APP.DATA {
   
-  export class DataStoreLog<T> extends DataStore<T> implements DataStoreLogInterface<T> {
+  export class StoreLog<T> extends Store<T> implements StoreLogInterface<T> {
 
     name: string = 'log'
     keyPath: string = 'id'

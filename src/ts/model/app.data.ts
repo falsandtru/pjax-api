@@ -1,17 +1,17 @@
 /// <reference path="../define.ts"/>
 /// <reference path="data.ts"/>
-/// <reference path="utility.ts"/>
+/// <reference path="../library/utility.ts"/>
 
 /* MODEL */
 
-module MODULE.MODEL {
+module MODULE.MODEL.APP {
   
-  export class AppData implements AppDataInterface {
+  export class Data implements DataInterface {
 
     constructor(public model_: ModelInterface, public app_: AppLayerInterface) {
     }
 
-    data_: DataLayerInterface = new MODEL.Data()
+    data_: DataLayerInterface = new DATA.Main()
     storeNames = {
       meta: this.data_.DB.store.meta.name,
       history: this.data_.DB.store.history.name,
@@ -141,7 +141,13 @@ module MODULE.MODEL {
     loadLogFromDB(): void {
     }
 
-    saveLogToDB(log: LogSchema): void {
+    saveLogToDB(host: string, performance: number): void {
+      var log: LogSchema = {
+        host: host,
+        performance: performance,
+        date: new Date().getTime()
+      };
+
       this.data_.DB.store.log.addBuffer(log);
       this.data_.DB.store.log.add(log);
       this.data_.DB.store.log.clean();

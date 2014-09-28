@@ -1,13 +1,13 @@
 /// <reference path="../define.ts"/>
 /// <reference path="app.page.utility.ts"/>
 /// <reference path="app.data.ts"/>
-/// <reference path="utility.ts"/>
+/// <reference path="../library/utility.ts"/>
 
 /* MODEL */
 
-module MODULE.MODEL {
+module MODULE.MODEL.APP {
 
-  export class AppPageUpdate extends AppPageUtility implements AppPageUpdateInterface {
+  export class PageUpdate extends PageUtility implements PageUpdateInterface {
     
     constructor(
 
@@ -194,7 +194,7 @@ module MODULE.MODEL {
       } else if (setting.retriable) {
         setting.retriable = false;
         setting.destLocation.href = Util.normalizeUrl(window.location.href);
-        new AppPageUpdate(this.model_, this.app_, setting, event, false, setting.cache[event.type.toLowerCase()] && this.model_.getCache(setting.destLocation.href), this.data_, this.textStatus_, this.jqXHR_, this.errorThrown_, this.host_);
+        new PageUpdate(this.model_, this.app_, setting, event, false, setting.cache[event.type.toLowerCase()] && this.model_.getCache(setting.destLocation.href), this.data_, this.textStatus_, this.jqXHR_, this.errorThrown_, this.host_);
         throw false;
       } else {
         throw new Error('throw: location mismatch');
@@ -446,11 +446,7 @@ module MODULE.MODEL {
       if (Util.fire(callbacks_update.balance.before, null, [event, setting.param]) === false) { return; }
 
       var host = (this.jqXHR_.getResponseHeader(setting.balance.server.header) || '').split('//').pop();
-      this.app_.data.saveLogToDB({
-        host: host,
-        performance: Math.ceil(setting.loadtime / (this.jqXHR_.responseText.length || 1) * 1e5),
-        date: new Date().getTime()
-      });
+      this.app_.data.saveLogToDB(host, Math.ceil(setting.loadtime / (this.jqXHR_.responseText.length || 1) * 1e5));
       this.app_.data.saveServerToDB(host, 0, setting.destLocation.href, this.calExpires(this.jqXHR_));
       this.app_.balance.chooseServer(setting);
 

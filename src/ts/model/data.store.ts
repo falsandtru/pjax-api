@@ -3,14 +3,14 @@
 
 /* MODEL */
 
-module MODULE.MODEL {
+module MODULE.MODEL.APP.DATA {
   
-  export class DataStore<T> implements DataStoreInterface<T> {
-    constructor(DB: DataDBInterface) {
+  export class Store<T> implements StoreInterface<T> {
+    constructor(DB: DBInterface) {
       this.DB_ = DB;
     }
 
-    DB_: DataDBInterface
+    DB_: DBInterface
 
     name: string
     keyPath: string

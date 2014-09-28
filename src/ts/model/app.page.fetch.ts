@@ -1,12 +1,12 @@
 /// <reference path="../define.ts"/>
 /// <reference path="app.page.utility.ts"/>
-/// <reference path="utility.ts"/>
+/// <reference path="../library/utility.ts"/>
 
 /* MODEL */
 
-module MODULE.MODEL {
+module MODULE.MODEL.APP {
   
-  export class AppPageFetch extends AppPageUtility implements AppPageFetchInterface {
+  export class PageFetch extends PageUtility implements PageFetchInterface {
 
     constructor(
 

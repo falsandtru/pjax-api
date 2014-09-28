@@ -2,11 +2,11 @@
 
 /* MODEL */
 
-module MODULE.MODEL {
+module MODULE.MODEL.APP {
 
   var mode: string;
 
-  export class AppPageUtility implements AppPageUtilityInterface {
+  export class PageUtility implements PageUtilityInterface {
     
     createHTMLDocument(html: string, uri: string): Document {
       var test = (mode_: string): boolean => {

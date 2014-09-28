@@ -2,7 +2,7 @@
 /// <reference path="_template.ts"/>
 /// <reference path="app.ts"/>
 /// <reference path="data.ts"/>
-/// <reference path="utility.ts"/>
+/// <reference path="../library/utility.ts"/>
 /// <reference path="../view/main.ts"/>
 /// <reference path="../controller/main.ts"/>
 
@@ -14,6 +14,7 @@ module MODULE.MODEL {
 
     controller_: ControllerInterface = new Controller(this)
     app_: AppLayerInterface = new MODEL.App(this, this.controller_)
+
     state_: State = State.wait
 
     isDeferrable: boolean = jQuery.when && 1.06 <= Number(jQuery().jquery.replace(/\D*(\d+)\.(\d+).*$/, '$1.0$2').replace(/\d+(\d{2})$/, '$1'))
@@ -378,6 +379,8 @@ module MODULE.MODEL {
 
   }
   
+  export var Util = LIBRARY.Utility
+
 }
 
 module MODULE {

@@ -3,21 +3,21 @@
 /// <reference path="app.balance.ts"/>
 /// <reference path="app.page.ts"/>
 /// <reference path="app.data.ts"/>
-/// <reference path="utility.ts"/>
 /// <reference path="../view/main.ts"/>
+/// <reference path="../library/utility.ts"/>
 
 /* MODEL */
 
-module MODULE.MODEL {
+module MODULE.MODEL.APP {
   
-  export class App implements AppLayerInterface {
+  export class Main implements AppLayerInterface {
 
     constructor(public model_: ModelInterface, public controller_: ControllerInterface) {
     }
 
-    balance: AppBalanceInterface = new AppBalance(this.model_, this)
-    page: AppPageInterface = new AppPage(this.model_, this)
-    data: AppDataInterface = new AppData(this.model_, this)
+    balance: BalanceInterface = new Balance(this.model_, this)
+    page: PageInterface = new Page(this.model_, this)
+    data: DataInterface = new Data(this.model_, this)
 
     initialize($context: ContextInterface, setting: SettingInterface): void {
       var loadedScripts = this.page.loadedScripts;
@@ -305,4 +305,8 @@ module MODULE.MODEL {
 
   }
 
+}
+
+module MODULE.MODEL {
+  export var App = MODEL.APP.Main
 }

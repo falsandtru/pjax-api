@@ -6,9 +6,9 @@
 
 /* MODEL */
 
-module MODULE.MODEL {
+module MODULE.MODEL.APP.DATA {
   
-  export class DataDB implements DataDBInterface {
+  export class DB implements DBInterface {
     constructor() {
       var check = () => {
         var now = new Date().getTime(),
@@ -44,10 +44,10 @@ module MODULE.MODEL {
     tasks_: { (): void }[] = []
 
     store = {
-      meta: new MODEL.DataStoreMeta<MetaSchema>(this),
-      history: new MODEL.DataStoreHistory<HistorySchema>(this),
-      log: new MODEL.DataStoreLog<LogSchema>(this),
-      server: new MODEL.DataStoreServer<ServerSchema>(this)
+      meta: new StoreMeta<MetaSchema>(this),
+      history: new StoreHistory<HistorySchema>(this),
+      log: new StoreLog<LogSchema>(this),
+      server: new StoreServer<ServerSchema>(this)
     }
     metaNames = {
       version: 'version',

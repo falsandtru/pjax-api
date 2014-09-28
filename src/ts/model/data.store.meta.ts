@@ -3,9 +3,9 @@
 
 /* MODEL */
 
-module MODULE.MODEL {
+module MODULE.MODEL.APP.DATA {
   
-  export class DataStoreMeta<T> extends DataStore<T> implements DataStoreMetaInterface<T> {
+  export class StoreMeta<T> extends Store<T> implements StoreMetaInterface<T> {
 
     name: string = 'meta'
     keyPath: string = 'id'
