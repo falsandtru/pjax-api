@@ -69,12 +69,13 @@ module MODULE.MODEL {
             if ('object' !== typeof doc.activeElement || !doc.activeElement) { break; }
 
             // titleプロパティの値をChromeで事後に変更できなくなったため事前に設定する必要がある
-            if ('function' === typeof window.DOMParser) {
+            if ('function' === typeof window.DOMParser && new window.DOMParser().parseFromString('', 'text/html')) {
               doc.title = new window.DOMParser().parseFromString(html.match(/<title(?:\s.*?[^\\])?>(?:.*?[^\\])?<\/title>/i), 'text/html').title;
             }
             doc.open();
             doc.write(html);
             doc.close();
+            doc.title = doc.title ? doc.title : jQuery(html.match(/<title(?:\s.*?[^\\])?>(?:.*?[^\\])?<\/title>/i) + '').text();
           }
           break;
 
