@@ -36,6 +36,25 @@ td {
 ul {
   padding-left: 25px;
 }
+table {
+  margin: 1.0em 0;
+}
+thead {
+  font-weight: bold;
+}
+tbody {
+}
+th {
+  padding: .5em;
+  padding-right: 1.0em;
+  border: solid 0 #aaa;
+}
+td {
+  padding: .5em;
+  padding-right: 1.0em;
+  border: solid 1px #aaa;
+  border-width: 1px 0;
+}
 
 
 /* readability
@@ -130,25 +149,6 @@ textarea{
 }
 .style-info #content p {
   margin-bottom: 2.0em;
-}
-.style-info #content table {
-  margin: 1.0em 0;
-}
-.style-info #content thead {
-  font-weight: bold;
-}
-.style-info #content tbody {
-}
-.style-info #content th {
-  padding: .5em;
-  padding-right: 1.0em;
-  border: solid 0 #aaa;
-}
-.style-info #content td {
-  padding: .5em;
-  padding-right: 1.0em;
-  border: solid 1px #aaa;
-  border-width: 1px 0;
 }
 .style-api #content h2 {
   font-size: x-large;

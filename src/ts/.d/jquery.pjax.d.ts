@@ -8,16 +8,24 @@
 
 /// <reference path="jquery.d.ts"/>
 
+interface JQueryStatic {
+  pjax: JQueryPjaxStatic
+}
+
+interface JQuery {
+  pjax: JQueryPjax
+}
+
 interface PjaxSetting {
-    area?: any       // string, array, function( event, param, origUrl, destUrl )
+    area?: any       // string, array
     link?: string
     filter?: any     // string, function()
     form?: string
     scope?: {
         [index: string]: any
-        rewrite(url: string): string
+        rewrite?(url: string): string
     }
-    rewrite: (document: Document, area: string, host: string) => void
+    rewrite?: (document: Document, area: string, host: string) => void
     state?: any      // any, function(event, param, origUrl, destUrl )
     scrollTop?: any  // number, function( event, param, origUrl, destUrl ), null, false
     scrollLeft?: any // number, function( event, param, origUrl, destUrl ), null, false
@@ -33,7 +41,7 @@ interface PjaxSetting {
         popstate?: boolean
         get?: boolean
         post?: boolean
-        page?: boolean
+        limit?: number
         size?: number
         mix?: number
         expires?: {
@@ -41,9 +49,9 @@ interface PjaxSetting {
             max?: number
         }
     }
-    buffer: {
-      limit: number
-      delay: number
+    buffer?: {
+      limit?: number
+      delay?: number
     }
     load?: {
         head?: string
@@ -52,34 +60,34 @@ interface PjaxSetting {
         execute?: boolean
         reload?: string
         ignore?: string
+        log?: string
         ajax?: JQueryAjaxSettings
     }
-    balance: {
-        self: boolean
-        weight: number
-        client: {
-            support: {
-                userAgent: RegExp
-                redirect: RegExp
+    balance?: {
+        self?: boolean
+        weight?: number
+        client?: {
+            support?: {
+                userAgent?: RegExp
+                redirect?: RegExp
             }
-            exclude: RegExp
-            cookie: {
-                balance: string
-                redirect: string
-                host: string
+            exclude?: RegExp
+            cookie?: {
+                balance?: string
+                redirect?: string
+                host?: string
             }
         }
-        server: {
-            header: string
-            filter: RegExp
-            error: number
-            host: string //internal
+        server?: {
+            header?: string
+            filter?: RegExp
+            error?: number
         }
-        log: {
-            expires: number
-            limit: number
+        log?: {
+            expires?: number
+            limit?: number
         }
-        option: PjaxSetting
+        option?: PjaxSetting
     }
     wait?: any     // number, function( event, param, origUrl, destUrl ): number
     fallback?: any // boolean, function( event, param, origUrl, destUrl ): boolean
@@ -165,37 +173,41 @@ interface PjaxCache {
     expires: number
 }
 
-interface JQueryPjax {
+interface Pjax<T> {
     (setting?: PjaxSetting): JQueryPjax
-    enable(): JQueryPjax
-    disable(): JQueryPjax
+    enable(): T
+    disable(): T
+    setCache(): T
+    setCache(url: string): T
+    setCache(url: string, data: string): T
+    setCache(url: string, data: string, textStatus: string, jqXHR: JQueryXHR): T
+    getCache(): PjaxCache
+    getCache(url: string): PjaxCache
+    removeCache(url: string): T
+    removeCache(): T
+    clearCache(): T
+    follow(event: JQueryEventObject, ajax: JQueryXHR, host?: string): boolean
+    host(): string
+}
+
+interface JQueryPjaxStatic extends Pjax<JQueryPjaxStatic>, JQueryStatic {
+    click(): JQueryPjaxStatic
+    click(url: string, attrs?: {}): JQueryPjaxStatic
+    click(url: HTMLAnchorElement): JQueryPjaxStatic
+    click(url: JQuery): JQueryPjaxStatic
+    submit(): JQueryPjaxStatic
+    submit(url: string, attrs: {}, data: any): JQueryPjaxStatic
+    submit(url: HTMLFormElement): JQueryPjaxStatic
+    submit(url: JQuery): JQueryPjaxStatic
+}
+
+interface JQueryPjax extends Pjax<JQueryPjax>, JQuery {
     click(): JQueryPjax
-    click(url: string, attrs?: { [index:string]: any; }): JQueryPjax
+    click(url: string, attrs?: {}): JQueryPjax
     click(url: HTMLAnchorElement): JQueryPjax
     click(url: JQuery): JQueryPjax
     submit(): JQueryPjax
-    submit(url: string, attrs: { [index: string]: any; }, data: any): JQueryPjax
+    submit(url: string, attrs: {}, data: any): JQueryPjax
     submit(url: HTMLFormElement): JQueryPjax
     submit(url: JQuery): JQueryPjax
-    setCache(): JQueryPjax
-    setCache(url: string): JQueryPjax
-    setCache(url: string, data: string): JQueryPjax
-    setCache(url: string, data: string, textStatus: string, jqXHR: JQueryXHR): JQueryPjax
-    getCache(): PjaxCache
-    getCache(url: string): PjaxCache
-    removeCache(url: string): JQueryPjax
-    removeCache(): JQueryPjax
-    clearCache(): JQueryPjax
-    follow(event: JQueryEventObject, ajax: JQueryXHR, host?: string): boolean
-    host(): string
-    
-    end(): JQuery
-}
-
-interface JQueryStatic {
-    pjax: JQueryPjax
-}
-
-interface JQuery {
-    pjax: JQueryPjax
 }

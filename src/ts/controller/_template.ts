@@ -29,7 +29,7 @@ module MODULE.CONTROLLER {
       // コンテクストに関数を設定
       this.REGISTER_FUNCTIONS(NAMESPACE[NAME], f);
       // コンテクストのプロパティを更新
-      this.UPDATE_PROPERTIES(NAMESPACE[NAME], f);
+      this.UPDATE_PROPERTIES(NAMESPACE[NAME]);
       this.OBSERVE.apply(this, args);
       this.state_ = 0;
     }
@@ -66,25 +66,28 @@ module MODULE.CONTROLLER {
      * @chainable
      */
     EXTEND(context): any {
-      if (context === NAMESPACE || NAMESPACE && NAMESPACE == NAMESPACE.window) {
-        var m = new CONTROLLER.ControllerFunction(<Main>C, M);
-
-        // コンテクストをプラグインに変更
-        context = NAMESPACE[NAME];
-      } else
-        var m = new CONTROLLER.ControllerMethod(<Main>C, M);
-
-        // $().mvc()として実行された場合の処理
-        if (context instanceof NAMESPACE) {
-          if (context instanceof jQuery) {
-            // コンテクストへの変更をend()で戻せるようadd()
-            context = context.add();
-          }
-          // コンテクストに関数とメソッドを設定
-          this.REGISTER_FUNCTIONS(context, m);
+      if (context instanceof NAMESPACE) {
+        if (context instanceof jQuery) {
+          // コンテクストへの変更をend()で戻せるようadd()
+          context = context.add();
         }
+        // コンテクストに関数を設定
+        var f = new CONTROLLER.ControllerFunction(<Main>C, M);
+        this.REGISTER_FUNCTIONS(context, f);
+        // コンテクストにメソッドを設定
+        var m = new CONTROLLER.ControllerMethod(<Main>C, M);
+        this.REGISTER_FUNCTIONS(context, m);
+      } else {
+        if (context !== NAMESPACE) {
+          // コンテクストをプラグインに変更
+          context = NAMESPACE;
+        }
+        // コンテクストに関数を設定
+        var f = new CONTROLLER.ControllerFunction(<Main>C, M);
+        this.REGISTER_FUNCTIONS(context, f);
+      }
       // コンテクストのプロパティを更新
-      this.UPDATE_PROPERTIES(context, m);
+      this.UPDATE_PROPERTIES(context);
       return context;
     }
     
@@ -124,6 +127,7 @@ module MODULE.CONTROLLER {
 
       var i;
       for (i in funcs) {
+        if ('constructor' === i) { continue; }
         context[i] = funcs[i];
       }
       return context;
@@ -137,14 +141,15 @@ module MODULE.CONTROLLER {
      * @param {Object} funcs プロパティのリスト
      * @return {JQuery|Object|Function} context コンテクスト
      */
-    UPDATE_PROPERTIES(context, funcs): any {
+    UPDATE_PROPERTIES(context): any {
       var props = CONTROLLER.Template.PROPERTIES;
 
       var i, len, prop;
       for (i = 0, len = props.length; i < len; i++) {
+        if ('constructor' === i) { continue; }
         prop = props[i];
-        if (funcs[prop]) {
-          context[prop] = funcs[prop].call(context);
+        if (context[prop]) {
+          context[prop] = context[prop]();
         }
       }
       return context;

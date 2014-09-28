@@ -75,10 +75,11 @@ module MODULE {
 
     // Property
     isDeferrable: boolean
-    host(): string
+    queue: number[]
     
     // Model
     state(): State
+    host(): string
     convertUrlToKeyUrl(unsafe_url: string): string
     isImmediateLoadable(unsafe_url: string, setting?: SettingInterface): boolean
     isImmediateLoadable(event: JQueryEventObject, setting?: SettingInterface): boolean
@@ -103,13 +104,13 @@ module MODULE {
     clearCache(): void
     cleanCache(): void
   }
-  export declare class AppLayerInterface extends StockInterface {
+  export declare class AppLayerInterface {
     balance: AppBalanceInterface
     page: AppPageInterface
     data: AppDataInterface
 
     initialize($context: ContextInterface, setting: SettingInterface): void
-    configure(option: SettingInterface, origURL: string, destURL: string): SettingInterface
+    configure(option: PjaxSetting, origURL: string, destURL: string): SettingInterface
   }
   export declare class AppBalanceInterface {
     constructor(model: ModelInterface, app: AppLayerInterface)
@@ -299,196 +300,18 @@ module MODULE {
     POPSTATE(event: JQueryEventObject): void
     SCROLL(event: JQueryEventObject): void
   }
-  export interface FunctionInterface {
-    enable(): JQueryPjax
-    disable(): JQueryPjax
-    click(): JQueryPjax
-    click(url: string, attr?: { href?: string; }): JQueryPjax
-    click(url: HTMLAnchorElement, attr?: { href?: string; }): JQueryPjax
-    click(url: JQuery, attr?: { href?: string; }): JQueryPjax
-    submit(): JQueryPjax
-    submit(url: string, attr: { action?: string; method?: string; }, data: any): JQueryPjax
-    submit(url: HTMLFormElement, attr?: { action?: string; method?: string; }, data?: any): JQueryPjax
-    submit(url: JQuery, attr?: { action?: string; method?: string; }, data?: any): JQueryPjax
-    follow(event: JQueryEventObject, ajax: JQueryXHR, host?: string): boolean
-    setCache(): JQueryPjax
-    setCache(url: string): JQueryPjax
-    setCache(url: string, data: string): JQueryPjax
-    setCache(url: string, data: string, textStatus: string, jqXHR: JQueryXHR): JQueryPjax
-    getCache(): PjaxCache
-    getCache(url: string): PjaxCache
-    removeCache(url: string): JQueryPjax
-    removeCache(): JQueryPjax
-    clearCache(): JQueryPjax
-    host(): string
-  }
-  export interface MethodInterface {
-  }
 
   // enum
   export enum State { wait = -1, ready, lock, seal, error }
 
   // Parameter
-  export interface SettingInterface {
-    // public
-    area: string
-    link: string
-    filter(): boolean
-    form: string
-    scope: {
-      [index: string]: any
-      rewrite(url: string): string
-    }
-    rewrite: (document: Document, area: string, host: string) => void
-    state: {}
-    scrollTop: number
-    scrollLeft: number
-    ajax: JQueryAjaxSettings
-    contentType: string
-    cache: {
-      click: boolean
-      submit: boolean
-      popstate: boolean
-      get: boolean
-      post: boolean
-      limit: number
-      size: number
-      expires: {
-        max: number
-        min: number
-      }
-      mix: number
-    }
-    buffer: {
-      limit: number
-      delay: number
-    }
-    load: {
-      head: string
-      css: boolean
-      script: boolean
-      execute: boolean
-      log: string
-      reload: string
-      ignore: string
-      ajax: JQueryAjaxSettings
-    }
-    balance: {
-      self: boolean
-      weight: number
-      client: {
-        support: {
-          userAgent: RegExp
-          redirect: RegExp
-        }
-        exclude: RegExp
-        cookie: {
-          balance: string
-          redirect: string
-          host: string
-        }
-      }
-      server: {
-        header: string
-        filter: RegExp
-        error: number
-        host: string //internal
-      }
-      log: {
-        expires: number
-        limit: number
-      }
-      option: PjaxSetting
-    }
-    redirect: boolean
-    wait: number
-    scroll: {
-      delay: number
-      queue: number[] //internal
-    }
-    fix: {
-      location: boolean
-      history: boolean
-      scroll: boolean
-      noscript: boolean
-      reset: boolean
-    }
-    fallback: boolean
-    database: boolean
-    server: {
-      query: any
-      header: {
-        area: boolean
-        head: boolean
-        css: boolean
-        script: boolean
-      }
-    }
-    callback(): any
-    param: any
-    callbacks: {
-      ajax: {
-        xhr?: (event: JQueryEventObject, param: any) => any
-        beforeSend?: (event: JQueryEventObject, param: any, data: string, ajaxSettings: any) => any
-        dataFilter?: (event: JQueryEventObject, param: any, data: string, dataType: any) => any
-        success?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-        error?: (event: JQueryEventObject, param: any, jqXHR: JQueryXHR, textStatus: string, errorThrown: any) => any
-        complete?: (event: JQueryEventObject, param: any, jqXHR: JQueryXHR, textStatus: string) => any
-        done?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-        fail?: (event: JQueryEventObject, param: any, jqXHR: JQueryXHR, textStatus: string, errorThrown: any) => any
-        always?: (event: JQueryEventObject, param: any, jqXHR: JQueryXHR, textStatus: string) => any
-      }
-      update: {
-        redirect: {
-          before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-          after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-        }
-        url: {
-          before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-          after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-        }
-        rewrite: {
-          before?: (event: JQueryEventObject, param: any, cache: any) => any
-          after?: (event: JQueryEventObject, param: any, cache: any) => any
-        }
-        title: {
-          before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-          after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-        }
-        head: {
-          before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-          after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-        }
-        content: {
-          before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-          after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-        }
-        css: {
-          before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-          after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-        }
-        script: {
-          before?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-          after?: (event: JQueryEventObject, param: any, data: string, textStatus: string, jqXHR: JQueryXHR) => any
-        }
-        scroll: {
-          before?: (event: JQueryEventObject, param: any) => any
-          after?: (event: JQueryEventObject, param: any) => any
-        }
-        balance: {
-          before?: (event: JQueryEventObject, param: any) => any
-          after?: (event: JQueryEventObject, param: any) => any
-        }
-      }
-    }
-    
+  export interface SettingInterface extends PjaxSetting {
     // internal
-    uuid: string
     gns: string
     ns: string
     nss: {
       name: string
-      event: string[]
+      event: string
       click: string
       submit: string
       popstate: string
@@ -502,8 +325,8 @@ module MODULE {
     areas: string[]
     loadtime: number
     retriable: boolean
-    disable: boolean
-    option: any
+    cancel: boolean
+    option: PjaxSetting
     speedcheck: boolean
   }
 

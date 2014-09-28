@@ -10,10 +10,9 @@
 
 module MODULE.MODEL {
   
-  export class App extends Template implements AppLayerInterface {
+  export class App implements AppLayerInterface {
 
     constructor(public model_: ModelInterface, public controller_: ControllerInterface) {
-      super();
     }
 
     balance: AppBalanceInterface = new AppBalance(this.model_, this)
@@ -33,21 +32,17 @@ module MODULE.MODEL {
       setTimeout(() => this.page.landing = null, 1500);
     }
 
-    configure(option: SettingInterface, origURL: string, destURL: string): SettingInterface {
+    configure(option: PjaxSetting, origURL: string, destURL: string): SettingInterface {
       var that = this;
 
-      origURL = Util.normalizeUrl(origURL || option.origLocation.href);
-      destURL = Util.normalizeUrl(destURL || option.destLocation.href);
-      option = jQuery.extend(true, {}, option.option || option, { option: option.option || option });
+      origURL = Util.normalizeUrl(origURL || (<SettingInterface>option).origLocation.href);
+      destURL = Util.normalizeUrl(destURL || (<SettingInterface>option).destLocation.href);
+      option = jQuery.extend(true, {}, (<SettingInterface>option).option || option);
 
-      option = option.scope ? jQuery.extend(true, {}, option, scope(option, origURL, destURL) || { disable: true })
+      option = option.scope ? jQuery.extend(true, {}, option, scope(option, origURL, destURL) || { cancel: true })
                             : jQuery.extend(true, {}, option);
 
-      var initial = {
-            gns: NAME,
-            ns: '',
-            disable: false,
-            
+      var initial = <PjaxSetting>{
             area: 'body',
             link: 'a:not([target])',
             // this.protocolはIEでエラー
@@ -102,7 +97,7 @@ module MODULE.MODEL {
                 expires: 10 * 24 * 60 * 60 * 1000,
                 limit: 30
               },
-              option: {
+              option: <PjaxSetting>{
                 server: {
                   header: false
                 },
@@ -137,23 +132,25 @@ module MODULE.MODEL {
             server: {
               query: 'pjax=1',
               header: true
-            },
-            speedcheck: false
+            }
           },
-          force = {
-            origLocation: (function (url, a) { a.href = url; return a; })(origURL, document.createElement('a')),
-            destLocation: (function (url, a) { a.href = url; return a; })(destURL, document.createElement('a')),
-            balance: {
-              server: {
-                host: ''
-              }
-            },
+          force = <SettingInterface>{
+            ns: undefined,
+            nss: undefined,
+            areas: undefined,
+            speedcheck: undefined,
+            cancel: undefined,
+            origLocation: undefined,
+            destLocation: undefined,
+
+            gns: NAME,
             scroll: { queue: [] },
             loadtime: null,
             retriable: true,
-            option: option.option
+            option: option
           },
-          compute = function () {
+          compute = () => {
+            setting.ns = setting.ns && setting.ns.split('.').sort().join('.') || '';
             var nsArray: string[] = [setting.gns || NAME].concat(setting.ns && String(setting.ns).split('.') || []);
             var query: string = setting.server.query;
             switch (query && typeof query) {
@@ -163,7 +160,17 @@ module MODULE.MODEL {
                 query = jQuery.param(query);
                 break;
             }
-            return {
+            return <SettingInterface>{
+              gns: undefined,
+              ns: undefined,
+              areas: undefined,
+              scroll: undefined,
+              loadtime: undefined,
+              retriable: undefined,
+              option: undefined,
+              speedcheck: undefined,
+              cancel: undefined,
+
               nss: {
                 name: setting.ns || '',
                 array: nsArray,
@@ -176,6 +183,8 @@ module MODULE.MODEL {
                 scroll: ['scroll'].concat(nsArray.join(':')).join('.'),
                 requestHeader: ['X', nsArray[0].replace(/^\w/, function (str) { return str.toUpperCase(); })].join('-')
               },
+              origLocation: (function (url, a) { a.href = url; return a; })(origURL, document.createElement('a')),
+              destLocation: (function (url, a) { a.href = url; return a; })(destURL, document.createElement('a')),
               fix: !/android|iphone os|like mac os x/i.test(window.navigator.userAgent) ? { location: false, reset: false } : {},
               contentType: setting.contentType.replace(/\s*[,;]\s*/g, '|').toLowerCase(),
               server: {
@@ -192,7 +201,7 @@ module MODULE.MODEL {
 
       return setting; //new this.stock(setting);
 
-      function scope(setting: SettingInterface, origURL: string, destURL: string, rewriteKeyUrl: string = ''): any {
+      function scope(setting: PjaxSetting, origURL: string, destURL: string, rewriteKeyUrl: string = ''): any {
         var origKeyUrl: string,
             destKeyUrl: string,
             scpTable = setting.scope,

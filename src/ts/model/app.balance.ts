@@ -41,7 +41,6 @@ module MODULE.MODEL {
       host = host || '';
 
       this.host_ = host;
-      setting.balance.server.host = host;
       this.app_.data.setCookie(setting.balance.client.cookie.host, host);
     }
 
