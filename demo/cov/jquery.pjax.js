@@ -3,7 +3,7 @@
  * jquery.pjax.js
  * 
  * @name jquery.pjax.js
- * @version 2.23.0
+ * @version 2.23.1
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
  * @copyright 2012, falsandtru
@@ -491,7 +491,7 @@ var MODULE;
                 this.REGISTER_FUNCTIONS(MODULE.NAMESPACE[MODULE.NAME], f);
 
                 // コンテクストのプロパティを更新
-                this.UPDATE_PROPERTIES(MODULE.NAMESPACE[MODULE.NAME], f);
+                this.UPDATE_PROPERTIES(MODULE.NAMESPACE[MODULE.NAME]);
                 this.OBSERVE.apply(this, args);
                 this.state_ = 0;
             }
@@ -503,27 +503,32 @@ var MODULE;
             * @chainable
             */
             Template.prototype.EXTEND = function (context) {
-                if (context === MODULE.NAMESPACE || MODULE.NAMESPACE && MODULE.NAMESPACE == MODULE.NAMESPACE.window) {
-                    var m = new CONTROLLER.ControllerFunction(C, M);
-
-                    // コンテクストをプラグインに変更
-                    context = MODULE.NAMESPACE[MODULE.NAME];
-                } else
-                    var m = new CONTROLLER.ControllerMethod(C, M);
-
-                // $().mvc()として実行された場合の処理
                 if (context instanceof MODULE.NAMESPACE) {
                     if (context instanceof jQuery) {
                         // コンテクストへの変更をend()で戻せるようadd()
                         context = context.add();
                     }
 
-                    // コンテクストに関数とメソッドを設定
+                    // コンテクストに関数を設定
+                    var f = new CONTROLLER.ControllerFunction(C, M);
+                    this.REGISTER_FUNCTIONS(context, f);
+
+                    // コンテクストにメソッドを設定
+                    var m = new CONTROLLER.ControllerMethod(C, M);
                     this.REGISTER_FUNCTIONS(context, m);
+                } else {
+                    if (context !== MODULE.NAMESPACE) {
+                        // コンテクストをプラグインに変更
+                        context = MODULE.NAMESPACE;
+                    }
+
+                    // コンテクストに関数を設定
+                    var f = new CONTROLLER.ControllerFunction(C, M);
+                    this.REGISTER_FUNCTIONS(context, f);
                 }
 
                 // コンテクストのプロパティを更新
-                this.UPDATE_PROPERTIES(context, m);
+                this.UPDATE_PROPERTIES(context);
                 return context;
             };
 
@@ -572,6 +577,9 @@ var MODULE;
 
                 var i;
                 for (i in funcs) {
+                    if ('constructor' === i) {
+                        continue;
+                    }
                     context[i] = funcs[i];
                 }
                 return context;
@@ -585,14 +593,17 @@ var MODULE;
             * @param {Object} funcs プロパティのリスト
             * @return {JQuery|Object|Function} context コンテクスト
             */
-            Template.prototype.UPDATE_PROPERTIES = function (context, funcs) {
+            Template.prototype.UPDATE_PROPERTIES = function (context) {
                 var props = CONTROLLER.Template.PROPERTIES;
 
                 var i, len, prop;
                 for (i = 0, len = props.length; i < len; i++) {
+                    if ('constructor' === i) {
+                        continue;
+                    }
                     prop = props[i];
-                    if (funcs[prop]) {
-                        context[prop] = funcs[prop].call(context);
+                    if (context[prop]) {
+                        context[prop] = context[prop]();
                     }
                 }
                 return context;
@@ -1306,7 +1317,7 @@ var MODULE;
 
             DataDB.prototype.digestTask_ = function (limit) {
                 if (typeof limit === "undefined") { limit = 0; }
-                limit = limit || -1;
+                ++limit;
                 var task;
                 while (task = limit-- && this.tasks_.pop()) {
                     task();
@@ -1863,7 +1874,6 @@ var MODULE;
                 host = host || '';
 
                 this.host_ = host;
-                setting.balance.server.host = host;
                 this.app_.data.setCookie(setting.balance.client.cookie.host, host);
             };
 
@@ -3215,10 +3225,8 @@ var MODULE;
 (function (MODULE) {
     /* MODEL */
     (function (MODEL) {
-        var App = (function (_super) {
-            __extends(App, _super);
+        var App = (function () {
             function App(model_, controller_) {
-                _super.call(this);
                 this.model_ = model_;
                 this.controller_ = controller_;
                 this.balance = new MODEL.AppBalance(this.model_, this);
@@ -3252,14 +3260,11 @@ var MODULE;
 
                 origURL = MODEL.Util.normalizeUrl(origURL || option.origLocation.href);
                 destURL = MODEL.Util.normalizeUrl(destURL || option.destLocation.href);
-                option = jQuery.extend(true, {}, option.option || option, { option: option.option || option });
+                option = jQuery.extend(true, {}, option.option || option);
 
-                option = option.scope ? jQuery.extend(true, {}, option, scope(option, origURL, destURL) || { disable: true }) : jQuery.extend(true, {}, option);
+                option = option.scope ? jQuery.extend(true, {}, option, scope(option, origURL, destURL) || { cancel: true }) : jQuery.extend(true, {}, option);
 
                 var initial = {
-                    gns: MODULE.NAME,
-                    ns: '',
-                    disable: false,
                     area: 'body',
                     link: 'a:not([target])',
                     // this.protocolはIEでエラー
@@ -3351,27 +3356,22 @@ var MODULE;
                     server: {
                         query: 'pjax=1',
                         header: true
-                    },
-                    speedcheck: false
+                    }
                 }, force = {
-                    origLocation: (function (url, a) {
-                        a.href = url;
-                        return a;
-                    })(origURL, document.createElement('a')),
-                    destLocation: (function (url, a) {
-                        a.href = url;
-                        return a;
-                    })(destURL, document.createElement('a')),
-                    balance: {
-                        server: {
-                            host: ''
-                        }
-                    },
+                    ns: undefined,
+                    nss: undefined,
+                    areas: undefined,
+                    speedcheck: undefined,
+                    cancel: undefined,
+                    origLocation: undefined,
+                    destLocation: undefined,
+                    gns: MODULE.NAME,
                     scroll: { queue: [] },
                     loadtime: null,
                     retriable: true,
-                    option: option.option
+                    option: option
                 }, compute = function () {
+                    setting.ns = setting.ns && setting.ns.split('.').sort().join('.') || '';
                     var nsArray = [setting.gns || MODULE.NAME].concat(setting.ns && String(setting.ns).split('.') || []);
                     var query = setting.server.query;
                     switch (query && typeof query) {
@@ -3382,6 +3382,15 @@ var MODULE;
                             break;
                     }
                     return {
+                        gns: undefined,
+                        ns: undefined,
+                        areas: undefined,
+                        scroll: undefined,
+                        loadtime: undefined,
+                        retriable: undefined,
+                        option: undefined,
+                        speedcheck: undefined,
+                        cancel: undefined,
                         nss: {
                             name: setting.ns || '',
                             array: nsArray,
@@ -3396,6 +3405,14 @@ var MODULE;
                                     return str.toUpperCase();
                                 })].join('-')
                         },
+                        origLocation: (function (url, a) {
+                            a.href = url;
+                            return a;
+                        })(origURL, document.createElement('a')),
+                        destLocation: (function (url, a) {
+                            a.href = url;
+                            return a;
+                        })(destURL, document.createElement('a')),
                         fix: !/android|iphone os|like mac os x/i.test(window.navigator.userAgent) ? { location: false, reset: false } : {},
                         contentType: setting.contentType.replace(/\s*[,;]\s*/g, '|').toLowerCase(),
                         server: {
@@ -3517,7 +3534,7 @@ var MODULE;
                 }
             };
             return App;
-        })(MODEL.Template);
+        })();
         MODEL.App = App;
     })(MODULE.MODEL || (MODULE.MODEL = {}));
     var MODEL = MODULE.MODEL;
@@ -3537,15 +3554,19 @@ var MODULE;
             __extends(Main, _super);
             function Main() {
                 _super.apply(this, arguments);
-                var _this = this;
                 this.controller_ = new MODULE.Controller(this);
                 this.app_ = new MODEL.App(this, this.controller_);
                 this.state_ = -1 /* wait */;
                 this.isDeferrable = jQuery.when && 1.06 <= Number(jQuery().jquery.replace(/\D*(\d+)\.(\d+).*$/, '$1.0$2').replace(/\d+(\d{2})$/, '$1'));
-                this.host = function () {
-                    return _this.app_.balance.host();
-                };
+                this.queue = [];
             }
+            Main.prototype.host = function () {
+                return this.app_.balance.host();
+            };
+            Main.prototype.state = function () {
+                return this.state_;
+            };
+
             Main.prototype.main_ = function ($context, option) {
                 var _this = this;
                 if (!option && $context.is('a, form')) {
@@ -3569,7 +3590,7 @@ var MODULE;
                 this.setGlobalSetting(setting);
                 setting.database && this.app_.data.opendb(setting);
 
-                this.app_.stock({
+                this.stock({
                     speed: {
                         fire: 0,
                         time: [],
@@ -3589,10 +3610,6 @@ var MODULE;
                 }
 
                 return $context;
-            };
-
-            Main.prototype.state = function () {
-                return this.state_;
             };
 
             Main.prototype.convertUrlToKeyUrl = function (unsafe_url) {
@@ -3634,7 +3651,7 @@ var MODULE;
                 }
 
                 setting = setting || this.app_.configure(this.getGlobalSetting(), origLocation.href, destLocation.href);
-                if (setting.disable) {
+                if (setting.cancel) {
                     return;
                 }
                 if (destLocation.hash && origLocation.href.replace(/#.*/, '') === destLocation.href.replace(/#.*/, '')) {
@@ -3672,7 +3689,7 @@ var MODULE;
                     var context = event.currentTarget, $context = jQuery(context);
                     var setting = this.app_.configure(this.getGlobalSetting(), window.location.href, context.href);
 
-                    if (0 /* ready */ !== this.state() || setting.disable || event.isDefaultPrevented()) {
+                    if (0 /* ready */ !== this.state() || setting.cancel || event.isDefaultPrevented()) {
                         break PROCESS;
                     }
                     if (!this.isImmediateLoadable(event, setting)) {
@@ -3706,7 +3723,7 @@ var MODULE;
                     var context = event.currentTarget, $context = jQuery(context);
                     var setting = this.app_.configure(this.getGlobalSetting(), window.location.href, context.action);
 
-                    if (0 /* ready */ !== this.state() || setting.disable || event.isDefaultPrevented()) {
+                    if (0 /* ready */ !== this.state() || setting.cancel || event.isDefaultPrevented()) {
                         break PROCESS;
                     }
                     if (!this.isImmediateLoadable(event, setting)) {
@@ -3747,7 +3764,7 @@ var MODULE;
                         return;
                     }
 
-                    if (0 /* ready */ !== this.state() || setting.disable) {
+                    if (0 /* ready */ !== this.state() || setting.cancel) {
                         break PROCESS;
                     }
                     if (!this.isImmediateLoadable(event, setting)) {
@@ -3782,16 +3799,16 @@ var MODULE;
                     this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPositionToDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
                 } else {
                     var id;
-                    while (id = setting.scroll.queue.shift()) {
+                    while (id = this.queue.shift()) {
                         clearTimeout(id);
                     }
                     id = setTimeout(function () {
-                        while (id = setting.scroll.queue.shift()) {
+                        while (id = _this.queue.shift()) {
                             clearTimeout(id);
                         }
                         _this.app_.page.isScrollPosSavable && _this.app_.data.saveScrollPositionToDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
                     }, setting.scroll.delay);
-                    setting.scroll.queue.push(id);
+                    this.queue.push(id);
                 }
             };
 
