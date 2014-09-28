@@ -3,7 +3,7 @@
  * jquery.pjax.js
  * 
  * @name jquery.pjax.js
- * @version 2.23.2
+ * @version 2.23.3
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
  * @copyright 2012, falsandtru
@@ -788,7 +788,7 @@ var MODULE;
                 * @param {Boolean} merge
                 */
                 this.stock = function stock(key, value, merge) {
-                    if (this instanceof stock) {
+                    if (this instanceof stock || this.constructor.toString() === stock.toString()) {
                         switch (typeof key) {
                             case 'object':
                             case 'function':
@@ -811,7 +811,7 @@ var MODULE;
                                 return new this.stock();
                             case 1:
                                 // インスタンス別のデータオブジェクトまたは共有データを取得
-                                return this.stock[key] || Template.store(key);
+                                return stock[key] || Template.store(key);
                             case 2:
                                 // 共有データを保存
                                 return Template.store(key, value);
