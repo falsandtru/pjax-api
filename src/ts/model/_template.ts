@@ -120,7 +120,7 @@ module MODULE.MODEL {
      * @param {Boolean} merge
      */
     stock: any = function stock(key?: any, value?: any, merge?: boolean): any {
-      if (this instanceof stock) {
+      if (this instanceof stock || this.constructor.toString() === stock.toString()) {
         // 個別データ操作
         switch (typeof key) {
           case 'object':
@@ -143,7 +143,7 @@ module MODULE.MODEL {
             return new this.stock();
           case 1:
             // インスタンス別のデータオブジェクトまたは共有データを取得
-            return this.stock[key] || Template.store(key);
+            return stock[key] || Template.store(key);
           case 2:
             // 共有データを保存
             return Template.store(key, value);
