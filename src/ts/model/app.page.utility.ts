@@ -9,6 +9,7 @@ module MODULE.MODEL.APP {
   export class PageUtility implements PageUtilityInterface {
     
     createHTMLDocument(html: string, uri: string): Document {
+      html = html || '<title></title>';
       var test = (mode_: string): boolean => {
         try {
           mode = mode_;
@@ -75,7 +76,9 @@ module MODULE.MODEL.APP {
             doc.open();
             doc.write(html);
             doc.close();
-            doc.title = doc.title ? doc.title : jQuery(html.match(/<title(?:\s.*?[^\\])?>(?:.*?[^\\])?<\/title>/i) + '').text();
+            if (doc.title !== doc.querySelector('title').textContent) {
+              doc.title = doc.querySelector('title').textContent;
+            }
           }
           break;
 
