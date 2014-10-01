@@ -49,7 +49,7 @@ module MODULE.MODEL.APP {
 
       // キャッシュの有効期限内の再リクエストは同じサーバーを選択してキャッシュを使用させる
       var expires: number;
-      var historyBufferData: HistorySchema = this.app_.data.getBuffer<HistorySchema>(this.app_.data.storeNames.history, this.model_.convertUrlToKeyUrl(setting.destLocation.href));
+      var historyBufferData: HistorySchema = this.app_.data.stores.history.getBuffer(this.model_.convertUrlToKeyUrl(setting.destLocation.href));
 
       expires = historyBufferData && historyBufferData.expires;
       if (expires && expires >= new Date().getTime()) {
@@ -58,9 +58,9 @@ module MODULE.MODEL.APP {
       }
 
       // ログから最適なサーバーを選択する
-      var logBuffer = this.app_.data.getBuffer<{ [index: number]: LogSchema }>(this.app_.data.storeNames.log),
+      var logBuffer = this.app_.data.stores.log.getBuffer(),
           timeList: number[] = [],
-          logTable: { [index: number]: LogSchema } = {},
+          logTable: LogSchema[] = [],
           now: number = new Date().getTime();
 
       if (!logBuffer) {
@@ -85,7 +85,7 @@ module MODULE.MODEL.APP {
         return a - b;
       }
       timeList = timeList.sort(compareNumbers).slice(0, 15);
-      var serverBuffer = this.app_.data.getBuffer<{ [index: string]: ServerSchema }>(this.app_.data.storeNames.server);
+      var serverBuffer = this.app_.data.stores.server.getBuffer();
 
       if (!serverBuffer) {
         this.disable(setting);

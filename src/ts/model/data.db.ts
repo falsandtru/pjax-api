@@ -43,7 +43,7 @@ module MODULE.MODEL.APP.DATA {
     private conInterval_: number = 1000
     private tasks_: { (): void }[] = []
 
-    store = {
+    stores = {
       meta: new StoreMeta<MetaSchema>(this),
       history: new StoreHistory<HistorySchema>(this),
       log: new StoreLog<LogSchema>(this),
@@ -86,13 +86,13 @@ module MODULE.MODEL.APP.DATA {
             
             for (var i = database.objectStoreNames ? database.objectStoreNames.length : 0; i--;) { database.deleteObjectStore(database.objectStoreNames[i]); }
 
-            database.createObjectStore(that.store.meta.name, { keyPath: that.store.meta.keyPath, autoIncrement: false }).createIndex(that.store.meta.keyPath, that.store.meta.keyPath, { unique: true });
+            database.createObjectStore(that.stores.meta.name, { keyPath: that.stores.meta.keyPath, autoIncrement: false }).createIndex(that.stores.meta.keyPath, that.stores.meta.keyPath, { unique: true });
 
-            database.createObjectStore(that.store.history.name, { keyPath: that.store.history.keyPath, autoIncrement: false }).createIndex('date', 'date', { unique: false });
+            database.createObjectStore(that.stores.history.name, { keyPath: that.stores.history.keyPath, autoIncrement: false }).createIndex('date', 'date', { unique: false });
 
-            database.createObjectStore(that.store.log.name, { keyPath: that.store.log.keyPath, autoIncrement: true }).createIndex('date', 'date', { unique: false });
+            database.createObjectStore(that.stores.log.name, { keyPath: that.stores.log.keyPath, autoIncrement: true }).createIndex('date', 'date', { unique: false });
 
-            database.createObjectStore(that.store.server.name, { keyPath: that.store.server.keyPath, autoIncrement: false }).createIndex(that.store.server.keyPath, that.store.server.keyPath, { unique: true });
+            database.createObjectStore(that.stores.server.name, { keyPath: that.stores.server.keyPath, autoIncrement: false }).createIndex(that.stores.server.keyPath, that.stores.server.keyPath, { unique: true });
 
           } catch (err) {
             !noRetry && that.initdb_(1000);
@@ -169,7 +169,7 @@ module MODULE.MODEL.APP.DATA {
     private checkdb_(database: IDBDatabase, version: number, success: () => void, upgrade: () => void): void {
       var that = this;
 
-      var req = database.transaction(that.store.meta.name, 'readwrite').objectStore(that.store.meta.name).get(that.metaNames.version);
+      var req = database.transaction(that.stores.meta.name, 'readwrite').objectStore(that.stores.meta.name).get(that.metaNames.version);
       req.onsuccess = function () {
         // version check
         var data: MetaSchema = this.result;
@@ -180,7 +180,7 @@ module MODULE.MODEL.APP.DATA {
         }
 
         if (that.refresh_) {
-          var req = database.transaction(that.store.meta.name, 'readwrite').objectStore(that.store.meta.name).get(that.metaNames.update);
+          var req = database.transaction(that.stores.meta.name, 'readwrite').objectStore(that.stores.meta.name).get(that.metaNames.update);
           req.onsuccess = function () {
             // refresh check
             var data: MetaSchema = this.result;

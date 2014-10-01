@@ -265,22 +265,11 @@ module MODULE.MODEL {
 
     // db
     opendb(setting: SettingInterface): void
-    storeNames: {
-      meta: string
-      history: string
-      log: string
-      server: string
-    }
+    stores: APP.DatabaseSchema
     
     // buffer
-    getBuffer<U>(storeName: string): U
-    getBuffer<T>(storeName: string, key: string): T
-    getBuffer<T>(storeName: string, key: number): T
-    setBuffer<T>(storeName: string, key: string, value: T, isMerge?: boolean): T
-    loadBuffer(storeName: string, limit?: number): void
-    saveBuffer(storeName: string): void
-    loadBufferAll(limit?: number): void
-    saveBufferAll(): void
+    loadBuffers(limit?: number): void
+    saveBuffers(): void
 
     // meta
 
@@ -315,7 +304,7 @@ module MODULE.MODEL.APP {
     nowInitializing: boolean
     nowRetrying: boolean
     state(): State
-    store: DatabaseSchema
+    stores: DatabaseSchema
     metaNames: {
       version: string
       update: string

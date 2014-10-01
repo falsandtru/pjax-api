@@ -450,7 +450,7 @@ module MODULE.MODEL.APP {
       this.app_.data.saveServerToDB(host, 0, setting.destLocation.href, this.calExpires(this.jqXHR_));
       this.app_.balance.chooseServer(setting);
 
-      this.app_.data.loadBufferAll(setting.buffer.limit);
+      this.app_.data.loadBuffers(setting.buffer.limit);
 
       if (Util.fire(callbacks_update.balance.after, null, [event, setting.param]) === false) { return; }
     }

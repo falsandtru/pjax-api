@@ -44,7 +44,7 @@ module MODULE.MODEL.APP.DATA {
           if (!this.result) { return; }
 
           var IDBCursor = this.result,
-            data = <T>IDBCursor.value;
+              data = <T>IDBCursor.value;
           that.buffer_[data[store.keyPath]] = data;
           if (!--limit) { return; }
 
