@@ -12,8 +12,8 @@ module MODULE.MODEL {
   
   export class Main extends Template implements ModelInterface {
 
-    controller_: ControllerInterface = new Controller(this)
-    app_: AppLayerInterface = new MODEL.App(this, this.controller_)
+    private controller_: ControllerInterface = new Controller(this)
+    private app_: AppLayerInterface = new MODEL.App(this, this.controller_)
 
     state_: State = State.wait
 

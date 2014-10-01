@@ -27,21 +27,21 @@ module MODULE.MODEL.APP.DATA {
     IDBFactory: IDBFactory = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB
     IDBKeyRange: IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.mozIDBKeyRange || window.msIDBKeyRange
 
-    database_: IDBDatabase
-    name_: string = NAME
-    version_: number = 4
-    refresh_: number = 10
-    upgrade_: number = 1 // 0:virtual 1:naitive
-    state_: State = State.wait
+    private database_: IDBDatabase
+    private name_: string = NAME
+    private version_: number = 4
+    private refresh_: number = 10
+    private upgrade_: number = 1 // 0:virtual 1:naitive
+    private state_: State = State.wait
     database = () => this.database_
     state = () => this.state_
     nowInitializing: boolean = false
     nowRetrying: boolean = false
 
-    conAge_: number = 10 * 1000
-    conExpires_: number
-    conInterval_: number = 1000
-    tasks_: { (): void }[] = []
+    private conAge_: number = 10 * 1000
+    private conExpires_: number
+    private conInterval_: number = 1000
+    private tasks_: { (): void }[] = []
 
     store = {
       meta: new StoreMeta<MetaSchema>(this),
@@ -150,7 +150,11 @@ module MODULE.MODEL.APP.DATA {
       IDBFactory && IDBFactory.deleteDatabase && IDBFactory.deleteDatabase(this.name_);
     }
 
-    initdb_(delay?: number): void {
+    conExtend(): void {
+      this.conExpires_ = new Date().getTime() + this.conAge_;
+    }
+
+    private initdb_(delay?: number): void {
       var retry = () => {
         if (!this.nowRetrying) {
           this.nowRetrying = true;
@@ -162,7 +166,7 @@ module MODULE.MODEL.APP.DATA {
       !delay ? retry() : void setTimeout(retry, delay);
     }
 
-    checkdb_(database: IDBDatabase, version: number, success: () => void, upgrade: () => void): void {
+    private checkdb_(database: IDBDatabase, version: number, success: () => void, upgrade: () => void): void {
       var that = this;
 
       var req = database.transaction(that.store.meta.name, 'readwrite').objectStore(that.store.meta.name).get(that.metaNames.version);
@@ -194,16 +198,12 @@ module MODULE.MODEL.APP.DATA {
       };
     }
 
-    conExtend(): void {
-      this.conExpires_ = new Date().getTime() + this.conAge_;
-    }
-
-    reserveTask_(task: () => void): void {
+    private reserveTask_(task: () => void): void {
       (this.state() !== State.error || this.tasks_.length < 100) &&
       this.tasks_.push(task);
     }
 
-    digestTask_(limit: number = 0): void {
+    private digestTask_(limit: number = 0): void {
       ++limit;
       var task: () => void;
       while (task = limit-- && this.tasks_.pop()) {

@@ -10,7 +10,7 @@ module MODULE.MODEL.APP {
 
   export class Page extends PageUtility implements PageInterface {
 
-    constructor(public model_: ModelInterface, public app_: AppLayerInterface) {
+    constructor(private model_: ModelInterface, private app_: AppLayerInterface) {
       super();
       setTimeout(() => this.createHTMLDocument('', '') || this.model_.disable(), 50);
     }

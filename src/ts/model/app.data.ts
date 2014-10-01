@@ -8,10 +8,11 @@ module MODULE.MODEL.APP {
   
   export class Data implements DataInterface {
 
-    constructor(public model_: ModelInterface, public app_: AppLayerInterface) {
+    constructor(private model_: ModelInterface, private app_: AppLayerInterface) {
     }
 
-    data_: DataLayerInterface = new DATA.Main()
+    private data_: DataLayerInterface = new DATA.Main()
+
     storeNames = {
       meta: this.data_.DB.store.meta.name,
       history: this.data_.DB.store.history.name,

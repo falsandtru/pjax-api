@@ -15,7 +15,7 @@ module MODULE.MODEL.APP.DATA {
       this.accessStore((store) => {
         store.count().onsuccess = function () {
           if (this.result > 1000) {
-            store.index('date').openCursor(that.DB_.IDBKeyRange.upperBound(new Date().getTime() - (3 * 24 * 60 * 60 * 1000))).onsuccess = function () {
+            store.index('date').openCursor(that.DB.IDBKeyRange.upperBound(new Date().getTime() - (3 * 24 * 60 * 60 * 1000))).onsuccess = function () {
               if (!this.result) { return; }
 
               var IDBCursor = this.result;

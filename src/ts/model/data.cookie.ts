@@ -6,11 +6,8 @@
 module MODULE.MODEL.APP.DATA {
   
   export class Cookie implements CookieInterface {
-    constructor(age: number) {
-      this.age_ = age;
+    constructor(private age_: number) {
     }
-
-    age_: number
 
     getCookie(key: string): string {
       if (!key || !window.navigator.cookieEnabled) { return; }

@@ -18,7 +18,7 @@ module MODULE.MODEL.APP.DATA {
         store.count().onsuccess = function () {
           if (this.result > size + 10) {
             size = this.result - size;
-            store.index(store.keyPath).openCursor(this.DB_.IDBKeyRange.lowerBound(0)).onsuccess = function () {
+            store.index(store.keyPath).openCursor(this.DB.IDBKeyRange.lowerBound(0)).onsuccess = function () {
               if (!this.result) { return; }
 
               var IDBCursor = this.result;

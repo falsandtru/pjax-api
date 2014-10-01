@@ -12,7 +12,7 @@ module MODULE.MODEL.APP {
   
   export class Main implements AppLayerInterface {
 
-    constructor(public model_: ModelInterface, public controller_: ControllerInterface) {
+    constructor(private model_: ModelInterface, private controller_: ControllerInterface) {
     }
 
     balance: BalanceInterface = new Balance(this.model_, this)

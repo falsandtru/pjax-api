@@ -6,11 +6,8 @@
 module MODULE.MODEL.APP.DATA {
   
   export class Store<T> implements StoreInterface<T> {
-    constructor(DB: DBInterface) {
-      this.DB_ = DB;
+    constructor(public DB: DBInterface) {
     }
-
-    DB_: DBInterface
 
     name: string
     keyPath: string
@@ -18,10 +15,10 @@ module MODULE.MODEL.APP.DATA {
     buffer_: T[] = []
 
     accessStore(success: (store: IDBObjectStore) => void, mode: string = 'readwrite'): void {
-      this.DB_.conExtend();
+      this.DB.conExtend();
 
       try {
-        var database: IDBDatabase = this.DB_.database(),
+        var database: IDBDatabase = this.DB.database(),
             store: IDBObjectStore = database && database.transaction(this.name, mode).objectStore(this.name);
       } catch (err) {
       }
@@ -29,7 +26,7 @@ module MODULE.MODEL.APP.DATA {
       if (store) {
         success(store);
       } else {
-        this.DB_.opendb(() => this.accessStore(success));
+        this.DB.opendb(() => this.accessStore(success));
       }
     }
 
@@ -43,7 +40,7 @@ module MODULE.MODEL.APP.DATA {
       var that = this;
       this.accessStore((store) => {
         var index = store.indexNames.length ? store.indexNames[0] : store.keyPath;
-        store.index(index).openCursor(this.DB_.IDBKeyRange.lowerBound(0), 'prev').onsuccess = function () {
+        store.index(index).openCursor(this.DB.IDBKeyRange.lowerBound(0), 'prev').onsuccess = function () {
           if (!this.result) { return; }
 
           var IDBCursor = this.result,

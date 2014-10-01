@@ -11,27 +11,27 @@ module MODULE.MODEL.APP {
     
     constructor(
 
-    public model_: ModelInterface,
-    public app_: AppLayerInterface,
-    public setting_: SettingInterface,
-    public event_: JQueryEventObject,
-    public register_: boolean,
-    public cache_: CacheInterface,
-    public data_: string,
-    public textStatus_: string,
-    public jqXHR_: JQueryXHR,
-    public errorThrown_: string,
-    public host_: string
+    private model_: ModelInterface,
+    private app_: AppLayerInterface,
+    private setting_: SettingInterface,
+    private event_: JQueryEventObject,
+    private register_: boolean,
+    private cache_: CacheInterface,
+    private data_: string,
+    private textStatus_: string,
+    private jqXHR_: JQueryXHR,
+    private errorThrown_: string,
+    private host_: string
     ) {
       super();
       this.main_();
     }
 
-    srcDocument_: Document
-    dstDocument_: Document
-    loadwaits_: JQueryDeferred<any[]>[] = []
+    private srcDocument_: Document
+    private dstDocument_: Document
+    private loadwaits_: JQueryDeferred<any[]>[] = []
 
-    main_(): void {
+    private main_(): void {
       var that = this,
           app = this.app_,
           setting = this.setting_,
@@ -105,7 +105,7 @@ module MODULE.MODEL.APP {
       }; // label: UPDATE
     }
 
-    isCacheUsable_(setting: SettingInterface, event: JQueryEventObject): boolean {
+    private isCacheUsable_(setting: SettingInterface, event: JQueryEventObject): boolean {
       switch (true) {
         case !setting.cache.click && !setting.cache.submit && !setting.cache.popstate:
         case 'submit' === event.type.toLowerCase() && !setting.cache[(<HTMLFormElement>event.currentTarget).method.toLowerCase()]:
@@ -115,7 +115,7 @@ module MODULE.MODEL.APP {
       }
     }
 
-    checkRedirect_(): void {
+    private checkRedirect_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
           register: boolean = this.register_;
@@ -167,7 +167,7 @@ module MODULE.MODEL.APP {
       if (Util.fire(callbacks_update.redirect.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
     
-    updateUrl_(): void {
+    private updateUrl_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
           register: boolean = this.register_;
@@ -203,7 +203,7 @@ module MODULE.MODEL.APP {
       if (Util.fire(callbacks_update.url.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
     
-    updateDocument_(): void {
+    private updateDocument_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
 
@@ -292,7 +292,7 @@ module MODULE.MODEL.APP {
       .trigger(setting.gns + ':rendering');
     }
     
-    overwriteDocumentByCache_(): void {
+    private overwriteDocumentByCache_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
           cache: CacheInterface = this.cache_;
@@ -320,7 +320,7 @@ module MODULE.MODEL.APP {
       }
     }
     
-    rewrite_(): void {
+    private rewrite_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
@@ -334,7 +334,7 @@ module MODULE.MODEL.APP {
       if (Util.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) { return; }
     }
 
-    title_(): void {
+    private title_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
@@ -347,7 +347,7 @@ module MODULE.MODEL.APP {
       if (Util.fire(callbacks_update.title.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
 
-    head_(): void {
+    private head_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
           srcDocument: Document = this.srcDocument_,
@@ -385,7 +385,7 @@ module MODULE.MODEL.APP {
       if (Util.fire(callbacks_update.head.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
 
-    area_(): JQueryDeferred<any[]>[] {
+    private area_(): JQueryDeferred<any[]>[] {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
           srcDocument: Document = this.srcDocument_,
@@ -436,7 +436,7 @@ module MODULE.MODEL.APP {
       return loadwaits;
     }
     
-    balance_(): void {
+    private balance_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
@@ -455,7 +455,7 @@ module MODULE.MODEL.APP {
       if (Util.fire(callbacks_update.balance.after, null, [event, setting.param]) === false) { return; }
     }
 
-    css_(selector: string): void {
+    private css_(selector: string): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
           srcDocument: Document = this.srcDocument_,
@@ -519,7 +519,7 @@ module MODULE.MODEL.APP {
       speedcheck && speed.name.push('css(' + speed.time.slice(-1) + ')');
     }
 
-    script_(selector: string): JQueryDeferred<any[]>[] {
+    private script_(selector: string): JQueryDeferred<any[]>[] {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
           srcDocument: Document = this.srcDocument_,
@@ -631,7 +631,7 @@ module MODULE.MODEL.APP {
       return scriptwaits;
     }
     
-    scroll_(call: boolean): void {
+    private scroll_(call: boolean): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
@@ -661,9 +661,9 @@ module MODULE.MODEL.APP {
       if (Util.fire(callbacks_update.scroll.after, null, [event, setting.param]) === false) { return; }
     }
 
-    waitRender_(callback: JQueryDeferred<any>): JQueryDeferred<any>
-    waitRender_(callback: () => void): void
-    waitRender_(callback: any) {
+    private waitRender_(callback: JQueryDeferred<any>): JQueryDeferred<any>
+    private waitRender_(callback: () => void): void
+    private waitRender_(callback: any) {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
@@ -695,7 +695,7 @@ module MODULE.MODEL.APP {
       return jQuery.when && callback;
     }
 
-    scrollByHash_(hash: string): boolean {
+    private scrollByHash_(hash: string): boolean {
       hash = '#' === hash.charAt(0) ? hash.slice(1) : hash;
       if (!hash) { return false; }
 
@@ -709,26 +709,26 @@ module MODULE.MODEL.APP {
       }
     }
     
-    escapeNoscript_(srcDocument: Document): void {
+    private escapeNoscript_(srcDocument: Document): void {
       jQuery('noscript', srcDocument).children().parent().each(eachNoscript);
       function eachNoscript() {
         jQuery(this).text(this.innerHTML);
       }
     }
 
-    restoreNoscript_(html: string): string {
+    private restoreNoscript_(html: string): string {
       var $span = jQuery('<span/>');
       return html.replace(/(<noscript>)([^<>]+?)(<\/noscript>)/gim, ($0, $1, $2, $3) => $1 + $span.html($2).text() + $3);
     }
 
-    escapeScript_(script: HTMLScriptElement): void {
+    private escapeScript_(script: HTMLScriptElement): void {
       jQuery.data(script, 'source', script.src);
       jQuery.data(script, 'code', script.innerHTML);
       script.removeAttribute('src');
       script.innerHTML = '';
     }
 
-    restoreScript_(script: HTMLScriptElement): void {
+    private restoreScript_(script: HTMLScriptElement): void {
       if (undefined === jQuery.data(script, 'code')) { return; }
 
       script.innerHTML = ' ';

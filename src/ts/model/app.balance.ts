@@ -7,9 +7,9 @@ module MODULE.MODEL.APP {
   
   export class Balance implements BalanceInterface {
 
-    constructor(public model_: ModelInterface, public app_: AppLayerInterface) { }
+    constructor(private model_: ModelInterface, private app_: AppLayerInterface) { }
 
-    host_: string = ''
+    private host_: string = ''
     host = () => this.host_
 
     check(setting: SettingInterface): boolean {
