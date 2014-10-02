@@ -1,37 +1,19 @@
 /// <reference path="../define.ts"/>
+/// <reference path="../model/_template.ts"/>
 /// <reference path="function.ts"/>
 /// <reference path="method.ts"/>
 
 /* CONTROLLER */
 
 module MODULE.CONTROLLER {
-  /**
-   * @class Controller
-   */
-  var M: ModelInterface
-  var C: Template
 
   export class Template {
 
-    constructor(model: ModelInterface, ...args: any[]) {
-      M = model;
-      C = this;
-      this.UUID = GEN_UUID();
-      // プラグインに関数を設定してネームスペースに登録
-      // $.mvc.func, $().mvc.funcとして実行できるようにするための処理
-      if (NAMESPACE && NAMESPACE == NAMESPACE.window) {
-        NAMESPACE[NAME] = this.EXEC;
-      } else {
-        NAMESPACE[NAME] = NAMESPACE.prototype[NAME] = this.EXEC;
-      }
-
-      var f = new CONTROLLER.ControllerFunction(<Main>C, M);
-      // コンテクストに関数を設定
-      this.REGISTER_FUNCTIONS(NAMESPACE[NAME], f);
-      // コンテクストのプロパティを更新
-      this.UPDATE_PROPERTIES(NAMESPACE[NAME]);
-      this.OBSERVE.apply(this, args);
-      this.state_ = 0;
+    constructor(model: ModelInterface, state: State) {
+      this.state_ = state;
+      this.FUNCTIONS = new Functions(model, <any>this);
+      this.METHODS = new Methods(model, <any>this);
+      this.REGISTER(model);
     }
 
     /**
@@ -40,24 +22,40 @@ module MODULE.CONTROLLER {
      * @property UUID
      * @type String
      */
-    UUID: string
-    
-    /**
-     * Controllerのコンストラクタに渡された引数が設定される。
-     * 
-     * @property context
-     * @type {JQuery|Window|Document|HTMLElement}
-     */
-    CONTEXT: any
+    UUID: string = GEN_UUID()
     
     /**
      * Controllerの遷移状態を持つ
      * 
-     * @property state_
+     * @prperty state_
      * @type {State}
      */
-    state_: State = State.wait
+    state_: State = State.blank
+
+    /**
+     * Controllerの関数オブジェクト
+     * 
+     * @prperty FUNCTIONS
+     * @type {Functions}
+     */
+    FUNCTIONS: Functions
     
+    /**
+     * Controllerのメソッドオブジェクト
+     * 
+     * @prperty METHODS
+     * @type {Methods}
+     */
+    METHODS: Methods
+    
+    /**
+     * 拡張モジュール本体。
+     * 
+     * @prperty EXTENSION
+     * @type {Function}
+     */
+    EXTENSION: Function
+
     /**
      * 与えられたコンテクストに拡張機能を設定する。
      * 
@@ -65,26 +63,25 @@ module MODULE.CONTROLLER {
      * @param {JQuery|Object|Function} context コンテクスト
      * @chainable
      */
-    EXTEND(context): any {
+    EXTEND(context: ExtensionInterface): ExtensionInterface
+    EXTEND(context: ExtensionStaticInterface): ExtensionStaticInterface
+    EXTEND(context: any): any {
       if (context instanceof NAMESPACE) {
         if (context instanceof jQuery) {
           // コンテクストへの変更をend()で戻せるようadd()
           context = context.add();
         }
         // コンテクストに関数を設定
-        var f = new CONTROLLER.ControllerFunction(<Main>C, M);
-        this.REGISTER_FUNCTIONS(context, f);
+        this.REGISTER_FUNCTION(context);
         // コンテクストにメソッドを設定
-        var m = new CONTROLLER.ControllerMethod(<Main>C, M);
-        this.REGISTER_FUNCTIONS(context, m);
+        this.REGISTER_METHOD(context);
       } else {
-        if (context !== NAMESPACE) {
-          // コンテクストをプラグインに変更
-          context = NAMESPACE;
+        if (context !== this.EXTENSION) {
+          // コンテクストを拡張に変更
+          context = this.EXTENSION;
         }
         // コンテクストに関数を設定
-        var f = new CONTROLLER.ControllerFunction(<Main>C, M);
-        this.REGISTER_FUNCTIONS(context, f);
+        this.REGISTER_FUNCTION(context);
       }
       // コンテクストのプロパティを更新
       this.UPDATE_PROPERTIES(context);
@@ -92,25 +89,54 @@ module MODULE.CONTROLLER {
     }
     
     /**
-     * 拡張モジュール本体のインターフェイス。
+     * 拡張モジュール本体のスコープ。
      * 
-     * @method EXEC
+     * @method REGISTER
      * @param {Any} [params]* パラメータ
      */
-    EXEC(...args: any[]): any {
-      var context = C.EXTEND(this);
-      args = [context].concat(args);
-      args = C.exec_.apply(C, args);
-      args = args instanceof Array ? args : [args];
-      return (<MODEL.Main>M).MAIN.apply(M, args);
+    REGISTER(model): void {
+      var S = this;
+      this.EXTENSION = this.EXTENSION || function (...args: any[]) {
+        var context = S.EXTEND(this);
+        args = [context].concat(args);
+        args = S.EXEC.apply(S, args);
+        return args instanceof Array ? model.MAIN.apply(model, args) : args;
+      };
+      this.EXTEND(<ExtensionStaticInterface>this.EXTENSION);
+
+      // プラグインに関数を設定してネームスペースに登録
+      window[NAMESPACE] = window[NAMESPACE] || {};
+      if (NAMESPACE.prototype) {
+        NAMESPACE[NAME] = NAMESPACE.prototype[NAME] = this.EXTENSION;
+      } else {
+        NAMESPACE[NAME] = this.EXTENSION;
+      }
     }
+
     /**
-     * 拡張モジュール本体を実行したときに呼び出される。実装ごとに書き換える。戻り値の配列が`MAIN`および`main_`へ渡す引数のリストとなる。
+     * 拡張モジュール本体を実行したときに呼び出される。
      * 
-     * @method exec_
-     * @param {Object} context
+     * @method EXEC
+     * @param {Object|Functin} context
      * @param {Any} [params]* args
      */
+    EXEC(context: ExtensionInterface, ...args: any[]): any[]
+    EXEC(context: ExtensionStaticInterface, ...args: any[]): any[]
+    EXEC(): any {
+      return this.exec_.apply(this, arguments);
+    }
+
+    /**
+     * 拡張モジュール本体を実行したときに呼び出される。実装ごとに書き換える。
+     * 戻り値が配列であれば`MAIN`および`main_`へ渡す引数のリストとなり、配列以外であれば以降の処理を行わず戻り値を返す。
+     * 主にモデルへ渡す引数のフィルターとして使用する。
+     * 
+     * @method exec_
+     * @param {Object|Functin} context
+     * @param {Any} [params]* args
+     */
+    exec_(context: ExtensionInterface, ...args: any[]): any[]
+    exec_(context: ExtensionStaticInterface, ...args: any[]): any[]
     exec_(context: any, ...args: any[]): any {
       return [context].concat(args);
     }
@@ -122,17 +148,43 @@ module MODULE.CONTROLLER {
      * @param {JQuery|Object|Function} context コンテクスト
      * @return {JQuery|Object|Function} context コンテクスト
      */
-    REGISTER_FUNCTIONS(context, funcs): any {
-      var props = CONTROLLER.Template.PROPERTIES;
-
-      var i;
-      for (i in funcs) {
+    REGISTER_FUNCTION(context: ExtensionInterface): ExtensionInterface
+    REGISTER_FUNCTION(context: ExtensionStaticInterface): ExtensionStaticInterface
+    REGISTER_FUNCTION(context: any): any {
+      var funcs = this.FUNCTIONS;
+      for (var i in funcs) {
         if ('constructor' === i) { continue; }
         context[i] = funcs[i];
       }
       return context;
     }
+
+    /**
+     * 拡張のメソッドを更新する
+     * 
+     * @method REGISTER_FUNCTIONS
+     * @param {JQuery|Object|Function} context コンテクスト
+     * @return {JQuery|Object|Function} context コンテクスト
+     */
+    REGISTER_METHOD(context: ExtensionInterface): ExtensionInterface
+    REGISTER_METHOD(context: ExtensionStaticInterface): ExtensionStaticInterface
+    REGISTER_METHOD(context: any): any {
+      var METHODS = this.METHODS;
+      for (var i in METHODS) {
+        if ('constructor' === i) { continue; }
+        context[i] = METHODS[i];
+      }
+      return context;
+    }
     
+    /**
+     * 拡張のプロパティを指定する
+     * 
+     * @prperty PROPERTIES
+     * @type {String}
+     */
+    PROPERTIES: string[] = []
+
     /**
      * 拡張のプロパティを更新する
      * 
@@ -141,8 +193,10 @@ module MODULE.CONTROLLER {
      * @param {Object} funcs プロパティのリスト
      * @return {JQuery|Object|Function} context コンテクスト
      */
-    UPDATE_PROPERTIES(context): any {
-      var props = CONTROLLER.Template.PROPERTIES;
+    UPDATE_PROPERTIES(context: ExtensionInterface): ExtensionInterface
+    UPDATE_PROPERTIES(context: ExtensionStaticInterface): ExtensionStaticInterface
+    UPDATE_PROPERTIES(context: any): any {
+      var props = this.PROPERTIES;
 
       var i, len, prop;
       for (i = 0, len = props.length; i < len; i++) {
@@ -154,73 +208,6 @@ module MODULE.CONTROLLER {
       }
       return context;
     }
-
-    /**
-     * 内部イベントを監視する。
-     * 
-     * @method OBSERVE
-     */
-    OBSERVE(...args: any[]): any { }
-
-    /**
-     * 内部イベントの監視を終了する。
-     * 
-     * @method RELEASE
-     */
-    RELEASE(...args: any[]): any { }
-    
-    /**
-     * Controllerが監視する内部イベント名のリスト
-     * 
-     * @property EVENTS
-     * @type {Object}
-     * @static
-     */
-    static EVENTS = { }
-    
-    /**
-     * 拡張機能として組み込む関数のリスト
-     * 
-     * @property FUNCTIONS
-     * @type {Object}
-     * @static
-     */
-    static FUNCTIONS = { }
-    
-    /**
-     * 拡張機能として組み込むメソッドのリスト
-     * 
-     * @property METHODS
-     * @type {Object}
-     * @static
-     */
-    static METHODS = { }
-    
-    /**
-     * 拡張機能として組み込むプロパティのリスト
-     * 
-     * @property PROPERTIES
-     * @type {Object}
-     * @static
-     */
-    static PROPERTIES = []
-    
-    /**
-     * Controllerが発生させる外部イベント名のリスト
-     * 
-     * @property TRIGGERS
-     * @type {Object}
-     * @static
-     */
-    static TRIGGERS = { }
-    
-    /**
-     * Controllerが待ち受けるイベントに設定されるイベントハンドラのリスト
-     * 
-     * @property HANDLERS
-     * @type {Object}
-     */
-    HANDLERS = { }
 
   }
 

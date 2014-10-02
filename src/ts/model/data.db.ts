@@ -18,8 +18,7 @@ module MODULE.MODEL.APP.DATA {
           this.conExpires_ = 0;
         }
         setTimeout(check, Math.max(this.conExpires_ - now + 100, this.conInterval_));
-        this.tasks_.length && !this.nowInitializing && !this.nowRetrying &&
-        this.opendb(null, true);
+        this.tasks_.length && State.initiate !== this.state() && !this.nowRetrying && this.opendb(null, true);
       }
       this.conAge_ && setTimeout(check, this.conInterval_);
     }
@@ -32,10 +31,9 @@ module MODULE.MODEL.APP.DATA {
     private version_: number = 4
     private refresh_: number = 10
     private upgrade_: number = 1 // 0:virtual 1:naitive
-    private state_: State = State.wait
+    private state_: State = State.blank
     database = () => this.database_
     state = () => this.state_
-    nowInitializing: boolean = false
     nowRetrying: boolean = false
 
     private conAge_: number = 10 * 1000
@@ -63,15 +61,15 @@ module MODULE.MODEL.APP.DATA {
 
       'function' === typeof task && that.reserveTask_(task);
 
-      if (that.nowInitializing || that.nowRetrying) { return; }
+      if (State.initiate === that.state() || that.nowRetrying) { return; }
 
       try {
-        that.nowInitializing = true;
+        that.state_ = State.initiate;
 
         var request = that.IDBFactory.open(that.name_, that.upgrade_ ? that.version_ : 1);
 
         request.onblocked = function () {
-          that.closedb(State.lock);
+          that.closedb(State.pause);
           try {
             this.result.close();
             !noRetry && setTimeout(() => that.opendb(null, true), 1000);
@@ -105,9 +103,8 @@ module MODULE.MODEL.APP.DATA {
             
             that.checkdb_(database, that.version_, () => {
               that.database_ = database;
-              that.state_ = State.ready;
+              that.state_ = State.open;
               that.conExtend();
-              that.nowInitializing = false;
 
               that.digestTask_();
 
@@ -136,7 +133,7 @@ module MODULE.MODEL.APP.DATA {
       }
     }
 
-    closedb(state: State = State.wait): void {
+    closedb(state: State = State.close): void {
       this.database_ = null;
       this.state_ = state;
 

@@ -7,11 +7,15 @@
 module MODULE.CONTROLLER {
   var M: ModelInterface
   var C: ControllerInterface
+  var S: Methods
 
-  export class ControllerMethod extends ControllerFunction {
+  export class Methods {
 
-    constructor(controller: ControllerInterface, model: ModelInterface) {
-      super(controller, model);
+    constructor(model: ModelInterface, controller: ControllerInterface) {
+      M = model;
+      C = controller;
+      S = this;
+      SEAL(this);
     }
 
   }

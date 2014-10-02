@@ -47,7 +47,7 @@ module MODULE.MODEL.APP {
           jqXHR: JQueryXHR = this.jqXHR_;
       var callbacks_update = setting.callbacks.update;
 
-      var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
+      var speedcheck = setting.speedcheck, speed = this.model_.speed;
       speedcheck && speed.time.push(speed.now() - speed.fire);
       speedcheck && speed.name.push('fetch(' + speed.time.slice(-1) + ')');
       
@@ -217,7 +217,7 @@ module MODULE.MODEL.APP {
       this.title_();
       this.head_();
 
-      var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
+      var speedcheck = setting.speedcheck, speed = this.model_.speed;
       speedcheck && speed.time.push(speed.now() - speed.fire);
       speedcheck && speed.name.push('head(' + speed.time.slice(-1) + ')');
 
@@ -514,7 +514,7 @@ module MODULE.MODEL.APP {
       
       if (Util.fire(callbacks_update.css.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
 
-      var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
+      var speedcheck = setting.speedcheck, speed = this.model_.speed;
       speedcheck && speed.time.push(speed.now() - speed.fire);
       speedcheck && speed.name.push('css(' + speed.time.slice(-1) + ')');
     }
@@ -624,7 +624,7 @@ module MODULE.MODEL.APP {
       
       if (Util.fire(callbacks_update.script.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return scriptwaits; }
 
-      var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
+      var speedcheck = setting.speedcheck, speed = this.model_.speed;
       speedcheck && speed.time.push(speed.now() - speed.fire);
       speedcheck && speed.name.push('script(' + speed.time.slice(-1) + ')');
 

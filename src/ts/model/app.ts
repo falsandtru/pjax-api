@@ -19,14 +19,14 @@ module MODULE.MODEL.APP {
     page: PageInterface = new Page(this.model_, this)
     data: DataInterface = new Data(this.model_, this)
 
-    initialize($context: ContextInterface, setting: SettingInterface): void {
+    initialize($context: JQuery, setting: SettingInterface): void {
       var loadedScripts = this.page.loadedScripts;
       setting.load.script && jQuery('script').each(function () {
         var element: HTMLScriptElement = this;
         if (element.src) { loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload); }
       });
 
-      new View(this.model_, this.controller_, $context).BIND(setting);
+      new View(this.model_, this.controller_, $context, setting);
       setTimeout(() => this.data.loadBuffers(setting.buffer.limit), setting.buffer.delay);
       setting.balance.self && setTimeout(() => this.balance.enable(setting), setting.buffer.delay);
       setTimeout(() => this.page.landing = null, 1500);
@@ -41,6 +41,7 @@ module MODULE.MODEL.APP {
 
       option = option.scope ? jQuery.extend(true, {}, option, scope(option, origURL, destURL) || { cancel: true })
                             : jQuery.extend(true, {}, option);
+      FREEZE(option, true);
 
       var initial = <PjaxSetting>{
             area: 'body',
@@ -137,13 +138,13 @@ module MODULE.MODEL.APP {
           force = <SettingInterface>{
             ns: undefined,
             nss: undefined,
-            areas: undefined,
             speedcheck: undefined,
             cancel: undefined,
             origLocation: undefined,
             destLocation: undefined,
 
             gns: NAME,
+            areas: [],
             scroll: { queue: [] },
             loadtime: null,
             retriable: true,
@@ -199,7 +200,7 @@ module MODULE.MODEL.APP {
       setting = jQuery.extend(true, setting, setting.balance.self && setting.balance.option, force);
       setting = jQuery.extend(true, setting, compute());
 
-      return setting; //new this.stock(setting);
+      return SEAL(setting, true);
 
       function scope(setting: PjaxSetting, origURL: string, destURL: string, rewriteKeyUrl: string = ''): any {
         var origKeyUrl: string,

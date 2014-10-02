@@ -1,1 +1,1 @@
-$('html').pjax();
+$('html').pjax({});

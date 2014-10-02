@@ -7,49 +7,39 @@ module MODULE.CONTROLLER {
 
   export class Main extends Template implements ControllerInterface {
 
-    constructor(public model_: ModelInterface) {
-      super(model_);
+    constructor(private model_: ModelInterface) {
+      super(model_, State.initiate);
     }
+    
+    exec_($context: ExtensionInterface, setting: PjaxSetting): any[]
+    exec_($context: ExtensionStaticInterface, option: any): any[]
+    exec_($context: any): any[] {
+      var args = [].slice.call(arguments, 1, 2),
+          option = args[0];
 
-    exec_($context: JQuery, option) {
-      $context = $context instanceof jQuery ? $context : this.EXTEND(jQuery(document));
-
-      var pattern;
-      pattern = $context instanceof NAMESPACE ? 'm:' : 'f:';
-      pattern += option ? ({}).toString.call(option).split(' ').pop().slice(0, -1).toLowerCase() : option;
-      switch (pattern.toLowerCase()) {
+      switch (typeof option) {
+        case 'undefined':
+        case 'object':
+          break;
+        default:
+          return $context;
       }
 
-      return [$context, option];
+      return [$context].concat(args);
     }
 
-    // CONTROLLERが監視する内部イベントを登録
-    OBSERVE() { }
-
-    CLICK(...args: any[]): void {
-      this.model_.CLICK.apply(this.model_, args);
+    click(...args: any[]): void {
+      this.model_.click.apply(this.model_, args);
     }
-    SUBMIT(...args: any[]): void {
-      this.model_.SUBMIT.apply(this.model_, args);
+    submit(...args: any[]): void {
+      this.model_.submit.apply(this.model_, args);
     }
-    POPSTATE(...args: any[]): void {
-      this.model_.POPSTATE.apply(this.model_, args);
+    popstate(...args: any[]): void {
+      this.model_.popstate.apply(this.model_, args);
     }
-    SCROLL(...args: any[]): void {
-      this.model_.SCROLL.apply(this.model_, args);
+    scroll(...args: any[]): void {
+      this.model_.scroll.apply(this.model_, args);
     }
-
-    //内部イベント
-    static EVENTS = { }
-
-    // プラグインに登録されるプロパティ
-    static PROPERTIES = []
-
-    // プラグインが実行するイベント名
-    static TRIGGERS = { }
-
-    // CONTROLLERの待ち受けるイベントに登録されるハンドラ
-    HANDLERS = { }
 
   }
 

@@ -6,12 +6,15 @@
 module MODULE.CONTROLLER {
   var M: ModelInterface
   var C: ControllerInterface
+  var S: Functions
 
-  export class ControllerFunction {
+  export class Functions {
 
-    constructor(controller: ControllerInterface, model: ModelInterface) {
+    constructor(model: ModelInterface, controller: ControllerInterface) {
       M = model;
       C = controller;
+      S = this;
+      SEAL(this);
     }
 
     enable(): JQueryPjaxStatic {
@@ -49,7 +52,7 @@ module MODULE.CONTROLLER {
         default:
           return <any>this;
       }
-      $anchor.first().one(setting.nss.click, (event) => new View(M, C, null).HANDLERS.CLICK(event)).click();
+      $anchor.first().one(setting.nss.click, () => C.click.apply(C, arguments)).click();
       return <any>this;
     }
     
@@ -99,7 +102,7 @@ module MODULE.CONTROLLER {
         default:
           return <any>this;
       }
-      $form.first().one(setting.nss.submit, (event) => new View(M, C, null).HANDLERS.SUBMIT(event)).submit();
+      $form.first().one(setting.nss.submit, () => C.submit.apply(C, arguments)).submit();
       return <any>this;
     }
     

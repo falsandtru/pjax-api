@@ -71,7 +71,7 @@ module MODULE {
   export module CONTROLLER { }
 
   // Model Interface
-  export declare class ModelInterface extends StockInterface {
+  export declare class ModelInterface {
     constructor()
 
     // Property
@@ -89,12 +89,13 @@ module MODULE {
     getGlobalXHR(): JQueryXHR
     setGlobalXHR(xhr: JQueryXHR): JQueryXHR
     fallback(event: JQueryEventObject, setting: SettingInterface): void
+    speed: any
     
     // View
-    CLICK(event: JQueryEventObject): void
-    SUBMIT(event: JQueryEventObject): void
-    POPSTATE(event: JQueryEventObject): void
-    SCROLL(event: JQueryEventObject, end: boolean): void
+    click(event: JQueryEventObject): void
+    submit(event: JQueryEventObject): void
+    popstate(event: JQueryEventObject): void
+    scroll(event: JQueryEventObject, end: boolean): void
     
     // Controller
     enable(): void
@@ -107,26 +108,24 @@ module MODULE {
   }
   // View Interface
   export declare class ViewInterface {
-    constructor(context: ContextInterface)
-    CONTEXT: ContextInterface
-    
-    BIND(setting: SettingInterface): ViewInterface
-    UNBIND(setting: SettingInterface): ViewInterface
-    OBSERVE(): ViewInterface
-    RELEASE(): ViewInterface
+    constructor(model: ModelInterface, controller: ControllerInterface, $context: JQuery, setting: SettingInterface)
   }
   // Controller Interface
   export declare class ControllerInterface {
     constructor()
 
-    CLICK(event: JQueryEventObject): void
-    SUBMIT(event: JQueryEventObject): void
-    POPSTATE(event: JQueryEventObject): void
-    SCROLL(event: JQueryEventObject): void
+    click(event: JQueryEventObject): void
+    submit(event: JQueryEventObject): void
+    popstate(event: JQueryEventObject): void
+    scroll(event: JQueryEventObject): void
   }
 
-  // enum
-  export enum State { wait = -1, ready, lock, seal, error }
+  // State
+  export enum State { blank = -2, initiate, open, pause, lock, seal, error, crash, terminate, close }
+
+  // Context
+  export interface ExtensionInterface extends JQueryPjax { }
+  export interface ExtensionStaticInterface extends JQueryPjaxStatic { }
 
   // Parameter
   export interface SettingInterface extends PjaxSetting {
@@ -155,11 +154,6 @@ module MODULE {
   }
 
   // Member
-  export interface ContextInterface extends JQuery { }
-  export declare class StockInterface {
-    stock(key?: string, value?: any, merge?: boolean): any
-    stock(key?: Object): any
-  }
   export interface RecentInterface {
     order: string[]
     data: {
@@ -178,13 +172,43 @@ module MODULE {
     host: string
     timeStamp: number
   }
-  export var GEN_UUID: () => string = function () {
+
+  // Function
+  export function GEN_UUID(): string {
     // version 4
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, gen);
+    function gen(c) {
       var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
       return v.toString(16).toUpperCase();
-    });
+    }
   }
+
+  export function FREEZE<T>(object: T, deep?: boolean): T {
+    if (!Object.freeze || object === object['window'] || 'ownerDocument' in object) { return object; }
+    !Object.isFrozen(object) && Object.freeze(object);
+    if (!deep) { return object; }
+    for (var i in object) {
+      var prop = object[i];
+      if (~'object,function'.indexOf(typeof prop) && prop) {
+        FREEZE(prop, deep);
+      }
+    }
+    return object;
+  }
+
+  export function SEAL<T>(object: T, deep?: boolean): T {
+    if (!Object.seal || object === object['window'] || 'ownerDocument' in object) { return object; }
+    !Object.isSealed(object) && Object.seal(object);
+    if (!deep) { return object; }
+    for (var i in object) {
+      var prop = object[i];
+      if (~'object,function'.indexOf(typeof prop) && prop) {
+        SEAL(prop, deep);
+      }
+    }
+    return object;
+  }
+
 }
 
 module MODULE.MODEL {
@@ -194,7 +218,7 @@ module MODULE.MODEL {
     page: PageInterface
     data: DataInterface
 
-    initialize($context: ContextInterface, setting: SettingInterface): void
+    initialize($context: JQuery, setting: SettingInterface): void
     configure(option: PjaxSetting, origURL: string, destURL: string): SettingInterface
   }
   export declare class BalanceInterface {
@@ -301,8 +325,6 @@ module MODULE.MODEL.APP {
     IDBKeyRange: IDBKeyRange
 
     database(): IDBDatabase
-    nowInitializing: boolean
-    nowRetrying: boolean
     state(): State
     stores: DatabaseSchema
     metaNames: {

@@ -18,7 +18,7 @@ suite("Core", function () {
         document = window.document;
         $ = window.$;
 
-        assert.equal($.pjax()[0], document, "context");
+        assert.equal($.pjax(), $.pjax, "context");
 
         done();
       });

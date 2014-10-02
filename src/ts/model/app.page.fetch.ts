@@ -38,7 +38,7 @@ module MODULE.MODEL.APP {
           globalXHR = this.model_.getGlobalXHR(),
           wait: number = Util.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
 
-      var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
+      var speedcheck = setting.speedcheck, speed = this.model_.speed;
       speedcheck && (speed.fire = event.timeStamp);
       speedcheck && speed.time.splice(0, 100, 0);
       speedcheck && speed.name.splice(0, 100, 'pjax(' + speed.time.slice(-1) + ')');
