@@ -1,35 +1,35 @@
 /// <reference path="../define.ts"/>
 /// <reference path="app.page.utility.ts"/>
-/// <reference path="utility.ts"/>
+/// <reference path="../library/utility.ts"/>
 
 /* MODEL */
 
-module MODULE.MODEL {
+module MODULE.MODEL.APP {
   
-  export class AppPageFetch extends AppPageUtility implements AppPageFetchInterface {
+  export class PageFetch extends PageUtility implements PageFetchInterface {
 
     constructor(
 
-    public model_: ModelInterface,
-    public app_: AppLayerInterface,
-    public setting_: SettingInterface,
-    public event_: JQueryEventObject,
-    public register_: boolean,
-    public cache_: CacheInterface,
-    public done_: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any,
-    public fail_: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any
+    private model_: ModelInterface,
+    private app_: AppLayerInterface,
+    private setting_: SettingInterface,
+    private event_: JQueryEventObject,
+    private register_: boolean,
+    private cache_: CacheInterface,
+    private done_: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any,
+    private fail_: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any
     ) {
       super();
       this.main_();
     }
 
-    host_: string
-    data_: string
-    textStatus_: string
-    jqXHR_: JQueryXHR
-    errorThrown_: string
+    private host_: string
+    private data_: string
+    private textStatus_: string
+    private jqXHR_: JQueryXHR
+    private errorThrown_: string
 
-    main_(): void {
+    private main_(): void {
       var that = this,
           setting = this.setting_,
           event = this.event_ = jQuery.extend(true, {}, this.event_),
@@ -38,7 +38,7 @@ module MODULE.MODEL {
           globalXHR = this.model_.getGlobalXHR(),
           wait: number = Util.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
 
-      var speedcheck = setting.speedcheck, speed = this.model_.stock('speed');
+      var speedcheck = setting.speedcheck, speed = this.model_.speed;
       speedcheck && (speed.fire = event.timeStamp);
       speedcheck && speed.time.splice(0, 100, 0);
       speedcheck && speed.name.splice(0, 100, 'pjax(' + speed.time.slice(-1) + ')');

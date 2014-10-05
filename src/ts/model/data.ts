@@ -4,12 +4,12 @@
 
 /* MODEL */
 
-module MODULE.MODEL {
+module MODULE.MODEL.APP.DATA {
   
-  export class Data implements DataLayerInterface {
+  export class Main implements DataLayerInterface {
 
-    DB: DataDBInterface = new MODEL.DataDB()
-    Cookie: DataCookieInterface = new MODEL.DataCookie(10 * 24 * 60 * 60)
+    DB: DBInterface = new DB()
+    Cookie: CookieInterface = new Cookie(10 * 24 * 60 * 60)
 
   }
 

@@ -1,7 +1,7 @@
 
 /* MODEL */
 
-module MODULE.MODEL {
+module MODULE.LIBRARY {
 
   export class Utility {
 
@@ -49,7 +49,7 @@ module MODULE.MODEL {
           var len = arg.length;
           if (size < 300) {
             var arr = Array(size);
-            that.duff(-size, (i) => arr[i] = arg[i % len]);
+            this.duff(-size, (i) => arr[i] = arg[i % len]);
           } else {
             var arr = <any[]>arg.slice();
             while (arr.length * 2 <= size) {
@@ -144,7 +144,7 @@ module MODULE.MODEL {
     static normalizeUrl(url: string, transparent: boolean = true): string {
       var ret: string;
       // Trim
-      ret = that.trim(url);
+      ret = this.trim(url);
       // Convert to absolute path
       ret = /^([^:/?#]+):\/\/[^/?#.]+\.[^/?#]+/i.test(ret) ? ret : (function (url, a) { a.href = url; return a.href; })(ret, document.createElement('a'));
       // Convert to UTF-8 encoded string
@@ -152,13 +152,13 @@ module MODULE.MODEL {
       // Remove string of starting with an invalid character
       ret = ret.replace(/["`^|\\<>{}\[\]\s].*/, '');
       // Fix case of percent encoding
-      ret = transparent ? justifyPercentEncodingUrlCase(url, ret) : ret;
+      ret = transparent ? this.justifyPercentEncodingUrlCase_(url, ret) : ret;
 
       return ret;
     }
 
     static canonicalizeUrl(url: string): string {
-      var ret: string = that.normalizeUrl(url, false);
+      var ret: string = this.normalizeUrl(url, false);
       // Fix case of percent encoding
       ret = ret.replace(/(?:%\w{2})+/g, replaceLowerToUpper);
       function replaceLowerToUpper(str) {
@@ -169,27 +169,22 @@ module MODULE.MODEL {
 
     static compareUrl(first: string, second: string, canonicalize?: boolean): boolean {
       if (canonicalize) {
-        first = that.canonicalizeUrl(first);
-        second = that.canonicalizeUrl(second);
+        first = this.canonicalizeUrl(first);
+        second = this.canonicalizeUrl(second);
       }
 
       // URLのパーセントエンコーディングの大文字小文字がAndroidのアドレスバーとリンクで異なるためそろえる
-      return first === justifyPercentEncodingUrlCase(first, second);
+      return first === this.justifyPercentEncodingUrlCase_(first, second);
     }
 
-  }
-
-  var that = Utility
-  export var Util = MODEL.Utility
-
-  // private
-
-  function justifyPercentEncodingUrlCase(base: string, target: string): string {
-    return base === target ? target : target.replace(/(?:%\w{2})+/g, replace);
-    function replace(str) {
-      var i = ~base.indexOf(str.toUpperCase()) || ~base.indexOf(str.toLowerCase());
-      return i ? base.substr(~i, str.length) : str;
+    private static justifyPercentEncodingUrlCase_(base: string, target: string): string {
+      return base === target ? target : target.replace(/(?:%\w{2})+/g, replace);
+      function replace(str) {
+        var i = ~base.indexOf(str.toUpperCase()) || ~base.indexOf(str.toLowerCase());
+        return i ? base.substr(~i, str.length) : str;
+      }
     }
+
   }
 
 }

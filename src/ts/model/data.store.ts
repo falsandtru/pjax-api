@@ -3,14 +3,11 @@
 
 /* MODEL */
 
-module MODULE.MODEL {
+module MODULE.MODEL.APP.DATA {
   
-  export class DataStore<T> implements DataStoreInterface<T> {
-    constructor(DB: DataDBInterface) {
-      this.DB_ = DB;
+  export class Store<T> implements StoreInterface<T> {
+    constructor(public DB: DBInterface) {
     }
-
-    DB_: DataDBInterface
 
     name: string
     keyPath: string
@@ -18,10 +15,10 @@ module MODULE.MODEL {
     buffer_: T[] = []
 
     accessStore(success: (store: IDBObjectStore) => void, mode: string = 'readwrite'): void {
-      this.DB_.conExtend();
+      this.DB.conExtend();
 
       try {
-        var database: IDBDatabase = this.DB_.database(),
+        var database: IDBDatabase = this.DB.database(),
             store: IDBObjectStore = database && database.transaction(this.name, mode).objectStore(this.name);
       } catch (err) {
       }
@@ -29,7 +26,7 @@ module MODULE.MODEL {
       if (store) {
         success(store);
       } else {
-        this.DB_.opendb(() => this.accessStore(success));
+        this.DB.opendb(() => this.accessStore(success));
       }
     }
 
@@ -43,11 +40,11 @@ module MODULE.MODEL {
       var that = this;
       this.accessStore((store) => {
         var index = store.indexNames.length ? store.indexNames[0] : store.keyPath;
-        store.index(index).openCursor(this.DB_.IDBKeyRange.lowerBound(0), 'prev').onsuccess = function () {
+        store.index(index).openCursor(this.DB.IDBKeyRange.lowerBound(0), 'prev').onsuccess = function () {
           if (!this.result) { return; }
 
           var IDBCursor = this.result,
-            data = <T>IDBCursor.value;
+              data = <T>IDBCursor.value;
           that.buffer_[data[store.keyPath]] = data;
           if (!--limit) { return; }
 

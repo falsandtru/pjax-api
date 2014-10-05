@@ -3,14 +3,11 @@
 
 /* MODEL */
 
-module MODULE.MODEL {
+module MODULE.MODEL.APP.DATA {
   
-  export class DataCookie implements DataCookieInterface {
-    constructor(age: number) {
-      this.age_ = age;
+  export class Cookie implements CookieInterface {
+    constructor(private age_: number) {
     }
-
-    age_: number
 
     getCookie(key: string): string {
       if (!key || !window.navigator.cookieEnabled) { return; }

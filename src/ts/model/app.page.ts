@@ -2,14 +2,15 @@
 /// <reference path="app.page.fetch.ts"/>
 /// <reference path="app.page.update.ts"/>
 /// <reference path="app.page.utility.ts"/>
+/// <reference path="../library/utility.ts"/>
 
 /* MODEL */
 
-module MODULE.MODEL {
+module MODULE.MODEL.APP {
 
-  export class AppPage extends AppPageUtility implements AppPageInterface {
+  export class Page extends PageUtility implements PageInterface {
 
-    constructor(public model_: ModelInterface, public app_: AppLayerInterface) {
+    constructor(private model_: ModelInterface, private app_: AppLayerInterface) {
       super();
       setTimeout(() => this.createHTMLDocument('', '') || this.model_.disable(), 50);
     }
@@ -44,7 +45,7 @@ module MODULE.MODEL {
           done: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void,
           fail: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void
          ): void {
-      new AppPageFetch(this.model_, this.app_, setting, event, register, cache, done, fail);
+      new PageFetch(this.model_, this.app_, setting, event, register, cache, done, fail);
     }
 
     update(setting: SettingInterface,
@@ -57,7 +58,7 @@ module MODULE.MODEL {
            errorThrown: string,
            host: string
           ): void {
-      new AppPageUpdate(this.model_, this.app_, setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host);
+      new PageUpdate(this.model_, this.app_, setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host);
     }
     
   }

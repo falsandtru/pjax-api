@@ -2,7 +2,7 @@
 /// <reference path="_template.ts"/>
 /// <reference path="app.ts"/>
 /// <reference path="data.ts"/>
-/// <reference path="utility.ts"/>
+/// <reference path="../library/utility.ts"/>
 /// <reference path="../view/main.ts"/>
 /// <reference path="../controller/main.ts"/>
 
@@ -12,29 +12,29 @@ module MODULE.MODEL {
   
   export class Main extends Template implements ModelInterface {
 
-    controller_: ControllerInterface = new Controller(this)
-    app_: AppLayerInterface = new MODEL.App(this, this.controller_)
-    state_: State = State.wait
+    constructor() {
+      super(State.initiate);
+    }
+
+    private controller_: ControllerInterface = new Controller(this)
+    private app_: AppLayerInterface = new MODEL.App(this, this.controller_)
 
     isDeferrable: boolean = jQuery.when && 1.06 <= Number(jQuery().jquery.replace(/\D*(\d+)\.(\d+).*$/, '$1.0$2').replace(/\d+(\d{2})$/, '$1'))
     queue: number[] = []
 
     host(): string { return this.app_.balance.host() }
     state(): State { return this.state_; }
+    
+    main_($context: ExtensionInterface, setting: PjaxSetting): ExtensionInterface
+    main_($context: ExtensionStaticInterface, setting: PjaxSetting): ExtensionStaticInterface
+    main_($context: any, option: any): any {
 
-    main_($context: JQuery, option: PjaxSetting): JQuery {
-
-      if (!option && $context.is('a, form')) { return $context; }
-
-      var pattern;
-      pattern = $context instanceof NAMESPACE ? 'm:' : 'f:';
-      pattern += option ? ({}).toString.call(option).split(' ').pop().slice(0, -1).toLowerCase() : option;
-      switch (pattern.toLowerCase()) {
-        case 'm:object':
+      switch (typeof option) {
+        case 'object':
+          $context = $context instanceof NAMESPACE ? $context : jQuery(document)[NAME]();
+          FREEZE(option, true);
           break;
-        case 'm:undefined':
-          option = <PjaxSetting>{};
-          break;
+
         default:
           return $context;
       }
@@ -43,21 +43,19 @@ module MODULE.MODEL {
       this.setGlobalSetting(setting);
       setting.database && this.app_.data.opendb(setting);
 
-      this.stock({
-        speed: {
-          fire: 0,
-          time: [],
-          name: [],
-          now: function () { return new Date().getTime(); }
-        }
-      });
+      this.speed = {
+        fire: 0,
+        time: [],
+        name: [],
+        now: function () { return new Date().getTime(); }
+      };
 
       //$context._uuid = setting.uuid;
 
       if ('pushState' in window.history && window.history['pushState']) {
         jQuery(() => {
           this.app_.initialize($context, setting);
-          this.state_ = this.state() === State.wait ? State.ready : this.state();
+          this.state_ = this.state() === State.initiate ? State.open : this.state();
         });
       }
 
@@ -71,7 +69,7 @@ module MODULE.MODEL {
     isImmediateLoadable(unsafe_url: string, setting?: SettingInterface): boolean
     isImmediateLoadable(event: JQueryEventObject, setting?: SettingInterface): boolean
     isImmediateLoadable(param: any, setting?: SettingInterface): boolean {
-      if (State.ready !== this.state()) { return; }
+      if (State.open !== this.state()) { return; }
 
       var origURL: string = Util.normalizeUrl(window.location.href),
           destURL: string,
@@ -125,14 +123,14 @@ module MODULE.MODEL {
       return this.app_.page.globalXHR = xhr;
     }
 
-    CLICK(event: JQueryEventObject): void {
+    click(event: JQueryEventObject): void {
       PROCESS: {
         event.timeStamp = new Date().getTime();
         var context = <HTMLAnchorElement>event.currentTarget,
-            $context: ContextInterface = jQuery(context);
+            $context: JQuery = jQuery(context);
         var setting: SettingInterface = this.app_.configure(this.getGlobalSetting(), window.location.href, context.href);
 
-        if (State.ready !== this.state() || setting.cancel || event.isDefaultPrevented()) { break PROCESS; }
+        if (State.open !== this.state() || setting.cancel || event.isDefaultPrevented()) { break PROCESS; }
         if (!this.isImmediateLoadable(event, setting)) { break PROCESS; }
 
         if (setting.cache.mix && this.getCache(setting.destLocation.href)) { break PROCESS; }
@@ -149,14 +147,14 @@ module MODULE.MODEL {
       !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length && this.fallback(event, setting);
     }
 
-    SUBMIT(event: JQueryEventObject): void {
+    submit(event: JQueryEventObject): void {
       PROCESS: {
         event.timeStamp = new Date().getTime();
         var context = <HTMLFormElement>event.currentTarget,
-            $context: ContextInterface = jQuery(context);
+            $context: JQuery = jQuery(context);
         var setting: SettingInterface = this.app_.configure(this.getGlobalSetting(), window.location.href, context.action);
 
-        if (State.ready !== this.state() || setting.cancel || event.isDefaultPrevented()) { break PROCESS; }
+        if (State.open !== this.state() || setting.cancel || event.isDefaultPrevented()) { break PROCESS; }
         if (!this.isImmediateLoadable(event, setting)) { break PROCESS; }
 
         var serializedURL = setting.destLocation.href.replace(/[?#].*/, '') + ('GET' === context.method.toUpperCase() ? '?' + jQuery(context).serialize() : '');
@@ -175,14 +173,14 @@ module MODULE.MODEL {
       !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length && this.fallback(event, setting);
     }
 
-    POPSTATE(event: JQueryEventObject): void {
+    popstate(event: JQueryEventObject): void {
       PROCESS: {
         event.timeStamp = new Date().getTime();
         var setting: SettingInterface = this.app_.configure(this.getGlobalSetting(), null, window.location.href);
         if (this.app_.page.landing && this.app_.page.landing === Util.normalizeUrl(window.location.href)) { return; }
         if (setting.origLocation.href === setting.destLocation.href) { return; }
 
-        if (State.ready !== this.state() || setting.cancel) { break PROCESS; }
+        if (State.open !== this.state() || setting.cancel) { break PROCESS; }
         if (!this.isImmediateLoadable(event, setting)) { break PROCESS; }
 
         if (setting.origLocation.hash !== setting.destLocation.hash &&
@@ -200,9 +198,9 @@ module MODULE.MODEL {
       };
     }
 
-    SCROLL(event: JQueryEventObject, end: boolean): void {
+    scroll(event: JQueryEventObject, end: boolean): void {
       var setting: SettingInterface = this.getGlobalSetting();
-      if (State.ready !== this.state() || event.isDefaultPrevented()) { return; }
+      if (State.open !== this.state() || event.isDefaultPrevented()) { return; }
 
       if (!setting.scroll.delay) {
         this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPositionToDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
@@ -228,11 +226,11 @@ module MODULE.MODEL {
     }
 
     enable(): void {
-      this.state_ = State.ready;
+      this.state_ = State.open;
     }
 
     disable(): void {
-      this.state_ = State.lock;
+      this.state_ = State.pause;
     }
 
     getCache(unsafe_url: string): CacheInterface {
@@ -376,8 +374,12 @@ module MODULE.MODEL {
       return this.app_.balance.changeServer(host.split('//').pop(), null);
     }
 
+    speed: any
+
   }
   
+  export var Util = LIBRARY.Utility
+
 }
 
 module MODULE {

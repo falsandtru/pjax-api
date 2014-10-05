@@ -6,9 +6,9 @@
 
 /* MODEL */
 
-module MODULE.MODEL {
+module MODULE.MODEL.APP.DATA {
   
-  export class DataDB implements DataDBInterface {
+  export class DB implements DBInterface {
     constructor() {
       var check = () => {
         var now = new Date().getTime(),
@@ -18,8 +18,7 @@ module MODULE.MODEL {
           this.conExpires_ = 0;
         }
         setTimeout(check, Math.max(this.conExpires_ - now + 100, this.conInterval_));
-        this.tasks_.length && !this.nowInitializing && !this.nowRetrying &&
-        this.opendb(null, true);
+        this.tasks_.length && State.initiate !== this.state() && !this.nowRetrying && this.opendb(null, true);
       }
       this.conAge_ && setTimeout(check, this.conInterval_);
     }
@@ -27,27 +26,26 @@ module MODULE.MODEL {
     IDBFactory: IDBFactory = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB
     IDBKeyRange: IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.mozIDBKeyRange || window.msIDBKeyRange
 
-    database_: IDBDatabase
-    name_: string = NAME
-    version_: number = 4
-    refresh_: number = 10
-    upgrade_: number = 1 // 0:virtual 1:naitive
-    state_: State = State.wait
+    private database_: IDBDatabase
+    private name_: string = NAME
+    private version_: number = 4
+    private refresh_: number = 10
+    private upgrade_: number = 1 // 0:virtual 1:naitive
+    private state_: State = State.blank
     database = () => this.database_
     state = () => this.state_
-    nowInitializing: boolean = false
     nowRetrying: boolean = false
 
-    conAge_: number = 10 * 1000
-    conExpires_: number
-    conInterval_: number = 1000
-    tasks_: { (): void }[] = []
+    private conAge_: number = 10 * 1000
+    private conExpires_: number
+    private conInterval_: number = 1000
+    private tasks_: { (): void }[] = []
 
-    store = {
-      meta: new MODEL.DataStoreMeta<MetaSchema>(this),
-      history: new MODEL.DataStoreHistory<HistorySchema>(this),
-      log: new MODEL.DataStoreLog<LogSchema>(this),
-      server: new MODEL.DataStoreServer<ServerSchema>(this)
+    stores = {
+      meta: new StoreMeta<MetaSchema>(this),
+      history: new StoreHistory<HistorySchema>(this),
+      log: new StoreLog<LogSchema>(this),
+      server: new StoreServer<ServerSchema>(this)
     }
     metaNames = {
       version: 'version',
@@ -63,15 +61,15 @@ module MODULE.MODEL {
 
       'function' === typeof task && that.reserveTask_(task);
 
-      if (that.nowInitializing || that.nowRetrying) { return; }
+      if (State.initiate === that.state() || that.nowRetrying) { return; }
 
       try {
-        that.nowInitializing = true;
+        that.state_ = State.initiate;
 
         var request = that.IDBFactory.open(that.name_, that.upgrade_ ? that.version_ : 1);
 
         request.onblocked = function () {
-          that.closedb(State.lock);
+          that.closedb(State.pause);
           try {
             this.result.close();
             !noRetry && setTimeout(() => that.opendb(null, true), 1000);
@@ -86,13 +84,13 @@ module MODULE.MODEL {
             
             for (var i = database.objectStoreNames ? database.objectStoreNames.length : 0; i--;) { database.deleteObjectStore(database.objectStoreNames[i]); }
 
-            database.createObjectStore(that.store.meta.name, { keyPath: that.store.meta.keyPath, autoIncrement: false }).createIndex(that.store.meta.keyPath, that.store.meta.keyPath, { unique: true });
+            database.createObjectStore(that.stores.meta.name, { keyPath: that.stores.meta.keyPath, autoIncrement: false }).createIndex(that.stores.meta.keyPath, that.stores.meta.keyPath, { unique: true });
 
-            database.createObjectStore(that.store.history.name, { keyPath: that.store.history.keyPath, autoIncrement: false }).createIndex('date', 'date', { unique: false });
+            database.createObjectStore(that.stores.history.name, { keyPath: that.stores.history.keyPath, autoIncrement: false }).createIndex('date', 'date', { unique: false });
 
-            database.createObjectStore(that.store.log.name, { keyPath: that.store.log.keyPath, autoIncrement: true }).createIndex('date', 'date', { unique: false });
+            database.createObjectStore(that.stores.log.name, { keyPath: that.stores.log.keyPath, autoIncrement: true }).createIndex('date', 'date', { unique: false });
 
-            database.createObjectStore(that.store.server.name, { keyPath: that.store.server.keyPath, autoIncrement: false }).createIndex(that.store.server.keyPath, that.store.server.keyPath, { unique: true });
+            database.createObjectStore(that.stores.server.name, { keyPath: that.stores.server.keyPath, autoIncrement: false }).createIndex(that.stores.server.keyPath, that.stores.server.keyPath, { unique: true });
 
           } catch (err) {
             !noRetry && that.initdb_(1000);
@@ -105,9 +103,8 @@ module MODULE.MODEL {
             
             that.checkdb_(database, that.version_, () => {
               that.database_ = database;
-              that.state_ = State.ready;
+              that.state_ = State.open;
               that.conExtend();
-              that.nowInitializing = false;
 
               that.digestTask_();
 
@@ -136,7 +133,7 @@ module MODULE.MODEL {
       }
     }
 
-    closedb(state: State = State.wait): void {
+    closedb(state: State = State.close): void {
       this.database_ = null;
       this.state_ = state;
 
@@ -150,7 +147,11 @@ module MODULE.MODEL {
       IDBFactory && IDBFactory.deleteDatabase && IDBFactory.deleteDatabase(this.name_);
     }
 
-    initdb_(delay?: number): void {
+    conExtend(): void {
+      this.conExpires_ = new Date().getTime() + this.conAge_;
+    }
+
+    private initdb_(delay?: number): void {
       var retry = () => {
         if (!this.nowRetrying) {
           this.nowRetrying = true;
@@ -162,10 +163,10 @@ module MODULE.MODEL {
       !delay ? retry() : void setTimeout(retry, delay);
     }
 
-    checkdb_(database: IDBDatabase, version: number, success: () => void, upgrade: () => void): void {
+    private checkdb_(database: IDBDatabase, version: number, success: () => void, upgrade: () => void): void {
       var that = this;
 
-      var req = database.transaction(that.store.meta.name, 'readwrite').objectStore(that.store.meta.name).get(that.metaNames.version);
+      var req = database.transaction(that.stores.meta.name, 'readwrite').objectStore(that.stores.meta.name).get(that.metaNames.version);
       req.onsuccess = function () {
         // version check
         var data: MetaSchema = this.result;
@@ -176,7 +177,7 @@ module MODULE.MODEL {
         }
 
         if (that.refresh_) {
-          var req = database.transaction(that.store.meta.name, 'readwrite').objectStore(that.store.meta.name).get(that.metaNames.update);
+          var req = database.transaction(that.stores.meta.name, 'readwrite').objectStore(that.stores.meta.name).get(that.metaNames.update);
           req.onsuccess = function () {
             // refresh check
             var data: MetaSchema = this.result;
@@ -194,16 +195,12 @@ module MODULE.MODEL {
       };
     }
 
-    conExtend(): void {
-      this.conExpires_ = new Date().getTime() + this.conAge_;
-    }
-
-    reserveTask_(task: () => void): void {
+    private reserveTask_(task: () => void): void {
       (this.state() !== State.error || this.tasks_.length < 100) &&
       this.tasks_.push(task);
     }
 
-    digestTask_(limit: number = 0): void {
+    private digestTask_(limit: number = 0): void {
       ++limit;
       var task: () => void;
       while (task = limit-- && this.tasks_.pop()) {

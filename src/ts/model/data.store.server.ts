@@ -3,9 +3,9 @@
 
 /* MODEL */
 
-module MODULE.MODEL {
+module MODULE.MODEL.APP.DATA {
   
-  export class DataStoreServer<T> extends DataStore<T> implements DataStoreServerInterface<T> {
+  export class StoreServer<T> extends Store<T> implements StoreServerInterface<T> {
 
     name: string = 'server'
     keyPath: string = 'id'

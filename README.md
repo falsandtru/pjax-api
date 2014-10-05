@@ -1,11 +1,12 @@
 # PJAX
-[![Build Status](https://travis-ci.org/falsandtru/jquery.pjax.js.svg?branch=master)](https://travis-ci.org/falsandtru/jquery.pjax.js)
 
 **[Document](http://falsandtru.github.io/jquery.pjax.js/)**
  | 
 **[js](https://github.com/falsandtru/jquery.pjax.js/releases)**
  | 
 **[d.ts](src/ts/.d/jquery.pjax.d.ts)**
+
+[![Build Status](https://travis-ci.org/falsandtru/jquery.pjax.js.svg?branch=master)](https://travis-ci.org/falsandtru/jquery.pjax.js)
 
 This pjax has a extremely high flexibility and compatibility.
 

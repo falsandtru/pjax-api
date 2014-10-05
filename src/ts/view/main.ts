@@ -4,29 +4,27 @@
 /* VIEW */
 
 module MODULE.VIEW {
-  var C: ControllerInterface
   
   export class Main extends Template implements ViewInterface {
 
-    constructor(public model_: ModelInterface, public controller_: ControllerInterface, context: ContextInterface) {
-      super(model_, controller_, context);
-      C = controller_;
+    constructor(private model_: ModelInterface, private controller_: ControllerInterface, private context_: JQuery, setting: SettingInterface) {
+      super(State.initiate);
+      this.observe_(setting);
     }
 
-    // VIEWにする要素を選択/解除する
-    BIND(setting: SettingInterface): ViewInterface {
-      this.UNBIND(setting);
-      this.CONTEXT
-      .delegate(setting.link, setting.nss.click, this.HANDLERS.CLICK)
-      .delegate(setting.form, setting.nss.submit, this.HANDLERS.SUBMIT);
-      jQuery(window).bind(setting.nss.popstate, this.HANDLERS.POPSTATE);
+    private observe_(setting: SettingInterface): ViewInterface {
+      this.release_(setting);
+      this.context_
+      .delegate(setting.link, setting.nss.click, this.handlers.click)
+      .delegate(setting.form, setting.nss.submit, this.handlers.submit);
+      jQuery(window).bind(setting.nss.popstate, this.handlers.popstate);
 
       setting.fix.scroll &&
-      jQuery(window).bind(setting.nss.scroll, this.HANDLERS.SCROLL);
+      jQuery(window).bind(setting.nss.scroll, this.handlers.scroll);
       return this;
     }
-    UNBIND(setting: SettingInterface): ViewInterface {
-      this.CONTEXT
+    private release_(setting: SettingInterface): ViewInterface {
+      this.context_
       .undelegate(setting.link, setting.nss.click)
       .undelegate(setting.form, setting.nss.submit);
       jQuery(window).unbind(setting.nss.popstate);
@@ -36,34 +34,19 @@ module MODULE.VIEW {
       return this;
     }
 
-    // VIEWが監視する内部イベントを登録
-    OBSERVE() {
-      this.RELEASE();
-      return this;
-    }
-    RELEASE() {
-      return this;
-    }
-
-    //内部イベント
-    static EVENTS = { }
-
-    // プラグインが実行するイベント名
-    static TRIGGERS = { }
-
     // VIEWの待ち受けるイベントに登録されるハンドラ
-    HANDLERS = {
-      CLICK(...args: any[]): void {
-        C.CLICK.apply(C, args);
+    handlers = {
+      click: (...args: any[]): void => {
+        this.controller_.click.apply(this.controller_, args);
       },
-      SUBMIT(...args: any[]): void {
-        C.SUBMIT.apply(C, args);
+      submit: (...args: any[]): void => {
+        this.controller_.submit.apply(this.controller_, args);
       },
-      POPSTATE(...args: any[]): void {
-        C.POPSTATE.apply(C, args);
+      popstate: (...args: any[]): void => {
+        this.controller_.popstate.apply(this.controller_, args);
       },
-      SCROLL(...args: any[]): void {
-        C.SCROLL.apply(C, args);
+      scroll: (...args: any[]): void => {
+        this.controller_.scroll.apply(this.controller_, args);
       }
     }
     
