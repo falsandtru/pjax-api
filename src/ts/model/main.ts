@@ -84,6 +84,7 @@ module MODULE.MODEL {
           switch (event.type.toLowerCase()) {
             case 'click':
               destURL = Util.normalizeUrl((<HTMLAnchorElement>event.currentTarget).href);
+              if (!jQuery(event.currentTarget).filter(setting.filter).length) { return false; }
               break;
             case 'submit':
               destURL = Util.normalizeUrl((<HTMLFormElement>event.currentTarget).action);
@@ -103,7 +104,6 @@ module MODULE.MODEL {
       if (setting.cancel) { return; }
       if (destLocation.hash && origLocation.href.replace(/#.*/, '') === destLocation.href.replace(/#.*/, '')) { return false; }
       if (!this.app_.page.chooseArea(setting.area, document, document)) { return false; }
-      if (!jQuery(event.currentTarget).filter(setting.filter).length) { return false; }
 
       return true;
     }
