@@ -40,7 +40,8 @@
     "karma-requirejs": "^0.2.2",
     "mocha": "^1.21.4",
     "phantomjs": "^1.9.10",
-    "requirejs": "^2.1.15"
+    "requirejs": "^2.1.15",
+    "typescript": "^1.1.0-1"
   },
   "author": "falsandtru",
   "license": "MIT"
