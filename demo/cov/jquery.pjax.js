@@ -3,7 +3,7 @@
  * jquery.pjax.js
  * 
  * @name jquery.pjax.js
- * @version 2.24.0
+ * @version 2.24.1
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
  * @copyright 2012, falsandtru
@@ -3499,6 +3499,9 @@ var MODULE;
                         switch (event.type.toLowerCase()) {
                             case 'click':
                                 destURL = MODEL.Util.normalizeUrl(event.currentTarget.href);
+                                if (!jQuery(event.currentTarget).filter(setting.filter).length) {
+                                    return false;
+                                }
                                 break;
                             case 'submit':
                                 destURL = MODEL.Util.normalizeUrl(event.currentTarget.action);
@@ -3525,9 +3528,6 @@ var MODULE;
                     return false;
                 }
                 if (!this.app_.page.chooseArea(setting.area, document, document)) {
-                    return false;
-                }
-                if (!jQuery(event.currentTarget).filter(setting.filter).length) {
                     return false;
                 }
 
