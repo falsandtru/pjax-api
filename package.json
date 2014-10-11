@@ -1,14 +1,14 @@
 {
-  "name": "jquery.pjax.js",
+  "name": "jquery-pjax",
   "version": "2.24.2",
   "description": "",
   "repository": {
     "type": "git",
-    "url": "git://github.com/falsandtru/jquery.pjax.js.git"
+    "url": "git://github.com/falsandtru/jquery-pjax.git"
   },
-  "homepage": "https://github.com/falsandtru/jquery.pjax.js/",
+  "homepage": "https://github.com/falsandtru/jquery-pjax",
   "bugs": {
-    "url": "https://github.com/falsandtru/jquery.pjax.js/issues"
+    "url": "https://github.com/falsandtru/jquery-pjax/issues"
   },
   "devDependencies": {
     "chai": "^1.9.2",

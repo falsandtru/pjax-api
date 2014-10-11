@@ -2,7 +2,7 @@
  * 
  * jquery.pjax.d.ts
  * 
- * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
+ * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @contributor NewNotMoon
  */
 
