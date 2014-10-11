@@ -144,7 +144,7 @@ module MODULE.MODEL.APP {
                                              requestLocation.protocol,
                                              '//',
                                              requestLocation.host,
-                                             '/' === requestLocation.pathname.charAt(0) ? requestLocation.pathname : '/' + requestLocation.pathname,
+                                             requestLocation.pathname.replace(/^\/?/, '/'),
                                              (1 < requestLocation.search.length ? requestLocation.search + '&' : '?') + setting.server.query,
                                              requestLocation.hash
                                            ].join('');

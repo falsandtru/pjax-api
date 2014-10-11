@@ -49,7 +49,7 @@ module MODULE.MODEL.APP {
             area: 'body',
             link: 'a:not([target])',
             // this.protocolはIEでエラー
-            filter: function(){return /^https?:/.test(this.href) && /(\/[^.]*|\.html?|\.php)$/.test('/' + this.pathname);},
+            filter: function(){return /^https?:/.test(this.href) && /\/[^.]*$|\.(html?|php)$/.test(this.pathname.replace(/^\/?/, '/'));},
             form: null,
             scope: null,
             rewrite: null,
