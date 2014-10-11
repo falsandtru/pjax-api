@@ -7,7 +7,7 @@ class: style-api style-api-detail
 ---
 
 # filter
-`link`パラメータに一致したアンカーリンクを絞り込みます。初期値は`function(){return /^https?:/.test(this.href) && /(\/[^.]*|\.html?|\.php)$/.test('/' + this.pathname);}`です。
+`link`パラメータに一致したアンカーリンクを絞り込みます。初期値は`function(){return /^https?:/.test(this.href) && /\/[^.]*$|\.(html?|php)$/.test(this.pathname.replace(/^\/?/, '/'));}`です。
 
 ## filter: string
 jQueryセレクタによりアンカーリンクを絞り込みます。
@@ -23,6 +23,6 @@ $.pjax({
 
 <pre class="sh brush: js;">
 $.pjax({
-  filter: function(){return /^https?:/.test(this.href) && /(\/[^.]*|\.html?|\.php)$/.test('/' + this.pathname);}
+  filter: function(){return /^https?:/.test(this.href) && /\/[^.]*$|\.(html?|php)$/.test(this.pathname.replace(/^\/?/, '/'));}
 });
 </pre>
