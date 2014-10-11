@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.24.2
+ * @version 2.24.3
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -2145,7 +2145,7 @@ var MODULE;
                             requestLocation.protocol,
                             '//',
                             requestLocation.host,
-                            '/' === requestLocation.pathname.charAt(0) ? requestLocation.pathname : '/' + requestLocation.pathname,
+                            requestLocation.pathname.replace(/^\/?/, '/'),
                             (1 < requestLocation.search.length ? requestLocation.search + '&' : '?') + setting.server.query,
                             requestLocation.hash
                         ].join('');
@@ -3149,7 +3149,7 @@ var MODULE;
                         link: 'a:not([target])',
                         // this.protocolはIEでエラー
                         filter: function () {
-                            return /^https?:/.test(this.href) && /(\/[^.]*|\.html?|\.php)$/.test('/' + this.pathname);
+                            return /^https?:/.test(this.href) && /\/[^.]*$|\.(html?|php)$/.test(this.pathname.replace(/^\/?/, '/'));
                         },
                         form: null,
                         scope: null,
