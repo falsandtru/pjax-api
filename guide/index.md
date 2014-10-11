@@ -65,10 +65,9 @@ accelerate:
     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
     
     window.ga('create', 'UA-xxxxxxxx-x', 'auto');
-    window.ga('send', 'pageview');
-  } else {
-    window.ga('send', 'pageview', window.location.pathname+window.location.search);
+    window.ga('require', 'displayfeatures');
   }
+  window.ga('send', 'pageview', window.location.pathname.replace(/^\/?/, '/') + window.location.search);
 </pre>
 
 ###旧 Google Analytics
