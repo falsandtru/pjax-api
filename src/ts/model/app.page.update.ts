@@ -7,6 +7,8 @@
 
 module MODULE.MODEL.APP {
 
+  var Util = LIBRARY.Utility
+
   export class PageUpdate extends PageUtility implements PageUpdateInterface {
     
     constructor(

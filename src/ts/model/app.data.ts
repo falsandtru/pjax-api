@@ -5,7 +5,9 @@
 /* MODEL */
 
 module MODULE.MODEL.APP {
-  
+
+  var Util = LIBRARY.Utility
+
   export class Data implements DataInterface {
 
     constructor(private model_: ModelInterface, private app_: AppLayerInterface) {

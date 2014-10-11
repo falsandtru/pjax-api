@@ -10,6 +10,8 @@
 
 module MODULE.MODEL {
   
+  var Util = LIBRARY.Utility
+
   export class Main extends Template implements ModelInterface {
 
     constructor() {
@@ -378,8 +380,6 @@ module MODULE.MODEL {
 
   }
   
-  export var Util = LIBRARY.Utility
-
 }
 
 module MODULE {

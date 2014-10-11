@@ -4,7 +4,8 @@
 
 module MODULE.MODEL.APP {
 
-  var mode: string;
+  var mode: string
+  var Util = LIBRARY.Utility
 
   export class PageUtility implements PageUtilityInterface {
     

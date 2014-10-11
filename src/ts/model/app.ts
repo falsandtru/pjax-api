@@ -9,7 +9,9 @@
 /* MODEL */
 
 module MODULE.MODEL.APP {
-  
+
+  var Util = LIBRARY.Utility
+
   export class Main implements AppLayerInterface {
 
     constructor(private model_: ModelInterface, private controller_: ControllerInterface) {
