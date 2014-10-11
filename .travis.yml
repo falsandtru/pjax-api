@@ -5,8 +5,8 @@ node_js:
 
 env:
   global:
-    - secure: "fB15BBKr9RlhfXqFfK/tBZTun83uLi3V7gIHMOkWoxjzF9tP/dI+QTu7pDICpOGeuDsVUdmEdW/Tqb/gpUemLI2r07NKz57ceY5LPPv8+Bzqkvh6XLKhjAyxWgPdzMRxI6lxNRjAAnti99a8EzIRjAVf4YabTsWgKX74vFJnI7A="
-    - GIT_REPO=jquery.pjax.js
+    - secure: "Rm4C2xPbb3a1j9BfA29mwtbkRF3GF9pAXdr3F3Stu46/wJb2uToxstvqbP7Q1QkpXKmOB26GYHtlC5ANgjuakLNm59Ke1JLMO4Nfg7H4aPdLJb/8xnJYmZK7ACRUGpa/Q7vQZ+3loN2BmwIytX/bDkGuJ9ONjg6DdGL1egjPDS0="
+    - GIT_REPO=jquery-pjax
     - GIT_COMMITTER_NAME=Travis-CI
     - GIT_COMMITTER_EMAIL=Travis-CI
     - GIT_AUTHOR_NAME=falsandtru
@@ -56,6 +56,6 @@ after_success:
 notifications:
   email:
     recipients:
-      - secure: "d3l1hjddikZY14QJhyRA6ChAJ+3LlmlmIVDXauza6TcVOxWnmb9GpEPIJvvN+TLy4wM4y9lQargQW1/PRAIG+JJg5pQ5Yw41F19DNkeAdNKrHJ7gC3NskT8EXoU4o68nyG/9BNEZyHnUJwWXF8yBVu6mI1ezkKBHkyZh6mFNsME="
+      - secure: "YLOgVXRlFdYYN6uxjq0C3M+5V0oWqDL45M89Z4HaDkKdMXOGGgv67GKVpEGyXFrEHSWiqe+Ud2xe9O+N4LVxuRpOCoskQxG9qlSYe486xpHdDoK271FfhupN4JxJjKPJmnIsCV2lPmiTW9AS0+ZtELE1cDn8+mQQL19m2RyT4q4="
     on_success: change # default: change
     on_failure: always # default: always

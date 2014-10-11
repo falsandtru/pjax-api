@@ -1,13 +1,13 @@
 # PJAX
 
-**[Document](http://falsandtru.github.io/jquery.pjax.js/)**
+**[Document](http://falsandtru.github.io/jquery-pjax/)**
  | 
-**[js](https://github.com/falsandtru/jquery.pjax.js/releases)**
+**[js](https://github.com/falsandtru/jquery-pjax/releases)**
  | 
 **[d.ts](src/ts/.d/jquery.pjax.d.ts)**
 
-[![Build Status](https://travis-ci.org/falsandtru/jquery.pjax.js.svg?branch=master)](https://travis-ci.org/falsandtru/jquery.pjax.js)
-[![Dependency Status](https://gemnasium.com/falsandtru/jquery.pjax.js.svg)](https://gemnasium.com/falsandtru/jquery.pjax.js)
+[![Build Status](https://travis-ci.org/falsandtru/jquery-pjax.svg?branch=master)](https://travis-ci.org/falsandtru/jquery-pjax)
+[![Dependency Status](https://gemnasium.com/falsandtru/jquery-pjax.svg)](https://gemnasium.com/falsandtru/jquery-pjax)
 
 This pjax has a extremely high flexibility and compatibility.
 
