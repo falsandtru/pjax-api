@@ -188,7 +188,7 @@ module MODULE.MODEL.APP {
               },
               origLocation: (function (url, a) { a.href = url; return a; })(origURL, document.createElement('a')),
               destLocation: (function (url, a) { a.href = url; return a; })(destURL, document.createElement('a')),
-              fix: !/android|iphone os|like mac os x/i.test(window.navigator.userAgent) ? { location: false, reset: false } : {},
+              fix: /android|iphone os|like mac os x/i.test(window.navigator.userAgent) ? undefined : { location: false, reset: false },
               contentType: setting.contentType.replace(/\s*[,;]\s*/g, '|').toLowerCase(),
               server: {
                 query: query
