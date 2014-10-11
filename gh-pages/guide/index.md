@@ -420,42 +420,39 @@ new Function().apply.apply(function (accessor) {
   -------------------------------------------------------------------------- */
   spec.visibilitytrigger = function () {
     if (always) {
-      $.visibilitytrigger();
-
-      $.vt({
+      $.visibilitytrigger
+      .open({
         ns: '.img.primary',
         trigger: '#primary img[data-original]',
-        callback: function () { this.src = this.getAttribute('data-original'); },
+        handler: function () { this.src = this.getAttribute('data-original'); },
         ahead: [0, .1],
         skip: true
-      }).disable();
-
-      $.vt({
+      })
+      .open({
         ns: '.img.secondary',
         trigger: '#secondary img[data-original]',
-        callback: function () { this.src = this.getAttribute('data-original'); },
+        handler: function () { this.src = this.getAttribute('data-original'); },
         ahead: [0, .1],
         skip: true
-      }).disable();
-
-      $.vt({
+      })
+      .open({
         ns: '.iframe.primary',
         trigger: '#primary iframe[data-original]',
-        callback: function () { this.src = this.getAttribute('data-original'); },
+        handler: function () { this.src = this.getAttribute('data-original'); },
         ahead: [0, .1],
         skip: true
-      }).disable();
-
-      $.vt({
+      })
+      .open({
         ns: ".sh.primary",
         trigger: "#primary pre.sh",
-        callback: function () { SyntaxHighlighter && SyntaxHighlighter.highlight(SyntaxHighlighter.defaults, this); },
+        handler: function () { SyntaxHighlighter && SyntaxHighlighter.highlight(SyntaxHighlighter.defaults, this); },
         ahead: [0, .1],
         step: 0,
         skip: true
-      }).disable();
+      })
+      .disable().enable('img').vtrigger();
 
-      $.vt.enable().vtrigger();
+      setTimeout(function () { $.vt.enable().vtrigger(); }, 20);
     }
   };
 
