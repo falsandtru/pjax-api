@@ -3,7 +3,7 @@
  * jquery.pjax.js
  * 
  * @name jquery.pjax.js
- * @version 2.24.1
+ * @version 2.24.2
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
  * @copyright 2012, falsandtru
@@ -1522,6 +1522,8 @@ var MODULE;
     (function (MODEL) {
         /* MODEL */
         (function (APP) {
+            var Util = MODULE.LIBRARY.Utility;
+
             var Data = (function () {
                 function Data(model_, app_) {
                     this.model_ = model_;
@@ -1553,7 +1555,7 @@ var MODULE;
                 };
 
                 Data.prototype.loadTitleFromDB = function (unsafe_url) {
-                    var keyUrl = this.model_.convertUrlToKeyUrl(MODEL.Util.normalizeUrl(unsafe_url)), that = this;
+                    var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url)), that = this;
 
                     var data = this.data_.DB.stores.history.getBuffer(keyUrl);
 
@@ -1563,7 +1565,7 @@ var MODULE;
                         this.data_.DB.stores.history.get(keyUrl, function () {
                             data = this.result;
                             if (data && data.title) {
-                                if (MODEL.Util.compareUrl(keyUrl, that.model_.convertUrlToKeyUrl(MODEL.Util.normalizeUrl(window.location.href)))) {
+                                if (Util.compareUrl(keyUrl, that.model_.convertUrlToKeyUrl(Util.normalizeUrl(window.location.href)))) {
                                     document.title = data.title;
                                 }
                             }
@@ -1572,7 +1574,7 @@ var MODULE;
                 };
 
                 Data.prototype.saveTitleToDB = function (unsafe_url, title) {
-                    var keyUrl = this.model_.convertUrlToKeyUrl(MODEL.Util.normalizeUrl(unsafe_url));
+                    var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
 
                     var value = { id: keyUrl, title: title, date: new Date().getTime() };
                     this.data_.DB.stores.history.setBuffer(value, true);
@@ -1581,7 +1583,7 @@ var MODULE;
                 };
 
                 Data.prototype.loadScrollPositionFromDB = function (unsafe_url) {
-                    var keyUrl = this.model_.convertUrlToKeyUrl(MODEL.Util.normalizeUrl(unsafe_url)), that = this;
+                    var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url)), that = this;
 
                     var data = this.data_.DB.stores.history.getBuffer(keyUrl);
                     function scroll(scrollX, scrollY) {
@@ -1598,7 +1600,7 @@ var MODULE;
                         this.data_.DB.stores.history.get(keyUrl, function () {
                             data = this.result;
                             if (data && 'number' === typeof data.scrollX) {
-                                if (MODEL.Util.compareUrl(keyUrl, that.model_.convertUrlToKeyUrl(MODEL.Util.normalizeUrl(window.location.href)))) {
+                                if (Util.compareUrl(keyUrl, that.model_.convertUrlToKeyUrl(Util.normalizeUrl(window.location.href)))) {
                                     scroll(data.scrollX, data.scrollY);
                                 }
                             }
@@ -1607,7 +1609,7 @@ var MODULE;
                 };
 
                 Data.prototype.saveScrollPositionToDB = function (unsafe_url, scrollX, scrollY) {
-                    var keyUrl = this.model_.convertUrlToKeyUrl(MODEL.Util.normalizeUrl(unsafe_url));
+                    var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
 
                     var value = { id: keyUrl, scrollX: scrollX, scrollY: scrollY, date: new Date().getTime() };
                     this.data_.DB.stores.history.setBuffer(value, true);
@@ -1682,6 +1684,8 @@ var MODULE;
     (function (MODEL) {
         /* MODEL */
         (function (APP) {
+            var Util = MODULE.LIBRARY.Utility;
+
             var Balance = (function () {
                 function Balance(model_, app_) {
                     var _this = this;
@@ -1822,6 +1826,7 @@ var MODULE;
         /* MODEL */
         (function (APP) {
             var mode;
+            var Util = MODULE.LIBRARY.Utility;
 
             var PageUtility = (function () {
                 function PageUtility() {
@@ -2023,6 +2028,8 @@ var MODULE;
     (function (MODEL) {
         /* MODEL */
         (function (APP) {
+            var Util = MODULE.LIBRARY.Utility;
+
             var PageFetch = (function (_super) {
                 __extends(PageFetch, _super);
                 function PageFetch(model_, app_, setting_, event_, register_, cache_, done_, fail_) {
@@ -2038,7 +2045,7 @@ var MODULE;
                     this.main_();
                 }
                 PageFetch.prototype.main_ = function () {
-                    var that = this, setting = this.setting_, event = this.event_ = jQuery.extend(true, {}, this.event_), register = this.register_, cache = this.cache_, globalXHR = this.model_.getGlobalXHR(), wait = MODEL.Util.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
+                    var that = this, setting = this.setting_, event = this.event_ = jQuery.extend(true, {}, this.event_), register = this.register_, cache = this.cache_, globalXHR = this.model_.getGlobalXHR(), wait = Util.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
 
                     var speedcheck = setting.speedcheck, speed = this.model_.speed;
                     speedcheck && (speed.fire = event.timeStamp);
@@ -2052,16 +2059,16 @@ var MODULE;
                         that.data_ = ajax[0];
                         that.textStatus_ = ajax[1];
                         that.jqXHR_ = ajax[2];
-                        MODEL.Util.fire(setting.callbacks.ajax.done, this, [event, setting.param].concat(ajax));
+                        Util.fire(setting.callbacks.ajax.done, this, [event, setting.param].concat(ajax));
                     }
                     function fail(jqXHR, textStatus, errorThrown) {
                         that.jqXHR_ = jqXHR;
                         that.textStatus_ = textStatus;
                         that.errorThrown_ = errorThrown;
-                        MODEL.Util.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat(arguments));
+                        Util.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat(arguments));
                     }
                     function always() {
-                        MODEL.Util.fire(setting.callbacks.ajax.always, this, [event, setting.param].concat(arguments));
+                        Util.fire(setting.callbacks.ajax.always, this, [event, setting.param].concat(arguments));
                         that.model_.setGlobalXHR(null);
 
                         if (that.model_.isDeferrable) {
@@ -2076,16 +2083,16 @@ var MODULE;
                         that.data_ = data;
                         that.textStatus_ = textStatus;
                         that.jqXHR_ = jqXHR;
-                        MODEL.Util.fire(setting.callbacks.ajax.success, this, [event, setting.param, data, textStatus, jqXHR]);
+                        Util.fire(setting.callbacks.ajax.success, this, [event, setting.param, data, textStatus, jqXHR]);
                     }
                     function error(jqXHR, textStatus, errorThrown) {
                         that.jqXHR_ = jqXHR;
                         that.textStatus_ = textStatus;
                         that.errorThrown_ = errorThrown;
-                        MODEL.Util.fire(setting.callbacks.ajax.error, this, [event, setting.param, jqXHR, textStatus, errorThrown]);
+                        Util.fire(setting.callbacks.ajax.error, this, [event, setting.param, jqXHR, textStatus, errorThrown]);
                     }
                     function complete(jqXHR, textStatus) {
-                        MODEL.Util.fire(setting.callbacks.ajax.complete, this, [event, setting.param, jqXHR, textStatus]);
+                        Util.fire(setting.callbacks.ajax.complete, this, [event, setting.param, jqXHR, textStatus]);
                         that.model_.setGlobalXHR(null);
 
                         if (!that.model_.isDeferrable) {
@@ -2172,7 +2179,7 @@ var MODULE;
                         callbacks = {
                             xhr: !setting.callbacks.ajax.xhr ? undefined : function () {
                                 var jqXHR;
-                                jqXHR = MODEL.Util.fire(setting.callbacks.ajax.xhr, this, [event, setting.param]);
+                                jqXHR = Util.fire(setting.callbacks.ajax.xhr, this, [event, setting.param]);
                                 jqXHR = 'object' === typeof jqXHR && jqXHR || jQuery.ajaxSettings.xhr();
 
                                 //if (jqXHR instanceof Object && jqXHR instanceof window.XMLHttpRequest && 'onprogress' in jqXHR) {
@@ -2192,10 +2199,10 @@ var MODULE;
                                     setting.server.header.script && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Script', setting.load.script.toString());
                                 }
 
-                                MODEL.Util.fire(setting.callbacks.ajax.beforeSend, this, [event, setting.param, jqXHR, ajaxSetting]);
+                                Util.fire(setting.callbacks.ajax.beforeSend, this, [event, setting.param, jqXHR, ajaxSetting]);
                             },
                             dataFilter: !setting.callbacks.ajax.dataFilter ? undefined : function (data, type) {
-                                return MODEL.Util.fire(setting.callbacks.ajax.dataFilter, this, [event, setting.param, data, type]) || data;
+                                return Util.fire(setting.callbacks.ajax.dataFilter, this, [event, setting.param, data, type]) || data;
                             },
                             success: success,
                             error: error,
@@ -2228,6 +2235,8 @@ var MODULE;
     (function (MODEL) {
         /* MODEL */
         (function (APP) {
+            var Util = MODULE.LIBRARY.Utility;
+
             var PageUpdate = (function (_super) {
                 __extends(PageUpdate, _super);
                 function PageUpdate(model_, app_, setting_, event_, register_, cache_, data_, textStatus_, jqXHR_, errorThrown_, host_) {
@@ -2336,7 +2345,7 @@ var MODULE;
                         return;
                     }
 
-                    if (MODEL.Util.fire(callbacks_update.redirect.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    if (Util.fire(callbacks_update.redirect.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                         return;
                     }
                     ;
@@ -2370,7 +2379,7 @@ var MODULE;
                                     break;
                                 case 'popstate':
                                     window.history.replaceState(window.history.state, this.srcDocument_.title, redirect.href);
-                                    if (register && setting.fix.location) {
+                                    if (register && setting.fix.location && !Util.compareUrl(setting.destLocation.href, Util.normalizeUrl(window.location.href))) {
                                         jQuery[MODULE.NAME].disable();
                                         window.history.back();
                                         window.history.forward();
@@ -2384,7 +2393,7 @@ var MODULE;
                             throw false;
                     }
 
-                    if (MODEL.Util.fire(callbacks_update.redirect.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    if (Util.fire(callbacks_update.redirect.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                         return;
                     }
                 };
@@ -2393,14 +2402,14 @@ var MODULE;
                     var setting = this.setting_, event = this.event_, register = this.register_;
                     var callbacks_update = setting.callbacks.update;
 
-                    if (MODEL.Util.fire(callbacks_update.url.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    if (Util.fire(callbacks_update.url.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                         return;
                     }
                     ;
 
-                    register && window.history.pushState(MODEL.Util.fire(setting.state, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]), window.opera || ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstDocument_.title : this.srcDocument_.title, setting.destLocation.href);
+                    register && window.history.pushState(Util.fire(setting.state, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]), ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstDocument_.title : this.srcDocument_.title, setting.destLocation.href);
 
-                    if (register && setting.fix.location) {
+                    if (register && setting.fix.location && !Util.compareUrl(setting.destLocation.href, Util.normalizeUrl(window.location.href))) {
                         jQuery[MODULE.NAME].disable();
                         window.history.back();
                         window.history.forward();
@@ -2408,18 +2417,18 @@ var MODULE;
                     }
 
                     // verify
-                    if (MODEL.Util.compareUrl(setting.destLocation.href, MODEL.Util.normalizeUrl(window.location.href))) {
+                    if (Util.compareUrl(setting.destLocation.href, Util.normalizeUrl(window.location.href))) {
                         setting.retriable = true;
                     } else if (setting.retriable) {
                         setting.retriable = false;
-                        setting.destLocation.href = MODEL.Util.normalizeUrl(window.location.href);
+                        setting.destLocation.href = Util.normalizeUrl(window.location.href);
                         new PageUpdate(this.model_, this.app_, setting, event, false, setting.cache[event.type.toLowerCase()] && this.model_.getCache(setting.destLocation.href), this.data_, this.textStatus_, this.jqXHR_, this.errorThrown_, this.host_);
                         throw false;
                     } else {
                         throw new Error('throw: location mismatch');
                     }
 
-                    if (MODEL.Util.fire(callbacks_update.url.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    if (Util.fire(callbacks_update.url.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                         return;
                     }
                 };
@@ -2456,7 +2465,7 @@ var MODULE;
                         var onready = function (callback) {
                             _this.dispatchEvent_(document, setting.gns + ':ready', false, true);
 
-                            MODEL.Util.fire(setting.callback, null, [event, setting.param, _this.data_, _this.textStatus_, _this.jqXHR_]);
+                            Util.fire(setting.callback, null, [event, setting.param, _this.data_, _this.textStatus_, _this.jqXHR_]);
 
                             return jQuery.when ? _this.waitRender_(jQuery.Deferred().resolve) : _this.waitRender_(callback);
                         };
@@ -2558,13 +2567,13 @@ var MODULE;
                         return;
                     }
 
-                    if (MODEL.Util.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) {
+                    if (Util.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) {
                         return;
                     }
 
-                    MODEL.Util.fire(setting.rewrite, null, [this.srcDocument_, setting.area, this.host_]);
+                    Util.fire(setting.rewrite, null, [this.srcDocument_, setting.area, this.host_]);
 
-                    if (MODEL.Util.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) {
+                    if (Util.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) {
                         return;
                     }
                 };
@@ -2573,14 +2582,14 @@ var MODULE;
                     var setting = this.setting_, event = this.event_;
                     var callbacks_update = setting.callbacks.update;
 
-                    if (MODEL.Util.fire(callbacks_update.title.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    if (Util.fire(callbacks_update.title.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                         return;
                     }
 
                     this.dstDocument_.title = this.srcDocument_.title;
                     setting.database && setting.fix.history && this.app_.data.saveTitleToDB(setting.destLocation.href, this.srcDocument_.title);
 
-                    if (MODEL.Util.fire(callbacks_update.title.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    if (Util.fire(callbacks_update.title.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                         return;
                     }
                 };
@@ -2593,7 +2602,7 @@ var MODULE;
                         return;
                     }
 
-                    if (MODEL.Util.fire(callbacks_update.head.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    if (Util.fire(callbacks_update.head.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                         return;
                     }
 
@@ -2617,7 +2626,7 @@ var MODULE;
                     jQuery('title', dstDocument).before($addElements.clone());
                     $delElements.remove();
 
-                    if (MODEL.Util.fire(callbacks_update.head.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    if (Util.fire(callbacks_update.head.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                         return;
                     }
                 };
@@ -2629,7 +2638,7 @@ var MODULE;
 
                     var checker, loadwaits = [];
 
-                    if (MODEL.Util.fire(callbacks_update.content.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    if (Util.fire(callbacks_update.content.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                         return loadwaits;
                     }
 
@@ -2672,7 +2681,7 @@ var MODULE;
                     }
                     this.dispatchEvent_(document, setting.gns + ':DOMContentLoaded', false, true);
 
-                    if (MODEL.Util.fire(callbacks_update.content.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    if (Util.fire(callbacks_update.content.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                         return loadwaits;
                     }
 
@@ -2687,7 +2696,7 @@ var MODULE;
                         return;
                     }
 
-                    if (MODEL.Util.fire(callbacks_update.balance.before, null, [event, setting.param]) === false) {
+                    if (Util.fire(callbacks_update.balance.before, null, [event, setting.param]) === false) {
                         return;
                     }
 
@@ -2698,7 +2707,7 @@ var MODULE;
 
                     this.app_.data.loadBuffers(setting.buffer.limit);
 
-                    if (MODEL.Util.fire(callbacks_update.balance.after, null, [event, setting.param]) === false) {
+                    if (Util.fire(callbacks_update.balance.after, null, [event, setting.param]) === false) {
                         return;
                     }
                 };
@@ -2711,7 +2720,7 @@ var MODULE;
                         return;
                     }
 
-                    if (MODEL.Util.fire(callbacks_update.css.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    if (Util.fire(callbacks_update.css.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                         return;
                     }
 
@@ -2757,7 +2766,7 @@ var MODULE;
                     jQuery(dstDocument.body).append($addElements.filter(filterBodyContent).clone());
                     $delElements.remove();
 
-                    if (MODEL.Util.fire(callbacks_update.css.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    if (Util.fire(callbacks_update.css.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                         return;
                     }
 
@@ -2777,7 +2786,7 @@ var MODULE;
                         return scriptwaits;
                     }
 
-                    if (MODEL.Util.fire(callbacks_update.script.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    if (Util.fire(callbacks_update.script.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                         return scriptwaits;
                     }
 
@@ -2888,7 +2897,7 @@ var MODULE;
                         return;
                     }
 
-                    if (MODEL.Util.fire(callbacks_update.script.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    if (Util.fire(callbacks_update.script.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                         return scriptwaits;
                     }
 
@@ -2903,7 +2912,7 @@ var MODULE;
                     var setting = this.setting_, event = this.event_;
                     var callbacks_update = setting.callbacks.update;
 
-                    if (MODEL.Util.fire(callbacks_update.scroll.before, null, [event, setting.param]) === false) {
+                    if (Util.fire(callbacks_update.scroll.before, null, [event, setting.param]) === false) {
                         return;
                     }
 
@@ -2911,11 +2920,11 @@ var MODULE;
                     switch (event.type.toLowerCase()) {
                         case 'click':
                         case 'submit':
-                            scrollX = call && 'function' === typeof setting.scrollLeft ? MODEL.Util.fire(setting.scrollLeft, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]) : setting.scrollLeft;
+                            scrollX = call && 'function' === typeof setting.scrollLeft ? Util.fire(setting.scrollLeft, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]) : setting.scrollLeft;
                             scrollX = 0 <= scrollX ? scrollX : 0;
                             scrollX = scrollX === false || scrollX === null ? jQuery(window).scrollLeft() : parseInt(Number(scrollX) + '', 10);
 
-                            scrollY = call && 'function' === typeof setting.scrollTop ? MODEL.Util.fire(setting.scrollTop, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]) : setting.scrollTop;
+                            scrollY = call && 'function' === typeof setting.scrollTop ? Util.fire(setting.scrollTop, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]) : setting.scrollTop;
                             scrollY = 0 <= scrollY ? scrollY : 0;
                             scrollY = scrollY === false || scrollY === null ? jQuery(window).scrollTop() : parseInt(Number(scrollY) + '', 10);
 
@@ -2927,7 +2936,7 @@ var MODULE;
                             break;
                     }
 
-                    if (MODEL.Util.fire(callbacks_update.scroll.after, null, [event, setting.param]) === false) {
+                    if (Util.fire(callbacks_update.scroll.after, null, [event, setting.param]) === false) {
                         return;
                     }
                 };
@@ -2944,7 +2953,7 @@ var MODULE;
 
                     var check = function () {
                         switch (true) {
-                            case !MODEL.Util.compareUrl(setting.destLocation.href, MODEL.Util.normalizeUrl(window.location.href)):
+                            case !Util.compareUrl(setting.destLocation.href, Util.normalizeUrl(window.location.href)):
                                 break;
                             case new Date().getTime() > limit:
                             case checker.length !== areas.length:
@@ -3032,6 +3041,8 @@ var MODULE;
     (function (MODEL) {
         /* MODEL */
         (function (APP) {
+            var Util = MODULE.LIBRARY.Utility;
+
             var Page = (function (_super) {
                 __extends(Page, _super);
                 function Page(model_, app_) {
@@ -3039,7 +3050,7 @@ var MODULE;
                     _super.call(this);
                     this.model_ = model_;
                     this.app_ = app_;
-                    this.landing = MODEL.Util.normalizeUrl(window.location.href);
+                    this.landing = Util.normalizeUrl(window.location.href);
                     this.recent = { order: [], data: {}, size: 0 };
                     this.loadedScripts = {};
                     this.isScrollPosSavable = true;
@@ -3091,6 +3102,8 @@ var MODULE;
     (function (MODEL) {
         /* MODEL */
         (function (APP) {
+            var Util = MODULE.LIBRARY.Utility;
+
             var Main = (function () {
                 function Main(model_, controller_) {
                     this.model_ = model_;
@@ -3124,8 +3137,8 @@ var MODULE;
                 Main.prototype.configure = function (option, origURL, destURL) {
                     var that = this;
 
-                    origURL = MODEL.Util.normalizeUrl(origURL || option.origLocation.href);
-                    destURL = MODEL.Util.normalizeUrl(destURL || option.destLocation.href);
+                    origURL = Util.normalizeUrl(origURL || option.origLocation.href);
+                    destURL = Util.normalizeUrl(destURL || option.destLocation.href);
                     option = jQuery.extend(true, {}, option.option || option);
 
                     option = option.scope ? jQuery.extend(true, {}, option, scope(option, origURL, destURL) || { cancel: true }) : jQuery.extend(true, {}, option);
@@ -3280,7 +3293,7 @@ var MODULE;
                                 a.href = url;
                                 return a;
                             })(destURL, document.createElement('a')),
-                            fix: !/android|iphone os|like mac os x/i.test(window.navigator.userAgent) ? { location: false, reset: false } : {},
+                            fix: /android|iphone os|like mac os x/i.test(window.navigator.userAgent) ? undefined : { location: false, reset: false },
                             contentType: setting.contentType.replace(/\s*[,;]\s*/g, '|').toLowerCase(),
                             server: {
                                 query: query
@@ -3352,7 +3365,7 @@ var MODULE;
                                 if ('inherit' === pattern) {
                                     inherit = true;
                                 } else if ('rewrite' === pattern && 'function' === typeof scpTable.rewrite && !rewriteKeyUrl) {
-                                    var rewrite = scope.apply(this, [].slice.call(arguments).slice(0, 3).concat([MODEL.Util.fire(scpTable.rewrite, null, [destKeyUrl])]));
+                                    var rewrite = scope.apply(this, [].slice.call(arguments).slice(0, 3).concat([Util.fire(scpTable.rewrite, null, [destKeyUrl])]));
                                     if (rewrite) {
                                         hit_src = hit_dst = true;
                                         option = rewrite;
@@ -3427,6 +3440,8 @@ var MODULE;
 (function (MODULE) {
     /* MODEL */
     (function (MODEL) {
+        var Util = MODULE.LIBRARY.Utility;
+
         var Main = (function (_super) {
             __extends(Main, _super);
             function Main() {
@@ -3488,23 +3503,23 @@ var MODULE;
                     return;
                 }
 
-                var origURL = MODEL.Util.normalizeUrl(window.location.href), destURL, event;
+                var origURL = Util.normalizeUrl(window.location.href), destURL, event;
                 switch (typeof param) {
                     case 'string':
                         event = null;
-                        destURL = MODEL.Util.normalizeUrl(param);
+                        destURL = Util.normalizeUrl(param);
                         break;
                     case 'object':
                         event = param;
                         switch (event.type.toLowerCase()) {
                             case 'click':
-                                destURL = MODEL.Util.normalizeUrl(event.currentTarget.href);
+                                destURL = Util.normalizeUrl(event.currentTarget.href);
                                 if (!jQuery(event.currentTarget).filter(setting.filter).length) {
                                     return false;
                                 }
                                 break;
                             case 'submit':
-                                destURL = MODEL.Util.normalizeUrl(event.currentTarget.action);
+                                destURL = Util.normalizeUrl(event.currentTarget.action);
                                 break;
                             case 'popstate':
                                 return true;
@@ -3598,7 +3613,7 @@ var MODULE;
                     }
 
                     var serializedURL = setting.destLocation.href.replace(/[?#].*/, '') + ('GET' === context.method.toUpperCase() ? '?' + jQuery(context).serialize() : '');
-                    setting.destLocation.href = MODEL.Util.normalizeUrl(serializedURL);
+                    setting.destLocation.href = Util.normalizeUrl(serializedURL);
                     if (setting.cache.mix && this.getCache(setting.destLocation.href)) {
                         break PROCESS;
                     }
@@ -3624,7 +3639,7 @@ var MODULE;
                  {
                     event.timeStamp = new Date().getTime();
                     var setting = this.app_.configure(this.getGlobalSetting(), null, window.location.href);
-                    if (this.app_.page.landing && this.app_.page.landing === MODEL.Util.normalizeUrl(window.location.href)) {
+                    if (this.app_.page.landing && this.app_.page.landing === Util.normalizeUrl(window.location.href)) {
                         return;
                     }
                     if (setting.origLocation.href === setting.destLocation.href) {
@@ -3682,7 +3697,7 @@ var MODULE;
             Main.prototype.fallback = function (event, setting) {
                 switch (true) {
                     case !setting.fallback:
-                    case false === MODEL.Util.fire(setting.fallback, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]):
+                    case false === Util.fire(setting.fallback, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]):
                         break;
                     default:
                         this.app_.page.movePageNormally(event);
@@ -3703,7 +3718,7 @@ var MODULE;
                     return null;
                 }
 
-                var secure_url = this.convertUrlToKeyUrl(MODEL.Util.normalizeUrl(unsafe_url));
+                var secure_url = this.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
                 unsafe_url = null;
 
                 recent.data[secure_url] && new Date().getTime() > recent.data[secure_url].expires && this.removeCache(secure_url);
@@ -3720,7 +3735,7 @@ var MODULE;
 
                 var cache, size, timeStamp, expires;
 
-                var secure_url = this.convertUrlToKeyUrl(MODEL.Util.normalizeUrl(unsafe_url));
+                var secure_url = this.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
                 unsafe_url = null;
 
                 recent.order.unshift(secure_url);
@@ -3786,7 +3801,7 @@ var MODULE;
 
                 switch (typeof param) {
                     case 'string':
-                        var secure_url = this.convertUrlToKeyUrl(MODEL.Util.normalizeUrl(param));
+                        var secure_url = this.convertUrlToKeyUrl(Util.normalizeUrl(param));
                         param = null;
 
                         for (var i = 0, key; key = recent.order[i]; i++) {
@@ -3844,8 +3859,6 @@ var MODULE;
             return Main;
         })(MODEL.Template);
         MODEL.Main = Main;
-
-        MODEL.Util = MODULE.LIBRARY.Utility;
     })(MODULE.MODEL || (MODULE.MODEL = {}));
     var MODEL = MODULE.MODEL;
 })(MODULE || (MODULE = {}));
