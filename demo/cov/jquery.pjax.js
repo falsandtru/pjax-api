@@ -1,11 +1,11 @@
 /**
  * 
- * jquery.pjax.js
+ * jquery-pjax
  * 
- * @name jquery.pjax.js
+ * @name jquery-pjax
  * @version 2.24.2
  * ---
- * @author falsandtru https://github.com/falsandtru/jquery.pjax.js/
+ * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
  * @license MIT
  * 
