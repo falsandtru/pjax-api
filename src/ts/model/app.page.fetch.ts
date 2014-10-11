@@ -5,7 +5,9 @@
 /* MODEL */
 
 module MODULE.MODEL.APP {
-  
+
+  var Util = LIBRARY.Utility
+
   export class PageFetch extends PageUtility implements PageFetchInterface {
 
     constructor(

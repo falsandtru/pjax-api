@@ -7,6 +7,8 @@
 
 module MODULE.MODEL.APP {
 
+  var Util = LIBRARY.Utility
+
   export class PageUpdate extends PageUtility implements PageUpdateInterface {
     
     constructor(
@@ -152,7 +154,7 @@ module MODULE.MODEL.APP {
               break;
             case 'popstate':
               window.history.replaceState(window.history.state, this.srcDocument_.title, redirect.href);
-              if (register && setting.fix.location) {
+              if (register && setting.fix.location && !Util.compareUrl(setting.destLocation.href, Util.normalizeUrl(window.location.href))) {
                 jQuery[NAME].disable();
                 window.history.back();
                 window.history.forward();
@@ -176,12 +178,11 @@ module MODULE.MODEL.APP {
       if (Util.fire(callbacks_update.url.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; };
 
       register &&
-      window.history.pushState(
-        Util.fire(setting.state, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]),
-        window.opera || ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstDocument_.title : this.srcDocument_.title,
-        setting.destLocation.href);
+      window.history.pushState(Util.fire(setting.state, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]),
+                               ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstDocument_.title : this.srcDocument_.title,
+                               setting.destLocation.href);
 
-      if (register && setting.fix.location) {
+      if (register && setting.fix.location && !Util.compareUrl(setting.destLocation.href, Util.normalizeUrl(window.location.href))) {
         jQuery[NAME].disable();
         window.history.back();
         window.history.forward();

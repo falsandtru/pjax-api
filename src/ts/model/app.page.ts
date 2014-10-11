@@ -8,6 +8,8 @@
 
 module MODULE.MODEL.APP {
 
+  var Util = LIBRARY.Utility
+
   export class Page extends PageUtility implements PageInterface {
 
     constructor(private model_: ModelInterface, private app_: AppLayerInterface) {

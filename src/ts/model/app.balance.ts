@@ -4,7 +4,9 @@
 /* MODEL */
 
 module MODULE.MODEL.APP {
-  
+
+  var Util = LIBRARY.Utility
+
   export class Balance implements BalanceInterface {
 
     constructor(private model_: ModelInterface, private app_: AppLayerInterface) { }
