@@ -133,7 +133,7 @@ module MODULE.MODEL.APP {
             fallback: true,
             database: true,
             server: {
-              query: 'pjax=1',
+              query: null,
               header: true
             }
           },

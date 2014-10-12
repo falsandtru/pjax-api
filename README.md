@@ -92,7 +92,6 @@ if (!/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.nav
     area: 'body',
     load: { head: 'base, meta, link', css: true, script: true },
     cache: { click: true, submit: false, popstate: true },
-    server: { query: null },
     speedcheck: true
   });
    
