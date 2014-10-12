@@ -7,8 +7,12 @@ module MODULE.MODEL.APP.DATA {
   
   export class StoreMeta<T> extends Store<T> implements StoreMetaInterface<T> {
 
-    name: string = 'meta'
-    keyPath: string = 'id'
+    name = 'meta'
+    keyPath = 'id'
+    autoIncrement = false
+    indexes = [
+      { name: this.keyPath, keyPath: this.keyPath, option: { unique: true } }
+    ]
 
   }
 

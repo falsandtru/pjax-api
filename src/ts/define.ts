@@ -37,13 +37,11 @@ module MODULE {
    * 
    * Model:
    * - class Main (mvc-interface)
-   *   single instance(M)
+   *   single instance
    * - class App (application-logic)
    *   single instance(APP)
    * - class Data (data-access)
    *   single instance(DATA)
-   * - class Util
-   *   static (UTIL)
    * 
    * View
    * - class Main (mvc-interface)
@@ -51,10 +49,10 @@ module MODULE {
    * 
    * Controller
    * - class Main (mvc-interface)
-   *   single instance(C)
-   * - class Function
    *   single instance
-   * - class Method
+   * - class Functions
+   *   single instance
+   * - class Methods
    *   single instance
    * 
    * -----
@@ -62,7 +60,6 @@ module MODULE {
    * 規約
    * 
    * - MVCモジュール間のアクセスは各モジュールのインターフェイスを経由し、内部機能(APP/DATA)に直接アクセスしない。
-   * - UTILはどこからでも自由に使用してよい。
    * - モデルインターフェイスへ渡されるデータはすべて正規化、検疫されてないものとして自身で正規化、検疫する。
    * 
    */
@@ -334,7 +331,7 @@ module MODULE.MODEL.APP {
     
     conExtend(): void
 
-    opendb(task: () => void, noRetry?: boolean): void
+    opendb(task?: () => void, noRetry?: boolean): void
     closedb(): void
   }
   export declare class StoreInterface<T> {
@@ -342,15 +339,18 @@ module MODULE.MODEL.APP {
 
     name: string
     keyPath: string
+    autoIncrement: boolean
+    indexes: StoreIndexOptionInterface[]
 
     accessStore(success: (store?: IDBObjectStore) => void, mode?: string): void
     accessRecord(key: string, success: (event?: Event) => void, mode?: string): void
 
     loadBuffer(limit?: number): void
     saveBuffer(): void
-    getBuffer(): T[]
+    getBuffers(): T[]
     getBuffer(key: string): T
     getBuffer(key: number): T
+    setBuffers(values: T[], isMerge?: boolean): T[]
     setBuffer(value: T, isMerge?: boolean): T
     addBuffer(value: any): T
     
@@ -370,6 +370,7 @@ module MODULE.MODEL.APP {
     clean(): void
   }
   export declare class StoreServerInterface<T> extends StoreInterface<T> {
+    clean(): void
   }
   export declare class CookieInterface {
     constructor(age: number)
@@ -414,5 +415,13 @@ module MODULE.MODEL.APP {
   export interface ServerSchema {
     id: string    // host
     state: number // 0:正常, !0:異常発生時刻(ミリ秒)
+    date: number
+  }
+  export interface StoreIndexOptionInterface {
+    name: string
+    keyPath: string
+    option?: {
+      unique: boolean
+    }
   }
 }
