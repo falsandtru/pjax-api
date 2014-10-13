@@ -7,7 +7,10 @@ class: style-api style-api-detail
 ---
 
 # ajax
-内部処理で使用される`$.ajax`のパラメータを設定します。設定値は初期値にマージされます。初期値は`{ dataType: 'text' }`です。
+内部処理で使用される`$.ajax`のパラメータを設定します。設定値は初期値にマージされます。
+
+## ajax: jQueryAjaxSettings
+内部処理で使用される`$.ajax`のパラメータを設定します。初期値は`{ dataType: 'text' }`です。
 
 <pre class="sh brush: js;">
 $.pjax({
