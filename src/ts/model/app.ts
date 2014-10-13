@@ -79,6 +79,19 @@ module MODULE.MODEL.APP {
             balance: {
               self: false,
               weight: 3,
+              option: <PjaxSetting>{
+                server: {
+                  header: false
+                },
+                ajax: {
+                  crossDomain: true
+                },
+                callbacks: {
+                  ajax: {
+                    beforeSend: null
+                  }
+                }
+              },
               client: {
                 support: {
                   userAgent: /msie|trident.+ rv:|chrome|firefox|safari/i,
@@ -94,24 +107,11 @@ module MODULE.MODEL.APP {
               server: {
                 header: 'X-Ajax-Host',
                 filter: null,
-                error: 10 * 60 * 1000,
+                respite: 10 * 60 * 1000,
               },
-              log: {
+              history: {
                 expires: 10 * 24 * 60 * 60 * 1000,
                 limit: 30
-              },
-              option: <PjaxSetting>{
-                server: {
-                  header: false
-                },
-                ajax: {
-                  crossDomain: true
-                },
-                callbacks: {
-                  ajax: {
-                    beforeSend: null
-                  }
-                }
               }
             },
             callback: null,

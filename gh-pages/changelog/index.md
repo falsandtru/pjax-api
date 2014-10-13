@@ -9,6 +9,9 @@ nav: nav
 
 ## 2.25.0
 
+* `balance.server.error`パラメータを`balance.server.respite`パラメータに変更
+* `balance.log.expires`パラメータを`balance.history.expires`パラメータに変更
+* `balance.log.limit`パラメータを`balance.history.limit`パラメータに変更
 * データベースを更新
 
 ## 2.24.3

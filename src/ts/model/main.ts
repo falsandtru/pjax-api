@@ -21,7 +21,7 @@ module MODULE.MODEL {
     private controller_: ControllerInterface = new Controller(this)
     private app_: AppLayerInterface = new MODEL.App(this, this.controller_)
 
-    isDeferrable: boolean = jQuery.when && 1.06 <= Number(jQuery().jquery.replace(/\D*(\d+)\.(\d+).*$/, '$1.0$2').replace(/\d+(\d{2})$/, '$1'))
+    isDeferrable: boolean = !!jQuery.when && 1.06 <= Number(jQuery().jquery.replace(/\D*(\d+)\.(\d+).*$/, '$1.0$2').replace(/\d+(\d{2})$/, '$1'))
     queue: number[] = []
 
     host(): string { return this.app_.balance.host() }

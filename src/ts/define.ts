@@ -222,11 +222,11 @@ module MODULE.MODEL {
     constructor(model: ModelInterface, app: AppLayerInterface)
     host(): string
     
-    check(setting: SettingInterface): boolean
     enable(setting: SettingInterface): void
     disable(setting: SettingInterface): void
     changeServer(host: string, setting?: SettingInterface): void
     chooseServer(setting: SettingInterface): void
+    bypass(setting: SettingInterface, retry: number): void
   }
   export declare class PageInterface extends PageUtilityInterface {
     constructor(model: ModelInterface, app: AppLayerInterface)
