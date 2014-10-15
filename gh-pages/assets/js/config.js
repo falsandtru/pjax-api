@@ -1,5 +1,5 @@
 new Function().apply.apply(function (accessor) {
-  var spec = accessor, initialize = true, always = true, finish = false;
+  var spec = accessor, initialize = true, always = true, finalize = false;
 
 /* init
   ========================================================================== */
@@ -8,11 +8,12 @@ new Function().apply.apply(function (accessor) {
   spec.init = spec.preload;
   spec.init = spec.pjax;
   spec.init = spec.visibilitytrigger;
+  spec.init = spec.manifest;
   spec.init = function () { initialize = false; };
 
 /* component
   ========================================================================== */
-
+  
 /* clientenv
   -------------------------------------------------------------------------- */
   spec.clientenv = function () {
@@ -75,17 +76,17 @@ new Function().apply.apply(function (accessor) {
       $.pjax({
         area: ['#container', 'body'],
         rewrite: function (document) {
+          $('#primary, #secondary', document).find('img').each(escapeImage);
           function escapeImage() {
             this.setAttribute('data-original', this.src);
             this.setAttribute('src', '/img/gray.gif');
           }
-          $('#primary, #secondary', document).find('img').each(escapeImage);
 
+          $('#primary', document).find('iframe').each(escapeIframe);
           function escapeIframe() {
             this.setAttribute('data-original', this.src);
             this.setAttribute('src', 'javascript:false');
           }
-          $('#primary', document).find('iframe').each(escapeIframe);
         },
         load: { css: true, script: true },
         cache: { click: true, submit: false, popstate: true },
@@ -114,22 +115,29 @@ new Function().apply.apply(function (accessor) {
             }
           },
           update: {
-            before: function () {
-              $('div.loading').children().width('95%');
+            url: {
+              after: function () {
+                $('div.loading').children().width('95%');
+              }
             },
-            content: {
+            head: {
               after: function () {
                 $('div.loading').children().width('96.25%');
               }
             },
-            css: {
+            content: {
               after: function () {
                 $('div.loading').children().width('97.5%');
               }
             },
-            script: {
+            css: {
               after: function () {
                 $('div.loading').children().width('98.75%');
+              }
+            },
+            script: {
+              after: function () {
+                $('div.loading').children().width('100%');
               }
             }
           }
@@ -139,7 +147,6 @@ new Function().apply.apply(function (accessor) {
           css: true,
           script: true
         },
-        server: { query: null },
         speedcheck: true
       });
       
@@ -194,6 +201,42 @@ new Function().apply.apply(function (accessor) {
       setTimeout(function () { $.vt.enable().vtrigger(); }, 20);
     }
   };
+  
+/* manifest
+  -------------------------------------------------------------------------- */
+  spec.manifest = function () {
+    if (typeof applicationCache !== 'object' || !applicationCache) { return; }
+
+    var appCache = window.applicationCache;
+
+    if (initialize) {
+      $.each(['checking', 'cached', 'downloading', 'error', 'noupdate', 'obsolete', 'progress', 'updateready'], function (i, type) {
+        appCache.addEventListener(type, handler, false);
+      });
+    }
+
+    function handler() {
+      switch (appCache.status) {
+        case appCache.UNCACHED:    // UNCACHED    == 0
+          break;
+        case appCache.IDLE:        // IDLE        == 1
+          break;
+        case appCache.CHECKING:    // CHECKING    == 2
+          break;
+        case appCache.DOWNLOADING: // DOWNLOADING == 3
+          break;
+        case appCache.UPDATEREADY: // UPDATEREADY == 4
+          appCache.swapCache();
+          //confirm('Please reload this page because a new version of this site is available. Reload it now?') &&
+          window.location.reload();
+          break;
+        case appCache.OBSOLETE:    // OBSOLETE    == 5
+          break;
+        default:
+          break;
+      }
+    }
+  };
 
   return this;
 },
@@ -202,5 +245,6 @@ FuncManager([
   'preload',
   'pjax',
   'visibilitytrigger',
-  'clientenv'
+  'clientenv',
+  'manifest'
 ]).contextArguments);
