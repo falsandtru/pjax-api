@@ -11,6 +11,8 @@ module MODULE.MODEL.APP.DATA {
 
     name: string
     keyPath: string
+    autoIncrement: boolean = true
+    indexes: StoreIndexOptionInterface[] = []
 
     buffer_: T[] = []
 
@@ -56,17 +58,27 @@ module MODULE.MODEL.APP.DATA {
     saveBuffer(): void {
     }
     
-    getBuffer(): T[]
+    getBuffers(): T[] {
+      return this.buffer_;
+    }
+
     getBuffer(key: string): T
     getBuffer(key: number): T
     getBuffer(key?: any): any {
-      return key ? this.buffer_[key] : this.buffer_;
+      return this.buffer_[key];
     }
-    
+
+    setBuffers(values: T[], isMerge?: boolean): T[] {
+      for (var i in values) {
+        this.setBuffer(values[i], isMerge);
+      }
+      return this.buffer_;
+    }
+
     setBuffer(value: T, isMerge?: boolean): T {
       var key = value[this.keyPath];
       this.buffer_[key] = !isMerge ? value : jQuery.extend(true, {}, this.buffer_[key], value);
-      return this.buffer_[value[this.keyPath]];
+      return this.buffer_[key];
     }
 
     addBuffer(value: T): T {

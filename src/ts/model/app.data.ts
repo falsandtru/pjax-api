@@ -18,12 +18,11 @@ module MODULE.MODEL.APP {
     stores = this.data_.DB.stores
 
     opendb(setting: SettingInterface): void {
-      setting.database = false;
-      this.data_.DB.opendb(() => {
-        this.saveTitleToDB(setting.origLocation.href, document.title);
-        this.saveScrollPositionToDB(setting.origLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
-        setting.database = true;
-      });
+      if (!setting.database) { return; }
+
+      this.data_.DB.opendb();
+      this.saveTitleToDB(setting.origLocation.href, document.title);
+      this.saveScrollPositionToDB(setting.origLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
     }
 
     loadBuffers(limit: number = 0): void {
@@ -61,7 +60,17 @@ module MODULE.MODEL.APP {
     saveTitleToDB(unsafe_url: string, title: string): void {
       var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
 
-      var value: HistorySchema = <HistorySchema>{ id: keyUrl, title: title, date: new Date().getTime() };
+      var value: HistorySchema = {
+        id: keyUrl,
+        title: title,
+        date: new Date().getTime(),
+
+        scrollX: undefined,
+        scrollY: undefined,
+        host: undefined,
+        expires: undefined
+      };
+
       this.data_.DB.stores.history.setBuffer(value, true);
       this.data_.DB.stores.history.set(value);
       this.data_.DB.stores.history.clean();
@@ -95,16 +104,17 @@ module MODULE.MODEL.APP {
     saveScrollPositionToDB(unsafe_url: string, scrollX: number, scrollY: number): void {
       var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
 
-      var value: HistorySchema = <HistorySchema>{ id: keyUrl, scrollX: scrollX, scrollY: scrollY, date: new Date().getTime() };
-      this.data_.DB.stores.history.setBuffer(value, true);
-      this.data_.DB.stores.history.set(value);
-    }
+      var value: HistorySchema = {
+        id: keyUrl,
+        scrollX: scrollX,
+        scrollY: scrollY,
+        date: new Date().getTime(),
 
-    loadExpiresFromDB(keyUrl: string): void {
-    }
+        title: undefined,
+        host: undefined,
+        expires: undefined
+      };
 
-    saveExpiresToDB(keyUrl: string, host: string, expires: number): void {
-      var value: HistorySchema = <HistorySchema>{ id: keyUrl, host: host, expires: expires };
       this.data_.DB.stores.history.setBuffer(value, true);
       this.data_.DB.stores.history.set(value);
     }
@@ -128,7 +138,12 @@ module MODULE.MODEL.APP {
     }
 
     saveServerToDB(host: string, state: number = 0, unsafe_url?: string, expires: number = 0): void {
-      var value: ServerSchema = <ServerSchema>{ id: host || '', state: state };
+      var value: ServerSchema = {
+        id: host || '',
+        state: state,
+        date: new Date().getTime()
+      };
+
       this.data_.DB.stores.server.accessRecord(host, function () {
         var data: ServerSchema = this.result;
         if (!data || !state) {
@@ -139,9 +154,32 @@ module MODULE.MODEL.APP {
           this.source['delete'](host);
         }
       });
+      this.data_.DB.stores.server.clean();
+
       if (unsafe_url) {
         this.saveExpiresToDB(unsafe_url, host, expires);
       }
+    }
+    
+    loadExpiresFromDB(keyUrl: string): void {
+    }
+
+    saveExpiresToDB(unsafe_url: string, host: string, expires: number): void {
+      var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
+
+      var value: HistorySchema = {
+        id: keyUrl,
+        host: host,
+        expires: expires,
+
+        title: undefined,
+        scrollX: undefined,
+        scrollY: undefined,
+        date: undefined
+      };
+
+      this.data_.DB.stores.history.setBuffer(value, true);
+      this.data_.DB.stores.history.set(value);
     }
 
     getCookie(key: string): string {

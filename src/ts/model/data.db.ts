@@ -28,16 +28,16 @@ module MODULE.MODEL.APP.DATA {
 
     private database_: IDBDatabase
     private name_: string = NAME
-    private version_: number = 4
+    private version_: number = 5
     private refresh_: number = 10
-    private upgrade_: number = 1 // 0:virtual 1:naitive
+    private upgrade_: number = 1 // 0:virtual 1:native
     private state_: State = State.blank
     database = () => this.database_
     state = () => this.state_
     nowRetrying: boolean = false
 
     private conAge_: number = 10 * 1000
-    private conExpires_: number
+    private conExpires_: number = 0
     private conInterval_: number = 1000
     private tasks_: { (): void }[] = []
 
@@ -52,15 +52,20 @@ module MODULE.MODEL.APP.DATA {
       update: 'update'
     }
 
-    opendb(task: () => void, noRetry?: boolean): void {
+    opendb(task?: () => void, noRetry?: boolean): void {
+      if (!this.IDBFactory) { return; }
+
       var that = this;
 
       that.conExtend();
 
-      if (!that.IDBFactory || !task && !that.tasks_.length) { return; }
+      if (State.blank === that.state()) {
+        task = 'function' === typeof task ? task : () => undefined;
+      }
 
       'function' === typeof task && that.reserveTask_(task);
 
+      if (!that.tasks_.length) { return; }
       if (State.initiate === that.state() || that.nowRetrying) { return; }
 
       try {
@@ -81,17 +86,8 @@ module MODULE.MODEL.APP.DATA {
         request.onupgradeneeded = function () {
           try {
             var database: IDBDatabase = this.result;
-            
-            for (var i = database.objectStoreNames ? database.objectStoreNames.length : 0; i--;) { database.deleteObjectStore(database.objectStoreNames[i]); }
 
-            database.createObjectStore(that.stores.meta.name, { keyPath: that.stores.meta.keyPath, autoIncrement: false }).createIndex(that.stores.meta.keyPath, that.stores.meta.keyPath, { unique: true });
-
-            database.createObjectStore(that.stores.history.name, { keyPath: that.stores.history.keyPath, autoIncrement: false }).createIndex('date', 'date', { unique: false });
-
-            database.createObjectStore(that.stores.log.name, { keyPath: that.stores.log.keyPath, autoIncrement: true }).createIndex('date', 'date', { unique: false });
-
-            database.createObjectStore(that.stores.server.name, { keyPath: that.stores.server.keyPath, autoIncrement: false }).createIndex(that.stores.server.keyPath, that.stores.server.keyPath, { unique: true });
-
+            that.createStore_(database);
           } catch (err) {
             !noRetry && that.initdb_(1000);
           }
@@ -141,12 +137,6 @@ module MODULE.MODEL.APP.DATA {
       database && database.close && database.close();
     }
 
-    deletedb_(): void {
-      this.closedb();
-      var IDBFactory = this.IDBFactory;
-      IDBFactory && IDBFactory.deleteDatabase && IDBFactory.deleteDatabase(this.name_);
-    }
-
     conExtend(): void {
       this.conExpires_ = new Date().getTime() + this.conAge_;
     }
@@ -161,6 +151,12 @@ module MODULE.MODEL.APP.DATA {
       };
 
       !delay ? retry() : void setTimeout(retry, delay);
+    }
+
+    private deletedb_(): void {
+      this.closedb();
+      var IDBFactory = this.IDBFactory;
+      IDBFactory && IDBFactory.deleteDatabase && IDBFactory.deleteDatabase(this.name_);
     }
 
     private checkdb_(database: IDBDatabase, version: number, success: () => void, upgrade: () => void): void {
@@ -195,15 +191,28 @@ module MODULE.MODEL.APP.DATA {
       };
     }
 
+    private createStore_(database: IDBDatabase): void {
+      for (var i = database.objectStoreNames ? database.objectStoreNames.length : 0; i--;) {
+        database.deleteObjectStore(database.objectStoreNames[i]);
+      }
+
+      for (var i in this.stores) {
+        var schema = <StoreInterface<void>>this.stores[i];
+        var store = database.createObjectStore(schema.name, { keyPath: schema.keyPath, autoIncrement: schema.autoIncrement });
+        for (var j = 0, indexes = schema.indexes, index: StoreIndexOptionInterface; index = indexes[j]; j++) {
+          store.createIndex(index.name, index.keyPath, index.option);
+        }
+      }
+    }
+
     private reserveTask_(task: () => void): void {
       (this.state() !== State.error || this.tasks_.length < 100) &&
       this.tasks_.push(task);
     }
 
-    private digestTask_(limit: number = 0): void {
-      ++limit;
+    private digestTask_(): void {
       var task: () => void;
-      while (task = limit-- && this.tasks_.pop()) {
+      while (task = this.tasks_.pop()) {
         task();
       }
     }

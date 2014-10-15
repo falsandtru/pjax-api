@@ -145,7 +145,7 @@ module MODULE.MODEL.APP {
                                              '//',
                                              requestLocation.host,
                                              requestLocation.pathname.replace(/^\/?/, '/'),
-                                             (1 < requestLocation.search.length ? requestLocation.search + '&' : '?') + setting.server.query,
+                                             requestLocation.search.replace(/&*$/, '&' + setting.server.query).replace(/^\??&/, '?').replace(/(\?|&)$/, ''),
                                              requestLocation.hash
                                            ].join('');
         switch (event.type.toLowerCase()) {

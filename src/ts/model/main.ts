@@ -21,7 +21,7 @@ module MODULE.MODEL {
     private controller_: ControllerInterface = new Controller(this)
     private app_: AppLayerInterface = new MODEL.App(this, this.controller_)
 
-    isDeferrable: boolean = jQuery.when && 1.06 <= Number(jQuery().jquery.replace(/\D*(\d+)\.(\d+).*$/, '$1.0$2').replace(/\d+(\d{2})$/, '$1'))
+    isDeferrable: boolean = !!jQuery.when && 1.06 <= Number(jQuery().jquery.replace(/\D*(\d+)\.(\d+).*$/, '$1.0$2').replace(/\d+(\d{2})$/, '$1'))
     queue: number[] = []
 
     host(): string { return this.app_.balance.host() }
@@ -41,9 +41,11 @@ module MODULE.MODEL {
           return $context;
       }
 
-      var setting: SettingInterface = this.app_.configure(<SettingInterface>option, window.location.href, window.location.href);
+      if (!window.history || !window.history['pushState'] || !window.history['replaceState']) { return $context; }
+
+      var setting: SettingInterface = this.app_.configure(<PjaxSetting>option, window.location.href, window.location.href);
       this.setGlobalSetting(setting);
-      setting.database && this.app_.data.opendb(setting);
+      this.app_.data.opendb(setting);
 
       this.speed = {
         fire: 0,
@@ -52,14 +54,10 @@ module MODULE.MODEL {
         now: function () { return new Date().getTime(); }
       };
 
-      //$context._uuid = setting.uuid;
-
-      if ('pushState' in window.history && window.history['pushState']) {
-        jQuery(() => {
-          this.app_.initialize($context, setting);
-          this.state_ = this.state() === State.initiate ? State.open : this.state();
-        });
-      }
+      jQuery(() => {
+        this.app_.initialize($context, setting);
+        this.state_ = this.state() === State.initiate ? State.open : this.state();
+      });
 
       return $context;
     }

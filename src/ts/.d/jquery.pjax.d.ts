@@ -66,6 +66,7 @@ interface PjaxSetting {
     balance?: {
         self?: boolean
         weight?: number
+        option?: PjaxSetting
         client?: {
             support?: {
                 userAgent?: RegExp
@@ -81,13 +82,12 @@ interface PjaxSetting {
         server?: {
             header?: string
             filter?: RegExp
-            error?: number
+            respite?: number
         }
-        log?: {
+        history?: {
             expires?: number
             limit?: number
         }
-        option?: PjaxSetting
     }
     wait?: any     // number, function( event, param, origUrl, destUrl ): number
     fallback?: any // boolean, function( event, param, origUrl, destUrl ): boolean

@@ -30,7 +30,7 @@ module MODULE.MODEL.APP {
 
       new View(this.model_, this.controller_, $context, setting);
       setTimeout(() => this.data.loadBuffers(setting.buffer.limit), setting.buffer.delay);
-      setting.balance.self && setTimeout(() => this.balance.enable(setting), setting.buffer.delay);
+      setTimeout(() => this.balance.enable(setting), setting.buffer.delay);
       setTimeout(() => this.page.landing = null, 1500);
     }
 
@@ -49,7 +49,7 @@ module MODULE.MODEL.APP {
             area: 'body',
             link: 'a:not([target])',
             // this.protocolはIEでエラー
-            filter: function(){return /^https?:/.test(this.href) && /\/[^.]*$|\.(html?|php)$/.test(this.pathname.replace(/^\/?/, '/'));},
+            filter: function () { return /^https?:/.test(this.href) && /\/[^.]*$|\.(html?|php)$/.test(this.pathname.replace(/^\/?/, '/')); },
             form: null,
             scope: null,
             rewrite: null,
@@ -79,6 +79,19 @@ module MODULE.MODEL.APP {
             balance: {
               self: false,
               weight: 3,
+              option: <PjaxSetting>{
+                server: {
+                  header: false
+                },
+                ajax: {
+                  crossDomain: true
+                },
+                callbacks: {
+                  ajax: {
+                    beforeSend: null
+                  }
+                }
+              },
               client: {
                 support: {
                   userAgent: /msie|trident.+ rv:|chrome|firefox|safari/i,
@@ -94,24 +107,11 @@ module MODULE.MODEL.APP {
               server: {
                 header: 'X-Ajax-Host',
                 filter: null,
-                error: 10 * 60 * 1000,
+                respite: 10 * 60 * 1000,
               },
-              log: {
+              history: {
                 expires: 10 * 24 * 60 * 60 * 1000,
                 limit: 30
-              },
-              option: <PjaxSetting>{
-                server: {
-                  header: false
-                },
-                ajax: {
-                  crossDomain: true
-                },
-                callbacks: {
-                  ajax: {
-                    beforeSend: null
-                  }
-                }
               }
             },
             callback: null,
@@ -133,7 +133,7 @@ module MODULE.MODEL.APP {
             fallback: true,
             database: true,
             server: {
-              query: 'pjax=1',
+              query: null,
               header: true
             }
           },
@@ -158,10 +158,12 @@ module MODULE.MODEL.APP {
             var query: string = setting.server.query;
             switch (query && typeof query) {
               case 'string':
-                query = eval('({' + query.replace(/"/g, '\\"').replace(/([^?=&]+)=([^&]*)/g, '"$1": "$2"').replace(/&/g, ',') + '})');
+                query = eval('({' + query.match(/[^?=&]+=[^&]*/g).join('&').replace(/"/g, '\\"').replace(/([^?=&]+)=([^&]*)/g, '"$1": "$2"').replace(/&/g, ',') + '})');
               case 'object':
                 query = jQuery.param(query);
                 break;
+              default:
+                query = '';
             }
             return <SettingInterface>{
               gns: undefined,

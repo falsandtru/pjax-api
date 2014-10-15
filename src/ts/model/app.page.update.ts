@@ -222,7 +222,7 @@ module MODULE.MODEL.APP {
       speedcheck && speed.time.push(speed.now() - speed.fire);
       speedcheck && speed.name.push('head(' + speed.time.slice(-1) + ')');
 
-      this.loadwaits_ = this.area_();
+      this.area_();
 
       speedcheck && speed.time.push(speed.now() - speed.fire);
       speedcheck && speed.name.push('content(' + speed.time.slice(-1) + ')');
@@ -386,17 +386,16 @@ module MODULE.MODEL.APP {
       if (Util.fire(callbacks_update.head.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
 
-    private area_(): JQueryDeferred<any[]>[] {
+    private area_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
           srcDocument: Document = this.srcDocument_,
           dstDocument: Document = this.dstDocument_;
       var callbacks_update = setting.callbacks.update;
 
-      var checker: JQuery,
-          loadwaits: JQueryDeferred<any[]>[] = [];
+      var checker: JQuery;
 
-      if (Util.fire(callbacks_update.content.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return loadwaits; }
+      if (Util.fire(callbacks_update.content.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
 
       function map() {
         var defer = jQuery.Deferred();
@@ -419,7 +418,7 @@ module MODULE.MODEL.APP {
 
         $srcAreas.find('script').each((i, elem) => this.escapeScript_(<HTMLScriptElement>elem));
         if (jQuery.when) {
-          loadwaits = loadwaits.concat($srcAreas.find('img, iframe, frame').map(map).get());
+          this.loadwaits_ = this.loadwaits_.concat($srcAreas.find('img, iframe, frame').map(map).get());
         }
 
         for (var j = 0; $srcAreas[j]; j++) {
@@ -432,9 +431,7 @@ module MODULE.MODEL.APP {
       }
       this.dispatchEvent_(document, setting.gns + ':DOMContentLoaded', false, true);
 
-      if (Util.fire(callbacks_update.content.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return loadwaits; }
-
-      return loadwaits;
+      if (Util.fire(callbacks_update.content.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
     
     private balance_(): void {

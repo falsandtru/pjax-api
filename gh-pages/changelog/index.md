@@ -7,6 +7,14 @@ nav: nav
 
 # ChangeLog
 
+## 2.25.0
+
+* `server.query`パラメータの初期値を変更
+* `balance.server.error`パラメータを`balance.server.respite`パラメータに変更
+* `balance.log.expires`パラメータを`balance.history.expires`パラメータに変更
+* `balance.log.limit`パラメータを`balance.history.limit`パラメータに変更
+* データベースを更新
+
 ## 2.24.3
 
 * `filter`パラメータの初期値を最適化

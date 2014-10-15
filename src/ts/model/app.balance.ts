@@ -14,7 +14,7 @@ module MODULE.MODEL.APP {
     private host_: string = ''
     host = () => this.host_
 
-    check(setting: SettingInterface): boolean {
+    private isBalanceable_(setting: SettingInterface): boolean {
       return setting.balance.self && !!Number(this.app_.data.getCookie(setting.balance.client.cookie.balance));
     }
 
@@ -38,7 +38,7 @@ module MODULE.MODEL.APP {
     }
 
     changeServer(host: string, setting: SettingInterface = this.model_.getGlobalSetting()): void {
-      if (!this.check(setting)) { return; }
+      if (!this.isBalanceable_(setting)) { return; }
 
       host = host || '';
 
@@ -46,73 +46,41 @@ module MODULE.MODEL.APP {
       this.app_.data.setCookie(setting.balance.client.cookie.host, host);
     }
 
-    chooseServer(setting: SettingInterface): void {
-      if (!this.check(setting)) { return; }
-
-      // キャッシュの有効期限内の再リクエストは同じサーバーを選択してキャッシュを使用させる
-      var expires: number;
-      var historyBufferData: HistorySchema = this.app_.data.stores.history.getBuffer(this.model_.convertUrlToKeyUrl(setting.destLocation.href));
-
-      expires = historyBufferData && historyBufferData.expires;
-      if (expires && expires >= new Date().getTime()) {
-        this.changeServer(historyBufferData.host, setting);
-        return;
-      }
-
-      // ログから最適なサーバーを選択する
-      var logBuffer = this.app_.data.stores.log.getBuffer(),
-          timeList: number[] = [],
-          logTable: LogSchema[] = [],
-          now: number = new Date().getTime();
-
-      if (!logBuffer) {
-        host = this.app_.data.getCookie(setting.balance.client.cookie.host);
-        if (host) {
-          this.enable(setting);
-          this.changeServer(host);
-        } else {
-          this.disable(setting);
-        }
-        return;
-      }
-      var time: number;
-      for (var i in logBuffer) {
-        if (now > logBuffer[i].date + setting.balance.log.expires) { continue; }
-        timeList.push(logBuffer[i].performance);
-        logTable[logBuffer[i].performance] = logBuffer[i];
-      }
-
-
-      function compareNumbers(a, b) {
-        return a - b;
-      }
-      timeList = timeList.sort(compareNumbers).slice(0, 15);
-      var serverBuffer = this.app_.data.stores.server.getBuffer();
-
-      if (!serverBuffer) {
-        this.disable(setting);
-        return;
-      }
-      var host: string = '',
-          time: number;
-      while (timeList.length) {
-        r = Math.floor(Math.random() * timeList.length);
-        time = timeList[r];
-        timeList.splice(r, 1);
-
-        host = logTable[time].host.split('//').pop() || '';
-        if (!serverBuffer[host] || serverBuffer[host].state && new Date().getTime() < serverBuffer[host].state + setting.balance.server.error) {
+    private chooseServersByLog_(expires: number, limit: number, weight: number, respite: number): string[] {
+      var servers = this.app_.data.stores.server.getBuffers(),
+          logs = this.app_.data.stores.log.getBuffers(),
+          logTable: { [index: string]: LogSchema } = {},
+          result: string[] = [];
+      
+      var now: number = new Date().getTime();
+      for (var i in logs) {
+        if (now > logs[i].date + expires) {
           continue;
         }
-        if (!host && setting.balance.weight && !(Math.floor(Math.random()) * setting.balance.weight)) {
-          continue;
-        }
-        this.changeServer(host, setting);
-        return;
+        logTable[logs[i].performance] = logs[i];
       }
 
-      // サーバーリストからランダムにサーバーを選択する
-      var hosts = Object.keys(serverBuffer),
+      var performances = Object.keys(logTable).sort().slice(0, limit),
+          host: string;
+      while (performances.length) {
+        host = logTable[performances.shift()].host.split('//').pop() || '';
+        if (servers[host] && servers[host].state && servers[host].state + respite >= new Date().getTime()) {
+          continue;
+        }
+        if (!host && weight && !(Math.floor(Math.random()) * weight)) {
+          continue;
+        }
+        result.push(host);
+      }
+      return result;
+    }
+
+    private chooseServersByRandom_(expires: number, limit: number, respite: number): string[] {
+      var servers = this.app_.data.stores.server.getBuffers(),
+          result: string[] = [];
+
+      var now: number = new Date().getTime();
+      var hosts = Object.keys(servers),
           host: string,
           r: number;
       while (hosts.length) {
@@ -120,16 +88,94 @@ module MODULE.MODEL.APP {
         host = hosts[r];
         hosts.splice(r, 1);
 
-        if (serverBuffer[host].state && new Date().getTime() < serverBuffer[host].state + setting.balance.server.error) {
+        if (servers[host] && servers[host].state && servers[host].state + respite >= new Date().getTime()) {
           continue;
         }
-        this.changeServer(host, setting);
+        if (now > servers[host].date + expires || result.length > limit) {
+          continue;
+        }
+        result.push(host);
+      }
+      return result;
+    }
+
+    chooseServer(setting: SettingInterface): void {
+      if (!this.isBalanceable_(setting)) { return; }
+
+      // キャッシュの有効期限内の再リクエストは同じサーバーを選択してキャッシュを使用
+      var history: HistorySchema = this.app_.data.stores.history.getBuffer(this.model_.convertUrlToKeyUrl(setting.destLocation.href)),
+          cacheExpires: number = history && history.expires || 0;
+
+      if (cacheExpires && cacheExpires >= new Date().getTime()) {
+        this.changeServer(history.host, setting);
+        return;
+      }
+
+      // DBにもCookieにもデータがなければ正規サーバを選択
+      if (!this.app_.data.stores.server.getBuffers().length && !this.app_.data.getCookie(setting.balance.client.cookie.host)) {
+        this.changeServer('', setting);
+        return;
+      }
+      
+      // ログから最適なサーバーを選択
+      var servers: string[] = this.chooseServersByLog_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.weight, setting.balance.server.respite);
+      if (servers.length) {
+        this.changeServer(servers.shift(), setting);
+        return;
+      }
+
+      // サーバーリストからランダムにサーバーを選択
+      var servers: string[] = this.chooseServersByRandom_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.server.respite);
+      if (servers.length) {
+        this.changeServer(servers.shift(), setting);
         return;
       }
 
       this.disable(setting);
     }
-    
+
+    private parallel_ = 6
+    private queue_ = []
+    bypass(setting: SettingInterface, retry: number): void {
+      if (!this.isBalanceable_(setting)) { return; }
+      this.queue_ = this.queue_.length ? this.queue_
+                                       : this.chooseServersByLog_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.weight, setting.balance.server.respite).slice(0, retry + 1);
+      var servers = this.queue_,
+          option: JQueryAjaxSettings = jQuery.extend({}, setting.ajax, setting.balance.option.ajax, setting.balance.option.callbacks.ajax);
+      while (servers.length) {
+        if (!this.host()) {
+          break;
+        }
+        if (!this.parallel_) {
+          servers.length && setTimeout(() => this.bypass(setting, servers.length - 1), option.timeout || 1500);
+          return;
+        }
+
+        ((server: string) => {
+          --this.parallel_;
+          option.url = Util.normalizeUrl(server + window.location.pathname.replace(/^\/?/, '/') + window.location.search);
+          var done = (data: string, textStatus: string, jqXHR: JQueryXHR) => {
+            this.host_ = server;
+            this.queue_ = [];
+          };
+          var always = () => {
+            ++this.parallel_;
+            servers.length && this.bypass(setting, servers.length - 1);
+          };
+
+          if (this.model_.isDeferrable) {
+            jQuery.ajax(option)
+            .done(done)
+            .always(always);
+          } else {
+            option.success = done;
+            option.complete = always;
+            jQuery.ajax(option);
+          }
+        })(servers.shift());
+      }
+    }
+
   }
 
 }
