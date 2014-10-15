@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.24.3
+ * @version 2.25.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -702,6 +702,8 @@ var MODULE;
                 var Store = (function () {
                     function Store(DB) {
                         this.DB = DB;
+                        this.autoIncrement = true;
+                        this.indexes = [];
                         this.buffer_ = [];
                     }
                     Store.prototype.accessStore = function (success, mode) {
@@ -755,14 +757,25 @@ var MODULE;
                     Store.prototype.saveBuffer = function () {
                     };
 
+                    Store.prototype.getBuffers = function () {
+                        return this.buffer_;
+                    };
+
                     Store.prototype.getBuffer = function (key) {
-                        return key ? this.buffer_[key] : this.buffer_;
+                        return this.buffer_[key];
+                    };
+
+                    Store.prototype.setBuffers = function (values, isMerge) {
+                        for (var i in values) {
+                            this.setBuffer(values[i], isMerge);
+                        }
+                        return this.buffer_;
                     };
 
                     Store.prototype.setBuffer = function (value, isMerge) {
                         var key = value[this.keyPath];
                         this.buffer_[key] = !isMerge ? value : jQuery.extend(true, {}, this.buffer_[key], value);
-                        return this.buffer_[value[this.keyPath]];
+                        return this.buffer_[key];
                     };
 
                     Store.prototype.addBuffer = function (value) {
@@ -820,6 +833,10 @@ var MODULE;
                         _super.apply(this, arguments);
                         this.name = 'meta';
                         this.keyPath = 'id';
+                        this.autoIncrement = false;
+                        this.indexes = [
+                            { name: this.keyPath, keyPath: this.keyPath, option: { unique: true } }
+                        ];
                     }
                     return StoreMeta;
                 })(DATA.Store);
@@ -845,28 +862,33 @@ var MODULE;
                         _super.apply(this, arguments);
                         this.name = 'history';
                         this.keyPath = 'id';
+                        this.autoIncrement = false;
+                        this.indexes = [
+                            { name: 'date', keyPath: 'date', option: { unique: false } }
+                        ];
                     }
                     StoreHistory.prototype.clean = function () {
                         var that = this;
                         this.accessStore(function (store) {
                             store.count().onsuccess = function () {
-                                if (this.result > 1000) {
-                                    store.index('date').openCursor(that.DB.IDBKeyRange.upperBound(new Date().getTime() - (3 * 24 * 60 * 60 * 1000))).onsuccess = function () {
-                                        if (!this.result) {
-                                            return;
-                                        }
-
-                                        var IDBCursor = this.result;
-                                        if (IDBCursor) {
-                                            IDBCursor['delete'](IDBCursor.value[store.keyPath]);
-                                            IDBCursor['continue'] && IDBCursor['continue']();
-                                        } else {
-                                            store.count().onsuccess = function () {
-                                                1000 < this.result && store.clear();
-                                            };
-                                        }
-                                    };
+                                if (this.result <= 1000) {
+                                    return;
                                 }
+                                store.index('date').openCursor(that.DB.IDBKeyRange.upperBound(new Date().getTime() - (3 * 24 * 60 * 60 * 1000))).onsuccess = function () {
+                                    if (!this.result) {
+                                        return;
+                                    }
+
+                                    var IDBCursor = this.result;
+                                    if (IDBCursor) {
+                                        IDBCursor['delete'](IDBCursor.value[store.keyPath]);
+                                        IDBCursor['continue'] && IDBCursor['continue']();
+                                    } else {
+                                        store.count().onsuccess = function () {
+                                            1000 < this.result && store.clear();
+                                        };
+                                    }
+                                };
                             };
                         });
                     };
@@ -894,29 +916,34 @@ var MODULE;
                         _super.apply(this, arguments);
                         this.name = 'log';
                         this.keyPath = 'id';
+                        this.autoIncrement = true;
+                        this.indexes = [
+                            { name: this.keyPath, keyPath: this.keyPath, option: { unique: true } }
+                        ];
                     }
                     StoreLog.prototype.clean = function () {
                         var that = this;
                         this.accessStore(function (store) {
-                            var size = 50;
+                            var size = 100;
 
                             store.count().onsuccess = function () {
-                                if (this.result > size + 10) {
-                                    size = this.result - size;
-                                    store.index(store.keyPath).openCursor(this.DB.IDBKeyRange.lowerBound(0)).onsuccess = function () {
-                                        if (!this.result) {
-                                            return;
-                                        }
-
-                                        var IDBCursor = this.result;
-                                        if (IDBCursor) {
-                                            if (0 > --size) {
-                                                IDBCursor['delete'](IDBCursor.value[store.keyPath]);
-                                            }
-                                            IDBCursor['continue'] && IDBCursor['continue']();
-                                        }
-                                    };
+                                if (this.result <= size + 10) {
+                                    return;
                                 }
+                                size = this.result - size;
+                                store.index(store.keyPath).openCursor(that.DB.IDBKeyRange.lowerBound(0)).onsuccess = function () {
+                                    if (!this.result) {
+                                        return;
+                                    }
+
+                                    var IDBCursor = this.result;
+                                    if (IDBCursor) {
+                                        if (0 > --size) {
+                                            IDBCursor['delete'](IDBCursor.value[store.keyPath]);
+                                        }
+                                        IDBCursor['continue'] && IDBCursor['continue']();
+                                    }
+                                };
                             };
                         });
                     };
@@ -944,7 +971,37 @@ var MODULE;
                         _super.apply(this, arguments);
                         this.name = 'server';
                         this.keyPath = 'id';
+                        this.autoIncrement = false;
+                        this.indexes = [
+                            { name: 'date', keyPath: 'date', option: { unique: false } }
+                        ];
                     }
+                    StoreServer.prototype.clean = function () {
+                        var that = this;
+                        this.accessStore(function (store) {
+                            var size = 50;
+
+                            store.count().onsuccess = function () {
+                                if (this.result <= size + 10) {
+                                    return;
+                                }
+                                size = this.result - size;
+                                store.index('date').openCursor(that.DB.IDBKeyRange.lowerBound(0), 'prev').onsuccess = function () {
+                                    if (!this.result) {
+                                        return;
+                                    }
+
+                                    var IDBCursor = this.result;
+                                    if (IDBCursor) {
+                                        if (0 > --size) {
+                                            IDBCursor['delete'](IDBCursor.value[store.keyPath]);
+                                        }
+                                        IDBCursor['continue'] && IDBCursor['continue']();
+                                    }
+                                };
+                            };
+                        });
+                    };
                     return StoreServer;
                 })(DATA.Store);
                 DATA.StoreServer = StoreServer;
@@ -972,7 +1029,7 @@ var MODULE;
                         this.IDBFactory = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB;
                         this.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.mozIDBKeyRange || window.msIDBKeyRange;
                         this.name_ = MODULE.NAME;
-                        this.version_ = 4;
+                        this.version_ = 5;
                         this.refresh_ = 10;
                         this.upgrade_ = 1;
                         this.state_ = -2 /* blank */;
@@ -984,6 +1041,7 @@ var MODULE;
                         };
                         this.nowRetrying = false;
                         this.conAge_ = 10 * 1000;
+                        this.conExpires_ = 0;
                         this.conInterval_ = 1000;
                         this.tasks_ = [];
                         this.stores = {
@@ -1008,16 +1066,25 @@ var MODULE;
                         this.conAge_ && setTimeout(check, this.conInterval_);
                     }
                     DB.prototype.opendb = function (task, noRetry) {
+                        if (!this.IDBFactory) {
+                            return;
+                        }
+
                         var that = this;
 
                         that.conExtend();
 
-                        if (!that.IDBFactory || !task && !that.tasks_.length) {
-                            return;
+                        if (-2 /* blank */ === that.state()) {
+                            task = 'function' === typeof task ? task : function () {
+                                return undefined;
+                            };
                         }
 
                         'function' === typeof task && that.reserveTask_(task);
 
+                        if (!that.tasks_.length) {
+                            return;
+                        }
                         if (-1 /* initiate */ === that.state() || that.nowRetrying) {
                             return;
                         }
@@ -1043,17 +1110,7 @@ var MODULE;
                                 try  {
                                     var database = this.result;
 
-                                    for (var i = database.objectStoreNames ? database.objectStoreNames.length : 0; i--;) {
-                                        database.deleteObjectStore(database.objectStoreNames[i]);
-                                    }
-
-                                    database.createObjectStore(that.stores.meta.name, { keyPath: that.stores.meta.keyPath, autoIncrement: false }).createIndex(that.stores.meta.keyPath, that.stores.meta.keyPath, { unique: true });
-
-                                    database.createObjectStore(that.stores.history.name, { keyPath: that.stores.history.keyPath, autoIncrement: false }).createIndex('date', 'date', { unique: false });
-
-                                    database.createObjectStore(that.stores.log.name, { keyPath: that.stores.log.keyPath, autoIncrement: true }).createIndex('date', 'date', { unique: false });
-
-                                    database.createObjectStore(that.stores.server.name, { keyPath: that.stores.server.keyPath, autoIncrement: false }).createIndex(that.stores.server.keyPath, that.stores.server.keyPath, { unique: true });
+                                    that.createStore_(database);
                                 } catch (err) {
                                     !noRetry && that.initdb_(1000);
                                 }
@@ -1106,12 +1163,6 @@ var MODULE;
                         database && database.close && database.close();
                     };
 
-                    DB.prototype.deletedb_ = function () {
-                        this.closedb();
-                        var IDBFactory = this.IDBFactory;
-                        IDBFactory && IDBFactory.deleteDatabase && IDBFactory.deleteDatabase(this.name_);
-                    };
-
                     DB.prototype.conExtend = function () {
                         this.conExpires_ = new Date().getTime() + this.conAge_;
                     };
@@ -1127,6 +1178,12 @@ var MODULE;
                         };
 
                         !delay ? retry() : void setTimeout(retry, delay);
+                    };
+
+                    DB.prototype.deletedb_ = function () {
+                        this.closedb();
+                        var IDBFactory = this.IDBFactory;
+                        IDBFactory && IDBFactory.deleteDatabase && IDBFactory.deleteDatabase(this.name_);
                     };
 
                     DB.prototype.checkdb_ = function (database, version, success, upgrade) {
@@ -1161,15 +1218,27 @@ var MODULE;
                         };
                     };
 
+                    DB.prototype.createStore_ = function (database) {
+                        for (var i = database.objectStoreNames ? database.objectStoreNames.length : 0; i--;) {
+                            database.deleteObjectStore(database.objectStoreNames[i]);
+                        }
+
+                        for (var i in this.stores) {
+                            var schema = this.stores[i];
+                            var store = database.createObjectStore(schema.name, { keyPath: schema.keyPath, autoIncrement: schema.autoIncrement });
+                            for (var j = 0, indexes = schema.indexes, index; index = indexes[j]; j++) {
+                                store.createIndex(index.name, index.keyPath, index.option);
+                            }
+                        }
+                    };
+
                     DB.prototype.reserveTask_ = function (task) {
                         (this.state() !== 4 /* error */ || this.tasks_.length < 100) && this.tasks_.push(task);
                     };
 
-                    DB.prototype.digestTask_ = function (limit) {
-                        if (typeof limit === "undefined") { limit = 0; }
-                        ++limit;
+                    DB.prototype.digestTask_ = function () {
                         var task;
-                        while (task = limit-- && this.tasks_.pop()) {
+                        while (task = this.tasks_.pop()) {
                             task();
                         }
                     };
@@ -1532,13 +1601,13 @@ var MODULE;
                     this.stores = this.data_.DB.stores;
                 }
                 Data.prototype.opendb = function (setting) {
-                    var _this = this;
-                    setting.database = false;
-                    this.data_.DB.opendb(function () {
-                        _this.saveTitleToDB(setting.origLocation.href, document.title);
-                        _this.saveScrollPositionToDB(setting.origLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
-                        setting.database = true;
-                    });
+                    if (!setting.database) {
+                        return;
+                    }
+
+                    this.data_.DB.opendb();
+                    this.saveTitleToDB(setting.origLocation.href, document.title);
+                    this.saveScrollPositionToDB(setting.origLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
                 };
 
                 Data.prototype.loadBuffers = function (limit) {
@@ -1576,7 +1645,16 @@ var MODULE;
                 Data.prototype.saveTitleToDB = function (unsafe_url, title) {
                     var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
 
-                    var value = { id: keyUrl, title: title, date: new Date().getTime() };
+                    var value = {
+                        id: keyUrl,
+                        title: title,
+                        date: new Date().getTime(),
+                        scrollX: undefined,
+                        scrollY: undefined,
+                        host: undefined,
+                        expires: undefined
+                    };
+
                     this.data_.DB.stores.history.setBuffer(value, true);
                     this.data_.DB.stores.history.set(value);
                     this.data_.DB.stores.history.clean();
@@ -1611,16 +1689,16 @@ var MODULE;
                 Data.prototype.saveScrollPositionToDB = function (unsafe_url, scrollX, scrollY) {
                     var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
 
-                    var value = { id: keyUrl, scrollX: scrollX, scrollY: scrollY, date: new Date().getTime() };
-                    this.data_.DB.stores.history.setBuffer(value, true);
-                    this.data_.DB.stores.history.set(value);
-                };
+                    var value = {
+                        id: keyUrl,
+                        scrollX: scrollX,
+                        scrollY: scrollY,
+                        date: new Date().getTime(),
+                        title: undefined,
+                        host: undefined,
+                        expires: undefined
+                    };
 
-                Data.prototype.loadExpiresFromDB = function (keyUrl) {
-                };
-
-                Data.prototype.saveExpiresToDB = function (keyUrl, host, expires) {
-                    var value = { id: keyUrl, host: host, expires: expires };
                     this.data_.DB.stores.history.setBuffer(value, true);
                     this.data_.DB.stores.history.set(value);
                 };
@@ -1646,7 +1724,12 @@ var MODULE;
                 Data.prototype.saveServerToDB = function (host, state, unsafe_url, expires) {
                     if (typeof state === "undefined") { state = 0; }
                     if (typeof expires === "undefined") { expires = 0; }
-                    var value = { id: host || '', state: state };
+                    var value = {
+                        id: host || '',
+                        state: state,
+                        date: new Date().getTime()
+                    };
+
                     this.data_.DB.stores.server.accessRecord(host, function () {
                         var data = this.result;
                         if (!data || !state) {
@@ -1657,9 +1740,31 @@ var MODULE;
                             this.source['delete'](host);
                         }
                     });
+                    this.data_.DB.stores.server.clean();
+
                     if (unsafe_url) {
                         this.saveExpiresToDB(unsafe_url, host, expires);
                     }
+                };
+
+                Data.prototype.loadExpiresFromDB = function (keyUrl) {
+                };
+
+                Data.prototype.saveExpiresToDB = function (unsafe_url, host, expires) {
+                    var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
+
+                    var value = {
+                        id: keyUrl,
+                        host: host,
+                        expires: expires,
+                        title: undefined,
+                        scrollX: undefined,
+                        scrollY: undefined,
+                        date: undefined
+                    };
+
+                    this.data_.DB.stores.history.setBuffer(value, true);
+                    this.data_.DB.stores.history.set(value);
                 };
 
                 Data.prototype.getCookie = function (key) {
@@ -1695,8 +1800,10 @@ var MODULE;
                     this.host = function () {
                         return _this.host_;
                     };
+                    this.parallel_ = 6;
+                    this.queue_ = [];
                 }
-                Balance.prototype.check = function (setting) {
+                Balance.prototype.isBalanceable_ = function (setting) {
                     return setting.balance.self && !!Number(this.app_.data.getCookie(setting.balance.client.cookie.balance));
                 };
 
@@ -1721,7 +1828,7 @@ var MODULE;
 
                 Balance.prototype.changeServer = function (host, setting) {
                     if (typeof setting === "undefined") { setting = this.model_.getGlobalSetting(); }
-                    if (!this.check(setting)) {
+                    if (!this.isBalanceable_(setting)) {
                         return;
                     }
 
@@ -1731,85 +1838,127 @@ var MODULE;
                     this.app_.data.setCookie(setting.balance.client.cookie.host, host);
                 };
 
-                Balance.prototype.chooseServer = function (setting) {
-                    if (!this.check(setting)) {
-                        return;
-                    }
+                Balance.prototype.chooseServersByLog_ = function (expires, limit, weight, respite) {
+                    var servers = this.app_.data.stores.server.getBuffers(), logs = this.app_.data.stores.log.getBuffers(), logTable = {}, result = [];
 
-                    // キャッシュの有効期限内の再リクエストは同じサーバーを選択してキャッシュを使用させる
-                    var expires;
-                    var historyBufferData = this.app_.data.stores.history.getBuffer(this.model_.convertUrlToKeyUrl(setting.destLocation.href));
-
-                    expires = historyBufferData && historyBufferData.expires;
-                    if (expires && expires >= new Date().getTime()) {
-                        this.changeServer(historyBufferData.host, setting);
-                        return;
-                    }
-
-                    // ログから最適なサーバーを選択する
-                    var logBuffer = this.app_.data.stores.log.getBuffer(), timeList = [], logTable = [], now = new Date().getTime();
-
-                    if (!logBuffer) {
-                        host = this.app_.data.getCookie(setting.balance.client.cookie.host);
-                        if (host) {
-                            this.enable(setting);
-                            this.changeServer(host);
-                        } else {
-                            this.disable(setting);
-                        }
-                        return;
-                    }
-                    var time;
-                    for (var i in logBuffer) {
-                        if (now > logBuffer[i].date + setting.balance.log.expires) {
+                    var now = new Date().getTime();
+                    for (var i in logs) {
+                        if (now > logs[i].date + expires) {
                             continue;
                         }
-                        timeList.push(logBuffer[i].performance);
-                        logTable[logBuffer[i].performance] = logBuffer[i];
+                        logTable[logs[i].performance] = logs[i];
                     }
 
-                    function compareNumbers(a, b) {
-                        return a - b;
-                    }
-                    timeList = timeList.sort(compareNumbers).slice(0, 15);
-                    var serverBuffer = this.app_.data.stores.server.getBuffer();
-
-                    if (!serverBuffer) {
-                        this.disable(setting);
-                        return;
-                    }
-                    var host = '', time;
-                    while (timeList.length) {
-                        r = Math.floor(Math.random() * timeList.length);
-                        time = timeList[r];
-                        timeList.splice(r, 1);
-
-                        host = logTable[time].host.split('//').pop() || '';
-                        if (!serverBuffer[host] || serverBuffer[host].state && new Date().getTime() < serverBuffer[host].state + setting.balance.server.error) {
+                    var performances = Object.keys(logTable).sort().slice(0, limit), host;
+                    while (performances.length) {
+                        host = logTable[performances.shift()].host.split('//').pop() || '';
+                        if (servers[host] && servers[host].state && servers[host].state + respite >= new Date().getTime()) {
                             continue;
                         }
-                        if (!host && setting.balance.weight && !(Math.floor(Math.random()) * setting.balance.weight)) {
+                        if (!host && weight && !(Math.floor(Math.random()) * weight)) {
                             continue;
                         }
-                        this.changeServer(host, setting);
-                        return;
+                        result.push(host);
                     }
+                    return result;
+                };
 
-                    // サーバーリストからランダムにサーバーを選択する
-                    var hosts = Object.keys(serverBuffer), host, r;
+                Balance.prototype.chooseServersByRandom_ = function (expires, limit, respite) {
+                    var servers = this.app_.data.stores.server.getBuffers(), result = [];
+
+                    var now = new Date().getTime();
+                    var hosts = Object.keys(servers), host, r;
                     while (hosts.length) {
                         r = Math.floor(Math.random() * hosts.length);
                         host = hosts[r];
                         hosts.splice(r, 1);
 
-                        if (serverBuffer[host].state && new Date().getTime() < serverBuffer[host].state + setting.balance.server.error) {
+                        if (servers[host] && servers[host].state && servers[host].state + respite >= new Date().getTime()) {
                             continue;
                         }
-                        this.changeServer(host, setting);
+                        if (now > servers[host].date + expires || result.length > limit) {
+                            continue;
+                        }
+                        result.push(host);
+                    }
+                    return result;
+                };
+
+                Balance.prototype.chooseServer = function (setting) {
+                    if (!this.isBalanceable_(setting)) {
+                        return;
+                    }
+
+                    // キャッシュの有効期限内の再リクエストは同じサーバーを選択してキャッシュを使用
+                    var history = this.app_.data.stores.history.getBuffer(this.model_.convertUrlToKeyUrl(setting.destLocation.href)), cacheExpires = history && history.expires || 0;
+
+                    if (cacheExpires && cacheExpires >= new Date().getTime()) {
+                        this.changeServer(history.host, setting);
+                        return;
+                    }
+
+                    // DBにもCookieにもデータがなければ正規サーバを選択
+                    if (!this.app_.data.stores.server.getBuffers().length && !this.app_.data.getCookie(setting.balance.client.cookie.host)) {
+                        this.changeServer('', setting);
+                        return;
+                    }
+
+                    // ログから最適なサーバーを選択
+                    var servers = this.chooseServersByLog_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.weight, setting.balance.server.respite);
+                    if (servers.length) {
+                        this.changeServer(servers.shift(), setting);
+                        return;
+                    }
+
+                    // サーバーリストからランダムにサーバーを選択
+                    var servers = this.chooseServersByRandom_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.server.respite);
+                    if (servers.length) {
+                        this.changeServer(servers.shift(), setting);
                         return;
                     }
 
                     this.disable(setting);
+                };
+
+                Balance.prototype.bypass = function (setting, retry) {
+                    var _this = this;
+                    if (!this.isBalanceable_(setting)) {
+                        return;
+                    }
+                    this.queue_ = this.queue_.length ? this.queue_ : this.chooseServersByLog_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.weight, setting.balance.server.respite).slice(0, retry + 1);
+                    var servers = this.queue_, option = jQuery.extend({}, setting.ajax, setting.balance.option.ajax, setting.balance.option.callbacks.ajax);
+                    while (servers.length) {
+                        if (!this.host()) {
+                            break;
+                        }
+                        if (!this.parallel_) {
+                            servers.length && setTimeout(function () {
+                                return _this.bypass(setting, servers.length - 1);
+                            }, option.timeout || 1500);
+                            return;
+                        }
+
+                        (function (server) {
+                            --_this.parallel_;
+                            option.url = Util.normalizeUrl(server + window.location.pathname.replace(/^\/?/, '/') + window.location.search);
+                            var done = function (data, textStatus, jqXHR) {
+                                _this.host_ = server;
+                                _this.queue_ = [];
+                            };
+                            var always = function () {
+                                ++_this.parallel_;
+                                servers.length && _this.bypass(setting, servers.length - 1);
+                            };
+
+                            if (_this.model_.isDeferrable) {
+                                jQuery.ajax(option).done(done).always(always);
+                            } else {
+                                option.success = done;
+                                option.complete = always;
+                                jQuery.ajax(option);
+                            }
+                        })(servers.shift());
+                    }
                 };
                 return Balance;
             })();
@@ -2146,7 +2295,7 @@ var MODULE;
                             '//',
                             requestLocation.host,
                             requestLocation.pathname.replace(/^\/?/, '/'),
-                            (1 < requestLocation.search.length ? requestLocation.search + '&' : '?') + setting.server.query,
+                            requestLocation.search.replace(/&*$/, '&' + setting.server.query).replace(/^\??&/, '?').replace(/(\?|&)$/, ''),
                             requestLocation.hash
                         ].join('');
                         switch (event.type.toLowerCase()) {
@@ -2450,7 +2599,7 @@ var MODULE;
                     speedcheck && speed.time.push(speed.now() - speed.fire);
                     speedcheck && speed.name.push('head(' + speed.time.slice(-1) + ')');
 
-                    this.loadwaits_ = this.area_();
+                    this.area_();
 
                     speedcheck && speed.time.push(speed.now() - speed.fire);
                     speedcheck && speed.name.push('content(' + speed.time.slice(-1) + ')');
@@ -2636,10 +2785,10 @@ var MODULE;
                     var setting = this.setting_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
                     var callbacks_update = setting.callbacks.update;
 
-                    var checker, loadwaits = [];
+                    var checker;
 
                     if (Util.fire(callbacks_update.content.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                        return loadwaits;
+                        return;
                     }
 
                     function map() {
@@ -2666,7 +2815,7 @@ var MODULE;
                             return _this.escapeScript_(elem);
                         });
                         if (jQuery.when) {
-                            loadwaits = loadwaits.concat($srcAreas.find('img, iframe, frame').map(map).get());
+                            this.loadwaits_ = this.loadwaits_.concat($srcAreas.find('img, iframe, frame').map(map).get());
                         }
 
                         for (var j = 0; $srcAreas[j]; j++) {
@@ -2682,10 +2831,8 @@ var MODULE;
                     this.dispatchEvent_(document, setting.gns + ':DOMContentLoaded', false, true);
 
                     if (Util.fire(callbacks_update.content.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
-                        return loadwaits;
+                        return;
                     }
-
-                    return loadwaits;
                 };
 
                 PageUpdate.prototype.balance_ = function () {
@@ -3126,7 +3273,7 @@ var MODULE;
                     setTimeout(function () {
                         return _this.data.loadBuffers(setting.buffer.limit);
                     }, setting.buffer.delay);
-                    setting.balance.self && setTimeout(function () {
+                    setTimeout(function () {
                         return _this.balance.enable(setting);
                     }, setting.buffer.delay);
                     setTimeout(function () {
@@ -3180,6 +3327,19 @@ var MODULE;
                         balance: {
                             self: false,
                             weight: 3,
+                            option: {
+                                server: {
+                                    header: false
+                                },
+                                ajax: {
+                                    crossDomain: true
+                                },
+                                callbacks: {
+                                    ajax: {
+                                        beforeSend: null
+                                    }
+                                }
+                            },
                             client: {
                                 support: {
                                     userAgent: /msie|trident.+ rv:|chrome|firefox|safari/i,
@@ -3195,24 +3355,11 @@ var MODULE;
                             server: {
                                 header: 'X-Ajax-Host',
                                 filter: null,
-                                error: 10 * 60 * 1000
+                                respite: 10 * 60 * 1000
                             },
-                            log: {
+                            history: {
                                 expires: 10 * 24 * 60 * 60 * 1000,
                                 limit: 30
-                            },
-                            option: {
-                                server: {
-                                    header: false
-                                },
-                                ajax: {
-                                    crossDomain: true
-                                },
-                                callbacks: {
-                                    ajax: {
-                                        beforeSend: null
-                                    }
-                                }
                             }
                         },
                         callback: null,
@@ -3234,7 +3381,7 @@ var MODULE;
                         fallback: true,
                         database: true,
                         server: {
-                            query: 'pjax=1',
+                            query: null,
                             header: true
                         }
                     }, force = {
@@ -3256,10 +3403,12 @@ var MODULE;
                         var query = setting.server.query;
                         switch (query && typeof query) {
                             case 'string':
-                                query = eval('({' + query.replace(/"/g, '\\"').replace(/([^?=&]+)=([^&]*)/g, '"$1": "$2"').replace(/&/g, ',') + '})');
+                                query = eval('({' + query.match(/[^?=&]+=[^&]*/g).join('&').replace(/"/g, '\\"').replace(/([^?=&]+)=([^&]*)/g, '"$1": "$2"').replace(/&/g, ',') + '})');
                             case 'object':
                                 query = jQuery.param(query);
                                 break;
+                            default:
+                                query = '';
                         }
                         return {
                             gns: undefined,
@@ -3448,7 +3597,7 @@ var MODULE;
                 _super.call(this, -1 /* initiate */);
                 this.controller_ = new MODULE.Controller(this);
                 this.app_ = new MODEL.App(this, this.controller_);
-                this.isDeferrable = jQuery.when && 1.06 <= Number(jQuery().jquery.replace(/\D*(\d+)\.(\d+).*$/, '$1.0$2').replace(/\d+(\d{2})$/, '$1'));
+                this.isDeferrable = !!jQuery.when && 1.06 <= Number(jQuery().jquery.replace(/\D*(\d+)\.(\d+).*$/, '$1.0$2').replace(/\d+(\d{2})$/, '$1'));
                 this.queue = [];
             }
             Main.prototype.host = function () {
@@ -3470,9 +3619,13 @@ var MODULE;
                         return $context;
                 }
 
+                if (!window.history || !window.history['pushState'] || !window.history['replaceState']) {
+                    return $context;
+                }
+
                 var setting = this.app_.configure(option, window.location.href, window.location.href);
                 this.setGlobalSetting(setting);
-                setting.database && this.app_.data.opendb(setting);
+                this.app_.data.opendb(setting);
 
                 this.speed = {
                     fire: 0,
@@ -3483,13 +3636,10 @@ var MODULE;
                     }
                 };
 
-                //$context._uuid = setting.uuid;
-                if ('pushState' in window.history && window.history['pushState']) {
-                    jQuery(function () {
-                        _this.app_.initialize($context, setting);
-                        _this.state_ = _this.state() === -1 /* initiate */ ? 0 /* open */ : _this.state();
-                    });
-                }
+                jQuery(function () {
+                    _this.app_.initialize($context, setting);
+                    _this.state_ = _this.state() === -1 /* initiate */ ? 0 /* open */ : _this.state();
+                });
 
                 return $context;
             };

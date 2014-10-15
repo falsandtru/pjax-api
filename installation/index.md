@@ -20,8 +20,7 @@ CSS等は自動的に同期されるためページ間のJavaScriptの干渉に�
 $.pjax({
   area: 'body',
   load: { head: 'base, meta, link', css: true, script: true },
-  cache: { click: true, submit: false, popstate: true },
-  server: { query: null }
+  cache: { click: true, submit: false, popstate: true }
 });
 </pre>
 

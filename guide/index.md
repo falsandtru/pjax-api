@@ -40,7 +40,6 @@ accelerate:
       area: 'body',
       load: { head: 'base, meta, link', css: true, script: true },
       cache: { click: true, submit: false, popstate: true },
-      server: { query: null },
       speedcheck: true
     });
     
