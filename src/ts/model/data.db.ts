@@ -30,7 +30,7 @@ module MODULE.MODEL.APP.DATA {
     private name_: string = NAME
     private version_: number = 5
     private refresh_: number = 10
-    private upgrade_: number = 1 // 0:virtual 1:native
+    private upgrade_: number = 0 // 0:virtual 1:native
     private state_: State = State.blank
     database = () => this.database_
     state = () => this.state_
