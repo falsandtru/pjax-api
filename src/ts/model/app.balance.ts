@@ -19,11 +19,14 @@ module MODULE.MODEL.APP {
     }
 
     enable(setting: SettingInterface): void {
+      if (!this.isBalanceable_(setting)) {
+        return void this.disable(setting);
+      }
       if (!setting.balance.client.support.userAgent.test(window.navigator.userAgent) || setting.balance.client.exclude.test(window.navigator.userAgent)) {
         return void this.disable(setting);
       }
 
-      if (Number(!this.app_.data.setCookie(setting.balance.client.cookie.balance, '1'))) {
+      if (!this.app_.data.setCookie(setting.balance.client.cookie.balance, '1')) {
         return void this.disable(setting);
       }
       if (setting.balance.client.support.redirect.test(window.navigator.userAgent)) {
@@ -32,7 +35,9 @@ module MODULE.MODEL.APP {
     }
 
     disable(setting: SettingInterface): void {
+      this.app_.data.getCookie(setting.balance.client.cookie.balance) &&
       this.app_.data.setCookie(setting.balance.client.cookie.balance, '0');
+      this.app_.data.getCookie(setting.balance.client.cookie.redirect) &&
       this.app_.data.setCookie(setting.balance.client.cookie.redirect, '0');
       this.changeServer(null, setting);
     }
