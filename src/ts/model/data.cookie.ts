@@ -25,7 +25,7 @@ module MODULE.MODEL.APP.DATA {
       document.cookie = [
         encodeURIComponent(key) + '=' + encodeURIComponent(value),
         option.age    ? '; expires=' + new Date(new Date().getTime() + option.age * 1000).toUTCString() : '',
-        //option.path   ? '; path=' + option.path : '',
+        option.path   ? '; path=' + option.path : '; path=/',
         //option.domain ? '; domain=' + option.domain : '',
         option.secure ? '; secure' : ''
       ].join('');
