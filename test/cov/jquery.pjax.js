@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.25.0
+ * @version 2.25.1
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -1031,7 +1031,7 @@ var MODULE;
                         this.name_ = MODULE.NAME;
                         this.version_ = 5;
                         this.refresh_ = 10;
-                        this.upgrade_ = 1;
+                        this.upgrade_ = 0;
                         this.state_ = -2 /* blank */;
                         this.database = function () {
                             return _this.database_;
@@ -1284,6 +1284,7 @@ var MODULE;
                         document.cookie = [
                             encodeURIComponent(key) + '=' + encodeURIComponent(value),
                             option.age ? '; expires=' + new Date(new Date().getTime() + option.age * 1000).toUTCString() : '',
+                            option.path ? '; path=' + option.path : '; path=/',
                             option.secure ? '; secure' : ''
                         ].join('');
                         return this.getCookie(key);
@@ -1808,11 +1809,14 @@ var MODULE;
                 };
 
                 Balance.prototype.enable = function (setting) {
+                    if (!this.isBalanceable_(setting)) {
+                        return void this.disable(setting);
+                    }
                     if (!setting.balance.client.support.userAgent.test(window.navigator.userAgent) || setting.balance.client.exclude.test(window.navigator.userAgent)) {
                         return void this.disable(setting);
                     }
 
-                    if (Number(!this.app_.data.setCookie(setting.balance.client.cookie.balance, '1'))) {
+                    if (!this.app_.data.setCookie(setting.balance.client.cookie.balance, '1')) {
                         return void this.disable(setting);
                     }
                     if (setting.balance.client.support.redirect.test(window.navigator.userAgent)) {
@@ -1821,8 +1825,8 @@ var MODULE;
                 };
 
                 Balance.prototype.disable = function (setting) {
-                    this.app_.data.setCookie(setting.balance.client.cookie.balance, '0');
-                    this.app_.data.setCookie(setting.balance.client.cookie.redirect, '0');
+                    this.app_.data.getCookie(setting.balance.client.cookie.balance) && this.app_.data.setCookie(setting.balance.client.cookie.balance, '0');
+                    this.app_.data.getCookie(setting.balance.client.cookie.redirect) && this.app_.data.setCookie(setting.balance.client.cookie.redirect, '0');
                     this.changeServer(null, setting);
                 };
 
