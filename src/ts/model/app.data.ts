@@ -14,39 +14,56 @@ module MODULE.MODEL.APP {
     }
 
     private data_: DataLayerInterface = new DATA.Main()
+    private stores_ = this.data_.DB.stores
 
-    stores = this.data_.DB.stores
+    // cookie
+
+    getCookie(key: string): string {
+      return this.data_.Cookie.getCookie(key);
+    }
+
+    setCookie(key: string, value: string, option?): string {
+      return this.data_.Cookie.setCookie(key, value, option);
+    }
+
+    // db
 
     opendb(setting: SettingInterface): void {
       if (!setting.database) { return; }
 
       this.data_.DB.opendb();
-      this.saveTitleToDB(setting.origLocation.href, document.title);
-      this.saveScrollPositionToDB(setting.origLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+      this.saveTitle();
+      this.saveScrollPosition();
     }
 
     loadBuffers(limit: number = 0): void {
-      for (var i in this.stores) {
-        this.stores[i].loadBuffer(limit);
+      for (var i in this.stores_) {
+        this.stores_[i].loadBuffer(limit);
       }
     }
 
     saveBuffers(): void {
-      for (var i in this.stores) {
-        this.stores[i].saveBuffer();
+      for (var i in this.stores_) {
+        this.stores_[i].saveBuffer();
       }
     }
 
-    loadTitleFromDB(unsafe_url: string): void {
-      var keyUrl: string = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url)),
+    // history
+
+    getHistoryBuffer(unsafe_url: string): HistoryStoreSchema {
+      return this.stores_.history.getBuffer(this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url)));
+    }
+
+    loadTitle(): void {
+      var keyUrl: string = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(window.location.href)),
           that = this;
 
-      var data: HistorySchema = this.data_.DB.stores.history.getBuffer(keyUrl);
+      var data: HistoryStoreSchema = this.stores_.history.getBuffer(keyUrl);
 
       if (data && 'string' === typeof data.title) {
         document.title = data.title;
       } else {
-        this.data_.DB.stores.history.get(keyUrl, function () {
+        this.stores_.history.get(keyUrl, function () {
           data = this.result;
           if (data && data.title) {
             if (Util.compareUrl(keyUrl, that.model_.convertUrlToKeyUrl(Util.normalizeUrl(window.location.href)))) {
@@ -57,10 +74,12 @@ module MODULE.MODEL.APP {
       }
     }
 
-    saveTitleToDB(unsafe_url: string, title: string): void {
+    saveTitle(): void
+    saveTitle(unsafe_url: string, title: string): void
+    saveTitle(unsafe_url: string = window.location.href, title: string = document.title): void {
       var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
 
-      var value: HistorySchema = {
+      var value: HistoryStoreSchema = {
         url: keyUrl,
         title: title,
         date: new Date().getTime(),
@@ -71,16 +90,16 @@ module MODULE.MODEL.APP {
         expires: undefined
       };
 
-      this.data_.DB.stores.history.setBuffer(value, true);
-      this.data_.DB.stores.history.set(value);
-      this.data_.DB.stores.history.clean();
+      this.stores_.history.setBuffer(value, true);
+      this.stores_.history.set(value, true);
+      this.stores_.history.clean();
     }
 
-    loadScrollPositionFromDB(unsafe_url: string): void {
-      var keyUrl: string = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url)),
+    loadScrollPosition(): void {
+      var keyUrl: string = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(window.location.href)),
           that = this;
 
-      var data: HistorySchema = this.data_.DB.stores.history.getBuffer(keyUrl);
+      var data: HistoryStoreSchema = this.stores_.history.getBuffer(keyUrl);
       function scroll(scrollX, scrollY) {
         if ('number' !== typeof scrollX || 'number' !== typeof scrollY) { return; }
 
@@ -90,7 +109,7 @@ module MODULE.MODEL.APP {
       if (data && 'number' === typeof data.scrollX) {
         scroll(data.scrollX, data.scrollY);
       } else {
-        this.data_.DB.stores.history.get(keyUrl, function () {
+        this.stores_.history.get(keyUrl, function () {
           data = this.result;
           if (data && 'number' === typeof data.scrollX) {
             if (Util.compareUrl(keyUrl, that.model_.convertUrlToKeyUrl(Util.normalizeUrl(window.location.href)))) {
@@ -101,12 +120,12 @@ module MODULE.MODEL.APP {
       }
     }
     
-    saveScrollPositionToDB(): void
-    saveScrollPositionToDB(unsafe_url: string, scrollX: number, scrollY: number): void
-    saveScrollPositionToDB(unsafe_url: string = window.location.href, scrollX: number = jQuery(window).scrollLeft(), scrollY: number = jQuery(window).scrollTop()): void {
+    saveScrollPosition(): void
+    saveScrollPosition(unsafe_url: string, scrollX: number, scrollY: number): void
+    saveScrollPosition(unsafe_url: string = window.location.href, scrollX: number = jQuery(window).scrollLeft(), scrollY: number = jQuery(window).scrollTop()): void {
       var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
 
-      var value: HistorySchema = {
+      var value: HistoryStoreSchema = {
         url: keyUrl,
         scrollX: scrollX,
         scrollY: scrollY,
@@ -117,45 +136,17 @@ module MODULE.MODEL.APP {
         expires: undefined
       };
 
-      this.data_.DB.stores.history.setBuffer(value, true);
-      this.data_.DB.stores.history.set(value);
-    }
-
-    loadServerFromDB(): void {
-    }
-
-    saveServerToDB(host: string, performance: number, state: number = 0, unsafe_url?: string, expires: number = 0): void {
-      var value: ServerSchema = {
-        host: host.split('//').pop().split('/').shift() || '',
-        performance: performance,
-        state: state,
-        date: new Date().getTime()
-      };
-
-      this.data_.DB.stores.server.accessRecord(host, function () {
-        var data: ServerSchema = this.result;
-        if (!data || !state) {
-          // 新規または正常登録
-          this.source.put(value);
-        } else if (data.state) {
-          // 2回目のエラーで登録削除
-          this.source['delete'](host);
-        }
-      });
-      this.data_.DB.stores.server.clean();
-
-      if (unsafe_url) {
-        this.saveExpiresToDB(unsafe_url, host, expires);
-      }
+      this.stores_.history.setBuffer(value, true);
+      this.stores_.history.set(value, true);
     }
     
-    loadExpiresFromDB(keyUrl: string): void {
+    loadExpires(): void {
     }
 
-    saveExpiresToDB(unsafe_url: string, host: string, expires: number): void {
+    saveExpires(unsafe_url: string, host: string, expires: number): void {
       var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
 
-      var value: HistorySchema = {
+      var value: HistoryStoreSchema = {
         url: keyUrl,
         host: host,
         expires: expires,
@@ -166,18 +157,42 @@ module MODULE.MODEL.APP {
         date: undefined
       };
 
-      this.data_.DB.stores.history.setBuffer(value, true);
-      this.data_.DB.stores.history.set(value);
+      this.stores_.history.setBuffer(value, true);
+      this.stores_.history.set(value, true);
     }
 
-    getCookie(key: string): string {
-      return this.data_.Cookie.getCookie(key);
+    // server
+
+    getServerBuffers(): ServerStoreSchema[] {
+      return this.stores_.server.getBuffers();
     }
 
-    setCookie(key: string, value: string, option?): string {
-      return this.data_.Cookie.setCookie(key, value, option);
+    loadServer(): void {
     }
 
+    saveServer(host: string, performance: number, state: number = 0, unsafe_url?: string, expires: number = 0): void {
+      var store = this.stores_.server,
+          value: ServerStoreSchema = {
+            host: host.split('//').pop().split('/').shift() || '',
+            performance: performance,
+            state: state,
+            date: new Date().getTime()
+          };
+
+      store.setBuffer(value, true);
+      store.get(host, function () {
+        var data: ServerStoreSchema = this.result;
+        if (!data || !state) {
+          // 新規または正常登録
+          store.set(value);
+        } else if (data.state) {
+          // 2回目のエラーで登録削除
+          store['delete'](host);
+        }
+      });
+      this.stores_.server.clean();
+    }
+    
   }
 
 }

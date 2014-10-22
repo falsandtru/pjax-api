@@ -17,7 +17,7 @@ module MODULE.MODEL.APP.DATA {
           this.conExpires_ = 0;
         }
         setTimeout(check, Math.max(this.conExpires_ - now + 100, this.conInterval_));
-        this.tasks_.length && State.initiate !== this.state() && !this.nowRetrying && this.opendb(null, true);
+        this.tasks_.length && State.initiate !== this.state() && this.opendb(null, true);
       }
       this.conAge_ && setTimeout(check, this.conInterval_);
     }
@@ -27,13 +27,12 @@ module MODULE.MODEL.APP.DATA {
 
     private database_: IDBDatabase
     private name_: string = NAME
-    private version_: number = 6
+    private version_: number = 7
     private refresh_: number = 10
     private upgrade_: number = 0 // 0:virtual 1:native
     private state_: State = State.blank
     database = () => this.database_
     state = () => this.state_
-    nowRetrying: boolean = false
 
     private conAge_: number = 10 * 1000
     private conExpires_: number = 0
@@ -41,13 +40,13 @@ module MODULE.MODEL.APP.DATA {
     private tasks_: { (): void }[] = []
 
     stores = {
-      meta: new StoreMeta<MetaSchema>(this),
-      history: new StoreHistory<HistorySchema>(this),
-      server: new StoreServer<ServerSchema>(this)
+      meta: new MetaStore<MetaStoreSchema>(this),
+      history: new HistoryStore<HistoryStoreSchema>(this),
+      server: new ServerStore<ServerStoreSchema>(this)
     }
-    metaNames = {
-      version: 'version',
-      update: 'update'
+    meta = {
+      version: { key: 'version', value: undefined },
+      update: { key: 'update', value: undefined }
     }
 
     opendb(task?: () => void, noRetry?: boolean): void {
@@ -64,7 +63,7 @@ module MODULE.MODEL.APP.DATA {
       'function' === typeof task && that.reserveTask_(task);
 
       if (!that.tasks_.length) { return; }
-      if (State.initiate === that.state() || that.nowRetrying) { return; }
+      if (State.initiate === that.state()) { return; }
 
       try {
         that.state_ = State.initiate;
@@ -94,18 +93,20 @@ module MODULE.MODEL.APP.DATA {
         request.onsuccess = function () {
           try {
             var database: IDBDatabase = this.result;
-            
+
+            that.database_ = database;
+
             that.checkdb_(database, that.version_, () => {
               that.database_ = database;
               that.state_ = State.open;
               that.conExtend();
 
               that.digestTask_();
-
-              that.nowRetrying = false;
             }, () => {
               !noRetry && that.initdb_();
             });
+
+            that.database_ = null;
           } catch (err) {
             database.close();
             !noRetry && that.initdb_(1000);
@@ -128,11 +129,10 @@ module MODULE.MODEL.APP.DATA {
     }
 
     closedb(state: State = State.close): void {
+      this.database() && this.database().close && this.database().close();
+
       this.database_ = null;
       this.state_ = state;
-
-      var database = this.database_;
-      database && database.close && database.close();
     }
 
     conExtend(): void {
@@ -141,52 +141,50 @@ module MODULE.MODEL.APP.DATA {
 
     private initdb_(delay?: number): void {
       var retry = () => {
-        if (!this.nowRetrying) {
-          this.nowRetrying = true;
-          this.deletedb_();
-        }
-        this.opendb(null, true);
+        this.deletedb_(() => this.opendb(null, true));
       };
 
       !delay ? retry() : void setTimeout(retry, delay);
     }
 
-    private deletedb_(): void {
+    private deletedb_(success?: () => void, failure?: () => void): void {
       this.closedb();
       var IDBFactory = this.IDBFactory;
-      IDBFactory && IDBFactory.deleteDatabase && IDBFactory.deleteDatabase(this.name_);
+      var request = IDBFactory && IDBFactory.deleteDatabase && IDBFactory.deleteDatabase(this.name_);
+      if (request) {
+        request.onsuccess = success;
+        request.onerror = failure;
+      }
     }
 
     private checkdb_(database: IDBDatabase, version: number, success: () => void, upgrade: () => void): void {
-      var that = this;
+      var that = this,
+          scheme = this.meta,
+          store = this.stores.meta;
 
-      var req = database.transaction(that.stores.meta.name, 'readwrite').objectStore(that.stores.meta.name).get(that.metaNames.version);
-      req.onsuccess = function () {
+      store.get(scheme.version.key, function () {
         // version check
-        var data: MetaSchema = this.result;
+        var data: MetaStoreSchema = this.result;
         if (!data || that.upgrade_) {
-          this.source.put(<MetaSchema>{ id: that.metaNames.version, value: version });
-        } else if (data.value !== version) {
+          store.set(store.setBuffer({ key: scheme.version.key, value: version }));
+        } else if (data.value < version) {
+          upgrade();
+        } else if (data.value > version) {
+          that.closedb(State.error);
+        }
+      });
+
+      store.get(scheme.update.key, function () {
+        // refresh check
+        var data: MetaStoreSchema = this.result;
+        var days: number = Math.floor(new Date().getTime() / (24 * 60 * 60 * 1000));
+        if (!data || !that.refresh_) {
+          store.set(store.setBuffer({ key: scheme.update.key, value: days + that.refresh_ }));
+        } else if (data.value <= days) {
           return void upgrade();
         }
-
-        if (that.refresh_) {
-          var req = database.transaction(that.stores.meta.name, 'readwrite').objectStore(that.stores.meta.name).get(that.metaNames.update);
-          req.onsuccess = function () {
-            // refresh check
-            var data: MetaSchema = this.result;
-            var days: number = Math.floor(new Date().getTime() / (24 * 60 * 60 * 1000));
-            if (!data) {
-              this.source.put(<MetaSchema>{ id: that.metaNames.update, value: days + that.refresh_ });
-            } else if (data.value <= days) {
-              return void upgrade();
-            }
-            success();
-          };
-        } else {
-          success();
-        }
-      };
+        success();
+      });
     }
 
     private createStore_(database: IDBDatabase): void {
@@ -204,6 +202,7 @@ module MODULE.MODEL.APP.DATA {
     }
 
     private reserveTask_(task: () => void): void {
+      this.tasks_.length > 200 && this.tasks_.splice(100, 100);
       (this.state() !== State.error || this.tasks_.length < 100) &&
       this.tasks_.push(task);
     }

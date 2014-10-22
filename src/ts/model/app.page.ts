@@ -32,7 +32,7 @@ module MODULE.MODEL.APP {
         if (!setting.fallback || 'abort' === textStatus) { return; }
 
         if (setting.balance.self) {
-          this.app_.data.saveServerToDB(host, 0, new Date().getTime());
+          this.app_.data.saveServer(host, 0, new Date().getTime());
           this.app_.balance.chooseServer(setting);
         }
 

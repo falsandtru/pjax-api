@@ -5,10 +5,10 @@
 
 module MODULE.MODEL.APP.DATA {
   
-  export class StoreServer<T> extends Store<T> implements StoreServerInterface<T> {
+  export class ServerStore<T> extends Store<T> implements ServerStoreInterface<T> {
 
     name = 'server'
-    keyPath = 'id'
+    keyPath = 'host'
     autoIncrement = false
     indexes = [
       { name: 'date', keyPath: 'date', option: { unique: false } }

@@ -52,8 +52,8 @@ module MODULE.MODEL.APP {
     }
 
     private chooseServers_(expires: number, limit: number, weight: number, respite: number): string[] {
-      var servers = this.app_.data.stores.server.getBuffers(),
-          serverTableByPerformance: { [performance: string]: ServerSchema } = {},
+      var servers = this.app_.data.getServerBuffers(),
+          serverTableByPerformance: { [performance: string]: ServerStoreSchema } = {},
           result: string[];
 
       (() => {
@@ -87,7 +87,7 @@ module MODULE.MODEL.APP {
       if (!this.isBalanceable_(setting)) { return; }
 
       // キャッシュの有効期限内の再リクエストは同じサーバーを選択してキャッシュを使用
-      var history: HistorySchema = this.app_.data.stores.history.getBuffer(this.model_.convertUrlToKeyUrl(setting.destLocation.href)),
+      var history: HistoryStoreSchema = this.app_.data.getHistoryBuffer(setting.destLocation.href),
           cacheExpires: number = history && history.expires || 0;
 
       if (cacheExpires && cacheExpires >= new Date().getTime()) {
@@ -96,7 +96,7 @@ module MODULE.MODEL.APP {
       }
 
       // DBにもCookieにもデータがなければ正規サーバを選択
-      if (!this.app_.data.stores.server.getBuffers().length && !this.app_.data.getCookie(setting.balance.client.cookie.host)) {
+      if (!this.app_.data.getServerBuffers().length && !this.app_.data.getCookie(setting.balance.client.cookie.host)) {
         this.changeServer('', setting);
         return;
       }

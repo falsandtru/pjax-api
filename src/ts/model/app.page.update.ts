@@ -343,7 +343,7 @@ module MODULE.MODEL.APP {
       if (Util.fire(callbacks_update.title.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
 
       this.dstDocument_.title = this.srcDocument_.title;
-      setting.database && setting.fix.history && this.app_.data.saveTitleToDB(setting.destLocation.href, this.srcDocument_.title);
+      setting.fix.history && this.app_.data.saveTitle();
 
       if (Util.fire(callbacks_update.title.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
@@ -445,7 +445,8 @@ module MODULE.MODEL.APP {
 
       var host = (this.jqXHR_.getResponseHeader(setting.balance.server.header) || ''),
           performance = Math.ceil(setting.loadtime / (this.jqXHR_.responseText.length || 1) * 1e5);
-      this.app_.data.saveServerToDB(host, performance, 0, setting.destLocation.href, this.calExpires(this.jqXHR_));
+      this.app_.data.saveServer(host, performance);
+      this.app_.data.saveExpires(setting.destLocation.href, host, this.calExpires(this.jqXHR_));
       this.app_.balance.chooseServer(setting);
 
       this.app_.data.loadBuffers(setting.buffer.limit);
@@ -649,10 +650,10 @@ module MODULE.MODEL.APP {
           scrollY = scrollY === false || scrollY === null ? jQuery(window).scrollTop() : parseInt(Number(scrollY) + '', 10);
 
           (jQuery(window).scrollTop() === scrollY && jQuery(window).scrollLeft() === scrollX) || window.scrollTo(scrollX, scrollY);
-          call && setting.database && this.app_.page.isScrollPosSavable && setting.fix.scroll && this.app_.data.saveScrollPositionToDB(setting.destLocation.href, scrollX, scrollY);
+          call && this.app_.page.isScrollPosSavable && setting.fix.scroll && this.app_.data.saveScrollPosition(setting.destLocation.href, scrollX, scrollY);
           break;
         case 'popstate':
-          call && setting.fix.scroll && setting.database && this.app_.data.loadScrollPositionFromDB(setting.destLocation.href);
+          call && setting.fix.scroll && this.app_.data.loadScrollPosition();
           break;
       }
 
