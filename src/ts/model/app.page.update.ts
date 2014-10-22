@@ -443,9 +443,9 @@ module MODULE.MODEL.APP {
 
       if (Util.fire(callbacks_update.balance.before, null, [event, setting.param]) === false) { return; }
 
-      var host = (this.jqXHR_.getResponseHeader(setting.balance.server.header) || '').split('//').pop();
-      this.app_.data.saveLogToDB(host, Math.ceil(setting.loadtime / (this.jqXHR_.responseText.length || 1) * 1e5));
-      this.app_.data.saveServerToDB(host, 0, setting.destLocation.href, this.calExpires(this.jqXHR_));
+      var host = (this.jqXHR_.getResponseHeader(setting.balance.server.header) || ''),
+          performance = Math.ceil(setting.loadtime / (this.jqXHR_.responseText.length || 1) * 1e5);
+      this.app_.data.saveServerToDB(host, performance, 0, setting.destLocation.href, this.calExpires(this.jqXHR_));
       this.app_.balance.chooseServer(setting);
 
       this.app_.data.loadBuffers(setting.buffer.limit);

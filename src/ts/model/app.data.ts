@@ -61,7 +61,7 @@ module MODULE.MODEL.APP {
       var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
 
       var value: HistorySchema = {
-        id: keyUrl,
+        url: keyUrl,
         title: title,
         date: new Date().getTime(),
 
@@ -105,7 +105,7 @@ module MODULE.MODEL.APP {
       var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
 
       var value: HistorySchema = {
-        id: keyUrl,
+        url: keyUrl,
         scrollX: scrollX,
         scrollY: scrollY,
         date: new Date().getTime(),
@@ -119,27 +119,13 @@ module MODULE.MODEL.APP {
       this.data_.DB.stores.history.set(value);
     }
 
-    loadLogFromDB(): void {
-    }
-
-    saveLogToDB(host: string, performance: number): void {
-      var log: LogSchema = {
-        host: host,
-        performance: performance,
-        date: new Date().getTime()
-      };
-
-      this.data_.DB.stores.log.addBuffer(log);
-      this.data_.DB.stores.log.add(log);
-      this.data_.DB.stores.log.clean();
-    }
-
     loadServerFromDB(): void {
     }
 
-    saveServerToDB(host: string, state: number = 0, unsafe_url?: string, expires: number = 0): void {
+    saveServerToDB(host: string, performance: number, state: number = 0, unsafe_url?: string, expires: number = 0): void {
       var value: ServerSchema = {
-        id: host || '',
+        host: host.split('//').pop().split('/').shift() || '',
+        performance: performance,
         state: state,
         date: new Date().getTime()
       };
@@ -168,7 +154,7 @@ module MODULE.MODEL.APP {
       var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
 
       var value: HistorySchema = {
-        id: keyUrl,
+        url: keyUrl,
         host: host,
         expires: expires,
 

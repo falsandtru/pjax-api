@@ -1,7 +1,6 @@
 /// <reference path="../define.ts"/>
 /// <reference path="data.store.meta.ts"/>
 /// <reference path="data.store.history.ts"/>
-/// <reference path="data.store.log.ts"/>
 /// <reference path="data.store.server.ts"/>
 
 /* MODEL */
@@ -28,7 +27,7 @@ module MODULE.MODEL.APP.DATA {
 
     private database_: IDBDatabase
     private name_: string = NAME
-    private version_: number = 5
+    private version_: number = 6
     private refresh_: number = 10
     private upgrade_: number = 0 // 0:virtual 1:native
     private state_: State = State.blank
@@ -44,7 +43,6 @@ module MODULE.MODEL.APP.DATA {
     stores = {
       meta: new StoreMeta<MetaSchema>(this),
       history: new StoreHistory<HistorySchema>(this),
-      log: new StoreLog<LogSchema>(this),
       server: new StoreServer<ServerSchema>(this)
     }
     metaNames = {

@@ -300,13 +300,9 @@ module MODULE.MODEL {
     loadScrollPositionFromDB(unsafe_url: string): void
     saveScrollPositionToDB(unsafe_url: string, scrollX: number, scrollY: number): void
 
-    // log
-    loadLogFromDB(): void
-    saveLogToDB(host: string, performance: number): void
-
     // server
     loadServerFromDB(): void
-    saveServerToDB(host: string, state?: number, unsafe_url?: string, expires?: number): void
+    saveServerToDB(host: string, performance: number, state?: number, unsafe_url?: string, expires?: number): void
   }
 }
 
@@ -366,9 +362,6 @@ module MODULE.MODEL.APP {
   export declare class StoreHistoryInterface<T> extends StoreInterface<T> {
     clean(): void
   }
-  export declare class StoreLogInterface<T> extends StoreInterface<T> {
-    clean(): void
-  }
   export declare class StoreServerInterface<T> extends StoreInterface<T> {
     clean(): void
   }
@@ -391,7 +384,6 @@ module MODULE.MODEL.APP {
   export interface DatabaseSchema {
     meta: StoreMetaInterface<MetaSchema>
     history: StoreHistoryInterface<HistorySchema>
-    log: StoreLogInterface<LogSchema>
     server: StoreServerInterface<ServerSchema>
   }
   export interface MetaSchema {
@@ -399,22 +391,18 @@ module MODULE.MODEL.APP {
     value: any
   }
   export interface HistorySchema {
-    id: string      // url
+    url: string     // primary
     title: string   // fix
     date: number    // fix
     scrollX: number // fix
     scrollY: number // fix
-    expires: number // blanace
+    expires: number // balance
     host: string    // balance
   }
-  export interface LogSchema {
-    host: string
-    performance: number
-    date: number
-  }
   export interface ServerSchema {
-    id: string    // host
+    host: string
     state: number // 0:正常, !0:異常発生時刻(ミリ秒)
+    performance: number
     date: number
   }
   export interface StoreIndexOptionInterface {
