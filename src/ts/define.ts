@@ -298,6 +298,7 @@ module MODULE.MODEL {
     loadTitleFromDB(unsafe_url: string): void
     saveTitleToDB(unsafe_url: string, title: string): void
     loadScrollPositionFromDB(unsafe_url: string): void
+    saveScrollPositionToDB(): void
     saveScrollPositionToDB(unsafe_url: string, scrollX: number, scrollY: number): void
 
     // server

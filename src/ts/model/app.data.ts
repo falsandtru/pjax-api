@@ -100,8 +100,10 @@ module MODULE.MODEL.APP {
         });
       }
     }
-
-    saveScrollPositionToDB(unsafe_url: string, scrollX: number, scrollY: number): void {
+    
+    saveScrollPositionToDB(): void
+    saveScrollPositionToDB(unsafe_url: string, scrollX: number, scrollY: number): void
+    saveScrollPositionToDB(unsafe_url: string = window.location.href, scrollX: number = jQuery(window).scrollLeft(), scrollY: number = jQuery(window).scrollTop()): void {
       var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
 
       var value: HistorySchema = {
