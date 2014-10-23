@@ -649,7 +649,7 @@ module MODULE.MODEL.APP {
           scrollY = 0 <= scrollY ? scrollY : 0;
           scrollY = scrollY === false || scrollY === null ? jQuery(window).scrollTop() : parseInt(Number(scrollY) + '', 10);
 
-          (jQuery(window).scrollTop() === scrollY && jQuery(window).scrollLeft() === scrollX) || window.scrollTo(scrollX, scrollY);
+          window.scrollTo(scrollX, scrollY);
           break;
         case 'popstate':
           call && setting.fix.scroll && this.app_.data.loadScrollPosition();
