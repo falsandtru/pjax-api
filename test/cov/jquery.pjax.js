@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.25.3
+ * @version 2.25.4
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -1115,7 +1115,6 @@ var MODULE;
 
                                     that.database_ = null;
                                 } catch (err) {
-                                    database.close();
                                     !noRetry && that.initdb_(1000);
                                 }
                             };
@@ -3029,6 +3028,7 @@ var MODULE;
                 };
 
                 PageUpdate.prototype.scroll_ = function (call) {
+                    var _this = this;
                     var setting = this.setting_, event = this.event_;
                     var callbacks_update = setting.callbacks.update;
 
@@ -3048,13 +3048,16 @@ var MODULE;
                             scrollY = 0 <= scrollY ? scrollY : 0;
                             scrollY = scrollY === false || scrollY === null ? jQuery(window).scrollTop() : parseInt(Number(scrollY) + '', 10);
 
-                            (jQuery(window).scrollTop() === scrollY && jQuery(window).scrollLeft() === scrollX) || window.scrollTo(scrollX, scrollY);
-                            call && this.app_.page.isScrollPosSavable && setting.fix.scroll && this.app_.data.saveScrollPosition(setting.destLocation.href, scrollX, scrollY);
+                            window.scrollTo(scrollX, scrollY);
                             break;
                         case 'popstate':
                             call && setting.fix.scroll && this.app_.data.loadScrollPosition();
                             break;
                     }
+
+                    call && setTimeout(function () {
+                        return _this.app_.page.isScrollPosSavable && _this.app_.data.saveScrollPosition();
+                    }, 300);
 
                     if (Util.fire(callbacks_update.scroll.after, null, [event, setting.param]) === false) {
                         return;
