@@ -650,12 +650,13 @@ module MODULE.MODEL.APP {
           scrollY = scrollY === false || scrollY === null ? jQuery(window).scrollTop() : parseInt(Number(scrollY) + '', 10);
 
           (jQuery(window).scrollTop() === scrollY && jQuery(window).scrollLeft() === scrollX) || window.scrollTo(scrollX, scrollY);
-          call && this.app_.page.isScrollPosSavable && setting.fix.scroll && this.app_.data.saveScrollPosition(setting.destLocation.href, scrollX, scrollY);
           break;
         case 'popstate':
           call && setting.fix.scroll && this.app_.data.loadScrollPosition();
           break;
       }
+
+      call && setTimeout(() => this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition(), 300);
 
       if (Util.fire(callbacks_update.scroll.after, null, [event, setting.param]) === false) { return; }
     }
