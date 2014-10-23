@@ -160,13 +160,26 @@ module MODULE.MODEL.APP.DATA {
     private checkdb_(database: IDBDatabase, version: number, success: () => void, upgrade: () => void): void {
       var that = this,
           scheme = this.meta,
-          store = this.stores.meta;
+          meta = this.stores.meta;
 
-      store.get(scheme.version.key, function () {
+      if (database.objectStoreNames.length !== Object.keys(this.stores).length) {
+        return void upgrade();
+      }
+
+      for (var i in this.stores) {
+        var store = database.transaction(this.stores[i].name, 'readonly').objectStore(this.stores[i].name);
+        switch (false) {
+          case store.keyPath === that.stores[i].keyPath:
+          case store.indexNames.length === that.stores[i].indexes.length:
+            upgrade();
+        }
+      }
+
+      meta.get(scheme.version.key, function () {
         // version check
         var data: MetaStoreSchema = this.result;
         if (!data || that.upgrade_) {
-          store.set(store.setBuffer({ key: scheme.version.key, value: version }));
+          meta.set(meta.setBuffer({ key: scheme.version.key, value: version }));
         } else if (data.value < version) {
           upgrade();
         } else if (data.value > version) {
@@ -174,12 +187,12 @@ module MODULE.MODEL.APP.DATA {
         }
       });
 
-      store.get(scheme.update.key, function () {
+      meta.get(scheme.update.key, function () {
         // refresh check
         var data: MetaStoreSchema = this.result;
         var days: number = Math.floor(new Date().getTime() / (24 * 60 * 60 * 1000));
         if (!data || !that.refresh_) {
-          store.set(store.setBuffer({ key: scheme.update.key, value: days + that.refresh_ }));
+          meta.set(meta.setBuffer({ key: scheme.update.key, value: days + that.refresh_ }));
         } else if (data.value <= days) {
           return void upgrade();
         }
