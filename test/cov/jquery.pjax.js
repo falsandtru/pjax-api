@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.25.1
+ * @version 2.25.2
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -267,14 +267,15 @@ var MODULE;
                 this.context_.delegate(setting.link, setting.nss.click, this.handlers.click).delegate(setting.form, setting.nss.submit, this.handlers.submit);
                 jQuery(window).bind(setting.nss.popstate, this.handlers.popstate);
 
-                setting.fix.scroll && jQuery(window).bind(setting.nss.scroll, this.handlers.scroll);
+                setting.database && setting.fix.scroll && jQuery(window).bind(setting.nss.scroll, this.handlers.scroll);
                 return this;
             };
+
             Main.prototype.release_ = function (setting) {
                 this.context_.undelegate(setting.link, setting.nss.click).undelegate(setting.form, setting.nss.submit);
                 jQuery(window).unbind(setting.nss.popstate);
 
-                setting.fix.scroll && jQuery(window).unbind(setting.nss.scroll);
+                setting.database && setting.fix.scroll && jQuery(window).unbind(setting.nss.scroll);
                 return this;
             };
             return Main;
@@ -735,26 +736,35 @@ var MODULE;
                     Store.prototype.loadBuffer = function (limit) {
                         var _this = this;
                         if (typeof limit === "undefined") { limit = 0; }
-                        var that = this;
+                        var buffer = this.buffer_;
                         this.accessStore(function (store) {
-                            var index = store.indexNames.length ? store.indexNames[0] : store.keyPath;
-                            store.index(index).openCursor(_this.DB.IDBKeyRange.lowerBound(0), 'prev').onsuccess = function () {
+                            if (!store.indexNames.length) {
+                                return;
+                            }
+
+                            store.index(store.indexNames[0]).openCursor(_this.DB.IDBKeyRange.lowerBound(0), 'prev').onsuccess = function () {
                                 if (!this.result) {
                                     return;
                                 }
 
-                                var IDBCursor = this.result, data = IDBCursor.value;
-                                that.buffer_[data[store.keyPath]] = data;
+                                var cursor = this.result, value = cursor.value, key = value[store.keyPath];
+                                buffer[key] = value;
                                 if (!--limit) {
                                     return;
                                 }
 
-                                IDBCursor['continue'] && IDBCursor['continue']();
+                                cursor['continue'] && cursor['continue']();
                             };
                         });
                     };
 
                     Store.prototype.saveBuffer = function () {
+                        var buffer = this.buffer_;
+                        this.accessStore(function (store) {
+                            for (var i in buffer) {
+                                store.put(buffer[i]);
+                            }
+                        });
                     };
 
                     Store.prototype.getBuffers = function () {
@@ -784,29 +794,58 @@ var MODULE;
                         return value;
                     };
 
-                    Store.prototype.add = function (value) {
-                        var key = value[this.keyPath];
-                        delete value[this.keyPath];
-                        this.accessRecord(key, function () {
-                            'undefined' !== typeof key && this.source['delete'](key);
-                            this.source.add(value);
-                        });
+                    Store.prototype.removeBuffer = function (key) {
+                        var ret = this.buffer_[key];
+                        if ('number' === typeof key) {
+                            this.buffer_.splice(key, 1);
+                        } else {
+                            delete this.buffer_[key];
+                        }
+                        return ret;
                     };
 
-                    Store.prototype.set = function (value) {
-                        var key = value[this.keyPath];
-                        this.accessRecord(key, function () {
-                            this.source.put(jQuery.extend(true, {}, this.result, value));
-                        });
+                    Store.prototype.clearBuffer = function () {
+                        this.buffer_ = [];
                     };
 
                     Store.prototype.get = function (key, success) {
                         this.accessRecord(key, success);
                     };
 
-                    Store.prototype.del = function (key) {
+                    Store.prototype.set = function (value, isMerge) {
+                        if (!isMerge) {
+                            return this.put(value);
+                        }
+
+                        value = jQuery.extend(true, {}, value);
+                        var key = value[this.keyPath];
                         this.accessRecord(key, function () {
-                            this.source['delete'](key);
+                            this.source.put(jQuery.extend(true, {}, this.result, value));
+                        });
+                    };
+
+                    Store.prototype.add = function (value) {
+                        value = jQuery.extend(true, {}, value);
+                        var key = value[this.keyPath];
+                        if (this.autoIncrement) {
+                            delete value[this.keyPath];
+                        }
+                        this.accessStore(function (store) {
+                            store.add(value);
+                        });
+                    };
+
+                    Store.prototype.put = function (value) {
+                        value = jQuery.extend(true, {}, value);
+                        var key = value[this.keyPath];
+                        this.accessStore(function (store) {
+                            store.put(value);
+                        });
+                    };
+
+                    Store.prototype.remove = function (key) {
+                        this.accessStore(function (store) {
+                            store['delete'](key);
                         });
                     };
                     return Store;
@@ -827,20 +866,20 @@ var MODULE;
         (function (APP) {
             /* MODEL */
             (function (DATA) {
-                var StoreMeta = (function (_super) {
-                    __extends(StoreMeta, _super);
-                    function StoreMeta() {
+                var MetaStore = (function (_super) {
+                    __extends(MetaStore, _super);
+                    function MetaStore() {
                         _super.apply(this, arguments);
                         this.name = 'meta';
-                        this.keyPath = 'id';
+                        this.keyPath = 'key';
                         this.autoIncrement = false;
                         this.indexes = [
                             { name: this.keyPath, keyPath: this.keyPath, option: { unique: true } }
                         ];
                     }
-                    return StoreMeta;
+                    return MetaStore;
                 })(DATA.Store);
-                DATA.StoreMeta = StoreMeta;
+                DATA.MetaStore = MetaStore;
             })(APP.DATA || (APP.DATA = {}));
             var DATA = APP.DATA;
         })(MODEL.APP || (MODEL.APP = {}));
@@ -856,18 +895,18 @@ var MODULE;
         (function (APP) {
             /* MODEL */
             (function (DATA) {
-                var StoreHistory = (function (_super) {
-                    __extends(StoreHistory, _super);
-                    function StoreHistory() {
+                var HistoryStore = (function (_super) {
+                    __extends(HistoryStore, _super);
+                    function HistoryStore() {
                         _super.apply(this, arguments);
                         this.name = 'history';
-                        this.keyPath = 'id';
+                        this.keyPath = 'url';
                         this.autoIncrement = false;
                         this.indexes = [
                             { name: 'date', keyPath: 'date', option: { unique: false } }
                         ];
                     }
-                    StoreHistory.prototype.clean = function () {
+                    HistoryStore.prototype.clean = function () {
                         var that = this;
                         this.accessStore(function (store) {
                             store.count().onsuccess = function () {
@@ -892,9 +931,9 @@ var MODULE;
                             };
                         });
                     };
-                    return StoreHistory;
+                    return HistoryStore;
                 })(DATA.Store);
-                DATA.StoreHistory = StoreHistory;
+                DATA.HistoryStore = HistoryStore;
             })(APP.DATA || (APP.DATA = {}));
             var DATA = APP.DATA;
         })(MODEL.APP || (MODEL.APP = {}));
@@ -910,73 +949,18 @@ var MODULE;
         (function (APP) {
             /* MODEL */
             (function (DATA) {
-                var StoreLog = (function (_super) {
-                    __extends(StoreLog, _super);
-                    function StoreLog() {
-                        _super.apply(this, arguments);
-                        this.name = 'log';
-                        this.keyPath = 'id';
-                        this.autoIncrement = true;
-                        this.indexes = [
-                            { name: this.keyPath, keyPath: this.keyPath, option: { unique: true } }
-                        ];
-                    }
-                    StoreLog.prototype.clean = function () {
-                        var that = this;
-                        this.accessStore(function (store) {
-                            var size = 100;
-
-                            store.count().onsuccess = function () {
-                                if (this.result <= size + 10) {
-                                    return;
-                                }
-                                size = this.result - size;
-                                store.index(store.keyPath).openCursor(that.DB.IDBKeyRange.lowerBound(0)).onsuccess = function () {
-                                    if (!this.result) {
-                                        return;
-                                    }
-
-                                    var IDBCursor = this.result;
-                                    if (IDBCursor) {
-                                        if (0 > --size) {
-                                            IDBCursor['delete'](IDBCursor.value[store.keyPath]);
-                                        }
-                                        IDBCursor['continue'] && IDBCursor['continue']();
-                                    }
-                                };
-                            };
-                        });
-                    };
-                    return StoreLog;
-                })(DATA.Store);
-                DATA.StoreLog = StoreLog;
-            })(APP.DATA || (APP.DATA = {}));
-            var DATA = APP.DATA;
-        })(MODEL.APP || (MODEL.APP = {}));
-        var APP = MODEL.APP;
-    })(MODULE.MODEL || (MODULE.MODEL = {}));
-    var MODEL = MODULE.MODEL;
-})(MODULE || (MODULE = {}));
-/// <reference path="../define.ts"/>
-/// <reference path="data.store.ts"/>
-var MODULE;
-(function (MODULE) {
-    (function (MODEL) {
-        (function (APP) {
-            /* MODEL */
-            (function (DATA) {
-                var StoreServer = (function (_super) {
-                    __extends(StoreServer, _super);
-                    function StoreServer() {
+                var ServerStore = (function (_super) {
+                    __extends(ServerStore, _super);
+                    function ServerStore() {
                         _super.apply(this, arguments);
                         this.name = 'server';
-                        this.keyPath = 'id';
+                        this.keyPath = 'host';
                         this.autoIncrement = false;
                         this.indexes = [
                             { name: 'date', keyPath: 'date', option: { unique: false } }
                         ];
                     }
-                    StoreServer.prototype.clean = function () {
+                    ServerStore.prototype.clean = function () {
                         var that = this;
                         this.accessStore(function (store) {
                             var size = 50;
@@ -1002,9 +986,9 @@ var MODULE;
                             };
                         });
                     };
-                    return StoreServer;
+                    return ServerStore;
                 })(DATA.Store);
-                DATA.StoreServer = StoreServer;
+                DATA.ServerStore = ServerStore;
             })(APP.DATA || (APP.DATA = {}));
             var DATA = APP.DATA;
         })(MODEL.APP || (MODEL.APP = {}));
@@ -1015,7 +999,6 @@ var MODULE;
 /// <reference path="../define.ts"/>
 /// <reference path="data.store.meta.ts"/>
 /// <reference path="data.store.history.ts"/>
-/// <reference path="data.store.log.ts"/>
 /// <reference path="data.store.server.ts"/>
 var MODULE;
 (function (MODULE) {
@@ -1029,7 +1012,7 @@ var MODULE;
                         this.IDBFactory = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB;
                         this.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.mozIDBKeyRange || window.msIDBKeyRange;
                         this.name_ = MODULE.NAME;
-                        this.version_ = 5;
+                        this.version_ = 7;
                         this.refresh_ = 10;
                         this.upgrade_ = 0;
                         this.state_ = -2 /* blank */;
@@ -1039,20 +1022,18 @@ var MODULE;
                         this.state = function () {
                             return _this.state_;
                         };
-                        this.nowRetrying = false;
                         this.conAge_ = 10 * 1000;
                         this.conExpires_ = 0;
                         this.conInterval_ = 1000;
                         this.tasks_ = [];
                         this.stores = {
-                            meta: new DATA.StoreMeta(this),
-                            history: new DATA.StoreHistory(this),
-                            log: new DATA.StoreLog(this),
-                            server: new DATA.StoreServer(this)
+                            meta: new DATA.MetaStore(this),
+                            history: new DATA.HistoryStore(this),
+                            server: new DATA.ServerStore(this)
                         };
-                        this.metaNames = {
-                            version: 'version',
-                            update: 'update'
+                        this.meta = {
+                            version: { key: 'version', value: undefined },
+                            update: { key: 'update', value: undefined }
                         };
                         var check = function () {
                             var now = new Date().getTime(), expires = _this.conExpires_;
@@ -1061,7 +1042,7 @@ var MODULE;
                                 _this.conExpires_ = 0;
                             }
                             setTimeout(check, Math.max(_this.conExpires_ - now + 100, _this.conInterval_));
-                            _this.tasks_.length && -1 /* initiate */ !== _this.state() && !_this.nowRetrying && _this.opendb(null, true);
+                            _this.tasks_.length && -1 /* initiate */ !== _this.state() && _this.opendb(null, true);
                         };
                         this.conAge_ && setTimeout(check, this.conInterval_);
                     }
@@ -1085,7 +1066,7 @@ var MODULE;
                         if (!that.tasks_.length) {
                             return;
                         }
-                        if (-1 /* initiate */ === that.state() || that.nowRetrying) {
+                        if (-1 /* initiate */ === that.state()) {
                             return;
                         }
 
@@ -1120,17 +1101,19 @@ var MODULE;
                                 try  {
                                     var database = this.result;
 
+                                    that.database_ = database;
+
                                     that.checkdb_(database, that.version_, function () {
                                         that.database_ = database;
                                         that.state_ = 0 /* open */;
                                         that.conExtend();
 
                                         that.digestTask_();
-
-                                        that.nowRetrying = false;
                                     }, function () {
                                         !noRetry && that.initdb_();
                                     });
+
+                                    that.database_ = null;
                                 } catch (err) {
                                     database.close();
                                     !noRetry && that.initdb_(1000);
@@ -1156,11 +1139,10 @@ var MODULE;
 
                     DB.prototype.closedb = function (state) {
                         if (typeof state === "undefined") { state = 7 /* close */; }
+                        this.database() && this.database().close && this.database().close();
+
                         this.database_ = null;
                         this.state_ = state;
-
-                        var database = this.database_;
-                        database && database.close && database.close();
                     };
 
                     DB.prototype.conExtend = function () {
@@ -1170,52 +1152,50 @@ var MODULE;
                     DB.prototype.initdb_ = function (delay) {
                         var _this = this;
                         var retry = function () {
-                            if (!_this.nowRetrying) {
-                                _this.nowRetrying = true;
-                                _this.deletedb_();
-                            }
-                            _this.opendb(null, true);
+                            _this.deletedb_(function () {
+                                return _this.opendb(null, true);
+                            });
                         };
 
                         !delay ? retry() : void setTimeout(retry, delay);
                     };
 
-                    DB.prototype.deletedb_ = function () {
+                    DB.prototype.deletedb_ = function (success, failure) {
                         this.closedb();
                         var IDBFactory = this.IDBFactory;
-                        IDBFactory && IDBFactory.deleteDatabase && IDBFactory.deleteDatabase(this.name_);
+                        var request = IDBFactory && IDBFactory.deleteDatabase && IDBFactory.deleteDatabase(this.name_);
+                        if (request) {
+                            request.onsuccess = success;
+                            request.onerror = failure;
+                        }
                     };
 
                     DB.prototype.checkdb_ = function (database, version, success, upgrade) {
-                        var that = this;
+                        var that = this, scheme = this.meta, store = this.stores.meta;
 
-                        var req = database.transaction(that.stores.meta.name, 'readwrite').objectStore(that.stores.meta.name).get(that.metaNames.version);
-                        req.onsuccess = function () {
+                        store.get(scheme.version.key, function () {
                             // version check
                             var data = this.result;
                             if (!data || that.upgrade_) {
-                                this.source.put({ id: that.metaNames.version, value: version });
-                            } else if (data.value !== version) {
+                                store.set(store.setBuffer({ key: scheme.version.key, value: version }));
+                            } else if (data.value < version) {
+                                upgrade();
+                            } else if (data.value > version) {
+                                that.closedb(4 /* error */);
+                            }
+                        });
+
+                        store.get(scheme.update.key, function () {
+                            // refresh check
+                            var data = this.result;
+                            var days = Math.floor(new Date().getTime() / (24 * 60 * 60 * 1000));
+                            if (!data || !that.refresh_) {
+                                store.set(store.setBuffer({ key: scheme.update.key, value: days + that.refresh_ }));
+                            } else if (data.value <= days) {
                                 return void upgrade();
                             }
-
-                            if (that.refresh_) {
-                                var req = database.transaction(that.stores.meta.name, 'readwrite').objectStore(that.stores.meta.name).get(that.metaNames.update);
-                                req.onsuccess = function () {
-                                    // refresh check
-                                    var data = this.result;
-                                    var days = Math.floor(new Date().getTime() / (24 * 60 * 60 * 1000));
-                                    if (!data) {
-                                        this.source.put({ id: that.metaNames.update, value: days + that.refresh_ });
-                                    } else if (data.value <= days) {
-                                        return void upgrade();
-                                    }
-                                    success();
-                                };
-                            } else {
-                                success();
-                            }
-                        };
+                            success();
+                        });
                     };
 
                     DB.prototype.createStore_ = function (database) {
@@ -1233,6 +1213,7 @@ var MODULE;
                     };
 
                     DB.prototype.reserveTask_ = function (task) {
+                        this.tasks_.length > 200 && this.tasks_.splice(100, 100);
                         (this.state() !== 4 /* error */ || this.tasks_.length < 100) && this.tasks_.push(task);
                     };
 
@@ -1599,40 +1580,55 @@ var MODULE;
                     this.model_ = model_;
                     this.app_ = app_;
                     this.data_ = new APP.DATA.Main();
-                    this.stores = this.data_.DB.stores;
+                    this.stores_ = this.data_.DB.stores;
                 }
+                // cookie
+                Data.prototype.getCookie = function (key) {
+                    return this.data_.Cookie.getCookie(key);
+                };
+
+                Data.prototype.setCookie = function (key, value, option) {
+                    return this.data_.Cookie.setCookie(key, value, option);
+                };
+
+                // db
                 Data.prototype.opendb = function (setting) {
                     if (!setting.database) {
                         return;
                     }
 
                     this.data_.DB.opendb();
-                    this.saveTitleToDB(setting.origLocation.href, document.title);
-                    this.saveScrollPositionToDB(setting.origLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+                    this.saveTitle();
+                    this.saveScrollPosition();
                 };
 
                 Data.prototype.loadBuffers = function (limit) {
                     if (typeof limit === "undefined") { limit = 0; }
-                    for (var i in this.stores) {
-                        this.stores[i].loadBuffer(limit);
+                    for (var i in this.stores_) {
+                        this.stores_[i].loadBuffer(limit);
                     }
                 };
 
                 Data.prototype.saveBuffers = function () {
-                    for (var i in this.stores) {
-                        this.stores[i].saveBuffer();
+                    for (var i in this.stores_) {
+                        this.stores_[i].saveBuffer();
                     }
                 };
 
-                Data.prototype.loadTitleFromDB = function (unsafe_url) {
-                    var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url)), that = this;
+                // history
+                Data.prototype.getHistoryBuffer = function (unsafe_url) {
+                    return this.stores_.history.getBuffer(this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url)));
+                };
 
-                    var data = this.data_.DB.stores.history.getBuffer(keyUrl);
+                Data.prototype.loadTitle = function () {
+                    var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(window.location.href)), that = this;
+
+                    var data = this.stores_.history.getBuffer(keyUrl);
 
                     if (data && 'string' === typeof data.title) {
                         document.title = data.title;
                     } else {
-                        this.data_.DB.stores.history.get(keyUrl, function () {
+                        this.stores_.history.get(keyUrl, function () {
                             data = this.result;
                             if (data && data.title) {
                                 if (Util.compareUrl(keyUrl, that.model_.convertUrlToKeyUrl(Util.normalizeUrl(window.location.href)))) {
@@ -1643,11 +1639,13 @@ var MODULE;
                     }
                 };
 
-                Data.prototype.saveTitleToDB = function (unsafe_url, title) {
+                Data.prototype.saveTitle = function (unsafe_url, title) {
+                    if (typeof unsafe_url === "undefined") { unsafe_url = window.location.href; }
+                    if (typeof title === "undefined") { title = document.title; }
                     var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
 
                     var value = {
-                        id: keyUrl,
+                        url: keyUrl,
                         title: title,
                         date: new Date().getTime(),
                         scrollX: undefined,
@@ -1656,15 +1654,15 @@ var MODULE;
                         expires: undefined
                     };
 
-                    this.data_.DB.stores.history.setBuffer(value, true);
-                    this.data_.DB.stores.history.set(value);
-                    this.data_.DB.stores.history.clean();
+                    this.stores_.history.setBuffer(value, true);
+                    this.stores_.history.set(value, true);
+                    this.stores_.history.clean();
                 };
 
-                Data.prototype.loadScrollPositionFromDB = function (unsafe_url) {
-                    var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url)), that = this;
+                Data.prototype.loadScrollPosition = function () {
+                    var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(window.location.href)), that = this;
 
-                    var data = this.data_.DB.stores.history.getBuffer(keyUrl);
+                    var data = this.stores_.history.getBuffer(keyUrl);
                     function scroll(scrollX, scrollY) {
                         if ('number' !== typeof scrollX || 'number' !== typeof scrollY) {
                             return;
@@ -1676,7 +1674,7 @@ var MODULE;
                     if (data && 'number' === typeof data.scrollX) {
                         scroll(data.scrollX, data.scrollY);
                     } else {
-                        this.data_.DB.stores.history.get(keyUrl, function () {
+                        this.stores_.history.get(keyUrl, function () {
                             data = this.result;
                             if (data && 'number' === typeof data.scrollX) {
                                 if (Util.compareUrl(keyUrl, that.model_.convertUrlToKeyUrl(Util.normalizeUrl(window.location.href)))) {
@@ -1687,11 +1685,14 @@ var MODULE;
                     }
                 };
 
-                Data.prototype.saveScrollPositionToDB = function (unsafe_url, scrollX, scrollY) {
+                Data.prototype.saveScrollPosition = function (unsafe_url, scrollX, scrollY) {
+                    if (typeof unsafe_url === "undefined") { unsafe_url = window.location.href; }
+                    if (typeof scrollX === "undefined") { scrollX = jQuery(window).scrollLeft(); }
+                    if (typeof scrollY === "undefined") { scrollY = jQuery(window).scrollTop(); }
                     var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
 
                     var value = {
-                        id: keyUrl,
+                        url: keyUrl,
                         scrollX: scrollX,
                         scrollY: scrollY,
                         date: new Date().getTime(),
@@ -1700,62 +1701,18 @@ var MODULE;
                         expires: undefined
                     };
 
-                    this.data_.DB.stores.history.setBuffer(value, true);
-                    this.data_.DB.stores.history.set(value);
+                    this.stores_.history.setBuffer(value, true);
+                    this.stores_.history.set(value, true);
                 };
 
-                Data.prototype.loadLogFromDB = function () {
+                Data.prototype.loadExpires = function () {
                 };
 
-                Data.prototype.saveLogToDB = function (host, performance) {
-                    var log = {
-                        host: host,
-                        performance: performance,
-                        date: new Date().getTime()
-                    };
-
-                    this.data_.DB.stores.log.addBuffer(log);
-                    this.data_.DB.stores.log.add(log);
-                    this.data_.DB.stores.log.clean();
-                };
-
-                Data.prototype.loadServerFromDB = function () {
-                };
-
-                Data.prototype.saveServerToDB = function (host, state, unsafe_url, expires) {
-                    if (typeof state === "undefined") { state = 0; }
-                    if (typeof expires === "undefined") { expires = 0; }
-                    var value = {
-                        id: host || '',
-                        state: state,
-                        date: new Date().getTime()
-                    };
-
-                    this.data_.DB.stores.server.accessRecord(host, function () {
-                        var data = this.result;
-                        if (!data || !state) {
-                            // 新規または正常登録
-                            this.source.put(value);
-                        } else if (data.state) {
-                            // 2回目のエラーで登録削除
-                            this.source['delete'](host);
-                        }
-                    });
-                    this.data_.DB.stores.server.clean();
-
-                    if (unsafe_url) {
-                        this.saveExpiresToDB(unsafe_url, host, expires);
-                    }
-                };
-
-                Data.prototype.loadExpiresFromDB = function (keyUrl) {
-                };
-
-                Data.prototype.saveExpiresToDB = function (unsafe_url, host, expires) {
+                Data.prototype.saveExpires = function (unsafe_url, host, expires) {
                     var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
 
                     var value = {
-                        id: keyUrl,
+                        url: keyUrl,
                         host: host,
                         expires: expires,
                         title: undefined,
@@ -1764,16 +1721,40 @@ var MODULE;
                         date: undefined
                     };
 
-                    this.data_.DB.stores.history.setBuffer(value, true);
-                    this.data_.DB.stores.history.set(value);
+                    this.stores_.history.setBuffer(value, true);
+                    this.stores_.history.set(value, true);
                 };
 
-                Data.prototype.getCookie = function (key) {
-                    return this.data_.Cookie.getCookie(key);
+                // server
+                Data.prototype.getServerBuffers = function () {
+                    return this.stores_.server.getBuffers();
                 };
 
-                Data.prototype.setCookie = function (key, value, option) {
-                    return this.data_.Cookie.setCookie(key, value, option);
+                Data.prototype.loadServer = function () {
+                };
+
+                Data.prototype.saveServer = function (host, performance, state, unsafe_url, expires) {
+                    if (typeof state === "undefined") { state = 0; }
+                    if (typeof expires === "undefined") { expires = 0; }
+                    var store = this.stores_.server, value = {
+                        host: host.split('//').pop().split('/').shift() || '',
+                        performance: performance,
+                        state: state,
+                        date: new Date().getTime()
+                    };
+
+                    store.setBuffer(value, true);
+                    store.get(host, function () {
+                        var data = this.result;
+                        if (!data || !state) {
+                            // 新規または正常登録
+                            store.set(value);
+                        } else if (data.state) {
+                            // 2回目のエラーで登録削除
+                            store['delete'](host);
+                        }
+                    });
+                    this.stores_.server.clean();
                 };
                 return Data;
             })();
@@ -1842,45 +1823,27 @@ var MODULE;
                     this.app_.data.setCookie(setting.balance.client.cookie.host, host);
                 };
 
-                Balance.prototype.chooseServersByLog_ = function (expires, limit, weight, respite) {
-                    var servers = this.app_.data.stores.server.getBuffers(), logs = this.app_.data.stores.log.getBuffers(), logTable = {}, result = [];
+                Balance.prototype.chooseServers_ = function (expires, limit, weight, respite) {
+                    var servers = this.app_.data.getServerBuffers(), serverTableByPerformance = {}, result;
 
-                    var now = new Date().getTime();
-                    for (var i in logs) {
-                        if (now > logs[i].date + expires) {
-                            continue;
+                    (function () {
+                        var now = new Date().getTime();
+                        for (var i in servers) {
+                            if (now > servers[i].date + expires) {
+                                continue;
+                            }
+                            serverTableByPerformance[servers[i].performance] = servers[i];
                         }
-                        logTable[logs[i].performance] = logs[i];
-                    }
+                    })();
 
-                    var performances = Object.keys(logTable).sort().slice(0, limit), host;
-                    while (performances.length) {
-                        host = logTable[performances.shift()].host.split('//').pop() || '';
-                        if (servers[host] && servers[host].state && servers[host].state + respite >= new Date().getTime()) {
+                    result = [];
+                    var performanceList = Object.keys(serverTableByPerformance).sort();
+                    for (var i = 0, performance; performance = result.length < limit && performanceList[i]; i++) {
+                        var server = serverTableByPerformance[performance], host = server.host, state = server.state;
+                        if (state && state + respite >= new Date().getTime()) {
                             continue;
                         }
                         if (!host && weight && !(Math.floor(Math.random()) * weight)) {
-                            continue;
-                        }
-                        result.push(host);
-                    }
-                    return result;
-                };
-
-                Balance.prototype.chooseServersByRandom_ = function (expires, limit, respite) {
-                    var servers = this.app_.data.stores.server.getBuffers(), result = [];
-
-                    var now = new Date().getTime();
-                    var hosts = Object.keys(servers), host, r;
-                    while (hosts.length) {
-                        r = Math.floor(Math.random() * hosts.length);
-                        host = hosts[r];
-                        hosts.splice(r, 1);
-
-                        if (servers[host] && servers[host].state && servers[host].state + respite >= new Date().getTime()) {
-                            continue;
-                        }
-                        if (now > servers[host].date + expires || result.length > limit) {
                             continue;
                         }
                         result.push(host);
@@ -1894,7 +1857,7 @@ var MODULE;
                     }
 
                     // キャッシュの有効期限内の再リクエストは同じサーバーを選択してキャッシュを使用
-                    var history = this.app_.data.stores.history.getBuffer(this.model_.convertUrlToKeyUrl(setting.destLocation.href)), cacheExpires = history && history.expires || 0;
+                    var history = this.app_.data.getHistoryBuffer(setting.destLocation.href), cacheExpires = history && history.expires || 0;
 
                     if (cacheExpires && cacheExpires >= new Date().getTime()) {
                         this.changeServer(history.host, setting);
@@ -1902,20 +1865,13 @@ var MODULE;
                     }
 
                     // DBにもCookieにもデータがなければ正規サーバを選択
-                    if (!this.app_.data.stores.server.getBuffers().length && !this.app_.data.getCookie(setting.balance.client.cookie.host)) {
+                    if (!this.app_.data.getServerBuffers().length && !this.app_.data.getCookie(setting.balance.client.cookie.host)) {
                         this.changeServer('', setting);
                         return;
                     }
 
-                    // ログから最適なサーバーを選択
-                    var servers = this.chooseServersByLog_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.weight, setting.balance.server.respite);
-                    if (servers.length) {
-                        this.changeServer(servers.shift(), setting);
-                        return;
-                    }
-
-                    // サーバーリストからランダムにサーバーを選択
-                    var servers = this.chooseServersByRandom_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.server.respite);
+                    // 最適なサーバーを選択
+                    var servers = this.chooseServers_(setting.balance.history.expires, 1, setting.balance.weight, setting.balance.server.respite);
                     if (servers.length) {
                         this.changeServer(servers.shift(), setting);
                         return;
@@ -1929,7 +1885,7 @@ var MODULE;
                     if (!this.isBalanceable_(setting)) {
                         return;
                     }
-                    this.queue_ = this.queue_.length ? this.queue_ : this.chooseServersByLog_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.weight, setting.balance.server.respite).slice(0, retry + 1);
+                    this.queue_ = this.queue_.length ? this.queue_ : this.chooseServers_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.weight, setting.balance.server.respite).slice(0, retry + 1);
                     var servers = this.queue_, option = jQuery.extend({}, setting.ajax, setting.balance.option.ajax, setting.balance.option.callbacks.ajax);
                     while (servers.length) {
                         if (!this.host()) {
@@ -2740,7 +2696,7 @@ var MODULE;
                     }
 
                     this.dstDocument_.title = this.srcDocument_.title;
-                    setting.database && setting.fix.history && this.app_.data.saveTitleToDB(setting.destLocation.href, this.srcDocument_.title);
+                    setting.fix.history && this.app_.data.saveTitle();
 
                     if (Util.fire(callbacks_update.title.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                         return;
@@ -2851,9 +2807,9 @@ var MODULE;
                         return;
                     }
 
-                    var host = (this.jqXHR_.getResponseHeader(setting.balance.server.header) || '').split('//').pop();
-                    this.app_.data.saveLogToDB(host, Math.ceil(setting.loadtime / (this.jqXHR_.responseText.length || 1) * 1e5));
-                    this.app_.data.saveServerToDB(host, 0, setting.destLocation.href, this.calExpires(this.jqXHR_));
+                    var host = (this.jqXHR_.getResponseHeader(setting.balance.server.header) || ''), performance = Math.ceil(setting.loadtime / (this.jqXHR_.responseText.length || 1) * 1e5);
+                    this.app_.data.saveServer(host, performance);
+                    this.app_.data.saveExpires(setting.destLocation.href, host, this.calExpires(this.jqXHR_));
                     this.app_.balance.chooseServer(setting);
 
                     this.app_.data.loadBuffers(setting.buffer.limit);
@@ -3080,10 +3036,10 @@ var MODULE;
                             scrollY = scrollY === false || scrollY === null ? jQuery(window).scrollTop() : parseInt(Number(scrollY) + '', 10);
 
                             (jQuery(window).scrollTop() === scrollY && jQuery(window).scrollLeft() === scrollX) || window.scrollTo(scrollX, scrollY);
-                            call && setting.database && this.app_.page.isScrollPosSavable && setting.fix.scroll && this.app_.data.saveScrollPositionToDB(setting.destLocation.href, scrollX, scrollY);
+                            call && this.app_.page.isScrollPosSavable && setting.fix.scroll && this.app_.data.saveScrollPosition(setting.destLocation.href, scrollX, scrollY);
                             break;
                         case 'popstate':
-                            call && setting.fix.scroll && setting.database && this.app_.data.loadScrollPositionFromDB(setting.destLocation.href);
+                            call && setting.fix.scroll && this.app_.data.loadScrollPosition();
                             break;
                     }
 
@@ -3215,12 +3171,16 @@ var MODULE;
                         _this.update(setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host);
                     };
                     var fail = function (setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host) {
-                        if (setting.fallback && 'abort' !== textStatus) {
-                            if (setting.balance.self) {
-                                _this.app_.balance.disable(setting);
-                            }
-                            _this.model_.fallback(event, setting);
+                        if (!setting.fallback || 'abort' === textStatus) {
+                            return;
                         }
+
+                        if (setting.balance.self) {
+                            _this.app_.data.saveServer(host, 0, new Date().getTime());
+                            _this.app_.balance.chooseServer(setting);
+                        }
+
+                        _this.model_.fallback(event, setting);
                     };
 
                     this.fetch(setting, event, register, cache, done, fail);
@@ -3735,7 +3695,9 @@ var MODULE;
                     if (setting.cache.mix && this.getCache(setting.destLocation.href)) {
                         break PROCESS;
                     }
-                    setting.database && this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPositionToDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+
+                    this.app_.data.saveTitle();
+                    this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
 
                     var cache;
                     if (setting.cache[event.type.toLowerCase()]) {
@@ -3771,7 +3733,9 @@ var MODULE;
                     if (setting.cache.mix && this.getCache(setting.destLocation.href)) {
                         break PROCESS;
                     }
-                    setting.database && this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPositionToDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+
+                    this.app_.data.saveTitle();
+                    this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
 
                     var cache;
                     if (setting.cache[event.type.toLowerCase()] && setting.cache[context.method.toLowerCase()]) {
@@ -3811,7 +3775,8 @@ var MODULE;
                         break PROCESS;
                     }
 
-                    setting.database && setting.fix.history && this.app_.data.loadTitleFromDB(setting.destLocation.href);
+                    this.app_.data.saveTitle(setting.origLocation.href, document.title);
+                    setting.fix.history && this.app_.data.loadTitle();
 
                     var cache;
                     if (setting.cache[event.type.toLowerCase()]) {
@@ -3832,7 +3797,7 @@ var MODULE;
                 }
 
                 if (!setting.scroll.delay) {
-                    this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPositionToDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+                    this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
                 } else {
                     var id;
                     while (id = this.queue.shift()) {
@@ -3842,7 +3807,7 @@ var MODULE;
                         while (id = _this.queue.shift()) {
                             clearTimeout(id);
                         }
-                        _this.app_.page.isScrollPosSavable && _this.app_.data.saveScrollPositionToDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+                        _this.app_.page.isScrollPosSavable && _this.app_.data.saveScrollPosition();
                     }, setting.scroll.delay);
                     this.queue.push(id);
                 }
@@ -3943,7 +3908,7 @@ var MODULE;
                 }
                 if (jqXHR || cache && cache.jqXHR) {
                     var title = ((jqXHR || cache && cache.jqXHR).responseText || '').slice(0, 10000).match(/<title[^>]*>(.*?)<\/title>/i).pop() || '';
-                    setting.database && setting.fix.history && this.app_.data.saveTitleToDB(secure_url, title);
+                    setting.fix.history && this.app_.data.saveTitle(secure_url, title);
                 }
             };
 
