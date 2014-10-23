@@ -9,12 +9,11 @@ interface Window {
   webkitIDBKeyRange?: IDBKeyRange
   mozIDBKeyRange?: IDBKeyRange
   msIDBKeyRange?: IDBKeyRange
-  opera?
 }
 interface JQueryXHR {
-  follow: boolean
-  host: string
-  timeStamp: number
+  follow?: boolean
+  host?: string
+  timeStamp?: number
 }
 
 module MODULE {
