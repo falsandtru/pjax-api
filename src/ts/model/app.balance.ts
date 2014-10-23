@@ -51,52 +51,31 @@ module MODULE.MODEL.APP {
       this.app_.data.setCookie(setting.balance.client.cookie.host, host);
     }
 
-    private chooseServersByLog_(expires: number, limit: number, weight: number, respite: number): string[] {
-      var servers = this.app_.data.stores.server.getBuffers(),
-          logs = this.app_.data.stores.log.getBuffers(),
-          logTable: { [index: string]: LogSchema } = {},
-          result: string[] = [];
-      
-      var now: number = new Date().getTime();
-      for (var i in logs) {
-        if (now > logs[i].date + expires) {
-          continue;
-        }
-        logTable[logs[i].performance] = logs[i];
-      }
+    private chooseServers_(expires: number, limit: number, weight: number, respite: number): string[] {
+      var servers = this.app_.data.getServerBuffers(),
+          serverTableByPerformance: { [performance: string]: ServerStoreSchema } = {},
+          result: string[];
 
-      var performances = Object.keys(logTable).sort().slice(0, limit),
-          host: string;
-      while (performances.length) {
-        host = logTable[performances.shift()].host.split('//').pop() || '';
-        if (servers[host] && servers[host].state && servers[host].state + respite >= new Date().getTime()) {
+      (() => {
+        var now: number = new Date().getTime();
+        for (var i in servers) {
+          if (now > servers[i].date + expires) {
+            continue;
+          }
+          serverTableByPerformance[servers[i].performance] = servers[i];
+        }
+      })();
+
+      result = [];
+      var performanceList = Object.keys(serverTableByPerformance).sort();
+      for (var i = 0, performance: string; performance = result.length < limit && performanceList[i]; i++) {
+        var server = serverTableByPerformance[performance],
+            host = server.host,
+            state = server.state;
+        if (state && state + respite >= new Date().getTime()) {
           continue;
         }
         if (!host && weight && !(Math.floor(Math.random()) * weight)) {
-          continue;
-        }
-        result.push(host);
-      }
-      return result;
-    }
-
-    private chooseServersByRandom_(expires: number, limit: number, respite: number): string[] {
-      var servers = this.app_.data.stores.server.getBuffers(),
-          result: string[] = [];
-
-      var now: number = new Date().getTime();
-      var hosts = Object.keys(servers),
-          host: string,
-          r: number;
-      while (hosts.length) {
-        r = Math.floor(Math.random() * hosts.length);
-        host = hosts[r];
-        hosts.splice(r, 1);
-
-        if (servers[host] && servers[host].state && servers[host].state + respite >= new Date().getTime()) {
-          continue;
-        }
-        if (now > servers[host].date + expires || result.length > limit) {
           continue;
         }
         result.push(host);
@@ -108,7 +87,7 @@ module MODULE.MODEL.APP {
       if (!this.isBalanceable_(setting)) { return; }
 
       // キャッシュの有効期限内の再リクエストは同じサーバーを選択してキャッシュを使用
-      var history: HistorySchema = this.app_.data.stores.history.getBuffer(this.model_.convertUrlToKeyUrl(setting.destLocation.href)),
+      var history: HistoryStoreSchema = this.app_.data.getHistoryBuffer(setting.destLocation.href),
           cacheExpires: number = history && history.expires || 0;
 
       if (cacheExpires && cacheExpires >= new Date().getTime()) {
@@ -117,20 +96,13 @@ module MODULE.MODEL.APP {
       }
 
       // DBにもCookieにもデータがなければ正規サーバを選択
-      if (!this.app_.data.stores.server.getBuffers().length && !this.app_.data.getCookie(setting.balance.client.cookie.host)) {
+      if (!this.app_.data.getServerBuffers().length && !this.app_.data.getCookie(setting.balance.client.cookie.host)) {
         this.changeServer('', setting);
         return;
       }
       
-      // ログから最適なサーバーを選択
-      var servers: string[] = this.chooseServersByLog_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.weight, setting.balance.server.respite);
-      if (servers.length) {
-        this.changeServer(servers.shift(), setting);
-        return;
-      }
-
-      // サーバーリストからランダムにサーバーを選択
-      var servers: string[] = this.chooseServersByRandom_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.server.respite);
+      // 最適なサーバーを選択
+      var servers: string[] = this.chooseServers_(setting.balance.history.expires, 1, setting.balance.weight, setting.balance.server.respite);
       if (servers.length) {
         this.changeServer(servers.shift(), setting);
         return;
@@ -144,7 +116,7 @@ module MODULE.MODEL.APP {
     bypass(setting: SettingInterface, retry: number): void {
       if (!this.isBalanceable_(setting)) { return; }
       this.queue_ = this.queue_.length ? this.queue_
-                                       : this.chooseServersByLog_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.weight, setting.balance.server.respite).slice(0, retry + 1);
+                                       : this.chooseServers_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.weight, setting.balance.server.respite).slice(0, retry + 1);
       var servers = this.queue_,
           option: JQueryAjaxSettings = jQuery.extend({}, setting.ajax, setting.balance.option.ajax, setting.balance.option.callbacks.ajax);
       while (servers.length) {

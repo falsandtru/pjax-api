@@ -5,10 +5,10 @@
 
 module MODULE.MODEL.APP.DATA {
   
-  export class StoreHistory<T> extends Store<T> implements StoreHistoryInterface<T> {
+  export class HistoryStore<T> extends Store<T> implements HistoryStoreInterface<T> {
 
     name = 'history'
-    keyPath = 'id'
+    keyPath = 'url'
     autoIncrement = false
     indexes = [
       { name: 'date', keyPath: 'date', option: { unique: false } }

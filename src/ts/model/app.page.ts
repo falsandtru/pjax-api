@@ -29,12 +29,14 @@ module MODULE.MODEL.APP {
         this.update(setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host);
       };
       var fail = (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => {
-        if (setting.fallback && 'abort' !== textStatus) {
-          if (setting.balance.self) {
-            this.app_.balance.disable(setting);
-          }
-          this.model_.fallback(event, setting);
+        if (!setting.fallback || 'abort' === textStatus) { return; }
+
+        if (setting.balance.self) {
+          this.app_.data.saveServer(host, 0, new Date().getTime());
+          this.app_.balance.chooseServer(setting);
         }
+
+        this.model_.fallback(event, setting);
       };
 
       this.fetch(setting, event, register, cache, done, fail);

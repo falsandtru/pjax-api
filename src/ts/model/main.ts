@@ -134,7 +134,9 @@ module MODULE.MODEL {
         if (!this.isImmediateLoadable(event, setting)) { break PROCESS; }
 
         if (setting.cache.mix && this.getCache(setting.destLocation.href)) { break PROCESS; }
-        setting.database && this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPositionToDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+
+        this.app_.data.saveTitle();
+        this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
 
         var cache: CacheInterface;
         if (setting.cache[event.type.toLowerCase()]) { cache = this.getCache(setting.destLocation.href); }
@@ -160,7 +162,9 @@ module MODULE.MODEL {
         var serializedURL = setting.destLocation.href.replace(/[?#].*/, '') + ('GET' === context.method.toUpperCase() ? '?' + jQuery(context).serialize() : '');
         setting.destLocation.href = Util.normalizeUrl(serializedURL);
         if (setting.cache.mix && this.getCache(setting.destLocation.href)) { break PROCESS; }
-        setting.database && this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPositionToDB(setting.destLocation.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+
+        this.app_.data.saveTitle();
+        this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
 
         var cache: CacheInterface;
         if (setting.cache[event.type.toLowerCase()] && setting.cache[context.method.toLowerCase()]) { cache = this.getCache(setting.destLocation.href); }
@@ -188,7 +192,8 @@ module MODULE.MODEL {
           break PROCESS;
         }
         
-        setting.database && setting.fix.history && this.app_.data.loadTitleFromDB(setting.destLocation.href);
+        this.app_.data.saveTitle(setting.origLocation.href, document.title);
+        setting.fix.history && this.app_.data.loadTitle();
 
         var cache: CacheInterface;
         if (setting.cache[event.type.toLowerCase()]) { cache = this.getCache(setting.destLocation.href); }
@@ -203,13 +208,13 @@ module MODULE.MODEL {
       if (State.open !== this.state() || event.isDefaultPrevented()) { return; }
 
       if (!setting.scroll.delay) {
-        this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPositionToDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+        this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
       } else {
         var id: number;
         while (id = this.queue.shift()) { clearTimeout(id); }
         id = setTimeout(() => {
           while (id = this.queue.shift()) { clearTimeout(id); }
-          this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPositionToDB(window.location.href, jQuery(window).scrollLeft(), jQuery(window).scrollTop());
+          this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
         }, setting.scroll.delay);
         this.queue.push(id);
       }
@@ -306,7 +311,7 @@ module MODULE.MODEL {
       }
       if (jqXHR || cache && cache.jqXHR) {
         var title: string = ((jqXHR || cache && cache.jqXHR).responseText || '').slice(0, 10000).match(/<title[^>]*>(.*?)<\/title>/i).pop() || '';
-        setting.database && setting.fix.history && this.app_.data.saveTitleToDB(secure_url, title);
+        setting.fix.history && this.app_.data.saveTitle(secure_url, title);
       }
     }
 

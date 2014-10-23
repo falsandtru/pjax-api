@@ -19,17 +19,18 @@ module MODULE.VIEW {
       .delegate(setting.form, setting.nss.submit, this.handlers.submit);
       jQuery(window).bind(setting.nss.popstate, this.handlers.popstate);
 
-      setting.fix.scroll &&
+      setting.database && setting.fix.scroll &&
       jQuery(window).bind(setting.nss.scroll, this.handlers.scroll);
       return this;
     }
+
     private release_(setting: SettingInterface): ViewInterface {
       this.context_
       .undelegate(setting.link, setting.nss.click)
       .undelegate(setting.form, setting.nss.submit);
       jQuery(window).unbind(setting.nss.popstate);
 
-      setting.fix.scroll &&
+      setting.database && setting.fix.scroll &&
       jQuery(window).unbind(setting.nss.scroll);
       return this;
     }
