@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.25.2
+ * @version 2.25.3
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -1171,13 +1171,26 @@ var MODULE;
                     };
 
                     DB.prototype.checkdb_ = function (database, version, success, upgrade) {
-                        var that = this, scheme = this.meta, store = this.stores.meta;
+                        var that = this, scheme = this.meta, meta = this.stores.meta;
 
-                        store.get(scheme.version.key, function () {
+                        if (database.objectStoreNames.length !== Object.keys(this.stores).length) {
+                            return void upgrade();
+                        }
+
+                        for (var i in this.stores) {
+                            var store = database.transaction(this.stores[i].name, 'readonly').objectStore(this.stores[i].name);
+                            switch (false) {
+                                case store.keyPath === that.stores[i].keyPath:
+                                case store.indexNames.length === that.stores[i].indexes.length:
+                                    upgrade();
+                            }
+                        }
+
+                        meta.get(scheme.version.key, function () {
                             // version check
                             var data = this.result;
                             if (!data || that.upgrade_) {
-                                store.set(store.setBuffer({ key: scheme.version.key, value: version }));
+                                meta.set(meta.setBuffer({ key: scheme.version.key, value: version }));
                             } else if (data.value < version) {
                                 upgrade();
                             } else if (data.value > version) {
@@ -1185,12 +1198,12 @@ var MODULE;
                             }
                         });
 
-                        store.get(scheme.update.key, function () {
+                        meta.get(scheme.update.key, function () {
                             // refresh check
                             var data = this.result;
                             var days = Math.floor(new Date().getTime() / (24 * 60 * 60 * 1000));
                             if (!data || !that.refresh_) {
-                                store.set(store.setBuffer({ key: scheme.update.key, value: days + that.refresh_ }));
+                                meta.set(meta.setBuffer({ key: scheme.update.key, value: days + that.refresh_ }));
                             } else if (data.value <= days) {
                                 return void upgrade();
                             }
