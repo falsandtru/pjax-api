@@ -108,7 +108,6 @@ module MODULE.MODEL.APP.DATA {
 
             that.database_ = null;
           } catch (err) {
-            database.close();
             !noRetry && that.initdb_(1000);
           }
         };
