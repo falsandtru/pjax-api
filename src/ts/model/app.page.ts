@@ -10,10 +10,12 @@ module MODULE.MODEL.APP {
 
   var Util = LIBRARY.Utility
 
-  export class Page extends PageUtility implements PageInterface {
+  MIXIN(PageFetch, [PageUtility]);
+  MIXIN(PageUpdate, [PageUtility]);
+
+  export class Page implements PageInterface {
 
     constructor(private model_: ModelInterface, private app_: AppLayerInterface) {
-      super();
       setTimeout(() => this.createHTMLDocument('', '') || this.model_.disable(), 50);
     }
     
@@ -67,7 +69,21 @@ module MODULE.MODEL.APP {
                    ): void {
       new PageUpdate(this.model_, this.app_, setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host, ++this.count_, this.time_);
     }
-    
+
+    // mixin utility
+    createHTMLDocument(html: string, uri: string): Document { return }
+    chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
+    chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
+    chooseArea(areas: any, srcDocument: Document, dstDocument: Document): string { return }
+    movePageNormally(event: JQueryEventObject): void { }
+    calAge(jqXHR: JQueryXHR): number { return }
+    calExpires(jqXHR: JQueryXHR): number { return }
+    dispatchEvent(target: Window, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent(target: any, eventType: string, bubbling: boolean, cancelable: boolean): void { }
+    wait(ms: number): JQueryDeferred<any> { return }
+
   }
 
 }

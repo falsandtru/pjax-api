@@ -9,7 +9,7 @@ module MODULE.MODEL.APP {
 
   var Util = LIBRARY.Utility
 
-  export class PageUpdate extends PageUtility implements PageUpdateInterface {
+  export class PageUpdate implements PageUpdateInterface {
     
     constructor(
 
@@ -27,7 +27,6 @@ module MODULE.MODEL.APP {
     private count_: number,
     private time_: number
     ) {
-      super();
       this.main_();
     }
 
@@ -90,7 +89,7 @@ module MODULE.MODEL.APP {
           
           this.checkRedirect_();
           
-          this.dispatchEvent_(window, setting.gns + ':unload', false, true);
+          this.dispatchEvent(window, setting.gns + ':unload', false, true);
           
           this.updateUrl_();
           
@@ -162,7 +161,7 @@ module MODULE.MODEL.APP {
                 window.history.forward();
                 jQuery[NAME].enable();
               }
-              setTimeout(() => this.dispatchEvent_(window, 'popstate', false, false), 0);
+              setTimeout(() => this.dispatchEvent(window, 'popstate', false, false), 0);
               break;
           }
           throw false;
@@ -238,7 +237,7 @@ module MODULE.MODEL.APP {
         e.stopImmediatePropagation();
 
         var onready = (callback?: () => void) => {
-          this.dispatchEvent_(document, setting.gns + ':ready', false, true);
+          this.dispatchEvent(document, setting.gns + ':ready', false, true);
 
           Util.fire(setting.callback, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]);
 
@@ -255,7 +254,7 @@ module MODULE.MODEL.APP {
             }
           }, 100);
 
-          this.dispatchEvent_(document, setting.gns + ':render', false, true);
+          this.dispatchEvent(document, setting.gns + ':render', false, true);
 
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('render(' + speed.time.slice(-1) + ')');
@@ -264,7 +263,7 @@ module MODULE.MODEL.APP {
         };
 
         var onload = () => {
-          this.dispatchEvent_(window, setting.gns + ':load', false, true);
+          this.dispatchEvent(window, setting.gns + ':load', false, true);
 
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('load(' + speed.time.slice(-1) + ')');
@@ -440,7 +439,7 @@ module MODULE.MODEL.APP {
         $dstAreas.append(checker.clone());
         $dstAreas.find('script').each((i, elem) => this.restoreScript_(<HTMLScriptElement>elem));
       }
-      this.dispatchEvent_(document, setting.gns + ':DOMContentLoaded', false, true);
+      this.dispatchEvent(document, setting.gns + ':DOMContentLoaded', false, true);
 
       if (Util.fire(callbacks_update.content.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
@@ -570,8 +569,8 @@ module MODULE.MODEL.APP {
               if (!element.getAttribute('src')) { return; }
               if (element.hasAttribute('async')) {
                 jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: true, global: false }))
-                .done(() => this.dispatchEvent_(element, 'load', false, true))
-                .fail(() => this.dispatchEvent_(element, 'error', false, true));
+                .done(() => this.dispatchEvent(element, 'load', false, true))
+                .fail(() => this.dispatchEvent(element, 'error', false, true));
               } else {
                 jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, dataType: 'text', async: true, global: false }))
                 .done(() => defer.resolve([element, <string>arguments[0]]))
@@ -605,9 +604,9 @@ module MODULE.MODEL.APP {
               if (element.src) { loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload); }
               if ('string' === typeof response) {
                 eval.call(window, response);
-                element.hasAttribute('src') && this.dispatchEvent_(element, 'load', false, true);
+                element.hasAttribute('src') && this.dispatchEvent(element, 'load', false, true);
               } else {
-                element.hasAttribute('src') && this.dispatchEvent_(element, 'error', false, true);
+                element.hasAttribute('src') && this.dispatchEvent(element, 'error', false, true);
               }
             }
           });
@@ -617,8 +616,8 @@ module MODULE.MODEL.APP {
               if (element.src) { loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload); }
               ((element) => {
                 jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: element.hasAttribute('async'), global: false }, {
-                  success: () => this.dispatchEvent_(element, 'load', false, true),
-                  error: () => this.dispatchEvent_(element, 'error', false, true)
+                  success: () => this.dispatchEvent(element, 'load', false, true),
+                  error: () => this.dispatchEvent(element, 'error', false, true)
                 }));
               })(element);
             } else {
@@ -754,7 +753,21 @@ module MODULE.MODEL.APP {
       script.innerHTML = jQuery.data(script, 'code');
       jQuery.removeData(script, 'code');
     }
-    
+
+    // mixin utility
+    createHTMLDocument(html: string, uri: string): Document { return }
+    chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
+    chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
+    chooseArea(areas: any, srcDocument: Document, dstDocument: Document): string { return }
+    movePageNormally(event: JQueryEventObject): void { }
+    calAge(jqXHR: JQueryXHR): number { return }
+    calExpires(jqXHR: JQueryXHR): number { return }
+    dispatchEvent(target: Window, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent(target: any, eventType: string, bubbling: boolean, cancelable: boolean): void { }
+    wait(ms: number): JQueryDeferred<any> { return }
+
   }
 
 }

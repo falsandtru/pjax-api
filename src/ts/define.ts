@@ -169,6 +169,17 @@ module MODULE {
   }
 
   // Function
+  export function MIXIN(baseClass: Function, mixClasses: Function[]): void {
+    var baseClassPrototype = baseClass.prototype;
+    for (var iMixClasses = mixClasses.length; iMixClasses--;) {
+      var mixClassPrototype = mixClasses[iMixClasses].prototype;
+      for (var iProperty in mixClassPrototype) {
+        if ('constructor' === iProperty || !mixClassPrototype.hasOwnProperty(iProperty)) { continue; }
+        baseClassPrototype[iProperty] = mixClassPrototype[iProperty];
+      }
+    }
+  }
+
   export function GEN_UUID(): string {
     // version 4
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, gen);
@@ -269,6 +280,10 @@ module MODULE.MODEL {
     movePageNormally(event: JQueryEventObject): void
     calAge(jqXHR: JQueryXHR): number
     calExpires(jqXHR: JQueryXHR): number
+    dispatchEvent(target: Window, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
+    wait(ms: number): JQueryDeferred<any>
   }
   export declare class DataInterface {
     // cookie
