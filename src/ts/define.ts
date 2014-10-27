@@ -167,53 +167,6 @@ module MODULE {
     host: string
     timeStamp: number
   }
-
-  // Function
-  export function MIXIN(baseClass: Function, mixClasses: Function[]): void {
-    var baseClassPrototype = baseClass.prototype;
-    for (var iMixClasses = mixClasses.length; iMixClasses--;) {
-      var mixClassPrototype = mixClasses[iMixClasses].prototype;
-      for (var iProperty in mixClassPrototype) {
-        if ('constructor' === iProperty || !mixClassPrototype.hasOwnProperty(iProperty)) { continue; }
-        baseClassPrototype[iProperty] = mixClassPrototype[iProperty];
-      }
-    }
-  }
-
-  export function GEN_UUID(): string {
-    // version 4
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, gen);
-    function gen(c) {
-      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16).toUpperCase();
-    }
-  }
-
-  export function FREEZE<T>(object: T, deep?: boolean): T {
-    if (!Object.freeze || object === object['window'] || 'ownerDocument' in object) { return object; }
-    !Object.isFrozen(object) && Object.freeze(object);
-    if (!deep) { return object; }
-    for (var i in object) {
-      var prop = object[i];
-      if (~'object,function'.indexOf(typeof prop) && prop) {
-        FREEZE(prop, deep);
-      }
-    }
-    return object;
-  }
-
-  export function SEAL<T>(object: T, deep?: boolean): T {
-    if (!Object.seal || object === object['window'] || 'ownerDocument' in object) { return object; }
-    !Object.isSealed(object) && Object.seal(object);
-    if (!deep) { return object; }
-    for (var i in object) {
-      var prop = object[i];
-      if (~'object,function'.indexOf(typeof prop) && prop) {
-        SEAL(prop, deep);
-      }
-    }
-    return object;
-  }
 }
 
 module MODULE.MODEL {
@@ -420,4 +373,53 @@ module MODULE.MODEL.APP {
     }
   }
 
+}
+
+module MODULE {
+  // MACRO
+  export function MIXIN(baseClass: Function, mixClasses: Function[]): void {
+    var baseClassPrototype = baseClass.prototype;
+    for (var iMixClasses = mixClasses.length; iMixClasses--;) {
+      var mixClassPrototype = mixClasses[iMixClasses].prototype;
+      for (var iProperty in mixClassPrototype) {
+        if ('constructor' === iProperty || !mixClassPrototype.hasOwnProperty(iProperty)) { continue; }
+        baseClassPrototype[iProperty] = mixClassPrototype[iProperty];
+      }
+    }
+  }
+
+  export function GEN_UUID(): string {
+    // version 4
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, gen);
+    function gen(c) {
+      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16).toUpperCase();
+    }
+  }
+
+  export function FREEZE<T>(object: T, deep?: boolean): T {
+    if (!Object.freeze || object === object['window'] || 'ownerDocument' in object) { return object; }
+    !Object.isFrozen(object) && Object.freeze(object);
+    if (!deep) { return object; }
+    for (var i in object) {
+      var prop = object[i];
+      if (~'object,function'.indexOf(typeof prop) && prop) {
+        FREEZE(prop, deep);
+      }
+    }
+    return object;
+  }
+
+  export function SEAL<T>(object: T, deep?: boolean): T {
+    if (!Object.seal || object === object['window'] || 'ownerDocument' in object) { return object; }
+    !Object.isSealed(object) && Object.seal(object);
+    if (!deep) { return object; }
+    for (var i in object) {
+      var prop = object[i];
+      if (~'object,function'.indexOf(typeof prop) && prop) {
+        SEAL(prop, deep);
+      }
+    }
+    return object;
+  }
 }
