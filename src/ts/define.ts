@@ -72,7 +72,6 @@ module MODULE {
 
     // Property
     isDeferrable: boolean
-    queue: number[]
     
     // Model
     state(): State

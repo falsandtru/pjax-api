@@ -13,6 +13,7 @@ nav: nav
   * `reset.type`パラメータを追加
   * `reset.count`パラメータを追加
   * `reset.time`パラメータを追加
+* `scroll.delay`パラメータを削除
 * データベースの仕様を修正
 
 ## 2.25.4

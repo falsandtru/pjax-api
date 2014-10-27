@@ -56,7 +56,6 @@ module MODULE.MODEL.APP {
             state: null,
             scrollTop: 0,
             scrollLeft: 0,
-            scroll: { delay: 300 },
             ajax: { dataType: 'text' },
             contentType: 'text/html',
             redirect: true,
