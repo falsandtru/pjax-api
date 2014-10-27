@@ -6,7 +6,7 @@
 module MODULE.MODEL.APP.DATA {
   
   export class Store<T> implements StoreInterface<T> {
-    constructor(public DB: DBInterface) {
+    constructor(public DB: DatabaseInterface) {
     }
 
     name: string

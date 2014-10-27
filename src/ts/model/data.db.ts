@@ -8,7 +8,7 @@
 
 module MODULE.MODEL.APP.DATA {
   
-  export class DB implements DBInterface {
+  export class DB implements DatabaseInterface {
 
     constructor() {
       this.check_();
@@ -71,7 +71,7 @@ module MODULE.MODEL.APP.DATA {
       this.stateful = new DBStatefulDown();
     }
 
-    open(): DBInstanceInterface {
+    open(): DatabaseInstanceInterface {
       !this.IDBFactory && this.down();
 
       switch (this.state_) {

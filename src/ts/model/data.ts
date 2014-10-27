@@ -8,7 +8,7 @@ module MODULE.MODEL.APP.DATA {
   
   export class Main implements DataLayerInterface {
 
-    DB: DBInterface = new DB()
+    DB: DatabaseInterface = new DB()
     Cookie: CookieInterface = new Cookie(10 * 24 * 60 * 60)
 
   }

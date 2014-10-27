@@ -273,17 +273,17 @@ module MODULE.MODEL {
 module MODULE.MODEL.APP {
   // DATA Layer
   export declare class DataLayerInterface {
-    DB: DBInterface
+    DB: DatabaseInterface
     Cookie: CookieInterface
   }
-  export declare class DBInterface {
+  export declare class DatabaseInterface {
     IDBFactory: IDBFactory
     IDBKeyRange: IDBKeyRange
 
     database(): IDBDatabase
     up(): void
     down(): void
-    open(): DBInstanceInterface
+    open(): DatabaseInstanceInterface
     close(): void
     stateful: DBStatefulInterface
 
@@ -293,15 +293,15 @@ module MODULE.MODEL.APP {
       update: { key: string; value: number; }
     }
   }
-  export declare class DBInstanceInterface {
+  export declare class DatabaseInstanceInterface {
     task(task: () => void): void
   }
-  export declare class DBStatefulInterface extends DBInstanceInterface {
+  export declare class DBStatefulInterface extends DatabaseInstanceInterface {
     reserveTask(task: () => void): void
     digestTask(): void
   }
   export declare class StoreInterface<T> {
-    constructor(DB: DBInterface)
+    constructor(DB: DatabaseInterface)
 
     name: string
     keyPath: string
