@@ -91,6 +91,11 @@ interface PjaxSetting {
     }
     wait?: any     // number, function( event, param, origUrl, destUrl ): number
     fallback?: any // boolean, function( event, param, origUrl, destUrl ): boolean
+    reset?: {
+        type?: string
+        count?: number
+        time?: number
+    }
     fix?: {
         location?: boolean
         history?: boolean

@@ -237,14 +237,6 @@ module MODULE.MODEL {
     globalSetting: SettingInterface
     
     transfer(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface): void
-    fetch(setting: SettingInterface,
-          event: JQueryEventObject,
-          register: boolean,
-          cache: CacheInterface,
-          done: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void,
-          fail: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void
-         ): void
-    update(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string): void
   }
   export declare class PageFetchInterface extends PageUtilityInterface {
     constructor(model: ModelInterface,
@@ -267,7 +259,9 @@ module MODULE.MODEL {
       textStatus: string,
       jqXHR: JQueryXHR,
       errorThrown: string,
-      host: string)
+      host: string,
+      count: number,
+      time: number)
   }
   export declare class PageUtilityInterface {
     createHTMLDocument(html: string, uri: string): Document

@@ -23,7 +23,9 @@ module MODULE.MODEL.APP {
     private textStatus_: string,
     private jqXHR_: JQueryXHR,
     private errorThrown_: string,
-    private host_: string
+    private host_: string,
+    private count_: number,
+    private time_: number
     ) {
       super();
       this.main_();
@@ -195,7 +197,7 @@ module MODULE.MODEL.APP {
       } else if (setting.retriable) {
         setting.retriable = false;
         setting.destLocation.href = Util.normalizeUrl(window.location.href);
-        new PageUpdate(this.model_, this.app_, setting, event, false, setting.cache[event.type.toLowerCase()] && this.model_.getCache(setting.destLocation.href), this.data_, this.textStatus_, this.jqXHR_, this.errorThrown_, this.host_);
+        new PageUpdate(this.model_, this.app_, setting, event, false, setting.cache[event.type.toLowerCase()] && this.model_.getCache(setting.destLocation.href), this.data_, this.textStatus_, this.jqXHR_, this.errorThrown_, this.host_, this.count_, this.time_);
         throw false;
       } else {
         throw new Error('throw: location mismatch');
@@ -277,6 +279,15 @@ module MODULE.MODEL.APP {
         };
 
         this.scroll_(false);
+
+        if (100 > setting.loadtime && setting.reset.type.match(event.type.toLowerCase()) && !jQuery('form[method][method!="GET"]').length) {
+          switch (false) {
+            case this.count_ < setting.reset.count || !setting.reset.count:
+            case new Date().getTime() < setting.reset.time + this.time_ || !setting.reset.time:
+              throw new Error('throw: reset');
+          }
+        }
+
         var scriptwaits = this.script_(':not([defer]), :not([src])');
 
         if (jQuery.when) {

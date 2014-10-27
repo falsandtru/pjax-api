@@ -68,6 +68,9 @@ pjaxを設定します。
 ### [fallback:](api/core/setting/fallback/)
 エラー処理を設定します。
 
+### [reset:](api/core/setting/reset/)
+メモリリーク対策としてJavaScriptの実行状態をリセットする条件を設定します。
+
 ### [fix:](api/core/setting/fix/)
 pjaxの諸問題の修正を設定します。
 

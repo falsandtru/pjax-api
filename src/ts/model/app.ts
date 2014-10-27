@@ -56,8 +56,10 @@ module MODULE.MODEL.APP {
             state: null,
             scrollTop: 0,
             scrollLeft: 0,
+            scroll: { delay: 300 },
             ajax: { dataType: 'text' },
             contentType: 'text/html',
+            redirect: true,
             cache: {
               click: false, submit: false, popstate: false, get: true, post: true, mix: 0,
               limit: 100 /* pages */, size: 1 * 1024 * 1024 /* 1MB */, expires: { max: null, min: 5 * 60 * 1000 /* 5min */}
@@ -114,15 +116,13 @@ module MODULE.MODEL.APP {
                 limit: 30
               }
             },
-            callback: null,
-            callbacks: {
-              ajax: {},
-              update: { redirect: {}, rewrite: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, balance: {} }
-            },
-            param: null,
-            redirect: true,
             wait: 0,
-            scroll: { delay: 300 },
+            fallback: true,
+            reset: {
+              type: '',
+              count: 100,
+              time: 3 * 60 * 60 * 1000
+            },
             fix: {
               location: true,
               history: true,
@@ -130,12 +130,17 @@ module MODULE.MODEL.APP {
               noscript: true,
               reset: false
             },
-            fallback: true,
             database: true,
             server: {
               query: null,
               header: true
-            }
+            },
+            callback: null,
+            callbacks: {
+              ajax: {},
+              update: { redirect: {}, rewrite: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, balance: {} }
+            },
+            param: null
           },
           force = <SettingInterface>{
             ns: undefined,
@@ -192,6 +197,9 @@ module MODULE.MODEL.APP {
               destLocation: (function (url, a) { a.href = url; return a; })(destURL, document.createElement('a')),
               fix: /android|iphone os|like mac os x/i.test(window.navigator.userAgent) ? undefined : { location: false, reset: false },
               contentType: setting.contentType.replace(/\s*[,;]\s*/g, '|').toLowerCase(),
+              reset: {
+                type: (setting.reset.type || '').toLowerCase()
+              },
               server: {
                 query: query
               },
