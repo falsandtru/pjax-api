@@ -5,14 +5,12 @@
 
 module MODULE.MODEL.APP.DATA {
   
-  export class MetaStore<T> extends Store<T> implements MetaStoreInterface<T> {
+  export class MetaStore extends Store<MetaStoreSchema> {
 
     name = 'meta'
     keyPath = 'key'
     autoIncrement = false
-    indexes = [
-      { name: this.keyPath, keyPath: this.keyPath, option: { unique: true } }
-    ]
+    limit = 0
 
   }
 

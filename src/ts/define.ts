@@ -340,20 +340,8 @@ module MODULE.MODEL.APP {
     keyPath: string
     autoIncrement: boolean
     indexes: StoreIndexOptionInterface[]
+    limit: number
 
-    loadBuffer(limit?: number): void
-    saveBuffer(): void
-
-    getBuffers(): T[]
-    getBuffer(key: string): T
-    getBuffer(key: number): T
-    setBuffers(values: T[], isMerge?: boolean): T[]
-    setBuffer(value: T, isMerge?: boolean): T
-    addBuffer(value: any): T
-    removeBuffer(key: string): T
-    removeBuffer(key: number): T
-    clearBuffer(): void
-    
     get(key: number, success: (event: Event) => void): void
     get(key: string, success: (event: Event) => void): void
     set(value: T, isMerge?: boolean): void
@@ -361,14 +349,20 @@ module MODULE.MODEL.APP {
     put(value: T): void
     remove(key: number): void
     remove(key: string): void
-  }
-  export declare class MetaStoreInterface<T> extends StoreInterface<T> {
-  }
-  export declare class HistoryStoreInterface<T> extends StoreInterface<T> {
+    clear(): void
     clean(): void
-  }
-  export declare class ServerStoreInterface<T> extends StoreInterface<T> {
-    clean(): void
+
+    loadBuffer(limit?: number): void
+    saveBuffer(): void
+    getBuffers(): T[]
+    setBuffers(values: T[], isMerge?: boolean): T[]
+    getBuffer(key: string): T
+    getBuffer(key: number): T
+    setBuffer(value: T, isMerge?: boolean): T
+    addBuffer(value: any): T
+    removeBuffer(key: string): T
+    removeBuffer(key: number): T
+    clearBuffer(): void
   }
   export declare class CookieInterface {
     constructor(age: number)
@@ -387,9 +381,9 @@ module MODULE.MODEL.APP {
 
   // Database
   export interface DatabaseSchema {
-    meta: MetaStoreInterface<MetaStoreSchema>
-    history: HistoryStoreInterface<HistoryStoreSchema>
-    server: ServerStoreInterface<ServerStoreSchema>
+    meta: StoreInterface<MetaStoreSchema>
+    history: StoreInterface<HistoryStoreSchema>
+    server: StoreInterface<ServerStoreSchema>
   }
   export interface MetaStoreSchema {
     key: string

@@ -40,9 +40,9 @@ module MODULE.MODEL.APP.DATA {
     private tasks_: { (): void }[] = []
 
     stores = {
-      meta: new MetaStore<MetaStoreSchema>(this),
-      history: new HistoryStore<HistoryStoreSchema>(this),
-      server: new ServerStore<ServerStoreSchema>(this)
+      meta: new MetaStore(this),
+      history: new HistoryStore(this),
+      server: new ServerStore(this)
     }
     meta = {
       version: { key: 'version', value: undefined },
@@ -68,9 +68,9 @@ module MODULE.MODEL.APP.DATA {
       try {
         that.state_ = State.initiate;
 
-        var request = that.IDBFactory.open(that.name_, that.upgrade_ ? that.version_ : 1);
+        var req = that.IDBFactory.open(that.name_, that.upgrade_ ? that.version_ : 1);
 
-        request.onblocked = function () {
+        req.onblocked = function () {
           that.closedb(State.pause);
           try {
             this.result.close();
@@ -80,7 +80,7 @@ module MODULE.MODEL.APP.DATA {
           }
         };
 
-        request.onupgradeneeded = function () {
+        req.onupgradeneeded = function () {
           try {
             var database: IDBDatabase = this.result;
 
@@ -90,7 +90,7 @@ module MODULE.MODEL.APP.DATA {
           }
         };
 
-        request.onsuccess = function () {
+        req.onsuccess = function () {
           try {
             var database: IDBDatabase = this.result;
 
@@ -112,7 +112,7 @@ module MODULE.MODEL.APP.DATA {
           }
         };
 
-        request.onerror = function (event) {
+        req.onerror = function (event) {
           that.closedb(State.error);
           try {
             this.result.close();
@@ -149,10 +149,10 @@ module MODULE.MODEL.APP.DATA {
     private deletedb_(success?: () => void, failure?: () => void): void {
       this.closedb();
       var IDBFactory = this.IDBFactory;
-      var request = IDBFactory && IDBFactory.deleteDatabase && IDBFactory.deleteDatabase(this.name_);
-      if (request) {
-        request.onsuccess = success;
-        request.onerror = failure;
+      var req = IDBFactory && IDBFactory.deleteDatabase && IDBFactory.deleteDatabase(this.name_);
+      if (req) {
+        req.onsuccess = success;
+        req.onerror = failure;
       }
     }
 
@@ -170,9 +170,11 @@ module MODULE.MODEL.APP.DATA {
         switch (false) {
           case store.keyPath === that.stores[i].keyPath:
           case store.indexNames.length === that.stores[i].indexes.length:
-            upgrade();
+            return void upgrade();
         }
       }
+
+      var cancel = false;
 
       meta.get(scheme.version.key, function () {
         // version check
@@ -180,14 +182,17 @@ module MODULE.MODEL.APP.DATA {
         if (!data || that.upgrade_) {
           meta.set(meta.setBuffer({ key: scheme.version.key, value: version }));
         } else if (data.value < version) {
+          cancel = true;
           upgrade();
         } else if (data.value > version) {
+          cancel = true;
           that.closedb(State.error);
         }
       });
 
       meta.get(scheme.update.key, function () {
         // refresh check
+        if (cancel) { return; }
         var data: MetaStoreSchema = this.result;
         var days: number = Math.floor(new Date().getTime() / (24 * 60 * 60 * 1000));
         if (!data || !that.refresh_) {

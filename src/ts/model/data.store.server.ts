@@ -5,7 +5,7 @@
 
 module MODULE.MODEL.APP.DATA {
   
-  export class ServerStore<T> extends Store<T> implements ServerStoreInterface<T> {
+  export class ServerStore extends Store<ServerStoreSchema> {
 
     name = 'server'
     keyPath = 'host'
@@ -13,29 +13,7 @@ module MODULE.MODEL.APP.DATA {
     indexes = [
       { name: 'date', keyPath: 'date', option: { unique: false } }
     ]
-
-    clean(): void {
-      var that = this;
-      this.accessStore((store) => {
-        var size = 50;
-
-        store.count().onsuccess = function () {
-          if (this.result <= size + 10) { return; }
-          size = this.result - size;
-          store.index('date').openCursor(that.DB.IDBKeyRange.lowerBound(0), 'prev').onsuccess = function () {
-            if (!this.result) { return; }
-
-            var IDBCursor = this.result;
-            if (IDBCursor) {
-              if (0 > --size) {
-                IDBCursor['delete'](IDBCursor.value[store.keyPath]);
-              }
-              IDBCursor['continue'] && IDBCursor['continue']();
-            }
-          };
-        };
-      });
-    }
+    limit = 100
 
   }
 
