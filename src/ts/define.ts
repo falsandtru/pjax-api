@@ -116,7 +116,7 @@ module MODULE {
   }
 
   // State
-  export enum State { blank = -2, initiate, open, pause, lock, seal, error, crash, terminate, close }
+  export enum State { blank, initiate, open, pause, lock, seal, error, crash, terminate, close }
 
   // Context
   export interface ExtensionInterface extends JQueryPjax { }
@@ -277,22 +277,28 @@ module MODULE.MODEL.APP {
     Cookie: CookieInterface
   }
   export declare class DBInterface {
-
     IDBFactory: IDBFactory
     IDBKeyRange: IDBKeyRange
 
     database(): IDBDatabase
-    state(): State
+    up(): void
+    down(): void
+    open(): DBInstanceInterface
+    close(): void
+    stateful: DBStatefulInterface
+
     stores: DatabaseSchema
     meta: {
       version: { key: string; value: number; }
       update: { key: string; value: number; }
     }
-    
-    conExtend(): void
-
-    opendb(task?: () => void, noRetry?: boolean): void
-    closedb(): void
+  }
+  export declare class DBInstanceInterface {
+    task(task: () => void): void
+  }
+  export declare class DBStatefulInterface extends DBInstanceInterface {
+    reserveTask(task: () => void): void
+    digestTask(): void
   }
   export declare class StoreInterface<T> {
     constructor(DB: DBInterface)

@@ -18,8 +18,6 @@ module MODULE.MODEL.APP.DATA {
     buffer_: T[] = []
 
     accessStore(success: (store: IDBObjectStore) => void, mode: string = 'readwrite'): void {
-      this.DB.conExtend();
-
       try {
         var database: IDBDatabase = this.DB.database(),
             store: IDBObjectStore = database && database.transaction(this.name, mode).objectStore(this.name);
@@ -29,7 +27,7 @@ module MODULE.MODEL.APP.DATA {
       if (store) {
         success(store);
       } else {
-        this.DB.opendb(() => this.accessStore(success));
+        this.DB.open().task(() => this.accessStore(success));
       }
     }
 
