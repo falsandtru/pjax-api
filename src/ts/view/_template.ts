@@ -16,7 +16,7 @@ module MODULE.VIEW {
      * @property UUID
      * @type String
      */
-    UUID: string = GEN_UUID()
+    UUID: string = UUID()
     
     /**
      * Viewの遷移状態を持つ

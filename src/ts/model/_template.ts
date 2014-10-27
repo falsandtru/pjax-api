@@ -32,7 +32,7 @@ module MODULE.MODEL {
      * @property UUID
      * @type String
      */
-    UUID: string = GEN_UUID()
+    UUID: string = UUID()
     
     /**
      * Modelの遷移状態を持つ

@@ -394,7 +394,7 @@ module MODULE {
     }
   }
 
-  export function GEN_UUID(): string {
+  export function UUID(): string {
     // version 4
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, gen);
     function gen(c) {

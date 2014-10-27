@@ -22,7 +22,7 @@ module MODULE.CONTROLLER {
      * @property UUID
      * @type String
      */
-    UUID: string = GEN_UUID()
+    UUID: string = UUID()
     
     /**
      * Controllerの遷移状態を持つ
