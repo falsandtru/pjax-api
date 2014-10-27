@@ -174,6 +174,7 @@ module MODULE.MODEL.APP {
       return new Date().getTime() + this.calAge(jqXHR);
     }
     
+    // addEventListenerとjQuery以外で発行されたカスタムイベントはjQueryでは発信できない
     dispatchEvent_(target: Window, eventType: string, bubbling: boolean, cancelable: boolean): void
     dispatchEvent_(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
     dispatchEvent_(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
