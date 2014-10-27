@@ -23,7 +23,7 @@ module MODULE.MODEL {
     
     private queue_: number[] = []
 
-    isDeferrable: boolean = !!jQuery.when && 1.06 <= Number(jQuery().jquery.replace(/\D*(\d+)\.(\d+).*$/, '$1.0$2').replace(/\d+(\d{2})$/, '$1'))
+    isDeferrable: boolean = !!jQuery.when && '1.006' <= jQuery().jquery.match(/\d[\d.]+\d/).pop().replace(/\.(\d+)/g, '.00$1').replace(/0*(\d{3})/g, '$1')
 
     host(): string { return this.app_.balance.host() }
     state(): State { return this.state_; }
