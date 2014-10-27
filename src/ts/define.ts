@@ -305,7 +305,7 @@ module MODULE.MODEL.APP {
 
     get(key: number, success: (event: Event) => void): void
     get(key: string, success: (event: Event) => void): void
-    set(value: T, isMerge?: boolean): void
+    set(value: T, merge?: boolean): void
     add(value: T): void
     put(value: T): void
     remove(key: number): void
@@ -316,10 +316,10 @@ module MODULE.MODEL.APP {
     loadBuffer(limit?: number): void
     saveBuffer(): void
     getBuffers(): T[]
-    setBuffers(values: T[], isMerge?: boolean): T[]
+    setBuffers(values: T[], merge?: boolean): T[]
     getBuffer(key: string): T
     getBuffer(key: number): T
-    setBuffer(value: T, isMerge?: boolean): T
+    setBuffer(value: T, merge?: boolean): T
     addBuffer(value: any): T
     removeBuffer(key: string): T
     removeBuffer(key: number): T

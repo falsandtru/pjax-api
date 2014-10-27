@@ -74,8 +74,8 @@ module MODULE.MODEL.APP.DATA {
       this.accessRecord(key, success);
     }
 
-    set(value: T, isMerge?: boolean): void {
-      if (!isMerge) { return this.put(value); }
+    set(value: T, merge?: boolean): void {
+      if (!merge) { return this.put(value); }
 
       value = jQuery.extend(true, {}, value);
       var key = value[this.keyPath];
@@ -162,9 +162,9 @@ module MODULE.MODEL.APP.DATA {
       return this.buffer_;
     }
 
-    setBuffers(values: T[], isMerge?: boolean): T[] {
+    setBuffers(values: T[], merge?: boolean): T[] {
       for (var i in values) {
-        this.setBuffer(values[i], isMerge);
+        this.setBuffer(values[i], merge);
       }
       return this.buffer_;
     }
@@ -175,9 +175,9 @@ module MODULE.MODEL.APP.DATA {
       return this.buffer_[key];
     }
 
-    setBuffer(value: T, isMerge?: boolean): T {
+    setBuffer(value: T, merge?: boolean): T {
       var key = value[this.keyPath];
-      this.buffer_[key] = !isMerge ? value : jQuery.extend(true, {}, this.buffer_[key], value);
+      this.buffer_[key] = !merge ? value : jQuery.extend(true, {}, this.buffer_[key], value);
       return this.buffer_[key];
     }
 
