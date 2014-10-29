@@ -20,9 +20,10 @@ module MODULE.MODEL {
 
     private controller_: ControllerInterface = new Controller(this)
     private app_: AppLayerInterface = new MODEL.App(this, this.controller_)
+    
+    private queue_: number[] = []
 
-    isDeferrable: boolean = !!jQuery.when && 1.06 <= Number(jQuery().jquery.replace(/\D*(\d+)\.(\d+).*$/, '$1.0$2').replace(/\d+(\d{2})$/, '$1'))
-    queue: number[] = []
+    isDeferrable: boolean = !!jQuery.when && '1.006' <= jQuery().jquery.match(/\d[\d.]+\d/).pop().replace(/\.(\d+)/g, '.00$1').replace(/0*(\d{3})/g, '$1')
 
     host(): string { return this.app_.balance.host() }
     state(): State { return this.state_; }
@@ -33,7 +34,7 @@ module MODULE.MODEL {
 
       switch (typeof option) {
         case 'object':
-          $context = $context instanceof NAMESPACE ? $context : jQuery(document)[NAME]();
+          $context = $context instanceof DEF.NAMESPACE ? $context : jQuery(document)[DEF.NAME]();
           FREEZE(option, true);
           break;
 
@@ -207,17 +208,13 @@ module MODULE.MODEL {
       var setting: SettingInterface = this.getGlobalSetting();
       if (State.open !== this.state() || event.isDefaultPrevented()) { return; }
 
-      if (!setting.scroll.delay) {
+      var id: number;
+      while (id = this.queue_.shift()) { clearTimeout(id); }
+      id = setTimeout(() => {
+        while (id = this.queue_.shift()) { clearTimeout(id); }
         this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
-      } else {
-        var id: number;
-        while (id = this.queue.shift()) { clearTimeout(id); }
-        id = setTimeout(() => {
-          while (id = this.queue.shift()) { clearTimeout(id); }
-          this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
-        }, setting.scroll.delay);
-        this.queue.push(id);
-      }
+      }, 300);
+      this.queue_.push(id);
     }
 
     fallback(event: JQueryEventObject, setting: SettingInterface): void {

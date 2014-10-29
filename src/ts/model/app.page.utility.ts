@@ -174,16 +174,17 @@ module MODULE.MODEL.APP {
       return new Date().getTime() + this.calAge(jqXHR);
     }
     
-    dispatchEvent_(target: Window, eventType: string, bubbling: boolean, cancelable: boolean): void
-    dispatchEvent_(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
-    dispatchEvent_(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
-    dispatchEvent_(target: any, eventType: string, bubbling: boolean, cancelable: boolean): void {
+    // addEventListenerとjQuery以外で発行されたカスタムイベントはjQueryでは発信できない
+    dispatchEvent(target: Window, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent(target: any, eventType: string, bubbling: boolean, cancelable: boolean): void {
       var event = document.createEvent('HTMLEvents');
       event.initEvent(eventType, bubbling, cancelable);
       target.dispatchEvent(event);
     }
 
-    wait_(ms: number): JQueryDeferred<any> {
+    wait(ms: number): JQueryDeferred<any> {
       var defer = jQuery.Deferred();
       if (!ms) { return defer.resolve(); }
 

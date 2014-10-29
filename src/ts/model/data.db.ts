@@ -1,4 +1,5 @@
 /// <reference path="../define.ts"/>
+/// <reference path="data.db.stateful.ts"/>
 /// <reference path="data.store.meta.ts"/>
 /// <reference path="data.store.history.ts"/>
 /// <reference path="data.store.server.ts"/>
@@ -6,223 +7,232 @@
 /* MODEL */
 
 module MODULE.MODEL.APP.DATA {
-  
-  export class DB implements DBInterface {
-    constructor() {
-      var check = () => {
-        var now = new Date().getTime(),
-            expires = this.conExpires_;
-        if (expires && now > expires) {
-          this.closedb();
-          this.conExpires_ = 0;
-        }
-        setTimeout(check, Math.max(this.conExpires_ - now + 100, this.conInterval_));
-        this.tasks_.length && State.initiate !== this.state() && this.opendb(null, true);
-      }
-      this.conAge_ && setTimeout(check, this.conInterval_);
-    }
+
+  export class Database implements DatabaseInterface {
 
     IDBFactory: IDBFactory = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB
     IDBKeyRange: IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.mozIDBKeyRange || window.msIDBKeyRange
 
     private database_: IDBDatabase
-    private name_: string = NAME
+    private name_: string = DEF.NAME
     private version_: number = 7
     private refresh_: number = 10
     private upgrade_: number = 0 // 0:virtual 1:native
     private state_: State = State.blank
-    database = () => this.database_
-    state = () => this.state_
 
-    private conAge_: number = 10 * 1000
-    private conExpires_: number = 0
-    private conInterval_: number = 1000
-    private tasks_: { (): void }[] = []
+    private age_: number = 10 * 1000
+    private expires_: number = 0
+    private extend_(): void {
+      this.expires_ = new Date().getTime() + this.age_;
+      clearTimeout(this.timer_);
+      this.timer_ = setTimeout(() => this.check_(), this.age_);
+    }
+
+    private timer_: number = 0
+    private check_(): void {
+      if (!this.age_ || new Date().getTime() <= this.expires_) { return; }
+
+      State.open === this.state() && this.close();
+    }
+    
+    public state(): State { return this.state_; }
+    private stateful_: DatabaseStatefulInterface = new DB.Stateful(this, () => this.connect_(), () => this.extend_())
 
     stores = {
-      meta: new MetaStore<MetaStoreSchema>(this),
-      history: new HistoryStore<HistoryStoreSchema>(this),
-      server: new ServerStore<ServerStoreSchema>(this)
+      meta: new STORE.Meta(this),
+      history: new STORE.History(this),
+      server: new STORE.Server(this)
     }
     meta = {
       version: { key: 'version', value: undefined },
       update: { key: 'update', value: undefined }
     }
 
-    opendb(task?: () => void, noRetry?: boolean): void {
-      if (!this.IDBFactory) { return; }
+    database(): IDBDatabase {
+      this.extend_();
+      return this.database_;
+    }
 
-      var that = this;
+    up(): void {
+      this.state_ = State.blank;
+      this.open();
+    }
 
-      that.conExtend();
+    down(): void {
+      this.reject();
+      this.close();
+      this.state_ = State.error;
+    }
 
-      if (State.blank === that.state()) {
-        task = 'function' === typeof task ? task : () => undefined;
-      }
+    open(): DatabaseTaskReserveInterface {
+      !this.IDBFactory && this.down();
+      return this.stateful_.open();
+    }
 
-      'function' === typeof task && that.reserveTask_(task);
+    close(): void {
+      this.database_ && this.database_.close && this.database_.close();
+      this.state_ = State.close;
+    }
 
-      if (!that.tasks_.length) { return; }
-      if (State.initiate === that.state()) { return; }
+    resolve(): void {
+      this.stateful_.resolve();
+    }
 
+    reject(): void {
+      this.stateful_.reject();
+    }
+
+    private connect_(): void{
+      this.create_();
+    }
+
+    // 以降、connect_()以外からアクセス禁止
+
+    private create_(): void {
       try {
-        that.state_ = State.initiate;
+        this.close();
+        this.state_ = State.initiate;
 
-        var request = that.IDBFactory.open(that.name_, that.upgrade_ ? that.version_ : 1);
+        var req = this.IDBFactory.open(this.name_, this.upgrade_ ? this.version_ : 1);
 
-        request.onblocked = function () {
-          that.closedb(State.pause);
-          try {
-            this.result.close();
-            !noRetry && setTimeout(() => that.opendb(null, true), 1000);
-          } catch (err) {
-            !noRetry && that.initdb_(1000);
-          }
+        var verify = () => {
+          this.verify_(this.version_, () => {
+            this.state_ = State.open;
+            this.resolve();
+            this.extend_();
+          });
         };
 
-        request.onupgradeneeded = function () {
-          try {
-            var database: IDBDatabase = this.result;
-
-            that.createStore_(database);
-          } catch (err) {
-            !noRetry && that.initdb_(1000);
+        if ('done' === req.readyState) {
+          this.database_ = req.result;
+          if (this.database()) {
+            verify();
+          } else {
+            this.format_();
           }
-        };
+        } else {
+          var timer = setTimeout(() => this.down(), 3000);
 
-        request.onsuccess = function () {
-          try {
-            var database: IDBDatabase = this.result;
+          req.onblocked = () => {
+            clearTimeout(timer);
+            this.database_ = req.result;
+            this.close();
+            setTimeout(() => this.open(), 1000);
+          };
 
-            that.database_ = database;
+          req.onupgradeneeded = () => {
+            clearTimeout(timer);
+            this.database_ = req.result;
+            this.createStores_();
+          };
 
-            that.checkdb_(database, that.version_, () => {
-              that.database_ = database;
-              that.state_ = State.open;
-              that.conExtend();
+          req.onsuccess = () => {
+            clearTimeout(timer);
+            this.database_ = req.result;
+            verify();
+          };
 
-              that.digestTask_();
-            }, () => {
-              !noRetry && that.initdb_();
-            });
-
-            that.database_ = null;
-          } catch (err) {
-            !noRetry && that.initdb_(1000);
-          }
-        };
-
-        request.onerror = function (event) {
-          that.closedb(State.error);
-          try {
-            this.result.close();
-            !noRetry && setTimeout(() => that.opendb(null, true), 1000);
-          } catch (err) {
-            !noRetry && that.initdb_(1000);
-          }
-        };
+          req.onerror = () => {
+            clearTimeout(timer);
+            this.database_ = req.result;
+            this.down();
+          };
+        }
       } catch (err) {
-        that.closedb(State.error);
-        !noRetry && that.initdb_(1000);
+        this.down();
       }
     }
 
-    closedb(state: State = State.close): void {
-      this.database() && this.database().close && this.database().close();
+    private destroy_(success?: () => void, failure?: () => void): void {
+      try {
+        this.close();
+        this.state_ = State.terminate;
 
-      this.database_ = null;
-      this.state_ = state;
-    }
-
-    conExtend(): void {
-      this.conExpires_ = new Date().getTime() + this.conAge_;
-    }
-
-    private initdb_(delay?: number): void {
-      var retry = () => {
-        this.deletedb_(() => this.opendb(null, true));
-      };
-
-      !delay ? retry() : void setTimeout(retry, delay);
-    }
-
-    private deletedb_(success?: () => void, failure?: () => void): void {
-      this.closedb();
-      var IDBFactory = this.IDBFactory;
-      var request = IDBFactory && IDBFactory.deleteDatabase && IDBFactory.deleteDatabase(this.name_);
-      if (request) {
-        request.onsuccess = success;
-        request.onerror = failure;
+        var req = this.IDBFactory.deleteDatabase(this.name_);
+        
+        if (req) {
+          req.onsuccess = success;
+          req.onerror = failure;
+        }
+        setTimeout(() => State.terminate === this.state() && this.down(), 3000);
+      } catch (err) {
+        this.down();
       }
     }
 
-    private checkdb_(database: IDBDatabase, version: number, success: () => void, upgrade: () => void): void {
-      var that = this,
+    private format_(): void {
+      this.destroy_(() => this.up(), () => this.down());
+    }
+
+    private verify_(version: number, success: () => void): void {
+      var db = this.database(),
           scheme = this.meta,
-          meta = this.stores.meta;
+          meta = this.stores.meta,
+          failure = () => this.format_();
 
-      if (database.objectStoreNames.length !== Object.keys(this.stores).length) {
-        return void upgrade();
+      if (db.objectStoreNames.length !== Object.keys(this.stores).length) {
+        return void failure();
       }
 
       for (var i in this.stores) {
-        var store = database.transaction(this.stores[i].name, 'readonly').objectStore(this.stores[i].name);
+        var store = db.transaction((<StoreInterface<void>>this.stores[i]).name, 'readonly').objectStore((<StoreInterface<void>>this.stores[i]).name);
         switch (false) {
-          case store.keyPath === that.stores[i].keyPath:
-          case store.indexNames.length === that.stores[i].indexes.length:
-            upgrade();
+          case store.keyPath === this.stores[i].keyPath:
+          case store.indexNames.length === this.stores[i].indexes.length:
+            return void failure();
         }
       }
 
-      meta.get(scheme.version.key, function () {
+      var cancel = false;
+
+      meta.get(scheme.version.key, (event) => {
         // version check
-        var data: MetaStoreSchema = this.result;
-        if (!data || that.upgrade_) {
+        if (cancel) { return; }
+        var data: MetaStoreSchema = (<any>event.target).result;
+        if (!data || this.upgrade_) {
           meta.set(meta.setBuffer({ key: scheme.version.key, value: version }));
-        } else if (data.value < version) {
-          upgrade();
         } else if (data.value > version) {
-          that.closedb(State.error);
+          cancel = true;
+          this.down();
+        } else if (data.value < version) {
+          cancel = true;
+          failure();
         }
       });
 
-      meta.get(scheme.update.key, function () {
+      meta.get(scheme.update.key, (event) => {
         // refresh check
-        var data: MetaStoreSchema = this.result;
+        if (cancel) { return; }
+        var data: MetaStoreSchema = (<any>event.target).result;
         var days: number = Math.floor(new Date().getTime() / (24 * 60 * 60 * 1000));
-        if (!data || !that.refresh_) {
-          meta.set(meta.setBuffer({ key: scheme.update.key, value: days + that.refresh_ }));
+        if (!data || !this.refresh_) {
+          meta.set(meta.setBuffer({ key: scheme.update.key, value: days + this.refresh_ }));
+          success();
+        } else if (data.value > days) {
+          success();
         } else if (data.value <= days) {
-          return void upgrade();
+          failure();
         }
-        success();
       });
     }
 
-    private createStore_(database: IDBDatabase): void {
-      for (var i = database.objectStoreNames ? database.objectStoreNames.length : 0; i--;) {
-        database.deleteObjectStore(database.objectStoreNames[i]);
-      }
+    private createStores_(): void {
+      this.destroyStores_();
 
+      var db = this.database();
       for (var i in this.stores) {
         var schema = <StoreInterface<void>>this.stores[i];
-        var store = database.createObjectStore(schema.name, { keyPath: schema.keyPath, autoIncrement: schema.autoIncrement });
+        var store = db.createObjectStore(schema.name, { keyPath: schema.keyPath, autoIncrement: schema.autoIncrement });
         for (var j = 0, indexes = schema.indexes, index: StoreIndexOptionInterface; index = indexes[j]; j++) {
           store.createIndex(index.name, index.keyPath, index.option);
         }
       }
     }
 
-    private reserveTask_(task: () => void): void {
-      this.tasks_.length > 200 && this.tasks_.splice(100, 100);
-      (this.state() !== State.error || this.tasks_.length < 100) &&
-      this.tasks_.push(task);
-    }
-
-    private digestTask_(): void {
-      var task: () => void;
-      while (task = this.tasks_.pop()) {
-        task();
+    private destroyStores_(): void {
+      var db = this.database();
+      for (var i = db.objectStoreNames ? db.objectStoreNames.length : 0; i--;) {
+        db.deleteObjectStore(db.objectStoreNames[i]);
       }
     }
 

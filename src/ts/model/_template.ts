@@ -16,7 +16,7 @@ module MODULE.MODEL {
      * @property NAME
      * @type String
      */
-    NAME: string = NAME
+    NAME: string = DEF.NAME
     
     /**
      * ネームスペース。ここにモジュールが追加される。
@@ -24,7 +24,7 @@ module MODULE.MODEL {
      * @property NAMESPACE
      * @type Window|JQuery
      */
-    NAMESPACE: any = NAMESPACE
+    NAMESPACE: any = DEF.NAMESPACE
 
     /**
      * UUID
@@ -32,7 +32,7 @@ module MODULE.MODEL {
      * @property UUID
      * @type String
      */
-    UUID: string = GEN_UUID()
+    UUID: string = UUID()
     
     /**
      * Modelの遷移状態を持つ

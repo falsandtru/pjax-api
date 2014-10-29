@@ -9,7 +9,7 @@ module MODULE.MODEL.APP {
 
   var Util = LIBRARY.Utility
 
-  export class PageUpdate extends PageUtility implements PageUpdateInterface {
+  export class PageUpdate implements PageUpdateInterface {
     
     constructor(
 
@@ -23,9 +23,10 @@ module MODULE.MODEL.APP {
     private textStatus_: string,
     private jqXHR_: JQueryXHR,
     private errorThrown_: string,
-    private host_: string
+    private host_: string,
+    private count_: number,
+    private time_: number
     ) {
-      super();
       this.main_();
     }
 
@@ -88,7 +89,7 @@ module MODULE.MODEL.APP {
           
           this.checkRedirect_();
           
-          this.dispatchEvent_(window, setting.gns + ':unload', false, true);
+          this.dispatchEvent(window, setting.gns + ':unload', false, true);
           
           this.updateUrl_();
           
@@ -146,21 +147,21 @@ module MODULE.MODEL.APP {
           throw false;
 
         default:
-          jQuery[NAME].enable();
+          jQuery[DEF.NAME].enable();
           switch (event.type.toLowerCase()) {
             case 'click':
             case 'submit':
-              setTimeout(() => jQuery[NAME].click(redirect.href), 0);
+              setTimeout(() => jQuery[DEF.NAME].click(redirect.href), 0);
               break;
             case 'popstate':
               window.history.replaceState(window.history.state, this.srcDocument_.title, redirect.href);
               if (register && setting.fix.location && !Util.compareUrl(setting.destLocation.href, Util.normalizeUrl(window.location.href))) {
-                jQuery[NAME].disable();
+                jQuery[DEF.NAME].disable();
                 window.history.back();
                 window.history.forward();
-                jQuery[NAME].enable();
+                jQuery[DEF.NAME].enable();
               }
-              setTimeout(() => this.dispatchEvent_(window, 'popstate', false, false), 0);
+              setTimeout(() => this.dispatchEvent(window, 'popstate', false, false), 0);
               break;
           }
           throw false;
@@ -183,10 +184,10 @@ module MODULE.MODEL.APP {
                                setting.destLocation.href);
 
       if (register && setting.fix.location && !Util.compareUrl(setting.destLocation.href, Util.normalizeUrl(window.location.href))) {
-        jQuery[NAME].disable();
+        jQuery[DEF.NAME].disable();
         window.history.back();
         window.history.forward();
-        jQuery[NAME].enable();
+        jQuery[DEF.NAME].enable();
       }
 
       // verify
@@ -195,7 +196,7 @@ module MODULE.MODEL.APP {
       } else if (setting.retriable) {
         setting.retriable = false;
         setting.destLocation.href = Util.normalizeUrl(window.location.href);
-        new PageUpdate(this.model_, this.app_, setting, event, false, setting.cache[event.type.toLowerCase()] && this.model_.getCache(setting.destLocation.href), this.data_, this.textStatus_, this.jqXHR_, this.errorThrown_, this.host_);
+        new PageUpdate(this.model_, this.app_, setting, event, false, setting.cache[event.type.toLowerCase()] && this.model_.getCache(setting.destLocation.href), this.data_, this.textStatus_, this.jqXHR_, this.errorThrown_, this.host_, this.count_, this.time_);
         throw false;
       } else {
         throw new Error('throw: location mismatch');
@@ -236,7 +237,7 @@ module MODULE.MODEL.APP {
         e.stopImmediatePropagation();
 
         var onready = (callback?: () => void) => {
-          this.dispatchEvent_(document, setting.gns + ':ready', false, true);
+          this.dispatchEvent(document, setting.gns + ':ready', false, true);
 
           Util.fire(setting.callback, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]);
 
@@ -253,7 +254,7 @@ module MODULE.MODEL.APP {
             }
           }, 100);
 
-          this.dispatchEvent_(document, setting.gns + ':render', false, true);
+          this.dispatchEvent(document, setting.gns + ':render', false, true);
 
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('render(' + speed.time.slice(-1) + ')');
@@ -262,7 +263,7 @@ module MODULE.MODEL.APP {
         };
 
         var onload = () => {
-          this.dispatchEvent_(window, setting.gns + ':load', false, true);
+          this.dispatchEvent(window, setting.gns + ':load', false, true);
 
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('load(' + speed.time.slice(-1) + ')');
@@ -277,6 +278,15 @@ module MODULE.MODEL.APP {
         };
 
         this.scroll_(false);
+
+        if (100 > setting.loadtime && setting.reset.type.match(event.type.toLowerCase()) && !jQuery('form[method][method!="GET"]').length) {
+          switch (false) {
+            case this.count_ < setting.reset.count || !setting.reset.count:
+            case new Date().getTime() < setting.reset.time + this.time_ || !setting.reset.time:
+              throw new Error('throw: reset');
+          }
+        }
+
         var scriptwaits = this.script_(':not([defer]), :not([src])');
 
         if (jQuery.when) {
@@ -429,7 +439,7 @@ module MODULE.MODEL.APP {
         $dstAreas.append(checker.clone());
         $dstAreas.find('script').each((i, elem) => this.restoreScript_(<HTMLScriptElement>elem));
       }
-      this.dispatchEvent_(document, setting.gns + ':DOMContentLoaded', false, true);
+      this.dispatchEvent(document, setting.gns + ':DOMContentLoaded', false, true);
 
       if (Util.fire(callbacks_update.content.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
@@ -559,8 +569,8 @@ module MODULE.MODEL.APP {
               if (!element.getAttribute('src')) { return; }
               if (element.hasAttribute('async')) {
                 jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: true, global: false }))
-                .done(() => this.dispatchEvent_(element, 'load', false, true))
-                .fail(() => this.dispatchEvent_(element, 'error', false, true));
+                .done(() => this.dispatchEvent(element, 'load', false, true))
+                .fail(() => this.dispatchEvent(element, 'error', false, true));
               } else {
                 jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, dataType: 'text', async: true, global: false }))
                 .done(() => defer.resolve([element, <string>arguments[0]]))
@@ -594,9 +604,9 @@ module MODULE.MODEL.APP {
               if (element.src) { loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload); }
               if ('string' === typeof response) {
                 eval.call(window, response);
-                element.hasAttribute('src') && this.dispatchEvent_(element, 'load', false, true);
+                element.hasAttribute('src') && this.dispatchEvent(element, 'load', false, true);
               } else {
-                element.hasAttribute('src') && this.dispatchEvent_(element, 'error', false, true);
+                element.hasAttribute('src') && this.dispatchEvent(element, 'error', false, true);
               }
             }
           });
@@ -606,8 +616,8 @@ module MODULE.MODEL.APP {
               if (element.src) { loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload); }
               ((element) => {
                 jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: element.hasAttribute('async'), global: false }, {
-                  success: () => this.dispatchEvent_(element, 'load', false, true),
-                  error: () => this.dispatchEvent_(element, 'error', false, true)
+                  success: () => this.dispatchEvent(element, 'load', false, true),
+                  error: () => this.dispatchEvent(element, 'error', false, true)
                 }));
               })(element);
             } else {
@@ -743,7 +753,21 @@ module MODULE.MODEL.APP {
       script.innerHTML = jQuery.data(script, 'code');
       jQuery.removeData(script, 'code');
     }
-    
+
+    // mixin utility
+    createHTMLDocument(html: string, uri: string): Document { return }
+    chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
+    chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
+    chooseArea(areas: any, srcDocument: Document, dstDocument: Document): string { return }
+    movePageNormally(event: JQueryEventObject): void { }
+    calAge(jqXHR: JQueryXHR): number { return }
+    calExpires(jqXHR: JQueryXHR): number { return }
+    dispatchEvent(target: Window, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent(target: any, eventType: string, bubbling: boolean, cancelable: boolean): void { }
+    wait(ms: number): JQueryDeferred<any> { return }
+
   }
 
 }

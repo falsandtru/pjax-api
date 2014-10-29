@@ -29,9 +29,6 @@ interface PjaxSetting {
     state?: any      // any, function(event, param, origUrl, destUrl )
     scrollTop?: any  // number, function( event, param, origUrl, destUrl ), null, false
     scrollLeft?: any // number, function( event, param, origUrl, destUrl ), null, false
-    scroll?: {
-        delay?: number
-    }
     ajax?: JQueryAjaxSettings
     contentType?: string
     redirect?: boolean
@@ -91,6 +88,11 @@ interface PjaxSetting {
     }
     wait?: any     // number, function( event, param, origUrl, destUrl ): number
     fallback?: any // boolean, function( event, param, origUrl, destUrl ): boolean
+    reset?: {
+        type?: string
+        count?: number
+        time?: number
+    }
     fix?: {
         location?: boolean
         history?: boolean

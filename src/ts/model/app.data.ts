@@ -31,7 +31,7 @@ module MODULE.MODEL.APP {
     opendb(setting: SettingInterface): void {
       if (!setting.database) { return; }
 
-      this.data_.DB.opendb();
+      this.data_.DB.up();
       this.saveTitle();
       this.saveScrollPosition();
     }

@@ -22,7 +22,7 @@ module MODULE.CONTROLLER {
      * @property UUID
      * @type String
      */
-    UUID: string = GEN_UUID()
+    UUID: string = UUID()
     
     /**
      * Controllerの遷移状態を持つ
@@ -66,7 +66,7 @@ module MODULE.CONTROLLER {
     EXTEND(context: ExtensionInterface): ExtensionInterface
     EXTEND(context: ExtensionStaticInterface): ExtensionStaticInterface
     EXTEND(context: any): any {
-      if (context instanceof NAMESPACE) {
+      if (context instanceof DEF.NAMESPACE) {
         if (context instanceof jQuery) {
           // コンテクストへの変更をend()で戻せるようadd()
           context = context.add();
@@ -105,11 +105,11 @@ module MODULE.CONTROLLER {
       this.EXTEND(<ExtensionStaticInterface>this.EXTENSION);
 
       // プラグインに関数を設定してネームスペースに登録
-      window[NAMESPACE] = window[NAMESPACE] || {};
-      if (NAMESPACE.prototype) {
-        NAMESPACE[NAME] = NAMESPACE.prototype[NAME] = this.EXTENSION;
+      window[DEF.NAMESPACE] = window[DEF.NAMESPACE] || {};
+      if (DEF.NAMESPACE.prototype) {
+        DEF.NAMESPACE[DEF.NAME] = DEF.NAMESPACE.prototype[DEF.NAME] = this.EXTENSION;
       } else {
-        NAMESPACE[NAME] = this.EXTENSION;
+        DEF.NAMESPACE[DEF.NAME] = this.EXTENSION;
       }
     }
 

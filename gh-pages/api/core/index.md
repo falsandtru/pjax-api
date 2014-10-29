@@ -38,9 +38,6 @@ pjaxを設定します。
 ### [scrollLeft:](api/core/setting/scroll-left/)
 ページ遷移後の横方向のスクロール位置を設定
 
-### [scroll:](api/core/setting/scroll/)
-スクロール位置復元用の設定項目を持ちます。
-
 ### [ajax:](api/core/setting/ajax/)
 内部処理で使用される`$.ajax`のパラメータを設定します。
 
@@ -67,6 +64,9 @@ pjaxを設定します。
 
 ### [fallback:](api/core/setting/fallback/)
 エラー処理を設定します。
+
+### [reset:](api/core/setting/reset/)
+メモリリーク対策としてJavaScriptの実行状態をリセットする条件を設定します。
 
 ### [fix:](api/core/setting/fix/)
 pjaxの諸問題の修正を設定します。

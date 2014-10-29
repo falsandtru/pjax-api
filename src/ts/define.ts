@@ -16,11 +16,12 @@ interface JQueryXHR {
   timeStamp?: number
 }
 
-module MODULE {
-
+module MODULE.DEF {
   export var NAME: string = 'pjax'
   export var NAMESPACE: any = jQuery
+}
 
+module MODULE {
   /*
    * 仕様
    * -----
@@ -72,7 +73,6 @@ module MODULE {
 
     // Property
     isDeferrable: boolean
-    queue: number[]
     
     // Model
     state(): State
@@ -117,7 +117,7 @@ module MODULE {
   }
 
   // State
-  export enum State { blank = -2, initiate, open, pause, lock, seal, error, crash, terminate, close }
+  export enum State { blank, initiate, open, pause, lock, seal, error, crash, terminate, close }
 
   // Context
   export interface ExtensionInterface extends JQueryPjax { }
@@ -168,9 +168,251 @@ module MODULE {
     host: string
     timeStamp: number
   }
+}
 
-  // Function
-  export function GEN_UUID(): string {
+module MODULE.MODEL {
+  // APP Layer
+  export declare class AppLayerInterface {
+    balance: BalanceInterface
+    page: PageInterface
+    data: DataInterface
+
+    initialize($context: JQuery, setting: SettingInterface): void
+    configure(option: PjaxSetting, origURL: string, destURL: string): SettingInterface
+  }
+  export declare class BalanceInterface {
+    constructor(model: ModelInterface, app: AppLayerInterface)
+    host(): string
+    
+    enable(setting: SettingInterface): void
+    disable(setting: SettingInterface): void
+    changeServer(host: string, setting?: SettingInterface): void
+    chooseServer(setting: SettingInterface): void
+    bypass(setting: SettingInterface, retry: number): void
+  }
+  export declare class PageInterface extends PageUtilityInterface {
+    constructor(model: ModelInterface, app: AppLayerInterface)
+
+    landing: string
+    recent: RecentInterface
+    loadedScripts: { [url: string]: boolean }
+    isScrollPosSavable: boolean
+    globalXHR: JQueryXHR
+    globalSetting: SettingInterface
+    
+    transfer(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface): void
+  }
+  export declare class PageFetchInterface extends PageUtilityInterface {
+    constructor(model: ModelInterface,
+      app: AppLayerInterface,
+      setting: SettingInterface,
+      event: JQueryEventObject,
+      register: boolean,
+      cache: CacheInterface,
+      done: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any,
+      fail: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any)
+  }
+  export declare class PageUpdateInterface extends PageUtilityInterface {
+    constructor(model: ModelInterface,
+      app: AppLayerInterface,
+      setting: SettingInterface,
+      event: JQueryEventObject,
+      register: boolean,
+      cache: CacheInterface,
+      data: string,
+      textStatus: string,
+      jqXHR: JQueryXHR,
+      errorThrown: string,
+      host: string,
+      count: number,
+      time: number)
+  }
+  export declare class PageUtilityInterface {
+    createHTMLDocument(html: string, uri: string): Document
+    chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
+    chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
+    movePageNormally(event: JQueryEventObject): void
+    calAge(jqXHR: JQueryXHR): number
+    calExpires(jqXHR: JQueryXHR): number
+    dispatchEvent(target: Window, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
+    wait(ms: number): JQueryDeferred<any>
+  }
+  export declare class DataInterface {
+    // cookie
+    getCookie(key: string): string
+    setCookie(key: string, value: string, option?: Object): string
+
+    // db
+    opendb(setting: SettingInterface): void
+    
+    // common
+    loadBuffers(limit?: number): void
+    saveBuffers(): void
+
+    // meta
+
+    // history
+    getHistoryBuffer(unsafe_url: string): HistoryStoreSchema
+    loadTitle(): void
+    saveTitle(): void
+    saveTitle(unsafe_url: string, title: string): void
+    loadScrollPosition(): void
+    saveScrollPosition(): void
+    saveScrollPosition(unsafe_url: string, scrollX: number, scrollY: number): void
+    loadExpires(): void
+    saveExpires(unsafe_url: string, host: string, expires: number): void
+
+    // server
+    getServerBuffers(): ServerStoreSchema[]
+    loadServer(): void
+    saveServer(host: string, performance: number, state?: number, unsafe_url?: string, expires?: number): void
+  }
+  export interface CookieOptionInterface {
+    age: number
+    path: string
+    domain: string
+    secure: boolean
+  }
+  export interface MetaStoreSchema {
+    key: string
+    value: any
+  }
+  export interface HistoryStoreSchema {
+    url: string     // primary
+    title: string   // fix
+    date: number    // fix
+    scrollX: number // fix
+    scrollY: number // fix
+    expires: number // balance
+    host: string    // balance
+  }
+  export interface ServerStoreSchema {
+    host: string
+    state: number // 0:正常, !0:異常発生時刻(ミリ秒)
+    performance: number
+    date: number
+  }
+}
+
+module MODULE.MODEL.APP {
+  // DATA Layer
+  export declare class DataLayerInterface {
+    DB: DATA.DatabaseInterface
+    Cookie: DATA.CookieInterface
+  }
+}
+
+module MODULE.MODEL.APP.DATA {
+  // Cookie
+  export declare class CookieInterface {
+    constructor(age: number)
+
+    getCookie(key: string): string
+    setCookie(key: string, value: string, option?: CookieOptionInterface): string
+  }
+  
+  // Database
+  export declare class DatabaseInterface {
+    IDBFactory: IDBFactory
+    IDBKeyRange: IDBKeyRange
+    
+    state(): State
+
+    database(): IDBDatabase
+    up(): void
+    down(): void
+    open(): DatabaseTaskReserveInterface
+    close(): void
+    resolve(): void
+    reject(): void
+
+    stores: DatabaseSchema
+    meta: {
+      version: { key: string; value: number; }
+      update: { key: string; value: number; }
+    }
+  }
+  export interface DatabaseSchema {
+    meta: StoreInterface<MetaStoreSchema>
+    history: StoreInterface<HistoryStoreSchema>
+    server: StoreInterface<ServerStoreSchema>
+  }
+  export interface DatabaseTaskInterface extends DatabaseTaskReserveInterface, DatabaseTaskDigestInterface {
+  }
+  export declare class DatabaseTaskReserveInterface {
+    done(callback: () => void): DatabaseTaskReserveInterface
+    fail(callback: () => void): DatabaseTaskReserveInterface
+    always(callback: () => void): DatabaseTaskReserveInterface
+  }
+  export declare class DatabaseTaskDigestInterface {
+    resolve(): DatabaseTaskDigestInterface
+    reject(): DatabaseTaskDigestInterface
+  }
+  export declare class DatabaseStatefulInterface {
+    constructor(origin: DatabaseInterface, connect: () => void, extend: () => void)
+    open(): DatabaseTaskReserveInterface
+    resolve(): void
+    reject(): void
+  }
+  export interface DatabaseStatefulClassInterface {
+    new (origin: DatabaseInterface, connect: () => void, extend: () => void, task: TaskInterface, taskable: boolean): DatabaseStatefulInterface
+  }
+  export declare class StoreInterface<T> {
+    constructor(DB: DatabaseInterface)
+
+    name: string
+    keyPath: string
+    autoIncrement: boolean
+    indexes: StoreIndexOptionInterface[]
+    limit: number
+
+    get(key: number, success: (event: Event) => void): void
+    get(key: string, success: (event: Event) => void): void
+    set(value: T, merge?: boolean): void
+    add(value: T): void
+    put(value: T): void
+    remove(key: number): void
+    remove(key: string): void
+    clear(): void
+    clean(): void
+
+    loadBuffer(limit?: number): void
+    saveBuffer(): void
+    getBuffers(): T[]
+    setBuffers(values: T[], merge?: boolean): T[]
+    getBuffer(key: string): T
+    getBuffer(key: number): T
+    setBuffer(value: T, merge?: boolean): T
+    addBuffer(value: any): T
+    removeBuffer(key: string): T
+    removeBuffer(key: number): T
+    clearBuffer(): void
+  }
+  export interface StoreIndexOptionInterface {
+    name: string
+    keyPath: string
+    option?: {
+      unique: boolean
+    }
+  }
+}
+
+module MODULE {
+  // Macro
+  export function MIXIN(baseClass: Function, mixClasses: Function[]): void {
+    var baseClassPrototype = baseClass.prototype;
+    for (var iMixClasses = mixClasses.length; iMixClasses--;) {
+      var mixClassPrototype = mixClasses[iMixClasses].prototype;
+      for (var iProperty in mixClassPrototype) {
+        if ('constructor' === iProperty || !mixClassPrototype.hasOwnProperty(iProperty)) { continue; }
+        baseClassPrototype[iProperty] = mixClassPrototype[iProperty];
+      }
+    }
+  }
+
+  export function UUID(): string {
     // version 4
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, gen);
     function gen(c) {
@@ -206,216 +448,15 @@ module MODULE {
   }
 }
 
-module MODULE.MODEL {
-  // APP Layer
-  export declare class AppLayerInterface {
-    balance: BalanceInterface
-    page: PageInterface
-    data: DataInterface
-
-    initialize($context: JQuery, setting: SettingInterface): void
-    configure(option: PjaxSetting, origURL: string, destURL: string): SettingInterface
+module MODULE {
+  // LIBRARY
+  export declare class TaskInterface {
+    constructor(mode?: number, size?: number)
+    define(name: string, mode: number, size: number): void
+    reserve(task: () => void): void
+    reserve(name: string, task: () => void): void
+    digest(limit?: number): void
+    digest(name: string, limit?: number): void
+    clear(name?: string): void
   }
-  export declare class BalanceInterface {
-    constructor(model: ModelInterface, app: AppLayerInterface)
-    host(): string
-    
-    enable(setting: SettingInterface): void
-    disable(setting: SettingInterface): void
-    changeServer(host: string, setting?: SettingInterface): void
-    chooseServer(setting: SettingInterface): void
-    bypass(setting: SettingInterface, retry: number): void
-  }
-  export declare class PageInterface extends PageUtilityInterface {
-    constructor(model: ModelInterface, app: AppLayerInterface)
-
-    landing: string
-    recent: RecentInterface
-    loadedScripts: { [url: string]: boolean }
-    isScrollPosSavable: boolean
-    globalXHR: JQueryXHR
-    globalSetting: SettingInterface
-    
-    transfer(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface): void
-    fetch(setting: SettingInterface,
-          event: JQueryEventObject,
-          register: boolean,
-          cache: CacheInterface,
-          done: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void,
-          fail: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void
-         ): void
-    update(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string): void
-  }
-  export declare class PageFetchInterface extends PageUtilityInterface {
-    constructor(model: ModelInterface,
-      app: AppLayerInterface,
-      setting: SettingInterface,
-      event: JQueryEventObject,
-      register: boolean,
-      cache: CacheInterface,
-      done: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any,
-      fail: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any)
-  }
-  export declare class PageUpdateInterface extends PageUtilityInterface {
-    constructor(model: ModelInterface,
-      app: AppLayerInterface,
-      setting: SettingInterface,
-      event: JQueryEventObject,
-      register: boolean,
-      cache: CacheInterface,
-      data: string,
-      textStatus: string,
-      jqXHR: JQueryXHR,
-      errorThrown: string,
-      host: string)
-  }
-  export declare class PageUtilityInterface {
-    createHTMLDocument(html: string, uri: string): Document
-    chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
-    chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
-    movePageNormally(event: JQueryEventObject): void
-    calAge(jqXHR: JQueryXHR): number
-    calExpires(jqXHR: JQueryXHR): number
-  }
-  export declare class DataInterface {
-    // cookie
-    getCookie(key: string): string
-    setCookie(key: string, value: string, option?: Object): string
-
-    // db
-    opendb(setting: SettingInterface): void
-    
-    // common
-    loadBuffers(limit?: number): void
-    saveBuffers(): void
-
-    // meta
-
-    // history
-    getHistoryBuffer(unsafe_url: string): APP.HistoryStoreSchema
-    loadTitle(): void
-    saveTitle(): void
-    saveTitle(unsafe_url: string, title: string): void
-    loadScrollPosition(): void
-    saveScrollPosition(): void
-    saveScrollPosition(unsafe_url: string, scrollX: number, scrollY: number): void
-    loadExpires(): void
-    saveExpires(unsafe_url: string, host: string, expires: number): void
-
-    // server
-    getServerBuffers(): APP.ServerStoreSchema[]
-    loadServer(): void
-    saveServer(host: string, performance: number, state?: number, unsafe_url?: string, expires?: number): void
-  }
-}
-
-module MODULE.MODEL.APP {
-  // DATA Layer
-  export declare class DataLayerInterface {
-    DB: DBInterface
-    Cookie: CookieInterface
-  }
-  export declare class DBInterface {
-
-    IDBFactory: IDBFactory
-    IDBKeyRange: IDBKeyRange
-
-    database(): IDBDatabase
-    state(): State
-    stores: DatabaseSchema
-    meta: {
-      version: { key: string; value: number; }
-      update: { key: string; value: number; }
-    }
-    
-    conExtend(): void
-
-    opendb(task?: () => void, noRetry?: boolean): void
-    closedb(): void
-  }
-  export declare class StoreInterface<T> {
-    constructor(DB: DBInterface)
-
-    name: string
-    keyPath: string
-    autoIncrement: boolean
-    indexes: StoreIndexOptionInterface[]
-
-    loadBuffer(limit?: number): void
-    saveBuffer(): void
-
-    getBuffers(): T[]
-    getBuffer(key: string): T
-    getBuffer(key: number): T
-    setBuffers(values: T[], isMerge?: boolean): T[]
-    setBuffer(value: T, isMerge?: boolean): T
-    addBuffer(value: any): T
-    removeBuffer(key: string): T
-    removeBuffer(key: number): T
-    clearBuffer(): void
-    
-    get(key: number, success: (event: Event) => void): void
-    get(key: string, success: (event: Event) => void): void
-    set(value: T, isMerge?: boolean): void
-    add(value: T): void
-    put(value: T): void
-    remove(key: number): void
-    remove(key: string): void
-  }
-  export declare class MetaStoreInterface<T> extends StoreInterface<T> {
-  }
-  export declare class HistoryStoreInterface<T> extends StoreInterface<T> {
-    clean(): void
-  }
-  export declare class ServerStoreInterface<T> extends StoreInterface<T> {
-    clean(): void
-  }
-  export declare class CookieInterface {
-    constructor(age: number)
-
-    getCookie(key: string): string
-    setCookie(key: string, value: string, option?: CookieOptionInterface): string
-  }
-
-  // Object
-  export interface CookieOptionInterface {
-    age: number
-    path: string
-    domain: string
-    secure: boolean
-  }
-
-  // Database
-  export interface DatabaseSchema {
-    meta: MetaStoreInterface<MetaStoreSchema>
-    history: HistoryStoreInterface<HistoryStoreSchema>
-    server: ServerStoreInterface<ServerStoreSchema>
-  }
-  export interface MetaStoreSchema {
-    key: string
-    value: any
-  }
-  export interface HistoryStoreSchema {
-    url: string     // primary
-    title: string   // fix
-    date: number    // fix
-    scrollX: number // fix
-    scrollY: number // fix
-    expires: number // balance
-    host: string    // balance
-  }
-  export interface ServerStoreSchema {
-    host: string
-    state: number // 0:正常, !0:異常発生時刻(ミリ秒)
-    performance: number
-    date: number
-  }
-  export interface StoreIndexOptionInterface {
-    name: string
-    keyPath: string
-    option?: {
-      unique: boolean
-    }
-  }
-
 }

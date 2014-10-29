@@ -10,12 +10,17 @@ module MODULE.MODEL.APP {
 
   var Util = LIBRARY.Utility
 
-  export class Page extends PageUtility implements PageInterface {
+  MIXIN(PageFetch, [PageUtility]);
+  MIXIN(PageUpdate, [PageUtility]);
+
+  export class Page implements PageInterface {
 
     constructor(private model_: ModelInterface, private app_: AppLayerInterface) {
-      super();
       setTimeout(() => this.createHTMLDocument('', '') || this.model_.disable(), 50);
     }
+    
+    private count_: number = 0
+    private time_: number = new Date().getTime()
 
     landing: string = Util.normalizeUrl(window.location.href)
     recent: RecentInterface = { order: [], data: {}, size: 0 }
@@ -23,10 +28,10 @@ module MODULE.MODEL.APP {
     isScrollPosSavable: boolean = true
     globalXHR: JQueryXHR
     globalSetting: SettingInterface
-    
+
     transfer(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface): void {
       var done = (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => {
-        this.update(setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host);
+        this.update_(setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host);
       };
       var fail = (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => {
         if (!setting.fallback || 'abort' === textStatus) { return; }
@@ -39,32 +44,46 @@ module MODULE.MODEL.APP {
         this.model_.fallback(event, setting);
       };
 
-      this.fetch(setting, event, register, cache, done, fail);
+      this.fetch_(setting, event, register, cache, done, fail);
     }
 
-    fetch(setting: SettingInterface,
-          event: JQueryEventObject,
-          register: boolean,
-          cache: CacheInterface,
-          done: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void,
-          fail: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void
-         ): void {
+    private fetch_(setting: SettingInterface,
+                   event: JQueryEventObject,
+                   register: boolean,
+                   cache: CacheInterface,
+                   done: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void,
+                   fail: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void
+                  ): void {
       new PageFetch(this.model_, this.app_, setting, event, register, cache, done, fail);
     }
 
-    update(setting: SettingInterface,
-           event: JQueryEventObject,
-           register: boolean,
-           cache: CacheInterface,
-           data: string,
-           textStatus: string,
-           jqXHR: JQueryXHR,
-           errorThrown: string,
-           host: string
-          ): void {
-      new PageUpdate(this.model_, this.app_, setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host);
+    private update_(setting: SettingInterface,
+                    event: JQueryEventObject,
+                    register: boolean,
+                    cache: CacheInterface,
+                    data: string,
+                    textStatus: string,
+                    jqXHR: JQueryXHR,
+                    errorThrown: string,
+                    host: string
+                   ): void {
+      new PageUpdate(this.model_, this.app_, setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host, ++this.count_, this.time_);
     }
-    
+
+    // mixin utility
+    createHTMLDocument(html: string, uri: string): Document { return }
+    chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
+    chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
+    chooseArea(areas: any, srcDocument: Document, dstDocument: Document): string { return }
+    movePageNormally(event: JQueryEventObject): void { }
+    calAge(jqXHR: JQueryXHR): number { return }
+    calExpires(jqXHR: JQueryXHR): number { return }
+    dispatchEvent(target: Window, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent(target: any, eventType: string, bubbling: boolean, cancelable: boolean): void { }
+    wait(ms: number): JQueryDeferred<any> { return }
+
   }
 
 }

@@ -8,7 +8,7 @@ module MODULE.MODEL.APP {
 
   var Util = LIBRARY.Utility
 
-  export class PageFetch extends PageUtility implements PageFetchInterface {
+  export class PageFetch implements PageFetchInterface {
 
     constructor(
 
@@ -21,7 +21,6 @@ module MODULE.MODEL.APP {
     private done_: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any,
     private fail_: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any
     ) {
-      super();
       this.main_();
     }
 
@@ -97,7 +96,7 @@ module MODULE.MODEL.APP {
         }
       }
 
-      this.dispatchEvent_(document, setting.gns + ':fetch', false, true);
+      this.dispatchEvent(document, setting.gns + ':fetch', false, true);
 
       if (cache && cache.jqXHR) {
         // cache
@@ -109,7 +108,7 @@ module MODULE.MODEL.APP {
         this.textStatus_ = cache.textStatus;
         this.jqXHR_ = cache.jqXHR;
         if (this.model_.isDeferrable) {
-          jQuery.when(jQuery.Deferred().resolve([that.data_, that.textStatus_, that.jqXHR_]), this.wait_(wait))
+          jQuery.when(jQuery.Deferred().resolve([that.data_, that.textStatus_, that.jqXHR_]), this.wait(wait))
           .done(done).fail(fail).always(always);
         } else {
           var context: JQueryAjaxSettings = jQuery.extend({}, jQuery.ajaxSettings, setting.ajax);
@@ -126,7 +125,7 @@ module MODULE.MODEL.APP {
         this.host_ = globalXHR.host || '';
         setting.loadtime = globalXHR.timeStamp;
         var wait = setting.wait && isFinite(globalXHR.timeStamp) ? Math.max(wait - new Date().getTime() + globalXHR.timeStamp, 0) : 0;
-        jQuery.when(globalXHR, that.wait_(wait))
+        jQuery.when(globalXHR, that.wait(wait))
         .done(done).fail(fail).always(always);
 
       } else {
@@ -213,12 +212,26 @@ module MODULE.MODEL.APP {
         globalXHR = this.model_.setGlobalXHR(jQuery.ajax(ajax));
 
         if (this.model_.isDeferrable) {
-          jQuery.when(globalXHR, that.wait_(wait))
+          jQuery.when(globalXHR, that.wait(wait))
           .done(done).fail(fail).always(always);
         }
       }
 
     }
+
+    // mixin utility
+    createHTMLDocument(html: string, uri: string): Document { return }
+    chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
+    chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
+    chooseArea(areas: any, srcDocument: Document, dstDocument: Document): string { return }
+    movePageNormally(event: JQueryEventObject): void { }
+    calAge(jqXHR: JQueryXHR): number { return }
+    calExpires(jqXHR: JQueryXHR): number { return }
+    dispatchEvent(target: Window, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent(target: any, eventType: string, bubbling: boolean, cancelable: boolean): void { }
+    wait(ms: number): JQueryDeferred<any> { return }
 
   }
 
