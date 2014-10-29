@@ -1,9 +1,9 @@
 # PJAX
 
 **[Document](http://falsandtru.github.io/jquery-pjax/)**
- | 
+|
 **[js](https://github.com/falsandtru/jquery-pjax/releases)**
- | 
+|
 **[d.ts](src/ts/.d/jquery.pjax.d.ts)**
 
 [![Build Status](https://travis-ci.org/falsandtru/jquery-pjax.svg?branch=master)](https://travis-ci.org/falsandtru/jquery-pjax)
@@ -87,14 +87,14 @@ if (!/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.nav
       }
     }
   });
-   
+
   $.pjax({
     area: 'body',
     load: { head: 'base, meta, link', css: true, script: true },
     cache: { click: true, submit: false, popstate: true },
     speedcheck: true
   });
-   
+
   $(document).bind('pjax:ready', function() {
     setTimeout(function () {
       $(document).trigger('preload');
@@ -126,7 +126,7 @@ jQuery1.6+ Recommended.
 * v2.1.1
 
 ## Caution
-Please do not use in a production environment the release version (master branch) other than. You may receive an error due to mismatch of the database schema is generated can not update the database.
+Please do not use the non-release version in a production environment. Error may be caused by inconsistencies in the database schema.
 
 ## License
 MIT License
