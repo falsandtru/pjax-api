@@ -3,9 +3,9 @@
 
 /* MODEL */
 
-module MODULE.MODEL.APP.DATA {
+module MODULE.MODEL.APP.DATA.STORE {
   
-  export class MetaStore extends Store<MetaStoreSchema> {
+  export class Meta extends Store<MetaStoreSchema> {
 
     name = 'meta'
     keyPath = 'key'

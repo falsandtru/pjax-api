@@ -3,9 +3,9 @@
 
 /* MODEL */
 
-module MODULE.MODEL.APP.DATA {
+module MODULE.MODEL.APP.DATA.STORE {
   
-  export class HistoryStore extends Store<HistoryStoreSchema> {
+  export class History extends Store<HistoryStoreSchema> {
 
     name = 'history'
     keyPath = 'url'

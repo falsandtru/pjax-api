@@ -3,9 +3,9 @@
 
 /* MODEL */
 
-module MODULE.MODEL.APP.DATA {
+module MODULE.MODEL.APP.DATA.STORE {
   
-  export class ServerStore extends Store<ServerStoreSchema> {
+  export class Server extends Store<ServerStoreSchema> {
 
     name = 'server'
     keyPath = 'host'

@@ -27,7 +27,7 @@ module MODULE.MODEL.APP.DATA {
       if (store) {
         success(store);
       } else {
-        this.DB.open().task(() => this.accessStore(success));
+        this.DB.open().done(() => this.accessStore(success));
       }
     }
 

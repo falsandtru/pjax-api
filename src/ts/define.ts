@@ -254,7 +254,7 @@ module MODULE.MODEL {
     // meta
 
     // history
-    getHistoryBuffer(unsafe_url: string): APP.HistoryStoreSchema
+    getHistoryBuffer(unsafe_url: string): HistoryStoreSchema
     loadTitle(): void
     saveTitle(): void
     saveTitle(unsafe_url: string, title: string): void
@@ -265,28 +265,68 @@ module MODULE.MODEL {
     saveExpires(unsafe_url: string, host: string, expires: number): void
 
     // server
-    getServerBuffers(): APP.ServerStoreSchema[]
+    getServerBuffers(): ServerStoreSchema[]
     loadServer(): void
     saveServer(host: string, performance: number, state?: number, unsafe_url?: string, expires?: number): void
+  }
+  export interface CookieOptionInterface {
+    age: number
+    path: string
+    domain: string
+    secure: boolean
+  }
+  export interface MetaStoreSchema {
+    key: string
+    value: any
+  }
+  export interface HistoryStoreSchema {
+    url: string     // primary
+    title: string   // fix
+    date: number    // fix
+    scrollX: number // fix
+    scrollY: number // fix
+    expires: number // balance
+    host: string    // balance
+  }
+  export interface ServerStoreSchema {
+    host: string
+    state: number // 0:正常, !0:異常発生時刻(ミリ秒)
+    performance: number
+    date: number
   }
 }
 
 module MODULE.MODEL.APP {
   // DATA Layer
   export declare class DataLayerInterface {
-    DB: DatabaseInterface
-    Cookie: CookieInterface
+    DB: DATA.DatabaseInterface
+    Cookie: DATA.CookieInterface
   }
+}
+
+module MODULE.MODEL.APP.DATA {
+  // Cookie
+  export declare class CookieInterface {
+    constructor(age: number)
+
+    getCookie(key: string): string
+    setCookie(key: string, value: string, option?: CookieOptionInterface): string
+  }
+  
+  // Database
   export declare class DatabaseInterface {
     IDBFactory: IDBFactory
     IDBKeyRange: IDBKeyRange
+    
+    state(): State
 
     database(): IDBDatabase
     up(): void
     down(): void
-    open(): DatabaseInstanceInterface
+    open(): DatabaseTaskReserveInterface
     close(): void
-    stateful: DBStatefulInterface
+    resolve(): void
+    reject(): void
 
     stores: DatabaseSchema
     meta: {
@@ -294,12 +334,30 @@ module MODULE.MODEL.APP {
       update: { key: string; value: number; }
     }
   }
-  export declare class DatabaseInstanceInterface {
-    task(task: () => void): void
+  export interface DatabaseSchema {
+    meta: StoreInterface<MetaStoreSchema>
+    history: StoreInterface<HistoryStoreSchema>
+    server: StoreInterface<ServerStoreSchema>
   }
-  export declare class DBStatefulInterface extends DatabaseInstanceInterface {
-    reserveTask(task: () => void): void
-    digestTask(): void
+  export interface DatabaseTaskInterface extends DatabaseTaskReserveInterface, DatabaseTaskDigestInterface {
+  }
+  export declare class DatabaseTaskReserveInterface {
+    done(callback: () => void): DatabaseTaskReserveInterface
+    fail(callback: () => void): DatabaseTaskReserveInterface
+    always(callback: () => void): DatabaseTaskReserveInterface
+  }
+  export declare class DatabaseTaskDigestInterface {
+    resolve(): DatabaseTaskDigestInterface
+    reject(): DatabaseTaskDigestInterface
+  }
+  export declare class DatabaseStatefulInterface {
+    constructor(origin: DatabaseInterface, connect: () => void, extend: () => void)
+    open(): DatabaseTaskReserveInterface
+    resolve(): void
+    reject(): void
+  }
+  export interface DatabaseStatefulClassInterface {
+    new (origin: DatabaseInterface, connect: () => void, extend: () => void, task: TaskInterface, taskable: boolean): DatabaseStatefulInterface
   }
   export declare class StoreInterface<T> {
     constructor(DB: DatabaseInterface)
@@ -332,46 +390,6 @@ module MODULE.MODEL.APP {
     removeBuffer(key: number): T
     clearBuffer(): void
   }
-  export declare class CookieInterface {
-    constructor(age: number)
-
-    getCookie(key: string): string
-    setCookie(key: string, value: string, option?: CookieOptionInterface): string
-  }
-
-  // Object
-  export interface CookieOptionInterface {
-    age: number
-    path: string
-    domain: string
-    secure: boolean
-  }
-
-  // Database
-  export interface DatabaseSchema {
-    meta: StoreInterface<MetaStoreSchema>
-    history: StoreInterface<HistoryStoreSchema>
-    server: StoreInterface<ServerStoreSchema>
-  }
-  export interface MetaStoreSchema {
-    key: string
-    value: any
-  }
-  export interface HistoryStoreSchema {
-    url: string     // primary
-    title: string   // fix
-    date: number    // fix
-    scrollX: number // fix
-    scrollY: number // fix
-    expires: number // balance
-    host: string    // balance
-  }
-  export interface ServerStoreSchema {
-    host: string
-    state: number // 0:正常, !0:異常発生時刻(ミリ秒)
-    performance: number
-    date: number
-  }
   export interface StoreIndexOptionInterface {
     name: string
     keyPath: string
@@ -379,7 +397,6 @@ module MODULE.MODEL.APP {
       unique: boolean
     }
   }
-
 }
 
 module MODULE {
@@ -428,5 +445,18 @@ module MODULE {
       }
     }
     return object;
+  }
+}
+
+module MODULE {
+  // LIBRARY
+  export declare class TaskInterface {
+    constructor(mode?: number, size?: number)
+    define(name: string, mode: number, size: number): void
+    reserve(task: () => void): void
+    reserve(name: string, task: () => void): void
+    digest(limit?: number): void
+    digest(name: string, limit?: number): void
+    clear(name?: string): void
   }
 }
