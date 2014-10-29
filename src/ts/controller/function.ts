@@ -163,7 +163,7 @@ module MODULE.CONTROLLER {
       .done(function () {
         !M.getCache(anchor.href) && M.isImmediateLoadable(event) && M.setCache(anchor.href, undefined, undefined, $XHR);
       });
-      jQuery[NAME].click(anchor.href);
+      jQuery[DEF.NAME].click(anchor.href);
       return true;
     }
 

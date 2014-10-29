@@ -147,19 +147,19 @@ module MODULE.MODEL.APP {
           throw false;
 
         default:
-          jQuery[NAME].enable();
+          jQuery[DEF.NAME].enable();
           switch (event.type.toLowerCase()) {
             case 'click':
             case 'submit':
-              setTimeout(() => jQuery[NAME].click(redirect.href), 0);
+              setTimeout(() => jQuery[DEF.NAME].click(redirect.href), 0);
               break;
             case 'popstate':
               window.history.replaceState(window.history.state, this.srcDocument_.title, redirect.href);
               if (register && setting.fix.location && !Util.compareUrl(setting.destLocation.href, Util.normalizeUrl(window.location.href))) {
-                jQuery[NAME].disable();
+                jQuery[DEF.NAME].disable();
                 window.history.back();
                 window.history.forward();
-                jQuery[NAME].enable();
+                jQuery[DEF.NAME].enable();
               }
               setTimeout(() => this.dispatchEvent(window, 'popstate', false, false), 0);
               break;
@@ -184,10 +184,10 @@ module MODULE.MODEL.APP {
                                setting.destLocation.href);
 
       if (register && setting.fix.location && !Util.compareUrl(setting.destLocation.href, Util.normalizeUrl(window.location.href))) {
-        jQuery[NAME].disable();
+        jQuery[DEF.NAME].disable();
         window.history.back();
         window.history.forward();
-        jQuery[NAME].enable();
+        jQuery[DEF.NAME].enable();
       }
 
       // verify

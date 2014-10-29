@@ -18,7 +18,7 @@ module MODULE.MODEL.APP.DATA {
     IDBKeyRange: IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.mozIDBKeyRange || window.msIDBKeyRange
 
     private database_: IDBDatabase
-    private name_: string = NAME
+    private name_: string = DEF.NAME
     private version_: number = 7
     private refresh_: number = 10
     private upgrade_: number = 0 // 0:virtual 1:native

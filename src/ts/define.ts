@@ -16,11 +16,12 @@ interface JQueryXHR {
   timeStamp?: number
 }
 
-module MODULE {
-
+module MODULE.DEF {
   export var NAME: string = 'pjax'
   export var NAMESPACE: any = jQuery
+}
 
+module MODULE {
   /*
    * 仕様
    * -----
@@ -382,7 +383,7 @@ module MODULE.MODEL.APP {
 }
 
 module MODULE {
-  // MACRO
+  // Macro
   export function MIXIN(baseClass: Function, mixClasses: Function[]): void {
     var baseClassPrototype = baseClass.prototype;
     for (var iMixClasses = mixClasses.length; iMixClasses--;) {

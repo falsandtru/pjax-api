@@ -34,7 +34,7 @@ module MODULE.MODEL {
 
       switch (typeof option) {
         case 'object':
-          $context = $context instanceof NAMESPACE ? $context : jQuery(document)[NAME]();
+          $context = $context instanceof DEF.NAMESPACE ? $context : jQuery(document)[DEF.NAME]();
           FREEZE(option, true);
           break;
 

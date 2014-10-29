@@ -151,7 +151,7 @@ module MODULE.MODEL.APP {
             origLocation: undefined,
             destLocation: undefined,
 
-            gns: NAME,
+            gns: DEF.NAME,
             areas: [],
             scroll: { queue: [] },
             loadtime: null,
@@ -160,7 +160,7 @@ module MODULE.MODEL.APP {
           },
           compute = () => {
             setting.ns = setting.ns && setting.ns.split('.').sort().join('.') || '';
-            var nsArray: string[] = [setting.gns || NAME].concat(setting.ns && String(setting.ns).split('.') || []);
+            var nsArray: string[] = [setting.gns || DEF.NAME].concat(setting.ns && String(setting.ns).split('.') || []);
             var query: string = setting.server.query;
             switch (query && typeof query) {
               case 'string':
