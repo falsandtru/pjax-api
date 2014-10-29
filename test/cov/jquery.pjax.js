@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.25.4
+ * @version 2.26.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -18,9 +18,15 @@ new (function(window, document, undefined, $) {
 
 var MODULE;
 (function (MODULE) {
-    MODULE.NAME = 'pjax';
-    MODULE.NAMESPACE = jQuery;
+    (function (DEF) {
+        DEF.NAME = 'pjax';
+        DEF.NAMESPACE = jQuery;
+    })(MODULE.DEF || (MODULE.DEF = {}));
+    var DEF = MODULE.DEF;
+})(MODULE || (MODULE = {}));
 
+var MODULE;
+(function (MODULE) {
     
 
     
@@ -31,16 +37,16 @@ var MODULE;
 
     // State
     (function (State) {
-        State[State["blank"] = -2] = "blank";
-        State[State["initiate"] = -1] = "initiate";
-        State[State["open"] = 0] = "open";
-        State[State["pause"] = 1] = "pause";
-        State[State["lock"] = 2] = "lock";
-        State[State["seal"] = 3] = "seal";
-        State[State["error"] = 4] = "error";
-        State[State["crash"] = 5] = "crash";
-        State[State["terminate"] = 6] = "terminate";
-        State[State["close"] = 7] = "close";
+        State[State["blank"] = 0] = "blank";
+        State[State["initiate"] = 1] = "initiate";
+        State[State["open"] = 2] = "open";
+        State[State["pause"] = 3] = "pause";
+        State[State["lock"] = 4] = "lock";
+        State[State["seal"] = 5] = "seal";
+        State[State["error"] = 6] = "error";
+        State[State["crash"] = 7] = "crash";
+        State[State["terminate"] = 8] = "terminate";
+        State[State["close"] = 9] = "close";
     })(MODULE.State || (MODULE.State = {}));
     var State = MODULE.State;
 
@@ -51,9 +57,61 @@ var MODULE;
     
 
     
+})(MODULE || (MODULE = {}));
 
-    // Function
-    function GEN_UUID() {
+var MODULE;
+(function (MODULE) {
+    (function (MODEL) {
+        
+    })(MODULE.MODEL || (MODULE.MODEL = {}));
+    var MODEL = MODULE.MODEL;
+})(MODULE || (MODULE = {}));
+
+var MODULE;
+(function (MODULE) {
+    (function (MODEL) {
+        (function (APP) {
+            
+        })(MODEL.APP || (MODEL.APP = {}));
+        var APP = MODEL.APP;
+    })(MODULE.MODEL || (MODULE.MODEL = {}));
+    var MODEL = MODULE.MODEL;
+})(MODULE || (MODULE = {}));
+
+var MODULE;
+(function (MODULE) {
+    (function (MODEL) {
+        (function (APP) {
+            (function (DATA) {
+                
+
+                
+            })(APP.DATA || (APP.DATA = {}));
+            var DATA = APP.DATA;
+        })(MODEL.APP || (MODEL.APP = {}));
+        var APP = MODEL.APP;
+    })(MODULE.MODEL || (MODULE.MODEL = {}));
+    var MODEL = MODULE.MODEL;
+})(MODULE || (MODULE = {}));
+
+var MODULE;
+(function (MODULE) {
+    // Macro
+    function MIXIN(baseClass, mixClasses) {
+        var baseClassPrototype = baseClass.prototype;
+        for (var iMixClasses = mixClasses.length; iMixClasses--;) {
+            var mixClassPrototype = mixClasses[iMixClasses].prototype;
+            for (var iProperty in mixClassPrototype) {
+                if ('constructor' === iProperty || !mixClassPrototype.hasOwnProperty(iProperty)) {
+                    continue;
+                }
+                baseClassPrototype[iProperty] = mixClassPrototype[iProperty];
+            }
+        }
+    }
+    MODULE.MIXIN = MIXIN;
+
+    function UUID() {
         // version 4
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, gen);
         function gen(c) {
@@ -61,7 +119,7 @@ var MODULE;
             return v.toString(16).toUpperCase();
         }
     }
-    MODULE.GEN_UUID = GEN_UUID;
+    MODULE.UUID = UUID;
 
     function FREEZE(object, deep) {
         if (!Object.freeze || object === object['window'] || 'ownerDocument' in object) {
@@ -102,25 +160,7 @@ var MODULE;
 
 var MODULE;
 (function (MODULE) {
-    (function (MODEL) {
-        
-    })(MODULE.MODEL || (MODULE.MODEL = {}));
-    var MODEL = MODULE.MODEL;
-})(MODULE || (MODULE = {}));
-
-var MODULE;
-(function (MODULE) {
-    (function (MODEL) {
-        (function (APP) {
-            
-
-            
-
-            
-        })(MODEL.APP || (MODEL.APP = {}));
-        var APP = MODEL.APP;
-    })(MODULE.MODEL || (MODULE.MODEL = {}));
-    var MODEL = MODULE.MODEL;
+    
 })(MODULE || (MODULE = {}));
 /// <reference path="../define.ts"/>
 var MODULE;
@@ -135,28 +175,28 @@ var MODULE;
                 * @property NAME
                 * @type String
                 */
-                this.NAME = MODULE.NAME;
+                this.NAME = MODULE.DEF.NAME;
                 /**
                 * ネームスペース。ここにモジュールが追加される。
                 *
                 * @property NAMESPACE
                 * @type Window|JQuery
                 */
-                this.NAMESPACE = MODULE.NAMESPACE;
+                this.NAMESPACE = MODULE.DEF.NAMESPACE;
                 /**
                 * UUID
                 *
                 * @property UUID
                 * @type String
                 */
-                this.UUID = MODULE.GEN_UUID();
+                this.UUID = MODULE.UUID();
                 /**
                 * Modelの遷移状態を持つ
                 *
                 * @property state_
                 * @type {State}
                 */
-                this.state_ = -2 /* blank */;
+                this.state_ = 0 /* blank */;
                 this.state_ = state;
             }
             Template.prototype.MAIN = function (context) {
@@ -193,14 +233,14 @@ var MODULE;
                 * @property UUID
                 * @type String
                 */
-                this.UUID = MODULE.GEN_UUID();
+                this.UUID = MODULE.UUID();
                 /**
                 * Viewの遷移状態を持つ
                 *
                 * @property state_
                 * @type {State}
                 */
-                this.state_ = -2 /* blank */;
+                this.state_ = 0 /* blank */;
                 this.state_ = state;
             }
             return Template;
@@ -225,7 +265,7 @@ var MODULE;
             __extends(Main, _super);
             function Main(model_, controller_, context_, setting) {
                 var _this = this;
-                _super.call(this, -1 /* initiate */);
+                _super.call(this, 1 /* initiate */);
                 this.model_ = model_;
                 this.controller_ = controller_;
                 this.context_ = context_;
@@ -443,7 +483,7 @@ var MODULE;
                 jQuery.when($XHR).done(function () {
                     !M.getCache(anchor.href) && M.isImmediateLoadable(event) && M.setCache(anchor.href, undefined, undefined, $XHR);
                 });
-                jQuery[MODULE.NAME].click(anchor.href);
+                jQuery[MODULE.DEF.NAME].click(anchor.href);
                 return true;
             };
 
@@ -496,14 +536,14 @@ var MODULE;
                 * @property UUID
                 * @type String
                 */
-                this.UUID = MODULE.GEN_UUID();
+                this.UUID = MODULE.UUID();
                 /**
                 * Controllerの遷移状態を持つ
                 *
                 * @prperty state_
                 * @type {State}
                 */
-                this.state_ = -2 /* blank */;
+                this.state_ = 0 /* blank */;
                 /**
                 * 拡張のプロパティを指定する
                 *
@@ -517,7 +557,7 @@ var MODULE;
                 this.REGISTER(model);
             }
             Template.prototype.EXTEND = function (context) {
-                if (context instanceof MODULE.NAMESPACE) {
+                if (context instanceof MODULE.DEF.NAMESPACE) {
                     if (context instanceof jQuery) {
                         // コンテクストへの変更をend()で戻せるようadd()
                         context = context.add();
@@ -564,11 +604,11 @@ var MODULE;
                 this.EXTEND(this.EXTENSION);
 
                 // プラグインに関数を設定してネームスペースに登録
-                window[MODULE.NAMESPACE] = window[MODULE.NAMESPACE] || {};
-                if (MODULE.NAMESPACE.prototype) {
-                    MODULE.NAMESPACE[MODULE.NAME] = MODULE.NAMESPACE.prototype[MODULE.NAME] = this.EXTENSION;
+                window[MODULE.DEF.NAMESPACE] = window[MODULE.DEF.NAMESPACE] || {};
+                if (MODULE.DEF.NAMESPACE.prototype) {
+                    MODULE.DEF.NAMESPACE[MODULE.DEF.NAME] = MODULE.DEF.NAMESPACE.prototype[MODULE.DEF.NAME] = this.EXTENSION;
                 } else {
-                    MODULE.NAMESPACE[MODULE.NAME] = this.EXTENSION;
+                    MODULE.DEF.NAMESPACE[MODULE.DEF.NAME] = this.EXTENSION;
                 }
             };
 
@@ -636,7 +676,7 @@ var MODULE;
         var Main = (function (_super) {
             __extends(Main, _super);
             function Main(model_) {
-                _super.call(this, model_, -1 /* initiate */);
+                _super.call(this, model_, 1 /* initiate */);
                 this.model_ = model_;
             }
             Main.prototype.exec_ = function ($context) {
@@ -693,6 +733,472 @@ var MODULE;
     MODULE.Controller = MODULE.CONTROLLER.Main;
 })(MODULE || (MODULE = {}));
 /// <reference path="../define.ts"/>
+var MODULE;
+(function (MODULE) {
+    /* MODEL */
+    (function (LIBRARY) {
+        var Task = (function () {
+            function Task(mode, size) {
+                if (typeof mode === "undefined") { mode = 1; }
+                if (typeof size === "undefined") { size = 0; }
+                this.list_ = [];
+                this.config_ = {
+                    mode: 1,
+                    size: 0
+                };
+                this.table_ = {};
+                this.option_ = {};
+                this.config_.mode = mode || this.config_.mode;
+                this.config_.size = size || this.config_.size;
+            }
+            Task.prototype.define = function (label, mode, size) {
+                if (typeof mode === "undefined") { mode = this.config_.mode; }
+                if (typeof size === "undefined") { size = this.config_.size; }
+                this.option_[label] = {
+                    mode: mode,
+                    size: size
+                };
+                this.table_[label] = [];
+            };
+
+            Task.prototype.reserve = function (label, task) {
+                switch (typeof label) {
+                    case 'string':
+                        !this.option_[label] && this.define(label);
+
+                        var config = this.option_[label], list = this.table_[label], args = [].slice.call(arguments, 2);
+                        break;
+
+                    case 'function':
+                        task = label;
+                        label = undefined;
+                        var config = this.config_, list = this.list_, args = [].slice.call(arguments, 1);
+                        break;
+
+                    default:
+                        return;
+                }
+
+                if ('function' !== typeof task) {
+                    return;
+                }
+
+                var method;
+                if (config.mode > 0) {
+                    method = 'push';
+                } else {
+                    method = 'unshift';
+                }
+                list[method]([task, args.shift(), args]);
+            };
+
+            Task.prototype.digest = function (label, limit) {
+                switch (typeof label) {
+                    case 'string':
+                        !this.option_[label] && this.define(label);
+
+                        limit = limit || 0;
+                        var config = this.option_[label], list = this.table_[label];
+                        if (!list) {
+                            return;
+                        }
+                        break;
+
+                    case 'number':
+                    case 'undefined':
+                        limit = label || 0;
+                        label = undefined;
+                        var config = this.config_, list = this.list_;
+                        break;
+
+                    default:
+                        return;
+                }
+
+                if (list.length > config.size && config.size) {
+                    if (config.mode > 0) {
+                        list.splice(0, list.length - config.size);
+                    } else {
+                        list.splice(list.length - config.size, list.length);
+                    }
+                }
+
+                var task;
+                limit = limit || -1;
+                while (task = limit-- && list.pop()) {
+                    task.shift().apply(task.shift() || window, task.shift() || []);
+                }
+
+                if (undefined === label) {
+                    var table = this.table_;
+                    for (var i in table) {
+                        this.digest(i, limit);
+                    }
+                }
+            };
+
+            Task.prototype.clear = function (label) {
+                switch (typeof label) {
+                    case 'string':
+                        !this.option_[label] && this.define(label);
+
+                        this.table_[label].splice(0, this.table_[label].length);
+                        break;
+
+                    default:
+                        var table = this.table_;
+                        for (var i in table) {
+                            this.clear(i);
+                        }
+                }
+            };
+            return Task;
+        })();
+        LIBRARY.Task = Task;
+    })(MODULE.LIBRARY || (MODULE.LIBRARY = {}));
+    var LIBRARY = MODULE.LIBRARY;
+})(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
+/// <reference path="../library/task.ts"/>
+var MODULE;
+(function (MODULE) {
+    (function (MODEL) {
+        (function (APP) {
+            (function (DATA) {
+                (function (DB) {
+                    /* MODEL */
+                    (function (STATEFUL) {
+                        var Task = (function () {
+                            function Task(task_) {
+                                this.task_ = task_;
+                                this.labels_ = {
+                                    done: 'done',
+                                    fail: 'fail',
+                                    always: 'always'
+                                };
+                            }
+                            Task.prototype.done = function (callback) {
+                                this.task_.reserve(this.labels_.done, callback);
+                                return this;
+                            };
+
+                            Task.prototype.fail = function (callback) {
+                                this.task_.reserve(this.labels_.fail, callback);
+                                return this;
+                            };
+
+                            Task.prototype.always = function (callback) {
+                                this.task_.reserve(this.labels_.always, callback);
+                                return this;
+                            };
+
+                            Task.prototype.resolve = function () {
+                                this.task_.clear(this.labels_.fail);
+                                this.task_.digest(this.labels_.done);
+                                this.task_.digest(this.labels_.always);
+                                return this;
+                            };
+
+                            Task.prototype.reject = function () {
+                                this.task_.clear(this.labels_.done);
+                                this.task_.digest(this.labels_.fail);
+                                this.task_.digest(this.labels_.always);
+                                return this;
+                            };
+                            return Task;
+                        })();
+                        STATEFUL.Task = Task;
+
+                        var TaskUp = (function (_super) {
+                            __extends(TaskUp, _super);
+                            function TaskUp() {
+                                _super.apply(this, arguments);
+                            }
+                            return TaskUp;
+                        })(Task);
+                        STATEFUL.TaskUp = TaskUp;
+
+                        var TaskDown = (function (_super) {
+                            __extends(TaskDown, _super);
+                            function TaskDown() {
+                                _super.apply(this, arguments);
+                            }
+                            TaskDown.prototype.done = function (callback) {
+                                return this;
+                            };
+
+                            TaskDown.prototype.fail = function (callback) {
+                                return this;
+                            };
+
+                            TaskDown.prototype.always = function (callback) {
+                                return this;
+                            };
+
+                            TaskDown.prototype.resolve = function () {
+                                return this;
+                            };
+                            return TaskDown;
+                        })(Task);
+                        STATEFUL.TaskDown = TaskDown;
+                    })(DB.STATEFUL || (DB.STATEFUL = {}));
+                    var STATEFUL = DB.STATEFUL;
+                })(DATA.DB || (DATA.DB = {}));
+                var DB = DATA.DB;
+            })(APP.DATA || (APP.DATA = {}));
+            var DATA = APP.DATA;
+        })(MODEL.APP || (MODEL.APP = {}));
+        var APP = MODEL.APP;
+    })(MODULE.MODEL || (MODULE.MODEL = {}));
+    var MODEL = MODULE.MODEL;
+})(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
+/// <reference path="../library/task.ts"/>
+/// <reference path="data.db.stateful.task.ts"/>
+var MODULE;
+(function (MODULE) {
+    (function (MODEL) {
+        (function (APP) {
+            (function (DATA) {
+                /* MODEL */
+                (function (DB) {
+                    var Stateful = (function () {
+                        function Stateful(origin_, connect_, extend_) {
+                            var _this = this;
+                            this.origin_ = origin_;
+                            this.connect_ = connect_;
+                            this.extend_ = extend_;
+                            this.state_ = function () {
+                                return _this.origin_.state();
+                            };
+                            this.task_ = new MODULE.LIBRARY.Task();
+                            this.cache_ = {
+                                stateful: {}
+                            };
+                        }
+                        Stateful.prototype.stateful_ = function () {
+                            var _this = this;
+                            var select = function (statefulClass, taskable) {
+                                return _this.cache_.stateful[_this.state_()] = _this.cache_.stateful[_this.state_()] || new statefulClass(_this.origin_, _this.connect_, _this.extend_, _this.task_, taskable);
+                            };
+
+                            switch (this.state_()) {
+                                case 0 /* blank */:
+                                    return select(DB.STATE.Blank, true);
+
+                                case 1 /* initiate */:
+                                    return select(DB.STATE.Initiate, true);
+
+                                case 2 /* open */:
+                                    return select(DB.STATE.Open, true);
+
+                                case 9 /* close */:
+                                    return select(DB.STATE.Close, true);
+
+                                case 8 /* terminate */:
+                                    return select(DB.STATE.Terminate, true);
+
+                                case 6 /* error */:
+                                    return select(DB.STATE.Error, false);
+
+                                default:
+                                    return select(DB.STATE.Except, false);
+                            }
+                        };
+
+                        Stateful.prototype.open = function () {
+                            return this.stateful_().open();
+                        };
+
+                        Stateful.prototype.resolve = function () {
+                            return this.stateful_().resolve();
+                        };
+
+                        Stateful.prototype.reject = function () {
+                            return this.stateful_().reject();
+                        };
+                        return Stateful;
+                    })();
+                    DB.Stateful = Stateful;
+                })(DATA.DB || (DATA.DB = {}));
+                var DB = DATA.DB;
+            })(APP.DATA || (APP.DATA = {}));
+            var DATA = APP.DATA;
+        })(MODEL.APP || (MODEL.APP = {}));
+        var APP = MODEL.APP;
+    })(MODULE.MODEL || (MODULE.MODEL = {}));
+    var MODEL = MODULE.MODEL;
+})(MODULE || (MODULE = {}));
+
+var MODULE;
+(function (MODULE) {
+    (function (MODEL) {
+        (function (APP) {
+            (function (DATA) {
+                (function (DB) {
+                    (function (STATE) {
+                        var Default = (function () {
+                            function Default(origin, connect, extend, task, taskable) {
+                                this.origin = origin;
+                                this.connect = connect;
+                                this.extend = extend;
+                                this.task = taskable ? new DB.STATEFUL.TaskUp(task) : new DB.STATEFUL.TaskDown(task);
+                            }
+                            Default.prototype.open = function () {
+                                // 無効
+                                return this.task;
+                            };
+
+                            Default.prototype.resolve = function () {
+                                // 無効
+                            };
+
+                            Default.prototype.reject = function () {
+                                // 常に処理可能
+                                this.task.reject();
+                            };
+                            return Default;
+                        })();
+                        STATE.Default = Default;
+
+                        var Blank = (function (_super) {
+                            __extends(Blank, _super);
+                            function Blank() {
+                                _super.apply(this, arguments);
+                            }
+                            Blank.prototype.open = function () {
+                                // 新規接続
+                                this.connect();
+                                return this.task;
+                            };
+
+                            Blank.prototype.resolve = function () {
+                                // 接続のコールバックによりタスクを処理
+                                this.open();
+                            };
+
+                            Blank.prototype.reject = function () {
+                                // 常に処理可能
+                                this.task.reject();
+                            };
+                            return Blank;
+                        })(Default);
+                        STATE.Blank = Blank;
+
+                        var Initiate = (function (_super) {
+                            __extends(Initiate, _super);
+                            function Initiate() {
+                                _super.apply(this, arguments);
+                            }
+                            Initiate.prototype.open = function () {
+                                // 無効
+                                return this.task;
+                            };
+
+                            Initiate.prototype.resolve = function () {
+                                // 接続のコールバックによりタスクを処理
+                            };
+
+                            Initiate.prototype.reject = function () {
+                                // 常に処理可能
+                                this.task.reject();
+                            };
+                            return Initiate;
+                        })(Default);
+                        STATE.Initiate = Initiate;
+
+                        var Open = (function (_super) {
+                            __extends(Open, _super);
+                            function Open() {
+                                _super.apply(this, arguments);
+                            }
+                            Open.prototype.open = function () {
+                                var _this = this;
+                                // 接続の有効期限を延長
+                                this.extend();
+
+                                // 戻り値のオブジェクトを使用したタスクの追加を待ってタスクを処理
+                                setTimeout(function () {
+                                    return _this.origin.resolve();
+                                }, 1);
+                                return this.task;
+                            };
+
+                            Open.prototype.resolve = function () {
+                                // 現接続によりタスクを処理
+                                this.task.resolve();
+                            };
+
+                            Open.prototype.reject = function () {
+                                // 常に処理可能
+                                this.task.reject();
+                            };
+                            return Open;
+                        })(Default);
+                        STATE.Open = Open;
+
+                        var Close = (function (_super) {
+                            __extends(Close, _super);
+                            function Close() {
+                                _super.apply(this, arguments);
+                            }
+                            Close.prototype.open = function () {
+                                // 再接続
+                                this.connect();
+                                return this.task;
+                            };
+
+                            Close.prototype.resolve = function () {
+                                // 再接続しコールバックによりタスクを処理
+                                this.open();
+                            };
+
+                            Close.prototype.reject = function () {
+                                // 常に処理可能
+                                this.task.reject();
+                            };
+                            return Close;
+                        })(Default);
+                        STATE.Close = Close;
+
+                        var Terminate = (function (_super) {
+                            __extends(Terminate, _super);
+                            function Terminate() {
+                                _super.apply(this, arguments);
+                            }
+                            return Terminate;
+                        })(Default);
+                        STATE.Terminate = Terminate;
+
+                        var Error = (function (_super) {
+                            __extends(Error, _super);
+                            function Error() {
+                                _super.apply(this, arguments);
+                            }
+                            return Error;
+                        })(Default);
+                        STATE.Error = Error;
+
+                        var Except = (function (_super) {
+                            __extends(Except, _super);
+                            function Except() {
+                                _super.apply(this, arguments);
+                            }
+                            return Except;
+                        })(Default);
+                        STATE.Except = Except;
+                    })(DB.STATE || (DB.STATE = {}));
+                    var STATE = DB.STATE;
+                })(DATA.DB || (DATA.DB = {}));
+                var DB = DATA.DB;
+            })(APP.DATA || (APP.DATA = {}));
+            var DATA = APP.DATA;
+        })(MODEL.APP || (MODEL.APP = {}));
+        var APP = MODEL.APP;
+    })(MODULE.MODEL || (MODULE.MODEL = {}));
+    var MODEL = MODULE.MODEL;
+})(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
 /// <reference path="data.db.ts"/>
 var MODULE;
 (function (MODULE) {
@@ -705,13 +1211,12 @@ var MODULE;
                         this.DB = DB;
                         this.autoIncrement = true;
                         this.indexes = [];
+                        this.limit = 0;
                         this.buffer_ = [];
                     }
                     Store.prototype.accessStore = function (success, mode) {
                         var _this = this;
                         if (typeof mode === "undefined") { mode = 'readwrite'; }
-                        this.DB.conExtend();
-
                         try  {
                             var database = this.DB.database(), store = database && database.transaction(this.name, mode).objectStore(this.name);
                         } catch (err) {
@@ -720,100 +1225,52 @@ var MODULE;
                         if (store) {
                             success(store);
                         } else {
-                            this.DB.opendb(function () {
+                            this.DB.open().done(function () {
                                 return _this.accessStore(success);
                             });
                         }
                     };
 
+                    Store.prototype.accessCount = function () {
+                        var index = 'string' === typeof arguments[0] && arguments[0], success = arguments[index ? 1 : 0];
+                        this.accessStore(function (store) {
+                            var req = index ? store.index(index).count() : store.count();
+                            req.onsuccess = function () {
+                                success.apply(this, [].slice.call(arguments, 1).concat(this.result));
+                            };
+                        });
+                    };
+
                     Store.prototype.accessRecord = function (key, success, mode) {
-                        if (typeof mode === "undefined") { mode = 'readwrite'; }
                         this.accessStore(function (store) {
                             store.get(key).onsuccess = success;
                         }, mode);
                     };
 
-                    Store.prototype.loadBuffer = function (limit) {
-                        var _this = this;
-                        if (typeof limit === "undefined") { limit = 0; }
-                        var buffer = this.buffer_;
+                    Store.prototype.accessCursor = function (index, range, direction, success) {
                         this.accessStore(function (store) {
-                            if (!store.indexNames.length) {
-                                return;
+                            var req;
+                            if (direction && range) {
+                                req = store.index(index).openCursor(range, direction);
+                            } else if (range) {
+                                req = store.index(index).openCursor(range);
+                            } else {
+                                req = store.openCursor();
                             }
-
-                            store.index(store.indexNames[0]).openCursor(_this.DB.IDBKeyRange.lowerBound(0), 'prev').onsuccess = function () {
-                                if (!this.result) {
-                                    return;
-                                }
-
-                                var cursor = this.result, value = cursor.value, key = value[store.keyPath];
-                                buffer[key] = value;
-                                if (!--limit) {
-                                    return;
-                                }
-
-                                cursor['continue'] && cursor['continue']();
-                            };
+                            req.onsuccess = success;
                         });
                     };
 
-                    Store.prototype.saveBuffer = function () {
-                        var buffer = this.buffer_;
-                        this.accessStore(function (store) {
-                            for (var i in buffer) {
-                                store.put(buffer[i]);
-                            }
-                        });
-                    };
-
-                    Store.prototype.getBuffers = function () {
-                        return this.buffer_;
-                    };
-
-                    Store.prototype.getBuffer = function (key) {
-                        return this.buffer_[key];
-                    };
-
-                    Store.prototype.setBuffers = function (values, isMerge) {
-                        for (var i in values) {
-                            this.setBuffer(values[i], isMerge);
-                        }
-                        return this.buffer_;
-                    };
-
-                    Store.prototype.setBuffer = function (value, isMerge) {
-                        var key = value[this.keyPath];
-                        this.buffer_[key] = !isMerge ? value : jQuery.extend(true, {}, this.buffer_[key], value);
-                        return this.buffer_[key];
-                    };
-
-                    Store.prototype.addBuffer = function (value) {
-                        value[this.keyPath] = this.buffer_.length || 1;
-                        this.buffer_.push(value);
-                        return value;
-                    };
-
-                    Store.prototype.removeBuffer = function (key) {
-                        var ret = this.buffer_[key];
-                        if ('number' === typeof key) {
-                            this.buffer_.splice(key, 1);
-                        } else {
-                            delete this.buffer_[key];
-                        }
-                        return ret;
-                    };
-
-                    Store.prototype.clearBuffer = function () {
-                        this.buffer_ = [];
+                    Store.prototype.accessAll = function (success) {
+                        return this.accessCursor(null, null, null, success);
                     };
 
                     Store.prototype.get = function (key, success) {
                         this.accessRecord(key, success);
                     };
 
-                    Store.prototype.set = function (value, isMerge) {
-                        if (!isMerge) {
+                    Store.prototype.set = function (value, merge) {
+                        if (!merge) {
                             return this.put(value);
                         }
 
@@ -848,6 +1305,101 @@ var MODULE;
                             store['delete'](key);
                         });
                     };
+
+                    Store.prototype.clear = function () {
+                        this.accessStore(function (store) {
+                            store.clear();
+                        });
+                    };
+
+                    Store.prototype.clean = function () {
+                        var _this = this;
+                        if (!this.limit || !this.indexes.length) {
+                            return;
+                        }
+
+                        var index = this.indexes[0].name, size = this.limit;
+                        this.accessCount(index, function (count) {
+                            if (count <= size) {
+                                return;
+                            }
+                            size = count - size;
+                            _this.accessCursor(index, _this.DB.IDBKeyRange.upperBound(Infinity), 'prev', function () {
+                                if (!this.result || !size--) {
+                                    return;
+                                }
+
+                                var cursor = this.result;
+                                cursor['delete']();
+                                cursor['continue']();
+                            });
+                        });
+                    };
+
+                    Store.prototype.loadBuffer = function (limit) {
+                        if (typeof limit === "undefined") { limit = 0; }
+                        var buffer = this.buffer_;
+                        this.accessAll(function () {
+                            if (!this.result) {
+                                return;
+                            }
+                            var cursor = this.result, value = cursor.value, key = value[cursor.source.keyPath];
+
+                            buffer[key] = value;
+
+                            --limit && cursor['continue']();
+                        });
+                    };
+
+                    Store.prototype.saveBuffer = function () {
+                        var buffer = this.buffer_;
+                        this.accessStore(function (store) {
+                            for (var i in buffer) {
+                                store.put(buffer[i]);
+                            }
+                        });
+                    };
+
+                    Store.prototype.getBuffers = function () {
+                        return this.buffer_;
+                    };
+
+                    Store.prototype.setBuffers = function (values, merge) {
+                        for (var i in values) {
+                            this.setBuffer(values[i], merge);
+                        }
+                        return this.buffer_;
+                    };
+
+                    Store.prototype.getBuffer = function (key) {
+                        return this.buffer_[key];
+                    };
+
+                    Store.prototype.setBuffer = function (value, merge) {
+                        var key = value[this.keyPath];
+                        this.buffer_[key] = !merge ? value : jQuery.extend(true, {}, this.buffer_[key], value);
+                        return this.buffer_[key];
+                    };
+
+                    Store.prototype.addBuffer = function (value) {
+                        value[this.keyPath] = this.buffer_.length || 1;
+                        this.buffer_.push(value);
+                        return value;
+                    };
+
+                    Store.prototype.removeBuffer = function (key) {
+                        var ret = this.buffer_[key];
+                        if ('number' === typeof key && key >= 0 && key in this.buffer_ && this.buffer_.length > key) {
+                            this.buffer_.splice(key, 1);
+                        } else {
+                            delete this.buffer_[key];
+                        }
+                        return ret;
+                    };
+
+                    Store.prototype.clearBuffer = function () {
+                        this.buffer_.splice(0, this.buffer_.length);
+                    };
                     return Store;
                 })();
                 DATA.Store = Store;
@@ -864,22 +1416,23 @@ var MODULE;
 (function (MODULE) {
     (function (MODEL) {
         (function (APP) {
-            /* MODEL */
             (function (DATA) {
-                var MetaStore = (function (_super) {
-                    __extends(MetaStore, _super);
-                    function MetaStore() {
-                        _super.apply(this, arguments);
-                        this.name = 'meta';
-                        this.keyPath = 'key';
-                        this.autoIncrement = false;
-                        this.indexes = [
-                            { name: this.keyPath, keyPath: this.keyPath, option: { unique: true } }
-                        ];
-                    }
-                    return MetaStore;
-                })(DATA.Store);
-                DATA.MetaStore = MetaStore;
+                /* MODEL */
+                (function (STORE) {
+                    var Meta = (function (_super) {
+                        __extends(Meta, _super);
+                        function Meta() {
+                            _super.apply(this, arguments);
+                            this.name = 'meta';
+                            this.keyPath = 'key';
+                            this.autoIncrement = false;
+                            this.limit = 0;
+                        }
+                        return Meta;
+                    })(DATA.Store);
+                    STORE.Meta = Meta;
+                })(DATA.STORE || (DATA.STORE = {}));
+                var STORE = DATA.STORE;
             })(APP.DATA || (APP.DATA = {}));
             var DATA = APP.DATA;
         })(MODEL.APP || (MODEL.APP = {}));
@@ -893,47 +1446,26 @@ var MODULE;
 (function (MODULE) {
     (function (MODEL) {
         (function (APP) {
-            /* MODEL */
             (function (DATA) {
-                var HistoryStore = (function (_super) {
-                    __extends(HistoryStore, _super);
-                    function HistoryStore() {
-                        _super.apply(this, arguments);
-                        this.name = 'history';
-                        this.keyPath = 'url';
-                        this.autoIncrement = false;
-                        this.indexes = [
-                            { name: 'date', keyPath: 'date', option: { unique: false } }
-                        ];
-                    }
-                    HistoryStore.prototype.clean = function () {
-                        var that = this;
-                        this.accessStore(function (store) {
-                            store.count().onsuccess = function () {
-                                if (this.result <= 1000) {
-                                    return;
-                                }
-                                store.index('date').openCursor(that.DB.IDBKeyRange.upperBound(new Date().getTime() - (3 * 24 * 60 * 60 * 1000))).onsuccess = function () {
-                                    if (!this.result) {
-                                        return;
-                                    }
-
-                                    var IDBCursor = this.result;
-                                    if (IDBCursor) {
-                                        IDBCursor['delete'](IDBCursor.value[store.keyPath]);
-                                        IDBCursor['continue'] && IDBCursor['continue']();
-                                    } else {
-                                        store.count().onsuccess = function () {
-                                            1000 < this.result && store.clear();
-                                        };
-                                    }
-                                };
-                            };
-                        });
-                    };
-                    return HistoryStore;
-                })(DATA.Store);
-                DATA.HistoryStore = HistoryStore;
+                /* MODEL */
+                (function (STORE) {
+                    var History = (function (_super) {
+                        __extends(History, _super);
+                        function History() {
+                            _super.apply(this, arguments);
+                            this.name = 'history';
+                            this.keyPath = 'url';
+                            this.autoIncrement = false;
+                            this.indexes = [
+                                { name: 'date', keyPath: 'date', option: { unique: false } }
+                            ];
+                            this.limit = 1000;
+                        }
+                        return History;
+                    })(DATA.Store);
+                    STORE.History = History;
+                })(DATA.STORE || (DATA.STORE = {}));
+                var STORE = DATA.STORE;
             })(APP.DATA || (APP.DATA = {}));
             var DATA = APP.DATA;
         })(MODEL.APP || (MODEL.APP = {}));
@@ -947,48 +1479,26 @@ var MODULE;
 (function (MODULE) {
     (function (MODEL) {
         (function (APP) {
-            /* MODEL */
             (function (DATA) {
-                var ServerStore = (function (_super) {
-                    __extends(ServerStore, _super);
-                    function ServerStore() {
-                        _super.apply(this, arguments);
-                        this.name = 'server';
-                        this.keyPath = 'host';
-                        this.autoIncrement = false;
-                        this.indexes = [
-                            { name: 'date', keyPath: 'date', option: { unique: false } }
-                        ];
-                    }
-                    ServerStore.prototype.clean = function () {
-                        var that = this;
-                        this.accessStore(function (store) {
-                            var size = 50;
-
-                            store.count().onsuccess = function () {
-                                if (this.result <= size + 10) {
-                                    return;
-                                }
-                                size = this.result - size;
-                                store.index('date').openCursor(that.DB.IDBKeyRange.lowerBound(0), 'prev').onsuccess = function () {
-                                    if (!this.result) {
-                                        return;
-                                    }
-
-                                    var IDBCursor = this.result;
-                                    if (IDBCursor) {
-                                        if (0 > --size) {
-                                            IDBCursor['delete'](IDBCursor.value[store.keyPath]);
-                                        }
-                                        IDBCursor['continue'] && IDBCursor['continue']();
-                                    }
-                                };
-                            };
-                        });
-                    };
-                    return ServerStore;
-                })(DATA.Store);
-                DATA.ServerStore = ServerStore;
+                /* MODEL */
+                (function (STORE) {
+                    var Server = (function (_super) {
+                        __extends(Server, _super);
+                        function Server() {
+                            _super.apply(this, arguments);
+                            this.name = 'server';
+                            this.keyPath = 'host';
+                            this.autoIncrement = false;
+                            this.indexes = [
+                                { name: 'date', keyPath: 'date', option: { unique: false } }
+                            ];
+                            this.limit = 100;
+                        }
+                        return Server;
+                    })(DATA.Store);
+                    STORE.Server = Server;
+                })(DATA.STORE || (DATA.STORE = {}));
+                var STORE = DATA.STORE;
             })(APP.DATA || (APP.DATA = {}));
             var DATA = APP.DATA;
         })(MODEL.APP || (MODEL.APP = {}));
@@ -997,6 +1507,7 @@ var MODULE;
     var MODEL = MODULE.MODEL;
 })(MODULE || (MODULE = {}));
 /// <reference path="../define.ts"/>
+/// <reference path="data.db.stateful.ts"/>
 /// <reference path="data.store.meta.ts"/>
 /// <reference path="data.store.history.ts"/>
 /// <reference path="data.store.server.ts"/>
@@ -1006,238 +1517,261 @@ var MODULE;
         (function (APP) {
             /* MODEL */
             (function (DATA) {
-                var DB = (function () {
-                    function DB() {
+                var Database = (function () {
+                    function Database() {
                         var _this = this;
                         this.IDBFactory = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB;
                         this.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.mozIDBKeyRange || window.msIDBKeyRange;
-                        this.name_ = MODULE.NAME;
+                        this.name_ = MODULE.DEF.NAME;
                         this.version_ = 7;
                         this.refresh_ = 10;
                         this.upgrade_ = 0;
-                        this.state_ = -2 /* blank */;
-                        this.database = function () {
-                            return _this.database_;
-                        };
-                        this.state = function () {
-                            return _this.state_;
-                        };
-                        this.conAge_ = 10 * 1000;
-                        this.conExpires_ = 0;
-                        this.conInterval_ = 1000;
-                        this.tasks_ = [];
+                        this.state_ = 0 /* blank */;
+                        this.age_ = 10 * 1000;
+                        this.expires_ = 0;
+                        this.timer_ = 0;
+                        this.stateful_ = new DATA.DB.Stateful(this, function () {
+                            return _this.connect_();
+                        }, function () {
+                            return _this.extend_();
+                        });
                         this.stores = {
-                            meta: new DATA.MetaStore(this),
-                            history: new DATA.HistoryStore(this),
-                            server: new DATA.ServerStore(this)
+                            meta: new DATA.STORE.Meta(this),
+                            history: new DATA.STORE.History(this),
+                            server: new DATA.STORE.Server(this)
                         };
                         this.meta = {
                             version: { key: 'version', value: undefined },
                             update: { key: 'update', value: undefined }
                         };
-                        var check = function () {
-                            var now = new Date().getTime(), expires = _this.conExpires_;
-                            if (expires && now > expires) {
-                                _this.closedb();
-                                _this.conExpires_ = 0;
-                            }
-                            setTimeout(check, Math.max(_this.conExpires_ - now + 100, _this.conInterval_));
-                            _this.tasks_.length && -1 /* initiate */ !== _this.state() && _this.opendb(null, true);
-                        };
-                        this.conAge_ && setTimeout(check, this.conInterval_);
                     }
-                    DB.prototype.opendb = function (task, noRetry) {
-                        if (!this.IDBFactory) {
-                            return;
-                        }
-
-                        var that = this;
-
-                        that.conExtend();
-
-                        if (-2 /* blank */ === that.state()) {
-                            task = 'function' === typeof task ? task : function () {
-                                return undefined;
-                            };
-                        }
-
-                        'function' === typeof task && that.reserveTask_(task);
-
-                        if (!that.tasks_.length) {
-                            return;
-                        }
-                        if (-1 /* initiate */ === that.state()) {
-                            return;
-                        }
-
-                        try  {
-                            that.state_ = -1 /* initiate */;
-
-                            var request = that.IDBFactory.open(that.name_, that.upgrade_ ? that.version_ : 1);
-
-                            request.onblocked = function () {
-                                that.closedb(1 /* pause */);
-                                try  {
-                                    this.result.close();
-                                    !noRetry && setTimeout(function () {
-                                        return that.opendb(null, true);
-                                    }, 1000);
-                                } catch (err) {
-                                    !noRetry && that.initdb_(1000);
-                                }
-                            };
-
-                            request.onupgradeneeded = function () {
-                                try  {
-                                    var database = this.result;
-
-                                    that.createStore_(database);
-                                } catch (err) {
-                                    !noRetry && that.initdb_(1000);
-                                }
-                            };
-
-                            request.onsuccess = function () {
-                                try  {
-                                    var database = this.result;
-
-                                    that.database_ = database;
-
-                                    that.checkdb_(database, that.version_, function () {
-                                        that.database_ = database;
-                                        that.state_ = 0 /* open */;
-                                        that.conExtend();
-
-                                        that.digestTask_();
-                                    }, function () {
-                                        !noRetry && that.initdb_();
-                                    });
-
-                                    that.database_ = null;
-                                } catch (err) {
-                                    !noRetry && that.initdb_(1000);
-                                }
-                            };
-
-                            request.onerror = function (event) {
-                                that.closedb(4 /* error */);
-                                try  {
-                                    this.result.close();
-                                    !noRetry && setTimeout(function () {
-                                        return that.opendb(null, true);
-                                    }, 1000);
-                                } catch (err) {
-                                    !noRetry && that.initdb_(1000);
-                                }
-                            };
-                        } catch (err) {
-                            that.closedb(4 /* error */);
-                            !noRetry && that.initdb_(1000);
-                        }
-                    };
-
-                    DB.prototype.closedb = function (state) {
-                        if (typeof state === "undefined") { state = 7 /* close */; }
-                        this.database() && this.database().close && this.database().close();
-
-                        this.database_ = null;
-                        this.state_ = state;
-                    };
-
-                    DB.prototype.conExtend = function () {
-                        this.conExpires_ = new Date().getTime() + this.conAge_;
-                    };
-
-                    DB.prototype.initdb_ = function (delay) {
+                    Database.prototype.extend_ = function () {
                         var _this = this;
-                        var retry = function () {
-                            _this.deletedb_(function () {
-                                return _this.opendb(null, true);
-                            });
+                        this.expires_ = new Date().getTime() + this.age_;
+                        clearTimeout(this.timer_);
+                        this.timer_ = setTimeout(function () {
+                            return _this.check_();
+                        }, this.age_);
+                    };
+
+                    Database.prototype.check_ = function () {
+                        if (!this.age_ || new Date().getTime() <= this.expires_) {
+                            return;
+                        }
+
+                        2 /* open */ === this.state() && this.close();
+                    };
+
+                    Database.prototype.state = function () {
+                        return this.state_;
+                    };
+
+                    Database.prototype.database = function () {
+                        this.extend_();
+                        return this.database_;
+                    };
+
+                    Database.prototype.up = function () {
+                        this.state_ = 0 /* blank */;
+                        this.open();
+                    };
+
+                    Database.prototype.down = function () {
+                        this.reject();
+                        this.close();
+                        this.state_ = 6 /* error */;
+                    };
+
+                    Database.prototype.open = function () {
+                        !this.IDBFactory && this.down();
+                        return this.stateful_.open();
+                    };
+
+                    Database.prototype.close = function () {
+                        this.database_ && this.database_.close && this.database_.close();
+                        this.state_ = 9 /* close */;
+                    };
+
+                    Database.prototype.resolve = function () {
+                        this.stateful_.resolve();
+                    };
+
+                    Database.prototype.reject = function () {
+                        this.stateful_.reject();
+                    };
+
+                    Database.prototype.connect_ = function () {
+                        this.create_();
+                    };
+
+                    // 以降、connect_()以外からアクセス禁止
+                    Database.prototype.create_ = function () {
+                        var _this = this;
+                        try  {
+                            this.close();
+                            this.state_ = 1 /* initiate */;
+
+                            var req = this.IDBFactory.open(this.name_, this.upgrade_ ? this.version_ : 1);
+
+                            var verify = function () {
+                                _this.verify_(_this.version_, function () {
+                                    _this.state_ = 2 /* open */;
+                                    _this.resolve();
+                                    _this.extend_();
+                                });
+                            };
+
+                            if ('done' === req.readyState) {
+                                this.database_ = req.result;
+                                if (this.database()) {
+                                    verify();
+                                } else {
+                                    this.format_();
+                                }
+                            } else {
+                                var timer = setTimeout(function () {
+                                    return _this.down();
+                                }, 3000);
+
+                                req.onblocked = function () {
+                                    clearTimeout(timer);
+                                    _this.database_ = req.result;
+                                    _this.close();
+                                    setTimeout(function () {
+                                        return _this.open();
+                                    }, 1000);
+                                };
+
+                                req.onupgradeneeded = function () {
+                                    clearTimeout(timer);
+                                    _this.database_ = req.result;
+                                    _this.createStores_();
+                                };
+
+                                req.onsuccess = function () {
+                                    clearTimeout(timer);
+                                    _this.database_ = req.result;
+                                    verify();
+                                };
+
+                                req.onerror = function () {
+                                    clearTimeout(timer);
+                                    _this.database_ = req.result;
+                                    _this.down();
+                                };
+                            }
+                        } catch (err) {
+                            this.down();
+                        }
+                    };
+
+                    Database.prototype.destroy_ = function (success, failure) {
+                        var _this = this;
+                        try  {
+                            this.close();
+                            this.state_ = 8 /* terminate */;
+
+                            var req = this.IDBFactory.deleteDatabase(this.name_);
+
+                            if (req) {
+                                req.onsuccess = success;
+                                req.onerror = failure;
+                            }
+                            setTimeout(function () {
+                                return 8 /* terminate */ === _this.state() && _this.down();
+                            }, 3000);
+                        } catch (err) {
+                            this.down();
+                        }
+                    };
+
+                    Database.prototype.format_ = function () {
+                        var _this = this;
+                        this.destroy_(function () {
+                            return _this.up();
+                        }, function () {
+                            return _this.down();
+                        });
+                    };
+
+                    Database.prototype.verify_ = function (version, success) {
+                        var _this = this;
+                        var db = this.database(), scheme = this.meta, meta = this.stores.meta, failure = function () {
+                            return _this.format_();
                         };
 
-                        !delay ? retry() : void setTimeout(retry, delay);
-                    };
-
-                    DB.prototype.deletedb_ = function (success, failure) {
-                        this.closedb();
-                        var IDBFactory = this.IDBFactory;
-                        var request = IDBFactory && IDBFactory.deleteDatabase && IDBFactory.deleteDatabase(this.name_);
-                        if (request) {
-                            request.onsuccess = success;
-                            request.onerror = failure;
-                        }
-                    };
-
-                    DB.prototype.checkdb_ = function (database, version, success, upgrade) {
-                        var that = this, scheme = this.meta, meta = this.stores.meta;
-
-                        if (database.objectStoreNames.length !== Object.keys(this.stores).length) {
-                            return void upgrade();
+                        if (db.objectStoreNames.length !== Object.keys(this.stores).length) {
+                            return void failure();
                         }
 
                         for (var i in this.stores) {
-                            var store = database.transaction(this.stores[i].name, 'readonly').objectStore(this.stores[i].name);
+                            var store = db.transaction(this.stores[i].name, 'readonly').objectStore(this.stores[i].name);
                             switch (false) {
-                                case store.keyPath === that.stores[i].keyPath:
-                                case store.indexNames.length === that.stores[i].indexes.length:
-                                    upgrade();
+                                case store.keyPath === this.stores[i].keyPath:
+                                case store.indexNames.length === this.stores[i].indexes.length:
+                                    return void failure();
                             }
                         }
 
-                        meta.get(scheme.version.key, function () {
+                        var cancel = false;
+
+                        meta.get(scheme.version.key, function (event) {
                             // version check
-                            var data = this.result;
-                            if (!data || that.upgrade_) {
+                            if (cancel) {
+                                return;
+                            }
+                            var data = event.target.result;
+                            if (!data || _this.upgrade_) {
                                 meta.set(meta.setBuffer({ key: scheme.version.key, value: version }));
-                            } else if (data.value < version) {
-                                upgrade();
                             } else if (data.value > version) {
-                                that.closedb(4 /* error */);
+                                cancel = true;
+                                _this.down();
+                            } else if (data.value < version) {
+                                cancel = true;
+                                failure();
                             }
                         });
 
-                        meta.get(scheme.update.key, function () {
+                        meta.get(scheme.update.key, function (event) {
                             // refresh check
-                            var data = this.result;
-                            var days = Math.floor(new Date().getTime() / (24 * 60 * 60 * 1000));
-                            if (!data || !that.refresh_) {
-                                meta.set(meta.setBuffer({ key: scheme.update.key, value: days + that.refresh_ }));
-                            } else if (data.value <= days) {
-                                return void upgrade();
+                            if (cancel) {
+                                return;
                             }
-                            success();
+                            var data = event.target.result;
+                            var days = Math.floor(new Date().getTime() / (24 * 60 * 60 * 1000));
+                            if (!data || !_this.refresh_) {
+                                meta.set(meta.setBuffer({ key: scheme.update.key, value: days + _this.refresh_ }));
+                                success();
+                            } else if (data.value > days) {
+                                success();
+                            } else if (data.value <= days) {
+                                failure();
+                            }
                         });
                     };
 
-                    DB.prototype.createStore_ = function (database) {
-                        for (var i = database.objectStoreNames ? database.objectStoreNames.length : 0; i--;) {
-                            database.deleteObjectStore(database.objectStoreNames[i]);
-                        }
+                    Database.prototype.createStores_ = function () {
+                        this.destroyStores_();
 
+                        var db = this.database();
                         for (var i in this.stores) {
                             var schema = this.stores[i];
-                            var store = database.createObjectStore(schema.name, { keyPath: schema.keyPath, autoIncrement: schema.autoIncrement });
+                            var store = db.createObjectStore(schema.name, { keyPath: schema.keyPath, autoIncrement: schema.autoIncrement });
                             for (var j = 0, indexes = schema.indexes, index; index = indexes[j]; j++) {
                                 store.createIndex(index.name, index.keyPath, index.option);
                             }
                         }
                     };
 
-                    DB.prototype.reserveTask_ = function (task) {
-                        this.tasks_.length > 200 && this.tasks_.splice(100, 100);
-                        (this.state() !== 4 /* error */ || this.tasks_.length < 100) && this.tasks_.push(task);
-                    };
-
-                    DB.prototype.digestTask_ = function () {
-                        var task;
-                        while (task = this.tasks_.pop()) {
-                            task();
+                    Database.prototype.destroyStores_ = function () {
+                        var db = this.database();
+                        for (var i = db.objectStoreNames ? db.objectStoreNames.length : 0; i--;) {
+                            db.deleteObjectStore(db.objectStoreNames[i]);
                         }
                     };
-                    return DB;
+                    return Database;
                 })();
-                DATA.DB = DB;
+                DATA.Database = Database;
             })(APP.DATA || (APP.DATA = {}));
             var DATA = APP.DATA;
         })(MODEL.APP || (MODEL.APP = {}));
@@ -1303,7 +1837,7 @@ var MODULE;
             (function (DATA) {
                 var Main = (function () {
                     function Main() {
-                        this.DB = new DATA.DB();
+                        this.DB = new DATA.Database();
                         this.Cookie = new DATA.Cookie(10 * 24 * 60 * 60);
                     }
                     return Main;
@@ -1609,7 +2143,7 @@ var MODULE;
                         return;
                     }
 
-                    this.data_.DB.opendb();
+                    this.data_.DB.up();
                     this.saveTitle();
                     this.saveScrollPosition();
                 };
@@ -2116,13 +2650,13 @@ var MODULE;
                     return new Date().getTime() + this.calAge(jqXHR);
                 };
 
-                PageUtility.prototype.dispatchEvent_ = function (target, eventType, bubbling, cancelable) {
+                PageUtility.prototype.dispatchEvent = function (target, eventType, bubbling, cancelable) {
                     var event = document.createEvent('HTMLEvents');
                     event.initEvent(eventType, bubbling, cancelable);
                     target.dispatchEvent(event);
                 };
 
-                PageUtility.prototype.wait_ = function (ms) {
+                PageUtility.prototype.wait = function (ms) {
                     var defer = jQuery.Deferred();
                     if (!ms) {
                         return defer.resolve();
@@ -2151,10 +2685,8 @@ var MODULE;
         (function (APP) {
             var Util = MODULE.LIBRARY.Utility;
 
-            var PageFetch = (function (_super) {
-                __extends(PageFetch, _super);
+            var PageFetch = (function () {
                 function PageFetch(model_, app_, setting_, event_, register_, cache_, done_, fail_) {
-                    _super.call(this);
                     this.model_ = model_;
                     this.app_ = app_;
                     this.setting_ = setting_;
@@ -2225,7 +2757,7 @@ var MODULE;
                         }
                     }
 
-                    this.dispatchEvent_(document, setting.gns + ':fetch', false, true);
+                    this.dispatchEvent(document, setting.gns + ':fetch', false, true);
 
                     if (cache && cache.jqXHR) {
                         // cache
@@ -2237,7 +2769,7 @@ var MODULE;
                         this.textStatus_ = cache.textStatus;
                         this.jqXHR_ = cache.jqXHR;
                         if (this.model_.isDeferrable) {
-                            jQuery.when(jQuery.Deferred().resolve([that.data_, that.textStatus_, that.jqXHR_]), this.wait_(wait)).done(done).fail(fail).always(always);
+                            jQuery.when(jQuery.Deferred().resolve([that.data_, that.textStatus_, that.jqXHR_]), this.wait(wait)).done(done).fail(fail).always(always);
                         } else {
                             var context = jQuery.extend({}, jQuery.ajaxSettings, setting.ajax);
                             context = context.context || context;
@@ -2253,7 +2785,7 @@ var MODULE;
                         this.host_ = globalXHR.host || '';
                         setting.loadtime = globalXHR.timeStamp;
                         var wait = setting.wait && isFinite(globalXHR.timeStamp) ? Math.max(wait - new Date().getTime() + globalXHR.timeStamp, 0) : 0;
-                        jQuery.when(globalXHR, that.wait_(wait)).done(done).fail(fail).always(always);
+                        jQuery.when(globalXHR, that.wait(wait)).done(done).fail(fail).always(always);
                     } else {
                         // default
                         setting.loadtime = event.timeStamp;
@@ -2335,12 +2867,35 @@ var MODULE;
                         globalXHR = this.model_.setGlobalXHR(jQuery.ajax(ajax));
 
                         if (this.model_.isDeferrable) {
-                            jQuery.when(globalXHR, that.wait_(wait)).done(done).fail(fail).always(always);
+                            jQuery.when(globalXHR, that.wait(wait)).done(done).fail(fail).always(always);
                         }
                     }
                 };
+
+                // mixin utility
+                PageFetch.prototype.createHTMLDocument = function (html, uri) {
+                    return;
+                };
+
+                PageFetch.prototype.chooseArea = function (areas, srcDocument, dstDocument) {
+                    return;
+                };
+                PageFetch.prototype.movePageNormally = function (event) {
+                };
+                PageFetch.prototype.calAge = function (jqXHR) {
+                    return;
+                };
+                PageFetch.prototype.calExpires = function (jqXHR) {
+                    return;
+                };
+
+                PageFetch.prototype.dispatchEvent = function (target, eventType, bubbling, cancelable) {
+                };
+                PageFetch.prototype.wait = function (ms) {
+                    return;
+                };
                 return PageFetch;
-            })(APP.PageUtility);
+            })();
             APP.PageFetch = PageFetch;
         })(MODEL.APP || (MODEL.APP = {}));
         var APP = MODEL.APP;
@@ -2358,10 +2913,8 @@ var MODULE;
         (function (APP) {
             var Util = MODULE.LIBRARY.Utility;
 
-            var PageUpdate = (function (_super) {
-                __extends(PageUpdate, _super);
-                function PageUpdate(model_, app_, setting_, event_, register_, cache_, data_, textStatus_, jqXHR_, errorThrown_, host_) {
-                    _super.call(this);
+            var PageUpdate = (function () {
+                function PageUpdate(model_, app_, setting_, event_, register_, cache_, data_, textStatus_, jqXHR_, errorThrown_, host_, count_, time_) {
                     this.model_ = model_;
                     this.app_ = app_;
                     this.setting_ = setting_;
@@ -2373,6 +2926,8 @@ var MODULE;
                     this.jqXHR_ = jqXHR_;
                     this.errorThrown_ = errorThrown_;
                     this.host_ = host_;
+                    this.count_ = count_;
+                    this.time_ = time_;
                     this.loadwaits_ = [];
                     this.main_();
                 }
@@ -2426,7 +2981,7 @@ var MODULE;
 
                             this.checkRedirect_();
 
-                            this.dispatchEvent_(window, setting.gns + ':unload', false, true);
+                            this.dispatchEvent(window, setting.gns + ':unload', false, true);
 
                             this.updateUrl_();
 
@@ -2490,24 +3045,24 @@ var MODULE;
                             throw false;
 
                         default:
-                            jQuery[MODULE.NAME].enable();
+                            jQuery[MODULE.DEF.NAME].enable();
                             switch (event.type.toLowerCase()) {
                                 case 'click':
                                 case 'submit':
                                     setTimeout(function () {
-                                        return jQuery[MODULE.NAME].click(redirect.href);
+                                        return jQuery[MODULE.DEF.NAME].click(redirect.href);
                                     }, 0);
                                     break;
                                 case 'popstate':
                                     window.history.replaceState(window.history.state, this.srcDocument_.title, redirect.href);
                                     if (register && setting.fix.location && !Util.compareUrl(setting.destLocation.href, Util.normalizeUrl(window.location.href))) {
-                                        jQuery[MODULE.NAME].disable();
+                                        jQuery[MODULE.DEF.NAME].disable();
                                         window.history.back();
                                         window.history.forward();
-                                        jQuery[MODULE.NAME].enable();
+                                        jQuery[MODULE.DEF.NAME].enable();
                                     }
                                     setTimeout(function () {
-                                        return _this.dispatchEvent_(window, 'popstate', false, false);
+                                        return _this.dispatchEvent(window, 'popstate', false, false);
                                     }, 0);
                                     break;
                             }
@@ -2531,10 +3086,10 @@ var MODULE;
                     register && window.history.pushState(Util.fire(setting.state, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]), ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstDocument_.title : this.srcDocument_.title, setting.destLocation.href);
 
                     if (register && setting.fix.location && !Util.compareUrl(setting.destLocation.href, Util.normalizeUrl(window.location.href))) {
-                        jQuery[MODULE.NAME].disable();
+                        jQuery[MODULE.DEF.NAME].disable();
                         window.history.back();
                         window.history.forward();
-                        jQuery[MODULE.NAME].enable();
+                        jQuery[MODULE.DEF.NAME].enable();
                     }
 
                     // verify
@@ -2543,7 +3098,7 @@ var MODULE;
                     } else if (setting.retriable) {
                         setting.retriable = false;
                         setting.destLocation.href = Util.normalizeUrl(window.location.href);
-                        new PageUpdate(this.model_, this.app_, setting, event, false, setting.cache[event.type.toLowerCase()] && this.model_.getCache(setting.destLocation.href), this.data_, this.textStatus_, this.jqXHR_, this.errorThrown_, this.host_);
+                        new PageUpdate(this.model_, this.app_, setting, event, false, setting.cache[event.type.toLowerCase()] && this.model_.getCache(setting.destLocation.href), this.data_, this.textStatus_, this.jqXHR_, this.errorThrown_, this.host_, this.count_, this.time_);
                         throw false;
                     } else {
                         throw new Error('throw: location mismatch');
@@ -2584,7 +3139,7 @@ var MODULE;
                         e.stopImmediatePropagation();
 
                         var onready = function (callback) {
-                            _this.dispatchEvent_(document, setting.gns + ':ready', false, true);
+                            _this.dispatchEvent(document, setting.gns + ':ready', false, true);
 
                             Util.fire(setting.callback, null, [event, setting.param, _this.data_, _this.textStatus_, _this.jqXHR_]);
 
@@ -2601,7 +3156,7 @@ var MODULE;
                                 }
                             }, 100);
 
-                            _this.dispatchEvent_(document, setting.gns + ':render', false, true);
+                            _this.dispatchEvent(document, setting.gns + ':render', false, true);
 
                             speedcheck && speed.time.push(speed.now() - speed.fire);
                             speedcheck && speed.name.push('render(' + speed.time.slice(-1) + ')');
@@ -2610,7 +3165,7 @@ var MODULE;
                         };
 
                         var onload = function () {
-                            _this.dispatchEvent_(window, setting.gns + ':load', false, true);
+                            _this.dispatchEvent(window, setting.gns + ':load', false, true);
 
                             speedcheck && speed.time.push(speed.now() - speed.fire);
                             speedcheck && speed.name.push('load(' + speed.time.slice(-1) + ')');
@@ -2625,6 +3180,15 @@ var MODULE;
                         };
 
                         _this.scroll_(false);
+
+                        if (100 > setting.loadtime && setting.reset.type.match(event.type.toLowerCase()) && !jQuery('form[method][method!="GET"]').length) {
+                            switch (false) {
+                                case _this.count_ < setting.reset.count || !setting.reset.count:
+                                case new Date().getTime() < setting.reset.time + _this.time_ || !setting.reset.time:
+                                    throw new Error('throw: reset');
+                            }
+                        }
+
                         var scriptwaits = _this.script_(':not([defer]), :not([src])');
 
                         if (jQuery.when) {
@@ -2800,7 +3364,7 @@ var MODULE;
                             return _this.restoreScript_(elem);
                         });
                     }
-                    this.dispatchEvent_(document, setting.gns + ':DOMContentLoaded', false, true);
+                    this.dispatchEvent(document, setting.gns + ':DOMContentLoaded', false, true);
 
                     if (Util.fire(callbacks_update.content.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
                         return;
@@ -2941,9 +3505,9 @@ var MODULE;
                                     }
                                     if (element.hasAttribute('async')) {
                                         jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: true, global: false })).done(function () {
-                                            return _this.dispatchEvent_(element, 'load', false, true);
+                                            return _this.dispatchEvent(element, 'load', false, true);
                                         }).fail(function () {
-                                            return _this.dispatchEvent_(element, 'error', false, true);
+                                            return _this.dispatchEvent(element, 'error', false, true);
                                         });
                                     } else {
                                         jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, dataType: 'text', async: true, global: false })).done(function () {
@@ -2981,9 +3545,9 @@ var MODULE;
                                     }
                                     if ('string' === typeof response) {
                                         eval.call(window, response);
-                                        element.hasAttribute('src') && _this.dispatchEvent_(element, 'load', false, true);
+                                        element.hasAttribute('src') && _this.dispatchEvent(element, 'load', false, true);
                                     } else {
-                                        element.hasAttribute('src') && _this.dispatchEvent_(element, 'error', false, true);
+                                        element.hasAttribute('src') && _this.dispatchEvent(element, 'error', false, true);
                                     }
                                 }
                             });
@@ -2996,10 +3560,10 @@ var MODULE;
                                     (function (element) {
                                         jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: element.hasAttribute('async'), global: false }, {
                                             success: function () {
-                                                return _this.dispatchEvent_(element, 'load', false, true);
+                                                return _this.dispatchEvent(element, 'load', false, true);
                                             },
                                             error: function () {
-                                                return _this.dispatchEvent_(element, 'error', false, true);
+                                                return _this.dispatchEvent(element, 'error', false, true);
                                             }
                                         }));
                                     })(element);
@@ -3146,8 +3710,31 @@ var MODULE;
                     script.innerHTML = jQuery.data(script, 'code');
                     jQuery.removeData(script, 'code');
                 };
+
+                // mixin utility
+                PageUpdate.prototype.createHTMLDocument = function (html, uri) {
+                    return;
+                };
+
+                PageUpdate.prototype.chooseArea = function (areas, srcDocument, dstDocument) {
+                    return;
+                };
+                PageUpdate.prototype.movePageNormally = function (event) {
+                };
+                PageUpdate.prototype.calAge = function (jqXHR) {
+                    return;
+                };
+                PageUpdate.prototype.calExpires = function (jqXHR) {
+                    return;
+                };
+
+                PageUpdate.prototype.dispatchEvent = function (target, eventType, bubbling, cancelable) {
+                };
+                PageUpdate.prototype.wait = function (ms) {
+                    return;
+                };
                 return PageUpdate;
-            })(APP.PageUtility);
+            })();
             APP.PageUpdate = PageUpdate;
         })(MODEL.APP || (MODEL.APP = {}));
         var APP = MODEL.APP;
@@ -3166,13 +3753,16 @@ var MODULE;
         (function (APP) {
             var Util = MODULE.LIBRARY.Utility;
 
-            var Page = (function (_super) {
-                __extends(Page, _super);
+            MODULE.MIXIN(APP.PageFetch, [APP.PageUtility]);
+            MODULE.MIXIN(APP.PageUpdate, [APP.PageUtility]);
+
+            var Page = (function () {
                 function Page(model_, app_) {
                     var _this = this;
-                    _super.call(this);
                     this.model_ = model_;
                     this.app_ = app_;
+                    this.count_ = 0;
+                    this.time_ = new Date().getTime();
                     this.landing = Util.normalizeUrl(window.location.href);
                     this.recent = { order: [], data: {}, size: 0 };
                     this.loadedScripts = {};
@@ -3184,7 +3774,7 @@ var MODULE;
                 Page.prototype.transfer = function (setting, event, register, cache) {
                     var _this = this;
                     var done = function (setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host) {
-                        _this.update(setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host);
+                        _this.update_(setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host);
                     };
                     var fail = function (setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host) {
                         if (!setting.fallback || 'abort' === textStatus) {
@@ -3199,18 +3789,41 @@ var MODULE;
                         _this.model_.fallback(event, setting);
                     };
 
-                    this.fetch(setting, event, register, cache, done, fail);
+                    this.fetch_(setting, event, register, cache, done, fail);
                 };
 
-                Page.prototype.fetch = function (setting, event, register, cache, done, fail) {
+                Page.prototype.fetch_ = function (setting, event, register, cache, done, fail) {
                     new APP.PageFetch(this.model_, this.app_, setting, event, register, cache, done, fail);
                 };
 
-                Page.prototype.update = function (setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host) {
-                    new APP.PageUpdate(this.model_, this.app_, setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host);
+                Page.prototype.update_ = function (setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host) {
+                    new APP.PageUpdate(this.model_, this.app_, setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host, ++this.count_, this.time_);
+                };
+
+                // mixin utility
+                Page.prototype.createHTMLDocument = function (html, uri) {
+                    return;
+                };
+
+                Page.prototype.chooseArea = function (areas, srcDocument, dstDocument) {
+                    return;
+                };
+                Page.prototype.movePageNormally = function (event) {
+                };
+                Page.prototype.calAge = function (jqXHR) {
+                    return;
+                };
+                Page.prototype.calExpires = function (jqXHR) {
+                    return;
+                };
+
+                Page.prototype.dispatchEvent = function (target, eventType, bubbling, cancelable) {
+                };
+                Page.prototype.wait = function (ms) {
+                    return;
                 };
                 return Page;
-            })(APP.PageUtility);
+            })();
             APP.Page = Page;
         })(MODEL.APP || (MODEL.APP = {}));
         var APP = MODEL.APP;
@@ -3230,6 +3843,8 @@ var MODULE;
         /* MODEL */
         (function (APP) {
             var Util = MODULE.LIBRARY.Utility;
+
+            MODULE.MIXIN(APP.Page, [APP.PageUtility]);
 
             var Main = (function () {
                 function Main(model_, controller_) {
@@ -3286,6 +3901,7 @@ var MODULE;
                         scrollLeft: 0,
                         ajax: { dataType: 'text' },
                         contentType: 'text/html',
+                        redirect: true,
                         cache: {
                             click: false, submit: false, popstate: false, get: true, post: true, mix: 0,
                             limit: 100 /* pages */ , size: 1 * 1024 * 1024 /* 1MB */ , expires: { max: null, min: 5 * 60 * 1000 /* 5min */  }
@@ -3342,15 +3958,13 @@ var MODULE;
                                 limit: 30
                             }
                         },
-                        callback: null,
-                        callbacks: {
-                            ajax: {},
-                            update: { redirect: {}, rewrite: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, balance: {} }
-                        },
-                        param: null,
-                        redirect: true,
                         wait: 0,
-                        scroll: { delay: 300 },
+                        fallback: true,
+                        reset: {
+                            type: '',
+                            count: 100,
+                            time: 3 * 60 * 60 * 1000
+                        },
                         fix: {
                             location: true,
                             history: true,
@@ -3358,12 +3972,17 @@ var MODULE;
                             noscript: true,
                             reset: false
                         },
-                        fallback: true,
                         database: true,
                         server: {
                             query: null,
                             header: true
-                        }
+                        },
+                        callback: null,
+                        callbacks: {
+                            ajax: {},
+                            update: { redirect: {}, rewrite: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, balance: {} }
+                        },
+                        param: null
                     }, force = {
                         ns: undefined,
                         nss: undefined,
@@ -3371,7 +3990,7 @@ var MODULE;
                         cancel: undefined,
                         origLocation: undefined,
                         destLocation: undefined,
-                        gns: MODULE.NAME,
+                        gns: MODULE.DEF.NAME,
                         areas: [],
                         scroll: { queue: [] },
                         loadtime: null,
@@ -3379,7 +3998,7 @@ var MODULE;
                         option: option
                     }, compute = function () {
                         setting.ns = setting.ns && setting.ns.split('.').sort().join('.') || '';
-                        var nsArray = [setting.gns || MODULE.NAME].concat(setting.ns && String(setting.ns).split('.') || []);
+                        var nsArray = [setting.gns || MODULE.DEF.NAME].concat(setting.ns && String(setting.ns).split('.') || []);
                         var query = setting.server.query;
                         switch (query && typeof query) {
                             case 'string':
@@ -3424,6 +4043,9 @@ var MODULE;
                             })(destURL, document.createElement('a')),
                             fix: /android|iphone os|like mac os x/i.test(window.navigator.userAgent) ? undefined : { location: false, reset: false },
                             contentType: setting.contentType.replace(/\s*[,;]\s*/g, '|').toLowerCase(),
+                            reset: {
+                                type: (setting.reset.type || '').toLowerCase()
+                            },
                             server: {
                                 query: query
                             },
@@ -3574,11 +4196,11 @@ var MODULE;
         var Main = (function (_super) {
             __extends(Main, _super);
             function Main() {
-                _super.call(this, -1 /* initiate */);
+                _super.call(this, 1 /* initiate */);
                 this.controller_ = new MODULE.Controller(this);
                 this.app_ = new MODEL.App(this, this.controller_);
-                this.isDeferrable = !!jQuery.when && 1.06 <= Number(jQuery().jquery.replace(/\D*(\d+)\.(\d+).*$/, '$1.0$2').replace(/\d+(\d{2})$/, '$1'));
-                this.queue = [];
+                this.queue_ = [];
+                this.isDeferrable = !!jQuery.when && '1.006' <= jQuery().jquery.match(/\d[\d.]+\d/).pop().replace(/\.(\d+)/g, '.00$1').replace(/0*(\d{3})/g, '$1');
             }
             Main.prototype.host = function () {
                 return this.app_.balance.host();
@@ -3591,7 +4213,7 @@ var MODULE;
                 var _this = this;
                 switch (typeof option) {
                     case 'object':
-                        $context = $context instanceof MODULE.NAMESPACE ? $context : jQuery(document)[MODULE.NAME]();
+                        $context = $context instanceof MODULE.DEF.NAMESPACE ? $context : jQuery(document)[MODULE.DEF.NAME]();
                         MODULE.FREEZE(option, true);
                         break;
 
@@ -3618,7 +4240,7 @@ var MODULE;
 
                 jQuery(function () {
                     _this.app_.initialize($context, setting);
-                    _this.state_ = _this.state() === -1 /* initiate */ ? 0 /* open */ : _this.state();
+                    _this.state_ = _this.state() === 1 /* initiate */ ? 2 /* open */ : _this.state();
                 });
 
                 return $context;
@@ -3629,7 +4251,7 @@ var MODULE;
             };
 
             Main.prototype.isImmediateLoadable = function (param, setting) {
-                if (0 /* open */ !== this.state()) {
+                if (2 /* open */ !== this.state()) {
                     return;
                 }
 
@@ -3701,7 +4323,7 @@ var MODULE;
                     var context = event.currentTarget, $context = jQuery(context);
                     var setting = this.app_.configure(this.getGlobalSetting(), window.location.href, context.href);
 
-                    if (0 /* open */ !== this.state() || setting.cancel || event.isDefaultPrevented()) {
+                    if (2 /* open */ !== this.state() || setting.cancel || event.isDefaultPrevented()) {
                         break PROCESS;
                     }
                     if (!this.isImmediateLoadable(event, setting)) {
@@ -3737,7 +4359,7 @@ var MODULE;
                     var context = event.currentTarget, $context = jQuery(context);
                     var setting = this.app_.configure(this.getGlobalSetting(), window.location.href, context.action);
 
-                    if (0 /* open */ !== this.state() || setting.cancel || event.isDefaultPrevented()) {
+                    if (2 /* open */ !== this.state() || setting.cancel || event.isDefaultPrevented()) {
                         break PROCESS;
                     }
                     if (!this.isImmediateLoadable(event, setting)) {
@@ -3780,7 +4402,7 @@ var MODULE;
                         return;
                     }
 
-                    if (0 /* open */ !== this.state() || setting.cancel) {
+                    if (2 /* open */ !== this.state() || setting.cancel) {
                         break PROCESS;
                     }
                     if (!this.isImmediateLoadable(event, setting)) {
@@ -3808,25 +4430,21 @@ var MODULE;
             Main.prototype.scroll = function (event, end) {
                 var _this = this;
                 var setting = this.getGlobalSetting();
-                if (0 /* open */ !== this.state() || event.isDefaultPrevented()) {
+                if (2 /* open */ !== this.state() || event.isDefaultPrevented()) {
                     return;
                 }
 
-                if (!setting.scroll.delay) {
-                    this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
-                } else {
-                    var id;
-                    while (id = this.queue.shift()) {
+                var id;
+                while (id = this.queue_.shift()) {
+                    clearTimeout(id);
+                }
+                id = setTimeout(function () {
+                    while (id = _this.queue_.shift()) {
                         clearTimeout(id);
                     }
-                    id = setTimeout(function () {
-                        while (id = _this.queue.shift()) {
-                            clearTimeout(id);
-                        }
-                        _this.app_.page.isScrollPosSavable && _this.app_.data.saveScrollPosition();
-                    }, setting.scroll.delay);
-                    this.queue.push(id);
-                }
+                    _this.app_.page.isScrollPosSavable && _this.app_.data.saveScrollPosition();
+                }, 300);
+                this.queue_.push(id);
             };
 
             Main.prototype.fallback = function (event, setting) {
@@ -3840,11 +4458,11 @@ var MODULE;
             };
 
             Main.prototype.enable = function () {
-                this.state_ = 0 /* open */;
+                this.state_ = 2 /* open */;
             };
 
             Main.prototype.disable = function () {
-                this.state_ = 1 /* pause */;
+                this.state_ = 3 /* pause */;
             };
 
             Main.prototype.getCache = function (unsafe_url) {
