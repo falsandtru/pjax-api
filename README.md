@@ -82,7 +82,7 @@ if (!/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.nav
     check: $.pjax.getCache,
     encode: true,
     ajax: {
-      done: function ( data, textStatus, XMLHttpRequest ) {
+      success: function ( data, textStatus, XMLHttpRequest ) {
         !$.pjax.getCache( this.url ) && $.pjax.setCache( this.url, null, textStatus, XMLHttpRequest );
       }
     }

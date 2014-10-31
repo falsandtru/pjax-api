@@ -15,8 +15,6 @@ class: style-api style-api-detail
 ## callbacks
 多数のコールバック実行タイミングを持ちます。`update.any.before`で`false`を返すとページ更新処理のうちanyの示す部分の更新処理をキャンセルします。使用されない更新項目のコールバックは実行されません。
 
-`ajax.success`、`ajax.error`、`ajax.complete`はjQuery1.8以降非推奨となったためjQuery1.6以降では`ajax.done`、`ajax.fail`、`ajax.always`を使用してください。
-
 ### ajax.xhr( event, param )
 ajaxの同名のメソッド内で実行されます。外部から引き継いだリクエストでは実行されません。
 
@@ -26,13 +24,13 @@ ajaxの同名のメソッド内で実行されます。外部から引き継い�
 ### ajax.dataFilter( event, param, data, dataType )
 〃
 
-### ajax.success( event, param, data, textStatus, jqXHR ) <small><span class="label label-warning">deprecated</span></small>
+### ajax.success( event, param, data, textStatus, jqXHR )
 〃
 
-### ajax.error( event, param, jqXHR, textStatus, errorThrown ) <small><span class="label label-warning">deprecated</span></small>
+### ajax.error( event, param, jqXHR, textStatus, errorThrown )
 〃
 
-### ajax.complete( event, param, jqXHR, textStatus ) <small><span class="label label-warning">deprecated</span></small>
+### ajax.complete( event, param, jqXHR, textStatus )
 〃
 
 ### ajax.done( event, param, data, textStatus, jqXHR ) <small><span class="label label-primary">jQuery1.6+</span></small>

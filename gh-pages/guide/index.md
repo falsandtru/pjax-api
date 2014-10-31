@@ -30,19 +30,19 @@ accelerate:
       check: $.pjax.getCache,
       encode: true,
       ajax: {
-        done: function ( data, textStatus, XMLHttpRequest ) {
+        success: function ( data, textStatus, XMLHttpRequest ) {
           !$.pjax.getCache( this.url ) && $.pjax.setCache( this.url, null, textStatus, XMLHttpRequest );
         }
       }
     });
-    
+
     $.pjax({
       area: 'body',
       load: { head: 'base, meta, link', css: true, script: true },
       cache: { click: true, submit: false, popstate: true },
       speedcheck: true
     });
-    
+
     $(document).bind('pjax:ready', function() {
       setTimeout(function () {
         $(document).trigger('preload');
@@ -62,7 +62,7 @@ accelerate:
     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-    
+
     window.ga('create', 'UA-xxxxxxxx-x', 'auto');
     window.ga('require', 'displayfeatures');
   }
@@ -76,7 +76,7 @@ accelerate:
     window._gaq = [];
     window._gaq.push(['_setAccount', 'UA-xxxxxxxx-x']);
     window._gaq.push(['_trackPageview']);
-    
+
     (function() {
       var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
       ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
@@ -143,7 +143,7 @@ accelerate:
       ajax: {
         xhr: function(){
           var xhr = jQuery.ajaxSettings.xhr();
-          
+
           $('div.loading').children().width('5%');
           if ( xhr instanceof Object && 'onprogress' in xhr ) {
             xhr.addEventListener( 'progress', function ( event ) {
@@ -209,7 +209,7 @@ $.preload({
   ajax: {
     xhr: function(){
       var xhr = jQuery.ajaxSettings.xhr();
-      
+
       $('div.loading').children().width('5%');
       if ( xhr instanceof Object && 'onprogress' in xhr ) {
         xhr.addEventListener( 'progress', function ( event ) {
@@ -227,9 +227,6 @@ $.preload({
       return xhr;
     },
     success: function ( data, textStatus, XMLHttpRequest ) {
-      !$.pjax.getCache( this.url ) && $.pjax.setCache( this.url, null, textStatus, XMLHttpRequest ) ;
-    },
-    done: function ( data, textStatus, XMLHttpRequest ) {
       !$.pjax.getCache( this.url ) && $.pjax.setCache( this.url, null, textStatus, XMLHttpRequest ) ;
     }
   }
@@ -286,7 +283,7 @@ new Function().apply.apply(function (accessor) {
   -------------------------------------------------------------------------- */
   spec.preload = function () {
     if (/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.navigator.userAgent)) { return; }
-    
+
     if (initialize) {
       $.preload({
         forward: $.pjax.follow,
@@ -319,7 +316,7 @@ new Function().apply.apply(function (accessor) {
         }
       });
     }
-    
+
     if (always) {
       setTimeout(function () {
         $(document).trigger('preload');
@@ -401,7 +398,7 @@ new Function().apply.apply(function (accessor) {
         server: { query: null },
         speedcheck: true
       });
-      
+
       $(document).bind('pjax:ready', spec.init);
       $(document).bind('pjax:fetch', function () {
         $('div.loading').children().width('');
