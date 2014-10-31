@@ -62,8 +62,12 @@ module MODULE.LIBRARY {
     }
 
     /* function */
-
-    static fire(fn: any, context: Object = window, args: any[]= [], async?: boolean): any {
+    
+    static fire(fn: Function, context?: Object, args?: any[], async?: boolean): any
+    static fire(fn: Function, context?: Object, args?: IArguments, async?: boolean): any
+    static fire<T>(fn: T, context?: Object, args?: any[], async?: boolean): T
+    static fire<T>(fn: T, context?: Object, args?: IArguments, async?: boolean): T
+    static fire(fn: any, context: Object = window, args: any= [], async?: boolean): any {
       if ('function' === typeof fn) { return async ? setTimeout(function () { fn.apply(context || window, args) }, 0) : fn.apply(context || window, args); } else { return fn; }
     }
 
