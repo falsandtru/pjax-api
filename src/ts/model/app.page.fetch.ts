@@ -1,5 +1,4 @@
 /// <reference path="../define.ts"/>
-/// <reference path="app.page.utility.ts"/>
 /// <reference path="../library/utility.ts"/>
 
 /* MODEL */
@@ -83,7 +82,7 @@ module MODULE.MODEL.APP {
         }
       }
 
-      this.dispatchEvent(document, DEF.NAME + ':fetch', false, true);
+      this.page_.dispatchEvent(document, DEF.NAME + ':fetch', false, true);
 
       var xhr = this.model_.getXHR();
       if (cache && cache.jqXHR) {
@@ -97,7 +96,7 @@ module MODULE.MODEL.APP {
         this.textStatus_ = cache.textStatus;
         this.jqXHR_ = cache.jqXHR;
         if (this.model_.isDeferrable) {
-          jQuery.when(jQuery.Deferred().resolve(this.data_, this.textStatus_, this.jqXHR_), this.wait(wait))
+          jQuery.when(jQuery.Deferred().resolve(this.data_, this.textStatus_, this.jqXHR_), this.page_.wait(wait))
           .done(done).fail(fail).always(always);
         } else {
           var context: JQueryAjaxSettings = jQuery.extend({}, jQuery.ajaxSettings, setting.ajax);
@@ -114,7 +113,7 @@ module MODULE.MODEL.APP {
         this.host_ = xhr.host || '';
         this.page_.loadtime = xhr.timeStamp;
         var wait = setting.wait && isFinite(xhr.timeStamp) ? Math.max(wait - new Date().getTime() + xhr.timeStamp, 0) : 0;
-        jQuery.when(xhr, this.wait(wait))
+        jQuery.when(xhr, this.page_.wait(wait))
         .done(done).fail(fail).always(always);
 
       } else {
@@ -202,22 +201,11 @@ module MODULE.MODEL.APP {
 
         if (!this.model_.isDeferrable) { return; }
 
-        jQuery.when(this.jqXHR_, this.wait(wait))
+        jQuery.when(this.jqXHR_, this.page_.wait(wait))
         .done(done).fail(fail).always(always);
       }
 
     }
-
-    // mixin utility
-    chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
-    chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
-    chooseArea(areas: any, srcDocument: Document, dstDocument: Document): string { return }
-    movePageNormally(event: JQueryEventObject): void { }
-    dispatchEvent(target: Window, eventType: string, bubbling: boolean, cancelable: boolean): void
-    dispatchEvent(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
-    dispatchEvent(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
-    dispatchEvent(target: any, eventType: string, bubbling: boolean, cancelable: boolean): void { }
-    wait(ms: number): JQueryDeferred<any> { return }
 
   }
 

@@ -208,7 +208,7 @@ module MODULE.MODEL {
   export declare class PageParserInterface {
     parse(html: string, uri?: string): Document
   }
-  export declare class PageFetchInterface extends PageUtilityInterface {
+  export declare class PageFetchInterface {
     constructor(
       model: ModelInterface,
       app: AppLayerInterface,
@@ -220,7 +220,7 @@ module MODULE.MODEL {
       done: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any,
       fail: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any)
   }
-  export declare class PageUpdateInterface extends PageUtilityInterface {
+  export declare class PageUpdateInterface {
     constructor(
       model: ModelInterface,
       app: AppLayerInterface,

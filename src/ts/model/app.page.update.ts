@@ -1,5 +1,4 @@
 /// <reference path="../define.ts"/>
-/// <reference path="app.page.utility.ts"/>
 /// <reference path="app.data.ts"/>
 /// <reference path="../library/utility.ts"/>
 
@@ -70,7 +69,7 @@ module MODULE.MODEL.APP {
           this.dstDocument_ = document;
             
           // 更新範囲を選出
-          this.area_ = this.chooseArea(setting.area, this.srcDocument_, this.dstDocument_);
+          this.area_ = this.page_.chooseArea(setting.area, this.srcDocument_, this.dstDocument_);
           if (!this.area_) { throw new Error('throw: area notfound'); }
           // 更新範囲をセレクタごとに分割
           this.areas_ = this.area_.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
@@ -82,7 +81,7 @@ module MODULE.MODEL.APP {
           
           this.checkRedirect_();
           
-          this.dispatchEvent(window, DEF.NAME + ':unload', false, true);
+          this.page_.dispatchEvent(window, DEF.NAME + ':unload', false, true);
           
           this.updateUrl_();
           
@@ -172,7 +171,7 @@ module MODULE.MODEL.APP {
                 window.history.forward();
                 jQuery[DEF.NAME].enable();
               }
-              setTimeout(() => this.dispatchEvent(window, 'popstate', false, false), 0);
+              setTimeout(() => this.page_.dispatchEvent(window, 'popstate', false, false), 0);
               break;
           }
           throw false;
@@ -248,7 +247,7 @@ module MODULE.MODEL.APP {
         e.stopImmediatePropagation();
 
         var onready = (callback?: () => void) => {
-          this.dispatchEvent(document, DEF.NAME + ':ready', false, true);
+          this.page_.dispatchEvent(document, DEF.NAME + ':ready', false, true);
 
           Util.fire(setting.callback, setting, [event, setting]);
 
@@ -265,7 +264,7 @@ module MODULE.MODEL.APP {
             }
           }, 100);
 
-          this.dispatchEvent(document, DEF.NAME + ':render', false, true);
+          this.page_.dispatchEvent(document, DEF.NAME + ':render', false, true);
 
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('render(' + speed.time.slice(-1) + ')');
@@ -274,7 +273,7 @@ module MODULE.MODEL.APP {
         };
 
         var onload = () => {
-          this.dispatchEvent(window, DEF.NAME + ':load', false, true);
+          this.page_.dispatchEvent(window, DEF.NAME + ':load', false, true);
 
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('load(' + speed.time.slice(-1) + ')');
@@ -450,7 +449,7 @@ module MODULE.MODEL.APP {
         $dstAreas.append(checker.clone());
         $dstAreas.find('script').each((i, elem) => this.restoreScript_(<HTMLScriptElement>elem));
       }
-      this.dispatchEvent(document, DEF.NAME + ':DOMContentLoaded', false, true);
+      this.page_.dispatchEvent(document, DEF.NAME + ':DOMContentLoaded', false, true);
 
       if (Util.fire(callbacks_update.content.after, setting, [event, setting]) === false) { return; }
     }
@@ -585,12 +584,12 @@ module MODULE.MODEL.APP {
           }
             
           try {
-            element.hasAttribute('src') && this.dispatchEvent(element, 'load', false, true);
+            element.hasAttribute('src') && this.page_.dispatchEvent(element, 'load', false, true);
           } catch (e) {
           }
         } catch (err) {
           try {
-            element.hasAttribute('src') && this.dispatchEvent(element, 'error', false, true);
+            element.hasAttribute('src') && this.page_.dispatchEvent(element, 'error', false, true);
           } catch (e) {
           }
 
@@ -630,8 +629,8 @@ module MODULE.MODEL.APP {
                 dataType: 'script',
                 async: true,
                 global: false,
-                success: () => this.dispatchEvent(element, 'load', false, true),
-                error: () => this.dispatchEvent(element, 'error', false, true)
+                success: () => this.page_.dispatchEvent(element, 'load', false, true),
+                error: () => this.page_.dispatchEvent(element, 'error', false, true)
               }));
             } else {
               if (defer) {
@@ -792,17 +791,6 @@ module MODULE.MODEL.APP {
       script.innerHTML = jQuery.data(script, 'code');
       jQuery.removeData(script, 'code');
     }
-
-    // mixin utility
-    chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
-    chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
-    chooseArea(areas: any, srcDocument: Document, dstDocument: Document): string { return }
-    movePageNormally(event: JQueryEventObject): void { }
-    dispatchEvent(target: Window, eventType: string, bubbling: boolean, cancelable: boolean): void
-    dispatchEvent(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
-    dispatchEvent(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
-    dispatchEvent(target: any, eventType: string, bubbling: boolean, cancelable: boolean): void { }
-    wait(ms: number): JQueryDeferred<any> { return }
 
   }
 

@@ -11,9 +11,6 @@ module MODULE.MODEL.APP {
 
   var Util = LIBRARY.Utility
 
-  MIXIN(PageFetch, [PageUtility]);
-  MIXIN(PageUpdate, [PageUtility]);
-
   export class Page implements PageInterface {
 
     constructor(private model_: ModelInterface, private app_: AppLayerInterface) {
