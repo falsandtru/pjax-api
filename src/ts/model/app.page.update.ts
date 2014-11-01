@@ -450,15 +450,16 @@ module MODULE.MODEL.APP {
       var callbacks_update = setting.callbacks.update;
 
       if (!setting.balance.self || !setting.loadtime) { return; }
-
-      if (Util.fire(callbacks_update.balance.before, null, [event, setting.param]) === false) { return; }
-
+      
       var host = (this.jqXHR_.getResponseHeader(setting.balance.server.header) || ''),
           performance = Math.ceil(setting.loadtime / (this.jqXHR_.responseText.length || 1) * 1e5);
+
+      if (Util.fire(callbacks_update.balance.before, null, [event, setting.param, host, setting.loadtime, this.jqXHR_]) === false) { return; }
+
       this.app_.data.saveServer(host, performance);
       this.app_.balance.chooseServer(setting);
 
-      if (Util.fire(callbacks_update.balance.after, null, [event, setting.param]) === false) { return; }
+      if (Util.fire(callbacks_update.balance.after, null, [event, setting.param, host, setting.loadtime, this.jqXHR_]) === false) { return; }
     }
 
     private css_(selector: string): void {

@@ -73,10 +73,10 @@ ajaxの同名のメソッド内で実行されます。jQuery1.6+ではDeferred�
 ### update.content.after( event, param, data, textStatus, jqXHR )
 ページの更新処理においてコンテンツの更新後に実行されます。
 
-### update.balance.before( event, param )
+### update.balance.before( event, param, host, loadtime, jqXHR )
 ページの更新処理においてロードバランスの周辺処理前に実行されます。
 
-### update.balance.after( event, param )
+### update.balance.after( event, param, host, loadtime, jqXHR )
 ページの更新処理においてロードバランスの周辺処理後に実行されます。
 
 ### update.css.before( event, param, data, textStatus, jqXHR )
