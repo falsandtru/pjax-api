@@ -10,8 +10,6 @@
 
 module MODULE.MODEL {
   
-  var Util = LIBRARY.Utility
-
   export class Main extends Template implements ModelInterface {
 
     constructor() {
@@ -20,6 +18,7 @@ module MODULE.MODEL {
 
     private controller_: ControllerInterface = new Controller(this)
     private app_: AppLayerInterface = new MODEL.App(this, this.controller_)
+    private util_ = LIBRARY.Utility
 
     private getRequestDomain(): string {
       return this.host();
@@ -52,7 +51,7 @@ module MODULE.MODEL {
 
       if (!window.history || !window.history['pushState'] || !window.history['replaceState']) { return $context; }
 
-      this.location.href = Util.normalizeUrl(window.location.href);
+      this.location.href = this.util_.normalizeUrl(window.location.href);
 
       var setting: SettingInterface = this.app_.configure(<PjaxSetting>option);
       if (!setting) { return $context; }
@@ -177,8 +176,8 @@ module MODULE.MODEL {
 
     popstate(event: JQueryEventObject): void {
       PROCESS: {
-        if (this.app_.page.landing && this.app_.page.landing === Util.normalizeUrl(window.location.href)) { return; }
-        if (this.location.href === Util.normalizeUrl(window.location.href)) { return; }
+        if (this.app_.page.landing && this.app_.page.landing === this.util_.normalizeUrl(window.location.href)) { return; }
+        if (this.location.href === this.util_.normalizeUrl(window.location.href)) { return; }
         
         event.timeStamp = new Date().getTime();
         var setting: SettingInterface = this.app_.configure(window.location);
@@ -222,7 +221,7 @@ module MODULE.MODEL {
       var setting: SettingInterface = this.configure(event);
       switch (true) {
         case setting && !setting.fallback:
-        case setting && false === Util.fire(setting.fallback, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]):
+        case setting && false === this.util_.fire(setting.fallback, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]):
           break;
         default:
           this.app_.page.movePageNormally(event);
@@ -242,7 +241,7 @@ module MODULE.MODEL {
           recent: RecentInterface = this.app_.page.recent;
       if (!setting || !recent) { return null; }
 
-      var secure_url: string = this.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
+      var secure_url: string = this.convertUrlToKeyUrl(this.util_.normalizeUrl(unsafe_url));
       unsafe_url = null;
 
       recent.data[secure_url] && new Date().getTime() > recent.data[secure_url].expires && this.removeCache(secure_url);
@@ -260,7 +259,7 @@ module MODULE.MODEL {
           timeStamp: number,
           expires: number;
 
-      var secure_url: string = this.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
+      var secure_url: string = this.convertUrlToKeyUrl(this.util_.normalizeUrl(unsafe_url));
       unsafe_url = null;
 
       recent.order.unshift(secure_url);
@@ -324,7 +323,7 @@ module MODULE.MODEL {
 
       switch (typeof param) {
         case 'string':
-          var secure_url: string = this.convertUrlToKeyUrl(Util.normalizeUrl(param));
+          var secure_url: string = this.convertUrlToKeyUrl(this.util_.normalizeUrl(param));
           param = null;
 
           for (var i = 0, key: string; key = recent.order[i]; i++) {

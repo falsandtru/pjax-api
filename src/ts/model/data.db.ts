@@ -188,7 +188,7 @@ module MODULE.MODEL.APP.DATA {
       meta.get(scheme.version.key, (event) => {
         // version check
         if (cancel) { return; }
-        var data: MetaStoreSchema = (<any>event.target).result;
+        var data: MetaStoreSchema = (<IDBRequest>event.target).result;
         if (!data || this.upgrade_) {
           meta.set(meta.setBuffer({ key: scheme.version.key, value: version }));
         } else if (data.value > version) {
@@ -203,7 +203,7 @@ module MODULE.MODEL.APP.DATA {
       meta.get(scheme.update.key, (event) => {
         // refresh check
         if (cancel) { return; }
-        var data: MetaStoreSchema = (<any>event.target).result;
+        var data: MetaStoreSchema = (<IDBRequest>event.target).result;
         var days: number = Math.floor(new Date().getTime() / (24 * 60 * 60 * 1000));
         if (!data || !this.refresh_) {
           meta.set(meta.setBuffer({ key: scheme.update.key, value: days + this.refresh_ }));

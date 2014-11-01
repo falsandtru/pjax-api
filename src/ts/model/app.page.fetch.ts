@@ -5,8 +5,6 @@
 
 module MODULE.MODEL.APP {
 
-  var Util = LIBRARY.Utility
-
   export class PageFetch implements PageFetchInterface {
 
     constructor(
@@ -23,6 +21,8 @@ module MODULE.MODEL.APP {
     ) {
       this.main_();
     }
+    
+    private util_ = LIBRARY.Utility
 
     private host_: string
     private loadtime_: number
@@ -37,7 +37,7 @@ module MODULE.MODEL.APP {
           event = this.event_ = jQuery.extend(true, {}, this.event_),
           register = this.register_,
           cache = this.cache_,
-          wait: number = Util.fire(setting.wait, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]);
+          wait: number = this.util_.fire(setting.wait, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]);
 
       var speedcheck = setting.speedcheck, speed = this.model_.speed;
       speedcheck && (speed.fire = event.timeStamp);
@@ -61,17 +61,17 @@ module MODULE.MODEL.APP {
         that.textStatus_ = ajax[1];
         that.jqXHR_ = ajax[2];
 
-        Util.fire(setting.callbacks.ajax.success, this, [event, setting, that.data_, that.textStatus_, that.jqXHR_]);
+        that.util_.fire(setting.callbacks.ajax.success, this, [event, setting, that.data_, that.textStatus_, that.jqXHR_]);
       }
       function fail(jqXHR: JQueryXHR, textStatus: string, errorThrown: string) {
         that.jqXHR_ = jqXHR;
         that.textStatus_ = textStatus;
         that.errorThrown_ = errorThrown;
 
-        Util.fire(setting.callbacks.ajax.error, this, [event, setting, that.jqXHR_, that.textStatus_, that.errorThrown_]);
+        that.util_.fire(setting.callbacks.ajax.error, this, [event, setting, that.jqXHR_, that.textStatus_, that.errorThrown_]);
       }
       function always() {
-        Util.fire(setting.callbacks.ajax.complete, this, [event, setting, that.jqXHR_, that.textStatus_]);
+        that.util_.fire(setting.callbacks.ajax.complete, this, [event, setting, that.jqXHR_, that.textStatus_]);
 
         that.model_.setXHR(null);
 
@@ -166,7 +166,7 @@ module MODULE.MODEL.APP {
         callbacks = <JQueryAjaxSettings>{
           xhr: !setting.callbacks.ajax.xhr ? undefined : function () {
             var jqXHR: JQueryXHR;
-            jqXHR = Util.fire(setting.callbacks.ajax.xhr, this, [event, setting]);
+            jqXHR = this.util_.fire(setting.callbacks.ajax.xhr, this, [event, setting]);
             jqXHR = 'object' === typeof jqXHR ? jqXHR : jQuery.ajaxSettings.xhr();
 
             //if (jqXHR instanceof Object && jqXHR instanceof window.XMLHttpRequest && 'onprogress' in jqXHR) {
@@ -186,10 +186,10 @@ module MODULE.MODEL.APP {
               setting.server.header.script && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Script', setting.load.script.toString());
             }
 
-            Util.fire(setting.callbacks.ajax.beforeSend, this, [event, setting, jqXHR, ajaxSetting]);
+            that.util_.fire(setting.callbacks.ajax.beforeSend, this, [event, setting, jqXHR, ajaxSetting]);
           },
           dataFilter: !setting.callbacks.ajax.dataFilter ? undefined : function (data: string, type: Object) {
-            return Util.fire(setting.callbacks.ajax.dataFilter, this, [event, setting, data, type]) || data;
+            return that.util_.fire(setting.callbacks.ajax.dataFilter, this, [event, setting, data, type]) || data;
           },
           success: success,
           error: error,

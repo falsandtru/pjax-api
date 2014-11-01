@@ -4,8 +4,6 @@
 
 module MODULE.MODEL.APP {
 
-  var Util = LIBRARY.Utility
-
   export class PageUtility implements PageUtilityInterface {
     
     chooseArea(area: string, srcDocument: Document, dstDocument: Document): string

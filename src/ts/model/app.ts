@@ -10,14 +10,14 @@
 
 module MODULE.MODEL.APP {
 
-  var Util = LIBRARY.Utility
-
   MIXIN(Page, [PageUtility]);
 
   export class Main implements AppLayerInterface {
 
     constructor(private model_: ModelInterface, private controller_: ControllerInterface) {
     }
+    
+    private util_ = LIBRARY.Utility
 
     private settings_: { [index: string]: SettingInterface } = {}
     private option_: PjaxSetting
@@ -62,10 +62,10 @@ module MODULE.MODEL.APP {
       var url: string;
       switch (true) {
         case 'href' in destination:
-          url = Util.normalizeUrl(destination.href);
+          url = this.util_.normalizeUrl(destination.href);
           break;
         case 'action' in destination:
-          url = Util.normalizeUrl(destination.action.replace(/[?#].*/, ''));
+          url = this.util_.normalizeUrl(destination.action.replace(/[?#].*/, ''));
           switch (destination.method.toUpperCase()) {
             case 'GET':
               url += '?' + jQuery(destination).serialize();
@@ -78,8 +78,8 @@ module MODULE.MODEL.APP {
       }
 
       var index: string = [
-        Util.canonicalizeUrl(this.model_.location.href).slice(0, 2048),
-        Util.canonicalizeUrl(url).slice(0, 2048)
+        this.util_.canonicalizeUrl(this.model_.location.href).slice(0, 2048),
+        this.util_.canonicalizeUrl(url).slice(0, 2048)
       ].join(' ');
 
       if (!this.option_) {
@@ -323,7 +323,7 @@ module MODULE.MODEL.APP {
           if ('inherit' === pattern) {
             inherit = true;
           } else if ('rewrite' === pattern && 'function' === typeof scpTable.rewrite && !rewriteKeyUrl) {
-            scope = this.scope_(option, origURL, destURL, Util.fire(scpTable.rewrite, null, [destKeyUrl]));
+            scope = this.scope_(option, origURL, destURL, this.util_.fire(scpTable.rewrite, null, [destKeyUrl]));
             if (scope) {
               hit_src = hit_dst = true;
             } else if (null === scope) {

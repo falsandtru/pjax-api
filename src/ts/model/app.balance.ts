@@ -6,11 +6,11 @@
 
 module MODULE.MODEL.APP {
 
-  var Util = LIBRARY.Utility
-
   export class Balance implements BalanceInterface {
 
     constructor(private model_: ModelInterface, private app_: AppLayerInterface) { }
+    
+    private util_ = LIBRARY.Utility
 
     private host_: string = ''
     host = () => this.host_
@@ -133,10 +133,10 @@ module MODULE.MODEL.APP {
           --this.parallel_;
           var that = this;
           jQuery.ajax(jQuery.extend({}, option, <JQueryAjaxSettings>{
-            url: Util.normalizeUrl(server + window.location.pathname.replace(/^\/?/, '/') + window.location.search),
+            url: that.util_.normalizeUrl(server + window.location.pathname.replace(/^\/?/, '/') + window.location.search),
             xhr: !setting.balance.option.callbacks.ajax.xhr ? undefined : function () {
               var jqXHR: JQueryXHR;
-              jqXHR = Util.fire(setting.balance.option.callbacks.ajax.xhr, this, [event, setting]);
+              jqXHR = that.util_.fire(setting.balance.option.callbacks.ajax.xhr, this, [event, setting]);
               jqXHR = 'object' === typeof jqXHR ? jqXHR : jQuery.ajaxSettings.xhr();
               return jqXHR;
             },
@@ -152,25 +152,25 @@ module MODULE.MODEL.APP {
                 setting.server.header.script && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Script', setting.load.script.toString());
               }
 
-              Util.fire(setting.balance.option.callbacks.ajax.beforeSend, this, [event, setting, jqXHR, ajaxSetting]);
+              that.util_.fire(setting.balance.option.callbacks.ajax.beforeSend, this, [event, setting, jqXHR, ajaxSetting]);
             },
             dataFilter: !setting.balance.option.callbacks.ajax.dataFilter ? undefined : function (data: string, type: Object) {
-              return Util.fire(setting.balance.option.callbacks.ajax.dataFilter, this, [event, setting, data, type]) || data;
+              return that.util_.fire(setting.balance.option.callbacks.ajax.dataFilter, this, [event, setting, data, type]) || data;
             },
             success: function () {
               that.host_ = server;
               that.queue_ = [];
 
-              Util.fire(setting.balance.option.ajax.success, this, arguments);
+              that.util_.fire(setting.balance.option.ajax.success, this, arguments);
             },
             error: function () {
-              Util.fire(setting.balance.option.ajax.error, this, arguments);
+              that.util_.fire(setting.balance.option.ajax.error, this, arguments);
             },
             complete: function () {
               ++that.parallel_;
               servers.length && that.bypass(setting, servers.length - 1);
 
-              Util.fire(setting.balance.option.ajax.complete, this, arguments);
+              that.util_.fire(setting.balance.option.ajax.complete, this, arguments);
             }
           }));
         })(servers.shift());

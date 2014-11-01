@@ -9,17 +9,17 @@
 
 module MODULE.MODEL.APP {
 
-  var Util = LIBRARY.Utility
-
   export class Page implements PageInterface {
 
     constructor(private model_: ModelInterface, private app_: AppLayerInterface) {
       setTimeout(() => this.parser.parse('') || this.model_.disable(), 300);
     }
+    
+    private util_ = LIBRARY.Utility
 
     parser: PageParserInterface = new PageParserSingleton()
     
-    landing: string = Util.normalizeUrl(window.location.href)
+    landing: string = this.util_.normalizeUrl(window.location.href)
     recent: RecentInterface = { order: [], data: {}, size: 0 }
     loadedScripts: { [index: string]: boolean } = {}
     isScrollPosSavable: boolean = true
