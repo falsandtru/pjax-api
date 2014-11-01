@@ -203,7 +203,7 @@ module MODULE.MODEL {
     time: number
     loadtime: number
     
-    transfer(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface): void
+    transfer(setting: SettingInterface, event: JQueryEventObject, register: boolean): void
   }
   export declare class PageParserInterface {
     parse(html: string, uri?: string): Document

@@ -131,16 +131,11 @@ module MODULE.MODEL {
 
         if (!setting || State.open !== this.state() || event.isDefaultPrevented()) { break PROCESS; }
         if (!this.isAvailable(event)) { break PROCESS; }
-
-        if (setting.cache.mix && this.getCache(setting.destLocation.href)) { break PROCESS; }
-
+        
         this.app_.data.saveTitle();
         this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
 
-        var cache: CacheInterface;
-        if (setting.cache[event.type.toLowerCase()]) { cache = this.getCache(setting.destLocation.href); }
-        
-        this.app_.page.transfer(setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
+        this.app_.page.transfer(setting, event, setting.destLocation.href !== setting.origLocation.href);
         event.preventDefault();
         return;
       };
@@ -157,16 +152,11 @@ module MODULE.MODEL {
 
         if (!setting || State.open !== this.state() || event.isDefaultPrevented()) { break PROCESS; }
         if (!this.isAvailable(event)) { break PROCESS; }
-
-        if (setting.cache.mix && this.getCache(setting.destLocation.href)) { break PROCESS; }
-
+        
         this.app_.data.saveTitle();
         this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
 
-        var cache: CacheInterface;
-        if (setting.cache[event.type.toLowerCase()] && setting.cache[context.method.toLowerCase()]) { cache = this.getCache(setting.destLocation.href); }
-
-        this.app_.page.transfer(setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
+        this.app_.page.transfer(setting, event, setting.destLocation.href !== setting.origLocation.href);
         event.preventDefault();
         return;
       };
@@ -194,10 +184,7 @@ module MODULE.MODEL {
 
         setting.fix.history && this.app_.data.loadTitle();
 
-        var cache: CacheInterface;
-        if (setting.cache[event.type.toLowerCase()]) { cache = this.getCache(setting.destLocation.href); }
-        
-        this.app_.page.transfer(setting, event, false, cache);
+        this.app_.page.transfer(setting, event, false);
         return;
       };
       // pjax処理されないURLの変更

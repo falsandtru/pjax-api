@@ -29,7 +29,7 @@ module MODULE.MODEL.APP {
     time: number = new Date().getTime()
     loadtime: number = 0
 
-    transfer(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface): void {
+    transfer(setting: SettingInterface, event: JQueryEventObject, register: boolean): void {
       var done = (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => {
         this.update_(setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host);
       };
@@ -43,6 +43,19 @@ module MODULE.MODEL.APP {
 
         this.model_.fallback(event);
       };
+
+      var cache: CacheInterface;
+      switch (setting.cache[event.type.toLowerCase()] && event.type.toLowerCase()) {
+        case 'click':
+          cache = this.model_.getCache(setting.destLocation.href);
+          break;
+        case 'submit':
+          cache = setting.cache[(<HTMLFormElement>event.currentTarget).method.toLowerCase()] ? this.model_.getCache(setting.destLocation.href) : cache;
+          break;
+        case 'popstate':
+          cache = this.model_.getCache(setting.destLocation.href);
+          break;
+      }
 
       this.fetch_(setting, event, register, cache, done, fail);
     }
