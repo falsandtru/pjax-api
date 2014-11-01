@@ -129,12 +129,8 @@ module MODULE.MODEL {
             $context: JQuery = jQuery(context);
         var setting: SettingInterface = this.app_.configure(context);
 
-        if (!setting || State.open !== this.state() || event.isDefaultPrevented()) { break PROCESS; }
-        if (!this.isAvailable(event)) { break PROCESS; }
+        if (!setting || State.open !== this.state() || event.isDefaultPrevented() || !this.isAvailable(event)) { break PROCESS; }
         
-        this.app_.data.saveTitle();
-        this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
-
         this.app_.page.transfer(setting, event, setting.destLocation.href !== setting.origLocation.href);
         event.preventDefault();
         return;
@@ -150,12 +146,8 @@ module MODULE.MODEL {
             $context: JQuery = jQuery(context);
         var setting: SettingInterface = this.app_.configure(context);
 
-        if (!setting || State.open !== this.state() || event.isDefaultPrevented()) { break PROCESS; }
-        if (!this.isAvailable(event)) { break PROCESS; }
+        if (!setting || State.open !== this.state() || event.isDefaultPrevented() || !this.isAvailable(event)) { break PROCESS; }
         
-        this.app_.data.saveTitle();
-        this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
-
         this.app_.page.transfer(setting, event, setting.destLocation.href !== setting.origLocation.href);
         event.preventDefault();
         return;
@@ -172,18 +164,13 @@ module MODULE.MODEL {
         event.timeStamp = new Date().getTime();
         var setting: SettingInterface = this.app_.configure(window.location);
         
-        if (!setting || State.open !== this.state()) { break PROCESS; }
-        if (!this.isAvailable(event)) { break PROCESS; }
+        if (!setting || State.open !== this.state() || !this.isAvailable(event)) { break PROCESS; }
 
         if (setting.origLocation.hash !== setting.destLocation.hash &&
             setting.origLocation.pathname + setting.origLocation.search === setting.destLocation.pathname + setting.destLocation.search) {
           break PROCESS;
         }
         
-        this.app_.data.saveTitle(setting.origLocation.href, document.title);
-
-        setting.fix.history && this.app_.data.loadTitle();
-
         this.app_.page.transfer(setting, event, false);
         return;
       };

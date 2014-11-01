@@ -48,12 +48,20 @@ module MODULE.MODEL.APP {
       switch (setting.cache[event.type.toLowerCase()] && event.type.toLowerCase()) {
         case 'click':
           cache = this.model_.getCache(setting.destLocation.href);
+          this.app_.data.saveTitle();
+          this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
           break;
+
         case 'submit':
           cache = setting.cache[(<HTMLFormElement>event.currentTarget).method.toLowerCase()] ? this.model_.getCache(setting.destLocation.href) : cache;
+          this.app_.data.saveTitle();
+          this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
           break;
+
         case 'popstate':
           cache = this.model_.getCache(setting.destLocation.href);
+          this.app_.data.saveTitle(setting.origLocation.href, document.title);
+          setting.fix.history && this.app_.data.loadTitle();
           break;
       }
 
