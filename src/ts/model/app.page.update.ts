@@ -78,11 +78,7 @@ module MODULE.MODEL.APP {
           // 更新範囲をセレクタごとに分割
           setting.areas = setting.area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
           // キャッシュを設定
-          if (this.isCacheUsable_(setting, event)) {
-            this.model_.setCache(setting.destLocation.href, cache && cache.data || null, this.textStatus_, this.jqXHR_);
-            cache = this.model_.getCache(setting.destLocation.href);
-            this.cache_ = cache;
-          }
+          this.updateCache_();
           
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
@@ -106,7 +102,9 @@ module MODULE.MODEL.APP {
       }; // label: UPDATE
     }
 
-    private isCacheUsable_(setting: SettingInterface, event: JQueryEventObject): boolean {
+    private isCacheUsable_(): boolean {
+      var setting: SettingInterface = this.setting_,
+          event: JQueryEventObject = this.event_;
       switch (true) {
         case !setting.cache.click && !setting.cache.submit && !setting.cache.popstate:
         case 'submit' === event.type.toLowerCase() && !setting.cache[(<HTMLFormElement>event.currentTarget).method.toLowerCase()]:
@@ -114,6 +112,24 @@ module MODULE.MODEL.APP {
         default:
           return true;
       }
+    }
+    
+    private updateCache_(): void {
+      var setting: SettingInterface = this.setting_,
+          event: JQueryEventObject = this.event_,
+          cache = this.cache_;
+      var callbacks_update = setting.callbacks.update;
+
+      if (!this.isCacheUsable_()) { return; }
+
+      if (Util.fire(callbacks_update.cache.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; };
+
+      this.model_.setCache(setting.destLocation.href, cache && cache.data || null, this.textStatus_, this.jqXHR_);
+      cache = this.model_.getCache(setting.destLocation.href);
+      this.cache_ = cache;
+
+      if (Util.fire(callbacks_update.cache.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; };
+
     }
 
     private checkRedirect_(): void {
@@ -308,7 +324,7 @@ module MODULE.MODEL.APP {
           event: JQueryEventObject = this.event_,
           cache: CacheInterface = this.cache_;
 
-      if (!this.isCacheUsable_(setting, event)) { return; }
+      if (!this.isCacheUsable_()) { return; }
 
       if (cache && cache.data) {
         var html: string = setting.fix.noscript ? this.restoreNoscript_(cache.data) : cache.data,
