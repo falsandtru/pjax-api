@@ -122,10 +122,11 @@ module MODULE.MODEL.APP {
               head: '',
               css: false,
               script: false,
+              ignore: '[src*="jquery.js"], [src*="jquery.min.js"], [href^="chrome-extension://"]',
+              reload: '',
               execute: true,
               log: 'head, body',
-              reload: '',
-              ignore: '[src*="jquery.js"], [src*="jquery.min.js"], [href^="chrome-extension://"]',
+              error: true,
               ajax: { dataType: 'script', cache: true }
             },
             balance: {

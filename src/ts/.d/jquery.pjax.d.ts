@@ -54,10 +54,11 @@ interface PjaxSetting {
         head?: string
         css?: boolean
         script?: boolean
-        execute?: boolean
-        reload?: string
         ignore?: string
+        reload?: string
+        execute?: boolean
         log?: string
+        error?: any
         ajax?: JQueryAjaxSettings
     }
     balance?: {

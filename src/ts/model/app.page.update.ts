@@ -533,7 +533,8 @@ module MODULE.MODEL.APP {
           dstDocument: Document = this.dstDocument_;
       var callbacks_update = setting.callbacks.update;
 
-      var scriptwaits: JQueryDeferred<any[]>[] = [];
+      var scriptwaits: JQueryDeferred<any[]>[] = [],
+          scripts: HTMLScriptElement[] = [];
 
       if (!setting.load.script) { return scriptwaits; }
       
@@ -541,10 +542,54 @@ module MODULE.MODEL.APP {
       
       var prefilter: string = 'script',
           $scriptElements: JQuery = jQuery(prefilter, srcDocument).filter(selector).not(setting.load.ignore).not(jQuery('noscript', srcDocument).find(prefilter)),
-          $execElements: JQuery = jQuery(),
           loadedScripts = this.app_.page.loadedScripts,
           regType: RegExp = /^$|(?:application|text)\/(?:java|ecma)script/i,
           regRemove: RegExp = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
+      
+      var exec = (element: HTMLScriptElement, response?: any) => {
+        if (element.src) {
+          loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload);
+        }
+
+        try {
+          if (this.model_.isDeferrable) {
+            if ('string' === typeof response) {
+              eval.call(window, response);
+            } else {
+              throw response;
+            }
+          } else {
+            if (element.hasAttribute('src')) {
+              jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, <JQueryAjaxSettings>{
+                url: element.src,
+                dataType: 'script',
+                async: false,
+                global: false,
+                success: () => null,
+                error: (err) => { throw err; }
+              }));
+            } else {
+              eval.call(window, (element.text || element.textContent || element.innerHTML || '').replace(regRemove, ''));
+            }
+          }
+            
+          try {
+            element.hasAttribute('src') && this.dispatchEvent(element, 'load', false, true);
+          } catch (e) {
+          }
+        } catch (err) {
+          try {
+            element.hasAttribute('src') && this.dispatchEvent(element, 'error', false, true);
+          } catch (e) {
+          }
+
+          if (true === setting.load.error) {
+            throw err;
+          } else {
+            Util.fire(setting.load.error, null, [err, element]);
+          }
+        }
+      };
 
       for (var i = 0, element: HTMLScriptElement; element = <HTMLScriptElement>$scriptElements[i]; i++) {
         if (!regType.test(element.type || '')) { continue; }
@@ -561,72 +606,57 @@ module MODULE.MODEL.APP {
           this.restoreScript_(log);
         };
 
-        if (this.model_.isDeferrable) {
-          ((defer: JQueryDeferred<any[]>, element: HTMLScriptElement): void => {
-            if (element.hasAttribute('src')) {
-              if (!element.getAttribute('src')) { return; }
-              if (element.hasAttribute('async')) {
-                jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: true, global: false }))
-                .done(() => this.dispatchEvent(element, 'load', false, true))
-                .fail(() => this.dispatchEvent(element, 'error', false, true));
-              } else {
-                jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, dataType: 'text', async: true, global: false }))
-                .done(() => defer.resolve([element, <string>arguments[0]]))
-                .fail(() => defer.resolve([element, new Error()]));
-                scriptwaits.push(defer);
-              }
+        // リストアップ
+        ((element: HTMLScriptElement): void => {
+          var defer: JQueryDeferred<any[]> = this.model_.isDeferrable && jQuery.Deferred();
+
+          if (element.hasAttribute('src') && element.getAttribute('src')) {
+            loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload);
+
+            if (element.hasAttribute('async')) {
+              jQuery.ajax(jQuery.extend({}, setting.ajax, setting.load.ajax, <JQueryAjaxSettings>{
+                url: element.src,
+                dataType: 'script',
+                async: true,
+                global: false,
+                success: () => this.dispatchEvent(element, 'load', false, true),
+                error: () => this.dispatchEvent(element, 'error', false, true)
+              }));
             } else {
-              defer.resolve([element, (element.text || element.textContent || element.innerHTML || '').replace(regRemove, '')]);
-              scriptwaits.push(defer);
+              if (defer) {
+                jQuery.ajax(jQuery.extend({}, setting.ajax, setting.load.ajax, <JQueryAjaxSettings>{
+                  url: element.src,
+                  dataType: 'text',
+                  async: true,
+                  global: false,
+                  success: () => defer.resolve([element, <string>arguments[0]]),
+                  error: (err) => defer.resolve([element, err])
+                }));
+                scriptwaits.push(defer);
+              } else {
+                scripts.push(element);
+              }
             }
-          })(jQuery.Deferred(), element);
-        } else {
-          if (element.hasAttribute('src')) {
-            if (!element.getAttribute('src')) { continue; }
-            $execElements = $execElements.add(element);
-          } else {
-            $execElements = $execElements.add(element);
+          } else if (!element.hasAttribute('src')) {
+            if (defer) {
+              scriptwaits.push(defer.resolve([element, (element.text || element.textContent || element.innerHTML || '').replace(regRemove, '')]));
+            } else {
+              scripts.push(element);
+            }
           }
-        }
+        })(element);
       }
 
       try {
         if (this.model_.isDeferrable) {
           jQuery.when.apply(jQuery, scriptwaits)
-          .always(() => {
-            for (var i = 0, len = arguments.length; i < len; i++) {
-              var result = arguments[i],
-                  element: HTMLScriptElement = result[0],
-                  response = result[1];
-
-              if (element.src) { loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload); }
-              if ('string' === typeof response) {
-                eval.call(window, response);
-                element.hasAttribute('src') && this.dispatchEvent(element, 'load', false, true);
-              } else {
-                element.hasAttribute('src') && this.dispatchEvent(element, 'error', false, true);
-              }
-            }
-          });
+          .always(() => jQuery.each(arguments, (i, args) => exec.apply(this, args)));
         } else {
-          for (var i = 0, element: HTMLScriptElement; element = <HTMLScriptElement>$execElements[i]; i++) {
-            if (element.hasAttribute('src')) {
-              if (element.src) { loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload); }
-              ((element) => {
-                jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: element.hasAttribute('async'), global: false }, {
-                  success: () => this.dispatchEvent(element, 'load', false, true),
-                  error: () => this.dispatchEvent(element, 'error', false, true)
-                }));
-              })(element);
-            } else {
-              eval.call(window, (element.text || element.textContent || element.innerHTML || '').replace(regRemove, ''));
-            }
-          }
+          jQuery.each(scripts, (element) => exec(element));
         }
       } catch (err) {
         setTimeout(() => this.model_.fallback(event), 1);
         throw err;
-        return;
       }
       
       if (Util.fire(callbacks_update.script.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return scriptwaits; }
