@@ -14,8 +14,8 @@ module MODULE.MODEL.APP {
     private page_: PageInterface,
     private setting_: SettingInterface,
     private event_: JQueryEventObject,
-    private done_: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any,
-    private fail_: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any
+    private done_: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => any,
+    private fail_: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => any
     ) {
       this.main_();
     }
@@ -73,9 +73,9 @@ module MODULE.MODEL.APP {
 
         if (that.data_) {
           that.model_.setCache(setting.destLocation.href, cache && cache.data || null, that.textStatus_, that.jqXHR_);
-          that.done_(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
+          that.done_(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_);
         } else {
-          that.fail_(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
+          that.fail_(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_);
         }
       }
 

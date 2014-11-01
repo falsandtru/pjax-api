@@ -18,7 +18,6 @@ module MODULE.MODEL.APP {
     private data_: string,
     private textStatus_: string,
     private jqXHR_: JQueryXHR,
-    private errorThrown_: string,
     private host_: string,
     private retriable_: boolean
     ) {
@@ -183,7 +182,7 @@ module MODULE.MODEL.APP {
       if (this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) {
       } else if (this.retriable_) {
         setting.destLocation.href = this.util_.normalizeUrl(window.location.href);
-        new PageUpdate(this.model_, this.app_, this.page_, setting, event, this.data_, this.textStatus_, this.jqXHR_, this.errorThrown_, this.host_, false);
+        new PageUpdate(this.model_, this.app_, this.page_, setting, event, this.data_, this.textStatus_, this.jqXHR_, this.host_, false);
         throw false;
       } else {
         throw new Error('throw: location mismatch');

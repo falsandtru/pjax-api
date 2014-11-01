@@ -229,7 +229,6 @@ module MODULE.MODEL {
       data: string,
       textStatus: string,
       jqXHR: JQueryXHR,
-      errorThrown: string,
       host: string,
       retriable: boolean)
   }

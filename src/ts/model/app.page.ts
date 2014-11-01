@@ -40,10 +40,10 @@ module MODULE.MODEL.APP {
     loadtime: number = 0
 
     transfer(setting: SettingInterface, event: JQueryEventObject): void {
-      var done = (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => {
-        this.update_(setting, event, data, textStatus, jqXHR, errorThrown, host);
+      var done = (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => {
+        this.update_(setting, event, data, textStatus, jqXHR, host);
       };
-      var fail = (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => {
+      var fail = (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => {
         if (!setting.fallback || 'abort' === textStatus) { return; }
 
         if (setting.balance.self) {
@@ -59,8 +59,8 @@ module MODULE.MODEL.APP {
 
     private fetch_(setting: SettingInterface,
                    event: JQueryEventObject,
-                   done: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void,
-                   fail: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void
+                   done: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => void,
+                   fail: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => void
                   ): void {
       new PageFetch(this.model_, this.app_, this, setting, event, done, fail);
     }
@@ -70,10 +70,9 @@ module MODULE.MODEL.APP {
                     data: string,
                     textStatus: string,
                     jqXHR: JQueryXHR,
-                    errorThrown: string,
                     host: string
                    ): void {
-      new PageUpdate(this.model_, this.app_, this, setting, event, data, textStatus, jqXHR, errorThrown, host, true);
+      new PageUpdate(this.model_, this.app_, this, setting, event, data, textStatus, jqXHR, host, true);
     }
     
     // mixin utility
