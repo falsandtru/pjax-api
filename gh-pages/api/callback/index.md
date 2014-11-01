@@ -9,13 +9,15 @@ class: style-api style-api-detail
 # Callback
 コールバックの実行ポイントは数十箇所あり、詳細な実行タイミングを設定できます。また、戻り値の指定によりURLやTITLEなどほとんどの更新処理を個別に無効化できます。
 
-`ajax.success` `ajax.error` `ajax.complete`はjQuery1.6+ではDeferredオブジェクトにより実行され、外部から引き継いだリクエストでも実行されます。
-
 ## callback( event, param )
 更新の描画後に実行されます。第二引数にpjax設定時に`param`パラメータに設定した値が渡されます。
 
 ## callbacks
 多数のコールバック実行タイミングを持ちます。`update.any.before`で`false`を返すとページ更新処理のうちanyの示す部分の更新処理をキャンセルします。使用されない更新項目のコールバックは実行されません。
+
+ajax系コールバックのうち`ajax.success` `ajax.error` `ajax.complete`はjQuery1.6+ではDeferredオブジェクトにより実行されるため外部から引き継いだリクエストでも実行されます。
+
+update系コールバックは対象となる処理の制御とその前後処理を主な目的として設定されているため、間をおいて複数回実行されるものもあり、全体的な処理の進行状況の把握などほかのコールバックと連動させる用途にはあまり適していません。
 
 ### ajax.xhr( event, param )
 ajaxの同名のメソッド内で実行されます。外部から引き継いだリクエストでは実行されません。
@@ -78,19 +80,19 @@ ajaxの同名のメソッド内で実行されます。jQuery1.6+ではDeferred�
 ページの更新処理においてロードバランスの周辺処理後に実行されます。
 
 ### update.css.before( event, param, data, textStatus, jqXHR )
-ページの更新処理においてCSSの読み込み前に実行されます。
+ページの更新処理においてCSSの読み込み処理前に実行されます。
 
 ### update.css.after( event, param, data, textStatus, jqXHR )
-ページの更新処理においてCSSの読み込み後に実行されます。
+ページの更新処理においてCSSの読み込み処理後に実行されます。
 
 ### update.script.before( event, param, data, textStatus, jqXHR )
-ページの更新処理においてJavaScriptの読み込み前に実行されます。
+ページの更新処理においてJavaScriptの読み込み処理前に実行されます。
 
 ### update.script.after( event, param, data, textStatus, jqXHR )
-ページの更新処理においてJavaScriptの読み込み後に実行されます。
+ページの更新処理においてJavaScriptの読み込み処理後に実行されます。
 
 ### update.scroll.before( event, param )
-ページの更新処理においてスクロール位置の更新前に実行されます。
+ページの更新処理においてスクロール位置の更新処理前に実行されます。
 
 ### update.scroll.after( event, param )
-ページの更新処理においてスクロール位置の更新後に実行されます。
+ページの更新処理においてスクロール位置の更新処理後に実行されます。
