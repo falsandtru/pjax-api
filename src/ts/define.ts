@@ -142,7 +142,6 @@ module MODULE {
     destLocation: HTMLAnchorElement
     areas: string[]
     loadtime: number
-    retriable: boolean
     option: PjaxSetting
     speedcheck: boolean
   }

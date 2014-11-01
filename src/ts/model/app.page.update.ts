@@ -25,7 +25,8 @@ module MODULE.MODEL.APP {
     private errorThrown_: string,
     private host_: string,
     private count_: number,
-    private time_: number
+    private time_: number,
+    private reriable_: boolean
     ) {
       this.main_();
     }
@@ -77,11 +78,11 @@ module MODULE.MODEL.APP {
           if (!setting.area) { throw new Error('throw: area notfound'); }
           // 更新範囲をセレクタごとに分割
           setting.areas = setting.area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
-          // キャッシュを設定
-          this.updateCache_();
-          
+
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
+          
+          this.updateCache_();
           
           this.checkRedirect_();
           
@@ -208,11 +209,9 @@ module MODULE.MODEL.APP {
 
       // verify
       if (Util.compareUrl(setting.destLocation.href, Util.normalizeUrl(window.location.href))) {
-        setting.retriable = true;
-      } else if (setting.retriable) {
-        setting.retriable = false;
+      } else if (this.reriable_) {
         setting.destLocation.href = Util.normalizeUrl(window.location.href);
-        new PageUpdate(this.model_, this.app_, setting, event, false, setting.cache[event.type.toLowerCase()] && this.model_.getCache(setting.destLocation.href), this.data_, this.textStatus_, this.jqXHR_, this.errorThrown_, this.host_, this.count_, this.time_);
+        new PageUpdate(this.model_, this.app_, setting, event, false, setting.cache[event.type.toLowerCase()] && this.model_.getCache(setting.destLocation.href), this.data_, this.textStatus_, this.jqXHR_, this.errorThrown_, this.host_, this.count_, this.time_, false);
         throw false;
       } else {
         throw new Error('throw: location mismatch');

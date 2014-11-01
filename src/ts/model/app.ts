@@ -204,7 +204,6 @@ module MODULE.MODEL.APP {
             areas: [],
             scroll: { queue: [] },
             loadtime: null,
-            retriable: true,
             option: this.option_
           },
           compute = () => {
@@ -227,7 +226,6 @@ module MODULE.MODEL.APP {
               areas: undefined,
               scroll: undefined,
               loadtime: undefined,
-              retriable: undefined,
               option: undefined,
               speedcheck: undefined,
 

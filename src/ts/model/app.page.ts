@@ -66,7 +66,7 @@ module MODULE.MODEL.APP {
                     errorThrown: string,
                     host: string
                    ): void {
-      new PageUpdate(this.model_, this.app_, setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host, ++this.count_, this.time_);
+      new PageUpdate(this.model_, this.app_, setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host, ++this.count_, this.time_, true);
     }
 
     // mixin utility
