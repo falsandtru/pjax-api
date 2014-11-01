@@ -54,6 +54,23 @@ module MODULE.MODEL.APP {
         this.model_.fallback(event);
       };
 
+      switch (event.type.toLowerCase()) {
+        case EVENT.CLICK:
+          this.app_.data.saveTitle();
+          this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
+          break;
+
+        case EVENT.SUBMIT:
+          this.app_.data.saveTitle();
+          this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
+          break;
+
+        case EVENT.POPSTATE:
+          this.app_.data.saveTitle(setting.origLocation.href, document.title);
+          setting.fix.history && this.app_.data.loadTitle();
+          break;
+      }
+
       this.fetch_(setting, event, done, fail);
     }
 
