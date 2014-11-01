@@ -9,6 +9,8 @@ class: style-api style-api-detail
 # Callback
 コールバックの実行ポイントは数十箇所あり、詳細な実行タイミングを設定できます。また、戻り値の指定によりURLやTITLEなどほとんどの更新処理を個別に無効化できます。
 
+`ajax.success` `ajax.error` `ajax.complete`はjQuery1.6+ではDeferredオブジェクトにより実行され、外部から引き継いだリクエストでも実行されます。
+
 ## callback( event, param )
 更新の描画後に実行されます。第二引数にpjax設定時に`param`パラメータに設定した値が渡されます。
 
@@ -25,22 +27,13 @@ ajaxの同名のメソッド内で実行されます。外部から引き継い�
 〃
 
 ### ajax.success( event, param, data, textStatus, jqXHR )
-〃
+ajaxの同名のメソッド内で実行されます。jQuery1.6+ではDeferredオブジェクトにより実行され、外部から引き継いだリクエストでも実行されます。
 
 ### ajax.error( event, param, jqXHR, textStatus, errorThrown )
 〃
 
 ### ajax.complete( event, param, jqXHR, textStatus )
 〃
-
-### ajax.done( event, param, data, textStatus, jqXHR ) <small><span class="label label-primary">jQuery1.6+</span></small>
-ajax処理の成功時に実行されます。外部から引き継いだリクエストでも実行されます。
-
-### ajax.fail( event, param, jqXHR, textStatus, errorThrown ) <small><span class="label label-primary">jQuery1.6+</span></small>
-ajax処理の失敗時に実行されます。外部から引き継いだリクエストでも実行されます。
-
-### ajax.always( event, param, jqXHR, textStatus ) <small><span class="label label-primary">jQuery1.6+</span></small>
-ajax処理の完了後常に実行されます。外部から引き継いだリクエストでも実行されます。
 
 ### update.redirect.before( event, param, data, textStatus, jqXHR )
 ページの更新処理においてリダイレクトの確認前に実行されます。

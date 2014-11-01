@@ -46,52 +46,38 @@ module MODULE.MODEL.APP {
       this.app_.page.isScrollPosSavable = false;
       setting.fix.reset && /click|submit/.test(event.type.toLowerCase()) && window.scrollTo(jQuery(window).scrollLeft(), 0);
 
+      function success(data: string, textStatus: string, jqXHR: JQueryXHR) {
+        return that.model_.isDeferrable ? undefined : done.call(this, [].slice.call(arguments), undefined);
+      }
+      function error(jqXHR: JQueryXHR, textStatus: string, errorThrown: string) {
+        return that.model_.isDeferrable ? undefined : fail.apply(this, arguments);
+      }
+      function complete(jqXHR: JQueryXHR, textStatus: string) {
+        return that.model_.isDeferrable ? undefined : always.apply(this, arguments);
+      }
       function done(ajax: any[], wait: void) {
         that.data_ = ajax[0];
         that.textStatus_ = ajax[1];
         that.jqXHR_ = ajax[2];
-        Util.fire(setting.callbacks.ajax.done, this, [event, setting.param].concat(ajax));
+
+        Util.fire(setting.callbacks.ajax.success, this, [event, setting.param, that.data_, that.textStatus_, that.jqXHR_]);
       }
       function fail(jqXHR: JQueryXHR, textStatus: string, errorThrown: string) {
         that.jqXHR_ = jqXHR;
         that.textStatus_ = textStatus;
         that.errorThrown_ = errorThrown;
-        Util.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat(arguments));
+
+        Util.fire(setting.callbacks.ajax.error, this, [event, setting.param, that.jqXHR_, that.textStatus_, that.errorThrown_]);
       }
       function always() {
-        Util.fire(setting.callbacks.ajax.always, this, [event, setting.param].concat(arguments));
+        Util.fire(setting.callbacks.ajax.complete, this, [event, setting.param, that.jqXHR_, that.textStatus_]);
+
         that.model_.setXHR(null);
 
-        if (that.model_.isDeferrable) {
-          if (that.data_) {
-            that.done_(setting, event, register, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
-          } else {
-            that.fail_(setting, event, register, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
-          }
-        }
-      }
-      function success(data: string, textStatus: string, jqXHR: JQueryXHR) {
-        that.data_ = data;
-        that.textStatus_ = textStatus;
-        that.jqXHR_ = jqXHR;
-        Util.fire(setting.callbacks.ajax.success, this, [event, setting.param, data, textStatus, jqXHR]);
-      }
-      function error(jqXHR: JQueryXHR, textStatus: string, errorThrown: string) {
-        that.jqXHR_ = jqXHR;
-        that.textStatus_ = textStatus;
-        that.errorThrown_ = errorThrown;
-        Util.fire(setting.callbacks.ajax.error, this, [event, setting.param, jqXHR, textStatus, errorThrown]);
-      }
-      function complete(jqXHR: JQueryXHR, textStatus: string) {
-        Util.fire(setting.callbacks.ajax.complete, this, [event, setting.param, jqXHR, textStatus]);
-        that.model_.setXHR(null);
-
-        if (!that.model_.isDeferrable) {
-          if (that.data_) {
-            that.done_(setting, event, register, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
-          } else {
-            that.fail_(setting, event, register, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
-          }
+        if (that.data_) {
+          that.done_(setting, event, register, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
+        } else {
+          that.fail_(setting, event, register, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
         }
       }
 
@@ -109,13 +95,13 @@ module MODULE.MODEL.APP {
         this.textStatus_ = cache.textStatus;
         this.jqXHR_ = cache.jqXHR;
         if (this.model_.isDeferrable) {
-          jQuery.when(jQuery.Deferred().resolve([that.data_, that.textStatus_, that.jqXHR_]), this.wait(wait))
+          jQuery.when(jQuery.Deferred().resolve(this.data_, this.textStatus_, this.jqXHR_), this.wait(wait))
           .done(done).fail(fail).always(always);
         } else {
           var context: JQueryAjaxSettings = jQuery.extend({}, jQuery.ajaxSettings, setting.ajax);
           context = context.context || context;
-          success.call(context, that.data_, that.textStatus_, that.jqXHR_);
-          complete.call(context, that.jqXHR_, that.textStatus_);
+          success.call(context, this.data_, this.textStatus_, this.jqXHR_);
+          complete.call(context, this.jqXHR_, this.textStatus_);
         }
       } else if (xhr && xhr.follow && 'abort' !== xhr.statusText && 'error' !== xhr.statusText) {
         // preload
@@ -126,7 +112,7 @@ module MODULE.MODEL.APP {
         this.host_ = xhr.host || '';
         setting.loadtime = xhr.timeStamp;
         var wait = setting.wait && isFinite(xhr.timeStamp) ? Math.max(wait - new Date().getTime() + xhr.timeStamp, 0) : 0;
-        jQuery.when(xhr, that.wait(wait))
+        jQuery.when(xhr, this.wait(wait))
         .done(done).fail(fail).always(always);
 
       } else {
@@ -135,7 +121,7 @@ module MODULE.MODEL.APP {
         xhr && xhr.abort();
         var requestLocation = <HTMLAnchorElement>setting.destLocation.cloneNode(),
             ajax: JQueryAjaxSettings = {},
-            callbacks = {};
+            callbacks: JQueryAjaxSettings = {};
 
         this.app_.balance.chooseServer(setting);
         this.host_ = setting.balance.self && this.app_.balance.host().split('//').pop() || '';
@@ -176,7 +162,7 @@ module MODULE.MODEL.APP {
             break;
         }
 
-        callbacks = {
+        callbacks = <JQueryAjaxSettings>{
           xhr: !setting.callbacks.ajax.xhr ? undefined : function () {
             var jqXHR: JQueryXHR;
             jqXHR = Util.fire(setting.callbacks.ajax.xhr, this, [event, setting.param]);
@@ -209,14 +195,13 @@ module MODULE.MODEL.APP {
           complete: complete
         };
 
-        ajax = jQuery.extend(true, {}, setting.ajax, callbacks, ajax);
-
+        ajax = jQuery.extend({}, setting.ajax, callbacks, ajax);
         this.jqXHR_ = this.model_.setXHR(jQuery.ajax(ajax));
 
-        if (this.model_.isDeferrable) {
-          jQuery.when(this.jqXHR_, that.wait(wait))
-          .done(done).fail(fail).always(always);
-        }
+        if (!this.model_.isDeferrable) { return; }
+
+        jQuery.when(this.jqXHR_, this.wait(wait))
+        .done(done).fail(fail).always(always);
       }
 
     }

@@ -10,6 +10,9 @@ nav: nav
 ## 2.27.0
 
 * `load.error`パラメータを追加
+* `callbacks.ajax.done`パラメータを`callbacks.ajax.success`パラメータに統合
+* `callbacks.ajax.fail`パラメータを`callbacks.ajax.error`パラメータに統合
+* `callbacks.ajax.always`パラメータを`callbacks.ajax.complete`パラメータに統合
 
 ## 2.26.0
 
