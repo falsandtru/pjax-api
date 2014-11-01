@@ -215,11 +215,11 @@ module MODULE.MODEL.APP {
         };
 
         ajax = jQuery.extend({}, setting.ajax, callbacks, ajax);
-        this.jqXHR_ = this.model_.setXHR(jQuery.ajax(ajax));
+        this.model_.setXHR(jQuery.ajax(ajax));
 
         if (!this.model_.isDeferrable) { return; }
 
-        jQuery.when(this.jqXHR_, this.page_.wait(wait))
+        jQuery.when(this.model_.getXHR(), this.wait(wait))
         .done(done).fail(fail).always(always);
       }
 

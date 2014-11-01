@@ -115,11 +115,11 @@ module MODULE.MODEL {
     }
 
     getXHR(): JQueryXHR {
-      return this.app_.page.globalXHR;
+      return this.app_.page.xhr;
     }
     setXHR(xhr: JQueryXHR): JQueryXHR {
-      this.app_.page.globalXHR && this.app_.page.globalXHR.readyState < 4 && this.app_.page.globalXHR.abort();
-      return this.app_.page.globalXHR = xhr;
+      this.app_.page.xhr && this.app_.page.xhr.readyState < 4 && this.app_.page.xhr.abort();
+      return this.app_.page.xhr = xhr;
     }
 
     click(event: JQueryEventObject): void {

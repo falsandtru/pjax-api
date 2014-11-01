@@ -22,7 +22,7 @@ module MODULE.MODEL.APP {
     landing: string = this.util_.normalizeUrl(window.location.href)
     recent: RecentInterface = { order: [], data: {}, size: 0 }
     loadedScripts: { [index: string]: boolean } = {}
-    globalXHR: JQueryXHR
+    xhr: JQueryXHR
 
     isScrollPosSavable: boolean = true
     isCacheUsable_(event: JQueryEventObject, setting: SettingInterface): boolean {

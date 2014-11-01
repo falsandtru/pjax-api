@@ -206,7 +206,7 @@ module MODULE.MODEL {
     recent: RecentInterface
     loadedScripts: { [url: string]: boolean }
     isScrollPosSavable: boolean
-    globalXHR: JQueryXHR
+    xhr: JQueryXHR
     count: number
     time: number
     loadtime: number
