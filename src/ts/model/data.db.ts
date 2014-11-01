@@ -15,7 +15,7 @@ module MODULE.MODEL.APP.DATA {
 
     private database_: IDBDatabase
     private name_: string = DEF.NAME
-    private version_: number = 7
+    private version_: number = 8
     private refresh_: number = 10
     private upgrade_: number = 0 // 0:virtual 1:native
     private state_: State = State.blank

@@ -168,11 +168,11 @@ module MODULE.MODEL.APP {
     loadServer(): void {
     }
 
-    saveServer(host: string, performance: number, state: number = 0, unsafe_url?: string, expires: number = 0): void {
+    saveServer(host: string, score: number, state: number = 0, unsafe_url?: string, expires: number = 0): void {
       var store = this.stores_.server,
           value: ServerStoreSchema = {
             host: host.split('//').pop().split('/').shift() || '',
-            performance: performance,
+            score: score,
             state: state,
             date: new Date().getTime()
           };

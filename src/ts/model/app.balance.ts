@@ -54,7 +54,7 @@ module MODULE.MODEL.APP {
 
     private chooseServers_(expires: number, limit: number, weight: number, respite: number): string[] {
       var servers = this.app_.data.getServerBuffers(),
-          serverTableByPerformance: { [performance: string]: ServerStoreSchema } = {},
+          serverTableByScore: { [score: string]: ServerStoreSchema } = {},
           result: string[];
 
       (() => {
@@ -63,14 +63,14 @@ module MODULE.MODEL.APP {
           if (now > servers[i].date + expires) {
             continue;
           }
-          serverTableByPerformance[servers[i].performance] = servers[i];
+          serverTableByScore[servers[i].score] = servers[i];
         }
       })();
 
       result = [];
-      var performanceList = Object.keys(serverTableByPerformance).sort();
-      for (var i = 0, performance: string; performance = result.length < limit && performanceList[i]; i++) {
-        var server = serverTableByPerformance[performance],
+      var scores = Object.keys(serverTableByScore).sort();
+      for (var i = 0, score: string; score = result.length < limit && scores[i]; i++) {
+        var server = serverTableByScore[score],
             host = server.host,
             state = server.state;
         if (state && state + respite >= new Date().getTime()) {

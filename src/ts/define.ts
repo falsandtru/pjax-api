@@ -332,7 +332,7 @@ module MODULE.MODEL {
     // server
     getServerBuffers(): ServerStoreSchema[]
     loadServer(): void
-    saveServer(host: string, performance: number, state?: number, unsafe_url?: string, expires?: number): void
+    saveServer(host: string, score: number, state?: number, unsafe_url?: string, expires?: number): void
   }
   export interface CookieOptionInterface {
     age: number
@@ -356,7 +356,7 @@ module MODULE.MODEL {
   export interface ServerStoreSchema {
     host: string
     state: number // 0:正常, !0:異常発生時刻(ミリ秒)
-    performance: number
+    score: number
     date: number
   }
 }

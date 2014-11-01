@@ -457,11 +457,11 @@ module MODULE.MODEL.APP {
 
       var jqXHR = this.record_.data.jqXHR();
       var host = (jqXHR.getResponseHeader(setting.balance.server.header) || ''),
-          performance = Math.ceil(this.app_.loadtime / (jqXHR.responseText.length || 1) * 1e5);
+          score = Math.ceil(this.app_.loadtime / (jqXHR.responseText.length || 1) * 1e5);
 
       if (this.util_.fire(callbacks_update.balance.before, setting, [event, setting]) === false) { return; }
 
-      this.app_.data.saveServer(host, performance);
+      this.app_.data.saveServer(host, score);
       this.app_.balance.chooseServer(setting);
 
       if (this.util_.fire(callbacks_update.balance.after, setting, [event, setting]) === false) { return; }
