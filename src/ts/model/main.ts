@@ -27,8 +27,6 @@ module MODULE.MODEL {
       return this.app_.balance.changeServer(host.split('//').pop(), null);
     }
 
-    private queue_: number[] = []
-
     isDeferrable: boolean = !!jQuery.when && '1.006' <= jQuery().jquery.match(/\d[\d.]+\d/).pop().replace(/\.(\d+)/g, '.00$1').replace(/0*(\d{3})/g, '$1')
 
     location: HTMLAnchorElement = document.createElement('a')
@@ -192,11 +190,9 @@ module MODULE.MODEL {
       // pjax処理されないURL変更によるページ更新
       this.fallback(event);
     }
-
+    
+    private queue_: number[] = []
     scroll(event: JQueryEventObject, end: boolean): void {
-      var setting: SettingInterface = this.configure(window.location);
-      if (!setting || State.open !== this.state() || event.isDefaultPrevented()) { return; }
-
       var id: number;
       while (id = this.queue_.shift()) { clearTimeout(id); }
       id = setTimeout(() => {
