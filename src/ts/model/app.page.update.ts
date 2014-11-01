@@ -1,4 +1,5 @@
 /// <reference path="../define.ts"/>
+/// <reference path="app.page.utility.ts"/>
 /// <reference path="app.data.ts"/>
 /// <reference path="../library/utility.ts"/>
 
@@ -12,7 +13,6 @@ module MODULE.MODEL.APP {
 
     private model_: ModelInterface,
     private app_: AppLayerInterface,
-    private page_: PageInterface,
     private setting_: SettingInterface,
     private event_: JQueryEventObject,
     private data_: string,
@@ -46,9 +46,9 @@ module MODULE.MODEL.APP {
       speedcheck && speed.name.push('fetch(' + speed.time.slice(-1) + ')');
       
       UPDATE: {
-        ++this.page_.count;
-        this.page_.loadtime = this.page_.loadtime && new Date().getTime() - this.page_.loadtime;
-        this.page_.loadtime = this.page_.loadtime < 100 ? 0 : this.page_.loadtime;
+        ++this.app_.page.count;
+        this.app_.page.loadtime = this.app_.page.loadtime && new Date().getTime() - this.app_.page.loadtime;
+        this.app_.page.loadtime = this.app_.page.loadtime < 100 ? 0 : this.app_.page.loadtime;
         
         if (setting.cache.mix && EVENT.POPSTATE !== event.type.toLowerCase() && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
           return this.model_.fallback(event);
@@ -61,11 +61,11 @@ module MODULE.MODEL.APP {
           if (!~(jqXHR.getResponseHeader('Content-Type') || '').toLowerCase().search(setting.contentType)) { throw new Error("throw: content-type mismatch"); }
           
           /* variable define */
-          this.srcDocument_ = this.page_.parser.parse(jqXHR.responseText, setting.destLocation.href);
+          this.srcDocument_ = this.app_.page.parser.parse(jqXHR.responseText, setting.destLocation.href);
           this.dstDocument_ = document;
             
           // 更新範囲を選出
-          this.area_ = this.page_.chooseArea(setting.area, this.srcDocument_, this.dstDocument_);
+          this.area_ = this.chooseArea(setting.area, this.srcDocument_, this.dstDocument_);
           if (!this.area_) { throw new Error('throw: area notfound'); }
           // 更新範囲をセレクタごとに分割
           this.areas_ = this.area_.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
@@ -75,7 +75,7 @@ module MODULE.MODEL.APP {
           
           this.redirect_();
           
-          this.page_.dispatchEvent(window, DEF.NAME + ':unload', false, true);
+          this.dispatchEvent(window, DEF.NAME + ':unload', false, true);
           
           this.url_();
           
@@ -147,7 +147,7 @@ module MODULE.MODEL.APP {
                 window.history.forward();
                 jQuery[DEF.NAME].enable();
               }
-              setTimeout(() => this.page_.dispatchEvent(window, EVENT.POPSTATE, false, false), 0);
+              setTimeout(() => this.dispatchEvent(window, EVENT.POPSTATE, false, false), 0);
               break;
           }
           throw false;
@@ -182,7 +182,7 @@ module MODULE.MODEL.APP {
       if (this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) {
       } else if (this.retriable_) {
         setting.destLocation.href = this.util_.normalizeUrl(window.location.href);
-        new PageUpdate(this.model_, this.app_, this.page_, setting, event, this.data_, this.textStatus_, this.jqXHR_, this.host_, false);
+        new PageUpdate(this.model_, this.app_, setting, event, this.data_, this.textStatus_, this.jqXHR_, this.host_, false);
         throw false;
       } else {
         throw new Error('throw: location mismatch');
@@ -223,11 +223,11 @@ module MODULE.MODEL.APP {
         e.stopImmediatePropagation();
 
         var onready = (callback?: () => void) => {
-          this.page_.dispatchEvent(document, DEF.NAME + ':ready', false, true);
           if (!this.util_.compareUrl(this.model_.convertUrlToKeyUrl(setting.destLocation.href), this.model_.convertUrlToKeyUrl(window.location.href), true)) {
             return;
           }
 
+          this.dispatchEvent(document, DEF.NAME + ':ready', false, true);
 
           this.util_.fire(setting.callback, setting, [event, setting]);
 
@@ -252,7 +252,7 @@ module MODULE.MODEL.APP {
             }
           }, 100);
 
-          this.page_.dispatchEvent(document, DEF.NAME + ':render', false, true);
+          this.dispatchEvent(document, DEF.NAME + ':render', false, true);
 
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('render(' + speed.time.slice(-1) + ')');
@@ -261,10 +261,11 @@ module MODULE.MODEL.APP {
         };
 
         var onload = () => {
-          this.page_.dispatchEvent(window, DEF.NAME + ':load', false, true);
           if (!this.util_.compareUrl(this.model_.convertUrlToKeyUrl(setting.destLocation.href), this.model_.convertUrlToKeyUrl(window.location.href), true)) {
             return jQuery.when && jQuery.Deferred().reject();
           }
+
+          this.dispatchEvent(window, DEF.NAME + ':load', false, true);
 
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('load(' + speed.time.slice(-1) + ')');
@@ -280,10 +281,10 @@ module MODULE.MODEL.APP {
 
         this.scroll_(false);
 
-        if (100 > this.page_.loadtime && setting.reset.type.match(event.type.toLowerCase()) && !jQuery('form[method][method!="GET"]').length) {
+        if (100 > this.app_.page.loadtime && setting.reset.type.match(event.type.toLowerCase()) && !jQuery('form[method][method!="GET"]').length) {
           switch (false) {
-            case this.page_.count < setting.reset.count || !setting.reset.count:
-            case new Date().getTime() < setting.reset.time + this.page_.time || !setting.reset.time:
+            case this.app_.page.count < setting.reset.count || !setting.reset.count:
+            case new Date().getTime() < setting.reset.time + this.app_.page.time || !setting.reset.time:
               throw new Error('throw: reset');
           }
         }
@@ -309,11 +310,11 @@ module MODULE.MODEL.APP {
           event: JQueryEventObject = this.event_,
           cache: CacheInterface = this.model_.getCache(setting.destLocation.href);
 
-      if (!this.page_.isCacheUsable_(event, setting)) { return; }
+      if (!this.app_.page.isCacheUsable_(event, setting)) { return; }
 
       if (cache && cache.data) {
         var html: string = setting.fix.noscript ? this.restoreNoscript_(cache.data) : cache.data,
-            cacheDocument: Document = this.page_.parser.parse(html, setting.destLocation.href),
+            cacheDocument: Document = this.app_.page.parser.parse(html, setting.destLocation.href),
             srcDocument: Document = this.srcDocument_;
 
         srcDocument.title = cacheDocument.title;
@@ -440,7 +441,7 @@ module MODULE.MODEL.APP {
         $dstAreas.append(checker.clone());
         $dstAreas.find('script').each((i, elem) => this.restoreScript_(<HTMLScriptElement>elem));
       }
-      this.page_.dispatchEvent(document, DEF.NAME + ':DOMContentLoaded', false, true);
+      this.dispatchEvent(document, DEF.NAME + ':DOMContentLoaded', false, true);
 
       if (this.util_.fire(callbacks_update.content.after, setting, [event, setting]) === false) { return; }
     }
@@ -450,17 +451,17 @@ module MODULE.MODEL.APP {
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
-      if (!setting.balance.self || !this.page_.loadtime) { return; }
+      if (!setting.balance.self || !this.app_.page.loadtime) { return; }
       
       var host = (this.jqXHR_.getResponseHeader(setting.balance.server.header) || ''),
-          performance = Math.ceil(this.page_.loadtime / (this.jqXHR_.responseText.length || 1) * 1e5);
+          performance = Math.ceil(this.app_.page.loadtime / (this.jqXHR_.responseText.length || 1) * 1e5);
 
-      if (this.util_.fire(callbacks_update.balance.before, setting, [event, setting, host, this.page_.loadtime, this.jqXHR_]) === false) { return; }
+      if (this.util_.fire(callbacks_update.balance.before, setting, [event, setting, host, this.app_.page.loadtime, this.jqXHR_]) === false) { return; }
 
       this.app_.data.saveServer(host, performance);
       this.app_.balance.chooseServer(setting);
 
-      if (this.util_.fire(callbacks_update.balance.after, setting, [event, setting, host, this.page_.loadtime, this.jqXHR_]) === false) { return; }
+      if (this.util_.fire(callbacks_update.balance.after, setting, [event, setting, host, this.app_.page.loadtime, this.jqXHR_]) === false) { return; }
     }
 
     private css_(selector: string): void {
@@ -575,12 +576,12 @@ module MODULE.MODEL.APP {
           }
             
           try {
-            element.hasAttribute('src') && this.page_.dispatchEvent(element, 'load', false, true);
+            element.hasAttribute('src') && this.dispatchEvent(element, 'load', false, true);
           } catch (e) {
           }
         } catch (err) {
           try {
-            element.hasAttribute('src') && this.page_.dispatchEvent(element, 'error', false, true);
+            element.hasAttribute('src') && this.dispatchEvent(element, 'error', false, true);
           } catch (e) {
           }
 
@@ -620,8 +621,8 @@ module MODULE.MODEL.APP {
                 dataType: 'script',
                 async: true,
                 global: false,
-                success: () => this.page_.dispatchEvent(element, 'load', false, true),
-                error: () => this.page_.dispatchEvent(element, 'error', false, true)
+                success: () => this.dispatchEvent(element, 'load', false, true),
+                error: () => this.dispatchEvent(element, 'error', false, true)
               }));
             } else {
               if (defer) {
@@ -782,6 +783,17 @@ module MODULE.MODEL.APP {
       script.innerHTML = jQuery.data(script, 'code');
       jQuery.removeData(script, 'code');
     }
+
+    // mixin utility
+    chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
+    chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
+    chooseArea(areas: any, srcDocument: Document, dstDocument: Document): string { return }
+    movePageNormally(event: JQueryEventObject): void { }
+    dispatchEvent(target: Window, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
+    dispatchEvent(target: any, eventType: string, bubbling: boolean, cancelable: boolean): void { }
+    wait(ms: number): JQueryDeferred<any> { return }
 
   }
 

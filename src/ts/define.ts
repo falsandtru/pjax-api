@@ -217,21 +217,19 @@ module MODULE.MODEL {
   export declare class PageParserInterface {
     parse(html: string, uri?: string): Document
   }
-  export declare class PageFetchInterface {
+  export declare class PageFetchInterface extends PageUtilityInterface {
     constructor(
       model: ModelInterface,
       app: AppLayerInterface,
-      page: PageInterface,
       setting: SettingInterface,
       event: JQueryEventObject,
       done: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any,
       fail: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any)
   }
-  export declare class PageUpdateInterface {
+  export declare class PageUpdateInterface extends PageUtilityInterface {
     constructor(
       model: ModelInterface,
       app: AppLayerInterface,
-      page_: PageInterface,
       setting: SettingInterface,
       event: JQueryEventObject,
       data: string,

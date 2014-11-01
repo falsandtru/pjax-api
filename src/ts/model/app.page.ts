@@ -9,6 +9,9 @@
 
 module MODULE.MODEL.APP {
 
+  MIXIN(PageFetch, [PageUtility]);
+  MIXIN(PageUpdate, [PageUtility]);
+
   export class Page implements PageInterface {
 
     constructor(private model_: ModelInterface, private app_: AppLayerInterface) {
@@ -79,7 +82,7 @@ module MODULE.MODEL.APP {
                    done: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => void,
                    fail: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => void
                   ): void {
-      new PageFetch(this.model_, this.app_, this, setting, event, done, fail);
+      new PageFetch(this.model_, this.app_, setting, event, done, fail);
     }
 
     private update_(setting: SettingInterface,
@@ -89,7 +92,7 @@ module MODULE.MODEL.APP {
                     jqXHR: JQueryXHR,
                     host: string
                    ): void {
-      new PageUpdate(this.model_, this.app_, this, setting, event, data, textStatus, jqXHR, host, true);
+      new PageUpdate(this.model_, this.app_, setting, event, data, textStatus, jqXHR, host, true);
     }
     
     // mixin utility
