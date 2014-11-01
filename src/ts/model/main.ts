@@ -140,7 +140,7 @@ module MODULE.MODEL {
 
         var cache: CacheInterface;
         if (setting.cache[event.type.toLowerCase()]) { cache = this.getCache(setting.destLocation.href); }
-
+        
         this.app_.page.transfer(setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
         event.preventDefault();
         return;
@@ -197,7 +197,7 @@ module MODULE.MODEL {
 
         var cache: CacheInterface;
         if (setting.cache[event.type.toLowerCase()]) { cache = this.getCache(setting.destLocation.href); }
-
+        
         this.app_.page.transfer(setting, event, false, cache);
         return;
       };
@@ -222,7 +222,7 @@ module MODULE.MODEL {
       var setting: SettingInterface = this.configure(event);
       switch (true) {
         case setting && !setting.fallback:
-        case setting && false === Util.fire(setting.fallback, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]):
+        case setting && false === Util.fire(setting.fallback, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]):
           break;
         default:
           this.app_.page.movePageNormally(event);

@@ -14,6 +14,12 @@ nav: nav
 * `callbacks.ajax.fail`パラメータを`callbacks.ajax.error`パラメータに統合
 * `callbacks.ajax.always`パラメータを`callbacks.ajax.complete`パラメータに統合
 * `callbacks.update.cache`系パラメータを復活
+* `callbacks.update.ajax`系を除くすべてのコールバックのコンテキストにpjax設定を設定するよう変更
+* コールバックの第二引数を`param`からpjax設定に変更
+* `param`パラメータを削除
+* `data`パラメータを追加
+* `callbacks.update`系コールバックの第三引数以降を削除
+* コールバックに渡されるURLを文字列からオブジェクトに変更
 * キャッシュの有効期限のバグを修正
 
 ## 2.26.0

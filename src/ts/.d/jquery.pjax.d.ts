@@ -26,9 +26,9 @@ interface PjaxSetting {
         rewrite?(url: string): string
     }
     rewrite?: (document: Document, area: string, host: string) => void
-    state?: any      // any, function(event, param, origUrl, destUrl )
-    scrollTop?: any  // number, function( event, param, origUrl, destUrl ), null, false
-    scrollLeft?: any // number, function( event, param, origUrl, destUrl ), null, false
+    state?: any      // any, function(event, setting, origLocation, destLocation )
+    scrollTop?: any  // number, function( event, setting, origLocation, destLocation ), null, false
+    scrollLeft?: any // number, function( event, setting, origLocation, destLocation ), null, false
     ajax?: JQueryAjaxSettings
     contentType?: string
     redirect?: boolean
@@ -87,8 +87,8 @@ interface PjaxSetting {
             limit?: number
         }
     }
-    wait?: any     // number, function( event, param, origUrl, destUrl ): number
-    fallback?: any // boolean, function( event, param, origUrl, destUrl ): boolean
+    wait?: any     // number, function( event, setting, origLocation, destLocation ): number
+    fallback?: any // boolean, function( event, setting, origLocation, destLocation ): boolean
     reset?: {
         type?: string
         count?: number
@@ -111,64 +111,61 @@ interface PjaxSetting {
             script?: boolean
         }
     }
-    callback?: (event?: JQueryEventObject, param?: any) => any
-    param?: any
+    data?: any
+    callback?: (event?: JQueryEventObject, setting?: PjaxSetting) => any
     callbacks?: {
         ajax?: {
-            xhr?: (event?: JQueryEventObject, param?: any) => any
-            beforeSend?: (event?: JQueryEventObject, param?: any, data?: string, ajaxSettings?: any) => any
-            dataFilter?: (event?: JQueryEventObject, param?: any, data?: string, dataType?: any) => any
-            success?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
-            error?: (event?: JQueryEventObject, param?: any, jqXHR?: JQueryXHR, textStatus?: string, errorThrown?: any) => any
-            complete?: (event?: JQueryEventObject, param?: any, jqXHR?: JQueryXHR, textStatus?: string) => any
-            done?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
-            fail?: (event?: JQueryEventObject, param?: any, jqXHR?: JQueryXHR, textStatus?: string, errorThrown?: any) => any
-            always?: (event?: JQueryEventObject, param?: any, jqXHR?: JQueryXHR, textStatus?: string) => any
+            xhr?: (event?: JQueryEventObject, setting?: PjaxSetting) => JQueryXHR
+            beforeSend?: (event?: JQueryEventObject, setting?: PjaxSetting, data?: string, ajaxSettings?: any) => any
+            dataFilter?: (event?: JQueryEventObject, setting?: PjaxSetting, data?: string, dataType?: any) => string
+            success?: (event?: JQueryEventObject, setting?: PjaxSetting, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+            error?: (event?: JQueryEventObject, setting?: PjaxSetting, jqXHR?: JQueryXHR, textStatus?: string, errorThrown?: any) => any
+            complete?: (event?: JQueryEventObject, setting?: PjaxSetting, jqXHR?: JQueryXHR, textStatus?: string) => any
         }
         update?: {
             cache?: {
-                before?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
-                after?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
             }
             redirect?: {
-                before?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
-                after?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
             }
             url?: {
-                before?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
-                after?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
             }
             rewrite?: {
-                before?: (event: JQueryEventObject, param: any, cache: any) => any
-                after?: (event: JQueryEventObject, param: any, cache: any) => any
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
             }
             title?: {
-                before?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
-                after?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
             }
             head?: {
-                before?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
-                after?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
             }
             content?: {
-                before?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
-                after?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
             }
             css?: {
-                before?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
-                after?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
             }
             script?: {
-                before?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
-                after?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
             }
             scroll?: {
-                before?: (event?: JQueryEventObject, param?: any) => any
-                after?: (event?: JQueryEventObject, param?: any) => any
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
             }
             balance?: {
-              before?: (event?: JQueryEventObject, param?: any) => any
-              after?: (event?: JQueryEventObject, param?: any) => any
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
             }
         }
     }

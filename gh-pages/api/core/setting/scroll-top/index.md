@@ -18,7 +18,7 @@ $.pjax({
 });
 </pre>
 
-## scrollTop: function( event, param, origUrl, destUrl )
+## scrollTop: function( event, setting, origLocation, destLocation )
 スクロール位置を関数の戻り値で設定します。
 
 <pre class="sh brush: js;">

@@ -19,14 +19,15 @@ module MODULE.MODEL.APP {
       setTimeout(() => this.createHTMLDocument('', '') || this.model_.disable(), 50);
     }
     
-    private count_: number = 0
-    private time_: number = new Date().getTime()
-
     landing: string = Util.normalizeUrl(window.location.href)
     recent: RecentInterface = { order: [], data: {}, size: 0 }
     loadedScripts: { [index: string]: boolean } = {}
     isScrollPosSavable: boolean = true
     globalXHR: JQueryXHR
+
+    count: number = 0
+    time: number = new Date().getTime()
+    loadtime: number = 0
 
     transfer(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface): void {
       var done = (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => {
@@ -53,7 +54,7 @@ module MODULE.MODEL.APP {
                    done: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void,
                    fail: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void
                   ): void {
-      new PageFetch(this.model_, this.app_, setting, event, register, cache, done, fail);
+      new PageFetch(this.model_, this.app_, this, setting, event, register, cache, done, fail);
     }
 
     private update_(setting: SettingInterface,
@@ -66,7 +67,7 @@ module MODULE.MODEL.APP {
                     errorThrown: string,
                     host: string
                    ): void {
-      new PageUpdate(this.model_, this.app_, setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host, ++this.count_, this.time_, true);
+      new PageUpdate(this.model_, this.app_, this, setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host, true);
     }
 
     // mixin utility

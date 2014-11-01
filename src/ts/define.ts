@@ -140,8 +140,6 @@ module MODULE {
     }
     origLocation: HTMLAnchorElement
     destLocation: HTMLAnchorElement
-    areas: string[]
-    loadtime: number
     option: PjaxSetting
     speedcheck: boolean
   }
@@ -199,12 +197,17 @@ module MODULE.MODEL {
     loadedScripts: { [url: string]: boolean }
     isScrollPosSavable: boolean
     globalXHR: JQueryXHR
+    count: number
+    time: number
+    loadtime: number
     
     transfer(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface): void
   }
   export declare class PageFetchInterface extends PageUtilityInterface {
-    constructor(model: ModelInterface,
+    constructor(
+      model: ModelInterface,
       app: AppLayerInterface,
+      page: PageInterface,
       setting: SettingInterface,
       event: JQueryEventObject,
       register: boolean,
@@ -213,8 +216,10 @@ module MODULE.MODEL {
       fail: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any)
   }
   export declare class PageUpdateInterface extends PageUtilityInterface {
-    constructor(model: ModelInterface,
+    constructor(
+      model: ModelInterface,
       app: AppLayerInterface,
+      page_: PageInterface,
       setting: SettingInterface,
       event: JQueryEventObject,
       register: boolean,
@@ -223,9 +228,7 @@ module MODULE.MODEL {
       textStatus: string,
       jqXHR: JQueryXHR,
       errorThrown: string,
-      host: string,
-      count: number,
-      time: number)
+      host: string)
   }
   export declare class PageUtilityInterface {
     createHTMLDocument(html: string, uri: string): Document

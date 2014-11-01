@@ -191,7 +191,7 @@ module MODULE.MODEL.APP {
               ajax: {},
               update: { cache: {}, redirect: {}, rewrite: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, balance: {} }
             },
-            param: undefined
+            data: undefined
           },
           force = <SettingInterface>{
             ns: undefined,
@@ -201,9 +201,7 @@ module MODULE.MODEL.APP {
             origLocation: origLocation,
             destLocation: destLocation,
 
-            areas: [],
             scroll: { queue: [] },
-            loadtime: null,
             option: this.option_
           },
           compute = () => {
@@ -223,9 +221,7 @@ module MODULE.MODEL.APP {
               ns: undefined,
               origLocation: undefined,
               destLocation: undefined,
-              areas: undefined,
               scroll: undefined,
-              loadtime: undefined,
               option: undefined,
               speedcheck: undefined,
 
@@ -259,7 +255,7 @@ module MODULE.MODEL.APP {
       setting = jQuery.extend(true, setting, compute());
 
       if (scope) {
-        SEAL(setting, true);
+        FREEZE(setting, true);
         this.settings_[index] = setting;
         return setting;
       } else {

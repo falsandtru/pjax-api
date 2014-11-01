@@ -134,15 +134,43 @@ module MODULE.MODEL.APP {
           var that = this;
           jQuery.ajax(jQuery.extend({}, option, <JQueryAjaxSettings>{
             url: Util.normalizeUrl(server + window.location.pathname.replace(/^\/?/, '/') + window.location.search),
+            xhr: !setting.balance.option.callbacks.ajax.xhr ? undefined : function () {
+              var jqXHR: JQueryXHR;
+              jqXHR = Util.fire(setting.balance.option.callbacks.ajax.xhr, this, [event, setting]);
+              jqXHR = 'object' === typeof jqXHR ? jqXHR : jQuery.ajaxSettings.xhr();
+              return jqXHR;
+            },
+            beforeSend: !setting.balance.option.callbacks.ajax.beforeSend && !setting.server.header ? undefined : function (jqXHR: JQueryXHR, ajaxSetting: JQueryAjaxSettings) {
+              if (setting.server.header) {
+                jqXHR.setRequestHeader(setting.nss.requestHeader, 'true');
+              }
+              if ('object' === typeof setting.server.header) {
+                jqXHR.setRequestHeader(setting.nss.requestHeader, 'true');
+                setting.server.header.area && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Area', this.app_.chooseArea(setting.area, document, document));
+                setting.server.header.head && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Head', setting.load.head);
+                setting.server.header.css && jqXHR.setRequestHeader(setting.nss.requestHeader + '-CSS', setting.load.css.toString());
+                setting.server.header.script && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Script', setting.load.script.toString());
+              }
+
+              Util.fire(setting.balance.option.callbacks.ajax.beforeSend, this, [event, setting, jqXHR, ajaxSetting]);
+            },
+            dataFilter: !setting.balance.option.callbacks.ajax.dataFilter ? undefined : function (data: string, type: Object) {
+              return Util.fire(setting.balance.option.callbacks.ajax.dataFilter, this, [event, setting, data, type]) || data;
+            },
             success: function () {
               that.host_ = server;
               that.queue_ = [];
-              Util.fire(setting.balance.option.callbacks.ajax.success, this, arguments);
+
+              Util.fire(setting.balance.option.ajax.success, this, arguments);
+            },
+            error: function () {
+              Util.fire(setting.balance.option.ajax.error, this, arguments);
             },
             complete: function () {
               ++that.parallel_;
               servers.length && that.bypass(setting, servers.length - 1);
-              Util.fire(setting.balance.option.callbacks.ajax.complete, this, arguments);
+
+              Util.fire(setting.balance.option.ajax.complete, this, arguments);
             }
           }));
         })(servers.shift());
