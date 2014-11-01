@@ -234,10 +234,14 @@ module MODULE.MODEL.APP {
         var onrender = (callback?: () => void) => {
           setTimeout(() => {
             this.app_.page.isScrollPosSavable = true;
-            if ('popstate' !== event.type.toLowerCase()) {
-              this.scrollByHash_(setting.destLocation.hash) || this.scroll_(true);
-            } else {
-              this.scroll_(true);
+            switch (event.type.toLowerCase()) {
+              case 'click':
+              case 'submit':
+                this.scrollByHash_(setting.destLocation.hash) || this.scroll_(true);
+                break;
+              case 'popstate':
+                this.scroll_(true);
+                break;
             }
           }, 100);
 
