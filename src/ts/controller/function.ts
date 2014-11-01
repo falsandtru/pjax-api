@@ -32,8 +32,7 @@ module MODULE.CONTROLLER {
     click(url: HTMLAnchorElement): JQueryPjaxStatic
     click(url: JQuery): JQueryPjaxStatic
     click(url?: any, attrs?: { [index: string]: any; }): JQueryPjaxStatic {
-      var setting: SettingInterface = M.getGlobalSetting(),
-          $anchor: JQuery;
+      var $anchor: JQuery;
 
       switch (typeof url) {
         case 'undefined':
@@ -52,7 +51,8 @@ module MODULE.CONTROLLER {
         default:
           return <any>this;
       }
-      $anchor.first().one(setting.nss.click, () => C.click.apply(C, arguments)).click();
+      var setting: SettingInterface = M.configure(<HTMLAnchorElement>$anchor[0]);
+      setting && $anchor.first().one(setting.nss.click, () => C.click.apply(C, arguments)).click();
       return <any>this;
     }
     
@@ -61,8 +61,7 @@ module MODULE.CONTROLLER {
     submit(url: HTMLFormElement): JQueryPjaxStatic
     submit(url: JQuery): JQueryPjaxStatic
     submit(url?: any, attrs?: { [index: string]: any; }, data?: any): JQueryPjaxStatic {
-      var setting: SettingInterface = M.getGlobalSetting(),
-          $form: JQuery,
+      var $form: JQuery,
           df: DocumentFragment = document.createDocumentFragment(),
           type: any,
           $element: JQuery;
@@ -102,7 +101,8 @@ module MODULE.CONTROLLER {
         default:
           return <any>this;
       }
-      $form.first().one(setting.nss.submit, () => C.submit.apply(C, arguments)).submit();
+      var setting: SettingInterface = M.configure(<HTMLFormElement>$form[0]);
+      setting && $form.first().one(setting.nss.submit, () => C.submit.apply(C, arguments)).submit();
       return <any>this;
     }
     
@@ -158,10 +158,10 @@ module MODULE.CONTROLLER {
       $XHR.follow = true;
       $XHR.host = host || '';
       if (isFinite(event.timeStamp)) { $XHR.timeStamp = timeStamp || event.timeStamp; }
-      M.setGlobalXHR($XHR);
+      M.setXHR($XHR);
       jQuery.when($XHR)
       .done(function () {
-        !M.getCache(anchor.href) && M.isImmediateLoadable(event) && M.setCache(anchor.href, undefined, undefined, $XHR);
+        !M.getCache(anchor.href) && M.isAvailable(event) && M.setCache(anchor.href, undefined, undefined, $XHR);
       });
       jQuery[DEF.NAME].click(anchor.href);
       return true;

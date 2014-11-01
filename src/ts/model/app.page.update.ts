@@ -59,7 +59,7 @@ module MODULE.MODEL.APP {
         setting.loadtime = setting.loadtime < 100 ? 0 : setting.loadtime;
         
         if (setting.cache.mix && 'popstate' !== event.type.toLowerCase() && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
-          return this.model_.fallback(event, setting);
+          return this.model_.fallback(event);
         }
         
         /* variable initialization */
@@ -93,8 +93,6 @@ module MODULE.MODEL.APP {
           
           this.updateUrl_();
           
-          this.model_.setGlobalSetting(jQuery.extend(true, {}, setting, { origLocation: setting.destLocation.cloneNode() }));
-          
           this.updateDocument_();
           
         } catch (err) {
@@ -103,7 +101,7 @@ module MODULE.MODEL.APP {
           this.cache_ &&
           this.model_.removeCache(setting.destLocation.href);
 
-          this.model_.fallback(event, setting);
+          this.model_.fallback(event);
         };
       }; // label: UPDATE
     }
@@ -175,6 +173,8 @@ module MODULE.MODEL.APP {
           event: JQueryEventObject = this.event_,
           register: boolean = this.register_;
       var callbacks_update = setting.callbacks.update;
+
+      this.model_.location.href = setting.destLocation.href;
 
       if (Util.fire(callbacks_update.url.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; };
 
@@ -459,8 +459,6 @@ module MODULE.MODEL.APP {
       this.app_.data.saveExpires(setting.destLocation.href, host, this.calExpires(this.jqXHR_));
       this.app_.balance.chooseServer(setting);
 
-      this.app_.data.loadBuffers(setting.buffer.limit);
-
       if (Util.fire(callbacks_update.balance.after, null, [event, setting.param]) === false) { return; }
     }
 
@@ -495,7 +493,7 @@ module MODULE.MODEL.APP {
               isSameElement = (<HTMLLinkElement>element).href === (<HTMLLinkElement>$delElements[j]).href;
               break;
             case 'style':
-              isSameElement = (<HTMLStyleElement>element).innerHTML.trim() === (<HTMLStyleElement>$delElements[j]).innerHTML.trim();
+              isSameElement = Util.trim((<HTMLStyleElement>element).innerHTML) === Util.trim((<HTMLStyleElement>$delElements[j]).innerHTML);
               break;
           }
           if (isSameElement) {
@@ -550,7 +548,7 @@ module MODULE.MODEL.APP {
 
       for (var i = 0, element: HTMLScriptElement; element = <HTMLScriptElement>$scriptElements[i]; i++) {
         if (!regType.test(element.type || '')) { continue; }
-        if (element.hasAttribute('src') ? loadedScripts[element.src] : !element.innerHTML.trim()) { continue; }
+        if (element.hasAttribute('src') ? loadedScripts[element.src] : !Util.trim(element.innerHTML)) { continue; }
 
         LOG: {
           var srcLogParent = jQuery(element).parent(setting.load.log)[0];
@@ -626,7 +624,7 @@ module MODULE.MODEL.APP {
           }
         }
       } catch (err) {
-        setTimeout(() => this.model_.fallback(event, setting), 50);
+        setTimeout(() => this.model_.fallback(event), 1);
         throw err;
         return;
       }

@@ -71,20 +71,20 @@ module MODULE {
   export declare class ModelInterface {
     constructor()
 
-    // Property
-    isDeferrable: boolean
-    
     // Model
+    isDeferrable: boolean
+    location: HTMLAnchorElement
     state(): State
     host(): string
     convertUrlToKeyUrl(unsafe_url: string): string
-    isImmediateLoadable(unsafe_url: string, setting?: SettingInterface): boolean
-    isImmediateLoadable(event: JQueryEventObject, setting?: SettingInterface): boolean
-    getGlobalSetting(): SettingInterface
-    setGlobalSetting(setting: SettingInterface): SettingInterface
-    getGlobalXHR(): JQueryXHR
-    setGlobalXHR(xhr: JQueryXHR): JQueryXHR
-    fallback(event: JQueryEventObject, setting: SettingInterface): void
+    configure(event: Event): SettingInterface
+    configure(destination: HTMLAnchorElement): SettingInterface
+    configure(destination: HTMLFormElement): SettingInterface
+    configure(destination: Location): SettingInterface
+    getXHR(): JQueryXHR
+    setXHR(xhr: JQueryXHR): JQueryXHR
+    isAvailable(event: JQueryEventObject): boolean
+    fallback(event: JQueryEventObject): void
     speed: any
     
     // View
@@ -144,7 +144,6 @@ module MODULE {
     areas: string[]
     loadtime: number
     retriable: boolean
-    cancel: boolean
     option: PjaxSetting
     speedcheck: boolean
   }
@@ -178,7 +177,11 @@ module MODULE.MODEL {
     data: DataInterface
 
     initialize($context: JQuery, setting: SettingInterface): void
-    configure(option: PjaxSetting, origURL: string, destURL: string): SettingInterface
+    configure(option: PjaxSetting): SettingInterface
+    configure(event: Event): SettingInterface
+    configure(destination: HTMLAnchorElement): SettingInterface
+    configure(destination: HTMLFormElement): SettingInterface
+    configure(destination: Location): SettingInterface
   }
   export declare class BalanceInterface {
     constructor(model: ModelInterface, app: AppLayerInterface)
@@ -198,7 +201,6 @@ module MODULE.MODEL {
     loadedScripts: { [url: string]: boolean }
     isScrollPosSavable: boolean
     globalXHR: JQueryXHR
-    globalSetting: SettingInterface
     
     transfer(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface): void
   }
@@ -245,7 +247,7 @@ module MODULE.MODEL {
     setCookie(key: string, value: string, option?: Object): string
 
     // db
-    opendb(setting: SettingInterface): void
+    connect(setting: SettingInterface): void
     
     // common
     loadBuffers(limit?: number): void

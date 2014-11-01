@@ -36,7 +36,6 @@ module MODULE.MODEL.APP {
           event = this.event_ = jQuery.extend(true, {}, this.event_),
           register = this.register_,
           cache = this.cache_,
-          globalXHR = this.model_.getGlobalXHR(),
           wait: number = Util.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
 
       var speedcheck = setting.speedcheck, speed = this.model_.speed;
@@ -61,7 +60,7 @@ module MODULE.MODEL.APP {
       }
       function always() {
         Util.fire(setting.callbacks.ajax.always, this, [event, setting.param].concat(arguments));
-        that.model_.setGlobalXHR(null);
+        that.model_.setXHR(null);
 
         if (that.model_.isDeferrable) {
           if (that.data_) {
@@ -85,7 +84,7 @@ module MODULE.MODEL.APP {
       }
       function complete(jqXHR: JQueryXHR, textStatus: string) {
         Util.fire(setting.callbacks.ajax.complete, this, [event, setting.param, jqXHR, textStatus]);
-        that.model_.setGlobalXHR(null);
+        that.model_.setXHR(null);
 
         if (!that.model_.isDeferrable) {
           if (that.data_) {
@@ -98,11 +97,13 @@ module MODULE.MODEL.APP {
 
       this.dispatchEvent(document, setting.gns + ':fetch', false, true);
 
+      var xhr = this.model_.getXHR();
       if (cache && cache.jqXHR) {
         // cache
         speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
         setting.loadtime = 0;
-        this.model_.setGlobalXHR(null);
+        xhr && xhr.abort();
+        this.model_.setXHR(null);
         this.host_ = cache.host || '';
         this.data_ = cache.jqXHR.responseText;
         this.textStatus_ = cache.textStatus;
@@ -116,21 +117,22 @@ module MODULE.MODEL.APP {
           success.call(context, that.data_, that.textStatus_, that.jqXHR_);
           complete.call(context, that.jqXHR_, that.textStatus_);
         }
-      } else if (globalXHR && globalXHR.follow && 'abort' !== globalXHR.statusText && 'error' !== globalXHR.statusText) {
+      } else if (xhr && xhr.follow && 'abort' !== xhr.statusText && 'error' !== xhr.statusText) {
         // preload
-        speedcheck && speed.time.splice(0, 1, globalXHR.timeStamp - speed.fire);
+        speedcheck && speed.time.splice(0, 1, xhr.timeStamp - speed.fire);
         speedcheck && speed.name.splice(0, 1, 'preload(' + speed.time.slice(-1) + ')');
         speedcheck && speed.time.push(speed.now() - speed.fire);
         speedcheck && speed.name.push('continue(' + speed.time.slice(-1) + ')');
-        this.host_ = globalXHR.host || '';
-        setting.loadtime = globalXHR.timeStamp;
-        var wait = setting.wait && isFinite(globalXHR.timeStamp) ? Math.max(wait - new Date().getTime() + globalXHR.timeStamp, 0) : 0;
-        jQuery.when(globalXHR, that.wait(wait))
+        this.host_ = xhr.host || '';
+        setting.loadtime = xhr.timeStamp;
+        var wait = setting.wait && isFinite(xhr.timeStamp) ? Math.max(wait - new Date().getTime() + xhr.timeStamp, 0) : 0;
+        jQuery.when(xhr, that.wait(wait))
         .done(done).fail(fail).always(always);
 
       } else {
         // default
         setting.loadtime = event.timeStamp;
+        xhr && xhr.abort();
         var requestLocation = <HTMLAnchorElement>setting.destLocation.cloneNode(),
             ajax: JQueryAjaxSettings = {},
             callbacks = {};
@@ -178,7 +180,7 @@ module MODULE.MODEL.APP {
           xhr: !setting.callbacks.ajax.xhr ? undefined : function () {
             var jqXHR: JQueryXHR;
             jqXHR = Util.fire(setting.callbacks.ajax.xhr, this, [event, setting.param]);
-            jqXHR = 'object' === typeof jqXHR && jqXHR || jQuery.ajaxSettings.xhr();
+            jqXHR = 'object' === typeof jqXHR ? jqXHR : jQuery.ajaxSettings.xhr();
 
             //if (jqXHR instanceof Object && jqXHR instanceof window.XMLHttpRequest && 'onprogress' in jqXHR) {
             //  jqXHR.addEventListener('progress', function(event) {dataSize = event.loaded;}, false);
@@ -209,10 +211,10 @@ module MODULE.MODEL.APP {
 
         ajax = jQuery.extend(true, {}, setting.ajax, callbacks, ajax);
 
-        globalXHR = this.model_.setGlobalXHR(jQuery.ajax(ajax));
+        this.jqXHR_ = this.model_.setXHR(jQuery.ajax(ajax));
 
         if (this.model_.isDeferrable) {
-          jQuery.when(globalXHR, that.wait(wait))
+          jQuery.when(this.jqXHR_, that.wait(wait))
           .done(done).fail(fail).always(always);
         }
       }

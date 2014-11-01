@@ -1,5 +1,6 @@
 /// <reference path="../define.ts"/>
 /// <reference path="app.data.ts"/>
+/// <reference path="../library/utility.ts"/>
 
 /* MODEL */
 
@@ -42,8 +43,8 @@ module MODULE.MODEL.APP {
       this.changeServer(null, setting);
     }
 
-    changeServer(host: string, setting: SettingInterface = this.model_.getGlobalSetting()): void {
-      if (!this.isBalanceable_(setting)) { return; }
+    changeServer(host: string, setting: SettingInterface = this.model_.configure(window.location)): void {
+      if (!setting || !this.isBalanceable_(setting)) { return; }
 
       host = host || '';
 
@@ -130,25 +131,20 @@ module MODULE.MODEL.APP {
 
         ((server: string) => {
           --this.parallel_;
-          option.url = Util.normalizeUrl(server + window.location.pathname.replace(/^\/?/, '/') + window.location.search);
-          var done = (data: string, textStatus: string, jqXHR: JQueryXHR) => {
-            this.host_ = server;
-            this.queue_ = [];
-          };
-          var always = () => {
-            ++this.parallel_;
-            servers.length && this.bypass(setting, servers.length - 1);
-          };
-
-          if (this.model_.isDeferrable) {
-            jQuery.ajax(option)
-            .done(done)
-            .always(always);
-          } else {
-            option.success = done;
-            option.complete = always;
-            jQuery.ajax(option);
-          }
+          var that = this;
+          jQuery.ajax(jQuery.extend({}, option, <JQueryAjaxSettings>{
+            url: Util.normalizeUrl(server + window.location.pathname.replace(/^\/?/, '/') + window.location.search),
+            success: function () {
+              that.host_ = server;
+              that.queue_ = [];
+              Util.fire(setting.balance.option.callbacks.ajax.success, this, arguments);
+            },
+            complete: function () {
+              ++that.parallel_;
+              servers.length && that.bypass(setting, servers.length - 1);
+              Util.fire(setting.balance.option.callbacks.ajax.complete, this, arguments);
+            }
+          }));
         })(servers.shift());
       }
     }

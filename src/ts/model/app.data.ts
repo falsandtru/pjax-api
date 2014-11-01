@@ -28,10 +28,11 @@ module MODULE.MODEL.APP {
 
     // db
 
-    opendb(setting: SettingInterface): void {
+    connect(setting: SettingInterface): void {
       if (!setting.database) { return; }
 
       this.data_.DB.up();
+
       this.saveTitle();
       this.saveScrollPosition();
     }

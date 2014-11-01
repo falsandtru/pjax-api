@@ -3,6 +3,6 @@ $.pjax({
   scope: {
     '/': ['/'],
     '/base/': ['!' + path + 'bar/', 'inherit'],
-    '/jquery.pjax.js/': ['!' + path + 'bar/', 'inherit']
+    '/jquery-pjax/': ['!' + path + 'bar/', 'inherit']
   }
 });

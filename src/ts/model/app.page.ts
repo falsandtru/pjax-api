@@ -27,7 +27,6 @@ module MODULE.MODEL.APP {
     loadedScripts: { [index: string]: boolean } = {}
     isScrollPosSavable: boolean = true
     globalXHR: JQueryXHR
-    globalSetting: SettingInterface
 
     transfer(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface): void {
       var done = (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => {
@@ -41,7 +40,7 @@ module MODULE.MODEL.APP {
           this.app_.balance.chooseServer(setting);
         }
 
-        this.model_.fallback(event, setting);
+        this.model_.fallback(event);
       };
 
       this.fetch_(setting, event, register, cache, done, fail);
