@@ -1,4 +1,5 @@
 /// <reference path="../define.ts"/>
+/// <reference path="app.page.parser.ts"/>
 /// <reference path="app.page.fetch.ts"/>
 /// <reference path="app.page.update.ts"/>
 /// <reference path="app.page.utility.ts"/>
@@ -16,8 +17,10 @@ module MODULE.MODEL.APP {
   export class Page implements PageInterface {
 
     constructor(private model_: ModelInterface, private app_: AppLayerInterface) {
-      setTimeout(() => this.createHTMLDocument('', '') || this.model_.disable(), 50);
+      setTimeout(() => this.parser.parse('') || this.model_.disable(), 300);
     }
+
+    parser: PageParserInterface = new PageParserSingleton()
     
     landing: string = Util.normalizeUrl(window.location.href)
     recent: RecentInterface = { order: [], data: {}, size: 0 }
@@ -71,7 +74,6 @@ module MODULE.MODEL.APP {
     }
 
     // mixin utility
-    createHTMLDocument(html: string, uri: string): Document { return }
     chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: any, srcDocument: Document, dstDocument: Document): string { return }

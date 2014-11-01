@@ -66,7 +66,7 @@ module MODULE.MODEL.APP {
           if (!~(jqXHR.getResponseHeader('Content-Type') || '').toLowerCase().search(setting.contentType)) { throw new Error("throw: content-type mismatch"); }
           
           /* variable define */
-          this.srcDocument_ = this.createHTMLDocument(jqXHR.responseText, setting.destLocation.href);
+          this.srcDocument_ = this.page_.parser.parse(jqXHR.responseText, setting.destLocation.href);
           this.dstDocument_ = document;
             
           // 更新範囲を選出
@@ -323,7 +323,7 @@ module MODULE.MODEL.APP {
 
       if (cache && cache.data) {
         var html: string = setting.fix.noscript ? this.restoreNoscript_(cache.data) : cache.data,
-            cacheDocument: Document = this.createHTMLDocument(html, setting.destLocation.href),
+            cacheDocument: Document = this.page_.parser.parse(html, setting.destLocation.href),
             srcDocument: Document = this.srcDocument_;
 
         srcDocument.title = cacheDocument.title;
@@ -794,7 +794,6 @@ module MODULE.MODEL.APP {
     }
 
     // mixin utility
-    createHTMLDocument(html: string, uri: string): Document { return }
     chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: any, srcDocument: Document, dstDocument: Document): string { return }

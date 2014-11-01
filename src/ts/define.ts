@@ -192,6 +192,8 @@ module MODULE.MODEL {
   export declare class PageInterface extends PageUtilityInterface {
     constructor(model: ModelInterface, app: AppLayerInterface)
 
+    parser: PageParserInterface
+
     landing: string
     recent: RecentInterface
     loadedScripts: { [url: string]: boolean }
@@ -202,6 +204,9 @@ module MODULE.MODEL {
     loadtime: number
     
     transfer(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface): void
+  }
+  export declare class PageParserInterface {
+    parse(html: string, uri?: string): Document
   }
   export declare class PageFetchInterface extends PageUtilityInterface {
     constructor(
@@ -231,7 +236,6 @@ module MODULE.MODEL {
       host: string)
   }
   export declare class PageUtilityInterface {
-    createHTMLDocument(html: string, uri: string): Document
     chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
     movePageNormally(event: JQueryEventObject): void

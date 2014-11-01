@@ -209,7 +209,6 @@ module MODULE.MODEL.APP {
     }
 
     // mixin utility
-    createHTMLDocument(html: string, uri: string): Document { return }
     chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: any, srcDocument: Document, dstDocument: Document): string { return }
