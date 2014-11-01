@@ -128,8 +128,14 @@ module MODULE.MODEL {
         var context = <HTMLAnchorElement>event.currentTarget,
             $context: JQuery = jQuery(context);
         var setting: SettingInterface = this.app_.configure(context);
-
-        if (!setting || State.open !== this.state() || event.isDefaultPrevented() || !this.isAvailable(event)) { break PROCESS; }
+        
+        switch (false) {
+          case !event.isDefaultPrevented():
+          case !!setting:
+          case this.state() === State.open:
+          case this.isAvailable(event):
+            break PROCESS;
+        }
         
         this.app_.page.transfer(setting, event, setting.destLocation.href !== setting.origLocation.href);
         event.preventDefault();
@@ -145,8 +151,14 @@ module MODULE.MODEL {
         var context = <HTMLFormElement>event.currentTarget,
             $context: JQuery = jQuery(context);
         var setting: SettingInterface = this.app_.configure(context);
-
-        if (!setting || State.open !== this.state() || event.isDefaultPrevented() || !this.isAvailable(event)) { break PROCESS; }
+        
+        switch (false) {
+          case !event.isDefaultPrevented():
+          case !!setting:
+          case this.state() === State.open:
+          case this.isAvailable(event):
+            break PROCESS;
+        }
         
         this.app_.page.transfer(setting, event, setting.destLocation.href !== setting.origLocation.href);
         event.preventDefault();
@@ -164,17 +176,20 @@ module MODULE.MODEL {
         event.timeStamp = new Date().getTime();
         var setting: SettingInterface = this.app_.configure(window.location);
         
-        if (!setting || State.open !== this.state() || !this.isAvailable(event)) { break PROCESS; }
-
-        if (setting.origLocation.hash !== setting.destLocation.hash &&
-            setting.origLocation.pathname + setting.origLocation.search === setting.destLocation.pathname + setting.destLocation.search) {
-          break PROCESS;
+        if (setting.origLocation.pathname + setting.origLocation.search === setting.destLocation.pathname + setting.destLocation.search) { return; }
+        
+        switch (false) {
+          //case !event.isDefaultPrevented():
+          case !!setting:
+          case this.state() === State.open:
+          case this.isAvailable(event):
+            break PROCESS;
         }
         
         this.app_.page.transfer(setting, event, false);
         return;
       };
-      // pjax処理されないURLの変更
+      // pjax処理されないURL変更によるページ更新
       this.fallback(event);
     }
 
