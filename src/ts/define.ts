@@ -223,8 +223,8 @@ module MODULE.MODEL {
       app: AppLayerInterface,
       setting: SettingInterface,
       event: JQueryEventObject,
-      done: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any,
-      fail: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any)
+      success: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any,
+      failure: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any)
   }
   export declare class PageUpdateInterface extends PageUtilityInterface {
     constructor(

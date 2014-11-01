@@ -43,10 +43,10 @@ module MODULE.MODEL.APP {
     loadtime: number = 0
 
     transfer(setting: SettingInterface, event: JQueryEventObject): void {
-      var done = (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => {
+      var success = (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => {
         this.update_(setting, event, data, textStatus, jqXHR, host);
       };
-      var fail = (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => {
+      var failure = (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => {
         if (!setting.fallback || 'abort' === textStatus) { return; }
 
         if (setting.balance.self) {
@@ -74,7 +74,7 @@ module MODULE.MODEL.APP {
           break;
       }
 
-      this.fetch_(setting, event, done, fail);
+      this.fetch_(setting, event, success, failure);
     }
 
     private fetch_(setting: SettingInterface,
