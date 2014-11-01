@@ -15,7 +15,6 @@ module MODULE.MODEL.APP {
     private page_: PageInterface,
     private setting_: SettingInterface,
     private event_: JQueryEventObject,
-    private cache_: CacheInterface,
     private data_: string,
     private textStatus_: string,
     private jqXHR_: JQueryXHR,
@@ -75,20 +74,18 @@ module MODULE.MODEL.APP {
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
           
-          this.updateCache_();
-          
-          this.checkRedirect_();
+          this.redirect_();
           
           this.page_.dispatchEvent(window, DEF.NAME + ':unload', false, true);
           
-          this.updateUrl_();
+          this.url_();
           
-          this.updateDocument_();
+          this.document_();
           
         } catch (err) {
           if (!err) { return; }
 
-          this.cache_ &&
+          this.model_.getCache(window.location.href) &&
           this.model_.removeCache(setting.destLocation.href);
 
           this.model_.fallback(event);
@@ -109,37 +106,7 @@ module MODULE.MODEL.APP {
       }
     }
     
-    private isCacheUsable_(): boolean {
-      var setting: SettingInterface = this.setting_,
-          event: JQueryEventObject = this.event_;
-      switch (true) {
-        case !setting.cache.click && !setting.cache.submit && !setting.cache.popstate:
-        case 'submit' === event.type.toLowerCase() && !setting.cache[(<HTMLFormElement>event.currentTarget).method.toLowerCase()]:
-          return false;
-        default:
-          return true;
-      }
-    }
-    
-    private updateCache_(): void {
-      var setting: SettingInterface = this.setting_,
-          event: JQueryEventObject = this.event_,
-          cache = this.cache_;
-      var callbacks_update = setting.callbacks.update;
-
-      if (!this.isCacheUsable_()) { return; }
-
-      if (this.util_.fire(callbacks_update.cache.before, setting, [event, setting]) === false) { return; };
-
-      this.model_.setCache(setting.destLocation.href, cache && cache.data || null, this.textStatus_, this.jqXHR_);
-      cache = this.model_.getCache(setting.destLocation.href);
-      this.cache_ = cache;
-
-      if (this.util_.fire(callbacks_update.cache.after, setting, [event, setting]) === false) { return; };
-
-    }
-
-    private checkRedirect_(): void {
+    private redirect_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
@@ -190,7 +157,7 @@ module MODULE.MODEL.APP {
       if (this.util_.fire(callbacks_update.redirect.after, setting, [event, setting]) === false) { return; }
     }
     
-    private updateUrl_(): void {
+    private url_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
@@ -216,7 +183,7 @@ module MODULE.MODEL.APP {
       if (this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) {
       } else if (this.retriable_) {
         setting.destLocation.href = this.util_.normalizeUrl(window.location.href);
-        new PageUpdate(this.model_, this.app_, this.page_, setting, event, setting.cache[event.type.toLowerCase()] && this.model_.getCache(setting.destLocation.href), this.data_, this.textStatus_, this.jqXHR_, this.errorThrown_, this.host_, false);
+        new PageUpdate(this.model_, this.app_, this.page_, setting, event, this.data_, this.textStatus_, this.jqXHR_, this.errorThrown_, this.host_, false);
         throw false;
       } else {
         throw new Error('throw: location mismatch');
@@ -225,7 +192,7 @@ module MODULE.MODEL.APP {
       if (this.util_.fire(callbacks_update.url.after, setting, [event, setting]) === false) { return; }
     }
     
-    private updateDocument_(): void {
+    private document_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
 
@@ -326,9 +293,9 @@ module MODULE.MODEL.APP {
     private overwriteDocumentByCache_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
-          cache: CacheInterface = this.cache_;
+          cache: CacheInterface = this.model_.getCache(setting.destLocation.href);
 
-      if (!this.isCacheUsable_()) { return; }
+      if (!this.page_.isCacheUsable_(event, setting)) { return; }
 
       if (cache && cache.data) {
         var html: string = setting.fix.noscript ? this.restoreNoscript_(cache.data) : cache.data,

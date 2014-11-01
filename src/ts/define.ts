@@ -204,6 +204,7 @@ module MODULE.MODEL {
     loadtime: number
     
     transfer(setting: SettingInterface, event: JQueryEventObject): void
+    isCacheUsable_(event: JQueryEventObject, setting: SettingInterface): boolean
   }
   export declare class PageParserInterface {
     parse(html: string, uri?: string): Document
@@ -215,9 +216,8 @@ module MODULE.MODEL {
       page: PageInterface,
       setting: SettingInterface,
       event: JQueryEventObject,
-      cache: CacheInterface,
-      done: (setting: SettingInterface, event: JQueryEventObject, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any,
-      fail: (setting: SettingInterface, event: JQueryEventObject, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any)
+      done: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any,
+      fail: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any)
   }
   export declare class PageUpdateInterface {
     constructor(
@@ -226,12 +226,12 @@ module MODULE.MODEL {
       page_: PageInterface,
       setting: SettingInterface,
       event: JQueryEventObject,
-      cache: CacheInterface,
       data: string,
       textStatus: string,
       jqXHR: JQueryXHR,
       errorThrown: string,
-      host: string)
+      host: string,
+      retriable: boolean)
   }
   export declare class PageUtilityInterface {
     chooseArea(area: string, srcDocument: Document, dstDocument: Document): string

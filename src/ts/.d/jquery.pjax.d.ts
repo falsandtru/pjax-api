@@ -123,10 +123,6 @@ interface PjaxSetting {
             complete?: (event?: JQueryEventObject, setting?: PjaxSetting, jqXHR?: JQueryXHR, textStatus?: string) => any
         }
         update?: {
-            cache?: {
-                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
-                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
-            }
             redirect?: {
                 before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
                 after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean

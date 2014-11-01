@@ -22,18 +22,28 @@ module MODULE.MODEL.APP {
     landing: string = this.util_.normalizeUrl(window.location.href)
     recent: RecentInterface = { order: [], data: {}, size: 0 }
     loadedScripts: { [index: string]: boolean } = {}
-    isScrollPosSavable: boolean = true
     globalXHR: JQueryXHR
 
+    isScrollPosSavable: boolean = true
+    isCacheUsable_(event: JQueryEventObject, setting: SettingInterface): boolean {
+      switch (true) {
+        case !setting.cache.click && !setting.cache.submit && !setting.cache.popstate:
+        case 'submit' === event.type.toLowerCase() && !setting.cache[(<HTMLFormElement>event.currentTarget).method.toLowerCase()]:
+          return false;
+        default:
+          return true;
+      }
+    }
+    
     count: number = 0
     time: number = new Date().getTime()
     loadtime: number = 0
 
     transfer(setting: SettingInterface, event: JQueryEventObject): void {
-      var done = (setting: SettingInterface, event: JQueryEventObject, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => {
-        this.update_(setting, event, cache, data, textStatus, jqXHR, errorThrown, host);
+      var done = (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => {
+        this.update_(setting, event, data, textStatus, jqXHR, errorThrown, host);
       };
-      var fail = (setting: SettingInterface, event: JQueryEventObject, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => {
+      var fail = (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => {
         if (!setting.fallback || 'abort' === textStatus) { return; }
 
         if (setting.balance.self) {
@@ -44,51 +54,28 @@ module MODULE.MODEL.APP {
         this.model_.fallback(event);
       };
 
-      var cache: CacheInterface;
-      switch (setting.cache[event.type.toLowerCase()] && event.type.toLowerCase()) {
-        case 'click':
-          cache = this.model_.getCache(setting.destLocation.href);
-          this.app_.data.saveTitle();
-          this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
-          break;
-
-        case 'submit':
-          cache = setting.cache[(<HTMLFormElement>event.currentTarget).method.toLowerCase()] ? this.model_.getCache(setting.destLocation.href) : cache;
-          this.app_.data.saveTitle();
-          this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
-          break;
-
-        case 'popstate':
-          cache = this.model_.getCache(setting.destLocation.href);
-          this.app_.data.saveTitle(setting.origLocation.href, document.title);
-          setting.fix.history && this.app_.data.loadTitle();
-          break;
-      }
-
-      this.fetch_(setting, event, cache, done, fail);
+      this.fetch_(setting, event, done, fail);
     }
 
     private fetch_(setting: SettingInterface,
                    event: JQueryEventObject,
-                   cache: CacheInterface,
-                   done: (setting: SettingInterface, event: JQueryEventObject, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void,
-                   fail: (setting: SettingInterface, event: JQueryEventObject, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void
+                   done: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void,
+                   fail: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void
                   ): void {
-      new PageFetch(this.model_, this.app_, this, setting, event, cache, done, fail);
+      new PageFetch(this.model_, this.app_, this, setting, event, done, fail);
     }
 
     private update_(setting: SettingInterface,
                     event: JQueryEventObject,
-                    cache: CacheInterface,
                     data: string,
                     textStatus: string,
                     jqXHR: JQueryXHR,
                     errorThrown: string,
                     host: string
                    ): void {
-      new PageUpdate(this.model_, this.app_, this, setting, event, cache, data, textStatus, jqXHR, errorThrown, host, true);
+      new PageUpdate(this.model_, this.app_, this, setting, event, data, textStatus, jqXHR, errorThrown, host, true);
     }
-
+    
     // mixin utility
     chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string

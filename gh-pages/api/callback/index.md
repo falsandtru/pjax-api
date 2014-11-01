@@ -39,12 +39,6 @@ ajaxの同名のメソッド内で実行されます。jQuery1.6+ではDeferred�
 ### ajax.complete( event, setting, jqXHR, textStatus )
 〃
 
-### update.cache.before( event, setting )
-ページの更新処理においてキャッシュの更新前に実行されます。
-
-### update.cache.after( event, setting )
-ページの更新処理においてキャッシュの更新後に実行されます。
-
 ### update.redirect.before( event, setting )
 ページの更新処理においてリダイレクトの確認前に実行されます。
 

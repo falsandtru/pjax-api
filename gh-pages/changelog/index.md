@@ -13,7 +13,6 @@ nav: nav
 * `callbacks.ajax.done`パラメータを`callbacks.ajax.success`パラメータに統合
 * `callbacks.ajax.fail`パラメータを`callbacks.ajax.error`パラメータに統合
 * `callbacks.ajax.always`パラメータを`callbacks.ajax.complete`パラメータに統合
-* `callbacks.update.cache`系パラメータを復活
 * `callbacks.update.ajax`系を除くすべてのコールバックのコンテキストにpjax設定を設定するよう変更
 * コールバックの第二引数を`param`からpjax設定に変更
 * `param`パラメータを削除

@@ -189,7 +189,7 @@ module MODULE.MODEL.APP {
             callback: null,
             callbacks: {
               ajax: {},
-              update: { cache: {}, redirect: {}, rewrite: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, balance: {} }
+              update: { redirect: {}, rewrite: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, balance: {} }
             },
             data: undefined
           },

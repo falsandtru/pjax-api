@@ -14,9 +14,8 @@ module MODULE.MODEL.APP {
     private page_: PageInterface,
     private setting_: SettingInterface,
     private event_: JQueryEventObject,
-    private cache_: CacheInterface,
-    private done_: (setting: SettingInterface, event: JQueryEventObject, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any,
-    private fail_: (setting: SettingInterface, event: JQueryEventObject, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any
+    private done_: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any,
+    private fail_: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any
     ) {
       this.main_();
     }
@@ -34,7 +33,6 @@ module MODULE.MODEL.APP {
       var that = this,
           setting = this.setting_,
           event = this.event_ = jQuery.extend(true, {}, this.event_),
-          cache = this.cache_,
           wait: number = this.util_.fire(setting.wait, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]);
 
       var speedcheck = setting.speedcheck, speed = this.model_.speed;
@@ -74,13 +72,35 @@ module MODULE.MODEL.APP {
         that.model_.setXHR(null);
 
         if (that.data_) {
-          that.done_(setting, event, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
+          that.model_.setCache(setting.destLocation.href, cache && cache.data || null, that.textStatus_, that.jqXHR_);
+          that.done_(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
         } else {
-          that.fail_(setting, event, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
+          that.fail_(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
         }
       }
 
       this.page_.dispatchEvent(document, DEF.NAME + ':fetch', false, true);
+
+      var cache: CacheInterface;
+      switch (setting.cache[event.type.toLowerCase()] && event.type.toLowerCase()) {
+        case 'click':
+          cache = this.model_.getCache(setting.destLocation.href);
+          this.app_.data.saveTitle();
+          this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
+          break;
+
+        case 'submit':
+          cache = setting.cache[(<HTMLFormElement>event.currentTarget).method.toLowerCase()] ? this.model_.getCache(setting.destLocation.href) : cache;
+          this.app_.data.saveTitle();
+          this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
+          break;
+
+        case 'popstate':
+          cache = this.model_.getCache(setting.destLocation.href);
+          this.app_.data.saveTitle(setting.origLocation.href, document.title);
+          setting.fix.history && this.app_.data.loadTitle();
+          break;
+      }
 
       var xhr = this.model_.getXHR();
       if (cache && cache.jqXHR) {
