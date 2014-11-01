@@ -224,6 +224,10 @@ module MODULE.MODEL.APP {
 
         var onready = (callback?: () => void) => {
           this.page_.dispatchEvent(document, DEF.NAME + ':ready', false, true);
+          if (!this.util_.compareUrl(this.model_.convertUrlToKeyUrl(setting.destLocation.href), this.model_.convertUrlToKeyUrl(window.location.href), true)) {
+            return;
+          }
+
 
           this.util_.fire(setting.callback, setting, [event, setting]);
 
@@ -231,6 +235,10 @@ module MODULE.MODEL.APP {
         };
 
         var onrender = (callback?: () => void) => {
+          if (!this.util_.compareUrl(this.model_.convertUrlToKeyUrl(setting.destLocation.href), this.model_.convertUrlToKeyUrl(window.location.href), true)) {
+            return;
+          }
+
           setTimeout(() => {
             this.app_.page.isScrollPosSavable = true;
             switch (event.type.toLowerCase()) {
@@ -254,6 +262,9 @@ module MODULE.MODEL.APP {
 
         var onload = () => {
           this.page_.dispatchEvent(window, DEF.NAME + ':load', false, true);
+          if (!this.util_.compareUrl(this.model_.convertUrlToKeyUrl(setting.destLocation.href), this.model_.convertUrlToKeyUrl(window.location.href), true)) {
+            return jQuery.when && jQuery.Deferred().reject();
+          }
 
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('load(' + speed.time.slice(-1) + ')');
@@ -264,7 +275,7 @@ module MODULE.MODEL.APP {
           this.script_('[src][defer]');
 
           // 未定義を返すとエラー
-          return jQuery.when && jQuery.Deferred();
+          return jQuery.when && jQuery.Deferred().resolve();
         };
 
         this.scroll_(false);
@@ -283,9 +294,9 @@ module MODULE.MODEL.APP {
           // 1.7.2のthenは壊れてるのでpipe
           var then = jQuery.Deferred().pipe ? 'pipe' : 'then';
           jQuery.when.apply(jQuery, scriptwaits)
-          [then](() => onready() , () => onready())
-          [then](() => onrender(), () => onrender())
-          [then](() => onload()  , () => onload());
+          [then](() => onready())
+          [then](() => onrender())
+          [then](() => onload());
         } else {
           onready(() => onrender(() => onload()));
         }
