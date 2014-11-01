@@ -13,12 +13,8 @@ module MODULE.MODEL.APP {
 
     private model_: ModelInterface,
     private app_: AppLayerInterface,
-    private setting_: SettingInterface,
     private event_: JQueryEventObject,
-    private data_: string,
-    private textStatus_: string,
-    private jqXHR_: JQueryXHR,
-    private host_: string,
+    private record_: PageRecordInterface,
     private retriable_: boolean
     ) {
       this.main_();
@@ -34,11 +30,12 @@ module MODULE.MODEL.APP {
 
     private main_(): void {
       var app = this.app_,
-          setting: SettingInterface = this.setting_,
+          record: PageRecordInterface = this.record_,
+          setting: SettingInterface = record.data.setting(),
           event: JQueryEventObject = this.event_,
-          data: string = this.data_,
-          textStatus: string = this.textStatus_,
-          jqXHR: JQueryXHR = this.jqXHR_;
+          data: string = record.data.data(),
+          textStatus: string = record.data.textStatus(),
+          jqXHR: JQueryXHR = record.data.jqXHR();
       var callbacks_update = setting.callbacks.update;
 
       var speedcheck = setting.speedcheck, speed = this.model_.speed;
@@ -46,9 +43,8 @@ module MODULE.MODEL.APP {
       speedcheck && speed.name.push('fetch(' + speed.time.slice(-1) + ')');
       
       UPDATE: {
-        ++this.app_.page.count;
-        this.app_.page.loadtime = this.app_.page.loadtime && new Date().getTime() - this.app_.page.loadtime;
-        this.app_.page.loadtime = this.app_.page.loadtime < 100 ? 0 : this.app_.page.loadtime;
+        ++this.app_.count;
+        this.app_.loadtime = this.app_.loadtime && new Date().getTime() - this.app_.loadtime;
         
         if (setting.cache.mix && EVENT.POPSTATE !== event.type.toLowerCase() && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
           return this.model_.fallback(event);
@@ -92,9 +88,7 @@ module MODULE.MODEL.APP {
       }; // label: UPDATE
     }
 
-    private isRegister_(): boolean {
-      var setting: SettingInterface = this.setting_,
-          event: JQueryEventObject = this.event_;
+    private isRegister_(setting: SettingInterface, event: JQueryEventObject): boolean {
       switch (true) {
         case setting.destLocation.href === setting.origLocation.href:
         case EVENT.POPSTATE === event.type.toLowerCase():
@@ -104,9 +98,18 @@ module MODULE.MODEL.APP {
           return true;
       }
     }
-    
+
+    private isCacheUsable_(event: JQueryEventObject, setting: SettingInterface): boolean {
+      switch (true) {
+        case !setting.cache.click && !setting.cache.submit && !setting.cache.popstate:
+        case EVENT.SUBMIT === event.type.toLowerCase() && !setting.cache[(<HTMLFormElement>event.currentTarget).method.toLowerCase()]:
+          return false;
+        default:
+          return true;
+      }
+    }
     private redirect_(): void {
-      var setting: SettingInterface = this.setting_,
+      var setting: SettingInterface = this.record_.data.setting(),
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
@@ -141,7 +144,7 @@ module MODULE.MODEL.APP {
               break;
             case EVENT.POPSTATE:
               window.history.replaceState(window.history.state, this.srcDocument_.title, redirect.href);
-              if (this.isRegister_() && setting.fix.location && !this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) {
+              if (this.isRegister_(setting, event) && setting.fix.location && !this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) {
                 jQuery[DEF.NAME].disable();
                 window.history.back();
                 window.history.forward();
@@ -157,7 +160,7 @@ module MODULE.MODEL.APP {
     }
     
     private url_(): void {
-      var setting: SettingInterface = this.setting_,
+      var setting: SettingInterface = this.record_.data.setting(),
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
@@ -165,7 +168,7 @@ module MODULE.MODEL.APP {
 
       if (this.util_.fire(callbacks_update.url.before, setting, [event, setting]) === false) { return; };
 
-      if (this.isRegister_()) {
+      if (this.isRegister_(setting, event)) {
         window.history.pushState(this.util_.fire(setting.state, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]),
                                  ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstDocument_.title : this.srcDocument_.title,
                                  setting.destLocation.href);
@@ -182,7 +185,7 @@ module MODULE.MODEL.APP {
       if (this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) {
       } else if (this.retriable_) {
         setting.destLocation.href = this.util_.normalizeUrl(window.location.href);
-        new PageUpdate(this.model_, this.app_, setting, event, this.data_, this.textStatus_, this.jqXHR_, this.host_, false);
+        new PageUpdate(this.model_, this.app_, event, this.record_, false);
         throw false;
       } else {
         throw new Error('throw: location mismatch');
@@ -192,7 +195,7 @@ module MODULE.MODEL.APP {
     }
     
     private document_(): void {
-      var setting: SettingInterface = this.setting_,
+      var setting: SettingInterface = this.record_.data.setting(),
           event: JQueryEventObject = this.event_;
 
       this.overwriteDocumentByCache_();
@@ -240,7 +243,6 @@ module MODULE.MODEL.APP {
           }
 
           setTimeout(() => {
-            this.app_.page.isScrollPosSavable = true;
             switch (event.type.toLowerCase()) {
               case EVENT.CLICK:
               case EVENT.SUBMIT:
@@ -281,10 +283,10 @@ module MODULE.MODEL.APP {
 
         this.scroll_(false);
 
-        if (100 > this.app_.page.loadtime && setting.reset.type.match(event.type.toLowerCase()) && !jQuery('form[method][method!="GET"]').length) {
+        if (100 > this.app_.loadtime && setting.reset.type.match(event.type.toLowerCase()) && !jQuery('form[method][method!="GET"]').length) {
           switch (false) {
-            case this.app_.page.count < setting.reset.count || !setting.reset.count:
-            case new Date().getTime() < setting.reset.time + this.app_.page.time || !setting.reset.time:
+            case this.app_.count < setting.reset.count || !setting.reset.count:
+            case new Date().getTime() < setting.reset.time + this.app_.time || !setting.reset.time:
               throw new Error('throw: reset');
           }
         }
@@ -306,11 +308,11 @@ module MODULE.MODEL.APP {
     }
     
     private overwriteDocumentByCache_(): void {
-      var setting: SettingInterface = this.setting_,
+      var setting: SettingInterface = this.record_.data.setting(),
           event: JQueryEventObject = this.event_,
           cache: CacheInterface = this.model_.getCache(setting.destLocation.href);
 
-      if (!this.app_.page.isCacheUsable_(event, setting)) { return; }
+      if (!this.isCacheUsable_(event, setting)) { return; }
 
       if (cache && cache.data) {
         var html: string = setting.fix.noscript ? this.restoreNoscript_(cache.data) : cache.data,
@@ -334,7 +336,7 @@ module MODULE.MODEL.APP {
     }
     
     private rewrite_(): void {
-      var setting: SettingInterface = this.setting_,
+      var setting: SettingInterface = this.record_.data.setting(),
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
@@ -342,13 +344,13 @@ module MODULE.MODEL.APP {
 
       if (this.util_.fire(callbacks_update.rewrite.before, setting, [event, setting]) === false) { return; }
 
-      this.util_.fire(setting.rewrite, setting, [this.srcDocument_, this.area_, this.host_])
+      this.util_.fire(setting.rewrite, setting, [this.srcDocument_, this.area_, this.record_.data.host()])
 
       if (this.util_.fire(callbacks_update.rewrite.before, setting, [event, setting]) === false) { return; }
     }
 
     private title_(): void {
-      var setting: SettingInterface = this.setting_,
+      var setting: SettingInterface = this.record_.data.setting(),
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
@@ -361,7 +363,7 @@ module MODULE.MODEL.APP {
     }
 
     private head_(): void {
-      var setting: SettingInterface = this.setting_,
+      var setting: SettingInterface = this.record_.data.setting(),
           event: JQueryEventObject = this.event_,
           srcDocument: Document = this.srcDocument_,
           dstDocument: Document = this.dstDocument_;
@@ -399,7 +401,7 @@ module MODULE.MODEL.APP {
     }
 
     private content_(): void {
-      var setting: SettingInterface = this.setting_,
+      var setting: SettingInterface = this.record_.data.setting(),
           event: JQueryEventObject = this.event_,
           srcDocument: Document = this.srcDocument_,
           dstDocument: Document = this.dstDocument_;
@@ -447,25 +449,26 @@ module MODULE.MODEL.APP {
     }
     
     private balance_(): void {
-      var setting: SettingInterface = this.setting_,
+      var setting: SettingInterface = this.record_.data.setting(),
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
-      if (!setting.balance.self || !this.app_.page.loadtime) { return; }
-      
-      var host = (this.jqXHR_.getResponseHeader(setting.balance.server.header) || ''),
-          performance = Math.ceil(this.app_.page.loadtime / (this.jqXHR_.responseText.length || 1) * 1e5);
+      if (!setting.balance.self || this.app_.loadtime < 100) { return; }
 
-      if (this.util_.fire(callbacks_update.balance.before, setting, [event, setting, host, this.app_.page.loadtime, this.jqXHR_]) === false) { return; }
+      var jqXHR = this.record_.data.jqXHR();
+      var host = (jqXHR.getResponseHeader(setting.balance.server.header) || ''),
+          performance = Math.ceil(this.app_.loadtime / (jqXHR.responseText.length || 1) * 1e5);
+
+      if (this.util_.fire(callbacks_update.balance.before, setting, [event, setting]) === false) { return; }
 
       this.app_.data.saveServer(host, performance);
       this.app_.balance.chooseServer(setting);
 
-      if (this.util_.fire(callbacks_update.balance.after, setting, [event, setting, host, this.app_.page.loadtime, this.jqXHR_]) === false) { return; }
+      if (this.util_.fire(callbacks_update.balance.after, setting, [event, setting]) === false) { return; }
     }
 
     private css_(selector: string): void {
-      var setting: SettingInterface = this.setting_,
+      var setting: SettingInterface = this.record_.data.setting(),
           event: JQueryEventObject = this.event_,
           srcDocument: Document = this.srcDocument_,
           dstDocument: Document = this.dstDocument_;
@@ -529,7 +532,7 @@ module MODULE.MODEL.APP {
     }
 
     private script_(selector: string): JQueryDeferred<any[]>[] {
-      var setting: SettingInterface = this.setting_,
+      var setting: SettingInterface = this.record_.data.setting(),
           event: JQueryEventObject = this.event_,
           srcDocument: Document = this.srcDocument_,
           dstDocument: Document = this.dstDocument_;
@@ -671,7 +674,7 @@ module MODULE.MODEL.APP {
     }
     
     private scroll_(call: boolean): void {
-      var setting: SettingInterface = this.setting_,
+      var setting: SettingInterface = this.record_.data.setting(),
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
@@ -695,8 +698,7 @@ module MODULE.MODEL.APP {
           call && setting.fix.scroll && this.app_.data.loadScrollPosition();
           break;
       }
-
-      call && setTimeout(() => this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition(), 300);
+      call && this.app_.data.saveScrollPosition();
 
       if (this.util_.fire(callbacks_update.scroll.after, setting, [event, setting]) === false) { return; }
     }
@@ -704,7 +706,7 @@ module MODULE.MODEL.APP {
     private waitRender_(callback: JQueryDeferred<any>): JQueryDeferred<any>
     private waitRender_(callback: () => void): void
     private waitRender_(callback: any) {
-      var setting: SettingInterface = this.setting_,
+      var setting: SettingInterface = this.record_.data.setting(),
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
@@ -743,6 +745,7 @@ module MODULE.MODEL.APP {
       if ($hashTargetElement.length) {
         isFinite($hashTargetElement.offset().top) &&
         window.scrollTo(jQuery(window).scrollLeft(), parseInt(Number($hashTargetElement.offset().top) + '', 10));
+        this.app_.data.saveScrollPosition();
         return true;
       } else {
         return false;

@@ -61,6 +61,7 @@ module MODULE {
    * 
    * - MVCモジュール間のアクセスは各モジュールのインターフェイスを経由し、内部機能(APP/DATA)に直接アクセスしない。
    * - モデルインターフェイスへ渡されるデータはすべて正規化、検疫されてないものとして自身で正規化、検疫する。
+   * - データレイヤーへのアクセスはアプリケーションレイヤーのDataクラスからのみとする。
    * 
    */
   export module MODEL { }
@@ -186,7 +187,13 @@ module MODULE.MODEL {
     configure(destination: HTMLAnchorElement): SettingInterface
     configure(destination: HTMLFormElement): SettingInterface
     configure(destination: Location): SettingInterface
+
+    count: number
+    time: number
+    loadtime: number
   }
+
+  // Balanse
   export declare class BalanceInterface {
     constructor(model: ModelInterface, app: AppLayerInterface)
     host(): string
@@ -197,6 +204,8 @@ module MODULE.MODEL {
     chooseServer(setting: SettingInterface): void
     bypass(setting: SettingInterface, retry: number): void
   }
+
+  // Page
   export declare class PageInterface extends PageUtilityInterface {
     constructor(model: ModelInterface, app: AppLayerInterface)
 
@@ -205,18 +214,62 @@ module MODULE.MODEL {
     landing: string
     recent: RecentInterface
     loadedScripts: { [url: string]: boolean }
-    isScrollPosSavable: boolean
     xhr: JQueryXHR
-    count: number
-    time: number
-    loadtime: number
     
     transfer(setting: SettingInterface, event: JQueryEventObject): void
-    isCacheUsable_(event: JQueryEventObject, setting: SettingInterface): boolean
   }
-  export declare class PageParserInterface {
-    parse(html: string, uri?: string): Document
+  // Page::Provider
+  export declare class PageProviderInterface implements ProviderInterface {
+    constructor(Record: PageRecordClassInterface, model: ModelInterface, app: AppLayerInterface)
+    accessRecord(
+      setting: SettingInterface,
+      event: JQueryEventObject,
+      success: (record: PageRecordInterface, event: JQueryEventObject) => void,
+      failure: (record: PageRecordInterface, event: JQueryEventObject) => void
+    ): void
+    updateRecord(
+      setting: SettingInterface,
+      event: JQueryEventObject,
+      success: (record: PageRecordInterface, event: JQueryEventObject) => void,
+      failure: (record: PageRecordInterface, event: JQueryEventObject) => void
+    ): void
+    fillRecord(
+      setting: SettingInterface,
+      event: JQueryEventObject,
+      success: (record: PageRecordInterface, event: JQueryEventObject) => void,
+      failure: (record: PageRecordInterface, event: JQueryEventObject) => void
+    ): void
+    verifyRecord(setting: SettingInterface): boolean
+    getRecord(setting: SettingInterface): PageRecordInterface
+    setRecord(setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string, state: boolean): PageRecordInterface
   }
+  export declare class PageRecordInterface implements RecordInterface {
+    constructor()
+    constructor(model: ModelInterface, setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string, state: boolean)
+    data: PageRecordDataInterface
+    state(): boolean
+  }
+  export declare class PageRecordDataInterface implements RecordDataInterface {
+    url(): string
+    data(): string
+    textStatus(): string
+    jqXHR(): JQueryXHR
+    host(): string
+    setting(): SettingInterface
+  }
+  export interface PageRecordClassInterface extends RecordClassInterface {
+    new ()
+    new (model: ModelInterface, setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string, state: boolean)
+  }
+  export interface PageRecordSchema extends RecordSchema {
+    url: string
+    data: string
+    textStatus: string
+    jqXHR: JQueryXHR
+    host: string
+    setting: SettingInterface
+  }
+  // Page::Fetch
   export declare class PageFetchInterface extends PageUtilityInterface {
     constructor(
       model: ModelInterface,
@@ -226,18 +279,20 @@ module MODULE.MODEL {
       success: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any,
       failure: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any)
   }
+  // Page::Update
   export declare class PageUpdateInterface extends PageUtilityInterface {
     constructor(
       model: ModelInterface,
       app: AppLayerInterface,
-      setting: SettingInterface,
       event: JQueryEventObject,
-      data: string,
-      textStatus: string,
-      jqXHR: JQueryXHR,
-      host: string,
+      record: PageRecordInterface,
       retriable: boolean)
   }
+  // Page::Parser
+  export declare class PageParserInterface {
+    parse(html: string, uri?: string): Document
+  }
+  // Page::Utility
   export declare class PageUtilityInterface {
     chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
@@ -247,6 +302,8 @@ module MODULE.MODEL {
     dispatchEvent(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
     wait(ms: number): JQueryDeferred<any>
   }
+
+  // Data
   export declare class DataInterface {
     // cookie
     getCookie(key: string): string
@@ -458,6 +515,29 @@ module MODULE {
 
 module MODULE {
   // LIBRARY
+
+  // Provider
+  export declare class ProviderInterface {
+    constructor(Record: RecordClassInterface, ...args: any[])
+    accessRecord(...args: any[]): void
+    updateRecord(...args: any[]): void
+    fillRecord(...args: any[]): void
+    verifyRecord(...args: any[]): boolean
+    getRecord(...args: any[]): RecordInterface
+    setRecord(...args: any[]): RecordInterface
+  }
+  export declare class RecordInterface {
+    data: RecordDataInterface
+    state(): boolean
+  }
+  export interface RecordClassInterface {
+  }
+  export declare class RecordDataInterface {
+    constructor(data: RecordSchema)
+  }
+  export interface RecordSchema {
+  }
+  // Task
   export declare class TaskInterface {
     constructor(mode?: number, size?: number)
     define(name: string, mode: number, size: number): void

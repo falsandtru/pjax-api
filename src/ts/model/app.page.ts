@@ -1,7 +1,7 @@
 /// <reference path="../define.ts"/>
-/// <reference path="app.page.parser.ts"/>
-/// <reference path="app.page.fetch.ts"/>
+/// <reference path="app.page.provider.ts"/>
 /// <reference path="app.page.update.ts"/>
+/// <reference path="app.page.parser.ts"/>
 /// <reference path="app.page.utility.ts"/>
 /// <reference path="../library/utility.ts"/>
 
@@ -18,6 +18,7 @@ module MODULE.MODEL.APP {
       setTimeout(() => this.parser.parse('') || this.model_.disable(), 300);
     }
     
+    private provider: PageProviderInterface = new PageProvider(PageRecord, this.model_, this.app_)
     private util_ = LIBRARY.Utility
 
     parser: PageParserInterface = new PageParserSingleton()
@@ -27,45 +28,16 @@ module MODULE.MODEL.APP {
     loadedScripts: { [index: string]: boolean } = {}
     xhr: JQueryXHR
 
-    isScrollPosSavable: boolean = true
-    isCacheUsable_(event: JQueryEventObject, setting: SettingInterface): boolean {
-      switch (true) {
-        case !setting.cache.click && !setting.cache.submit && !setting.cache.popstate:
-        case EVENT.SUBMIT === event.type.toLowerCase() && !setting.cache[(<HTMLFormElement>event.currentTarget).method.toLowerCase()]:
-          return false;
-        default:
-          return true;
-      }
-    }
-    
-    count: number = 0
-    time: number = new Date().getTime()
-    loadtime: number = 0
-
     transfer(setting: SettingInterface, event: JQueryEventObject): void {
-      var success = (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => {
-        this.update_(setting, event, data, textStatus, jqXHR, host);
-      };
-      var failure = (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => {
-        if (!setting.fallback || 'abort' === textStatus) { return; }
-
-        if (setting.balance.self) {
-          this.app_.data.saveServer(host, 0, new Date().getTime());
-          this.app_.balance.chooseServer(setting);
-        }
-
-        this.model_.fallback(event);
-      };
-
       switch (event.type.toLowerCase()) {
         case EVENT.CLICK:
           this.app_.data.saveTitle();
-          this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
+          this.app_.data.saveScrollPosition();
           break;
 
         case EVENT.SUBMIT:
           this.app_.data.saveTitle();
-          this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
+          this.app_.data.saveScrollPosition();
           break;
 
         case EVENT.POPSTATE:
@@ -74,27 +46,34 @@ module MODULE.MODEL.APP {
           break;
       }
 
-      this.fetch_(setting, event, success, failure);
+      this.fetch_(setting, event);
     }
 
-    private fetch_(setting: SettingInterface,
-                   event: JQueryEventObject,
-                   done: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => void,
-                   fail: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => void
-                  ): void {
-      new PageFetch(this.model_, this.app_, setting, event, done, fail);
+    private fetch_(setting: SettingInterface, event: JQueryEventObject): void {
+      this.provider.accessRecord(
+        setting,
+        event,
+        (record: PageRecordInterface, event: JQueryEventObject) => this.success_(record, event),
+        (record: PageRecordInterface, event: JQueryEventObject) => this.failure_(record, event)
+      );
     }
 
-    private update_(setting: SettingInterface,
-                    event: JQueryEventObject,
-                    data: string,
-                    textStatus: string,
-                    jqXHR: JQueryXHR,
-                    host: string
-                   ): void {
-      new PageUpdate(this.model_, this.app_, setting, event, data, textStatus, jqXHR, host, true);
+    private success_(record: PageRecordInterface, event: JQueryEventObject): void {
+      new PageUpdate(this.model_, this.app_, event, record, true);
     }
-    
+
+    private failure_(record: PageRecordInterface, event: JQueryEventObject): void {
+      if (!record.data.setting().fallback || 'abort' === record.data.textStatus()) { return; }
+
+      var setting = record.data.setting();
+      if (setting.balance.self) {
+        this.app_.data.saveServer(record.data.host(), 0, new Date().getTime());
+        this.app_.balance.chooseServer(setting);
+      }
+
+      this.model_.fallback(event);
+    }
+
     // mixin utility
     chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string

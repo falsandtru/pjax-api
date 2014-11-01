@@ -39,9 +39,6 @@ module MODULE.MODEL.APP {
       speedcheck && speed.time.splice(0, 100, 0);
       speedcheck && speed.name.splice(0, 100, 'pjax(' + speed.time.slice(-1) + ')');
 
-      this.app_.page.isScrollPosSavable = false;
-      setting.fix.reset && ~[EVENT.CLICK, EVENT.SUBMIT].join(' ').indexOf(event.type.toLowerCase()) && window.scrollTo(jQuery(window).scrollLeft(), 0);
-
       function success(data: string, textStatus: string, jqXHR: JQueryXHR) {
         return that.model_.isDeferrable ? undefined : done.call(this, [].slice.call(arguments), undefined);
       }
@@ -96,10 +93,10 @@ module MODULE.MODEL.APP {
       }
 
       var xhr = this.model_.getXHR();
-      if (cache && cache.jqXHR) {
+      if (cache && cache.jqXHR && 'abort' !== cache.jqXHR.statusText && 'error' !== cache.jqXHR.statusText) {
         // cache
         speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
-        this.app_.page.loadtime = 0;
+        this.app_.loadtime = 0;
         xhr && xhr.abort();
         this.model_.setXHR(null);
         this.host_ = cache.host || '';
@@ -122,21 +119,21 @@ module MODULE.MODEL.APP {
         speedcheck && speed.time.push(speed.now() - speed.fire);
         speedcheck && speed.name.push('continue(' + speed.time.slice(-1) + ')');
         this.host_ = xhr.host || '';
-        this.app_.page.loadtime = xhr.timeStamp;
+        this.app_.loadtime = xhr.timeStamp;
         var wait = setting.wait && isFinite(xhr.timeStamp) ? Math.max(wait - new Date().getTime() + xhr.timeStamp, 0) : 0;
         jQuery.when(xhr, this.wait(wait))
         .done(done).fail(fail).always(always);
 
       } else {
         // default
-        this.app_.page.loadtime = event.timeStamp;
+        this.app_.loadtime = event.timeStamp;
         xhr && xhr.abort();
         var requestLocation = <HTMLAnchorElement>setting.destLocation.cloneNode(),
             ajax: JQueryAjaxSettings = {},
             callbacks: JQueryAjaxSettings = {};
 
         this.app_.balance.chooseServer(setting);
-        this.host_ = setting.balance.self && this.app_.balance.host().split('//').pop() || '';
+        this.host_ = setting.balance.self && this.model_.host().split('//').pop() || '';
         requestLocation.host = this.host_ || setting.destLocation.host;
         ajax.url = !setting.server.query ? requestLocation.href
                                          : [

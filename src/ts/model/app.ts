@@ -26,6 +26,10 @@ module MODULE.MODEL.APP {
     page: PageInterface = new Page(this.model_, this)
     data: DataInterface = new Data(this.model_, this)
 
+    count: number = 0
+    time: number = new Date().getTime()
+    loadtime: number = 0
+
     initialize($context: JQuery, setting: SettingInterface): void {
       if (setting.load.script) {
         var loadedScripts = this.page.loadedScripts;
@@ -178,8 +182,7 @@ module MODULE.MODEL.APP {
               location: true,
               history: true,
               scroll: true,
-              noscript: true,
-              reset: false
+              noscript: true
             },
             database: true,
             server: {
@@ -237,7 +240,7 @@ module MODULE.MODEL.APP {
                 scroll: [EVENT.SCROLL].concat(nsArray.join(':')).join('.'),
                 requestHeader: ['X', nsArray[0].replace(/^\w/, function (str) { return str.toUpperCase(); })].join('-')
               },
-              fix: /android|iphone os|like mac os x/i.test(window.navigator.userAgent) ? undefined : { location: false, reset: false },
+              fix: /android|iphone os|like mac os x/i.test(window.navigator.userAgent) ? undefined : { location: false },
               contentType: setting.contentType.replace(/\s*[,;]\s*/g, '|').toLowerCase(),
               reset: {
                 type: (setting.reset.type || '').toLowerCase()

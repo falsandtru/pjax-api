@@ -9,7 +9,9 @@ nav: nav
 
 ## 2.27.0
 
+* アーキテクチャを改善
 * `load.error`パラメータを追加
+* `fix.reset`パラメータを削除
 * `callbacks.ajax.done`パラメータを`callbacks.ajax.success`パラメータに統合
 * `callbacks.ajax.fail`パラメータを`callbacks.ajax.error`パラメータに統合
 * `callbacks.ajax.always`パラメータを`callbacks.ajax.complete`パラメータに統合

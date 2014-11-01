@@ -99,7 +99,6 @@ interface PjaxSetting {
         history?: boolean
         scroll?: boolean
         noscript?: boolean
-        reset?: boolean
     }
     database?: boolean
     server?: {
