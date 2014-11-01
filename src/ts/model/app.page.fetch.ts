@@ -70,7 +70,7 @@ module MODULE.MODEL.APP {
 
         that.model_.setXHR(null);
 
-        if (that.data_) {
+        if (!that.errorThrown_) {
           that.model_.setCache(setting.destLocation.href, cache && cache.data || null, that.textStatus_, that.jqXHR_);
           that.success(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_);
         } else {
