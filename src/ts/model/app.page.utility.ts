@@ -155,25 +155,6 @@ module MODULE.MODEL.APP {
       }
     }
 
-    calAge(jqXHR: JQueryXHR): number {
-      var age: any;
-
-      switch (true) {
-        case /no-store|no-cache/.test(jqXHR.getResponseHeader('Cache-Control')):
-          return 0;
-        case !!~String(jqXHR.getResponseHeader('Cache-Control')).indexOf('max-age='):
-          return Number(jqXHR.getResponseHeader('Cache-Control').match(/max-age=(\d+)/).pop()) * 1000;
-        case !!String(jqXHR.getResponseHeader('Expires')):
-          return new Date(jqXHR.getResponseHeader('Expires')).getTime() - new Date().getTime();
-        default:
-          return 0;
-      }
-    }
-
-    calExpires(jqXHR: JQueryXHR): number {
-      return new Date().getTime() + this.calAge(jqXHR);
-    }
-    
     // addEventListenerとjQuery以外で発行されたカスタムイベントはjQueryでは発信できない
     dispatchEvent(target: Window, eventType: string, bubbling: boolean, cancelable: boolean): void
     dispatchEvent(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void

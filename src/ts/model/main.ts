@@ -282,11 +282,11 @@ module MODULE.MODEL {
         if (!setting.cache.expires) { return 0; }
         if (recent.data[secure_url] && !jqXHR) { return recent.data[secure_url].expires; }
 
-        age = jqXHR && this.app_.page.calAge(jqXHR) || Number(setting.cache.expires);
+        age = jqXHR && this.calAge_(jqXHR) || 0;
 
-        age = Math.max(age, 0) || 0;
         age = 'object' === typeof setting.cache.expires && 'number' === typeof setting.cache.expires.min ? Math.max(setting.cache.expires.min, age) : age;
         age = 'object' === typeof setting.cache.expires && 'number' === typeof setting.cache.expires.max ? Math.min(setting.cache.expires.max, age) : age;
+        age = Math.max(age, 0) || 0;
         return timeStamp + age;
       })(timeStamp);
       recent.size = recent.size || 0;
@@ -304,13 +304,14 @@ module MODULE.MODEL {
           host: host || '',
           timeStamp: timeStamp
         }
-        );
+      );
       if (!recent.data[secure_url].data && !recent.data[secure_url].jqXHR) {
         this.removeCache(secure_url);
       }
       if (jqXHR || cache && cache.jqXHR) {
         var title: string = ((jqXHR || cache && cache.jqXHR).responseText || '').slice(0, 10000).match(/<title[^>]*>(.*?)<\/title>/i).pop() || '';
         setting.fix.history && this.app_.data.saveTitle(secure_url, title);
+        this.app_.data.saveExpires(setting.destLocation.href, host, this.calExpires_(jqXHR || cache && cache.jqXHR));
       }
     }
 
@@ -370,6 +371,25 @@ module MODULE.MODEL {
       }
     }
 
+    private calAge_(jqXHR: JQueryXHR): number {
+      var age: any;
+
+      switch (true) {
+        case /no-store|no-cache/.test(jqXHR.getResponseHeader('Cache-Control')):
+          return 0;
+        case jqXHR.getResponseHeader('Cache-Control') && !!~jqXHR.getResponseHeader('Cache-Control').indexOf('max-age='):
+          return Number(jqXHR.getResponseHeader('Cache-Control').match(/max-age=(\d+)/).pop()) * 1000;
+        case !!jqXHR.getResponseHeader('Expires'):
+          return new Date(jqXHR.getResponseHeader('Expires')).getTime() - new Date().getTime();
+        default:
+          return 0;
+      }
+    }
+
+    private calExpires_(jqXHR: JQueryXHR): number {
+      return new Date().getTime() + this.calAge_(jqXHR);
+    }
+    
     speed: any
 
   }

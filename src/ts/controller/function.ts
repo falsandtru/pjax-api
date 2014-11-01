@@ -116,7 +116,7 @@ module MODULE.CONTROLLER {
           textStatus: cache.textStatus,
           jqXHR: cache.jqXHR,
           expires: cache.expires
-        }
+        };
       }
       return cache;
     }

@@ -13,6 +13,7 @@ nav: nav
 * `callbacks.ajax.done`パラメータを`callbacks.ajax.success`パラメータに統合
 * `callbacks.ajax.fail`パラメータを`callbacks.ajax.error`パラメータに統合
 * `callbacks.ajax.always`パラメータを`callbacks.ajax.complete`パラメータに統合
+* キャッシュの有効期限のバグを修正
 
 ## 2.26.0
 

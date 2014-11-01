@@ -212,8 +212,6 @@ module MODULE.MODEL.APP {
     chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: any, srcDocument: Document, dstDocument: Document): string { return }
     movePageNormally(event: JQueryEventObject): void { }
-    calAge(jqXHR: JQueryXHR): number { return }
-    calExpires(jqXHR: JQueryXHR): number { return }
     dispatchEvent(target: Window, eventType: string, bubbling: boolean, cancelable: boolean): void
     dispatchEvent(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
     dispatchEvent(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void

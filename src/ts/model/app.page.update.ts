@@ -456,7 +456,6 @@ module MODULE.MODEL.APP {
       var host = (this.jqXHR_.getResponseHeader(setting.balance.server.header) || ''),
           performance = Math.ceil(setting.loadtime / (this.jqXHR_.responseText.length || 1) * 1e5);
       this.app_.data.saveServer(host, performance);
-      this.app_.data.saveExpires(setting.destLocation.href, host, this.calExpires(this.jqXHR_));
       this.app_.balance.chooseServer(setting);
 
       if (Util.fire(callbacks_update.balance.after, null, [event, setting.param]) === false) { return; }
@@ -788,8 +787,6 @@ module MODULE.MODEL.APP {
     chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: any, srcDocument: Document, dstDocument: Document): string { return }
     movePageNormally(event: JQueryEventObject): void { }
-    calAge(jqXHR: JQueryXHR): number { return }
-    calExpires(jqXHR: JQueryXHR): number { return }
     dispatchEvent(target: Window, eventType: string, bubbling: boolean, cancelable: boolean): void
     dispatchEvent(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
     dispatchEvent(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
