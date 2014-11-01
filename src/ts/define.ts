@@ -119,6 +119,14 @@ module MODULE {
   // State
   export enum State { blank, initiate, open, pause, lock, seal, error, crash, terminate, close }
 
+  // Event
+  export var EVENT = {
+    CLICK: 'click',
+    SUBMIT: 'submit',
+    POPSTATE: 'popstate',
+    SCROLL: 'scroll'
+  }
+
   // Context
   export interface ExtensionInterface extends JQueryPjax { }
   export interface ExtensionStaticInterface extends JQueryPjaxStatic { }

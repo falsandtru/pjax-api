@@ -28,7 +28,7 @@ module MODULE.MODEL.APP {
     isCacheUsable_(event: JQueryEventObject, setting: SettingInterface): boolean {
       switch (true) {
         case !setting.cache.click && !setting.cache.submit && !setting.cache.popstate:
-        case 'submit' === event.type.toLowerCase() && !setting.cache[(<HTMLFormElement>event.currentTarget).method.toLowerCase()]:
+        case EVENT.SUBMIT === event.type.toLowerCase() && !setting.cache[(<HTMLFormElement>event.currentTarget).method.toLowerCase()]:
           return false;
         default:
           return true;

@@ -49,11 +49,11 @@ module MODULE.MODEL.APP {
     configure(destination: any): SettingInterface {
       var event: Event = (<Event>destination).preventDefault ? destination : null;
       switch (event && event.type.toLowerCase()) {
-        case 'click':
+        case EVENT.CLICK:
           return this.configure(<HTMLAnchorElement>event.currentTarget);
-        case 'submit':
+        case EVENT.SUBMIT:
           return this.configure(<HTMLFormElement>event.currentTarget);
-        case 'popstate':
+        case EVENT.POPSTATE:
           return this.configure(window.location);
         case null:
           break;
@@ -231,10 +231,10 @@ module MODULE.MODEL.APP {
                 event: nsArray.join('.'),
                 data: nsArray.join('-'),
                 class4html: nsArray.join('-'),
-                click: ['click'].concat(nsArray.join(':')).join('.'),
-                submit: ['submit'].concat(nsArray.join(':')).join('.'),
-                popstate: ['popstate'].concat(nsArray.join(':')).join('.'),
-                scroll: ['scroll'].concat(nsArray.join(':')).join('.'),
+                click: [EVENT.CLICK].concat(nsArray.join(':')).join('.'),
+                submit: [EVENT.SUBMIT].concat(nsArray.join(':')).join('.'),
+                popstate: [EVENT.POPSTATE].concat(nsArray.join(':')).join('.'),
+                scroll: [EVENT.SCROLL].concat(nsArray.join(':')).join('.'),
                 requestHeader: ['X', nsArray[0].replace(/^\w/, function (str) { return str.toUpperCase(); })].join('-')
               },
               fix: /android|iphone os|like mac os x/i.test(window.navigator.userAgent) ? undefined : { location: false, reset: false },

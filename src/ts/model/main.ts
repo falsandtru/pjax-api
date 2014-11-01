@@ -92,14 +92,14 @@ module MODULE.MODEL {
 
       var setting: SettingInterface;
       switch (event.type.toLowerCase()) {
-        case 'click':
+        case EVENT.CLICK:
           setting = this.app_.configure(<HTMLAnchorElement>event.currentTarget);
           if (setting && !jQuery(event.currentTarget).filter(setting.filter).length) { return false; }
           break;
-        case 'submit':
+        case EVENT.SUBMIT:
           setting = this.app_.configure(<HTMLFormElement>event.currentTarget);
           break;
-        case 'popstate':
+        case EVENT.POPSTATE:
           setting = this.app_.configure(window.location);
           break;
       }

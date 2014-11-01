@@ -50,7 +50,7 @@ module MODULE.MODEL.APP {
         this.page_.loadtime = this.page_.loadtime && new Date().getTime() - this.page_.loadtime;
         this.page_.loadtime = this.page_.loadtime < 100 ? 0 : this.page_.loadtime;
         
-        if (setting.cache.mix && 'popstate' !== event.type.toLowerCase() && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
+        if (setting.cache.mix && EVENT.POPSTATE !== event.type.toLowerCase() && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
           return this.model_.fallback(event);
         }
         
@@ -97,7 +97,7 @@ module MODULE.MODEL.APP {
           event: JQueryEventObject = this.event_;
       switch (true) {
         case setting.destLocation.href === setting.origLocation.href:
-        case 'popstate' === event.type.toLowerCase():
+        case EVENT.POPSTATE === event.type.toLowerCase():
         case !this.retriable_:
           return false;
         default:
@@ -120,13 +120,13 @@ module MODULE.MODEL.APP {
         case !setting.redirect:
         case redirect.protocol !== setting.destLocation.protocol:
         case redirect.host !== setting.destLocation.host:
-        case 'submit' === event.type.toLowerCase() && 'GET' !== (<HTMLFormElement>event.currentTarget).method.toUpperCase():
+        case EVENT.SUBMIT === event.type.toLowerCase() && 'GET' !== (<HTMLFormElement>event.currentTarget).method.toUpperCase():
           switch (event.type.toLowerCase()) {
-            case 'click':
-            case 'submit':
+            case EVENT.CLICK:
+            case EVENT.SUBMIT:
               window.location.assign(redirect.href);
               break;
-            case 'popstate':
+            case EVENT.POPSTATE:
               window.location.replace(redirect.href);
               break;
           }
@@ -135,11 +135,11 @@ module MODULE.MODEL.APP {
         default:
           jQuery[DEF.NAME].enable();
           switch (event.type.toLowerCase()) {
-            case 'click':
-            case 'submit':
+            case EVENT.CLICK:
+            case EVENT.SUBMIT:
               setTimeout(() => jQuery[DEF.NAME].click(redirect.href), 0);
               break;
-            case 'popstate':
+            case EVENT.POPSTATE:
               window.history.replaceState(window.history.state, this.srcDocument_.title, redirect.href);
               if (this.isRegister_() && setting.fix.location && !this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) {
                 jQuery[DEF.NAME].disable();
@@ -147,7 +147,7 @@ module MODULE.MODEL.APP {
                 window.history.forward();
                 jQuery[DEF.NAME].enable();
               }
-              setTimeout(() => this.page_.dispatchEvent(window, 'popstate', false, false), 0);
+              setTimeout(() => this.page_.dispatchEvent(window, EVENT.POPSTATE, false, false), 0);
               break;
           }
           throw false;
@@ -234,11 +234,11 @@ module MODULE.MODEL.APP {
           setTimeout(() => {
             this.app_.page.isScrollPosSavable = true;
             switch (event.type.toLowerCase()) {
-              case 'click':
-              case 'submit':
+              case EVENT.CLICK:
+              case EVENT.SUBMIT:
                 this.scrollByHash_(setting.destLocation.hash) || this.scroll_(true);
                 break;
-              case 'popstate':
+              case EVENT.POPSTATE:
                 this.scroll_(true);
                 break;
             }
@@ -667,8 +667,8 @@ module MODULE.MODEL.APP {
 
       var scrollX: any, scrollY: any;
       switch (event.type.toLowerCase()) {
-        case 'click':
-        case 'submit':
+        case EVENT.CLICK:
+        case EVENT.SUBMIT:
           scrollX = call && 'function' === typeof setting.scrollLeft ? this.util_.fire(setting.scrollLeft, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) : setting.scrollLeft;
           scrollX = 0 <= scrollX ? scrollX : 0;
           scrollX = scrollX === false || scrollX === null ? jQuery(window).scrollLeft() : parseInt(Number(scrollX) + '', 10);
@@ -679,7 +679,7 @@ module MODULE.MODEL.APP {
 
           window.scrollTo(scrollX, scrollY);
           break;
-        case 'popstate':
+        case EVENT.POPSTATE:
           call && setting.fix.scroll && this.app_.data.loadScrollPosition();
           break;
       }

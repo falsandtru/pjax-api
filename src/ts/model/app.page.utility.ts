@@ -26,10 +26,10 @@ module MODULE.MODEL.APP {
 
     movePageNormally(event: JQueryEventObject): void {
       switch (event.type.toLowerCase()) {
-        case 'click':
+        case EVENT.CLICK:
           window.location.assign((<HTMLAnchorElement>event.currentTarget).href);
           break;
-        case 'submit':
+        case EVENT.SUBMIT:
           switch ((<HTMLFormElement>event.currentTarget).method.toUpperCase()) {
             case 'GET':
               window.location.assign((<HTMLFormElement>event.currentTarget).action.replace(/[?#].*/, '') + '?' + jQuery(event.currentTarget).serialize());
@@ -39,7 +39,7 @@ module MODULE.MODEL.APP {
               break;
           }
           break;
-        case 'popstate':
+        case EVENT.POPSTATE:
           window.location.reload();
           break;
       }

@@ -41,7 +41,7 @@ module MODULE.MODEL.APP {
       speedcheck && speed.name.splice(0, 100, 'pjax(' + speed.time.slice(-1) + ')');
 
       this.app_.page.isScrollPosSavable = false;
-      setting.fix.reset && /click|submit/.test(event.type.toLowerCase()) && window.scrollTo(jQuery(window).scrollLeft(), 0);
+      setting.fix.reset && ~''.concat(EVENT.CLICK, EVENT.SUBMIT).indexOf(event.type.toLowerCase()) && window.scrollTo(jQuery(window).scrollLeft(), 0);
 
       function success(data: string, textStatus: string, jqXHR: JQueryXHR) {
         return that.model_.isDeferrable ? undefined : done.call(this, [].slice.call(arguments), undefined);
@@ -83,19 +83,19 @@ module MODULE.MODEL.APP {
 
       var cache: CacheInterface;
       switch (setting.cache[event.type.toLowerCase()] && event.type.toLowerCase()) {
-        case 'click':
+        case EVENT.CLICK:
           cache = this.model_.getCache(setting.destLocation.href);
           this.app_.data.saveTitle();
           this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
           break;
 
-        case 'submit':
+        case EVENT.SUBMIT:
           cache = setting.cache[(<HTMLFormElement>event.currentTarget).method.toLowerCase()] ? this.model_.getCache(setting.destLocation.href) : cache;
           this.app_.data.saveTitle();
           this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
           break;
 
-        case 'popstate':
+        case EVENT.POPSTATE:
           cache = this.model_.getCache(setting.destLocation.href);
           this.app_.data.saveTitle(setting.origLocation.href, document.title);
           setting.fix.history && this.app_.data.loadTitle();
@@ -155,11 +155,11 @@ module MODULE.MODEL.APP {
                                              requestLocation.hash
                                            ].join('');
         switch (event.type.toLowerCase()) {
-          case 'click':
+          case EVENT.CLICK:
             ajax.type = 'GET';
             break;
 
-          case 'submit':
+          case EVENT.SUBMIT:
             ajax.type = (<HTMLFormElement>event.currentTarget).method.toUpperCase();
             switch (ajax.type) {
               case 'POST':
@@ -176,7 +176,7 @@ module MODULE.MODEL.APP {
             }
             break;
 
-          case 'popstate':
+          case EVENT.POPSTATE:
             ajax.type = 'GET';
             break;
         }
