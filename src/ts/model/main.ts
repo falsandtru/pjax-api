@@ -137,7 +137,7 @@ module MODULE.MODEL {
             break PROCESS;
         }
         
-        this.app_.page.transfer(setting, event, setting.destLocation.href !== setting.origLocation.href);
+        this.app_.page.transfer(setting, event);
         event.preventDefault();
         return;
       };
@@ -160,7 +160,7 @@ module MODULE.MODEL {
             break PROCESS;
         }
         
-        this.app_.page.transfer(setting, event, setting.destLocation.href !== setting.origLocation.href);
+        this.app_.page.transfer(setting, event);
         event.preventDefault();
         return;
       };
@@ -186,7 +186,7 @@ module MODULE.MODEL {
             break PROCESS;
         }
         
-        this.app_.page.transfer(setting, event, false);
+        this.app_.page.transfer(setting, event);
         return;
       };
       // pjax処理されないURL変更によるページ更新

@@ -15,14 +15,13 @@ module MODULE.MODEL.APP {
     private page_: PageInterface,
     private setting_: SettingInterface,
     private event_: JQueryEventObject,
-    private register_: boolean,
     private cache_: CacheInterface,
     private data_: string,
     private textStatus_: string,
     private jqXHR_: JQueryXHR,
     private errorThrown_: string,
     private host_: string,
-    private reriable_: boolean
+    private retriable_: boolean
     ) {
       this.main_();
     }
@@ -39,7 +38,6 @@ module MODULE.MODEL.APP {
       var app = this.app_,
           setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
-          register: boolean = this.register_,
           data: string = this.data_,
           textStatus: string = this.textStatus_,
           jqXHR: JQueryXHR = this.jqXHR_;
@@ -98,6 +96,19 @@ module MODULE.MODEL.APP {
       }; // label: UPDATE
     }
 
+    private isRegister_(): boolean {
+      var setting: SettingInterface = this.setting_,
+          event: JQueryEventObject = this.event_;
+      switch (true) {
+        case setting.destLocation.href === setting.origLocation.href:
+        case 'popstate' === event.type.toLowerCase():
+        case !this.retriable_:
+          return false;
+        default:
+          return true;
+      }
+    }
+    
     private isCacheUsable_(): boolean {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
@@ -130,8 +141,7 @@ module MODULE.MODEL.APP {
 
     private checkRedirect_(): void {
       var setting: SettingInterface = this.setting_,
-          event: JQueryEventObject = this.event_,
-          register: boolean = this.register_;
+          event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
       if (!jQuery('head meta[http-equiv="Refresh"][content*="URL="]', this.srcDocument_).length) { return; }
@@ -165,7 +175,7 @@ module MODULE.MODEL.APP {
               break;
             case 'popstate':
               window.history.replaceState(window.history.state, this.srcDocument_.title, redirect.href);
-              if (register && setting.fix.location && !this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) {
+              if (this.isRegister_() && setting.fix.location && !this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) {
                 jQuery[DEF.NAME].disable();
                 window.history.back();
                 window.history.forward();
@@ -182,31 +192,31 @@ module MODULE.MODEL.APP {
     
     private updateUrl_(): void {
       var setting: SettingInterface = this.setting_,
-          event: JQueryEventObject = this.event_,
-          register: boolean = this.register_;
+          event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
       this.model_.location.href = setting.destLocation.href;
 
       if (this.util_.fire(callbacks_update.url.before, setting, [event, setting]) === false) { return; };
 
-      register &&
-      window.history.pushState(this.util_.fire(setting.state, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]),
-                               ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstDocument_.title : this.srcDocument_.title,
-                               setting.destLocation.href);
+      if (this.isRegister_()) {
+        window.history.pushState(this.util_.fire(setting.state, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]),
+                                 ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstDocument_.title : this.srcDocument_.title,
+                                 setting.destLocation.href);
 
-      if (register && setting.fix.location && !this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) {
-        jQuery[DEF.NAME].disable();
-        window.history.back();
-        window.history.forward();
-        jQuery[DEF.NAME].enable();
+        if (setting.fix.location && !this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) {
+          jQuery[DEF.NAME].disable();
+          window.history.back();
+          window.history.forward();
+          jQuery[DEF.NAME].enable();
+        }
       }
 
       // verify
       if (this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) {
-      } else if (this.reriable_) {
+      } else if (this.retriable_) {
         setting.destLocation.href = this.util_.normalizeUrl(window.location.href);
-        new PageUpdate(this.model_, this.app_, this.page_, setting, event, false, setting.cache[event.type.toLowerCase()] && this.model_.getCache(setting.destLocation.href), this.data_, this.textStatus_, this.jqXHR_, this.errorThrown_, this.host_, false);
+        new PageUpdate(this.model_, this.app_, this.page_, setting, event, setting.cache[event.type.toLowerCase()] && this.model_.getCache(setting.destLocation.href), this.data_, this.textStatus_, this.jqXHR_, this.errorThrown_, this.host_, false);
         throw false;
       } else {
         throw new Error('throw: location mismatch');

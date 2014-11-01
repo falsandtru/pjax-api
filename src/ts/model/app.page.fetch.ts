@@ -14,10 +14,9 @@ module MODULE.MODEL.APP {
     private page_: PageInterface,
     private setting_: SettingInterface,
     private event_: JQueryEventObject,
-    private register_: boolean,
     private cache_: CacheInterface,
-    private done_: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any,
-    private fail_: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any
+    private done_: (setting: SettingInterface, event: JQueryEventObject, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any,
+    private fail_: (setting: SettingInterface, event: JQueryEventObject, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any
     ) {
       this.main_();
     }
@@ -35,7 +34,6 @@ module MODULE.MODEL.APP {
       var that = this,
           setting = this.setting_,
           event = this.event_ = jQuery.extend(true, {}, this.event_),
-          register = this.register_,
           cache = this.cache_,
           wait: number = this.util_.fire(setting.wait, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]);
 
@@ -76,9 +74,9 @@ module MODULE.MODEL.APP {
         that.model_.setXHR(null);
 
         if (that.data_) {
-          that.done_(setting, event, register, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
+          that.done_(setting, event, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
         } else {
-          that.fail_(setting, event, register, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
+          that.fail_(setting, event, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
         }
       }
 

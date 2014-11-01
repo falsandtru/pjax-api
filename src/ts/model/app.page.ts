@@ -29,11 +29,11 @@ module MODULE.MODEL.APP {
     time: number = new Date().getTime()
     loadtime: number = 0
 
-    transfer(setting: SettingInterface, event: JQueryEventObject, register: boolean): void {
-      var done = (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => {
-        this.update_(setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host);
+    transfer(setting: SettingInterface, event: JQueryEventObject): void {
+      var done = (setting: SettingInterface, event: JQueryEventObject, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => {
+        this.update_(setting, event, cache, data, textStatus, jqXHR, errorThrown, host);
       };
-      var fail = (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => {
+      var fail = (setting: SettingInterface, event: JQueryEventObject, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => {
         if (!setting.fallback || 'abort' === textStatus) { return; }
 
         if (setting.balance.self) {
@@ -65,22 +65,20 @@ module MODULE.MODEL.APP {
           break;
       }
 
-      this.fetch_(setting, event, register, cache, done, fail);
+      this.fetch_(setting, event, cache, done, fail);
     }
 
     private fetch_(setting: SettingInterface,
                    event: JQueryEventObject,
-                   register: boolean,
                    cache: CacheInterface,
-                   done: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void,
-                   fail: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void
+                   done: (setting: SettingInterface, event: JQueryEventObject, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void,
+                   fail: (setting: SettingInterface, event: JQueryEventObject, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void
                   ): void {
-      new PageFetch(this.model_, this.app_, this, setting, event, register, cache, done, fail);
+      new PageFetch(this.model_, this.app_, this, setting, event, cache, done, fail);
     }
 
     private update_(setting: SettingInterface,
                     event: JQueryEventObject,
-                    register: boolean,
                     cache: CacheInterface,
                     data: string,
                     textStatus: string,
@@ -88,7 +86,7 @@ module MODULE.MODEL.APP {
                     errorThrown: string,
                     host: string
                    ): void {
-      new PageUpdate(this.model_, this.app_, this, setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host, true);
+      new PageUpdate(this.model_, this.app_, this, setting, event, cache, data, textStatus, jqXHR, errorThrown, host, true);
     }
 
     // mixin utility
