@@ -49,10 +49,10 @@ ajaxの同名のメソッド内で実行されます。jQuery1.6+ではDeferred�
 ### update.url.after( event, param, data, textStatus, jqXHR )
 ページの更新処理においてURLの更新後に実行されます。
 
-### update.rewrite.before( event, param, cache )
+### update.rewrite.before( event, param, data, textStatus, jqXHR )
 ページの更新処理において更新元HTMLDocumentの書き換え前に実行されます。
 
-### update.rewrite.after( event, param, cache )
+### update.rewrite.after( event, param, data, textStatus, jqXHR )
 ページの更新処理において更新元HTMLDocumentの書き換え後に実行されます。
 
 ### update.title.before( event, param, data, textStatus, jqXHR )

@@ -94,7 +94,7 @@ module MODULE.MODEL.APP {
 
       destLocation.href = url;
 
-      var scope: PjaxSetting = this.scope_(this.option_, origLocation.href, destLocation.href);
+      var scope: PjaxSetting = this.scope_(this.option_, origLocation.href, destLocation.href) || null;
 
       var initial = <PjaxSetting>{
             area: 'body',
@@ -191,12 +191,13 @@ module MODULE.MODEL.APP {
               ajax: {},
               update: { redirect: {}, rewrite: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, balance: {} }
             },
-            param: null
+            param: undefined
           },
           force = <SettingInterface>{
             ns: undefined,
             nss: undefined,
             speedcheck: undefined,
+
             origLocation: origLocation,
             destLocation: destLocation,
 

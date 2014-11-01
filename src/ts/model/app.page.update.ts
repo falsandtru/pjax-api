@@ -338,11 +338,11 @@ module MODULE.MODEL.APP {
 
       if (!setting.rewrite) { return; }
 
-      if (Util.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) { return; }
+      if (Util.fire(callbacks_update.rewrite.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
 
       Util.fire(setting.rewrite, null, [this.srcDocument_, setting.area, this.host_])
 
-      if (Util.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) { return; }
+      if (Util.fire(callbacks_update.rewrite.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
 
     private title_(): void {
