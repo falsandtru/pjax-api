@@ -200,7 +200,6 @@ module MODULE.MODEL.APP {
             origLocation: origLocation,
             destLocation: destLocation,
 
-            gns: DEF.NAME,
             areas: [],
             scroll: { queue: [] },
             loadtime: null,
@@ -209,7 +208,7 @@ module MODULE.MODEL.APP {
           },
           compute = () => {
             setting.ns = setting.ns ? setting.ns.split('.').sort().join('.') : '';
-            var nsArray: string[] = [setting.gns || DEF.NAME].concat(setting.ns ? setting.ns.split('.') : []);
+            var nsArray: string[] = [DEF.NAME].concat(setting.ns ? setting.ns.split('.') : []);
             var query: string = setting.server.query;
             switch (query && typeof query) {
               case 'string':
@@ -221,7 +220,6 @@ module MODULE.MODEL.APP {
                 query = '';
             }
             return <SettingInterface>{
-              gns: undefined,
               ns: undefined,
               origLocation: undefined,
               destLocation: undefined,

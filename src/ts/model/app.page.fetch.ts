@@ -81,7 +81,7 @@ module MODULE.MODEL.APP {
         }
       }
 
-      this.dispatchEvent(document, setting.gns + ':fetch', false, true);
+      this.dispatchEvent(document, DEF.NAME + ':fetch', false, true);
 
       var xhr = this.model_.getXHR();
       if (cache && cache.jqXHR) {

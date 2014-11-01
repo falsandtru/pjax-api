@@ -126,7 +126,6 @@ module MODULE {
   // Parameter
   export interface SettingInterface extends PjaxSetting {
     // internal
-    gns: string
     ns: string
     nss: {
       name: string

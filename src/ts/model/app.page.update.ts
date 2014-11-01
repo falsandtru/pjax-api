@@ -89,7 +89,7 @@ module MODULE.MODEL.APP {
           
           this.checkRedirect_();
           
-          this.dispatchEvent(window, setting.gns + ':unload', false, true);
+          this.dispatchEvent(window, DEF.NAME + ':unload', false, true);
           
           this.updateUrl_();
           
@@ -232,12 +232,12 @@ module MODULE.MODEL.APP {
 
       this.css_('link[rel~="stylesheet"], style');
       jQuery(window)
-      .one(setting.gns + ':rendering', (e) => {
+      .one(DEF.NAME + ':rendering', (e) => {
         e.preventDefault();
         e.stopImmediatePropagation();
 
         var onready = (callback?: () => void) => {
-          this.dispatchEvent(document, setting.gns + ':ready', false, true);
+          this.dispatchEvent(document, DEF.NAME + ':ready', false, true);
 
           Util.fire(setting.callback, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]);
 
@@ -254,7 +254,7 @@ module MODULE.MODEL.APP {
             }
           }, 100);
 
-          this.dispatchEvent(document, setting.gns + ':render', false, true);
+          this.dispatchEvent(document, DEF.NAME + ':render', false, true);
 
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('render(' + speed.time.slice(-1) + ')');
@@ -263,7 +263,7 @@ module MODULE.MODEL.APP {
         };
 
         var onload = () => {
-          this.dispatchEvent(window, setting.gns + ':load', false, true);
+          this.dispatchEvent(window, DEF.NAME + ':load', false, true);
 
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('load(' + speed.time.slice(-1) + ')');
@@ -300,7 +300,7 @@ module MODULE.MODEL.APP {
           onready(() => onrender(() => onload()));
         }
       })
-      .trigger(setting.gns + ':rendering');
+      .trigger(DEF.NAME + ':rendering');
     }
     
     private overwriteDocumentByCache_(): void {
@@ -417,7 +417,7 @@ module MODULE.MODEL.APP {
       checker = jQuery('<div/>', {
         'class': setting.nss.class4html + '-check',
         'style': 'background: none !important; display: block !important; visibility: hidden !important; position: absolute !important; top: 0 !important; left: 0 !important; z-index: -9999 !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; font-size: 12px !important; text-indent: 0 !important;'
-      }).text(setting.gns);
+      }).text(DEF.NAME);
 
       var $srcAreas: JQuery,
           $dstAreas: JQuery;
@@ -439,7 +439,7 @@ module MODULE.MODEL.APP {
         $dstAreas.append(checker.clone());
         $dstAreas.find('script').each((i, elem) => this.restoreScript_(<HTMLScriptElement>elem));
       }
-      this.dispatchEvent(document, setting.gns + ':DOMContentLoaded', false, true);
+      this.dispatchEvent(document, DEF.NAME + ':DOMContentLoaded', false, true);
 
       if (Util.fire(callbacks_update.content.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) { return; }
     }
