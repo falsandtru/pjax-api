@@ -59,7 +59,7 @@ module MODULE.MODEL.APP {
     }
 
     private success_(record: PageRecordInterface, event: JQueryEventObject): void {
-      new PageUpdate(this.model_, this.app_, event, record, true);
+      new PageUpdate(this.model_, this.app_, event, record);
     }
 
     private failure_(record: PageRecordInterface, event: JQueryEventObject): void {

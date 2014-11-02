@@ -275,16 +275,12 @@ module MODULE.MODEL {
       setting: SettingInterface,
       event: JQueryEventObject,
       success: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any,
-      failure: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any)
+      failure: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any
+    )
   }
   // Page::Update
   export declare class PageUpdateInterface extends PageUtilityInterface {
-    constructor(
-      model: ModelInterface,
-      app: AppLayerInterface,
-      event: JQueryEventObject,
-      record: PageRecordInterface,
-      retriable: boolean)
+    constructor(model: ModelInterface, app: AppLayerInterface, event: JQueryEventObject, record: PageRecordInterface)
   }
   // Page::Parser
   export declare class PageParserInterface {

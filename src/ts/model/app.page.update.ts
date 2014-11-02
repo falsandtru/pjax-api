@@ -9,14 +9,7 @@ module MODULE.MODEL.APP {
 
   export class PageUpdate implements PageUpdateInterface {
     
-    constructor(
-
-    private model_: ModelInterface,
-    private app_: AppLayerInterface,
-    private event_: JQueryEventObject,
-    private record_: PageRecordInterface,
-    private retriable_: boolean
-    ) {
+    constructor(private model_: ModelInterface, private app_: AppLayerInterface, private event_: JQueryEventObject, private record_: PageRecordInterface) {
       this.main_();
     }
     
@@ -75,6 +68,8 @@ module MODULE.MODEL.APP {
           
           this.url_();
           
+          if (!this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) { throw false; }
+
           this.document_();
           
         } catch (err) {
@@ -92,7 +87,6 @@ module MODULE.MODEL.APP {
       switch (true) {
         case setting.destLocation.href === setting.origLocation.href:
         case EVENT.POPSTATE === event.type.toLowerCase():
-        case !this.retriable_:
           return false;
         default:
           return true;
@@ -181,19 +175,9 @@ module MODULE.MODEL.APP {
         }
       }
 
-      // verify
-      if (this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) {
-      } else if (this.retriable_) {
-        setting.destLocation.href = this.util_.normalizeUrl(window.location.href);
-        new PageUpdate(this.model_, this.app_, event, this.record_, false);
-        throw false;
-      } else {
-        throw new Error('throw: location mismatch');
-      }
-
       if (this.util_.fire(callbacks_update.url.after, setting, [event, setting]) === false) { return; }
     }
-    
+
     private document_(): void {
       var setting: SettingInterface = this.record_.data.setting(),
           event: JQueryEventObject = this.event_;
