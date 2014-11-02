@@ -395,7 +395,6 @@ new Function().apply.apply(function (accessor) {
           css: true,
           script: true
         },
-        server: { query: null },
         speedcheck: true
       });
 
