@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.26.0
+ * @version 2.27.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -50,6 +50,14 @@ var MODULE;
     })(MODULE.State || (MODULE.State = {}));
     var State = MODULE.State;
 
+    // Event
+    MODULE.EVENT = {
+        CLICK: 'click',
+        SUBMIT: 'submit',
+        POPSTATE: 'popstate',
+        SCROLL: 'scroll'
+    };
+
     
 
     
@@ -62,6 +70,22 @@ var MODULE;
 var MODULE;
 (function (MODULE) {
     (function (MODEL) {
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
         
     })(MODULE.MODEL || (MODULE.MODEL = {}));
     var MODEL = MODULE.MODEL;
@@ -160,6 +184,8 @@ var MODULE;
 
 var MODULE;
 (function (MODULE) {
+    
+
     
 })(MODULE || (MODULE = {}));
 /// <reference path="../define.ts"/>
@@ -272,34 +298,19 @@ var MODULE;
                 // VIEWの待ち受けるイベントに登録されるハンドラ
                 this.handlers = {
                     click: function () {
-                        var args = [];
-                        for (var _i = 0; _i < (arguments.length - 0); _i++) {
-                            args[_i] = arguments[_i + 0];
-                        }
-                        _this.controller_.click.apply(_this.controller_, args);
+                        _this.controller_.click(arguments);
                     },
                     submit: function () {
-                        var args = [];
-                        for (var _i = 0; _i < (arguments.length - 0); _i++) {
-                            args[_i] = arguments[_i + 0];
-                        }
-                        _this.controller_.submit.apply(_this.controller_, args);
+                        _this.controller_.submit(arguments);
                     },
                     popstate: function () {
-                        var args = [];
-                        for (var _i = 0; _i < (arguments.length - 0); _i++) {
-                            args[_i] = arguments[_i + 0];
-                        }
-                        _this.controller_.popstate.apply(_this.controller_, args);
+                        _this.controller_.popstate(arguments);
                     },
                     scroll: function () {
-                        var args = [];
-                        for (var _i = 0; _i < (arguments.length - 0); _i++) {
-                            args[_i] = arguments[_i + 0];
-                        }
-                        _this.controller_.scroll.apply(_this.controller_, args);
+                        _this.controller_.scroll(arguments);
                     }
                 };
+                MODULE.FREEZE(this);
                 this.observe_(setting);
             }
             Main.prototype.observe_ = function (setting) {
@@ -335,29 +346,22 @@ var MODULE;
 (function (MODULE) {
     /* CONTROLLER */
     (function (CONTROLLER) {
-        var M;
-        var C;
-        var S;
-
         var Functions = (function () {
-            function Functions(model, controller) {
-                M = model;
-                C = controller;
-                S = this;
-                MODULE.SEAL(this);
+            function Functions() {
+                MODULE.FREEZE(this);
             }
             Functions.prototype.enable = function () {
-                M.enable();
+                MODULE.Model.singleton().enable();
                 return this;
             };
 
             Functions.prototype.disable = function () {
-                M.disable();
+                MODULE.Model.singleton().disable();
                 return this;
             };
 
             Functions.prototype.click = function (url, attrs) {
-                var setting = M.getGlobalSetting(), $anchor;
+                var $anchor;
 
                 switch (typeof url) {
                     case 'undefined':
@@ -376,14 +380,15 @@ var MODULE;
                     default:
                         return this;
                 }
-                $anchor.first().one(setting.nss.click, function () {
-                    return C.click.apply(C, arguments);
+                var setting = MODULE.Model.singleton().configure($anchor[0]);
+                setting && $anchor.first().one(setting.nss.click, function () {
+                    return MODULE.Controller.singleton().click(arguments);
                 }).click();
                 return this;
             };
 
             Functions.prototype.submit = function (url, attrs, data) {
-                var setting = M.getGlobalSetting(), $form, df = document.createDocumentFragment(), type, $element;
+                var $form, df = document.createDocumentFragment(), type, $element;
 
                 switch (typeof url) {
                     case 'undefined':
@@ -422,15 +427,16 @@ var MODULE;
                     default:
                         return this;
                 }
-                $form.first().one(setting.nss.submit, function () {
-                    return C.submit.apply(C, arguments);
+                var setting = MODULE.Model.singleton().configure($form[0]);
+                setting && $form.first().one(setting.nss.submit, function () {
+                    return MODULE.Controller.singleton().submit(arguments);
                 }).submit();
                 return this;
             };
 
             Functions.prototype.getCache = function (url) {
                 if (typeof url === "undefined") { url = window.location.href; }
-                var cache = M.getCache(url);
+                var cache = MODULE.Model.singleton().getCache(url);
                 if (cache) {
                     cache = {
                         data: cache.data,
@@ -453,24 +459,24 @@ var MODULE;
                     case 3:
                     case 4:
                     default:
-                        M.setCache(url, data, textStatus, jqXHR);
+                        MODULE.Model.singleton().setCache(url, data, textStatus, jqXHR);
                 }
                 return this;
             };
 
             Functions.prototype.removeCache = function (url) {
                 if (typeof url === "undefined") { url = window.location.href; }
-                M.removeCache(url);
+                MODULE.Model.singleton().removeCache(url);
                 return this;
             };
 
             Functions.prototype.clearCache = function () {
-                M.clearCache();
+                MODULE.Model.singleton().clearCache();
                 return this;
             };
 
             Functions.prototype.follow = function (event, $XHR, host, timeStamp) {
-                if (!M.isDeferrable) {
+                if (!MODULE.Model.singleton().isDeferrable) {
                     return false;
                 }
                 var anchor = event.currentTarget;
@@ -479,16 +485,16 @@ var MODULE;
                 if (isFinite(event.timeStamp)) {
                     $XHR.timeStamp = timeStamp || event.timeStamp;
                 }
-                M.setGlobalXHR($XHR);
+                MODULE.Model.singleton().setXHR($XHR);
                 jQuery.when($XHR).done(function () {
-                    !M.getCache(anchor.href) && M.isImmediateLoadable(event) && M.setCache(anchor.href, undefined, undefined, $XHR);
+                    !MODULE.Model.singleton().getCache(anchor.href) && MODULE.Model.singleton().isAvailable(event) && MODULE.Model.singleton().setCache(anchor.href, undefined, undefined, $XHR);
                 });
                 jQuery[MODULE.DEF.NAME].click(anchor.href);
                 return true;
             };
 
             Functions.prototype.host = function () {
-                return M.host();
+                return MODULE.Model.singleton().host();
             };
             return Functions;
         })();
@@ -503,16 +509,9 @@ var MODULE;
 (function (MODULE) {
     /* CONTROLLER */
     (function (CONTROLLER) {
-        var M;
-        var C;
-        var S;
-
         var Methods = (function () {
-            function Methods(model, controller) {
-                M = model;
-                C = controller;
-                S = this;
-                MODULE.SEAL(this);
+            function Methods() {
+                MODULE.FREEZE(this);
             }
             return Methods;
         })();
@@ -540,21 +539,18 @@ var MODULE;
                 /**
                 * Controllerの遷移状態を持つ
                 *
-                * @prperty state_
+                * @property state_
                 * @type {State}
                 */
                 this.state_ = 0 /* blank */;
                 /**
                 * 拡張のプロパティを指定する
                 *
-                * @prperty PROPERTIES
+                * @property PROPERTIES
                 * @type {String}
                 */
                 this.PROPERTIES = [];
                 this.state_ = state;
-                this.FUNCTIONS = new CONTROLLER.Functions(model, this);
-                this.METHODS = new CONTROLLER.Methods(model, this);
-                this.REGISTER(model);
             }
             Template.prototype.EXTEND = function (context) {
                 if (context instanceof MODULE.DEF.NAMESPACE) {
@@ -678,6 +674,10 @@ var MODULE;
             function Main(model_) {
                 _super.call(this, model_, 1 /* initiate */);
                 this.model_ = model_;
+                this.FUNCTIONS = new CONTROLLER.Functions();
+                this.METHODS = new CONTROLLER.Methods();
+                this.REGISTER(model_);
+                MODULE.FREEZE(this);
             }
             Main.prototype.exec_ = function ($context) {
                 var args = [].slice.call(arguments, 1, 2), option = args[0];
@@ -693,44 +693,44 @@ var MODULE;
                 return [$context].concat(args);
             };
 
-            Main.prototype.click = function () {
-                var args = [];
-                for (var _i = 0; _i < (arguments.length - 0); _i++) {
-                    args[_i] = arguments[_i + 0];
-                }
+            Main.prototype.click = function (args) {
                 this.model_.click.apply(this.model_, args);
             };
-            Main.prototype.submit = function () {
-                var args = [];
-                for (var _i = 0; _i < (arguments.length - 0); _i++) {
-                    args[_i] = arguments[_i + 0];
-                }
+            Main.prototype.submit = function (args) {
                 this.model_.submit.apply(this.model_, args);
             };
-            Main.prototype.popstate = function () {
-                var args = [];
-                for (var _i = 0; _i < (arguments.length - 0); _i++) {
-                    args[_i] = arguments[_i + 0];
-                }
+            Main.prototype.popstate = function (args) {
                 this.model_.popstate.apply(this.model_, args);
             };
-            Main.prototype.scroll = function () {
-                var args = [];
-                for (var _i = 0; _i < (arguments.length - 0); _i++) {
-                    args[_i] = arguments[_i + 0];
-                }
+            Main.prototype.scroll = function (args) {
                 this.model_.scroll.apply(this.model_, args);
             };
             return Main;
         })(CONTROLLER.Template);
         CONTROLLER.Main = Main;
+
+        var Singleton = (function () {
+            function Singleton(model) {
+                if (typeof model === "undefined") { model = MODULE.Model.singleton(); }
+                Singleton.instance_ = Singleton.instance_ || new Main(model);
+            }
+            Singleton.singleton = function () {
+                return Singleton.instance_;
+            };
+
+            Singleton.prototype.singleton = function () {
+                return Singleton.singleton();
+            };
+            return Singleton;
+        })();
+        CONTROLLER.Singleton = Singleton;
     })(MODULE.CONTROLLER || (MODULE.CONTROLLER = {}));
     var CONTROLLER = MODULE.CONTROLLER;
 })(MODULE || (MODULE = {}));
 
 var MODULE;
 (function (MODULE) {
-    MODULE.Controller = MODULE.CONTROLLER.Main;
+    MODULE.Controller = MODULE.CONTROLLER.Singleton;
 })(MODULE || (MODULE = {}));
 /// <reference path="../define.ts"/>
 var MODULE;
@@ -1261,8 +1261,14 @@ var MODULE;
                         });
                     };
 
-                    Store.prototype.accessAll = function (success) {
-                        return this.accessCursor(null, null, null, success);
+                    Store.prototype.accessAll = function (index, range, direction, success) {
+                        if ('function' === typeof index) {
+                            success = index;
+                            index = null;
+                            range = null;
+                            direction = null;
+                        }
+                        this.accessCursor(index, range, direction, success);
                     };
 
                     Store.prototype.get = function (key, success) {
@@ -1339,16 +1345,21 @@ var MODULE;
                     Store.prototype.loadBuffer = function (limit) {
                         if (typeof limit === "undefined") { limit = 0; }
                         var buffer = this.buffer_;
-                        this.accessAll(function () {
+                        if (this.indexes.length) {
+                            this.accessAll(this.indexes[0].name, this.DB.IDBKeyRange.upperBound(Infinity), 'prev', callback);
+                        } else {
+                            this.accessAll(callback);
+                        }
+                        function callback() {
                             if (!this.result) {
                                 return;
                             }
-                            var cursor = this.result, value = cursor.value, key = value[cursor.source.keyPath];
+                            var cursor = this.result;
 
-                            buffer[key] = value;
+                            buffer[cursor.primaryKey] = cursor.value;
 
                             --limit && cursor['continue']();
-                        });
+                        }
                     };
 
                     Store.prototype.saveBuffer = function () {
@@ -1523,7 +1534,7 @@ var MODULE;
                         this.IDBFactory = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB;
                         this.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.mozIDBKeyRange || window.msIDBKeyRange;
                         this.name_ = MODULE.DEF.NAME;
-                        this.version_ = 7;
+                        this.version_ = 8;
                         this.refresh_ = 10;
                         this.upgrade_ = 0;
                         this.state_ = 0 /* blank */;
@@ -1928,7 +1939,6 @@ var MODULE;
                 }
             };
 
-            /* function */
             Utility.fire = function (fn, context, args, async) {
                 if (typeof context === "undefined") { context = window; }
                 if (typeof args === "undefined") { args = []; }
@@ -2119,14 +2129,13 @@ var MODULE;
     (function (MODEL) {
         /* MODEL */
         (function (APP) {
-            var Util = MODULE.LIBRARY.Utility;
-
             var Data = (function () {
                 function Data(model_, app_) {
                     this.model_ = model_;
                     this.app_ = app_;
                     this.data_ = new APP.DATA.Main();
                     this.stores_ = this.data_.DB.stores;
+                    this.util_ = MODULE.LIBRARY.Utility;
                 }
                 // cookie
                 Data.prototype.getCookie = function (key) {
@@ -2138,12 +2147,13 @@ var MODULE;
                 };
 
                 // db
-                Data.prototype.opendb = function (setting) {
+                Data.prototype.connect = function (setting) {
                     if (!setting.database) {
                         return;
                     }
 
                     this.data_.DB.up();
+
                     this.saveTitle();
                     this.saveScrollPosition();
                 };
@@ -2163,21 +2173,22 @@ var MODULE;
 
                 // history
                 Data.prototype.getHistoryBuffer = function (unsafe_url) {
-                    return this.stores_.history.getBuffer(this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url)));
+                    return this.stores_.history.getBuffer(this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(unsafe_url)));
                 };
 
                 Data.prototype.loadTitle = function () {
-                    var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(window.location.href)), that = this;
+                    var _this = this;
+                    var keyUrl = this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(window.location.href));
 
                     var data = this.stores_.history.getBuffer(keyUrl);
 
                     if (data && 'string' === typeof data.title) {
                         document.title = data.title;
                     } else {
-                        this.stores_.history.get(keyUrl, function () {
-                            data = this.result;
+                        this.stores_.history.get(keyUrl, function (event) {
+                            data = event.target.result;
                             if (data && data.title) {
-                                if (Util.compareUrl(keyUrl, that.model_.convertUrlToKeyUrl(Util.normalizeUrl(window.location.href)))) {
+                                if (_this.util_.compareUrl(keyUrl, _this.model_.convertUrlToKeyUrl(_this.util_.normalizeUrl(window.location.href)))) {
                                     document.title = data.title;
                                 }
                             }
@@ -2188,7 +2199,7 @@ var MODULE;
                 Data.prototype.saveTitle = function (unsafe_url, title) {
                     if (typeof unsafe_url === "undefined") { unsafe_url = window.location.href; }
                     if (typeof title === "undefined") { title = document.title; }
-                    var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
+                    var keyUrl = this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(unsafe_url));
 
                     var value = {
                         url: keyUrl,
@@ -2206,7 +2217,8 @@ var MODULE;
                 };
 
                 Data.prototype.loadScrollPosition = function () {
-                    var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(window.location.href)), that = this;
+                    var _this = this;
+                    var keyUrl = this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(window.location.href));
 
                     var data = this.stores_.history.getBuffer(keyUrl);
                     function scroll(scrollX, scrollY) {
@@ -2220,10 +2232,10 @@ var MODULE;
                     if (data && 'number' === typeof data.scrollX) {
                         scroll(data.scrollX, data.scrollY);
                     } else {
-                        this.stores_.history.get(keyUrl, function () {
-                            data = this.result;
+                        this.stores_.history.get(keyUrl, function (event) {
+                            data = event.target.result;
                             if (data && 'number' === typeof data.scrollX) {
-                                if (Util.compareUrl(keyUrl, that.model_.convertUrlToKeyUrl(Util.normalizeUrl(window.location.href)))) {
+                                if (_this.util_.compareUrl(keyUrl, _this.model_.convertUrlToKeyUrl(_this.util_.normalizeUrl(window.location.href)))) {
                                     scroll(data.scrollX, data.scrollY);
                                 }
                             }
@@ -2235,7 +2247,7 @@ var MODULE;
                     if (typeof unsafe_url === "undefined") { unsafe_url = window.location.href; }
                     if (typeof scrollX === "undefined") { scrollX = jQuery(window).scrollLeft(); }
                     if (typeof scrollY === "undefined") { scrollY = jQuery(window).scrollTop(); }
-                    var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
+                    var keyUrl = this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(unsafe_url));
 
                     var value = {
                         url: keyUrl,
@@ -2255,7 +2267,7 @@ var MODULE;
                 };
 
                 Data.prototype.saveExpires = function (unsafe_url, host, expires) {
-                    var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
+                    var keyUrl = this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(unsafe_url));
 
                     var value = {
                         url: keyUrl,
@@ -2279,12 +2291,12 @@ var MODULE;
                 Data.prototype.loadServer = function () {
                 };
 
-                Data.prototype.saveServer = function (host, performance, state, unsafe_url, expires) {
+                Data.prototype.saveServer = function (host, score, state, unsafe_url, expires) {
                     if (typeof state === "undefined") { state = 0; }
                     if (typeof expires === "undefined") { expires = 0; }
                     var store = this.stores_.server, value = {
                         host: host.split('//').pop().split('/').shift() || '',
-                        performance: performance,
+                        score: score,
                         state: state,
                         date: new Date().getTime()
                     };
@@ -2312,18 +2324,18 @@ var MODULE;
 })(MODULE || (MODULE = {}));
 /// <reference path="../define.ts"/>
 /// <reference path="app.data.ts"/>
+/// <reference path="../library/utility.ts"/>
 var MODULE;
 (function (MODULE) {
     (function (MODEL) {
         /* MODEL */
         (function (APP) {
-            var Util = MODULE.LIBRARY.Utility;
-
             var Balance = (function () {
                 function Balance(model_, app_) {
                     var _this = this;
                     this.model_ = model_;
                     this.app_ = app_;
+                    this.util_ = MODULE.LIBRARY.Utility;
                     this.host_ = '';
                     this.host = function () {
                         return _this.host_;
@@ -2358,8 +2370,8 @@ var MODULE;
                 };
 
                 Balance.prototype.changeServer = function (host, setting) {
-                    if (typeof setting === "undefined") { setting = this.model_.getGlobalSetting(); }
-                    if (!this.isBalanceable_(setting)) {
+                    if (typeof setting === "undefined") { setting = this.model_.configure(window.location); }
+                    if (!setting || !this.isBalanceable_(setting)) {
                         return;
                     }
 
@@ -2370,7 +2382,7 @@ var MODULE;
                 };
 
                 Balance.prototype.chooseServers_ = function (expires, limit, weight, respite) {
-                    var servers = this.app_.data.getServerBuffers(), serverTableByPerformance = {}, result;
+                    var servers = this.app_.data.getServerBuffers(), serverTableByScore = {}, result;
 
                     (function () {
                         var now = new Date().getTime();
@@ -2378,14 +2390,14 @@ var MODULE;
                             if (now > servers[i].date + expires) {
                                 continue;
                             }
-                            serverTableByPerformance[servers[i].performance] = servers[i];
+                            serverTableByScore[servers[i].score] = servers[i];
                         }
                     })();
 
                     result = [];
-                    var performanceList = Object.keys(serverTableByPerformance).sort();
-                    for (var i = 0, performance; performance = result.length < limit && performanceList[i]; i++) {
-                        var server = serverTableByPerformance[performance], host = server.host, state = server.state;
+                    var scores = Object.keys(serverTableByScore).sort();
+                    for (var i = 0, score; score = result.length < limit && scores[i]; i++) {
+                        var server = serverTableByScore[score], host = server.host, state = server.state;
                         if (state && state + respite >= new Date().getTime()) {
                             continue;
                         }
@@ -2446,23 +2458,48 @@ var MODULE;
 
                         (function (server) {
                             --_this.parallel_;
-                            option.url = Util.normalizeUrl(server + window.location.pathname.replace(/^\/?/, '/') + window.location.search);
-                            var done = function (data, textStatus, jqXHR) {
-                                _this.host_ = server;
-                                _this.queue_ = [];
-                            };
-                            var always = function () {
-                                ++_this.parallel_;
-                                servers.length && _this.bypass(setting, servers.length - 1);
-                            };
+                            var that = _this;
+                            jQuery.ajax(jQuery.extend({}, option, {
+                                url: that.util_.normalizeUrl(server + window.location.pathname.replace(/^\/?/, '/') + window.location.search),
+                                xhr: !setting.balance.option.callbacks.ajax.xhr ? undefined : function () {
+                                    var jqXHR;
+                                    jqXHR = that.util_.fire(setting.balance.option.callbacks.ajax.xhr, this, [event, setting]);
+                                    jqXHR = 'object' === typeof jqXHR ? jqXHR : jQuery.ajaxSettings.xhr();
+                                    return jqXHR;
+                                },
+                                beforeSend: !setting.balance.option.callbacks.ajax.beforeSend && !setting.server.header ? undefined : function (jqXHR, ajaxSetting) {
+                                    if (setting.server.header) {
+                                        jqXHR.setRequestHeader(setting.nss.requestHeader, 'true');
+                                    }
+                                    if ('object' === typeof setting.server.header) {
+                                        jqXHR.setRequestHeader(setting.nss.requestHeader, 'true');
+                                        setting.server.header.area && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Area', this.app_.chooseArea(setting.area, document, document));
+                                        setting.server.header.head && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Head', setting.load.head);
+                                        setting.server.header.css && jqXHR.setRequestHeader(setting.nss.requestHeader + '-CSS', setting.load.css.toString());
+                                        setting.server.header.script && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Script', setting.load.script.toString());
+                                    }
 
-                            if (_this.model_.isDeferrable) {
-                                jQuery.ajax(option).done(done).always(always);
-                            } else {
-                                option.success = done;
-                                option.complete = always;
-                                jQuery.ajax(option);
-                            }
+                                    that.util_.fire(setting.balance.option.callbacks.ajax.beforeSend, this, [event, setting, jqXHR, ajaxSetting]);
+                                },
+                                dataFilter: !setting.balance.option.callbacks.ajax.dataFilter ? undefined : function (data, type) {
+                                    return that.util_.fire(setting.balance.option.callbacks.ajax.dataFilter, this, [event, setting, data, type]) || data;
+                                },
+                                success: function () {
+                                    that.host_ = server;
+                                    that.queue_ = [];
+
+                                    that.util_.fire(setting.balance.option.ajax.success, this, arguments);
+                                },
+                                error: function () {
+                                    that.util_.fire(setting.balance.option.ajax.error, this, arguments);
+                                },
+                                complete: function () {
+                                    ++that.parallel_;
+                                    servers.length && that.bypass(setting, servers.length - 1);
+
+                                    that.util_.fire(setting.balance.option.ajax.complete, this, arguments);
+                                }
+                            }));
                         })(servers.shift());
                     }
                 };
@@ -2480,119 +2517,81 @@ var MODULE;
     (function (MODEL) {
         /* MODEL */
         (function (APP) {
-            var mode;
-            var Util = MODULE.LIBRARY.Utility;
+            var PageRecord = (function () {
+                function PageRecord(model_, setting, data, textStatus, jqXHR, host, state) {
+                    var _this = this;
+                    this.model_ = model_;
+                    this.state_ = false;
+                    this.state = function () {
+                        return _this.state_;
+                    };
+                    this.data_ = setting ? {
+                        url: this.model_.convertUrlToKeyUrl(setting.destLocation.href),
+                        data: data,
+                        textStatus: textStatus,
+                        jqXHR: jqXHR,
+                        host: host,
+                        setting: setting
+                    } : {
+                        url: undefined,
+                        data: undefined,
+                        textStatus: undefined,
+                        jqXHR: undefined,
+                        host: undefined,
+                        setting: undefined
+                    };
 
+                    this.data = new PageRecordData(this.data_);
+                    this.state_ = !!state;
+                }
+                return PageRecord;
+            })();
+            APP.PageRecord = PageRecord;
+
+            var PageRecordData = (function () {
+                function PageRecordData(data_) {
+                    this.data_ = data_;
+                }
+                PageRecordData.prototype.url = function () {
+                    return this.data_.url;
+                };
+
+                PageRecordData.prototype.data = function () {
+                    return this.data_.data;
+                };
+
+                PageRecordData.prototype.textStatus = function () {
+                    return this.data_.textStatus;
+                };
+
+                PageRecordData.prototype.jqXHR = function () {
+                    return this.data_.jqXHR;
+                };
+
+                PageRecordData.prototype.host = function () {
+                    return this.data_.host;
+                };
+
+                PageRecordData.prototype.setting = function () {
+                    return this.data_.setting;
+                };
+                return PageRecordData;
+            })();
+            APP.PageRecordData = PageRecordData;
+        })(MODEL.APP || (MODEL.APP = {}));
+        var APP = MODEL.APP;
+    })(MODULE.MODEL || (MODULE.MODEL = {}));
+    var MODEL = MODULE.MODEL;
+})(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
+var MODULE;
+(function (MODULE) {
+    (function (MODEL) {
+        /* MODEL */
+        (function (APP) {
             var PageUtility = (function () {
                 function PageUtility() {
                 }
-                PageUtility.prototype.createHTMLDocument = function (html, uri) {
-                    var _this = this;
-                    html = html || '<title></title>';
-                    var test = function (mode_) {
-                        try  {
-                            mode = mode_;
-                            var html = '<html lang="en" class="html"><head><title>&amp;</title><link href="/"><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript><a href="/"></a></body></html>', doc = _this.createHTMLDocument(html, '');
-                            switch (false) {
-                                case !!doc:
-                                case doc.URL && decodeURI(doc.URL) === decodeURI(uri || window.location.href):
-                                case doc.title === '&':
-                                case !!doc.querySelector('html.html[lang="en"]'):
-                                case !!doc.querySelector('head>link')['href']:
-                                case !!doc.querySelector('head>noscript')['innerHTML']:
-                                case !!doc.querySelector('body>noscript')['innerHTML']:
-                                case !!doc.querySelector('body>a')['href']:
-                                    throw true;
-                            }
-                            return true;
-                        } catch (err) {
-                            mode = null;
-                            return false;
-                        }
-                    };
-                    function manipulate(doc, html) {
-                        var wrapper = document.createElement('div');
-                        wrapper.innerHTML = html.match(/<html(?:\s.*?[^\\])?>|$/i).shift().replace(/html/i, 'div') || '<div>';
-                        var attrs = wrapper.firstChild.attributes;
-                        for (var i = 0, attr; attr = attrs[i]; i++) {
-                            doc.documentElement.setAttribute(attr.name, attr.value);
-                        }
-                        var wrapper = document.createElement('html');
-                        wrapper.innerHTML = html.replace(/^.*?<html(?:\s.*?[^\\])?>/im, '');
-                        doc.documentElement.removeChild(doc.head);
-                        doc.documentElement.removeChild(doc.body);
-                        while (wrapper.childNodes.length) {
-                            doc.documentElement.appendChild(wrapper.childNodes[0]);
-                        }
-                        return doc;
-                    }
-                    ;
-
-                    var backup = window.location.href;
-                    uri && window.history.replaceState(window.history.state, document.title, uri);
-
-                    var doc;
-                    switch (mode) {
-                        case 'dom':
-                            if ('function' === typeof window.DOMParser) {
-                                doc = new window.DOMParser().parseFromString(html, 'text/html');
-                            }
-                            break;
-
-                        case 'doc':
-                            if (document.implementation && document.implementation.createHTMLDocument) {
-                                doc = document.implementation.createHTMLDocument('');
-
-                                // IE, Operaクラッシュ対策
-                                if ('object' !== typeof doc.activeElement || !doc.activeElement) {
-                                    break;
-                                }
-
-                                // titleプロパティの値をChromeで事後に変更できなくなったため事前に設定する必要がある
-                                if ('function' === typeof window.DOMParser && new window.DOMParser().parseFromString('', 'text/html')) {
-                                    doc.title = new window.DOMParser().parseFromString(html.match(/<title(?:\s.*?[^\\])?>(?:.*?[^\\])?<\/title>/i), 'text/html').title;
-                                }
-                                doc.open();
-                                doc.write(html);
-                                doc.close();
-                                if (doc.title !== doc.querySelector('title').textContent) {
-                                    doc.title = doc.querySelector('title').textContent;
-                                }
-                            }
-                            break;
-
-                        case 'manipulate':
-                            if (document.implementation && document.implementation.createHTMLDocument) {
-                                doc = manipulate(document.implementation.createHTMLDocument(''), html);
-                            }
-                            break;
-
-                        case null:
-                            doc = null;
-                            break;
-
-                        default:
-                            switch (/webkit|firefox|trident|$/i.exec(window.navigator.userAgent.toLowerCase()).shift()) {
-                                case 'webkit':
-                                    test('doc') || test('dom') || test('manipulate');
-                                    break;
-                                case 'firefox':
-                                    test('dom') || test('doc') || test('manipulate');
-                                    break;
-                                case 'trident':
-                                    test('manipulate') || test('dom') || test('doc');
-                                    break;
-                                default:
-                                    test('dom') || test('doc') || test('manipulate');
-                            }
-                            doc = this.createHTMLDocument(html, uri);
-                            break;
-                    }
-
-                    uri && window.history.replaceState(window.history.state, document.title, backup);
-                    return doc;
-                };
-
                 PageUtility.prototype.chooseArea = function (areas, srcDocument, dstDocument) {
                     areas = areas instanceof Array ? areas : [areas];
 
@@ -2612,10 +2611,10 @@ var MODULE;
 
                 PageUtility.prototype.movePageNormally = function (event) {
                     switch (event.type.toLowerCase()) {
-                        case 'click':
+                        case MODULE.EVENT.CLICK:
                             window.location.assign(event.currentTarget.href);
                             break;
-                        case 'submit':
+                        case MODULE.EVENT.SUBMIT:
                             switch (event.currentTarget.method.toUpperCase()) {
                                 case 'GET':
                                     window.location.assign(event.currentTarget.action.replace(/[?#].*/, '') + '?' + jQuery(event.currentTarget).serialize());
@@ -2625,29 +2624,10 @@ var MODULE;
                                     break;
                             }
                             break;
-                        case 'popstate':
+                        case MODULE.EVENT.POPSTATE:
                             window.location.reload();
                             break;
                     }
-                };
-
-                PageUtility.prototype.calAge = function (jqXHR) {
-                    var age;
-
-                    switch (true) {
-                        case /no-store|no-cache/.test(jqXHR.getResponseHeader('Cache-Control')):
-                            return 0;
-                        case !!~String(jqXHR.getResponseHeader('Cache-Control')).indexOf('max-age='):
-                            return Number(jqXHR.getResponseHeader('Cache-Control').match(/max-age=(\d+)/).pop()) * 1000;
-                        case !!String(jqXHR.getResponseHeader('Expires')):
-                            return new Date(jqXHR.getResponseHeader('Expires')).getTime() - new Date().getTime();
-                        default:
-                            return 0;
-                    }
-                };
-
-                PageUtility.prototype.calExpires = function (jqXHR) {
-                    return new Date().getTime() + this.calAge(jqXHR);
                 };
 
                 PageUtility.prototype.dispatchEvent = function (target, eventType, bubbling, cancelable) {
@@ -2683,116 +2663,115 @@ var MODULE;
     (function (MODEL) {
         /* MODEL */
         (function (APP) {
-            var Util = MODULE.LIBRARY.Utility;
-
             var PageFetch = (function () {
-                function PageFetch(model_, app_, setting_, event_, register_, cache_, done_, fail_) {
+                function PageFetch(model_, app_, setting_, event_, success, failure) {
                     this.model_ = model_;
                     this.app_ = app_;
                     this.setting_ = setting_;
                     this.event_ = event_;
-                    this.register_ = register_;
-                    this.cache_ = cache_;
-                    this.done_ = done_;
-                    this.fail_ = fail_;
+                    this.success = success;
+                    this.failure = failure;
+                    this.util_ = MODULE.LIBRARY.Utility;
                     this.main_();
                 }
                 PageFetch.prototype.main_ = function () {
-                    var that = this, setting = this.setting_, event = this.event_ = jQuery.extend(true, {}, this.event_), register = this.register_, cache = this.cache_, globalXHR = this.model_.getGlobalXHR(), wait = Util.fire(setting.wait, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]);
+                    var that = this, setting = this.setting_, event = this.event_ = jQuery.extend(true, {}, this.event_), wait = this.util_.fire(setting.wait, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]);
 
                     var speedcheck = setting.speedcheck, speed = this.model_.speed;
                     speedcheck && (speed.fire = event.timeStamp);
                     speedcheck && speed.time.splice(0, 100, 0);
                     speedcheck && speed.name.splice(0, 100, 'pjax(' + speed.time.slice(-1) + ')');
 
-                    this.app_.page.isScrollPosSavable = false;
-                    setting.fix.reset && /click|submit/.test(event.type.toLowerCase()) && window.scrollTo(jQuery(window).scrollLeft(), 0);
-
+                    function success(data, textStatus, jqXHR) {
+                        return that.model_.isDeferrable ? undefined : done.call(this, [].slice.call(arguments), undefined);
+                    }
+                    function error(jqXHR, textStatus, errorThrown) {
+                        return that.model_.isDeferrable ? undefined : fail.apply(this, arguments);
+                    }
+                    function complete(jqXHR, textStatus) {
+                        return that.model_.isDeferrable ? undefined : always.apply(this, arguments);
+                    }
                     function done(ajax, wait) {
                         that.data_ = ajax[0];
                         that.textStatus_ = ajax[1];
                         that.jqXHR_ = ajax[2];
-                        Util.fire(setting.callbacks.ajax.done, this, [event, setting.param].concat(ajax));
+
+                        that.util_.fire(setting.callbacks.ajax.success, this, [event, setting, that.data_, that.textStatus_, that.jqXHR_]);
                     }
                     function fail(jqXHR, textStatus, errorThrown) {
                         that.jqXHR_ = jqXHR;
                         that.textStatus_ = textStatus;
                         that.errorThrown_ = errorThrown;
-                        Util.fire(setting.callbacks.ajax.fail, this, [event, setting.param].concat(arguments));
+
+                        that.util_.fire(setting.callbacks.ajax.error, this, [event, setting, that.jqXHR_, that.textStatus_, that.errorThrown_]);
                     }
                     function always() {
-                        Util.fire(setting.callbacks.ajax.always, this, [event, setting.param].concat(arguments));
-                        that.model_.setGlobalXHR(null);
+                        that.util_.fire(setting.callbacks.ajax.complete, this, [event, setting, that.jqXHR_, that.textStatus_]);
 
-                        if (that.model_.isDeferrable) {
-                            if (that.data_) {
-                                that.done_(setting, event, register, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
-                            } else {
-                                that.fail_(setting, event, register, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
-                            }
-                        }
-                    }
-                    function success(data, textStatus, jqXHR) {
-                        that.data_ = data;
-                        that.textStatus_ = textStatus;
-                        that.jqXHR_ = jqXHR;
-                        Util.fire(setting.callbacks.ajax.success, this, [event, setting.param, data, textStatus, jqXHR]);
-                    }
-                    function error(jqXHR, textStatus, errorThrown) {
-                        that.jqXHR_ = jqXHR;
-                        that.textStatus_ = textStatus;
-                        that.errorThrown_ = errorThrown;
-                        Util.fire(setting.callbacks.ajax.error, this, [event, setting.param, jqXHR, textStatus, errorThrown]);
-                    }
-                    function complete(jqXHR, textStatus) {
-                        Util.fire(setting.callbacks.ajax.complete, this, [event, setting.param, jqXHR, textStatus]);
-                        that.model_.setGlobalXHR(null);
+                        that.model_.setXHR(null);
 
-                        if (!that.model_.isDeferrable) {
-                            if (that.data_) {
-                                that.done_(setting, event, register, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
-                            } else {
-                                that.fail_(setting, event, register, that.cache_, that.data_, that.textStatus_, that.jqXHR_, that.errorThrown_, that.host_);
-                            }
+                        if (!that.errorThrown_) {
+                            that.model_.setCache(setting.destLocation.href, cache && cache.data || null, that.textStatus_, that.jqXHR_);
+                            that.success(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_);
+                        } else {
+                            that.failure(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_);
                         }
                     }
 
-                    this.dispatchEvent(document, setting.gns + ':fetch', false, true);
+                    this.dispatchEvent(document, MODULE.DEF.NAME + ':fetch', false, true);
 
-                    if (cache && cache.jqXHR) {
+                    var cache;
+                    switch (setting.cache[event.type.toLowerCase()] && event.type.toLowerCase()) {
+                        case MODULE.EVENT.CLICK:
+                            cache = this.model_.getCache(setting.destLocation.href);
+                            break;
+
+                        case MODULE.EVENT.SUBMIT:
+                            cache = setting.cache[event.currentTarget.method.toLowerCase()] ? this.model_.getCache(setting.destLocation.href) : cache;
+                            break;
+
+                        case MODULE.EVENT.POPSTATE:
+                            cache = this.model_.getCache(setting.destLocation.href);
+                            break;
+                    }
+
+                    var xhr = this.model_.getXHR();
+                    if (cache && cache.jqXHR && 'abort' !== cache.jqXHR.statusText && 'error' !== cache.jqXHR.statusText) {
                         // cache
                         speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
-                        setting.loadtime = 0;
-                        this.model_.setGlobalXHR(null);
+                        this.app_.loadtime = 0;
+                        xhr && xhr.abort();
+                        this.model_.setXHR(null);
                         this.host_ = cache.host || '';
                         this.data_ = cache.jqXHR.responseText;
                         this.textStatus_ = cache.textStatus;
                         this.jqXHR_ = cache.jqXHR;
                         if (this.model_.isDeferrable) {
-                            jQuery.when(jQuery.Deferred().resolve([that.data_, that.textStatus_, that.jqXHR_]), this.wait(wait)).done(done).fail(fail).always(always);
+                            jQuery.when(jQuery.Deferred().resolve(this.data_, this.textStatus_, this.jqXHR_), this.wait(wait)).done(done).fail(fail).always(always);
                         } else {
                             var context = jQuery.extend({}, jQuery.ajaxSettings, setting.ajax);
                             context = context.context || context;
-                            success.call(context, that.data_, that.textStatus_, that.jqXHR_);
-                            complete.call(context, that.jqXHR_, that.textStatus_);
+                            success.call(context, this.data_, this.textStatus_, this.jqXHR_);
+                            complete.call(context, this.jqXHR_, this.textStatus_);
                         }
-                    } else if (globalXHR && globalXHR.follow && 'abort' !== globalXHR.statusText && 'error' !== globalXHR.statusText) {
+                    } else if (xhr && xhr.follow && 'abort' !== xhr.statusText && 'error' !== xhr.statusText) {
                         // preload
-                        speedcheck && speed.time.splice(0, 1, globalXHR.timeStamp - speed.fire);
+                        speedcheck && speed.time.splice(0, 1, xhr.timeStamp - speed.fire);
                         speedcheck && speed.name.splice(0, 1, 'preload(' + speed.time.slice(-1) + ')');
                         speedcheck && speed.time.push(speed.now() - speed.fire);
                         speedcheck && speed.name.push('continue(' + speed.time.slice(-1) + ')');
-                        this.host_ = globalXHR.host || '';
-                        setting.loadtime = globalXHR.timeStamp;
-                        var wait = setting.wait && isFinite(globalXHR.timeStamp) ? Math.max(wait - new Date().getTime() + globalXHR.timeStamp, 0) : 0;
-                        jQuery.when(globalXHR, that.wait(wait)).done(done).fail(fail).always(always);
+                        this.host_ = xhr.host || '';
+                        this.app_.loadtime = xhr.timeStamp;
+                        var wait = setting.wait && isFinite(xhr.timeStamp) ? Math.max(wait - new Date().getTime() + xhr.timeStamp, 0) : 0;
+                        jQuery.when(xhr, this.wait(wait)).done(done).fail(fail).always(always);
                     } else {
                         // default
-                        setting.loadtime = event.timeStamp;
+                        this.app_.loadtime = event.timeStamp;
+                        xhr && xhr.abort();
                         var requestLocation = setting.destLocation.cloneNode(), ajax = {}, callbacks = {};
 
                         this.app_.balance.chooseServer(setting);
-                        this.host_ = setting.balance.self && this.app_.balance.host().split('//').pop() || '';
+                        this.host_ = setting.balance.self && this.model_.host().split('//').pop() || '';
                         requestLocation.host = this.host_ || setting.destLocation.host;
                         ajax.url = !setting.server.query ? requestLocation.href : [
                             requestLocation.protocol,
@@ -2803,11 +2782,11 @@ var MODULE;
                             requestLocation.hash
                         ].join('');
                         switch (event.type.toLowerCase()) {
-                            case 'click':
+                            case MODULE.EVENT.CLICK:
                                 ajax.type = 'GET';
                                 break;
 
-                            case 'submit':
+                            case MODULE.EVENT.SUBMIT:
                                 ajax.type = event.currentTarget.method.toUpperCase();
                                 switch (ajax.type) {
                                     case 'POST':
@@ -2824,7 +2803,7 @@ var MODULE;
                                 }
                                 break;
 
-                            case 'popstate':
+                            case MODULE.EVENT.POPSTATE:
                                 ajax.type = 'GET';
                                 break;
                         }
@@ -2832,8 +2811,8 @@ var MODULE;
                         callbacks = {
                             xhr: !setting.callbacks.ajax.xhr ? undefined : function () {
                                 var jqXHR;
-                                jqXHR = Util.fire(setting.callbacks.ajax.xhr, this, [event, setting.param]);
-                                jqXHR = 'object' === typeof jqXHR && jqXHR || jQuery.ajaxSettings.xhr();
+                                jqXHR = that.util_.fire(setting.callbacks.ajax.xhr, this, [event, setting]);
+                                jqXHR = 'object' === typeof jqXHR ? jqXHR : jQuery.ajaxSettings.xhr();
 
                                 //if (jqXHR instanceof Object && jqXHR instanceof window.XMLHttpRequest && 'onprogress' in jqXHR) {
                                 //  jqXHR.addEventListener('progress', function(event) {dataSize = event.loaded;}, false);
@@ -2852,41 +2831,31 @@ var MODULE;
                                     setting.server.header.script && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Script', setting.load.script.toString());
                                 }
 
-                                Util.fire(setting.callbacks.ajax.beforeSend, this, [event, setting.param, jqXHR, ajaxSetting]);
+                                that.util_.fire(setting.callbacks.ajax.beforeSend, this, [event, setting, jqXHR, ajaxSetting]);
                             },
                             dataFilter: !setting.callbacks.ajax.dataFilter ? undefined : function (data, type) {
-                                return Util.fire(setting.callbacks.ajax.dataFilter, this, [event, setting.param, data, type]) || data;
+                                return that.util_.fire(setting.callbacks.ajax.dataFilter, this, [event, setting, data, type]) || data;
                             },
                             success: success,
                             error: error,
                             complete: complete
                         };
 
-                        ajax = jQuery.extend(true, {}, setting.ajax, callbacks, ajax);
+                        ajax = jQuery.extend({}, setting.ajax, callbacks, ajax);
+                        this.model_.setXHR(jQuery.ajax(ajax));
 
-                        globalXHR = this.model_.setGlobalXHR(jQuery.ajax(ajax));
-
-                        if (this.model_.isDeferrable) {
-                            jQuery.when(globalXHR, that.wait(wait)).done(done).fail(fail).always(always);
+                        if (!this.model_.isDeferrable) {
+                            return;
                         }
-                    }
-                };
 
-                // mixin utility
-                PageFetch.prototype.createHTMLDocument = function (html, uri) {
-                    return;
+                        jQuery.when(this.model_.getXHR(), this.wait(wait)).done(done).fail(fail).always(always);
+                    }
                 };
 
                 PageFetch.prototype.chooseArea = function (areas, srcDocument, dstDocument) {
                     return;
                 };
                 PageFetch.prototype.movePageNormally = function (event) {
-                };
-                PageFetch.prototype.calAge = function (jqXHR) {
-                    return;
-                };
-                PageFetch.prototype.calExpires = function (jqXHR) {
-                    return;
                 };
 
                 PageFetch.prototype.dispatchEvent = function (target, eventType, bubbling, cancelable) {
@@ -2903,6 +2872,80 @@ var MODULE;
     var MODEL = MODULE.MODEL;
 })(MODULE || (MODULE = {}));
 /// <reference path="../define.ts"/>
+/// <reference path="../library/utility.ts"/>
+/// <reference path="app.page.record.ts"/>
+/// <reference path="app.page.fetch.ts"/>
+var MODULE;
+(function (MODULE) {
+    (function (MODEL) {
+        /* MODEL */
+        (function (APP) {
+            var PageProvider = (function () {
+                function PageProvider(Record_, model_, app_) {
+                    var _this = this;
+                    this.Record_ = Record_;
+                    this.model_ = model_;
+                    this.app_ = app_;
+                    this.hash_ = function (setting) {
+                        return _this.model_.convertUrlToKeyUrl(setting.destLocation.href);
+                    };
+                    this.table_ = {};
+                }
+                PageProvider.prototype.accessRecord = function (setting, event, success, failure) {
+                    this.fillRecord(setting, event, success, failure);
+                };
+
+                PageProvider.prototype.updateRecord = function (setting, event, success, failure) {
+                    this.removeRecord(setting);
+                    this.fillRecord(setting, event, success, failure);
+                };
+
+                PageProvider.prototype.fillRecord = function (setting, event, success, failure) {
+                    //if (this.verifyRecord(setting)) {
+                    //  success(this.getRecord(setting), event);
+                    //} else {
+                    var that = this;
+                    new APP.PageFetch(this.model_, this.app_, setting, event, successWrapper, failureWrapper);
+
+                    //}
+                    function successWrapper(setting, event, data, textStatus, jqXHR, host) {
+                        var record = that.setRecord(setting, data, textStatus, jqXHR, host, true);
+                        success(record, event);
+                    }
+                    function failureWrapper(setting, event, data, textStatus, jqXHR, host) {
+                        var record = that.setRecord(setting, data, textStatus, jqXHR, host, false);
+                        failure(record, event);
+                    }
+                };
+
+                PageProvider.prototype.verifyRecord = function (setting) {
+                    return this.getRecord(setting).state();
+                };
+
+                PageProvider.prototype.getRecord = function (setting) {
+                    return this.table_[this.hash_(setting)] = this.table_[this.hash_(setting)] || new this.Record_();
+                };
+
+                PageProvider.prototype.setRecord = function (setting, data, textStatus, jqXHR, host, state) {
+                    return this.table_[this.hash_(setting)] = new this.Record_(this.model_, setting, data, textStatus, jqXHR, host, state);
+                };
+
+                PageProvider.prototype.removeRecord = function (setting) {
+                    return this.table_[this.hash_(setting)] = new this.Record_();
+                };
+
+                PageProvider.prototype.clearRecord = function (setting) {
+                    this.table_ = {};
+                };
+                return PageProvider;
+            })();
+            APP.PageProvider = PageProvider;
+        })(MODEL.APP || (MODEL.APP = {}));
+        var APP = MODEL.APP;
+    })(MODULE.MODEL || (MODULE.MODEL = {}));
+    var MODEL = MODULE.MODEL;
+})(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
 /// <reference path="app.page.utility.ts"/>
 /// <reference path="app.data.ts"/>
 /// <reference path="../library/utility.ts"/>
@@ -2911,30 +2954,19 @@ var MODULE;
     (function (MODEL) {
         /* MODEL */
         (function (APP) {
-            var Util = MODULE.LIBRARY.Utility;
-
             var PageUpdate = (function () {
-                function PageUpdate(model_, app_, setting_, event_, register_, cache_, data_, textStatus_, jqXHR_, errorThrown_, host_, count_, time_) {
+                function PageUpdate(model_, app_, event_, record_, retriable_) {
                     this.model_ = model_;
                     this.app_ = app_;
-                    this.setting_ = setting_;
                     this.event_ = event_;
-                    this.register_ = register_;
-                    this.cache_ = cache_;
-                    this.data_ = data_;
-                    this.textStatus_ = textStatus_;
-                    this.jqXHR_ = jqXHR_;
-                    this.errorThrown_ = errorThrown_;
-                    this.host_ = host_;
-                    this.count_ = count_;
-                    this.time_ = time_;
+                    this.record_ = record_;
+                    this.retriable_ = retriable_;
+                    this.util_ = MODULE.LIBRARY.Utility;
                     this.loadwaits_ = [];
                     this.main_();
                 }
                 PageUpdate.prototype.main_ = function () {
-                    var that = this, app = this.app_, setting = this.setting_, event = this.event_, register = this.register_, cache = this.cache_;
-
-                    var setting = this.setting_, event = this.event_, register = this.register_, data = this.data_, textStatus = this.textStatus_, jqXHR = this.jqXHR_;
+                    var app = this.app_, record = this.record_, setting = record.data.setting(), event = this.event_, data = record.data.data(), textStatus = record.data.textStatus(), jqXHR = record.data.jqXHR();
                     var callbacks_update = setting.callbacks.update;
 
                     var speedcheck = setting.speedcheck, speed = this.model_.speed;
@@ -2943,11 +2975,11 @@ var MODULE;
 
                     UPDATE:
                      {
-                        setting.loadtime = setting.loadtime && new Date().getTime() - setting.loadtime;
-                        setting.loadtime = setting.loadtime < 100 ? 0 : setting.loadtime;
+                        ++this.app_.count;
+                        this.app_.loadtime = this.app_.loadtime && new Date().getTime() - this.app_.loadtime;
 
-                        if (setting.cache.mix && 'popstate' !== event.type.toLowerCase() && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
-                            return this.model_.fallback(event, setting);
+                        if (setting.cache.mix && MODULE.EVENT.POPSTATE !== event.type.toLowerCase() && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
+                            return this.model_.fallback(event);
                         }
 
                         try  {
@@ -2957,71 +2989,72 @@ var MODULE;
                             }
 
                             /* variable define */
-                            this.srcDocument_ = this.createHTMLDocument(jqXHR.responseText, setting.destLocation.href);
+                            this.srcDocument_ = this.app_.page.parser.parse(jqXHR.responseText, setting.destLocation.href);
                             this.dstDocument_ = document;
 
                             // 更新範囲を選出
-                            setting.area = this.chooseArea(setting.area, this.srcDocument_, this.dstDocument_);
-                            if (!setting.area) {
+                            this.area_ = this.chooseArea(setting.area, this.srcDocument_, this.dstDocument_);
+                            if (!this.area_) {
                                 throw new Error('throw: area notfound');
                             }
 
                             // 更新範囲をセレクタごとに分割
-                            setting.areas = setting.area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
-
-                            // キャッシュを設定
-                            if (this.isCacheUsable_(setting, event)) {
-                                this.model_.setCache(setting.destLocation.href, cache && cache.data || null, this.textStatus_, this.jqXHR_);
-                                cache = this.model_.getCache(setting.destLocation.href);
-                                this.cache_ = cache;
-                            }
+                            this.areas_ = this.area_.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
 
                             speedcheck && speed.time.push(speed.now() - speed.fire);
                             speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
 
-                            this.checkRedirect_();
+                            this.redirect_();
 
-                            this.dispatchEvent(window, setting.gns + ':unload', false, true);
+                            this.dispatchEvent(window, MODULE.DEF.NAME + ':unload', false, true);
 
-                            this.updateUrl_();
+                            this.url_();
 
-                            this.model_.setGlobalSetting(jQuery.extend(true, {}, setting, { origLocation: setting.destLocation.cloneNode() }));
-
-                            this.updateDocument_();
+                            this.document_();
                         } catch (err) {
                             if (!err) {
                                 return;
                             }
 
-                            this.cache_ && this.model_.removeCache(setting.destLocation.href);
+                            this.model_.getCache(window.location.href) && this.model_.removeCache(setting.destLocation.href);
 
-                            this.model_.fallback(event, setting);
+                            this.model_.fallback(event);
                         }
                         ;
                     }
                     ;
                 };
 
-                PageUpdate.prototype.isCacheUsable_ = function (setting, event) {
+                PageUpdate.prototype.isRegister_ = function (setting, event) {
                     switch (true) {
-                        case !setting.cache.click && !setting.cache.submit && !setting.cache.popstate:
-                        case 'submit' === event.type.toLowerCase() && !setting.cache[event.currentTarget.method.toLowerCase()]:
+                        case setting.destLocation.href === setting.origLocation.href:
+                        case MODULE.EVENT.POPSTATE === event.type.toLowerCase():
+                        case !this.retriable_:
                             return false;
                         default:
                             return true;
                     }
                 };
 
-                PageUpdate.prototype.checkRedirect_ = function () {
+                PageUpdate.prototype.isCacheUsable_ = function (event, setting) {
+                    switch (true) {
+                        case !setting.cache.click && !setting.cache.submit && !setting.cache.popstate:
+                        case MODULE.EVENT.SUBMIT === event.type.toLowerCase() && !setting.cache[event.currentTarget.method.toLowerCase()]:
+                            return false;
+                        default:
+                            return true;
+                    }
+                };
+                PageUpdate.prototype.redirect_ = function () {
                     var _this = this;
-                    var setting = this.setting_, event = this.event_, register = this.register_;
+                    var setting = this.record_.data.setting(), event = this.event_;
                     var callbacks_update = setting.callbacks.update;
 
                     if (!jQuery('head meta[http-equiv="Refresh"][content*="URL="]', this.srcDocument_).length) {
                         return;
                     }
 
-                    if (Util.fire(callbacks_update.redirect.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    if (this.util_.fire(callbacks_update.redirect.before, setting, [event, setting]) === false) {
                         return;
                     }
                     ;
@@ -3032,13 +3065,13 @@ var MODULE;
                         case !setting.redirect:
                         case redirect.protocol !== setting.destLocation.protocol:
                         case redirect.host !== setting.destLocation.host:
-                        case 'submit' === event.type.toLowerCase() && 'GET' !== event.currentTarget.method.toUpperCase():
+                        case MODULE.EVENT.SUBMIT === event.type.toLowerCase() && 'GET' !== event.currentTarget.method.toUpperCase():
                             switch (event.type.toLowerCase()) {
-                                case 'click':
-                                case 'submit':
+                                case MODULE.EVENT.CLICK:
+                                case MODULE.EVENT.SUBMIT:
                                     window.location.assign(redirect.href);
                                     break;
-                                case 'popstate':
+                                case MODULE.EVENT.POPSTATE:
                                     window.location.replace(redirect.href);
                                     break;
                             }
@@ -3047,71 +3080,73 @@ var MODULE;
                         default:
                             jQuery[MODULE.DEF.NAME].enable();
                             switch (event.type.toLowerCase()) {
-                                case 'click':
-                                case 'submit':
+                                case MODULE.EVENT.CLICK:
+                                case MODULE.EVENT.SUBMIT:
                                     setTimeout(function () {
                                         return jQuery[MODULE.DEF.NAME].click(redirect.href);
                                     }, 0);
                                     break;
-                                case 'popstate':
+                                case MODULE.EVENT.POPSTATE:
                                     window.history.replaceState(window.history.state, this.srcDocument_.title, redirect.href);
-                                    if (register && setting.fix.location && !Util.compareUrl(setting.destLocation.href, Util.normalizeUrl(window.location.href))) {
+                                    if (this.isRegister_(setting, event) && setting.fix.location && !this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) {
                                         jQuery[MODULE.DEF.NAME].disable();
                                         window.history.back();
                                         window.history.forward();
                                         jQuery[MODULE.DEF.NAME].enable();
                                     }
                                     setTimeout(function () {
-                                        return _this.dispatchEvent(window, 'popstate', false, false);
+                                        return _this.dispatchEvent(window, MODULE.EVENT.POPSTATE, false, false);
                                     }, 0);
                                     break;
                             }
                             throw false;
                     }
 
-                    if (Util.fire(callbacks_update.redirect.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    if (this.util_.fire(callbacks_update.redirect.after, setting, [event, setting]) === false) {
                         return;
                     }
                 };
 
-                PageUpdate.prototype.updateUrl_ = function () {
-                    var setting = this.setting_, event = this.event_, register = this.register_;
+                PageUpdate.prototype.url_ = function () {
+                    var setting = this.record_.data.setting(), event = this.event_;
                     var callbacks_update = setting.callbacks.update;
 
-                    if (Util.fire(callbacks_update.url.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    this.model_.location.href = setting.destLocation.href;
+
+                    if (this.util_.fire(callbacks_update.url.before, setting, [event, setting]) === false) {
                         return;
                     }
                     ;
 
-                    register && window.history.pushState(Util.fire(setting.state, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]), ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstDocument_.title : this.srcDocument_.title, setting.destLocation.href);
+                    if (this.isRegister_(setting, event)) {
+                        window.history.pushState(this.util_.fire(setting.state, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]), ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstDocument_.title : this.srcDocument_.title, setting.destLocation.href);
 
-                    if (register && setting.fix.location && !Util.compareUrl(setting.destLocation.href, Util.normalizeUrl(window.location.href))) {
-                        jQuery[MODULE.DEF.NAME].disable();
-                        window.history.back();
-                        window.history.forward();
-                        jQuery[MODULE.DEF.NAME].enable();
+                        if (setting.fix.location && !this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) {
+                            jQuery[MODULE.DEF.NAME].disable();
+                            window.history.back();
+                            window.history.forward();
+                            jQuery[MODULE.DEF.NAME].enable();
+                        }
                     }
 
                     // verify
-                    if (Util.compareUrl(setting.destLocation.href, Util.normalizeUrl(window.location.href))) {
-                        setting.retriable = true;
-                    } else if (setting.retriable) {
-                        setting.retriable = false;
-                        setting.destLocation.href = Util.normalizeUrl(window.location.href);
-                        new PageUpdate(this.model_, this.app_, setting, event, false, setting.cache[event.type.toLowerCase()] && this.model_.getCache(setting.destLocation.href), this.data_, this.textStatus_, this.jqXHR_, this.errorThrown_, this.host_, this.count_, this.time_);
+                    if (this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) {
+                    } else if (this.retriable_) {
+                        setting.destLocation.href = this.util_.normalizeUrl(window.location.href);
+                        new PageUpdate(this.model_, this.app_, event, this.record_, false);
                         throw false;
                     } else {
                         throw new Error('throw: location mismatch');
                     }
 
-                    if (Util.fire(callbacks_update.url.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    if (this.util_.fire(callbacks_update.url.after, setting, [event, setting]) === false) {
                         return;
                     }
                 };
 
-                PageUpdate.prototype.updateDocument_ = function () {
+                PageUpdate.prototype.document_ = function () {
                     var _this = this;
-                    var setting = this.setting_, event = this.event_;
+                    var setting = this.record_.data.setting(), event = this.event_;
 
                     this.overwriteDocumentByCache_();
 
@@ -3126,7 +3161,7 @@ var MODULE;
                     speedcheck && speed.time.push(speed.now() - speed.fire);
                     speedcheck && speed.name.push('head(' + speed.time.slice(-1) + ')');
 
-                    this.area_();
+                    this.content_();
 
                     speedcheck && speed.time.push(speed.now() - speed.fire);
                     speedcheck && speed.name.push('content(' + speed.time.slice(-1) + ')');
@@ -3134,29 +3169,40 @@ var MODULE;
                     this.balance_();
 
                     this.css_('link[rel~="stylesheet"], style');
-                    jQuery(window).one(setting.gns + ':rendering', function (e) {
+                    jQuery(window).one(MODULE.DEF.NAME + ':rendering', function (e) {
                         e.preventDefault();
                         e.stopImmediatePropagation();
 
                         var onready = function (callback) {
-                            _this.dispatchEvent(document, setting.gns + ':ready', false, true);
+                            if (!_this.util_.compareUrl(_this.model_.convertUrlToKeyUrl(setting.destLocation.href), _this.model_.convertUrlToKeyUrl(window.location.href), true)) {
+                                return;
+                            }
 
-                            Util.fire(setting.callback, null, [event, setting.param, _this.data_, _this.textStatus_, _this.jqXHR_]);
+                            _this.dispatchEvent(document, MODULE.DEF.NAME + ':ready', false, true);
+
+                            _this.util_.fire(setting.callback, setting, [event, setting]);
 
                             return jQuery.when ? _this.waitRender_(jQuery.Deferred().resolve) : _this.waitRender_(callback);
                         };
 
                         var onrender = function (callback) {
+                            if (!_this.util_.compareUrl(_this.model_.convertUrlToKeyUrl(setting.destLocation.href), _this.model_.convertUrlToKeyUrl(window.location.href), true)) {
+                                return;
+                            }
+
                             setTimeout(function () {
-                                _this.app_.page.isScrollPosSavable = true;
-                                if ('popstate' !== event.type.toLowerCase()) {
-                                    _this.scrollByHash_(setting.destLocation.hash) || _this.scroll_(true);
-                                } else {
-                                    _this.scroll_(true);
+                                switch (event.type.toLowerCase()) {
+                                    case MODULE.EVENT.CLICK:
+                                    case MODULE.EVENT.SUBMIT:
+                                        _this.scrollByHash_(setting.destLocation.hash) || _this.scroll_(true);
+                                        break;
+                                    case MODULE.EVENT.POPSTATE:
+                                        _this.scroll_(true);
+                                        break;
                                 }
                             }, 100);
 
-                            _this.dispatchEvent(document, setting.gns + ':render', false, true);
+                            _this.dispatchEvent(document, MODULE.DEF.NAME + ':render', false, true);
 
                             speedcheck && speed.time.push(speed.now() - speed.fire);
                             speedcheck && speed.name.push('render(' + speed.time.slice(-1) + ')');
@@ -3165,7 +3211,11 @@ var MODULE;
                         };
 
                         var onload = function () {
-                            _this.dispatchEvent(window, setting.gns + ':load', false, true);
+                            if (!_this.util_.compareUrl(_this.model_.convertUrlToKeyUrl(setting.destLocation.href), _this.model_.convertUrlToKeyUrl(window.location.href), true)) {
+                                return jQuery.when && jQuery.Deferred().reject();
+                            }
+
+                            _this.dispatchEvent(window, MODULE.DEF.NAME + ':load', false, true);
 
                             speedcheck && speed.time.push(speed.now() - speed.fire);
                             speedcheck && speed.name.push('load(' + speed.time.slice(-1) + ')');
@@ -3176,15 +3226,15 @@ var MODULE;
                             _this.script_('[src][defer]');
 
                             // 未定義を返すとエラー
-                            return jQuery.when && jQuery.Deferred();
+                            return jQuery.when && jQuery.Deferred().resolve();
                         };
 
                         _this.scroll_(false);
 
-                        if (100 > setting.loadtime && setting.reset.type.match(event.type.toLowerCase()) && !jQuery('form[method][method!="GET"]').length) {
+                        if (100 > _this.app_.loadtime && setting.reset.type.match(event.type.toLowerCase()) && !jQuery('form[method][method!="GET"]').length) {
                             switch (false) {
-                                case _this.count_ < setting.reset.count || !setting.reset.count:
-                                case new Date().getTime() < setting.reset.time + _this.time_ || !setting.reset.time:
+                                case _this.app_.count < setting.reset.count || !setting.reset.count:
+                                case new Date().getTime() < setting.reset.time + _this.app_.time || !setting.reset.time:
                                     throw new Error('throw: reset');
                             }
                         }
@@ -3196,15 +3246,9 @@ var MODULE;
                             var then = jQuery.Deferred().pipe ? 'pipe' : 'then';
                             jQuery.when.apply(jQuery, scriptwaits)[then](function () {
                                 return onready();
-                            }, function () {
-                                return onready();
                             })[then](function () {
                                 return onrender();
-                            }, function () {
-                                return onrender();
                             })[then](function () {
-                                return onload();
-                            }, function () {
                                 return onload();
                             });
                         } else {
@@ -3214,25 +3258,25 @@ var MODULE;
                                 });
                             });
                         }
-                    }).trigger(setting.gns + ':rendering');
+                    }).trigger(MODULE.DEF.NAME + ':rendering');
                 };
 
                 PageUpdate.prototype.overwriteDocumentByCache_ = function () {
-                    var setting = this.setting_, event = this.event_, cache = this.cache_;
+                    var setting = this.record_.data.setting(), event = this.event_, cache = this.model_.getCache(setting.destLocation.href);
 
-                    if (!this.isCacheUsable_(setting, event)) {
+                    if (!this.isCacheUsable_(event, setting)) {
                         return;
                     }
 
                     if (cache && cache.data) {
-                        var html = setting.fix.noscript ? this.restoreNoscript_(cache.data) : cache.data, cacheDocument = this.createHTMLDocument(html, setting.destLocation.href), srcDocument = this.srcDocument_;
+                        var html = setting.fix.noscript ? this.restoreNoscript_(cache.data) : cache.data, cacheDocument = this.app_.page.parser.parse(html, setting.destLocation.href), srcDocument = this.srcDocument_;
 
                         srcDocument.title = cacheDocument.title;
 
                         var $srcAreas, $dstAreas;
-                        for (var i = 0; setting.areas[i]; i++) {
-                            $srcAreas = jQuery(setting.areas[i], cacheDocument).clone();
-                            $dstAreas = jQuery(setting.areas[i], srcDocument);
+                        for (var i = 0; this.areas_[i]; i++) {
+                            $srcAreas = jQuery(this.areas_[i], cacheDocument).clone();
+                            $dstAreas = jQuery(this.areas_[i], srcDocument);
                             if (!$srcAreas.length || !$dstAreas.length || $srcAreas.length !== $dstAreas.length) {
                                 throw new Error('throw: area mismatch');
                             }
@@ -3245,49 +3289,49 @@ var MODULE;
                 };
 
                 PageUpdate.prototype.rewrite_ = function () {
-                    var setting = this.setting_, event = this.event_;
+                    var setting = this.record_.data.setting(), event = this.event_;
                     var callbacks_update = setting.callbacks.update;
 
                     if (!setting.rewrite) {
                         return;
                     }
 
-                    if (Util.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) {
+                    if (this.util_.fire(callbacks_update.rewrite.before, setting, [event, setting]) === false) {
                         return;
                     }
 
-                    Util.fire(setting.rewrite, null, [this.srcDocument_, setting.area, this.host_]);
+                    this.util_.fire(setting.rewrite, setting, [this.srcDocument_, this.area_, this.record_.data.host()]);
 
-                    if (Util.fire(callbacks_update.rewrite.before, null, [event, setting.param]) === false) {
+                    if (this.util_.fire(callbacks_update.rewrite.before, setting, [event, setting]) === false) {
                         return;
                     }
                 };
 
                 PageUpdate.prototype.title_ = function () {
-                    var setting = this.setting_, event = this.event_;
+                    var setting = this.record_.data.setting(), event = this.event_;
                     var callbacks_update = setting.callbacks.update;
 
-                    if (Util.fire(callbacks_update.title.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    if (this.util_.fire(callbacks_update.title.before, setting, [event, setting]) === false) {
                         return;
                     }
 
                     this.dstDocument_.title = this.srcDocument_.title;
                     setting.fix.history && this.app_.data.saveTitle();
 
-                    if (Util.fire(callbacks_update.title.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    if (this.util_.fire(callbacks_update.title.after, setting, [event, setting]) === false) {
                         return;
                     }
                 };
 
                 PageUpdate.prototype.head_ = function () {
-                    var setting = this.setting_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
+                    var setting = this.record_.data.setting(), event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
                     var callbacks_update = setting.callbacks.update;
 
                     if (!setting.load.head) {
                         return;
                     }
 
-                    if (Util.fire(callbacks_update.head.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    if (this.util_.fire(callbacks_update.head.before, setting, [event, setting]) === false) {
                         return;
                     }
 
@@ -3311,19 +3355,19 @@ var MODULE;
                     jQuery('title', dstDocument).before($addElements.clone());
                     $delElements.remove();
 
-                    if (Util.fire(callbacks_update.head.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    if (this.util_.fire(callbacks_update.head.after, setting, [event, setting]) === false) {
                         return;
                     }
                 };
 
-                PageUpdate.prototype.area_ = function () {
+                PageUpdate.prototype.content_ = function () {
                     var _this = this;
-                    var setting = this.setting_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
+                    var setting = this.record_.data.setting(), event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
                     var callbacks_update = setting.callbacks.update;
 
                     var checker;
 
-                    if (Util.fire(callbacks_update.content.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    if (this.util_.fire(callbacks_update.content.before, setting, [event, setting]) === false) {
                         return;
                     }
 
@@ -3333,16 +3377,16 @@ var MODULE;
                         return defer;
                     }
 
-                    jQuery(setting.area).children('.' + setting.nss.class4html + '-check').remove();
+                    jQuery(this.area_).children('.' + setting.nss.class4html + '-check').remove();
                     checker = jQuery('<div/>', {
                         'class': setting.nss.class4html + '-check',
                         'style': 'background: none !important; display: block !important; visibility: hidden !important; position: absolute !important; top: 0 !important; left: 0 !important; z-index: -9999 !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; font-size: 12px !important; text-indent: 0 !important;'
-                    }).text(setting.gns);
+                    }).text(MODULE.DEF.NAME);
 
                     var $srcAreas, $dstAreas;
-                    for (var i = 0; setting.areas[i]; i++) {
-                        $srcAreas = jQuery(setting.areas[i], srcDocument).clone();
-                        $dstAreas = jQuery(setting.areas[i], dstDocument);
+                    for (var i = 0; this.areas_[i]; i++) {
+                        $srcAreas = jQuery(this.areas_[i], srcDocument).clone();
+                        $dstAreas = jQuery(this.areas_[i], dstDocument);
                         if (!$srcAreas.length || !$dstAreas.length || $srcAreas.length !== $dstAreas.length) {
                             throw new Error('throw: area mismatch');
                         }
@@ -3358,52 +3402,51 @@ var MODULE;
                             $dstAreas[j].parentNode.replaceChild($srcAreas[j], $dstAreas[j]);
                         }
 
-                        $dstAreas = jQuery(setting.areas[i], dstDocument);
+                        $dstAreas = jQuery(this.areas_[i], dstDocument);
                         $dstAreas.append(checker.clone());
                         $dstAreas.find('script').each(function (i, elem) {
                             return _this.restoreScript_(elem);
                         });
                     }
-                    this.dispatchEvent(document, setting.gns + ':DOMContentLoaded', false, true);
+                    this.dispatchEvent(document, MODULE.DEF.NAME + ':DOMContentLoaded', false, true);
 
-                    if (Util.fire(callbacks_update.content.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    if (this.util_.fire(callbacks_update.content.after, setting, [event, setting]) === false) {
                         return;
                     }
                 };
 
                 PageUpdate.prototype.balance_ = function () {
-                    var setting = this.setting_, event = this.event_;
+                    var setting = this.record_.data.setting(), event = this.event_;
                     var callbacks_update = setting.callbacks.update;
 
-                    if (!setting.balance.self || !setting.loadtime) {
+                    if (!setting.balance.self || this.app_.loadtime < 100) {
                         return;
                     }
 
-                    if (Util.fire(callbacks_update.balance.before, null, [event, setting.param]) === false) {
+                    var jqXHR = this.record_.data.jqXHR();
+                    var host = (jqXHR.getResponseHeader(setting.balance.server.header) || ''), score = Math.ceil(this.app_.loadtime / (jqXHR.responseText.length || 1) * 1e5);
+
+                    if (this.util_.fire(callbacks_update.balance.before, setting, [event, setting]) === false) {
                         return;
                     }
 
-                    var host = (this.jqXHR_.getResponseHeader(setting.balance.server.header) || ''), performance = Math.ceil(setting.loadtime / (this.jqXHR_.responseText.length || 1) * 1e5);
-                    this.app_.data.saveServer(host, performance);
-                    this.app_.data.saveExpires(setting.destLocation.href, host, this.calExpires(this.jqXHR_));
+                    this.app_.data.saveServer(host, score);
                     this.app_.balance.chooseServer(setting);
 
-                    this.app_.data.loadBuffers(setting.buffer.limit);
-
-                    if (Util.fire(callbacks_update.balance.after, null, [event, setting.param]) === false) {
+                    if (this.util_.fire(callbacks_update.balance.after, setting, [event, setting]) === false) {
                         return;
                     }
                 };
 
                 PageUpdate.prototype.css_ = function (selector) {
-                    var setting = this.setting_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
+                    var setting = this.record_.data.setting(), event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
                     var callbacks_update = setting.callbacks.update;
 
                     if (!setting.load.css) {
                         return;
                     }
 
-                    if (Util.fire(callbacks_update.css.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    if (this.util_.fire(callbacks_update.css.before, setting, [event, setting]) === false) {
                         return;
                     }
 
@@ -3423,7 +3466,7 @@ var MODULE;
                                     isSameElement = element.href === $delElements[j].href;
                                     break;
                                 case 'style':
-                                    isSameElement = element.innerHTML.trim() === $delElements[j].innerHTML.trim();
+                                    isSameElement = this.util_.trim(element.innerHTML) === this.util_.trim($delElements[j].innerHTML);
                                     break;
                             }
                             if (isSameElement) {
@@ -3449,7 +3492,7 @@ var MODULE;
                     jQuery(dstDocument.body).append($addElements.filter(filterBodyContent).clone());
                     $delElements.remove();
 
-                    if (Util.fire(callbacks_update.css.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    if (this.util_.fire(callbacks_update.css.after, setting, [event, setting]) === false) {
                         return;
                     }
 
@@ -3460,33 +3503,82 @@ var MODULE;
 
                 PageUpdate.prototype.script_ = function (selector) {
                     var _this = this;
-                    var setting = this.setting_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
+                    var setting = this.record_.data.setting(), event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
                     var callbacks_update = setting.callbacks.update;
 
-                    var scriptwaits = [];
+                    var scriptwaits = [], scripts = [];
 
                     if (!setting.load.script) {
                         return scriptwaits;
                     }
 
-                    if (Util.fire(callbacks_update.script.before, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    if (this.util_.fire(callbacks_update.script.before, setting, [event, setting]) === false) {
                         return scriptwaits;
                     }
 
-                    var prefilter = 'script', $scriptElements = jQuery(prefilter, srcDocument).filter(selector).not(setting.load.ignore).not(jQuery('noscript', srcDocument).find(prefilter)), $execElements = jQuery(), loadedScripts = this.app_.page.loadedScripts, regType = /^$|(?:application|text)\/(?:java|ecma)script/i, regRemove = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
+                    var prefilter = 'script', $scriptElements = jQuery(prefilter, srcDocument).filter(selector).not(setting.load.ignore).not(jQuery('noscript', srcDocument).find(prefilter)), loadedScripts = this.app_.page.loadedScripts, regType = /^$|(?:application|text)\/(?:java|ecma)script/i, regRemove = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
+
+                    var exec = function (element, response) {
+                        if (element.src) {
+                            loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload);
+                        }
+
+                        try  {
+                            if (_this.model_.isDeferrable) {
+                                if ('string' === typeof response) {
+                                    eval.call(window, response);
+                                } else {
+                                    throw response;
+                                }
+                            } else {
+                                if (element.hasAttribute('src')) {
+                                    jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, {
+                                        url: element.src,
+                                        dataType: 'script',
+                                        async: false,
+                                        global: false,
+                                        success: function () {
+                                            return null;
+                                        },
+                                        error: function (err) {
+                                            throw err;
+                                        }
+                                    }));
+                                } else {
+                                    eval.call(window, (element.text || element.textContent || element.innerHTML || '').replace(regRemove, ''));
+                                }
+                            }
+
+                            try  {
+                                element.hasAttribute('src') && _this.dispatchEvent(element, 'load', false, true);
+                            } catch (e) {
+                            }
+                        } catch (err) {
+                            try  {
+                                element.hasAttribute('src') && _this.dispatchEvent(element, 'error', false, true);
+                            } catch (e) {
+                            }
+
+                            if (true === setting.load.error) {
+                                throw err;
+                            } else {
+                                _this.util_.fire(setting.load.error, setting, [err, element]);
+                            }
+                        }
+                    };
 
                     for (var i = 0, element; element = $scriptElements[i]; i++) {
                         if (!regType.test(element.type || '')) {
                             continue;
                         }
-                        if (element.hasAttribute('src') ? loadedScripts[element.src] : !element.innerHTML.trim()) {
+                        if (element.hasAttribute('src') ? loadedScripts[element.src] : !this.util_.trim(element.innerHTML)) {
                             continue;
                         }
 
                         LOG:
                          {
                             var srcLogParent = jQuery(element).parent(setting.load.log)[0];
-                            if (!srcLogParent || jQuery(element).parents(setting.area).length) {
+                            if (!srcLogParent || jQuery(element).parents(this.area_).length) {
                                 break LOG;
                             }
 
@@ -3497,90 +3589,75 @@ var MODULE;
                         }
                         ;
 
-                        if (this.model_.isDeferrable) {
-                            (function (defer, element) {
-                                if (element.hasAttribute('src')) {
-                                    if (!element.getAttribute('src')) {
-                                        return;
-                                    }
-                                    if (element.hasAttribute('async')) {
-                                        jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: true, global: false })).done(function () {
+                        // リストアップ
+                        (function (element) {
+                            var defer = _this.model_.isDeferrable && jQuery.Deferred();
+
+                            if (element.hasAttribute('src') && element.getAttribute('src')) {
+                                loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload);
+
+                                if (element.hasAttribute('async')) {
+                                    jQuery.ajax(jQuery.extend({}, setting.ajax, setting.load.ajax, {
+                                        url: element.src,
+                                        dataType: 'script',
+                                        async: true,
+                                        global: false,
+                                        success: function () {
                                             return _this.dispatchEvent(element, 'load', false, true);
-                                        }).fail(function () {
+                                        },
+                                        error: function () {
                                             return _this.dispatchEvent(element, 'error', false, true);
-                                        });
-                                    } else {
-                                        jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, dataType: 'text', async: true, global: false })).done(function () {
-                                            return defer.resolve([element, arguments[0]]);
-                                        }).fail(function () {
-                                            return defer.resolve([element, new Error()]);
-                                        });
-                                        scriptwaits.push(defer);
-                                    }
+                                        }
+                                    }));
                                 } else {
-                                    defer.resolve([element, (element.text || element.textContent || element.innerHTML || '').replace(regRemove, '')]);
-                                    scriptwaits.push(defer);
+                                    if (defer) {
+                                        jQuery.ajax(jQuery.extend({}, setting.ajax, setting.load.ajax, {
+                                            url: element.src,
+                                            dataType: 'text',
+                                            async: true,
+                                            global: false,
+                                            success: function () {
+                                                return defer.resolve([element, arguments[0]]);
+                                            },
+                                            error: function (err) {
+                                                return defer.resolve([element, err]);
+                                            }
+                                        }));
+                                        scriptwaits.push(defer);
+                                    } else {
+                                        scripts.push(element);
+                                    }
                                 }
-                            })(jQuery.Deferred(), element);
-                        } else {
-                            if (element.hasAttribute('src')) {
-                                if (!element.getAttribute('src')) {
-                                    continue;
+                            } else if (!element.hasAttribute('src')) {
+                                if (defer) {
+                                    scriptwaits.push(defer.resolve([element, (element.text || element.textContent || element.innerHTML || '').replace(regRemove, '')]));
+                                } else {
+                                    scripts.push(element);
                                 }
-                                $execElements = $execElements.add(element);
-                            } else {
-                                $execElements = $execElements.add(element);
                             }
-                        }
+                        })(element);
                     }
 
                     try  {
                         if (this.model_.isDeferrable) {
                             jQuery.when.apply(jQuery, scriptwaits).always(function () {
-                                for (var i = 0, len = arguments.length; i < len; i++) {
-                                    var result = arguments[i], element = result[0], response = result[1];
-
-                                    if (element.src) {
-                                        loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload);
-                                    }
-                                    if ('string' === typeof response) {
-                                        eval.call(window, response);
-                                        element.hasAttribute('src') && _this.dispatchEvent(element, 'load', false, true);
-                                    } else {
-                                        element.hasAttribute('src') && _this.dispatchEvent(element, 'error', false, true);
-                                    }
-                                }
+                                return jQuery.each(arguments, function (i, args) {
+                                    return exec.apply(_this, args);
+                                });
                             });
                         } else {
-                            for (var i = 0, element; element = $execElements[i]; i++) {
-                                if (element.hasAttribute('src')) {
-                                    if (element.src) {
-                                        loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload);
-                                    }
-                                    (function (element) {
-                                        jQuery.ajax(jQuery.extend(true, {}, setting.ajax, setting.load.ajax, { url: element.src, async: element.hasAttribute('async'), global: false }, {
-                                            success: function () {
-                                                return _this.dispatchEvent(element, 'load', false, true);
-                                            },
-                                            error: function () {
-                                                return _this.dispatchEvent(element, 'error', false, true);
-                                            }
-                                        }));
-                                    })(element);
-                                } else {
-                                    eval.call(window, (element.text || element.textContent || element.innerHTML || '').replace(regRemove, ''));
-                                }
-                            }
+                            jQuery.each(scripts, function (i, elem) {
+                                return exec(elem);
+                            });
                         }
                     } catch (err) {
                         setTimeout(function () {
-                            return _this.model_.fallback(event, setting);
-                        }, 50);
+                            return _this.model_.fallback(event);
+                        }, 1);
                         throw err;
-                        return;
                     }
 
-                    if (Util.fire(callbacks_update.script.after, null, [event, setting.param, this.data_, this.textStatus_, this.jqXHR_]) === false) {
+                    if (this.util_.fire(callbacks_update.script.after, setting, [event, setting]) === false) {
                         return scriptwaits;
                     }
 
@@ -3592,47 +3669,44 @@ var MODULE;
                 };
 
                 PageUpdate.prototype.scroll_ = function (call) {
-                    var _this = this;
-                    var setting = this.setting_, event = this.event_;
+                    var setting = this.record_.data.setting(), event = this.event_;
                     var callbacks_update = setting.callbacks.update;
 
-                    if (Util.fire(callbacks_update.scroll.before, null, [event, setting.param]) === false) {
+                    if (this.util_.fire(callbacks_update.scroll.before, setting, [event, setting]) === false) {
                         return;
                     }
 
                     var scrollX, scrollY;
                     switch (event.type.toLowerCase()) {
-                        case 'click':
-                        case 'submit':
-                            scrollX = call && 'function' === typeof setting.scrollLeft ? Util.fire(setting.scrollLeft, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]) : setting.scrollLeft;
+                        case MODULE.EVENT.CLICK:
+                        case MODULE.EVENT.SUBMIT:
+                            scrollX = call && 'function' === typeof setting.scrollLeft ? this.util_.fire(setting.scrollLeft, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) : setting.scrollLeft;
                             scrollX = 0 <= scrollX ? scrollX : 0;
                             scrollX = scrollX === false || scrollX === null ? jQuery(window).scrollLeft() : parseInt(Number(scrollX) + '', 10);
 
-                            scrollY = call && 'function' === typeof setting.scrollTop ? Util.fire(setting.scrollTop, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]) : setting.scrollTop;
+                            scrollY = call && 'function' === typeof setting.scrollTop ? this.util_.fire(setting.scrollTop, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) : setting.scrollTop;
                             scrollY = 0 <= scrollY ? scrollY : 0;
                             scrollY = scrollY === false || scrollY === null ? jQuery(window).scrollTop() : parseInt(Number(scrollY) + '', 10);
 
                             window.scrollTo(scrollX, scrollY);
                             break;
-                        case 'popstate':
+                        case MODULE.EVENT.POPSTATE:
                             call && setting.fix.scroll && this.app_.data.loadScrollPosition();
                             break;
                     }
+                    call && this.app_.data.saveScrollPosition();
 
-                    call && setTimeout(function () {
-                        return _this.app_.page.isScrollPosSavable && _this.app_.data.saveScrollPosition();
-                    }, 300);
-
-                    if (Util.fire(callbacks_update.scroll.after, null, [event, setting.param]) === false) {
+                    if (this.util_.fire(callbacks_update.scroll.after, setting, [event, setting]) === false) {
                         return;
                     }
                 };
 
                 PageUpdate.prototype.waitRender_ = function (callback) {
-                    var setting = this.setting_, event = this.event_;
+                    var _this = this;
+                    var setting = this.record_.data.setting(), event = this.event_;
                     var callbacks_update = setting.callbacks.update;
 
-                    var areas = jQuery(setting.area), checker = areas.children('.' + setting.nss.class4html + '-check'), limit = new Date().getTime() + 5 * 1000;
+                    var areas = jQuery(this.area_), checker = areas.children('.' + setting.nss.class4html + '-check'), limit = new Date().getTime() + 5 * 1000;
 
                     function filterChecker() {
                         return this.clientWidth || this.clientHeight || jQuery(this).is(':hidden');
@@ -3640,7 +3714,7 @@ var MODULE;
 
                     var check = function () {
                         switch (true) {
-                            case !Util.compareUrl(setting.destLocation.href, Util.normalizeUrl(window.location.href)):
+                            case !_this.util_.compareUrl(setting.destLocation.href, _this.util_.normalizeUrl(window.location.href)):
                                 break;
                             case new Date().getTime() > limit:
                             case checker.length !== areas.length:
@@ -3666,6 +3740,7 @@ var MODULE;
                     var $hashTargetElement = jQuery('#' + (hash ? hash : ', [name~=' + hash + ']')).first();
                     if ($hashTargetElement.length) {
                         isFinite($hashTargetElement.offset().top) && window.scrollTo(jQuery(window).scrollLeft(), parseInt(Number($hashTargetElement.offset().top) + '', 10));
+                        this.app_.data.saveScrollPosition();
                         return true;
                     } else {
                         return false;
@@ -3711,21 +3786,10 @@ var MODULE;
                     jQuery.removeData(script, 'code');
                 };
 
-                // mixin utility
-                PageUpdate.prototype.createHTMLDocument = function (html, uri) {
-                    return;
-                };
-
                 PageUpdate.prototype.chooseArea = function (areas, srcDocument, dstDocument) {
                     return;
                 };
                 PageUpdate.prototype.movePageNormally = function (event) {
-                };
-                PageUpdate.prototype.calAge = function (jqXHR) {
-                    return;
-                };
-                PageUpdate.prototype.calExpires = function (jqXHR) {
-                    return;
                 };
 
                 PageUpdate.prototype.dispatchEvent = function (target, eventType, bubbling, cancelable) {
@@ -3742,8 +3806,147 @@ var MODULE;
     var MODEL = MODULE.MODEL;
 })(MODULE || (MODULE = {}));
 /// <reference path="../define.ts"/>
-/// <reference path="app.page.fetch.ts"/>
+/// <reference path="../library/utility.ts"/>
+var MODULE;
+(function (MODULE) {
+    (function (MODEL) {
+        /* MODEL */
+        (function (APP) {
+            var PageParser = (function () {
+                function PageParser() {
+                }
+                PageParser.prototype.test_ = function (mode) {
+                    try  {
+                        var html = '<html lang="en" class="html"><head><title>&amp;</title><link href="/"><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript><a href="/"></a></body></html>', doc = this.parse(html, window.location.href, mode);
+                        switch (false) {
+                            case !!doc:
+                            case doc.URL && decodeURI(doc.URL) === decodeURI(window.location.href):
+                            case doc.title === '&':
+                            case !!doc.querySelector('html.html[lang="en"]'):
+                            case !!doc.querySelector('head>link')['href']:
+                            case !!doc.querySelector('head>noscript')['innerHTML']:
+                            case !!doc.querySelector('body>noscript')['innerHTML']:
+                            case !!doc.querySelector('body>a')['href']:
+                                throw true;
+                        }
+                        return mode;
+                    } catch (err) {
+                    }
+                };
+
+                PageParser.prototype.parse = function (html, uri, mode) {
+                    if (typeof mode === "undefined") { mode = this.mode_; }
+                    html += ~html.search(/<title[\s>]/i) ? '' : '<title></title>';
+
+                    var backup = !uri || !MODULE.LIBRARY.Utility.compareUrl(uri, window.location.href) ? window.location.href : undefined;
+                    backup && window.history.replaceState(window.history.state, document.title, uri);
+
+                    var doc;
+                    switch (mode) {
+                        case 'dom':
+                            if ('function' === typeof window.DOMParser) {
+                                doc = new window.DOMParser().parseFromString(html, 'text/html');
+                            }
+                            break;
+
+                        case 'doc':
+                            if (document.implementation && document.implementation.createHTMLDocument) {
+                                doc = document.implementation.createHTMLDocument('');
+
+                                // IE, Operaクラッシュ対策
+                                if ('object' !== typeof doc.activeElement || !doc.activeElement) {
+                                    break;
+                                }
+
+                                // titleプロパティの値をChromeで事後に変更できなくなったため事前に設定する必要がある
+                                if ('function' === typeof window.DOMParser && new window.DOMParser().parseFromString('', 'text/html')) {
+                                    doc.title = new window.DOMParser().parseFromString(html.match(/<title(?:\s.*?[^\\])?>(?:.*?[^\\])?<\/title>/i), 'text/html').title;
+                                }
+                                doc.open();
+                                doc.write(html);
+                                doc.close();
+                                if (doc.title !== doc.querySelector('title').textContent) {
+                                    doc.title = doc.querySelector('title').textContent;
+                                }
+                            }
+                            break;
+
+                        case 'manipulate':
+                            if (document.implementation && document.implementation.createHTMLDocument) {
+                                doc = manipulate(document.implementation.createHTMLDocument(''), html);
+                            }
+                            break;
+
+                        case null:
+                            doc = null;
+                            break;
+
+                        default:
+                            switch (/webkit|firefox|trident|$/i.exec(window.navigator.userAgent.toLowerCase()).shift()) {
+                                case 'webkit':
+                                    this.mode_ = this.test_('doc') || this.test_('dom') || this.test_('manipulate');
+                                    break;
+                                case 'firefox':
+                                    this.mode_ = this.test_('dom') || this.test_('doc') || this.test_('manipulate');
+                                    break;
+                                case 'trident':
+                                    this.mode_ = this.test_('manipulate') || this.test_('dom') || this.test_('doc');
+                                    break;
+                                default:
+                                    this.mode_ = this.test_('dom') || this.test_('doc') || this.test_('manipulate');
+                            }
+                            doc = this.parse(html, uri);
+                            break;
+                    }
+
+                    backup && window.history.replaceState(window.history.state, document.title, backup);
+
+                    return doc;
+
+                    function manipulate(doc, html) {
+                        var wrapper = document.createElement('div');
+                        wrapper.innerHTML = html.match(/<html(?:\s.*?[^\\])?>|$/i).shift().replace(/html/i, 'div') || '<div>';
+                        var attrs = wrapper.firstChild.attributes;
+                        for (var i = 0, attr; attr = attrs[i]; i++) {
+                            doc.documentElement.setAttribute(attr.name, attr.value);
+                        }
+                        var wrapper = document.createElement('html');
+                        wrapper.innerHTML = html.replace(/^.*?<html(?:\s.*?[^\\])?>/im, '');
+                        doc.documentElement.removeChild(doc.head);
+                        doc.documentElement.removeChild(doc.body);
+                        while (wrapper.childNodes.length) {
+                            doc.documentElement.appendChild(wrapper.childNodes[0]);
+                        }
+                        return doc;
+                    }
+                };
+                return PageParser;
+            })();
+            APP.PageParser = PageParser;
+
+            var PageParserSingleton = (function () {
+                function PageParserSingleton() {
+                    PageParserSingleton.instance_ = PageParserSingleton.instance_ || new PageParser();
+                }
+                PageParserSingleton.prototype.singleton_ = function () {
+                    return PageParserSingleton.instance_;
+                };
+
+                PageParserSingleton.prototype.parse = function (html, uri) {
+                    return this.singleton_().parse(html, uri);
+                };
+                return PageParserSingleton;
+            })();
+            APP.PageParserSingleton = PageParserSingleton;
+        })(MODEL.APP || (MODEL.APP = {}));
+        var APP = MODEL.APP;
+    })(MODULE.MODEL || (MODULE.MODEL = {}));
+    var MODEL = MODULE.MODEL;
+})(MODULE || (MODULE = {}));
+/// <reference path="../define.ts"/>
+/// <reference path="app.page.provider.ts"/>
 /// <reference path="app.page.update.ts"/>
+/// <reference path="app.page.parser.ts"/>
 /// <reference path="app.page.utility.ts"/>
 /// <reference path="../library/utility.ts"/>
 var MODULE;
@@ -3751,8 +3954,6 @@ var MODULE;
     (function (MODEL) {
         /* MODEL */
         (function (APP) {
-            var Util = MODULE.LIBRARY.Utility;
-
             MODULE.MIXIN(APP.PageFetch, [APP.PageUtility]);
             MODULE.MIXIN(APP.PageUpdate, [APP.PageUtility]);
 
@@ -3761,60 +3962,68 @@ var MODULE;
                     var _this = this;
                     this.model_ = model_;
                     this.app_ = app_;
-                    this.count_ = 0;
-                    this.time_ = new Date().getTime();
-                    this.landing = Util.normalizeUrl(window.location.href);
+                    this.provider = new APP.PageProvider(APP.PageRecord, this.model_, this.app_);
+                    this.util_ = MODULE.LIBRARY.Utility;
+                    this.parser = new APP.PageParserSingleton();
+                    this.landing = this.util_.normalizeUrl(window.location.href);
                     this.recent = { order: [], data: {}, size: 0 };
                     this.loadedScripts = {};
-                    this.isScrollPosSavable = true;
                     setTimeout(function () {
-                        return _this.createHTMLDocument('', '') || _this.model_.disable();
-                    }, 50);
+                        return _this.parser.parse('') || _this.model_.disable();
+                    }, 300);
                 }
-                Page.prototype.transfer = function (setting, event, register, cache) {
+                Page.prototype.transfer = function (setting, event) {
+                    switch (event.type.toLowerCase()) {
+                        case MODULE.EVENT.CLICK:
+                            this.app_.data.saveTitle();
+                            this.app_.data.saveScrollPosition();
+                            break;
+
+                        case MODULE.EVENT.SUBMIT:
+                            this.app_.data.saveTitle();
+                            this.app_.data.saveScrollPosition();
+                            break;
+
+                        case MODULE.EVENT.POPSTATE:
+                            this.app_.data.saveTitle(setting.origLocation.href, document.title);
+                            setting.fix.history && this.app_.data.loadTitle();
+                            break;
+                    }
+
+                    this.fetch_(setting, event);
+                };
+
+                Page.prototype.fetch_ = function (setting, event) {
                     var _this = this;
-                    var done = function (setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host) {
-                        _this.update_(setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host);
-                    };
-                    var fail = function (setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host) {
-                        if (!setting.fallback || 'abort' === textStatus) {
-                            return;
-                        }
-
-                        if (setting.balance.self) {
-                            _this.app_.data.saveServer(host, 0, new Date().getTime());
-                            _this.app_.balance.chooseServer(setting);
-                        }
-
-                        _this.model_.fallback(event, setting);
-                    };
-
-                    this.fetch_(setting, event, register, cache, done, fail);
+                    this.provider.accessRecord(setting, event, function (record, event) {
+                        return _this.success_(record, event);
+                    }, function (record, event) {
+                        return _this.failure_(record, event);
+                    });
                 };
 
-                Page.prototype.fetch_ = function (setting, event, register, cache, done, fail) {
-                    new APP.PageFetch(this.model_, this.app_, setting, event, register, cache, done, fail);
+                Page.prototype.success_ = function (record, event) {
+                    new APP.PageUpdate(this.model_, this.app_, event, record, true);
                 };
 
-                Page.prototype.update_ = function (setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host) {
-                    new APP.PageUpdate(this.model_, this.app_, setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host, ++this.count_, this.time_);
-                };
+                Page.prototype.failure_ = function (record, event) {
+                    if (!record.data.setting().fallback || 'abort' === record.data.textStatus()) {
+                        return;
+                    }
 
-                // mixin utility
-                Page.prototype.createHTMLDocument = function (html, uri) {
-                    return;
+                    var setting = record.data.setting();
+                    if (setting.balance.self) {
+                        this.app_.data.saveServer(record.data.host(), 0, new Date().getTime());
+                        this.app_.balance.chooseServer(setting);
+                    }
+
+                    this.model_.fallback(event);
                 };
 
                 Page.prototype.chooseArea = function (areas, srcDocument, dstDocument) {
                     return;
                 };
                 Page.prototype.movePageNormally = function (event) {
-                };
-                Page.prototype.calAge = function (jqXHR) {
-                    return;
-                };
-                Page.prototype.calExpires = function (jqXHR) {
-                    return;
                 };
 
                 Page.prototype.dispatchEvent = function (target, eventType, bubbling, cancelable) {
@@ -3842,27 +4051,32 @@ var MODULE;
     (function (MODEL) {
         /* MODEL */
         (function (APP) {
-            var Util = MODULE.LIBRARY.Utility;
-
             MODULE.MIXIN(APP.Page, [APP.PageUtility]);
 
             var Main = (function () {
                 function Main(model_, controller_) {
                     this.model_ = model_;
                     this.controller_ = controller_;
+                    this.util_ = MODULE.LIBRARY.Utility;
+                    this.settings_ = {};
                     this.balance = new APP.Balance(this.model_, this);
                     this.page = new APP.Page(this.model_, this);
                     this.data = new APP.Data(this.model_, this);
+                    this.count = 0;
+                    this.time = new Date().getTime();
+                    this.loadtime = 0;
                 }
                 Main.prototype.initialize = function ($context, setting) {
                     var _this = this;
-                    var loadedScripts = this.page.loadedScripts;
-                    setting.load.script && jQuery('script').each(function () {
-                        var element = this;
-                        if (element.src) {
-                            loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload);
-                        }
-                    });
+                    if (setting.load.script) {
+                        var loadedScripts = this.page.loadedScripts;
+                        jQuery('script').each(function () {
+                            var element = this;
+                            if (element.src) {
+                                loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload);
+                            }
+                        });
+                    }
 
                     new MODULE.View(this.model_, this.controller_, $context, setting);
                     setTimeout(function () {
@@ -3876,15 +4090,54 @@ var MODULE;
                     }, 1500);
                 };
 
-                Main.prototype.configure = function (option, origURL, destURL) {
-                    var that = this;
+                Main.prototype.configure = function (destination) {
+                    var event = destination.preventDefault ? destination : null;
+                    switch (event && event.type.toLowerCase()) {
+                        case MODULE.EVENT.CLICK:
+                            return this.configure(event.currentTarget);
+                        case MODULE.EVENT.SUBMIT:
+                            return this.configure(event.currentTarget);
+                        case MODULE.EVENT.POPSTATE:
+                            return this.configure(window.location);
+                        case null:
+                            break;
+                    }
 
-                    origURL = Util.normalizeUrl(origURL || option.origLocation.href);
-                    destURL = Util.normalizeUrl(destURL || option.destLocation.href);
-                    option = jQuery.extend(true, {}, option.option || option);
+                    var url;
+                    switch (true) {
+                        case 'href' in destination:
+                            url = this.util_.normalizeUrl(destination.href);
+                            break;
+                        case 'action' in destination:
+                            url = this.util_.normalizeUrl(destination.action.replace(/[?#].*/, ''));
+                            switch (destination.method.toUpperCase()) {
+                                case 'GET':
+                                    url += '?' + jQuery(destination).serialize();
+                                    break;
+                            }
+                            break;
+                        default:
+                            url = this.model_.location.href;
+                            this.option_ = destination;
+                    }
 
-                    option = option.scope ? jQuery.extend(true, {}, option, scope(option, origURL, destURL) || { cancel: true }) : jQuery.extend(true, {}, option);
-                    MODULE.FREEZE(option, true);
+                    var index = [
+                        this.util_.canonicalizeUrl(this.model_.location.href).slice(0, 2048),
+                        this.util_.canonicalizeUrl(url).slice(0, 2048)
+                    ].join(' ');
+
+                    if (!this.option_) {
+                        return null;
+                    }
+                    if (index in this.settings_) {
+                        return this.settings_[index];
+                    }
+
+                    var origLocation = this.model_.location.cloneNode(), destLocation = this.model_.location.cloneNode();
+
+                    destLocation.href = url;
+
+                    var scope = this.scope_(this.option_, origLocation.href, destLocation.href) || null;
 
                     var initial = {
                         area: 'body',
@@ -3914,10 +4167,11 @@ var MODULE;
                             head: '',
                             css: false,
                             script: false,
+                            ignore: '[src*="jquery.js"], [src*="jquery.min.js"], [href^="chrome-extension://"]',
+                            reload: '',
                             execute: true,
                             log: 'head, body',
-                            reload: '',
-                            ignore: '[src*="jquery.js"], [src*="jquery.min.js"], [href^="chrome-extension://"]',
+                            error: true,
                             ajax: { dataType: 'script', cache: true }
                         },
                         balance: {
@@ -3969,8 +4223,7 @@ var MODULE;
                             location: true,
                             history: true,
                             scroll: true,
-                            noscript: true,
-                            reset: false
+                            noscript: true
                         },
                         database: true,
                         server: {
@@ -3982,23 +4235,18 @@ var MODULE;
                             ajax: {},
                             update: { redirect: {}, rewrite: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, balance: {} }
                         },
-                        param: null
+                        data: undefined
                     }, force = {
                         ns: undefined,
                         nss: undefined,
                         speedcheck: undefined,
-                        cancel: undefined,
-                        origLocation: undefined,
-                        destLocation: undefined,
-                        gns: MODULE.DEF.NAME,
-                        areas: [],
+                        origLocation: origLocation,
+                        destLocation: destLocation,
                         scroll: { queue: [] },
-                        loadtime: null,
-                        retriable: true,
-                        option: option
+                        option: this.option_
                     }, compute = function () {
-                        setting.ns = setting.ns && setting.ns.split('.').sort().join('.') || '';
-                        var nsArray = [setting.gns || MODULE.DEF.NAME].concat(setting.ns && String(setting.ns).split('.') || []);
+                        setting.ns = setting.ns ? setting.ns.split('.').sort().join('.') : '';
+                        var nsArray = [MODULE.DEF.NAME].concat(setting.ns ? setting.ns.split('.') : []);
                         var query = setting.server.query;
                         switch (query && typeof query) {
                             case 'string':
@@ -4010,38 +4258,27 @@ var MODULE;
                                 query = '';
                         }
                         return {
-                            gns: undefined,
                             ns: undefined,
-                            areas: undefined,
+                            origLocation: undefined,
+                            destLocation: undefined,
                             scroll: undefined,
-                            loadtime: undefined,
-                            retriable: undefined,
                             option: undefined,
                             speedcheck: undefined,
-                            cancel: undefined,
                             nss: {
                                 name: setting.ns || '',
                                 array: nsArray,
                                 event: nsArray.join('.'),
                                 data: nsArray.join('-'),
                                 class4html: nsArray.join('-'),
-                                click: ['click'].concat(nsArray.join(':')).join('.'),
-                                submit: ['submit'].concat(nsArray.join(':')).join('.'),
-                                popstate: ['popstate'].concat(nsArray.join(':')).join('.'),
-                                scroll: ['scroll'].concat(nsArray.join(':')).join('.'),
+                                click: [MODULE.EVENT.CLICK].concat(nsArray.join(':')).join('.'),
+                                submit: [MODULE.EVENT.SUBMIT].concat(nsArray.join(':')).join('.'),
+                                popstate: [MODULE.EVENT.POPSTATE].concat(nsArray.join(':')).join('.'),
+                                scroll: [MODULE.EVENT.SCROLL].concat(nsArray.join(':')).join('.'),
                                 requestHeader: ['X', nsArray[0].replace(/^\w/, function (str) {
                                         return str.toUpperCase();
                                     })].join('-')
                             },
-                            origLocation: (function (url, a) {
-                                a.href = url;
-                                return a;
-                            })(origURL, document.createElement('a')),
-                            destLocation: (function (url, a) {
-                                a.href = url;
-                                return a;
-                            })(destURL, document.createElement('a')),
-                            fix: /android|iphone os|like mac os x/i.test(window.navigator.userAgent) ? undefined : { location: false, reset: false },
+                            fix: /android|iphone os|like mac os x/i.test(window.navigator.userAgent) ? undefined : { location: false },
                             contentType: setting.contentType.replace(/\s*[,;]\s*/g, '|').toLowerCase(),
                             reset: {
                                 type: (setting.reset.type || '').toLowerCase()
@@ -4054,115 +4291,126 @@ var MODULE;
                     };
 
                     var setting;
-                    setting = jQuery.extend(true, initial, option);
+                    setting = jQuery.extend(true, initial, scope || this.option_);
                     setting = jQuery.extend(true, setting, setting.balance.self && setting.balance.option, force);
                     setting = jQuery.extend(true, setting, compute());
 
-                    return MODULE.SEAL(setting, true);
+                    if (scope) {
+                        MODULE.FREEZE(setting, true);
+                        this.settings_[index] = setting;
+                        return setting;
+                    } else {
+                        this.settings_[index] = null;
+                        return null;
+                    }
+                };
 
-                    function scope(setting, origURL, destURL, rewriteKeyUrl) {
-                        if (typeof rewriteKeyUrl === "undefined") { rewriteKeyUrl = ''; }
-                        var origKeyUrl, destKeyUrl, scpTable = setting.scope, dirs, scpKeys, scpKey, scpTag, patterns, inherit, hit_src, hit_dst, option;
+                Main.prototype.scope_ = function (option, origURL, destURL, rewriteKeyUrl) {
+                    if (typeof rewriteKeyUrl === "undefined") { rewriteKeyUrl = ''; }
+                    option = jQuery.extend(true, {}, option);
+                    if (!option.scope) {
+                        return option;
+                    }
 
-                        origKeyUrl = that.model_.convertUrlToKeyUrl(origURL).match(/.+?\w(\/.*)/).pop();
-                        destKeyUrl = that.model_.convertUrlToKeyUrl(destURL).match(/.+?\w(\/.*)/).pop();
-                        rewriteKeyUrl = rewriteKeyUrl.replace(/[#?].*/, '');
+                    var origKeyUrl, destKeyUrl, scpTable = option.scope, dirs, scpKeys, scpKey, scpTag, scope;
 
-                        scpKeys = (rewriteKeyUrl || destKeyUrl).replace(/^\/|\/$/g, '').split('/');
-                        if (rewriteKeyUrl) {
-                            if (!~rewriteKeyUrl.indexOf('*')) {
-                                return undefined;
-                            }
-                            dirs = [];
-                            var arr = origKeyUrl.replace(/^\/|\/$/g, '').split('/');
-                            for (var i = 0, len = scpKeys.length; i < len; i++) {
-                                '*' === scpKeys[i] && dirs.push(arr[i]);
-                            }
+                    origKeyUrl = this.model_.convertUrlToKeyUrl(origURL).match(/.+?\w(\/.*)/).pop();
+                    destKeyUrl = this.model_.convertUrlToKeyUrl(destURL).match(/.+?\w(\/.*)/).pop();
+                    rewriteKeyUrl = rewriteKeyUrl.replace(/[#?].*/, '');
+
+                    scpKeys = (rewriteKeyUrl || destKeyUrl).split('/');
+                    if (rewriteKeyUrl) {
+                        if (!~rewriteKeyUrl.indexOf('*')) {
+                            return undefined;
                         }
-
-                        for (var i = scpKeys.length + 1; i--;) {
-                            inherit = option = hit_src = hit_dst = undefined;
-                            scpKey = scpKeys.slice(0, i).join('/');
-                            scpKey = '/' + scpKey + ('/' === (rewriteKeyUrl || origKeyUrl).charAt(scpKey.length + 1) ? '/' : '');
-
-                            if (!scpKey || !(scpKey in scpTable)) {
-                                continue;
-                            }
-
-                            if (scpTable[scpKey] instanceof Array) {
-                                scpTag = '';
-                                patterns = scpTable[scpKey];
-                            } else {
-                                scpTag = scpTable[scpKey];
-                                patterns = scpTable[scpTag];
-                            }
-
-                            if (!patterns || !patterns.length) {
-                                return false;
-                            }
-
-                            patterns = patterns.concat();
-                            for (var j = 0, pattern; pattern = patterns[j]; j++) {
-                                if (hit_src === false || hit_dst === false) {
-                                    break;
-                                }
-
-                                if ('#' === pattern[0]) {
-                                    scpTag = pattern.slice(1);
-                                    [].splice.apply(patterns, [j, 1].concat(scpTable[scpTag]));
-                                    pattern = patterns[j];
-                                }
-
-                                if ('inherit' === pattern) {
-                                    inherit = true;
-                                } else if ('rewrite' === pattern && 'function' === typeof scpTable.rewrite && !rewriteKeyUrl) {
-                                    var rewrite = scope.apply(this, [].slice.call(arguments).slice(0, 3).concat([Util.fire(scpTable.rewrite, null, [destKeyUrl])]));
-                                    if (rewrite) {
-                                        hit_src = hit_dst = true;
-                                        option = rewrite;
-                                        break;
-                                    } else if (false === rewrite) {
-                                        return false;
-                                    }
-                                } else if ('string' === typeof pattern) {
-                                    var not = '!' === pattern[0];
-                                    pattern = not ? pattern.slice(1) : pattern;
-                                    var reg = '*' === pattern[0];
-                                    pattern = reg ? pattern.slice(1) : pattern;
-
-                                    if (rewriteKeyUrl && ~pattern.indexOf('/*/')) {
-                                        for (var k = 0, len = dirs.length; k < len; k++) {
-                                            pattern = pattern.replace('/*/', '/' + dirs[k] + '/');
-                                        }
-                                    }
-
-                                    if (reg ? !origKeyUrl.search(pattern) : !origKeyUrl.indexOf(pattern)) {
-                                        if (not) {
-                                            return false;
-                                        } else {
-                                            hit_src = true;
-                                        }
-                                    }
-                                    if (reg ? !destKeyUrl.search(pattern) : !destKeyUrl.indexOf(pattern)) {
-                                        if (not) {
-                                            return false;
-                                        } else {
-                                            hit_dst = true;
-                                            option = scpTable['$' + scpTag] || scpTable['$' + pattern] || null;
-                                        }
-                                    }
-                                }
-                            }
-
-                            if (hit_src && hit_dst) {
-                                return jQuery.extend(true, {}, setting, option);
-                            }
-                            if (inherit) {
-                                continue;
-                            }
-                            break;
+                        dirs = [];
+                        var arr = origKeyUrl.split('/');
+                        for (var i = 0, len = scpKeys.length; i < len; i++) {
+                            '*' === scpKeys[i] && dirs.push(arr[i]);
                         }
                     }
+
+                    for (var i = scpKeys.length; i--;) {
+                        scpKey = scpKeys.slice(0, i + 1).join('/');
+                        scpKey = scpKey + ('/' === (rewriteKeyUrl || origKeyUrl).charAt(scpKey.length) ? '/' : '');
+
+                        if (!scpKey || !(scpKey in scpTable)) {
+                            continue;
+                        }
+
+                        var patterns;
+                        if (scpTable[scpKey] instanceof Array) {
+                            scpTag = '';
+                            patterns = scpTable[scpKey];
+                        } else {
+                            scpTag = scpTable[scpKey];
+                            patterns = scpTable[scpTag];
+                        }
+                        if (patterns) {
+                            patterns = patterns.concat();
+                        } else {
+                            continue;
+                        }
+
+                        var hit_src, hit_dst, inherit;
+                        inherit = scope = hit_src = hit_dst = undefined;
+                        for (var j = 0, pattern; pattern = patterns[j]; j++) {
+                            if ('#' === pattern.charAt(0)) {
+                                scpTag = pattern.slice(1);
+                                [].splice.apply(patterns, [j, 1].concat(scpTable[scpTag]));
+                                pattern = patterns[j];
+                            }
+
+                            if ('inherit' === pattern) {
+                                inherit = true;
+                            } else if ('rewrite' === pattern && 'function' === typeof scpTable.rewrite && !rewriteKeyUrl) {
+                                scope = this.scope_(option, origURL, destURL, this.util_.fire(scpTable.rewrite, null, [destKeyUrl]));
+                                if (scope) {
+                                    hit_src = hit_dst = true;
+                                } else if (null === scope) {
+                                    hit_src = hit_dst = false;
+                                }
+                            } else if ('string' === typeof pattern) {
+                                var not = '!' === pattern.charAt(0);
+                                pattern = not ? pattern.slice(1) : pattern;
+                                var reg = '*' === pattern.charAt(0);
+                                pattern = reg ? pattern.slice(1) : pattern;
+
+                                if (rewriteKeyUrl && ~pattern.indexOf('/*/')) {
+                                    for (var k = 0, len = dirs.length; k < len; k++) {
+                                        pattern = pattern.replace('/*/', '/' + dirs[k] + '/');
+                                    }
+                                }
+
+                                if (reg ? ~origKeyUrl.search(pattern) : ~origKeyUrl.indexOf(pattern)) {
+                                    if (not) {
+                                        hit_src = false;
+                                    } else {
+                                        hit_src = true;
+                                    }
+                                }
+                                if (reg ? ~destKeyUrl.search(pattern) : ~destKeyUrl.indexOf(pattern)) {
+                                    if (not) {
+                                        hit_dst = false;
+                                    } else {
+                                        hit_dst = true;
+                                        scope = scpTable['$' + scpTag] || scpTable['$' + pattern] || undefined;
+                                    }
+                                }
+                            }
+                            if (false === hit_src || false === hit_dst) {
+                                return null;
+                            }
+                        }
+
+                        if (hit_src && hit_dst) {
+                            return jQuery.extend(true, option, scope);
+                        } else if (inherit) {
+                            continue;
+                        }
+                        break;
+                    }
+                    return undefined;
                 };
                 return Main;
             })();
@@ -4191,17 +4439,24 @@ var MODULE;
 (function (MODULE) {
     /* MODEL */
     (function (MODEL) {
-        var Util = MODULE.LIBRARY.Utility;
-
         var Main = (function (_super) {
             __extends(Main, _super);
             function Main() {
                 _super.call(this, 1 /* initiate */);
-                this.controller_ = new MODULE.Controller(this);
+                this.controller_ = new MODULE.Controller(this).singleton();
                 this.app_ = new MODEL.App(this, this.controller_);
-                this.queue_ = [];
+                this.util_ = MODULE.LIBRARY.Utility;
                 this.isDeferrable = !!jQuery.when && '1.006' <= jQuery().jquery.match(/\d[\d.]+\d/).pop().replace(/\.(\d+)/g, '.00$1').replace(/0*(\d{3})/g, '$1');
+                this.location = document.createElement('a');
+                this.queue_ = [];
             }
+            Main.prototype.getRequestDomain = function () {
+                return this.host();
+            };
+            Main.prototype.setRequestDomain = function (host) {
+                return this.app_.balance.changeServer(host.split('//').pop(), null);
+            };
+
             Main.prototype.host = function () {
                 return this.app_.balance.host();
             };
@@ -4225,9 +4480,14 @@ var MODULE;
                     return $context;
                 }
 
-                var setting = this.app_.configure(option, window.location.href, window.location.href);
-                this.setGlobalSetting(setting);
-                this.app_.data.opendb(setting);
+                this.location.href = this.util_.normalizeUrl(window.location.href);
+
+                var setting = this.app_.configure(option);
+                if (!setting) {
+                    return $context;
+                }
+
+                this.app_.data.connect(setting);
 
                 this.speed = {
                     fire: 0,
@@ -4250,48 +4510,44 @@ var MODULE;
                 return unsafe_url.replace(/#.*/, '');
             };
 
-            Main.prototype.isImmediateLoadable = function (param, setting) {
+            Main.prototype.configure = function (destination) {
+                return this.app_.configure(destination);
+            };
+
+            Main.prototype.isAvailable = function (event) {
                 if (2 /* open */ !== this.state()) {
-                    return;
-                }
-
-                var origURL = Util.normalizeUrl(window.location.href), destURL, event;
-                switch (typeof param) {
-                    case 'string':
-                        event = null;
-                        destURL = Util.normalizeUrl(param);
-                        break;
-                    case 'object':
-                        event = param;
-                        switch (event.type.toLowerCase()) {
-                            case 'click':
-                                destURL = Util.normalizeUrl(event.currentTarget.href);
-                                if (!jQuery(event.currentTarget).filter(setting.filter).length) {
-                                    return false;
-                                }
-                                break;
-                            case 'submit':
-                                destURL = Util.normalizeUrl(event.currentTarget.action);
-                                break;
-                            case 'popstate':
-                                return true;
-                        }
-                        if (event.which > 1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
-                            return false;
-                        }
-                        break;
-                }
-                var origLocation = jQuery('<a/>', { href: origURL })[0], destLocation = jQuery('<a/>', { href: destURL })[0];
-
-                if (origLocation.protocol !== destLocation.protocol || origLocation.host !== destLocation.host) {
                     return false;
                 }
 
-                setting = setting || this.app_.configure(this.getGlobalSetting(), origLocation.href, destLocation.href);
-                if (setting.cancel) {
-                    return;
+                if (event.which > 1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+                    return false;
                 }
-                if (destLocation.hash && origLocation.href.replace(/#.*/, '') === destLocation.href.replace(/#.*/, '')) {
+
+                var setting;
+                switch (event.type.toLowerCase()) {
+                    case MODULE.EVENT.CLICK:
+                        setting = this.app_.configure(event.currentTarget);
+                        if (setting && !jQuery(event.currentTarget).filter(setting.filter).length) {
+                            return false;
+                        }
+                        break;
+                    case MODULE.EVENT.SUBMIT:
+                        setting = this.app_.configure(event.currentTarget);
+                        break;
+                    case MODULE.EVENT.POPSTATE:
+                        setting = this.app_.configure(window.location);
+                        break;
+                }
+
+                if (!setting) {
+                    return false;
+                }
+
+                if (setting.origLocation.protocol !== setting.destLocation.protocol || setting.origLocation.host !== setting.destLocation.host) {
+                    return false;
+                }
+
+                if (setting.destLocation.hash && setting.origLocation.href.replace(/#.*/, '') === setting.destLocation.href.replace(/#.*/, '')) {
                     return false;
                 }
                 if (!this.app_.page.chooseArea(setting.area, document, document)) {
@@ -4301,19 +4557,12 @@ var MODULE;
                 return true;
             };
 
-            Main.prototype.getGlobalSetting = function () {
-                return this.app_.page.globalSetting;
+            Main.prototype.getXHR = function () {
+                return this.app_.page.xhr;
             };
-            Main.prototype.setGlobalSetting = function (setting) {
-                return this.app_.page.globalSetting = setting;
-            };
-
-            Main.prototype.getGlobalXHR = function () {
-                return this.app_.page.globalXHR;
-            };
-            Main.prototype.setGlobalXHR = function (xhr) {
-                this.app_.page.globalXHR && this.app_.page.globalXHR.readyState < 4 && this.app_.page.globalXHR.abort();
-                return this.app_.page.globalXHR = xhr;
+            Main.prototype.setXHR = function (xhr) {
+                this.app_.page.xhr && this.app_.page.xhr.readyState < 4 && this.app_.page.xhr.abort();
+                return this.app_.page.xhr = xhr;
             };
 
             Main.prototype.click = function (event) {
@@ -4321,35 +4570,24 @@ var MODULE;
                  {
                     event.timeStamp = new Date().getTime();
                     var context = event.currentTarget, $context = jQuery(context);
-                    var setting = this.app_.configure(this.getGlobalSetting(), window.location.href, context.href);
+                    var setting = this.app_.configure(context);
 
-                    if (2 /* open */ !== this.state() || setting.cancel || event.isDefaultPrevented()) {
-                        break PROCESS;
-                    }
-                    if (!this.isImmediateLoadable(event, setting)) {
-                        break PROCESS;
-                    }
-
-                    if (setting.cache.mix && this.getCache(setting.destLocation.href)) {
-                        break PROCESS;
+                    switch (false) {
+                        case !event.isDefaultPrevented():
+                        case !!setting:
+                        case this.state() === 2 /* open */:
+                        case this.isAvailable(event):
+                            break PROCESS;
                     }
 
-                    this.app_.data.saveTitle();
-                    this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
-
-                    var cache;
-                    if (setting.cache[event.type.toLowerCase()]) {
-                        cache = this.getCache(setting.destLocation.href);
-                    }
-
-                    this.app_.page.transfer(setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
+                    this.app_.page.transfer(setting, event);
                     event.preventDefault();
                     return;
                 }
                 ;
 
                 // clickメソッド用
-                !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length && this.fallback(event, setting);
+                !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length && this.fallback(event);
             };
 
             Main.prototype.submit = function (event) {
@@ -4357,83 +4595,61 @@ var MODULE;
                  {
                     event.timeStamp = new Date().getTime();
                     var context = event.currentTarget, $context = jQuery(context);
-                    var setting = this.app_.configure(this.getGlobalSetting(), window.location.href, context.action);
+                    var setting = this.app_.configure(context);
 
-                    if (2 /* open */ !== this.state() || setting.cancel || event.isDefaultPrevented()) {
-                        break PROCESS;
-                    }
-                    if (!this.isImmediateLoadable(event, setting)) {
-                        break PROCESS;
-                    }
-
-                    var serializedURL = setting.destLocation.href.replace(/[?#].*/, '') + ('GET' === context.method.toUpperCase() ? '?' + jQuery(context).serialize() : '');
-                    setting.destLocation.href = Util.normalizeUrl(serializedURL);
-                    if (setting.cache.mix && this.getCache(setting.destLocation.href)) {
-                        break PROCESS;
+                    switch (false) {
+                        case !event.isDefaultPrevented():
+                        case !!setting:
+                        case this.state() === 2 /* open */:
+                        case this.isAvailable(event):
+                            break PROCESS;
                     }
 
-                    this.app_.data.saveTitle();
-                    this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
-
-                    var cache;
-                    if (setting.cache[event.type.toLowerCase()] && setting.cache[context.method.toLowerCase()]) {
-                        cache = this.getCache(setting.destLocation.href);
-                    }
-
-                    this.app_.page.transfer(setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
+                    this.app_.page.transfer(setting, event);
                     event.preventDefault();
                     return;
                 }
                 ;
 
                 // submitメソッド用
-                !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length && this.fallback(event, setting);
+                !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length && this.fallback(event);
             };
 
             Main.prototype.popstate = function (event) {
                 PROCESS:
                  {
+                    if (this.app_.page.landing && this.app_.page.landing === this.util_.normalizeUrl(window.location.href)) {
+                        return;
+                    }
+                    if (this.location.href === this.util_.normalizeUrl(window.location.href)) {
+                        return;
+                    }
+
                     event.timeStamp = new Date().getTime();
-                    var setting = this.app_.configure(this.getGlobalSetting(), null, window.location.href);
-                    if (this.app_.page.landing && this.app_.page.landing === Util.normalizeUrl(window.location.href)) {
+                    var setting = this.app_.configure(window.location);
+
+                    if (setting.origLocation.pathname + setting.origLocation.search === setting.destLocation.pathname + setting.destLocation.search) {
                         return;
                     }
-                    if (setting.origLocation.href === setting.destLocation.href) {
-                        return;
+
+                    switch (false) {
+                        case !!setting:
+                        case this.state() === 2 /* open */:
+                        case this.isAvailable(event):
+                            break PROCESS;
                     }
 
-                    if (2 /* open */ !== this.state() || setting.cancel) {
-                        break PROCESS;
-                    }
-                    if (!this.isImmediateLoadable(event, setting)) {
-                        break PROCESS;
-                    }
-
-                    if (setting.origLocation.hash !== setting.destLocation.hash && setting.origLocation.pathname + setting.origLocation.search === setting.destLocation.pathname + setting.destLocation.search) {
-                        break PROCESS;
-                    }
-
-                    this.app_.data.saveTitle(setting.origLocation.href, document.title);
-                    setting.fix.history && this.app_.data.loadTitle();
-
-                    var cache;
-                    if (setting.cache[event.type.toLowerCase()]) {
-                        cache = this.getCache(setting.destLocation.href);
-                    }
-
-                    this.app_.page.transfer(setting, event, false, cache);
+                    this.app_.page.transfer(setting, event);
                     return;
                 }
                 ;
+
+                // pjax処理されないURL変更によるページ更新
+                this.fallback(event);
             };
 
             Main.prototype.scroll = function (event, end) {
                 var _this = this;
-                var setting = this.getGlobalSetting();
-                if (2 /* open */ !== this.state() || event.isDefaultPrevented()) {
-                    return;
-                }
-
                 var id;
                 while (id = this.queue_.shift()) {
                     clearTimeout(id);
@@ -4442,15 +4658,16 @@ var MODULE;
                     while (id = _this.queue_.shift()) {
                         clearTimeout(id);
                     }
-                    _this.app_.page.isScrollPosSavable && _this.app_.data.saveScrollPosition();
+                    _this.util_.compareUrl(window.location.href, _this.location.href) && _this.app_.data.saveScrollPosition();
                 }, 300);
                 this.queue_.push(id);
             };
 
-            Main.prototype.fallback = function (event, setting) {
+            Main.prototype.fallback = function (event) {
+                var setting = this.configure(event);
                 switch (true) {
-                    case !setting.fallback:
-                    case false === Util.fire(setting.fallback, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]):
+                    case setting && !setting.fallback:
+                    case setting && false === this.util_.fire(setting.fallback, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]):
                         break;
                     default:
                         this.app_.page.movePageNormally(event);
@@ -4466,12 +4683,12 @@ var MODULE;
             };
 
             Main.prototype.getCache = function (unsafe_url) {
-                var setting = this.getGlobalSetting(), recent = this.app_.page.recent;
+                var setting = this.configure(window.location), recent = this.app_.page.recent;
                 if (!setting || !recent) {
                     return null;
                 }
 
-                var secure_url = this.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
+                var secure_url = this.convertUrlToKeyUrl(this.util_.normalizeUrl(unsafe_url));
                 unsafe_url = null;
 
                 recent.data[secure_url] && new Date().getTime() > recent.data[secure_url].expires && this.removeCache(secure_url);
@@ -4481,14 +4698,14 @@ var MODULE;
 
             Main.prototype.setCache = function (unsafe_url, data, textStatus, jqXHR, host) {
                 var _this = this;
-                var setting = this.getGlobalSetting(), recent = this.app_.page.recent;
+                var setting = this.configure(window.location), recent = this.app_.page.recent;
                 if (!setting || !recent) {
                     return this;
                 }
 
                 var cache, size, timeStamp, expires;
 
-                var secure_url = this.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
+                var secure_url = this.convertUrlToKeyUrl(this.util_.normalizeUrl(unsafe_url));
                 unsafe_url = null;
 
                 recent.order.unshift(secure_url);
@@ -4519,11 +4736,11 @@ var MODULE;
                         return recent.data[secure_url].expires;
                     }
 
-                    age = jqXHR && _this.app_.page.calAge(jqXHR) || Number(setting.cache.expires);
+                    age = jqXHR && _this.calAge_(jqXHR) || 0;
 
-                    age = Math.max(age, 0) || 0;
                     age = 'object' === typeof setting.cache.expires && 'number' === typeof setting.cache.expires.min ? Math.max(setting.cache.expires.min, age) : age;
                     age = 'object' === typeof setting.cache.expires && 'number' === typeof setting.cache.expires.max ? Math.min(setting.cache.expires.max, age) : age;
+                    age = Math.max(age, 0) || 0;
                     return timeStamp + age;
                 })(timeStamp);
                 recent.size = recent.size || 0;
@@ -4543,18 +4760,19 @@ var MODULE;
                 if (jqXHR || cache && cache.jqXHR) {
                     var title = ((jqXHR || cache && cache.jqXHR).responseText || '').slice(0, 10000).match(/<title[^>]*>(.*?)<\/title>/i).pop() || '';
                     setting.fix.history && this.app_.data.saveTitle(secure_url, title);
+                    this.app_.data.saveExpires(setting.destLocation.href, host, this.calExpires_(jqXHR || cache && cache.jqXHR));
                 }
             };
 
             Main.prototype.removeCache = function (param) {
-                var setting = this.getGlobalSetting(), recent = this.app_.page.recent;
+                var setting = this.configure(window.location), recent = this.app_.page.recent;
                 if (!setting || !recent) {
                     return;
                 }
 
                 switch (typeof param) {
                     case 'string':
-                        var secure_url = this.convertUrlToKeyUrl(Util.normalizeUrl(param));
+                        var secure_url = this.convertUrlToKeyUrl(this.util_.normalizeUrl(param));
                         param = null;
 
                         for (var i = 0, key; key = recent.order[i]; i++) {
@@ -4576,7 +4794,7 @@ var MODULE;
             };
 
             Main.prototype.clearCache = function () {
-                var setting = this.getGlobalSetting(), recent = this.app_.page.recent;
+                var setting = this.configure(window.location), recent = this.app_.page.recent;
                 if (!setting || !recent) {
                     return;
                 }
@@ -4587,7 +4805,7 @@ var MODULE;
             };
 
             Main.prototype.cleanCache = function () {
-                var setting = this.getGlobalSetting(), recent = this.app_.page.recent;
+                var setting = this.configure(window.location), recent = this.app_.page.recent;
                 if (!setting || !recent) {
                     return;
                 }
@@ -4602,23 +4820,49 @@ var MODULE;
                 }
             };
 
-            Main.prototype.getRequestDomain = function () {
-                return this.host();
+            Main.prototype.calAge_ = function (jqXHR) {
+                var age;
+
+                switch (true) {
+                    case /no-store|no-cache/.test(jqXHR.getResponseHeader('Cache-Control')):
+                        return 0;
+                    case jqXHR.getResponseHeader('Cache-Control') && !!~jqXHR.getResponseHeader('Cache-Control').indexOf('max-age='):
+                        return Number(jqXHR.getResponseHeader('Cache-Control').match(/max-age=(\d+)/).pop()) * 1000;
+                    case !!jqXHR.getResponseHeader('Expires'):
+                        return new Date(jqXHR.getResponseHeader('Expires')).getTime() - new Date().getTime();
+                    default:
+                        return 0;
+                }
             };
 
-            Main.prototype.setRequestDomain = function (host) {
-                return this.app_.balance.changeServer(host.split('//').pop(), null);
+            Main.prototype.calExpires_ = function (jqXHR) {
+                return new Date().getTime() + this.calAge_(jqXHR);
             };
             return Main;
         })(MODEL.Template);
         MODEL.Main = Main;
+
+        var Singleton = (function () {
+            function Singleton() {
+                Singleton.instance_ = Singleton.instance_ || new Main();
+            }
+            Singleton.singleton = function () {
+                return Singleton.instance_;
+            };
+
+            Singleton.prototype.singleton = function () {
+                return Singleton.singleton();
+            };
+            return Singleton;
+        })();
+        MODEL.Singleton = Singleton;
     })(MODULE.MODEL || (MODULE.MODEL = {}));
     var MODEL = MODULE.MODEL;
 })(MODULE || (MODULE = {}));
 
 var MODULE;
 (function (MODULE) {
-    MODULE.Model = MODULE.MODEL.Main;
+    MODULE.Model = MODULE.MODEL.Singleton;
 })(MODULE || (MODULE = {}));
 /// <reference path="model/main.ts"/>
 /// <reference path="view/main.ts"/>

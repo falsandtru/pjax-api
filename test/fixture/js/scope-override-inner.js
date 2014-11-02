@@ -4,6 +4,6 @@ $.pjax({
     pattern: ['/'],
     $pattern: { area: '#primary' },
     '/base/': ['#pattern'],
-    '/jquery.pjax.js/': ['#pattern']
+    '/jquery-pjax/': ['#pattern']
   }
 });

@@ -16,10 +16,10 @@ Ajaxリクエストの送信、引き継ぎ、キャッシュ適用、いずれ�
 データの取得後、ページの更新前に`window`オブジェクトから発生します。
 
 ## pjax:DOMContentLoaded
-`area`で指定されたすべての範囲のDOMの更新後、`document`オブジェクトから発生します。CSSの更新とSCRIPTの実行は完了していません。
+`area`で指定された範囲のDOMの更新後、`document`オブジェクトから発生します。
 
 ## pjax:ready
-すべてのDOMの更新後、`document`オブジェクトから発生します。
+SCRIPT要素を除くすべてのDOMの更新後、`document`オブジェクトから発生します。
 
 ## pjax:render
 すべての更新範囲の描画後、`document`オブジェクトから発生します。

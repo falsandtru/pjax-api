@@ -12,5 +12,5 @@ pjaxによるページ遷移が失敗した場合にフォールバック処理�
 ## fallback: boolean
 フォールバック処理の有効無効を切り替えます。
 
-## fallback: function( event, param, origUrl, destUrl )
+## fallback: function( event, setting, origLocation, destLocation )
 フォールバック処理前に関数を実行します。戻り値に`false`を設定した場合、既定のフォールバック処理をキャンセルします。

@@ -18,7 +18,7 @@ $.pjax({
 });
 </pre>
 
-## wait: function( event, param, origUrl, destUrl )
+## wait: function( event, setting, origLocation, destLocation )
 待ち時間を関数の戻り値で設定します。
 
 <pre class="sh brush: js;">
