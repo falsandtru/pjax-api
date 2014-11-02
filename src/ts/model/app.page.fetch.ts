@@ -59,7 +59,7 @@ module MODULE.MODEL.APP {
 
       this.dispatchEvent(document, DEF.NAME + ':fetch', false, true);
 
-      if (cache && cache.jqXHR && 'abort' !== cache.jqXHR.statusText && 'error' !== cache.jqXHR.statusText) {
+      if (cache && cache.jqXHR && !~'abort error'.indexOf(cache.jqXHR.statusText)) {
         // cache
         speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
         this.app_.loadtime = 0;
@@ -80,7 +80,7 @@ module MODULE.MODEL.APP {
           success.call(context, this.data_, this.textStatus_, this.jqXHR_);
           complete.call(context, this.jqXHR_, this.textStatus_);
         }
-      } else if (xhr && xhr.follow && 'abort' !== xhr.statusText && 'error' !== xhr.statusText) {
+      } else if (xhr && xhr.follow && !~'abort error'.indexOf(xhr.statusText)) {
         // preload
         speedcheck && speed.time.splice(0, 1, xhr.timeStamp - speed.fire);
         speedcheck && speed.name.splice(0, 1, 'preload(' + speed.time.slice(-1) + ')');
@@ -218,14 +218,13 @@ module MODULE.MODEL.APP {
 
         that.model_.setXHR(null);
 
-        if (!that.errorThrown_) {
+        if (!~'abort error'.indexOf(that.jqXHR_.statusText)) {
           that.model_.setCache(setting.destLocation.href, cache && cache.data || null, that.textStatus_, that.jqXHR_);
           that.success(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_);
         } else {
           that.failure(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_);
         }
       }
-
     }
 
     private wait_(ms: number): JQueryDeferred<any> {
