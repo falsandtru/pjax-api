@@ -657,7 +657,7 @@ module MODULE.MODEL.APP {
           jQuery.when.apply(jQuery, scriptwaits)
           .always(() => jQuery.each(arguments, (i, args) => exec.apply(this, args)));
         } else {
-          jQuery.each(scripts, (element) => exec(element));
+          jQuery.each(scripts, (i, elem) => exec(elem));
         }
       } catch (err) {
         setTimeout(() => this.model_.fallback(event), 1);
