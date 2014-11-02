@@ -49,6 +49,15 @@ module MODULE.MODEL.APP {
       this.fetch_(setting, event);
     }
 
+    private wait_: JQueryDeferred<any>
+    getWait(): JQueryDeferred<any> {
+      return this.wait_;
+    }
+    setWait(task: JQueryDeferred<any>): JQueryDeferred<any> {
+      this.wait_ && this.wait_.state && 'pending' === this.wait_.state() && this.wait_.reject();
+      return this.wait_ = task;
+    }
+
     private fetch_(setting: SettingInterface, event: JQueryEventObject): void {
       this.provider.accessRecord(
         setting,
@@ -83,7 +92,6 @@ module MODULE.MODEL.APP {
     dispatchEvent(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
     dispatchEvent(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
     dispatchEvent(target: any, eventType: string, bubbling: boolean, cancelable: boolean): void { }
-    wait(ms: number): JQueryDeferred<any> { return }
 
   }
 

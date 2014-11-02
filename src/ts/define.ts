@@ -215,6 +215,8 @@ module MODULE.MODEL {
     xhr: JQueryXHR
     
     transfer(setting: SettingInterface, event: JQueryEventObject): void
+    getWait(): JQueryDeferred<any>
+    setWait(wait: JQueryDeferred<any>): JQueryDeferred<any>
   }
   // Page::Provider
   export declare class PageProviderInterface implements ProviderInterface {
@@ -294,7 +296,6 @@ module MODULE.MODEL {
     dispatchEvent(target: Window, eventType: string, bubbling: boolean, cancelable: boolean): void
     dispatchEvent(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
     dispatchEvent(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
-    wait(ms: number): JQueryDeferred<any>
   }
 
   // Data

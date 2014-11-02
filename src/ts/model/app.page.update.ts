@@ -19,7 +19,7 @@ module MODULE.MODEL.APP {
     private dstDocument_: Document
     private area_: string
     private areas_: string[]
-    private loadwaits_: JQueryDeferred<any[]>[] = []
+    private loadwaits_: JQueryPromise<any[]>[] = []
 
     private main_(): void {
       var app = this.app_,
@@ -515,14 +515,14 @@ module MODULE.MODEL.APP {
       speedcheck && speed.name.push('css(' + speed.time.slice(-1) + ')');
     }
 
-    private script_(selector: string): JQueryDeferred<any[]>[] {
+    private script_(selector: string): JQueryPromise<any[]>[] {
       var setting: SettingInterface = this.record_.data.setting(),
           event: JQueryEventObject = this.event_,
           srcDocument: Document = this.srcDocument_,
           dstDocument: Document = this.dstDocument_;
       var callbacks_update = setting.callbacks.update;
 
-      var scriptwaits: JQueryDeferred<any[]>[] = [],
+      var scriptwaits: JQueryPromise<any[]>[] = [],
           scripts: HTMLScriptElement[] = [];
 
       if (!setting.load.script) { return scriptwaits; }
@@ -687,7 +687,7 @@ module MODULE.MODEL.APP {
       if (this.util_.fire(callbacks_update.scroll.after, setting, [event, setting]) === false) { return; }
     }
 
-    private waitRender_(callback: JQueryDeferred<any>): JQueryDeferred<any>
+    private waitRender_(callback: JQueryPromise<any>): JQueryPromise<any>
     private waitRender_(callback: () => void): void
     private waitRender_(callback: any) {
       var setting: SettingInterface = this.record_.data.setting(),
@@ -780,7 +780,6 @@ module MODULE.MODEL.APP {
     dispatchEvent(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
     dispatchEvent(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
     dispatchEvent(target: any, eventType: string, bubbling: boolean, cancelable: boolean): void { }
-    wait(ms: number): JQueryDeferred<any> { return }
 
   }
 

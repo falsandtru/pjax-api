@@ -119,7 +119,7 @@ module MODULE.MODEL {
       this.app_.page.xhr && this.app_.page.xhr.readyState < 4 && this.app_.page.xhr.abort();
       return this.app_.page.xhr = xhr;
     }
-
+    
     click(event: JQueryEventObject): void {
       PROCESS: {
         event.timeStamp = new Date().getTime();

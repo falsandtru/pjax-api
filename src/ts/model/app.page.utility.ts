@@ -55,14 +55,6 @@ module MODULE.MODEL.APP {
       target.dispatchEvent(event);
     }
 
-    wait(ms: number): JQueryDeferred<any> {
-      var defer = jQuery.Deferred();
-      if (!ms) { return defer.resolve(); }
-
-      setTimeout(function () { defer.resolve(); }, ms);
-      return defer;
-    }
-    
   }
 
 }

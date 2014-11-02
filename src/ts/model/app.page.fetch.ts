@@ -39,43 +39,8 @@ module MODULE.MODEL.APP {
       speedcheck && speed.time.splice(0, 100, 0);
       speedcheck && speed.name.splice(0, 100, 'pjax(' + speed.time.slice(-1) + ')');
 
-      function success(data: string, textStatus: string, jqXHR: JQueryXHR) {
-        return that.model_.isDeferrable ? undefined : done.call(this, [].slice.call(arguments), undefined);
-      }
-      function error(jqXHR: JQueryXHR, textStatus: string, errorThrown: string) {
-        return that.model_.isDeferrable ? undefined : fail.apply(this, arguments);
-      }
-      function complete(jqXHR: JQueryXHR, textStatus: string) {
-        return that.model_.isDeferrable ? undefined : always.apply(this, arguments);
-      }
-      function done(ajax: any[], wait: void) {
-        that.data_ = ajax[0];
-        that.textStatus_ = ajax[1];
-        that.jqXHR_ = ajax[2];
-
-        that.util_.fire(setting.callbacks.ajax.success, this, [event, setting, that.data_, that.textStatus_, that.jqXHR_]);
-      }
-      function fail(jqXHR: JQueryXHR, textStatus: string, errorThrown: string) {
-        that.jqXHR_ = jqXHR;
-        that.textStatus_ = textStatus;
-        that.errorThrown_ = errorThrown;
-
-        that.util_.fire(setting.callbacks.ajax.error, this, [event, setting, that.jqXHR_, that.textStatus_, that.errorThrown_]);
-      }
-      function always() {
-        that.util_.fire(setting.callbacks.ajax.complete, this, [event, setting, that.jqXHR_, that.textStatus_]);
-
-        that.model_.setXHR(null);
-
-        if (!that.errorThrown_) {
-          that.model_.setCache(setting.destLocation.href, cache && cache.data || null, that.textStatus_, that.jqXHR_);
-          that.success(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_);
-        } else {
-          that.failure(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_);
-        }
-      }
-
-      this.dispatchEvent(document, DEF.NAME + ':fetch', false, true);
+      var xhr = this.model_.getXHR();
+      this.model_.isDeferrable && xhr && xhr.state && 'pending' === xhr.state() && xhr.abort();
 
       var cache: CacheInterface;
       switch (setting.cache[event.type.toLowerCase()] && event.type.toLowerCase()) {
@@ -92,7 +57,8 @@ module MODULE.MODEL.APP {
           break;
       }
 
-      var xhr = this.model_.getXHR();
+      this.dispatchEvent(document, DEF.NAME + ':fetch', false, true);
+
       if (cache && cache.jqXHR && 'abort' !== cache.jqXHR.statusText && 'error' !== cache.jqXHR.statusText) {
         // cache
         speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
@@ -104,7 +70,9 @@ module MODULE.MODEL.APP {
         this.textStatus_ = cache.textStatus;
         this.jqXHR_ = cache.jqXHR;
         if (this.model_.isDeferrable) {
-          jQuery.when(jQuery.Deferred().resolve(this.data_, this.textStatus_, this.jqXHR_), this.wait(wait))
+          var defer: JQueryDeferred<any> = this.wait_(wait);
+          this.app_.page.setWait(defer);
+          jQuery.when(jQuery.Deferred().resolve(this.data_, this.textStatus_, this.jqXHR_), defer)
           .done(done).fail(fail).always(always);
         } else {
           var context: JQueryAjaxSettings = jQuery.extend({}, jQuery.ajaxSettings, setting.ajax);
@@ -120,10 +88,10 @@ module MODULE.MODEL.APP {
         speedcheck && speed.name.push('continue(' + speed.time.slice(-1) + ')');
         this.host_ = xhr.host || '';
         this.app_.loadtime = xhr.timeStamp;
-        var wait = setting.wait && isFinite(xhr.timeStamp) ? Math.max(wait - new Date().getTime() + xhr.timeStamp, 0) : 0;
-        jQuery.when(xhr, this.wait(wait))
+        var defer: JQueryDeferred<any> = this.wait_(setting.wait && isFinite(xhr.timeStamp) ? Math.max(wait - new Date().getTime() + xhr.timeStamp, 0) : 0);
+        this.app_.page.setWait(defer);
+        jQuery.when(xhr, defer)
         .done(done).fail(fail).always(always);
-
       } else {
         // default
         this.app_.loadtime = event.timeStamp;
@@ -209,12 +177,65 @@ module MODULE.MODEL.APP {
 
         if (!this.model_.isDeferrable) { return; }
 
-        jQuery.when(this.model_.getXHR(), this.wait(wait))
+        var defer: JQueryDeferred<any> = this.wait_(wait);
+        this.app_.page.setWait(defer);
+
+        jQuery.when(this.model_.getXHR(), defer)
         .done(done).fail(fail).always(always);
+      }
+      
+      function success(data: string, textStatus: string, jqXHR: JQueryXHR) {
+        return that.model_.isDeferrable ? undefined : done.call(this, [].slice.call(arguments), undefined);
+      }
+      function error(jqXHR: JQueryXHR, textStatus: string, errorThrown: string) {
+        return that.model_.isDeferrable ? undefined : fail.apply(this, arguments);
+      }
+      function complete(jqXHR: JQueryXHR, textStatus: string) {
+        return that.model_.isDeferrable ? undefined : always.apply(this, arguments);
+      }
+      function done(ajax: any[], wait: void) {
+        if (!arguments.length || !arguments[0]) { return; }
+
+        that.data_ = ajax[0];
+        that.textStatus_ = ajax[1];
+        that.jqXHR_ = ajax[2];
+
+        that.util_.fire(setting.callbacks.ajax.success, this, [event, setting, that.data_, that.textStatus_, that.jqXHR_]);
+      }
+      function fail(jqXHR: JQueryXHR, textStatus: string, errorThrown: string) {
+        if (!arguments.length || !arguments[0]) { return; }
+
+        that.jqXHR_ = jqXHR;
+        that.textStatus_ = textStatus;
+        that.errorThrown_ = errorThrown;
+
+        that.util_.fire(setting.callbacks.ajax.error, this, [event, setting, that.jqXHR_, that.textStatus_, that.errorThrown_]);
+      }
+      function always() {
+        if (!arguments.length || !arguments[0]) { return; }
+
+        that.util_.fire(setting.callbacks.ajax.complete, this, [event, setting, that.jqXHR_, that.textStatus_]);
+
+        that.model_.setXHR(null);
+
+        if (!that.errorThrown_) {
+          that.model_.setCache(setting.destLocation.href, cache && cache.data || null, that.textStatus_, that.jqXHR_);
+          that.success(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_);
+        } else {
+          that.failure(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_);
+        }
       }
 
     }
 
+    private wait_(ms: number): JQueryDeferred<any> {
+      var defer = jQuery.Deferred();
+      if (!ms) { return defer.resolve(); }
+
+      setTimeout(function () { defer.resolve(); }, ms);
+      return defer;
+    }
+    
     // mixin utility
     chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
@@ -224,7 +245,6 @@ module MODULE.MODEL.APP {
     dispatchEvent(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
     dispatchEvent(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
     dispatchEvent(target: any, eventType: string, bubbling: boolean, cancelable: boolean): void { }
-    wait(ms: number): JQueryDeferred<any> { return }
 
   }
 
