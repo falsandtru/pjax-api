@@ -16,7 +16,7 @@ module MODULE.MODEL {
       super(State.initiate);
     }
 
-    private controller_: ControllerInterface = new Controller(this)
+    private controller_: ControllerInterface = new Controller(this).singleton()
     private app_: AppLayerInterface = new MODEL.App(this, this.controller_)
     private util_ = LIBRARY.Utility
 
@@ -377,9 +377,27 @@ module MODULE.MODEL {
     speed: any
 
   }
-  
+
+  export class Singleton {
+
+    constructor() {
+      Singleton.instance_ = Singleton.instance_ || new Main();
+    }
+
+    private static instance_: Main
+
+    static singleton(): Main {
+      return Singleton.instance_;
+    }
+
+    singleton(): Main {
+      return Singleton.singleton();
+    }
+
+  }
+
 }
 
 module MODULE {
-  export var Model = MODEL.Main
+  export var Model = MODEL.Singleton
 }

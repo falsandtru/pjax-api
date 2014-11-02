@@ -88,15 +88,13 @@ module MODULE {
     fallback(event: JQueryEventObject): void
     speed: any
     
-    // View
+    // Controller
+    enable(): void
+    disable(): void
     click(event: JQueryEventObject): void
     submit(event: JQueryEventObject): void
     popstate(event: JQueryEventObject): void
     scroll(event: JQueryEventObject, end: boolean): void
-    
-    // Controller
-    enable(): void
-    disable(): void
     getCache(unsafe_url: string): CacheInterface
     setCache(unsafe_url: string, data: string, textStatus: string, jqXHR: JQueryXHR, host?: string): any
     removeCache(unsafe_url: string): void
@@ -111,10 +109,10 @@ module MODULE {
   export declare class ControllerInterface {
     constructor()
 
-    click(event: JQueryEventObject): void
-    submit(event: JQueryEventObject): void
-    popstate(event: JQueryEventObject): void
-    scroll(event: JQueryEventObject): void
+    click(args: IArguments): void
+    submit(args: IArguments): void
+    popstate(args: IArguments): void
+    scroll(args: IArguments): void
   }
 
   // State

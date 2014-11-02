@@ -4,26 +4,20 @@
 /* CONTROLLER */
 
 module MODULE.CONTROLLER {
-  var M: ModelInterface
-  var C: ControllerInterface
-  var S: Functions
 
-  export class Functions {
+  export class Functions implements PjaxMethod<Functions> {
 
-    constructor(model: ModelInterface, controller: ControllerInterface) {
-      M = model;
-      C = controller;
-      S = this;
-      SEAL(this);
+    constructor() {
+      FREEZE(this);
     }
 
     enable(): JQueryPjaxStatic {
-      M.enable();
+      Model.singleton().enable();
       return <any>this;
     }
 
     disable(): JQueryPjaxStatic {
-      M.disable();
+      Model.singleton().disable();
       return <any>this;
     }
     
@@ -51,8 +45,8 @@ module MODULE.CONTROLLER {
         default:
           return <any>this;
       }
-      var setting: SettingInterface = M.configure(<HTMLAnchorElement>$anchor[0]);
-      setting && $anchor.first().one(setting.nss.click, () => C.click.apply(C, arguments)).click();
+      var setting: SettingInterface = Model.singleton().configure(<HTMLAnchorElement>$anchor[0]);
+      setting && $anchor.first().one(setting.nss.click, () => Controller.singleton().click(arguments)).click();
       return <any>this;
     }
     
@@ -101,15 +95,15 @@ module MODULE.CONTROLLER {
         default:
           return <any>this;
       }
-      var setting: SettingInterface = M.configure(<HTMLFormElement>$form[0]);
-      setting && $form.first().one(setting.nss.submit, () => C.submit.apply(C, arguments)).submit();
+      var setting: SettingInterface = Model.singleton().configure(<HTMLFormElement>$form[0]);
+      setting && $form.first().one(setting.nss.submit, () => Controller.singleton().submit(arguments)).submit();
       return <any>this;
     }
     
     getCache(): PjaxCache
     getCache(url: string): PjaxCache
     getCache(url: string = window.location.href): PjaxCache {
-      var cache: PjaxCache = <PjaxCache>M.getCache(url);
+      var cache: PjaxCache = <PjaxCache>Model.singleton().getCache(url);
       if (cache) {
         cache = {
           data: cache.data,
@@ -135,7 +129,7 @@ module MODULE.CONTROLLER {
         case 3:
         case 4:
         default:
-          M.setCache(url, data, textStatus, jqXHR);
+          Model.singleton().setCache(url, data, textStatus, jqXHR);
       }
       return <any>this;
     }
@@ -143,32 +137,32 @@ module MODULE.CONTROLLER {
     removeCache(): JQueryPjaxStatic
     removeCache(url: string): JQueryPjaxStatic
     removeCache(url: string = window.location.href): JQueryPjaxStatic {
-      M.removeCache(url);
+      Model.singleton().removeCache(url);
       return <any>this;
     }
 
     clearCache(): JQueryPjaxStatic {
-      M.clearCache();
+      Model.singleton().clearCache();
       return <any>this;
     }
 
     follow(event: JQueryEventObject, $XHR: JQueryXHR, host?: string, timeStamp?: number): boolean {
-      if (!M.isDeferrable) { return false; }
+      if (!Model.singleton().isDeferrable) { return false; }
       var anchor = <HTMLAnchorElement>event.currentTarget;
       $XHR.follow = true;
       $XHR.host = host || '';
       if (isFinite(event.timeStamp)) { $XHR.timeStamp = timeStamp || event.timeStamp; }
-      M.setXHR($XHR);
+      Model.singleton().setXHR($XHR);
       jQuery.when($XHR)
       .done(function () {
-        !M.getCache(anchor.href) && M.isAvailable(event) && M.setCache(anchor.href, undefined, undefined, $XHR);
+        !Model.singleton().getCache(anchor.href) && Model.singleton().isAvailable(event) && Model.singleton().setCache(anchor.href, undefined, undefined, $XHR);
       });
       jQuery[DEF.NAME].click(anchor.href);
       return true;
     }
 
     host(): string {
-      return M.host();
+      return Model.singleton().host();
     }
 
   }

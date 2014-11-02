@@ -5,17 +5,11 @@
 /* CONTROLLER */
 
 module MODULE.CONTROLLER {
-  var M: ModelInterface
-  var C: ControllerInterface
-  var S: Methods
 
   export class Methods {
 
-    constructor(model: ModelInterface, controller: ControllerInterface) {
-      M = model;
-      C = controller;
-      S = this;
-      SEAL(this);
+    constructor() {
+      FREEZE(this);
     }
 
   }
