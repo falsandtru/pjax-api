@@ -37,23 +37,20 @@ module MODULE {
    * 
    * Model:
    * - class Main (mvc-interface)
-   *   single instance
+   *   - singleton
    * - class App (application-logic)
-   *   single instance(APP)
+   *   - singleton
    * - class Data (data-access)
-   *   single instance(DATA)
+   *   - singleton
    * 
    * View
    * - class Main (mvc-interface)
-   *   multi instance
    * 
    * Controller
    * - class Main (mvc-interface)
-   *   single instance
+   *   - singleton
    * - class Functions
-   *   single instance
    * - class Methods
-   *   single instance
    * 
    * -----
    * 
@@ -107,7 +104,7 @@ module MODULE {
   }
   // Controller Interface
   export declare class ControllerInterface {
-    constructor()
+    constructor(model: ModelInterface)
 
     click(args: IArguments): void
     submit(args: IArguments): void
