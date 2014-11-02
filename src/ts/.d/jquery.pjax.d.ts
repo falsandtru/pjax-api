@@ -9,11 +9,11 @@
 /// <reference path="jquery.d.ts"/>
 
 interface JQueryStatic {
-  pjax: JQueryPjaxStatic
+    pjax: JQueryPjaxStatic
 }
 
 interface JQuery {
-  pjax: JQueryPjax
+    pjax: JQueryPjax
 }
 
 interface PjaxSetting {
@@ -165,6 +165,7 @@ interface PjaxSetting {
         }
     }
 }
+
 interface PjaxCache {
     data: string
     textStatus: string
@@ -172,35 +173,10 @@ interface PjaxCache {
     expires: number
 }
 
-interface Pjax<T> {
-    (setting?: PjaxSetting): JQueryPjax
-    enable(): T
-    disable(): T
-    setCache(): T
-    setCache(url: string): T
-    setCache(url: string, data: string): T
-    setCache(url: string, data: string, textStatus: string, jqXHR: JQueryXHR): T
-    getCache(): PjaxCache
-    getCache(url: string): PjaxCache
-    removeCache(url: string): T
-    removeCache(): T
-    clearCache(): T
-    follow(event: JQueryEventObject, ajax: JQueryXHR, host?: string): boolean
-    host(): string
+interface JQueryPjaxStatic extends PJAX.Core<JQueryPjaxStatic, JQueryPjax>, JQueryStatic {
 }
 
-interface JQueryPjaxStatic extends Pjax<JQueryPjaxStatic>, JQueryStatic {
-    click(): JQueryPjaxStatic
-    click(url: string, attrs?: {}): JQueryPjaxStatic
-    click(url: HTMLAnchorElement): JQueryPjaxStatic
-    click(url: JQuery): JQueryPjaxStatic
-    submit(): JQueryPjaxStatic
-    submit(url: string, attrs: {}, data: any): JQueryPjaxStatic
-    submit(url: HTMLFormElement): JQueryPjaxStatic
-    submit(url: JQuery): JQueryPjaxStatic
-}
-
-interface JQueryPjax extends Pjax<JQueryPjax>, JQuery {
+interface JQueryPjax extends PJAX.Core<JQueryPjax, JQueryPjax>, JQuery {
     click(): JQueryPjax
     click(url: string, attrs?: {}): JQueryPjax
     click(url: HTMLAnchorElement): JQueryPjax
@@ -209,4 +185,38 @@ interface JQueryPjax extends Pjax<JQueryPjax>, JQuery {
     submit(url: string, attrs: {}, data: any): JQueryPjax
     submit(url: HTMLFormElement): JQueryPjax
     submit(url: JQuery): JQueryPjax
+}
+
+declare module PJAX {
+    interface Core<T, U> extends Constructor<T, U>, Method<T> {
+    }
+
+    interface Constructor<T, U> {
+        (): U
+        (setting: PjaxSetting): U
+    }
+
+    interface Method<T> {
+        enable(): T
+        disable(): T
+        click(): T
+        click(url: string, attrs?: {}): T
+        click(url: HTMLAnchorElement): T
+        click(url: JQuery): T
+        submit(): T
+        submit(url: string, attrs: {}, data: any): T
+        submit(url: HTMLFormElement): T
+        submit(url: JQuery): T
+        setCache(): T
+        setCache(url: string): T
+        setCache(url: string, data: string): T
+        setCache(url: string, data: string, textStatus: string, jqXHR: JQueryXHR): T
+        getCache(): PjaxCache
+        getCache(url: string): PjaxCache
+        removeCache(url: string): T
+        removeCache(): T
+        clearCache(): T
+        follow(event: JQueryEventObject, ajax: JQueryXHR, host?: string): boolean
+        host(): string
+    }
 }

@@ -5,7 +5,7 @@
 
 module MODULE.CONTROLLER {
 
-  export class Functions implements PjaxMethod<Functions> {
+  export class Functions implements PJAX.Method<Functions> {
 
     constructor() {
       FREEZE(this);
