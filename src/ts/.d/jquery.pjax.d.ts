@@ -8,12 +8,12 @@
 
 /// <reference path="jquery.d.ts"/>
 
-interface JQueryStatic {
+interface JQuery {
     pjax: JQueryPjaxStatic
 }
 
-interface JQuery {
-    pjax: JQueryPjax
+interface JQueryStatic {
+    pjax: JQueryPjaxStatic
 }
 
 interface PjaxSetting {
@@ -173,10 +173,7 @@ interface PjaxCache {
     expires: number
 }
 
-interface JQueryPjaxStatic extends PJAX.Core<JQueryPjaxStatic, JQueryPjax>, JQueryStatic {
-}
-
-interface JQueryPjax extends PJAX.Core<JQueryPjax, JQueryPjax>, JQuery {
+interface JQueryPjax extends PJAX.Core<JQueryPjax>, PJAX.Method<JQueryPjax>, JQuery {
     click(): JQueryPjax
     click(url: string, attrs?: {}): JQueryPjax
     click(url: HTMLAnchorElement): JQueryPjax
@@ -187,15 +184,16 @@ interface JQueryPjax extends PJAX.Core<JQueryPjax, JQueryPjax>, JQuery {
     submit(url: JQuery): JQueryPjax
 }
 
+interface JQueryPjaxStatic extends PJAX.Core<JQueryPjax>, PJAX.Method<JQueryPjaxStatic>, JQueryStatic {
+}
+
 declare module PJAX {
-    interface Core<T, U> extends Constructor<T, U>, Method<T> {
+    
+    interface Core<T> {
+        (): T
+        (setting: PjaxSetting): T
     }
-
-    interface Constructor<T, U> {
-        (): U
-        (setting: PjaxSetting): U
-    }
-
+    
     interface Method<T> {
         enable(): T
         disable(): T
