@@ -77,11 +77,11 @@ IndexedDBの使用を設定します。
 ### [server:](api/core/setting/server/)
 サーバーへのリクエストを設定します。
 
+### [data:](api/core/setting/data/)
+任意のデータを設定します。
+
 ### [callback:](api/callback/)
 コールバックを設定します。
 
 ### [callbacks:](api/callback/)
 詳細なコールバックを設定します。
-
-### [param:](api/callback/)
-コールバックに渡すパラメータを設定します。

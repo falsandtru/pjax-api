@@ -10,21 +10,26 @@
 
 module MODULE.MODEL {
   
-  var Util = LIBRARY.Utility
-
   export class Main extends Template implements ModelInterface {
 
     constructor() {
       super(State.initiate);
     }
 
-    private controller_: ControllerInterface = new Controller(this)
+    private controller_: ControllerInterface = new Controller(this).singleton()
     private app_: AppLayerInterface = new MODEL.App(this, this.controller_)
-    
-    private queue_: number[] = []
+    private util_ = LIBRARY.Utility
+
+    private getRequestDomain(): string {
+      return this.host();
+    }
+    private setRequestDomain(host: string): any {
+      return this.app_.balance.changeServer(host.split('//').pop(), null);
+    }
 
     isDeferrable: boolean = !!jQuery.when && '1.006' <= jQuery().jquery.match(/\d[\d.]+\d/).pop().replace(/\.(\d+)/g, '.00$1').replace(/0*(\d{3})/g, '$1')
 
+    location: HTMLAnchorElement = document.createElement('a')
     host(): string { return this.app_.balance.host() }
     state(): State { return this.state_; }
     
@@ -44,9 +49,12 @@ module MODULE.MODEL {
 
       if (!window.history || !window.history['pushState'] || !window.history['replaceState']) { return $context; }
 
-      var setting: SettingInterface = this.app_.configure(<PjaxSetting>option, window.location.href, window.location.href);
-      this.setGlobalSetting(setting);
-      this.app_.data.opendb(setting);
+      this.location.href = this.util_.normalizeUrl(window.location.href);
+
+      var setting: SettingInterface = this.app_.configure(<PjaxSetting>option);
+      if (!setting) { return $context; }
+
+      this.app_.data.connect(setting);
 
       this.speed = {
         fire: 0,
@@ -67,61 +75,49 @@ module MODULE.MODEL {
       return unsafe_url.replace(/#.*/, '')
     }
 
-    isImmediateLoadable(unsafe_url: string, setting?: SettingInterface): boolean
-    isImmediateLoadable(event: JQueryEventObject, setting?: SettingInterface): boolean
-    isImmediateLoadable(param: any, setting?: SettingInterface): boolean {
-      if (State.open !== this.state()) { return; }
+    configure(event: Event): SettingInterface
+    configure(destination: HTMLAnchorElement): SettingInterface
+    configure(destination: HTMLFormElement): SettingInterface
+    configure(destination: Location): SettingInterface
+    configure(destination: any): SettingInterface {
+      return this.app_.configure(destination);
+    }
 
-      var origURL: string = Util.normalizeUrl(window.location.href),
-          destURL: string,
-          event: JQueryEventObject;
-      switch (typeof param) {
-        case 'string':
-          event = null;
-          destURL = Util.normalizeUrl(param);
+    isAvailable(event: JQueryEventObject): boolean {
+      if (State.open !== this.state()) { return false; }
+
+      if (event.which > 1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) { return false; }
+
+      var setting: SettingInterface;
+      switch (event.type.toLowerCase()) {
+        case EVENT.CLICK:
+          setting = this.app_.configure(<HTMLAnchorElement>event.currentTarget);
+          if (setting && !jQuery(event.currentTarget).filter(setting.filter).length) { return false; }
           break;
-        case 'object':
-          event = param;
-          switch (event.type.toLowerCase()) {
-            case 'click':
-              destURL = Util.normalizeUrl((<HTMLAnchorElement>event.currentTarget).href);
-              if (!jQuery(event.currentTarget).filter(setting.filter).length) { return false; }
-              break;
-            case 'submit':
-              destURL = Util.normalizeUrl((<HTMLFormElement>event.currentTarget).action);
-              break;
-            case 'popstate':
-              return true;
-          }
-          if (event.which > 1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) { return false; }
+        case EVENT.SUBMIT:
+          setting = this.app_.configure(<HTMLFormElement>event.currentTarget);
+          break;
+        case EVENT.POPSTATE:
+          setting = this.app_.configure(window.location);
           break;
       }
-      var origLocation: HTMLAnchorElement = <HTMLAnchorElement>jQuery('<a/>', { href: origURL })[0],
-          destLocation: HTMLAnchorElement = <HTMLAnchorElement>jQuery('<a/>', { href: destURL })[0];
 
-      if (origLocation.protocol !== destLocation.protocol || origLocation.host !== destLocation.host) { return false; }
+      if (!setting) { return false; }
 
-      setting = setting || this.app_.configure(this.getGlobalSetting(), origLocation.href, destLocation.href);
-      if (setting.cancel) { return; }
-      if (destLocation.hash && origLocation.href.replace(/#.*/, '') === destLocation.href.replace(/#.*/, '')) { return false; }
+      if (setting.origLocation.protocol !== setting.destLocation.protocol || setting.origLocation.host !== setting.destLocation.host) { return false; }
+
+      if (setting.destLocation.hash && setting.origLocation.href.replace(/#.*/, '') === setting.destLocation.href.replace(/#.*/, '')) { return false; }
       if (!this.app_.page.chooseArea(setting.area, document, document)) { return false; }
 
       return true;
     }
 
-    getGlobalSetting(): SettingInterface {
-      return this.app_.page.globalSetting;
+    getXHR(): JQueryXHR {
+      return this.app_.page.xhr;
     }
-    setGlobalSetting(setting: SettingInterface): SettingInterface {
-      return this.app_.page.globalSetting = setting;
-    }
-
-    getGlobalXHR(): JQueryXHR {
-      return this.app_.page.globalXHR;
-    }
-    setGlobalXHR(xhr: JQueryXHR): JQueryXHR {
-      this.app_.page.globalXHR && this.app_.page.globalXHR.readyState < 4 && this.app_.page.globalXHR.abort();
-      return this.app_.page.globalXHR = xhr;
+    setXHR(xhr: JQueryXHR): JQueryXHR {
+      this.app_.page.xhr && this.app_.page.xhr.readyState < 4 && this.app_.page.xhr.abort();
+      return this.app_.page.xhr = xhr;
     }
 
     click(event: JQueryEventObject): void {
@@ -129,25 +125,22 @@ module MODULE.MODEL {
         event.timeStamp = new Date().getTime();
         var context = <HTMLAnchorElement>event.currentTarget,
             $context: JQuery = jQuery(context);
-        var setting: SettingInterface = this.app_.configure(this.getGlobalSetting(), window.location.href, context.href);
-
-        if (State.open !== this.state() || setting.cancel || event.isDefaultPrevented()) { break PROCESS; }
-        if (!this.isImmediateLoadable(event, setting)) { break PROCESS; }
-
-        if (setting.cache.mix && this.getCache(setting.destLocation.href)) { break PROCESS; }
-
-        this.app_.data.saveTitle();
-        this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
-
-        var cache: CacheInterface;
-        if (setting.cache[event.type.toLowerCase()]) { cache = this.getCache(setting.destLocation.href); }
-
-        this.app_.page.transfer(setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
+        var setting: SettingInterface = this.app_.configure(context);
+        
+        switch (false) {
+          case !event.isDefaultPrevented():
+          case !!setting:
+          case this.state() === State.open:
+          case this.isAvailable(event):
+            break PROCESS;
+        }
+        
+        this.app_.page.transfer(setting, event);
         event.preventDefault();
         return;
       };
       // clickメソッド用
-      !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length && this.fallback(event, setting);
+      !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length && this.fallback(event);
     }
 
     submit(event: JQueryEventObject): void {
@@ -155,72 +148,65 @@ module MODULE.MODEL {
         event.timeStamp = new Date().getTime();
         var context = <HTMLFormElement>event.currentTarget,
             $context: JQuery = jQuery(context);
-        var setting: SettingInterface = this.app_.configure(this.getGlobalSetting(), window.location.href, context.action);
-
-        if (State.open !== this.state() || setting.cancel || event.isDefaultPrevented()) { break PROCESS; }
-        if (!this.isImmediateLoadable(event, setting)) { break PROCESS; }
-
-        var serializedURL = setting.destLocation.href.replace(/[?#].*/, '') + ('GET' === context.method.toUpperCase() ? '?' + jQuery(context).serialize() : '');
-        setting.destLocation.href = Util.normalizeUrl(serializedURL);
-        if (setting.cache.mix && this.getCache(setting.destLocation.href)) { break PROCESS; }
-
-        this.app_.data.saveTitle();
-        this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
-
-        var cache: CacheInterface;
-        if (setting.cache[event.type.toLowerCase()] && setting.cache[context.method.toLowerCase()]) { cache = this.getCache(setting.destLocation.href); }
-
-      this.app_.page.transfer(setting, event, setting.destLocation.href !== setting.origLocation.href, cache);
+        var setting: SettingInterface = this.app_.configure(context);
+        
+        switch (false) {
+          case !event.isDefaultPrevented():
+          case !!setting:
+          case this.state() === State.open:
+          case this.isAvailable(event):
+            break PROCESS;
+        }
+        
+        this.app_.page.transfer(setting, event);
         event.preventDefault();
         return;
       };
       // submitメソッド用
-      !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length && this.fallback(event, setting);
+      !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length && this.fallback(event);
     }
 
     popstate(event: JQueryEventObject): void {
       PROCESS: {
+        if (this.app_.page.landing && this.app_.page.landing === this.util_.normalizeUrl(window.location.href)) { return; }
+        if (this.location.href === this.util_.normalizeUrl(window.location.href)) { return; }
+        
         event.timeStamp = new Date().getTime();
-        var setting: SettingInterface = this.app_.configure(this.getGlobalSetting(), null, window.location.href);
-        if (this.app_.page.landing && this.app_.page.landing === Util.normalizeUrl(window.location.href)) { return; }
-        if (setting.origLocation.href === setting.destLocation.href) { return; }
-
-        if (State.open !== this.state() || setting.cancel) { break PROCESS; }
-        if (!this.isImmediateLoadable(event, setting)) { break PROCESS; }
-
-        if (setting.origLocation.hash !== setting.destLocation.hash &&
-            setting.origLocation.pathname + setting.origLocation.search === setting.destLocation.pathname + setting.destLocation.search) {
-          break PROCESS;
+        var setting: SettingInterface = this.app_.configure(window.location);
+        
+        if (setting.origLocation.pathname + setting.origLocation.search === setting.destLocation.pathname + setting.destLocation.search) { return; }
+        
+        switch (false) {
+          //case !event.isDefaultPrevented():
+          case !!setting:
+          case this.state() === State.open:
+          case this.isAvailable(event):
+            break PROCESS;
         }
         
-        this.app_.data.saveTitle(setting.origLocation.href, document.title);
-        setting.fix.history && this.app_.data.loadTitle();
-
-        var cache: CacheInterface;
-        if (setting.cache[event.type.toLowerCase()]) { cache = this.getCache(setting.destLocation.href); }
-
-        this.app_.page.transfer(setting, event, false, cache);
+        this.app_.page.transfer(setting, event);
         return;
       };
+      // pjax処理されないURL変更によるページ更新
+      this.fallback(event);
     }
-
+    
+    private queue_: number[] = []
     scroll(event: JQueryEventObject, end: boolean): void {
-      var setting: SettingInterface = this.getGlobalSetting();
-      if (State.open !== this.state() || event.isDefaultPrevented()) { return; }
-
       var id: number;
       while (id = this.queue_.shift()) { clearTimeout(id); }
       id = setTimeout(() => {
         while (id = this.queue_.shift()) { clearTimeout(id); }
-        this.app_.page.isScrollPosSavable && this.app_.data.saveScrollPosition();
+        this.util_.compareUrl(window.location.href, this.location.href) && this.app_.data.saveScrollPosition();
       }, 300);
       this.queue_.push(id);
     }
 
-    fallback(event: JQueryEventObject, setting: SettingInterface): void {
+    fallback(event: JQueryEventObject): void {
+      var setting: SettingInterface = this.configure(event);
       switch (true) {
-        case !setting.fallback:
-        case false === Util.fire(setting.fallback, null, [event, setting.param, setting.origLocation.href, setting.destLocation.href]):
+        case setting && !setting.fallback:
+        case setting && false === this.util_.fire(setting.fallback, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]):
           break;
         default:
           this.app_.page.movePageNormally(event);
@@ -236,11 +222,11 @@ module MODULE.MODEL {
     }
 
     getCache(unsafe_url: string): CacheInterface {
-      var setting: SettingInterface = this.getGlobalSetting(),
+      var setting: SettingInterface = this.configure(window.location),
           recent: RecentInterface = this.app_.page.recent;
       if (!setting || !recent) { return null; }
 
-      var secure_url: string = this.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
+      var secure_url: string = this.convertUrlToKeyUrl(this.util_.normalizeUrl(unsafe_url));
       unsafe_url = null;
 
       recent.data[secure_url] && new Date().getTime() > recent.data[secure_url].expires && this.removeCache(secure_url);
@@ -249,7 +235,7 @@ module MODULE.MODEL {
     }
     
     setCache(unsafe_url: string, data: string, textStatus: string, jqXHR: JQueryXHR, host?: string): any {
-      var setting: SettingInterface = this.getGlobalSetting(),
+      var setting: SettingInterface = this.configure(window.location),
           recent: RecentInterface = this.app_.page.recent;
       if (!setting || !recent) { return this; }
 
@@ -258,7 +244,7 @@ module MODULE.MODEL {
           timeStamp: number,
           expires: number;
 
-      var secure_url: string = this.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
+      var secure_url: string = this.convertUrlToKeyUrl(this.util_.normalizeUrl(unsafe_url));
       unsafe_url = null;
 
       recent.order.unshift(secure_url);
@@ -280,11 +266,11 @@ module MODULE.MODEL {
         if (!setting.cache.expires) { return 0; }
         if (recent.data[secure_url] && !jqXHR) { return recent.data[secure_url].expires; }
 
-        age = jqXHR && this.app_.page.calAge(jqXHR) || Number(setting.cache.expires);
+        age = jqXHR && this.calAge_(jqXHR) || 0;
 
-        age = Math.max(age, 0) || 0;
         age = 'object' === typeof setting.cache.expires && 'number' === typeof setting.cache.expires.min ? Math.max(setting.cache.expires.min, age) : age;
         age = 'object' === typeof setting.cache.expires && 'number' === typeof setting.cache.expires.max ? Math.min(setting.cache.expires.max, age) : age;
+        age = Math.max(age, 0) || 0;
         return timeStamp + age;
       })(timeStamp);
       recent.size = recent.size || 0;
@@ -302,26 +288,27 @@ module MODULE.MODEL {
           host: host || '',
           timeStamp: timeStamp
         }
-        );
+      );
       if (!recent.data[secure_url].data && !recent.data[secure_url].jqXHR) {
         this.removeCache(secure_url);
       }
       if (jqXHR || cache && cache.jqXHR) {
         var title: string = ((jqXHR || cache && cache.jqXHR).responseText || '').slice(0, 10000).match(/<title[^>]*>(.*?)<\/title>/i).pop() || '';
         setting.fix.history && this.app_.data.saveTitle(secure_url, title);
+        this.app_.data.saveExpires(setting.destLocation.href, host, this.calExpires_(jqXHR || cache && cache.jqXHR));
       }
     }
 
     removeCache(unsafe_url: string): void
     removeCache(index: number): void
     removeCache(param: any): void {
-      var setting: SettingInterface = this.getGlobalSetting(),
+      var setting: SettingInterface = this.configure(window.location),
           recent: RecentInterface = this.app_.page.recent;
       if (!setting || !recent) { return; }
 
       switch (typeof param) {
         case 'string':
-          var secure_url: string = this.convertUrlToKeyUrl(Util.normalizeUrl(param));
+          var secure_url: string = this.convertUrlToKeyUrl(this.util_.normalizeUrl(param));
           param = null;
 
           for (var i = 0, key: string; key = recent.order[i]; i++) {
@@ -344,7 +331,7 @@ module MODULE.MODEL {
     }
 
     clearCache(): void {
-      var setting: SettingInterface = this.getGlobalSetting(),
+      var setting: SettingInterface = this.configure(window.location),
           recent: RecentInterface = this.app_.page.recent;
       if (!setting || !recent) { return; }
 
@@ -354,7 +341,7 @@ module MODULE.MODEL {
     }
 
     cleanCache(): void {
-      var setting: SettingInterface = this.getGlobalSetting(),
+      var setting: SettingInterface = this.configure(window.location),
           recent: RecentInterface = this.app_.page.recent;
       if (!setting || !recent) { return; }
 
@@ -368,20 +355,49 @@ module MODULE.MODEL {
       }
     }
 
-    getRequestDomain(): string {
-      return this.host();
+    private calAge_(jqXHR: JQueryXHR): number {
+      var age: any;
+
+      switch (true) {
+        case /no-store|no-cache/.test(jqXHR.getResponseHeader('Cache-Control')):
+          return 0;
+        case jqXHR.getResponseHeader('Cache-Control') && !!~jqXHR.getResponseHeader('Cache-Control').indexOf('max-age='):
+          return Number(jqXHR.getResponseHeader('Cache-Control').match(/max-age=(\d+)/).pop()) * 1000;
+        case !!jqXHR.getResponseHeader('Expires'):
+          return new Date(jqXHR.getResponseHeader('Expires')).getTime() - new Date().getTime();
+        default:
+          return 0;
+      }
     }
 
-    setRequestDomain(host: string): any {
-      return this.app_.balance.changeServer(host.split('//').pop(), null);
+    private calExpires_(jqXHR: JQueryXHR): number {
+      return new Date().getTime() + this.calAge_(jqXHR);
     }
-
+    
     speed: any
 
   }
-  
+
+  export class Singleton {
+
+    constructor() {
+      Singleton.instance_ = Singleton.instance_ || new Main();
+    }
+
+    private static instance_: Main
+
+    static singleton(): Main {
+      return Singleton.instance_;
+    }
+
+    singleton(): Main {
+      return Singleton.singleton();
+    }
+
+  }
+
 }
 
 module MODULE {
-  export var Model = MODEL.Main
+  export var Model = MODEL.Singleton
 }

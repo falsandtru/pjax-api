@@ -61,6 +61,7 @@ module MODULE {
    * 
    * - MVCモジュール間のアクセスは各モジュールのインターフェイスを経由し、内部機能(APP/DATA)に直接アクセスしない。
    * - モデルインターフェイスへ渡されるデータはすべて正規化、検疫されてないものとして自身で正規化、検疫する。
+   * - データレイヤーへのアクセスはアプリケーションレイヤーのDataクラスからのみとする。
    * 
    */
   export module MODEL { }
@@ -71,31 +72,29 @@ module MODULE {
   export declare class ModelInterface {
     constructor()
 
-    // Property
-    isDeferrable: boolean
-    
     // Model
+    isDeferrable: boolean
+    location: HTMLAnchorElement
     state(): State
     host(): string
     convertUrlToKeyUrl(unsafe_url: string): string
-    isImmediateLoadable(unsafe_url: string, setting?: SettingInterface): boolean
-    isImmediateLoadable(event: JQueryEventObject, setting?: SettingInterface): boolean
-    getGlobalSetting(): SettingInterface
-    setGlobalSetting(setting: SettingInterface): SettingInterface
-    getGlobalXHR(): JQueryXHR
-    setGlobalXHR(xhr: JQueryXHR): JQueryXHR
-    fallback(event: JQueryEventObject, setting: SettingInterface): void
+    configure(event: Event): SettingInterface
+    configure(destination: HTMLAnchorElement): SettingInterface
+    configure(destination: HTMLFormElement): SettingInterface
+    configure(destination: Location): SettingInterface
+    getXHR(): JQueryXHR
+    setXHR(xhr: JQueryXHR): JQueryXHR
+    isAvailable(event: JQueryEventObject): boolean
+    fallback(event: JQueryEventObject): void
     speed: any
-    
-    // View
-    click(event: JQueryEventObject): void
-    submit(event: JQueryEventObject): void
-    popstate(event: JQueryEventObject): void
-    scroll(event: JQueryEventObject, end: boolean): void
     
     // Controller
     enable(): void
     disable(): void
+    click(event: JQueryEventObject): void
+    submit(event: JQueryEventObject): void
+    popstate(event: JQueryEventObject): void
+    scroll(event: JQueryEventObject, end: boolean): void
     getCache(unsafe_url: string): CacheInterface
     setCache(unsafe_url: string, data: string, textStatus: string, jqXHR: JQueryXHR, host?: string): any
     removeCache(unsafe_url: string): void
@@ -110,14 +109,22 @@ module MODULE {
   export declare class ControllerInterface {
     constructor()
 
-    click(event: JQueryEventObject): void
-    submit(event: JQueryEventObject): void
-    popstate(event: JQueryEventObject): void
-    scroll(event: JQueryEventObject): void
+    click(args: IArguments): void
+    submit(args: IArguments): void
+    popstate(args: IArguments): void
+    scroll(args: IArguments): void
   }
 
   // State
   export enum State { blank, initiate, open, pause, lock, seal, error, crash, terminate, close }
+
+  // Event
+  export var EVENT = {
+    CLICK: 'click',
+    SUBMIT: 'submit',
+    POPSTATE: 'popstate',
+    SCROLL: 'scroll'
+  }
 
   // Context
   export interface ExtensionInterface extends JQueryPjax { }
@@ -126,7 +133,6 @@ module MODULE {
   // Parameter
   export interface SettingInterface extends PjaxSetting {
     // internal
-    gns: string
     ns: string
     nss: {
       name: string
@@ -141,10 +147,6 @@ module MODULE {
     }
     origLocation: HTMLAnchorElement
     destLocation: HTMLAnchorElement
-    areas: string[]
-    loadtime: number
-    retriable: boolean
-    cancel: boolean
     option: PjaxSetting
     speedcheck: boolean
   }
@@ -178,8 +180,18 @@ module MODULE.MODEL {
     data: DataInterface
 
     initialize($context: JQuery, setting: SettingInterface): void
-    configure(option: PjaxSetting, origURL: string, destURL: string): SettingInterface
+    configure(option: PjaxSetting): SettingInterface
+    configure(event: Event): SettingInterface
+    configure(destination: HTMLAnchorElement): SettingInterface
+    configure(destination: HTMLFormElement): SettingInterface
+    configure(destination: Location): SettingInterface
+
+    count: number
+    time: number
+    loadtime: number
   }
+
+  // Balanse
   export declare class BalanceInterface {
     constructor(model: ModelInterface, app: AppLayerInterface)
     host(): string
@@ -190,62 +202,113 @@ module MODULE.MODEL {
     chooseServer(setting: SettingInterface): void
     bypass(setting: SettingInterface, retry: number): void
   }
+
+  // Page
   export declare class PageInterface extends PageUtilityInterface {
     constructor(model: ModelInterface, app: AppLayerInterface)
+
+    parser: PageParserInterface
 
     landing: string
     recent: RecentInterface
     loadedScripts: { [url: string]: boolean }
-    isScrollPosSavable: boolean
-    globalXHR: JQueryXHR
-    globalSetting: SettingInterface
+    xhr: JQueryXHR
     
-    transfer(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface): void
+    transfer(setting: SettingInterface, event: JQueryEventObject): void
   }
+  // Page::Provider
+  export declare class PageProviderInterface implements ProviderInterface {
+    constructor(Record: PageRecordClassInterface, model: ModelInterface, app: AppLayerInterface)
+    accessRecord(
+      setting: SettingInterface,
+      event: JQueryEventObject,
+      success: (record: PageRecordInterface, event: JQueryEventObject) => void,
+      failure: (record: PageRecordInterface, event: JQueryEventObject) => void
+    ): void
+    updateRecord(
+      setting: SettingInterface,
+      event: JQueryEventObject,
+      success: (record: PageRecordInterface, event: JQueryEventObject) => void,
+      failure: (record: PageRecordInterface, event: JQueryEventObject) => void
+    ): void
+    fillRecord(
+      setting: SettingInterface,
+      event: JQueryEventObject,
+      success: (record: PageRecordInterface, event: JQueryEventObject) => void,
+      failure: (record: PageRecordInterface, event: JQueryEventObject) => void
+    ): void
+    verifyRecord(setting: SettingInterface): boolean
+    getRecord(setting: SettingInterface): PageRecordInterface
+    setRecord(setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string, state: boolean): PageRecordInterface
+  }
+  export declare class PageRecordInterface implements RecordInterface {
+    constructor()
+    constructor(model: ModelInterface, setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string, state: boolean)
+    data: PageRecordDataInterface
+    state(): boolean
+  }
+  export declare class PageRecordDataInterface implements RecordDataInterface {
+    url(): string
+    data(): string
+    textStatus(): string
+    jqXHR(): JQueryXHR
+    host(): string
+    setting(): SettingInterface
+  }
+  export interface PageRecordClassInterface extends RecordClassInterface {
+    new ()
+    new (model: ModelInterface, setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string, state: boolean)
+  }
+  export interface PageRecordSchema extends RecordSchema {
+    url: string
+    data: string
+    textStatus: string
+    jqXHR: JQueryXHR
+    host: string
+    setting: SettingInterface
+  }
+  // Page::Fetch
   export declare class PageFetchInterface extends PageUtilityInterface {
-    constructor(model: ModelInterface,
+    constructor(
+      model: ModelInterface,
       app: AppLayerInterface,
       setting: SettingInterface,
       event: JQueryEventObject,
-      register: boolean,
-      cache: CacheInterface,
-      done: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any,
-      fail: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any)
+      success: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any,
+      failure: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any)
   }
+  // Page::Update
   export declare class PageUpdateInterface extends PageUtilityInterface {
-    constructor(model: ModelInterface,
+    constructor(
+      model: ModelInterface,
       app: AppLayerInterface,
-      setting: SettingInterface,
       event: JQueryEventObject,
-      register: boolean,
-      cache: CacheInterface,
-      data: string,
-      textStatus: string,
-      jqXHR: JQueryXHR,
-      errorThrown: string,
-      host: string,
-      count: number,
-      time: number)
+      record: PageRecordInterface,
+      retriable: boolean)
   }
+  // Page::Parser
+  export declare class PageParserInterface {
+    parse(html: string, uri?: string): Document
+  }
+  // Page::Utility
   export declare class PageUtilityInterface {
-    createHTMLDocument(html: string, uri: string): Document
     chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
     movePageNormally(event: JQueryEventObject): void
-    calAge(jqXHR: JQueryXHR): number
-    calExpires(jqXHR: JQueryXHR): number
     dispatchEvent(target: Window, eventType: string, bubbling: boolean, cancelable: boolean): void
     dispatchEvent(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
     dispatchEvent(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
     wait(ms: number): JQueryDeferred<any>
   }
+
+  // Data
   export declare class DataInterface {
     // cookie
     getCookie(key: string): string
     setCookie(key: string, value: string, option?: Object): string
 
     // db
-    opendb(setting: SettingInterface): void
+    connect(setting: SettingInterface): void
     
     // common
     loadBuffers(limit?: number): void
@@ -267,7 +330,7 @@ module MODULE.MODEL {
     // server
     getServerBuffers(): ServerStoreSchema[]
     loadServer(): void
-    saveServer(host: string, performance: number, state?: number, unsafe_url?: string, expires?: number): void
+    saveServer(host: string, score: number, state?: number, unsafe_url?: string, expires?: number): void
   }
   export interface CookieOptionInterface {
     age: number
@@ -291,7 +354,7 @@ module MODULE.MODEL {
   export interface ServerStoreSchema {
     host: string
     state: number // 0:正常, !0:異常発生時刻(ミリ秒)
-    performance: number
+    score: number
     date: number
   }
 }
@@ -450,6 +513,29 @@ module MODULE {
 
 module MODULE {
   // LIBRARY
+
+  // Provider
+  export declare class ProviderInterface {
+    constructor(Record: RecordClassInterface, ...args: any[])
+    accessRecord(...args: any[]): void
+    updateRecord(...args: any[]): void
+    fillRecord(...args: any[]): void
+    verifyRecord(...args: any[]): boolean
+    getRecord(...args: any[]): RecordInterface
+    setRecord(...args: any[]): RecordInterface
+  }
+  export declare class RecordInterface {
+    data: RecordDataInterface
+    state(): boolean
+  }
+  export interface RecordClassInterface {
+  }
+  export declare class RecordDataInterface {
+    constructor(data: RecordSchema)
+  }
+  export interface RecordSchema {
+  }
+  // Task
   export declare class TaskInterface {
     constructor(mode?: number, size?: number)
     define(name: string, mode: number, size: number): void

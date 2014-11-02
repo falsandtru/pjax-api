@@ -9,6 +9,10 @@ module MODULE.CONTROLLER {
 
     constructor(private model_: ModelInterface) {
       super(model_, State.initiate);
+      this.FUNCTIONS = new Functions();
+      this.METHODS = new Methods();
+      this.REGISTER(model_);
+      FREEZE(this);
     }
     
     exec_($context: ExtensionInterface, setting: PjaxSetting): any[]
@@ -28,17 +32,35 @@ module MODULE.CONTROLLER {
       return [$context].concat(args);
     }
 
-    click(...args: any[]): void {
+    click(args: IArguments): void {
       this.model_.click.apply(this.model_, args);
     }
-    submit(...args: any[]): void {
+    submit(args: IArguments): void {
       this.model_.submit.apply(this.model_, args);
     }
-    popstate(...args: any[]): void {
+    popstate(args: IArguments): void {
       this.model_.popstate.apply(this.model_, args);
     }
-    scroll(...args: any[]): void {
+    scroll(args: IArguments): void {
       this.model_.scroll.apply(this.model_, args);
+    }
+
+  }
+
+  export class Singleton {
+
+    constructor(model: ModelInterface = Model.singleton()) {
+      Singleton.instance_ = Singleton.instance_ || new Main(model);
+    }
+
+    private static instance_: Main
+
+    static singleton(): Main {
+      return Singleton.instance_;
+    }
+
+    singleton(): Main {
+      return Singleton.singleton();
     }
 
   }
@@ -46,5 +68,5 @@ module MODULE.CONTROLLER {
 }
 
 module MODULE {
-  export var Controller = CONTROLLER.Main
+  export var Controller = CONTROLLER.Singleton
 }

@@ -9,11 +9,11 @@
 /// <reference path="jquery.d.ts"/>
 
 interface JQueryStatic {
-  pjax: JQueryPjaxStatic
+    pjax: JQueryPjaxStatic
 }
 
 interface JQuery {
-  pjax: JQueryPjax
+    pjax: JQueryPjax
 }
 
 interface PjaxSetting {
@@ -26,9 +26,9 @@ interface PjaxSetting {
         rewrite?(url: string): string
     }
     rewrite?: (document: Document, area: string, host: string) => void
-    state?: any      // any, function(event, param, origUrl, destUrl )
-    scrollTop?: any  // number, function( event, param, origUrl, destUrl ), null, false
-    scrollLeft?: any // number, function( event, param, origUrl, destUrl ), null, false
+    state?: any      // any, function(event, setting, origLocation, destLocation )
+    scrollTop?: any  // number, function( event, setting, origLocation, destLocation ), null, false
+    scrollLeft?: any // number, function( event, setting, origLocation, destLocation ), null, false
     ajax?: JQueryAjaxSettings
     contentType?: string
     redirect?: boolean
@@ -54,10 +54,11 @@ interface PjaxSetting {
         head?: string
         css?: boolean
         script?: boolean
-        execute?: boolean
-        reload?: string
         ignore?: string
+        reload?: string
+        execute?: boolean
         log?: string
+        error?: any
         ajax?: JQueryAjaxSettings
     }
     balance?: {
@@ -86,8 +87,8 @@ interface PjaxSetting {
             limit?: number
         }
     }
-    wait?: any     // number, function( event, param, origUrl, destUrl ): number
-    fallback?: any // boolean, function( event, param, origUrl, destUrl ): boolean
+    wait?: any     // number, function( event, setting, origLocation, destLocation ): number
+    fallback?: any // boolean, function( event, setting, origLocation, destLocation ): boolean
     reset?: {
         type?: string
         count?: number
@@ -98,7 +99,6 @@ interface PjaxSetting {
         history?: boolean
         scroll?: boolean
         noscript?: boolean
-        reset?: boolean
     }
     database?: boolean
     server?: {
@@ -110,64 +110,62 @@ interface PjaxSetting {
             script?: boolean
         }
     }
-    callback?: (event?: JQueryEventObject, param?: any) => any
-    param?: any
+    data?: any
+    callback?: (event?: JQueryEventObject, setting?: PjaxSetting) => any
     callbacks?: {
         ajax?: {
-            xhr?: (event?: JQueryEventObject, param?: any) => any
-            beforeSend?: (event?: JQueryEventObject, param?: any, data?: string, ajaxSettings?: any) => any
-            dataFilter?: (event?: JQueryEventObject, param?: any, data?: string, dataType?: any) => any
-            success?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
-            error?: (event?: JQueryEventObject, param?: any, jqXHR?: JQueryXHR, textStatus?: string, errorThrown?: any) => any
-            complete?: (event?: JQueryEventObject, param?: any, jqXHR?: JQueryXHR, textStatus?: string) => any
-            done?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
-            fail?: (event?: JQueryEventObject, param?: any, jqXHR?: JQueryXHR, textStatus?: string, errorThrown?: any) => any
-            always?: (event?: JQueryEventObject, param?: any, jqXHR?: JQueryXHR, textStatus?: string) => any
+            xhr?: (event?: JQueryEventObject, setting?: PjaxSetting) => JQueryXHR
+            beforeSend?: (event?: JQueryEventObject, setting?: PjaxSetting, data?: string, ajaxSettings?: any) => any
+            dataFilter?: (event?: JQueryEventObject, setting?: PjaxSetting, data?: string, dataType?: any) => string
+            success?: (event?: JQueryEventObject, setting?: PjaxSetting, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+            error?: (event?: JQueryEventObject, setting?: PjaxSetting, jqXHR?: JQueryXHR, textStatus?: string, errorThrown?: any) => any
+            complete?: (event?: JQueryEventObject, setting?: PjaxSetting, jqXHR?: JQueryXHR, textStatus?: string) => any
         }
         update?: {
             redirect?: {
-                before?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
-                after?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
             }
             url?: {
-                before?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
-                after?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
             }
             rewrite?: {
-                before?: (event: JQueryEventObject, param: any, cache: any) => any
-                after?: (event: JQueryEventObject, param: any, cache: any) => any
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
             }
             title?: {
-                before?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
-                after?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
             }
             head?: {
-                before?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
-                after?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
             }
             content?: {
-                before?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
-                after?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
             }
             css?: {
-                before?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
-                after?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
             }
             script?: {
-                before?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
-                after?: (event?: JQueryEventObject, param?: any, data?: string, textStatus?: string, jqXHR?: JQueryXHR) => any
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
             }
             scroll?: {
-                before?: (event?: JQueryEventObject, param?: any) => any
-                after?: (event?: JQueryEventObject, param?: any) => any
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
             }
             balance?: {
-              before?: (event?: JQueryEventObject, param?: any) => any
-              after?: (event?: JQueryEventObject, param?: any) => any
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
             }
         }
     }
 }
+
 interface PjaxCache {
     data: string
     textStatus: string
@@ -175,35 +173,10 @@ interface PjaxCache {
     expires: number
 }
 
-interface Pjax<T> {
-    (setting?: PjaxSetting): JQueryPjax
-    enable(): T
-    disable(): T
-    setCache(): T
-    setCache(url: string): T
-    setCache(url: string, data: string): T
-    setCache(url: string, data: string, textStatus: string, jqXHR: JQueryXHR): T
-    getCache(): PjaxCache
-    getCache(url: string): PjaxCache
-    removeCache(url: string): T
-    removeCache(): T
-    clearCache(): T
-    follow(event: JQueryEventObject, ajax: JQueryXHR, host?: string): boolean
-    host(): string
+interface JQueryPjaxStatic extends PJAX.Core<JQueryPjaxStatic, JQueryPjax>, JQueryStatic {
 }
 
-interface JQueryPjaxStatic extends Pjax<JQueryPjaxStatic>, JQueryStatic {
-    click(): JQueryPjaxStatic
-    click(url: string, attrs?: {}): JQueryPjaxStatic
-    click(url: HTMLAnchorElement): JQueryPjaxStatic
-    click(url: JQuery): JQueryPjaxStatic
-    submit(): JQueryPjaxStatic
-    submit(url: string, attrs: {}, data: any): JQueryPjaxStatic
-    submit(url: HTMLFormElement): JQueryPjaxStatic
-    submit(url: JQuery): JQueryPjaxStatic
-}
-
-interface JQueryPjax extends Pjax<JQueryPjax>, JQuery {
+interface JQueryPjax extends PJAX.Core<JQueryPjax, JQueryPjax>, JQuery {
     click(): JQueryPjax
     click(url: string, attrs?: {}): JQueryPjax
     click(url: HTMLAnchorElement): JQueryPjax
@@ -212,4 +185,38 @@ interface JQueryPjax extends Pjax<JQueryPjax>, JQuery {
     submit(url: string, attrs: {}, data: any): JQueryPjax
     submit(url: HTMLFormElement): JQueryPjax
     submit(url: JQuery): JQueryPjax
+}
+
+declare module PJAX {
+    interface Core<T, U> extends Constructor<T, U>, Method<T> {
+    }
+
+    interface Constructor<T, U> {
+        (): U
+        (setting: PjaxSetting): U
+    }
+
+    interface Method<T> {
+        enable(): T
+        disable(): T
+        click(): T
+        click(url: string, attrs?: {}): T
+        click(url: HTMLAnchorElement): T
+        click(url: JQuery): T
+        submit(): T
+        submit(url: string, attrs: {}, data: any): T
+        submit(url: HTMLFormElement): T
+        submit(url: JQuery): T
+        setCache(): T
+        setCache(url: string): T
+        setCache(url: string, data: string): T
+        setCache(url: string, data: string, textStatus: string, jqXHR: JQueryXHR): T
+        getCache(): PjaxCache
+        getCache(url: string): PjaxCache
+        removeCache(url: string): T
+        removeCache(): T
+        clearCache(): T
+        follow(event: JQueryEventObject, ajax: JQueryXHR, host?: string): boolean
+        host(): string
+    }
 }

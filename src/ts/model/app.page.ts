@@ -1,6 +1,7 @@
 /// <reference path="../define.ts"/>
-/// <reference path="app.page.fetch.ts"/>
+/// <reference path="app.page.provider.ts"/>
 /// <reference path="app.page.update.ts"/>
+/// <reference path="app.page.parser.ts"/>
 /// <reference path="app.page.utility.ts"/>
 /// <reference path="../library/utility.ts"/>
 
@@ -8,76 +9,76 @@
 
 module MODULE.MODEL.APP {
 
-  var Util = LIBRARY.Utility
-
   MIXIN(PageFetch, [PageUtility]);
   MIXIN(PageUpdate, [PageUtility]);
 
   export class Page implements PageInterface {
 
     constructor(private model_: ModelInterface, private app_: AppLayerInterface) {
-      setTimeout(() => this.createHTMLDocument('', '') || this.model_.disable(), 50);
+      setTimeout(() => this.parser.parse('') || this.model_.disable(), 300);
     }
     
-    private count_: number = 0
-    private time_: number = new Date().getTime()
+    private provider: PageProviderInterface = new PageProvider(PageRecord, this.model_, this.app_)
+    private util_ = LIBRARY.Utility
 
-    landing: string = Util.normalizeUrl(window.location.href)
+    parser: PageParserInterface = new PageParserSingleton()
+    
+    landing: string = this.util_.normalizeUrl(window.location.href)
     recent: RecentInterface = { order: [], data: {}, size: 0 }
     loadedScripts: { [index: string]: boolean } = {}
-    isScrollPosSavable: boolean = true
-    globalXHR: JQueryXHR
-    globalSetting: SettingInterface
+    xhr: JQueryXHR
 
-    transfer(setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface): void {
-      var done = (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => {
-        this.update_(setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host);
-      };
-      var fail = (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => {
-        if (!setting.fallback || 'abort' === textStatus) { return; }
+    transfer(setting: SettingInterface, event: JQueryEventObject): void {
+      switch (event.type.toLowerCase()) {
+        case EVENT.CLICK:
+          this.app_.data.saveTitle();
+          this.app_.data.saveScrollPosition();
+          break;
 
-        if (setting.balance.self) {
-          this.app_.data.saveServer(host, 0, new Date().getTime());
-          this.app_.balance.chooseServer(setting);
-        }
+        case EVENT.SUBMIT:
+          this.app_.data.saveTitle();
+          this.app_.data.saveScrollPosition();
+          break;
 
-        this.model_.fallback(event, setting);
-      };
+        case EVENT.POPSTATE:
+          this.app_.data.saveTitle(setting.origLocation.href, document.title);
+          setting.fix.history && this.app_.data.loadTitle();
+          break;
+      }
 
-      this.fetch_(setting, event, register, cache, done, fail);
+      this.fetch_(setting, event);
     }
 
-    private fetch_(setting: SettingInterface,
-                   event: JQueryEventObject,
-                   register: boolean,
-                   cache: CacheInterface,
-                   done: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void,
-                   fail: (setting: SettingInterface, event: JQueryEventObject, register: boolean, cache: CacheInterface, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => void
-                  ): void {
-      new PageFetch(this.model_, this.app_, setting, event, register, cache, done, fail);
+    private fetch_(setting: SettingInterface, event: JQueryEventObject): void {
+      this.provider.accessRecord(
+        setting,
+        event,
+        (record: PageRecordInterface, event: JQueryEventObject) => this.success_(record, event),
+        (record: PageRecordInterface, event: JQueryEventObject) => this.failure_(record, event)
+      );
     }
 
-    private update_(setting: SettingInterface,
-                    event: JQueryEventObject,
-                    register: boolean,
-                    cache: CacheInterface,
-                    data: string,
-                    textStatus: string,
-                    jqXHR: JQueryXHR,
-                    errorThrown: string,
-                    host: string
-                   ): void {
-      new PageUpdate(this.model_, this.app_, setting, event, register, cache, data, textStatus, jqXHR, errorThrown, host, ++this.count_, this.time_);
+    private success_(record: PageRecordInterface, event: JQueryEventObject): void {
+      new PageUpdate(this.model_, this.app_, event, record, true);
+    }
+
+    private failure_(record: PageRecordInterface, event: JQueryEventObject): void {
+      if (!record.data.setting().fallback || 'abort' === record.data.textStatus()) { return; }
+
+      var setting = record.data.setting();
+      if (setting.balance.self) {
+        this.app_.data.saveServer(record.data.host(), 0, new Date().getTime());
+        this.app_.balance.chooseServer(setting);
+      }
+
+      this.model_.fallback(event);
     }
 
     // mixin utility
-    createHTMLDocument(html: string, uri: string): Document { return }
     chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: any, srcDocument: Document, dstDocument: Document): string { return }
     movePageNormally(event: JQueryEventObject): void { }
-    calAge(jqXHR: JQueryXHR): number { return }
-    calExpires(jqXHR: JQueryXHR): number { return }
     dispatchEvent(target: Window, eventType: string, bubbling: boolean, cancelable: boolean): void
     dispatchEvent(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
     dispatchEvent(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void

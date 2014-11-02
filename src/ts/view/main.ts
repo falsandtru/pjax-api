@@ -9,6 +9,7 @@ module MODULE.VIEW {
 
     constructor(private model_: ModelInterface, private controller_: ControllerInterface, private context_: JQuery, setting: SettingInterface) {
       super(State.initiate);
+      FREEZE(this);
       this.observe_(setting);
     }
 
@@ -37,17 +38,17 @@ module MODULE.VIEW {
 
     // VIEWの待ち受けるイベントに登録されるハンドラ
     handlers = {
-      click: (...args: any[]): void => {
-        this.controller_.click.apply(this.controller_, args);
+      click: (): void => {
+        this.controller_.click(arguments);
       },
-      submit: (...args: any[]): void => {
-        this.controller_.submit.apply(this.controller_, args);
+      submit: (): void => {
+        this.controller_.submit(arguments);
       },
-      popstate: (...args: any[]): void => {
-        this.controller_.popstate.apply(this.controller_, args);
+      popstate: (): void => {
+        this.controller_.popstate(arguments);
       },
-      scroll: (...args: any[]): void => {
-        this.controller_.scroll.apply(this.controller_, args);
+      scroll: (): void => {
+        this.controller_.scroll(arguments);
       }
     }
     

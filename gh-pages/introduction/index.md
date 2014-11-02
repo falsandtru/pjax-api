@@ -123,6 +123,7 @@ Turbolinks、defunkt版（v1.7.0/2013年6月時点最新版）との主な違い
 |jQueryバージョン対応|1.8.x|1.4.2|-|
 |プリロードの利用|×|○|×|
 |ロードバランス機能|×|○|×|
+|history.stateの不使用|×|○|×|
 |Android・iOSへの対応<br><small>- locationオブジェクトの更新</small>|**×**|○|?|
 |Android・iOSへの対応<br><small>- スクロール位置の操作</small>|×|○|○|
 |間違った履歴の修復|**×**|○|**×**|

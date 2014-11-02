@@ -91,7 +91,8 @@ module.exports = function(grunt) {
       build: { },
       serve: {
         options: {
-          serve: true
+          serve: true,
+          watch: true
         }
       }
     },
@@ -110,7 +111,7 @@ module.exports = function(grunt) {
       },
       jekyll: {
         files: ['gh-pages/**', '!gh-pages/{coverage,_site}/**'],
-        tasks: ['jekyll:build']
+        //tasks: ['jekyll:build']
       }
     },
 

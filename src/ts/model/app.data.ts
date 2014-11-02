@@ -6,8 +6,6 @@
 
 module MODULE.MODEL.APP {
 
-  var Util = LIBRARY.Utility
-
   export class Data implements DataInterface {
 
     constructor(private model_: ModelInterface, private app_: AppLayerInterface) {
@@ -15,6 +13,7 @@ module MODULE.MODEL.APP {
 
     private data_: DataLayerInterface = new DATA.Main()
     private stores_ = this.data_.DB.stores
+    private util_ = LIBRARY.Utility
 
     // cookie
 
@@ -28,10 +27,11 @@ module MODULE.MODEL.APP {
 
     // db
 
-    opendb(setting: SettingInterface): void {
+    connect(setting: SettingInterface): void {
       if (!setting.database) { return; }
 
       this.data_.DB.up();
+
       this.saveTitle();
       this.saveScrollPosition();
     }
@@ -51,22 +51,21 @@ module MODULE.MODEL.APP {
     // history
 
     getHistoryBuffer(unsafe_url: string): HistoryStoreSchema {
-      return this.stores_.history.getBuffer(this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url)));
+      return this.stores_.history.getBuffer(this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(unsafe_url)));
     }
 
     loadTitle(): void {
-      var keyUrl: string = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(window.location.href)),
-          that = this;
+      var keyUrl: string = this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(window.location.href));
 
       var data: HistoryStoreSchema = this.stores_.history.getBuffer(keyUrl);
 
       if (data && 'string' === typeof data.title) {
         document.title = data.title;
       } else {
-        this.stores_.history.get(keyUrl, function () {
-          data = this.result;
+        this.stores_.history.get(keyUrl, (event) => {
+          data = (<IDBRequest>event.target).result;
           if (data && data.title) {
-            if (Util.compareUrl(keyUrl, that.model_.convertUrlToKeyUrl(Util.normalizeUrl(window.location.href)))) {
+            if (this.util_.compareUrl(keyUrl, this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(window.location.href)))) {
               document.title = data.title;
             }
           }
@@ -77,7 +76,7 @@ module MODULE.MODEL.APP {
     saveTitle(): void
     saveTitle(unsafe_url: string, title: string): void
     saveTitle(unsafe_url: string = window.location.href, title: string = document.title): void {
-      var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
+      var keyUrl = this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(unsafe_url));
 
       var value: HistoryStoreSchema = {
         url: keyUrl,
@@ -96,8 +95,7 @@ module MODULE.MODEL.APP {
     }
 
     loadScrollPosition(): void {
-      var keyUrl: string = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(window.location.href)),
-          that = this;
+      var keyUrl: string = this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(window.location.href));
 
       var data: HistoryStoreSchema = this.stores_.history.getBuffer(keyUrl);
       function scroll(scrollX, scrollY) {
@@ -109,10 +107,10 @@ module MODULE.MODEL.APP {
       if (data && 'number' === typeof data.scrollX) {
         scroll(data.scrollX, data.scrollY);
       } else {
-        this.stores_.history.get(keyUrl, function () {
-          data = this.result;
+        this.stores_.history.get(keyUrl, (event) => {
+          data = (<IDBRequest>event.target).result;
           if (data && 'number' === typeof data.scrollX) {
-            if (Util.compareUrl(keyUrl, that.model_.convertUrlToKeyUrl(Util.normalizeUrl(window.location.href)))) {
+            if (this.util_.compareUrl(keyUrl, this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(window.location.href)))) {
               scroll(data.scrollX, data.scrollY);
             }
           }
@@ -123,7 +121,7 @@ module MODULE.MODEL.APP {
     saveScrollPosition(): void
     saveScrollPosition(unsafe_url: string, scrollX: number, scrollY: number): void
     saveScrollPosition(unsafe_url: string = window.location.href, scrollX: number = jQuery(window).scrollLeft(), scrollY: number = jQuery(window).scrollTop()): void {
-      var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
+      var keyUrl = this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(unsafe_url));
 
       var value: HistoryStoreSchema = {
         url: keyUrl,
@@ -144,7 +142,7 @@ module MODULE.MODEL.APP {
     }
 
     saveExpires(unsafe_url: string, host: string, expires: number): void {
-      var keyUrl = this.model_.convertUrlToKeyUrl(Util.normalizeUrl(unsafe_url));
+      var keyUrl = this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(unsafe_url));
 
       var value: HistoryStoreSchema = {
         url: keyUrl,
@@ -170,11 +168,11 @@ module MODULE.MODEL.APP {
     loadServer(): void {
     }
 
-    saveServer(host: string, performance: number, state: number = 0, unsafe_url?: string, expires: number = 0): void {
+    saveServer(host: string, score: number, state: number = 0, unsafe_url?: string, expires: number = 0): void {
       var store = this.stores_.server,
           value: ServerStoreSchema = {
             host: host.split('//').pop().split('/').shift() || '',
-            performance: performance,
+            score: score,
             state: state,
             date: new Date().getTime()
           };

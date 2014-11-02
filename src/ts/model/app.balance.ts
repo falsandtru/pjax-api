@@ -1,15 +1,16 @@
 /// <reference path="../define.ts"/>
 /// <reference path="app.data.ts"/>
+/// <reference path="../library/utility.ts"/>
 
 /* MODEL */
 
 module MODULE.MODEL.APP {
 
-  var Util = LIBRARY.Utility
-
   export class Balance implements BalanceInterface {
 
     constructor(private model_: ModelInterface, private app_: AppLayerInterface) { }
+    
+    private util_ = LIBRARY.Utility
 
     private host_: string = ''
     host = () => this.host_
@@ -42,8 +43,8 @@ module MODULE.MODEL.APP {
       this.changeServer(null, setting);
     }
 
-    changeServer(host: string, setting: SettingInterface = this.model_.getGlobalSetting()): void {
-      if (!this.isBalanceable_(setting)) { return; }
+    changeServer(host: string, setting: SettingInterface = this.model_.configure(window.location)): void {
+      if (!setting || !this.isBalanceable_(setting)) { return; }
 
       host = host || '';
 
@@ -53,7 +54,7 @@ module MODULE.MODEL.APP {
 
     private chooseServers_(expires: number, limit: number, weight: number, respite: number): string[] {
       var servers = this.app_.data.getServerBuffers(),
-          serverTableByPerformance: { [performance: string]: ServerStoreSchema } = {},
+          serverTableByScore: { [score: string]: ServerStoreSchema } = {},
           result: string[];
 
       (() => {
@@ -62,14 +63,14 @@ module MODULE.MODEL.APP {
           if (now > servers[i].date + expires) {
             continue;
           }
-          serverTableByPerformance[servers[i].performance] = servers[i];
+          serverTableByScore[servers[i].score] = servers[i];
         }
       })();
 
       result = [];
-      var performanceList = Object.keys(serverTableByPerformance).sort();
-      for (var i = 0, performance: string; performance = result.length < limit && performanceList[i]; i++) {
-        var server = serverTableByPerformance[performance],
+      var scores = Object.keys(serverTableByScore).sort();
+      for (var i = 0, score: string; score = result.length < limit && scores[i]; i++) {
+        var server = serverTableByScore[score],
             host = server.host,
             state = server.state;
         if (state && state + respite >= new Date().getTime()) {
@@ -130,25 +131,48 @@ module MODULE.MODEL.APP {
 
         ((server: string) => {
           --this.parallel_;
-          option.url = Util.normalizeUrl(server + window.location.pathname.replace(/^\/?/, '/') + window.location.search);
-          var done = (data: string, textStatus: string, jqXHR: JQueryXHR) => {
-            this.host_ = server;
-            this.queue_ = [];
-          };
-          var always = () => {
-            ++this.parallel_;
-            servers.length && this.bypass(setting, servers.length - 1);
-          };
+          var that = this;
+          jQuery.ajax(jQuery.extend({}, option, <JQueryAjaxSettings>{
+            url: that.util_.normalizeUrl(server + window.location.pathname.replace(/^\/?/, '/') + window.location.search),
+            xhr: !setting.balance.option.callbacks.ajax.xhr ? undefined : function () {
+              var jqXHR: JQueryXHR;
+              jqXHR = that.util_.fire(setting.balance.option.callbacks.ajax.xhr, this, [event, setting]);
+              jqXHR = 'object' === typeof jqXHR ? jqXHR : jQuery.ajaxSettings.xhr();
+              return jqXHR;
+            },
+            beforeSend: !setting.balance.option.callbacks.ajax.beforeSend && !setting.server.header ? undefined : function (jqXHR: JQueryXHR, ajaxSetting: JQueryAjaxSettings) {
+              if (setting.server.header) {
+                jqXHR.setRequestHeader(setting.nss.requestHeader, 'true');
+              }
+              if ('object' === typeof setting.server.header) {
+                jqXHR.setRequestHeader(setting.nss.requestHeader, 'true');
+                setting.server.header.area && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Area', this.app_.chooseArea(setting.area, document, document));
+                setting.server.header.head && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Head', setting.load.head);
+                setting.server.header.css && jqXHR.setRequestHeader(setting.nss.requestHeader + '-CSS', setting.load.css.toString());
+                setting.server.header.script && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Script', setting.load.script.toString());
+              }
 
-          if (this.model_.isDeferrable) {
-            jQuery.ajax(option)
-            .done(done)
-            .always(always);
-          } else {
-            option.success = done;
-            option.complete = always;
-            jQuery.ajax(option);
-          }
+              that.util_.fire(setting.balance.option.callbacks.ajax.beforeSend, this, [event, setting, jqXHR, ajaxSetting]);
+            },
+            dataFilter: !setting.balance.option.callbacks.ajax.dataFilter ? undefined : function (data: string, type: Object) {
+              return that.util_.fire(setting.balance.option.callbacks.ajax.dataFilter, this, [event, setting, data, type]) || data;
+            },
+            success: function () {
+              that.host_ = server;
+              that.queue_ = [];
+
+              that.util_.fire(setting.balance.option.ajax.success, this, arguments);
+            },
+            error: function () {
+              that.util_.fire(setting.balance.option.ajax.error, this, arguments);
+            },
+            complete: function () {
+              ++that.parallel_;
+              servers.length && that.bypass(setting, servers.length - 1);
+
+              that.util_.fire(setting.balance.option.ajax.complete, this, arguments);
+            }
+          }));
         })(servers.shift());
       }
     }

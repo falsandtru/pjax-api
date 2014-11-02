@@ -10,42 +10,95 @@
 
 module MODULE.MODEL.APP {
 
-  var Util = LIBRARY.Utility
-
   MIXIN(Page, [PageUtility]);
 
   export class Main implements AppLayerInterface {
 
     constructor(private model_: ModelInterface, private controller_: ControllerInterface) {
     }
+    
+    private util_ = LIBRARY.Utility
+
+    private settings_: { [index: string]: SettingInterface } = {}
+    private option_: PjaxSetting
 
     balance: BalanceInterface = new Balance(this.model_, this)
     page: PageInterface = new Page(this.model_, this)
     data: DataInterface = new Data(this.model_, this)
 
+    count: number = 0
+    time: number = new Date().getTime()
+    loadtime: number = 0
+
     initialize($context: JQuery, setting: SettingInterface): void {
-      var loadedScripts = this.page.loadedScripts;
-      setting.load.script && jQuery('script').each(function () {
-        var element: HTMLScriptElement = this;
-        if (element.src) { loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload); }
-      });
+      if (setting.load.script) {
+        var loadedScripts = this.page.loadedScripts;
+        jQuery('script').each(function () {
+          var element: HTMLScriptElement = this;
+          if (element.src) { loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload); }
+        });
+      }
 
       new View(this.model_, this.controller_, $context, setting);
       setTimeout(() => this.data.loadBuffers(setting.buffer.limit), setting.buffer.delay);
       setTimeout(() => this.balance.enable(setting), setting.buffer.delay);
       setTimeout(() => this.page.landing = null, 1500);
     }
+    
+    configure(option: PjaxSetting): SettingInterface
+    configure(event: Event): SettingInterface
+    configure(destination: HTMLAnchorElement): SettingInterface
+    configure(destination: HTMLFormElement): SettingInterface
+    configure(destination: Location): SettingInterface
+    configure(destination: any): SettingInterface {
+      var event: Event = (<Event>destination).preventDefault ? destination : null;
+      switch (event && event.type.toLowerCase()) {
+        case EVENT.CLICK:
+          return this.configure(<HTMLAnchorElement>event.currentTarget);
+        case EVENT.SUBMIT:
+          return this.configure(<HTMLFormElement>event.currentTarget);
+        case EVENT.POPSTATE:
+          return this.configure(window.location);
+        case null:
+          break;
+      }
 
-    configure(option: PjaxSetting, origURL: string, destURL: string): SettingInterface {
-      var that = this;
+      var url: string;
+      switch (true) {
+        case 'href' in destination:
+          url = this.util_.normalizeUrl(destination.href);
+          break;
+        case 'action' in destination:
+          url = this.util_.normalizeUrl(destination.action.replace(/[?#].*/, ''));
+          switch (destination.method.toUpperCase()) {
+            case 'GET':
+              url += '?' + jQuery(destination).serialize();
+              break;
+          }
+          break;
+        default:
+          url = this.model_.location.href;
+          this.option_ = destination;
+      }
 
-      origURL = Util.normalizeUrl(origURL || (<SettingInterface>option).origLocation.href);
-      destURL = Util.normalizeUrl(destURL || (<SettingInterface>option).destLocation.href);
-      option = jQuery.extend(true, {}, (<SettingInterface>option).option || option);
+      var index: string = [
+        this.util_.canonicalizeUrl(this.model_.location.href).slice(0, 2048),
+        this.util_.canonicalizeUrl(url).slice(0, 2048)
+      ].join(' ');
 
-      option = option.scope ? jQuery.extend(true, {}, option, scope(option, origURL, destURL) || { cancel: true })
-                            : jQuery.extend(true, {}, option);
-      FREEZE(option, true);
+      if (!this.option_) {
+        return null;
+      }
+      if (index in this.settings_) {
+        return this.settings_[index];
+      }
+      
+      var origLocation: HTMLAnchorElement = <HTMLAnchorElement>this.model_.location.cloneNode(),
+          destLocation: HTMLAnchorElement = <HTMLAnchorElement>this.model_.location.cloneNode();
+
+      destLocation.href = url;
+
+      var scope: PjaxSetting = this.scope_(this.option_, origLocation.href, destLocation.href) || null;
 
       var initial = <PjaxSetting>{
             area: 'body',
@@ -73,10 +126,11 @@ module MODULE.MODEL.APP {
               head: '',
               css: false,
               script: false,
+              ignore: '[src*="jquery.js"], [src*="jquery.min.js"], [href^="chrome-extension://"]',
+              reload: '',
               execute: true,
               log: 'head, body',
-              reload: '',
-              ignore: '[src*="jquery.js"], [src*="jquery.min.js"], [href^="chrome-extension://"]',
+              error: true,
               ajax: { dataType: 'script', cache: true }
             },
             balance: {
@@ -128,8 +182,7 @@ module MODULE.MODEL.APP {
               location: true,
               history: true,
               scroll: true,
-              noscript: true,
-              reset: false
+              noscript: true
             },
             database: true,
             server: {
@@ -141,26 +194,22 @@ module MODULE.MODEL.APP {
               ajax: {},
               update: { redirect: {}, rewrite: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, balance: {} }
             },
-            param: null
+            data: undefined
           },
           force = <SettingInterface>{
             ns: undefined,
             nss: undefined,
             speedcheck: undefined,
-            cancel: undefined,
-            origLocation: undefined,
-            destLocation: undefined,
 
-            gns: DEF.NAME,
-            areas: [],
+            origLocation: origLocation,
+            destLocation: destLocation,
+
             scroll: { queue: [] },
-            loadtime: null,
-            retriable: true,
-            option: option
+            option: this.option_
           },
           compute = () => {
-            setting.ns = setting.ns && setting.ns.split('.').sort().join('.') || '';
-            var nsArray: string[] = [setting.gns || DEF.NAME].concat(setting.ns && String(setting.ns).split('.') || []);
+            setting.ns = setting.ns ? setting.ns.split('.').sort().join('.') : '';
+            var nsArray: string[] = [DEF.NAME].concat(setting.ns ? setting.ns.split('.') : []);
             var query: string = setting.server.query;
             switch (query && typeof query) {
               case 'string':
@@ -172,15 +221,12 @@ module MODULE.MODEL.APP {
                 query = '';
             }
             return <SettingInterface>{
-              gns: undefined,
               ns: undefined,
-              areas: undefined,
+              origLocation: undefined,
+              destLocation: undefined,
               scroll: undefined,
-              loadtime: undefined,
-              retriable: undefined,
               option: undefined,
               speedcheck: undefined,
-              cancel: undefined,
 
               nss: {
                 name: setting.ns || '',
@@ -188,15 +234,13 @@ module MODULE.MODEL.APP {
                 event: nsArray.join('.'),
                 data: nsArray.join('-'),
                 class4html: nsArray.join('-'),
-                click: ['click'].concat(nsArray.join(':')).join('.'),
-                submit: ['submit'].concat(nsArray.join(':')).join('.'),
-                popstate: ['popstate'].concat(nsArray.join(':')).join('.'),
-                scroll: ['scroll'].concat(nsArray.join(':')).join('.'),
+                click: [EVENT.CLICK].concat(nsArray.join(':')).join('.'),
+                submit: [EVENT.SUBMIT].concat(nsArray.join(':')).join('.'),
+                popstate: [EVENT.POPSTATE].concat(nsArray.join(':')).join('.'),
+                scroll: [EVENT.SCROLL].concat(nsArray.join(':')).join('.'),
                 requestHeader: ['X', nsArray[0].replace(/^\w/, function (str) { return str.toUpperCase(); })].join('-')
               },
-              origLocation: (function (url, a) { a.href = url; return a; })(origURL, document.createElement('a')),
-              destLocation: (function (url, a) { a.href = url; return a; })(destURL, document.createElement('a')),
-              fix: /android|iphone os|like mac os x/i.test(window.navigator.userAgent) ? undefined : { location: false, reset: false },
+              fix: /android|iphone os|like mac os x/i.test(window.navigator.userAgent) ? undefined : { location: false },
               contentType: setting.contentType.replace(/\s*[,;]\s*/g, '|').toLowerCase(),
               reset: {
                 type: (setting.reset.type || '').toLowerCase()
@@ -209,114 +253,124 @@ module MODULE.MODEL.APP {
           };
 
       var setting: SettingInterface;
-      setting = jQuery.extend(true, initial, option);
+      setting = jQuery.extend(true, initial, scope || this.option_);
       setting = jQuery.extend(true, setting, setting.balance.self && setting.balance.option, force);
       setting = jQuery.extend(true, setting, compute());
 
-      return SEAL(setting, true);
-
-      function scope(setting: PjaxSetting, origURL: string, destURL: string, rewriteKeyUrl: string = ''): any {
-        var origKeyUrl: string,
-            destKeyUrl: string,
-            scpTable = setting.scope,
-            dirs: string[],
-            scpKeys: string[],
-            scpKey: string,
-            scpTag: string,
-            patterns: string[],
-            inherit: boolean,
-            hit_src: boolean,
-            hit_dst: boolean,
-            option: Object;
-
-        origKeyUrl = that.model_.convertUrlToKeyUrl(origURL).match(/.+?\w(\/.*)/).pop();
-        destKeyUrl = that.model_.convertUrlToKeyUrl(destURL).match(/.+?\w(\/.*)/).pop();
-        rewriteKeyUrl = rewriteKeyUrl.replace(/[#?].*/, '');
-
-        scpKeys = (rewriteKeyUrl || destKeyUrl).replace(/^\/|\/$/g, '').split('/');
-        if (rewriteKeyUrl) {
-          if (!~rewriteKeyUrl.indexOf('*')) { return undefined; }
-          dirs = [];
-          var arr: string[] = origKeyUrl.replace(/^\/|\/$/g, '').split('/');
-          for (var i = 0, len = scpKeys.length; i < len; i++) { '*' === scpKeys[i] && dirs.push(arr[i]); }
-        }
-
-        for (var i = scpKeys.length + 1; i--;) {
-          inherit = option = hit_src = hit_dst = undefined;
-          scpKey = scpKeys.slice(0, i).join('/');
-          scpKey = '/' + scpKey + ('/' === (rewriteKeyUrl || origKeyUrl).charAt(scpKey.length + 1) ? '/' : '');
-
-          if (!scpKey || !(scpKey in scpTable)) { continue; }
-
-          if (scpTable[scpKey] instanceof Array) {
-            scpTag = '';
-            patterns = scpTable[scpKey];
-          } else {
-            scpTag = scpTable[scpKey];
-            patterns = scpTable[scpTag];
-          }
-
-          if (!patterns || !patterns.length) { return false; }
-
-          patterns = patterns.concat();
-          for (var j = 0, pattern; pattern = patterns[j]; j++) {
-            if (hit_src === false || hit_dst === false) { break; }
-
-            if ('#' === pattern[0]) {
-              scpTag = pattern.slice(1);
-              [].splice.apply(patterns, [j, 1].concat(scpTable[scpTag]));
-              pattern = patterns[j];
-            }
-
-            if ('inherit' === pattern) {
-              inherit = true;
-            } else if ('rewrite' === pattern && 'function' === typeof scpTable.rewrite && !rewriteKeyUrl) {
-              var rewrite: any = scope.apply(this, [].slice.call(arguments).slice(0, 3).concat([Util.fire(scpTable.rewrite, null, [destKeyUrl])]));
-              if (rewrite) {
-                hit_src = hit_dst = true;
-                option = rewrite;
-                break;
-              } else if (false === rewrite) {
-                return false;
-              }
-            } else if ('string' === typeof pattern) {
-              var not: boolean = '!' === pattern[0];
-              pattern = not ? pattern.slice(1) : pattern;
-              var reg: boolean = '*' === pattern[0];
-              pattern = reg ? pattern.slice(1) : pattern;
-
-              if (rewriteKeyUrl && ~pattern.indexOf('/*/')) {
-                for (var k = 0, len = dirs.length; k < len; k++) { pattern = pattern.replace('/*/', '/' + dirs[k] + '/'); }
-              }
-
-              if (reg ? !origKeyUrl.search(pattern) : !origKeyUrl.indexOf(pattern)) {
-                if (not) {
-                  return false;
-                } else {
-                  hit_src = true;
-                }
-              }
-              if (reg ? !destKeyUrl.search(pattern) : !destKeyUrl.indexOf(pattern)) {
-                if (not) {
-                  return false;
-                } else {
-                  hit_dst = true;
-                  option = scpTable['$' + scpTag] || scpTable['$' + pattern] || null;
-                }
-              }
-            }
-          }
-
-          if (hit_src && hit_dst) {
-            return jQuery.extend(true, {}, setting, option);
-          }
-          if (inherit) { continue; }
-          break;
-        }
+      if (scope) {
+        FREEZE(setting, true);
+        this.settings_[index] = setting;
+        return setting;
+      } else {
+        this.settings_[index] = null;
+        return null;
       }
-    
     }
 
+    private scope_(option: PjaxSetting, origURL: string, destURL: string, rewriteKeyUrl: string = ''): PjaxSetting {
+      option = jQuery.extend(true, {}, option);
+      if (!option.scope) { return option; }
+
+      var origKeyUrl: string,
+          destKeyUrl: string,
+          scpTable = option.scope,
+          dirs: string[],
+          scpKeys: string[],
+          scpKey: string,
+          scpTag: string,
+          scope: PjaxSetting;
+
+      origKeyUrl = this.model_.convertUrlToKeyUrl(origURL).match(/.+?\w(\/.*)/).pop();
+      destKeyUrl = this.model_.convertUrlToKeyUrl(destURL).match(/.+?\w(\/.*)/).pop();
+      rewriteKeyUrl = rewriteKeyUrl.replace(/[#?].*/, '');
+
+      scpKeys = (rewriteKeyUrl || destKeyUrl).split('/');
+      if (rewriteKeyUrl) {
+        if (!~rewriteKeyUrl.indexOf('*')) { return undefined; }
+        dirs = [];
+        var arr: string[] = origKeyUrl.split('/');
+        for (var i = 0, len = scpKeys.length; i < len; i++) { '*' === scpKeys[i] && dirs.push(arr[i]); }
+      }
+
+      for (var i = scpKeys.length; i--;) {
+        scpKey = scpKeys.slice(0, i + 1).join('/');
+        scpKey = scpKey + ('/' === (rewriteKeyUrl || origKeyUrl).charAt(scpKey.length) ? '/' : '');
+
+        if (!scpKey || !(scpKey in scpTable)) { continue; }
+
+        var patterns: string[];
+        if (scpTable[scpKey] instanceof Array) {
+          scpTag = '';
+          patterns = scpTable[scpKey];
+        } else {
+          scpTag = scpTable[scpKey];
+          patterns = scpTable[scpTag];
+        }
+        if (patterns) {
+          patterns = patterns.concat();
+        } else {
+          continue;
+        }
+
+        var hit_src: boolean,
+            hit_dst: boolean,
+            inherit: boolean;
+        inherit = scope = hit_src = hit_dst = undefined;
+        for (var j = 0, pattern: string; pattern = patterns[j]; j++) {
+          if ('#' === pattern.charAt(0)) {
+            scpTag = pattern.slice(1);
+            [].splice.apply(patterns, [j, 1].concat(scpTable[scpTag]));
+            pattern = patterns[j];
+          }
+
+          if ('inherit' === pattern) {
+            inherit = true;
+          } else if ('rewrite' === pattern && 'function' === typeof scpTable.rewrite && !rewriteKeyUrl) {
+            scope = this.scope_(option, origURL, destURL, this.util_.fire(scpTable.rewrite, null, [destKeyUrl]));
+            if (scope) {
+              hit_src = hit_dst = true;
+            } else if (null === scope) {
+              hit_src = hit_dst = false;
+            }
+          } else if ('string' === typeof pattern) {
+            var not: boolean = '!' === pattern.charAt(0);
+            pattern = not ? pattern.slice(1) : pattern;
+            var reg: boolean = '*' === pattern.charAt(0);
+            pattern = reg ? pattern.slice(1) : pattern;
+
+            if (rewriteKeyUrl && ~pattern.indexOf('/*/')) {
+              for (var k = 0, len = dirs.length; k < len; k++) { pattern = pattern.replace('/*/', '/' + dirs[k] + '/'); }
+            }
+
+            if (reg ? ~origKeyUrl.search(pattern) : ~origKeyUrl.indexOf(pattern)) {
+              if (not) {
+                hit_src = false;
+              } else {
+                hit_src = true;
+              }
+            }
+            if (reg ? ~destKeyUrl.search(pattern) : ~destKeyUrl.indexOf(pattern)) {
+              if (not) {
+                hit_dst = false;
+              } else {
+                hit_dst = true;
+                scope = scpTable['$' + scpTag] || scpTable['$' + pattern] || undefined;
+              }
+            }
+          }
+          if (false === hit_src || false === hit_dst) { return null; }
+        }
+
+        if (hit_src && hit_dst) {
+          return jQuery.extend(true, option, scope);
+        } else if (inherit) {
+          continue;
+        }
+        break;
+      }
+      return undefined;
+    }
+      
   }
 
 }

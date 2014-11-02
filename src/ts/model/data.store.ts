@@ -62,8 +62,16 @@ module MODULE.MODEL.APP.DATA {
       });
     }
 
-    accessAll(success: (event?: Event) => void): void {
-      return this.accessCursor(null, null, null, success);
+    accessAll(success: (event?: Event) => void): void
+    accessAll(index: string, range: IDBKeyRange, direction: string, success: (event?: Event) => void): void
+    accessAll(index: any, range?: IDBKeyRange, direction?: string, success?: (event?: Event) => void): void {
+      if ('function' === typeof index) {
+        success = index;
+        index = null;
+        range = null;
+        direction = null;
+      }
+      this.accessCursor(index, range, direction, success);
     }
 
     get(key: number, success: (event: Event) => void): void
@@ -135,16 +143,19 @@ module MODULE.MODEL.APP.DATA {
 
     loadBuffer(limit: number = 0): void {
       var buffer = this.buffer_;
-      this.accessAll(function () {
+      if (this.indexes.length) {
+        this.accessAll(this.indexes[0].name, this.DB.IDBKeyRange.upperBound(Infinity), 'prev', callback);
+      } else {
+        this.accessAll(callback);
+      }
+      function callback() {
         if (!this.result) { return; }
-        var cursor: IDBCursorWithValue = this.result,
-            value = <T>cursor.value,
-            key = value[cursor.source.keyPath];
+        var cursor: IDBCursorWithValue = this.result;
 
-        buffer[key] = value;
+        buffer[cursor.primaryKey] = <T>cursor.value;
 
         --limit && cursor['continue']();
-      });
+      }
     }
 
     saveBuffer(): void {

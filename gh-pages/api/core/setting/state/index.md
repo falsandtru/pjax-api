@@ -9,7 +9,7 @@ class: style-api style-api-detail
 # state
 ページ遷移時に設定する`window.history.state`の値を設定します。初期値は`null`です。
 
-## state: function( event, param, origUrl, destUrl )
+## state: function( event, setting, origLocation, destLocation )
 関数の戻り値を値に設定します。
 
 <pre class="sh brush: js;">
