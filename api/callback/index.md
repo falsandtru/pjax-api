@@ -30,8 +30,8 @@ ajaxの同名のメソッド内で実行されます。外部から引き継い�
 ### ajax.dataFilter( event, setting, data, dataType )
 〃
 
-ajaxの同名のメソッド内で実行されます。jQuery1.6+ではDeferredオブジェクトにより実行され、外部から引き継いだリクエストでも実行されます。
 ### ajax.success( event, setting, data, textStatus, jqXHR )
+ajaxの同名のメソッド内で実行されます。jQuery1.6+ではDeferredオブジェクトにより実行され、外部から引き継いだリクエストでも実行されます。
 
 ### ajax.error( event, setting, jqXHR, textStatus, errorThrown )
 〃
@@ -81,20 +81,20 @@ ajaxの同名のメソッド内で実行されます。jQuery1.6+ではDeferred�
 ### update.balance.after( event, setting )
 ページの更新処理においてロードバランスの周辺処理後に実行されます。
 
-ページの更新処理においてCSSの読み込み処理前に実行されます。
 ### update.css.before( event, setting )
+ページの更新処理においてCSSの読み込み処理前に実行されます。
 
-ページの更新処理においてCSSの読み込み処理後に実行されます。
 ### update.css.after( event, setting )
+ページの更新処理においてCSSの読み込み処理後に実行されます。
 
-ページの更新処理においてJavaScriptの読み込み処理前に実行されます。
 ### update.script.before( event, setting )
+ページの更新処理においてJavaScriptの読み込み処理前に実行されます。
 
-ページの更新処理においてJavaScriptの読み込み処理後に実行されます。
 ### update.script.after( event, setting )
+ページの更新処理においてJavaScriptの読み込み処理後に実行されます。
 
-ページの更新処理においてスクロール位置の更新処理前に実行されます。
 ### update.scroll.before( event, setting )
+ページの更新処理においてスクロール位置の更新処理前に実行されます。
 
-ページの更新処理においてスクロール位置の更新処理後に実行されます。
 ### update.scroll.after( event, setting )
+ページの更新処理においてスクロール位置の更新処理後に実行されます。
