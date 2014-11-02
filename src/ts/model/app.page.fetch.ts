@@ -174,7 +174,7 @@ module MODULE.MODEL.APP {
         callbacks = <JQueryAjaxSettings>{
           xhr: !setting.callbacks.ajax.xhr ? undefined : function () {
             var jqXHR: JQueryXHR;
-            jqXHR = this.util_.fire(setting.callbacks.ajax.xhr, this, [event, setting]);
+            jqXHR = that.util_.fire(setting.callbacks.ajax.xhr, this, [event, setting]);
             jqXHR = 'object' === typeof jqXHR ? jqXHR : jQuery.ajaxSettings.xhr();
 
             //if (jqXHR instanceof Object && jqXHR instanceof window.XMLHttpRequest && 'onprogress' in jqXHR) {
