@@ -39,7 +39,7 @@ module MODULE.MODEL.APP {
         });
       }
 
-      new View(this.model_, this.controller_, $context, setting);
+      this.controller_.view($context, setting);
       setTimeout(() => this.data.loadBuffers(setting.buffer.limit), setting.buffer.delay);
       setTimeout(() => this.balance.enable(setting), setting.buffer.delay);
       setTimeout(() => this.page.landing = null, 1500);

@@ -105,6 +105,8 @@ module MODULE {
   // Controller Interface
   export declare class ControllerInterface {
     constructor(model: ModelInterface)
+    
+    view(context: JQuery, setting: SettingInterface): ViewInterface
 
     click(args: IArguments): void
     submit(args: IArguments): void
