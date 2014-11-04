@@ -26,7 +26,7 @@ module MODULE.MODEL.APP {
           record: PageRecordInterface = this.record_,
           setting: SettingInterface = record.data.setting(),
           event: JQueryEventObject = this.event_,
-          data: string = record.data.data(),
+          data: string = record.data.jqXHR().responseText,
           textStatus: string = record.data.textStatus(),
           jqXHR: JQueryXHR = record.data.jqXHR();
       var callbacks_update = setting.callbacks.update;
@@ -190,6 +190,10 @@ module MODULE.MODEL.APP {
       this.rewrite_();
 
       this.title_();
+
+      setting.fix.history && this.app_.data.saveTitle();
+      this.app_.data.saveExpires(this.record_.data.url(), this.record_.data.host(), this.record_.data.expires());
+
       this.head_();
 
       var speedcheck = setting.speedcheck, speed = this.model_.speed;
@@ -341,7 +345,6 @@ module MODULE.MODEL.APP {
       if (this.util_.fire(callbacks_update.title.before, setting, [event, setting]) === false) { return; }
 
       this.dstDocument_.title = this.srcDocument_.title;
-      setting.fix.history && this.app_.data.saveTitle();
 
       if (this.util_.fire(callbacks_update.title.after, setting, [event, setting]) === false) { return; }
     }

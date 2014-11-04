@@ -39,9 +39,6 @@ module MODULE.MODEL.APP {
       speedcheck && speed.time.splice(0, 100, 0);
       speedcheck && speed.name.splice(0, 100, 'pjax(' + speed.time.slice(-1) + ')');
 
-      var xhr = this.model_.getXHR();
-      this.model_.isDeferrable && xhr && xhr.state && 'pending' === xhr.state() && xhr.abort();
-
       var cache: CacheInterface;
       switch (setting.cache[event.type.toLowerCase()] && event.type.toLowerCase()) {
         case EVENT.CLICK:
@@ -59,13 +56,13 @@ module MODULE.MODEL.APP {
 
       this.dispatchEvent(document, DEF.NAME + ':fetch', false, true);
 
-      if (cache && cache.jqXHR && !~'abort error'.indexOf(cache.jqXHR.statusText)) {
+      var xhr = this.model_.getXHR();
+      if (cache && cache.jqXHR && 200 === +cache.jqXHR.status) {
         // cache
         speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
         this.app_.loadtime = 0;
-        xhr && xhr.abort();
         this.model_.setXHR(null);
-        this.host_ = cache.host || '';
+        this.host_ = cache.jqXHR.host || '';
         this.data_ = cache.jqXHR.responseText;
         this.textStatus_ = cache.textStatus;
         this.jqXHR_ = cache.jqXHR;
@@ -88,14 +85,13 @@ module MODULE.MODEL.APP {
         speedcheck && speed.name.push('continue(' + speed.time.slice(-1) + ')');
         this.host_ = xhr.host || '';
         this.app_.loadtime = xhr.timeStamp;
-        var defer: JQueryDeferred<any> = this.wait_(setting.wait && isFinite(xhr.timeStamp) ? Math.max(wait - new Date().getTime() + xhr.timeStamp, 0) : 0);
+        var defer: JQueryDeferred<any> = this.wait_(wait);
         this.app_.page.setWait(defer);
         jQuery.when(xhr, defer)
         .done(done).fail(fail).always(always);
       } else {
         // default
         this.app_.loadtime = event.timeStamp;
-        xhr && xhr.abort();
         var requestLocation = <HTMLAnchorElement>setting.destLocation.cloneNode(),
             ajax: JQueryAjaxSettings = {},
             callbacks: JQueryAjaxSettings = {};
@@ -218,7 +214,7 @@ module MODULE.MODEL.APP {
 
         that.model_.setXHR(null);
 
-        if (!~'abort error'.indexOf(that.jqXHR_.statusText)) {
+        if (200 === +that.jqXHR_.status) {
           that.model_.setCache(setting.destLocation.href, cache && cache.data || null, that.textStatus_, that.jqXHR_);
           that.success(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_);
         } else {

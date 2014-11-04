@@ -76,6 +76,7 @@ module MODULE {
     host(): string
     convertUrlToKeyUrl(unsafe_url: string): string
     configure(event: Event): SettingInterface
+    configure(destination: string): SettingInterface
     configure(destination: HTMLAnchorElement): SettingInterface
     configure(destination: HTMLFormElement): SettingInterface
     configure(destination: Location): SettingInterface
@@ -93,10 +94,9 @@ module MODULE {
     popstate(event: JQueryEventObject): void
     scroll(event: JQueryEventObject, end: boolean): void
     getCache(unsafe_url: string): CacheInterface
-    setCache(unsafe_url: string, data: string, textStatus: string, jqXHR: JQueryXHR, host?: string): any
+    setCache(unsafe_url: string, data: string, textStatus: string, jqXHR: JQueryXHR): void
     removeCache(unsafe_url: string): void
     clearCache(): void
-    cleanCache(): void
   }
   // View Interface
   export declare class ViewInterface {
@@ -150,24 +150,8 @@ module MODULE {
     speedcheck: boolean
   }
 
-  // Member
-  export interface RecentInterface {
-    order: string[]
-    data: {
-      [url: string]: CacheInterface
-    }
-    size: number
-  }
-
   // Object
-  export interface CacheInterface {
-    jqXHR: JQueryXHR
-    data: string
-    textStatus: string
-    size: number
-    expires: number
-    host: string
-    timeStamp: number
+  export interface CacheInterface extends PjaxCache {
   }
 }
 
@@ -181,6 +165,7 @@ module MODULE.MODEL {
     initialize($context: JQuery, setting: SettingInterface): void
     configure(option: PjaxSetting): SettingInterface
     configure(event: Event): SettingInterface
+    configure(destination: string): SettingInterface
     configure(destination: HTMLAnchorElement): SettingInterface
     configure(destination: HTMLFormElement): SettingInterface
     configure(destination: Location): SettingInterface
@@ -207,44 +192,40 @@ module MODULE.MODEL {
     constructor(model: ModelInterface, app: AppLayerInterface)
 
     parser: PageParserInterface
+    provider: PageProviderInterface
 
     landing: string
-    recent: RecentInterface
     loadedScripts: { [url: string]: boolean }
     xhr: JQueryXHR
     
     transfer(setting: SettingInterface, event: JQueryEventObject): void
+
     getWait(): JQueryDeferred<any>
     setWait(wait: JQueryDeferred<any>): JQueryDeferred<any>
   }
   // Page::Provider
   export declare class PageProviderInterface implements ProviderInterface {
     constructor(Record: PageRecordClassInterface, model: ModelInterface, app: AppLayerInterface)
-    accessRecord(
+    fetchRecord(
       setting: SettingInterface,
       event: JQueryEventObject,
       success: (record: PageRecordInterface, event: JQueryEventObject) => void,
       failure: (record: PageRecordInterface, event: JQueryEventObject) => void
     ): void
-    updateRecord(
+    pullRecord(
       setting: SettingInterface,
       event: JQueryEventObject,
       success: (record: PageRecordInterface, event: JQueryEventObject) => void,
       failure: (record: PageRecordInterface, event: JQueryEventObject) => void
     ): void
-    fillRecord(
-      setting: SettingInterface,
-      event: JQueryEventObject,
-      success: (record: PageRecordInterface, event: JQueryEventObject) => void,
-      failure: (record: PageRecordInterface, event: JQueryEventObject) => void
-    ): void
-    verifyRecord(setting: SettingInterface): boolean
     getRecord(setting: SettingInterface): PageRecordInterface
-    setRecord(setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string, state: boolean): PageRecordInterface
+    setRecord(setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string): PageRecordInterface
+    removeRecord(setting: SettingInterface): PageRecordInterface
+    clearRecord(): void
   }
   export declare class PageRecordInterface implements RecordInterface {
     constructor()
-    constructor(model: ModelInterface, setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string, state: boolean)
+    constructor(model: ModelInterface, setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string)
     data: PageRecordDataInterface
     state(): boolean
   }
@@ -254,11 +235,12 @@ module MODULE.MODEL {
     textStatus(): string
     jqXHR(): JQueryXHR
     host(): string
+    expires(setting?: SettingInterface): number
     setting(): SettingInterface
   }
   export interface PageRecordClassInterface extends RecordClassInterface {
     new ()
-    new (model: ModelInterface, setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string, state: boolean)
+    new (model: ModelInterface, setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string)
   }
   export interface PageRecordSchema extends RecordSchema {
     url: string
@@ -326,7 +308,7 @@ module MODULE.MODEL {
     // server
     getServerBuffers(): ServerStoreSchema[]
     loadServer(): void
-    saveServer(host: string, score: number, state?: number, unsafe_url?: string, expires?: number): void
+    saveServer(host: string, score: number, state?: number, unsafe_url?: string): void
   }
   export interface CookieOptionInterface {
     age: number
@@ -513,10 +495,8 @@ module MODULE {
   // Provider
   export declare class ProviderInterface {
     constructor(Record: RecordClassInterface, ...args: any[])
-    accessRecord(...args: any[]): void
-    updateRecord(...args: any[]): void
-    fillRecord(...args: any[]): void
-    verifyRecord(...args: any[]): boolean
+    fetchRecord(...args: any[]): void
+    pullRecord(...args: any[]): void
     getRecord(...args: any[]): RecordInterface
     setRecord(...args: any[]): RecordInterface
   }

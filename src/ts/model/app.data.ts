@@ -137,7 +137,7 @@ module MODULE.MODEL.APP {
       this.stores_.history.setBuffer(value, true);
       this.stores_.history.set(value, true);
     }
-    
+
     loadExpires(): void {
     }
 
@@ -146,7 +146,7 @@ module MODULE.MODEL.APP {
 
       var value: HistoryStoreSchema = {
         url: keyUrl,
-        host: host,
+        host: host || '',
         expires: expires,
 
         title: undefined,
@@ -168,7 +168,7 @@ module MODULE.MODEL.APP {
     loadServer(): void {
     }
 
-    saveServer(host: string, score: number, state: number = 0, unsafe_url?: string, expires: number = 0): void {
+    saveServer(host: string, score: number, state: number = 0, unsafe_url?: string): void {
       var store = this.stores_.server,
           value: ServerStoreSchema = {
             host: host.split('//').pop().split('/').shift() || '',

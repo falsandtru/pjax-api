@@ -18,13 +18,12 @@ module MODULE.MODEL.APP {
       setTimeout(() => this.parser.parse('') || this.model_.disable(), 300);
     }
     
-    private provider: PageProviderInterface = new PageProvider(PageRecord, this.model_, this.app_)
     private util_ = LIBRARY.Utility
 
     parser: PageParserInterface = new PageParserSingleton()
+    provider: PageProviderInterface = new PageProvider(PageRecord, this.model_, this.app_)
     
     landing: string = this.util_.normalizeUrl(window.location.href)
-    recent: RecentInterface = { order: [], data: {}, size: 0 }
     loadedScripts: { [index: string]: boolean } = {}
     xhr: JQueryXHR
 
@@ -59,7 +58,7 @@ module MODULE.MODEL.APP {
     }
 
     private fetch_(setting: SettingInterface, event: JQueryEventObject): void {
-      this.provider.accessRecord(
+      this.provider.fetchRecord(
         setting,
         event,
         (record: PageRecordInterface, event: JQueryEventObject) => this.success_(record, event),

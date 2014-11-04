@@ -39,7 +39,6 @@ interface PjaxSetting {
         get?: boolean
         post?: boolean
         limit?: number
-        size?: number
         mix?: number
         expires?: {
             min?: number
