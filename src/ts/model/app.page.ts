@@ -45,6 +45,10 @@ module MODULE.MODEL.APP {
           break;
       }
 
+      setting = jQuery.extend(true, {}, setting);
+      setting.origLocation = <HTMLAnchorElement>setting.origLocation.cloneNode();
+      setting.destLocation = <HTMLAnchorElement>setting.destLocation.cloneNode();
+      setting = FREEZE(setting);
       this.fetch_(setting, event);
     }
 
