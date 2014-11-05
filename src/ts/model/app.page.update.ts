@@ -110,10 +110,11 @@ module MODULE.MODEL.APP {
       var url: string = (jQuery('head meta[http-equiv="Refresh"][content*="URL="]').attr('content') || '').match(/\w+:\/\/[^;\s"']+|$/i).shift();
       if (!url) { return; }
 
-      if (this.util_.fire(callbacks_update.redirect.before, setting, [event, setting]) === false) { return; };
-
       var redirect = <HTMLAnchorElement>setting.destLocation.cloneNode();
       redirect.href = url;
+
+      if (this.util_.fire(callbacks_update.redirect.before, setting, [event, setting, redirect.cloneNode(), setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) { return; };
+
       switch (true) {
         case !setting.redirect:
         case redirect.protocol !== setting.destLocation.protocol:
@@ -151,7 +152,7 @@ module MODULE.MODEL.APP {
           throw false;
       }
 
-      if (this.util_.fire(callbacks_update.redirect.after, setting, [event, setting]) === false) { return; }
+      if (this.util_.fire(callbacks_update.redirect.after, setting, [event, setting, redirect.cloneNode(), setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) { return; }
     }
     
     private url_(): void {
@@ -161,7 +162,7 @@ module MODULE.MODEL.APP {
 
       this.model_.location.href = setting.destLocation.href;
 
-      if (this.util_.fire(callbacks_update.url.before, setting, [event, setting]) === false) { return; };
+      if (this.util_.fire(callbacks_update.url.before, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) { return; };
 
       if (this.isRegister_(setting, event)) {
         window.history.pushState(this.util_.fire(setting.state, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]),
@@ -176,7 +177,7 @@ module MODULE.MODEL.APP {
         }
       }
 
-      if (this.util_.fire(callbacks_update.url.after, setting, [event, setting]) === false) { return; }
+      if (this.util_.fire(callbacks_update.url.after, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) { return; }
     }
 
     private document_(): void {
@@ -331,11 +332,11 @@ module MODULE.MODEL.APP {
 
       if (!setting.rewrite) { return; }
 
-      if (this.util_.fire(callbacks_update.rewrite.before, setting, [event, setting]) === false) { return; }
+      if (this.util_.fire(callbacks_update.rewrite.before, setting, [event, setting, this.srcDocument_, this.dstDocument_]) === false) { return; }
 
       this.util_.fire(setting.rewrite, setting, [this.srcDocument_, this.area_, this.record_.data.host()])
 
-      if (this.util_.fire(callbacks_update.rewrite.before, setting, [event, setting]) === false) { return; }
+      if (this.util_.fire(callbacks_update.rewrite.before, setting, [event, setting, this.srcDocument_, this.dstDocument_]) === false) { return; }
     }
 
     private title_(): void {
@@ -343,11 +344,11 @@ module MODULE.MODEL.APP {
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
-      if (this.util_.fire(callbacks_update.title.before, setting, [event, setting]) === false) { return; }
+      if (this.util_.fire(callbacks_update.title.before, setting, [event, setting, this.srcDocument_.title, this.dstDocument_.title]) === false) { return; }
 
       this.dstDocument_.title = this.srcDocument_.title;
 
-      if (this.util_.fire(callbacks_update.title.after, setting, [event, setting]) === false) { return; }
+      if (this.util_.fire(callbacks_update.title.after, setting, [event, setting, this.srcDocument_.title, this.dstDocument_.title]) === false) { return; }
     }
 
     private head_(): void {
@@ -359,7 +360,7 @@ module MODULE.MODEL.APP {
 
       if (!setting.load.head) { return; }
 
-      if (this.util_.fire(callbacks_update.head.before, setting, [event, setting]) === false) { return; }
+      if (this.util_.fire(callbacks_update.head.before, setting, [event, setting, this.srcDocument_.querySelector('head'), this.dstDocument_.querySelector('head')]) === false) { return; }
 
       var prefilter: string = 'base, meta, link',
           $srcElements: JQuery = jQuery(srcDocument.head).children(prefilter).filter(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script'),
@@ -385,7 +386,7 @@ module MODULE.MODEL.APP {
       jQuery('title', dstDocument).before($addElements.clone());
       $delElements.remove();
 
-      if (this.util_.fire(callbacks_update.head.after, setting, [event, setting]) === false) { return; }
+      if (this.util_.fire(callbacks_update.head.after, setting, [event, setting, this.srcDocument_.querySelector('head'), this.dstDocument_.querySelector('head')]) === false) { return; }
     }
 
     private content_(): void {
@@ -397,7 +398,7 @@ module MODULE.MODEL.APP {
 
       var checker: JQuery;
 
-      if (this.util_.fire(callbacks_update.content.before, setting, [event, setting]) === false) { return; }
+      if (this.util_.fire(callbacks_update.content.before, setting, [event, setting, jQuery(this.area_, this.srcDocument_).get(), jQuery(this.area_, this.dstDocument_).get()]) === false) { return; }
 
       function map() {
         var defer = jQuery.Deferred();
@@ -433,7 +434,7 @@ module MODULE.MODEL.APP {
       }
       this.dispatchEvent(document, DEF.NAME + ':DOMContentLoaded', false, false);
 
-      if (this.util_.fire(callbacks_update.content.after, setting, [event, setting]) === false) { return; }
+      if (this.util_.fire(callbacks_update.content.after, setting, [event, setting, jQuery(this.area_, this.srcDocument_).get(), jQuery(this.area_, this.dstDocument_).get()]) === false) { return; }
     }
     
     private balance_(): void {
@@ -447,12 +448,12 @@ module MODULE.MODEL.APP {
       var host = (jqXHR.getResponseHeader(setting.balance.server.header) || ''),
           score = Math.ceil(this.app_.loadtime / (jqXHR.responseText.length || 1) * 1e5);
 
-      if (this.util_.fire(callbacks_update.balance.before, setting, [event, setting]) === false) { return; }
+      if (this.util_.fire(callbacks_update.balance.before, setting, [event, setting, host, this.app_.loadtime, jqXHR.responseText.length]) === false) { return; }
 
       this.app_.data.saveServer(host, score);
       this.app_.balance.changeServer(this.app_.balance.chooseServer(setting), setting);
 
-      if (this.util_.fire(callbacks_update.balance.after, setting, [event, setting]) === false) { return; }
+      if (this.util_.fire(callbacks_update.balance.after, setting, [event, setting, host, this.app_.loadtime, jqXHR.responseText.length]) === false) { return; }
     }
 
     private css_(selector: string): void {
@@ -464,14 +465,17 @@ module MODULE.MODEL.APP {
       
       if (!setting.load.css) { return; }
       
-      if (this.util_.fire(callbacks_update.css.before, setting, [event, setting]) === false) { return; }
-
       var prefilter: string = 'link, style',
-          $srcElements: JQuery = jQuery(prefilter, srcDocument).filter(selector).not(setting.load.ignore).not(jQuery('noscript', srcDocument).find(prefilter)),
-          $dstElements: JQuery = jQuery(prefilter, dstDocument).filter(selector).not(setting.load.ignore).not(jQuery('noscript', srcDocument).find(prefilter)),
+          $srcElements: JQuery = jQuery(prefilter, srcDocument).filter(selector).not(jQuery('noscript', srcDocument).find(prefilter)),
+          $dstElements: JQuery = jQuery(prefilter, dstDocument).filter(selector).not(jQuery('noscript', srcDocument).find(prefilter)),
           $addElements: JQuery = jQuery(),
           $delElements: JQuery = $dstElements;
       
+      if (this.util_.fire(callbacks_update.css.before, setting, [event, setting, $srcElements.get(), $dstElements.get()]) === false) { return; }
+
+      $srcElements = $srcElements.not(setting.load.ignore);
+      $dstElements = $srcElements.not(setting.load.ignore);
+
       function filterHeadContent() {
         return jQuery.contains(srcDocument.head, this);
       }
@@ -511,8 +515,10 @@ module MODULE.MODEL.APP {
       jQuery(dstDocument.head).append($addElements.filter(filterHeadContent).clone());
       jQuery(dstDocument.body).append($addElements.filter(filterBodyContent).clone());
       $delElements.remove();
-      
-      if (this.util_.fire(callbacks_update.css.after, setting, [event, setting]) === false) { return; }
+
+      $dstElements = jQuery(prefilter, dstDocument).filter(selector).not(jQuery('noscript', srcDocument).find(prefilter));
+
+      if (this.util_.fire(callbacks_update.css.after, setting, [event, setting, $srcElements.get(), $dstElements.get()]) === false) { return; }
 
       var speedcheck = setting.speedcheck, speed = this.model_.speed;
       speedcheck && speed.time.push(speed.now() - speed.fire);
@@ -531,14 +537,17 @@ module MODULE.MODEL.APP {
 
       if (!setting.load.script) { return scriptwaits; }
       
-      if (this.util_.fire(callbacks_update.script.before, setting, [event, setting]) === false) { return scriptwaits; }
-      
       var prefilter: string = 'script',
-          $scriptElements: JQuery = jQuery(prefilter, srcDocument).filter(selector).not(setting.load.ignore).not(jQuery('noscript', srcDocument).find(prefilter)),
+          $srcElements: JQuery = jQuery(prefilter, srcDocument).filter(selector).not(jQuery('noscript', srcDocument).find(prefilter)),
+          $dstElements: JQuery = jQuery(prefilter, dstDocument).filter(selector).not(jQuery('noscript', dstDocument).find(prefilter)),
           loadedScripts = this.app_.page.loadedScripts,
           regType: RegExp = /^$|(?:application|text)\/(?:java|ecma)script/i,
           regRemove: RegExp = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
       
+      if (this.util_.fire(callbacks_update.script.before, setting, [event, setting, $srcElements.get(), $dstElements.get()]) === false) { return scriptwaits; }
+
+      $srcElements = $srcElements.not(setting.load.ignore);
+
       var exec = (element: HTMLScriptElement, response?: any) => {
         if (element.src) {
           loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload);
@@ -584,7 +593,7 @@ module MODULE.MODEL.APP {
         }
       };
 
-      for (var i = 0, element: HTMLScriptElement; element = <HTMLScriptElement>$scriptElements[i]; i++) {
+      for (var i = 0, element: HTMLScriptElement; element = <HTMLScriptElement>$srcElements[i]; i++) {
         if (!regType.test(element.type || '')) { continue; }
         if (element.hasAttribute('src') ? loadedScripts[element.src] : !this.util_.trim(element.innerHTML)) { continue; }
 
@@ -651,8 +660,10 @@ module MODULE.MODEL.APP {
         setTimeout(() => this.model_.fallback(event), 1);
         throw err;
       }
-      
-      if (this.util_.fire(callbacks_update.script.after, setting, [event, setting]) === false) { return scriptwaits; }
+
+      $dstElements = jQuery(prefilter, dstDocument).filter(selector).not(jQuery('noscript', dstDocument).find(prefilter));
+
+      if (this.util_.fire(callbacks_update.script.after, setting, [event, setting, $srcElements.get(), $dstElements.get()]) === false) { return scriptwaits; }
 
       var speedcheck = setting.speedcheck, speed = this.model_.speed;
       speedcheck && speed.time.push(speed.now() - speed.fire);

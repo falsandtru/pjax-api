@@ -122,42 +122,42 @@ interface PjaxSetting {
         }
         update?: {
             redirect?: {
-                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
-                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting, redirectLocation?: HTMLAnchorElement, origLocation?: HTMLAnchorElement, destLocation?: HTMLAnchorElement) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting, redirectLocation?: HTMLAnchorElement, origLocation?: HTMLAnchorElement, destLocation?: HTMLAnchorElement) => boolean
             }
             url?: {
-                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
-                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting, origLocation?: HTMLAnchorElement, destLocation?: HTMLAnchorElement) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting, origLocation?: HTMLAnchorElement, destLocation?: HTMLAnchorElement) => boolean
             }
             rewrite?: {
-                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
-                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting, srcDocument?: Document, dstDocument?: Document) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting, srcDocument?: Document, dstDocument?: Document) => boolean
             }
             title?: {
-                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
-                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting, srcTitle?: string, dstTitle?: string) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting, srcTitle?: string, dstTitle?: string) => boolean
             }
             head?: {
-                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
-                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting, srcHead?: HTMLHeadElement, dstHead?: HTMLHeadElement) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting, srcHead?: HTMLHeadElement, dstHead?: HTMLHeadElement) => boolean
             }
             content?: {
-                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
-                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
-            }
-            css?: {
-                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
-                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
-            }
-            script?: {
-                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
-                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
-            }
-            scroll?: {
-                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
-                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting, srcContent?: HTMLElement[], dstContent?: HTMLElement[]) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting, srcContent?: HTMLElement[], dstContent?: HTMLElement[]) => boolean
             }
             balance?: {
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting, host?: string, loadtime?: number, size?: number) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting, host?: string, loadtime?: number, size?: number) => boolean
+            }
+            css?: {
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting, srcCSS?: HTMLElement[], dstCSS?: HTMLElement[]) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting, srcCSS?: HTMLElement[], dstCSS?: HTMLElement[]) => boolean
+            }
+            script?: {
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting, srcScript?: HTMLElement[], dstScript?: HTMLElement[]) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting, srcScript?: HTMLElement[], dstScript?: HTMLElement[]) => boolean
+            }
+            scroll?: {
                 before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
                 after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
             }
