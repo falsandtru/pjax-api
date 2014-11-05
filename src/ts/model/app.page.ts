@@ -75,7 +75,7 @@ module MODULE.MODEL.APP {
 
       if (setting.balance.self) {
         this.app_.data.saveServer(record.data.host(), 0, new Date().getTime());
-        this.app_.balance.chooseServer(setting);
+        this.app_.balance.changeServer(this.app_.balance.chooseServer(setting), setting);
       }
 
       this.model_.fallback(event);

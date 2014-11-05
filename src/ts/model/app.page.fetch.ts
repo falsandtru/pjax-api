@@ -96,7 +96,7 @@ module MODULE.MODEL.APP {
             ajax: JQueryAjaxSettings = {},
             callbacks: JQueryAjaxSettings = {};
 
-        this.app_.balance.chooseServer(setting);
+        this.app_.balance.changeServer(this.app_.balance.chooseServer(setting), setting);
         this.host_ = setting.balance.self && this.model_.host().split('//').pop() || '';
         requestLocation.host = this.host_ || setting.destLocation.host;
         ajax.url = !setting.server.query ? requestLocation.href

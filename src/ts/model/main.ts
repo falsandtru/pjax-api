@@ -23,8 +23,8 @@ module MODULE.MODEL {
     private getRequestDomain(): string {
       return this.host();
     }
-    private setRequestDomain(host: string): any {
-      return this.app_.balance.changeServer(host.split('//').pop(), null);
+    private setRequestDomain(host: string): string {
+      return this.app_.balance.changeServer(host.split('//').pop());
     }
 
     isDeferrable: boolean = !!jQuery.when && '1.006' <= jQuery().jquery.match(/\d[\d.]+\d/).pop().replace(/\.(\d+)/g, '.00$1').replace(/0*(\d{3})/g, '$1')

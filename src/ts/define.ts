@@ -182,8 +182,8 @@ module MODULE.MODEL {
     
     enable(setting: SettingInterface): void
     disable(setting: SettingInterface): void
-    changeServer(host: string, setting?: SettingInterface): void
-    chooseServer(setting: SettingInterface): void
+    changeServer(host: string, setting?: SettingInterface): string
+    chooseServer(setting: SettingInterface): string
     bypass(setting: SettingInterface, retry: number): void
   }
 
@@ -307,7 +307,7 @@ module MODULE.MODEL {
     // server
     getServerBuffers(): ServerStoreSchema[]
     loadServer(): void
-    saveServer(host: string, score: number, state?: number, unsafe_url?: string): void
+    saveServer(host: string, score: number, state?: number): void
   }
   export interface CookieOptionInterface {
     age: number

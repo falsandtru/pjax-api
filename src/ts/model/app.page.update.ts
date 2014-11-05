@@ -449,7 +449,7 @@ module MODULE.MODEL.APP {
       if (this.util_.fire(callbacks_update.balance.before, setting, [event, setting]) === false) { return; }
 
       this.app_.data.saveServer(host, score);
-      this.app_.balance.chooseServer(setting);
+      this.app_.balance.changeServer(this.app_.balance.chooseServer(setting), setting);
 
       if (this.util_.fire(callbacks_update.balance.after, setting, [event, setting]) === false) { return; }
     }
