@@ -64,7 +64,7 @@ module MODULE.MODEL.APP {
           
           this.redirect_();
           
-          this.dispatchEvent(window, DEF.NAME + ':unload', false, true);
+          this.dispatchEvent(window, DEF.NAME + ':unload', false, false);
           
           this.url_();
           
@@ -218,7 +218,7 @@ module MODULE.MODEL.APP {
             return;
           }
 
-          this.dispatchEvent(document, DEF.NAME + ':ready', false, true);
+          this.dispatchEvent(document, DEF.NAME + ':ready', false, false);
 
           this.util_.fire(setting.callback, setting, [event, setting]);
 
@@ -242,7 +242,7 @@ module MODULE.MODEL.APP {
             }
           }, 100);
 
-          this.dispatchEvent(document, DEF.NAME + ':render', false, true);
+          this.dispatchEvent(document, DEF.NAME + ':render', false, false);
 
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('render(' + speed.time.slice(-1) + ')');
@@ -255,7 +255,7 @@ module MODULE.MODEL.APP {
             return jQuery.when && jQuery.Deferred().reject();
           }
 
-          this.dispatchEvent(window, DEF.NAME + ':load', false, true);
+          this.dispatchEvent(window, DEF.NAME + ':load', false, false);
 
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('load(' + speed.time.slice(-1) + ')');
@@ -430,7 +430,7 @@ module MODULE.MODEL.APP {
         $dstAreas.append(checker.clone());
         $dstAreas.find('script').each((i, elem) => this.restoreScript_(<HTMLScriptElement>elem));
       }
-      this.dispatchEvent(document, DEF.NAME + ':DOMContentLoaded', false, true);
+      this.dispatchEvent(document, DEF.NAME + ':DOMContentLoaded', false, false);
 
       if (this.util_.fire(callbacks_update.content.after, setting, [event, setting]) === false) { return; }
     }
@@ -566,12 +566,12 @@ module MODULE.MODEL.APP {
           }
             
           try {
-            element.hasAttribute('src') && this.dispatchEvent(element, 'load', false, true);
+            element.hasAttribute('src') && this.dispatchEvent(element, 'load', false, false);
           } catch (e) {
           }
         } catch (err) {
           try {
-            element.hasAttribute('src') && this.dispatchEvent(element, 'error', false, true);
+            element.hasAttribute('src') && this.dispatchEvent(element, 'error', false, false);
           } catch (e) {
           }
 
@@ -611,8 +611,8 @@ module MODULE.MODEL.APP {
                 dataType: 'script',
                 async: true,
                 global: false,
-                success: () => this.dispatchEvent(element, 'load', false, true),
-                error: () => this.dispatchEvent(element, 'error', false, true)
+                success: () => this.dispatchEvent(element, 'load', false, false),
+                error: () => this.dispatchEvent(element, 'error', false, false)
               }));
             } else {
               if (defer) {
