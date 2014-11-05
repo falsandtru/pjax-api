@@ -107,12 +107,13 @@ module MODULE.MODEL.APP {
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
-      if (!jQuery('head meta[http-equiv="Refresh"][content*="URL="]', this.srcDocument_).length) { return; }
+      var url: string = (jQuery('head meta[http-equiv="Refresh"][content*="URL="]').attr('content') || '').match(/\w+:\/\/[^;\s"']+|$/i).shift();
+      if (!url) { return; }
 
       if (this.util_.fire(callbacks_update.redirect.before, setting, [event, setting]) === false) { return; };
 
       var redirect = <HTMLAnchorElement>setting.destLocation.cloneNode();
-      redirect.href = jQuery(redirect).attr('content').match(/\w+:\/\/[^;\s]+/i).shift();
+      redirect.href = url;
       switch (true) {
         case !setting.redirect:
         case redirect.protocol !== setting.destLocation.protocol:
