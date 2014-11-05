@@ -235,7 +235,6 @@ module MODULE.MODEL.APP {
     chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: any, srcDocument: Document, dstDocument: Document): string { return }
-    movePageNormally(event: JQueryEventObject): void { }
     dispatchEvent(target: Window, eventType: string, bubbling: boolean, cancelable: boolean): void
     dispatchEvent(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
     dispatchEvent(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void

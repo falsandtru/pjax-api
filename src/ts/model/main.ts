@@ -210,7 +210,28 @@ module MODULE.MODEL {
         case setting && false === this.util_.fire(setting.fallback, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]):
           break;
         default:
-          this.app_.page.movePageNormally(event);
+          this.movePageNormally_(event);
+      }
+    }
+
+    private movePageNormally_(event: JQueryEventObject): void {
+      switch (event.type.toLowerCase()) {
+        case EVENT.CLICK:
+          window.location.assign((<HTMLAnchorElement>event.currentTarget).href);
+          break;
+        case EVENT.SUBMIT:
+          switch ((<HTMLFormElement>event.currentTarget).method.toUpperCase()) {
+            case 'GET':
+              window.location.assign((<HTMLFormElement>event.currentTarget).action.replace(/[?#].*/, '') + '?' + jQuery(event.currentTarget).serialize());
+              break;
+            case 'POST':
+              window.location.assign((<HTMLFormElement>event.currentTarget).action);
+              break;
+          }
+          break;
+        case EVENT.POPSTATE:
+          window.location.reload();
+          break;
       }
     }
 
