@@ -9,7 +9,7 @@ module MODULE.MODEL.APP {
 
   export class PageUpdate implements PageUpdateInterface {
     
-    constructor(private model_: ModelInterface, private app_: AppLayerInterface, private event_: JQueryEventObject, private record_: PageRecordInterface) {
+    constructor(private model_: ModelInterface, private app_: AppLayerInterface, private setting_: SettingInterface, private event_: JQueryEventObject, private record_: PageRecordInterface) {
       this.main_();
     }
     
@@ -24,7 +24,7 @@ module MODULE.MODEL.APP {
     private main_(): void {
       var app = this.app_,
           record: PageRecordInterface = this.record_,
-          setting: SettingInterface = record.data.setting(),
+          setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
           data: string = record.data.jqXHR().responseText,
           textStatus: string = record.data.textStatus(),
@@ -103,7 +103,7 @@ module MODULE.MODEL.APP {
       }
     }
     private redirect_(): void {
-      var setting: SettingInterface = this.record_.data.setting(),
+      var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
@@ -154,7 +154,7 @@ module MODULE.MODEL.APP {
     }
     
     private url_(): void {
-      var setting: SettingInterface = this.record_.data.setting(),
+      var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
@@ -179,7 +179,7 @@ module MODULE.MODEL.APP {
     }
 
     private document_(): void {
-      var setting: SettingInterface = this.record_.data.setting(),
+      var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
 
       this.overwriteDocumentByCache_();
@@ -296,7 +296,7 @@ module MODULE.MODEL.APP {
     }
     
     private overwriteDocumentByCache_(): void {
-      var setting: SettingInterface = this.record_.data.setting(),
+      var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
           cache: CacheInterface = this.model_.getCache(setting.destLocation.href);
 
@@ -324,7 +324,7 @@ module MODULE.MODEL.APP {
     }
     
     private rewrite_(): void {
-      var setting: SettingInterface = this.record_.data.setting(),
+      var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
@@ -338,7 +338,7 @@ module MODULE.MODEL.APP {
     }
 
     private title_(): void {
-      var setting: SettingInterface = this.record_.data.setting(),
+      var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
@@ -350,7 +350,7 @@ module MODULE.MODEL.APP {
     }
 
     private head_(): void {
-      var setting: SettingInterface = this.record_.data.setting(),
+      var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
           srcDocument: Document = this.srcDocument_,
           dstDocument: Document = this.dstDocument_;
@@ -388,7 +388,7 @@ module MODULE.MODEL.APP {
     }
 
     private content_(): void {
-      var setting: SettingInterface = this.record_.data.setting(),
+      var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
           srcDocument: Document = this.srcDocument_,
           dstDocument: Document = this.dstDocument_;
@@ -436,7 +436,7 @@ module MODULE.MODEL.APP {
     }
     
     private balance_(): void {
-      var setting: SettingInterface = this.record_.data.setting(),
+      var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
@@ -455,7 +455,7 @@ module MODULE.MODEL.APP {
     }
 
     private css_(selector: string): void {
-      var setting: SettingInterface = this.record_.data.setting(),
+      var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
           srcDocument: Document = this.srcDocument_,
           dstDocument: Document = this.dstDocument_;
@@ -519,7 +519,7 @@ module MODULE.MODEL.APP {
     }
 
     private script_(selector: string): JQueryPromise<any[]>[] {
-      var setting: SettingInterface = this.record_.data.setting(),
+      var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
           srcDocument: Document = this.srcDocument_,
           dstDocument: Document = this.dstDocument_;
@@ -661,7 +661,7 @@ module MODULE.MODEL.APP {
     }
     
     private scroll_(call: boolean): void {
-      var setting: SettingInterface = this.record_.data.setting(),
+      var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
@@ -693,7 +693,7 @@ module MODULE.MODEL.APP {
     private waitRender_(callback: JQueryPromise<any>): JQueryPromise<any>
     private waitRender_(callback: () => void): void
     private waitRender_(callback: any) {
-      var setting: SettingInterface = this.record_.data.setting(),
+      var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 

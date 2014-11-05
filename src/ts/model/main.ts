@@ -230,7 +230,7 @@ module MODULE.MODEL {
         data: record.data.data(),
         textStatus: record.data.textStatus(),
         jqXHR: record.data.jqXHR(),
-        expires: record.data.expires(setting),
+        expires: record.data.expires(setting.cache.expires.min, setting.cache.expires.max),
         host: record.data.host()
       } : undefined;
     }

@@ -14,15 +14,13 @@ module MODULE.MODEL.APP {
         data: data,
         textStatus: textStatus,
         jqXHR: jqXHR,
-        host: host,
-        setting: setting
+        host: host
       } : {
         url: undefined,
         data: undefined,
         textStatus: undefined,
         jqXHR: undefined,
-        host: undefined,
-        setting: undefined
+        host: undefined
       };
 
       this.data = new PageRecordData(this.data_);
@@ -33,9 +31,8 @@ module MODULE.MODEL.APP {
 
     state(): boolean {
       switch (false) {
-        case !!this.data.setting():
         case this.data.jqXHR() && 200 === +this.data.jqXHR().status:
-        case this.data.expires(this.data.setting()) >= new Date().getTime():
+        case this.data.expires() >= new Date().getTime():
           return false;
         default:
           return true;
@@ -69,7 +66,9 @@ module MODULE.MODEL.APP {
       return this.data_.host;
     }
 
-    expires(setting?: SettingInterface): number {
+    expires(): number
+    expires(min: number, max: number): number
+    expires(min?: number, max?: number): number {
       var xhr = this.jqXHR(),
           expires: number;
 
@@ -82,8 +81,8 @@ module MODULE.MODEL.APP {
           expires = 0;
           break;
 
-        case xhr.getResponseHeader('Cache-Control') && !!~xhr.getResponseHeader('Cache-Control').indexOf('max-age='):
-          expires = new Date(xhr.getResponseHeader('Date')).getTime() + (+xhr.getResponseHeader('Cache-Control').match(/max-age=(\d+)/).pop() * 1000);
+        case !!xhr.getResponseHeader('Cache-Control') && !!~xhr.getResponseHeader('Cache-Control').indexOf('max-age='):
+          expires = new Date(xhr.getResponseHeader('Date')).getTime() + (+xhr.getResponseHeader('Cache-Control').match(/max-age=(\d*)/).pop() * 1000);
           break;
 
         case !!xhr.getResponseHeader('Expires'):
@@ -94,16 +93,12 @@ module MODULE.MODEL.APP {
           expires = 0;
       }
 
-      if (setting) {
-        expires = 'number' === typeof setting.cache.expires.min ? Math.max(setting.cache.expires.min + new Date().getTime(), expires) : expires;
-        expires = 'number' === typeof setting.cache.expires.max ? Math.min(setting.cache.expires.max + new Date().getTime(), expires) : expires;
+      if (undefined !== min || undefined !== max) {
+        expires = 'number' === typeof min ? Math.max(min + new Date().getTime(), expires) : expires;
+        expires = 'number' === typeof max ? Math.min(max + new Date().getTime(), expires) : expires;
       }
       expires = Math.max(expires, 0) || 0;
       return expires;
-    }
-
-    setting(): SettingInterface {
-      return this.data_.setting;
     }
 
   }

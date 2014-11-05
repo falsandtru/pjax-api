@@ -1,5 +1,4 @@
 /// <reference path="../define.ts"/>
-/// <reference path="../library/utility.ts"/>
 /// <reference path="app.page.record.ts"/>
 /// <reference path="app.page.fetch.ts"/>
 
@@ -16,7 +15,7 @@ module MODULE.MODEL.APP {
     private table_: { [keyUrl: string]: PageRecordInterface } = {}
     private order_: string[] = []
 
-    fetchRecord(setting: SettingInterface, event: JQueryEventObject, success: (record: PageRecordInterface, event: JQueryEventObject) => void, failure: (record: PageRecordInterface, event: JQueryEventObject) => void): void {
+    fetchRecord(setting: SettingInterface, event: JQueryEventObject, success: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void, failure: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void): void {
       if (this.getRecord(setting).state()) {
         //success(this.getRecord(setting), event);
         this.pullRecord(setting, event, success, failure);
@@ -25,18 +24,18 @@ module MODULE.MODEL.APP {
       }
     }
 
-    pullRecord(setting: SettingInterface, event: JQueryEventObject, success: (record: PageRecordInterface, event: JQueryEventObject) => void, failure: (record: PageRecordInterface, event: JQueryEventObject) => void): void {
+    pullRecord(setting: SettingInterface, event: JQueryEventObject, success: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void, failure: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void): void {
       new PageFetch(
         this.model_, this.app_, setting, event,
         // success
-        ((callback) => (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => {
+        ((callback: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void) => (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => {
           var record = this.setRecord(setting, this.getRecord(setting).data.data() || '', textStatus, jqXHR, host);
-          callback(record, event);
+          callback(record, setting, event);
         })(success),
         // failure
-        ((callback) => (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => {
+        ((callback: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void) => (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => {
           var record = this.setRecord(setting, this.getRecord(setting).data.data() || '', textStatus, jqXHR, host);
-          callback(record, event);
+          callback(record, setting, event);
         })(failure)
       );
     }

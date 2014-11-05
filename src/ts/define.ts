@@ -209,14 +209,14 @@ module MODULE.MODEL {
     fetchRecord(
       setting: SettingInterface,
       event: JQueryEventObject,
-      success: (record: PageRecordInterface, event: JQueryEventObject) => void,
-      failure: (record: PageRecordInterface, event: JQueryEventObject) => void
+      success: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void,
+      failure: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void
     ): void
     pullRecord(
       setting: SettingInterface,
       event: JQueryEventObject,
-      success: (record: PageRecordInterface, event: JQueryEventObject) => void,
-      failure: (record: PageRecordInterface, event: JQueryEventObject) => void
+      success: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void,
+      failure: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void
     ): void
     getRecord(setting: SettingInterface): PageRecordInterface
     setRecord(setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string): PageRecordInterface
@@ -235,8 +235,8 @@ module MODULE.MODEL {
     textStatus(): string
     jqXHR(): JQueryXHR
     host(): string
-    expires(setting?: SettingInterface): number
-    setting(): SettingInterface
+    expires(): number
+    expires(min: number, max: number): number
   }
   export interface PageRecordClassInterface extends RecordClassInterface {
     new ()
@@ -248,7 +248,6 @@ module MODULE.MODEL {
     textStatus: string
     jqXHR: JQueryXHR
     host: string
-    setting: SettingInterface
   }
   // Page::Fetch
   export declare class PageFetchInterface extends PageUtilityInterface {
@@ -263,7 +262,7 @@ module MODULE.MODEL {
   }
   // Page::Update
   export declare class PageUpdateInterface extends PageUtilityInterface {
-    constructor(model: ModelInterface, app: AppLayerInterface, event: JQueryEventObject, record: PageRecordInterface)
+    constructor(model: ModelInterface, app: AppLayerInterface, setting: SettingInterface, event: JQueryEventObject, record: PageRecordInterface)
   }
   // Page::Parser
   export declare class PageParserInterface {

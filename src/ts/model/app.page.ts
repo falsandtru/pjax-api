@@ -61,19 +61,18 @@ module MODULE.MODEL.APP {
       this.provider.fetchRecord(
         setting,
         event,
-        (record: PageRecordInterface, event: JQueryEventObject) => this.success_(record, event),
-        (record: PageRecordInterface, event: JQueryEventObject) => this.failure_(record, event)
+        (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => this.success_(record, setting, event),
+        (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => this.failure_(record, setting, event)
       );
     }
 
-    private success_(record: PageRecordInterface, event: JQueryEventObject): void {
-      new PageUpdate(this.model_, this.app_, event, record);
+    private success_(record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject): void {
+      new PageUpdate(this.model_, this.app_, setting, event, record);
     }
 
-    private failure_(record: PageRecordInterface, event: JQueryEventObject): void {
-      if (!record.data.setting().fallback || 'abort' === record.data.textStatus()) { return; }
+    private failure_(record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject): void {
+      if (!setting.fallback || 'abort' === record.data.textStatus()) { return; }
 
-      var setting = record.data.setting();
       if (setting.balance.self) {
         this.app_.data.saveServer(record.data.host(), 0, new Date().getTime());
         this.app_.balance.chooseServer(setting);
