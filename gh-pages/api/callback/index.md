@@ -22,7 +22,7 @@ ajax系コールバックのうち`ajax.success` `ajax.error` `ajax.complete`は
 update系コールバックは対象となる処理の制御とその前後処理を主な目的として設定されているため、間をおいて複数回実行されるものもあり、全体的な処理の進行状況の把握などほかのコールバックと連動させる用途にはあまり適していません。
 
 ### ajax.xhr( event, setting )
-ajaxの同名のメソッド内で実行されます。外部から引き継いだリクエストでは実行されません。
+Ajaxの同名のメソッド内で実行されます。外部から引き継いだリクエストでは実行されません。
 
 ### ajax.beforeSend( event, setting, data, ajaxSettings )
 〃
@@ -31,7 +31,7 @@ ajaxの同名のメソッド内で実行されます。外部から引き継い�
 〃
 
 ### ajax.success( event, setting, data, textStatus, jqXHR )
-ajaxの同名のメソッド内で実行されます。jQuery1.6+ではDeferredオブジェクトにより実行され、外部から引き継いだリクエストでも実行されます。
+Ajaxの同名のメソッド内で実行されます。jQuery1.6+ではDeferredオブジェクトにより実行され、外部から引き継いだリクエストでも実行されます。
 
 ### ajax.error( event, setting, jqXHR, textStatus, errorThrown )
 〃

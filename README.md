@@ -17,7 +17,7 @@ You will be able most of your want.
 
 * Faster by preloading
 * Network Load Balancing by CsLB
-* Sync the HEAD element, such as CSS, SCRIPT, RSS
+* Sync the head content, such as CSS, SCRIPT, RSS
 * Disabling update itemes such as URL, TITLE
 * Resolution of pjax common problems
 * etc...
@@ -104,6 +104,62 @@ if (!/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.nav
 ```
 
 ## API
+
+### Setting
+
+Name|Type|Description
+----|----|-----------
+[area](http://falsandtru.github.io/jquery-pjax/api/core/area/)|string/array|Update the area specified by jQuery selector.
+[state](http://falsandtru.github.io/jquery-pjax/api/core/state/)|any|Setting the `window.history.state`.
+[ajax](http://falsandtru.github.io/jquery-pjax/api/core/ajax/)|ajaxSettings|Ajax settings without callbacks.
+[rewrite](http://falsandtru.github.io/jquery-pjax/api/core/rewrite/)|function|Rewrite the source document object in advance.
+[load](http://falsandtru.github.io/jquery-pjax/api/core/load/)|object|Load and sync CSS, SCRIPT and more head content.
+[cache](http://falsandtru.github.io/jquery-pjax/api/core/cache/)|object|Cache the page data.
+[more...](http://falsandtru.github.io/jquery-pjax/api/core/)||
+
+### Method
+
+Name|Parameter|Return
+----|---------|------
+[enable()](http://falsandtru.github.io/jquery-pjax/api/method/enable/)|-|this
+[disable()](http://falsandtru.github.io/jquery-pjax/api/method/disable/)|-|this
+[click()](http://falsandtru.github.io/jquery-pjax/api/method/click/)|-<br>Anchor: element/jQuery<br>Url: string [, Attributes: object ]|this
+[submit()](http://falsandtru.github.io/jquery-pjax/api/method/submit/)|-<br>Form: element/jQuery<br>Url: string, Attributes: object, Data: object/array|this
+[follow()](http://falsandtru.github.io/jquery-pjax/api/method/follow/)|Event: event, Ajax: jQueryXHR [, host: string ]|boolean
+[more...](http://falsandtru.github.io/jquery-pjax/api/method/)||
+
+### Event
+
+Type|Context|Parameter|Data
+----|-------|---------|----
+pjax:fetch|document|event|undefined
+pjax:unload|window|event|undefined
+pjax:DOMContentLoaded|document|event|undefined
+pjax:ready|document|event|undefined
+pjax:render|document|event|undefined
+pjax:load|window|event|undefined
+[detail](http://falsandtru.github.io/jquery-pjax/api/event/)|||
+
+### Callback
+
+Path|Context|Parameter|Cancelable
+-----|-------|---------|:--------:
+ajax.xhr|ajaxSettings|event, pjaxSettings|X
+ajax.beforeSend|ajaxSettings|event, pjaxSettings, data, ajaxSettings|X
+ajax.dataFilter|ajaxSettings|event, pjaxSettings, data, dataType|X
+ajax.success|ajaxSettings|event, pjaxSettings, data, textStatus, jqXHR|X
+ajax.error|ajaxSettings|event, pjaxSettings, jqXHR, textStatus, errorThrown|X
+ajax.complete|ajaxSettings|event, pjaxSettings, jqXHR, textStatus|X
+...|||
+update.url.before/after|pjaxSettings|event, pjaxSettings, origLocation, destLocation|O
+update.title.before/after|pjaxSettings|event, pjaxSettings, srcTitle, dstTitle|O
+update.head.before/after|pjaxSettings|event, pjaxSettings, srcHead, dstHead|O
+update.content.before/after|pjaxSettings|event, pjaxSettings, srcContent, dstContent|O
+update.css.before/after|pjaxSettings|event, pjaxSettings, srcCSS, dstCSS|O
+[more...](http://falsandtru.github.io/jquery-pjax/api/callback/)|||
+
+### Language
+
 Sorry, there are only Japanese documents. I welcome translation.
 
 ## Browser
