@@ -77,7 +77,7 @@ module MODULE.MODEL.APP {
           success.call(context, this.data_, this.textStatus_, this.jqXHR_);
           complete.call(context, this.jqXHR_, this.textStatus_);
         }
-      } else if (xhr && xhr.follow && !~'abort error'.indexOf(xhr.statusText)) {
+      } else if (xhr && xhr.follow && !~'error abort timeout parsererror'.indexOf(xhr.statusText)) {
         // preload
         speedcheck && speed.time.splice(0, 1, xhr.timeStamp - speed.fire);
         speedcheck && speed.name.splice(0, 1, 'preload(' + speed.time.slice(-1) + ')');
