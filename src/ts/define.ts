@@ -1,14 +1,29 @@
 /// <reference path=".d/jquery.d.ts"/>
 /// <reference path=".d/jquery.pjax.d.ts"/>
 
+// Correct
 interface Window {
   DOMParser?: any
   webkitIndexedDB?: IDBFactory
   mozIndexedDB?: IDBFactory
-  IDBKeyRange?: IDBKeyRange
+}
+declare var webkitIndexedDB: IDBFactory;
+declare var mozIndexedDB: IDBFactory;
+declare var msIndexedDB: IDBFactory;
+declare var webkitIDBKeyRange: IDBKeyRange;
+declare var mozIDBKeyRange: IDBKeyRange;
+declare var msIDBKeyRange: IDBKeyRange;
+interface Window {
+  IDBKeyRange: IDBKeyRange
   webkitIDBKeyRange?: IDBKeyRange
   mozIDBKeyRange?: IDBKeyRange
   msIDBKeyRange?: IDBKeyRange
+}
+interface IDBKeyRange {
+  bound(lower: any, upper: any, lowerOpen?: boolean, upperOpen?: boolean): IDBKeyRange;
+  only(value: any): IDBKeyRange;
+  lowerBound(bound: any, open?: boolean): IDBKeyRange;
+  upperBound(bound: any, open?: boolean): IDBKeyRange;
 }
 interface JQueryXHR {
   follow?: boolean

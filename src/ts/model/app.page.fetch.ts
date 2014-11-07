@@ -120,7 +120,8 @@ module MODULE.MODEL.APP {
                 if (!jQuery(event.currentTarget).has(':file').length) {
                   ajax.data = jQuery(event.currentTarget).serializeArray();
                 } else if ('function' === typeof FormData) {
-                  ajax.data = new FormData(<HTMLFormElement>event.currentTarget);
+                  // Correspond to bug of TypeScript 1.1.0-1
+                  ajax.data = (<any>new FormData)(<HTMLFormElement>event.currentTarget);
                   ajax.contentType = false;
                   ajax.processData = false;
                 }
