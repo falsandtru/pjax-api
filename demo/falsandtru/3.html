@@ -39,7 +39,8 @@ $(function(){
     area: '#primary, #tertiary',
     callback: function(){ ga('send', 'pageview', window.location.pathname+window.location.search); $('#primary small').last().text('location = '+location) ; },
     load: { css: true },
-    cache: { click: true, submit: true, popstate: true }
+    cache: { click: true, submit: true, popstate: true },
+    speedcheck: true
   });
   $('#primary small').text('location = '+location) ;
 });
