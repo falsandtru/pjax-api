@@ -39,7 +39,7 @@ module MODULE.MODEL.APP {
         });
       }
 
-      new View(this.model_, this.controller_, $context, setting);
+      this.controller_.view($context, setting);
       setTimeout(() => this.data.loadBuffers(setting.buffer.limit), setting.buffer.delay);
       setTimeout(() => this.balance.enable(setting), setting.buffer.delay);
       setTimeout(() => this.page.landing = null, 1500);
@@ -47,12 +47,13 @@ module MODULE.MODEL.APP {
     
     configure(option: PjaxSetting): SettingInterface
     configure(event: Event): SettingInterface
+    configure(destination: string): SettingInterface
     configure(destination: HTMLAnchorElement): SettingInterface
     configure(destination: HTMLFormElement): SettingInterface
     configure(destination: Location): SettingInterface
     configure(destination: any): SettingInterface {
       var event: Event = (<Event>destination).preventDefault ? destination : null;
-      switch (event && event.type.toLowerCase()) {
+      switch (event && 'object' === typeof event && event.type.toLowerCase()) {
         case EVENT.CLICK:
           return this.configure(<HTMLAnchorElement>event.currentTarget);
         case EVENT.SUBMIT:
@@ -65,6 +66,9 @@ module MODULE.MODEL.APP {
 
       var url: string;
       switch (true) {
+        case 'string' === typeof destination:
+          url = destination;
+          break;
         case 'href' in destination:
           url = this.util_.normalizeUrl(destination.href);
           break;
@@ -116,7 +120,7 @@ module MODULE.MODEL.APP {
             redirect: true,
             cache: {
               click: false, submit: false, popstate: false, get: true, post: true, mix: 0,
-              limit: 100 /* pages */, size: 1 * 1024 * 1024 /* 1MB */, expires: { max: null, min: 5 * 60 * 1000 /* 5min */}
+              limit: 100 /* pages */, expires: { max: null, min: 5 * 60 * 1000 /* 5min */}
             },
             buffer: {
               limit: 30,
@@ -192,7 +196,7 @@ module MODULE.MODEL.APP {
             callback: null,
             callbacks: {
               ajax: {},
-              update: { redirect: {}, rewrite: {}, url: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, balance: {} }
+              update: { redirect: {}, url: {}, rewrite: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, balance: {} }
             },
             data: undefined
           },

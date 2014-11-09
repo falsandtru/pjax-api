@@ -7,34 +7,37 @@ module MODULE.MODEL.APP {
   export class PageRecord implements PageRecordInterface {
     
     constructor()
-    constructor(model: ModelInterface, setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string, state: boolean)
-    constructor(private model_?: ModelInterface, setting?: SettingInterface, data?: string, textStatus?: string, jqXHR?: JQueryXHR, host?: string, state?: boolean) {
+    constructor(model: ModelInterface, setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string)
+    constructor(private model_?: ModelInterface, setting?: SettingInterface, data?: string, textStatus?: string, jqXHR?: JQueryXHR, host?: string) {
       this.data_ = setting ? {
         url: this.model_.convertUrlToKeyUrl(setting.destLocation.href),
         data: data,
         textStatus: textStatus,
         jqXHR: jqXHR,
-        host: host,
-        setting: setting
+        host: host
       } : {
         url: undefined,
         data: undefined,
         textStatus: undefined,
         jqXHR: undefined,
-        host: undefined,
-        setting: undefined
+        host: undefined
       };
 
       this.data = new PageRecordData(this.data_);
-      this.state_ = !!state;
     }
     
     private data_: PageRecordSchema
-
     data: PageRecordDataInterface
 
-    private state_: boolean = false
-    state = () => this.state_
+    state(): boolean {
+      switch (false) {
+        case this.data.jqXHR() && 200 === +this.data.jqXHR().status:
+        case this.data.expires() >= new Date().getTime():
+          return false;
+        default:
+          return true;
+      }
+    }
 
   }
 
@@ -63,8 +66,39 @@ module MODULE.MODEL.APP {
       return this.data_.host;
     }
 
-    setting(): SettingInterface {
-      return this.data_.setting;
+    expires(): number
+    expires(min: number, max: number): number
+    expires(min?: number, max?: number): number {
+      var xhr = this.jqXHR(),
+          expires: number;
+
+      switch (true) {
+        case !xhr:
+          expires = 0;
+          break;
+
+        case /no-store|no-cache/.test(xhr.getResponseHeader('Cache-Control')):
+          expires = 0;
+          break;
+
+        case !!xhr.getResponseHeader('Cache-Control') && !!~xhr.getResponseHeader('Cache-Control').indexOf('max-age='):
+          expires = new Date(xhr.getResponseHeader('Date')).getTime() + (+xhr.getResponseHeader('Cache-Control').match(/max-age=(\d*)/).pop() * 1000);
+          break;
+
+        case !!xhr.getResponseHeader('Expires'):
+          expires = new Date(xhr.getResponseHeader('Expires')).getTime();
+          break;
+
+        default:
+          expires = 0;
+      }
+
+      if (undefined !== min || undefined !== max) {
+        expires = 'number' === typeof min ? Math.max(min + new Date().getTime(), expires) : expires;
+        expires = 'number' === typeof max ? Math.min(max + new Date().getTime(), expires) : expires;
+      }
+      expires = Math.max(expires, 0) || 0;
+      return expires;
     }
 
   }

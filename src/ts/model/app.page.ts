@@ -18,13 +18,12 @@ module MODULE.MODEL.APP {
       setTimeout(() => this.parser.parse('') || this.model_.disable(), 300);
     }
     
-    private provider: PageProviderInterface = new PageProvider(PageRecord, this.model_, this.app_)
     private util_ = LIBRARY.Utility
 
     parser: PageParserInterface = new PageParserSingleton()
+    provider: PageProviderInterface = new PageProvider(PageRecord, this.model_, this.app_)
     
     landing: string = this.util_.normalizeUrl(window.location.href)
-    recent: RecentInterface = { order: [], data: {}, size: 0 }
     loadedScripts: { [index: string]: boolean } = {}
     xhr: JQueryXHR
 
@@ -46,29 +45,41 @@ module MODULE.MODEL.APP {
           break;
       }
 
+      setting = jQuery.extend(true, {}, setting);
+      setting.origLocation = <HTMLAnchorElement>setting.origLocation.cloneNode();
+      setting.destLocation = <HTMLAnchorElement>setting.destLocation.cloneNode();
+      setting = FREEZE(setting);
       this.fetch_(setting, event);
     }
 
+    private wait_: JQueryDeferred<any>
+    getWait(): JQueryDeferred<any> {
+      return this.wait_;
+    }
+    setWait(task: JQueryDeferred<any>): JQueryDeferred<any> {
+      this.wait_ && this.wait_.state && 'pending' === this.wait_.state() && this.wait_.reject();
+      return this.wait_ = task;
+    }
+
     private fetch_(setting: SettingInterface, event: JQueryEventObject): void {
-      this.provider.accessRecord(
+      this.provider.fetchRecord(
         setting,
         event,
-        (record: PageRecordInterface, event: JQueryEventObject) => this.success_(record, event),
-        (record: PageRecordInterface, event: JQueryEventObject) => this.failure_(record, event)
+        (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => this.success_(record, setting, event),
+        (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => this.failure_(record, setting, event)
       );
     }
 
-    private success_(record: PageRecordInterface, event: JQueryEventObject): void {
-      new PageUpdate(this.model_, this.app_, event, record, true);
+    private success_(record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject): void {
+      new PageUpdate(this.model_, this.app_, setting, event, record);
     }
 
-    private failure_(record: PageRecordInterface, event: JQueryEventObject): void {
-      if (!record.data.setting().fallback || 'abort' === record.data.textStatus()) { return; }
+    private failure_(record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject): void {
+      if (!setting.fallback || 'abort' === record.data.textStatus()) { return; }
 
-      var setting = record.data.setting();
       if (setting.balance.self) {
         this.app_.data.saveServer(record.data.host(), 0, new Date().getTime());
-        this.app_.balance.chooseServer(setting);
+        this.app_.balance.changeServer(this.app_.balance.chooseServer(setting), setting);
       }
 
       this.model_.fallback(event);
@@ -78,12 +89,10 @@ module MODULE.MODEL.APP {
     chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: any, srcDocument: Document, dstDocument: Document): string { return }
-    movePageNormally(event: JQueryEventObject): void { }
     dispatchEvent(target: Window, eventType: string, bubbling: boolean, cancelable: boolean): void
     dispatchEvent(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
     dispatchEvent(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
     dispatchEvent(target: any, eventType: string, bubbling: boolean, cancelable: boolean): void { }
-    wait(ms: number): JQueryDeferred<any> { return }
 
   }
 

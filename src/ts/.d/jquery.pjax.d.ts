@@ -8,12 +8,12 @@
 
 /// <reference path="jquery.d.ts"/>
 
-interface JQueryStatic {
+interface JQuery {
     pjax: JQueryPjaxStatic
 }
 
-interface JQuery {
-    pjax: JQueryPjax
+interface JQueryStatic {
+    pjax: JQueryPjaxStatic
 }
 
 interface PjaxSetting {
@@ -39,7 +39,6 @@ interface PjaxSetting {
         get?: boolean
         post?: boolean
         limit?: number
-        size?: number
         mix?: number
         expires?: {
             min?: number
@@ -123,42 +122,42 @@ interface PjaxSetting {
         }
         update?: {
             redirect?: {
-                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
-                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting, redirectLocation?: HTMLAnchorElement, origLocation?: HTMLAnchorElement, destLocation?: HTMLAnchorElement) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting, redirectLocation?: HTMLAnchorElement, origLocation?: HTMLAnchorElement, destLocation?: HTMLAnchorElement) => boolean
             }
             url?: {
-                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
-                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting, origLocation?: HTMLAnchorElement, destLocation?: HTMLAnchorElement) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting, origLocation?: HTMLAnchorElement, destLocation?: HTMLAnchorElement) => boolean
             }
             rewrite?: {
-                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
-                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting, srcDocument?: Document, dstDocument?: Document) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting, srcDocument?: Document, dstDocument?: Document) => boolean
             }
             title?: {
-                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
-                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting, srcTitle?: string, dstTitle?: string) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting, srcTitle?: string, dstTitle?: string) => boolean
             }
             head?: {
-                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
-                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting, srcHead?: HTMLHeadElement, dstHead?: HTMLHeadElement) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting, srcHead?: HTMLHeadElement, dstHead?: HTMLHeadElement) => boolean
             }
             content?: {
-                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
-                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
-            }
-            css?: {
-                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
-                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
-            }
-            script?: {
-                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
-                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
-            }
-            scroll?: {
-                before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
-                after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting, srcContent?: HTMLElement[], dstContent?: HTMLElement[]) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting, srcContent?: HTMLElement[], dstContent?: HTMLElement[]) => boolean
             }
             balance?: {
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting, host?: string, loadtime?: number, size?: number) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting, host?: string, loadtime?: number, size?: number) => boolean
+            }
+            css?: {
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting, srcCSS?: HTMLElement[], dstCSS?: HTMLElement[]) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting, srcCSS?: HTMLElement[], dstCSS?: HTMLElement[]) => boolean
+            }
+            script?: {
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting, srcScript?: HTMLElement[], dstScript?: HTMLElement[]) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting, srcScript?: HTMLElement[], dstScript?: HTMLElement[]) => boolean
+            }
+            scroll?: {
                 before?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
                 after?: (event?: JQueryEventObject, setting?: PjaxSetting) => boolean
             }
@@ -173,10 +172,7 @@ interface PjaxCache {
     expires: number
 }
 
-interface JQueryPjaxStatic extends PJAX.Core<JQueryPjaxStatic, JQueryPjax>, JQueryStatic {
-}
-
-interface JQueryPjax extends PJAX.Core<JQueryPjax, JQueryPjax>, JQuery {
+interface JQueryPjax extends PJAX.Core<JQueryPjax>, PJAX.Method<JQueryPjax>, JQuery {
     click(): JQueryPjax
     click(url: string, attrs?: {}): JQueryPjax
     click(url: HTMLAnchorElement): JQueryPjax
@@ -187,15 +183,16 @@ interface JQueryPjax extends PJAX.Core<JQueryPjax, JQueryPjax>, JQuery {
     submit(url: JQuery): JQueryPjax
 }
 
+interface JQueryPjaxStatic extends PJAX.Core<JQueryPjax>, PJAX.Method<JQueryPjaxStatic>, JQueryStatic {
+}
+
 declare module PJAX {
-    interface Core<T, U> extends Constructor<T, U>, Method<T> {
+    
+    interface Core<T> {
+        (): T
+        (setting: PjaxSetting): T
     }
-
-    interface Constructor<T, U> {
-        (): U
-        (setting: PjaxSetting): U
-    }
-
+    
     interface Method<T> {
         enable(): T
         disable(): T

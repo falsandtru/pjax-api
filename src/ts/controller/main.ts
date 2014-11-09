@@ -32,6 +32,10 @@ module MODULE.CONTROLLER {
       return [$context].concat(args);
     }
 
+    view(context: JQuery, setting: SettingInterface): ViewInterface {
+      return new View(this.model_, this, context, setting);
+    }
+
     click(args: IArguments): void {
       this.model_.click.apply(this.model_, args);
     }

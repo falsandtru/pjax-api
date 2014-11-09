@@ -1,5 +1,4 @@
 /// <reference path="../define.ts"/>
-/// <reference path="../library/utility.ts"/>
 /// <reference path="app.page.record.ts"/>
 /// <reference path="app.page.fetch.ts"/>
 
@@ -14,52 +13,75 @@ module MODULE.MODEL.APP {
 
     private hash_ = (setting: SettingInterface) => this.model_.convertUrlToKeyUrl(setting.destLocation.href);
     private table_: { [keyUrl: string]: PageRecordInterface } = {}
+    private order_: string[] = []
 
-    accessRecord(setting: SettingInterface, event: JQueryEventObject, success: (record: PageRecordInterface, event: JQueryEventObject) => void, failure: (record: PageRecordInterface, event: JQueryEventObject) => void): void {
-      this.fillRecord(setting, event, success, failure);
-    }
-
-    updateRecord(setting: SettingInterface, event: JQueryEventObject, success: (record: PageRecordInterface, event: JQueryEventObject) => void, failure: (record: PageRecordInterface, event: JQueryEventObject) => void): void {
-      this.removeRecord(setting);
-      this.fillRecord(setting, event, success, failure);
-    }
-
-    fillRecord(setting: SettingInterface, event: JQueryEventObject, success: (record: PageRecordInterface, event: JQueryEventObject) => void, failure: (record: PageRecordInterface, event: JQueryEventObject) => void): void {
-      //if (this.verifyRecord(setting)) {
-      //  success(this.getRecord(setting), event);
-      //} else {
-        var that = this;
-        new PageFetch(this.model_, this.app_, setting, event, successWrapper, failureWrapper);
-      //}
-
-      function successWrapper(setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) {
-        var record = that.setRecord(setting, data, textStatus, jqXHR, host, true);
-        success(record, event);
-      }
-      function failureWrapper(setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) {
-        var record = that.setRecord(setting, data, textStatus, jqXHR, host, false);
-        failure(record, event);
+    fetchRecord(setting: SettingInterface, event: JQueryEventObject, success: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void, failure: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void): void {
+      if (this.getRecord(setting).state()) {
+        //success(this.getRecord(setting), event);
+        this.pullRecord(setting, event, success, failure);
+      } else {
+        this.pullRecord(setting, event, success, failure);
       }
     }
 
-    verifyRecord(setting: SettingInterface): boolean {
-      return this.getRecord(setting).state();
+    pullRecord(setting: SettingInterface, event: JQueryEventObject, success: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void, failure: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void): void {
+      new PageFetch(
+        this.model_, this.app_, setting, event,
+        // success
+        ((callback: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void) => (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => {
+          var record = this.setRecord(setting, this.getRecord(setting).data.data() || '', textStatus, jqXHR, host);
+          callback(record, setting, event);
+        })(success),
+        // failure
+        ((callback: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void) => (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => {
+          var record = this.setRecord(setting, this.getRecord(setting).data.data() || '', textStatus, jqXHR, host);
+          callback(record, setting, event);
+        })(failure)
+      );
     }
 
     getRecord(setting: SettingInterface): PageRecordInterface {
       return this.table_[this.hash_(setting)] = this.table_[this.hash_(setting)] || new this.Record_();
     }
 
-    setRecord(setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string, state: boolean): PageRecordInterface {
-      return this.table_[this.hash_(setting)] = new this.Record_(this.model_, setting, data, textStatus, jqXHR, host, state);
+    setRecord(setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string): PageRecordInterface {
+      this.cleanRecords_(setting);
+      this.addOrder_(setting);
+      return this.table_[this.hash_(setting)] = new this.Record_(this.model_, setting, data, textStatus, jqXHR, host);
     }
 
     removeRecord(setting: SettingInterface): PageRecordInterface {
+      this.removeOrder_(setting);
       return this.table_[this.hash_(setting)] = new this.Record_();
     }
 
-    clearRecord(setting: SettingInterface): void {
+    clearRecord(): void {
+      this.order_ = [];
       this.table_ = {};
+    }
+
+    private cleanRecords_(setting: SettingInterface): void {
+      if (setting.cache.limit) {
+        while (this.order_.length >= setting.cache.limit) {
+          this.removeRecord(this.app_.configure(this.order_.pop()));
+        }
+      }
+
+      //for (var i = 0, hash: string, record: PageRecordInterface; hash = this.order_[i];) {
+      //  record = this.getRecord(this.app_.configure(hash));
+      //  !record.state() && this.removeRecord(this.app_.configure(hash));
+      //}
+    }
+
+    private addOrder_(setting: SettingInterface): void {
+      this.removeOrder_(setting);
+      this.order_.unshift(this.hash_(setting));
+    }
+
+    private removeOrder_(setting: SettingInterface): void {
+      for (var i = 0, hash1 = this.hash_(setting), hash2: string; hash2 = this.order_[i]; i++) {
+        hash1 === hash2 && this.order_.splice(i, 1);
+      }
     }
 
   }

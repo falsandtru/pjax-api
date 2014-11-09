@@ -40,16 +40,19 @@ module MODULE.MODEL.APP {
       this.app_.data.setCookie(setting.balance.client.cookie.balance, '0');
       this.app_.data.getCookie(setting.balance.client.cookie.redirect) &&
       this.app_.data.setCookie(setting.balance.client.cookie.redirect, '0');
-      this.changeServer(null, setting);
+      this.changeServer('', setting);
     }
 
-    changeServer(host: string, setting: SettingInterface = this.model_.configure(window.location)): void {
-      if (!setting || !this.isBalanceable_(setting)) { return; }
-
-      host = host || '';
+    changeServer(host: string, setting: SettingInterface = this.model_.configure(window.location)): string {
+      if (!setting || !this.isBalanceable_(setting)) {
+        host = '';
+      } else {
+        host = host || '';
+      }
 
       this.host_ = host;
       this.app_.data.setCookie(setting.balance.client.cookie.host, host);
+      return this.host();
     }
 
     private chooseServers_(expires: number, limit: number, weight: number, respite: number): string[] {
@@ -84,32 +87,29 @@ module MODULE.MODEL.APP {
       return result;
     }
 
-    chooseServer(setting: SettingInterface): void {
-      if (!this.isBalanceable_(setting)) { return; }
+    chooseServer(setting: SettingInterface): string {
+      if (!this.isBalanceable_(setting)) {
+        return '';
+      }
 
       // キャッシュの有効期限内の再リクエストは同じサーバーを選択してキャッシュを使用
-      var history: HistoryStoreSchema = this.app_.data.getHistoryBuffer(setting.destLocation.href),
-          cacheExpires: number = history && history.expires || 0;
-
-      if (cacheExpires && cacheExpires >= new Date().getTime()) {
-        this.changeServer(history.host, setting);
-        return;
+      var history: HistoryStoreSchema = this.app_.data.getHistoryBuffer(setting.destLocation.href);
+      if (history && history.expires && history.expires >= new Date().getTime()) {
+        return history.host || '';
       }
 
       // DBにもCookieにもデータがなければ正規サーバを選択
       if (!this.app_.data.getServerBuffers().length && !this.app_.data.getCookie(setting.balance.client.cookie.host)) {
-        this.changeServer('', setting);
-        return;
+        return '';
       }
       
       // 最適なサーバーを選択
       var servers: string[] = this.chooseServers_(setting.balance.history.expires, 1, setting.balance.weight, setting.balance.server.respite);
       if (servers.length) {
-        this.changeServer(servers.shift(), setting);
-        return;
+        return servers.shift();
       }
 
-      this.disable(setting);
+      return '';
     }
 
     private parallel_ = 6
