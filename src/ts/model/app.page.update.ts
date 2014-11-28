@@ -550,6 +550,10 @@ module MODULE.MODEL.APP {
       $srcElements = $srcElements.not(setting.load.ignore);
 
       var exec = (element: HTMLScriptElement, response?: any) => {
+        if (!this.util_.compareUrl(this.model_.convertUrlToKeyUrl(setting.destLocation.href), this.model_.convertUrlToKeyUrl(window.location.href), true)) {
+          return false;
+        }
+
         if (element.src) {
           loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload);
         }
