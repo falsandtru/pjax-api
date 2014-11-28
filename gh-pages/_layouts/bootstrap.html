@@ -114,10 +114,11 @@ if (!window.ga) {
   m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
   })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
   
-  window.ga('create', 'UA-43533651-1', 'auto');
-  window.ga('require', 'displayfeatures');
+  ga('create', 'UA-43533651-1', 'auto');
+  ga('require', 'linkid', 'linkid.js');
+  ga('require', 'displayfeatures');
 }
-window.ga('send', 'pageview', window.location.pathname.replace(/^\/?/, '/') + window.location.search);
+ga('send', 'pageview', window.location.pathname.replace(/^\/?/, '/') + window.location.search);
 </script>
 
 </body>

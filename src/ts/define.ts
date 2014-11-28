@@ -4,27 +4,18 @@
 // Correct
 interface Window {
   DOMParser?: any
+}
+interface IDBEnvironment {
   webkitIndexedDB?: IDBFactory
   mozIndexedDB?: IDBFactory
 }
-declare var webkitIndexedDB: IDBFactory;
-declare var mozIndexedDB: IDBFactory;
-declare var msIndexedDB: IDBFactory;
-declare var webkitIDBKeyRange: IDBKeyRange;
-declare var mozIDBKeyRange: IDBKeyRange;
-declare var msIDBKeyRange: IDBKeyRange;
 interface Window {
-  IDBKeyRange: IDBKeyRange
-  webkitIDBKeyRange?: IDBKeyRange
-  mozIDBKeyRange?: IDBKeyRange
-  msIDBKeyRange?: IDBKeyRange
+  IDBKeyRange?: typeof IDBKeyRange
+  webkitIDBKeyRange?: typeof IDBKeyRange
+  mozIDBKeyRange?: typeof IDBKeyRange
+  msIDBKeyRange?: typeof IDBKeyRange
 }
-interface IDBKeyRange {
-  bound(lower: any, upper: any, lowerOpen?: boolean, upperOpen?: boolean): IDBKeyRange;
-  only(value: any): IDBKeyRange;
-  lowerBound(bound: any, open?: boolean): IDBKeyRange;
-  upperBound(bound: any, open?: boolean): IDBKeyRange;
-}
+
 interface JQueryXHR {
   follow?: boolean
   host?: string
@@ -370,7 +361,7 @@ module MODULE.MODEL.APP.DATA {
   // Database
   export declare class DatabaseInterface {
     IDBFactory: IDBFactory
-    IDBKeyRange: IDBKeyRange
+    IDBKeyRange: typeof IDBKeyRange
     
     state(): State
 

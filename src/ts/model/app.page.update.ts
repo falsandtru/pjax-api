@@ -47,6 +47,7 @@ module MODULE.MODEL.APP {
         
         try {
           app.page.landing = null;
+
           if (!~(jqXHR.getResponseHeader('Content-Type') || '').toLowerCase().search(setting.contentType)) { throw new Error("throw: content-type mismatch"); }
           
           /* variable define */
@@ -57,7 +58,7 @@ module MODULE.MODEL.APP {
           this.area_ = this.chooseArea(setting.area, this.srcDocument_, this.dstDocument_);
           if (!this.area_) { throw new Error('throw: area notfound'); }
           // 更新範囲をセレクタごとに分割
-          this.areas_ = this.area_.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
+          this.areas_ = this.area_.match(/(?:[^,]+?|\(.*?\)|\[.*?\])+/g);
 
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
@@ -68,7 +69,7 @@ module MODULE.MODEL.APP {
           
           this.url_();
           
-          if (!this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) { throw false; }
+          if (!this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) { throw new Error("throw: location mismatch"); }
 
           this.document_();
           
@@ -549,6 +550,10 @@ module MODULE.MODEL.APP {
       $srcElements = $srcElements.not(setting.load.ignore);
 
       var exec = (element: HTMLScriptElement, response?: any) => {
+        if (!this.util_.compareUrl(this.model_.convertUrlToKeyUrl(setting.destLocation.href), this.model_.convertUrlToKeyUrl(window.location.href), true)) {
+          return false;
+        }
+
         if (element.src) {
           loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload);
         }

@@ -124,6 +124,26 @@ module.exports = function(grunt) {
           }]
         }
       },
+      ph: {
+        browsers: ['PhantomJS'],
+        singleRun: true
+      },
+      ch: {
+        browsers: ['Chrome'],
+        singleRun: true
+      },
+      ff: {
+        browsers: ['Firefox'],
+        singleRun: true
+      },
+      ie10: {
+        browsers: ['IE10'],
+        singleRun: true
+      },
+      ie11: {
+        browsers: ['IE11'],
+        singleRun: true
+      },
       dev: {
         browsers: ['PhantomJS'],
         singleRun: false

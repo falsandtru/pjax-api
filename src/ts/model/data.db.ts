@@ -11,7 +11,7 @@ module MODULE.MODEL.APP.DATA {
   export class Database implements DatabaseInterface {
 
     IDBFactory: IDBFactory = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB
-    IDBKeyRange: IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.mozIDBKeyRange || window.msIDBKeyRange
+    IDBKeyRange: typeof IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.mozIDBKeyRange || window.msIDBKeyRange
 
     private database_: IDBDatabase
     private name_: string = DEF.NAME
