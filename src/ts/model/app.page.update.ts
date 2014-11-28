@@ -47,6 +47,7 @@ module MODULE.MODEL.APP {
         
         try {
           app.page.landing = null;
+
           if (!~(jqXHR.getResponseHeader('Content-Type') || '').toLowerCase().search(setting.contentType)) { throw new Error("throw: content-type mismatch"); }
           
           /* variable define */
@@ -68,7 +69,7 @@ module MODULE.MODEL.APP {
           
           this.url_();
           
-          if (!this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) { throw false; }
+          if (!this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) { throw new Error("throw: location mismatch"); }
 
           this.document_();
           
