@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.28.0
+ * @version 2.28.1
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -2700,14 +2700,14 @@ var MODULE;
                                 throw new Error('throw: area notfound');
                             }
                             // 更新範囲をセレクタごとに分割
-                            this.areas_ = this.area_.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
+                            this.areas_ = this.area_.match(/(?:[^,]+?|\(.*?\)|\[.*?\])+/g);
                             speedcheck && speed.time.push(speed.now() - speed.fire);
                             speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
                             this.redirect_();
                             this.dispatchEvent(window, MODULE.DEF.NAME + ':unload', false, false);
                             this.url_();
                             if (!this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) {
-                                throw false;
+                                throw new Error("throw: location mismatch");
                             }
                             this.document_();
                         }
@@ -3103,6 +3103,9 @@ var MODULE;
                     }
                     $srcElements = $srcElements.not(setting.load.ignore);
                     var exec = function (element, response) {
+                        if (!_this.util_.compareUrl(_this.model_.convertUrlToKeyUrl(setting.destLocation.href), _this.model_.convertUrlToKeyUrl(window.location.href), true)) {
+                            return false;
+                        }
                         if (element.src) {
                             loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload);
                         }
@@ -3711,7 +3714,7 @@ var MODULE;
                             server: {
                                 header: 'X-Ajax-Host',
                                 filter: null,
-                                respite: 10 * 60 * 1000,
+                                respite: 10 * 60 * 1000
                             },
                             history: {
                                 expires: 10 * 24 * 60 * 60 * 1000,
