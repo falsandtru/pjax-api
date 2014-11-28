@@ -27,7 +27,7 @@ module MODULE.CONTROLLER {
      * @property state_
      * @type {State}
      */
-    state_: State = State.blank
+    protected state_: State = State.blank
 
     /**
      * Controllerの関数オブジェクト
@@ -35,7 +35,7 @@ module MODULE.CONTROLLER {
      * @property FUNCTIONS
      * @type {Functions}
      */
-    FUNCTIONS: Functions
+    protected FUNCTIONS: Functions
     
     /**
      * Controllerのメソッドオブジェクト
@@ -43,7 +43,7 @@ module MODULE.CONTROLLER {
      * @property METHODS
      * @type {Methods}
      */
-    METHODS: Methods
+    protected METHODS: Methods
     
     /**
      * 拡張モジュール本体。
@@ -51,7 +51,7 @@ module MODULE.CONTROLLER {
      * @property EXTENSION
      * @type {ExtensionStaticInterface}
      */
-    EXTENSION: ExtensionStaticInterface
+    protected EXTENSION: ExtensionStaticInterface
 
     /**
      * 与えられたコンテクストに拡張機能を設定する。
@@ -60,9 +60,9 @@ module MODULE.CONTROLLER {
      * @param {JQuery|Object|Function} context コンテクスト
      * @chainable
      */
-    EXTEND(context: ExtensionInterface): ExtensionInterface
-    EXTEND(context: ExtensionStaticInterface): ExtensionStaticInterface
-    EXTEND(context: any): any {
+    protected EXTEND(context: ExtensionInterface): ExtensionInterface
+    protected EXTEND(context: ExtensionStaticInterface): ExtensionStaticInterface
+    protected EXTEND(context: any): any {
       if (context instanceof DEF.NAMESPACE) {
         if (context instanceof jQuery) {
           // コンテクストへの変更をend()で戻せるようadd()
@@ -91,7 +91,7 @@ module MODULE.CONTROLLER {
      * @method REGISTER
      * @param {Any} [params]* パラメータ
      */
-    REGISTER(model): void {
+    protected REGISTER(model): void {
       var S = this;
       this.EXTENSION = this.EXTENSION || <ExtensionStaticInterface>function (...args: any[]) {
         var context = S.EXTEND(this);
@@ -117,9 +117,9 @@ module MODULE.CONTROLLER {
      * @param {Object|Functin} context
      * @param {Any} [params]* args
      */
-    EXEC(context: ExtensionInterface, ...args: any[]): any[]
-    EXEC(context: ExtensionStaticInterface, ...args: any[]): any[]
-    EXEC(): any {
+    protected EXEC(context: ExtensionInterface, ...args: any[]): any[]
+    protected EXEC(context: ExtensionStaticInterface, ...args: any[]): any[]
+    protected EXEC(): any {
       return this.exec_.apply(this, arguments);
     }
 
@@ -132,9 +132,9 @@ module MODULE.CONTROLLER {
      * @param {Object|Functin} context
      * @param {Any} [params]* args
      */
-    exec_(context: ExtensionInterface, ...args: any[]): any[]
-    exec_(context: ExtensionStaticInterface, ...args: any[]): any[]
-    exec_(context: any, ...args: any[]): any {
+    protected exec_(context: ExtensionInterface, ...args: any[]): any[]
+    protected exec_(context: ExtensionStaticInterface, ...args: any[]): any[]
+    protected exec_(context: any, ...args: any[]): any {
       return [context].concat(args);
     }
 
@@ -145,9 +145,9 @@ module MODULE.CONTROLLER {
      * @param {JQuery|Object|Function} context コンテクスト
      * @return {JQuery|Object|Function} context コンテクスト
      */
-    REGISTER_FUNCTION(context: ExtensionInterface): ExtensionInterface
-    REGISTER_FUNCTION(context: ExtensionStaticInterface): ExtensionStaticInterface
-    REGISTER_FUNCTION(context: any): any {
+    protected REGISTER_FUNCTION(context: ExtensionInterface): ExtensionInterface
+    protected REGISTER_FUNCTION(context: ExtensionStaticInterface): ExtensionStaticInterface
+    protected REGISTER_FUNCTION(context: any): any {
       var funcs = this.FUNCTIONS;
       for (var i in funcs) {
         if ('constructor' === i) { continue; }
@@ -163,9 +163,9 @@ module MODULE.CONTROLLER {
      * @param {JQuery|Object|Function} context コンテクスト
      * @return {JQuery|Object|Function} context コンテクスト
      */
-    REGISTER_METHOD(context: ExtensionInterface): ExtensionInterface
-    REGISTER_METHOD(context: ExtensionStaticInterface): ExtensionStaticInterface
-    REGISTER_METHOD(context: any): any {
+    protected REGISTER_METHOD(context: ExtensionInterface): ExtensionInterface
+    protected REGISTER_METHOD(context: ExtensionStaticInterface): ExtensionStaticInterface
+    protected REGISTER_METHOD(context: any): any {
       var METHODS = this.METHODS;
       for (var i in METHODS) {
         if ('constructor' === i) { continue; }
@@ -180,7 +180,7 @@ module MODULE.CONTROLLER {
      * @property PROPERTIES
      * @type {String}
      */
-    PROPERTIES: string[] = []
+    protected PROPERTIES: string[] = []
 
     /**
      * 拡張のプロパティを更新する
@@ -190,9 +190,9 @@ module MODULE.CONTROLLER {
      * @param {Object} funcs プロパティのリスト
      * @return {JQuery|Object|Function} context コンテクスト
      */
-    UPDATE_PROPERTIES(context: ExtensionInterface): ExtensionInterface
-    UPDATE_PROPERTIES(context: ExtensionStaticInterface): ExtensionStaticInterface
-    UPDATE_PROPERTIES(context: any): any {
+    protected UPDATE_PROPERTIES(context: ExtensionInterface): ExtensionInterface
+    protected UPDATE_PROPERTIES(context: ExtensionStaticInterface): ExtensionStaticInterface
+    protected UPDATE_PROPERTIES(context: any): any {
       var props = this.PROPERTIES;
 
       var i, len, prop;

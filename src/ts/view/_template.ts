@@ -24,7 +24,7 @@ module MODULE.VIEW {
      * @property state_
      * @type {State}
      */
-    state_: State = State.blank
+    protected state_: State = State.blank
 
   }
 

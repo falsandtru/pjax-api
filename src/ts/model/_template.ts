@@ -40,7 +40,7 @@ module MODULE.MODEL {
      * @property state_
      * @type {State}
      */
-    state_: State = State.blank
+    protected state_: State = State.blank
 
     /**
      * 拡張モジュール本体を実行したときに呼び出される。実装ごとに書き変えない。
@@ -59,9 +59,9 @@ module MODULE.MODEL {
      * @param {Object} context
      * @param {Any} [params]* args
      */
-    main_(context: ExtensionInterface, ...args: any[]): any
-    main_(context: ExtensionStaticInterface, ...args: any[]): any
-    main_(context: any, ...args: any[]): any {
+    protected main_(context: ExtensionInterface, ...args: any[]): any
+    protected main_(context: ExtensionStaticInterface, ...args: any[]): any
+    protected main_(context: any, ...args: any[]): any {
       return context;
     }
     
