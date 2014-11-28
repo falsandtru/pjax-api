@@ -63,19 +63,19 @@ accelerate:
     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-    window.ga('create', 'UA-xxxxxxxx-x', 'auto');
-    window.ga('require', 'displayfeatures');
+    ga('create', 'UA-xxxxxxxx-x', 'auto');
+    ga('require', 'displayfeatures');
   }
-  window.ga('send', 'pageview', window.location.pathname.replace(/^\/?/, '/') + window.location.search);
+  ga('send', 'pageview', window.location.pathname.replace(/^\/?/, '/') + window.location.search);
 </pre>
 
 ###旧 Google Analytics
 
 <pre class="sh brush: js;">
   if (!window._gaq) {
-    window._gaq = [];
-    window._gaq.push(['_setAccount', 'UA-xxxxxxxx-x']);
-    window._gaq.push(['_trackPageview']);
+    var _gaq = [];
+    _gaq.push(['_setAccount', 'UA-xxxxxxxx-x']);
+    _gaq.push(['_trackPageview']);
 
     (function() {
       var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
@@ -83,7 +83,7 @@ accelerate:
       var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
     })();
   } else {
-    window._gaq.push(['_trackPageview']);
+    _gaq.push(['_trackPageview']);
   }
 </pre>
 
