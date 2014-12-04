@@ -15,9 +15,9 @@ module MODULE.MODEL.APP.DATA {
     indexes: StoreIndexOptionInterface[] = []
     limit: number = 0
 
-    buffer_: T[] = []
+    protected buffer: T[] = []
 
-    accessStore(success: (store: IDBObjectStore) => void, mode: string = 'readwrite'): void {
+    protected accessStore(success: (store: IDBObjectStore) => void, mode: string = 'readwrite'): void {
       try {
         var database: IDBDatabase = this.DB.database(),
             store: IDBObjectStore = database && database.transaction(this.name, mode).objectStore(this.name);
@@ -31,9 +31,9 @@ module MODULE.MODEL.APP.DATA {
       }
     }
 
-    accessCount(success: (count: number) => void): void
-    accessCount(index: string, success: (count: number) => void): void
-    accessCount(): void {
+    protected accessCount(success: (count: number) => void): void
+    protected accessCount(index: string, success: (count: number) => void): void
+    protected accessCount(): void {
       var index: string = 'string' === typeof arguments[0] && arguments[0],
           success: (count: number) => void = arguments[index ? 1 : 0];
       this.accessStore((store) => {
@@ -42,13 +42,13 @@ module MODULE.MODEL.APP.DATA {
       });
     }
 
-    accessRecord(key: string, success: (event?: Event) => void, mode?: string): void {
+    protected accessRecord(key: string, success: (event?: Event) => void, mode?: string): void {
       this.accessStore((store) => {
         store.get(key).onsuccess = success;
       }, mode);
     }
 
-    accessCursor(index: string, range: IDBKeyRange, direction: string, success: (event?: Event) => void): void {
+    protected accessCursor(index: string, range: IDBKeyRange, direction: string, success: (event?: Event) => void): void {
       this.accessStore(function (store) {
         var req: IDBRequest;
         if (direction && range) {
@@ -62,9 +62,9 @@ module MODULE.MODEL.APP.DATA {
       });
     }
 
-    accessAll(success: (event?: Event) => void): void
-    accessAll(index: string, range: IDBKeyRange, direction: string, success: (event?: Event) => void): void
-    accessAll(index: any, range?: IDBKeyRange, direction?: string, success?: (event?: Event) => void): void {
+    protected accessAll(success: (event?: Event) => void): void
+    protected accessAll(index: string, range: IDBKeyRange, direction: string, success: (event?: Event) => void): void
+    protected accessAll(index: any, range?: IDBKeyRange, direction?: string, success?: (event?: Event) => void): void {
       if ('function' === typeof index) {
         success = index;
         index = null;
@@ -142,7 +142,7 @@ module MODULE.MODEL.APP.DATA {
     }
 
     loadBuffer(limit: number = 0): void {
-      var buffer = this.buffer_;
+      var buffer = this.buffer;
       if (this.indexes.length) {
         this.accessAll(this.indexes[0].name, this.DB.IDBKeyRange.upperBound(Infinity), 'prev', callback);
       } else {
@@ -159,7 +159,7 @@ module MODULE.MODEL.APP.DATA {
     }
 
     saveBuffer(): void {
-      var buffer = this.buffer_;
+      var buffer = this.buffer;
       this.accessStore(function (store) {
         for (var i in buffer) {
           store.put(buffer[i]);
@@ -168,48 +168,48 @@ module MODULE.MODEL.APP.DATA {
     }
 
     getBuffers(): T[] {
-      return this.buffer_;
+      return this.buffer;
     }
 
     setBuffers(values: T[], merge?: boolean): T[] {
       for (var i in values) {
         this.setBuffer(values[i], merge);
       }
-      return this.buffer_;
+      return this.buffer;
     }
 
     getBuffer(key: string): T
     getBuffer(key: number): T
     getBuffer(key: any): any {
-      return this.buffer_[key];
+      return this.buffer[key];
     }
 
     setBuffer(value: T, merge?: boolean): T {
       var key = value[this.keyPath];
-      this.buffer_[key] = !merge ? value : jQuery.extend(true, {}, this.buffer_[key], value);
-      return this.buffer_[key];
+      this.buffer[key] = !merge ? value : jQuery.extend(true, {}, this.buffer[key], value);
+      return this.buffer[key];
     }
 
     addBuffer(value: T): T {
-      value[this.keyPath] = this.buffer_.length || 1;
-      this.buffer_.push(value);
+      value[this.keyPath] = this.buffer.length || 1;
+      this.buffer.push(value);
       return value;
     }
     
     removeBuffer(key: string): T
     removeBuffer(key: number): T
     removeBuffer(key: any): T {
-      var ret = this.buffer_[key];
-      if ('number' === typeof key && key >= 0 && key in this.buffer_ && this.buffer_.length > key) {
-        this.buffer_.splice(key, 1);
+      var ret = this.buffer[key];
+      if ('number' === typeof key && key >= 0 && key in this.buffer && this.buffer.length > key) {
+        this.buffer.splice(key, 1);
       } else {
-        delete this.buffer_[key];
+        delete this.buffer[key];
       }
       return ret;
     }
 
     clearBuffer(): void {
-      this.buffer_.splice(0, this.buffer_.length);
+      this.buffer.splice(0, this.buffer.length);
     }
     
   }
