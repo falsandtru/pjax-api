@@ -287,7 +287,7 @@ module MODULE.MODEL {
   export declare class DataInterface {
     // cookie
     getCookie(key: string): string
-    setCookie(key: string, value: string, option?: Object): string
+    setCookie(key: string, value: string, option?: CookieOptionInterface): string
 
     // db
     connect(setting: SettingInterface): void
