@@ -1,28 +1,28 @@
 ---
 layout: bootstrap
-title: historyState
+title: state
 type: page
 nav: nav
 class: style-api style-api-detail
 ---
 
-# historyState
+# state
 ページ遷移時に設定する`window.history.state`の値を設定します。初期値は`null`です。
 
-## historyState: function( event, setting, origLocation, destLocation )
+## state: function( event, setting, origLocation, destLocation )
 関数の戻り値を値に設定します。
 
 <pre class="sh brush: js;">
 $.pjax({
-  historyState: function(){return 'pjax';}
+  state: function(){return 'pjax';}
 });
 </pre>
 
-## historyState: any
+## state: any
 値を直接指定します。
 
 <pre class="sh brush: js;">
 $.pjax({
-  historyState: 'pjax'
+  state: 'pjax'
 });
 </pre>

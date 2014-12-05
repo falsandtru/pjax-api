@@ -29,7 +29,7 @@ pjaxを設定します。
 ### [rewrite:](api/core/setting/rewrite/)
 ページ遷移に使用するHTMLDocumentをあらかじめ書き換えます。
 
-### [historyState:](api/core/setting/history-state/)
+### [state:](api/core/setting/state/)
 ページ遷移時に設定する`window.history.state`の値を設定します。
 
 ### [scrollTop:](api/core/setting/scroll-top/)
