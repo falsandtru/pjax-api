@@ -69,7 +69,6 @@ interface PjaxSetting {
                 browser?: RegExp
                 redirect?: RegExp
             }
-            exclude?: RegExp
             cookie?: {
                 balance?: string
                 redirect?: string

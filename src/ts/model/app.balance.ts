@@ -23,7 +23,7 @@ module MODULE.MODEL.APP {
       if (!this.isBalanceable_(setting)) {
         return void this.disable(setting);
       }
-      if (!setting.balance.client.support.browser.test(window.navigator.userAgent) || setting.balance.client.exclude.test(window.navigator.userAgent)) {
+      if (!setting.balance.client.support.browser.test(window.navigator.userAgent)) {
         return void this.disable(setting);
       }
 

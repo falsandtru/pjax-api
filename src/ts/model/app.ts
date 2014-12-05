@@ -158,7 +158,6 @@ module MODULE.MODEL.APP {
                   browser: /msie|trident.+ rv:|chrome|firefox|safari/i,
                   redirect: /chrome|firefox|safari/i
                 },
-                exclude: /mobile|phone|android|iphone|blackberry/i,
                 cookie: {
                   balance: 'ajax_balanceable',
                   redirect: 'ajax_redirectable',

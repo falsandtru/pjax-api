@@ -10,6 +10,7 @@ nav: nav
 ## 2.29.0
 
 * `balance.client.support.userAgent`パラメータを`balance.client.support.browser`パラメータに変更
+* `balance.client.exclude`パラメータを削除
 
 ## 2.28.2
 

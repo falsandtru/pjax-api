@@ -52,9 +52,6 @@ option: {
 ## balance.client.support.redirect: RegExp
 リダイレクト可能なブラウザを設定します。初期値は`/chrome|firefox|safari/i`です。
 
-## balance.client.exclude: RegExp
-除外するブラウザを設定します。初期値は`/mobile|phone|android|iphone|blackberry/i`です。
-
 ## balance.client.cookie.balance: string
 リクエストヘッダにロードバランスの要求フラグを立てるCookieのキーを設定します。初期値は`'ajax_balanceable'`です。
 
