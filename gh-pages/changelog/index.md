@@ -7,6 +7,10 @@ nav: nav
 
 # ChangeLog
 
+## 2.29.0
+
+* `balance.client.support.userAgent`パラメータを`balance.client.support.browser`パラメータに変更
+
 ## 2.28.2
 
 * クッキーの管理を改善

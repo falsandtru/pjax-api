@@ -46,7 +46,7 @@ option: {
 }
 </pre>
 
-## balance.client.support.userAgent: RegExp
+## balance.client.support.browser: RegExp
 ロードバランスを使用するブラウザを設定します。初期値は`/msie|trident.+ rv:|chrome|firefox|safari/i`です。
 
 ## balance.client.support.redirect: RegExp
@@ -75,4 +75,3 @@ IndexedDBが使用できない場合にリクエスト先の代替保存先と�
 
 ## balance.history.limit: number
 リクエスト先の候補を検索するサーバー通信履歴の件数範囲を設定します。初期値は`30`(過去30件)です。
-

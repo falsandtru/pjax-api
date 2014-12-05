@@ -155,7 +155,7 @@ module MODULE.MODEL.APP {
               },
               client: {
                 support: {
-                  userAgent: /msie|trident.+ rv:|chrome|firefox|safari/i,
+                  browser: /msie|trident.+ rv:|chrome|firefox|safari/i,
                   redirect: /chrome|firefox|safari/i
                 },
                 exclude: /mobile|phone|android|iphone|blackberry/i,

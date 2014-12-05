@@ -66,7 +66,7 @@ interface PjaxSetting {
         option?: PjaxSetting
         client?: {
             support?: {
-                userAgent?: RegExp
+                browser?: RegExp
                 redirect?: RegExp
             }
             exclude?: RegExp
