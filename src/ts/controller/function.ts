@@ -46,7 +46,7 @@ module MODULE.CONTROLLER {
           return <any>this;
       }
       var setting: SettingInterface = Model.singleton().configure(<HTMLAnchorElement>$anchor[0]);
-      setting && $anchor.first().one(setting.nss.click, () => Controller.singleton().click(arguments)).click();
+      setting && $anchor.first().one(setting.nss.event.click, () => Controller.singleton().click(arguments)).click();
       return <any>this;
     }
     
@@ -96,7 +96,7 @@ module MODULE.CONTROLLER {
           return <any>this;
       }
       var setting: SettingInterface = Model.singleton().configure(<HTMLFormElement>$form[0]);
-      setting && $form.first().one(setting.nss.submit, () => Controller.singleton().submit(arguments)).submit();
+      setting && $form.first().one(setting.nss.event.submit, () => Controller.singleton().submit(arguments)).submit();
       return <any>this;
     }
     

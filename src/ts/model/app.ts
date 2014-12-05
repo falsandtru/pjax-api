@@ -201,7 +201,7 @@ module MODULE.MODEL.APP {
             data: undefined
           },
           force = <SettingInterface>{
-            ns: undefined,
+            ns: '',
             nss: undefined,
             speedcheck: undefined,
 
@@ -233,15 +233,25 @@ module MODULE.MODEL.APP {
               speedcheck: undefined,
 
               nss: {
-                name: setting.ns || '',
                 array: nsArray,
-                event: nsArray.join('.'),
-                data: nsArray.join('-'),
-                class4html: nsArray.join('-'),
-                click: [EVENT.CLICK].concat(nsArray.join(':')).join('.'),
-                submit: [EVENT.SUBMIT].concat(nsArray.join(':')).join('.'),
-                popstate: [EVENT.POPSTATE].concat(nsArray.join(':')).join('.'),
-                scroll: [EVENT.SCROLL].concat(nsArray.join(':')).join('.'),
+                name: nsArray.join('.'),
+                data: nsArray[0],
+                url: this.model_.convertUrlToKeyUrl(setting.destLocation.href),
+                event: {
+                  pjax: {
+                    fetch: [EVENT.PJAX, 'fetch'].join(':'),
+                    unload: [EVENT.PJAX, 'unload'].join(':'),
+                    DOMContentLoaded: [EVENT.PJAX, 'DOMContentLoaded'].join(':'),
+                    ready: [EVENT.PJAX, 'ready'].join(':'),
+                    render: [EVENT.PJAX, 'render'].join(':'),
+                    load: [EVENT.PJAX, 'load'].join(':')
+                  },
+                  click: [EVENT.CLICK].concat(nsArray.join(':')).join('.'),
+                  submit: [EVENT.SUBMIT].concat(nsArray.join(':')).join('.'),
+                  popstate: [EVENT.POPSTATE].concat(nsArray.join(':')).join('.'),
+                  scroll: [EVENT.SCROLL].concat(nsArray.join(':')).join('.')
+                },
+                elem: nsArray.join('-'),
                 requestHeader: ['X', nsArray[0].replace(/^\w/, function (str) { return str.toUpperCase(); })].join('-')
               },
               fix: /android|iphone os|like mac os x/i.test(window.navigator.userAgent) ? undefined : { location: false },

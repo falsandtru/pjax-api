@@ -125,6 +125,7 @@ module MODULE {
 
   // Event
   export var EVENT = {
+    PJAX: DEF.NAME.toLowerCase(),
     CLICK: 'click',
     SUBMIT: 'submit',
     POPSTATE: 'popstate',
@@ -140,14 +141,25 @@ module MODULE {
     // internal
     ns: string
     nss: {
+      array: string[]
       name: string
-      event: string
-      click: string
-      submit: string
-      popstate: string
-      scroll: string
       data: string
-      class4html: string
+      url: string
+      event: {
+        pjax: {
+          fetch: string
+          unload: string
+          DOMContentLoaded: string
+          ready: string
+          render: string
+          load: string
+        }
+        click: string
+        submit: string
+        popstate: string
+        scroll: string
+      }
+      elem: string
       requestHeader: string
     }
     origLocation: HTMLAnchorElement
@@ -231,7 +243,7 @@ module MODULE.MODEL {
   }
   export declare class PageRecordInterface implements RecordInterface {
     constructor()
-    constructor(model: ModelInterface, setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string)
+    constructor(setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string)
     data: PageRecordDataInterface
     state(): boolean
   }
@@ -246,7 +258,7 @@ module MODULE.MODEL {
   }
   export interface PageRecordClassInterface extends RecordClassInterface {
     new ()
-    new (model: ModelInterface, setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string)
+    new (setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string)
   }
   export interface PageRecordSchema extends RecordSchema {
     url: string
