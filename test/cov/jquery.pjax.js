@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.28.1
+ * @version 2.28.2
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -41,6 +41,7 @@ var MODULE;
     var State = MODULE.State;
     // Event
     MODULE.EVENT = {
+        PJAX: MODULE.DEF.NAME.toLowerCase(),
         CLICK: 'click',
         SUBMIT: 'submit',
         POPSTATE: 'popstate',
@@ -264,15 +265,15 @@ var MODULE;
             }
             Main.prototype.observe_ = function (setting) {
                 this.release_(setting);
-                this.context_.delegate(setting.link, setting.nss.click, this.handlers.click).delegate(setting.form, setting.nss.submit, this.handlers.submit);
-                jQuery(window).bind(setting.nss.popstate, this.handlers.popstate);
-                setting.database && setting.fix.scroll && jQuery(window).bind(setting.nss.scroll, this.handlers.scroll);
+                this.context_.delegate(setting.link, setting.nss.event.click, this.handlers.click).delegate(setting.form, setting.nss.event.submit, this.handlers.submit);
+                jQuery(window).bind(setting.nss.event.popstate, this.handlers.popstate);
+                setting.database && setting.fix.scroll && jQuery(window).bind(setting.nss.event.scroll, this.handlers.scroll);
                 return this;
             };
             Main.prototype.release_ = function (setting) {
-                this.context_.undelegate(setting.link, setting.nss.click).undelegate(setting.form, setting.nss.submit);
-                jQuery(window).unbind(setting.nss.popstate);
-                setting.database && setting.fix.scroll && jQuery(window).unbind(setting.nss.scroll);
+                this.context_.undelegate(setting.link, setting.nss.event.click).undelegate(setting.form, setting.nss.event.submit);
+                jQuery(window).unbind(setting.nss.event.popstate);
+                setting.database && setting.fix.scroll && jQuery(window).unbind(setting.nss.event.scroll);
                 return this;
             };
             return Main;
@@ -320,7 +321,7 @@ var MODULE;
                         return this;
                 }
                 var setting = MODULE.Model.singleton().configure($anchor[0]);
-                setting && $anchor.first().one(setting.nss.click, function () { return MODULE.Controller.singleton().click(arguments); }).click();
+                setting && $anchor.first().one(setting.nss.event.click, function () { return MODULE.Controller.singleton().click(arguments); }).click();
                 return this;
             };
             Functions.prototype.submit = function (url, attrs, data) {
@@ -360,7 +361,7 @@ var MODULE;
                         return this;
                 }
                 var setting = MODULE.Model.singleton().configure($form[0]);
-                setting && $form.first().one(setting.nss.submit, function () { return MODULE.Controller.singleton().submit(arguments); }).submit();
+                setting && $form.first().one(setting.nss.event.submit, function () { return MODULE.Controller.singleton().submit(arguments); }).submit();
                 return this;
             };
             Functions.prototype.getCache = function (url) {
@@ -1069,7 +1070,7 @@ var MODULE;
                         this.autoIncrement = true;
                         this.indexes = [];
                         this.limit = 0;
-                        this.buffer_ = [];
+                        this.buffer = [];
                     }
                     Store.prototype.accessStore = function (success, mode) {
                         var _this = this;
@@ -1187,7 +1188,7 @@ var MODULE;
                     };
                     Store.prototype.loadBuffer = function (limit) {
                         if (limit === void 0) { limit = 0; }
-                        var buffer = this.buffer_;
+                        var buffer = this.buffer;
                         if (this.indexes.length) {
                             this.accessAll(this.indexes[0].name, this.DB.IDBKeyRange.upperBound(Infinity), 'prev', callback);
                         }
@@ -1204,7 +1205,7 @@ var MODULE;
                         }
                     };
                     Store.prototype.saveBuffer = function () {
-                        var buffer = this.buffer_;
+                        var buffer = this.buffer;
                         this.accessStore(function (store) {
                             for (var i in buffer) {
                                 store.put(buffer[i]);
@@ -1212,39 +1213,39 @@ var MODULE;
                         });
                     };
                     Store.prototype.getBuffers = function () {
-                        return this.buffer_;
+                        return this.buffer;
                     };
                     Store.prototype.setBuffers = function (values, merge) {
                         for (var i in values) {
                             this.setBuffer(values[i], merge);
                         }
-                        return this.buffer_;
+                        return this.buffer;
                     };
                     Store.prototype.getBuffer = function (key) {
-                        return this.buffer_[key];
+                        return this.buffer[key];
                     };
                     Store.prototype.setBuffer = function (value, merge) {
                         var key = value[this.keyPath];
-                        this.buffer_[key] = !merge ? value : jQuery.extend(true, {}, this.buffer_[key], value);
-                        return this.buffer_[key];
+                        this.buffer[key] = !merge ? value : jQuery.extend(true, {}, this.buffer[key], value);
+                        return this.buffer[key];
                     };
                     Store.prototype.addBuffer = function (value) {
-                        value[this.keyPath] = this.buffer_.length || 1;
-                        this.buffer_.push(value);
+                        value[this.keyPath] = this.buffer.length || 1;
+                        this.buffer.push(value);
                         return value;
                     };
                     Store.prototype.removeBuffer = function (key) {
-                        var ret = this.buffer_[key];
-                        if ('number' === typeof key && key >= 0 && key in this.buffer_ && this.buffer_.length > key) {
-                            this.buffer_.splice(key, 1);
+                        var ret = this.buffer[key];
+                        if ('number' === typeof key && key >= 0 && key in this.buffer && this.buffer.length > key) {
+                            this.buffer.splice(key, 1);
                         }
                         else {
-                            delete this.buffer_[key];
+                            delete this.buffer[key];
                         }
                         return ret;
                     };
                     Store.prototype.clearBuffer = function () {
-                        this.buffer_.splice(0, this.buffer_.length);
+                        this.buffer.splice(0, this.buffer.length);
                     };
                     return Store;
                 })();
@@ -1368,15 +1369,15 @@ var MODULE;
                         var _this = this;
                         this.IDBFactory = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB;
                         this.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.mozIDBKeyRange || window.msIDBKeyRange;
-                        this.name_ = MODULE.DEF.NAME;
-                        this.version_ = 8;
-                        this.refresh_ = 10;
-                        this.upgrade_ = 0; // 0:virtual 1:native
+                        this.name = MODULE.DEF.NAME;
+                        this.version = 8;
+                        this.refresh = 10;
+                        this.upgrade = 0; // 0:virtual 1:native
                         this.state_ = 0 /* blank */;
-                        this.age_ = 10 * 1000;
-                        this.expires_ = 0;
-                        this.timer_ = 0;
-                        this.stateful_ = new DATA.DB.Stateful(this, function () { return _this.connect_(); }, function () { return _this.extend_(); });
+                        this.stateful = new DATA.DB.Stateful(this, function () { return _this.connect(); }, function () { return _this.extend(); });
+                        this.age = 10 * 1000;
+                        this.expires = 0;
+                        this.timer = 0;
                         this.stores = {
                             meta: new DATA.STORE.Meta(this),
                             history: new DATA.STORE.History(this),
@@ -1387,23 +1388,23 @@ var MODULE;
                             update: { key: 'update', value: undefined }
                         };
                     }
-                    Database.prototype.extend_ = function () {
-                        var _this = this;
-                        this.expires_ = new Date().getTime() + this.age_;
-                        clearTimeout(this.timer_);
-                        this.timer_ = setTimeout(function () { return _this.check_(); }, this.age_);
+                    Database.prototype.state = function () {
+                        return this.state_;
                     };
-                    Database.prototype.check_ = function () {
-                        if (!this.age_ || new Date().getTime() <= this.expires_) {
+                    Database.prototype.extend = function () {
+                        var _this = this;
+                        this.expires = new Date().getTime() + this.age;
+                        clearTimeout(this.timer);
+                        this.timer = setTimeout(function () { return _this.check(); }, this.age);
+                    };
+                    Database.prototype.check = function () {
+                        if (!this.age || new Date().getTime() <= this.expires) {
                             return;
                         }
                         2 /* open */ === this.state() && this.close();
                     };
-                    Database.prototype.state = function () {
-                        return this.state_;
-                    };
                     Database.prototype.database = function () {
-                        this.extend_();
+                        this.extend();
                         return this.database_;
                     };
                     Database.prototype.up = function () {
@@ -1417,33 +1418,33 @@ var MODULE;
                     };
                     Database.prototype.open = function () {
                         !this.IDBFactory && this.down();
-                        return this.stateful_.open();
+                        return this.stateful.open();
                     };
                     Database.prototype.close = function () {
                         this.database_ && this.database_.close && this.database_.close();
                         this.state_ = 9 /* close */;
                     };
                     Database.prototype.resolve = function () {
-                        this.stateful_.resolve();
+                        this.stateful.resolve();
                     };
                     Database.prototype.reject = function () {
-                        this.stateful_.reject();
+                        this.stateful.reject();
                     };
-                    Database.prototype.connect_ = function () {
-                        this.create_();
+                    Database.prototype.connect = function () {
+                        this.create();
                     };
-                    // 以降、connect_()以外からアクセス禁止
-                    Database.prototype.create_ = function () {
+                    // 以降、connect()以外からアクセス禁止
+                    Database.prototype.create = function () {
                         var _this = this;
                         try {
                             this.close();
                             this.state_ = 1 /* initiate */;
-                            var req = this.IDBFactory.open(this.name_, this.upgrade_ ? this.version_ : 1);
+                            var req = this.IDBFactory.open(this.name, this.upgrade ? this.version : 1);
                             var verify = function () {
-                                _this.verify_(_this.version_, function () {
+                                _this.verify(_this.version, function () {
                                     _this.state_ = 2 /* open */;
                                     _this.resolve();
-                                    _this.extend_();
+                                    _this.extend();
                                 });
                             };
                             if ('done' === req.readyState) {
@@ -1452,7 +1453,7 @@ var MODULE;
                                     verify();
                                 }
                                 else {
-                                    this.format_();
+                                    this.format();
                                 }
                             }
                             else {
@@ -1466,7 +1467,7 @@ var MODULE;
                                 req.onupgradeneeded = function () {
                                     clearTimeout(timer);
                                     _this.database_ = req.result;
-                                    _this.createStores_();
+                                    _this.createStores();
                                 };
                                 req.onsuccess = function () {
                                     clearTimeout(timer);
@@ -1484,12 +1485,12 @@ var MODULE;
                             this.down();
                         }
                     };
-                    Database.prototype.destroy_ = function (success, failure) {
+                    Database.prototype.destroy = function (success, failure) {
                         var _this = this;
                         try {
                             this.close();
                             this.state_ = 8 /* terminate */;
-                            var req = this.IDBFactory.deleteDatabase(this.name_);
+                            var req = this.IDBFactory.deleteDatabase(this.name);
                             if (req) {
                                 req.onsuccess = success;
                                 req.onerror = failure;
@@ -1500,13 +1501,13 @@ var MODULE;
                             this.down();
                         }
                     };
-                    Database.prototype.format_ = function () {
+                    Database.prototype.format = function () {
                         var _this = this;
-                        this.destroy_(function () { return _this.up(); }, function () { return _this.down(); });
+                        this.destroy(function () { return _this.up(); }, function () { return _this.down(); });
                     };
-                    Database.prototype.verify_ = function (version, success) {
+                    Database.prototype.verify = function (version, success) {
                         var _this = this;
-                        var db = this.database(), scheme = this.meta, meta = this.stores.meta, failure = function () { return _this.format_(); };
+                        var db = this.database(), scheme = this.meta, meta = this.stores.meta, failure = function () { return _this.format(); };
                         if (db.objectStoreNames.length !== Object.keys(this.stores).length) {
                             return void failure();
                         }
@@ -1525,7 +1526,7 @@ var MODULE;
                                 return;
                             }
                             var data = event.target.result;
-                            if (!data || _this.upgrade_) {
+                            if (!data || _this.upgrade) {
                                 meta.set(meta.setBuffer({ key: scheme.version.key, value: version }));
                             }
                             else if (data.value > version) {
@@ -1544,8 +1545,8 @@ var MODULE;
                             }
                             var data = event.target.result;
                             var days = Math.floor(new Date().getTime() / (24 * 60 * 60 * 1000));
-                            if (!data || !_this.refresh_) {
-                                meta.set(meta.setBuffer({ key: scheme.update.key, value: days + _this.refresh_ }));
+                            if (!data || !_this.refresh) {
+                                meta.set(meta.setBuffer({ key: scheme.update.key, value: days + _this.refresh }));
                                 success();
                             }
                             else if (data.value > days) {
@@ -1556,8 +1557,8 @@ var MODULE;
                             }
                         });
                     };
-                    Database.prototype.createStores_ = function () {
-                        this.destroyStores_();
+                    Database.prototype.createStores = function () {
+                        this.destroyStores();
                         var db = this.database();
                         for (var i in this.stores) {
                             var schema = this.stores[i];
@@ -1567,7 +1568,7 @@ var MODULE;
                             }
                         }
                     };
-                    Database.prototype.destroyStores_ = function () {
+                    Database.prototype.destroyStores = function () {
                         var db = this.database();
                         for (var i = db.objectStoreNames ? db.objectStoreNames.length : 0; i--;) {
                             db.deleteObjectStore(db.objectStoreNames[i]);
@@ -2104,20 +2105,23 @@ var MODULE;
                     }
                 };
                 Balance.prototype.disable = function (setting) {
-                    this.app_.data.getCookie(setting.balance.client.cookie.balance) && this.app_.data.setCookie(setting.balance.client.cookie.balance, '0');
-                    this.app_.data.getCookie(setting.balance.client.cookie.redirect) && this.app_.data.setCookie(setting.balance.client.cookie.redirect, '0');
+                    if (this.app_.data.getCookie(setting.balance.client.cookie.balance)) {
+                        this.app_.data.setCookie(setting.balance.client.cookie.balance, '0');
+                    }
+                    if (this.app_.data.getCookie(setting.balance.client.cookie.redirect)) {
+                        this.app_.data.setCookie(setting.balance.client.cookie.redirect, '0');
+                    }
                     this.changeServer('', setting);
                 };
                 Balance.prototype.changeServer = function (host, setting) {
                     if (setting === void 0) { setting = this.model_.configure(window.location); }
                     if (!setting || !this.isBalanceable_(setting)) {
-                        host = '';
+                        this.host_ = '';
                     }
                     else {
-                        host = host || '';
+                        this.host_ = host || '';
+                        this.app_.data.setCookie(setting.balance.client.cookie.host, host);
                     }
-                    this.host_ = host;
-                    this.app_.data.setCookie(setting.balance.client.cookie.host, host);
                     return this.host();
                 };
                 Balance.prototype.chooseServers_ = function (expires, limit, weight, respite) {
@@ -2239,10 +2243,9 @@ var MODULE;
         var APP;
         (function (APP) {
             var PageRecord = (function () {
-                function PageRecord(model_, setting, data, textStatus, jqXHR, host) {
-                    this.model_ = model_;
+                function PageRecord(setting, data, textStatus, jqXHR, host) {
                     this.data_ = setting ? {
-                        url: this.model_.convertUrlToKeyUrl(setting.destLocation.href),
+                        url: setting.nss.url,
                         data: data,
                         textStatus: textStatus,
                         jqXHR: jqXHR,
@@ -2393,7 +2396,7 @@ var MODULE;
                             cache = this.model_.getCache(setting.destLocation.href);
                             break;
                     }
-                    this.dispatchEvent(document, MODULE.DEF.NAME + ':fetch', false, false);
+                    this.dispatchEvent(document, setting.nss.event.pjax.fetch, false, false);
                     var xhr = this.model_.getXHR();
                     if (cache && cache.jqXHR && 200 === +cache.jqXHR.status) {
                         // cache
@@ -2583,11 +2586,10 @@ var MODULE;
         (function (APP) {
             var PageProvider = (function () {
                 function PageProvider(Record_, model_, app_) {
-                    var _this = this;
                     this.Record_ = Record_;
                     this.model_ = model_;
                     this.app_ = app_;
-                    this.hash_ = function (setting) { return _this.model_.convertUrlToKeyUrl(setting.destLocation.href); };
+                    this.hash_ = function (setting) { return setting.nss.url; };
                     this.table_ = {};
                     this.order_ = [];
                 }
@@ -2616,7 +2618,7 @@ var MODULE;
                 PageProvider.prototype.setRecord = function (setting, data, textStatus, jqXHR, host) {
                     this.cleanRecords_(setting);
                     this.addOrder_(setting);
-                    return this.table_[this.hash_(setting)] = new this.Record_(this.model_, setting, data, textStatus, jqXHR, host);
+                    return this.table_[this.hash_(setting)] = new this.Record_(setting, data, textStatus, jqXHR, host);
                 };
                 PageProvider.prototype.removeRecord = function (setting) {
                     this.removeOrder_(setting);
@@ -2704,7 +2706,7 @@ var MODULE;
                             speedcheck && speed.time.push(speed.now() - speed.fire);
                             speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
                             this.redirect_();
-                            this.dispatchEvent(window, MODULE.DEF.NAME + ':unload', false, false);
+                            this.dispatchEvent(window, setting.nss.event.pjax.unload, false, false);
                             this.url_();
                             if (!this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) {
                                 throw new Error("throw: location mismatch");
@@ -2839,7 +2841,7 @@ var MODULE;
                             if (!_this.util_.compareUrl(_this.model_.convertUrlToKeyUrl(setting.destLocation.href), _this.model_.convertUrlToKeyUrl(window.location.href), true)) {
                                 return;
                             }
-                            _this.dispatchEvent(document, MODULE.DEF.NAME + ':ready', false, false);
+                            _this.dispatchEvent(document, setting.nss.event.pjax.ready, false, false);
                             _this.util_.fire(setting.callback, setting, [event, setting]);
                             return jQuery.when ? _this.waitRender_(jQuery.Deferred().resolve) : _this.waitRender_(callback);
                         };
@@ -2858,7 +2860,7 @@ var MODULE;
                                         break;
                                 }
                             }, 100);
-                            _this.dispatchEvent(document, MODULE.DEF.NAME + ':render', false, false);
+                            _this.dispatchEvent(document, setting.nss.event.pjax.render, false, false);
                             speedcheck && speed.time.push(speed.now() - speed.fire);
                             speedcheck && speed.name.push('render(' + speed.time.slice(-1) + ')');
                             return jQuery.when ? jQuery.when.apply(jQuery, _this.loadwaits_) : callback();
@@ -2867,7 +2869,7 @@ var MODULE;
                             if (!_this.util_.compareUrl(_this.model_.convertUrlToKeyUrl(setting.destLocation.href), _this.model_.convertUrlToKeyUrl(window.location.href), true)) {
                                 return jQuery.when && jQuery.Deferred().reject();
                             }
-                            _this.dispatchEvent(window, MODULE.DEF.NAME + ':load', false, false);
+                            _this.dispatchEvent(window, setting.nss.event.pjax.load, false, false);
                             speedcheck && speed.time.push(speed.now() - speed.fire);
                             speedcheck && speed.name.push('load(' + speed.time.slice(-1) + ')');
                             speedcheck && console.log(speed.time);
@@ -2985,9 +2987,9 @@ var MODULE;
                         jQuery(this).one('load error', defer.resolve);
                         return defer;
                     }
-                    jQuery(this.area_).children('.' + setting.nss.class4html + '-check').remove();
+                    jQuery(this.area_).children('.' + setting.nss.elem + '-check').remove();
                     checker = jQuery('<div/>', {
-                        'class': setting.nss.class4html + '-check',
+                        'class': setting.nss.elem + '-check',
                         'style': 'background: none !important; display: block !important; visibility: hidden !important; position: absolute !important; top: 0 !important; left: 0 !important; z-index: -9999 !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; font-size: 12px !important; text-indent: 0 !important;'
                     }).text(MODULE.DEF.NAME);
                     var $srcAreas, $dstAreas;
@@ -3008,7 +3010,7 @@ var MODULE;
                         $dstAreas.append(checker.clone());
                         $dstAreas.find('script').each(function (i, elem) { return _this.restoreScript_(elem); });
                     }
-                    this.dispatchEvent(document, MODULE.DEF.NAME + ':DOMContentLoaded', false, false);
+                    this.dispatchEvent(document, setting.nss.event.pjax.DOMContentLoaded, false, false);
                     if (this.util_.fire(callbacks_update.content.after, setting, [event, setting, jQuery(this.area_, this.srcDocument_).get(), jQuery(this.area_, this.dstDocument_).get()]) === false) {
                         return;
                     }
@@ -3267,7 +3269,7 @@ var MODULE;
                     var _this = this;
                     var setting = this.setting_, event = this.event_;
                     var callbacks_update = setting.callbacks.update;
-                    var areas = jQuery(this.area_), checker = areas.children('.' + setting.nss.class4html + '-check'), limit = new Date().getTime() + 5 * 1000;
+                    var areas = jQuery(this.area_), checker = areas.children('.' + setting.nss.elem + '-check'), limit = new Date().getTime() + 5 * 1000;
                     function filterChecker() {
                         return this.clientWidth || this.clientHeight || jQuery(this).is(':hidden');
                     }
@@ -3598,6 +3600,7 @@ var MODULE;
                     setTimeout(function () { return _this.page.landing = null; }, 1500);
                 };
                 Main.prototype.configure = function (destination) {
+                    var _this = this;
                     var event = destination.preventDefault ? destination : null;
                     switch (event && 'object' === typeof event && event.type.toLowerCase()) {
                         case MODULE.EVENT.CLICK:
@@ -3746,7 +3749,7 @@ var MODULE;
                         },
                         data: undefined
                     }, force = {
-                        ns: undefined,
+                        ns: '',
                         nss: undefined,
                         speedcheck: undefined,
                         origLocation: origLocation,
@@ -3774,15 +3777,25 @@ var MODULE;
                             option: undefined,
                             speedcheck: undefined,
                             nss: {
-                                name: setting.ns || '',
                                 array: nsArray,
-                                event: nsArray.join('.'),
-                                data: nsArray.join('-'),
-                                class4html: nsArray.join('-'),
-                                click: [MODULE.EVENT.CLICK].concat(nsArray.join(':')).join('.'),
-                                submit: [MODULE.EVENT.SUBMIT].concat(nsArray.join(':')).join('.'),
-                                popstate: [MODULE.EVENT.POPSTATE].concat(nsArray.join(':')).join('.'),
-                                scroll: [MODULE.EVENT.SCROLL].concat(nsArray.join(':')).join('.'),
+                                name: nsArray.join('.'),
+                                data: nsArray[0],
+                                url: _this.model_.convertUrlToKeyUrl(setting.destLocation.href),
+                                event: {
+                                    pjax: {
+                                        fetch: [MODULE.EVENT.PJAX, 'fetch'].join(':'),
+                                        unload: [MODULE.EVENT.PJAX, 'unload'].join(':'),
+                                        DOMContentLoaded: [MODULE.EVENT.PJAX, 'DOMContentLoaded'].join(':'),
+                                        ready: [MODULE.EVENT.PJAX, 'ready'].join(':'),
+                                        render: [MODULE.EVENT.PJAX, 'render'].join(':'),
+                                        load: [MODULE.EVENT.PJAX, 'load'].join(':')
+                                    },
+                                    click: [MODULE.EVENT.CLICK].concat(nsArray.join(':')).join('.'),
+                                    submit: [MODULE.EVENT.SUBMIT].concat(nsArray.join(':')).join('.'),
+                                    popstate: [MODULE.EVENT.POPSTATE].concat(nsArray.join(':')).join('.'),
+                                    scroll: [MODULE.EVENT.SCROLL].concat(nsArray.join(':')).join('.')
+                                },
+                                elem: nsArray.join('-'),
                                 requestHeader: ['X', nsArray[0].replace(/^\w/, function (str) {
                                     return str.toUpperCase();
                                 })].join('-')
