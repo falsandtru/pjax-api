@@ -36,22 +36,22 @@ module MODULE.MODEL.APP {
     }
 
     disable(setting: SettingInterface): void {
-      this.app_.data.getCookie(setting.balance.client.cookie.balance) &&
-      this.app_.data.setCookie(setting.balance.client.cookie.balance, '0');
-      this.app_.data.getCookie(setting.balance.client.cookie.redirect) &&
-      this.app_.data.setCookie(setting.balance.client.cookie.redirect, '0');
+      if (this.app_.data.getCookie(setting.balance.client.cookie.balance)) {
+        this.app_.data.setCookie(setting.balance.client.cookie.balance, '0');
+      }
+      if (this.app_.data.getCookie(setting.balance.client.cookie.redirect)) {
+        this.app_.data.setCookie(setting.balance.client.cookie.redirect, '0');
+      }
       this.changeServer('', setting);
     }
 
     changeServer(host: string, setting: SettingInterface = this.model_.configure(window.location)): string {
       if (!setting || !this.isBalanceable_(setting)) {
-        host = '';
+        this.host_ = '';
       } else {
-        host = host || '';
+        this.host_ = host || '';
+        this.app_.data.setCookie(setting.balance.client.cookie.host, host);
       }
-
-      this.host_ = host;
-      this.app_.data.setCookie(setting.balance.client.cookie.host, host);
       return this.host();
     }
 
