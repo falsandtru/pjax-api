@@ -65,7 +65,7 @@ module MODULE.MODEL.APP {
           
           this.redirect_();
           
-          this.dispatchEvent(window, DEF.NAME + ':unload', false, false);
+          this.dispatchEvent(window, setting.nss.event.pjax.unload, false, false);
           
           this.url_();
           
@@ -103,6 +103,7 @@ module MODULE.MODEL.APP {
           return true;
       }
     }
+
     private redirect_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
@@ -221,7 +222,7 @@ module MODULE.MODEL.APP {
             return;
           }
 
-          this.dispatchEvent(document, DEF.NAME + ':ready', false, false);
+          this.dispatchEvent(document, setting.nss.event.pjax.ready, false, false);
 
           this.util_.fire(setting.callback, setting, [event, setting]);
 
@@ -245,7 +246,7 @@ module MODULE.MODEL.APP {
             }
           }, 100);
 
-          this.dispatchEvent(document, DEF.NAME + ':render', false, false);
+          this.dispatchEvent(document, setting.nss.event.pjax.render, false, false);
 
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('render(' + speed.time.slice(-1) + ')');
@@ -258,7 +259,7 @@ module MODULE.MODEL.APP {
             return jQuery.when && jQuery.Deferred().reject();
           }
 
-          this.dispatchEvent(window, DEF.NAME + ':load', false, false);
+          this.dispatchEvent(window, setting.nss.event.pjax.load, false, false);
 
           speedcheck && speed.time.push(speed.now() - speed.fire);
           speedcheck && speed.name.push('load(' + speed.time.slice(-1) + ')');
@@ -407,9 +408,9 @@ module MODULE.MODEL.APP {
         return defer;
       }
 
-      jQuery(this.area_).children('.' + setting.nss.class4html + '-check').remove();
+      jQuery(this.area_).children('.' + setting.nss.elem + '-check').remove();
       checker = jQuery('<div/>', {
-        'class': setting.nss.class4html + '-check',
+        'class': setting.nss.elem + '-check',
         'style': 'background: none !important; display: block !important; visibility: hidden !important; position: absolute !important; top: 0 !important; left: 0 !important; z-index: -9999 !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; font-size: 12px !important; text-indent: 0 !important;'
       }).text(DEF.NAME);
 
@@ -433,7 +434,7 @@ module MODULE.MODEL.APP {
         $dstAreas.append(checker.clone());
         $dstAreas.find('script').each((i, elem) => this.restoreScript_(<HTMLScriptElement>elem));
       }
-      this.dispatchEvent(document, DEF.NAME + ':DOMContentLoaded', false, false);
+      this.dispatchEvent(document, setting.nss.event.pjax.DOMContentLoaded, false, false);
 
       if (this.util_.fire(callbacks_update.content.after, setting, [event, setting, jQuery(this.area_, this.srcDocument_).get(), jQuery(this.area_, this.dstDocument_).get()]) === false) { return; }
     }
@@ -715,7 +716,7 @@ module MODULE.MODEL.APP {
       var callbacks_update = setting.callbacks.update;
 
       var areas = jQuery(this.area_),
-          checker = areas.children('.' + setting.nss.class4html + '-check'),
+          checker = areas.children('.' + setting.nss.elem + '-check'),
           limit = new Date().getTime() + 5 * 1000;
 
       function filterChecker() {

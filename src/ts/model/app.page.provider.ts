@@ -11,7 +11,7 @@ module MODULE.MODEL.APP {
     constructor(private Record_: PageRecordClassInterface, private model_: ModelInterface, private app_: AppLayerInterface) {
     }
 
-    private hash_ = (setting: SettingInterface) => this.model_.convertUrlToKeyUrl(setting.destLocation.href);
+    private hash_ = (setting: SettingInterface) => setting.nss.url
     private table_: { [keyUrl: string]: PageRecordInterface } = {}
     private order_: string[] = []
 
@@ -47,7 +47,7 @@ module MODULE.MODEL.APP {
     setRecord(setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string): PageRecordInterface {
       this.cleanRecords_(setting);
       this.addOrder_(setting);
-      return this.table_[this.hash_(setting)] = new this.Record_(this.model_, setting, data, textStatus, jqXHR, host);
+      return this.table_[this.hash_(setting)] = new this.Record_(setting, data, textStatus, jqXHR, host);
     }
 
     removeRecord(setting: SettingInterface): PageRecordInterface {

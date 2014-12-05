@@ -54,7 +54,7 @@ module MODULE.MODEL.APP {
           break;
       }
 
-      this.dispatchEvent(document, DEF.NAME + ':fetch', false, false);
+      this.dispatchEvent(document, setting.nss.event.pjax.fetch, false, false);
 
       var xhr = this.model_.getXHR();
       if (cache && cache.jqXHR && 200 === +cache.jqXHR.status) {
