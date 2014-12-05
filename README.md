@@ -110,7 +110,7 @@ if (!/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.nav
 Name|Type|Description
 ----|----|-----------
 [area](http://falsandtru.github.io/jquery-pjax/api/core/area/)|string/array|Update the area specified by jQuery selector.
-[state](http://falsandtru.github.io/jquery-pjax/api/core/state/)|any|Setting the `window.history.state`.
+[historyState](http://falsandtru.github.io/jquery-pjax/api/core/history-state/)|any|Setting the `window.history.state`.
 [ajax](http://falsandtru.github.io/jquery-pjax/api/core/ajax/)|ajaxSettings|Ajax settings without callbacks.
 [rewrite](http://falsandtru.github.io/jquery-pjax/api/core/rewrite/)|function|Rewrite the source document object in advance.
 [load](http://falsandtru.github.io/jquery-pjax/api/core/load/)|object|Load and sync CSS, SCRIPT and more head content.

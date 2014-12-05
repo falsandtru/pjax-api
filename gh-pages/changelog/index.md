@@ -11,6 +11,7 @@ nav: nav
 
 * `balance.client.support.userAgent`パラメータを`balance.client.support.browser`パラメータに変更
 * `balance.client.exclude`パラメータを削除
+* `state`パラメータを`historyState`パラメータに変更
 
 ## 2.28.2
 

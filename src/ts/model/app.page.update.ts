@@ -167,7 +167,7 @@ module MODULE.MODEL.APP {
       if (this.util_.fire(callbacks_update.url.before, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) { return; };
 
       if (this.isRegister_(setting, event)) {
-        window.history.pushState(this.util_.fire(setting.state, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]),
+        window.history.pushState(this.util_.fire(setting.historyState, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]),
                                  ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstDocument_.title : this.srcDocument_.title,
                                  setting.destLocation.href);
 
