@@ -53,13 +53,13 @@ option: {
 リダイレクト可能なブラウザを設定します。初期値は`/chrome|firefox|safari/i`です。
 
 ## balance.client.cookie.balance: string
-リクエストヘッダにロードバランスの要求フラグを立てるCookieのキーを設定します。初期値は`'ajax_balanceable'`です。
+リクエストヘッダにロードバランスの要求フラグを立てるCookieのキーを設定します。初期値は`'balanceable'`です。
 
 ## balance.client.cookie.redirect: string
-リクエストヘッダにリダイレクトの要求フラグを立てるCookieのキーを設定します。初期値は`'ajax_redirectable'`です。
+リクエストヘッダにリダイレクトの要求フラグを立てるCookieのキーを設定します。初期値は`'redirectable'`です。
 
 ## balance.client.cookie.host: string
-IndexedDBが使用できない場合にリクエスト先の代替保存先として使用するCookieのキーを設定します。初期値は`'ajax_host'`です。
+IndexedDBが使用できない場合にリクエスト先の代替保存先として使用するCookieのキーを設定します。初期値は`'host'`です。
 
 ## balance.server.header: string
 リクエストのバランス先のサーバードメインを持つレスポンスヘッダフィールドを設定します。初期値は`'X-Ajax-Host'`です。

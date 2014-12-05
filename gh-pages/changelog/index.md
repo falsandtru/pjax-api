@@ -11,6 +11,9 @@ nav: nav
 
 * `balance.client.support.userAgent`パラメータを`balance.client.support.browser`パラメータに変更
 * `balance.client.exclude`パラメータを削除
+* `balance.client.cookie.balance`パラメータの初期値を変更
+* `balance.client.cookie.redirect`パラメータの初期値を変更
+* `balance.client.cookie.host`パラメータの初期値を変更
 
 ## 2.28.2
 

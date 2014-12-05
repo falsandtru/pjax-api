@@ -159,9 +159,9 @@ module MODULE.MODEL.APP {
                   redirect: /chrome|firefox|safari/i
                 },
                 cookie: {
-                  balance: 'ajax_balanceable',
-                  redirect: 'ajax_redirectable',
-                  host: 'ajax_host'
+                  balance: 'balanceable',
+                  redirect: 'redirectable',
+                  host: 'host'
                 }
               },
               server: {
