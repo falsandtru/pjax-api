@@ -197,7 +197,7 @@ module MODULE.MODEL.APP {
         that.textStatus_ = ajax[1];
         that.jqXHR_ = ajax[2];
 
-        that.util_.fire(setting.callbacks.ajax.success, this, [event, setting, that.data_, that.textStatus_, that.jqXHR_]);
+        that.util_.fire(setting.callbacks.ajax.success, this[0], [event, setting, that.data_, that.textStatus_, that.jqXHR_]);
       }
       function fail(jqXHR: JQueryXHR, textStatus: string, errorThrown: string) {
         if (!arguments.length || !arguments[0]) { return; }
@@ -211,7 +211,7 @@ module MODULE.MODEL.APP {
       function always() {
         if (!arguments.length || !arguments[0]) { return; }
 
-        that.util_.fire(setting.callbacks.ajax.complete, this, [event, setting, that.jqXHR_, that.textStatus_]);
+        that.util_.fire(setting.callbacks.ajax.complete, this instanceof Array ? this[0] : this, [event, setting, that.jqXHR_, that.textStatus_]);
 
         that.model_.setXHR(null);
 
