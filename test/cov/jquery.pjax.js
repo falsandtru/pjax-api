@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.29.0
+ * @version 2.29.1
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -2040,24 +2040,14 @@ var MODULE;
                 };
                 Data.prototype.saveServer = function (host, score, state) {
                     if (state === void 0) { state = 0; }
-                    var store = this.stores_.server, value = {
+                    var value = {
                         host: host.split('//').pop().split('/').shift() || '',
                         score: score,
                         state: state,
                         date: new Date().getTime()
                     };
-                    store.setBuffer(value, true);
-                    store.get(host, function () {
-                        var data = this.result;
-                        if (!data || !state) {
-                            // 新規または正常登録
-                            store.set(value);
-                        }
-                        else if (data.state) {
-                            // 2回目のエラーで登録削除
-                            store['delete'](host);
-                        }
-                    });
+                    this.stores_.server.setBuffer(value, true);
+                    this.stores_.server.set(value, true);
                     this.stores_.server.clean();
                 };
                 return Data;
@@ -2125,6 +2115,7 @@ var MODULE;
                     return this.host();
                 };
                 Balance.prototype.chooseServers_ = function (expires, limit, weight, respite, hosts) {
+                    hosts = hosts.slice();
                     var servers = this.app_.data.getServerBuffers(), serverTableByScore = {}, result;
                     (function () {
                         var now = new Date().getTime();
@@ -2136,14 +2127,24 @@ var MODULE;
                         }
                     })();
                     result = [];
-                    var scores = Object.keys(serverTableByScore).sort();
+                    var scores = Object.keys(serverTableByScore).sort(compareNumbers);
+                    function compareNumbers(a, b) {
+                        return +a - +b;
+                    }
                     for (var i = 0, score; score = result.length < limit && scores[i]; i++) {
                         var server = serverTableByScore[score], host = server.host, state = server.state;
                         if (state && state + respite >= new Date().getTime()) {
                             ~jQuery.inArray(host, hosts) && hosts.splice(jQuery.inArray(host, hosts), 1);
                             continue;
                         }
+                        else if (state) {
+                            this.app_.data.saveServer(server.host, server.score, 0);
+                        }
+                        if (!+score) {
+                            continue;
+                        }
                         if (!host && weight && !(Math.floor(Math.random() * weight))) {
+                            ~jQuery.inArray(host, hosts) && hosts.splice(jQuery.inArray(host, hosts), 1);
                             continue;
                         }
                         result.push(host);
@@ -3535,14 +3536,16 @@ var MODULE;
                     new APP.PageUpdate(this.model_, this.app_, setting, event, record);
                 };
                 Page.prototype.failure_ = function (record, setting, event) {
+                    var _this = this;
                     if (!setting.fallback || 'abort' === record.data.textStatus()) {
                         return;
                     }
+                    this.app_.data.saveExpires(setting.destLocation.href, '', 0);
                     if (setting.balance.active) {
                         this.app_.data.saveServer(record.data.host(), 0, new Date().getTime());
                         this.app_.balance.changeServer(this.app_.balance.chooseServer(setting), setting);
                     }
-                    this.model_.fallback(event);
+                    setTimeout(function () { return _this.model_.fallback(event); }, 100);
                 };
                 Page.prototype.chooseArea = function (areas, srcDocument, dstDocument) {
                     return;
