@@ -77,12 +77,13 @@ module MODULE.MODEL.APP {
     private failure_(record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject): void {
       if (!setting.fallback || 'abort' === record.data.textStatus()) { return; }
 
+      this.app_.data.saveExpires(setting.destLocation.href, '', 0);
       if (setting.balance.active) {
         this.app_.data.saveServer(record.data.host(), 0, new Date().getTime());
         this.app_.balance.changeServer(this.app_.balance.chooseServer(setting), setting);
       }
 
-      this.model_.fallback(event);
+      setTimeout(() => this.model_.fallback(event), 100);
     }
 
     // mixin utility

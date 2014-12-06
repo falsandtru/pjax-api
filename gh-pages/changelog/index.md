@@ -7,6 +7,10 @@ nav: nav
 
 # ChangeLog
 
+## 2.29.1
+
+* ロードバランサのバグを修正
+
 ## 2.29.0
 
 * `balance.client.hosts`パラメータを追加
