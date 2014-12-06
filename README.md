@@ -24,13 +24,9 @@ You will be able most of your want.
 
 ## Demo
 
-### Major feature
+### <a href="http://falsandtru.github.io/jquery-pjax/demo/falsandtru/" target="_blank">Major feature</a>
 
-<a href="http://falsandtru.github.io/jquery-pjax/demo/falsandtru/" target="_blank">Major feature</a>
-
-### Client-side Load Balancer
-
-<a href="http://falsandtru.github.io/jquery-pjax/demo/balance/" target="_blank">Load Balancer</a>
+### <a href="http://falsandtru.github.io/jquery-pjax/demo/balance/" target="_blank">Client-side Load Balancer</a>
 
 ## Usage
 
