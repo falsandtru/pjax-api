@@ -25,7 +25,7 @@ interface PjaxSetting {
         [index: string]: any
         rewrite?(url: string): string
     }
-    rewrite?: (document: Document, area: string, host: string) => void
+    rewrite?: (document: Document, area?: string, host?: string) => void
     state?: any      // any, function(event, setting, origLocation, destLocation )
     scrollTop?: any  // number, function( event, setting, origLocation, destLocation ), null, false
     scrollLeft?: any // number, function( event, setting, origLocation, destLocation ), null, false
@@ -61,15 +61,15 @@ interface PjaxSetting {
         ajax?: JQueryAjaxSettings
     }
     balance?: {
-        self?: boolean
+        active?: boolean
         weight?: number
         option?: PjaxSetting
         client?: {
+            hosts?: string[]
             support?: {
-                userAgent?: RegExp
+                browser?: RegExp
                 redirect?: RegExp
             }
-            exclude?: RegExp
             cookie?: {
                 balance?: string
                 redirect?: string
@@ -78,7 +78,6 @@ interface PjaxSetting {
         }
         server?: {
             header?: string
-            filter?: RegExp
             respite?: number
         }
         history?: {

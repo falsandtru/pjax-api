@@ -36,12 +36,22 @@
 <script>
 $(function(){
   $.pjax({
-    area: '#primary, #tertiary',
-    callback: function(){ ga('send', 'pageview', window.location.pathname+window.location.search); $('#primary small').last().text('location = '+location) ; },
+    area: '#header, #primary, #tertiary',
+    balance: {
+      active: true,
+      client: {
+        hosts: ['', 'falsandtru.s3-website-us-west-2.amazonaws.com:80']
+      }
+    },
+    rewrite: function (document, area, host) {
+      $("#header span.host", document).text(host || window.location.host);
+    },
     load: { css: true },
     cache: { click: true, submit: true, popstate: true },
+    callback: function () { ga('send', 'pageview', window.location.pathname + window.location.search); $('#primary small').last().text('location = ' + location); },
     speedcheck: true
   });
+  $("#header span.host").text(window.location.host);
   $('#primary small').text('location = '+location) ;
 });
 </script>
@@ -64,7 +74,7 @@ window.ga('send', 'pageview', window.location.pathname+window.location.search);
 
   <h1>pjax demo</h1>
   <p>header2</p>
-  <p>これはpjaxのデモページです</p>
+  <p>This page delivered from <span class="host" style="font-weight: bold;"></span>.</p>
 
 </div></header>
 <div id="wrapper" class="wrapper clearfix">

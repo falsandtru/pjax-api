@@ -91,7 +91,7 @@ preloadとpjaxの併用は、スクリプトファイルを置くだけでペー
 |preload+pjax|0-700ms|50-100ms|50-800ms|
 
 ## Client-side Load Balancer
-通常のロードバランサと異なり、ルーターやロードバランサなどのハードウェアを使用せず回線帯域を約1.5-20倍に増設・分散する効果を得られます。詳細は[Load Balancer](loadbalancer/)をお読みください。
+通常のロードバランサと異なり、ルーターやロードバランサなどのハードウェアを使用せず回線帯域を約1.5-20倍に増設・分散する効果を得られます。詳細は[Client-side Load Balancer](client-side-load-balancer/)をお読みください。
 
 ## pjaxの諸問題の解決
 pushStateまたはreplaceStateとAjaxを組み合わせたいわゆるpjaxと呼ばれる機能には下記の問題が存在しています。当プラグインはこれらの問題の解決するための処理を組み込んでいます。
@@ -145,3 +145,4 @@ Turbolinks、defunkt版（v1.7.0/2013年6月時点最新版）との主な違い
 |ユーザー定義関数の設定箇所|9|30+6|7|
 |部分更新キャンセル|×|○|×|
 |比較デモ|<a href="demo/defunkt/" target="_blank">defunkt</a>|<a href="demo/falsandtru/" target="_blank">falsandtru</a>|-|
+|CsLBデモ|-|<a href="demo/balance/" target="_blank">Client-side <br>Load Balancer</a>|-|

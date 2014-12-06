@@ -138,7 +138,7 @@ module MODULE.MODEL.APP {
               ajax: { dataType: 'script', cache: true }
             },
             balance: {
-              self: false,
+              active: false,
               weight: 3,
               option: <PjaxSetting>{
                 server: {
@@ -154,20 +154,19 @@ module MODULE.MODEL.APP {
                 }
               },
               client: {
+                hosts: [],
                 support: {
-                  userAgent: /msie|trident.+ rv:|chrome|firefox|safari/i,
+                  browser: /msie|trident.+ rv:|chrome|firefox|safari/i,
                   redirect: /chrome|firefox|safari/i
                 },
-                exclude: /mobile|phone|android|iphone|blackberry/i,
                 cookie: {
-                  balance: 'ajax_balanceable',
-                  redirect: 'ajax_redirectable',
-                  host: 'ajax_host'
+                  balance: 'balanceable',
+                  redirect: 'redirectable',
+                  host: 'host'
                 }
               },
               server: {
                 header: 'X-Ajax-Host',
-                filter: null,
                 respite: 10 * 60 * 1000,
               },
               history: {
@@ -268,7 +267,7 @@ module MODULE.MODEL.APP {
 
       var setting: SettingInterface;
       setting = jQuery.extend(true, initial, scope || this.option_);
-      setting = jQuery.extend(true, setting, setting.balance.self && setting.balance.option, force);
+      setting = jQuery.extend(true, setting, setting.balance.active && setting.balance.option, force);
       setting = jQuery.extend(true, setting, compute());
 
       if (scope) {
