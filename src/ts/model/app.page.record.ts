@@ -72,6 +72,9 @@ module MODULE.MODEL.APP {
       var xhr = this.jqXHR(),
           expires: number;
 
+      if (xhr) {
+        xhr.timeStamp = xhr.timeStamp || new Date(xhr.getResponseHeader('Date')).getTime() || new Date().getTime();
+      }
       switch (true) {
         case !xhr:
           expires = 0;
@@ -82,7 +85,7 @@ module MODULE.MODEL.APP {
           break;
 
         case !!xhr.getResponseHeader('Cache-Control') && !!~xhr.getResponseHeader('Cache-Control').indexOf('max-age='):
-          expires = new Date(xhr.getResponseHeader('Date')).getTime() + (+xhr.getResponseHeader('Cache-Control').match(/max-age=(\d*)/).pop() * 1000);
+          expires = new Date(xhr.getResponseHeader('Date') || new Date(xhr.timeStamp).toString()).getTime() + (+xhr.getResponseHeader('Cache-Control').match(/max-age=(\d*)/).pop() * 1000);
           break;
 
         case !!xhr.getResponseHeader('Expires'):
