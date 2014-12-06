@@ -275,7 +275,7 @@ module MODULE.MODEL.APP {
 
         this.scroll_(false);
 
-        if (100 > this.app_.loadtime && setting.reset.type.match(event.type.toLowerCase()) && !jQuery('form[method][method!="GET"]').length) {
+        if (150 > this.app_.loadtime && setting.reset.type.match(event.type.toLowerCase()) && !jQuery('form[method][method!="GET"]').length) {
           switch (false) {
             case this.app_.count < setting.reset.count || !setting.reset.count:
             case new Date().getTime() < setting.reset.time + this.app_.time || !setting.reset.time:
@@ -444,7 +444,7 @@ module MODULE.MODEL.APP {
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
-      if (!setting.balance.active || this.app_.loadtime < 100) { return; }
+      if (!setting.balance.active || this.app_.loadtime < 150) { return; }
 
       var jqXHR = this.record_.data.jqXHR();
       var host = jqXHR.getResponseHeader(setting.balance.server.header) || this.record_.data.host() || '',
