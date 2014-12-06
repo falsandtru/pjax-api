@@ -169,25 +169,15 @@ module MODULE.MODEL.APP {
     }
 
     saveServer(host: string, score: number, state: number = 0): void {
-      var store = this.stores_.server,
-          value: ServerStoreSchema = {
+      var value: ServerStoreSchema = {
             host: host.split('//').pop().split('/').shift() || '',
             score: score,
             state: state,
             date: new Date().getTime()
           };
 
-      store.setBuffer(value, true);
-      store.get(host, function () {
-        var data: ServerStoreSchema = this.result;
-        if (!data || !state) {
-          // 新規または正常登録
-          store.set(value);
-        } else if (data.state) {
-          // 2回目のエラーで登録削除
-          store['delete'](host);
-        }
-      });
+      this.stores_.server.setBuffer(value, true);
+      this.stores_.server.set(value, true);
       this.stores_.server.clean();
     }
     

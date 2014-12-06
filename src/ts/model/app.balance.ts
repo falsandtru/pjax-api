@@ -55,7 +55,8 @@ module MODULE.MODEL.APP {
       return this.host();
     }
 
-    private chooseServers_(expires: number, limit: number, weight: number, respite: number, hosts: string[]): string[] {
+    private chooseServers_(expires: number, limit: number, weight: number, respite: number, hosts: string[]): string[]{
+      hosts = hosts.slice();
       var servers = this.app_.data.getServerBuffers(),
           serverTableByScore: { [score: string]: ServerStoreSchema } = {},
           result: string[];
@@ -71,7 +72,10 @@ module MODULE.MODEL.APP {
       })();
 
       result = [];
-      var scores = Object.keys(serverTableByScore).sort();
+      var scores = Object.keys(serverTableByScore).sort(compareNumbers);
+      function compareNumbers(a, b) {
+        return +a - +b;
+      }
       for (var i = 0, score: string; score = result.length < limit && scores[i]; i++) {
         var server = serverTableByScore[score],
             host = server.host,
@@ -79,8 +83,14 @@ module MODULE.MODEL.APP {
         if (state && state + respite >= new Date().getTime()) {
           ~jQuery.inArray(host, hosts) && hosts.splice(jQuery.inArray(host, hosts), 1);
           continue;
+        } else if (state) {
+          this.app_.data.saveServer(server.host, server.score, 0);
+        }
+        if (!+score) {
+          continue;
         }
         if (!host && weight && !(Math.floor(Math.random() * weight))) {
+          ~jQuery.inArray(host, hosts) && hosts.splice(jQuery.inArray(host, hosts), 1)
           continue;
         }
         result.push(host);
