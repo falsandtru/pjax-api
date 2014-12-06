@@ -85,7 +85,7 @@ module MODULE.MODEL.APP {
         }
         result.push(host);
       }
-      if ('' === result[0] && 1 === result.length || !result.length) {
+      if (hosts.length >= 2 && result.length < 2 || !result.length) {
         result = hosts.slice(Math.floor(Math.random() * hosts.length));
       }
       return result;
