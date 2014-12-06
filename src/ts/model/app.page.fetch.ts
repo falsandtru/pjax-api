@@ -62,7 +62,7 @@ module MODULE.MODEL.APP {
         speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
         this.app_.loadtime = 0;
         this.model_.setXHR(null);
-        this.host_ = cache.jqXHR.host || '';
+        this.host_ = cache.host || '';
         this.data_ = cache.jqXHR.responseText;
         this.textStatus_ = cache.textStatus;
         this.jqXHR_ = cache.jqXHR;

@@ -170,6 +170,7 @@ module MODULE {
 
   // Object
   export interface CacheInterface extends PjaxCache {
+    host: string
   }
 }
 
