@@ -77,7 +77,7 @@ module MODULE.MODEL.APP {
     private failure_(record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject): void {
       if (!setting.fallback || 'abort' === record.data.textStatus()) { return; }
 
-      if (setting.balance.self) {
+      if (setting.balance.active) {
         this.app_.data.saveServer(record.data.host(), 0, new Date().getTime());
         this.app_.balance.changeServer(this.app_.balance.chooseServer(setting), setting);
       }

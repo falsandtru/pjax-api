@@ -444,7 +444,7 @@ module MODULE.MODEL.APP {
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
-      if (!setting.balance.self || this.app_.loadtime < 100) { return; }
+      if (!setting.balance.active || this.app_.loadtime < 100) { return; }
 
       var jqXHR = this.record_.data.jqXHR();
       var host = (jqXHR.getResponseHeader(setting.balance.server.header) || ''),

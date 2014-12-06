@@ -76,7 +76,7 @@ class: style-info
    192.168.0.11           192.168.0.12           192.168.0.13           192.168.0.11
      100Mbps                100Mbps                100Mbps                100Mbps
    ___________            ___________            ___________            ___________
-  |           | software |           | software |           | software |           | software 
+  |           | software |           | software |           | software |           | software
   |   [L B]   | balance  |           | balance  |           | balance  |   [L B]   | balance  
   |   [WEB]   |__________|   [WEB]   |__________|   [WEB]   |__________|   [WEB]   |__...
   |           |          |           |          |           |          |           |
@@ -171,7 +171,7 @@ pjaxの設定によりクライアント側でAjaxリクエストを振り分け
 <pre class="sh brush: js;">
 $.pjax({
   balance: {
-    self: true
+    active: true
   }
 });
 </pre>

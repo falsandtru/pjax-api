@@ -61,7 +61,7 @@ interface PjaxSetting {
         ajax?: JQueryAjaxSettings
     }
     balance?: {
-        self?: boolean
+        active?: boolean
         weight?: number
         option?: PjaxSetting
         client?: {

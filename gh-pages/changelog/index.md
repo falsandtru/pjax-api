@@ -9,6 +9,7 @@ nav: nav
 
 ## 2.29.0
 
+* `balance.self`パラメータを`balance.active`パラメータに変更
 * `balance.client.support.userAgent`パラメータを`balance.client.support.browser`パラメータに変更
 * `balance.client.exclude`パラメータを削除
 * `balance.client.cookie.balance`パラメータの初期値を変更

@@ -11,13 +11,13 @@ class: style-api style-api-detail
 
 **実験的な機能であり動作検証中です。不具合やご意見等ありましたらお寄せください。**
 
-## balance.self: boolean
+## balance.active: boolean
 ブラウザでロードバランスを行うかを設定します。Cookieを使用できる必要があります。IndexedDBを使用できない場合、機能と性能が制限されます。初期値は`false`です。
 
 <pre class="sh brush: js;">
 $.pjax({
   balance: {
-    self: true
+    active: true
   }
 });
 </pre>

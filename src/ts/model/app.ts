@@ -138,7 +138,7 @@ module MODULE.MODEL.APP {
               ajax: { dataType: 'script', cache: true }
             },
             balance: {
-              self: false,
+              active: false,
               weight: 3,
               option: <PjaxSetting>{
                 server: {
@@ -267,7 +267,7 @@ module MODULE.MODEL.APP {
 
       var setting: SettingInterface;
       setting = jQuery.extend(true, initial, scope || this.option_);
-      setting = jQuery.extend(true, setting, setting.balance.self && setting.balance.option, force);
+      setting = jQuery.extend(true, setting, setting.balance.active && setting.balance.option, force);
       setting = jQuery.extend(true, setting, compute());
 
       if (scope) {

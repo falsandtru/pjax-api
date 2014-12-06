@@ -16,11 +16,11 @@ module MODULE.MODEL.APP {
     host = () => this.host_
 
     private isBalanceable_(setting: SettingInterface): boolean {
-      return setting.balance.self && !!Number(this.app_.data.getCookie(setting.balance.client.cookie.balance));
+      return setting.balance.active && !!Number(this.app_.data.getCookie(setting.balance.client.cookie.balance));
     }
 
     enable(setting: SettingInterface): void {
-      if (!this.isBalanceable_(setting)) {
+      if (!setting.balance.active) {
         return void this.disable(setting);
       }
       if (!setting.balance.client.support.browser.test(window.navigator.userAgent)) {
