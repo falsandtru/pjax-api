@@ -26,11 +26,11 @@ You will be able most of your want.
 
 ### Major feature
 
-<a href="demo/falsandtru/" target="_blank">Major feature</a>
+<a href="http://falsandtru.github.io/jquery-pjax/demo/falsandtru/" target="_blank">Major feature</a>
 
 ### Client-side Load Balancer
 
-<a href="demo/balance/" target="_blank">Load Balancer</a>
+<a href="http://falsandtru.github.io/jquery-pjax/demo/balance/" target="_blank">Load Balancer</a>
 
 ## Usage
 
