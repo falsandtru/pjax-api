@@ -65,6 +65,7 @@ interface PjaxSetting {
         weight?: number
         option?: PjaxSetting
         client?: {
+            hosts?: string[]
             support?: {
                 browser?: RegExp
                 redirect?: RegExp

@@ -46,6 +46,9 @@ option: {
 }
 </pre>
 
+## balance.client.hosts: array
+リクエストのバランス先を設定します。`balance.server.header`による設定がより適切です。初期値は`[]`です。
+
 ## balance.client.support.browser: RegExp
 ロードバランスを使用するブラウザを設定します。初期値は`/msie|trident.+ rv:|chrome|firefox|safari/i`です。
 

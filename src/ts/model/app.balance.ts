@@ -55,7 +55,7 @@ module MODULE.MODEL.APP {
       return this.host();
     }
 
-    private chooseServers_(expires: number, limit: number, weight: number, respite: number): string[] {
+    private chooseServers_(expires: number, limit: number, weight: number, respite: number, hosts: string[]): string[] {
       var servers = this.app_.data.getServerBuffers(),
           serverTableByScore: { [score: string]: ServerStoreSchema } = {},
           result: string[];
@@ -77,12 +77,16 @@ module MODULE.MODEL.APP {
             host = server.host,
             state = server.state;
         if (state && state + respite >= new Date().getTime()) {
+          ~jQuery.inArray(host, hosts) && hosts.splice(jQuery.inArray(host, hosts), 1);
           continue;
         }
-        if (!host && weight && !(Math.floor(Math.random()) * weight)) {
+        if (!host && weight && !(Math.floor(Math.random() * weight))) {
           continue;
         }
         result.push(host);
+      }
+      if ('' === result[0] && 1 === result.length || !result.length) {
+        result = hosts.slice(Math.floor(Math.random() * hosts.length));
       }
       return result;
     }
@@ -98,13 +102,8 @@ module MODULE.MODEL.APP {
         return history.host || '';
       }
 
-      // DBにもCookieにもデータがなければ正規サーバを選択
-      if (!this.app_.data.getServerBuffers().length && !this.app_.data.getCookie(setting.balance.client.cookie.host)) {
-        return '';
-      }
-      
       // 最適なサーバーを選択
-      var servers: string[] = this.chooseServers_(setting.balance.history.expires, 1, setting.balance.weight, setting.balance.server.respite);
+      var servers: string[] = this.chooseServers_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.weight, setting.balance.server.respite, setting.balance.client.hosts);
       if (servers.length) {
         return servers.shift();
       }
@@ -117,7 +116,7 @@ module MODULE.MODEL.APP {
     bypass(setting: SettingInterface, retry: number): void {
       if (!this.isBalanceable_(setting)) { return; }
       this.queue_ = this.queue_.length ? this.queue_
-                                       : this.chooseServers_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.weight, setting.balance.server.respite).slice(0, retry + 1);
+                                       : this.chooseServers_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.weight, setting.balance.server.respite, setting.balance.client.hosts).slice(0, retry + 1);
       var servers = this.queue_,
           option: JQueryAjaxSettings = jQuery.extend({}, setting.ajax, setting.balance.option.ajax, setting.balance.option.callbacks.ajax);
       while (servers.length) {

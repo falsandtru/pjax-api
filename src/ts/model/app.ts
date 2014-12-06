@@ -154,6 +154,7 @@ module MODULE.MODEL.APP {
                 }
               },
               client: {
+                hosts: [],
                 support: {
                   browser: /msie|trident.+ rv:|chrome|firefox|safari/i,
                   redirect: /chrome|firefox|safari/i
