@@ -167,7 +167,6 @@ module MODULE.MODEL.APP {
               },
               server: {
                 header: 'X-Ajax-Host',
-                filter: null,
                 respite: 10 * 60 * 1000,
               },
               history: {

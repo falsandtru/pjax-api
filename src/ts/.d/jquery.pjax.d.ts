@@ -78,7 +78,6 @@ interface PjaxSetting {
         }
         server?: {
             header?: string
-            filter?: RegExp
             respite?: number
         }
         history?: {
