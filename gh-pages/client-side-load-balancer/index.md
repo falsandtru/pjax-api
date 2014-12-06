@@ -17,9 +17,9 @@ class: style-info
 
 アドレスバーのURLはもちろんすべてのサーバーで共通です。
 
-**実験的な機能であり動作検証中です。不具合やご意見等ありましたらお寄せください。**
-
 ※ 帯域計算は大手ニュースサイトのビジターのブラウザ比率に基づいたもの(95%がバランス可能なブラウザ)
+
+<a href="demo/balance/" target="_blank" class="btn btn-primary" role="button">demo</a>
 
 ## 概要
 

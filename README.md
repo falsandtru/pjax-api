@@ -22,6 +22,16 @@ You will be able most of your want.
 * Resolution of pjax common problems
 * etc...
 
+## Demo
+
+### Major feature
+
+<a href="demo/falsandtru/" target="_blank">Major feature</a>
+
+### Client-side Load Balancer
+
+<a href="demo/balance/" target="_blank">Load Balancer</a>
+
 ## Usage
 
 ### pjax
