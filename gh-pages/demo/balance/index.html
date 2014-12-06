@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<title>pjax demo3</title>
+<title>pjax demo1</title>
 <meta name="description" content="">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive">
@@ -13,16 +13,16 @@
 
 <style>
 #header{
-  background: #0ee;
+  background: #ee0;
 }
 #footer{
-  background: #e00;
+  background: #0ee;
 }
 #wrapper{
   background: #e0e;
 }
 #primary{
-  background: #ee0;
+  background: #e00;
 }
 #secondary{
   background: #0e0;
@@ -46,13 +46,10 @@ $(function(){
     rewrite: function (document, area, host) {
       $("#header span.host", document).text(host || window.location.host);
     },
-    load: { css: true },
-    cache: { click: true, submit: true, popstate: true },
     callback: function () { ga('send', 'pageview', window.location.pathname + window.location.search); $('#primary small').last().text('location = ' + location); },
     speedcheck: true
   });
   $("#header span.host").text(window.location.host);
-  $('#primary small').text('location = '+location) ;
 });
 </script>
 <script>
@@ -73,7 +70,7 @@ window.ga('send', 'pageview', window.location.pathname+window.location.search);
 <header id="header"><div class="wrapper clearfix">
 
   <h1>pjax demo</h1>
-  <p>header3</p>
+  <p>header1</p>
   <p>This page delivered from <span class="host" style="font-weight: bold;"></span>.</p>
 
 </div></header>
@@ -81,10 +78,8 @@ window.ga('send', 'pageview', window.location.pathname+window.location.search);
 <!-- ----- PRIMARY ------------------------------------------------------------ -->
 <div id="primary"><div id="layout"><div class="wrapper clearfix">
 
-  <p>primary3</p>
+  <p>primary1</p>
   <p>pjax enable あアｱ亜</p>
-  <p><a href="../../assets/js/config.js">File link</a></p>
-  <p><small></small></p>
   <ul>
     <li><a href="./index.html">page1 enable</a></li>
     <li><a href="./2.html">page2 enable</a></li>
@@ -95,7 +90,7 @@ window.ga('send', 'pageview', window.location.pathname+window.location.search);
 <!-- ----- SECONDARY ---------------------------------------------------------- -->
 <div id="secondary"><div class="wrapper clearfix">
 
-  <p>secondary3</p>
+  <p>secondary1</p>
   <ul>
     <li><a href="./index.html">page1 enable</a></li>
     <li><a href="./2.html">page2 enable</a></li>
@@ -106,14 +101,14 @@ window.ga('send', 'pageview', window.location.pathname+window.location.search);
 <!-- ----- TERTIARY ----------------------------------------------------------- -->
 <div id="tertiary"><div class="wrapper clearfix">
 
-  <p>tertiary3</p>
+  <p>tertiary1</p>
 
 </div></div>
 </div>
 <!-- ----- FOOTER ------------------------------------------------------------- -->
 <footer id="footer"><div class="wrapper clearfix">
 
-  <p>footer3</p>
+  <p>footer1</p>
 
 </div></footer>
 </div>

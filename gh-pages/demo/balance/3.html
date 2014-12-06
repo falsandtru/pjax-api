@@ -46,13 +46,10 @@ $(function(){
     rewrite: function (document, area, host) {
       $("#header span.host", document).text(host || window.location.host);
     },
-    load: { css: true },
-    cache: { click: true, submit: true, popstate: true },
     callback: function () { ga('send', 'pageview', window.location.pathname + window.location.search); $('#primary small').last().text('location = ' + location); },
     speedcheck: true
   });
   $("#header span.host").text(window.location.host);
-  $('#primary small').text('location = '+location) ;
 });
 </script>
 <script>
@@ -83,8 +80,6 @@ window.ga('send', 'pageview', window.location.pathname+window.location.search);
 
   <p>primary3</p>
   <p>pjax enable あアｱ亜</p>
-  <p><a href="../../assets/js/config.js">File link</a></p>
-  <p><small></small></p>
   <ul>
     <li><a href="./index.html">page1 enable</a></li>
     <li><a href="./2.html">page2 enable</a></li>
