@@ -17,9 +17,9 @@ class: style-info
 
 アドレスバーのURLはもちろんすべてのサーバーで共通です。
 
-**実験的な機能であり動作検証中です。不具合やご意見等ありましたらお寄せください。**
-
 ※ 帯域計算は大手ニュースサイトのビジターのブラウザ比率に基づいたもの(95%がバランス可能なブラウザ)
+
+<a href="demo/balance/" target="_blank" class="btn btn-primary" role="button">demo</a>
 
 ## 概要
 
@@ -76,7 +76,7 @@ class: style-info
    192.168.0.11           192.168.0.12           192.168.0.13           192.168.0.11
      100Mbps                100Mbps                100Mbps                100Mbps
    ___________            ___________            ___________            ___________
-  |           | software |           | software |           | software |           | software 
+  |           | software |           | software |           | software |           | software
   |   [L B]   | balance  |           | balance  |           | balance  |   [L B]   | balance  
   |   [WEB]   |__________|   [WEB]   |__________|   [WEB]   |__________|   [WEB]   |__...
   |           |          |           |          |           |          |           |
@@ -171,7 +171,7 @@ pjaxの設定によりクライアント側でAjaxリクエストを振り分け
 <pre class="sh brush: js;">
 $.pjax({
   balance: {
-    self: true
+    active: true
   }
 });
 </pre>

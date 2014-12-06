@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.28.2
+ * @version 2.29.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -2088,13 +2088,13 @@ var MODULE;
                     this.queue_ = [];
                 }
                 Balance.prototype.isBalanceable_ = function (setting) {
-                    return setting.balance.self && !!Number(this.app_.data.getCookie(setting.balance.client.cookie.balance));
+                    return setting.balance.active && !!Number(this.app_.data.getCookie(setting.balance.client.cookie.balance));
                 };
                 Balance.prototype.enable = function (setting) {
-                    if (!this.isBalanceable_(setting)) {
+                    if (!setting.balance.active) {
                         return void this.disable(setting);
                     }
-                    if (!setting.balance.client.support.userAgent.test(window.navigator.userAgent) || setting.balance.client.exclude.test(window.navigator.userAgent)) {
+                    if (!setting.balance.client.support.browser.test(window.navigator.userAgent)) {
                         return void this.disable(setting);
                     }
                     if (!this.app_.data.setCookie(setting.balance.client.cookie.balance, '1')) {
@@ -2124,7 +2124,7 @@ var MODULE;
                     }
                     return this.host();
                 };
-                Balance.prototype.chooseServers_ = function (expires, limit, weight, respite) {
+                Balance.prototype.chooseServers_ = function (expires, limit, weight, respite, hosts) {
                     var servers = this.app_.data.getServerBuffers(), serverTableByScore = {}, result;
                     (function () {
                         var now = new Date().getTime();
@@ -2140,12 +2140,16 @@ var MODULE;
                     for (var i = 0, score; score = result.length < limit && scores[i]; i++) {
                         var server = serverTableByScore[score], host = server.host, state = server.state;
                         if (state && state + respite >= new Date().getTime()) {
+                            ~jQuery.inArray(host, hosts) && hosts.splice(jQuery.inArray(host, hosts), 1);
                             continue;
                         }
-                        if (!host && weight && !(Math.floor(Math.random()) * weight)) {
+                        if (!host && weight && !(Math.floor(Math.random() * weight))) {
                             continue;
                         }
                         result.push(host);
+                    }
+                    if (hosts.length >= 2 && result.length < 2 || !result.length) {
+                        result = hosts.slice(Math.floor(Math.random() * hosts.length));
                     }
                     return result;
                 };
@@ -2158,12 +2162,8 @@ var MODULE;
                     if (history && history.expires && history.expires >= new Date().getTime()) {
                         return history.host || '';
                     }
-                    // DBにもCookieにもデータがなければ正規サーバを選択
-                    if (!this.app_.data.getServerBuffers().length && !this.app_.data.getCookie(setting.balance.client.cookie.host)) {
-                        return '';
-                    }
                     // 最適なサーバーを選択
-                    var servers = this.chooseServers_(setting.balance.history.expires, 1, setting.balance.weight, setting.balance.server.respite);
+                    var servers = this.chooseServers_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.weight, setting.balance.server.respite, setting.balance.client.hosts);
                     if (servers.length) {
                         return servers.shift();
                     }
@@ -2174,7 +2174,7 @@ var MODULE;
                     if (!this.isBalanceable_(setting)) {
                         return;
                     }
-                    this.queue_ = this.queue_.length ? this.queue_ : this.chooseServers_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.weight, setting.balance.server.respite).slice(0, retry + 1);
+                    this.queue_ = this.queue_.length ? this.queue_ : this.chooseServers_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.weight, setting.balance.server.respite, setting.balance.client.hosts).slice(0, retry + 1);
                     var servers = this.queue_, option = jQuery.extend({}, setting.ajax, setting.balance.option.ajax, setting.balance.option.callbacks.ajax);
                     while (servers.length) {
                         if (!this.host()) {
@@ -2403,7 +2403,7 @@ var MODULE;
                         speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
                         this.app_.loadtime = 0;
                         this.model_.setXHR(null);
-                        this.host_ = cache.jqXHR.host || '';
+                        this.host_ = cache.host || '';
                         this.data_ = cache.jqXHR.responseText;
                         this.textStatus_ = cache.textStatus;
                         this.jqXHR_ = cache.jqXHR;
@@ -2436,7 +2436,7 @@ var MODULE;
                         this.app_.loadtime = event.timeStamp;
                         var requestLocation = setting.destLocation.cloneNode(), ajax = {}, callbacks = {};
                         this.app_.balance.changeServer(this.app_.balance.chooseServer(setting), setting);
-                        this.host_ = setting.balance.self && this.model_.host().split('//').pop() || '';
+                        this.host_ = setting.balance.active && this.model_.host().split('//').pop() || '';
                         requestLocation.host = this.host_ || setting.destLocation.host;
                         ajax.url = !setting.server.query ? requestLocation.href : [
                             requestLocation.protocol,
@@ -2527,7 +2527,7 @@ var MODULE;
                         that.data_ = ajax[0];
                         that.textStatus_ = ajax[1];
                         that.jqXHR_ = ajax[2];
-                        that.util_.fire(setting.callbacks.ajax.success, this, [event, setting, that.data_, that.textStatus_, that.jqXHR_]);
+                        that.util_.fire(setting.callbacks.ajax.success, this[0], [event, setting, that.data_, that.textStatus_, that.jqXHR_]);
                     }
                     function fail(jqXHR, textStatus, errorThrown) {
                         if (!arguments.length || !arguments[0]) {
@@ -2542,7 +2542,7 @@ var MODULE;
                         if (!arguments.length || !arguments[0]) {
                             return;
                         }
-                        that.util_.fire(setting.callbacks.ajax.complete, this, [event, setting, that.jqXHR_, that.textStatus_]);
+                        that.util_.fire(setting.callbacks.ajax.complete, this instanceof Array ? this[0] : this, [event, setting, that.jqXHR_, that.textStatus_]);
                         that.model_.setXHR(null);
                         if (200 === +that.jqXHR_.status) {
                             that.model_.setCache(setting.destLocation.href, cache && cache.data || null, that.textStatus_, that.jqXHR_);
@@ -2879,7 +2879,7 @@ var MODULE;
                             return jQuery.when && jQuery.Deferred().resolve();
                         };
                         _this.scroll_(false);
-                        if (100 > _this.app_.loadtime && setting.reset.type.match(event.type.toLowerCase()) && !jQuery('form[method][method!="GET"]').length) {
+                        if (150 > _this.app_.loadtime && setting.reset.type.match(event.type.toLowerCase()) && !jQuery('form[method][method!="GET"]').length) {
                             switch (false) {
                                 case _this.app_.count < setting.reset.count || !setting.reset.count:
                                 case new Date().getTime() < setting.reset.time + _this.app_.time || !setting.reset.time:
@@ -3018,11 +3018,11 @@ var MODULE;
                 PageUpdate.prototype.balance_ = function () {
                     var setting = this.setting_, event = this.event_;
                     var callbacks_update = setting.callbacks.update;
-                    if (!setting.balance.self || this.app_.loadtime < 100) {
+                    if (!setting.balance.active || this.app_.loadtime < 150) {
                         return;
                     }
                     var jqXHR = this.record_.data.jqXHR();
-                    var host = (jqXHR.getResponseHeader(setting.balance.server.header) || ''), score = Math.ceil(this.app_.loadtime / (jqXHR.responseText.length || 1) * 1e5);
+                    var host = jqXHR.getResponseHeader(setting.balance.server.header) || this.record_.data.host() || '', score = Math.ceil(this.app_.loadtime / (jqXHR.responseText.length || 1) * 1e5);
                     if (this.util_.fire(callbacks_update.balance.before, setting, [event, setting, host, this.app_.loadtime, jqXHR.responseText.length]) === false) {
                         return;
                     }
@@ -3538,7 +3538,7 @@ var MODULE;
                     if (!setting.fallback || 'abort' === record.data.textStatus()) {
                         return;
                     }
-                    if (setting.balance.self) {
+                    if (setting.balance.active) {
                         this.app_.data.saveServer(record.data.host(), 0, new Date().getTime());
                         this.app_.balance.changeServer(this.app_.balance.chooseServer(setting), setting);
                     }
@@ -3687,7 +3687,7 @@ var MODULE;
                             ajax: { dataType: 'script', cache: true }
                         },
                         balance: {
-                            self: false,
+                            active: false,
                             weight: 3,
                             option: {
                                 server: {
@@ -3703,20 +3703,19 @@ var MODULE;
                                 }
                             },
                             client: {
+                                hosts: [],
                                 support: {
-                                    userAgent: /msie|trident.+ rv:|chrome|firefox|safari/i,
+                                    browser: /msie|trident.+ rv:|chrome|firefox|safari/i,
                                     redirect: /chrome|firefox|safari/i
                                 },
-                                exclude: /mobile|phone|android|iphone|blackberry/i,
                                 cookie: {
-                                    balance: 'ajax_balanceable',
-                                    redirect: 'ajax_redirectable',
-                                    host: 'ajax_host'
+                                    balance: 'balanceable',
+                                    redirect: 'redirectable',
+                                    host: 'host'
                                 }
                             },
                             server: {
                                 header: 'X-Ajax-Host',
-                                filter: null,
                                 respite: 10 * 60 * 1000
                             },
                             history: {
@@ -3813,7 +3812,7 @@ var MODULE;
                     };
                     var setting;
                     setting = jQuery.extend(true, initial, scope || this.option_);
-                    setting = jQuery.extend(true, setting, setting.balance.self && setting.balance.option, force);
+                    setting = jQuery.extend(true, setting, setting.balance.active && setting.balance.option, force);
                     setting = jQuery.extend(true, setting, compute());
                     if (scope) {
                         MODULE.FREEZE(setting, true);

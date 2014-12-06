@@ -8,7 +8,6 @@ new Function().apply.apply(function (accessor) {
   spec.init = spec.preload;
   spec.init = spec.pjax;
   spec.init = spec.visibilitytrigger;
-  spec.init = spec.manifest;
   spec.init = function () { initialize = false; };
 
 /* component
@@ -201,42 +200,6 @@ new Function().apply.apply(function (accessor) {
       setTimeout(function () { $.vt.enable().vtrigger(); }, 20);
     }
   };
-  
-/* manifest
-  -------------------------------------------------------------------------- */
-  spec.manifest = function () {
-    if (typeof applicationCache !== 'object' || !applicationCache) { return; }
-
-    var appCache = window.applicationCache;
-
-    if (initialize) {
-      $.each(['checking', 'cached', 'downloading', 'error', 'noupdate', 'obsolete', 'progress', 'updateready'], function (i, type) {
-        appCache.addEventListener(type, handler, false);
-      });
-    }
-
-    function handler() {
-      switch (appCache.status) {
-        case appCache.UNCACHED:    // UNCACHED    == 0
-          break;
-        case appCache.IDLE:        // IDLE        == 1
-          break;
-        case appCache.CHECKING:    // CHECKING    == 2
-          break;
-        case appCache.DOWNLOADING: // DOWNLOADING == 3
-          break;
-        case appCache.UPDATEREADY: // UPDATEREADY == 4
-          appCache.swapCache();
-          //confirm('Please reload this page because a new version of this site is available. Reload it now?') &&
-          window.location.reload();
-          break;
-        case appCache.OBSOLETE:    // OBSOLETE    == 5
-          break;
-        default:
-          break;
-      }
-    }
-  };
 
   return this;
 },
@@ -245,6 +208,5 @@ FuncManager([
   'preload',
   'pjax',
   'visibilitytrigger',
-  'clientenv',
-  'manifest'
+  'clientenv'
 ]).contextArguments);
