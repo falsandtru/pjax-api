@@ -9,8 +9,6 @@ class: style-api style-api-detail
 # balance
 ロードバランスを設定します。サーバーサイドのみでバランスする場合は設定する必要はありません。機能の解説は[Client-side Load Balancer](client-side-load-balancer/)をお読みください。
 
-**実験的な機能であり動作検証中です。不具合やご意見等ありましたらお寄せください。**
-
 ## balance.active: boolean
 ブラウザでロードバランスを行うかを設定します。Cookieを使用できる必要があります。IndexedDBを使用できない場合、機能と性能が制限されます。初期値は`false`です。
 
