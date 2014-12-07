@@ -117,6 +117,9 @@ module MODULE.MODEL.APP {
       if (servers.length) {
         return servers.shift();
       }
+      if (this.app_.data.getCookie(setting.balance.client.cookie.host)) {
+        return this.app_.data.getCookie(setting.balance.client.cookie.host); 
+      }
 
       return '';
     }
