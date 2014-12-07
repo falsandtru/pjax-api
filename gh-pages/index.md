@@ -23,6 +23,7 @@ pjaxはリクエストと描画を最小限に抑えた高速かつシームレ�
 
 * <a href="demo/falsandtru/" target="_blank">Major feature</a>
 * <a href="demo/balance/" target="_blank">Client-side Load Balancer</a>
+* <a href="demo/bypass/" target="_blank">Bypass server</a>
 
 </div>
 

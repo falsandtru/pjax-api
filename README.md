@@ -28,6 +28,8 @@ You will be able most of your want.
 
 ### <a href="http://falsandtru.github.io/jquery-pjax/demo/balance/" target="_blank">Client-side Load Balancer</a>
 
+### <a href="http://falsandtru.github.io/jquery-pjax/demo/bypass/" target="_blank">Bypass server</a>
+
 ## Usage
 
 ### pjax
