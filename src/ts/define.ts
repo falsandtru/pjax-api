@@ -90,7 +90,7 @@ module MODULE {
     setXHR(xhr: JQueryXHR): JQueryXHR
     isAvailable(event: JQueryEventObject): boolean
     fallback(event: JQueryEventObject): void
-    proxy(): JQueryDeferred<any>
+    bypass(): JQueryDeferred<any>
     speed: any
     
     // Controller
@@ -205,12 +205,6 @@ module MODULE.MODEL {
     changeServer(host: string, setting?: SettingInterface): string
     chooseServer(setting: SettingInterface): string
     bypass(): JQueryDeferred<any>
-  }
-
-  // Proxy
-  export declare class ProxyInterface {
-    constructor(model: ModelInterface, app: AppLayerInterface)
-    install(setting: SettingInterface): void
   }
 
   // Page

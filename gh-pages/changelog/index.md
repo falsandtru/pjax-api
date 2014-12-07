@@ -7,6 +7,10 @@ nav: nav
 
 # ChangeLog
 
+## 2.30.0
+
+* `bypass`メソッドを追加
+
 ## 2.29.2
 
 * 古いAndroid, iOSで動作しないバグを修正

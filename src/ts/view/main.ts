@@ -15,9 +15,8 @@ module MODULE.VIEW {
 
     private observe_(setting: SettingInterface): ViewInterface {
       this.release_(setting);
-      this.context_
-      .delegate(setting.link, setting.nss.event.click, this.handlers.click)
-      .delegate(setting.form, setting.nss.event.submit, this.handlers.submit);
+      setting.link && this.context_.delegate(setting.link, setting.nss.event.click, this.handlers.click);
+      setting.form && this.context_.delegate(setting.form, setting.nss.event.submit, this.handlers.submit);
       jQuery(window).bind(setting.nss.event.popstate, this.handlers.popstate);
 
       setting.database && setting.fix.scroll &&
@@ -26,9 +25,8 @@ module MODULE.VIEW {
     }
 
     private release_(setting: SettingInterface): ViewInterface {
-      this.context_
-      .undelegate(setting.link, setting.nss.event.click)
-      .undelegate(setting.form, setting.nss.event.submit);
+      setting.link && this.context_.undelegate(setting.link, setting.nss.event.click)
+      setting.form && this.context_.undelegate(setting.form, setting.nss.event.submit);
       jQuery(window).unbind(setting.nss.event.popstate);
 
       setting.database && setting.fix.scroll &&

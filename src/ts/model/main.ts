@@ -277,7 +277,7 @@ module MODULE.MODEL {
       this.app_.page.provider.clearRecord();
     }
 
-    proxy(): JQueryDeferred<any> {
+    bypass(): JQueryDeferred<any> {
       return this.app_.balance.bypass();
     }
 

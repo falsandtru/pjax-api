@@ -14,6 +14,7 @@ module MODULE.MODEL.APP {
 
     private host_: string = ''
     host = () => this.host_
+    private bypass_: boolean = false
 
     private isBalanceable_(setting: SettingInterface): boolean {
       return setting.balance.active && !!Number(this.app_.data.getCookie(setting.balance.client.cookie.balance));
@@ -64,6 +65,9 @@ module MODULE.MODEL.APP {
       (() => {
         var now: number = new Date().getTime();
         for (var i in servers) {
+          if (!servers[i].host && this.bypass_) {
+            continue;
+          }
           if (now > servers[i].date + expires) {
             continue;
           }
@@ -96,6 +100,7 @@ module MODULE.MODEL.APP {
         result.push(host);
       }
       if (hosts.length >= 2 && result.length < 2 || !result.length) {
+        hosts = this.bypass_ ? jQuery.grep(hosts, (host) => !!host) : hosts;
         result = hosts.slice(Math.floor(Math.random() * hosts.length));
       }
       return result;
@@ -124,7 +129,7 @@ module MODULE.MODEL.APP {
       return '';
     }
 
-    private parallel_ = 6
+    private parallel_ = 4
     bypass(): JQueryDeferred<any> {
       var setting: SettingInterface = this.app_.configure(window.location),
           deferred = jQuery.Deferred();
@@ -133,8 +138,14 @@ module MODULE.MODEL.APP {
           servers = this.chooseServers_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.weight, setting.balance.server.respite, setting.balance.client.hosts),
           option: JQueryAjaxSettings = jQuery.extend({}, setting.ajax, setting.balance.option.ajax, setting.balance.option.callbacks.ajax);
 
+      servers = jQuery.grep(servers, (server) => !!server);
+
+      var index: number = 0,
+          length: number = servers.length;
+
       var test = (server: string) => {
         var that = this;
+        'pending' === deferred.state() &&
         jQuery.ajax(jQuery.extend({}, option, <JQueryAjaxSettings>{
           url: that.util_.normalizeUrl(window.location.protocol + '//' + server + window.location.pathname.replace(/^\/?/, '/') + window.location.search),
           xhr: !setting.balance.option.callbacks.ajax.xhr ? undefined : function () {
@@ -171,10 +182,13 @@ module MODULE.MODEL.APP {
           complete: function () {
             that.util_.fire(setting.balance.option.ajax.complete, this, arguments);
 
+            ++index;
+            deferred.notify(index, length, server);
+
             if (server) {
               that.host_ = server;
               servers.splice(0, servers.length);
-              deferred.resolve();
+              deferred.resolve(server);
             } else if (!that.host() && servers.length) {
               test(servers.shift());
             } else {
@@ -184,14 +198,9 @@ module MODULE.MODEL.APP {
         }));
       };
 
-      while (parallel--) {
-        var server = servers.shift();
-        if (!server || server === window.location.host) {
-          servers.length && ++parallel;
-          continue;
-        }
-
-        test(server);
+      this.bypass_ = true;
+      while (parallel-- && servers.length) {
+        test(servers.shift());
       }
       return deferred;
     }
