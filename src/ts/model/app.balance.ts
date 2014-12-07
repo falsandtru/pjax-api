@@ -122,68 +122,75 @@ module MODULE.MODEL.APP {
     }
 
     private parallel_ = 6
-    private queue_ = []
-    bypass(setting: SettingInterface, retry: number): void {
-      if (!this.isBalanceable_(setting)) { return; }
-      this.queue_ = this.queue_.length ? this.queue_
-                                       : this.chooseServers_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.weight, setting.balance.server.respite, setting.balance.client.hosts).slice(0, retry + 1);
-      var servers = this.queue_,
+    bypass(): JQueryDeferred<any> {
+      var setting: SettingInterface = this.app_.configure(window.location),
+          deferred = jQuery.Deferred();
+      if (!this.isBalanceable_(setting)) { return deferred.reject(); }
+      var parallel = this.parallel_,
+          servers = this.chooseServers_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.weight, setting.balance.server.respite, setting.balance.client.hosts),
           option: JQueryAjaxSettings = jQuery.extend({}, setting.ajax, setting.balance.option.ajax, setting.balance.option.callbacks.ajax);
-      while (servers.length) {
-        if (!this.host()) {
-          break;
-        }
-        if (!this.parallel_) {
-          servers.length && setTimeout(() => this.bypass(setting, servers.length - 1), option.timeout || 1500);
-          return;
-        }
 
-        ((server: string) => {
-          --this.parallel_;
-          var that = this;
-          jQuery.ajax(jQuery.extend({}, option, <JQueryAjaxSettings>{
-            url: that.util_.normalizeUrl(server + window.location.pathname.replace(/^\/?/, '/') + window.location.search),
-            xhr: !setting.balance.option.callbacks.ajax.xhr ? undefined : function () {
-              var jqXHR: JQueryXHR;
-              jqXHR = that.util_.fire(setting.balance.option.callbacks.ajax.xhr, this, [event, setting]);
-              jqXHR = 'object' === typeof jqXHR ? jqXHR : jQuery.ajaxSettings.xhr();
-              return jqXHR;
-            },
-            beforeSend: !setting.balance.option.callbacks.ajax.beforeSend && !setting.server.header ? undefined : function (jqXHR: JQueryXHR, ajaxSetting: JQueryAjaxSettings) {
-              if (setting.server.header) {
-                jqXHR.setRequestHeader(setting.nss.requestHeader, 'true');
-              }
-              if ('object' === typeof setting.server.header) {
-                jqXHR.setRequestHeader(setting.nss.requestHeader, 'true');
-                setting.server.header.area && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Area', this.app_.chooseArea(setting.area, document, document));
-                setting.server.header.head && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Head', setting.load.head);
-                setting.server.header.css && jqXHR.setRequestHeader(setting.nss.requestHeader + '-CSS', setting.load.css.toString());
-                setting.server.header.script && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Script', setting.load.script.toString());
-              }
-
-              that.util_.fire(setting.balance.option.callbacks.ajax.beforeSend, this, [event, setting, jqXHR, ajaxSetting]);
-            },
-            dataFilter: !setting.balance.option.callbacks.ajax.dataFilter ? undefined : function (data: string, type: Object) {
-              return that.util_.fire(setting.balance.option.callbacks.ajax.dataFilter, this, [event, setting, data, type]) || data;
-            },
-            success: function () {
-              that.host_ = server;
-              that.queue_ = [];
-
-              that.util_.fire(setting.balance.option.ajax.success, this, arguments);
-            },
-            error: function () {
-              that.util_.fire(setting.balance.option.ajax.error, this, arguments);
-            },
-            complete: function () {
-              ++that.parallel_;
-              servers.length && that.bypass(setting, servers.length - 1);
-
-              that.util_.fire(setting.balance.option.ajax.complete, this, arguments);
+      var test = (server: string) => {
+        var that = this;
+        jQuery.ajax(jQuery.extend({}, option, <JQueryAjaxSettings>{
+          url: that.util_.normalizeUrl(window.location.protocol + '//' + server + window.location.pathname.replace(/^\/?/, '/') + window.location.search),
+          xhr: !setting.balance.option.callbacks.ajax.xhr ? undefined : function () {
+            var jqXHR: JQueryXHR;
+            jqXHR = that.util_.fire(setting.balance.option.callbacks.ajax.xhr, this, [event, setting]);
+            jqXHR = 'object' === typeof jqXHR ? jqXHR : jQuery.ajaxSettings.xhr();
+            return jqXHR;
+          },
+          beforeSend: !setting.balance.option.callbacks.ajax.beforeSend && !setting.server.header ? undefined : function (jqXHR: JQueryXHR, ajaxSetting: JQueryAjaxSettings) {
+            if (setting.server.header) {
+              jqXHR.setRequestHeader(setting.nss.requestHeader, 'true');
             }
-          }));
-        })(servers.shift());
+            if ('object' === typeof setting.server.header) {
+              jqXHR.setRequestHeader(setting.nss.requestHeader, 'true');
+              setting.server.header.area && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Area', this.app_.chooseArea(setting.area, document, document));
+              setting.server.header.head && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Head', setting.load.head);
+              setting.server.header.css && jqXHR.setRequestHeader(setting.nss.requestHeader + '-CSS', setting.load.css.toString());
+              setting.server.header.script && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Script', setting.load.script.toString());
+            }
+
+            that.util_.fire(setting.balance.option.callbacks.ajax.beforeSend, this, [event, setting, jqXHR, ajaxSetting]);
+          },
+          dataFilter: !setting.balance.option.callbacks.ajax.dataFilter ? undefined : function (data: string, type: Object) {
+            return that.util_.fire(setting.balance.option.callbacks.ajax.dataFilter, this, [event, setting, data, type]) || data;
+          },
+          success: function () {
+            server = server;
+            that.util_.fire(setting.balance.option.ajax.success, this, arguments);
+          },
+          error: function () {
+            server = null;
+            that.util_.fire(setting.balance.option.ajax.error, this, arguments);
+          },
+          complete: function () {
+            that.util_.fire(setting.balance.option.ajax.complete, this, arguments);
+
+            if (server) {
+              that.host_ = server;
+              servers.splice(0, servers.length);
+              deferred.resolve();
+            } else if (!that.host() && servers.length) {
+              test(servers.shift());
+            } else {
+              deferred.reject();
+            }
+          }
+        }));
+      };
+
+      while (parallel--) {
+        var server = servers.shift();
+        if (!server || server === window.location.host) {
+          servers.length && ++parallel;
+          continue;
+        }
+
+        test(server);
       }
+      return deferred;
     }
 
   }

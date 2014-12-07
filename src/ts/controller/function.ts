@@ -161,6 +161,10 @@ module MODULE.CONTROLLER {
       return true;
     }
 
+    proxy(): JQueryDeferred<any> {
+      return Model.singleton().proxy();
+    }
+
     host(): string {
       return Model.singleton().host();
     }

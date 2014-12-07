@@ -273,6 +273,10 @@ module MODULE.MODEL {
       this.app_.page.provider.clearRecord();
     }
 
+    proxy(): JQueryDeferred<any> {
+      return this.app_.balance.bypass();
+    }
+
     speed: any
 
   }
