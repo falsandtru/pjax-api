@@ -118,9 +118,9 @@ module MODULE.MODEL.APP {
       }
 
       // 最適なサーバーを選択
-      var servers: string[] = this.chooseServers_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.weight, setting.balance.server.respite, setting.balance.client.hosts);
-      if (servers.length) {
-        return servers.shift();
+      var hosts: string[] = this.chooseServers_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.weight, setting.balance.server.respite, setting.balance.client.hosts);
+      if (hosts.length) {
+        return hosts.shift();
       }
       if (this.app_.data.getCookie(setting.balance.client.cookie.host)) {
         return this.app_.data.getCookie(setting.balance.client.cookie.host); 
@@ -135,19 +135,19 @@ module MODULE.MODEL.APP {
           deferred = jQuery.Deferred();
       if (!this.isBalanceable_(setting)) { return deferred.reject(); }
       var parallel = this.parallel_,
-          servers = this.chooseServers_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.weight, setting.balance.server.respite, setting.balance.client.hosts),
+          hosts = this.chooseServers_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.weight, setting.balance.server.respite, setting.balance.client.hosts),
           option: JQueryAjaxSettings = jQuery.extend({}, setting.ajax, setting.balance.option.ajax, setting.balance.option.callbacks.ajax);
 
-      servers = jQuery.grep(servers, (server) => !!server);
+      hosts = jQuery.grep(hosts, (host) => !!host);
 
       var index: number = 0,
-          length: number = servers.length;
+          length: number = hosts.length;
 
-      var test = (server: string) => {
+      var test = (host: string) => {
         var that = this;
         'pending' === deferred.state() &&
         jQuery.ajax(jQuery.extend({}, option, <JQueryAjaxSettings>{
-          url: that.util_.normalizeUrl(window.location.protocol + '//' + server + window.location.pathname.replace(/^\/?/, '/') + window.location.search),
+          url: that.util_.normalizeUrl(window.location.protocol + '//' + host + window.location.pathname.replace(/^\/?/, '/') + window.location.search),
           xhr: !setting.balance.option.callbacks.ajax.xhr ? undefined : function () {
             var jqXHR: JQueryXHR;
             jqXHR = that.util_.fire(setting.balance.option.callbacks.ajax.xhr, this, [event, setting]);
@@ -172,25 +172,25 @@ module MODULE.MODEL.APP {
             return that.util_.fire(setting.balance.option.callbacks.ajax.dataFilter, this, [event, setting, data, type]) || data;
           },
           success: function () {
-            server = server;
+            host = host;
             that.util_.fire(setting.balance.option.ajax.success, this, arguments);
           },
           error: function () {
-            server = null;
+            host = null;
             that.util_.fire(setting.balance.option.ajax.error, this, arguments);
           },
           complete: function () {
             that.util_.fire(setting.balance.option.ajax.complete, this, arguments);
 
             ++index;
-            deferred.notify(index, length, server);
+            deferred.notify(index, length, host);
 
-            if (server) {
-              that.host_ = server;
-              servers.splice(0, servers.length);
-              deferred.resolve(server);
-            } else if (!that.host() && servers.length) {
-              test(servers.shift());
+            if (host) {
+              that.host_ = host;
+              hosts.splice(0, hosts.length);
+              deferred.resolve(host);
+            } else if (!that.host() && hosts.length) {
+              test(hosts.shift());
             } else {
               deferred.reject();
             }
@@ -199,8 +199,8 @@ module MODULE.MODEL.APP {
       };
 
       this.bypass_ = true;
-      while (parallel-- && servers.length) {
-        test(servers.shift());
+      while (parallel-- && hosts.length) {
+        test(hosts.shift());
       }
       return deferred;
     }
