@@ -87,6 +87,7 @@ module MODULE.MODEL.APP {
         this.app_.loadtime = xhr.timeStamp;
         var defer: JQueryDeferred<any> = this.wait_(wait);
         this.app_.page.setWait(defer);
+        delete xhr.timeStamp;
         jQuery.when(xhr, defer)
         .done(done).fail(fail).always(always);
       } else {

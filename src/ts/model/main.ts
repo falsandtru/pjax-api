@@ -141,7 +141,8 @@ module MODULE.MODEL {
         return;
       };
       // clickメソッド用
-      !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length && this.fallback(event);
+      !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length &&
+      this.fallback(event);
     }
 
     submit(event: JQueryEventObject): void {
@@ -164,7 +165,8 @@ module MODULE.MODEL {
         return;
       };
       // submitメソッド用
-      !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length && this.fallback(event);
+      !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length &&
+      this.fallback(event);
     }
 
     popstate(event: JQueryEventObject): void {
@@ -189,6 +191,8 @@ module MODULE.MODEL {
         return;
       };
       // pjax処理されないURL変更によるページ更新
+      State.open === this.state() &&
+      !this.util_.compareUrl(this.convertUrlToKeyUrl(setting.origLocation.href), this.convertUrlToKeyUrl(window.location.href), true) &&
       this.fallback(event);
     }
     
@@ -271,6 +275,10 @@ module MODULE.MODEL {
 
     clearCache(): void {
       this.app_.page.provider.clearRecord();
+    }
+
+    proxy(): JQueryDeferred<any> {
+      return this.app_.balance.bypass();
     }
 
     speed: any

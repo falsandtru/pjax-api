@@ -90,6 +90,7 @@ module MODULE {
     setXHR(xhr: JQueryXHR): JQueryXHR
     isAvailable(event: JQueryEventObject): boolean
     fallback(event: JQueryEventObject): void
+    proxy(): JQueryDeferred<any>
     speed: any
     
     // Controller
@@ -203,7 +204,13 @@ module MODULE.MODEL {
     disable(setting: SettingInterface): void
     changeServer(host: string, setting?: SettingInterface): string
     chooseServer(setting: SettingInterface): string
-    bypass(setting: SettingInterface, retry: number): void
+    bypass(): JQueryDeferred<any>
+  }
+
+  // Proxy
+  export declare class ProxyInterface {
+    constructor(model: ModelInterface, app: AppLayerInterface)
+    install(setting: SettingInterface): void
   }
 
   // Page
@@ -461,10 +468,11 @@ module MODULE {
   // Macro
   export function MIXIN(baseClass: Function, mixClasses: Function[]): void {
     var baseClassPrototype = baseClass.prototype;
+    mixClasses = mixClasses.reverse();
     for (var iMixClasses = mixClasses.length; iMixClasses--;) {
       var mixClassPrototype = mixClasses[iMixClasses].prototype;
       for (var iProperty in mixClassPrototype) {
-        if ('constructor' === iProperty || !mixClassPrototype.hasOwnProperty(iProperty)) { continue; }
+        if ('constructor' === iProperty || !baseClassPrototype[iProperty] || !mixClassPrototype.hasOwnProperty(iProperty)) { continue; }
         baseClassPrototype[iProperty] = mixClassPrototype[iProperty];
       }
     }

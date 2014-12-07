@@ -66,6 +66,9 @@ interface PjaxSetting {
         option?: PjaxSetting
         client?: {
             hosts?: string[]
+            proxy?: {
+                worker?: string
+            }
             support?: {
                 browser?: RegExp
                 redirect?: RegExp
@@ -180,9 +183,11 @@ interface JQueryPjax extends PJAX.Core<JQueryPjax>, PJAX.Method<JQueryPjax>, JQu
     submit(url: string, attrs: {}, data: any): JQueryPjax
     submit(url: HTMLFormElement): JQueryPjax
     submit(url: JQuery): JQueryPjax
+    proxy(): JQueryDeferred<any>
 }
 
 interface JQueryPjaxStatic extends PJAX.Core<JQueryPjax>, PJAX.Method<JQueryPjaxStatic>, JQueryStatic {
+    proxy(): JQueryDeferred<any>
 }
 
 declare module PJAX {
@@ -213,6 +218,7 @@ declare module PJAX {
         removeCache(): T
         clearCache(): T
         follow(event: JQueryEventObject, ajax: JQueryXHR, host?: string): boolean
+        proxy(): JQueryDeferred<any>
         host(): string
     }
 }

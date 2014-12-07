@@ -32,8 +32,8 @@ module MODULE.MODEL.APP {
     parse(html: string, uri?: string, mode: string = this.mode_): Document {
       html += ~html.search(/<title[\s>]/i) ? '' : '<title></title>';
 
-      var backup: string = !uri || !LIBRARY.Utility.compareUrl(uri, window.location.href) ? window.location.href : undefined;
-      backup && window.history.replaceState(window.history.state, document.title, uri);
+      var backup: string = !uri || !LIBRARY.Utility.compareUrl(uri, window.location.href, true) ? window.location.href : undefined;
+      backup && window.history.replaceState && window.history.replaceState(window.history.state, document.title, uri);
 
       var doc: Document;
       switch (mode) {
@@ -90,11 +90,11 @@ module MODULE.MODEL.APP {
             default:
               this.mode_ = this.test_('dom') || this.test_('doc') || this.test_('manipulate');
           }
-          doc = this.parse(html, uri);
+          doc = this.mode_ && this.parse(html, uri);
           break;
       }
 
-      backup && window.history.replaceState(window.history.state, document.title, backup);
+      backup && window.history.replaceState && window.history.replaceState(window.history.state, document.title, backup);
 
       return doc;
 
