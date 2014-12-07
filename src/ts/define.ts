@@ -461,10 +461,11 @@ module MODULE {
   // Macro
   export function MIXIN(baseClass: Function, mixClasses: Function[]): void {
     var baseClassPrototype = baseClass.prototype;
+    mixClasses = mixClasses.reverse();
     for (var iMixClasses = mixClasses.length; iMixClasses--;) {
       var mixClassPrototype = mixClasses[iMixClasses].prototype;
       for (var iProperty in mixClassPrototype) {
-        if ('constructor' === iProperty || !mixClassPrototype.hasOwnProperty(iProperty)) { continue; }
+        if ('constructor' === iProperty || !baseClassPrototype[iProperty] || !mixClassPrototype.hasOwnProperty(iProperty)) { continue; }
         baseClassPrototype[iProperty] = mixClassPrototype[iProperty];
       }
     }
