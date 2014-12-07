@@ -144,6 +144,7 @@ module MODULE.MODEL.APP.DATA {
     loadBuffer(limit: number = 0): void {
       var buffer = this.buffer;
       if (this.indexes.length) {
+        this.DB.IDBKeyRange && 
         this.accessAll(this.indexes[0].name, this.DB.IDBKeyRange.upperBound(Infinity), 'prev', callback);
       } else {
         this.accessAll(callback);
