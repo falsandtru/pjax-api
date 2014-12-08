@@ -170,7 +170,7 @@ module MODULE.MODEL.APP {
           complete: this.model_.isDeferrable ? null : complete
         };
 
-        ajax = jQuery.extend({}, setting.ajax, ajax);
+        ajax = jQuery.extend({}, setting.ajax, ajax, callbacks);
         this.model_.setXHR(jQuery.ajax(ajax));
 
         if (!this.model_.isDeferrable) { return; }
