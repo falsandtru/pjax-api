@@ -248,7 +248,7 @@ module MODULE.MODEL {
     constructor()
     constructor(setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string)
     data: PageRecordDataInterface
-    state(): boolean
+    state(setting?: SettingInterface): boolean
   }
   export declare class PageRecordDataInterface implements RecordDataInterface {
     url(): string

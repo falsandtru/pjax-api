@@ -251,17 +251,13 @@ module MODULE.MODEL {
       var setting: SettingInterface = this.configure(this.convertUrlToKeyUrl(unsafe_url));
       if (!setting) { return; }
       var record: PageRecordInterface = this.app_.page.provider.getRecord(setting);
-      if (record.data.expires(setting.cache.expires.min, setting.cache.expires.max) < new Date().getTime()) {
-        this.removeCache(unsafe_url);
-        return;
-      }
-      return record.state() || record.data.data() ? {
+      return record.state(setting) || record.data.data() ? {
         data: record.data.data(),
         textStatus: record.data.textStatus(),
         jqXHR: record.data.jqXHR(),
         expires: record.data.expires(),
         host: record.data.host()
-      } : undefined;
+      } : void this.removeCache(unsafe_url);
     }
     
     setCache(unsafe_url: string, data: string, textStatus: string, jqXHR: JQueryXHR): void {

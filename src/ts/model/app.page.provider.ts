@@ -16,7 +16,7 @@ module MODULE.MODEL.APP {
     private order_: string[] = []
 
     fetchRecord(setting: SettingInterface, event: JQueryEventObject, success: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void, failure: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void): void {
-      if (this.getRecord(setting).state()) {
+      if (this.getRecord(setting).state(setting)) {
         //success(this.getRecord(setting), event);
         this.pullRecord(setting, event, success, failure);
       } else {
