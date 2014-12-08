@@ -275,7 +275,7 @@ module MODULE.MODEL.APP {
 
         this.scroll_(false);
 
-        if (150 > this.app_.loadtime && setting.reset.type.match(event.type.toLowerCase()) && !jQuery('form[method][method!="GET"]').length) {
+        if (100 > this.app_.loadtime && setting.reset.type.match(event.type.toLowerCase()) && !jQuery('form[method][method!="GET"]').length) {
           switch (false) {
             case this.app_.count < setting.reset.count || !setting.reset.count:
             case new Date().getTime() < setting.reset.time + this.app_.time || !setting.reset.time:
@@ -444,15 +444,16 @@ module MODULE.MODEL.APP {
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
-      if (!setting.balance.active || this.app_.loadtime < 150) { return; }
+      if (!setting.balance.active || this.app_.loadtime < 100) { return; }
 
       var jqXHR = this.record_.data.jqXHR();
       var host = jqXHR.getResponseHeader(setting.balance.server.header) || this.record_.data.host() || '',
-          score = Math.ceil(this.app_.loadtime / (jqXHR.responseText.length || 1) * 1e5);
+          time = this.app_.loadtime,
+          score = this.app_.balance.score(time, jqXHR.responseText.length);
 
       if (this.util_.fire(callbacks_update.balance.before, setting, [event, setting, host, this.app_.loadtime, jqXHR.responseText.length]) === false) { return; }
 
-      this.app_.data.saveServer(host, score);
+      this.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
       this.app_.balance.changeServer(this.app_.balance.chooseServer(setting), setting);
 
       if (this.util_.fire(callbacks_update.balance.after, setting, [event, setting, host, this.app_.loadtime, jqXHR.responseText.length]) === false) { return; }

@@ -16,7 +16,7 @@ module MODULE.MODEL.APP {
     private order_: string[] = []
 
     fetchRecord(setting: SettingInterface, event: JQueryEventObject, success: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void, failure: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void): void {
-      if (this.getRecord(setting).state()) {
+      if (this.getRecord(setting).state(setting)) {
         //success(this.getRecord(setting), event);
         this.pullRecord(setting, event, success, failure);
       } else {
@@ -47,7 +47,7 @@ module MODULE.MODEL.APP {
     setRecord(setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string): PageRecordInterface {
       this.cleanRecords_(setting);
       this.addOrder_(setting);
-      return this.table_[this.hash_(setting)] = new this.Record_(setting, data, textStatus, jqXHR, host);
+      return this.table_[this.hash_(setting)] = new this.Record_(setting.nss.url, data, textStatus, jqXHR, host);
     }
 
     removeRecord(setting: SettingInterface): PageRecordInterface {

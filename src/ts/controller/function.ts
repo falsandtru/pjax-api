@@ -161,8 +161,8 @@ module MODULE.CONTROLLER {
       return true;
     }
 
-    proxy(): JQueryDeferred<any> {
-      return Model.singleton().proxy();
+    bypass(): JQueryDeferred<any> {
+      return Model.singleton().bypass();
     }
 
     host(): string {

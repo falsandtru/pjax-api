@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<title>pjax demo2</title>
+<title>pjax demo</title>
 <meta name="description" content="">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive">
@@ -13,16 +13,16 @@
 
 <style>
 #header{
-  background: #e00;
+  background: #ee0;
 }
 #footer{
-  background: #ee0;
+  background: #0ee;
 }
 #wrapper{
   background: #e0e;
 }
 #primary{
-  background: #0ee;
+  background: #e00;
 }
 #secondary{
   background: #0e0;
@@ -46,13 +46,10 @@ $(function(){
     rewrite: function (document, area, host) {
       $("#header span.host", document).text(host || window.location.host);
     },
-    load: { css: true },
-    cache: { click: true, submit: true, popstate: true },
     callback: function () { ga('send', 'pageview', window.location.pathname + window.location.search); $('#primary small').last().text('location = ' + location); },
     speedcheck: true
   });
   $("#header span.host").text(window.location.host);
-  $('#primary small').text('location = '+location) ;
 });
 </script>
 <script>
@@ -73,7 +70,7 @@ window.ga('send', 'pageview', window.location.pathname+window.location.search);
 <header id="header"><div class="wrapper clearfix">
 
   <h1>pjax demo</h1>
-  <p>header2</p>
+  <p>header1</p>
   <p>This page delivered from <span class="host" style="font-weight: bold;"></span>.</p>
 
 </div></header>
@@ -81,39 +78,32 @@ window.ga('send', 'pageview', window.location.pathname+window.location.search);
 <!-- ----- PRIMARY ------------------------------------------------------------ -->
 <div id="primary"><div id="layout"><div class="wrapper clearfix">
 
-  <p>primary2</p>
-  <p>pjax enable あアｱ亜</p>
-  <p><a href="../../assets/js/config.js">File link</a></p>
-  <p><small></small></p>
+  <p>primary1</p>
+  <form><button onclick="return $.pjax.bypass().always(function (host) { alert(host) }), false">Bypass</button></form>
   <ul>
-    <li><a href="./index.html">page1 enable</a></li>
-    <li><a href="./2.html">page2 enable</a></li>
-    <li><a href="./3.html">page3 enable</a></li>
+    <li><a href="./index.html">page1</a></li>
+    <li><a href="./2.html">page2</a></li>
+    <li><a href="./3.html">page3</a></li>
   </ul>
 
 </div></div></div>
 <!-- ----- SECONDARY ---------------------------------------------------------- -->
 <div id="secondary"><div class="wrapper clearfix">
 
-  <p>secondary2</p>
-  <ul>
-    <li><a href="./index.html">page1 enable</a></li>
-    <li><a href="./2.html">page2 enable</a></li>
-    <li><a href="./3.html">page3 enable</a></li>
-  </ul>
+  <p>secondary1</p>
 
 </div></div>
 <!-- ----- TERTIARY ----------------------------------------------------------- -->
 <div id="tertiary"><div class="wrapper clearfix">
 
-  <p>tertiary2</p>
+  <p>tertiary1</p>
 
 </div></div>
 </div>
 <!-- ----- FOOTER ------------------------------------------------------------- -->
 <footer id="footer"><div class="wrapper clearfix">
 
-  <p>footer2</p>
+  <p>footer1</p>
 
 </div></footer>
 </div>

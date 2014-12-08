@@ -137,7 +137,7 @@ module MODULE.MODEL.APP {
             break;
         }
 
-        callbacks = <JQueryAjaxSettings>{
+        ajax = jQuery.extend({}, setting.ajax, ajax, <JQueryAjaxSettings>{
           xhr: !setting.callbacks.ajax.xhr ? undefined : function () {
             var jqXHR: JQueryXHR;
             jqXHR = that.util_.fire(setting.callbacks.ajax.xhr, this, [event, setting]);
@@ -165,12 +165,11 @@ module MODULE.MODEL.APP {
           dataFilter: !setting.callbacks.ajax.dataFilter ? undefined : function (data: string, type: Object) {
             return that.util_.fire(setting.callbacks.ajax.dataFilter, this, [event, setting, data, type]) || data;
           },
-          success: success,
-          error: error,
-          complete: complete
-        };
+          success: this.model_.isDeferrable ? null : success,
+          error: this.model_.isDeferrable ? null : error,
+          complete: this.model_.isDeferrable ? null : complete
+        });
 
-        ajax = jQuery.extend({}, setting.ajax, callbacks, ajax);
         this.model_.setXHR(jQuery.ajax(ajax));
 
         if (!this.model_.isDeferrable) { return; }
@@ -183,13 +182,13 @@ module MODULE.MODEL.APP {
       }
       
       function success(data: string, textStatus: string, jqXHR: JQueryXHR) {
-        return that.model_.isDeferrable ? undefined : done.call(this, [].slice.call(arguments), undefined);
+        return done.call(this, [].slice.call(arguments), undefined);
       }
       function error(jqXHR: JQueryXHR, textStatus: string, errorThrown: string) {
-        return that.model_.isDeferrable ? undefined : fail.apply(this, arguments);
+        return fail.apply(this, arguments);
       }
       function complete(jqXHR: JQueryXHR, textStatus: string) {
-        return that.model_.isDeferrable ? undefined : always.apply(this, arguments);
+        return always.apply(this, arguments);
       }
       function done(ajax: any[], wait: void) {
         if (!arguments.length || !arguments[0]) { return; }
@@ -198,7 +197,7 @@ module MODULE.MODEL.APP {
         that.textStatus_ = ajax[1];
         that.jqXHR_ = ajax[2];
 
-        that.util_.fire(setting.callbacks.ajax.success, this[0], [event, setting, that.data_, that.textStatus_, that.jqXHR_]);
+        that.util_.fire(setting.callbacks.ajax.success, this[0] || this, [event, setting, that.data_, that.textStatus_, that.jqXHR_]);
       }
       function fail(jqXHR: JQueryXHR, textStatus: string, errorThrown: string) {
         if (!arguments.length || !arguments[0]) { return; }
@@ -207,12 +206,12 @@ module MODULE.MODEL.APP {
         that.textStatus_ = textStatus;
         that.errorThrown_ = errorThrown;
 
-        that.util_.fire(setting.callbacks.ajax.error, this, [event, setting, that.jqXHR_, that.textStatus_, that.errorThrown_]);
+        that.util_.fire(setting.callbacks.ajax.error, this[0] || this, [event, setting, that.jqXHR_, that.textStatus_, that.errorThrown_]);
       }
       function always() {
         if (!arguments.length || !arguments[0]) { return; }
 
-        that.util_.fire(setting.callbacks.ajax.complete, this instanceof Array ? this[0] : this, [event, setting, that.jqXHR_, that.textStatus_]);
+        that.util_.fire(setting.callbacks.ajax.complete, this[0] || this, [event, setting, that.jqXHR_, that.textStatus_]);
 
         that.model_.setXHR(null);
 

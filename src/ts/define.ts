@@ -90,7 +90,7 @@ module MODULE {
     setXHR(xhr: JQueryXHR): JQueryXHR
     isAvailable(event: JQueryEventObject): boolean
     fallback(event: JQueryEventObject): void
-    proxy(): JQueryDeferred<any>
+    bypass(): JQueryDeferred<any>
     speed: any
     
     // Controller
@@ -202,15 +202,10 @@ module MODULE.MODEL {
     
     enable(setting: SettingInterface): void
     disable(setting: SettingInterface): void
+    score(time: number, size: number): number
     changeServer(host: string, setting?: SettingInterface): string
     chooseServer(setting: SettingInterface): string
     bypass(): JQueryDeferred<any>
-  }
-
-  // Proxy
-  export declare class ProxyInterface {
-    constructor(model: ModelInterface, app: AppLayerInterface)
-    install(setting: SettingInterface): void
   }
 
   // Page
@@ -253,7 +248,7 @@ module MODULE.MODEL {
     constructor()
     constructor(setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string)
     data: PageRecordDataInterface
-    state(): boolean
+    state(setting?: SettingInterface): boolean
   }
   export declare class PageRecordDataInterface implements RecordDataInterface {
     url(): string
@@ -266,7 +261,7 @@ module MODULE.MODEL {
   }
   export interface PageRecordClassInterface extends RecordClassInterface {
     new ()
-    new (setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string)
+    new (url: string, data: string, textStatus: string, jqXHR: JQueryXHR, host: string)
   }
   export interface PageRecordSchema extends RecordSchema {
     url: string
@@ -332,7 +327,7 @@ module MODULE.MODEL {
     // server
     getServerBuffers(): ServerStoreSchema[]
     loadServer(): void
-    saveServer(host: string, score: number, state?: number): void
+    saveServer(host: string, expires: number, time: number, score: number, state: number): void
   }
   export interface CookieOptionInterface {
     age: number
@@ -356,8 +351,9 @@ module MODULE.MODEL {
   export interface ServerStoreSchema {
     host: string
     state: number // 0:正常, !0:異常発生時刻(ミリ秒)
+    time: number
     score: number
-    date: number
+    expires: number
   }
 }
 

@@ -7,10 +7,10 @@ module MODULE.MODEL.APP {
   export class PageRecord implements PageRecordInterface {
     
     constructor()
-    constructor(setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string)
-    constructor(setting?: SettingInterface, data?: string, textStatus?: string, jqXHR?: JQueryXHR, host?: string) {
-      this.data_ = setting ? {
-        url: setting.nss.url,
+    constructor(url: string, data: string, textStatus: string, jqXHR: JQueryXHR, host: string)
+    constructor(url?: string, data?: string, textStatus?: string, jqXHR?: JQueryXHR, host?: string) {
+      this.data_ = url ? {
+        url: url,
         data: data,
         textStatus: textStatus,
         jqXHR: jqXHR,
@@ -29,10 +29,12 @@ module MODULE.MODEL.APP {
     private data_: PageRecordSchema
     data: PageRecordDataInterface
 
-    state(): boolean {
+    state(setting?: SettingInterface): boolean {
+      var min = setting ? setting.cache.expires.min : undefined,
+          max = setting ? setting.cache.expires.max : undefined;
       switch (false) {
         case this.data.jqXHR() && 200 === +this.data.jqXHR().status:
-        case this.data.expires() >= new Date().getTime():
+        case this.data.expires(min, max) >= new Date().getTime():
           return false;
         default:
           return true;
@@ -69,6 +71,8 @@ module MODULE.MODEL.APP {
     expires(): number
     expires(min: number, max: number): number
     expires(min?: number, max?: number): number {
+      if (!this.jqXHR() && !this.data()) { return 0; }
+
       var xhr = this.jqXHR(),
           expires: number;
 

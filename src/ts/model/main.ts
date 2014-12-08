@@ -251,20 +251,24 @@ module MODULE.MODEL {
       var setting: SettingInterface = this.configure(this.convertUrlToKeyUrl(unsafe_url));
       if (!setting) { return; }
       var record: PageRecordInterface = this.app_.page.provider.getRecord(setting);
-      return record.data.data() || record.data.jqXHR() ? {
+      return record.state(setting) || record.data.data() ? {
         data: record.data.data(),
         textStatus: record.data.textStatus(),
         jqXHR: record.data.jqXHR(),
-        expires: record.data.expires(setting.cache.expires.min, setting.cache.expires.max),
+        expires: record.data.expires(),
         host: record.data.host()
-      } : undefined;
+      } : void this.removeCache(unsafe_url);
     }
     
     setCache(unsafe_url: string, data: string, textStatus: string, jqXHR: JQueryXHR): void {
       var setting: SettingInterface = this.configure(this.convertUrlToKeyUrl(unsafe_url));
       if (!setting) { return; }
       var record: PageRecordInterface = this.app_.page.provider.getRecord(setting);
-      this.app_.page.provider.setRecord(setting, data || '', textStatus || record.data.textStatus(), jqXHR || record.data.jqXHR(), record.data.host());
+      this.app_.page.provider.setRecord(setting,
+                                        data || '',
+                                        textStatus || record.data.textStatus(),
+                                        jqXHR || record.data.jqXHR(),
+                                        jqXHR && jqXHR.getResponseHeader(setting.balance.server.header) || record.data.host() || '');
     }
 
     removeCache(unsafe_url: string): void {
@@ -277,7 +281,7 @@ module MODULE.MODEL {
       this.app_.page.provider.clearRecord();
     }
 
-    proxy(): JQueryDeferred<any> {
+    bypass(): JQueryDeferred<any> {
       return this.app_.balance.bypass();
     }
 

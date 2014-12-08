@@ -1,7 +1,6 @@
 /// <reference path="../define.ts"/>
 /// <reference path="_template.ts"/>
 /// <reference path="app.balance.ts"/>
-/// <reference path="app.proxy.ts"/>
 /// <reference path="app.page.ts"/>
 /// <reference path="app.data.ts"/>
 /// <reference path="../view/main.ts"/>
@@ -24,7 +23,6 @@ module MODULE.MODEL.APP {
     private option_: PjaxSetting
 
     balance: BalanceInterface = new Balance(this.model_, this)
-    proxy: ProxyInterface = new Proxy(this.model_, this)
     page: PageInterface = new Page(this.model_, this)
     data: DataInterface = new Data(this.model_, this)
 
@@ -44,7 +42,6 @@ module MODULE.MODEL.APP {
       this.controller_.view($context, setting);
       setTimeout(() => this.data.loadBuffers(setting.buffer.limit), setting.buffer.delay);
       setTimeout(() => this.balance.enable(setting), setting.buffer.delay + 100);
-      setTimeout(() => this.proxy.install(setting), setting.buffer.delay + 100);
       setTimeout(() => this.page.landing = null, 1500);
     }
     
@@ -142,7 +139,7 @@ module MODULE.MODEL.APP {
             },
             balance: {
               active: false,
-              weight: 3,
+              weight: 1,
               option: <PjaxSetting>{
                 server: {
                   header: false
@@ -158,9 +155,6 @@ module MODULE.MODEL.APP {
               },
               client: {
                 hosts: [],
-                proxy: {
-                  worker: ''
-                },
                 support: {
                   browser: /msie|trident.+ rv:|chrome|firefox|safari/i,
                   redirect: /chrome|firefox|safari/i
@@ -174,10 +168,7 @@ module MODULE.MODEL.APP {
               server: {
                 header: 'X-Ajax-Host',
                 respite: 10 * 60 * 1000,
-              },
-              history: {
-                expires: 10 * 24 * 60 * 60 * 1000,
-                limit: 30
+                expires: 10 * 24 * 60 * 60 * 1000
               }
             },
             wait: 0,

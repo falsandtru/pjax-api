@@ -79,7 +79,7 @@ module MODULE.MODEL.APP {
 
       this.app_.data.saveExpires(setting.destLocation.href, '', 0);
       if (setting.balance.active) {
-        this.app_.data.saveServer(record.data.host(), 0, new Date().getTime());
+        this.app_.data.saveServer(record.data.host(), new Date().getTime() + setting.balance.server.expires, 0, 0, new Date().getTime());
         this.app_.balance.changeServer(this.app_.balance.chooseServer(setting), setting);
       }
 
