@@ -137,7 +137,7 @@ module MODULE.MODEL.APP {
             break;
         }
 
-        callbacks = <JQueryAjaxSettings>{
+        ajax = jQuery.extend({}, setting.ajax, ajax, <JQueryAjaxSettings>{
           xhr: !setting.callbacks.ajax.xhr ? undefined : function () {
             var jqXHR: JQueryXHR;
             jqXHR = that.util_.fire(setting.callbacks.ajax.xhr, this, [event, setting]);
@@ -168,9 +168,8 @@ module MODULE.MODEL.APP {
           success: this.model_.isDeferrable ? null : success,
           error: this.model_.isDeferrable ? null : error,
           complete: this.model_.isDeferrable ? null : complete
-        };
+        });
 
-        ajax = jQuery.extend({}, setting.ajax, ajax);
         this.model_.setXHR(jQuery.ajax(ajax));
 
         if (!this.model_.isDeferrable) { return; }

@@ -121,8 +121,8 @@ module MODULE.MODEL.APP {
       var history: HistoryStoreSchema = this.app_.data.getHistoryBuffer(setting.destLocation.href);
       switch (false) {
         case !!history:
-        case history.expires && history.expires >= new Date().getTime():
-        case history.host || !this.bypass_:
+        case !!history.expires && history.expires >= new Date().getTime():
+        case !!history.host || !this.bypass_:
           break;
         default:
           hosts = [history.host || ''];
