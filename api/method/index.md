@@ -35,5 +35,8 @@ pjaxを使用してフォーム送信によりページを移動します。
 ## [follow()](api/method/follow/) <small><span class="label label-primary">jQuery1.6+</span></small>
 外部のajax処理を引き継いでページ移動を行います。
 
+## [bypass()](api/method/bypass/) <small><span class="label label-primary">jQuery1.7+</span></small>
+バランス可能なサーバーを走査し設定します。
+
 ## [host()](api/method/host/)
 現在設定されているリクエスト先のホストを取得します。

@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.29.2
+ * @version 2.30.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -266,13 +266,15 @@ var MODULE;
             }
             Main.prototype.observe_ = function (setting) {
                 this.release_(setting);
-                this.context_.delegate(setting.link, setting.nss.event.click, this.handlers.click).delegate(setting.form, setting.nss.event.submit, this.handlers.submit);
+                setting.link && this.context_.delegate(setting.link, setting.nss.event.click, this.handlers.click);
+                setting.form && this.context_.delegate(setting.form, setting.nss.event.submit, this.handlers.submit);
                 jQuery(window).bind(setting.nss.event.popstate, this.handlers.popstate);
                 setting.database && setting.fix.scroll && jQuery(window).bind(setting.nss.event.scroll, this.handlers.scroll);
                 return this;
             };
             Main.prototype.release_ = function (setting) {
-                this.context_.undelegate(setting.link, setting.nss.event.click).undelegate(setting.form, setting.nss.event.submit);
+                setting.link && this.context_.undelegate(setting.link, setting.nss.event.click);
+                setting.form && this.context_.undelegate(setting.form, setting.nss.event.submit);
                 jQuery(window).unbind(setting.nss.event.popstate);
                 setting.database && setting.fix.scroll && jQuery(window).unbind(setting.nss.event.scroll);
                 return this;
@@ -419,8 +421,8 @@ var MODULE;
                 jQuery[MODULE.DEF.NAME].click(anchor.href);
                 return true;
             };
-            Functions.prototype.proxy = function () {
-                return MODULE.Model.singleton().proxy();
+            Functions.prototype.bypass = function () {
+                return MODULE.Model.singleton().bypass();
             };
             Functions.prototype.host = function () {
                 return MODULE.Model.singleton().host();
@@ -1374,7 +1376,7 @@ var MODULE;
                         this.IDBFactory = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB;
                         this.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.mozIDBKeyRange || window.msIDBKeyRange;
                         this.name = MODULE.DEF.NAME;
-                        this.version = 8;
+                        this.version = 9;
                         this.refresh = 10;
                         this.upgrade = 0; // 0:virtual 1:native
                         this.state_ = 0 /* blank */;
@@ -2042,13 +2044,13 @@ var MODULE;
                 };
                 Data.prototype.loadServer = function () {
                 };
-                Data.prototype.saveServer = function (host, score, state) {
-                    if (state === void 0) { state = 0; }
+                Data.prototype.saveServer = function (host, expires, time, score, state) {
                     var value = {
                         host: host.split('//').pop().split('/').shift() || '',
+                        time: time,
                         score: score,
                         state: state,
-                        date: new Date().getTime()
+                        expires: expires
                     };
                     this.stores_.server.setBuffer(value, true);
                     this.stores_.server.set(value, true);
@@ -2078,19 +2080,17 @@ var MODULE;
                     this.util_ = MODULE.LIBRARY.Utility;
                     this.host_ = '';
                     this.host = function () { return _this.host_; };
-                    this.parallel_ = 6;
+                    this.bypass_ = false;
+                    this.parallel_ = 4;
                 }
-                Balance.prototype.isBalanceable_ = function (setting) {
-                    return setting.balance.active && !!Number(this.app_.data.getCookie(setting.balance.client.cookie.balance));
-                };
                 Balance.prototype.enable = function (setting) {
                     if (!setting.balance.active) {
                         return void this.disable(setting);
                     }
-                    if (!setting.balance.client.support.browser.test(window.navigator.userAgent)) {
-                        return void this.disable(setting);
+                    if (setting.balance.client.support.browser.test(window.navigator.userAgent)) {
+                        this.app_.data.setCookie(setting.balance.client.cookie.balance, '1');
                     }
-                    if (!this.app_.data.setCookie(setting.balance.client.cookie.balance, '1')) {
+                    else {
                         return void this.disable(setting);
                     }
                     if (setting.balance.client.support.redirect.test(window.navigator.userAgent)) {
@@ -2106,9 +2106,12 @@ var MODULE;
                     }
                     this.changeServer('', setting);
                 };
+                Balance.prototype.score = function (time, size) {
+                    return Math.max(Math.round(size / time * 1000), 0);
+                };
                 Balance.prototype.changeServer = function (host, setting) {
                     if (setting === void 0) { setting = this.model_.configure(window.location); }
-                    if (!setting || !this.isBalanceable_(setting)) {
+                    if (!setting || !setting.balance.active) {
                         this.host_ = '';
                     }
                     else {
@@ -2117,76 +2120,84 @@ var MODULE;
                     }
                     return this.host();
                 };
-                Balance.prototype.chooseServers_ = function (expires, limit, weight, respite, hosts) {
-                    hosts = hosts.slice();
-                    var servers = this.app_.data.getServerBuffers(), serverTableByScore = {}, result;
-                    (function () {
-                        var now = new Date().getTime();
-                        for (var i in servers) {
-                            if (now > servers[i].date + expires) {
-                                continue;
-                            }
-                            serverTableByScore[servers[i].score] = servers[i];
-                        }
-                    })();
-                    result = [];
-                    var scores = Object.keys(serverTableByScore).sort(compareNumbers);
-                    function compareNumbers(a, b) {
-                        return +a - +b;
+                Balance.prototype.chooseServers_ = function (setting) {
+                    var _this = this;
+                    var respite = setting.balance.server.respite, weight = setting.balance.weight, timeout = setting.ajax.timeout, hosts = setting.balance.client.hosts.slice();
+                    hosts = this.bypass_ ? jQuery.grep(hosts, function (host) { return !!host; }) : hosts;
+                    if (!~jQuery.inArray(this.app_.data.getCookie(setting.balance.client.cookie.host), hosts)) {
+                        hosts.unshift(this.app_.data.getCookie(setting.balance.client.cookie.host));
                     }
-                    for (var i = 0, score; score = result.length < limit && scores[i]; i++) {
-                        var server = serverTableByScore[score], host = server.host, state = server.state;
-                        if (state && state + respite >= new Date().getTime()) {
-                            ~jQuery.inArray(host, hosts) && hosts.splice(jQuery.inArray(host, hosts), 1);
-                            continue;
+                    var servers = this.app_.data.getServerBuffers(), scoreTable = {};
+                    jQuery.each(Object.keys(servers), function (i, index) {
+                        var server = servers[index];
+                        if (_this.bypass_ && !server.host) {
+                            return;
                         }
-                        else if (state) {
-                            this.app_.data.saveServer(server.host, server.score, 0);
+                        scoreTable[server.score] = server;
+                    });
+                    var scores = Object.keys(scoreTable).sort(sortScoreDes);
+                    function sortScoreDes(a, b) {
+                        return +b - +a;
+                    }
+                    var result = [];
+                    jQuery.each(scores, function (i) {
+                        var server = scoreTable[scores[i]], host = server.host, time = server.time, score = server.score, state = server.state;
+                        ~jQuery.inArray(host, hosts) && hosts.splice(jQuery.inArray(host, hosts), 1);
+                        if (state + respite >= new Date().getTime()) {
+                            return;
                         }
-                        if (!+score) {
-                            continue;
+                        if (state || new Date().getTime() > server.expires) {
+                            time = timeout - 1;
+                            _this.app_.data.saveServer(server.host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
                         }
-                        if (!host && weight && !(Math.floor(Math.random() * weight))) {
-                            ~jQuery.inArray(host, hosts) && hosts.splice(jQuery.inArray(host, hosts), 1);
-                            continue;
+                        switch (true) {
+                            case result.length === 6:
+                            case timeout && time >= timeout:
+                            case timeout && time >= timeout * 2 / 3 && result.length < 3:
+                            case weight && !host && !!Math.floor(Math.random() * weight):
+                                return;
                         }
                         result.push(host);
-                    }
-                    if (hosts.length >= 2 && result.length < 2 || !result.length) {
-                        result = hosts.slice(Math.floor(Math.random() * hosts.length));
+                    });
+                    while (hosts.length) {
+                        var host = hosts.splice(Math.floor(Math.random() * hosts.length), 1).shift();
+                        result.push(host);
                     }
                     return result;
                 };
                 Balance.prototype.chooseServer = function (setting) {
-                    if (!this.isBalanceable_(setting)) {
+                    if (!setting.balance.active) {
                         return '';
                     }
+                    var hosts;
                     // キャッシュの有効期限内の再リクエストは同じサーバーを選択してキャッシュを使用
                     var history = this.app_.data.getHistoryBuffer(setting.destLocation.href);
-                    if (history && history.expires && history.expires >= new Date().getTime()) {
-                        return history.host || '';
+                    switch (false) {
+                        case !!history:
+                        case !!history.expires && history.expires >= new Date().getTime():
+                        case !!history.host || !this.bypass_:
+                            break;
+                        default:
+                            hosts = [history.host || ''];
                     }
-                    // 最適なサーバーを選択
-                    var servers = this.chooseServers_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.weight, setting.balance.server.respite, setting.balance.client.hosts);
-                    if (servers.length) {
-                        return servers.shift();
-                    }
-                    if (this.app_.data.getCookie(setting.balance.client.cookie.host)) {
-                        return this.app_.data.getCookie(setting.balance.client.cookie.host);
-                    }
-                    return '';
+                    // 応答性能の高いサーバーをリストアップ
+                    hosts = hosts || this.chooseServers_(setting);
+                    // 上位6サーバーまでからランダムに選択
+                    return hosts.slice(Math.floor(Math.random() * Math.min(hosts.length, 6))).shift() || '';
                 };
                 Balance.prototype.bypass = function () {
                     var _this = this;
                     var setting = this.app_.configure(window.location), deferred = jQuery.Deferred();
-                    if (!this.isBalanceable_(setting)) {
+                    if (!setting.balance.active) {
                         return deferred.reject();
                     }
-                    var parallel = this.parallel_, servers = this.chooseServers_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.weight, setting.balance.server.respite, setting.balance.client.hosts), option = jQuery.extend({}, setting.ajax, setting.balance.option.ajax, setting.balance.option.callbacks.ajax);
-                    var test = function (server) {
-                        var that = _this;
-                        jQuery.ajax(jQuery.extend({}, option, {
-                            url: that.util_.normalizeUrl(window.location.protocol + '//' + server + window.location.pathname.replace(/^\/?/, '/') + window.location.search),
+                    var parallel = this.parallel_, hosts = this.chooseServers_(setting), option = jQuery.extend({}, setting.ajax, setting.balance.option.ajax);
+                    hosts = jQuery.grep(hosts, function (host) { return !!host; });
+                    var index = 0, length = hosts.length;
+                    var test = function (host) {
+                        var that = _this, loadtime = new Date().getTime();
+                        'pending' === deferred.state() && jQuery.ajax(jQuery.extend({}, option, {
+                            url: that.util_.normalizeUrl(window.location.protocol + '//' + host + window.location.pathname.replace(/^\/?/, '/') + window.location.search),
                             xhr: !setting.balance.option.callbacks.ajax.xhr ? undefined : function () {
                                 var jqXHR;
                                 jqXHR = that.util_.fire(setting.balance.option.callbacks.ajax.xhr, this, [event, setting]);
@@ -2209,23 +2220,28 @@ var MODULE;
                             dataFilter: !setting.balance.option.callbacks.ajax.dataFilter ? undefined : function (data, type) {
                                 return that.util_.fire(setting.balance.option.callbacks.ajax.dataFilter, this, [event, setting, data, type]) || data;
                             },
-                            success: function () {
-                                server = server;
+                            success: function (data, textStatus, jqXHR) {
+                                loadtime = new Date().getTime() - loadtime;
+                                that.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, loadtime, that.score(loadtime, jqXHR.responseText.length), 0);
+                                host = host;
                                 that.util_.fire(setting.balance.option.ajax.success, this, arguments);
                             },
-                            error: function () {
-                                server = null;
+                            error: function (jqXHR) {
+                                that.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, loadtime, 0, new Date().getTime());
+                                host = null;
                                 that.util_.fire(setting.balance.option.ajax.error, this, arguments);
                             },
                             complete: function () {
                                 that.util_.fire(setting.balance.option.ajax.complete, this, arguments);
-                                if (server) {
-                                    that.host_ = server;
-                                    servers.splice(0, servers.length);
-                                    deferred.resolve();
+                                ++index;
+                                deferred.notify(index, length, host);
+                                if (host) {
+                                    that.host_ = host;
+                                    hosts.splice(0, hosts.length);
+                                    deferred.resolve(host);
                                 }
-                                else if (!that.host() && servers.length) {
-                                    test(servers.shift());
+                                else if (!that.host() && hosts.length) {
+                                    test(hosts.shift());
                                 }
                                 else {
                                     deferred.reject();
@@ -2233,48 +2249,15 @@ var MODULE;
                             }
                         }));
                     };
-                    while (parallel--) {
-                        var server = servers.shift();
-                        if (!server || server === window.location.host) {
-                            servers.length && ++parallel;
-                            continue;
-                        }
-                        test(server);
+                    this.bypass_ = true;
+                    while (parallel-- && hosts.length) {
+                        test(hosts.shift());
                     }
                     return deferred;
                 };
                 return Balance;
             })();
             APP.Balance = Balance;
-        })(APP = MODEL.APP || (MODEL.APP = {}));
-    })(MODEL = MODULE.MODEL || (MODULE.MODEL = {}));
-})(MODULE || (MODULE = {}));
-/// <reference path="../define.ts"/>
-/// <reference path="app.data.ts"/>
-/// <reference path="../library/utility.ts"/>
-var MODULE;
-(function (MODULE) {
-    var MODEL;
-    (function (MODEL) {
-        var APP;
-        (function (APP) {
-            var Proxy = (function () {
-                function Proxy(model_, app_) {
-                    this.model_ = model_;
-                    this.app_ = app_;
-                    this.util_ = MODULE.LIBRARY.Utility;
-                }
-                Proxy.prototype.install = function (setting) {
-                    if ('https:' !== window.location.protocol || !setting.balance.active || !setting.balance.client.proxy.worker) {
-                        return;
-                    }
-                    window.navigator.serviceWorker && window.navigator.serviceWorker.register(setting.balance.client.proxy.worker, {
-                        scope: setting.balance.client.proxy.worker.replace(/[^/]+$/, '')
-                    });
-                };
-                return Proxy;
-            })();
-            APP.Proxy = Proxy;
         })(APP = MODEL.APP || (MODEL.APP = {}));
     })(MODEL = MODULE.MODEL || (MODULE.MODEL = {}));
 })(MODULE || (MODULE = {}));
@@ -2287,9 +2270,9 @@ var MODULE;
         var APP;
         (function (APP) {
             var PageRecord = (function () {
-                function PageRecord(setting, data, textStatus, jqXHR, host) {
-                    this.data_ = setting ? {
-                        url: setting.nss.url,
+                function PageRecord(url, data, textStatus, jqXHR, host) {
+                    this.data_ = url ? {
+                        url: url,
                         data: data,
                         textStatus: textStatus,
                         jqXHR: jqXHR,
@@ -2303,10 +2286,11 @@ var MODULE;
                     };
                     this.data = new PageRecordData(this.data_);
                 }
-                PageRecord.prototype.state = function () {
+                PageRecord.prototype.state = function (setting) {
+                    var min = setting ? setting.cache.expires.min : undefined, max = setting ? setting.cache.expires.max : undefined;
                     switch (false) {
                         case this.data.jqXHR() && 200 === +this.data.jqXHR().status:
-                        case this.data.expires() >= new Date().getTime():
+                        case this.data.expires(min, max) >= new Date().getTime():
                             return false;
                         default:
                             return true;
@@ -2335,6 +2319,9 @@ var MODULE;
                     return this.data_.host;
                 };
                 PageRecordData.prototype.expires = function (min, max) {
+                    if (!this.jqXHR() && !this.data()) {
+                        return 0;
+                    }
                     var xhr = this.jqXHR(), expires;
                     if (xhr) {
                         xhr.timeStamp = xhr.timeStamp || new Date(xhr.getResponseHeader('Date')).getTime() || new Date().getTime();
@@ -2520,7 +2507,7 @@ var MODULE;
                                 ajax.type = 'GET';
                                 break;
                         }
-                        callbacks = {
+                        ajax = jQuery.extend({}, setting.ajax, ajax, {
                             xhr: !setting.callbacks.ajax.xhr ? undefined : function () {
                                 var jqXHR;
                                 jqXHR = that.util_.fire(setting.callbacks.ajax.xhr, this, [event, setting]);
@@ -2546,11 +2533,10 @@ var MODULE;
                             dataFilter: !setting.callbacks.ajax.dataFilter ? undefined : function (data, type) {
                                 return that.util_.fire(setting.callbacks.ajax.dataFilter, this, [event, setting, data, type]) || data;
                             },
-                            success: success,
-                            error: error,
-                            complete: complete
-                        };
-                        ajax = jQuery.extend({}, setting.ajax, callbacks, ajax);
+                            success: this.model_.isDeferrable ? null : success,
+                            error: this.model_.isDeferrable ? null : error,
+                            complete: this.model_.isDeferrable ? null : complete
+                        });
                         this.model_.setXHR(jQuery.ajax(ajax));
                         if (!this.model_.isDeferrable) {
                             return;
@@ -2560,13 +2546,13 @@ var MODULE;
                         jQuery.when(this.model_.getXHR(), defer).done(done).fail(fail).always(always);
                     }
                     function success(data, textStatus, jqXHR) {
-                        return that.model_.isDeferrable ? undefined : done.call(this, [].slice.call(arguments), undefined);
+                        return done.call(this, [].slice.call(arguments), undefined);
                     }
                     function error(jqXHR, textStatus, errorThrown) {
-                        return that.model_.isDeferrable ? undefined : fail.apply(this, arguments);
+                        return fail.apply(this, arguments);
                     }
                     function complete(jqXHR, textStatus) {
-                        return that.model_.isDeferrable ? undefined : always.apply(this, arguments);
+                        return always.apply(this, arguments);
                     }
                     function done(ajax, wait) {
                         if (!arguments.length || !arguments[0]) {
@@ -2575,7 +2561,7 @@ var MODULE;
                         that.data_ = ajax[0];
                         that.textStatus_ = ajax[1];
                         that.jqXHR_ = ajax[2];
-                        that.util_.fire(setting.callbacks.ajax.success, this[0], [event, setting, that.data_, that.textStatus_, that.jqXHR_]);
+                        that.util_.fire(setting.callbacks.ajax.success, this[0] || this, [event, setting, that.data_, that.textStatus_, that.jqXHR_]);
                     }
                     function fail(jqXHR, textStatus, errorThrown) {
                         if (!arguments.length || !arguments[0]) {
@@ -2584,13 +2570,13 @@ var MODULE;
                         that.jqXHR_ = jqXHR;
                         that.textStatus_ = textStatus;
                         that.errorThrown_ = errorThrown;
-                        that.util_.fire(setting.callbacks.ajax.error, this, [event, setting, that.jqXHR_, that.textStatus_, that.errorThrown_]);
+                        that.util_.fire(setting.callbacks.ajax.error, this[0] || this, [event, setting, that.jqXHR_, that.textStatus_, that.errorThrown_]);
                     }
                     function always() {
                         if (!arguments.length || !arguments[0]) {
                             return;
                         }
-                        that.util_.fire(setting.callbacks.ajax.complete, this instanceof Array ? this[0] : this, [event, setting, that.jqXHR_, that.textStatus_]);
+                        that.util_.fire(setting.callbacks.ajax.complete, this[0] || this, [event, setting, that.jqXHR_, that.textStatus_]);
                         that.model_.setXHR(null);
                         if (200 === +that.jqXHR_.status) {
                             that.model_.setCache(setting.destLocation.href, cache && cache.data || null, that.textStatus_, that.jqXHR_);
@@ -2642,7 +2628,7 @@ var MODULE;
                     this.order_ = [];
                 }
                 PageProvider.prototype.fetchRecord = function (setting, event, success, failure) {
-                    if (this.getRecord(setting).state()) {
+                    if (this.getRecord(setting).state(setting)) {
                         //success(this.getRecord(setting), event);
                         this.pullRecord(setting, event, success, failure);
                     }
@@ -2666,7 +2652,7 @@ var MODULE;
                 PageProvider.prototype.setRecord = function (setting, data, textStatus, jqXHR, host) {
                     this.cleanRecords_(setting);
                     this.addOrder_(setting);
-                    return this.table_[this.hash_(setting)] = new this.Record_(setting, data, textStatus, jqXHR, host);
+                    return this.table_[this.hash_(setting)] = new this.Record_(setting.nss.url, data, textStatus, jqXHR, host);
                 };
                 PageProvider.prototype.removeRecord = function (setting) {
                     this.removeOrder_(setting);
@@ -2927,7 +2913,7 @@ var MODULE;
                             return jQuery.when && jQuery.Deferred().resolve();
                         };
                         _this.scroll_(false);
-                        if (150 > _this.app_.loadtime && setting.reset.type.match(event.type.toLowerCase()) && !jQuery('form[method][method!="GET"]').length) {
+                        if (100 > _this.app_.loadtime && setting.reset.type.match(event.type.toLowerCase()) && !jQuery('form[method][method!="GET"]').length) {
                             switch (false) {
                                 case _this.app_.count < setting.reset.count || !setting.reset.count:
                                 case new Date().getTime() < setting.reset.time + _this.app_.time || !setting.reset.time:
@@ -3066,15 +3052,15 @@ var MODULE;
                 PageUpdate.prototype.balance_ = function () {
                     var setting = this.setting_, event = this.event_;
                     var callbacks_update = setting.callbacks.update;
-                    if (!setting.balance.active || this.app_.loadtime < 150) {
+                    if (!setting.balance.active || this.app_.loadtime < 100) {
                         return;
                     }
                     var jqXHR = this.record_.data.jqXHR();
-                    var host = jqXHR.getResponseHeader(setting.balance.server.header) || this.record_.data.host() || '', score = Math.ceil(this.app_.loadtime / (jqXHR.responseText.length || 1) * 1e5);
+                    var host = jqXHR.getResponseHeader(setting.balance.server.header) || this.record_.data.host() || '', time = this.app_.loadtime, score = this.app_.balance.score(time, jqXHR.responseText.length);
                     if (this.util_.fire(callbacks_update.balance.before, setting, [event, setting, host, this.app_.loadtime, jqXHR.responseText.length]) === false) {
                         return;
                     }
-                    this.app_.data.saveServer(host, score);
+                    this.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
                     this.app_.balance.changeServer(this.app_.balance.chooseServer(setting), setting);
                     if (this.util_.fire(callbacks_update.balance.after, setting, [event, setting, host, this.app_.loadtime, jqXHR.responseText.length]) === false) {
                         return;
@@ -3589,7 +3575,7 @@ var MODULE;
                     }
                     this.app_.data.saveExpires(setting.destLocation.href, '', 0);
                     if (setting.balance.active) {
-                        this.app_.data.saveServer(record.data.host(), 0, new Date().getTime());
+                        this.app_.data.saveServer(record.data.host(), new Date().getTime() + setting.balance.server.expires, 0, 0, new Date().getTime());
                         this.app_.balance.changeServer(this.app_.balance.chooseServer(setting), setting);
                     }
                     setTimeout(function () { return _this.model_.fallback(event); }, 100);
@@ -3608,7 +3594,6 @@ var MODULE;
 /// <reference path="../define.ts"/>
 /// <reference path="_template.ts"/>
 /// <reference path="app.balance.ts"/>
-/// <reference path="app.proxy.ts"/>
 /// <reference path="app.page.ts"/>
 /// <reference path="app.data.ts"/>
 /// <reference path="../view/main.ts"/>
@@ -3628,7 +3613,6 @@ var MODULE;
                     this.util_ = MODULE.LIBRARY.Utility;
                     this.settings_ = {};
                     this.balance = new APP.Balance(this.model_, this);
-                    this.proxy = new APP.Proxy(this.model_, this);
                     this.page = new APP.Page(this.model_, this);
                     this.data = new APP.Data(this.model_, this);
                     this.count = 0;
@@ -3649,7 +3633,6 @@ var MODULE;
                     this.controller_.view($context, setting);
                     setTimeout(function () { return _this.data.loadBuffers(setting.buffer.limit); }, setting.buffer.delay);
                     setTimeout(function () { return _this.balance.enable(setting); }, setting.buffer.delay + 100);
-                    setTimeout(function () { return _this.proxy.install(setting); }, setting.buffer.delay + 100);
                     setTimeout(function () { return _this.page.landing = null; }, 1500);
                 };
                 Main.prototype.configure = function (destination) {
@@ -3741,7 +3724,7 @@ var MODULE;
                         },
                         balance: {
                             active: false,
-                            weight: 3,
+                            weight: 1,
                             option: {
                                 server: {
                                     header: false
@@ -3757,9 +3740,6 @@ var MODULE;
                             },
                             client: {
                                 hosts: [],
-                                proxy: {
-                                    worker: ''
-                                },
                                 support: {
                                     browser: /msie|trident.+ rv:|chrome|firefox|safari/i,
                                     redirect: /chrome|firefox|safari/i
@@ -3772,11 +3752,8 @@ var MODULE;
                             },
                             server: {
                                 header: 'X-Ajax-Host',
-                                respite: 10 * 60 * 1000
-                            },
-                            history: {
-                                expires: 10 * 24 * 60 * 60 * 1000,
-                                limit: 30
+                                respite: 10 * 60 * 1000,
+                                expires: 10 * 24 * 60 * 60 * 1000
                             }
                         },
                         wait: 0,
@@ -4236,13 +4213,13 @@ var MODULE;
                     return;
                 }
                 var record = this.app_.page.provider.getRecord(setting);
-                return record.data.data() || record.data.jqXHR() ? {
+                return record.state(setting) || record.data.data() ? {
                     data: record.data.data(),
                     textStatus: record.data.textStatus(),
                     jqXHR: record.data.jqXHR(),
-                    expires: record.data.expires(setting.cache.expires.min, setting.cache.expires.max),
+                    expires: record.data.expires(),
                     host: record.data.host()
-                } : undefined;
+                } : void this.removeCache(unsafe_url);
             };
             Main.prototype.setCache = function (unsafe_url, data, textStatus, jqXHR) {
                 var setting = this.configure(this.convertUrlToKeyUrl(unsafe_url));
@@ -4250,7 +4227,7 @@ var MODULE;
                     return;
                 }
                 var record = this.app_.page.provider.getRecord(setting);
-                this.app_.page.provider.setRecord(setting, data || '', textStatus || record.data.textStatus(), jqXHR || record.data.jqXHR(), record.data.host());
+                this.app_.page.provider.setRecord(setting, data || '', textStatus || record.data.textStatus(), jqXHR || record.data.jqXHR(), jqXHR && jqXHR.getResponseHeader(setting.balance.server.header) || record.data.host() || '');
             };
             Main.prototype.removeCache = function (unsafe_url) {
                 var setting = this.configure(this.convertUrlToKeyUrl(unsafe_url));
@@ -4262,7 +4239,7 @@ var MODULE;
             Main.prototype.clearCache = function () {
                 this.app_.page.provider.clearRecord();
             };
-            Main.prototype.proxy = function () {
+            Main.prototype.bypass = function () {
                 return this.app_.balance.bypass();
             };
             return Main;
