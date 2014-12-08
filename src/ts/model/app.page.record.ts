@@ -7,10 +7,10 @@ module MODULE.MODEL.APP {
   export class PageRecord implements PageRecordInterface {
     
     constructor()
-    constructor(setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string)
-    constructor(setting?: SettingInterface, data?: string, textStatus?: string, jqXHR?: JQueryXHR, host?: string) {
-      this.data_ = setting ? {
-        url: setting.nss.url,
+    constructor(url: string, data: string, textStatus: string, jqXHR: JQueryXHR, host: string)
+    constructor(url?: string, data?: string, textStatus?: string, jqXHR?: JQueryXHR, host?: string) {
+      this.data_ = url ? {
+        url: url,
         data: data,
         textStatus: textStatus,
         jqXHR: jqXHR,

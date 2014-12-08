@@ -260,7 +260,7 @@ module MODULE.MODEL {
   }
   export interface PageRecordClassInterface extends RecordClassInterface {
     new ()
-    new (setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string)
+    new (url: string, data: string, textStatus: string, jqXHR: JQueryXHR, host: string)
   }
   export interface PageRecordSchema extends RecordSchema {
     url: string

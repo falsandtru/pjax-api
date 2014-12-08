@@ -47,7 +47,7 @@ module MODULE.MODEL.APP {
     setRecord(setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string): PageRecordInterface {
       this.cleanRecords_(setting);
       this.addOrder_(setting);
-      return this.table_[this.hash_(setting)] = new this.Record_(setting, data, textStatus, jqXHR, host);
+      return this.table_[this.hash_(setting)] = new this.Record_(setting.nss.url, data, textStatus, jqXHR, host);
     }
 
     removeRecord(setting: SettingInterface): PageRecordInterface {
