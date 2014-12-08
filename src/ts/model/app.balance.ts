@@ -136,7 +136,7 @@ module MODULE.MODEL.APP {
       if (!this.isBalanceable_(setting)) { return deferred.reject(); }
       var parallel = this.parallel_,
           hosts = this.chooseServers_(setting.balance.history.expires, setting.balance.history.limit, setting.balance.weight, setting.balance.server.respite, setting.balance.client.hosts),
-          option: JQueryAjaxSettings = jQuery.extend({}, setting.ajax, setting.balance.option.ajax, setting.balance.option.callbacks.ajax);
+          option: JQueryAjaxSettings = jQuery.extend({}, setting.ajax, setting.balance.option.ajax);
 
       hosts = jQuery.grep(hosts, (host) => !!host);
 
