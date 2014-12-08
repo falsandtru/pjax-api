@@ -19,27 +19,18 @@ pjaxはリクエストと描画を最小限に抑えた高速かつシームレ�
 </div>
 
 <div class="col-md-4">
-## DEMO
-
-* <a href="demo/falsandtru/" target="_blank">Major feature</a>
-* <a href="demo/balance/" target="_blank">Client-side Load Balancer</a>
-* <a href="demo/bypass/" target="_blank">Bypass server</a>
-
-</div>
-
-<div class="col-md-4">
 ## Installation
 既存のサイトを変更することなく、JavaScriptを2つ追加するだけでpjaxを導入することができます。[>>more](installation/)
 </div>
-
-</div>
-
-<div class="row">
 
 <div class="col-md-4">
 ## API
 多様な環境と用途に対応できるよう詳細な設定項目を提供しています。[>>more](api/)
 </div>
+
+</div>
+
+<div class="row">
 
 <div class="col-md-4">
 ## Guide
@@ -61,10 +52,6 @@ pjaxはリクエストと描画を最小限に抑えた高速かつシームレ�
 
 </div>
 
-</div>
-
-<div class="row">
-
 <div class="col-md-4">
 ## Browser
 主要ブラウザに対応しています。[>>more](browser/)
@@ -77,6 +64,10 @@ pjaxはリクエストと描画を最小限に抑えた高速かつシームレ�
 * Android
 * iOS
 </div>
+
+</div>
+
+<div class="row">
 
 <div class="col-md-4">
 ## jQuery
@@ -93,14 +84,14 @@ jQuery1.6+推奨です。jQuery1.4.2から動作しますが機能が制限さ�
 Wordpressプラグインをサンプルとして提供しています。使用方法はインストールするだけで、基本的に設定は不要です。[>>more](http://wordpress.org/plugins/wp-preload-pjax/)
 </div>
 
-</div>
-
-<div class="row">
-
 <div class="col-md-4">
 ## Framework
 TypeScriptとMVCモデルを使用したフレームワーク｢*TypeScriptMVCTemplate*｣で開発されています。[>>more](http://falsandtru.github.io/TypeScriptMVCTemplate/)
 </div>
+
+</div>
+
+<div class="row">
 
 <div class="col-md-4">
 ## ChangeLog

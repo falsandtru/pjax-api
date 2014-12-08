@@ -202,6 +202,7 @@ module MODULE.MODEL {
     
     enable(setting: SettingInterface): void
     disable(setting: SettingInterface): void
+    score(time: number, size: number): number
     changeServer(host: string, setting?: SettingInterface): string
     chooseServer(setting: SettingInterface): string
     bypass(): JQueryDeferred<any>
@@ -326,7 +327,7 @@ module MODULE.MODEL {
     // server
     getServerBuffers(): ServerStoreSchema[]
     loadServer(): void
-    saveServer(host: string, score: number, state?: number): void
+    saveServer(host: string, expires: number, time: number, score: number, state: number): void
   }
   export interface CookieOptionInterface {
     age: number
@@ -350,8 +351,9 @@ module MODULE.MODEL {
   export interface ServerStoreSchema {
     host: string
     state: number // 0:正常, !0:異常発生時刻(ミリ秒)
+    time: number
     score: number
-    date: number
+    expires: number
   }
 }
 

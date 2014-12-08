@@ -7,9 +7,15 @@ nav: nav
 
 # ChangeLog
 
-## 2.30.0
+## 2.30.0(3.0.0 beta)
 
+* ウェブサイトサービスの可用性向上用諸機能の実装を完了
+* ロードバランス処理を改善
 * `bypass`メソッドを追加
+* `balance.weight`パラメータの初期値を変更
+* `balance.history.expires`パラメータを`balance.server.expires`パラメータに変更
+* `balance.history.limit`パラメータを削除
+* データベースのバージョンを更新
 
 ## 2.29.2
 
@@ -21,8 +27,8 @@ nav: nav
 
 ## 2.29.0
 
-* `balance.client.hosts`パラメータを追加
 * `balance.self`パラメータを`balance.active`パラメータに変更
+* `balance.client.hosts`パラメータを追加
 * `balance.client.support.userAgent`パラメータを`balance.client.support.browser`パラメータに変更
 * `balance.client.exclude`パラメータを削除
 * `balance.client.cookie.balance`パラメータの初期値を変更

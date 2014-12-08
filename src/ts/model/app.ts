@@ -139,7 +139,7 @@ module MODULE.MODEL.APP {
             },
             balance: {
               active: false,
-              weight: 3,
+              weight: 1,
               option: <PjaxSetting>{
                 server: {
                   header: false
@@ -168,10 +168,7 @@ module MODULE.MODEL.APP {
               server: {
                 header: 'X-Ajax-Host',
                 respite: 10 * 60 * 1000,
-              },
-              history: {
-                expires: 10 * 24 * 60 * 60 * 1000,
-                limit: 30
+                expires: 10 * 24 * 60 * 60 * 1000
               }
             },
             wait: 0,

@@ -79,10 +79,7 @@ interface PjaxSetting {
         server?: {
             header?: string
             respite?: number
-        }
-        history?: {
             expires?: number
-            limit?: number
         }
     }
     wait?: any     // number, function( event, setting, origLocation, destLocation ): number

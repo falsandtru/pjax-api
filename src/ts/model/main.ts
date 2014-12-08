@@ -268,7 +268,11 @@ module MODULE.MODEL {
       var setting: SettingInterface = this.configure(this.convertUrlToKeyUrl(unsafe_url));
       if (!setting) { return; }
       var record: PageRecordInterface = this.app_.page.provider.getRecord(setting);
-      this.app_.page.provider.setRecord(setting, data || '', textStatus || record.data.textStatus(), jqXHR || record.data.jqXHR(), record.data.host());
+      this.app_.page.provider.setRecord(setting,
+                                        data || '',
+                                        textStatus || record.data.textStatus(),
+                                        jqXHR || record.data.jqXHR(),
+                                        jqXHR && jqXHR.getResponseHeader(setting.balance.server.header) || record.data.host() || '');
     }
 
     removeCache(unsafe_url: string): void {

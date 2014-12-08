@@ -14,6 +14,6 @@ class: style-api style-api-detail
 
 Method|Arguments
 ------|---------
-progress|indes, length, host
+progress|index, length, host
 done|host
 fail|-
