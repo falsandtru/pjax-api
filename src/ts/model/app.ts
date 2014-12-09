@@ -140,6 +140,7 @@ module MODULE.MODEL.APP {
             balance: {
               active: false,
               weight: 1,
+              filter: function (host: string) { return /^[^\s/]*$/.test(host); },
               option: <PjaxSetting>{
                 server: {
                   header: false
@@ -184,7 +185,11 @@ module MODULE.MODEL.APP {
               scroll: true,
               noscript: true
             },
-            database: true,
+            database: {
+              active: true,
+              revision: 0,
+              refresh: 10
+            },
             server: {
               query: null,
               header: true
@@ -252,6 +257,9 @@ module MODULE.MODEL.APP {
               },
               fix: /android|iphone os|like mac os x/i.test(window.navigator.userAgent) ? undefined : { location: false },
               contentType: setting.contentType.replace(/\s*[,;]\s*/g, '|').toLowerCase(),
+              database: {
+                refresh: Math.min(setting.database.refresh, 30)
+              },
               reset: {
                 type: (setting.reset.type || '').toLowerCase()
               },

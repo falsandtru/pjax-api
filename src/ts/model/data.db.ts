@@ -14,9 +14,10 @@ module MODULE.MODEL.APP.DATA {
     IDBKeyRange: typeof IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.mozIDBKeyRange || window.msIDBKeyRange
 
     protected name: string = DEF.NAME
-    protected version: number = 9
+    protected version: number = 10
     protected refresh: number = 10
     protected upgrade: number = 0 // 0:virtual 1:native
+    protected revision: number = 0
     protected state_: State = State.blank
     state(): State { return this.state_; }
     protected stateful: DatabaseStatefulInterface = new DB.Stateful(this, () => this.connect(), () => this.extend())
@@ -49,7 +50,13 @@ module MODULE.MODEL.APP.DATA {
     }
     meta = {
       version: { key: 'version', value: undefined },
-      update: { key: 'update', value: undefined }
+      update: { key: 'update', value: undefined },
+      revision: { key: 'revision', value: undefined }
+    }
+
+    configure(revision: number, refresh: number): void {
+      this.revision = revision;
+      this.refresh = refresh;
     }
 
     up(): void {
@@ -95,7 +102,7 @@ module MODULE.MODEL.APP.DATA {
         var req = this.IDBFactory.open(this.name, this.upgrade ? this.version : 1);
 
         var verify = () => {
-          this.verify(this.version, () => {
+          this.verify(() => {
             this.state_ = State.open;
             this.resolve();
             this.extend();
@@ -163,8 +170,10 @@ module MODULE.MODEL.APP.DATA {
       this.destroy(() => this.up(), () => this.down());
     }
 
-    protected verify(version: number, success: () => void): void {
+    protected verify(success: () => void): void {
       var db = this.database(),
+          version = this.version,
+          revision = this.revision,
           scheme = this.meta,
           meta = this.stores.meta,
           failure = () => this.format();
@@ -194,6 +203,21 @@ module MODULE.MODEL.APP.DATA {
           cancel = true;
           this.down();
         } else if (data.value < version) {
+          cancel = true;
+          failure();
+        }
+      });
+
+      meta.get(scheme.revision.key, (event) => {
+        // revision check
+        if (cancel) { return; }
+        var data: MetaStoreSchema = (<IDBRequest>event.target).result;
+        if (!data) {
+          meta.set(meta.setBuffer({ key: scheme.revision.key, value: revision }));
+        } else if (data.value > revision) {
+          cancel = true;
+          this.down();
+        } else if (data.value < revision) {
           cancel = true;
           failure();
         }

@@ -28,7 +28,7 @@ module MODULE.MODEL.APP {
           event: JQueryEventObject = this.event_,
           data: string = record.data.jqXHR().responseText,
           textStatus: string = record.data.textStatus(),
-          jqXHR: JQueryXHR = record.data.jqXHR();
+          $xhr: JQueryXHR = record.data.jqXHR();
       var callbacks_update = setting.callbacks.update;
 
       var speedcheck = setting.speedcheck, speed = this.model_.speed;
@@ -48,10 +48,10 @@ module MODULE.MODEL.APP {
         try {
           app.page.landing = null;
 
-          if (!~(jqXHR.getResponseHeader('Content-Type') || '').toLowerCase().search(setting.contentType)) { throw new Error("throw: content-type mismatch"); }
+          if (!~($xhr.getResponseHeader('Content-Type') || '').toLowerCase().search(setting.contentType)) { throw new Error("throw: content-type mismatch"); }
           
           /* variable define */
-          this.srcDocument_ = this.app_.page.parser.parse(jqXHR.responseText, setting.destLocation.href);
+          this.srcDocument_ = this.app_.page.parser.parse($xhr.responseText, setting.destLocation.href);
           this.dstDocument_ = document;
             
           // 更新範囲を選出
@@ -446,17 +446,17 @@ module MODULE.MODEL.APP {
 
       if (!setting.balance.active || this.app_.loadtime < 100) { return; }
 
-      var jqXHR = this.record_.data.jqXHR();
-      var host = jqXHR.getResponseHeader(setting.balance.server.header) || this.record_.data.host() || '',
+      var $xhr = this.record_.data.jqXHR();
+      var host = this.app_.balance.sanitize($xhr, setting) || this.record_.data.host() || '',
           time = this.app_.loadtime,
-          score = this.app_.balance.score(time, jqXHR.responseText.length);
+          score = this.app_.balance.score(time, $xhr.responseText.length);
 
-      if (this.util_.fire(callbacks_update.balance.before, setting, [event, setting, host, this.app_.loadtime, jqXHR.responseText.length]) === false) { return; }
+      if (this.util_.fire(callbacks_update.balance.before, setting, [event, setting, host, this.app_.loadtime, $xhr.responseText.length]) === false) { return; }
 
       this.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
       this.app_.balance.changeServer(this.app_.balance.chooseServer(setting), setting);
 
-      if (this.util_.fire(callbacks_update.balance.after, setting, [event, setting, host, this.app_.loadtime, jqXHR.responseText.length]) === false) { return; }
+      if (this.util_.fire(callbacks_update.balance.after, setting, [event, setting, host, this.app_.loadtime, $xhr.responseText.length]) === false) { return; }
     }
 
     private css_(selector: string): void {

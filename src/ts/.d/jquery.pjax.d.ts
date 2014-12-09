@@ -63,6 +63,7 @@ interface PjaxSetting {
     balance?: {
         active?: boolean
         weight?: number
+        filter?: (host: string) => boolean
         option?: PjaxSetting
         client?: {
             hosts?: string[]
@@ -95,7 +96,11 @@ interface PjaxSetting {
         scroll?: boolean
         noscript?: boolean
     }
-    database?: boolean
+    database?: {
+        active?: boolean
+        revision?: number
+        refresh?: number
+    }
     server?: {
         query?: any // string, object
         header?: {

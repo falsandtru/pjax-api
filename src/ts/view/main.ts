@@ -19,7 +19,7 @@ module MODULE.VIEW {
       setting.form && this.context_.delegate(setting.form, setting.nss.event.submit, this.handlers.submit);
       jQuery(window).bind(setting.nss.event.popstate, this.handlers.popstate);
 
-      setting.database && setting.fix.scroll &&
+      setting.database.active && setting.fix.scroll &&
       jQuery(window).bind(setting.nss.event.scroll, this.handlers.scroll);
       return this;
     }
@@ -29,7 +29,7 @@ module MODULE.VIEW {
       setting.form && this.context_.undelegate(setting.form, setting.nss.event.submit);
       jQuery(window).unbind(setting.nss.event.popstate);
 
-      setting.database && setting.fix.scroll &&
+      setting.database.active && setting.fix.scroll &&
       jQuery(window).unbind(setting.nss.event.scroll);
       return this;
     }

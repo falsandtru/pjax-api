@@ -28,12 +28,15 @@ module MODULE.MODEL.APP {
     // db
 
     connect(setting: SettingInterface): void {
-      if (!setting.database) { return; }
+      if (setting.database.active) {
+        this.data_.DB.configure(setting.database.revision, setting.database.refresh);
+        this.data_.DB.up();
 
-      this.data_.DB.up();
-
-      this.saveTitle();
-      this.saveScrollPosition();
+        this.saveTitle();
+        this.saveScrollPosition();
+      } else {
+        this.data_.DB.down();
+      }
     }
 
     loadBuffers(limit: number = 0): void {
@@ -171,7 +174,7 @@ module MODULE.MODEL.APP {
     saveServer(host: string, expires: number, time: number, score: number, state: number): void {
       var value: ServerStoreSchema = {
             host: host.split('//').pop().split('/').shift() || '',
-            time: time,
+            time: Math.max(time, 1),
             score: score,
             state: state,
             expires: expires
@@ -181,7 +184,12 @@ module MODULE.MODEL.APP {
       this.stores_.server.set(value, true);
       this.stores_.server.clean();
     }
-    
+
+    removeServer(host: string): void {
+      this.stores_.server.removeBuffer(host);
+      this.stores_.server.remove(host);
+      this.stores_.server.clean();
+    } 
   }
 
 }

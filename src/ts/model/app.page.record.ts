@@ -7,13 +7,13 @@ module MODULE.MODEL.APP {
   export class PageRecord implements PageRecordInterface {
     
     constructor()
-    constructor(url: string, data: string, textStatus: string, jqXHR: JQueryXHR, host: string)
-    constructor(url?: string, data?: string, textStatus?: string, jqXHR?: JQueryXHR, host?: string) {
+    constructor(url: string, data: string, textStatus: string, $xhr: JQueryXHR, host: string)
+    constructor(url?: string, data?: string, textStatus?: string, $xhr?: JQueryXHR, host?: string) {
       this.data_ = url ? {
         url: url,
         data: data,
         textStatus: textStatus,
-        jqXHR: jqXHR,
+        jqXHR: $xhr,
         host: host
       } : {
         url: undefined,
@@ -73,27 +73,27 @@ module MODULE.MODEL.APP {
     expires(min?: number, max?: number): number {
       if (!this.jqXHR() && !this.data()) { return 0; }
 
-      var xhr = this.jqXHR(),
+      var $xhr = this.jqXHR(),
           expires: number;
 
-      if (xhr) {
-        xhr.timeStamp = xhr.timeStamp || new Date(xhr.getResponseHeader('Date')).getTime() || new Date().getTime();
+      if ($xhr) {
+        $xhr.timeStamp = $xhr.timeStamp || new Date($xhr.getResponseHeader('Date')).getTime() || new Date().getTime();
       }
       switch (true) {
-        case !xhr:
+        case !$xhr:
           expires = 0;
           break;
 
-        case /no-store|no-cache/.test(xhr.getResponseHeader('Cache-Control')):
+        case /no-store|no-cache/.test($xhr.getResponseHeader('Cache-Control')):
           expires = 0;
           break;
 
-        case !!xhr.getResponseHeader('Cache-Control') && !!~xhr.getResponseHeader('Cache-Control').indexOf('max-age='):
-          expires = new Date(xhr.getResponseHeader('Date') || new Date(xhr.timeStamp).toString()).getTime() + (+xhr.getResponseHeader('Cache-Control').match(/max-age=(\d*)/).pop() * 1000);
+        case !!$xhr.getResponseHeader('Cache-Control') && !!~$xhr.getResponseHeader('Cache-Control').indexOf('max-age='):
+          expires = new Date($xhr.getResponseHeader('Date') || new Date($xhr.timeStamp).toString()).getTime() + (+$xhr.getResponseHeader('Cache-Control').match(/max-age=(\d*)/).pop() * 1000);
           break;
 
-        case !!xhr.getResponseHeader('Expires'):
-          expires = new Date(xhr.getResponseHeader('Expires')).getTime();
+        case !!$xhr.getResponseHeader('Expires'):
+          expires = new Date($xhr.getResponseHeader('Expires')).getTime();
           break;
 
         default:
