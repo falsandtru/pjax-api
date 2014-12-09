@@ -11,7 +11,7 @@ module MODULE.MODEL.APP.DATA.STORE {
     keyPath = 'host'
     autoIncrement = false
     indexes = [
-      { name: 'date', keyPath: 'date', option: { unique: false } }
+      { name: 'score', keyPath: 'score', option: { unique: false } }
     ]
     limit = 100
 

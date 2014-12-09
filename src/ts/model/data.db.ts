@@ -14,7 +14,7 @@ module MODULE.MODEL.APP.DATA {
     IDBKeyRange: typeof IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.mozIDBKeyRange || window.msIDBKeyRange
 
     protected name: string = DEF.NAME
-    protected version: number = 9
+    protected version: number = 10
     protected refresh: number = 10
     protected upgrade: number = 0 // 0:virtual 1:native
     protected revision: number = 0
