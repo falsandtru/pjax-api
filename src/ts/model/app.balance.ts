@@ -89,7 +89,7 @@ module MODULE.MODEL.APP {
         var host: string = this.app_.data.getCookie(setting.balance.client.cookie.host); 
         if (!~jQuery.inArray(host, hosts)) {
           if (host === this.sanitize(host, setting)) {
-            hosts.unshift(host);
+            !~jQuery.inArray(host, hosts) && hosts.unshift(host);
           } else {
             this.app_.data.setCookie(setting.balance.client.cookie.host, '');
           }
@@ -100,8 +100,10 @@ module MODULE.MODEL.APP {
           scoreTable: { [score: string]: ServerStoreSchema } = {};
       jQuery.each(Object.keys(servers), (i, index) => {
         var server: ServerStoreSchema = servers[index];
+        ~jQuery.inArray(server.host, hosts) && hosts.splice(jQuery.inArray(server.host, hosts), 1);
+
         if (this.bypass_ && !server.host) { return; }
-        if (server.host === this.sanitize(server.host, setting)) {
+        if (server.host === this.sanitize(server.host, setting) && server.expires > new Date().getTime()) {
           scoreTable[server.score] = server;
         } else {
           this.app_.data.removeServer(server.host);
@@ -124,12 +126,12 @@ module MODULE.MODEL.APP {
 
         ~jQuery.inArray(host, hosts) && hosts.splice(jQuery.inArray(host, hosts), 1);
 
-        if (state + respite >= new Date().getTime()) { return; }
-
-        if (state) {
-          time = timeout - 1;
-          this.app_.data.saveServer(server.host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
+        if (state + respite >= new Date().getTime()) {
+          return;
+        } else if (state) {
+          this.app_.data.removeServer(server.host);
         }
+
         switch (true) {
           case weight && !host && !!Math.floor(Math.random() * weight):
           case timeout && time >= timeout:
@@ -142,8 +144,7 @@ module MODULE.MODEL.APP {
       });
 
       while (hosts.length) {
-        var host = hosts.splice(Math.floor(Math.random() * hosts.length), 1).shift();
-        result.push(host);
+        result.push(hosts.splice(Math.floor(Math.random() * hosts.length), 1).shift());
       }
 
       return result;
@@ -226,7 +227,7 @@ module MODULE.MODEL.APP {
             that.util_.fire(setting.balance.option.ajax.success, this, arguments);
           },
           error: function ($xhr) {
-            that.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, loadtime, 0, new Date().getTime());
+            that.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, 0, 0, new Date().getTime());
 
             host = null;
             that.util_.fire(setting.balance.option.ajax.error, this, arguments);

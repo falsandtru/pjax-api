@@ -174,7 +174,7 @@ module MODULE.MODEL.APP {
     saveServer(host: string, expires: number, time: number, score: number, state: number): void {
       var value: ServerStoreSchema = {
             host: host.split('//').pop().split('/').shift() || '',
-            time: time,
+            time: Math.max(time, 1),
             score: score,
             state: state,
             expires: expires
