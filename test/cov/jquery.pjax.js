@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.30.0
+ * @version 2.31.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -269,14 +269,14 @@ var MODULE;
                 setting.link && this.context_.delegate(setting.link, setting.nss.event.click, this.handlers.click);
                 setting.form && this.context_.delegate(setting.form, setting.nss.event.submit, this.handlers.submit);
                 jQuery(window).bind(setting.nss.event.popstate, this.handlers.popstate);
-                setting.database && setting.fix.scroll && jQuery(window).bind(setting.nss.event.scroll, this.handlers.scroll);
+                setting.database.active && setting.fix.scroll && jQuery(window).bind(setting.nss.event.scroll, this.handlers.scroll);
                 return this;
             };
             Main.prototype.release_ = function (setting) {
                 setting.link && this.context_.undelegate(setting.link, setting.nss.event.click);
                 setting.form && this.context_.undelegate(setting.form, setting.nss.event.submit);
                 jQuery(window).unbind(setting.nss.event.popstate);
-                setting.database && setting.fix.scroll && jQuery(window).unbind(setting.nss.event.scroll);
+                setting.database.active && setting.fix.scroll && jQuery(window).unbind(setting.nss.event.scroll);
                 return this;
             };
             return Main;
@@ -404,19 +404,19 @@ var MODULE;
                 MODULE.Model.singleton().clearCache();
                 return this;
             };
-            Functions.prototype.follow = function (event, $XHR, host, timeStamp) {
+            Functions.prototype.follow = function (event, $xhr, host, timeStamp) {
                 if (!MODULE.Model.singleton().isDeferrable) {
                     return false;
                 }
                 var anchor = event.currentTarget;
-                $XHR.follow = true;
-                $XHR.host = host || '';
+                $xhr.follow = true;
+                $xhr.host = host || '';
                 if (isFinite(event.timeStamp)) {
-                    $XHR.timeStamp = timeStamp || event.timeStamp;
+                    $xhr.timeStamp = timeStamp || event.timeStamp;
                 }
-                MODULE.Model.singleton().setXHR($XHR);
-                jQuery.when($XHR).done(function () {
-                    !MODULE.Model.singleton().getCache(anchor.href) && MODULE.Model.singleton().isAvailable(event) && MODULE.Model.singleton().setCache(anchor.href, undefined, undefined, $XHR);
+                MODULE.Model.singleton().setXHR($xhr);
+                jQuery.when($xhr).done(function () {
+                    !MODULE.Model.singleton().getCache(anchor.href) && MODULE.Model.singleton().isAvailable(event) && MODULE.Model.singleton().setCache(anchor.href, undefined, undefined, $xhr);
                 });
                 jQuery[MODULE.DEF.NAME].click(anchor.href);
                 return true;
@@ -1344,7 +1344,7 @@ var MODULE;
                             this.keyPath = 'host';
                             this.autoIncrement = false;
                             this.indexes = [
-                                { name: 'date', keyPath: 'date', option: { unique: false } }
+                                { name: 'score', keyPath: 'score', option: { unique: false } }
                             ];
                             this.limit = 100;
                         }
@@ -1376,9 +1376,10 @@ var MODULE;
                         this.IDBFactory = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB;
                         this.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.mozIDBKeyRange || window.msIDBKeyRange;
                         this.name = MODULE.DEF.NAME;
-                        this.version = 9;
+                        this.version = 10;
                         this.refresh = 10;
                         this.upgrade = 0; // 0:virtual 1:native
+                        this.revision = 0;
                         this.state_ = 0 /* blank */;
                         this.stateful = new DATA.DB.Stateful(this, function () { return _this.connect(); }, function () { return _this.extend(); });
                         this.age = 10 * 1000;
@@ -1391,7 +1392,8 @@ var MODULE;
                         };
                         this.meta = {
                             version: { key: 'version', value: undefined },
-                            update: { key: 'update', value: undefined }
+                            update: { key: 'update', value: undefined },
+                            revision: { key: 'revision', value: undefined }
                         };
                     }
                     Database.prototype.state = function () {
@@ -1412,6 +1414,10 @@ var MODULE;
                     Database.prototype.database = function () {
                         this.extend();
                         return this.database_;
+                    };
+                    Database.prototype.configure = function (revision, refresh) {
+                        this.revision = revision;
+                        this.refresh = refresh;
                     };
                     Database.prototype.up = function () {
                         this.state_ = 0 /* blank */;
@@ -1447,7 +1453,7 @@ var MODULE;
                             this.state_ = 1 /* initiate */;
                             var req = this.IDBFactory.open(this.name, this.upgrade ? this.version : 1);
                             var verify = function () {
-                                _this.verify(_this.version, function () {
+                                _this.verify(function () {
                                     _this.state_ = 2 /* open */;
                                     _this.resolve();
                                     _this.extend();
@@ -1511,9 +1517,9 @@ var MODULE;
                         var _this = this;
                         this.destroy(function () { return _this.up(); }, function () { return _this.down(); });
                     };
-                    Database.prototype.verify = function (version, success) {
+                    Database.prototype.verify = function (success) {
                         var _this = this;
-                        var db = this.database(), scheme = this.meta, meta = this.stores.meta, failure = function () { return _this.format(); };
+                        var db = this.database(), version = this.version, revision = this.revision, scheme = this.meta, meta = this.stores.meta, failure = function () { return _this.format(); };
                         if (db.objectStoreNames.length !== Object.keys(this.stores).length) {
                             return void failure();
                         }
@@ -1540,6 +1546,24 @@ var MODULE;
                                 _this.down();
                             }
                             else if (data.value < version) {
+                                cancel = true;
+                                failure();
+                            }
+                        });
+                        meta.get(scheme.revision.key, function (event) {
+                            // revision check
+                            if (cancel) {
+                                return;
+                            }
+                            var data = event.target.result;
+                            if (!data) {
+                                meta.set(meta.setBuffer({ key: scheme.revision.key, value: revision }));
+                            }
+                            else if (data.value > revision) {
+                                cancel = true;
+                                _this.down();
+                            }
+                            else if (data.value < revision) {
                                 cancel = true;
                                 failure();
                             }
@@ -1924,12 +1948,15 @@ var MODULE;
                 };
                 // db
                 Data.prototype.connect = function (setting) {
-                    if (!setting.database) {
-                        return;
+                    if (setting.database.active) {
+                        this.data_.DB.configure(setting.database.revision, setting.database.refresh);
+                        this.data_.DB.up();
+                        this.saveTitle();
+                        this.saveScrollPosition();
                     }
-                    this.data_.DB.up();
-                    this.saveTitle();
-                    this.saveScrollPosition();
+                    else {
+                        this.data_.DB.down();
+                    }
                 };
                 Data.prototype.loadBuffers = function (limit) {
                     if (limit === void 0) { limit = 0; }
@@ -2047,13 +2074,18 @@ var MODULE;
                 Data.prototype.saveServer = function (host, expires, time, score, state) {
                     var value = {
                         host: host.split('//').pop().split('/').shift() || '',
-                        time: time,
+                        time: Math.max(time, 1),
                         score: score,
                         state: state,
                         expires: expires
                     };
                     this.stores_.server.setBuffer(value, true);
                     this.stores_.server.set(value, true);
+                    this.stores_.server.clean();
+                };
+                Data.prototype.removeServer = function (host) {
+                    this.stores_.server.removeBuffer(host);
+                    this.stores_.server.remove(host);
                     this.stores_.server.clean();
                 };
                 return Data;
@@ -2074,15 +2106,39 @@ var MODULE;
         (function (APP) {
             var Balance = (function () {
                 function Balance(model_, app_) {
-                    var _this = this;
                     this.model_ = model_;
                     this.app_ = app_;
                     this.util_ = MODULE.LIBRARY.Utility;
                     this.host_ = '';
-                    this.host = function () { return _this.host_; };
                     this.bypass_ = false;
                     this.parallel_ = 4;
                 }
+                Balance.prototype.host = function (host, setting) {
+                    if (setting) {
+                        this.host_ = this.sanitize(host, setting);
+                    }
+                    return this.host_;
+                };
+                Balance.prototype.sanitize = function (param, setting) {
+                    var host = '';
+                    switch (param && typeof param) {
+                        case 'string':
+                            host = param;
+                            break;
+                        case 'object':
+                            var $xhr = param;
+                            try {
+                                host = $xhr.getResponseHeader(setting.balance.server.header) || $xhr.host;
+                            }
+                            catch (e) {
+                                host = $xhr.host;
+                            }
+                            break;
+                    }
+                    host = host || '';
+                    host = setting.balance.filter(host) && host;
+                    return host;
+                };
                 Balance.prototype.enable = function (setting) {
                     if (!setting.balance.active) {
                         return void this.disable(setting);
@@ -2110,12 +2166,11 @@ var MODULE;
                     return Math.max(Math.round(size / time * 1000), 0);
                 };
                 Balance.prototype.changeServer = function (host, setting) {
-                    if (setting === void 0) { setting = this.model_.configure(window.location); }
-                    if (!setting || !setting.balance.active) {
-                        this.host_ = '';
+                    if (!setting.balance.active) {
+                        this.host('', setting);
                     }
                     else {
-                        this.host_ = host || '';
+                        this.host(host, setting);
                         this.app_.data.setCookie(setting.balance.client.cookie.host, host);
                     }
                     return this.host();
@@ -2124,44 +2179,57 @@ var MODULE;
                     var _this = this;
                     var respite = setting.balance.server.respite, weight = setting.balance.weight, timeout = setting.ajax.timeout, hosts = setting.balance.client.hosts.slice();
                     hosts = this.bypass_ ? jQuery.grep(hosts, function (host) { return !!host; }) : hosts;
-                    if (!~jQuery.inArray(this.app_.data.getCookie(setting.balance.client.cookie.host), hosts)) {
-                        hosts.unshift(this.app_.data.getCookie(setting.balance.client.cookie.host));
-                    }
+                    (function () {
+                        var host = _this.app_.data.getCookie(setting.balance.client.cookie.host);
+                        if (!~jQuery.inArray(host, hosts)) {
+                            if (host === _this.sanitize(host, setting)) {
+                                !~jQuery.inArray(host, hosts) && hosts.unshift(host);
+                            }
+                            else {
+                                _this.app_.data.setCookie(setting.balance.client.cookie.host, '');
+                            }
+                        }
+                    })();
                     var servers = this.app_.data.getServerBuffers(), scoreTable = {};
                     jQuery.each(Object.keys(servers), function (i, index) {
                         var server = servers[index];
+                        ~jQuery.inArray(server.host, hosts) && hosts.splice(jQuery.inArray(server.host, hosts), 1);
                         if (_this.bypass_ && !server.host) {
                             return;
                         }
-                        scoreTable[server.score] = server;
+                        if (server.host === _this.sanitize(server.host, setting) && server.expires > new Date().getTime()) {
+                            scoreTable[server.score] = server;
+                        }
+                        else {
+                            _this.app_.data.removeServer(server.host);
+                        }
                     });
                     var scores = Object.keys(scoreTable).sort(sortScoreDes);
                     function sortScoreDes(a, b) {
                         return +b - +a;
                     }
-                    var result = [];
+                    var result = [], primary;
                     jQuery.each(scores, function (i) {
                         var server = scoreTable[scores[i]], host = server.host, time = server.time, score = server.score, state = server.state;
                         ~jQuery.inArray(host, hosts) && hosts.splice(jQuery.inArray(host, hosts), 1);
                         if (state + respite >= new Date().getTime()) {
                             return;
                         }
-                        if (state || new Date().getTime() > server.expires) {
-                            time = timeout - 1;
-                            _this.app_.data.saveServer(server.host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
+                        else if (state) {
+                            _this.app_.data.removeServer(server.host);
                         }
                         switch (true) {
-                            case result.length === 6:
-                            case timeout && time >= timeout:
-                            case timeout && time >= timeout * 2 / 3 && result.length < 3:
                             case weight && !host && !!Math.floor(Math.random() * weight):
+                            case timeout && time >= timeout:
+                            case result.length >= Math.min(Math.floor(scores.length / 2), 3) && timeout && time >= primary.time + 500 && time >= timeout * 2 / 3:
+                            case result.length >= Math.min(Math.floor(scores.length / 2), 3) && primary && score <= primary.score / 2:
                                 return;
                         }
+                        primary = primary || server;
                         result.push(host);
                     });
                     while (hosts.length) {
-                        var host = hosts.splice(Math.floor(Math.random() * hosts.length), 1).shift();
-                        result.push(host);
+                        result.push(hosts.splice(Math.floor(Math.random() * hosts.length), 1).shift());
                     }
                     return result;
                 };
@@ -2173,6 +2241,8 @@ var MODULE;
                     // キャッシュの有効期限内の再リクエストは同じサーバーを選択してキャッシュを使用
                     var history = this.app_.data.getHistoryBuffer(setting.destLocation.href);
                     switch (false) {
+                        case history && history.host === this.sanitize(history.host, setting):
+                            this.app_.data.saveExpires(history.url, '', 0);
                         case !!history:
                         case !!history.expires && history.expires >= new Date().getTime():
                         case !!history.host || !this.bypass_:
@@ -2199,35 +2269,35 @@ var MODULE;
                         'pending' === deferred.state() && jQuery.ajax(jQuery.extend({}, option, {
                             url: that.util_.normalizeUrl(window.location.protocol + '//' + host + window.location.pathname.replace(/^\/?/, '/') + window.location.search),
                             xhr: !setting.balance.option.callbacks.ajax.xhr ? undefined : function () {
-                                var jqXHR;
-                                jqXHR = that.util_.fire(setting.balance.option.callbacks.ajax.xhr, this, [event, setting]);
-                                jqXHR = 'object' === typeof jqXHR ? jqXHR : jQuery.ajaxSettings.xhr();
-                                return jqXHR;
+                                var $xhr;
+                                $xhr = that.util_.fire(setting.balance.option.callbacks.ajax.xhr, this, [event, setting]);
+                                $xhr = 'object' === typeof $xhr ? $xhr : jQuery.ajaxSettings.xhr();
+                                return $xhr;
                             },
-                            beforeSend: !setting.balance.option.callbacks.ajax.beforeSend && !setting.server.header ? undefined : function (jqXHR, ajaxSetting) {
+                            beforeSend: !setting.balance.option.callbacks.ajax.beforeSend && !setting.server.header ? undefined : function ($xhr, ajaxSetting) {
                                 if (setting.server.header) {
-                                    jqXHR.setRequestHeader(setting.nss.requestHeader, 'true');
+                                    $xhr.setRequestHeader(setting.nss.requestHeader, 'true');
                                 }
                                 if ('object' === typeof setting.server.header) {
-                                    jqXHR.setRequestHeader(setting.nss.requestHeader, 'true');
-                                    setting.server.header.area && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Area', this.app_.chooseArea(setting.area, document, document));
-                                    setting.server.header.head && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Head', setting.load.head);
-                                    setting.server.header.css && jqXHR.setRequestHeader(setting.nss.requestHeader + '-CSS', setting.load.css.toString());
-                                    setting.server.header.script && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Script', setting.load.script.toString());
+                                    $xhr.setRequestHeader(setting.nss.requestHeader, 'true');
+                                    setting.server.header.area && $xhr.setRequestHeader(setting.nss.requestHeader + '-Area', this.app_.chooseArea(setting.area, document, document));
+                                    setting.server.header.head && $xhr.setRequestHeader(setting.nss.requestHeader + '-Head', setting.load.head);
+                                    setting.server.header.css && $xhr.setRequestHeader(setting.nss.requestHeader + '-CSS', setting.load.css.toString());
+                                    setting.server.header.script && $xhr.setRequestHeader(setting.nss.requestHeader + '-Script', setting.load.script.toString());
                                 }
-                                that.util_.fire(setting.balance.option.callbacks.ajax.beforeSend, this, [event, setting, jqXHR, ajaxSetting]);
+                                that.util_.fire(setting.balance.option.callbacks.ajax.beforeSend, this, [event, setting, $xhr, ajaxSetting]);
                             },
                             dataFilter: !setting.balance.option.callbacks.ajax.dataFilter ? undefined : function (data, type) {
                                 return that.util_.fire(setting.balance.option.callbacks.ajax.dataFilter, this, [event, setting, data, type]) || data;
                             },
-                            success: function (data, textStatus, jqXHR) {
+                            success: function (data, textStatus, $xhr) {
                                 loadtime = new Date().getTime() - loadtime;
-                                that.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, loadtime, that.score(loadtime, jqXHR.responseText.length), 0);
-                                host = host;
+                                that.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, loadtime, that.score(loadtime, $xhr.responseText.length), 0);
+                                host = that.sanitize($xhr, setting) || host;
                                 that.util_.fire(setting.balance.option.ajax.success, this, arguments);
                             },
-                            error: function (jqXHR) {
-                                that.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, loadtime, 0, new Date().getTime());
+                            error: function ($xhr) {
+                                that.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, 0, 0, new Date().getTime());
                                 host = null;
                                 that.util_.fire(setting.balance.option.ajax.error, this, arguments);
                             },
@@ -2236,7 +2306,7 @@ var MODULE;
                                 ++index;
                                 deferred.notify(index, length, host);
                                 if (host) {
-                                    that.host_ = host;
+                                    that.host(host, setting);
                                     hosts.splice(0, hosts.length);
                                     deferred.resolve(host);
                                 }
@@ -2270,12 +2340,12 @@ var MODULE;
         var APP;
         (function (APP) {
             var PageRecord = (function () {
-                function PageRecord(url, data, textStatus, jqXHR, host) {
+                function PageRecord(url, data, textStatus, $xhr, host) {
                     this.data_ = url ? {
                         url: url,
                         data: data,
                         textStatus: textStatus,
-                        jqXHR: jqXHR,
+                        jqXHR: $xhr,
                         host: host
                     } : {
                         url: undefined,
@@ -2322,22 +2392,22 @@ var MODULE;
                     if (!this.jqXHR() && !this.data()) {
                         return 0;
                     }
-                    var xhr = this.jqXHR(), expires;
-                    if (xhr) {
-                        xhr.timeStamp = xhr.timeStamp || new Date(xhr.getResponseHeader('Date')).getTime() || new Date().getTime();
+                    var $xhr = this.jqXHR(), expires;
+                    if ($xhr) {
+                        $xhr.timeStamp = $xhr.timeStamp || new Date($xhr.getResponseHeader('Date')).getTime() || new Date().getTime();
                     }
                     switch (true) {
-                        case !xhr:
+                        case !$xhr:
                             expires = 0;
                             break;
-                        case /no-store|no-cache/.test(xhr.getResponseHeader('Cache-Control')):
+                        case /no-store|no-cache/.test($xhr.getResponseHeader('Cache-Control')):
                             expires = 0;
                             break;
-                        case !!xhr.getResponseHeader('Cache-Control') && !!~xhr.getResponseHeader('Cache-Control').indexOf('max-age='):
-                            expires = new Date(xhr.getResponseHeader('Date') || new Date(xhr.timeStamp).toString()).getTime() + (+xhr.getResponseHeader('Cache-Control').match(/max-age=(\d*)/).pop() * 1000);
+                        case !!$xhr.getResponseHeader('Cache-Control') && !!~$xhr.getResponseHeader('Cache-Control').indexOf('max-age='):
+                            expires = new Date($xhr.getResponseHeader('Date') || new Date($xhr.timeStamp).toString()).getTime() + (+$xhr.getResponseHeader('Cache-Control').match(/max-age=(\d*)/).pop() * 1000);
                             break;
-                        case !!xhr.getResponseHeader('Expires'):
-                            expires = new Date(xhr.getResponseHeader('Expires')).getTime();
+                        case !!$xhr.getResponseHeader('Expires'):
+                            expires = new Date($xhr.getResponseHeader('Expires')).getTime();
                             break;
                         default:
                             expires = 0;
@@ -2431,13 +2501,13 @@ var MODULE;
                             break;
                     }
                     this.dispatchEvent(document, setting.nss.event.pjax.fetch, false, false);
-                    var xhr = this.model_.getXHR();
+                    var $xhr = this.model_.getXHR();
                     if (cache && cache.jqXHR && 200 === +cache.jqXHR.status) {
                         // cache
                         speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
                         this.app_.loadtime = 0;
                         this.model_.setXHR(null);
-                        this.host_ = cache.host || '';
+                        this.host_ = this.app_.balance.sanitize(cache.host, setting);
                         this.data_ = cache.jqXHR.responseText;
                         this.textStatus_ = cache.textStatus;
                         this.jqXHR_ = cache.jqXHR;
@@ -2453,18 +2523,20 @@ var MODULE;
                             complete.call(context, this.jqXHR_, this.textStatus_);
                         }
                     }
-                    else if (xhr && xhr.follow && !~'error abort timeout parsererror'.indexOf(xhr.statusText)) {
+                    else if ($xhr && $xhr.follow && !~'error abort timeout parsererror'.indexOf($xhr.statusText)) {
                         // preload
-                        speedcheck && speed.time.splice(0, 1, xhr.timeStamp - speed.fire);
+                        speedcheck && speed.time.splice(0, 1, $xhr.timeStamp - speed.fire);
                         speedcheck && speed.name.splice(0, 1, 'preload(' + speed.time.slice(-1) + ')');
                         speedcheck && speed.time.push(speed.now() - speed.fire);
                         speedcheck && speed.name.push('continue(' + speed.time.slice(-1) + ')');
-                        this.host_ = xhr.host || '';
-                        this.app_.loadtime = xhr.timeStamp;
+                        this.app_.balance.sanitize($xhr, setting);
+                        this.app_.balance.changeServer($xhr.host, setting);
+                        this.host_ = this.model_.host();
+                        this.app_.loadtime = $xhr.timeStamp;
                         var defer = this.wait_(wait);
                         this.app_.page.setWait(defer);
-                        delete xhr.timeStamp;
-                        jQuery.when(xhr, defer).done(done).fail(fail).always(always);
+                        delete $xhr.timeStamp;
+                        jQuery.when($xhr, defer).done(done).fail(fail).always(always);
                     }
                     else {
                         // default
@@ -2509,26 +2581,26 @@ var MODULE;
                         }
                         ajax = jQuery.extend({}, setting.ajax, ajax, {
                             xhr: !setting.callbacks.ajax.xhr ? undefined : function () {
-                                var jqXHR;
-                                jqXHR = that.util_.fire(setting.callbacks.ajax.xhr, this, [event, setting]);
-                                jqXHR = 'object' === typeof jqXHR ? jqXHR : jQuery.ajaxSettings.xhr();
-                                //if (jqXHR instanceof Object && jqXHR instanceof window.XMLHttpRequest && 'onprogress' in jqXHR) {
-                                //  jqXHR.addEventListener('progress', function(event) {dataSize = event.loaded;}, false);
+                                var $xhr;
+                                $xhr = that.util_.fire(setting.callbacks.ajax.xhr, this, [event, setting]);
+                                $xhr = 'object' === typeof $xhr ? $xhr : jQuery.ajaxSettings.xhr();
+                                //if ($xhr instanceof Object && $xhr instanceof window.XMLHttpRequest && 'onprogress' in $xhr) {
+                                //  $xhr.addEventListener('progress', function(event) {dataSize = event.loaded;}, false);
                                 //}
-                                return jqXHR;
+                                return $xhr;
                             },
-                            beforeSend: !setting.callbacks.ajax.beforeSend && !setting.server.header ? undefined : function (jqXHR, ajaxSetting) {
+                            beforeSend: !setting.callbacks.ajax.beforeSend && !setting.server.header ? undefined : function ($xhr, ajaxSetting) {
                                 if (setting.server.header) {
-                                    jqXHR.setRequestHeader(setting.nss.requestHeader, 'true');
+                                    $xhr.setRequestHeader(setting.nss.requestHeader, 'true');
                                 }
                                 if ('object' === typeof setting.server.header) {
-                                    jqXHR.setRequestHeader(setting.nss.requestHeader, 'true');
-                                    setting.server.header.area && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Area', this.app_.chooseArea(setting.area, document, document));
-                                    setting.server.header.head && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Head', setting.load.head);
-                                    setting.server.header.css && jqXHR.setRequestHeader(setting.nss.requestHeader + '-CSS', setting.load.css.toString());
-                                    setting.server.header.script && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Script', setting.load.script.toString());
+                                    $xhr.setRequestHeader(setting.nss.requestHeader, 'true');
+                                    setting.server.header.area && $xhr.setRequestHeader(setting.nss.requestHeader + '-Area', this.app_.chooseArea(setting.area, document, document));
+                                    setting.server.header.head && $xhr.setRequestHeader(setting.nss.requestHeader + '-Head', setting.load.head);
+                                    setting.server.header.css && $xhr.setRequestHeader(setting.nss.requestHeader + '-CSS', setting.load.css.toString());
+                                    setting.server.header.script && $xhr.setRequestHeader(setting.nss.requestHeader + '-Script', setting.load.script.toString());
                                 }
-                                that.util_.fire(setting.callbacks.ajax.beforeSend, this, [event, setting, jqXHR, ajaxSetting]);
+                                that.util_.fire(setting.callbacks.ajax.beforeSend, this, [event, setting, $xhr, ajaxSetting]);
                             },
                             dataFilter: !setting.callbacks.ajax.dataFilter ? undefined : function (data, type) {
                                 return that.util_.fire(setting.callbacks.ajax.dataFilter, this, [event, setting, data, type]) || data;
@@ -2545,13 +2617,13 @@ var MODULE;
                         this.app_.page.setWait(defer);
                         jQuery.when(this.model_.getXHR(), defer).done(done).fail(fail).always(always);
                     }
-                    function success(data, textStatus, jqXHR) {
+                    function success(data, textStatus, $xhr) {
                         return done.call(this, [].slice.call(arguments), undefined);
                     }
-                    function error(jqXHR, textStatus, errorThrown) {
+                    function error($xhr, textStatus, errorThrown) {
                         return fail.apply(this, arguments);
                     }
-                    function complete(jqXHR, textStatus) {
+                    function complete($xhr, textStatus) {
                         return always.apply(this, arguments);
                     }
                     function done(ajax, wait) {
@@ -2563,11 +2635,11 @@ var MODULE;
                         that.jqXHR_ = ajax[2];
                         that.util_.fire(setting.callbacks.ajax.success, this[0] || this, [event, setting, that.data_, that.textStatus_, that.jqXHR_]);
                     }
-                    function fail(jqXHR, textStatus, errorThrown) {
+                    function fail($xhr, textStatus, errorThrown) {
                         if (!arguments.length || !arguments[0]) {
                             return;
                         }
-                        that.jqXHR_ = jqXHR;
+                        that.jqXHR_ = $xhr;
                         that.textStatus_ = textStatus;
                         that.errorThrown_ = errorThrown;
                         that.util_.fire(setting.callbacks.ajax.error, this[0] || this, [event, setting, that.jqXHR_, that.textStatus_, that.errorThrown_]);
@@ -2711,7 +2783,7 @@ var MODULE;
                     this.main_();
                 }
                 PageUpdate.prototype.main_ = function () {
-                    var app = this.app_, record = this.record_, setting = this.setting_, event = this.event_, data = record.data.jqXHR().responseText, textStatus = record.data.textStatus(), jqXHR = record.data.jqXHR();
+                    var app = this.app_, record = this.record_, setting = this.setting_, event = this.event_, data = record.data.jqXHR().responseText, textStatus = record.data.textStatus(), $xhr = record.data.jqXHR();
                     var callbacks_update = setting.callbacks.update;
                     var speedcheck = setting.speedcheck, speed = this.model_.speed;
                     speedcheck && speed.time.push(speed.now() - speed.fire);
@@ -2724,11 +2796,11 @@ var MODULE;
                         }
                         try {
                             app.page.landing = null;
-                            if (!~(jqXHR.getResponseHeader('Content-Type') || '').toLowerCase().search(setting.contentType)) {
+                            if (!~($xhr.getResponseHeader('Content-Type') || '').toLowerCase().search(setting.contentType)) {
                                 throw new Error("throw: content-type mismatch");
                             }
                             /* variable define */
-                            this.srcDocument_ = this.app_.page.parser.parse(jqXHR.responseText, setting.destLocation.href);
+                            this.srcDocument_ = this.app_.page.parser.parse($xhr.responseText, setting.destLocation.href);
                             this.dstDocument_ = document;
                             // 更新範囲を選出
                             this.area_ = this.chooseArea(setting.area, this.srcDocument_, this.dstDocument_);
@@ -3055,14 +3127,14 @@ var MODULE;
                     if (!setting.balance.active || this.app_.loadtime < 100) {
                         return;
                     }
-                    var jqXHR = this.record_.data.jqXHR();
-                    var host = jqXHR.getResponseHeader(setting.balance.server.header) || this.record_.data.host() || '', time = this.app_.loadtime, score = this.app_.balance.score(time, jqXHR.responseText.length);
-                    if (this.util_.fire(callbacks_update.balance.before, setting, [event, setting, host, this.app_.loadtime, jqXHR.responseText.length]) === false) {
+                    var $xhr = this.record_.data.jqXHR();
+                    var host = this.app_.balance.sanitize($xhr, setting) || this.record_.data.host() || '', time = this.app_.loadtime, score = this.app_.balance.score(time, $xhr.responseText.length);
+                    if (this.util_.fire(callbacks_update.balance.before, setting, [event, setting, host, this.app_.loadtime, $xhr.responseText.length]) === false) {
                         return;
                     }
                     this.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
                     this.app_.balance.changeServer(this.app_.balance.chooseServer(setting), setting);
-                    if (this.util_.fire(callbacks_update.balance.after, setting, [event, setting, host, this.app_.loadtime, jqXHR.responseText.length]) === false) {
+                    if (this.util_.fire(callbacks_update.balance.after, setting, [event, setting, host, this.app_.loadtime, $xhr.responseText.length]) === false) {
                         return;
                     }
                 };
@@ -3725,6 +3797,9 @@ var MODULE;
                         balance: {
                             active: false,
                             weight: 1,
+                            filter: function (host) {
+                                return /^[^\s/]*$/.test(host);
+                            },
                             option: {
                                 server: {
                                     header: false
@@ -3769,7 +3844,11 @@ var MODULE;
                             scroll: true,
                             noscript: true
                         },
-                        database: true,
+                        database: {
+                            active: true,
+                            revision: 0,
+                            refresh: 10
+                        },
                         server: {
                             query: null,
                             header: true
@@ -3834,6 +3913,9 @@ var MODULE;
                             },
                             fix: /android|iphone os|like mac os x/i.test(window.navigator.userAgent) ? undefined : { location: false },
                             contentType: setting.contentType.replace(/\s*[,;]\s*/g, '|').toLowerCase(),
+                            database: {
+                                refresh: Math.min(setting.database.refresh, 30)
+                            },
                             reset: {
                                 type: (setting.reset.type || '').toLowerCase()
                             },
@@ -3997,12 +4079,6 @@ var MODULE;
                 this.location = document.createElement('a');
                 this.queue_ = [];
             }
-            Main.prototype.getRequestDomain = function () {
-                return this.host();
-            };
-            Main.prototype.setRequestDomain = function (host) {
-                return this.app_.balance.changeServer(host.split('//').pop());
-            };
             Main.prototype.host = function () {
                 return this.app_.balance.host();
             };
@@ -4087,9 +4163,10 @@ var MODULE;
             Main.prototype.getXHR = function () {
                 return this.app_.page.xhr;
             };
-            Main.prototype.setXHR = function (xhr) {
+            Main.prototype.setXHR = function ($xhr) {
+                this.app_.balance.sanitize($xhr, this.app_.configure(window.location));
                 this.app_.page.xhr && this.app_.page.xhr.readyState < 4 && this.app_.page.xhr.abort();
-                return this.app_.page.xhr = xhr;
+                return this.app_.page.xhr = $xhr;
             };
             Main.prototype.click = function (event) {
                 PROCESS: {
@@ -4227,7 +4304,7 @@ var MODULE;
                     return;
                 }
                 var record = this.app_.page.provider.getRecord(setting);
-                this.app_.page.provider.setRecord(setting, data || '', textStatus || record.data.textStatus(), jqXHR || record.data.jqXHR(), jqXHR && jqXHR.getResponseHeader(setting.balance.server.header) || record.data.host() || '');
+                this.app_.page.provider.setRecord(setting, data || '', textStatus || record.data.textStatus(), jqXHR || record.data.jqXHR(), this.app_.balance.sanitize(jqXHR, setting) || record.data.host() || '');
             };
             Main.prototype.removeCache = function (unsafe_url) {
                 var setting = this.configure(this.convertUrlToKeyUrl(unsafe_url));

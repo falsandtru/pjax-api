@@ -7,6 +7,17 @@ nav: nav
 
 # ChangeLog
 
+## 2.31.0
+
+* `database`パラメータの仕様を変更
+  * `database.active`パラメータを追加
+  * `database.revision`パラメータを追加
+  * `database.refresh`パラメータを追加
+* `balance.filter`パラメータを追加
+* ロードバランス処理を改善
+* ロードバランス処理のバグを修正
+* データベースのバージョンを更新
+
 ## 2.30.0(3.0.0 beta)
 
 * ウェブサイトサービスの可用性向上用諸機能の実装を完了
