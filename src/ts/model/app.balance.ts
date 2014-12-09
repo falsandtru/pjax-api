@@ -32,7 +32,12 @@ module MODULE.MODEL.APP {
           host = param;
           break;
         case 'object':
-          host = param.getResponseHeader(setting.balance.server.header) || param.host;
+          var $xhr: JQueryXHR = param;
+          try {
+            host = $xhr.getResponseHeader(setting.balance.server.header) || $xhr.host;
+          } catch (e) {
+            host = $xhr.host;
+          }
           break
       }
       host = host || '';
