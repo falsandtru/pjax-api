@@ -20,13 +20,6 @@ module MODULE.MODEL {
     private app_: AppLayerInterface = new MODEL.App(this, this.controller_)
     private util_ = LIBRARY.Utility
 
-    private getRequestDomain(): string {
-      return this.host();
-    }
-    private setRequestDomain(host: string): string {
-      return this.app_.balance.changeServer(host.split('//').pop());
-    }
-
     isDeferrable: boolean = !!jQuery.when && '1.006' <= jQuery().jquery.match(/\d[\d.]+\d/).pop().replace(/\.(\d+)/g, '.00$1').replace(/0*(\d{3})/g, '$1')
 
     location: HTMLAnchorElement = document.createElement('a')
@@ -116,9 +109,10 @@ module MODULE.MODEL {
     getXHR(): JQueryXHR {
       return this.app_.page.xhr;
     }
-    setXHR(xhr: JQueryXHR): JQueryXHR {
+    setXHR($xhr: JQueryXHR): JQueryXHR {
+      this.app_.balance.sanitize($xhr, this.app_.configure(window.location));
       this.app_.page.xhr && this.app_.page.xhr.readyState < 4 && this.app_.page.xhr.abort();
-      return this.app_.page.xhr = xhr;
+      return this.app_.page.xhr = $xhr;
     }
     
     click(event: JQueryEventObject): void {
@@ -268,7 +262,7 @@ module MODULE.MODEL {
                                         data || '',
                                         textStatus || record.data.textStatus(),
                                         jqXHR || record.data.jqXHR(),
-                                        jqXHR && jqXHR.getResponseHeader(setting.balance.server.header) || jqXHR && jqXHR.host || record.data.host() || '');
+                                        this.app_.balance.sanitize(jqXHR, setting) || record.data.host() || '');
     }
 
     removeCache(unsafe_url: string): void {

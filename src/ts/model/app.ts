@@ -140,6 +140,7 @@ module MODULE.MODEL.APP {
             balance: {
               active: false,
               weight: 1,
+              filter: function (host: string) { return /^[^\s/]*$/.test(host); },
               option: <PjaxSetting>{
                 server: {
                   header: false

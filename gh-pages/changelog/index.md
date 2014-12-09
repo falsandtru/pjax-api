@@ -13,6 +13,7 @@ nav: nav
   * `database.active`パラメータを追加
   * `database.revision`パラメータを追加
   * `database.refresh`パラメータを追加
+* `balance.filter`パラメータを追加
 
 ## 2.30.0(3.0.0 beta)
 

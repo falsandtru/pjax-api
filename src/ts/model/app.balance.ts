@@ -13,8 +13,32 @@ module MODULE.MODEL.APP {
     private util_ = LIBRARY.Utility
 
     private host_: string = ''
-    host = () => this.host_
+    host(): string
+    host(host: string, setting: SettingInterface): string
+    host(host?: string, setting?: SettingInterface): string {
+      if (setting) {
+        this.host_ = this.sanitize(host, setting);
+      }
+      return this.host_;
+    }
     private bypass_: boolean = false
+
+    sanitize(host: string, setting: SettingInterface): string
+    sanitize($xhr: JQueryXHR, setting: SettingInterface): string
+    sanitize(param: any, setting: SettingInterface): any {
+      var host: string = '';
+      switch (param && typeof param) {
+        case 'string':
+          host = param;
+          break;
+        case 'object':
+          host = param.getResponseHeader(setting.balance.server.header) || param.host;
+          break
+      }
+      host = host || '';
+      host = setting.balance.filter(host) && host;
+      return host;
+    }
 
     enable(setting: SettingInterface): void {
       if (!setting.balance.active) {
@@ -44,11 +68,11 @@ module MODULE.MODEL.APP {
       return Math.max(Math.round(size / time * 1000), 0);
     }
 
-    changeServer(host: string, setting: SettingInterface = this.model_.configure(window.location)): string {
-      if (!setting || !setting.balance.active) {
-        this.host_ = '';
+    changeServer(host: string, setting: SettingInterface): string {
+      if (!setting.balance.active) {
+        this.host('', setting);
       } else {
-        this.host_ = host || '';
+        this.host(host, setting);
         this.app_.data.setCookie(setting.balance.client.cookie.host, host);
       }
       return this.host();
@@ -61,16 +85,27 @@ module MODULE.MODEL.APP {
           hosts = setting.balance.client.hosts.slice();
 
       hosts = this.bypass_ ? jQuery.grep(hosts, (host) => !!host) : hosts;
-      if (!~jQuery.inArray(this.app_.data.getCookie(setting.balance.client.cookie.host), hosts)) {
-        hosts.unshift(this.app_.data.getCookie(setting.balance.client.cookie.host));
-      }
+      (() => {
+        var host: string = this.app_.data.getCookie(setting.balance.client.cookie.host); 
+        if (!~jQuery.inArray(host, hosts)) {
+          if (host === this.sanitize(host, setting)) {
+            hosts.unshift(host);
+          } else {
+            this.app_.data.setCookie(setting.balance.client.cookie.host, '');
+          }
+        }
+      })();
 
       var servers = this.app_.data.getServerBuffers(),
           scoreTable: { [score: string]: ServerStoreSchema } = {};
       jQuery.each(Object.keys(servers), (i, index) => {
         var server: ServerStoreSchema = servers[index];
         if (this.bypass_ && !server.host) { return; }
-        scoreTable[server.score] = server;
+        if (server.host === this.sanitize(server.host, setting)) {
+          scoreTable[server.score] = server;
+        } else {
+          this.app_.data.removeServer(server.host);
+        }
       });
 
       var scores = Object.keys(scoreTable).sort(sortScoreDes);
@@ -120,6 +155,8 @@ module MODULE.MODEL.APP {
       // キャッシュの有効期限内の再リクエストは同じサーバーを選択してキャッシュを使用
       var history: HistoryStoreSchema = this.app_.data.getHistoryBuffer(setting.destLocation.href);
       switch (false) {
+        case history && history.host === this.sanitize(history.host, setting):
+          this.app_.data.saveExpires(history.url, '', 0);
         case !!history:
         case !!history.expires && history.expires >= new Date().getTime():
         case !!history.host || !this.bypass_:
@@ -157,36 +194,36 @@ module MODULE.MODEL.APP {
         jQuery.ajax(jQuery.extend({}, option, <JQueryAjaxSettings>{
           url: that.util_.normalizeUrl(window.location.protocol + '//' + host + window.location.pathname.replace(/^\/?/, '/') + window.location.search),
           xhr: !setting.balance.option.callbacks.ajax.xhr ? undefined : function () {
-            var jqXHR: JQueryXHR;
-            jqXHR = that.util_.fire(setting.balance.option.callbacks.ajax.xhr, this, [event, setting]);
-            jqXHR = 'object' === typeof jqXHR ? jqXHR : jQuery.ajaxSettings.xhr();
-            return jqXHR;
+            var $xhr: JQueryXHR;
+            $xhr = that.util_.fire(setting.balance.option.callbacks.ajax.xhr, this, [event, setting]);
+            $xhr = 'object' === typeof $xhr ? $xhr : jQuery.ajaxSettings.xhr();
+            return $xhr;
           },
-          beforeSend: !setting.balance.option.callbacks.ajax.beforeSend && !setting.server.header ? undefined : function (jqXHR: JQueryXHR, ajaxSetting: JQueryAjaxSettings) {
+          beforeSend: !setting.balance.option.callbacks.ajax.beforeSend && !setting.server.header ? undefined : function ($xhr: JQueryXHR, ajaxSetting: JQueryAjaxSettings) {
             if (setting.server.header) {
-              jqXHR.setRequestHeader(setting.nss.requestHeader, 'true');
+              $xhr.setRequestHeader(setting.nss.requestHeader, 'true');
             }
             if ('object' === typeof setting.server.header) {
-              jqXHR.setRequestHeader(setting.nss.requestHeader, 'true');
-              setting.server.header.area && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Area', this.app_.chooseArea(setting.area, document, document));
-              setting.server.header.head && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Head', setting.load.head);
-              setting.server.header.css && jqXHR.setRequestHeader(setting.nss.requestHeader + '-CSS', setting.load.css.toString());
-              setting.server.header.script && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Script', setting.load.script.toString());
+              $xhr.setRequestHeader(setting.nss.requestHeader, 'true');
+              setting.server.header.area && $xhr.setRequestHeader(setting.nss.requestHeader + '-Area', this.app_.chooseArea(setting.area, document, document));
+              setting.server.header.head && $xhr.setRequestHeader(setting.nss.requestHeader + '-Head', setting.load.head);
+              setting.server.header.css && $xhr.setRequestHeader(setting.nss.requestHeader + '-CSS', setting.load.css.toString());
+              setting.server.header.script && $xhr.setRequestHeader(setting.nss.requestHeader + '-Script', setting.load.script.toString());
             }
 
-            that.util_.fire(setting.balance.option.callbacks.ajax.beforeSend, this, [event, setting, jqXHR, ajaxSetting]);
+            that.util_.fire(setting.balance.option.callbacks.ajax.beforeSend, this, [event, setting, $xhr, ajaxSetting]);
           },
           dataFilter: !setting.balance.option.callbacks.ajax.dataFilter ? undefined : function (data: string, type: Object) {
             return that.util_.fire(setting.balance.option.callbacks.ajax.dataFilter, this, [event, setting, data, type]) || data;
           },
-          success: function (data, textStatus, jqXHR) {
+          success: function (data, textStatus, $xhr) {
             loadtime = new Date().getTime() - loadtime;
-            that.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, loadtime, that.score(loadtime, jqXHR.responseText.length), 0);
+            that.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, loadtime, that.score(loadtime, $xhr.responseText.length), 0);
 
-            host = host;
+            host = that.sanitize($xhr, setting) || host;
             that.util_.fire(setting.balance.option.ajax.success, this, arguments);
           },
-          error: function (jqXHR) {
+          error: function ($xhr) {
             that.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, loadtime, 0, new Date().getTime());
 
             host = null;
@@ -199,7 +236,7 @@ module MODULE.MODEL.APP {
             deferred.notify(index, length, host);
 
             if (host) {
-              that.host_ = host;
+              that.host(host, setting);
               hosts.splice(0, hosts.length);
               deferred.resolve(host);
             } else if (!that.host() && hosts.length) {

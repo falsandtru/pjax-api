@@ -146,16 +146,16 @@ module MODULE.CONTROLLER {
       return <any>this;
     }
 
-    follow(event: JQueryEventObject, $XHR: JQueryXHR, host?: string, timeStamp?: number): boolean {
+    follow(event: JQueryEventObject, $xhr: JQueryXHR, host?: string, timeStamp?: number): boolean {
       if (!Model.singleton().isDeferrable) { return false; }
       var anchor = <HTMLAnchorElement>event.currentTarget;
-      $XHR.follow = true;
-      $XHR.host = host || '';
-      if (isFinite(event.timeStamp)) { $XHR.timeStamp = timeStamp || event.timeStamp; }
-      Model.singleton().setXHR($XHR);
-      jQuery.when($XHR)
+      $xhr.follow = true;
+      $xhr.host = host || '';
+      if (isFinite(event.timeStamp)) { $xhr.timeStamp = timeStamp || event.timeStamp; }
+      Model.singleton().setXHR($xhr);
+      jQuery.when($xhr)
       .done(function () {
-        !Model.singleton().getCache(anchor.href) && Model.singleton().isAvailable(event) && Model.singleton().setCache(anchor.href, undefined, undefined, $XHR);
+        !Model.singleton().getCache(anchor.href) && Model.singleton().isAvailable(event) && Model.singleton().setCache(anchor.href, undefined, undefined, $xhr);
       });
       jQuery[DEF.NAME].click(anchor.href);
       return true;

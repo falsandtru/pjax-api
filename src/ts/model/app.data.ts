@@ -184,7 +184,12 @@ module MODULE.MODEL.APP {
       this.stores_.server.set(value, true);
       this.stores_.server.clean();
     }
-    
+
+    removeServer(host: string): void {
+      this.stores_.server.removeBuffer(host);
+      this.stores_.server.remove(host);
+      this.stores_.server.clean();
+    } 
   }
 
 }

@@ -87,7 +87,7 @@ module MODULE {
     configure(destination: HTMLFormElement): SettingInterface
     configure(destination: Location): SettingInterface
     getXHR(): JQueryXHR
-    setXHR(xhr: JQueryXHR): JQueryXHR
+    setXHR($xhr: JQueryXHR): JQueryXHR
     isAvailable(event: JQueryEventObject): boolean
     fallback(event: JQueryEventObject): void
     bypass(): JQueryDeferred<any>
@@ -199,11 +199,13 @@ module MODULE.MODEL {
   export declare class BalanceInterface {
     constructor(model: ModelInterface, app: AppLayerInterface)
     host(): string
+    sanitize(host: string, setting: SettingInterface): string
+    sanitize($xhr: JQueryXHR, setting: SettingInterface): string
     
     enable(setting: SettingInterface): void
     disable(setting: SettingInterface): void
     score(time: number, size: number): number
-    changeServer(host: string, setting?: SettingInterface): string
+    changeServer(host: string, setting: SettingInterface): string
     chooseServer(setting: SettingInterface): string
     bypass(): JQueryDeferred<any>
   }
@@ -240,13 +242,13 @@ module MODULE.MODEL {
       failure: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void
     ): void
     getRecord(setting: SettingInterface): PageRecordInterface
-    setRecord(setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string): PageRecordInterface
+    setRecord(setting: SettingInterface, data: string, textStatus: string, $xhr: JQueryXHR, host: string): PageRecordInterface
     removeRecord(setting: SettingInterface): PageRecordInterface
     clearRecord(): void
   }
   export declare class PageRecordInterface implements RecordInterface {
     constructor()
-    constructor(setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string)
+    constructor(setting: SettingInterface, data: string, textStatus: string, $xhr: JQueryXHR, host: string)
     data: PageRecordDataInterface
     state(setting?: SettingInterface): boolean
   }
@@ -261,7 +263,7 @@ module MODULE.MODEL {
   }
   export interface PageRecordClassInterface extends RecordClassInterface {
     new ()
-    new (url: string, data: string, textStatus: string, jqXHR: JQueryXHR, host: string)
+    new (url: string, data: string, textStatus: string, $xhr: JQueryXHR, host: string)
   }
   export interface PageRecordSchema extends RecordSchema {
     url: string
@@ -277,8 +279,8 @@ module MODULE.MODEL {
       app: AppLayerInterface,
       setting: SettingInterface,
       event: JQueryEventObject,
-      success: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any,
-      failure: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, errorThrown: string, host: string) => any
+      success: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, $xhr: JQueryXHR, errorThrown: string, host: string) => any,
+      failure: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, $xhr: JQueryXHR, errorThrown: string, host: string) => any
     )
   }
   // Page::Update
@@ -328,6 +330,7 @@ module MODULE.MODEL {
     getServerBuffers(): ServerStoreSchema[]
     loadServer(): void
     saveServer(host: string, expires: number, time: number, score: number, state: number): void
+    removeServer(host: string): void
   }
   export interface CookieOptionInterface {
     age: number

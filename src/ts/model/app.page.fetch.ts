@@ -14,8 +14,8 @@ module MODULE.MODEL.APP {
     private app_: AppLayerInterface,
     private setting_: SettingInterface,
     private event_: JQueryEventObject,
-    private success: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => any,
-    private failure: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => any
+    private success: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, $xhr: JQueryXHR, host: string) => any,
+    private failure: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, $xhr: JQueryXHR, host: string) => any
     ) {
       this.main_();
     }
@@ -56,13 +56,13 @@ module MODULE.MODEL.APP {
 
       this.dispatchEvent(document, setting.nss.event.pjax.fetch, false, false);
 
-      var xhr = this.model_.getXHR();
+      var $xhr = this.model_.getXHR();
       if (cache && cache.jqXHR && 200 === +cache.jqXHR.status) {
         // cache
         speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
         this.app_.loadtime = 0;
         this.model_.setXHR(null);
-        this.host_ = cache.host || '';
+        this.host_ = this.app_.balance.sanitize(cache.host, setting);
         this.data_ = cache.jqXHR.responseText;
         this.textStatus_ = cache.textStatus;
         this.jqXHR_ = cache.jqXHR;
@@ -77,18 +77,20 @@ module MODULE.MODEL.APP {
           success.call(context, this.data_, this.textStatus_, this.jqXHR_);
           complete.call(context, this.jqXHR_, this.textStatus_);
         }
-      } else if (xhr && xhr.follow && !~'error abort timeout parsererror'.indexOf(xhr.statusText)) {
+      } else if ($xhr && $xhr.follow && !~'error abort timeout parsererror'.indexOf($xhr.statusText)) {
         // preload
-        speedcheck && speed.time.splice(0, 1, xhr.timeStamp - speed.fire);
+        speedcheck && speed.time.splice(0, 1, $xhr.timeStamp - speed.fire);
         speedcheck && speed.name.splice(0, 1, 'preload(' + speed.time.slice(-1) + ')');
         speedcheck && speed.time.push(speed.now() - speed.fire);
         speedcheck && speed.name.push('continue(' + speed.time.slice(-1) + ')');
-        this.host_ = xhr.host || '';
-        this.app_.loadtime = xhr.timeStamp;
+        this.app_.balance.sanitize($xhr, setting);
+        this.app_.balance.changeServer($xhr.host, setting);
+        this.host_ = this.model_.host();
+        this.app_.loadtime = $xhr.timeStamp;
         var defer: JQueryDeferred<any> = this.wait_(wait);
         this.app_.page.setWait(defer);
-        delete xhr.timeStamp;
-        jQuery.when(xhr, defer)
+        delete $xhr.timeStamp;
+        jQuery.when($xhr, defer)
         .done(done).fail(fail).always(always);
       } else {
         // default
@@ -139,28 +141,28 @@ module MODULE.MODEL.APP {
 
         ajax = jQuery.extend({}, setting.ajax, ajax, <JQueryAjaxSettings>{
           xhr: !setting.callbacks.ajax.xhr ? undefined : function () {
-            var jqXHR: JQueryXHR;
-            jqXHR = that.util_.fire(setting.callbacks.ajax.xhr, this, [event, setting]);
-            jqXHR = 'object' === typeof jqXHR ? jqXHR : jQuery.ajaxSettings.xhr();
+            var $xhr: JQueryXHR;
+            $xhr = that.util_.fire(setting.callbacks.ajax.xhr, this, [event, setting]);
+            $xhr = 'object' === typeof $xhr ? $xhr : jQuery.ajaxSettings.xhr();
 
-            //if (jqXHR instanceof Object && jqXHR instanceof window.XMLHttpRequest && 'onprogress' in jqXHR) {
-            //  jqXHR.addEventListener('progress', function(event) {dataSize = event.loaded;}, false);
+            //if ($xhr instanceof Object && $xhr instanceof window.XMLHttpRequest && 'onprogress' in $xhr) {
+            //  $xhr.addEventListener('progress', function(event) {dataSize = event.loaded;}, false);
             //}
-            return jqXHR;
+            return $xhr;
           },
-          beforeSend: !setting.callbacks.ajax.beforeSend && !setting.server.header ? undefined : function (jqXHR: JQueryXHR, ajaxSetting: JQueryAjaxSettings) {
+          beforeSend: !setting.callbacks.ajax.beforeSend && !setting.server.header ? undefined : function ($xhr: JQueryXHR, ajaxSetting: JQueryAjaxSettings) {
             if (setting.server.header) {
-              jqXHR.setRequestHeader(setting.nss.requestHeader, 'true');
+              $xhr.setRequestHeader(setting.nss.requestHeader, 'true');
             }
             if ('object' === typeof setting.server.header) {
-              jqXHR.setRequestHeader(setting.nss.requestHeader, 'true');
-              setting.server.header.area && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Area', this.app_.chooseArea(setting.area, document, document));
-              setting.server.header.head && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Head', setting.load.head);
-              setting.server.header.css && jqXHR.setRequestHeader(setting.nss.requestHeader + '-CSS', setting.load.css.toString());
-              setting.server.header.script && jqXHR.setRequestHeader(setting.nss.requestHeader + '-Script', setting.load.script.toString());
+              $xhr.setRequestHeader(setting.nss.requestHeader, 'true');
+              setting.server.header.area && $xhr.setRequestHeader(setting.nss.requestHeader + '-Area', this.app_.chooseArea(setting.area, document, document));
+              setting.server.header.head && $xhr.setRequestHeader(setting.nss.requestHeader + '-Head', setting.load.head);
+              setting.server.header.css && $xhr.setRequestHeader(setting.nss.requestHeader + '-CSS', setting.load.css.toString());
+              setting.server.header.script && $xhr.setRequestHeader(setting.nss.requestHeader + '-Script', setting.load.script.toString());
             }
 
-            that.util_.fire(setting.callbacks.ajax.beforeSend, this, [event, setting, jqXHR, ajaxSetting]);
+            that.util_.fire(setting.callbacks.ajax.beforeSend, this, [event, setting, $xhr, ajaxSetting]);
           },
           dataFilter: !setting.callbacks.ajax.dataFilter ? undefined : function (data: string, type: Object) {
             return that.util_.fire(setting.callbacks.ajax.dataFilter, this, [event, setting, data, type]) || data;
@@ -181,13 +183,13 @@ module MODULE.MODEL.APP {
         .done(done).fail(fail).always(always);
       }
       
-      function success(data: string, textStatus: string, jqXHR: JQueryXHR) {
+      function success(data: string, textStatus: string, $xhr: JQueryXHR) {
         return done.call(this, [].slice.call(arguments), undefined);
       }
-      function error(jqXHR: JQueryXHR, textStatus: string, errorThrown: string) {
+      function error($xhr: JQueryXHR, textStatus: string, errorThrown: string) {
         return fail.apply(this, arguments);
       }
-      function complete(jqXHR: JQueryXHR, textStatus: string) {
+      function complete($xhr: JQueryXHR, textStatus: string) {
         return always.apply(this, arguments);
       }
       function done(ajax: any[], wait: void) {
@@ -199,10 +201,10 @@ module MODULE.MODEL.APP {
 
         that.util_.fire(setting.callbacks.ajax.success, this[0] || this, [event, setting, that.data_, that.textStatus_, that.jqXHR_]);
       }
-      function fail(jqXHR: JQueryXHR, textStatus: string, errorThrown: string) {
+      function fail($xhr: JQueryXHR, textStatus: string, errorThrown: string) {
         if (!arguments.length || !arguments[0]) { return; }
 
-        that.jqXHR_ = jqXHR;
+        that.jqXHR_ = $xhr;
         that.textStatus_ = textStatus;
         that.errorThrown_ = errorThrown;
 

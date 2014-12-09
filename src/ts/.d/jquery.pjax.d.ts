@@ -63,6 +63,7 @@ interface PjaxSetting {
     balance?: {
         active?: boolean
         weight?: number
+        filter?: (host: string) => boolean
         option?: PjaxSetting
         client?: {
             hosts?: string[]
