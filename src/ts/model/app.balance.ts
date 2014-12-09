@@ -113,7 +113,8 @@ module MODULE.MODEL.APP {
         return +b - +a;
       }
 
-      var result: string[] = [];
+      var result: string[] = [],
+          primary: ServerStoreSchema;
       jQuery.each(scores, (i) => {
         var server = scoreTable[scores[i]],
             host = server.host,
@@ -125,17 +126,18 @@ module MODULE.MODEL.APP {
 
         if (state + respite >= new Date().getTime()) { return; }
 
-        if (state || new Date().getTime() > server.expires) {
+        if (state) {
           time = timeout - 1;
           this.app_.data.saveServer(server.host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
         }
         switch (true) {
-          case result.length === 6:
-          case timeout && time >= timeout:
-          case timeout && time >= timeout * 2 / 3 && result.length < 3:
           case weight && !host && !!Math.floor(Math.random() * weight):
+          case timeout && time >= timeout:
+          case result.length >= Math.min(Math.floor(scores.length / 2), 3) && timeout && time >= primary.time + 500 && time >= timeout * 2 / 3 :
+          case result.length >= Math.min(Math.floor(scores.length / 2), 3) && primary && score <= primary.score / 2:
             return;
         }
+        primary = primary || server;
         result.push(host);
       });
 

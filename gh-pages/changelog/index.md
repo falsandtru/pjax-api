@@ -14,6 +14,7 @@ nav: nav
   * `database.revision`パラメータを追加
   * `database.refresh`パラメータを追加
 * `balance.filter`パラメータを追加
+* ロードバランス処理を改善
 * ロードバランス処理のバグを修正
 * データベースのバージョンを更新
 
