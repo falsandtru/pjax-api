@@ -268,7 +268,7 @@ module MODULE.MODEL {
                                         data || '',
                                         textStatus || record.data.textStatus(),
                                         jqXHR || record.data.jqXHR(),
-                                        jqXHR && jqXHR.getResponseHeader(setting.balance.server.header) || record.data.host() || '');
+                                        jqXHR && jqXHR.getResponseHeader(setting.balance.server.header) || jqXHR && jqXHR.host || record.data.host() || '');
     }
 
     removeCache(unsafe_url: string): void {

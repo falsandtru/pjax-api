@@ -447,7 +447,7 @@ module MODULE.MODEL.APP {
       if (!setting.balance.active || this.app_.loadtime < 100) { return; }
 
       var jqXHR = this.record_.data.jqXHR();
-      var host = jqXHR.getResponseHeader(setting.balance.server.header) || this.record_.data.host() || '',
+      var host = jqXHR.getResponseHeader(setting.balance.server.header) || jqXHR.host || this.record_.data.host() || '',
           time = this.app_.loadtime,
           score = this.app_.balance.score(time, jqXHR.responseText.length);
 
