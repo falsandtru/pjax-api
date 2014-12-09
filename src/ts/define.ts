@@ -382,6 +382,7 @@ module MODULE.MODEL.APP.DATA {
     state(): State
 
     database(): IDBDatabase
+    configure(revision: number, refresh: number): void
     up(): void
     down(): void
     open(): DatabaseTaskReserveInterface
@@ -393,6 +394,7 @@ module MODULE.MODEL.APP.DATA {
     meta: {
       version: { key: string; value: number; }
       update: { key: string; value: number; }
+      revision: { key: string; value: number; }
     }
   }
   export interface DatabaseSchema {

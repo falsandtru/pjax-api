@@ -28,12 +28,15 @@ module MODULE.MODEL.APP {
     // db
 
     connect(setting: SettingInterface): void {
-      if (!setting.database) { return; }
+      if (setting.database.active) {
+        this.data_.DB.configure(setting.database.revision, setting.database.refresh);
+        this.data_.DB.up();
 
-      this.data_.DB.up();
-
-      this.saveTitle();
-      this.saveScrollPosition();
+        this.saveTitle();
+        this.saveScrollPosition();
+      } else {
+        this.data_.DB.down();
+      }
     }
 
     loadBuffers(limit: number = 0): void {

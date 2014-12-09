@@ -95,7 +95,11 @@ interface PjaxSetting {
         scroll?: boolean
         noscript?: boolean
     }
-    database?: boolean
+    database?: {
+        active?: boolean
+        revision?: number
+        refresh?: number
+    }
     server?: {
         query?: any // string, object
         header?: {
