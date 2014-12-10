@@ -11,13 +11,14 @@ module MODULE.MODEL.APP.DATA {
 
     name: string
     keyPath: string
-    autoIncrement: boolean = true
+    autoIncrement: boolean = false 
     indexes: StoreIndexOptionInterface[] = []
-    limit: number = 0
+    size: number = 100
 
-    protected buffer: T[] = []
+    protected buffer: StoreSchemata<T> = {}
+    protected diff: StoreSchemata<T> = {}
 
-    protected accessStore(success: (store: IDBObjectStore) => void, mode: string = 'readwrite'): void {
+    protected accessStore(callback: (store: IDBObjectStore) => void, mode: string = 'readwrite'): void {
       try {
         var database: IDBDatabase = this.DB.database(),
             store: IDBObjectStore = database && database.transaction(this.name, mode).objectStore(this.name);
@@ -25,30 +26,30 @@ module MODULE.MODEL.APP.DATA {
       }
 
       if (store) {
-        success(store);
+        callback(store);
       } else {
-        this.DB.open().done(() => this.accessStore(success));
+        this.DB.open().done(() => this.accessStore(callback));
       }
     }
 
-    protected accessCount(success: (count: number) => void): void
-    protected accessCount(index: string, success: (count: number) => void): void
+    protected accessCount(callback: (count: number) => void): void
+    protected accessCount(index: string, callback: (count: number) => void): void
     protected accessCount(): void {
       var index: string = 'string' === typeof arguments[0] && arguments[0],
-          success: (count: number) => void = arguments[index ? 1 : 0];
+          callback: (count: number) => void = arguments[index ? 1 : 0];
       this.accessStore((store) => {
         var req = index ? store.index(index).count() : store.count();
-        req.onsuccess = function () { success.apply(this, [].slice.call(arguments, 1).concat(this.result)); };
+        req.onsuccess = function () { callback.apply(this, [].slice.call(arguments, 1).concat(this.result)); };
       });
     }
 
-    protected accessRecord(key: string, success: (event?: Event) => void, mode?: string): void {
+    protected accessRecord(key: string, callback: (event?: Event) => void, mode?: string): void {
       this.accessStore((store) => {
-        store.get(key).onsuccess = success;
+        store.get(key).onsuccess = callback;
       }, mode);
     }
 
-    protected accessCursor(index: string, range: IDBKeyRange, direction: string, success: (event?: Event) => void): void {
+    protected accessCursor(index: string, range: IDBKeyRange, direction: string, callback: (event?: Event) => void): void {
       this.accessStore(function (store) {
         var req: IDBRequest;
         if (direction && range) {
@@ -58,121 +59,111 @@ module MODULE.MODEL.APP.DATA {
         } else {
           req = store.openCursor();
         }
-        req.onsuccess = success;
+        req.onsuccess = callback;
       });
     }
 
-    protected accessAll(success: (event?: Event) => void): void
-    protected accessAll(index: string, range: IDBKeyRange, direction: string, success: (event?: Event) => void): void
-    protected accessAll(index: any, range?: IDBKeyRange, direction?: string, success?: (event?: Event) => void): void {
+    protected accessAll(callback: (event?: Event) => void): void
+    protected accessAll(index: string, range: IDBKeyRange, direction: string, callback: (event?: Event) => void): void
+    protected accessAll(index: any, range?: IDBKeyRange, direction?: string, callback?: (event?: Event) => void): void {
       if ('function' === typeof index) {
-        success = index;
+        callback = index;
         index = null;
         range = null;
         direction = null;
       }
-      this.accessCursor(index, range, direction, success);
+      this.accessCursor(index, range, direction, callback);
     }
 
-    get(key: number, success: (event: Event) => void): void
-    get(key: string, success: (event: Event) => void): void
-    get(key: any, success: (event: Event) => void): void {
-      this.accessRecord(key, success);
+    get(key: number, callback: (event: Event) => void): void
+    get(key: string, callback: (event: Event) => void): void
+    get(key: any, callback: (event: Event) => void): void {
+      this.accessRecord(key, (event: Event) => {
+        this.setBuffer((<IDBRequest>event.target).result);
+        callback(event);
+      });
     }
 
     set(value: T, merge?: boolean): void {
-      if (!merge) { return this.put(value); }
-
       value = jQuery.extend(true, {}, value);
-      var key = value[this.keyPath];
-      this.accessRecord(key, function () {
-        this.source.put(jQuery.extend(true, {}, this.result, value));
-      });
-    }
-
-    add(value: T): void {
-      value = jQuery.extend(true, {}, value);
-      var key = value[this.keyPath];
-      if (this.autoIncrement) {
-        delete value[this.keyPath];
-      }
-      this.accessStore(function (store) {
-        store.add(value);
-      });
-    }
-
-    put(value: T): void {
-      value = jQuery.extend(true, {}, value);
-      var key = value[this.keyPath];
-      this.accessStore(function (store) {
-        store.put(value);
+      this.setBuffer(value, merge);
+      this.accessRecord(value[this.keyPath], (event: Event) => {
+        (<IDBRequest>event.target).source.put(merge ? jQuery.extend(true, {}, (<IDBRequest>event.target).result, value) : value);
+        if (!this.autoIncrement) { delete this.diff[value[this.keyPath]]; }
       });
     }
 
     remove(key: number): void
     remove(key: string): void
     remove(key: any): void {
-      this.accessStore(function (store) {
+      this.removeBuffer(key);
+      this.accessStore((store) => {
         store['delete'](key);
       });
     }
 
     clear(): void {
-      this.accessStore(function (store) {
+      this.clearBuffer();
+      this.accessStore((store) => {
         store.clear();
       });
     }
 
     clean(): void {
-      if (!this.limit || !this.indexes.length) { return; }
+      if (!this.size || !this.indexes.length) { return; }
 
       var index: string = this.indexes[0].name,
-          size = this.limit;
+          size = this.size;
       this.accessCount(index, (count) => {
         if (count <= size) { return; }
         size = count - size;
-        this.accessCursor(index, this.DB.IDBKeyRange.upperBound(Infinity), 'prev', function () {
-          if (!this.result || !size--) { return; }
+        this.accessCursor(index, this.DB.IDBKeyRange.upperBound(Infinity), 'next', (event: Event) => {
+          if (!(<IDBRequest>event.target).result || !size--) { return; }
 
-          var cursor: IDBCursorWithValue = this.result;
+          var cursor: IDBCursorWithValue = (<IDBRequest>event.target).result;
+          delete this.diff[cursor.primaryKey];
           cursor['delete']();
           cursor['continue']();
         });
       });
     }
 
-    loadBuffer(limit: number = 0): void {
+    loadBuffer(callback?: () => void): void {
+      if (this.autoIncrement) { return; }
+
       var buffer = this.buffer;
       if (this.indexes.length) {
         this.DB.IDBKeyRange && 
-        this.accessAll(this.indexes[0].name, this.DB.IDBKeyRange.upperBound(Infinity), 'prev', callback);
+        this.accessAll(this.indexes[0].name, this.DB.IDBKeyRange.upperBound(Infinity), 'prev', proc);
       } else {
-        this.accessAll(callback);
+        this.accessAll(proc);
       }
-      function callback() {
-        if (!this.result) { return; }
+      function proc() {
+        if (!this.result) { return callback && callback(); }
         var cursor: IDBCursorWithValue = this.result;
 
         buffer[cursor.primaryKey] = <T>cursor.value;
 
-        --limit && cursor['continue']();
+        cursor['continue']();
       }
     }
 
-    saveBuffer(): void {
-      var buffer = this.buffer;
-      this.accessStore(function (store) {
-        for (var i in buffer) {
-          store.put(buffer[i]);
+    saveBuffer(callback?: () => void): void {
+      if (this.autoIncrement) { return; }
+
+      this.accessStore((store) => {
+        for (var i in this.diff) {
+          store.put(this.diff[i]);
         }
+        callback && callback();
       });
     }
 
-    getBuffers(): T[] {
+    getBuffers(): { [index: string]: T } {
       return this.buffer;
     }
 
-    setBuffers(values: T[], merge?: boolean): T[] {
+    setBuffers(values: T[], merge?: boolean): { [index: string]: T } {
       for (var i in values) {
         this.setBuffer(values[i], merge);
       }
@@ -182,35 +173,41 @@ module MODULE.MODEL.APP.DATA {
     getBuffer(key: string): T
     getBuffer(key: number): T
     getBuffer(key: any): any {
+      if (this.autoIncrement) { return; }
+
       return this.buffer[key];
     }
 
     setBuffer(value: T, merge?: boolean): T {
+      if (this.autoIncrement) { return; }
+
+      if (!value) { return value; }
       var key = value[this.keyPath];
       this.buffer[key] = !merge ? value : jQuery.extend(true, {}, this.buffer[key], value);
+      this.diff[key] = this.buffer[key];
       return this.buffer[key];
     }
 
-    addBuffer(value: T): T {
-      value[this.keyPath] = this.buffer.length || 1;
-      this.buffer.push(value);
-      return value;
-    }
-    
     removeBuffer(key: string): T
     removeBuffer(key: number): T
     removeBuffer(key: any): T {
-      var ret = this.buffer[key];
-      if ('number' === typeof key && key >= 0 && key in this.buffer && this.buffer.length > key) {
-        this.buffer.splice(key, 1);
-      } else {
-        delete this.buffer[key];
-      }
-      return ret;
+      if (this.autoIncrement) { return; }
+
+      var value = this.buffer[key];
+      delete this.buffer[key];
+      delete this.diff[key];
+      return value;
     }
 
     clearBuffer(): void {
-      this.buffer.splice(0, this.buffer.length);
+      if (this.autoIncrement) { return; }
+
+      for (var i in this.buffer) {
+        delete this.buffer[i];
+      }
+      for (var i in this.diff) {
+        delete this.diff[i];
+      }
     }
     
   }

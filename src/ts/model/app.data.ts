@@ -39,9 +39,9 @@ module MODULE.MODEL.APP {
       }
     }
 
-    loadBuffers(limit: number = 0): void {
+    loadBuffers(): void {
       for (var i in this.stores_) {
-        this.stores_[i].loadBuffer(limit);
+        this.stores_[i].loadBuffer();
       }
     }
 
@@ -92,7 +92,6 @@ module MODULE.MODEL.APP {
         expires: undefined
       };
 
-      this.stores_.history.setBuffer(value, true);
       this.stores_.history.set(value, true);
       this.stores_.history.clean();
     }
@@ -137,7 +136,6 @@ module MODULE.MODEL.APP {
         expires: undefined
       };
 
-      this.stores_.history.setBuffer(value, true);
       this.stores_.history.set(value, true);
     }
 
@@ -158,13 +156,12 @@ module MODULE.MODEL.APP {
         date: undefined
       };
 
-      this.stores_.history.setBuffer(value, true);
       this.stores_.history.set(value, true);
     }
 
     // server
 
-    getServerBuffers(): ServerStoreSchema[] {
+    getServerBuffers(): StoreSchemata<ServerStoreSchema> {
       return this.stores_.server.getBuffers();
     }
 
@@ -172,24 +169,25 @@ module MODULE.MODEL.APP {
     }
 
     saveServer(host: string, expires: number, time: number, score: number, state: number): void {
+      host = host.split('//').pop().split('/').shift();
+      host = this.util_.compareUrl('http://' + host, 'http://' + window.location.host, true) ? '' : host;
       var value: ServerStoreSchema = {
-            host: host.split('//').pop().split('/').shift() || '',
+            host: host,
             time: Math.max(time, 1),
             score: score,
             state: state,
             expires: expires
           };
 
-      this.stores_.server.setBuffer(value, true);
       this.stores_.server.set(value, true);
       this.stores_.server.clean();
     }
 
     removeServer(host: string): void {
-      this.stores_.server.removeBuffer(host);
       this.stores_.server.remove(host);
       this.stores_.server.clean();
     } 
+
   }
 
 }
