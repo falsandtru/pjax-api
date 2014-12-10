@@ -328,6 +328,7 @@ module MODULE.MODEL {
 
     // server
     getServerBuffers(): StoreSchemata<ServerStoreSchema>
+    getServerBuffer(unsafe_url: string): ServerStoreSchema
     loadServer(): void
     saveServer(host: string, expires: number, time: number, score: number, state: number): void
     removeServer(host: string): void

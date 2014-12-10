@@ -195,7 +195,7 @@ module MODULE.MODEL.APP {
 
       var test = (host: string) => {
         var that = this,
-            loadtime = new Date().getTime();
+            time = new Date().getTime();
 
         'pending' === deferred.state() &&
         jQuery.ajax(jQuery.extend({}, option, <JQueryAjaxSettings>{
@@ -224,8 +224,12 @@ module MODULE.MODEL.APP {
             return that.util_.fire(setting.balance.option.callbacks.ajax.dataFilter, this, [event, setting, data, type]) || data;
           },
           success: function (data, textStatus, $xhr) {
-            loadtime = new Date().getTime() - loadtime;
-            that.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, loadtime, that.score(loadtime, $xhr.responseText.length), 0);
+            time = new Date().getTime() - time;
+            var server = that.app_.data.getServerBuffer(this.url),
+                score = that.score(time, $xhr.responseText.length);
+            time = server && !server.state && server.time ? Math.round((server.time + time) / 2) : time;
+            score = server && !server.state && server.score ? Math.round((server.score + score) / 2) : score;
+            that.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
 
             host = that.sanitize($xhr, setting) || host;
             that.util_.fire(setting.balance.option.ajax.success, this, arguments);

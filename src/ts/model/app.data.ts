@@ -165,6 +165,12 @@ module MODULE.MODEL.APP {
       return this.stores_.server.getBuffers();
     }
 
+    getServerBuffer(unsafe_url: string): ServerStoreSchema {
+      var host = this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(unsafe_url)).split('//').pop().split('/').shift();
+      host = this.util_.compareUrl('http://' + host, 'http://' + window.location.host, true) ? '' : host;
+      return this.stores_.server.getBuffer(host);
+    }
+
     loadServer(): void {
     }
 

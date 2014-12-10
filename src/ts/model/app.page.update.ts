@@ -453,6 +453,10 @@ module MODULE.MODEL.APP {
 
       if (this.util_.fire(callbacks_update.balance.before, setting, [event, setting, host, this.app_.loadtime, $xhr.responseText.length]) === false) { return; }
 
+      var server = this.app_.data.getServerBuffer(setting.destLocation.href),
+          score = this.app_.balance.score(time, $xhr.responseText.length);
+      time = server && !server.state && server.time ? Math.round((server.time + time) / 2) : time;
+      score = server && !server.state && server.score ? Math.round((server.score + score) / 2) : score;
       this.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
       this.app_.balance.changeServer(this.app_.balance.chooseServer(setting), setting);
 
