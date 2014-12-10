@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.32.0
+ * @version 2.32.1
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -2268,6 +2268,7 @@ var MODULE;
                 };
                 Balance.prototype.bypass = function () {
                     var _this = this;
+                    this.force_ = true;
                     var setting = this.app_.configure(window.location), deferred = jQuery.Deferred();
                     if (!setting.balance.active) {
                         return deferred.reject();
@@ -2333,7 +2334,6 @@ var MODULE;
                             }
                         }));
                     };
-                    this.force_ = true;
                     while (parallel-- && hosts.length) {
                         test(hosts.shift());
                     }
