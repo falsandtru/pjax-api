@@ -404,7 +404,7 @@ module MODULE.MODEL.APP {
 
       function map() {
         var defer = jQuery.Deferred();
-        jQuery(this).one('load error', defer.resolve);
+        jQuery(this).one('load error abort', defer.resolve);
         return defer;
       }
 
