@@ -53,7 +53,7 @@ $(document).bind('pjax:ready', function() {
 ## 特徴
 
 * プリロードによる高速化
-* CsLBによるネットワーク負荷分散
+* クライアントサイドロードバランサによるネットワーク負荷分散
 * CSS・SCRIPT・RSSなどHEAD要素の同期
 * URL・TITLEなど項目別の更新無効化
 * pjaxの一般的諸問題の解決

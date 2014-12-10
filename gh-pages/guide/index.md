@@ -251,7 +251,7 @@ pjaxは移動先のページのJavaScriptが読み込み済みであり、コー
 
 <pre class="sh brush: js;">
 new Function().apply.apply(function (accessor) {
-  var spec = accessor, initialize = true, always = true, finish = false;
+  var spec = accessor, initialize = true, always = true, finalize = false;
 
 /* init
   ========================================================================== */
@@ -260,9 +260,7 @@ new Function().apply.apply(function (accessor) {
   spec.init = spec.preload;
   spec.init = spec.pjax;
   spec.init = spec.visibilitytrigger;
-  spec.init = function () {
-    initialize = false;
-  };
+  spec.init = function () { initialize = false; };
 
 /* component
   ========================================================================== */
@@ -318,9 +316,7 @@ new Function().apply.apply(function (accessor) {
     }
 
     if (always) {
-      setTimeout(function () {
-        $(document).trigger('preload');
-      }, 2000);
+      setTimeout(function () { $(document).trigger('preload'); }, 1000);
     }
   };
 
@@ -331,17 +327,17 @@ new Function().apply.apply(function (accessor) {
       $.pjax({
         area: ['#container', 'body'],
         rewrite: function (document) {
+          $('#primary, #secondary', document).find('img').each(escapeImage);
           function escapeImage() {
             this.setAttribute('data-original', this.src);
             this.setAttribute('src', '/img/gray.gif');
           }
-          $('#primary, #secondary', document).find('img').each(escapeImage);
 
+          $('#primary', document).find('iframe').each(escapeIframe);
           function escapeIframe() {
             this.setAttribute('data-original', this.src);
             this.setAttribute('src', 'javascript:false');
           }
-          $('#primary', document).find('iframe').each(escapeIframe);
         },
         load: { css: true, script: true },
         cache: { click: true, submit: false, popstate: true },
@@ -370,22 +366,29 @@ new Function().apply.apply(function (accessor) {
             }
           },
           update: {
-            before: function () {
-              $('div.loading').children().width('95%');
+            url: {
+              after: function () {
+                $('div.loading').children().width('95%');
+              }
             },
-            content: {
+            head: {
               after: function () {
                 $('div.loading').children().width('96.25%');
               }
             },
-            css: {
+            content: {
               after: function () {
                 $('div.loading').children().width('97.5%');
               }
             },
-            script: {
+            css: {
               after: function () {
                 $('div.loading').children().width('98.75%');
+              }
+            },
+            script: {
+              after: function () {
+                $('div.loading').children().width('100%');
               }
             }
           }
