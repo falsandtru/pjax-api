@@ -40,8 +40,8 @@ module MODULE.MODEL.APP {
       }
 
       this.controller_.view($context, setting);
-      setTimeout(() => this.data.loadBuffers(setting.buffer.limit), setting.buffer.delay);
-      setTimeout(() => this.balance.enable(setting), setting.buffer.delay + 100);
+      this.balance.enable(setting);
+      this.data.loadBuffers();
       setTimeout(() => this.page.landing = null, 1500);
     }
     
@@ -139,8 +139,8 @@ module MODULE.MODEL.APP {
             },
             balance: {
               active: false,
+              bounds: /^.*$/,
               weight: 1,
-              filter: function (host: string) { return /^[^\s/]*$/.test(host); },
               option: <PjaxSetting>{
                 server: {
                   header: false

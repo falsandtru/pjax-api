@@ -13,7 +13,7 @@ module MODULE.MODEL.APP.DATA.STORE {
     indexes = [
       { name: 'date', keyPath: 'date', option: { unique: false } }
     ]
-    limit = 1000
+    size = 300
 
   }
 

@@ -21,12 +21,12 @@ module MODULE.MODEL.APP {
       }
       return this.host_;
     }
-    private bypass_: boolean = false
+    private force_: boolean = false
 
     sanitize(host: string, setting: SettingInterface): string
     sanitize($xhr: JQueryXHR, setting: SettingInterface): string
     sanitize(param: any, setting: SettingInterface): any {
-      var host: string = '';
+      var host: string;
       switch (param && typeof param) {
         case 'string':
           host = param;
@@ -41,8 +41,7 @@ module MODULE.MODEL.APP {
           break
       }
       host = host || '';
-      host = setting.balance.filter(host) && host;
-      return host;
+      return !/[/?#"`^|\\<>{}\[\]\s]/.test(host) && setting.balance.bounds.test(host) && host;
     }
 
     enable(setting: SettingInterface): void {
@@ -89,15 +88,14 @@ module MODULE.MODEL.APP {
           timeout = setting.ajax.timeout,
           hosts = setting.balance.client.hosts.slice();
 
-      hosts = this.bypass_ ? jQuery.grep(hosts, (host) => !!host) : hosts;
+      hosts = this.force_ ? jQuery.grep(hosts, (host) => !!host) : hosts;
       (() => {
         var host: string = this.app_.data.getCookie(setting.balance.client.cookie.host); 
-        if (!~jQuery.inArray(host, hosts)) {
-          if (host === this.sanitize(host, setting)) {
-            !~jQuery.inArray(host, hosts) && hosts.unshift(host);
-          } else {
-            this.app_.data.setCookie(setting.balance.client.cookie.host, '');
-          }
+        if (this.force_ && !host) { return; }
+        if (host === this.sanitize(host, setting)) {
+          !~jQuery.inArray(host, hosts) && hosts.unshift(host);
+        } else {
+          this.app_.data.setCookie(setting.balance.client.cookie.host, '');
         }
       })();
 
@@ -107,7 +105,7 @@ module MODULE.MODEL.APP {
         var server: ServerStoreSchema = servers[index];
         ~jQuery.inArray(server.host, hosts) && hosts.splice(jQuery.inArray(server.host, hosts), 1);
 
-        if (this.bypass_ && !server.host) { return; }
+        if (this.force_ && !server.host) { return; }
         if (server.host === this.sanitize(server.host, setting) && server.expires > new Date().getTime()) {
           scoreTable[server.score] = server;
         } else {
@@ -140,7 +138,7 @@ module MODULE.MODEL.APP {
         switch (true) {
           case weight && !host && !!Math.floor(Math.random() * weight):
           case timeout && time >= timeout:
-          case result.length >= Math.min(Math.floor(scores.length / 2), 3) && timeout && time >= primary.time + 500 && time >= timeout * 2 / 3 :
+          case result.length >= Math.min(Math.floor(scores.length / 2), 3) && primary && time >= primary.time + 500 && timeout && time >= timeout * 2 / 3 :
           case result.length >= Math.min(Math.floor(scores.length / 2), 3) && primary && score <= primary.score / 2:
             return;
         }
@@ -167,7 +165,7 @@ module MODULE.MODEL.APP {
           this.app_.data.saveExpires(history.url, '', 0);
         case !!history:
         case !!history.expires && history.expires >= new Date().getTime():
-        case !!history.host || !this.bypass_:
+        case !!history.host || !this.force_:
           break;
         default:
           hosts = [history.host || ''];
@@ -196,7 +194,7 @@ module MODULE.MODEL.APP {
 
       var test = (host: string) => {
         var that = this,
-            loadtime = new Date().getTime();
+            time = new Date().getTime();
 
         'pending' === deferred.state() &&
         jQuery.ajax(jQuery.extend({}, option, <JQueryAjaxSettings>{
@@ -225,8 +223,12 @@ module MODULE.MODEL.APP {
             return that.util_.fire(setting.balance.option.callbacks.ajax.dataFilter, this, [event, setting, data, type]) || data;
           },
           success: function (data, textStatus, $xhr) {
-            loadtime = new Date().getTime() - loadtime;
-            that.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, loadtime, that.score(loadtime, $xhr.responseText.length), 0);
+            time = new Date().getTime() - time;
+            var server = that.app_.data.getServerBuffer(this.url),
+                score = that.score(time, $xhr.responseText.length);
+            time = server && !server.state && server.time ? Math.round((server.time + time) / 2) : time;
+            score = server && !server.state && server.score ? Math.round((server.score + score) / 2) : score;
+            that.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
 
             host = that.sanitize($xhr, setting) || host;
             that.util_.fire(setting.balance.option.ajax.success, this, arguments);
@@ -256,7 +258,7 @@ module MODULE.MODEL.APP {
         }));
       };
 
-      this.bypass_ = true;
+      this.force_ = true;
       while (parallel-- && hosts.length) {
         test(hosts.shift());
       }

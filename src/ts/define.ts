@@ -310,7 +310,7 @@ module MODULE.MODEL {
     connect(setting: SettingInterface): void
     
     // common
-    loadBuffers(limit?: number): void
+    loadBuffers(): void
     saveBuffers(): void
 
     // meta
@@ -327,7 +327,8 @@ module MODULE.MODEL {
     saveExpires(unsafe_url: string, host: string, expires: number): void
 
     // server
-    getServerBuffers(): ServerStoreSchema[]
+    getServerBuffers(): StoreSchemata<ServerStoreSchema>
+    getServerBuffer(unsafe_url: string): ServerStoreSchema
     loadServer(): void
     saveServer(host: string, expires: number, time: number, score: number, state: number): void
     removeServer(host: string): void
@@ -337,6 +338,9 @@ module MODULE.MODEL {
     path: string
     domain: string
     secure: boolean
+  }
+  export interface StoreSchemata<T> {
+    [index: string]: T
   }
   export interface MetaStoreSchema {
     key: string
@@ -432,26 +436,23 @@ module MODULE.MODEL.APP.DATA {
     keyPath: string
     autoIncrement: boolean
     indexes: StoreIndexOptionInterface[]
-    limit: number
+    size: number
 
-    get(key: number, success: (event: Event) => void): void
-    get(key: string, success: (event: Event) => void): void
+    get(key: number, callback: (event: Event) => void): void
+    get(key: string, callback: (event: Event) => void): void
     set(value: T, merge?: boolean): void
-    add(value: T): void
-    put(value: T): void
     remove(key: number): void
     remove(key: string): void
     clear(): void
     clean(): void
 
-    loadBuffer(limit?: number): void
-    saveBuffer(): void
-    getBuffers(): T[]
-    setBuffers(values: T[], merge?: boolean): T[]
+    loadBuffer(callback?: () => void): void
+    saveBuffer(callback?: () => void): void
+    getBuffers(): StoreSchemata<T>
+    setBuffers(values: T[], merge?: boolean): StoreSchemata<T>
     getBuffer(key: string): T
     getBuffer(key: number): T
     setBuffer(value: T, merge?: boolean): T
-    addBuffer(value: any): T
     removeBuffer(key: string): T
     removeBuffer(key: number): T
     clearBuffer(): void

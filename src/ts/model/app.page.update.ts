@@ -110,7 +110,7 @@ module MODULE.MODEL.APP {
       var callbacks_update = setting.callbacks.update;
 
       var url: string = (jQuery('head meta[http-equiv="Refresh"][content*="URL="]').attr('content') || '').match(/\w+:\/\/[^;\s"']+|$/i).shift();
-      if (!url) { return; }
+      if (!url || this.util_.compareUrl(setting.destLocation.href, url, true)) { return; }
 
       var redirect = <HTMLAnchorElement>setting.destLocation.cloneNode();
       redirect.href = url;
@@ -404,7 +404,7 @@ module MODULE.MODEL.APP {
 
       function map() {
         var defer = jQuery.Deferred();
-        jQuery(this).one('load error', defer.resolve);
+        jQuery(this).one('load error abort', defer.resolve);
         return defer;
       }
 
@@ -453,6 +453,10 @@ module MODULE.MODEL.APP {
 
       if (this.util_.fire(callbacks_update.balance.before, setting, [event, setting, host, this.app_.loadtime, $xhr.responseText.length]) === false) { return; }
 
+      var server = this.app_.data.getServerBuffer(setting.destLocation.href),
+          score = this.app_.balance.score(time, $xhr.responseText.length);
+      time = server && !server.state && server.time ? Math.round((server.time + time) / 2) : time;
+      score = server && !server.state && server.score ? Math.round((server.score + score) / 2) : score;
       this.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
       this.app_.balance.changeServer(this.app_.balance.chooseServer(setting), setting);
 

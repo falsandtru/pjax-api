@@ -10,7 +10,7 @@ module MODULE.MODEL.APP.DATA.STORE {
     name = 'meta'
     keyPath = 'key'
     autoIncrement = false
-    limit = 0
+    size = 0
 
   }
 

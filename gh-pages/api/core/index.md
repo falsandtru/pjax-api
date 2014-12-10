@@ -50,9 +50,6 @@ pjaxを設定します。
 ### [cache:](api/core/setting/cache/)
 キャッシュの使用を設定します。
 
-### [buffer:](api/core/setting/buffer/)
-データベースバッファを設定します。
-
 ### [balance:](api/core/setting/balance/)
 ロードバランスを設定します。
 

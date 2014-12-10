@@ -13,7 +13,7 @@ module MODULE.MODEL.APP.DATA.STORE {
     indexes = [
       { name: 'score', keyPath: 'score', option: { unique: false } }
     ]
-    limit = 100
+    size = 100
 
   }
 
