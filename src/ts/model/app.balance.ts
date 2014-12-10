@@ -26,7 +26,7 @@ module MODULE.MODEL.APP {
     sanitize(host: string, setting: SettingInterface): string
     sanitize($xhr: JQueryXHR, setting: SettingInterface): string
     sanitize(param: any, setting: SettingInterface): any {
-      var host: string = '';
+      var host: string;
       switch (param && typeof param) {
         case 'string':
           host = param;
@@ -41,8 +41,7 @@ module MODULE.MODEL.APP {
           break
       }
       host = host || '';
-      host = setting.balance.filter(host) && host;
-      return host;
+      return !/[/?#"`^|\\<>{}\[\]\s]/.test(host) && setting.balance.bounds.test(host) && host;
     }
 
     enable(setting: SettingInterface): void {

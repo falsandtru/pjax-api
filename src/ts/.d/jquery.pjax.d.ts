@@ -62,8 +62,8 @@ interface PjaxSetting {
     }
     balance?: {
         active?: boolean
+        bounds?: RegExp
         weight?: number
-        filter?: (host: string) => boolean
         option?: PjaxSetting
         client?: {
             hosts?: string[]

@@ -54,6 +54,7 @@ class: style-info
 $.pjax({
   balance: {
     active: true,
+    bounds: /^\d+\.site\.com$|cdn\.sites\.net:8080|^$/,
     client: {
       hosts: ['', '0.site.com', '1.site.com', 'cdn.sites.net:8080']
     }
@@ -186,7 +187,11 @@ $.pjax({
 <pre class="sh brush: js;">
 $.pjax({
   balance: {
-    active: true
+    active: true,
+    bounds: /^\d+\.site\.com$|cdn\.sites\.net:8080|^$/,
+    server: {
+      //header: 'X-Ajax-Host'
+    }
   }
 });
 </pre>
