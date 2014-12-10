@@ -110,7 +110,7 @@ module MODULE.MODEL.APP {
       var callbacks_update = setting.callbacks.update;
 
       var url: string = (jQuery('head meta[http-equiv="Refresh"][content*="URL="]').attr('content') || '').match(/\w+:\/\/[^;\s"']+|$/i).shift();
-      if (!url) { return; }
+      if (!url || this.util_.compareUrl(setting.destLocation.href, url, true)) { return; }
 
       var redirect = <HTMLAnchorElement>setting.destLocation.cloneNode();
       redirect.href = url;
