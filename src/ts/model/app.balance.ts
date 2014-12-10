@@ -21,7 +21,7 @@ module MODULE.MODEL.APP {
       }
       return this.host_;
     }
-    private bypass_: boolean = false
+    private force_: boolean = false
 
     sanitize(host: string, setting: SettingInterface): string
     sanitize($xhr: JQueryXHR, setting: SettingInterface): string
@@ -89,15 +89,14 @@ module MODULE.MODEL.APP {
           timeout = setting.ajax.timeout,
           hosts = setting.balance.client.hosts.slice();
 
-      hosts = this.bypass_ ? jQuery.grep(hosts, (host) => !!host) : hosts;
+      hosts = this.force_ ? jQuery.grep(hosts, (host) => !!host) : hosts;
       (() => {
         var host: string = this.app_.data.getCookie(setting.balance.client.cookie.host); 
-        if (!~jQuery.inArray(host, hosts)) {
-          if (host === this.sanitize(host, setting)) {
-            !~jQuery.inArray(host, hosts) && hosts.unshift(host);
-          } else {
-            this.app_.data.setCookie(setting.balance.client.cookie.host, '');
-          }
+        if (this.force_ && !host) { return; }
+        if (host === this.sanitize(host, setting)) {
+          !~jQuery.inArray(host, hosts) && hosts.unshift(host);
+        } else {
+          this.app_.data.setCookie(setting.balance.client.cookie.host, '');
         }
       })();
 
@@ -107,7 +106,7 @@ module MODULE.MODEL.APP {
         var server: ServerStoreSchema = servers[index];
         ~jQuery.inArray(server.host, hosts) && hosts.splice(jQuery.inArray(server.host, hosts), 1);
 
-        if (this.bypass_ && !server.host) { return; }
+        if (this.force_ && !server.host) { return; }
         if (server.host === this.sanitize(server.host, setting) && server.expires > new Date().getTime()) {
           scoreTable[server.score] = server;
         } else {
@@ -140,7 +139,7 @@ module MODULE.MODEL.APP {
         switch (true) {
           case weight && !host && !!Math.floor(Math.random() * weight):
           case timeout && time >= timeout:
-          case result.length >= Math.min(Math.floor(scores.length / 2), 3) && timeout && time >= primary.time + 500 && time >= timeout * 2 / 3 :
+          case result.length >= Math.min(Math.floor(scores.length / 2), 3) && primary && time >= primary.time + 500 && timeout && time >= timeout * 2 / 3 :
           case result.length >= Math.min(Math.floor(scores.length / 2), 3) && primary && score <= primary.score / 2:
             return;
         }
@@ -167,7 +166,7 @@ module MODULE.MODEL.APP {
           this.app_.data.saveExpires(history.url, '', 0);
         case !!history:
         case !!history.expires && history.expires >= new Date().getTime():
-        case !!history.host || !this.bypass_:
+        case !!history.host || !this.force_:
           break;
         default:
           hosts = [history.host || ''];
@@ -256,7 +255,7 @@ module MODULE.MODEL.APP {
         }));
       };
 
-      this.bypass_ = true;
+      this.force_ = true;
       while (parallel-- && hosts.length) {
         test(hosts.shift());
       }
