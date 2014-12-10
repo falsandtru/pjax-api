@@ -180,9 +180,12 @@ module MODULE.MODEL.APP {
 
     private parallel_ = 4
     bypass(): JQueryDeferred<any> {
+      this.force_ = true;
+
       var setting: SettingInterface = this.app_.configure(window.location),
           deferred = jQuery.Deferred();
       if (!setting.balance.active) { return deferred.reject(); }
+
       var parallel = this.parallel_,
           hosts = this.chooseServers_(setting),
           option: JQueryAjaxSettings = jQuery.extend({}, setting.ajax, setting.balance.option.ajax);
@@ -258,7 +261,6 @@ module MODULE.MODEL.APP {
         }));
       };
 
-      this.force_ = true;
       while (parallel-- && hosts.length) {
         test(hosts.shift());
       }
