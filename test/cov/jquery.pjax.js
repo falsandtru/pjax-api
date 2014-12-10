@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.31.0
+ * @version 2.32.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -1073,12 +1073,13 @@ var MODULE;
                 var Store = (function () {
                     function Store(DB) {
                         this.DB = DB;
-                        this.autoIncrement = true;
+                        this.autoIncrement = false;
                         this.indexes = [];
-                        this.limit = 0;
-                        this.buffer = [];
+                        this.size = 100;
+                        this.buffer = {};
+                        this.diff = {};
                     }
-                    Store.prototype.accessStore = function (success, mode) {
+                    Store.prototype.accessStore = function (callback, mode) {
                         var _this = this;
                         if (mode === void 0) { mode = 'readwrite'; }
                         try {
@@ -1087,27 +1088,27 @@ var MODULE;
                         catch (err) {
                         }
                         if (store) {
-                            success(store);
+                            callback(store);
                         }
                         else {
-                            this.DB.open().done(function () { return _this.accessStore(success); });
+                            this.DB.open().done(function () { return _this.accessStore(callback); });
                         }
                     };
                     Store.prototype.accessCount = function () {
-                        var index = 'string' === typeof arguments[0] && arguments[0], success = arguments[index ? 1 : 0];
+                        var index = 'string' === typeof arguments[0] && arguments[0], callback = arguments[index ? 1 : 0];
                         this.accessStore(function (store) {
                             var req = index ? store.index(index).count() : store.count();
                             req.onsuccess = function () {
-                                success.apply(this, [].slice.call(arguments, 1).concat(this.result));
+                                callback.apply(this, [].slice.call(arguments, 1).concat(this.result));
                             };
                         });
                     };
-                    Store.prototype.accessRecord = function (key, success, mode) {
+                    Store.prototype.accessRecord = function (key, callback, mode) {
                         this.accessStore(function (store) {
-                            store.get(key).onsuccess = success;
+                            store.get(key).onsuccess = callback;
                         }, mode);
                     };
-                    Store.prototype.accessCursor = function (index, range, direction, success) {
+                    Store.prototype.accessCursor = function (index, range, direction, callback) {
                         this.accessStore(function (store) {
                             var req;
                             if (direction && range) {
@@ -1119,103 +1120,100 @@ var MODULE;
                             else {
                                 req = store.openCursor();
                             }
-                            req.onsuccess = success;
+                            req.onsuccess = callback;
                         });
                     };
-                    Store.prototype.accessAll = function (index, range, direction, success) {
+                    Store.prototype.accessAll = function (index, range, direction, callback) {
                         if ('function' === typeof index) {
-                            success = index;
+                            callback = index;
                             index = null;
                             range = null;
                             direction = null;
                         }
-                        this.accessCursor(index, range, direction, success);
+                        this.accessCursor(index, range, direction, callback);
                     };
-                    Store.prototype.get = function (key, success) {
-                        this.accessRecord(key, success);
+                    Store.prototype.get = function (key, callback) {
+                        var _this = this;
+                        this.accessRecord(key, function (event) {
+                            _this.setBuffer(event.target.result);
+                            callback(event);
+                        });
                     };
                     Store.prototype.set = function (value, merge) {
-                        if (!merge) {
-                            return this.put(value);
-                        }
+                        var _this = this;
                         value = jQuery.extend(true, {}, value);
-                        var key = value[this.keyPath];
-                        this.accessRecord(key, function () {
-                            this.source.put(jQuery.extend(true, {}, this.result, value));
-                        });
-                    };
-                    Store.prototype.add = function (value) {
-                        value = jQuery.extend(true, {}, value);
-                        var key = value[this.keyPath];
-                        if (this.autoIncrement) {
-                            delete value[this.keyPath];
-                        }
-                        this.accessStore(function (store) {
-                            store.add(value);
-                        });
-                    };
-                    Store.prototype.put = function (value) {
-                        value = jQuery.extend(true, {}, value);
-                        var key = value[this.keyPath];
-                        this.accessStore(function (store) {
-                            store.put(value);
+                        this.setBuffer(value, merge);
+                        this.accessRecord(value[this.keyPath], function (event) {
+                            event.target.source.put(merge ? jQuery.extend(true, {}, event.target.result, value) : value);
+                            if (!_this.autoIncrement) {
+                                delete _this.diff[value[_this.keyPath]];
+                            }
                         });
                     };
                     Store.prototype.remove = function (key) {
+                        this.removeBuffer(key);
                         this.accessStore(function (store) {
                             store['delete'](key);
                         });
                     };
                     Store.prototype.clear = function () {
+                        this.clearBuffer();
                         this.accessStore(function (store) {
                             store.clear();
                         });
                     };
                     Store.prototype.clean = function () {
                         var _this = this;
-                        if (!this.limit || !this.indexes.length) {
+                        if (!this.size || !this.indexes.length) {
                             return;
                         }
-                        var index = this.indexes[0].name, size = this.limit;
+                        var index = this.indexes[0].name, size = this.size;
                         this.accessCount(index, function (count) {
                             if (count <= size) {
                                 return;
                             }
                             size = count - size;
-                            _this.accessCursor(index, _this.DB.IDBKeyRange.upperBound(Infinity), 'prev', function () {
-                                if (!this.result || !size--) {
+                            _this.accessCursor(index, _this.DB.IDBKeyRange.upperBound(Infinity), 'next', function (event) {
+                                if (!event.target.result || !size--) {
                                     return;
                                 }
-                                var cursor = this.result;
+                                var cursor = event.target.result;
+                                delete _this.diff[cursor.primaryKey];
                                 cursor['delete']();
                                 cursor['continue']();
                             });
                         });
                     };
-                    Store.prototype.loadBuffer = function (limit) {
-                        if (limit === void 0) { limit = 0; }
+                    Store.prototype.loadBuffer = function (callback) {
+                        if (this.autoIncrement) {
+                            return;
+                        }
                         var buffer = this.buffer;
                         if (this.indexes.length) {
-                            this.DB.IDBKeyRange && this.accessAll(this.indexes[0].name, this.DB.IDBKeyRange.upperBound(Infinity), 'prev', callback);
+                            this.DB.IDBKeyRange && this.accessAll(this.indexes[0].name, this.DB.IDBKeyRange.upperBound(Infinity), 'prev', proc);
                         }
                         else {
-                            this.accessAll(callback);
+                            this.accessAll(proc);
                         }
-                        function callback() {
+                        function proc() {
                             if (!this.result) {
-                                return;
+                                return callback && callback();
                             }
                             var cursor = this.result;
                             buffer[cursor.primaryKey] = cursor.value;
-                            --limit && cursor['continue']();
+                            cursor['continue']();
                         }
                     };
-                    Store.prototype.saveBuffer = function () {
-                        var buffer = this.buffer;
+                    Store.prototype.saveBuffer = function (callback) {
+                        var _this = this;
+                        if (this.autoIncrement) {
+                            return;
+                        }
                         this.accessStore(function (store) {
-                            for (var i in buffer) {
-                                store.put(buffer[i]);
+                            for (var i in _this.diff) {
+                                store.put(_this.diff[i]);
                             }
+                            callback && callback();
                         });
                     };
                     Store.prototype.getBuffers = function () {
@@ -1228,30 +1226,42 @@ var MODULE;
                         return this.buffer;
                     };
                     Store.prototype.getBuffer = function (key) {
+                        if (this.autoIncrement) {
+                            return;
+                        }
                         return this.buffer[key];
                     };
                     Store.prototype.setBuffer = function (value, merge) {
+                        if (this.autoIncrement) {
+                            return;
+                        }
+                        if (!value) {
+                            return value;
+                        }
                         var key = value[this.keyPath];
                         this.buffer[key] = !merge ? value : jQuery.extend(true, {}, this.buffer[key], value);
+                        this.diff[key] = this.buffer[key];
                         return this.buffer[key];
                     };
-                    Store.prototype.addBuffer = function (value) {
-                        value[this.keyPath] = this.buffer.length || 1;
-                        this.buffer.push(value);
+                    Store.prototype.removeBuffer = function (key) {
+                        if (this.autoIncrement) {
+                            return;
+                        }
+                        var value = this.buffer[key];
+                        delete this.buffer[key];
+                        delete this.diff[key];
                         return value;
                     };
-                    Store.prototype.removeBuffer = function (key) {
-                        var ret = this.buffer[key];
-                        if ('number' === typeof key && key >= 0 && key in this.buffer && this.buffer.length > key) {
-                            this.buffer.splice(key, 1);
-                        }
-                        else {
-                            delete this.buffer[key];
-                        }
-                        return ret;
-                    };
                     Store.prototype.clearBuffer = function () {
-                        this.buffer.splice(0, this.buffer.length);
+                        if (this.autoIncrement) {
+                            return;
+                        }
+                        for (var i in this.buffer) {
+                            delete this.buffer[i];
+                        }
+                        for (var i in this.diff) {
+                            delete this.diff[i];
+                        }
                     };
                     return Store;
                 })();
@@ -1280,7 +1290,7 @@ var MODULE;
                             this.name = 'meta';
                             this.keyPath = 'key';
                             this.autoIncrement = false;
-                            this.limit = 0;
+                            this.size = 0;
                         }
                         return Meta;
                     })(DATA.Store);
@@ -1313,7 +1323,7 @@ var MODULE;
                             this.indexes = [
                                 { name: 'date', keyPath: 'date', option: { unique: false } }
                             ];
-                            this.limit = 1000;
+                            this.size = 300;
                         }
                         return History;
                     })(DATA.Store);
@@ -1346,7 +1356,7 @@ var MODULE;
                             this.indexes = [
                                 { name: 'score', keyPath: 'score', option: { unique: false } }
                             ];
-                            this.limit = 100;
+                            this.size = 100;
                         }
                         return Server;
                     })(DATA.Store);
@@ -1958,10 +1968,9 @@ var MODULE;
                         this.data_.DB.down();
                     }
                 };
-                Data.prototype.loadBuffers = function (limit) {
-                    if (limit === void 0) { limit = 0; }
+                Data.prototype.loadBuffers = function () {
                     for (var i in this.stores_) {
-                        this.stores_[i].loadBuffer(limit);
+                        this.stores_[i].loadBuffer();
                     }
                 };
                 Data.prototype.saveBuffers = function () {
@@ -2004,7 +2013,6 @@ var MODULE;
                         host: undefined,
                         expires: undefined
                     };
-                    this.stores_.history.setBuffer(value, true);
                     this.stores_.history.set(value, true);
                     this.stores_.history.clean();
                 };
@@ -2046,7 +2054,6 @@ var MODULE;
                         host: undefined,
                         expires: undefined
                     };
-                    this.stores_.history.setBuffer(value, true);
                     this.stores_.history.set(value, true);
                 };
                 Data.prototype.loadExpires = function () {
@@ -2062,29 +2069,33 @@ var MODULE;
                         scrollY: undefined,
                         date: undefined
                     };
-                    this.stores_.history.setBuffer(value, true);
                     this.stores_.history.set(value, true);
                 };
                 // server
                 Data.prototype.getServerBuffers = function () {
                     return this.stores_.server.getBuffers();
                 };
+                Data.prototype.getServerBuffer = function (unsafe_url) {
+                    var host = this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(unsafe_url)).split('//').pop().split('/').shift();
+                    host = this.util_.compareUrl('http://' + host, 'http://' + window.location.host, true) ? '' : host;
+                    return this.stores_.server.getBuffer(host);
+                };
                 Data.prototype.loadServer = function () {
                 };
                 Data.prototype.saveServer = function (host, expires, time, score, state) {
+                    host = host.split('//').pop().split('/').shift();
+                    host = this.util_.compareUrl('http://' + host, 'http://' + window.location.host, true) ? '' : host;
                     var value = {
-                        host: host.split('//').pop().split('/').shift() || '',
+                        host: host,
                         time: Math.max(time, 1),
                         score: score,
                         state: state,
                         expires: expires
                     };
-                    this.stores_.server.setBuffer(value, true);
                     this.stores_.server.set(value, true);
                     this.stores_.server.clean();
                 };
                 Data.prototype.removeServer = function (host) {
-                    this.stores_.server.removeBuffer(host);
                     this.stores_.server.remove(host);
                     this.stores_.server.clean();
                 };
@@ -2110,7 +2121,7 @@ var MODULE;
                     this.app_ = app_;
                     this.util_ = MODULE.LIBRARY.Utility;
                     this.host_ = '';
-                    this.bypass_ = false;
+                    this.force_ = false;
                     this.parallel_ = 4;
                 }
                 Balance.prototype.host = function (host, setting) {
@@ -2120,7 +2131,7 @@ var MODULE;
                     return this.host_;
                 };
                 Balance.prototype.sanitize = function (param, setting) {
-                    var host = '';
+                    var host;
                     switch (param && typeof param) {
                         case 'string':
                             host = param;
@@ -2136,8 +2147,7 @@ var MODULE;
                             break;
                     }
                     host = host || '';
-                    host = setting.balance.filter(host) && host;
-                    return host;
+                    return !/[/?#"`^|\\<>{}\[\]\s]/.test(host) && setting.balance.bounds.test(host) && host;
                 };
                 Balance.prototype.enable = function (setting) {
                     if (!setting.balance.active) {
@@ -2178,23 +2188,24 @@ var MODULE;
                 Balance.prototype.chooseServers_ = function (setting) {
                     var _this = this;
                     var respite = setting.balance.server.respite, weight = setting.balance.weight, timeout = setting.ajax.timeout, hosts = setting.balance.client.hosts.slice();
-                    hosts = this.bypass_ ? jQuery.grep(hosts, function (host) { return !!host; }) : hosts;
+                    hosts = this.force_ ? jQuery.grep(hosts, function (host) { return !!host; }) : hosts;
                     (function () {
                         var host = _this.app_.data.getCookie(setting.balance.client.cookie.host);
-                        if (!~jQuery.inArray(host, hosts)) {
-                            if (host === _this.sanitize(host, setting)) {
-                                !~jQuery.inArray(host, hosts) && hosts.unshift(host);
-                            }
-                            else {
-                                _this.app_.data.setCookie(setting.balance.client.cookie.host, '');
-                            }
+                        if (_this.force_ && !host) {
+                            return;
+                        }
+                        if (host === _this.sanitize(host, setting)) {
+                            !~jQuery.inArray(host, hosts) && hosts.unshift(host);
+                        }
+                        else {
+                            _this.app_.data.setCookie(setting.balance.client.cookie.host, '');
                         }
                     })();
                     var servers = this.app_.data.getServerBuffers(), scoreTable = {};
                     jQuery.each(Object.keys(servers), function (i, index) {
                         var server = servers[index];
                         ~jQuery.inArray(server.host, hosts) && hosts.splice(jQuery.inArray(server.host, hosts), 1);
-                        if (_this.bypass_ && !server.host) {
+                        if (_this.force_ && !server.host) {
                             return;
                         }
                         if (server.host === _this.sanitize(server.host, setting) && server.expires > new Date().getTime()) {
@@ -2221,7 +2232,7 @@ var MODULE;
                         switch (true) {
                             case weight && !host && !!Math.floor(Math.random() * weight):
                             case timeout && time >= timeout:
-                            case result.length >= Math.min(Math.floor(scores.length / 2), 3) && timeout && time >= primary.time + 500 && time >= timeout * 2 / 3:
+                            case result.length >= Math.min(Math.floor(scores.length / 2), 3) && primary && time >= primary.time + 500 && timeout && time >= timeout * 2 / 3:
                             case result.length >= Math.min(Math.floor(scores.length / 2), 3) && primary && score <= primary.score / 2:
                                 return;
                         }
@@ -2245,7 +2256,7 @@ var MODULE;
                             this.app_.data.saveExpires(history.url, '', 0);
                         case !!history:
                         case !!history.expires && history.expires >= new Date().getTime():
-                        case !!history.host || !this.bypass_:
+                        case !!history.host || !this.force_:
                             break;
                         default:
                             hosts = [history.host || ''];
@@ -2265,7 +2276,7 @@ var MODULE;
                     hosts = jQuery.grep(hosts, function (host) { return !!host; });
                     var index = 0, length = hosts.length;
                     var test = function (host) {
-                        var that = _this, loadtime = new Date().getTime();
+                        var that = _this, time = new Date().getTime();
                         'pending' === deferred.state() && jQuery.ajax(jQuery.extend({}, option, {
                             url: that.util_.normalizeUrl(window.location.protocol + '//' + host + window.location.pathname.replace(/^\/?/, '/') + window.location.search),
                             xhr: !setting.balance.option.callbacks.ajax.xhr ? undefined : function () {
@@ -2291,8 +2302,11 @@ var MODULE;
                                 return that.util_.fire(setting.balance.option.callbacks.ajax.dataFilter, this, [event, setting, data, type]) || data;
                             },
                             success: function (data, textStatus, $xhr) {
-                                loadtime = new Date().getTime() - loadtime;
-                                that.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, loadtime, that.score(loadtime, $xhr.responseText.length), 0);
+                                time = new Date().getTime() - time;
+                                var server = that.app_.data.getServerBuffer(this.url), score = that.score(time, $xhr.responseText.length);
+                                time = server && !server.state && server.time ? Math.round((server.time + time) / 2) : time;
+                                score = server && !server.state && server.score ? Math.round((server.score + score) / 2) : score;
+                                that.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
                                 host = that.sanitize($xhr, setting) || host;
                                 that.util_.fire(setting.balance.option.ajax.success, this, arguments);
                             },
@@ -2319,7 +2333,7 @@ var MODULE;
                             }
                         }));
                     };
-                    this.bypass_ = true;
+                    this.force_ = true;
                     while (parallel-- && hosts.length) {
                         test(hosts.shift());
                     }
@@ -2853,7 +2867,7 @@ var MODULE;
                     var setting = this.setting_, event = this.event_;
                     var callbacks_update = setting.callbacks.update;
                     var url = (jQuery('head meta[http-equiv="Refresh"][content*="URL="]').attr('content') || '').match(/\w+:\/\/[^;\s"']+|$/i).shift();
-                    if (!url) {
+                    if (!url || this.util_.compareUrl(setting.destLocation.href, url, true)) {
                         return;
                     }
                     var redirect = setting.destLocation.cloneNode();
@@ -3090,7 +3104,7 @@ var MODULE;
                     }
                     function map() {
                         var defer = jQuery.Deferred();
-                        jQuery(this).one('load error', defer.resolve);
+                        jQuery(this).one('load error abort', defer.resolve);
                         return defer;
                     }
                     jQuery(this.area_).children('.' + setting.nss.elem + '-check').remove();
@@ -3132,6 +3146,9 @@ var MODULE;
                     if (this.util_.fire(callbacks_update.balance.before, setting, [event, setting, host, this.app_.loadtime, $xhr.responseText.length]) === false) {
                         return;
                     }
+                    var server = this.app_.data.getServerBuffer(setting.destLocation.href), score = this.app_.balance.score(time, $xhr.responseText.length);
+                    time = server && !server.state && server.time ? Math.round((server.time + time) / 2) : time;
+                    score = server && !server.state && server.score ? Math.round((server.score + score) / 2) : score;
                     this.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
                     this.app_.balance.changeServer(this.app_.balance.chooseServer(setting), setting);
                     if (this.util_.fire(callbacks_update.balance.after, setting, [event, setting, host, this.app_.loadtime, $xhr.responseText.length]) === false) {
@@ -3703,8 +3720,8 @@ var MODULE;
                         });
                     }
                     this.controller_.view($context, setting);
-                    setTimeout(function () { return _this.data.loadBuffers(setting.buffer.limit); }, setting.buffer.delay);
-                    setTimeout(function () { return _this.balance.enable(setting); }, setting.buffer.delay + 100);
+                    this.balance.enable(setting);
+                    this.data.loadBuffers();
                     setTimeout(function () { return _this.page.landing = null; }, 1500);
                 };
                 Main.prototype.configure = function (destination) {
@@ -3796,10 +3813,8 @@ var MODULE;
                         },
                         balance: {
                             active: false,
+                            bounds: /^.*$/,
                             weight: 1,
-                            filter: function (host) {
-                                return /^[^\s/]*$/.test(host);
-                            },
                             option: {
                                 server: {
                                     header: false
