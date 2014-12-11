@@ -124,7 +124,6 @@ module MODULE.MODEL {
         
         switch (false) {
           case !event.isDefaultPrevented():
-          case !!setting:
           case this.state() === State.open:
           case this.isAvailable(event):
             break PROCESS;
@@ -148,7 +147,6 @@ module MODULE.MODEL {
         
         switch (false) {
           case !event.isDefaultPrevented():
-          case !!setting:
           case this.state() === State.open:
           case this.isAvailable(event):
             break PROCESS;
@@ -165,17 +163,17 @@ module MODULE.MODEL {
 
     popstate(event: JQueryEventObject): void {
       PROCESS: {
-        if (this.app_.page.landing && this.app_.page.landing === this.util_.normalizeUrl(window.location.href)) { return; }
-        if (this.location.href === this.util_.normalizeUrl(window.location.href)) { return; }
+        switch (true) {
+          case this.app_.page.landing && this.util_.compareUrl(this.app_.page.landing, window.location.href, true):
+          case this.util_.compareUrl(this.location.href, window.location.href, true):
+            return;
+        }
         
         event.timeStamp = new Date().getTime();
         var setting: SettingInterface = this.app_.configure(window.location);
         
-        if (setting.origLocation.pathname + setting.origLocation.search === setting.destLocation.pathname + setting.destLocation.search) { return; }
-        
         switch (false) {
           //case !event.isDefaultPrevented():
-          case !!setting:
           case this.state() === State.open:
           case this.isAvailable(event):
             break PROCESS;
