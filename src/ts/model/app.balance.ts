@@ -33,11 +33,7 @@ module MODULE.MODEL.APP {
           break;
         case 'object':
           var $xhr: JQueryXHR = param;
-          try {
-            host = $xhr.getResponseHeader(setting.balance.server.header) || $xhr.host;
-          } catch (e) {
-            host = $xhr.host;
-          }
+          host = $xhr.readyState === 4 && $xhr.getResponseHeader(setting.balance.server.header) || $xhr.host;
           break
       }
       host = host || '';
