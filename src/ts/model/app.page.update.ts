@@ -186,6 +186,15 @@ module MODULE.MODEL.APP {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
 
+     if (setting.load.script && !this.app_.page.loadedScripts['']) {
+        var loadedScripts = this.app_.page.loadedScripts;
+        loadedScripts[''] = true;
+        jQuery('script').each(function () {
+          var element: HTMLScriptElement = this;
+          if (element.src) { loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload); }
+        });
+      }
+
       this.overwriteDocumentByCache_();
 
       setting.fix.noscript &&

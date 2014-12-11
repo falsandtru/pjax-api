@@ -31,14 +31,6 @@ module MODULE.MODEL.APP {
     loadtime: number = 0
 
     initialize($context: JQuery, setting: SettingInterface): void {
-      if (setting.load.script) {
-        var loadedScripts = this.page.loadedScripts;
-        jQuery('script').each(function () {
-          var element: HTMLScriptElement = this;
-          if (element.src) { loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload); }
-        });
-      }
-
       this.controller_.view($context, setting);
       this.balance.enable(setting);
       this.data.loadBuffers();
