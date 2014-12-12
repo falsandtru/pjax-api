@@ -34,11 +34,7 @@ module MODULE.MODEL.APP {
     private main_(): void {
       var record: PageRecordInterface = this.record_,
           setting: SettingInterface = this.setting_,
-          event: JQueryEventObject = this.event_,
-          data: string = record.data.jqXHR().responseText,
-          textStatus: string = record.data.textStatus(),
-          $xhr: JQueryXHR = record.data.jqXHR();
-      var callbacks_update = setting.callbacks.update;
+          event: JQueryEventObject = this.event_;
 
       var speedcheck = setting.speedcheck, speed = this.model_.speed;
       speedcheck && speed.time.push(speed.now() - speed.fire);
@@ -56,10 +52,10 @@ module MODULE.MODEL.APP {
       try {
         this.page_.landing = null;
 
-        if (!~($xhr.getResponseHeader('Content-Type') || '').toLowerCase().search(setting.contentType)) { throw new Error("throw: content-type mismatch"); }
+        if (!~(record.data.jqXHR().getResponseHeader('Content-Type') || '').toLowerCase().search(setting.contentType)) { throw new Error("throw: content-type mismatch"); }
         
         /* variable define */
-        this.srcDocument_ = this.page_.parser.parse($xhr.responseText, setting.destLocation.href);
+        this.srcDocument_ = this.page_.parser.parse(record.data.jqXHR().responseText, setting.destLocation.href);
         this.dstDocument_ = document;
           
         // 更新範囲を選出
@@ -114,7 +110,6 @@ module MODULE.MODEL.APP {
     private redirect_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
-      var callbacks_update = setting.callbacks.update;
 
       var url: string = (jQuery('head meta[http-equiv="Refresh"][content*="URL="]').attr('content') || '').match(/\w+:\/\/[^;\s"']+|$/i).shift();
       if (!url || this.model_.comparePageByUrl(setting.destLocation.href, url)) { return; }
@@ -122,7 +117,7 @@ module MODULE.MODEL.APP {
       var redirect = <HTMLAnchorElement>setting.destLocation.cloneNode();
       redirect.href = url;
 
-      if (this.util_.fire(callbacks_update.redirect.before, setting, [event, setting, redirect.cloneNode(), setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) { return; };
+      if (this.util_.fire(setting.callbacks.update.redirect.before, setting, [event, setting, redirect.cloneNode(), setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) { return; };
 
       switch (true) {
         case !setting.redirect:
@@ -161,17 +156,16 @@ module MODULE.MODEL.APP {
           throw false;
       }
 
-      if (this.util_.fire(callbacks_update.redirect.after, setting, [event, setting, redirect.cloneNode(), setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) { return; }
+      if (this.util_.fire(setting.callbacks.update.redirect.after, setting, [event, setting, redirect.cloneNode(), setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) { return; }
     }
     
     private url_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
-      var callbacks_update = setting.callbacks.update;
 
       this.model_.location.href = setting.destLocation.href;
 
-      if (this.util_.fire(callbacks_update.url.before, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) { return; };
+      if (this.util_.fire(setting.callbacks.update.url.before, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) { return; };
 
       if (this.isRegister_(setting, event)) {
         window.history.pushState(this.util_.fire(setting.state, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]),
@@ -186,7 +180,7 @@ module MODULE.MODEL.APP {
         }
       }
 
-      if (this.util_.fire(callbacks_update.url.after, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) { return; }
+      if (this.util_.fire(setting.callbacks.update.url.after, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) { return; }
     }
 
     private document_(): void {
@@ -346,27 +340,25 @@ module MODULE.MODEL.APP {
     private rewrite_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
-      var callbacks_update = setting.callbacks.update;
 
       if (!setting.rewrite) { return; }
 
-      if (this.util_.fire(callbacks_update.rewrite.before, setting, [event, setting, this.srcDocument_, this.dstDocument_]) === false) { return; }
+      if (this.util_.fire(setting.callbacks.update.rewrite.before, setting, [event, setting, this.srcDocument_, this.dstDocument_]) === false) { return; }
 
       this.util_.fire(setting.rewrite, setting, [this.srcDocument_, this.area_, this.record_.data.host()])
 
-      if (this.util_.fire(callbacks_update.rewrite.before, setting, [event, setting, this.srcDocument_, this.dstDocument_]) === false) { return; }
+      if (this.util_.fire(setting.callbacks.update.rewrite.before, setting, [event, setting, this.srcDocument_, this.dstDocument_]) === false) { return; }
     }
 
     private title_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
-      var callbacks_update = setting.callbacks.update;
 
-      if (this.util_.fire(callbacks_update.title.before, setting, [event, setting, this.srcDocument_.title, this.dstDocument_.title]) === false) { return; }
+      if (this.util_.fire(setting.callbacks.update.title.before, setting, [event, setting, this.srcDocument_.title, this.dstDocument_.title]) === false) { return; }
 
       this.dstDocument_.title = this.srcDocument_.title;
 
-      if (this.util_.fire(callbacks_update.title.after, setting, [event, setting, this.srcDocument_.title, this.dstDocument_.title]) === false) { return; }
+      if (this.util_.fire(setting.callbacks.update.title.after, setting, [event, setting, this.srcDocument_.title, this.dstDocument_.title]) === false) { return; }
     }
 
     private head_(): void {
@@ -374,11 +366,10 @@ module MODULE.MODEL.APP {
           event: JQueryEventObject = this.event_,
           srcDocument: Document = this.srcDocument_,
           dstDocument: Document = this.dstDocument_;
-      var callbacks_update = setting.callbacks.update;
 
       if (!setting.load.head) { return; }
 
-      if (this.util_.fire(callbacks_update.head.before, setting, [event, setting, this.srcDocument_.querySelector('head'), this.dstDocument_.querySelector('head')]) === false) { return; }
+      if (this.util_.fire(setting.callbacks.update.head.before, setting, [event, setting, this.srcDocument_.querySelector('head'), this.dstDocument_.querySelector('head')]) === false) { return; }
 
       var prefilter: string = 'base, meta, link',
           $srcElements: JQuery = jQuery(srcDocument.head).children(prefilter).filter(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script'),
@@ -404,7 +395,7 @@ module MODULE.MODEL.APP {
       jQuery('title', dstDocument).before($addElements.clone());
       $delElements.remove();
 
-      if (this.util_.fire(callbacks_update.head.after, setting, [event, setting, this.srcDocument_.querySelector('head'), this.dstDocument_.querySelector('head')]) === false) { return; }
+      if (this.util_.fire(setting.callbacks.update.head.after, setting, [event, setting, this.srcDocument_.querySelector('head'), this.dstDocument_.querySelector('head')]) === false) { return; }
     }
 
     private content_(): void {
@@ -412,11 +403,10 @@ module MODULE.MODEL.APP {
           event: JQueryEventObject = this.event_,
           srcDocument: Document = this.srcDocument_,
           dstDocument: Document = this.dstDocument_;
-      var callbacks_update = setting.callbacks.update;
 
       var checker: JQuery;
 
-      if (this.util_.fire(callbacks_update.content.before, setting, [event, setting, jQuery(this.area_, this.srcDocument_).get(), jQuery(this.area_, this.dstDocument_).get()]) === false) { return; }
+      if (this.util_.fire(setting.callbacks.update.content.before, setting, [event, setting, jQuery(this.area_, this.srcDocument_).get(), jQuery(this.area_, this.dstDocument_).get()]) === false) { return; }
 
       function map() {
         var defer = jQuery.Deferred();
@@ -467,13 +457,12 @@ module MODULE.MODEL.APP {
       }
       this.dispatchEvent(document, setting.nss.event.pjax.DOMContentLoaded, false, false);
 
-      if (this.util_.fire(callbacks_update.content.after, setting, [event, setting, jQuery(this.area_, this.srcDocument_).get(), jQuery(this.area_, this.dstDocument_).get()]) === false) { return; }
+      if (this.util_.fire(setting.callbacks.update.content.after, setting, [event, setting, jQuery(this.area_, this.srcDocument_).get(), jQuery(this.area_, this.dstDocument_).get()]) === false) { return; }
     }
     
     private balance_(): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
-      var callbacks_update = setting.callbacks.update;
 
       if (!setting.balance.active || this.page_.loadtime < 100) { return; }
 
@@ -482,7 +471,7 @@ module MODULE.MODEL.APP {
           time = this.page_.loadtime,
           score = this.balancer_.score(time, $xhr.responseText.length);
 
-      if (this.util_.fire(callbacks_update.balance.before, setting, [event, setting, host, this.page_.loadtime, $xhr.responseText.length]) === false) { return; }
+      if (this.util_.fire(setting.callbacks.update.balance.before, setting, [event, setting, host, this.page_.loadtime, $xhr.responseText.length]) === false) { return; }
 
       var server = this.data_.getServerBuffer(setting.destLocation.href),
           score = this.balancer_.score(time, $xhr.responseText.length);
@@ -491,7 +480,7 @@ module MODULE.MODEL.APP {
       this.data_.saveServer(host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
       this.balancer_.changeServer(this.balancer_.chooseServer(setting), setting);
 
-      if (this.util_.fire(callbacks_update.balance.after, setting, [event, setting, host, this.page_.loadtime, $xhr.responseText.length]) === false) { return; }
+      if (this.util_.fire(setting.callbacks.update.balance.after, setting, [event, setting, host, this.page_.loadtime, $xhr.responseText.length]) === false) { return; }
     }
 
     private css_(selector: string): void {
@@ -499,7 +488,6 @@ module MODULE.MODEL.APP {
           event: JQueryEventObject = this.event_,
           srcDocument: Document = this.srcDocument_,
           dstDocument: Document = this.dstDocument_;
-      var callbacks_update = setting.callbacks.update;
       
       if (!setting.load.css) { return; }
       
@@ -509,7 +497,7 @@ module MODULE.MODEL.APP {
           $addElements: JQuery = jQuery(),
           $delElements: JQuery = $dstElements;
       
-      if (this.util_.fire(callbacks_update.css.before, setting, [event, setting, $srcElements.get(), $dstElements.get()]) === false) { return; }
+      if (this.util_.fire(setting.callbacks.update.css.before, setting, [event, setting, $srcElements.get(), $dstElements.get()]) === false) { return; }
 
       $srcElements = $srcElements.not(setting.load.ignore);
       $dstElements = $srcElements.not(setting.load.ignore);
@@ -556,7 +544,7 @@ module MODULE.MODEL.APP {
 
       $dstElements = jQuery(prefilter, dstDocument).filter(selector).not(jQuery('noscript', srcDocument).find(prefilter));
 
-      if (this.util_.fire(callbacks_update.css.after, setting, [event, setting, $srcElements.get(), $dstElements.get()]) === false) { return; }
+      if (this.util_.fire(setting.callbacks.update.css.after, setting, [event, setting, $srcElements.get(), $dstElements.get()]) === false) { return; }
 
       var speedcheck = setting.speedcheck, speed = this.model_.speed;
       speedcheck && speed.time.push(speed.now() - speed.fire);
@@ -568,7 +556,6 @@ module MODULE.MODEL.APP {
           event: JQueryEventObject = this.event_,
           srcDocument: Document = this.srcDocument_,
           dstDocument: Document = this.dstDocument_;
-      var callbacks_update = setting.callbacks.update;
 
       var scriptwaits: JQueryPromise<any[]>[] = [],
           scripts: HTMLScriptElement[] = [];
@@ -582,7 +569,7 @@ module MODULE.MODEL.APP {
           regType: RegExp = /^$|(?:application|text)\/(?:java|ecma)script/i,
           regRemove: RegExp = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
       
-      if (this.util_.fire(callbacks_update.script.before, setting, [event, setting, $srcElements.get(), $dstElements.get()]) === false) { return scriptwaits; }
+      if (this.util_.fire(setting.callbacks.update.script.before, setting, [event, setting, $srcElements.get(), $dstElements.get()]) === false) { return scriptwaits; }
 
       $srcElements = $srcElements.not(setting.load.ignore);
 
@@ -705,7 +692,7 @@ module MODULE.MODEL.APP {
 
       $dstElements = jQuery(prefilter, dstDocument).filter(selector).not(jQuery('noscript', dstDocument).find(prefilter));
 
-      if (this.util_.fire(callbacks_update.script.after, setting, [event, setting, $srcElements.get(), $dstElements.get()]) === false) { return scriptwaits; }
+      if (this.util_.fire(setting.callbacks.update.script.after, setting, [event, setting, $srcElements.get(), $dstElements.get()]) === false) { return scriptwaits; }
 
       var speedcheck = setting.speedcheck, speed = this.model_.speed;
       speedcheck && speed.time.push(speed.now() - speed.fire);
@@ -717,9 +704,8 @@ module MODULE.MODEL.APP {
     private scroll_(call: boolean): void {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
-      var callbacks_update = setting.callbacks.update;
 
-      if (this.util_.fire(callbacks_update.scroll.before, setting, [event, setting]) === false) { return; }
+      if (this.util_.fire(setting.callbacks.update.scroll.before, setting, [event, setting]) === false) { return; }
 
       var scrollX: any, scrollY: any;
       switch (event.type.toLowerCase()) {
@@ -741,7 +727,7 @@ module MODULE.MODEL.APP {
       }
       call && this.data_.saveScrollPosition();
 
-      if (this.util_.fire(callbacks_update.scroll.after, setting, [event, setting]) === false) { return; }
+      if (this.util_.fire(setting.callbacks.update.scroll.after, setting, [event, setting]) === false) { return; }
     }
 
     private waitRender_(callback: JQueryPromise<any>): JQueryPromise<any>
@@ -749,7 +735,6 @@ module MODULE.MODEL.APP {
     private waitRender_(callback: any) {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
-      var callbacks_update = setting.callbacks.update;
 
       var areas = jQuery(this.area_),
           checker = areas.children('.' + setting.nss.elem + '-check'),
