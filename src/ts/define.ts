@@ -91,7 +91,7 @@ module MODULE {
     configure(destination: Location): SettingInterface
     getXHR(): JQueryXHR
     setXHR($xhr: JQueryXHR): JQueryXHR
-    isAvailable(event: JQueryEventObject): boolean
+    isOperatable(event: JQueryEventObject): boolean
     fallback(event: JQueryEventObject): void
     bypass(): JQueryDeferred<any>
     speed: any

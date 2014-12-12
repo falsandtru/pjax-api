@@ -90,7 +90,7 @@ module MODULE.MODEL {
       return this.app_.configure(destination);
     }
 
-    isAvailable(event: JQueryEventObject): boolean {
+    isOperatable(event: JQueryEventObject): boolean {
       if (State.open !== this.state()) { return false; }
 
       if (event.which > 1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) { return false; }
@@ -141,7 +141,7 @@ module MODULE.MODEL {
           this.location.href = this.util_.normalizeUrl(window.location.href);
           return;
 
-        case this.isAvailable(event):
+        case this.isOperatable(event):
           this.location.href = this.util_.normalizeUrl(window.location.href);
           // clickメソッド用
           if (!event.originalEvent && !jQuery(document).has(context).length) {
@@ -167,7 +167,7 @@ module MODULE.MODEL {
         case this.state() === State.open:
           return;
 
-        case this.isAvailable(event):
+        case this.isOperatable(event):
           // submitメソッド用
           if (!event.originalEvent && !jQuery(document).has(context).length) {
             this.fallback(event);
@@ -196,7 +196,7 @@ module MODULE.MODEL {
         case this.state() === State.open:
           return;
 
-        case this.isAvailable(event):
+        case this.isOperatable(event):
           // pjax処理されないURL変更によるページ更新
           if (!this.comparePageByUrl(setting.origLocation.href, window.location.href)) {
             this.fallback(event);

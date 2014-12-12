@@ -155,7 +155,7 @@ module MODULE.CONTROLLER {
       Model.singleton().setXHR($xhr);
       jQuery.when($xhr)
       .done(function () {
-        !Model.singleton().getCache(anchor.href) && Model.singleton().isAvailable(event) && Model.singleton().setCache(anchor.href, undefined, undefined, $xhr);
+        !Model.singleton().getCache(anchor.href) && Model.singleton().isOperatable(event) && Model.singleton().setCache(anchor.href, undefined, undefined, $xhr);
       });
       jQuery[DEF.NAME].click(anchor.href);
       return true;
