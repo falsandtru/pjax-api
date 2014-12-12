@@ -35,53 +35,51 @@ module MODULE.MODEL.APP {
       speedcheck && speed.time.push(speed.now() - speed.fire);
       speedcheck && speed.name.push('fetch(' + speed.time.slice(-1) + ')');
       
-      UPDATE: {
-        ++this.app_.count;
-        this.app_.loadtime = this.app_.loadtime && new Date().getTime() - this.app_.loadtime;
+      ++this.app_.count;
+      this.app_.loadtime = this.app_.loadtime && new Date().getTime() - this.app_.loadtime;
+      
+      if (setting.cache.mix && EVENT.POPSTATE !== event.type.toLowerCase() && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
+        return this.model_.fallback(event);
+      }
+      
+      /* variable initialization */
+      
+      try {
+        app.page.landing = null;
+
+        if (!~($xhr.getResponseHeader('Content-Type') || '').toLowerCase().search(setting.contentType)) { throw new Error("throw: content-type mismatch"); }
         
-        if (setting.cache.mix && EVENT.POPSTATE !== event.type.toLowerCase() && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
-          return this.model_.fallback(event);
-        }
+        /* variable define */
+        this.srcDocument_ = this.app_.page.parser.parse($xhr.responseText, setting.destLocation.href);
+        this.dstDocument_ = document;
+          
+        // 更新範囲を選出
+        this.area_ = this.chooseArea(setting.area, this.srcDocument_, this.dstDocument_);
+        if (!this.area_) { throw new Error('throw: area notfound'); }
+        // 更新範囲をセレクタごとに分割
+        this.areas_ = this.area_.match(/(?:[^,]+?|\(.*?\)|\[.*?\])+/g);
+
+        speedcheck && speed.time.push(speed.now() - speed.fire);
+        speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
         
-        /* variable initialization */
+        this.redirect_();
         
-        try {
-          app.page.landing = null;
+        this.dispatchEvent(window, setting.nss.event.pjax.unload, false, false);
+        
+        this.url_();
+        
+        if (!this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) { throw new Error("throw: location mismatch"); }
 
-          if (!~($xhr.getResponseHeader('Content-Type') || '').toLowerCase().search(setting.contentType)) { throw new Error("throw: content-type mismatch"); }
-          
-          /* variable define */
-          this.srcDocument_ = this.app_.page.parser.parse($xhr.responseText, setting.destLocation.href);
-          this.dstDocument_ = document;
-            
-          // 更新範囲を選出
-          this.area_ = this.chooseArea(setting.area, this.srcDocument_, this.dstDocument_);
-          if (!this.area_) { throw new Error('throw: area notfound'); }
-          // 更新範囲をセレクタごとに分割
-          this.areas_ = this.area_.match(/(?:[^,]+?|\(.*?\)|\[.*?\])+/g);
+        this.document_();
+        
+      } catch (err) {
+        if (!err) { return; }
 
-          speedcheck && speed.time.push(speed.now() - speed.fire);
-          speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
-          
-          this.redirect_();
-          
-          this.dispatchEvent(window, setting.nss.event.pjax.unload, false, false);
-          
-          this.url_();
-          
-          if (!this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) { throw new Error("throw: location mismatch"); }
+        this.model_.getCache(window.location.href) &&
+        this.model_.removeCache(setting.destLocation.href);
 
-          this.document_();
-          
-        } catch (err) {
-          if (!err) { return; }
-
-          this.model_.getCache(window.location.href) &&
-          this.model_.removeCache(setting.destLocation.href);
-
-          this.model_.fallback(event);
-        };
-      }; // label: UPDATE
+        this.model_.fallback(event);
+      }
     }
 
     private isRegister_(setting: SettingInterface, event: JQueryEventObject): boolean {
