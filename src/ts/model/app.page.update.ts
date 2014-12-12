@@ -420,7 +420,22 @@ module MODULE.MODEL.APP {
       jQuery(this.area_).children('.' + setting.nss.elem + '-check').remove();
       checker = jQuery('<div/>', {
         'class': setting.nss.elem + '-check',
-        'style': 'background: none !important; display: block !important; visibility: hidden !important; position: absolute !important; top: 0 !important; left: 0 !important; z-index: -9999 !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; font-size: 12px !important; text-indent: 0 !important;'
+        'style': [
+          'background: none !important',
+          'display: block !important',
+          'visibility: hidden !important',
+          'position: absolute !important',
+          'top: 0 !important',
+          'left: 0 !important',
+          'z-index: -9999 !important',
+          'width: auto !important',
+          'height: 0 !important',
+          'margin: 0 !important',
+          'padding: 0 !important',
+          'border: none !important',
+          'font-size: 12px !important',
+          'text-indent: 0 !important'
+        ].join(';')
       }).text(DEF.NAME);
 
       var $srcAreas: JQuery,
