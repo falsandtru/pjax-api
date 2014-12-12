@@ -1,6 +1,6 @@
 /// <reference path="../define.ts"/>
 /// <reference path="_template.ts"/>
-/// <reference path="app.balance.ts"/>
+/// <reference path="app.balancer.ts"/>
 /// <reference path="app.page.ts"/>
 /// <reference path="app.data.ts"/>
 /// <reference path="../view/main.ts"/>
@@ -22,17 +22,13 @@ module MODULE.MODEL.APP {
     private settings_: { [index: string]: SettingInterface } = {}
     private option_: PjaxSetting
 
-    balance: BalanceInterface = new Balance(this.model_, this)
-    page: PageInterface = new Page(this.model_, this)
-    data: DataInterface = new Data(this.model_, this)
-
-    count: number = 0
-    time: number = new Date().getTime()
-    loadtime: number = 0
+    data: DataInterface = new Data(this.model_)
+    balancer: BalancerInterface = new Balancer(this.data)
+    page: PageInterface = new Page(this.model_, this.data, this.balancer)
 
     initialize($context: JQuery, setting: SettingInterface): void {
       this.controller_.view($context, setting);
-      this.balance.enable(setting);
+      this.balancer.enable(setting);
       this.data.loadBuffers();
       setTimeout(() => this.page.landing = null, 1500);
     }
@@ -195,6 +191,7 @@ module MODULE.MODEL.APP {
             data: undefined
           },
           force = <SettingInterface>{
+            uid: UUID(),
             ns: '',
             nss: undefined,
             speedcheck: undefined,
@@ -219,6 +216,7 @@ module MODULE.MODEL.APP {
                 query = '';
             }
             return <SettingInterface>{
+              uid: undefined,
               ns: undefined,
               origLocation: undefined,
               destLocation: undefined,

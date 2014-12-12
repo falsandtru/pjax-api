@@ -1,4 +1,6 @@
 /// <reference path="../define.ts"/>
+/// <reference path="app.data.ts"/>
+/// <reference path="app.balancer.ts"/>
 /// <reference path="app.page.provider.ts"/>
 /// <reference path="app.page.update.ts"/>
 /// <reference path="app.page.parser.ts"/>
@@ -14,34 +16,38 @@ module MODULE.MODEL.APP {
 
   export class Page implements PageInterface {
 
-    constructor(private model_: ModelInterface, private app_: AppLayerInterface) {
-      setTimeout(() => this.parser.parse('') || this.model_.disable(), 300);
+    constructor(private model_: ModelInterface, private data_: DataInterface, private balancer_: BalancerInterface) {
+      setTimeout(() => this.parser.parse('') || this.model_.disable(), 100);
     }
     
     private util_ = LIBRARY.Utility
 
     parser: PageParserInterface = new PageParserSingleton()
-    provider: PageProviderInterface = new PageProvider(PageRecord, this.model_, this.app_)
+    provider: PageProviderInterface = new PageProvider(PageRecord, this.model_, this.balancer_, this)
     
     landing: string = this.util_.normalizeUrl(window.location.href)
     loadedScripts: { [index: string]: boolean } = {}
     xhr: JQueryXHR
 
+    loadtime: number = 0
+    count: number = 0
+    time: number = new Date().getTime()
+
     transfer(setting: SettingInterface, event: JQueryEventObject): void {
       switch (event.type.toLowerCase()) {
         case EVENT.CLICK:
-          this.app_.data.saveTitle();
-          this.app_.data.saveScrollPosition();
+          this.data_.saveTitle();
+          this.data_.saveScrollPosition();
           break;
 
         case EVENT.SUBMIT:
-          this.app_.data.saveTitle();
-          this.app_.data.saveScrollPosition();
+          this.data_.saveTitle();
+          this.data_.saveScrollPosition();
           break;
 
         case EVENT.POPSTATE:
-          this.app_.data.saveTitle(setting.origLocation.href, document.title);
-          setting.fix.history && this.app_.data.loadTitle();
+          this.data_.saveTitle(setting.origLocation.href, document.title);
+          setting.fix.history && this.data_.loadTitle();
           break;
       }
 
@@ -71,16 +77,16 @@ module MODULE.MODEL.APP {
     }
 
     private success_(record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject): void {
-      new PageUpdate(this.model_, this.app_, setting, event, record);
+      new PageUpdate(this.model_, this, this.data_, this.balancer_, setting, event, record);
     }
 
     private failure_(record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject): void {
       if (!setting.fallback || 'abort' === record.data.textStatus()) { return; }
 
-      this.app_.data.saveExpires(setting.destLocation.href, '', 0);
+      this.data_.saveExpires(setting.destLocation.href, '', 0);
       if (setting.balance.active) {
-        this.app_.data.saveServer(record.data.host(), new Date().getTime() + setting.balance.server.expires, 0, 0, new Date().getTime());
-        this.app_.balance.changeServer(this.app_.balance.chooseServer(setting), setting);
+        this.data_.saveServer(record.data.host(), new Date().getTime() + setting.balance.server.expires, 0, 0, new Date().getTime());
+        this.balancer_.changeServer(this.balancer_.chooseServer(setting), setting);
       }
 
       setTimeout(() => this.model_.fallback(event), 100);

@@ -23,7 +23,7 @@ module MODULE.MODEL {
     isDeferrable: boolean = !!jQuery.when && '1.006' <= jQuery().jquery.match(/\d[\d.]+\d/).pop().replace(/\.(\d+)/g, '.00$1').replace(/0*(\d{3})/g, '$1')
 
     location: HTMLAnchorElement = document.createElement('a')
-    host(): string { return this.app_.balance.host() }
+    host(): string { return this.app_.balancer.host() }
     state(): State { return this.state_; }
     
     main_($context: ExtensionInterface, setting: PjaxSetting): ExtensionInterface
@@ -123,7 +123,7 @@ module MODULE.MODEL {
       return this.app_.page.xhr;
     }
     setXHR($xhr: JQueryXHR): JQueryXHR {
-      this.app_.balance.sanitize($xhr, this.app_.configure(window.location));
+      this.app_.balancer.sanitize($xhr, this.app_.configure(window.location));
       this.app_.page.xhr && this.app_.page.xhr.readyState < 4 && this.app_.page.xhr !== $xhr && this.app_.page.xhr.abort();
       return this.app_.page.xhr = $xhr;
     }
@@ -280,7 +280,7 @@ module MODULE.MODEL {
                                         data || '',
                                         textStatus || record.data.textStatus(),
                                         jqXHR || record.data.jqXHR(),
-                                        this.app_.balance.sanitize(jqXHR, setting) || record.data.host() || '');
+                                        this.app_.balancer.sanitize(jqXHR, setting) || record.data.host() || '');
     }
 
     removeCache(unsafe_url: string): void {
@@ -294,7 +294,7 @@ module MODULE.MODEL {
     }
 
     bypass(): JQueryDeferred<any> {
-      return this.app_.balance.bypass();
+      return this.app_.balancer.bypass(this.app_.configure(window.location));
     }
 
     speed: any

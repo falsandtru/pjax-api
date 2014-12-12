@@ -143,6 +143,7 @@ module MODULE {
   // Parameter
   export interface SettingInterface extends PjaxSetting {
     // internal
+    uid: string
     ns: string
     nss: {
       array: string[]
@@ -181,7 +182,7 @@ module MODULE {
 module MODULE.MODEL {
   // APP Layer
   export declare class AppLayerInterface {
-    balance: BalanceInterface
+    balancer: BalancerInterface
     page: PageInterface
     data: DataInterface
 
@@ -192,15 +193,11 @@ module MODULE.MODEL {
     configure(destination: HTMLAnchorElement): SettingInterface
     configure(destination: HTMLFormElement): SettingInterface
     configure(destination: Location): SettingInterface
-
-    count: number
-    time: number
-    loadtime: number
   }
 
   // Balanse
-  export declare class BalanceInterface {
-    constructor(model: ModelInterface, app: AppLayerInterface)
+  export declare class BalancerInterface {
+    constructor(data: DataInterface)
     host(): string
     sanitize(host: string, setting: SettingInterface): string
     sanitize($xhr: JQueryXHR, setting: SettingInterface): string
@@ -210,7 +207,7 @@ module MODULE.MODEL {
     score(time: number, size: number): number
     changeServer(host: string, setting: SettingInterface): string
     chooseServer(setting: SettingInterface): string
-    bypass(): JQueryDeferred<any>
+    bypass(setting: SettingInterface): JQueryDeferred<any>
   }
 
   // Page
@@ -223,6 +220,10 @@ module MODULE.MODEL {
     landing: string
     loadedScripts: { [url: string]: boolean }
     xhr: JQueryXHR
+
+    loadtime: number
+    count: number
+    time: number
     
     transfer(setting: SettingInterface, event: JQueryEventObject): void
 
@@ -275,21 +276,6 @@ module MODULE.MODEL {
     jqXHR: JQueryXHR
     host: string
   }
-  // Page::Fetch
-  export declare class PageFetchInterface extends PageUtilityInterface {
-    constructor(
-      model: ModelInterface,
-      app: AppLayerInterface,
-      setting: SettingInterface,
-      event: JQueryEventObject,
-      success: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, $xhr: JQueryXHR, errorThrown: string, host: string) => any,
-      failure: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, $xhr: JQueryXHR, errorThrown: string, host: string) => any
-    )
-  }
-  // Page::Update
-  export declare class PageUpdateInterface extends PageUtilityInterface {
-    constructor(model: ModelInterface, app: AppLayerInterface, setting: SettingInterface, event: JQueryEventObject, record: PageRecordInterface)
-  }
   // Page::Parser
   export declare class PageParserInterface {
     parse(html: string, uri?: string): Document
@@ -305,6 +291,8 @@ module MODULE.MODEL {
 
   // Data
   export declare class DataInterface {
+    constructor(model: ModelInterface)
+
     // cookie
     getCookie(key: string): string
     setCookie(key: string, value: string, option?: CookieOptionInterface): string

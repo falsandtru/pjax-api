@@ -8,7 +8,7 @@ module MODULE.MODEL.APP {
 
   export class Data implements DataInterface {
 
-    constructor(private model_: ModelInterface, private app_: AppLayerInterface) {
+    constructor(private model_: ModelInterface) {
     }
 
     private data_: DataLayerInterface = new DATA.Main()

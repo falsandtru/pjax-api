@@ -1,15 +1,25 @@
 /// <reference path="../define.ts"/>
-/// <reference path="app.page.utility.ts"/>
 /// <reference path="app.data.ts"/>
+/// <reference path="app.balancer.ts"/>
+/// <reference path="app.page.utility.ts"/>
 /// <reference path="../library/utility.ts"/>
 
 /* MODEL */
 
 module MODULE.MODEL.APP {
 
-  export class PageUpdate implements PageUpdateInterface {
+  export class PageUpdate {
     
-    constructor(private model_: ModelInterface, private app_: AppLayerInterface, private setting_: SettingInterface, private event_: JQueryEventObject, private record_: PageRecordInterface) {
+    constructor(
+
+    private model_: ModelInterface,
+    private page_: PageInterface,
+    private data_: DataInterface,
+    private balancer_: BalancerInterface,
+    private setting_: SettingInterface,
+    private event_: JQueryEventObject,
+    private record_: PageRecordInterface
+    ) {
       this.main_();
     }
     
@@ -22,8 +32,7 @@ module MODULE.MODEL.APP {
     private loadwaits_: JQueryPromise<any[]>[] = []
 
     private main_(): void {
-      var app = this.app_,
-          record: PageRecordInterface = this.record_,
+      var record: PageRecordInterface = this.record_,
           setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_,
           data: string = record.data.jqXHR().responseText,
@@ -35,8 +44,8 @@ module MODULE.MODEL.APP {
       speedcheck && speed.time.push(speed.now() - speed.fire);
       speedcheck && speed.name.push('fetch(' + speed.time.slice(-1) + ')');
       
-      ++this.app_.count;
-      this.app_.loadtime = this.app_.loadtime && new Date().getTime() - this.app_.loadtime;
+      ++this.page_.count;
+      this.page_.loadtime = this.page_.loadtime && new Date().getTime() - this.page_.loadtime;
       
       if (setting.cache.mix && EVENT.POPSTATE !== event.type.toLowerCase() && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
         return this.model_.fallback(event);
@@ -45,12 +54,12 @@ module MODULE.MODEL.APP {
       /* variable initialization */
       
       try {
-        app.page.landing = null;
+        this.page_.landing = null;
 
         if (!~($xhr.getResponseHeader('Content-Type') || '').toLowerCase().search(setting.contentType)) { throw new Error("throw: content-type mismatch"); }
         
         /* variable define */
-        this.srcDocument_ = this.app_.page.parser.parse($xhr.responseText, setting.destLocation.href);
+        this.srcDocument_ = this.page_.parser.parse($xhr.responseText, setting.destLocation.href);
         this.dstDocument_ = document;
           
         // 更新範囲を選出
@@ -184,8 +193,8 @@ module MODULE.MODEL.APP {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
 
-     if (setting.load.script && !this.app_.page.loadedScripts['']) {
-        var loadedScripts = this.app_.page.loadedScripts;
+     if (setting.load.script && !this.page_.loadedScripts['']) {
+        var loadedScripts = this.page_.loadedScripts;
         loadedScripts[''] = true;
         jQuery('script').each(function () {
           var element: HTMLScriptElement = this;
@@ -202,8 +211,8 @@ module MODULE.MODEL.APP {
 
       this.title_();
 
-      setting.fix.history && this.app_.data.saveTitle();
-      this.app_.data.saveExpires(this.record_.data.url(), this.record_.data.host(), this.record_.data.expires());
+      setting.fix.history && this.data_.saveTitle();
+      this.data_.saveExpires(this.record_.data.url(), this.record_.data.host(), this.record_.data.expires());
 
       this.head_();
 
@@ -282,10 +291,10 @@ module MODULE.MODEL.APP {
 
         this.scroll_(false);
 
-        if (100 > this.app_.loadtime && setting.reset.type.match(event.type.toLowerCase()) && !jQuery('form[method][method!="GET"]').length) {
+        if (100 > this.page_.loadtime && setting.reset.type.match(event.type.toLowerCase()) && !jQuery('form[method][method!="GET"]').length) {
           switch (false) {
-            case this.app_.count < setting.reset.count || !setting.reset.count:
-            case new Date().getTime() < setting.reset.time + this.app_.time || !setting.reset.time:
+            case this.page_.count < setting.reset.count || !setting.reset.count:
+            case new Date().getTime() < setting.reset.time + this.page_.time || !setting.reset.time:
               throw new Error('throw: reset');
           }
         }
@@ -315,7 +324,7 @@ module MODULE.MODEL.APP {
 
       if (cache && cache.data) {
         var html: string = setting.fix.noscript ? this.restoreNoscript_(cache.data) : cache.data,
-            cacheDocument: Document = this.app_.page.parser.parse(html, setting.destLocation.href),
+            cacheDocument: Document = this.page_.parser.parse(html, setting.destLocation.href),
             srcDocument: Document = this.srcDocument_;
 
         srcDocument.title = cacheDocument.title;
@@ -466,23 +475,23 @@ module MODULE.MODEL.APP {
           event: JQueryEventObject = this.event_;
       var callbacks_update = setting.callbacks.update;
 
-      if (!setting.balance.active || this.app_.loadtime < 100) { return; }
+      if (!setting.balance.active || this.page_.loadtime < 100) { return; }
 
       var $xhr = this.record_.data.jqXHR();
-      var host = this.app_.balance.sanitize($xhr, setting) || this.record_.data.host() || '',
-          time = this.app_.loadtime,
-          score = this.app_.balance.score(time, $xhr.responseText.length);
+      var host = this.balancer_.sanitize($xhr, setting) || this.record_.data.host() || '',
+          time = this.page_.loadtime,
+          score = this.balancer_.score(time, $xhr.responseText.length);
 
-      if (this.util_.fire(callbacks_update.balance.before, setting, [event, setting, host, this.app_.loadtime, $xhr.responseText.length]) === false) { return; }
+      if (this.util_.fire(callbacks_update.balance.before, setting, [event, setting, host, this.page_.loadtime, $xhr.responseText.length]) === false) { return; }
 
-      var server = this.app_.data.getServerBuffer(setting.destLocation.href),
-          score = this.app_.balance.score(time, $xhr.responseText.length);
+      var server = this.data_.getServerBuffer(setting.destLocation.href),
+          score = this.balancer_.score(time, $xhr.responseText.length);
       time = server && !server.state && server.time ? Math.round((server.time + time) / 2) : time;
       score = server && !server.state && server.score ? Math.round((server.score + score) / 2) : score;
-      this.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
-      this.app_.balance.changeServer(this.app_.balance.chooseServer(setting), setting);
+      this.data_.saveServer(host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
+      this.balancer_.changeServer(this.balancer_.chooseServer(setting), setting);
 
-      if (this.util_.fire(callbacks_update.balance.after, setting, [event, setting, host, this.app_.loadtime, $xhr.responseText.length]) === false) { return; }
+      if (this.util_.fire(callbacks_update.balance.after, setting, [event, setting, host, this.page_.loadtime, $xhr.responseText.length]) === false) { return; }
     }
 
     private css_(selector: string): void {
@@ -569,7 +578,7 @@ module MODULE.MODEL.APP {
       var prefilter: string = 'script',
           $srcElements: JQuery = jQuery(prefilter, srcDocument).filter(selector).not(jQuery('noscript', srcDocument).find(prefilter)),
           $dstElements: JQuery = jQuery(prefilter, dstDocument).filter(selector).not(jQuery('noscript', dstDocument).find(prefilter)),
-          loadedScripts = this.app_.page.loadedScripts,
+          loadedScripts = this.page_.loadedScripts,
           regType: RegExp = /^$|(?:application|text)\/(?:java|ecma)script/i,
           regRemove: RegExp = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
       
@@ -727,10 +736,10 @@ module MODULE.MODEL.APP {
           window.scrollTo(scrollX, scrollY);
           break;
         case EVENT.POPSTATE:
-          call && setting.fix.scroll && this.app_.data.loadScrollPosition();
+          call && setting.fix.scroll && this.data_.loadScrollPosition();
           break;
       }
-      call && this.app_.data.saveScrollPosition();
+      call && this.data_.saveScrollPosition();
 
       if (this.util_.fire(callbacks_update.scroll.after, setting, [event, setting]) === false) { return; }
     }
@@ -777,7 +786,7 @@ module MODULE.MODEL.APP {
       if ($hashTargetElement.length) {
         isFinite($hashTargetElement.offset().top) &&
         window.scrollTo(jQuery(window).scrollLeft(), parseInt(Number($hashTargetElement.offset().top) + '', 10));
-        this.app_.data.saveScrollPosition();
+        this.data_.saveScrollPosition();
         return true;
       } else {
         return false;

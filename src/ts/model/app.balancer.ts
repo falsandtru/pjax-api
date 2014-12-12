@@ -6,22 +6,26 @@
 
 module MODULE.MODEL.APP {
 
-  export class Balance implements BalanceInterface {
+  export class Balancer implements BalancerInterface {
 
-    constructor(private model_: ModelInterface, private app_: AppLayerInterface) { }
+    constructor(private data_: DataInterface) { }
     
     private util_ = LIBRARY.Utility
 
-    private host_: string = ''
-    host(): string
-    host(host: string, setting: SettingInterface): string
-    host(host?: string, setting?: SettingInterface): string {
-      if (setting) {
-        this.host_ = this.sanitize(host, setting);
-      }
-      return this.host_;
-    }
     private force_: boolean = false
+
+    private _host: string = ''
+    private host_(): string
+    private host_(host: string, setting: SettingInterface): string
+    private host_(host?: string, setting?: SettingInterface): string {
+      if (setting) {
+        this._host = this.sanitize(host, setting);
+      }
+      return this._host;
+    }
+    host(): string {
+      return this.host_();
+    }
 
     sanitize(host: string, setting: SettingInterface): string
     sanitize($xhr: JQueryXHR, setting: SettingInterface): string
@@ -45,21 +49,21 @@ module MODULE.MODEL.APP {
         return void this.disable(setting);
       }
       if (setting.balance.client.support.browser.test(window.navigator.userAgent)) {
-        this.app_.data.setCookie(setting.balance.client.cookie.balance, '1');
+        this.data_.setCookie(setting.balance.client.cookie.balance, '1');
       } else{
         return void this.disable(setting);
       }
       if (setting.balance.client.support.redirect.test(window.navigator.userAgent)) {
-        this.app_.data.setCookie(setting.balance.client.cookie.redirect, '1');
+        this.data_.setCookie(setting.balance.client.cookie.redirect, '1');
       }
     }
 
     disable(setting: SettingInterface): void {
-      if (this.app_.data.getCookie(setting.balance.client.cookie.balance)) {
-        this.app_.data.setCookie(setting.balance.client.cookie.balance, '0');
+      if (this.data_.getCookie(setting.balance.client.cookie.balance)) {
+        this.data_.setCookie(setting.balance.client.cookie.balance, '0');
       }
-      if (this.app_.data.getCookie(setting.balance.client.cookie.redirect)) {
-        this.app_.data.setCookie(setting.balance.client.cookie.redirect, '0');
+      if (this.data_.getCookie(setting.balance.client.cookie.redirect)) {
+        this.data_.setCookie(setting.balance.client.cookie.redirect, '0');
       }
       this.changeServer('', setting);
     }
@@ -70,10 +74,10 @@ module MODULE.MODEL.APP {
 
     changeServer(host: string, setting: SettingInterface): string {
       if (!setting.balance.active) {
-        this.host('', setting);
+        this.host_('', setting);
       } else {
-        this.host(host, setting);
-        this.app_.data.setCookie(setting.balance.client.cookie.host, host);
+        this.host_(host, setting);
+        this.data_.setCookie(setting.balance.client.cookie.host, host);
       }
       return this.host();
     }
@@ -86,16 +90,16 @@ module MODULE.MODEL.APP {
 
       hosts = this.force_ ? jQuery.grep(hosts, (host) => !!host) : hosts;
       (() => {
-        var host: string = this.app_.data.getCookie(setting.balance.client.cookie.host); 
+        var host: string = this.data_.getCookie(setting.balance.client.cookie.host); 
         if (this.force_ && !host) { return; }
         if (host === this.sanitize(host, setting)) {
           !~jQuery.inArray(host, hosts) && hosts.unshift(host);
         } else {
-          this.app_.data.setCookie(setting.balance.client.cookie.host, '');
+          this.data_.setCookie(setting.balance.client.cookie.host, '');
         }
       })();
 
-      var servers = this.app_.data.getServerBuffers(),
+      var servers = this.data_.getServerBuffers(),
           scoreTable: { [score: string]: ServerStoreSchema } = {};
       jQuery.each(Object.keys(servers), (i, index) => {
         var server: ServerStoreSchema = servers[index];
@@ -105,7 +109,7 @@ module MODULE.MODEL.APP {
         if (server.host === this.sanitize(server.host, setting) && server.expires > new Date().getTime()) {
           scoreTable[server.score] = server;
         } else {
-          this.app_.data.removeServer(server.host);
+          this.data_.removeServer(server.host);
         }
       });
 
@@ -128,7 +132,7 @@ module MODULE.MODEL.APP {
         if (state + respite >= new Date().getTime()) {
           return;
         } else if (state) {
-          this.app_.data.removeServer(server.host);
+          this.data_.removeServer(server.host);
         }
 
         switch (true) {
@@ -155,10 +159,10 @@ module MODULE.MODEL.APP {
       var hosts: string[];
 
       // キャッシュの有効期限内の再リクエストは同じサーバーを選択してキャッシュを使用
-      var history: HistoryStoreSchema = this.app_.data.getHistoryBuffer(setting.destLocation.href);
+      var history: HistoryStoreSchema = this.data_.getHistoryBuffer(setting.destLocation.href);
       switch (false) {
         case history && history.host === this.sanitize(history.host, setting):
-          this.app_.data.saveExpires(history.url, '', 0);
+          this.data_.saveExpires(history.url, '', 0);
         case !!history:
         case !!history.expires && history.expires >= new Date().getTime():
         case !!history.host || !this.force_:
@@ -175,11 +179,10 @@ module MODULE.MODEL.APP {
     }
 
     private parallel_ = 4
-    bypass(): JQueryDeferred<any> {
+    bypass(setting: SettingInterface): JQueryDeferred<any> {
       this.force_ = true;
 
-      var setting: SettingInterface = this.app_.configure(window.location),
-          deferred = jQuery.Deferred();
+      var deferred = jQuery.Deferred();
       if (!setting.balance.active) { return deferred.reject(); }
 
       var parallel = this.parallel_,
@@ -223,17 +226,17 @@ module MODULE.MODEL.APP {
           },
           success: function (data, textStatus, $xhr) {
             time = new Date().getTime() - time;
-            var server = that.app_.data.getServerBuffer(this.url),
+            var server = that.data_.getServerBuffer(this.url),
                 score = that.score(time, $xhr.responseText.length);
             time = server && !server.state && server.time ? Math.round((server.time + time) / 2) : time;
             score = server && !server.state && server.score ? Math.round((server.score + score) / 2) : score;
-            that.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
+            that.data_.saveServer(host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
 
             host = that.sanitize($xhr, setting) || host;
             that.util_.fire(setting.balance.option.ajax.success, this, arguments);
           },
           error: function ($xhr) {
-            that.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, 0, 0, new Date().getTime());
+            that.data_.saveServer(host, new Date().getTime() + setting.balance.server.expires, 0, 0, new Date().getTime());
 
             host = null;
             that.util_.fire(setting.balance.option.ajax.error, this, arguments);
@@ -245,7 +248,7 @@ module MODULE.MODEL.APP {
             deferred.notify(index, length, host);
 
             if (host) {
-              that.host(host, setting);
+              that.host_(host, setting);
               hosts.splice(0, hosts.length);
               deferred.resolve(host);
             } else if (!that.host() && hosts.length) {
