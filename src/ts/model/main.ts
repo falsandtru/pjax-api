@@ -201,7 +201,7 @@ module MODULE.MODEL {
       while (id = this.queue_.shift()) { clearTimeout(id); }
       id = setTimeout(() => {
         while (id = this.queue_.shift()) { clearTimeout(id); }
-        this.util_.compareUrl(window.location.href, this.location.href) && this.app_.data.saveScrollPosition();
+        this.util_.compareUrl(this.convertUrlToKeyUrl(window.location.href), this.convertUrlToKeyUrl(this.location.href), true) && this.app_.data.saveScrollPosition();
       }, 300);
       this.queue_.push(id);
     }

@@ -247,7 +247,7 @@ module MODULE.MODEL.APP {
             switch (event.type.toLowerCase()) {
               case EVENT.CLICK:
               case EVENT.SUBMIT:
-                this.scrollByHash_(setting.destLocation.hash) || this.scroll_(true);
+                this.scrollByHash_(setting) || this.scroll_(true);
                 break;
               case EVENT.POPSTATE:
                 this.scroll_(true);
@@ -756,11 +756,11 @@ module MODULE.MODEL.APP {
       return jQuery.when && callback;
     }
 
-    private scrollByHash_(hash: string): boolean {
-      hash = '#' === hash.charAt(0) ? hash.slice(1) : hash;
+    private scrollByHash_(setting: SettingInterface): boolean {
+      var hash = setting.destLocation.hash.replace(/^#/, '');
       if (!hash) { return false; }
 
-      var $hashTargetElement = jQuery('#' + (hash ? hash : ', [name~=' + hash + ']')).first();
+      var $hashTargetElement = jQuery('#' + hash + ', [name~=' + hash + ']').first();
       if ($hashTargetElement.length) {
         isFinite($hashTargetElement.offset().top) &&
         window.scrollTo(jQuery(window).scrollLeft(), parseInt(Number($hashTargetElement.offset().top) + '', 10));
