@@ -42,12 +42,12 @@ module.exports = function(grunt) {
             ' * ',
             ' */',
             '',
-            'new (function(window, document, undefined, $) {',
+            '!new function(window, document, undefined, $) {',
             '"use strict";',
             ''
           ].join('\n'),
           footer: [
-            '})(window, window.document, void 0, jQuery);',
+            '}(window, window.document, void 0, jQuery);',
             ''
           ].join('\n'),
           separator: ''
