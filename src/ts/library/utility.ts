@@ -171,14 +171,11 @@ module MODULE.LIBRARY {
       return ret;
     }
 
-    static compareUrl(first: string, second: string, canonicalize?: boolean): boolean {
-      if (canonicalize) {
-        first = this.canonicalizeUrl(first);
-        second = this.canonicalizeUrl(second);
-      }
-
+    static compareUrl(a: string, b: string): boolean {
       // URLのパーセントエンコーディングの大文字小文字がAndroidのアドレスバーとリンクで異なるためそろえる
-      return first === this.justifyPercentEncodingUrlCase_(first, second);
+      a = this.canonicalizeUrl(a);
+      b = this.canonicalizeUrl(b);
+      return a === b;
     }
 
     private static justifyPercentEncodingUrlCase_(base: string, target: string): string {

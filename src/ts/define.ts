@@ -81,7 +81,9 @@ module MODULE {
     location: HTMLAnchorElement
     state(): State
     host(): string
-    convertUrlToKeyUrl(unsafe_url: string): string
+    convertUrlToKey(unsafe_url: string, canonicalize?: boolean): string
+    compareKeyByUrl(a: string, b: string): boolean
+    comparePageByUrl(a: string, b: string): boolean
     configure(event: Event): SettingInterface
     configure(destination: string): SettingInterface
     configure(destination: HTMLAnchorElement): SettingInterface

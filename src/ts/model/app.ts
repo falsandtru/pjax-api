@@ -92,7 +92,8 @@ module MODULE.MODEL.APP {
       var origLocation: HTMLAnchorElement = <HTMLAnchorElement>this.model_.location.cloneNode(),
           destLocation: HTMLAnchorElement = <HTMLAnchorElement>this.model_.location.cloneNode();
 
-      destLocation.href = url;
+      origLocation.href = this.util_.canonicalizeUrl(origLocation.href);
+      destLocation.href = this.util_.canonicalizeUrl(url);
 
       var scope: PjaxSetting = this.scope_(this.option_, origLocation.href, destLocation.href) || null;
 
@@ -229,7 +230,7 @@ module MODULE.MODEL.APP {
                 array: nsArray,
                 name: nsArray.join('.'),
                 data: nsArray[0],
-                url: this.model_.convertUrlToKeyUrl(setting.destLocation.href),
+                url: this.model_.convertUrlToKey(setting.destLocation.href, true),
                 event: {
                   pjax: {
                     fetch: [EVENT.PJAX, 'fetch'].join(':'),
@@ -290,8 +291,8 @@ module MODULE.MODEL.APP {
           scpTag: string,
           scope: PjaxSetting;
 
-      origKeyUrl = this.model_.convertUrlToKeyUrl(origURL).match(/.+?\w(\/.*)/).pop();
-      destKeyUrl = this.model_.convertUrlToKeyUrl(destURL).match(/.+?\w(\/.*)/).pop();
+      origKeyUrl = this.model_.convertUrlToKey(origURL, true).match(/.+?\w(\/.*)/).pop();
+      destKeyUrl = this.model_.convertUrlToKey(destURL, true).match(/.+?\w(\/.*)/).pop();
       rewriteKeyUrl = rewriteKeyUrl.replace(/[#?].*/, '');
 
       scpKeys = (rewriteKeyUrl || destKeyUrl).split('/');

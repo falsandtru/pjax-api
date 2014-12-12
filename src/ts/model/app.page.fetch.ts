@@ -55,7 +55,7 @@ module MODULE.MODEL.APP {
       }
 
       var $xhr = this.model_.getXHR();
-      if ($xhr && $xhr.readyState < 4 && $xhr.location && this.util_.compareUrl($xhr.location.href, setting.destLocation.href)) {
+      if ($xhr && $xhr.readyState < 4 && $xhr.location && this.model_.comparePageByUrl($xhr.location.href, setting.destLocation.href)) {
         return;
       }
 

@@ -68,7 +68,7 @@ module MODULE.MODEL.APP {
         
         this.url_();
         
-        if (!this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) { throw new Error("throw: location mismatch"); }
+        if (!this.model_.comparePageByUrl(setting.destLocation.href, window.location.href)) { throw new Error("throw: location mismatch"); }
 
         this.document_();
         
@@ -108,7 +108,7 @@ module MODULE.MODEL.APP {
       var callbacks_update = setting.callbacks.update;
 
       var url: string = (jQuery('head meta[http-equiv="Refresh"][content*="URL="]').attr('content') || '').match(/\w+:\/\/[^;\s"']+|$/i).shift();
-      if (!url || this.util_.compareUrl(setting.destLocation.href, url, true)) { return; }
+      if (!url || this.model_.comparePageByUrl(setting.destLocation.href, url)) { return; }
 
       var redirect = <HTMLAnchorElement>setting.destLocation.cloneNode();
       redirect.href = url;
@@ -140,7 +140,7 @@ module MODULE.MODEL.APP {
               break;
             case EVENT.POPSTATE:
               window.history.replaceState(window.history.state, this.srcDocument_.title, redirect.href);
-              if (this.isRegister_(setting, event) && setting.fix.location && !this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) {
+              if (this.isRegister_(setting, event) && setting.fix.location && !this.util_.compareUrl(setting.destLocation.href, window.location.href)) {
                 jQuery[DEF.NAME].disable();
                 window.history.back();
                 window.history.forward();
@@ -169,7 +169,7 @@ module MODULE.MODEL.APP {
                                  ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstDocument_.title : this.srcDocument_.title,
                                  setting.destLocation.href);
 
-        if (setting.fix.location && !this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) {
+        if (setting.fix.location && !this.util_.compareUrl(setting.destLocation.href, window.location.href)) {
           jQuery[DEF.NAME].disable();
           window.history.back();
           window.history.forward();
@@ -225,7 +225,7 @@ module MODULE.MODEL.APP {
         e.stopImmediatePropagation();
 
         var onready = (callback?: () => void) => {
-          if (!this.util_.compareUrl(this.model_.convertUrlToKeyUrl(setting.destLocation.href), this.model_.convertUrlToKeyUrl(window.location.href), true)) {
+          if (!this.model_.comparePageByUrl(setting.destLocation.href, window.location.href)) {
             return;
           }
 
@@ -237,7 +237,7 @@ module MODULE.MODEL.APP {
         };
 
         var onrender = (callback?: () => void) => {
-          if (!this.util_.compareUrl(this.model_.convertUrlToKeyUrl(setting.destLocation.href), this.model_.convertUrlToKeyUrl(window.location.href), true)) {
+          if (!this.model_.comparePageByUrl(setting.destLocation.href, window.location.href)) {
             return;
           }
 
@@ -262,7 +262,7 @@ module MODULE.MODEL.APP {
         };
 
         var onload = () => {
-          if (!this.util_.compareUrl(this.model_.convertUrlToKeyUrl(setting.destLocation.href), this.model_.convertUrlToKeyUrl(window.location.href), true)) {
+          if (!this.model_.comparePageByUrl(setting.destLocation.href, window.location.href)) {
             return jQuery.when && jQuery.Deferred().reject();
           }
 
@@ -578,7 +578,7 @@ module MODULE.MODEL.APP {
       $srcElements = $srcElements.not(setting.load.ignore);
 
       var exec = (element: HTMLScriptElement, response?: any) => {
-        if (!this.util_.compareUrl(this.model_.convertUrlToKeyUrl(setting.destLocation.href), this.model_.convertUrlToKeyUrl(window.location.href), true)) {
+        if (!this.model_.comparePageByUrl(setting.destLocation.href, window.location.href)) {
           return false;
         }
 
@@ -752,7 +752,7 @@ module MODULE.MODEL.APP {
 
       var check = () => {
         switch (true) {
-          case !this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href)):
+          case !this.model_.comparePageByUrl(setting.destLocation.href, window.location.href):
             break;
           case new Date().getTime() > limit:
           case checker.length !== areas.length:

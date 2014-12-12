@@ -64,8 +64,21 @@ module MODULE.MODEL {
       return $context;
     }
 
-    convertUrlToKeyUrl(unsafe_url: string): string {
-      return unsafe_url.replace(/#.*/, '')
+    convertUrlToKey(unsafe_url: string, canonicalize?: boolean): string {
+      unsafe_url = canonicalize ? this.util_.canonicalizeUrl(unsafe_url) : unsafe_url;
+      return this.util_.trim(unsafe_url).split('#').shift();
+    }
+
+    compareKeyByUrl(a: string, b: string): boolean {
+      a = this.convertUrlToKey(a, true);
+      b = this.convertUrlToKey(b, true);
+      return a === b;
+    }
+
+    comparePageByUrl(a: string, b: string): boolean {
+      a = this.convertUrlToKey(a, true);
+      b = this.convertUrlToKey(b, true);
+      return a === b;
     }
 
     configure(event: Event): SettingInterface
@@ -169,8 +182,8 @@ module MODULE.MODEL {
 
     popstate(event: JQueryEventObject): void {
       switch (true) {
-        case this.app_.page.landing && this.util_.compareUrl(this.app_.page.landing, window.location.href, true):
-        case this.util_.compareUrl(this.location.href, window.location.href, true):
+        case this.app_.page.landing && this.util_.compareUrl(this.app_.page.landing, window.location.href):
+        case this.util_.compareUrl(this.location.href, window.location.href):
           return;
       }
       
@@ -185,7 +198,7 @@ module MODULE.MODEL {
 
         case this.isAvailable(event):
           // pjax処理されないURL変更によるページ更新
-          if (!this.util_.compareUrl(this.convertUrlToKeyUrl(setting.origLocation.href), this.convertUrlToKeyUrl(window.location.href), true)) {
+          if (!this.comparePageByUrl(setting.origLocation.href, window.location.href)) {
             this.fallback(event);
           }
           return;
@@ -201,7 +214,7 @@ module MODULE.MODEL {
       while (id = this.queue_.shift()) { clearTimeout(id); }
       id = setTimeout(() => {
         while (id = this.queue_.shift()) { clearTimeout(id); }
-        this.util_.compareUrl(this.convertUrlToKeyUrl(window.location.href), this.convertUrlToKeyUrl(this.location.href), true) && this.app_.data.saveScrollPosition();
+        this.compareKeyByUrl(window.location.href, this.location.href) && this.app_.data.saveScrollPosition();
       }, 300);
       this.queue_.push(id);
     }
@@ -247,7 +260,7 @@ module MODULE.MODEL {
     }
 
     getCache(unsafe_url: string): CacheInterface {
-      var setting: SettingInterface = this.configure(this.convertUrlToKeyUrl(unsafe_url));
+      var setting: SettingInterface = this.configure(this.convertUrlToKey(unsafe_url));
       if (!setting) { return; }
       var record: PageRecordInterface = this.app_.page.provider.getRecord(setting);
       return record.state(setting) || record.data.data() ? {
@@ -260,7 +273,7 @@ module MODULE.MODEL {
     }
     
     setCache(unsafe_url: string, data: string, textStatus: string, jqXHR: JQueryXHR): void {
-      var setting: SettingInterface = this.configure(this.convertUrlToKeyUrl(unsafe_url));
+      var setting: SettingInterface = this.configure(this.convertUrlToKey(unsafe_url));
       if (!setting) { return; }
       var record: PageRecordInterface = this.app_.page.provider.getRecord(setting);
       this.app_.page.provider.setRecord(setting,
@@ -271,7 +284,7 @@ module MODULE.MODEL {
     }
 
     removeCache(unsafe_url: string): void {
-      var setting: SettingInterface = this.configure(this.convertUrlToKeyUrl(unsafe_url));
+      var setting: SettingInterface = this.configure(this.convertUrlToKey(unsafe_url));
       if (!setting) { return; }
       this.app_.page.provider.removeRecord(setting);
     }
