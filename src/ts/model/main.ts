@@ -111,81 +111,88 @@ module MODULE.MODEL {
     }
     setXHR($xhr: JQueryXHR): JQueryXHR {
       this.app_.balance.sanitize($xhr, this.app_.configure(window.location));
-      this.app_.page.xhr && this.app_.page.xhr.readyState < 4 && this.app_.page.xhr.abort();
+      this.app_.page.xhr && this.app_.page.xhr.readyState < 4 && this.app_.page.xhr !== $xhr && this.app_.page.xhr.abort();
       return this.app_.page.xhr = $xhr;
     }
     
     click(event: JQueryEventObject): void {
-      PROCESS: {
-        event.timeStamp = new Date().getTime();
-        var context = <HTMLAnchorElement>event.currentTarget,
-            $context: JQuery = jQuery(context);
-        var setting: SettingInterface = this.app_.configure(context);
-        
-        switch (false) {
-          case !event.isDefaultPrevented():
-          case this.state() === State.open:
-          case this.isAvailable(event):
-            break PROCESS;
-        }
-        
-        this.app_.page.transfer(setting, event);
-        event.preventDefault();
-        return;
-      };
-      // clickメソッド用
-      !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length &&
-      this.fallback(event);
+      event.timeStamp = new Date().getTime();
+      var context = <HTMLAnchorElement>event.currentTarget,
+          $context: JQuery = jQuery(context);
+      var setting: SettingInterface = this.app_.configure(context);
+      
+      switch (false) {
+        case !!setting:
+        case !event.isDefaultPrevented():
+        case this.state() === State.open:
+          this.location.href = this.util_.normalizeUrl(window.location.href);
+          return;
+
+        case this.isAvailable(event):
+          this.location.href = this.util_.normalizeUrl(window.location.href);
+          // clickメソッド用
+          if (!event.originalEvent && !jQuery(document).has(context).length) {
+            this.fallback(event);
+          }
+          return;
+
+        default:
+          this.app_.page.transfer(setting, event);
+          event.preventDefault();
+      }
     }
 
     submit(event: JQueryEventObject): void {
-      PROCESS: {
-        event.timeStamp = new Date().getTime();
-        var context = <HTMLFormElement>event.currentTarget,
-            $context: JQuery = jQuery(context);
-        var setting: SettingInterface = this.app_.configure(context);
-        
-        switch (false) {
-          case !event.isDefaultPrevented():
-          case this.state() === State.open:
-          case this.isAvailable(event):
-            break PROCESS;
-        }
-        
-        this.app_.page.transfer(setting, event);
-        event.preventDefault();
-        return;
-      };
-      // submitメソッド用
-      !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length &&
-      this.fallback(event);
+      event.timeStamp = new Date().getTime();
+      var context = <HTMLFormElement>event.currentTarget,
+          $context: JQuery = jQuery(context);
+      var setting: SettingInterface = this.app_.configure(context);
+      
+      switch (false) {
+        case !!setting:
+        case !event.isDefaultPrevented():
+        case this.state() === State.open:
+          return;
+
+        case this.isAvailable(event):
+          // submitメソッド用
+          if (!event.originalEvent && !jQuery(document).has(context).length) {
+            this.fallback(event);
+          }
+          return;
+
+        default:
+          this.app_.page.transfer(setting, event);
+          event.preventDefault();
+      }
     }
 
     popstate(event: JQueryEventObject): void {
-      PROCESS: {
-        switch (true) {
-          case this.app_.page.landing && this.util_.compareUrl(this.app_.page.landing, window.location.href, true):
-          case this.util_.compareUrl(this.location.href, window.location.href, true):
-            return;
-        }
-        
-        event.timeStamp = new Date().getTime();
-        var setting: SettingInterface = this.app_.configure(window.location);
-        
-        switch (false) {
-          //case !event.isDefaultPrevented():
-          case this.state() === State.open:
-          case this.isAvailable(event):
-            break PROCESS;
-        }
-        
-        this.app_.page.transfer(setting, event);
-        return;
-      };
-      // pjax処理されないURL変更によるページ更新
-      State.open === this.state() &&
-      !this.util_.compareUrl(this.convertUrlToKeyUrl(setting.origLocation.href), this.convertUrlToKeyUrl(window.location.href), true) &&
-      this.fallback(event);
+      switch (true) {
+        case this.app_.page.landing && this.util_.compareUrl(this.app_.page.landing, window.location.href, true):
+        case this.util_.compareUrl(this.location.href, window.location.href, true):
+          return;
+      }
+      
+      event.timeStamp = new Date().getTime();
+      var setting: SettingInterface = this.app_.configure(window.location);
+      
+      switch (false) {
+        case !!setting:
+        //case !event.isDefaultPrevented():
+        case this.state() === State.open:
+          return;
+
+        case this.isAvailable(event):
+          // pjax処理されないURL変更によるページ更新
+          if (!this.util_.compareUrl(this.convertUrlToKeyUrl(setting.origLocation.href), this.convertUrlToKeyUrl(window.location.href), true)) {
+            this.fallback(event);
+          }
+          return;
+
+        default:
+          this.app_.page.transfer(setting, event);
+      }
     }
     
     private queue_: number[] = []

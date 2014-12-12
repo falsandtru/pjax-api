@@ -29,7 +29,7 @@ suite("Event", function () {
         var defer = self.$.Deferred();
         $(document).one('pjax:fetch', function () { setTimeout(defer.resolve, 0); });
 
-        $('#primary ul a:eq(0)').click();
+        $('#primary ul a:eq(1)').click();
 
         return defer;
       })
@@ -37,7 +37,7 @@ suite("Event", function () {
         var defer = self.$.Deferred();
         $(document).one('pjax:fetch', function () { setTimeout(defer.resolve, 0); });
 
-        $('#primary ul a:eq(0)').click();
+        $('#primary ul a:eq(2)').click();
 
         return defer;
       })
@@ -74,7 +74,7 @@ suite("Event", function () {
         var defer = self.$.Deferred();
         $(window).one('pjax:unload', function () { setTimeout(defer.resolve, 0); });
 
-        $('#primary ul a:eq(0)').click();
+        $('#primary ul a:eq(1)').click();
 
         return defer;
       })
@@ -82,7 +82,7 @@ suite("Event", function () {
         var defer = self.$.Deferred();
         $(window).one('pjax:unload', function () { setTimeout(defer.resolve, 0); });
 
-        $('#primary ul a:eq(0)').click();
+        $('#primary ul a:eq(2)').click();
 
         return defer;
       })
@@ -119,7 +119,7 @@ suite("Event", function () {
         var defer = self.$.Deferred();
         $(document).one('pjax:DOMContentLoaded', function () { setTimeout(defer.resolve, 0); });
 
-        $('#primary ul a:eq(0)').click();
+        $('#primary ul a:eq(1)').click();
 
         return defer;
       })
@@ -127,7 +127,7 @@ suite("Event", function () {
         var defer = self.$.Deferred();
         $(document).one('pjax:DOMContentLoaded', function () { setTimeout(defer.resolve, 0); });
 
-        $('#primary ul a:eq(0)').click();
+        $('#primary ul a:eq(2)').click();
 
         return defer;
       })
@@ -164,7 +164,7 @@ suite("Event", function () {
         var defer = self.$.Deferred();
         $(document).one('pjax:ready', function () { setTimeout(defer.resolve, 0); });
 
-        $('#primary ul a:eq(0)').click();
+        $('#primary ul a:eq(1)').click();
 
         return defer;
       })
@@ -172,7 +172,7 @@ suite("Event", function () {
         var defer = self.$.Deferred();
         $(document).one('pjax:ready', function () { setTimeout(defer.resolve, 0); });
 
-        $('#primary ul a:eq(0)').click();
+        $('#primary ul a:eq(2)').click();
 
         return defer;
       })
@@ -209,7 +209,7 @@ suite("Event", function () {
         var defer = self.$.Deferred();
         $(document).one('pjax:render', function () { setTimeout(defer.resolve, 0); });
 
-        $('#primary ul a:eq(0)').click();
+        $('#primary ul a:eq(1)').click();
 
         return defer;
       })
@@ -217,7 +217,7 @@ suite("Event", function () {
         var defer = self.$.Deferred();
         $(document).one('pjax:render', function () { setTimeout(defer.resolve, 0); });
 
-        $('#primary ul a:eq(0)').click();
+        $('#primary ul a:eq(2)').click();
 
         return defer;
       })
@@ -254,7 +254,7 @@ suite("Event", function () {
         var defer = self.$.Deferred();
         $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
 
-        $('#primary ul a:eq(0)').click();
+        $('#primary ul a:eq(1)').click();
 
         return defer;
       })
@@ -262,7 +262,7 @@ suite("Event", function () {
         var defer = self.$.Deferred();
         $(window).one('pjax:load', function () { setTimeout(defer.resolve, 0); });
 
-        $('#primary ul a:eq(0)').click();
+        $('#primary ul a:eq(2)').click();
 
         return defer;
       })

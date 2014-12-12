@@ -54,14 +54,20 @@ module MODULE.MODEL.APP {
           break;
       }
 
+      var $xhr = this.model_.getXHR();
+      if ($xhr && $xhr.readyState < 4 && $xhr.location && this.util_.compareUrl($xhr.location.href, setting.destLocation.href)) {
+        return;
+      }
+
       this.dispatchEvent(document, setting.nss.event.pjax.fetch, false, false);
 
-      var $xhr = this.model_.getXHR();
       if (cache && cache.jqXHR && 200 === +cache.jqXHR.status) {
         // cache
         speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
+        $xhr = cache.jqXHR;
+        $xhr.location = $xhr.location || <HTMLAnchorElement>setting.destLocation.cloneNode();
+        this.model_.setXHR($xhr);
         this.app_.loadtime = 0;
-        this.model_.setXHR(null);
         this.host_ = this.app_.balance.sanitize(cache.host, setting);
         this.data_ = cache.jqXHR.responseText;
         this.textStatus_ = cache.textStatus;
@@ -83,6 +89,8 @@ module MODULE.MODEL.APP {
         speedcheck && speed.name.splice(0, 1, 'preload(' + speed.time.slice(-1) + ')');
         speedcheck && speed.time.push(speed.now() - speed.fire);
         speedcheck && speed.name.push('continue(' + speed.time.slice(-1) + ')');
+        $xhr.location = <HTMLAnchorElement>setting.destLocation.cloneNode();
+        this.model_.setXHR($xhr);
         this.app_.balance.sanitize($xhr, setting);
         this.app_.balance.changeServer($xhr.host, setting);
         this.host_ = this.model_.host();
@@ -172,7 +180,10 @@ module MODULE.MODEL.APP {
           complete: this.model_.isDeferrable ? null : complete
         });
 
-        this.model_.setXHR(jQuery.ajax(ajax));
+        $xhr = jQuery.ajax(ajax);
+        $xhr.location = <HTMLAnchorElement>setting.destLocation.cloneNode();
+        this.model_.setXHR($xhr);
+        this.app_.balance.sanitize($xhr, setting);
 
         if (!this.model_.isDeferrable) { return; }
 

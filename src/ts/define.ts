@@ -17,8 +17,9 @@ interface Window {
 }
 
 interface JQueryXHR {
-  follow?: boolean
+  location?: HTMLAnchorElement
   host?: string
+  follow?: boolean
   timeStamp?: number
 }
 
