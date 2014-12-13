@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.32.1
+ * @version 2.33.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -11,7 +11,7 @@
  * 
  */
 
-new (function(window, document, undefined, $) {
+!new function(window, document, undefined, $) {
 "use strict";
 /// <reference path=".d/jquery.d.ts"/>
 /// <reference path=".d/jquery.pjax.d.ts"/>
@@ -416,7 +416,7 @@ var MODULE;
                 }
                 MODULE.Model.singleton().setXHR($xhr);
                 jQuery.when($xhr).done(function () {
-                    !MODULE.Model.singleton().getCache(anchor.href) && MODULE.Model.singleton().isAvailable(event) && MODULE.Model.singleton().setCache(anchor.href, undefined, undefined, $xhr);
+                    !MODULE.Model.singleton().getCache(anchor.href) && MODULE.Model.singleton().isOperatable(event) && MODULE.Model.singleton().setCache(anchor.href, undefined, undefined, $xhr);
                 });
                 jQuery[MODULE.DEF.NAME].click(anchor.href);
                 return true;
@@ -1911,13 +1911,11 @@ var MODULE;
                 }
                 return ret;
             };
-            Utility.compareUrl = function (first, second, canonicalize) {
-                if (canonicalize) {
-                    first = this.canonicalizeUrl(first);
-                    second = this.canonicalizeUrl(second);
-                }
+            Utility.compareUrl = function (a, b) {
                 // URLのパーセントエンコーディングの大文字小文字がAndroidのアドレスバーとリンクで異なるためそろえる
-                return first === this.justifyPercentEncodingUrlCase_(first, second);
+                a = this.canonicalizeUrl(a);
+                b = this.canonicalizeUrl(b);
+                return a === b;
             };
             Utility.justifyPercentEncodingUrlCase_ = function (base, target) {
                 return base === target ? target : target.replace(/(?:%\w{2})+/g, replace);
@@ -1942,9 +1940,8 @@ var MODULE;
         var APP;
         (function (APP) {
             var Data = (function () {
-                function Data(model_, app_) {
+                function Data(model_) {
                     this.model_ = model_;
-                    this.app_ = app_;
                     this.data_ = new APP.DATA.Main();
                     this.stores_ = this.data_.DB.stores;
                     this.util_ = MODULE.LIBRARY.Utility;
@@ -1980,11 +1977,11 @@ var MODULE;
                 };
                 // history
                 Data.prototype.getHistoryBuffer = function (unsafe_url) {
-                    return this.stores_.history.getBuffer(this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(unsafe_url)));
+                    return this.stores_.history.getBuffer(this.model_.convertUrlToKey(unsafe_url, true));
                 };
                 Data.prototype.loadTitle = function () {
                     var _this = this;
-                    var keyUrl = this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(window.location.href));
+                    var keyUrl = this.model_.convertUrlToKey(window.location.href, true);
                     var data = this.stores_.history.getBuffer(keyUrl);
                     if (data && 'string' === typeof data.title) {
                         document.title = data.title;
@@ -1993,7 +1990,7 @@ var MODULE;
                         this.stores_.history.get(keyUrl, function (event) {
                             data = event.target.result;
                             if (data && data.title) {
-                                if (_this.util_.compareUrl(keyUrl, _this.model_.convertUrlToKeyUrl(_this.util_.normalizeUrl(window.location.href)))) {
+                                if (_this.model_.compareKeyByUrl(keyUrl, _this.util_.canonicalizeUrl(window.location.href))) {
                                     document.title = data.title;
                                 }
                             }
@@ -2003,7 +2000,7 @@ var MODULE;
                 Data.prototype.saveTitle = function (unsafe_url, title) {
                     if (unsafe_url === void 0) { unsafe_url = window.location.href; }
                     if (title === void 0) { title = document.title; }
-                    var keyUrl = this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(unsafe_url));
+                    var keyUrl = this.model_.convertUrlToKey(unsafe_url, true);
                     var value = {
                         url: keyUrl,
                         title: title,
@@ -2018,7 +2015,7 @@ var MODULE;
                 };
                 Data.prototype.loadScrollPosition = function () {
                     var _this = this;
-                    var keyUrl = this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(window.location.href));
+                    var keyUrl = this.model_.convertUrlToKey(window.location.href, true);
                     var data = this.stores_.history.getBuffer(keyUrl);
                     function scroll(scrollX, scrollY) {
                         if ('number' !== typeof scrollX || 'number' !== typeof scrollY) {
@@ -2033,7 +2030,7 @@ var MODULE;
                         this.stores_.history.get(keyUrl, function (event) {
                             data = event.target.result;
                             if (data && 'number' === typeof data.scrollX) {
-                                if (_this.util_.compareUrl(keyUrl, _this.model_.convertUrlToKeyUrl(_this.util_.normalizeUrl(window.location.href)))) {
+                                if (_this.model_.compareKeyByUrl(keyUrl, _this.util_.canonicalizeUrl(window.location.href))) {
                                     scroll(data.scrollX, data.scrollY);
                                 }
                             }
@@ -2044,7 +2041,7 @@ var MODULE;
                     if (unsafe_url === void 0) { unsafe_url = window.location.href; }
                     if (scrollX === void 0) { scrollX = jQuery(window).scrollLeft(); }
                     if (scrollY === void 0) { scrollY = jQuery(window).scrollTop(); }
-                    var keyUrl = this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(unsafe_url));
+                    var keyUrl = this.model_.convertUrlToKey(unsafe_url, true);
                     var value = {
                         url: keyUrl,
                         scrollX: scrollX,
@@ -2059,7 +2056,7 @@ var MODULE;
                 Data.prototype.loadExpires = function () {
                 };
                 Data.prototype.saveExpires = function (unsafe_url, host, expires) {
-                    var keyUrl = this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(unsafe_url));
+                    var keyUrl = this.model_.convertUrlToKey(unsafe_url, true);
                     var value = {
                         url: keyUrl,
                         host: host || '',
@@ -2076,15 +2073,15 @@ var MODULE;
                     return this.stores_.server.getBuffers();
                 };
                 Data.prototype.getServerBuffer = function (unsafe_url) {
-                    var host = this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(unsafe_url)).split('//').pop().split('/').shift();
-                    host = this.util_.compareUrl('http://' + host, 'http://' + window.location.host, true) ? '' : host;
+                    var host = this.model_.convertUrlToKey(unsafe_url, true).split('//').pop().split('/').shift();
+                    host = this.model_.compareKeyByUrl('http://' + host, 'http://' + window.location.host) ? '' : host;
                     return this.stores_.server.getBuffer(host);
                 };
                 Data.prototype.loadServer = function () {
                 };
                 Data.prototype.saveServer = function (host, expires, time, score, state) {
                     host = host.split('//').pop().split('/').shift();
-                    host = this.util_.compareUrl('http://' + host, 'http://' + window.location.host, true) ? '' : host;
+                    host = this.model_.compareKeyByUrl('http://' + host, 'http://' + window.location.host) ? '' : host;
                     var value = {
                         host: host,
                         time: Math.max(time, 1),
@@ -2115,22 +2112,24 @@ var MODULE;
     (function (MODEL) {
         var APP;
         (function (APP) {
-            var Balance = (function () {
-                function Balance(model_, app_) {
-                    this.model_ = model_;
-                    this.app_ = app_;
+            var Balancer = (function () {
+                function Balancer(data_) {
+                    this.data_ = data_;
                     this.util_ = MODULE.LIBRARY.Utility;
-                    this.host_ = '';
                     this.force_ = false;
+                    this._host = '';
                     this.parallel_ = 4;
                 }
-                Balance.prototype.host = function (host, setting) {
+                Balancer.prototype.host_ = function (host, setting) {
                     if (setting) {
-                        this.host_ = this.sanitize(host, setting);
+                        this._host = this.sanitize(host, setting);
                     }
-                    return this.host_;
+                    return this._host;
                 };
-                Balance.prototype.sanitize = function (param, setting) {
+                Balancer.prototype.host = function () {
+                    return this.host_();
+                };
+                Balancer.prototype.sanitize = function (param, setting) {
                     var host;
                     switch (param && typeof param) {
                         case 'string':
@@ -2138,59 +2137,54 @@ var MODULE;
                             break;
                         case 'object':
                             var $xhr = param;
-                            try {
-                                host = $xhr.getResponseHeader(setting.balance.server.header) || $xhr.host;
-                            }
-                            catch (e) {
-                                host = $xhr.host;
-                            }
+                            host = $xhr.readyState === 4 && $xhr.getResponseHeader(setting.balance.server.header) || $xhr.host;
                             break;
                     }
                     host = host || '';
                     return !/[/?#"`^|\\<>{}\[\]\s]/.test(host) && setting.balance.bounds.test(host) && host;
                 };
-                Balance.prototype.enable = function (setting) {
+                Balancer.prototype.enable = function (setting) {
                     if (!setting.balance.active) {
                         return void this.disable(setting);
                     }
                     if (setting.balance.client.support.browser.test(window.navigator.userAgent)) {
-                        this.app_.data.setCookie(setting.balance.client.cookie.balance, '1');
+                        this.data_.setCookie(setting.balance.client.cookie.balance, '1');
                     }
                     else {
                         return void this.disable(setting);
                     }
                     if (setting.balance.client.support.redirect.test(window.navigator.userAgent)) {
-                        this.app_.data.setCookie(setting.balance.client.cookie.redirect, '1');
+                        this.data_.setCookie(setting.balance.client.cookie.redirect, '1');
                     }
                 };
-                Balance.prototype.disable = function (setting) {
-                    if (this.app_.data.getCookie(setting.balance.client.cookie.balance)) {
-                        this.app_.data.setCookie(setting.balance.client.cookie.balance, '0');
+                Balancer.prototype.disable = function (setting) {
+                    if (this.data_.getCookie(setting.balance.client.cookie.balance)) {
+                        this.data_.setCookie(setting.balance.client.cookie.balance, '0');
                     }
-                    if (this.app_.data.getCookie(setting.balance.client.cookie.redirect)) {
-                        this.app_.data.setCookie(setting.balance.client.cookie.redirect, '0');
+                    if (this.data_.getCookie(setting.balance.client.cookie.redirect)) {
+                        this.data_.setCookie(setting.balance.client.cookie.redirect, '0');
                     }
                     this.changeServer('', setting);
                 };
-                Balance.prototype.score = function (time, size) {
+                Balancer.prototype.score = function (time, size) {
                     return Math.max(Math.round(size / time * 1000), 0);
                 };
-                Balance.prototype.changeServer = function (host, setting) {
+                Balancer.prototype.changeServer = function (host, setting) {
                     if (!setting.balance.active) {
-                        this.host('', setting);
+                        this.host_('', setting);
                     }
                     else {
-                        this.host(host, setting);
-                        this.app_.data.setCookie(setting.balance.client.cookie.host, host);
+                        this.host_(host, setting);
+                        this.data_.setCookie(setting.balance.client.cookie.host, host);
                     }
                     return this.host();
                 };
-                Balance.prototype.chooseServers_ = function (setting) {
+                Balancer.prototype.chooseServers_ = function (setting) {
                     var _this = this;
                     var respite = setting.balance.server.respite, weight = setting.balance.weight, timeout = setting.ajax.timeout, hosts = setting.balance.client.hosts.slice();
                     hosts = this.force_ ? jQuery.grep(hosts, function (host) { return !!host; }) : hosts;
                     (function () {
-                        var host = _this.app_.data.getCookie(setting.balance.client.cookie.host);
+                        var host = _this.data_.getCookie(setting.balance.client.cookie.host);
                         if (_this.force_ && !host) {
                             return;
                         }
@@ -2198,10 +2192,10 @@ var MODULE;
                             !~jQuery.inArray(host, hosts) && hosts.unshift(host);
                         }
                         else {
-                            _this.app_.data.setCookie(setting.balance.client.cookie.host, '');
+                            _this.data_.setCookie(setting.balance.client.cookie.host, '');
                         }
                     })();
-                    var servers = this.app_.data.getServerBuffers(), scoreTable = {};
+                    var servers = this.data_.getServerBuffers(), scoreTable = {};
                     jQuery.each(Object.keys(servers), function (i, index) {
                         var server = servers[index];
                         ~jQuery.inArray(server.host, hosts) && hosts.splice(jQuery.inArray(server.host, hosts), 1);
@@ -2212,7 +2206,7 @@ var MODULE;
                             scoreTable[server.score] = server;
                         }
                         else {
-                            _this.app_.data.removeServer(server.host);
+                            _this.data_.removeServer(server.host);
                         }
                     });
                     var scores = Object.keys(scoreTable).sort(sortScoreDes);
@@ -2227,9 +2221,11 @@ var MODULE;
                             return;
                         }
                         else if (state) {
-                            _this.app_.data.removeServer(server.host);
+                            _this.data_.removeServer(server.host);
                         }
                         switch (true) {
+                            case result.length >= setting.balance.random:
+                                return false;
                             case weight && !host && !!Math.floor(Math.random() * weight):
                             case timeout && time >= timeout:
                             case result.length >= Math.min(Math.floor(scores.length / 2), 3) && primary && time >= primary.time + 500 && timeout && time >= timeout * 2 / 3:
@@ -2244,32 +2240,32 @@ var MODULE;
                     }
                     return result;
                 };
-                Balance.prototype.chooseServer = function (setting) {
+                Balancer.prototype.chooseServer = function (setting) {
                     if (!setting.balance.active) {
                         return '';
                     }
                     var hosts;
                     // キャッシュの有効期限内の再リクエストは同じサーバーを選択してキャッシュを使用
-                    var history = this.app_.data.getHistoryBuffer(setting.destLocation.href);
+                    var history = this.data_.getHistoryBuffer(setting.destLocation.href);
                     switch (false) {
                         case history && history.host === this.sanitize(history.host, setting):
-                            this.app_.data.saveExpires(history.url, '', 0);
+                            this.data_.saveExpires(history.url, '', 0);
                         case !!history:
                         case !!history.expires && history.expires >= new Date().getTime():
                         case !!history.host || !this.force_:
                             break;
                         default:
-                            hosts = [history.host || ''];
+                            return history.host || '';
                     }
                     // 応答性能の高いサーバーをリストアップ
-                    hosts = hosts || this.chooseServers_(setting);
+                    hosts = this.chooseServers_(setting);
                     // 上位6サーバーまでからランダムに選択
                     return hosts.slice(Math.floor(Math.random() * Math.min(hosts.length, 6))).shift() || '';
                 };
-                Balance.prototype.bypass = function () {
+                Balancer.prototype.bypass = function (setting) {
                     var _this = this;
                     this.force_ = true;
-                    var setting = this.app_.configure(window.location), deferred = jQuery.Deferred();
+                    var deferred = jQuery.Deferred();
                     if (!setting.balance.active) {
                         return deferred.reject();
                     }
@@ -2304,15 +2300,15 @@ var MODULE;
                             },
                             success: function (data, textStatus, $xhr) {
                                 time = new Date().getTime() - time;
-                                var server = that.app_.data.getServerBuffer(this.url), score = that.score(time, $xhr.responseText.length);
+                                var server = that.data_.getServerBuffer(this.url), score = that.score(time, $xhr.responseText.length);
                                 time = server && !server.state && server.time ? Math.round((server.time + time) / 2) : time;
                                 score = server && !server.state && server.score ? Math.round((server.score + score) / 2) : score;
-                                that.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
+                                that.data_.saveServer(host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
                                 host = that.sanitize($xhr, setting) || host;
                                 that.util_.fire(setting.balance.option.ajax.success, this, arguments);
                             },
                             error: function ($xhr) {
-                                that.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, 0, 0, new Date().getTime());
+                                that.data_.saveServer(host, new Date().getTime() + setting.balance.server.expires, 0, 0, new Date().getTime());
                                 host = null;
                                 that.util_.fire(setting.balance.option.ajax.error, this, arguments);
                             },
@@ -2321,7 +2317,7 @@ var MODULE;
                                 ++index;
                                 deferred.notify(index, length, host);
                                 if (host) {
-                                    that.host(host, setting);
+                                    that.host_(host, setting);
                                     hosts.splice(0, hosts.length);
                                     deferred.resolve(host);
                                 }
@@ -2339,9 +2335,9 @@ var MODULE;
                     }
                     return deferred;
                 };
-                return Balance;
+                return Balancer;
             })();
-            APP.Balance = Balance;
+            APP.Balancer = Balancer;
         })(APP = MODEL.APP || (MODEL.APP = {}));
     })(MODEL = MODULE.MODEL || (MODULE.MODEL = {}));
 })(MODULE || (MODULE = {}));
@@ -2476,6 +2472,7 @@ var MODULE;
     })(MODEL = MODULE.MODEL || (MODULE.MODEL = {}));
 })(MODULE || (MODULE = {}));
 /// <reference path="../define.ts"/>
+/// <reference path="app.balancer.ts"/>
 /// <reference path="app.page.utility.ts"/>
 /// <reference path="../library/utility.ts"/>
 /* MODEL */
@@ -2486,13 +2483,14 @@ var MODULE;
         var APP;
         (function (APP) {
             var PageFetch = (function () {
-                function PageFetch(model_, app_, setting_, event_, success, failure) {
+                function PageFetch(model_, page_, balancer_, setting_, event_, success_, failure_) {
                     this.model_ = model_;
-                    this.app_ = app_;
+                    this.page_ = page_;
+                    this.balancer_ = balancer_;
                     this.setting_ = setting_;
                     this.event_ = event_;
-                    this.success = success;
-                    this.failure = failure;
+                    this.success_ = success_;
+                    this.failure_ = failure_;
                     this.util_ = MODULE.LIBRARY.Utility;
                     this.main_();
                 }
@@ -2514,20 +2512,25 @@ var MODULE;
                             cache = this.model_.getCache(setting.destLocation.href);
                             break;
                     }
-                    this.dispatchEvent(document, setting.nss.event.pjax.fetch, false, false);
                     var $xhr = this.model_.getXHR();
+                    if ($xhr && $xhr.readyState < 4 && $xhr.location && this.model_.comparePageByUrl($xhr.location.href, setting.destLocation.href)) {
+                        return;
+                    }
+                    this.dispatchEvent(document, setting.nss.event.pjax.fetch, false, false);
                     if (cache && cache.jqXHR && 200 === +cache.jqXHR.status) {
                         // cache
                         speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
-                        this.app_.loadtime = 0;
-                        this.model_.setXHR(null);
-                        this.host_ = this.app_.balance.sanitize(cache.host, setting);
+                        $xhr = cache.jqXHR;
+                        $xhr.location = $xhr.location || setting.destLocation.cloneNode();
+                        this.model_.setXHR($xhr);
+                        this.page_.loadtime = 0;
+                        this.host_ = this.balancer_.sanitize(cache.host, setting);
                         this.data_ = cache.jqXHR.responseText;
                         this.textStatus_ = cache.textStatus;
                         this.jqXHR_ = cache.jqXHR;
                         if (this.model_.isDeferrable) {
                             var defer = this.wait_(wait);
-                            this.app_.page.setWait(defer);
+                            this.page_.setWait(defer);
                             jQuery.when(jQuery.Deferred().resolve(this.data_, this.textStatus_, this.jqXHR_), defer).done(done).fail(fail).always(always);
                         }
                         else {
@@ -2543,20 +2546,22 @@ var MODULE;
                         speedcheck && speed.name.splice(0, 1, 'preload(' + speed.time.slice(-1) + ')');
                         speedcheck && speed.time.push(speed.now() - speed.fire);
                         speedcheck && speed.name.push('continue(' + speed.time.slice(-1) + ')');
-                        this.app_.balance.sanitize($xhr, setting);
-                        this.app_.balance.changeServer($xhr.host, setting);
+                        $xhr.location = setting.destLocation.cloneNode();
+                        this.model_.setXHR($xhr);
+                        this.balancer_.sanitize($xhr, setting);
+                        this.balancer_.changeServer($xhr.host, setting);
                         this.host_ = this.model_.host();
-                        this.app_.loadtime = $xhr.timeStamp;
+                        this.page_.loadtime = $xhr.timeStamp;
                         var defer = this.wait_(wait);
-                        this.app_.page.setWait(defer);
+                        this.page_.setWait(defer);
                         delete $xhr.timeStamp;
                         jQuery.when($xhr, defer).done(done).fail(fail).always(always);
                     }
                     else {
                         // default
-                        this.app_.loadtime = event.timeStamp;
+                        this.page_.loadtime = event.timeStamp;
                         var requestLocation = setting.destLocation.cloneNode(), ajax = {}, callbacks = {};
-                        this.app_.balance.changeServer(this.app_.balance.chooseServer(setting), setting);
+                        this.balancer_.changeServer(this.balancer_.chooseServer(setting), setting);
                         this.host_ = setting.balance.active && this.model_.host().split('//').pop() || '';
                         requestLocation.host = this.host_ || setting.destLocation.host;
                         ajax.url = !setting.server.query ? requestLocation.href : [
@@ -2623,12 +2628,15 @@ var MODULE;
                             error: this.model_.isDeferrable ? null : error,
                             complete: this.model_.isDeferrable ? null : complete
                         });
-                        this.model_.setXHR(jQuery.ajax(ajax));
+                        $xhr = jQuery.ajax(ajax);
+                        $xhr.location = setting.destLocation.cloneNode();
+                        this.model_.setXHR($xhr);
+                        this.balancer_.sanitize($xhr, setting);
                         if (!this.model_.isDeferrable) {
                             return;
                         }
                         var defer = this.wait_(wait);
-                        this.app_.page.setWait(defer);
+                        this.page_.setWait(defer);
                         jQuery.when(this.model_.getXHR(), defer).done(done).fail(fail).always(always);
                     }
                     function success(data, textStatus, $xhr) {
@@ -2666,10 +2674,10 @@ var MODULE;
                         that.model_.setXHR(null);
                         if (200 === +that.jqXHR_.status) {
                             that.model_.setCache(setting.destLocation.href, cache && cache.data || null, that.textStatus_, that.jqXHR_);
-                            that.success(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_);
+                            that.success_(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_);
                         }
                         else {
-                            that.failure(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_);
+                            that.failure_(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_);
                         }
                     }
                 };
@@ -2705,10 +2713,11 @@ var MODULE;
         var APP;
         (function (APP) {
             var PageProvider = (function () {
-                function PageProvider(Record_, model_, app_) {
+                function PageProvider(Record_, model_, balancer_, page_) {
                     this.Record_ = Record_;
                     this.model_ = model_;
-                    this.app_ = app_;
+                    this.balancer_ = balancer_;
+                    this.page_ = page_;
                     this.hash_ = function (setting) { return setting.nss.url; };
                     this.table_ = {};
                     this.order_ = [];
@@ -2724,13 +2733,17 @@ var MODULE;
                 };
                 PageProvider.prototype.pullRecord = function (setting, event, success, failure) {
                     var _this = this;
-                    new APP.PageFetch(this.model_, this.app_, setting, event, (function (callback) { return function (setting, event, data, textStatus, jqXHR, host) {
+                    new APP.PageFetch(this.model_, this.page_, this.balancer_, setting, event, 
+                    // success
+                    function (setting, event, data, textStatus, jqXHR, host) {
                         var record = _this.setRecord(setting, _this.getRecord(setting).data.data() || '', textStatus, jqXHR, host);
-                        callback(record, setting, event);
-                    }; })(success), (function (callback) { return function (setting, event, data, textStatus, jqXHR, host) {
+                        success(record, setting, event);
+                    }, 
+                    // failure
+                    function (setting, event, data, textStatus, jqXHR, host) {
                         var record = _this.setRecord(setting, _this.getRecord(setting).data.data() || '', textStatus, jqXHR, host);
-                        callback(record, setting, event);
-                    }; })(failure));
+                        failure(record, setting, event);
+                    });
                 };
                 PageProvider.prototype.getRecord = function (setting) {
                     return this.table_[this.hash_(setting)] = this.table_[this.hash_(setting)] || new this.Record_();
@@ -2745,13 +2758,15 @@ var MODULE;
                     return this.table_[this.hash_(setting)] = new this.Record_();
                 };
                 PageProvider.prototype.clearRecord = function () {
-                    this.order_ = [];
-                    this.table_ = {};
+                    this.order_.splice(0, this.order_.length);
+                    for (var i in this.table_) {
+                        delete this.table_[i];
+                    }
                 };
                 PageProvider.prototype.cleanRecords_ = function (setting) {
                     if (setting.cache.limit) {
                         while (this.order_.length >= setting.cache.limit) {
-                            this.removeRecord(this.app_.configure(this.order_.pop()));
+                            this.removeRecord(this.order_.pop());
                         }
                     }
                     //for (var i = 0, hash: string, record: PageRecordInterface; hash = this.order_[i];) {
@@ -2761,11 +2776,11 @@ var MODULE;
                 };
                 PageProvider.prototype.addOrder_ = function (setting) {
                     this.removeOrder_(setting);
-                    this.order_.unshift(this.hash_(setting));
+                    this.order_.unshift(setting);
                 };
                 PageProvider.prototype.removeOrder_ = function (setting) {
-                    for (var i = 0, hash1 = this.hash_(setting), hash2; hash2 = this.order_[i]; i++) {
-                        hash1 === hash2 && this.order_.splice(i, 1);
+                    for (var i = this.order_.length; i--;) {
+                        this.order_[i].nss.url === setting.nss.url && this.order_.splice(i, 1);
                     }
                 };
                 return PageProvider;
@@ -2775,8 +2790,9 @@ var MODULE;
     })(MODEL = MODULE.MODEL || (MODULE.MODEL = {}));
 })(MODULE || (MODULE = {}));
 /// <reference path="../define.ts"/>
-/// <reference path="app.page.utility.ts"/>
 /// <reference path="app.data.ts"/>
+/// <reference path="app.balancer.ts"/>
+/// <reference path="app.page.utility.ts"/>
 /// <reference path="../library/utility.ts"/>
 /* MODEL */
 var MODULE;
@@ -2786,9 +2802,11 @@ var MODULE;
         var APP;
         (function (APP) {
             var PageUpdate = (function () {
-                function PageUpdate(model_, app_, setting_, event_, record_) {
+                function PageUpdate(model_, page_, data_, balancer_, setting_, event_, record_) {
                     this.model_ = model_;
-                    this.app_ = app_;
+                    this.page_ = page_;
+                    this.data_ = data_;
+                    this.balancer_ = balancer_;
                     this.setting_ = setting_;
                     this.event_ = event_;
                     this.record_ = record_;
@@ -2797,52 +2815,47 @@ var MODULE;
                     this.main_();
                 }
                 PageUpdate.prototype.main_ = function () {
-                    var app = this.app_, record = this.record_, setting = this.setting_, event = this.event_, data = record.data.jqXHR().responseText, textStatus = record.data.textStatus(), $xhr = record.data.jqXHR();
-                    var callbacks_update = setting.callbacks.update;
+                    var record = this.record_, setting = this.setting_, event = this.event_;
                     var speedcheck = setting.speedcheck, speed = this.model_.speed;
                     speedcheck && speed.time.push(speed.now() - speed.fire);
                     speedcheck && speed.name.push('fetch(' + speed.time.slice(-1) + ')');
-                    UPDATE: {
-                        ++this.app_.count;
-                        this.app_.loadtime = this.app_.loadtime && new Date().getTime() - this.app_.loadtime;
-                        if (setting.cache.mix && MODULE.EVENT.POPSTATE !== event.type.toLowerCase() && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
-                            return this.model_.fallback(event);
-                        }
-                        try {
-                            app.page.landing = null;
-                            if (!~($xhr.getResponseHeader('Content-Type') || '').toLowerCase().search(setting.contentType)) {
-                                throw new Error("throw: content-type mismatch");
-                            }
-                            /* variable define */
-                            this.srcDocument_ = this.app_.page.parser.parse($xhr.responseText, setting.destLocation.href);
-                            this.dstDocument_ = document;
-                            // 更新範囲を選出
-                            this.area_ = this.chooseArea(setting.area, this.srcDocument_, this.dstDocument_);
-                            if (!this.area_) {
-                                throw new Error('throw: area notfound');
-                            }
-                            // 更新範囲をセレクタごとに分割
-                            this.areas_ = this.area_.match(/(?:[^,]+?|\(.*?\)|\[.*?\])+/g);
-                            speedcheck && speed.time.push(speed.now() - speed.fire);
-                            speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
-                            this.redirect_();
-                            this.dispatchEvent(window, setting.nss.event.pjax.unload, false, false);
-                            this.url_();
-                            if (!this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) {
-                                throw new Error("throw: location mismatch");
-                            }
-                            this.document_();
-                        }
-                        catch (err) {
-                            if (!err) {
-                                return;
-                            }
-                            this.model_.getCache(window.location.href) && this.model_.removeCache(setting.destLocation.href);
-                            this.model_.fallback(event);
-                        }
-                        ;
+                    ++this.page_.count;
+                    this.page_.loadtime = this.page_.loadtime && new Date().getTime() - this.page_.loadtime;
+                    if (setting.cache.mix && MODULE.EVENT.POPSTATE !== event.type.toLowerCase() && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
+                        return this.model_.fallback(event);
                     }
-                    ;
+                    try {
+                        this.page_.landing = null;
+                        if (!~(record.data.jqXHR().getResponseHeader('Content-Type') || '').toLowerCase().search(setting.contentType)) {
+                            throw new Error("throw: content-type mismatch");
+                        }
+                        /* variable define */
+                        this.srcDocument_ = this.page_.parser.parse(record.data.jqXHR().responseText, setting.destLocation.href);
+                        this.dstDocument_ = document;
+                        // 更新範囲を選出
+                        this.area_ = this.chooseArea(setting.area, this.srcDocument_, this.dstDocument_);
+                        if (!this.area_) {
+                            throw new Error('throw: area notfound');
+                        }
+                        // 更新範囲をセレクタごとに分割
+                        this.areas_ = this.area_.match(/(?:[^,]+?|\(.*?\)|\[.*?\])+/g);
+                        speedcheck && speed.time.push(speed.now() - speed.fire);
+                        speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
+                        this.redirect_();
+                        this.dispatchEvent(window, setting.nss.event.pjax.unload, false, false);
+                        this.url_();
+                        if (!this.model_.comparePageByUrl(setting.destLocation.href, window.location.href)) {
+                            throw new Error("throw: location mismatch");
+                        }
+                        this.document_();
+                    }
+                    catch (err) {
+                        if (!err) {
+                            return;
+                        }
+                        this.model_.getCache(window.location.href) && this.model_.removeCache(setting.destLocation.href);
+                        this.model_.fallback(event);
+                    }
                 };
                 PageUpdate.prototype.isRegister_ = function (setting, event) {
                     switch (true) {
@@ -2865,14 +2878,13 @@ var MODULE;
                 PageUpdate.prototype.redirect_ = function () {
                     var _this = this;
                     var setting = this.setting_, event = this.event_;
-                    var callbacks_update = setting.callbacks.update;
                     var url = (jQuery('head meta[http-equiv="Refresh"][content*="URL="]').attr('content') || '').match(/\w+:\/\/[^;\s"']+|$/i).shift();
-                    if (!url || this.util_.compareUrl(setting.destLocation.href, url, true)) {
+                    if (!url || this.model_.comparePageByUrl(setting.destLocation.href, url)) {
                         return;
                     }
                     var redirect = setting.destLocation.cloneNode();
                     redirect.href = url;
-                    if (this.util_.fire(callbacks_update.redirect.before, setting, [event, setting, redirect.cloneNode(), setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) {
+                    if (this.util_.fire(setting.callbacks.update.redirect.before, setting, [event, setting, redirect.cloneNode(), setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) {
                         return;
                     }
                     ;
@@ -2900,7 +2912,7 @@ var MODULE;
                                     break;
                                 case MODULE.EVENT.POPSTATE:
                                     window.history.replaceState(window.history.state, this.srcDocument_.title, redirect.href);
-                                    if (this.isRegister_(setting, event) && setting.fix.location && !this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) {
+                                    if (this.isRegister_(setting, event) && setting.fix.location && !this.util_.compareUrl(setting.destLocation.href, window.location.href)) {
                                         jQuery[MODULE.DEF.NAME].disable();
                                         window.history.back();
                                         window.history.forward();
@@ -2911,40 +2923,49 @@ var MODULE;
                             }
                             throw false;
                     }
-                    if (this.util_.fire(callbacks_update.redirect.after, setting, [event, setting, redirect.cloneNode(), setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) {
+                    if (this.util_.fire(setting.callbacks.update.redirect.after, setting, [event, setting, redirect.cloneNode(), setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) {
                         return;
                     }
                 };
                 PageUpdate.prototype.url_ = function () {
                     var setting = this.setting_, event = this.event_;
-                    var callbacks_update = setting.callbacks.update;
                     this.model_.location.href = setting.destLocation.href;
-                    if (this.util_.fire(callbacks_update.url.before, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) {
+                    if (this.util_.fire(setting.callbacks.update.url.before, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) {
                         return;
                     }
                     ;
                     if (this.isRegister_(setting, event)) {
                         window.history.pushState(this.util_.fire(setting.state, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]), ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstDocument_.title : this.srcDocument_.title, setting.destLocation.href);
-                        if (setting.fix.location && !this.util_.compareUrl(setting.destLocation.href, this.util_.normalizeUrl(window.location.href))) {
+                        if (setting.fix.location && !this.util_.compareUrl(setting.destLocation.href, window.location.href)) {
                             jQuery[MODULE.DEF.NAME].disable();
                             window.history.back();
                             window.history.forward();
                             jQuery[MODULE.DEF.NAME].enable();
                         }
                     }
-                    if (this.util_.fire(callbacks_update.url.after, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) {
+                    if (this.util_.fire(setting.callbacks.update.url.after, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) {
                         return;
                     }
                 };
                 PageUpdate.prototype.document_ = function () {
                     var _this = this;
                     var setting = this.setting_, event = this.event_;
+                    if (setting.load.script && !this.page_.loadedScripts['']) {
+                        var loadedScripts = this.page_.loadedScripts;
+                        loadedScripts[''] = true;
+                        jQuery('script').each(function () {
+                            var element = this;
+                            if (element.src) {
+                                loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload);
+                            }
+                        });
+                    }
                     this.overwriteDocumentByCache_();
                     setting.fix.noscript && this.escapeNoscript_(this.srcDocument_);
                     this.rewrite_();
                     this.title_();
-                    setting.fix.history && this.app_.data.saveTitle();
-                    this.app_.data.saveExpires(this.record_.data.url(), this.record_.data.host(), this.record_.data.expires());
+                    setting.fix.history && this.data_.saveTitle();
+                    this.data_.saveExpires(this.record_.data.url(), this.record_.data.host(), this.record_.data.expires());
                     this.head_();
                     var speedcheck = setting.speedcheck, speed = this.model_.speed;
                     speedcheck && speed.time.push(speed.now() - speed.fire);
@@ -2958,7 +2979,7 @@ var MODULE;
                         e.preventDefault();
                         e.stopImmediatePropagation();
                         var onready = function (callback) {
-                            if (!_this.util_.compareUrl(_this.model_.convertUrlToKeyUrl(setting.destLocation.href), _this.model_.convertUrlToKeyUrl(window.location.href), true)) {
+                            if (!_this.model_.comparePageByUrl(setting.destLocation.href, window.location.href)) {
                                 return;
                             }
                             _this.dispatchEvent(document, setting.nss.event.pjax.ready, false, false);
@@ -2966,17 +2987,17 @@ var MODULE;
                             return jQuery.when ? _this.waitRender_(jQuery.Deferred().resolve) : _this.waitRender_(callback);
                         };
                         var onrender = function (callback) {
-                            if (!_this.util_.compareUrl(_this.model_.convertUrlToKeyUrl(setting.destLocation.href), _this.model_.convertUrlToKeyUrl(window.location.href), true)) {
+                            if (!_this.model_.comparePageByUrl(setting.destLocation.href, window.location.href)) {
                                 return;
                             }
                             setTimeout(function () {
                                 switch (event.type.toLowerCase()) {
                                     case MODULE.EVENT.CLICK:
                                     case MODULE.EVENT.SUBMIT:
-                                        _this.scrollByHash_(setting.destLocation.hash) || _this.scroll_(true);
+                                        _this.model_.overlay(setting) || _this.scrollByHash_(setting) || _this.scroll_(true);
                                         break;
                                     case MODULE.EVENT.POPSTATE:
-                                        _this.scroll_(true);
+                                        _this.model_.overlay(setting) || _this.scroll_(true);
                                         break;
                                 }
                             }, 100);
@@ -2986,7 +3007,7 @@ var MODULE;
                             return jQuery.when ? jQuery.when.apply(jQuery, _this.loadwaits_) : callback();
                         };
                         var onload = function () {
-                            if (!_this.util_.compareUrl(_this.model_.convertUrlToKeyUrl(setting.destLocation.href), _this.model_.convertUrlToKeyUrl(window.location.href), true)) {
+                            if (!_this.model_.comparePageByUrl(setting.destLocation.href, window.location.href)) {
                                 return jQuery.when && jQuery.Deferred().reject();
                             }
                             _this.dispatchEvent(window, setting.nss.event.pjax.load, false, false);
@@ -2999,10 +3020,10 @@ var MODULE;
                             return jQuery.when && jQuery.Deferred().resolve();
                         };
                         _this.scroll_(false);
-                        if (100 > _this.app_.loadtime && setting.reset.type.match(event.type.toLowerCase()) && !jQuery('form[method][method!="GET"]').length) {
+                        if (100 > _this.page_.loadtime && setting.reset.type.match(event.type.toLowerCase()) && !jQuery('form[method][method!="GET"]').length) {
                             switch (false) {
-                                case _this.app_.count < setting.reset.count || !setting.reset.count:
-                                case new Date().getTime() < setting.reset.time + _this.app_.time || !setting.reset.time:
+                                case _this.page_.count < setting.reset.count || !setting.reset.count:
+                                case new Date().getTime() < setting.reset.time + _this.page_.time || !setting.reset.time:
                                     throw new Error('throw: reset');
                             }
                         }
@@ -3023,7 +3044,7 @@ var MODULE;
                         return;
                     }
                     if (cache && cache.data) {
-                        var html = setting.fix.noscript ? this.restoreNoscript_(cache.data) : cache.data, cacheDocument = this.app_.page.parser.parse(html, setting.destLocation.href), srcDocument = this.srcDocument_;
+                        var html = setting.fix.noscript ? this.restoreNoscript_(cache.data) : cache.data, cacheDocument = this.page_.parser.parse(html, setting.destLocation.href), srcDocument = this.srcDocument_;
                         srcDocument.title = cacheDocument.title;
                         var $srcAreas, $dstAreas;
                         for (var i = 0; this.areas_[i]; i++) {
@@ -3040,36 +3061,33 @@ var MODULE;
                 };
                 PageUpdate.prototype.rewrite_ = function () {
                     var setting = this.setting_, event = this.event_;
-                    var callbacks_update = setting.callbacks.update;
                     if (!setting.rewrite) {
                         return;
                     }
-                    if (this.util_.fire(callbacks_update.rewrite.before, setting, [event, setting, this.srcDocument_, this.dstDocument_]) === false) {
+                    if (this.util_.fire(setting.callbacks.update.rewrite.before, setting, [event, setting, this.srcDocument_, this.dstDocument_]) === false) {
                         return;
                     }
                     this.util_.fire(setting.rewrite, setting, [this.srcDocument_, this.area_, this.record_.data.host()]);
-                    if (this.util_.fire(callbacks_update.rewrite.before, setting, [event, setting, this.srcDocument_, this.dstDocument_]) === false) {
+                    if (this.util_.fire(setting.callbacks.update.rewrite.before, setting, [event, setting, this.srcDocument_, this.dstDocument_]) === false) {
                         return;
                     }
                 };
                 PageUpdate.prototype.title_ = function () {
                     var setting = this.setting_, event = this.event_;
-                    var callbacks_update = setting.callbacks.update;
-                    if (this.util_.fire(callbacks_update.title.before, setting, [event, setting, this.srcDocument_.title, this.dstDocument_.title]) === false) {
+                    if (this.util_.fire(setting.callbacks.update.title.before, setting, [event, setting, this.srcDocument_.title, this.dstDocument_.title]) === false) {
                         return;
                     }
                     this.dstDocument_.title = this.srcDocument_.title;
-                    if (this.util_.fire(callbacks_update.title.after, setting, [event, setting, this.srcDocument_.title, this.dstDocument_.title]) === false) {
+                    if (this.util_.fire(setting.callbacks.update.title.after, setting, [event, setting, this.srcDocument_.title, this.dstDocument_.title]) === false) {
                         return;
                     }
                 };
                 PageUpdate.prototype.head_ = function () {
                     var setting = this.setting_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
-                    var callbacks_update = setting.callbacks.update;
                     if (!setting.load.head) {
                         return;
                     }
-                    if (this.util_.fire(callbacks_update.head.before, setting, [event, setting, this.srcDocument_.querySelector('head'), this.dstDocument_.querySelector('head')]) === false) {
+                    if (this.util_.fire(setting.callbacks.update.head.before, setting, [event, setting, this.srcDocument_.querySelector('head'), this.dstDocument_.querySelector('head')]) === false) {
                         return;
                     }
                     var prefilter = 'base, meta, link', $srcElements = jQuery(srcDocument.head).children(prefilter).filter(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script'), $dstElements = jQuery(dstDocument.head).children(prefilter).filter(setting.load.head).not(setting.load.ignore).not('link[rel~="stylesheet"], style, script'), $addElements = jQuery(), $delElements = $dstElements;
@@ -3090,16 +3108,15 @@ var MODULE;
                     }
                     jQuery('title', dstDocument).before($addElements.clone());
                     $delElements.remove();
-                    if (this.util_.fire(callbacks_update.head.after, setting, [event, setting, this.srcDocument_.querySelector('head'), this.dstDocument_.querySelector('head')]) === false) {
+                    if (this.util_.fire(setting.callbacks.update.head.after, setting, [event, setting, this.srcDocument_.querySelector('head'), this.dstDocument_.querySelector('head')]) === false) {
                         return;
                     }
                 };
                 PageUpdate.prototype.content_ = function () {
                     var _this = this;
                     var setting = this.setting_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
-                    var callbacks_update = setting.callbacks.update;
                     var checker;
-                    if (this.util_.fire(callbacks_update.content.before, setting, [event, setting, jQuery(this.area_, this.srcDocument_).get(), jQuery(this.area_, this.dstDocument_).get()]) === false) {
+                    if (this.util_.fire(setting.callbacks.update.content.before, setting, [event, setting, jQuery(this.area_, this.srcDocument_).get(), jQuery(this.area_, this.dstDocument_).get()]) === false) {
                         return;
                     }
                     function map() {
@@ -3110,7 +3127,22 @@ var MODULE;
                     jQuery(this.area_).children('.' + setting.nss.elem + '-check').remove();
                     checker = jQuery('<div/>', {
                         'class': setting.nss.elem + '-check',
-                        'style': 'background: none !important; display: block !important; visibility: hidden !important; position: absolute !important; top: 0 !important; left: 0 !important; z-index: -9999 !important; width: auto !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; font-size: 12px !important; text-indent: 0 !important;'
+                        'style': [
+                            'background: none !important',
+                            'display: block !important',
+                            'visibility: hidden !important',
+                            'position: absolute !important',
+                            'top: 0 !important',
+                            'left: 0 !important',
+                            'z-index: -9999 !important',
+                            'width: auto !important',
+                            'height: 0 !important',
+                            'margin: 0 !important',
+                            'padding: 0 !important',
+                            'border: none !important',
+                            'font-size: 12px !important',
+                            'text-indent: 0 !important'
+                        ].join(';')
                     }).text(MODULE.DEF.NAME);
                     var $srcAreas, $dstAreas;
                     for (var i = 0; this.areas_[i]; i++) {
@@ -3131,38 +3163,36 @@ var MODULE;
                         $dstAreas.find('script').each(function (i, elem) { return _this.restoreScript_(elem); });
                     }
                     this.dispatchEvent(document, setting.nss.event.pjax.DOMContentLoaded, false, false);
-                    if (this.util_.fire(callbacks_update.content.after, setting, [event, setting, jQuery(this.area_, this.srcDocument_).get(), jQuery(this.area_, this.dstDocument_).get()]) === false) {
+                    if (this.util_.fire(setting.callbacks.update.content.after, setting, [event, setting, jQuery(this.area_, this.srcDocument_).get(), jQuery(this.area_, this.dstDocument_).get()]) === false) {
                         return;
                     }
                 };
                 PageUpdate.prototype.balance_ = function () {
                     var setting = this.setting_, event = this.event_;
-                    var callbacks_update = setting.callbacks.update;
-                    if (!setting.balance.active || this.app_.loadtime < 100) {
+                    if (!setting.balance.active || this.page_.loadtime < 100) {
                         return;
                     }
                     var $xhr = this.record_.data.jqXHR();
-                    var host = this.app_.balance.sanitize($xhr, setting) || this.record_.data.host() || '', time = this.app_.loadtime, score = this.app_.balance.score(time, $xhr.responseText.length);
-                    if (this.util_.fire(callbacks_update.balance.before, setting, [event, setting, host, this.app_.loadtime, $xhr.responseText.length]) === false) {
+                    var host = this.balancer_.sanitize($xhr, setting) || this.record_.data.host() || '', time = this.page_.loadtime, score = this.balancer_.score(time, $xhr.responseText.length);
+                    if (this.util_.fire(setting.callbacks.update.balance.before, setting, [event, setting, host, this.page_.loadtime, $xhr.responseText.length]) === false) {
                         return;
                     }
-                    var server = this.app_.data.getServerBuffer(setting.destLocation.href), score = this.app_.balance.score(time, $xhr.responseText.length);
+                    var server = this.data_.getServerBuffer(setting.destLocation.href), score = this.balancer_.score(time, $xhr.responseText.length);
                     time = server && !server.state && server.time ? Math.round((server.time + time) / 2) : time;
                     score = server && !server.state && server.score ? Math.round((server.score + score) / 2) : score;
-                    this.app_.data.saveServer(host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
-                    this.app_.balance.changeServer(this.app_.balance.chooseServer(setting), setting);
-                    if (this.util_.fire(callbacks_update.balance.after, setting, [event, setting, host, this.app_.loadtime, $xhr.responseText.length]) === false) {
+                    this.data_.saveServer(host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
+                    this.balancer_.changeServer(this.balancer_.chooseServer(setting), setting);
+                    if (this.util_.fire(setting.callbacks.update.balance.after, setting, [event, setting, host, this.page_.loadtime, $xhr.responseText.length]) === false) {
                         return;
                     }
                 };
                 PageUpdate.prototype.css_ = function (selector) {
                     var setting = this.setting_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
-                    var callbacks_update = setting.callbacks.update;
                     if (!setting.load.css) {
                         return;
                     }
                     var prefilter = 'link, style', $srcElements = jQuery(prefilter, srcDocument).filter(selector).not(jQuery('noscript', srcDocument).find(prefilter)), $dstElements = jQuery(prefilter, dstDocument).filter(selector).not(jQuery('noscript', srcDocument).find(prefilter)), $addElements = jQuery(), $delElements = $dstElements;
-                    if (this.util_.fire(callbacks_update.css.before, setting, [event, setting, $srcElements.get(), $dstElements.get()]) === false) {
+                    if (this.util_.fire(setting.callbacks.update.css.before, setting, [event, setting, $srcElements.get(), $dstElements.get()]) === false) {
                         return;
                     }
                     $srcElements = $srcElements.not(setting.load.ignore);
@@ -3207,7 +3237,7 @@ var MODULE;
                     jQuery(dstDocument.body).append($addElements.filter(filterBodyContent).clone());
                     $delElements.remove();
                     $dstElements = jQuery(prefilter, dstDocument).filter(selector).not(jQuery('noscript', srcDocument).find(prefilter));
-                    if (this.util_.fire(callbacks_update.css.after, setting, [event, setting, $srcElements.get(), $dstElements.get()]) === false) {
+                    if (this.util_.fire(setting.callbacks.update.css.after, setting, [event, setting, $srcElements.get(), $dstElements.get()]) === false) {
                         return;
                     }
                     var speedcheck = setting.speedcheck, speed = this.model_.speed;
@@ -3217,18 +3247,17 @@ var MODULE;
                 PageUpdate.prototype.script_ = function (selector) {
                     var _this = this;
                     var setting = this.setting_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
-                    var callbacks_update = setting.callbacks.update;
                     var scriptwaits = [], scripts = [];
                     if (!setting.load.script) {
                         return scriptwaits;
                     }
-                    var prefilter = 'script', $srcElements = jQuery(prefilter, srcDocument).filter(selector).not(jQuery('noscript', srcDocument).find(prefilter)), $dstElements = jQuery(prefilter, dstDocument).filter(selector).not(jQuery('noscript', dstDocument).find(prefilter)), loadedScripts = this.app_.page.loadedScripts, regType = /^$|(?:application|text)\/(?:java|ecma)script/i, regRemove = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
-                    if (this.util_.fire(callbacks_update.script.before, setting, [event, setting, $srcElements.get(), $dstElements.get()]) === false) {
+                    var prefilter = 'script', $srcElements = jQuery(prefilter, srcDocument).filter(selector).not(jQuery('noscript', srcDocument).find(prefilter)), $dstElements = jQuery(prefilter, dstDocument).filter(selector).not(jQuery('noscript', dstDocument).find(prefilter)), loadedScripts = this.page_.loadedScripts, regType = /^$|(?:application|text)\/(?:java|ecma)script/i, regRemove = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
+                    if (this.util_.fire(setting.callbacks.update.script.before, setting, [event, setting, $srcElements.get(), $dstElements.get()]) === false) {
                         return scriptwaits;
                     }
                     $srcElements = $srcElements.not(setting.load.ignore);
                     var exec = function (element, response) {
-                        if (!_this.util_.compareUrl(_this.model_.convertUrlToKeyUrl(setting.destLocation.href), _this.model_.convertUrlToKeyUrl(window.location.href), true)) {
+                        if (!_this.model_.comparePageByUrl(setting.destLocation.href, window.location.href)) {
                             return false;
                         }
                         if (element.src) {
@@ -3353,7 +3382,7 @@ var MODULE;
                         throw err;
                     }
                     $dstElements = jQuery(prefilter, dstDocument).filter(selector).not(jQuery('noscript', dstDocument).find(prefilter));
-                    if (this.util_.fire(callbacks_update.script.after, setting, [event, setting, $srcElements.get(), $dstElements.get()]) === false) {
+                    if (this.util_.fire(setting.callbacks.update.script.after, setting, [event, setting, $srcElements.get(), $dstElements.get()]) === false) {
                         return scriptwaits;
                     }
                     var speedcheck = setting.speedcheck, speed = this.model_.speed;
@@ -3363,8 +3392,7 @@ var MODULE;
                 };
                 PageUpdate.prototype.scroll_ = function (call) {
                     var setting = this.setting_, event = this.event_;
-                    var callbacks_update = setting.callbacks.update;
-                    if (this.util_.fire(callbacks_update.scroll.before, setting, [event, setting]) === false) {
+                    if (this.util_.fire(setting.callbacks.update.scroll.before, setting, [event, setting]) === false) {
                         return;
                     }
                     var scrollX, scrollY;
@@ -3380,25 +3408,24 @@ var MODULE;
                             window.scrollTo(scrollX, scrollY);
                             break;
                         case MODULE.EVENT.POPSTATE:
-                            call && setting.fix.scroll && this.app_.data.loadScrollPosition();
+                            call && setting.fix.scroll && this.data_.loadScrollPosition();
                             break;
                     }
-                    call && this.app_.data.saveScrollPosition();
-                    if (this.util_.fire(callbacks_update.scroll.after, setting, [event, setting]) === false) {
+                    call && this.data_.saveScrollPosition();
+                    if (this.util_.fire(setting.callbacks.update.scroll.after, setting, [event, setting]) === false) {
                         return;
                     }
                 };
                 PageUpdate.prototype.waitRender_ = function (callback) {
                     var _this = this;
                     var setting = this.setting_, event = this.event_;
-                    var callbacks_update = setting.callbacks.update;
                     var areas = jQuery(this.area_), checker = areas.children('.' + setting.nss.elem + '-check'), limit = new Date().getTime() + 5 * 1000;
                     function filterChecker() {
                         return this.clientWidth || this.clientHeight || jQuery(this).is(':hidden');
                     }
                     var check = function () {
                         switch (true) {
-                            case !_this.util_.compareUrl(setting.destLocation.href, _this.util_.normalizeUrl(window.location.href)):
+                            case !_this.model_.comparePageByUrl(setting.destLocation.href, window.location.href):
                                 break;
                             case new Date().getTime() > limit:
                             case checker.length !== areas.length:
@@ -3413,15 +3440,15 @@ var MODULE;
                     check();
                     return jQuery.when && callback;
                 };
-                PageUpdate.prototype.scrollByHash_ = function (hash) {
-                    hash = '#' === hash.charAt(0) ? hash.slice(1) : hash;
+                PageUpdate.prototype.scrollByHash_ = function (setting) {
+                    var hash = setting.destLocation.hash.replace(/^#/, '');
                     if (!hash) {
                         return false;
                     }
-                    var $hashTargetElement = jQuery('#' + (hash ? hash : ', [name~=' + hash + ']')).first();
+                    var $hashTargetElement = jQuery('#' + hash + ', [name~=' + hash + ']').first();
                     if ($hashTargetElement.length) {
                         isFinite($hashTargetElement.offset().top) && window.scrollTo(jQuery(window).scrollLeft(), parseInt(Number($hashTargetElement.offset().top) + '', 10));
-                        this.app_.data.saveScrollPosition();
+                        this.data_.saveScrollPosition();
                         return true;
                     }
                     else {
@@ -3504,7 +3531,7 @@ var MODULE;
                 PageParser.prototype.parse = function (html, uri, mode) {
                     if (mode === void 0) { mode = this.mode_; }
                     html += ~html.search(/<title[\s>]/i) ? '' : '<title></title>';
-                    var backup = !uri || !MODULE.LIBRARY.Utility.compareUrl(uri, window.location.href, true) ? window.location.href : undefined;
+                    var backup = !uri || !MODULE.LIBRARY.Utility.compareUrl(uri, window.location.href) ? window.location.href : undefined;
                     backup && window.history.replaceState && window.history.replaceState(window.history.state, document.title, uri);
                     var doc;
                     switch (mode) {
@@ -3596,6 +3623,8 @@ var MODULE;
     })(MODEL = MODULE.MODEL || (MODULE.MODEL = {}));
 })(MODULE || (MODULE = {}));
 /// <reference path="../define.ts"/>
+/// <reference path="app.data.ts"/>
+/// <reference path="app.balancer.ts"/>
 /// <reference path="app.page.provider.ts"/>
 /// <reference path="app.page.update.ts"/>
 /// <reference path="app.page.parser.ts"/>
@@ -3611,30 +3640,34 @@ var MODULE;
             MODULE.MIXIN(APP.PageFetch, [APP.PageUtility]);
             MODULE.MIXIN(APP.PageUpdate, [APP.PageUtility]);
             var Page = (function () {
-                function Page(model_, app_) {
+                function Page(model_, data_, balancer_) {
                     var _this = this;
                     this.model_ = model_;
-                    this.app_ = app_;
+                    this.data_ = data_;
+                    this.balancer_ = balancer_;
                     this.util_ = MODULE.LIBRARY.Utility;
                     this.parser = new APP.PageParserSingleton();
-                    this.provider = new APP.PageProvider(APP.PageRecord, this.model_, this.app_);
+                    this.provider = new APP.PageProvider(APP.PageRecord, this.model_, this.balancer_, this);
                     this.landing = this.util_.normalizeUrl(window.location.href);
                     this.loadedScripts = {};
-                    setTimeout(function () { return _this.parser.parse('') || _this.model_.disable(); }, 300);
+                    this.loadtime = 0;
+                    this.count = 0;
+                    this.time = new Date().getTime();
+                    setTimeout(function () { return _this.parser.parse('') || _this.model_.disable(); }, 100);
                 }
                 Page.prototype.transfer = function (setting, event) {
                     switch (event.type.toLowerCase()) {
                         case MODULE.EVENT.CLICK:
-                            this.app_.data.saveTitle();
-                            this.app_.data.saveScrollPosition();
+                            this.data_.saveTitle();
+                            this.data_.saveScrollPosition();
                             break;
                         case MODULE.EVENT.SUBMIT:
-                            this.app_.data.saveTitle();
-                            this.app_.data.saveScrollPosition();
+                            this.data_.saveTitle();
+                            this.data_.saveScrollPosition();
                             break;
                         case MODULE.EVENT.POPSTATE:
-                            this.app_.data.saveTitle(setting.origLocation.href, document.title);
-                            setting.fix.history && this.app_.data.loadTitle();
+                            this.data_.saveTitle(setting.origLocation.href, document.title);
+                            setting.fix.history && this.data_.loadTitle();
                             break;
                     }
                     setting = jQuery.extend(true, {}, setting);
@@ -3655,17 +3688,17 @@ var MODULE;
                     this.provider.fetchRecord(setting, event, function (record, setting, event) { return _this.success_(record, setting, event); }, function (record, setting, event) { return _this.failure_(record, setting, event); });
                 };
                 Page.prototype.success_ = function (record, setting, event) {
-                    new APP.PageUpdate(this.model_, this.app_, setting, event, record);
+                    new APP.PageUpdate(this.model_, this, this.data_, this.balancer_, setting, event, record);
                 };
                 Page.prototype.failure_ = function (record, setting, event) {
                     var _this = this;
                     if (!setting.fallback || 'abort' === record.data.textStatus()) {
                         return;
                     }
-                    this.app_.data.saveExpires(setting.destLocation.href, '', 0);
+                    this.data_.saveExpires(setting.destLocation.href, '', 0);
                     if (setting.balance.active) {
-                        this.app_.data.saveServer(record.data.host(), new Date().getTime() + setting.balance.server.expires, 0, 0, new Date().getTime());
-                        this.app_.balance.changeServer(this.app_.balance.chooseServer(setting), setting);
+                        this.data_.saveServer(record.data.host(), new Date().getTime() + setting.balance.server.expires, 0, 0, new Date().getTime());
+                        this.balancer_.changeServer(this.balancer_.chooseServer(setting), setting);
                     }
                     setTimeout(function () { return _this.model_.fallback(event); }, 100);
                 };
@@ -3682,7 +3715,7 @@ var MODULE;
 })(MODULE || (MODULE = {}));
 /// <reference path="../define.ts"/>
 /// <reference path="_template.ts"/>
-/// <reference path="app.balance.ts"/>
+/// <reference path="app.balancer.ts"/>
 /// <reference path="app.page.ts"/>
 /// <reference path="app.data.ts"/>
 /// <reference path="../view/main.ts"/>
@@ -3701,26 +3734,14 @@ var MODULE;
                     this.controller_ = controller_;
                     this.util_ = MODULE.LIBRARY.Utility;
                     this.settings_ = {};
-                    this.balance = new APP.Balance(this.model_, this);
-                    this.page = new APP.Page(this.model_, this);
-                    this.data = new APP.Data(this.model_, this);
-                    this.count = 0;
-                    this.time = new Date().getTime();
-                    this.loadtime = 0;
+                    this.data = new APP.Data(this.model_);
+                    this.balancer = new APP.Balancer(this.data);
+                    this.page = new APP.Page(this.model_, this.data, this.balancer);
                 }
                 Main.prototype.initialize = function ($context, setting) {
                     var _this = this;
-                    if (setting.load.script) {
-                        var loadedScripts = this.page.loadedScripts;
-                        jQuery('script').each(function () {
-                            var element = this;
-                            if (element.src) {
-                                loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload);
-                            }
-                        });
-                    }
                     this.controller_.view($context, setting);
-                    this.balance.enable(setting);
+                    this.balancer.enable(setting);
                     this.data.loadBuffers();
                     setTimeout(function () { return _this.page.landing = null; }, 1500);
                 };
@@ -3768,7 +3789,8 @@ var MODULE;
                         return this.settings_[index];
                     }
                     var origLocation = this.model_.location.cloneNode(), destLocation = this.model_.location.cloneNode();
-                    destLocation.href = url;
+                    origLocation.href = this.util_.canonicalizeUrl(origLocation.href);
+                    destLocation.href = this.util_.canonicalizeUrl(url);
                     var scope = this.scope_(this.option_, origLocation.href, destLocation.href) || null;
                     var initial = {
                         area: 'body',
@@ -3815,6 +3837,7 @@ var MODULE;
                             active: false,
                             bounds: /^.*$/,
                             weight: 1,
+                            random: 0,
                             option: {
                                 server: {
                                     header: false
@@ -3868,6 +3891,7 @@ var MODULE;
                             query: null,
                             header: true
                         },
+                        overlay: '',
                         callback: null,
                         callbacks: {
                             ajax: {},
@@ -3875,6 +3899,7 @@ var MODULE;
                         },
                         data: undefined
                     }, force = {
+                        uid: MODULE.UUID(),
                         ns: '',
                         nss: undefined,
                         speedcheck: undefined,
@@ -3896,6 +3921,7 @@ var MODULE;
                                 query = '';
                         }
                         return {
+                            uid: undefined,
                             ns: undefined,
                             origLocation: undefined,
                             destLocation: undefined,
@@ -3906,7 +3932,7 @@ var MODULE;
                                 array: nsArray,
                                 name: nsArray.join('.'),
                                 data: nsArray[0],
-                                url: _this.model_.convertUrlToKeyUrl(setting.destLocation.href),
+                                url: _this.model_.convertUrlToKey(setting.destLocation.href, true),
                                 event: {
                                     pjax: {
                                         fetch: [MODULE.EVENT.PJAX, 'fetch'].join(':'),
@@ -3961,8 +3987,8 @@ var MODULE;
                         return option;
                     }
                     var origKeyUrl, destKeyUrl, scpTable = option.scope, dirs, scpKeys, scpKey, scpTag, scope;
-                    origKeyUrl = this.model_.convertUrlToKeyUrl(origURL).match(/.+?\w(\/.*)/).pop();
-                    destKeyUrl = this.model_.convertUrlToKeyUrl(destURL).match(/.+?\w(\/.*)/).pop();
+                    origKeyUrl = this.model_.convertUrlToKey(origURL, true).match(/.+?\w(\/.*)/).pop();
+                    destKeyUrl = this.model_.convertUrlToKey(destURL, true).match(/.+?\w(\/.*)/).pop();
                     rewriteKeyUrl = rewriteKeyUrl.replace(/[#?].*/, '');
                     scpKeys = (rewriteKeyUrl || destKeyUrl).split('/');
                     if (rewriteKeyUrl) {
@@ -4095,7 +4121,7 @@ var MODULE;
                 this.queue_ = [];
             }
             Main.prototype.host = function () {
-                return this.app_.balance.host();
+                return this.app_.balancer.host();
             };
             Main.prototype.state = function () {
                 return this.state_;
@@ -4130,16 +4156,28 @@ var MODULE;
                 jQuery(function () {
                     _this.app_.initialize($context, setting);
                     _this.state_ = _this.state() === 1 /* initiate */ ? 2 /* open */ : _this.state();
+                    _this.overlay(setting, true);
                 });
                 return $context;
             };
-            Main.prototype.convertUrlToKeyUrl = function (unsafe_url) {
-                return unsafe_url.replace(/#.*/, '');
+            Main.prototype.convertUrlToKey = function (unsafe_url, canonicalize) {
+                unsafe_url = canonicalize ? this.util_.canonicalizeUrl(unsafe_url) : unsafe_url;
+                return this.util_.trim(unsafe_url).split('#').shift();
+            };
+            Main.prototype.compareKeyByUrl = function (a, b) {
+                a = this.convertUrlToKey(a, true);
+                b = this.convertUrlToKey(b, true);
+                return a === b;
+            };
+            Main.prototype.comparePageByUrl = function (a, b) {
+                a = this.convertUrlToKey(a, true);
+                b = this.convertUrlToKey(b, true);
+                return a === b;
             };
             Main.prototype.configure = function (destination) {
                 return this.app_.configure(destination);
             };
-            Main.prototype.isAvailable = function (event) {
+            Main.prototype.isOperatable = function (event) {
                 if (2 /* open */ !== this.state()) {
                     return false;
                 }
@@ -4179,75 +4217,87 @@ var MODULE;
                 return this.app_.page.xhr;
             };
             Main.prototype.setXHR = function ($xhr) {
-                this.app_.balance.sanitize($xhr, this.app_.configure(window.location));
-                this.app_.page.xhr && this.app_.page.xhr.readyState < 4 && this.app_.page.xhr.abort();
+                this.app_.balancer.sanitize($xhr, this.app_.configure(window.location));
+                this.app_.page.xhr && this.app_.page.xhr.readyState < 4 && this.app_.page.xhr !== $xhr && this.app_.page.xhr.abort();
                 return this.app_.page.xhr = $xhr;
             };
             Main.prototype.click = function (event) {
-                PROCESS: {
-                    event.timeStamp = new Date().getTime();
-                    var context = event.currentTarget, $context = jQuery(context);
-                    var setting = this.app_.configure(context);
-                    switch (false) {
-                        case !event.isDefaultPrevented():
-                        case !!setting:
-                        case this.state() === 2 /* open */:
-                        case this.isAvailable(event):
-                            break PROCESS;
-                    }
-                    this.app_.page.transfer(setting, event);
-                    event.preventDefault();
-                    return;
+                event.timeStamp = new Date().getTime();
+                var context = event.currentTarget, $context = jQuery(context);
+                var setting = this.app_.configure(context);
+                switch (true) {
+                    case !setting:
+                    case event.isDefaultPrevented():
+                    case this.state() !== 2 /* open */:
+                        this.location.href = this.util_.normalizeUrl(window.location.href);
+                        return;
+                    case !this.isOperatable(event):
+                        this.location.href = this.util_.normalizeUrl(window.location.href);
+                        // clickメソッド用
+                        if (this.isHashChange(setting)) {
+                            if (this.overlay(setting)) {
+                                event.preventDefault();
+                                window.history.pushState(null, document.title, setting.destLocation.href);
+                            }
+                        }
+                        else {
+                            if (!event.originalEvent && !jQuery(document).has(context).length) {
+                                this.fallback(event);
+                            }
+                        }
+                        return;
+                    default:
+                        this.app_.page.transfer(setting, event);
+                        event.preventDefault();
                 }
-                ;
-                // clickメソッド用
-                !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length && this.fallback(event);
             };
             Main.prototype.submit = function (event) {
-                PROCESS: {
-                    event.timeStamp = new Date().getTime();
-                    var context = event.currentTarget, $context = jQuery(context);
-                    var setting = this.app_.configure(context);
-                    switch (false) {
-                        case !event.isDefaultPrevented():
-                        case !!setting:
-                        case this.state() === 2 /* open */:
-                        case this.isAvailable(event):
-                            break PROCESS;
-                    }
-                    this.app_.page.transfer(setting, event);
-                    event.preventDefault();
-                    return;
+                event.timeStamp = new Date().getTime();
+                var context = event.currentTarget, $context = jQuery(context);
+                var setting = this.app_.configure(context);
+                switch (true) {
+                    case !setting:
+                    case event.isDefaultPrevented():
+                    case this.state() !== 2 /* open */:
+                        return;
+                    case !this.isOperatable(event):
+                        // submitメソッド用
+                        if (!event.originalEvent && !jQuery(document).has(context).length) {
+                            this.fallback(event);
+                        }
+                        return;
+                    default:
+                        this.app_.page.transfer(setting, event);
+                        event.preventDefault();
                 }
-                ;
-                // submitメソッド用
-                !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length && this.fallback(event);
             };
             Main.prototype.popstate = function (event) {
-                PROCESS: {
-                    if (this.app_.page.landing && this.app_.page.landing === this.util_.normalizeUrl(window.location.href)) {
-                        return;
-                    }
-                    if (this.location.href === this.util_.normalizeUrl(window.location.href)) {
-                        return;
-                    }
-                    event.timeStamp = new Date().getTime();
-                    var setting = this.app_.configure(window.location);
-                    if (setting.origLocation.pathname + setting.origLocation.search === setting.destLocation.pathname + setting.destLocation.search) {
-                        return;
-                    }
-                    switch (false) {
-                        case !!setting:
-                        case this.state() === 2 /* open */:
-                        case this.isAvailable(event):
-                            break PROCESS;
-                    }
-                    this.app_.page.transfer(setting, event);
+                if (this.app_.page.landing && this.util_.compareUrl(this.app_.page.landing, window.location.href)) {
                     return;
                 }
-                ;
-                // pjax処理されないURL変更によるページ更新
-                2 /* open */ === this.state() && !this.util_.compareUrl(this.convertUrlToKeyUrl(setting.origLocation.href), this.convertUrlToKeyUrl(window.location.href), true) && this.fallback(event);
+                event.timeStamp = new Date().getTime();
+                var setting = this.app_.configure(window.location);
+                switch (true) {
+                    case !setting:
+                    case this.state() !== 2 /* open */:
+                        this.location.href = this.util_.normalizeUrl(window.location.href);
+                        return;
+                    case !this.isOperatable(event):
+                    case this.comparePageByUrl(setting.origLocation.href, window.location.href):
+                        // pjax処理されないURL変更によるページ更新
+                        if (this.isHashChange(setting)) {
+                            this.overlay(setting);
+                        }
+                        else {
+                            if (!this.comparePageByUrl(setting.origLocation.href, window.location.href)) {
+                                this.fallback(event);
+                            }
+                        }
+                        this.location.href = this.util_.normalizeUrl(window.location.href);
+                        return;
+                    default:
+                        this.app_.page.transfer(setting, event);
+                }
             };
             Main.prototype.scroll = function (event, end) {
                 var _this = this;
@@ -4259,7 +4309,7 @@ var MODULE;
                     while (id = _this.queue_.shift()) {
                         clearTimeout(id);
                     }
-                    _this.util_.compareUrl(window.location.href, _this.location.href) && _this.app_.data.saveScrollPosition();
+                    _this.compareKeyByUrl(window.location.href, _this.location.href) && _this.app_.data.saveScrollPosition();
                 }, 300);
                 this.queue_.push(id);
             };
@@ -4293,6 +4343,67 @@ var MODULE;
                         break;
                 }
             };
+            Main.prototype.isHashChange = function (setting) {
+                return !!setting && setting.origLocation.href.replace(/#.*/, '') === setting.destLocation.href.replace(/#.*/, '') && setting.origLocation.hash !== setting.destLocation.hash;
+            };
+            Main.prototype.overlay = function (setting, immediate) {
+                var _this = this;
+                var hash = setting.destLocation.hash.replace(/^#/, '');
+                if (!hash || !setting.overlay) {
+                    return false;
+                }
+                var $hashTargetElement = jQuery('#' + hash + ', [name~=' + hash + ']');
+                $hashTargetElement = $hashTargetElement.add($hashTargetElement.nextUntil(':header'));
+                $hashTargetElement = $hashTargetElement.filter(setting.overlay).add($hashTargetElement.find(setting.overlay)).first();
+                if (!$hashTargetElement.length) {
+                    return false;
+                }
+                if (this.isHashChange(setting)) {
+                    this.app_.data.loadScrollPosition();
+                    setTimeout(function () { return _this.app_.data.loadScrollPosition(); }, 1);
+                }
+                var $container = jQuery('<div>');
+                $hashTargetElement = $hashTargetElement.clone(true);
+                $container.addClass(setting.nss.elem + '-overlay').css({
+                    background: 'rgba(255, 255, 255, 0.8)',
+                    display: 'none',
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    margin: 0,
+                    padding: 0,
+                    border: 'none'
+                }).append($hashTargetElement.css({
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    margin: 'auto'
+                }).show());
+                $container.bind('click', $container, function (event) {
+                    if (event.target !== event.currentTarget) {
+                        return;
+                    }
+                    jQuery(event.data).fadeOut('fast', function () {
+                        jQuery(event.data).remove();
+                        window.history.pushState(window.history.state, document.title, window.location.href.replace(/#.*/, ''));
+                        _this.location.href = _this.util_.normalizeUrl(window.location.href);
+                    });
+                });
+                $container.appendTo('body').fadeIn(immediate ? 0 : 100);
+                jQuery(window).one('popstate', $container, function (event) {
+                    setTimeout(function () { return _this.app_.data.loadScrollPosition(); }, 1);
+                    jQuery(event.data).fadeOut('fast', function () {
+                        jQuery(event.data).remove();
+                    });
+                });
+                /trident/i.test(window.navigator.userAgent) && $hashTargetElement.width($hashTargetElement.width());
+                this.app_.data.saveScrollPosition();
+                return true;
+            };
             Main.prototype.enable = function () {
                 this.state_ = 2 /* open */;
             };
@@ -4300,7 +4411,7 @@ var MODULE;
                 this.state_ = 3 /* pause */;
             };
             Main.prototype.getCache = function (unsafe_url) {
-                var setting = this.configure(this.convertUrlToKeyUrl(unsafe_url));
+                var setting = this.configure(this.convertUrlToKey(unsafe_url));
                 if (!setting) {
                     return;
                 }
@@ -4314,15 +4425,15 @@ var MODULE;
                 } : void this.removeCache(unsafe_url);
             };
             Main.prototype.setCache = function (unsafe_url, data, textStatus, jqXHR) {
-                var setting = this.configure(this.convertUrlToKeyUrl(unsafe_url));
+                var setting = this.configure(this.convertUrlToKey(unsafe_url));
                 if (!setting) {
                     return;
                 }
                 var record = this.app_.page.provider.getRecord(setting);
-                this.app_.page.provider.setRecord(setting, data || '', textStatus || record.data.textStatus(), jqXHR || record.data.jqXHR(), this.app_.balance.sanitize(jqXHR, setting) || record.data.host() || '');
+                this.app_.page.provider.setRecord(setting, data || '', textStatus || record.data.textStatus(), jqXHR || record.data.jqXHR(), this.app_.balancer.sanitize(jqXHR, setting) || record.data.host() || '');
             };
             Main.prototype.removeCache = function (unsafe_url) {
-                var setting = this.configure(this.convertUrlToKeyUrl(unsafe_url));
+                var setting = this.configure(this.convertUrlToKey(unsafe_url));
                 if (!setting) {
                     return;
                 }
@@ -4332,7 +4443,7 @@ var MODULE;
                 this.app_.page.provider.clearRecord();
             };
             Main.prototype.bypass = function () {
-                return this.app_.balance.bypass();
+                return this.app_.balancer.bypass(this.app_.configure(window.location));
             };
             return Main;
         })(MODEL.Template);
@@ -4366,4 +4477,4 @@ var Module = (function () {
     return Module;
 })();
 new Module();
-})(window, window.document, void 0, jQuery);
+}(window, window.document, void 0, jQuery);

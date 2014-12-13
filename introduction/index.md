@@ -93,6 +93,9 @@ preloadとpjaxの併用は、スクリプトファイルを置くだけでペー
 ## Client-side Load Balancer
 通常のロードバランサと異なり、ルーターやロードバランサなどのハードウェアを使用せず回線帯域を約1.5-20倍に増設・分散する効果を得られます。詳細は[Client-side Load Balancer](client-side-load-balancer/)をお読みください。
 
+## Hash relation content overlay
+URLのハッシュと一致するDOM要素に関連付けられた要素を現在のページに重ねて表示します。
+
 ## pjaxの諸問題の解決
 pushStateまたはreplaceStateとAjaxを組み合わせたいわゆるpjaxと呼ばれる機能には下記の問題が存在しています。当プラグインはこれらの問題の解決するための処理を組み込んでいます。
 
