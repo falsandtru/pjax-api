@@ -64,6 +64,7 @@ interface PjaxSetting {
         active?: boolean
         bounds?: RegExp
         weight?: number
+        random?: number
         option?: PjaxSetting
         client?: {
             hosts?: string[]

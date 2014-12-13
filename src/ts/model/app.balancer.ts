@@ -136,6 +136,8 @@ module MODULE.MODEL.APP {
         }
 
         switch (true) {
+          case result.length >= setting.balance.random:
+            return false;
           case weight && !host && !!Math.floor(Math.random() * weight):
           case timeout && time >= timeout:
           case result.length >= Math.min(Math.floor(scores.length / 2), 3) && primary && time >= primary.time + 500 && timeout && time >= timeout * 2 / 3 :
@@ -168,12 +170,11 @@ module MODULE.MODEL.APP {
         case !!history.host || !this.force_:
           break;
         default:
-          hosts = [history.host || ''];
+          return history.host || '';
       }
 
       // 応答性能の高いサーバーをリストアップ
-      hosts = hosts || this.chooseServers_(setting);
-
+      hosts = this.chooseServers_(setting);
       // 上位6サーバーまでからランダムに選択
       return hosts.slice(Math.floor(Math.random() * Math.min(hosts.length, 6))).shift() || '';
     }

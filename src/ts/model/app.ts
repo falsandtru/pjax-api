@@ -130,6 +130,7 @@ module MODULE.MODEL.APP {
               active: false,
               bounds: /^.*$/,
               weight: 1,
+              random: 0,
               option: <PjaxSetting>{
                 server: {
                   header: false
