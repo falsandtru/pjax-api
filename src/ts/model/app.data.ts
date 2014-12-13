@@ -8,7 +8,7 @@ module MODULE.MODEL.APP {
 
   export class Data implements DataInterface {
 
-    constructor(private model_: ModelInterface, private app_: AppLayerInterface) {
+    constructor(private model_: ModelInterface) {
     }
 
     private data_: DataLayerInterface = new DATA.Main()
@@ -54,11 +54,11 @@ module MODULE.MODEL.APP {
     // history
 
     getHistoryBuffer(unsafe_url: string): HistoryStoreSchema {
-      return this.stores_.history.getBuffer(this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(unsafe_url)));
+      return this.stores_.history.getBuffer(this.model_.convertUrlToKey(unsafe_url, true));
     }
 
     loadTitle(): void {
-      var keyUrl: string = this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(window.location.href));
+      var keyUrl: string = this.model_.convertUrlToKey(window.location.href, true);
 
       var data: HistoryStoreSchema = this.stores_.history.getBuffer(keyUrl);
 
@@ -68,7 +68,7 @@ module MODULE.MODEL.APP {
         this.stores_.history.get(keyUrl, (event) => {
           data = (<IDBRequest>event.target).result;
           if (data && data.title) {
-            if (this.util_.compareUrl(keyUrl, this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(window.location.href)))) {
+            if (this.model_.compareKeyByUrl(keyUrl, this.util_.canonicalizeUrl(window.location.href))) {
               document.title = data.title;
             }
           }
@@ -79,7 +79,7 @@ module MODULE.MODEL.APP {
     saveTitle(): void
     saveTitle(unsafe_url: string, title: string): void
     saveTitle(unsafe_url: string = window.location.href, title: string = document.title): void {
-      var keyUrl = this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(unsafe_url));
+      var keyUrl = this.model_.convertUrlToKey(unsafe_url, true);
 
       var value: HistoryStoreSchema = {
         url: keyUrl,
@@ -97,7 +97,7 @@ module MODULE.MODEL.APP {
     }
 
     loadScrollPosition(): void {
-      var keyUrl: string = this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(window.location.href));
+      var keyUrl: string = this.model_.convertUrlToKey(window.location.href, true);
 
       var data: HistoryStoreSchema = this.stores_.history.getBuffer(keyUrl);
       function scroll(scrollX, scrollY) {
@@ -112,7 +112,7 @@ module MODULE.MODEL.APP {
         this.stores_.history.get(keyUrl, (event) => {
           data = (<IDBRequest>event.target).result;
           if (data && 'number' === typeof data.scrollX) {
-            if (this.util_.compareUrl(keyUrl, this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(window.location.href)))) {
+            if (this.model_.compareKeyByUrl(keyUrl, this.util_.canonicalizeUrl(window.location.href))) {
               scroll(data.scrollX, data.scrollY);
             }
           }
@@ -123,7 +123,7 @@ module MODULE.MODEL.APP {
     saveScrollPosition(): void
     saveScrollPosition(unsafe_url: string, scrollX: number, scrollY: number): void
     saveScrollPosition(unsafe_url: string = window.location.href, scrollX: number = jQuery(window).scrollLeft(), scrollY: number = jQuery(window).scrollTop()): void {
-      var keyUrl = this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(unsafe_url));
+      var keyUrl = this.model_.convertUrlToKey(unsafe_url, true);
 
       var value: HistoryStoreSchema = {
         url: keyUrl,
@@ -143,7 +143,7 @@ module MODULE.MODEL.APP {
     }
 
     saveExpires(unsafe_url: string, host: string, expires: number): void {
-      var keyUrl = this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(unsafe_url));
+      var keyUrl = this.model_.convertUrlToKey(unsafe_url, true);
 
       var value: HistoryStoreSchema = {
         url: keyUrl,
@@ -166,8 +166,8 @@ module MODULE.MODEL.APP {
     }
 
     getServerBuffer(unsafe_url: string): ServerStoreSchema {
-      var host = this.model_.convertUrlToKeyUrl(this.util_.normalizeUrl(unsafe_url)).split('//').pop().split('/').shift();
-      host = this.util_.compareUrl('http://' + host, 'http://' + window.location.host, true) ? '' : host;
+      var host = this.model_.convertUrlToKey(unsafe_url, true).split('//').pop().split('/').shift();
+      host = this.model_.compareKeyByUrl('http://' + host, 'http://' + window.location.host) ? '' : host;
       return this.stores_.server.getBuffer(host);
     }
 
@@ -176,7 +176,7 @@ module MODULE.MODEL.APP {
 
     saveServer(host: string, expires: number, time: number, score: number, state: number): void {
       host = host.split('//').pop().split('/').shift();
-      host = this.util_.compareUrl('http://' + host, 'http://' + window.location.host, true) ? '' : host;
+      host = this.model_.compareKeyByUrl('http://' + host, 'http://' + window.location.host) ? '' : host;
       var value: ServerStoreSchema = {
             host: host,
             time: Math.max(time, 1),

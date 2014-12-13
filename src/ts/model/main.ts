@@ -23,7 +23,7 @@ module MODULE.MODEL {
     isDeferrable: boolean = !!jQuery.when && '1.006' <= jQuery().jquery.match(/\d[\d.]+\d/).pop().replace(/\.(\d+)/g, '.00$1').replace(/0*(\d{3})/g, '$1')
 
     location: HTMLAnchorElement = document.createElement('a')
-    host(): string { return this.app_.balance.host() }
+    host(): string { return this.app_.balancer.host() }
     state(): State { return this.state_; }
     
     main_($context: ExtensionInterface, setting: PjaxSetting): ExtensionInterface
@@ -59,13 +59,27 @@ module MODULE.MODEL {
       jQuery(() => {
         this.app_.initialize($context, setting);
         this.state_ = this.state() === State.initiate ? State.open : this.state();
+        this.overlay(setting, true);
       });
 
       return $context;
     }
 
-    convertUrlToKeyUrl(unsafe_url: string): string {
-      return unsafe_url.replace(/#.*/, '')
+    convertUrlToKey(unsafe_url: string, canonicalize?: boolean): string {
+      unsafe_url = canonicalize ? this.util_.canonicalizeUrl(unsafe_url) : unsafe_url;
+      return this.util_.trim(unsafe_url).split('#').shift();
+    }
+
+    compareKeyByUrl(a: string, b: string): boolean {
+      a = this.convertUrlToKey(a, true);
+      b = this.convertUrlToKey(b, true);
+      return a === b;
+    }
+
+    comparePageByUrl(a: string, b: string): boolean {
+      a = this.convertUrlToKey(a, true);
+      b = this.convertUrlToKey(b, true);
+      return a === b;
     }
 
     configure(event: Event): SettingInterface
@@ -77,7 +91,7 @@ module MODULE.MODEL {
       return this.app_.configure(destination);
     }
 
-    isAvailable(event: JQueryEventObject): boolean {
+    isOperatable(event: JQueryEventObject): boolean {
       if (State.open !== this.state()) { return false; }
 
       if (event.which > 1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) { return false; }
@@ -110,84 +124,99 @@ module MODULE.MODEL {
       return this.app_.page.xhr;
     }
     setXHR($xhr: JQueryXHR): JQueryXHR {
-      this.app_.balance.sanitize($xhr, this.app_.configure(window.location));
-      this.app_.page.xhr && this.app_.page.xhr.readyState < 4 && this.app_.page.xhr.abort();
+      this.app_.balancer.sanitize($xhr, this.app_.configure(window.location));
+      this.app_.page.xhr && this.app_.page.xhr.readyState < 4 && this.app_.page.xhr !== $xhr && this.app_.page.xhr.abort();
       return this.app_.page.xhr = $xhr;
     }
     
     click(event: JQueryEventObject): void {
-      PROCESS: {
-        event.timeStamp = new Date().getTime();
-        var context = <HTMLAnchorElement>event.currentTarget,
-            $context: JQuery = jQuery(context);
-        var setting: SettingInterface = this.app_.configure(context);
-        
-        switch (false) {
-          case !event.isDefaultPrevented():
-          case !!setting:
-          case this.state() === State.open:
-          case this.isAvailable(event):
-            break PROCESS;
-        }
-        
-        this.app_.page.transfer(setting, event);
-        event.preventDefault();
-        return;
-      };
-      // clickメソッド用
-      !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length &&
-      this.fallback(event);
+      event.timeStamp = new Date().getTime();
+      var context = <HTMLAnchorElement>event.currentTarget,
+          $context: JQuery = jQuery(context);
+      var setting: SettingInterface = this.app_.configure(context);
+      
+      switch (true) {
+        case !setting:
+        case event.isDefaultPrevented():
+        case this.state() !== State.open:
+          this.location.href = this.util_.normalizeUrl(window.location.href);
+          return;
+
+        case !this.isOperatable(event):
+          this.location.href = this.util_.normalizeUrl(window.location.href);
+          // clickメソッド用
+          if (this.isHashChange(setting)) {
+            if (this.overlay(setting)) {
+              event.preventDefault();
+              window.history.pushState(null, document.title, setting.destLocation.href);
+            }
+          } else {
+            if (!event.originalEvent && !jQuery(document).has(context).length) {
+              this.fallback(event);
+            }
+          }
+          return;
+
+        default:
+          this.app_.page.transfer(setting, event);
+          event.preventDefault();
+      }
     }
 
     submit(event: JQueryEventObject): void {
-      PROCESS: {
-        event.timeStamp = new Date().getTime();
-        var context = <HTMLFormElement>event.currentTarget,
-            $context: JQuery = jQuery(context);
-        var setting: SettingInterface = this.app_.configure(context);
-        
-        switch (false) {
-          case !event.isDefaultPrevented():
-          case !!setting:
-          case this.state() === State.open:
-          case this.isAvailable(event):
-            break PROCESS;
-        }
-        
-        this.app_.page.transfer(setting, event);
-        event.preventDefault();
-        return;
-      };
-      // submitメソッド用
-      !event.originalEvent && !event.isDefaultPrevented() && !jQuery(document).has(context).length &&
-      this.fallback(event);
+      event.timeStamp = new Date().getTime();
+      var context = <HTMLFormElement>event.currentTarget,
+          $context: JQuery = jQuery(context);
+      var setting: SettingInterface = this.app_.configure(context);
+      
+      switch (true) {
+        case !setting:
+        case event.isDefaultPrevented():
+        case this.state() !== State.open:
+          return;
+
+        case !this.isOperatable(event):
+          // submitメソッド用
+          if (!event.originalEvent && !jQuery(document).has(context).length) {
+            this.fallback(event);
+          }
+          return;
+
+        default:
+          this.app_.page.transfer(setting, event);
+          event.preventDefault();
+      }
     }
 
     popstate(event: JQueryEventObject): void {
-      PROCESS: {
-        if (this.app_.page.landing && this.app_.page.landing === this.util_.normalizeUrl(window.location.href)) { return; }
-        if (this.location.href === this.util_.normalizeUrl(window.location.href)) { return; }
-        
-        event.timeStamp = new Date().getTime();
-        var setting: SettingInterface = this.app_.configure(window.location);
-        
-        if (setting.origLocation.pathname + setting.origLocation.search === setting.destLocation.pathname + setting.destLocation.search) { return; }
-        
-        switch (false) {
-          //case !event.isDefaultPrevented():
-          case !!setting:
-          case this.state() === State.open:
-          case this.isAvailable(event):
-            break PROCESS;
-        }
-        
-        this.app_.page.transfer(setting, event);
-        return;
-      };
-      // pjax処理されないURL変更によるページ更新
-      State.open === this.state() &&
-      !this.util_.compareUrl(this.convertUrlToKeyUrl(setting.origLocation.href), this.convertUrlToKeyUrl(window.location.href), true) &&
-      this.fallback(event);
+      if (this.app_.page.landing && this.util_.compareUrl(this.app_.page.landing, window.location.href)) { return; }
+
+      event.timeStamp = new Date().getTime();
+      var setting: SettingInterface = this.app_.configure(window.location);
+      
+      switch (true) {
+        case !setting:
+        //case event.isDefaultPrevented():
+        case this.state() !== State.open:
+          this.location.href = this.util_.normalizeUrl(window.location.href);
+          return;
+
+        case !this.isOperatable(event):
+        case this.comparePageByUrl(setting.origLocation.href, window.location.href):
+          // pjax処理されないURL変更によるページ更新
+          if (this.isHashChange(setting)) {
+            this.overlay(setting);
+          } else {
+            if (!this.comparePageByUrl(setting.origLocation.href, window.location.href)) {
+              this.fallback(event);
+            }
+          }
+          this.location.href = this.util_.normalizeUrl(window.location.href);
+          return;
+
+        default:
+          this.app_.page.transfer(setting, event);
+      }
     }
     
     private queue_: number[] = []
@@ -196,7 +225,7 @@ module MODULE.MODEL {
       while (id = this.queue_.shift()) { clearTimeout(id); }
       id = setTimeout(() => {
         while (id = this.queue_.shift()) { clearTimeout(id); }
-        this.util_.compareUrl(window.location.href, this.location.href) && this.app_.data.saveScrollPosition();
+        this.compareKeyByUrl(window.location.href, this.location.href) && this.app_.data.saveScrollPosition();
       }, 300);
       this.queue_.push(id);
     }
@@ -233,6 +262,73 @@ module MODULE.MODEL {
       }
     }
 
+    isHashChange(setting: SettingInterface): boolean {
+      return !!setting &&
+             setting.origLocation.href.replace(/#.*/, '') === setting.destLocation.href.replace(/#.*/, '') &&
+             setting.origLocation.hash !== setting.destLocation.hash;
+    }
+
+    overlay(setting: SettingInterface, immediate?: boolean): boolean {
+      var hash = setting.destLocation.hash.replace(/^#/, '');
+      if (!hash || !setting.overlay) { return false; }
+
+      var $hashTargetElement = jQuery('#' + hash + ', [name~=' + hash + ']');
+      $hashTargetElement = $hashTargetElement.add($hashTargetElement.nextUntil(':header'));
+      $hashTargetElement = $hashTargetElement.filter(setting.overlay).add($hashTargetElement.find(setting.overlay)).first();
+      if (!$hashTargetElement.length) { return false; }
+
+      if (this.isHashChange(setting)) {
+        this.app_.data.loadScrollPosition();
+        setTimeout(() => this.app_.data.loadScrollPosition(), 1);
+      }
+
+      var $container = jQuery('<div>');
+      $hashTargetElement = $hashTargetElement.clone(true);
+      $container
+      .addClass(setting.nss.elem + '-overlay')
+      .css({
+        background: 'rgba(255, 255, 255, 0.8)',
+        display: 'none',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        margin: 0,
+        padding: 0,
+        border: 'none',
+      })
+      .append($hashTargetElement.css({
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        margin: 'auto'
+      }).show());
+
+      $container.bind('click', $container, (event) => {
+        if (event.target !== event.currentTarget) { return; }
+        jQuery(event.data).fadeOut('fast', () => {
+          jQuery(event.data).remove();
+          window.history.pushState(window.history.state, document.title, window.location.href.replace(/#.*/, ''));
+          this.location.href = this.util_.normalizeUrl(window.location.href);
+        });
+      });
+
+      $container.appendTo('body').fadeIn(immediate ? 0 : 100);
+      jQuery(window).one('popstate', $container, (event: JQueryEventObject) => {
+        setTimeout(() => this.app_.data.loadScrollPosition(), 1);
+        jQuery(event.data).fadeOut('fast', () => {
+          jQuery(event.data).remove();
+        });
+      });
+      /trident/i.test(window.navigator.userAgent) && $hashTargetElement.width($hashTargetElement.width());
+      this.app_.data.saveScrollPosition();
+
+      return true;
+    }
+
     enable(): void {
       this.state_ = State.open;
     }
@@ -242,7 +338,7 @@ module MODULE.MODEL {
     }
 
     getCache(unsafe_url: string): CacheInterface {
-      var setting: SettingInterface = this.configure(this.convertUrlToKeyUrl(unsafe_url));
+      var setting: SettingInterface = this.configure(this.convertUrlToKey(unsafe_url));
       if (!setting) { return; }
       var record: PageRecordInterface = this.app_.page.provider.getRecord(setting);
       return record.state(setting) || record.data.data() ? {
@@ -255,18 +351,18 @@ module MODULE.MODEL {
     }
     
     setCache(unsafe_url: string, data: string, textStatus: string, jqXHR: JQueryXHR): void {
-      var setting: SettingInterface = this.configure(this.convertUrlToKeyUrl(unsafe_url));
+      var setting: SettingInterface = this.configure(this.convertUrlToKey(unsafe_url));
       if (!setting) { return; }
       var record: PageRecordInterface = this.app_.page.provider.getRecord(setting);
       this.app_.page.provider.setRecord(setting,
                                         data || '',
                                         textStatus || record.data.textStatus(),
                                         jqXHR || record.data.jqXHR(),
-                                        this.app_.balance.sanitize(jqXHR, setting) || record.data.host() || '');
+                                        this.app_.balancer.sanitize(jqXHR, setting) || record.data.host() || '');
     }
 
     removeCache(unsafe_url: string): void {
-      var setting: SettingInterface = this.configure(this.convertUrlToKeyUrl(unsafe_url));
+      var setting: SettingInterface = this.configure(this.convertUrlToKey(unsafe_url));
       if (!setting) { return; }
       this.app_.page.provider.removeRecord(setting);
     }
@@ -276,7 +372,7 @@ module MODULE.MODEL {
     }
 
     bypass(): JQueryDeferred<any> {
-      return this.app_.balance.bypass();
+      return this.app_.balancer.bypass(this.app_.configure(window.location));
     }
 
     speed: any

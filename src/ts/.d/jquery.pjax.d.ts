@@ -64,6 +64,7 @@ interface PjaxSetting {
         active?: boolean
         bounds?: RegExp
         weight?: number
+        random?: number
         option?: PjaxSetting
         client?: {
             hosts?: string[]
@@ -110,6 +111,7 @@ interface PjaxSetting {
             script?: boolean
         }
     }
+    overlay?: string
     data?: any
     callback?: (event?: JQueryEventObject, setting?: PjaxSetting) => any
     callbacks?: {

@@ -32,7 +32,7 @@ module MODULE.MODEL.APP {
     parse(html: string, uri?: string, mode: string = this.mode_): Document {
       html += ~html.search(/<title[\s>]/i) ? '' : '<title></title>';
 
-      var backup: string = !uri || !LIBRARY.Utility.compareUrl(uri, window.location.href, true) ? window.location.href : undefined;
+      var backup: string = !uri || !LIBRARY.Utility.compareUrl(uri, window.location.href) ? window.location.href : undefined;
       backup && window.history.replaceState && window.history.replaceState(window.history.state, document.title, uri);
 
       var doc: Document;

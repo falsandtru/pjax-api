@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<title>pjax demo</title>
+<title>pjax demo1</title>
 <meta name="description" content="">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive">
@@ -12,6 +12,9 @@
 <link rel="stylesheet" href="../lib/style.css">
 
 <style>
+#container{
+  height: 200%;
+}
 #header{
   background: #ee0;
 }
@@ -30,28 +33,24 @@
 #tertiary{
   background: #00e;
 }
+.overlay {
+  display: none;
+  overflow: auto;
+  max-width: 600px;
+  min-width: 15%;
+  max-height: 80%;
+  min-height: 30%;
+  margin: auto;
+  padding: 2em;
+  border: none;
+  background: #fff;
+  box-shadow: 2px 2px 10px 1px rgba(0,0,0,0.4);
+}
 </style>
-<script charset="utf-8" src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script charset="utf-8" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 <script charset="utf-8" src="../cov/jquery.pjax.js"></script>
 <script>
-$(function(){
-  $.pjax({
-    area: '#header, #primary, #tertiary',
-    balance: {
-      active: true,
-      random: 5,
-      client: {
-        hosts: ['', 'falsandtru.s3-website-us-west-2.amazonaws.com:80']
-      }
-    },
-    rewrite: function (document, area, host) {
-      $("#header span.host", document).text(host || window.location.host);
-    },
-    callback: function () { ga('send', 'pageview', window.location.pathname + window.location.search); $('#primary small').last().text('location = ' + location); },
-    speedcheck: true
-  });
-  $("#header span.host").text(window.location.host);
-});
+$(function(){ $.pjax({ area: '#primary', overlay: '.overlay', callback: function(){ga('send', 'pageview', window.location.pathname+window.location.search);} }); });
 </script>
 <script>
 if (!window.ga) {
@@ -66,50 +65,59 @@ window.ga('send', 'pageview', window.location.pathname+window.location.search);
 </script>
 </head>
 <body>
-<div id="container" class="layout-213">
+<div id="container" class="layout-021">
 <!-- ----- HEADER ------------------------------------------------------------- -->
 <header id="header"><div class="wrapper clearfix">
 
   <h1>pjax demo</h1>
-  <p>header4</p>
-  <p>This page delivered from <span class="host" style="font-weight: bold;"></span>.</p>
+  <p>header1</p>
+  <p>これはpjaxのデモページです</p>
 
 </div></header>
 <div id="wrapper" class="wrapper clearfix">
 <!-- ----- PRIMARY ------------------------------------------------------------ -->
 <div id="primary"><div id="layout"><div class="wrapper clearfix">
 
-  <p>primary4</p>
+  <p>primary1</p>
+  <p>pjax enable あアｱ亜</p>
   <ul>
-    <li><a href="./index.html">page1</a></li>
-    <li><a href="./2.html">page2</a></li>
-    <li><a href="./3.html">page3</a></li>
-    <li><a href="./4.html">page4</a></li>
-    <li><a href="./5.html">page5</a></li>
-    <li><a href="./6.html">page6</a></li>
-    <li><a href="./7.html">page7</a></li>
-    <li><a href="./8.html">page8</a></li>
-    <li><a href="./9.html">page9</a></li>
+    <li><a href="./index.html#first">page1 enable</a></li>
+    <li><a href="./2.html#second">page2 enable</a></li>
+    <li><a href="./3.html#third">page3 enable</a></li>
   </ul>
+  <ul>
+    <li><a href="#first">info1</a></li>
+    <li><a href="#second">info2</a></li>
+    <li><a href="#third">info3</a></li>
+  </ul>
+  <aside id="first" class="overlay"><h1>info1</h1><p>page1</p></aside>
+  <aside id="second"><div class="overlay"><h1>info2</h1><p>page1</p></div></aside>
+  <div id="third"></div>
+  <aside class="overlay"><h1>info3</h1><p>page1</p></aside>
 
 </div></div></div>
 <!-- ----- SECONDARY ---------------------------------------------------------- -->
 <div id="secondary"><div class="wrapper clearfix">
 
-  <p>secondary4</p>
+  <p>secondary1</p>
+  <ul>
+    <li><a href="./index.html">page1 enable</a></li>
+    <li><a href="./2.html">page2 enable</a></li>
+    <li><a href="./3.html">page3 enable</a></li>
+  </ul>
 
 </div></div>
 <!-- ----- TERTIARY ----------------------------------------------------------- -->
 <div id="tertiary"><div class="wrapper clearfix">
 
-  <p>tertiary4</p>
+  <p>tertiary1</p>
 
 </div></div>
 </div>
 <!-- ----- FOOTER ------------------------------------------------------------- -->
 <footer id="footer"><div class="wrapper clearfix">
 
-  <p>footer4</p>
+  <p>footer1</p>
 
 </div></footer>
 </div>

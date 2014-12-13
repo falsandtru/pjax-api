@@ -8,12 +8,12 @@ module MODULE.MODEL.APP {
 
   export class PageProvider implements PageProviderInterface {
 
-    constructor(private Record_: PageRecordClassInterface, private model_: ModelInterface, private app_: AppLayerInterface) {
+    constructor(private Record_: PageRecordClassInterface, private model_: ModelInterface, private balancer_: BalancerInterface, private page_: PageInterface) {
     }
 
     private hash_ = (setting: SettingInterface) => setting.nss.url
     private table_: { [keyUrl: string]: PageRecordInterface } = {}
-    private order_: string[] = []
+    private order_: SettingInterface[] = []
 
     fetchRecord(setting: SettingInterface, event: JQueryEventObject, success: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void, failure: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void): void {
       if (this.getRecord(setting).state(setting)) {
@@ -25,19 +25,18 @@ module MODULE.MODEL.APP {
     }
 
     pullRecord(setting: SettingInterface, event: JQueryEventObject, success: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void, failure: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void): void {
-      new PageFetch(
-        this.model_, this.app_, setting, event,
-        // success
-        ((callback: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void) => (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => {
-          var record = this.setRecord(setting, this.getRecord(setting).data.data() || '', textStatus, jqXHR, host);
-          callback(record, setting, event);
-        })(success),
-        // failure
-        ((callback: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void) => (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => {
-          var record = this.setRecord(setting, this.getRecord(setting).data.data() || '', textStatus, jqXHR, host);
-          callback(record, setting, event);
-        })(failure)
-      );
+      new PageFetch(this.model_, this.page_, this.balancer_, setting, event,
+                    // success
+                    (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => {
+                      var record = this.setRecord(setting, this.getRecord(setting).data.data() || '', textStatus, jqXHR, host);
+                      success(record, setting, event);
+                    },
+                    // failure
+                    (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => {
+                      var record = this.setRecord(setting, this.getRecord(setting).data.data() || '', textStatus, jqXHR, host);
+                      failure(record, setting, event);
+                    }
+                   );
     }
 
     getRecord(setting: SettingInterface): PageRecordInterface {
@@ -56,14 +55,16 @@ module MODULE.MODEL.APP {
     }
 
     clearRecord(): void {
-      this.order_ = [];
-      this.table_ = {};
+      this.order_.splice(0, this.order_.length);
+      for (var i in this.table_) {
+        delete this.table_[i];
+      }
     }
 
     private cleanRecords_(setting: SettingInterface): void {
       if (setting.cache.limit) {
         while (this.order_.length >= setting.cache.limit) {
-          this.removeRecord(this.app_.configure(this.order_.pop()));
+          this.removeRecord(this.order_.pop());
         }
       }
 
@@ -75,12 +76,12 @@ module MODULE.MODEL.APP {
 
     private addOrder_(setting: SettingInterface): void {
       this.removeOrder_(setting);
-      this.order_.unshift(this.hash_(setting));
+      this.order_.unshift(setting);
     }
 
     private removeOrder_(setting: SettingInterface): void {
-      for (var i = 0, hash1 = this.hash_(setting), hash2: string; hash2 = this.order_[i]; i++) {
-        hash1 === hash2 && this.order_.splice(i, 1);
+      for (var i = this.order_.length; i--;) {
+        this.order_[i].nss.url === setting.nss.url && this.order_.splice(i, 1);
       }
     }
 

@@ -1,6 +1,6 @@
 /// <reference path="../define.ts"/>
 /// <reference path="_template.ts"/>
-/// <reference path="app.balance.ts"/>
+/// <reference path="app.balancer.ts"/>
 /// <reference path="app.page.ts"/>
 /// <reference path="app.data.ts"/>
 /// <reference path="../view/main.ts"/>
@@ -22,25 +22,13 @@ module MODULE.MODEL.APP {
     private settings_: { [index: string]: SettingInterface } = {}
     private option_: PjaxSetting
 
-    balance: BalanceInterface = new Balance(this.model_, this)
-    page: PageInterface = new Page(this.model_, this)
-    data: DataInterface = new Data(this.model_, this)
-
-    count: number = 0
-    time: number = new Date().getTime()
-    loadtime: number = 0
+    data: DataInterface = new Data(this.model_)
+    balancer: BalancerInterface = new Balancer(this.data)
+    page: PageInterface = new Page(this.model_, this.data, this.balancer)
 
     initialize($context: JQuery, setting: SettingInterface): void {
-      if (setting.load.script) {
-        var loadedScripts = this.page.loadedScripts;
-        jQuery('script').each(function () {
-          var element: HTMLScriptElement = this;
-          if (element.src) { loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload); }
-        });
-      }
-
       this.controller_.view($context, setting);
-      this.balance.enable(setting);
+      this.balancer.enable(setting);
       this.data.loadBuffers();
       setTimeout(() => this.page.landing = null, 1500);
     }
@@ -100,7 +88,8 @@ module MODULE.MODEL.APP {
       var origLocation: HTMLAnchorElement = <HTMLAnchorElement>this.model_.location.cloneNode(),
           destLocation: HTMLAnchorElement = <HTMLAnchorElement>this.model_.location.cloneNode();
 
-      destLocation.href = url;
+      origLocation.href = this.util_.canonicalizeUrl(origLocation.href);
+      destLocation.href = this.util_.canonicalizeUrl(url);
 
       var scope: PjaxSetting = this.scope_(this.option_, origLocation.href, destLocation.href) || null;
 
@@ -141,6 +130,7 @@ module MODULE.MODEL.APP {
               active: false,
               bounds: /^.*$/,
               weight: 1,
+              random: 0,
               option: <PjaxSetting>{
                 server: {
                   header: false
@@ -194,6 +184,7 @@ module MODULE.MODEL.APP {
               query: null,
               header: true
             },
+            overlay: '',
             callback: null,
             callbacks: {
               ajax: {},
@@ -202,6 +193,7 @@ module MODULE.MODEL.APP {
             data: undefined
           },
           force = <SettingInterface>{
+            uid: UUID(),
             ns: '',
             nss: undefined,
             speedcheck: undefined,
@@ -226,6 +218,7 @@ module MODULE.MODEL.APP {
                 query = '';
             }
             return <SettingInterface>{
+              uid: undefined,
               ns: undefined,
               origLocation: undefined,
               destLocation: undefined,
@@ -237,7 +230,7 @@ module MODULE.MODEL.APP {
                 array: nsArray,
                 name: nsArray.join('.'),
                 data: nsArray[0],
-                url: this.model_.convertUrlToKeyUrl(setting.destLocation.href),
+                url: this.model_.convertUrlToKey(setting.destLocation.href, true),
                 event: {
                   pjax: {
                     fetch: [EVENT.PJAX, 'fetch'].join(':'),
@@ -298,8 +291,8 @@ module MODULE.MODEL.APP {
           scpTag: string,
           scope: PjaxSetting;
 
-      origKeyUrl = this.model_.convertUrlToKeyUrl(origURL).match(/.+?\w(\/.*)/).pop();
-      destKeyUrl = this.model_.convertUrlToKeyUrl(destURL).match(/.+?\w(\/.*)/).pop();
+      origKeyUrl = this.model_.convertUrlToKey(origURL, true).match(/.+?\w(\/.*)/).pop();
+      destKeyUrl = this.model_.convertUrlToKey(destURL, true).match(/.+?\w(\/.*)/).pop();
       rewriteKeyUrl = rewriteKeyUrl.replace(/[#?].*/, '');
 
       scpKeys = (rewriteKeyUrl || destKeyUrl).split('/');

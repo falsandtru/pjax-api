@@ -7,6 +7,12 @@ nav: nav
 
 # ChangeLog
 
+## 2.33.0
+
+* アーキテクチャを改善
+* `balance.random`パラメータを追加
+* `overlay`パラメータを追加
+
 ## 2.32.1
 
 * `bypass`メソッドが動作しないバグを修正
