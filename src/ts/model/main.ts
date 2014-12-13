@@ -114,7 +114,17 @@ module MODULE.MODEL {
 
       if (setting.origLocation.protocol !== setting.destLocation.protocol || setting.origLocation.host !== setting.destLocation.host) { return false; }
 
-      if (setting.destLocation.hash && setting.origLocation.href.replace(/#.*/, '') === setting.destLocation.href.replace(/#.*/, '')) { return false; }
+      switch (event.type.toLowerCase()) {
+        case EVENT.CLICK:
+          if (this.comparePageByUrl(setting.origLocation.href, setting.destLocation.href) && setting.destLocation.hash) { return false; }
+          break;
+        case EVENT.SUBMIT:
+          break;
+        case EVENT.POPSTATE:
+          if (this.comparePageByUrl(setting.origLocation.href, setting.destLocation.href)) { return false; }
+          break;
+      }
+
       if (!this.app_.page.chooseArea(setting.area, document, document)) { return false; }
 
       return true;
@@ -134,32 +144,29 @@ module MODULE.MODEL {
       var context = <HTMLAnchorElement>event.currentTarget,
           $context: JQuery = jQuery(context);
       var setting: SettingInterface = this.app_.configure(context);
-      
+
+      this.location.href = this.util_.normalizeUrl(window.location.href);
+
       switch (true) {
         case !setting:
         case event.isDefaultPrevented():
         case this.state() !== State.open:
-          this.location.href = this.util_.normalizeUrl(window.location.href);
           return;
 
-        case !this.isOperatable(event):
-          this.location.href = this.util_.normalizeUrl(window.location.href);
-          // clickメソッド用
-          if (this.isHashChange(setting)) {
-            if (this.overlay(setting)) {
-              event.preventDefault();
-              window.history.pushState(null, document.title, setting.destLocation.href);
-            }
-          } else {
-            if (!event.originalEvent && !jQuery(document).has(context).length) {
-              this.fallback(event);
-            }
-          }
-          return;
-
-        default:
+        case this.isOperatable(event):
           this.app_.page.transfer(setting, event);
           event.preventDefault();
+          return;
+
+        case this.isHashChange(setting) && this.overlay(setting):
+          event.preventDefault();
+          window.history.pushState(null, document.title, setting.destLocation.href);
+          return;
+
+        case !event.originalEvent && !jQuery(document).has(context).length:
+          // clickメソッド用
+          this.fallback(event);
+          return;
       }
     }
 
@@ -168,23 +175,24 @@ module MODULE.MODEL {
       var context = <HTMLFormElement>event.currentTarget,
           $context: JQuery = jQuery(context);
       var setting: SettingInterface = this.app_.configure(context);
-      
+
+      this.location.href = this.util_.normalizeUrl(window.location.href);
+ 
       switch (true) {
         case !setting:
         case event.isDefaultPrevented():
         case this.state() !== State.open:
           return;
 
-        case !this.isOperatable(event):
-          // submitメソッド用
-          if (!event.originalEvent && !jQuery(document).has(context).length) {
-            this.fallback(event);
-          }
+        case this.isOperatable(event):
+          this.app_.page.transfer(setting, event);
+          event.preventDefault
           return;
 
-        default:
-          this.app_.page.transfer(setting, event);
-          event.preventDefault();
+        case !event.originalEvent && !jQuery(document).has(context).length:
+          // submitメソッド用
+          this.fallback(event);
+          return;
       }
     }
 
@@ -193,7 +201,9 @@ module MODULE.MODEL {
 
       event.timeStamp = new Date().getTime();
       var setting: SettingInterface = this.app_.configure(window.location);
-      
+
+      //this.location.href = this.util_.normalizeUrl(window.location.href);
+
       switch (true) {
         case !setting:
         //case event.isDefaultPrevented():
@@ -201,21 +211,19 @@ module MODULE.MODEL {
           this.location.href = this.util_.normalizeUrl(window.location.href);
           return;
 
-        case !this.isOperatable(event):
-        case this.comparePageByUrl(setting.origLocation.href, window.location.href):
-          // pjax処理されないURL変更によるページ更新
-          if (this.isHashChange(setting)) {
-            this.overlay(setting);
-          } else {
-            if (!this.comparePageByUrl(setting.origLocation.href, window.location.href)) {
-              this.fallback(event);
-            }
-          }
+        case this.isOperatable(event):
+          this.app_.page.transfer(setting, event);
+          return;
+          
+        case this.isHashChange(setting) && this.overlay(setting):
           this.location.href = this.util_.normalizeUrl(window.location.href);
           return;
 
-        default:
-          this.app_.page.transfer(setting, event);
+        case !this.comparePageByUrl(setting.origLocation.href, window.location.href):
+          // pjax処理されないURL変更によるページ更新
+          this.fallback(event);
+          this.location.href = this.util_.normalizeUrl(window.location.href);
+          return;
       }
     }
     
