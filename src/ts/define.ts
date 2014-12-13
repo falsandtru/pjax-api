@@ -93,6 +93,8 @@ module MODULE {
     setXHR($xhr: JQueryXHR): JQueryXHR
     isOperatable(event: JQueryEventObject): boolean
     fallback(event: JQueryEventObject): void
+    isHashChange(setting: SettingInterface): boolean
+    overlay(setting: SettingInterface): boolean
     bypass(): JQueryDeferred<any>
     speed: any
     

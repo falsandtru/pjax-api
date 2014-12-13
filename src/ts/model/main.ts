@@ -59,6 +59,7 @@ module MODULE.MODEL {
       jQuery(() => {
         this.app_.initialize($context, setting);
         this.state_ = this.state() === State.initiate ? State.open : this.state();
+        this.overlay(setting, true);
       });
 
       return $context;
@@ -134,18 +135,25 @@ module MODULE.MODEL {
           $context: JQuery = jQuery(context);
       var setting: SettingInterface = this.app_.configure(context);
       
-      switch (false) {
-        case !!setting:
-        case !event.isDefaultPrevented():
-        case this.state() === State.open:
+      switch (true) {
+        case !setting:
+        case event.isDefaultPrevented():
+        case this.state() !== State.open:
           this.location.href = this.util_.normalizeUrl(window.location.href);
           return;
 
-        case this.isOperatable(event):
+        case !this.isOperatable(event):
           this.location.href = this.util_.normalizeUrl(window.location.href);
           // clickメソッド用
-          if (!event.originalEvent && !jQuery(document).has(context).length) {
-            this.fallback(event);
+          if (this.isHashChange(setting)) {
+            if (this.overlay(setting)) {
+              event.preventDefault();
+              window.history.pushState(null, document.title, setting.destLocation.href);
+            }
+          } else {
+            if (!event.originalEvent && !jQuery(document).has(context).length) {
+              this.fallback(event);
+            }
           }
           return;
 
@@ -161,13 +169,13 @@ module MODULE.MODEL {
           $context: JQuery = jQuery(context);
       var setting: SettingInterface = this.app_.configure(context);
       
-      switch (false) {
-        case !!setting:
-        case !event.isDefaultPrevented():
-        case this.state() === State.open:
+      switch (true) {
+        case !setting:
+        case event.isDefaultPrevented():
+        case this.state() !== State.open:
           return;
 
-        case this.isOperatable(event):
+        case !this.isOperatable(event):
           // submitメソッド用
           if (!event.originalEvent && !jQuery(document).has(context).length) {
             this.fallback(event);
@@ -181,26 +189,29 @@ module MODULE.MODEL {
     }
 
     popstate(event: JQueryEventObject): void {
-      switch (true) {
-        case this.app_.page.landing && this.util_.compareUrl(this.app_.page.landing, window.location.href):
-        case this.util_.compareUrl(this.location.href, window.location.href):
-          return;
-      }
-      
+      if (this.app_.page.landing && this.util_.compareUrl(this.app_.page.landing, window.location.href)) { return; }
+
       event.timeStamp = new Date().getTime();
       var setting: SettingInterface = this.app_.configure(window.location);
       
-      switch (false) {
-        case !!setting:
-        //case !event.isDefaultPrevented():
-        case this.state() === State.open:
+      switch (true) {
+        case !setting:
+        //case event.isDefaultPrevented():
+        case this.state() !== State.open:
+          this.location.href = this.util_.normalizeUrl(window.location.href);
           return;
 
-        case this.isOperatable(event):
+        case !this.isOperatable(event):
+        case this.comparePageByUrl(setting.origLocation.href, window.location.href):
           // pjax処理されないURL変更によるページ更新
-          if (!this.comparePageByUrl(setting.origLocation.href, window.location.href)) {
-            this.fallback(event);
+          if (this.isHashChange(setting)) {
+            this.overlay(setting);
+          } else {
+            if (!this.comparePageByUrl(setting.origLocation.href, window.location.href)) {
+              this.fallback(event);
+            }
           }
+          this.location.href = this.util_.normalizeUrl(window.location.href);
           return;
 
         default:
@@ -249,6 +260,73 @@ module MODULE.MODEL {
           window.location.reload();
           break;
       }
+    }
+
+    isHashChange(setting: SettingInterface): boolean {
+      return !!setting &&
+             setting.origLocation.href.replace(/#.*/, '') === setting.destLocation.href.replace(/#.*/, '') &&
+             setting.origLocation.hash !== setting.destLocation.hash;
+    }
+
+    overlay(setting: SettingInterface, immediate?: boolean): boolean {
+      var hash = setting.destLocation.hash.replace(/^#/, '');
+      if (!hash || !setting.overlay) { return false; }
+
+      var $hashTargetElement = jQuery('#' + hash + ', [name~=' + hash + ']');
+      $hashTargetElement = $hashTargetElement.add($hashTargetElement.nextUntil(':header'));
+      $hashTargetElement = $hashTargetElement.filter(setting.overlay).add($hashTargetElement.find(setting.overlay)).first();
+      if (!$hashTargetElement.length) { return false; }
+
+      if (this.isHashChange(setting)) {
+        this.app_.data.loadScrollPosition();
+        setTimeout(() => this.app_.data.loadScrollPosition(), 1);
+      }
+
+      var $container = jQuery('<div>');
+      $hashTargetElement = $hashTargetElement.clone(true);
+      $container
+      .addClass(setting.nss.elem + '-overlay')
+      .css({
+        background: 'rgba(255, 255, 255, 0.8)',
+        display: 'none',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        margin: 0,
+        padding: 0,
+        border: 'none',
+      })
+      .append($hashTargetElement.css({
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        margin: 'auto'
+      }).show());
+
+      $container.bind('click', $container, (event) => {
+        if (event.target !== event.currentTarget) { return; }
+        jQuery(event.data).fadeOut('fast', () => {
+          jQuery(event.data).remove();
+          window.history.pushState(window.history.state, document.title, window.location.href.replace(/#.*/, ''));
+          this.location.href = this.util_.normalizeUrl(window.location.href);
+        });
+      });
+
+      $container.appendTo('body').fadeIn(immediate ? 0 : 100);
+      jQuery(window).one('popstate', $container, (event: JQueryEventObject) => {
+        setTimeout(() => this.app_.data.loadScrollPosition(), 1);
+        jQuery(event.data).fadeOut('fast', () => {
+          jQuery(event.data).remove();
+        });
+      });
+      /trident/i.test(window.navigator.userAgent) && $hashTargetElement.width($hashTargetElement.width());
+      this.app_.data.saveScrollPosition();
+
+      return true;
     }
 
     enable(): void {

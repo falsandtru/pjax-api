@@ -74,6 +74,9 @@ IndexedDBの使用を設定します。
 ### [server:](api/core/setting/server/)
 サーバーへのリクエストを設定します。
 
+### [overlay:](api/core/setting/overlay/) <small><span class="label label-warning">IE10+</span></small>
+ハッシュリンクにコンテンツのポップアップ表示機能を追加します。
+
 ### [data:](api/core/setting/data/)
 任意のデータを設定します。
 

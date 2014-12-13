@@ -110,6 +110,7 @@ interface PjaxSetting {
             script?: boolean
         }
     }
+    overlay?: string
     data?: any
     callback?: (event?: JQueryEventObject, setting?: PjaxSetting) => any
     callbacks?: {

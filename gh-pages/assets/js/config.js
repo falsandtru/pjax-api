@@ -12,7 +12,7 @@ new Function().apply.apply(function (accessor) {
 
 /* component
   ========================================================================== */
-  
+
 /* clientenv
   -------------------------------------------------------------------------- */
   spec.clientenv = function () {
@@ -29,7 +29,7 @@ new Function().apply.apply(function (accessor) {
   -------------------------------------------------------------------------- */
   spec.preload = function () {
     if (/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.navigator.userAgent)) { return; }
-    
+
     if (initialize) {
       $.preload({
         forward: $.pjax.follow,
@@ -62,7 +62,7 @@ new Function().apply.apply(function (accessor) {
         }
       });
     }
-    
+
     if (always) {
       setTimeout(function () { $(document).trigger('preload'); }, 1000);
     }
@@ -146,9 +146,10 @@ new Function().apply.apply(function (accessor) {
           css: true,
           script: true
         },
+        overlay: '.overlay',
         speedcheck: true
       });
-      
+
       $(document).bind('pjax:ready', spec.init);
       $(document).bind('pjax:fetch', function () {
         $('div.loading').children().width('');

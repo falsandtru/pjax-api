@@ -183,6 +183,7 @@ module MODULE.MODEL.APP {
               query: null,
               header: true
             },
+            overlay: '',
             callback: null,
             callbacks: {
               ajax: {},

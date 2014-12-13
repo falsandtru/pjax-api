@@ -248,10 +248,10 @@ module MODULE.MODEL.APP {
             switch (event.type.toLowerCase()) {
               case EVENT.CLICK:
               case EVENT.SUBMIT:
-                this.scrollByHash_(setting) || this.scroll_(true);
+                this.model_.overlay(setting) || this.scrollByHash_(setting) || this.scroll_(true);
                 break;
               case EVENT.POPSTATE:
-                this.scroll_(true);
+                this.model_.overlay(setting) || this.scroll_(true);
                 break;
             }
           }, 100);
