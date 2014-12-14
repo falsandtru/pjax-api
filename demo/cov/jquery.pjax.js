@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.33.0
+ * @version 2.33.1
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -4205,8 +4205,19 @@ var MODULE;
                 if (setting.origLocation.protocol !== setting.destLocation.protocol || setting.origLocation.host !== setting.destLocation.host) {
                     return false;
                 }
-                if (setting.destLocation.hash && setting.origLocation.href.replace(/#.*/, '') === setting.destLocation.href.replace(/#.*/, '')) {
-                    return false;
+                switch (event.type.toLowerCase()) {
+                    case MODULE.EVENT.CLICK:
+                        if (this.comparePageByUrl(setting.origLocation.href, setting.destLocation.href) && setting.destLocation.hash) {
+                            return false;
+                        }
+                        break;
+                    case MODULE.EVENT.SUBMIT:
+                        break;
+                    case MODULE.EVENT.POPSTATE:
+                        if (this.comparePageByUrl(setting.origLocation.href, setting.destLocation.href)) {
+                            return false;
+                        }
+                        break;
                 }
                 if (!this.app_.page.chooseArea(setting.area, document, document)) {
                     return false;
@@ -4225,50 +4236,44 @@ var MODULE;
                 event.timeStamp = new Date().getTime();
                 var context = event.currentTarget, $context = jQuery(context);
                 var setting = this.app_.configure(context);
+                this.location.href = this.util_.normalizeUrl(window.location.href);
                 switch (true) {
                     case !setting:
                     case event.isDefaultPrevented():
                     case this.state() !== 2 /* open */:
-                        this.location.href = this.util_.normalizeUrl(window.location.href);
                         return;
-                    case !this.isOperatable(event):
-                        this.location.href = this.util_.normalizeUrl(window.location.href);
-                        // clickメソッド用
-                        if (this.isHashChange(setting)) {
-                            if (this.overlay(setting)) {
-                                event.preventDefault();
-                                window.history.pushState(null, document.title, setting.destLocation.href);
-                            }
-                        }
-                        else {
-                            if (!event.originalEvent && !jQuery(document).has(context).length) {
-                                this.fallback(event);
-                            }
-                        }
-                        return;
-                    default:
+                    case this.isOperatable(event):
                         this.app_.page.transfer(setting, event);
                         event.preventDefault();
+                        return;
+                    case this.isHashChange(setting) && this.overlay(setting):
+                        event.preventDefault();
+                        window.history.pushState(null, document.title, setting.destLocation.href);
+                        return;
+                    case !event.originalEvent && !jQuery(document).has(context).length:
+                        // clickメソッド用
+                        this.fallback(event);
+                        return;
                 }
             };
             Main.prototype.submit = function (event) {
                 event.timeStamp = new Date().getTime();
                 var context = event.currentTarget, $context = jQuery(context);
                 var setting = this.app_.configure(context);
+                this.location.href = this.util_.normalizeUrl(window.location.href);
                 switch (true) {
                     case !setting:
                     case event.isDefaultPrevented():
                     case this.state() !== 2 /* open */:
                         return;
-                    case !this.isOperatable(event):
-                        // submitメソッド用
-                        if (!event.originalEvent && !jQuery(document).has(context).length) {
-                            this.fallback(event);
-                        }
-                        return;
-                    default:
+                    case this.isOperatable(event):
                         this.app_.page.transfer(setting, event);
-                        event.preventDefault();
+                        event.preventDefault;
+                        return;
+                    case !event.originalEvent && !jQuery(document).has(context).length:
+                        // submitメソッド用
+                        this.fallback(event);
+                        return;
                 }
             };
             Main.prototype.popstate = function (event) {
@@ -4282,21 +4287,17 @@ var MODULE;
                     case this.state() !== 2 /* open */:
                         this.location.href = this.util_.normalizeUrl(window.location.href);
                         return;
-                    case !this.isOperatable(event):
-                    case this.comparePageByUrl(setting.origLocation.href, window.location.href):
-                        // pjax処理されないURL変更によるページ更新
-                        if (this.isHashChange(setting)) {
-                            this.overlay(setting);
-                        }
-                        else {
-                            if (!this.comparePageByUrl(setting.origLocation.href, window.location.href)) {
-                                this.fallback(event);
-                            }
-                        }
+                    case this.isOperatable(event):
+                        this.app_.page.transfer(setting, event);
+                        return;
+                    case this.isHashChange(setting) && this.overlay(setting):
                         this.location.href = this.util_.normalizeUrl(window.location.href);
                         return;
-                    default:
-                        this.app_.page.transfer(setting, event);
+                    case !this.comparePageByUrl(setting.origLocation.href, window.location.href):
+                        // pjax処理されないURL変更によるページ更新
+                        this.fallback(event);
+                        this.location.href = this.util_.normalizeUrl(window.location.href);
+                        return;
                 }
             };
             Main.prototype.scroll = function (event, end) {
@@ -4387,18 +4388,14 @@ var MODULE;
                     if (event.target !== event.currentTarget) {
                         return;
                     }
-                    jQuery(event.data).fadeOut('fast', function () {
-                        jQuery(event.data).remove();
-                        window.history.pushState(window.history.state, document.title, window.location.href.replace(/#.*/, ''));
-                        _this.location.href = _this.util_.normalizeUrl(window.location.href);
-                    });
+                    window.history.pushState(window.history.state, document.title, window.location.href.replace(/#.*/, ''));
+                    _this.location.href = _this.util_.normalizeUrl(window.location.href);
+                    jQuery(event.data).fadeOut('fast', function () { return jQuery(event.data).remove(); });
                 });
                 $container.appendTo('body').fadeIn(immediate ? 0 : 100);
                 jQuery(window).one('popstate', $container, function (event) {
                     setTimeout(function () { return _this.app_.data.loadScrollPosition(); }, 1);
-                    jQuery(event.data).fadeOut('fast', function () {
-                        jQuery(event.data).remove();
-                    });
+                    jQuery(event.data).fadeOut('fast', function () { return jQuery(event.data).remove(); });
                 });
                 /trident/i.test(window.navigator.userAgent) && $hashTargetElement.width($hashTargetElement.width());
                 this.app_.data.saveScrollPosition();
