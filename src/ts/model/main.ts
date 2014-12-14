@@ -317,19 +317,15 @@ module MODULE.MODEL {
 
       $container.bind('click', $container, (event) => {
         if (event.target !== event.currentTarget) { return; }
-        jQuery(event.data).fadeOut('fast', () => {
-          jQuery(event.data).remove();
-          window.history.pushState(window.history.state, document.title, window.location.href.replace(/#.*/, ''));
-          this.location.href = this.util_.normalizeUrl(window.location.href);
-        });
+        window.history.pushState(window.history.state, document.title, window.location.href.replace(/#.*/, ''));
+        this.location.href = this.util_.normalizeUrl(window.location.href);
+        jQuery(event.data).fadeOut('fast', () => jQuery(event.data).remove());
       });
 
       $container.appendTo('body').fadeIn(immediate ? 0 : 100);
       jQuery(window).one('popstate', $container, (event: JQueryEventObject) => {
         setTimeout(() => this.app_.data.loadScrollPosition(), 1);
-        jQuery(event.data).fadeOut('fast', () => {
-          jQuery(event.data).remove();
-        });
+        jQuery(event.data).fadeOut('fast', () => jQuery(event.data).remove());
       });
       /trident/i.test(window.navigator.userAgent) && $hashTargetElement.width($hashTargetElement.width());
       this.app_.data.saveScrollPosition();
