@@ -15,7 +15,6 @@ class: style-api style-api-detail
 * blogディレクトリ下と外部とのページ遷移はprimaryとsecondaryが更新される
 * blogディレクトリ下のページ遷移はprimaryのみ更新される
 * contactディレクトリ下はpjax無効
-* aboutディレクトリ下へpjaxでページ遷移した場合にsecondaryのカレントディレクトリを基準とする相対パスによるリンクが壊れる(悪い例)
 
 <pre class="sh brush: js;">
 $.pjax({

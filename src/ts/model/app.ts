@@ -173,7 +173,8 @@ module MODULE.MODEL.APP {
               location: true,
               history: true,
               scroll: true,
-              noscript: true
+              noscript: true,
+              reference: true
             },
             database: {
               active: true,
