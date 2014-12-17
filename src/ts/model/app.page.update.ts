@@ -449,6 +449,7 @@ module MODULE.MODEL.APP {
 
         for (var j = 0; $srcAreas[j]; j++) {
           $dstAreas[j].parentNode.replaceChild($srcAreas[j], $dstAreas[j]);
+          document.body === $srcAreas[j] && jQuery.each($srcAreas[j].attributes, (i, attr) => $dstAreas[j].setAttribute(attr.name, attr.value));
         }
 
         $dstAreas = jQuery(this.areas_[i], dstDocument);
