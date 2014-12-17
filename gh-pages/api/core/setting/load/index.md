@@ -52,9 +52,6 @@ $.pjax({
 ## load.reload: string
 繰り返し読み込む外部参照JavaScriptをjQueryセレクタで設定します。初期値は`''`です。
 
-## load.execute: boolean
-インラインJavaScriptを実行するかを設定します。初期値は`true`です。
-
 ## load.log: string
 実行した場合にDOMに追加するSCRIPT要素をその親要素を示すjQueryセレクタで設定します。初期値は`head, body`です。
 

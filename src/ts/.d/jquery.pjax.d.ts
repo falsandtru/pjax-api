@@ -55,7 +55,6 @@ interface PjaxSetting {
         script?: boolean
         ignore?: string
         reload?: string
-        execute?: boolean
         log?: string
         error?: any
         ajax?: JQueryAjaxSettings
@@ -96,6 +95,7 @@ interface PjaxSetting {
         history?: boolean
         scroll?: boolean
         noscript?: boolean
+        reference?: boolean
     }
     database?: {
         active?: boolean

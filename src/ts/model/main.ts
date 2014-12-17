@@ -206,6 +206,10 @@ module MODULE.MODEL {
 
       switch (true) {
         case !setting:
+          !this.comparePageByUrl(this.location.href, window.location.href) && this.fallback(event);
+          this.location.href = this.util_.normalizeUrl(window.location.href);
+          return;
+
         //case event.isDefaultPrevented():
         case this.state() !== State.open:
           this.location.href = this.util_.normalizeUrl(window.location.href);

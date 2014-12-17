@@ -201,6 +201,9 @@ module MODULE.MODEL.APP {
       setting.fix.noscript &&
       this.escapeNoscript_(this.srcDocument_);
 
+      setting.fix.reference &&
+      this.fixReference_(setting.origLocation.href, this.dstDocument_);
+
       this.rewrite_();
 
       this.title_();
@@ -449,6 +452,7 @@ module MODULE.MODEL.APP {
 
         for (var j = 0; $srcAreas[j]; j++) {
           $dstAreas[j].parentNode.replaceChild($srcAreas[j], $dstAreas[j]);
+          document.body === $srcAreas[j] && jQuery.each($srcAreas[j].attributes, (i, attr) => $dstAreas[j].setAttribute(attr.name, attr.value));
         }
 
         $dstAreas = jQuery(this.areas_[i], dstDocument);
@@ -777,7 +781,63 @@ module MODULE.MODEL.APP {
         return false;
       }
     }
-    
+
+    private fixReference_(url: string, document: Document): void {
+      var origDir = url.replace(/[^/]+$/, ''),
+          destDir = document.URL.replace(/[^/]+$/, ''),
+          origDim = origDir.split('/').length,
+          destDim = destDir.split('/').length;
+
+      var regUntilHost = /^.+?\w\//;
+
+      var distance: string = this.util_.repeat('../', Math.abs(origDim - destDim)),
+          direction: number;
+      switch (true) {
+        case origDim === destDim:
+          direction = 0;
+          break;
+        case origDim < destDim:
+          direction = 1;
+          break;
+        case origDim > destDim:
+          direction = -1;
+          break;
+      }
+
+      jQuery('[href], [src]', document)
+      .not([
+        '[href^="/"]',
+        '[href^= "http:"]',
+        '[href^= "https:"]',
+        '[src^= "/"]',
+        '[src^= "http:"]',
+        '[src^= "https:"]'
+      ].join(','))
+      .each(eachFixPath);
+      function eachFixPath(i, elem: HTMLElement) {
+        var attr: string;
+        if ('href' in elem) {
+          attr = 'href';
+        } else if ('src' in elem) {
+          attr = 'src';
+        } else {
+          return;
+        }
+
+        switch (direction) {
+          case 0:
+            break;
+          case 1:
+            elem[attr] = distance + elem.getAttribute(attr);
+            break;
+          case -1:
+            elem[attr] = elem.getAttribute(attr).replace(distance, '');
+            break;
+        }
+        elem.setAttribute(attr, elem[attr].replace(regUntilHost, '/'));
+      }
+    }
+
     private escapeNoscript_(srcDocument: Document): void {
       jQuery('noscript', srcDocument).children().parent().each(eachNoscript);
       function eachNoscript() {

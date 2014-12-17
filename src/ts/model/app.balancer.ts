@@ -30,6 +30,7 @@ module MODULE.MODEL.APP {
     sanitize(host: string, setting: SettingInterface): string
     sanitize($xhr: JQueryXHR, setting: SettingInterface): string
     sanitize(param: any, setting: SettingInterface): any {
+      if (!setting) { return ''; }
       var host: string;
       switch (param && typeof param) {
         case 'string':
@@ -155,28 +156,40 @@ module MODULE.MODEL.APP {
       return result;
     }
 
-    chooseServer(setting: SettingInterface): string {
-      if (!setting.balance.active) { return ''; }
-
-      var hosts: string[];
-
-      // キャッシュの有効期限内の再リクエストは同じサーバーを選択してキャッシュを使用
+    private chooseServerFromCache_(setting: SettingInterface): string {
+      var hosts: string[] = [];
       var history: HistoryStoreSchema = this.data_.getHistoryBuffer(setting.destLocation.href);
-      switch (false) {
-        case history && history.host === this.sanitize(history.host, setting):
+      switch (true) {
+        case !history:
+          break;
+        case history.host !== this.sanitize(history.host, setting):
           this.data_.saveExpires(history.url, '', 0);
-        case !!history:
-        case !!history.expires && history.expires >= new Date().getTime():
-        case !!history.host || !this.force_:
+        case !history.expires:
+        case history.expires < new Date().getTime():
+        case this.force_ && !history.host:
           break;
         default:
-          return history.host || '';
+          hosts = jQuery.map(this.data_.getServerBuffers(), (i, server: ServerStoreSchema) => {
+            if (server.host !== history.host) { return; }
+            if (server.state >= new Date().getTime()) {
+              this.data_.saveExpires(history.url, history.host, 0);
+              return;
+            }
+            return server.host;
+          });
       }
+      return hosts.length ? hosts.pop() || ' ' : '';
+    }
 
-      // 応答性能の高いサーバーをリストアップ
-      hosts = this.chooseServers_(setting);
-      // 上位6サーバーまでからランダムに選択
-      return hosts.slice(Math.floor(Math.random() * Math.min(hosts.length, 6))).shift() || '';
+    private chooseServerFromScore_(setting: SettingInterface): string {
+      var hosts = this.chooseServers_(setting);
+      return hosts.slice(Math.floor(Math.random() * Math.min(hosts.length, 6))).shift() || ' ';
+    }
+
+    chooseServer(setting: SettingInterface): string {
+      if (!setting.balance.active) { return ''; }
+      // 正規サーバーを空文字でなくスペースで返させることで短絡評価を行いトリムで空文字に戻す
+      return this.util_.trim(this.chooseServerFromCache_(setting) || this.chooseServerFromScore_(setting));
     }
 
     private parallel_ = 4
@@ -184,7 +197,7 @@ module MODULE.MODEL.APP {
       this.force_ = true;
 
       var deferred = jQuery.Deferred();
-      if (!setting.balance.active) { return deferred.reject(); }
+      if (!setting || !setting.balance.active) { return deferred.reject(); }
 
       var parallel = this.parallel_,
           hosts = this.chooseServers_(setting),
