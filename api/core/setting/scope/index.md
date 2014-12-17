@@ -9,8 +9,28 @@ class: style-api style-api-detail
 # scope
 ページ遷移にpjaxを使用するURLを設定します。設定はサブディレクトリにも適用されます。初期値は`null`です。
 
+<a href="demo/scope/" target="_blank" class="btn btn-primary" role="button">demo</a>
+
+* aboutディレクトリ下はprimaryのみ更新される
+* blogディレクトリ下と外部とのページ遷移はprimaryとsecondaryが更新される
+* blogディレクトリ下のページ遷移はprimaryのみ更新される
+* contactディレクトリ下はpjax無効
+
+<pre class="sh brush: js;">
+$.pjax({
+  area: '#primary',
+  scope: {
+    '/': ['/', '#blog', '#contact'],
+    '/jquery-pjax/demo/scope/blog/': ['/jquery-pjax/demo/scope/blog/', 'inherit'],
+    blog: ['/jquery-pjax/demo/scope/blog/'],
+    $blog: { area: '#primary, #secondary' },
+    contact: ['!/jquery-pjax/demo/scope/contact/']
+  }
+});
+</pre>
+
 ## scope: object
-ルートパスをキーとするハッシュテーブルによりURLごとの動作を設定します。キーは遷移先のURLが使用されます。値に遷移元と遷移先に前方一致するURLを設定します。
+ルートパスをキーとするハッシュテーブルによりURLごとの動作を設定します。キーは遷移元のURLが使用されます。値に遷移元および遷移先に前方一致するURLを設定します。
 
 <pre class="sh brush: js;">
 $.pjax({
@@ -45,7 +65,7 @@ $.pjax({
 });
 </pre>
 
-`'$'`接頭辞によりpjax設定を上書きできます。遷移先URLに一致するパターンのみ使用されます。
+`'$'`接頭辞によりpjax設定を上書きできます。遷移元または遷移先のURLに一致する最後のパターンが使用されます。
 
 <pre class="sh brush: js;">
 $.pjax({

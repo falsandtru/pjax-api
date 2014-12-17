@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.33.1
+ * @version 2.34.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -2130,6 +2130,9 @@ var MODULE;
                     return this.host_();
                 };
                 Balancer.prototype.sanitize = function (param, setting) {
+                    if (!setting) {
+                        return '';
+                    }
                     var host;
                     switch (param && typeof param) {
                         case 'string':
@@ -2240,33 +2243,49 @@ var MODULE;
                     }
                     return result;
                 };
+                Balancer.prototype.chooseServerFromCache_ = function (setting) {
+                    var _this = this;
+                    var hosts = [];
+                    var history = this.data_.getHistoryBuffer(setting.destLocation.href);
+                    switch (true) {
+                        case !history:
+                            break;
+                        case history.host !== this.sanitize(history.host, setting):
+                            this.data_.saveExpires(history.url, '', 0);
+                        case !history.expires:
+                        case history.expires < new Date().getTime():
+                        case this.force_ && !history.host:
+                            break;
+                        default:
+                            hosts = jQuery.map(this.data_.getServerBuffers(), function (i, server) {
+                                if (server.host !== history.host) {
+                                    return;
+                                }
+                                if (server.state >= new Date().getTime()) {
+                                    _this.data_.saveExpires(history.url, history.host, 0);
+                                    return;
+                                }
+                                return server.host;
+                            });
+                    }
+                    return hosts.length ? hosts.pop() || ' ' : '';
+                };
+                Balancer.prototype.chooseServerFromScore_ = function (setting) {
+                    var hosts = this.chooseServers_(setting);
+                    return hosts.slice(Math.floor(Math.random() * Math.min(hosts.length, 6))).shift() || ' ';
+                };
                 Balancer.prototype.chooseServer = function (setting) {
                     if (!setting.balance.active) {
                         return '';
                     }
-                    var hosts;
-                    // キャッシュの有効期限内の再リクエストは同じサーバーを選択してキャッシュを使用
-                    var history = this.data_.getHistoryBuffer(setting.destLocation.href);
-                    switch (false) {
-                        case history && history.host === this.sanitize(history.host, setting):
-                            this.data_.saveExpires(history.url, '', 0);
-                        case !!history:
-                        case !!history.expires && history.expires >= new Date().getTime():
-                        case !!history.host || !this.force_:
-                            break;
-                        default:
-                            return history.host || '';
-                    }
-                    // 応答性能の高いサーバーをリストアップ
-                    hosts = this.chooseServers_(setting);
-                    // 上位6サーバーまでからランダムに選択
-                    return hosts.slice(Math.floor(Math.random() * Math.min(hosts.length, 6))).shift() || '';
+                    // 正規サーバーを空文字でなくスペースで返させることで短絡評価を行いトリムで空文字に戻す
+                    return this.util_.trim(this.chooseServerFromCache_(setting) || this.chooseServerFromScore_(setting));
                 };
                 Balancer.prototype.bypass = function (setting) {
                     var _this = this;
                     this.force_ = true;
                     var deferred = jQuery.Deferred();
-                    if (!setting.balance.active) {
+                    if (!setting || !setting.balance.active) {
                         return deferred.reject();
                     }
                     var parallel = this.parallel_, hosts = this.chooseServers_(setting), option = jQuery.extend({}, setting.ajax, setting.balance.option.ajax);
@@ -2962,6 +2981,7 @@ var MODULE;
                     }
                     this.overwriteDocumentByCache_();
                     setting.fix.noscript && this.escapeNoscript_(this.srcDocument_);
+                    setting.fix.reference && this.fixReference_(setting.origLocation.href, this.dstDocument_);
                     this.rewrite_();
                     this.title_();
                     setting.fix.history && this.data_.saveTitle();
@@ -3157,6 +3177,7 @@ var MODULE;
                         }
                         for (var j = 0; $srcAreas[j]; j++) {
                             $dstAreas[j].parentNode.replaceChild($srcAreas[j], $dstAreas[j]);
+                            document.body === $srcAreas[j] && jQuery.each($srcAreas[j].attributes, function (i, attr) { return $dstAreas[j].setAttribute(attr.name, attr.value); });
                         }
                         $dstAreas = jQuery(this.areas_[i], dstDocument);
                         $dstAreas.append(checker.clone());
@@ -3453,6 +3474,53 @@ var MODULE;
                     }
                     else {
                         return false;
+                    }
+                };
+                PageUpdate.prototype.fixReference_ = function (url, document) {
+                    var origDir = url.replace(/[^/]+$/, ''), destDir = document.URL.replace(/[^/]+$/, ''), origDim = origDir.split('/').length, destDim = destDir.split('/').length;
+                    var regUntilHost = /^.+?\w\//;
+                    var distance = this.util_.repeat('../', Math.abs(origDim - destDim)), direction;
+                    switch (true) {
+                        case origDim === destDim:
+                            direction = 0;
+                            break;
+                        case origDim < destDim:
+                            direction = 1;
+                            break;
+                        case origDim > destDim:
+                            direction = -1;
+                            break;
+                    }
+                    jQuery('[href], [src]', document).not([
+                        '[href^="/"]',
+                        '[href^= "http:"]',
+                        '[href^= "https:"]',
+                        '[src^= "/"]',
+                        '[src^= "http:"]',
+                        '[src^= "https:"]'
+                    ].join(',')).each(eachFixPath);
+                    function eachFixPath(i, elem) {
+                        var attr;
+                        if ('href' in elem) {
+                            attr = 'href';
+                        }
+                        else if ('src' in elem) {
+                            attr = 'src';
+                        }
+                        else {
+                            return;
+                        }
+                        switch (direction) {
+                            case 0:
+                                break;
+                            case 1:
+                                elem[attr] = distance + elem.getAttribute(attr);
+                                break;
+                            case -1:
+                                elem[attr] = elem.getAttribute(attr).replace(distance, '');
+                                break;
+                        }
+                        elem.setAttribute(attr, elem[attr].replace(regUntilHost, '/'));
                     }
                 };
                 PageUpdate.prototype.escapeNoscript_ = function (srcDocument) {
@@ -3828,7 +3896,6 @@ var MODULE;
                             script: false,
                             ignore: '[src*="jquery.js"], [src*="jquery.min.js"], [href^="chrome-extension://"]',
                             reload: '',
-                            execute: true,
                             log: 'head, body',
                             error: true,
                             ajax: { dataType: 'script', cache: true }
@@ -3880,7 +3947,8 @@ var MODULE;
                             location: true,
                             history: true,
                             scroll: true,
-                            noscript: true
+                            noscript: true,
+                            reference: true
                         },
                         database: {
                             active: true,
@@ -3990,7 +4058,7 @@ var MODULE;
                     origKeyUrl = this.model_.convertUrlToKey(origURL, true).match(/.+?\w(\/.*)/).pop();
                     destKeyUrl = this.model_.convertUrlToKey(destURL, true).match(/.+?\w(\/.*)/).pop();
                     rewriteKeyUrl = rewriteKeyUrl.replace(/[#?].*/, '');
-                    scpKeys = (rewriteKeyUrl || destKeyUrl).split('/');
+                    scpKeys = (rewriteKeyUrl || origKeyUrl).split('/');
                     if (rewriteKeyUrl) {
                         if (!~rewriteKeyUrl.indexOf('*')) {
                             return undefined;
@@ -4022,13 +4090,20 @@ var MODULE;
                         else {
                             continue;
                         }
-                        var hit_src, hit_dst, inherit;
+                        var hit_src, hit_dst, inherit, expanded = [];
                         inherit = scope = hit_src = hit_dst = undefined;
                         for (var j = 0, pattern; pattern = patterns[j]; j++) {
                             if ('#' === pattern.charAt(0)) {
-                                scpTag = pattern.slice(1);
-                                [].splice.apply(patterns, [j, 1].concat(scpTable[scpTag]));
-                                pattern = patterns[j];
+                                if (!~jQuery.inArray(pattern, expanded) && pattern.length > 1) {
+                                    expanded.push(pattern);
+                                    scpTag = pattern.slice(1);
+                                    [].splice.apply(patterns, [j, 1].concat(scpTable[scpTag], '#'));
+                                    pattern = patterns[j];
+                                }
+                                else {
+                                    scpTag = '';
+                                    continue;
+                                }
                             }
                             if ('inherit' === pattern) {
                                 inherit = true;
@@ -4058,6 +4133,7 @@ var MODULE;
                                     }
                                     else {
                                         hit_src = true;
+                                        scope = scpTable['$' + scpTag] || scpTable['$' + pattern] || undefined;
                                     }
                                 }
                                 if (reg ? ~destKeyUrl.search(pattern) : ~destKeyUrl.indexOf(pattern)) {
@@ -4284,6 +4360,9 @@ var MODULE;
                 var setting = this.app_.configure(window.location);
                 switch (true) {
                     case !setting:
+                        !this.comparePageByUrl(this.location.href, window.location.href) && this.fallback(event);
+                        this.location.href = this.util_.normalizeUrl(window.location.href);
+                        return;
                     case this.state() !== 2 /* open */:
                         this.location.href = this.util_.normalizeUrl(window.location.href);
                         return;
