@@ -295,7 +295,7 @@ module MODULE.MODEL.APP {
       destKeyUrl = this.model_.convertUrlToKey(destURL, true).match(/.+?\w(\/.*)/).pop();
       rewriteKeyUrl = rewriteKeyUrl.replace(/[#?].*/, '');
 
-      scpKeys = (rewriteKeyUrl || destKeyUrl).split('/');
+      scpKeys = (rewriteKeyUrl || origKeyUrl).split('/');
       if (rewriteKeyUrl) {
         if (!~rewriteKeyUrl.indexOf('*')) { return undefined; }
         dirs = [];
@@ -325,13 +325,20 @@ module MODULE.MODEL.APP {
 
         var hit_src: boolean,
             hit_dst: boolean,
-            inherit: boolean;
+            inherit: boolean,
+            expanded: string[] = [];
         inherit = scope = hit_src = hit_dst = undefined;
         for (var j = 0, pattern: string; pattern = patterns[j]; j++) {
           if ('#' === pattern.charAt(0)) {
-            scpTag = pattern.slice(1);
-            [].splice.apply(patterns, [j, 1].concat(scpTable[scpTag]));
-            pattern = patterns[j];
+            if (!~jQuery.inArray(pattern, expanded) && pattern.length > 1) {
+              expanded.push(pattern);
+              scpTag = pattern.slice(1);
+              [].splice.apply(patterns, [j, 1].concat(scpTable[scpTag], '#'));
+              pattern = patterns[j];
+            } else {
+              scpTag = '';
+              continue;
+            }
           }
 
           if ('inherit' === pattern) {
@@ -358,6 +365,7 @@ module MODULE.MODEL.APP {
                 hit_src = false;
               } else {
                 hit_src = true;
+                scope = scpTable['$' + scpTag] || scpTable['$' + pattern] || undefined;
               }
             }
             if (reg ? ~destKeyUrl.search(pattern) : ~destKeyUrl.indexOf(pattern)) {
