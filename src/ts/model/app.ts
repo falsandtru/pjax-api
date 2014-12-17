@@ -121,7 +121,6 @@ module MODULE.MODEL.APP {
               script: false,
               ignore: '[src*="jquery.js"], [src*="jquery.min.js"], [href^="chrome-extension://"]',
               reload: '',
-              execute: true,
               log: 'head, body',
               error: true,
               ajax: { dataType: 'script', cache: true }
