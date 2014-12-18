@@ -234,7 +234,7 @@ module MODULE.MODEL {
   }
   // Page::Provider
   export declare class PageProviderInterface implements ProviderInterface {
-    constructor(Record: PageRecordClassInterface, model: ModelInterface, app: AppLayerInterface)
+    constructor(Record: PageRecordInterface, model: ModelInterface, app: AppLayerInterface)
     fetchRecord(
       setting: SettingInterface,
       event: JQueryEventObject,
@@ -254,7 +254,7 @@ module MODULE.MODEL {
   }
   export declare class PageRecordInterface implements RecordInterface {
     constructor()
-    constructor(setting: SettingInterface, data: string, textStatus: string, $xhr: JQueryXHR, host: string)
+    constructor(url: string, data: string, textStatus: string, $xhr: JQueryXHR, host: string)
     data: PageRecordDataInterface
     state(setting?: SettingInterface): boolean
   }
@@ -266,10 +266,6 @@ module MODULE.MODEL {
     host(): string
     expires(): number
     expires(min: number, max: number): number
-  }
-  export interface PageRecordClassInterface extends RecordClassInterface {
-    new ()
-    new (url: string, data: string, textStatus: string, $xhr: JQueryXHR, host: string)
   }
   export interface PageRecordSchema extends RecordSchema {
     url: string
