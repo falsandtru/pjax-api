@@ -237,15 +237,17 @@ module MODULE.MODEL.APP {
 
           this.dispatchEvent(document, setting.nss.event.pjax.ready, false, false);
 
-          this.util_.fire(setting.callback, setting, [event, setting]);
+          jQuery(this.area_).each((i, elem) => jQuery(elem).width());
 
-          return jQuery.when ? this.waitRender_(jQuery.Deferred().resolve) : this.waitRender_(callback);
+          return jQuery.when ? jQuery.Deferred().resolve() : <any>callback();
         };
 
         var onrender = (callback?: () => void) => {
           if (!this.model_.comparePageByUrl(setting.destLocation.href, window.location.href)) {
             return;
           }
+
+          this.util_.fire(setting.callback, setting, [event, setting]);
 
           setTimeout(() => {
             switch (event.type.toLowerCase()) {
@@ -407,8 +409,6 @@ module MODULE.MODEL.APP {
           srcDocument: Document = this.srcDocument_,
           dstDocument: Document = this.dstDocument_;
 
-      var checker: JQuery;
-
       if (this.util_.fire(setting.callbacks.update.content.before, setting, [event, setting, jQuery(this.area_, this.srcDocument_).get(), jQuery(this.area_, this.dstDocument_).get()]) === false) { return; }
 
       function map() {
@@ -418,25 +418,6 @@ module MODULE.MODEL.APP {
       }
 
       jQuery(this.area_).children('.' + setting.nss.elem + '-check').remove();
-      checker = jQuery('<div/>', {
-        'class': setting.nss.elem + '-check',
-        'style': [
-          'background: none !important',
-          'display: block !important',
-          'visibility: hidden !important',
-          'position: absolute !important',
-          'top: 0 !important',
-          'left: 0 !important',
-          'z-index: -9999 !important',
-          'width: auto !important',
-          'height: 0 !important',
-          'margin: 0 !important',
-          'padding: 0 !important',
-          'border: none !important',
-          'font-size: 12px !important',
-          'text-indent: 0 !important'
-        ].join(';')
-      }).text(DEF.NAME);
 
       var $srcAreas: JQuery,
           $dstAreas: JQuery;
@@ -459,7 +440,6 @@ module MODULE.MODEL.APP {
         }
 
         $dstAreas = jQuery(this.areas_[i], dstDocument);
-        $dstAreas.append(checker.clone());
         $dstAreas.find('script').each((i, elem) => this.restoreScript_(<HTMLScriptElement>elem));
       }
       this.dispatchEvent(document, setting.nss.event.pjax.DOMContentLoaded, false, false);
@@ -735,39 +715,6 @@ module MODULE.MODEL.APP {
       call && this.data_.saveScrollPosition();
 
       if (this.util_.fire(setting.callbacks.update.scroll.after, setting, [event, setting]) === false) { return; }
-    }
-
-    private waitRender_(callback: JQueryPromise<any>): JQueryPromise<any>
-    private waitRender_(callback: () => void): void
-    private waitRender_(callback: any) {
-      var setting: SettingInterface = this.setting_,
-          event: JQueryEventObject = this.event_;
-
-      var areas = jQuery(this.area_),
-          checker = areas.children('.' + setting.nss.elem + '-check'),
-          limit = new Date().getTime() + 5 * 1000;
-
-      function filterChecker() {
-        return this.clientWidth || this.clientHeight || jQuery(this).is(':hidden');
-      }
-
-      var check = () => {
-        switch (true) {
-          case !this.model_.comparePageByUrl(setting.destLocation.href, window.location.href):
-            break;
-          case new Date().getTime() > limit:
-          case checker.length !== areas.length:
-          case checker.length === checker.filter(filterChecker).length:
-            checker.remove();
-            callback();
-            break;
-          default:
-            setTimeout(check, 100);
-        }
-      };
-      check();
-
-      return jQuery.when && callback;
     }
 
     private scrollByHash_(setting: SettingInterface): boolean {
