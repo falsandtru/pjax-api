@@ -8,7 +8,7 @@ module MODULE.MODEL.APP {
 
   export class PageProvider implements PageProviderInterface {
 
-    constructor(private Record_: PageRecordClassInterface, private model_: ModelInterface, private balancer_: BalancerInterface, private page_: PageInterface) {
+    constructor(private Record_: typeof PageRecordInterface, private model_: ModelInterface, private balancer_: BalancerInterface, private page_: PageInterface) {
     }
 
     private hash_ = (setting: SettingInterface) => setting.nss.url
