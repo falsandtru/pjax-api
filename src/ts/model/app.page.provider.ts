@@ -8,12 +8,13 @@ module MODULE.MODEL.APP {
 
   export class PageProvider implements PageProviderInterface {
 
-    constructor(private Record_: PageRecordClassInterface, private model_: ModelInterface, private balancer_: BalancerInterface, private page_: PageInterface) {
+    constructor(private Record_: typeof PageRecordInterface, private model_: ModelInterface, private balancer_: BalancerInterface, private page_: PageInterface) {
     }
 
     private hash_ = (setting: SettingInterface) => setting.nss.url
     private table_: { [keyUrl: string]: PageRecordInterface } = {}
     private order_: SettingInterface[] = []
+    private fetch_ = PageFetch
 
     fetchRecord(setting: SettingInterface, event: JQueryEventObject, success: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void, failure: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void): void {
       if (this.getRecord(setting).state(setting)) {
@@ -25,18 +26,23 @@ module MODULE.MODEL.APP {
     }
 
     pullRecord(setting: SettingInterface, event: JQueryEventObject, success: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void, failure: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void): void {
-      new PageFetch(this.model_, this.page_, this.balancer_, setting, event,
-                    // success
-                    (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => {
-                      var record = this.setRecord(setting, this.getRecord(setting).data.data() || '', textStatus, jqXHR, host);
-                      success(record, setting, event);
-                    },
-                    // failure
-                    (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => {
-                      var record = this.setRecord(setting, this.getRecord(setting).data.data() || '', textStatus, jqXHR, host);
-                      failure(record, setting, event);
-                    }
-                   );
+      new this.fetch_(
+        this.model_,
+        this.page_,
+        this.balancer_,
+        setting,
+        event,
+        // success
+        (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => {
+          var record = this.setRecord(setting, this.getRecord(setting).data.data() || '', textStatus, jqXHR, host);
+          success(record, setting, event);
+        },
+        // failure
+        (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string) => {
+          var record = this.setRecord(setting, this.getRecord(setting).data.data() || '', textStatus, jqXHR, host);
+          failure(record, setting, event);
+        }
+      );
     }
 
     getRecord(setting: SettingInterface): PageRecordInterface {
