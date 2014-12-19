@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.34.0
+ * @version 2.34.1
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -2740,6 +2740,7 @@ var MODULE;
                     this.hash_ = function (setting) { return setting.nss.url; };
                     this.table_ = {};
                     this.order_ = [];
+                    this.fetch_ = APP.PageFetch;
                 }
                 PageProvider.prototype.fetchRecord = function (setting, event, success, failure) {
                     if (this.getRecord(setting).state(setting)) {
@@ -2752,7 +2753,7 @@ var MODULE;
                 };
                 PageProvider.prototype.pullRecord = function (setting, event, success, failure) {
                     var _this = this;
-                    new APP.PageFetch(this.model_, this.page_, this.balancer_, setting, event, 
+                    new this.fetch_(this.model_, this.page_, this.balancer_, setting, event, 
                     // success
                     function (setting, event, data, textStatus, jqXHR, host) {
                         var record = _this.setRecord(setting, _this.getRecord(setting).data.data() || '', textStatus, jqXHR, host);
@@ -3003,13 +3004,14 @@ var MODULE;
                                 return;
                             }
                             _this.dispatchEvent(document, setting.nss.event.pjax.ready, false, false);
-                            _this.util_.fire(setting.callback, setting, [event, setting]);
-                            return jQuery.when ? _this.waitRender_(jQuery.Deferred().resolve) : _this.waitRender_(callback);
+                            jQuery(_this.area_).each(function (i, elem) { return jQuery(elem).width(); });
+                            return jQuery.when ? jQuery.Deferred().resolve() : callback();
                         };
                         var onrender = function (callback) {
                             if (!_this.model_.comparePageByUrl(setting.destLocation.href, window.location.href)) {
                                 return;
                             }
+                            _this.util_.fire(setting.callback, setting, [event, setting]);
                             setTimeout(function () {
                                 switch (event.type.toLowerCase()) {
                                     case MODULE.EVENT.CLICK:
@@ -3135,7 +3137,6 @@ var MODULE;
                 PageUpdate.prototype.content_ = function () {
                     var _this = this;
                     var setting = this.setting_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
-                    var checker;
                     if (this.util_.fire(setting.callbacks.update.content.before, setting, [event, setting, jQuery(this.area_, this.srcDocument_).get(), jQuery(this.area_, this.dstDocument_).get()]) === false) {
                         return;
                     }
@@ -3145,25 +3146,6 @@ var MODULE;
                         return defer;
                     }
                     jQuery(this.area_).children('.' + setting.nss.elem + '-check').remove();
-                    checker = jQuery('<div/>', {
-                        'class': setting.nss.elem + '-check',
-                        'style': [
-                            'background: none !important',
-                            'display: block !important',
-                            'visibility: hidden !important',
-                            'position: absolute !important',
-                            'top: 0 !important',
-                            'left: 0 !important',
-                            'z-index: -9999 !important',
-                            'width: auto !important',
-                            'height: 0 !important',
-                            'margin: 0 !important',
-                            'padding: 0 !important',
-                            'border: none !important',
-                            'font-size: 12px !important',
-                            'text-indent: 0 !important'
-                        ].join(';')
-                    }).text(MODULE.DEF.NAME);
                     var $srcAreas, $dstAreas;
                     for (var i = 0; this.areas_[i]; i++) {
                         $srcAreas = jQuery(this.areas_[i], srcDocument).clone();
@@ -3177,10 +3159,12 @@ var MODULE;
                         }
                         for (var j = 0; $srcAreas[j]; j++) {
                             $dstAreas[j].parentNode.replaceChild($srcAreas[j], $dstAreas[j]);
-                            document.body === $srcAreas[j] && jQuery.each($srcAreas[j].attributes, function (i, attr) { return $dstAreas[j].setAttribute(attr.name, attr.value); });
+                            if (document.body === $srcAreas[j]) {
+                                jQuery.each($srcAreas[j].attributes, function (i, attr) { return $dstAreas[j].removeAttribute(attr.name); });
+                                jQuery.each($srcAreas[j].attributes, function (i, attr) { return $dstAreas[j].setAttribute(attr.name, attr.value); });
+                            }
                         }
                         $dstAreas = jQuery(this.areas_[i], dstDocument);
-                        $dstAreas.append(checker.clone());
                         $dstAreas.find('script').each(function (i, elem) { return _this.restoreScript_(elem); });
                     }
                     this.dispatchEvent(document, setting.nss.event.pjax.DOMContentLoaded, false, false);
@@ -3436,30 +3420,6 @@ var MODULE;
                     if (this.util_.fire(setting.callbacks.update.scroll.after, setting, [event, setting]) === false) {
                         return;
                     }
-                };
-                PageUpdate.prototype.waitRender_ = function (callback) {
-                    var _this = this;
-                    var setting = this.setting_, event = this.event_;
-                    var areas = jQuery(this.area_), checker = areas.children('.' + setting.nss.elem + '-check'), limit = new Date().getTime() + 5 * 1000;
-                    function filterChecker() {
-                        return this.clientWidth || this.clientHeight || jQuery(this).is(':hidden');
-                    }
-                    var check = function () {
-                        switch (true) {
-                            case !_this.model_.comparePageByUrl(setting.destLocation.href, window.location.href):
-                                break;
-                            case new Date().getTime() > limit:
-                            case checker.length !== areas.length:
-                            case checker.length === checker.filter(filterChecker).length:
-                                checker.remove();
-                                callback();
-                                break;
-                            default:
-                                setTimeout(check, 100);
-                        }
-                    };
-                    check();
-                    return jQuery.when && callback;
                 };
                 PageUpdate.prototype.scrollByHash_ = function (setting) {
                     var hash = setting.destLocation.hash.replace(/^#/, '');
