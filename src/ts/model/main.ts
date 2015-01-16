@@ -151,22 +151,22 @@ module MODULE.MODEL {
         case !setting:
         case event.isDefaultPrevented():
         case this.state() !== State.open:
-          return;
+          break;
 
         case this.isOperatable(event):
           this.app_.page.transfer(setting, event);
           event.preventDefault();
-          return;
+          break;
 
         case this.isHashChange(setting) && this.overlay(setting):
           event.preventDefault();
           window.history.pushState(null, document.title, setting.destLocation.href);
-          return;
+          break;
 
         case !event.originalEvent && !jQuery(document).has(context).length:
           // clickメソッド用
           this.fallback(event);
-          return;
+          break;
       }
     }
 
@@ -182,17 +182,17 @@ module MODULE.MODEL {
         case !setting:
         case event.isDefaultPrevented():
         case this.state() !== State.open:
-          return;
+          break;
 
         case this.isOperatable(event):
           this.app_.page.transfer(setting, event);
           event.preventDefault
-          return;
+          break;
 
         case !event.originalEvent && !jQuery(document).has(context).length:
           // submitメソッド用
           this.fallback(event);
-          return;
+          break;
       }
     }
 
@@ -202,33 +202,28 @@ module MODULE.MODEL {
       event.timeStamp = new Date().getTime();
       var setting: SettingInterface = this.app_.configure(window.location);
 
-      //this.location.href = this.util_.normalizeUrl(window.location.href);
-
       switch (true) {
         case !setting:
           !this.comparePageByUrl(this.location.href, window.location.href) && this.fallback(event);
-          this.location.href = this.util_.normalizeUrl(window.location.href);
-          return;
+          break;
 
         //case event.isDefaultPrevented():
         case this.state() !== State.open:
-          this.location.href = this.util_.normalizeUrl(window.location.href);
-          return;
+          break;
 
         case this.isOperatable(event):
           this.app_.page.transfer(setting, event);
-          return;
+          break;
           
         case this.isHashChange(setting) && this.overlay(setting):
-          this.location.href = this.util_.normalizeUrl(window.location.href);
-          return;
+          break;
 
         case !this.comparePageByUrl(setting.origLocation.href, window.location.href):
           // pjax処理されないURL変更によるページ更新
           this.fallback(event);
-          this.location.href = this.util_.normalizeUrl(window.location.href);
-          return;
+          break;
       }
+      this.location.href = this.util_.normalizeUrl(window.location.href);
     }
     
     private queue_: number[] = []
