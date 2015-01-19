@@ -25,6 +25,8 @@ module MODULE.MODEL.APP {
     
     private util_ = LIBRARY.Utility
 
+    private srcTitle_: string
+    private dstTitle_: string
     private srcDocument_: Document
     private dstDocument_: Document
     private area_: string
@@ -55,17 +57,8 @@ module MODULE.MODEL.APP {
         if (!~(record.data.jqXHR().getResponseHeader('Content-Type') || '').toLowerCase().search(setting.contentType)) { throw new Error("throw: content-type mismatch"); }
         
         /* variable define */
-        this.srcDocument_ = this.page_.parser.parse(record.data.jqXHR().responseText, setting.destLocation.href);
-        this.dstDocument_ = document;
-          
-        // 更新範囲を選出
-        this.area_ = this.chooseArea(setting.area, this.srcDocument_, this.dstDocument_);
-        if (!this.area_) { throw new Error('throw: area notfound'); }
-        // 更新範囲をセレクタごとに分割
-        this.areas_ = this.area_.match(/(?:[^,]+?|\(.*?\)|\[.*?\])+/g);
-
-        speedcheck && speed.time.push(speed.now() - speed.fire);
-        speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
+        this.srcTitle_ = jQuery(record.data.jqXHR().responseText.match(/<title(?:\s.*?[^\\])?>(?:.*?[^\\])?<\/title>|$/i).pop()).text();
+        this.dstTitle_ = document.title;
         
         this.redirect_();
         
@@ -75,6 +68,12 @@ module MODULE.MODEL.APP {
         
         if (!this.model_.comparePageByUrl(setting.destLocation.href, window.location.href)) { throw new Error("throw: location mismatch"); }
 
+        this.srcDocument_ = this.page_.parser.parse(record.data.jqXHR().responseText, setting.destLocation.href);
+        this.dstDocument_ = document;
+
+        speedcheck && speed.time.push(speed.now() - speed.fire);
+        speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
+        
         this.document_();
         
       } catch (err) {
@@ -143,7 +142,7 @@ module MODULE.MODEL.APP {
               setTimeout(() => jQuery[DEF.NAME].click(redirect.href), 0);
               break;
             case EVENT.POPSTATE:
-              window.history.replaceState(window.history.state, this.srcDocument_.title, redirect.href);
+              window.history.replaceState(window.history.state, this.srcTitle_, redirect.href);
               if (this.isRegister_(setting, event) && setting.fix.location && !this.util_.compareUrl(setting.destLocation.href, window.location.href)) {
                 jQuery[DEF.NAME].disable();
                 window.history.back();
@@ -169,7 +168,7 @@ module MODULE.MODEL.APP {
 
       if (this.isRegister_(setting, event)) {
         window.history.pushState(this.util_.fire(setting.state, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]),
-                                 ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstDocument_.title : this.srcDocument_.title,
+                                 ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstTitle_ : this.srcTitle_,
                                  setting.destLocation.href);
 
         if (setting.fix.location && !this.util_.compareUrl(setting.destLocation.href, window.location.href)) {
@@ -187,7 +186,7 @@ module MODULE.MODEL.APP {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
 
-     if (setting.load.script && !this.page_.loadedScripts['']) {
+      if (setting.load.script && !this.page_.loadedScripts['']) {
         var loadedScripts = this.page_.loadedScripts;
         loadedScripts[''] = true;
         jQuery('script').each(function () {
@@ -195,6 +194,12 @@ module MODULE.MODEL.APP {
           if (element.src) { loadedScripts[element.src] = !setting.load.reload || !jQuery(element).is(setting.load.reload); }
         });
       }
+
+      // 更新範囲を選出
+      this.area_ = this.chooseArea(setting.area, this.srcDocument_, this.dstDocument_);
+      if (!this.area_) { throw new Error('throw: area notfound'); }
+      // 更新範囲をセレクタごとに分割
+      this.areas_ = this.area_.match(/(?:[^,]+?|\(.*?\)|\[.*?\])+/g);
 
       this.overwriteDocumentByCache_();
 
@@ -414,6 +419,7 @@ module MODULE.MODEL.APP {
       function map() {
         var defer = jQuery.Deferred();
         jQuery(this).one('load error abort', defer.resolve);
+        this.complete && defer.resolve();
         return defer;
       }
 
