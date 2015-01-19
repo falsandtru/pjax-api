@@ -412,8 +412,19 @@ module MODULE.MODEL.APP {
       if (this.util_.fire(setting.callbacks.update.content.before, setting, [event, setting, jQuery(this.area_, this.srcDocument_).get(), jQuery(this.area_, this.dstDocument_).get()]) === false) { return; }
 
       function map() {
+        if (!jQuery.Deferred) { return; }
         var defer = jQuery.Deferred();
-        jQuery(this).one('load error abort', defer.resolve);
+        switch (this.tagName.toLowerCase()) {
+          case 'img':
+            jQuery(this).one('load error abort', defer.resolve);
+            this.complete && defer.resolve();
+            break;
+          case 'iframe':
+          case 'frame':
+            // Does not work.
+            //jQuery(this).one('load', defer.resolve);
+            break;
+        }
         return defer;
       }
 
@@ -427,9 +438,6 @@ module MODULE.MODEL.APP {
         if (!$srcAreas.length || !$dstAreas.length || $srcAreas.length !== $dstAreas.length) { throw new Error('throw: area mismatch'); }
 
         $srcAreas.find('script').each((i, elem) => this.escapeScript_(<HTMLScriptElement>elem));
-        if (jQuery.when) {
-          this.loadwaits_ = this.loadwaits_.concat($srcAreas.find('img, iframe, frame').map(map).get());
-        }
 
         for (var j = 0; $srcAreas[j]; j++) {
           $dstAreas[j].parentNode.replaceChild($srcAreas[j], $dstAreas[j]);
@@ -441,6 +449,7 @@ module MODULE.MODEL.APP {
 
         $dstAreas = jQuery(this.areas_[i], dstDocument);
         $dstAreas.find('script').each((i, elem) => this.restoreScript_(<HTMLScriptElement>elem));
+        this.loadwaits_ = this.loadwaits_.concat($dstAreas.find('img').map(map).get());
       }
       this.dispatchEvent(document, setting.nss.event.pjax.DOMContentLoaded, false, false);
 
