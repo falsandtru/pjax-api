@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.34.2
+ * @version 2.35.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -2850,23 +2850,18 @@ var MODULE;
                             throw new Error("throw: content-type mismatch");
                         }
                         /* variable define */
-                        this.srcDocument_ = this.page_.parser.parse(record.data.jqXHR().responseText, setting.destLocation.href);
-                        this.dstDocument_ = document;
-                        // 更新範囲を選出
-                        this.area_ = this.chooseArea(setting.area, this.srcDocument_, this.dstDocument_);
-                        if (!this.area_) {
-                            throw new Error('throw: area notfound');
-                        }
-                        // 更新範囲をセレクタごとに分割
-                        this.areas_ = this.area_.match(/(?:[^,]+?|\(.*?\)|\[.*?\])+/g);
-                        speedcheck && speed.time.push(speed.now() - speed.fire);
-                        speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
+                        this.srcTitle_ = jQuery(record.data.jqXHR().responseText.match(/<title(?:\s.*?[^\\])?>(?:.*?[^\\])?<\/title>|$/i).pop()).text();
+                        this.dstTitle_ = document.title;
                         this.redirect_();
                         this.dispatchEvent(window, setting.nss.event.pjax.unload, false, false);
                         this.url_();
                         if (!this.model_.comparePageByUrl(setting.destLocation.href, window.location.href)) {
                             throw new Error("throw: location mismatch");
                         }
+                        this.srcDocument_ = this.page_.parser.parse(record.data.jqXHR().responseText, setting.destLocation.href);
+                        this.dstDocument_ = document;
+                        speedcheck && speed.time.push(speed.now() - speed.fire);
+                        speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
                         this.document_();
                     }
                     catch (err) {
@@ -2931,7 +2926,7 @@ var MODULE;
                                     setTimeout(function () { return jQuery[MODULE.DEF.NAME].click(redirect.href); }, 0);
                                     break;
                                 case MODULE.EVENT.POPSTATE:
-                                    window.history.replaceState(window.history.state, this.srcDocument_.title, redirect.href);
+                                    window.history.replaceState(window.history.state, this.srcTitle_, redirect.href);
                                     if (this.isRegister_(setting, event) && setting.fix.location && !this.util_.compareUrl(setting.destLocation.href, window.location.href)) {
                                         jQuery[MODULE.DEF.NAME].disable();
                                         window.history.back();
@@ -2955,7 +2950,7 @@ var MODULE;
                     }
                     ;
                     if (this.isRegister_(setting, event)) {
-                        window.history.pushState(this.util_.fire(setting.state, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]), ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstDocument_.title : this.srcDocument_.title, setting.destLocation.href);
+                        window.history.pushState(this.util_.fire(setting.state, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]), ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstTitle_ : this.srcTitle_, setting.destLocation.href);
                         if (setting.fix.location && !this.util_.compareUrl(setting.destLocation.href, window.location.href)) {
                             jQuery[MODULE.DEF.NAME].disable();
                             window.history.back();
@@ -2980,6 +2975,13 @@ var MODULE;
                             }
                         });
                     }
+                    // 更新範囲を選出
+                    this.area_ = this.chooseArea(setting.area, this.srcDocument_, this.dstDocument_);
+                    if (!this.area_) {
+                        throw new Error('throw: area notfound');
+                    }
+                    // 更新範囲をセレクタごとに分割
+                    this.areas_ = this.area_.match(/(?:[^,]+?|\(.*?\)|\[.*?\])+/g);
                     this.overwriteDocumentByCache_();
                     setting.fix.noscript && this.escapeNoscript_(this.srcDocument_);
                     setting.fix.reference && this.fixReference_(setting.origLocation.href, this.dstDocument_);
@@ -3141,8 +3143,19 @@ var MODULE;
                         return;
                     }
                     function map() {
+                        if (!jQuery.Deferred) {
+                            return;
+                        }
                         var defer = jQuery.Deferred();
-                        jQuery(this).one('load error abort', defer.resolve);
+                        switch (this.tagName.toLowerCase()) {
+                            case 'img':
+                                jQuery(this).one('load error abort', defer.resolve);
+                                this.complete && defer.resolve();
+                                break;
+                            case 'iframe':
+                            case 'frame':
+                                break;
+                        }
                         return defer;
                     }
                     jQuery(this.area_).children('.' + setting.nss.elem + '-check').remove();
@@ -3154,9 +3167,6 @@ var MODULE;
                             throw new Error('throw: area mismatch');
                         }
                         $srcAreas.find('script').each(function (i, elem) { return _this.escapeScript_(elem); });
-                        if (jQuery.when) {
-                            this.loadwaits_ = this.loadwaits_.concat($srcAreas.find('img, iframe, frame').map(map).get());
-                        }
                         for (var j = 0; $srcAreas[j]; j++) {
                             $dstAreas[j].parentNode.replaceChild($srcAreas[j], $dstAreas[j]);
                             if (document.body === $srcAreas[j]) {
@@ -3166,6 +3176,7 @@ var MODULE;
                         }
                         $dstAreas = jQuery(this.areas_[i], dstDocument);
                         $dstAreas.find('script').each(function (i, elem) { return _this.restoreScript_(elem); });
+                        this.loadwaits_ = this.loadwaits_.concat($dstAreas.find('img').map(map).get());
                     }
                     this.dispatchEvent(document, setting.nss.event.pjax.DOMContentLoaded, false, false);
                     if (this.util_.fire(setting.callbacks.update.content.after, setting, [event, setting, jQuery(this.area_, this.srcDocument_).get(), jQuery(this.area_, this.dstDocument_).get()]) === false) {
@@ -3536,7 +3547,22 @@ var MODULE;
         (function (APP) {
             var PageParser = (function () {
                 function PageParser() {
+                    this.util_ = MODULE.LIBRARY.Utility;
+                    this.cache_ = {};
                 }
+                PageParser.prototype.sandbox_ = function (uri) {
+                    var _this = this;
+                    if (uri === void 0) { uri = window.location.href; }
+                    uri = this.util_.canonicalizeUrl(uri).split('#').shift();
+                    if (!this.cache_[uri] || 'object' !== typeof this.cache_[uri].document || this.cache_[uri].document.URL !== uri) {
+                        jQuery('<iframe src="" sandbox="allow-same-origin"></iframe>').appendTo('body').each(function (i, elem) {
+                            _this.cache_[uri] = elem['contentWindow'];
+                            _this.cache_[uri].document.open();
+                            _this.cache_[uri].document.close();
+                        }).remove();
+                    }
+                    return this.cache_[uri];
+                };
                 PageParser.prototype.test_ = function (mode) {
                     try {
                         var html = '<html lang="en" class="html"><head><title>&amp;</title><link href="/"><noscript><style>/**/</style></noscript></head><body><noscript>noscript</noscript><a href="/"></a></body></html>', doc = this.parse(html, window.location.href, mode);
@@ -3557,27 +3583,35 @@ var MODULE;
                     }
                 };
                 PageParser.prototype.parse = function (html, uri, mode) {
+                    if (uri === void 0) { uri = ''; }
                     if (mode === void 0) { mode = this.mode_; }
                     html += ~html.search(/<title[\s>]/i) ? '' : '<title></title>';
-                    var backup = !uri || !MODULE.LIBRARY.Utility.compareUrl(uri, window.location.href) ? window.location.href : undefined;
-                    backup && window.history.replaceState && window.history.replaceState(window.history.state, document.title, uri);
                     var doc;
                     switch (mode) {
                         case 'dom':
                             if ('function' === typeof window.DOMParser) {
-                                doc = new window.DOMParser().parseFromString(html, 'text/html');
+                                doc = new (this.sandbox_(uri)).DOMParser().parseFromString(html, 'text/html');
                             }
                             break;
                         case 'doc':
                             if (document.implementation && document.implementation.createHTMLDocument) {
-                                doc = document.implementation.createHTMLDocument('');
+                                if (/phantomjs/i.test(window.navigator.userAgent)) {
+                                    // PhantomJSでLoad scriptテストで発生する原因不明のエラーの対応
+                                    var backup = !uri || !MODULE.LIBRARY.Utility.compareUrl(uri, window.location.href) ? window.location.href : undefined;
+                                    backup && window.history.replaceState && window.history.replaceState(window.history.state, document.title, uri);
+                                    doc = document.implementation.createHTMLDocument('');
+                                    backup && window.history.replaceState && window.history.replaceState(window.history.state, document.title, backup);
+                                }
+                                else {
+                                    doc = this.sandbox_(uri).document.implementation.createHTMLDocument('');
+                                }
                                 // IE, Operaクラッシュ対策
                                 if ('object' !== typeof doc.activeElement || !doc.activeElement) {
                                     break;
                                 }
                                 // titleプロパティの値をChromeで事後に変更できなくなったため事前に設定する必要がある
                                 if ('function' === typeof window.DOMParser && new window.DOMParser().parseFromString('', 'text/html')) {
-                                    doc.title = new window.DOMParser().parseFromString(html.match(/<title(?:\s.*?[^\\])?>(?:.*?[^\\])?<\/title>/i), 'text/html').title;
+                                    doc.title = new window.DOMParser().parseFromString(html.match(/<title(?:\s.*?[^\\])?>(?:.*?[^\\])?<\/title>|$/i), 'text/html').title;
                                 }
                                 doc.open();
                                 doc.write(html);
@@ -3589,14 +3623,19 @@ var MODULE;
                             break;
                         case 'manipulate':
                             if (document.implementation && document.implementation.createHTMLDocument) {
+                                // Mac(のChromeのみ？)ではアドレスバーのURLがちらつくため使用させない
+                                // https://github.com/falsandtru/jquery-pjax/issues/11
+                                var backup = !uri || !MODULE.LIBRARY.Utility.compareUrl(uri, window.location.href) ? window.location.href : undefined;
+                                backup && window.history.replaceState && window.history.replaceState(window.history.state, document.title, uri);
                                 doc = manipulate(document.implementation.createHTMLDocument(''), html);
+                                backup && window.history.replaceState && window.history.replaceState(window.history.state, document.title, backup);
                             }
                             break;
                         case null:
                             doc = null;
                             break;
                         default:
-                            switch (/webkit|firefox|trident|$/i.exec(window.navigator.userAgent.toLowerCase()).shift()) {
+                            switch (/webkit|firefox|trident|$/i.exec(window.navigator.userAgent).shift().toLowerCase()) {
                                 case 'webkit':
                                     this.mode_ = this.test_('doc') || this.test_('dom') || this.test_('manipulate');
                                     break;
@@ -3612,7 +3651,6 @@ var MODULE;
                             doc = this.mode_ && this.parse(html, uri);
                             break;
                     }
-                    backup && window.history.replaceState && window.history.replaceState(window.history.state, document.title, backup);
                     return doc;
                     function manipulate(doc, html) {
                         var wrapper = document.createElement('div');
