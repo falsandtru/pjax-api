@@ -54,6 +54,7 @@ module.exports = function (config) {
       { pattern: 'test/**.html', watched: true, served: true, included: false },
       { pattern: 'test/**/*.html', watched: true, served: true, included: false },
       { pattern: 'test/cov/*.js', watched: true, served: true, included: false },
+      { pattern: 'test/fixture/img/*.*', watched: true, served: true, included: false },
       { pattern: 'test/fixture/js/*.js', watched: true, served: true, included: false },
 
       // files to test
