@@ -8,6 +8,25 @@ module MODULE.MODEL.APP {
   export class PageParser implements PageParserInterface {
 
     private mode_: string
+    private util_ = LIBRARY.Utility
+    private cache_: {
+      [uri: string]: Window
+    } = {}
+
+    private sandbox_(uri: string = window.location.href): Window {
+      uri = this.util_.canonicalizeUrl(uri).split('#').shift();
+      if (!this.cache_[uri] || 'object' !== typeof this.cache_[uri].document || this.cache_[uri].document.URL !== uri) {
+        jQuery('<iframe src="" sandbox="allow-same-origin"></iframe>')
+          .appendTo('body')
+          .each((i, elem) => {
+            this.cache_[uri] = elem['contentWindow'];
+            this.cache_[uri].document.open();
+            this.cache_[uri].document.close();
+          })
+          .remove();
+      }
+      return this.cache_[uri];
+    }
 
     private test_(mode: string): string {
       try {
@@ -29,32 +48,38 @@ module MODULE.MODEL.APP {
       }
     }
 
-    parse(html: string, uri?: string, mode: string = this.mode_): Document {
+    parse(html: string, uri: string = '', mode: string = this.mode_): Document {
       html += ~html.search(/<title[\s>]/i) ? '' : '<title></title>';
-
-      var backup: string = !uri || !LIBRARY.Utility.compareUrl(uri, window.location.href) ? window.location.href : undefined;
-      backup && window.history.replaceState && window.history.replaceState(window.history.state, document.title, uri);
 
       var doc: Document;
       switch (mode) {
         // firefox
         case 'dom':
           if ('function' === typeof window.DOMParser) {
-            doc = new window.DOMParser().parseFromString(html, 'text/html');
+            doc = new (this.sandbox_(uri)).DOMParser().parseFromString(html, 'text/html');
           }
           break;
 
-        // chrome, safari
+        // chrome, safari, phantomjs
         case 'doc':
           if (document.implementation && document.implementation.createHTMLDocument) {
-            doc = document.implementation.createHTMLDocument('');
+
+            if (/phantomjs/i.test(window.navigator.userAgent)) {
+              // PhantomJSでLoad scriptテストで発生する原因不明のエラーの対応
+              var backup: string = !uri || !LIBRARY.Utility.compareUrl(uri, window.location.href) ? window.location.href : undefined;
+              backup && window.history.replaceState && window.history.replaceState(window.history.state, document.title, uri);
+              doc = document.implementation.createHTMLDocument('');
+              backup && window.history.replaceState && window.history.replaceState(window.history.state, document.title, backup);
+            } else {
+              doc = this.sandbox_(uri).document.implementation.createHTMLDocument('');
+            }
 
             // IE, Operaクラッシュ対策
             if ('object' !== typeof doc.activeElement || !doc.activeElement) { break; }
 
             // titleプロパティの値をChromeで事後に変更できなくなったため事前に設定する必要がある
             if ('function' === typeof window.DOMParser && new window.DOMParser().parseFromString('', 'text/html')) {
-              doc.title = new window.DOMParser().parseFromString(html.match(/<title(?:\s.*?[^\\])?>(?:.*?[^\\])?<\/title>/i), 'text/html').title;
+              doc.title = new window.DOMParser().parseFromString(html.match(/<title(?:\s.*?[^\\])?>(?:.*?[^\\])?<\/title>|$/i), 'text/html').title;
             }
             doc.open();
             doc.write(html);
@@ -68,7 +93,12 @@ module MODULE.MODEL.APP {
         // ie10+, opera
         case 'manipulate':
           if (document.implementation && document.implementation.createHTMLDocument) {
+            // Mac(のChromeのみ？)ではアドレスバーのURLがちらつくため使用させない
+            // https://github.com/falsandtru/jquery-pjax/issues/11
+            var backup: string = !uri || !LIBRARY.Utility.compareUrl(uri, window.location.href) ? window.location.href : undefined;
+            backup && window.history.replaceState && window.history.replaceState(window.history.state, document.title, uri);
             doc = manipulate(document.implementation.createHTMLDocument(''), html);
+            backup && window.history.replaceState && window.history.replaceState(window.history.state, document.title, backup);
           }
           break;
 
@@ -77,7 +107,7 @@ module MODULE.MODEL.APP {
           break;
 
         default:
-          switch (/webkit|firefox|trident|$/i.exec(window.navigator.userAgent.toLowerCase()).shift()) {
+          switch (/webkit|firefox|trident|$/i.exec(window.navigator.userAgent).shift().toLowerCase()) {
             case 'webkit':
               this.mode_ = this.test_('doc') || this.test_('dom') || this.test_('manipulate');
               break;
@@ -93,8 +123,6 @@ module MODULE.MODEL.APP {
           doc = this.mode_ && this.parse(html, uri);
           break;
       }
-
-      backup && window.history.replaceState && window.history.replaceState(window.history.state, document.title, backup);
 
       return doc;
 
