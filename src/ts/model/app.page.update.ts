@@ -68,12 +68,6 @@ module MODULE.MODEL.APP {
         
         if (!this.model_.comparePageByUrl(setting.destLocation.href, window.location.href)) { throw new Error("throw: location mismatch"); }
 
-        this.srcDocument_ = this.page_.parser.parse(record.data.jqXHR().responseText, setting.destLocation.href);
-        this.dstDocument_ = document;
-
-        speedcheck && speed.time.push(speed.now() - speed.fire);
-        speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
-        
         this.document_();
         
       } catch (err) {
@@ -195,6 +189,13 @@ module MODULE.MODEL.APP {
         });
       }
 
+      this.srcDocument_ = this.page_.parser.parse(this.record_.data.jqXHR().responseText, setting.destLocation.href);
+      this.dstDocument_ = document;
+
+      var speedcheck = setting.speedcheck, speed = this.model_.speed;
+      speedcheck && speed.time.push(speed.now() - speed.fire);
+      speedcheck && speed.name.push('parse(' + speed.time.slice(-1) + ')');
+      
       // 更新範囲を選出
       this.area_ = this.chooseArea(setting.area, this.srcDocument_, this.dstDocument_);
       if (!this.area_) { throw new Error('throw: area notfound'); }
@@ -218,7 +219,6 @@ module MODULE.MODEL.APP {
 
       this.head_();
 
-      var speedcheck = setting.speedcheck, speed = this.model_.speed;
       speedcheck && speed.time.push(speed.now() - speed.fire);
       speedcheck && speed.name.push('head(' + speed.time.slice(-1) + ')');
 
