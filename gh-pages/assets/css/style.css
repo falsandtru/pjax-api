@@ -37,12 +37,14 @@ ul {
   padding-left: 25px;
 }
 table {
-  margin: 1.0em 0;
+  margin: 1.0em 0 2.0em;
 }
 thead {
   font-weight: bold;
+  vertical-align: baseline;
 }
 tbody {
+  vertical-align: baseline;
 }
 th {
   padding: .5em;
@@ -147,14 +149,36 @@ textarea{
 .style-info #content h2 {
   margin-top: 2.0em;
 }
+.style-info #content h3 {
+  margin-top: 2.0em;
+}
+.style-info #content h4 {
+  margin-top: 2.0em;
+}
+.style-info #content h5 {
+  margin-top: 2.0em;
+}
+.style-info #content h6 {
+  margin-top: 2.0em;
+}
 .style-info #content p {
+  margin-top: 1.0em;
   margin-bottom: 2.0em;
 }
 .style-api #content h2 {
   font-size: x-large;
-  font-style: italic;
   margin-bottom: 0;
   border-bottom: dashed 1px;
+}
+.style-api #content h3 {
+  font-size: x-large;
+  margin-bottom: 0;
+  border-bottom: dotted 1px;
+}
+.style-api #content h4 {
+  font-size: large;
+  margin-bottom: 0;
+  border-bottom: dotted 1px;
 }
 .style-api #content h1 small,
 .style-api #content h2 small,
@@ -162,19 +186,23 @@ textarea{
   float: right;
   margin-top: 0.4em;
 }
-.style-api #content h3 {
-  font-size: medium;
-  font-style: italic;
-  border-bottom: dotted 1px;
-}
-.style-api-list #content h2 {
-  font-size: large;
-}
 .style-api-detail #content h2 {
-  font-size: large;
+  font-weight: bold;
+  line-height: 1.2;
+  letter-spacing: .01em;
+  margin-top: 1.5em;
+  margin-bottom: .5em;
 }
 .style-api-detail #content h3 {
-  font-style: normal;
+  line-height: 1.2;
+  letter-spacing: .01em;
+  margin-bottom: .5em;
+}
+.style-api-detail #content h4 {
+  font-weight: bold;
+  line-height: 1.2;
+  letter-spacing: .01em;
+  margin-bottom: .5em;
 }
 
 /* [page]
@@ -189,6 +217,14 @@ textarea{
 }
 #billboard h2 {
   font-size: 48px;
+}
+#billboard pre {
+  text-align: left;
+}
+#billboard pre,
+#billboard .syntaxhighlighter {
+  max-width: 800px;
+  margin: auto !important;
 }
 a.btn,
 a.btn:visited{

@@ -49,11 +49,11 @@ after_success:
   - ls -a | grep -vE "^.git$|^\.+$" | xargs rm -rf
   - cp -rf ../gh-pages/* ./
   - find | grep -vE "^./.git(/|$)"
-  - sed -i 's|\(baseurl:\s\+\)|\1http://falsandtru.github.io|' _config.yml
+  - sed -i 's|\(baseurl:\s\+\)|\1//falsandtru.github.io|' _config.yml
   - git add -A :/
   - git commit -m 'Deploy by Travis-CI'
   - git push https://${GH_TOKEN}@github.com/${GIT_AUTHOR_NAME}/${GIT_REPO}.git gh-pages:gh-pages 2>&1 | sed -e "s/:\/\/\w\+@/:\/\/[secure]@/g"
-  
+
 notifications:
   email:
     recipients:
