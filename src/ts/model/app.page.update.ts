@@ -416,33 +416,21 @@ module MODULE.MODEL.APP {
 
       if (this.util_.fire(setting.callbacks.update.content.before, setting, [event, setting, jQuery(this.area_, this.srcDocument_).get(), jQuery(this.area_, this.dstDocument_).get()]) === false) { return; }
 
-      function map() {
-        if (!jQuery.Deferred) { return; }
-        var defer = jQuery.Deferred();
-        switch (this.tagName.toLowerCase()) {
-          case 'img':
-            jQuery(this).one('load error abort', defer.resolve);
-            this.complete && defer.resolve();
-            break;
-          case 'iframe':
-          case 'frame':
-            // Does not work.
-            //jQuery(this).one('load', defer.resolve);
-            break;
-        }
-        return defer;
-      }
-
       jQuery(this.area_).children('.' + setting.nss.elem + '-check').remove();
 
       var $srcAreas: JQuery,
           $dstAreas: JQuery;
       for (var i = 0; this.areas_[i]; i++) {
-        $srcAreas = jQuery(this.areas_[i], srcDocument).clone();
+        $srcAreas = jQuery(this.areas_[i], srcDocument);
         $dstAreas = jQuery(this.areas_[i], dstDocument);
+
         if (!$srcAreas.length || !$dstAreas.length || $srcAreas.length !== $dstAreas.length) { throw new Error('throw: area mismatch'); }
 
+        // importNode/adoptNodeでなければimgなどのloadイベントが発火しない。
+        // rewriteで設定されたイベントハンドラは失われる。
+        $srcAreas = $srcAreas.map((i, elem) => document.importNode(elem, true));
         $srcAreas.find('script').each((i, elem) => this.escapeScript_(<HTMLScriptElement>elem));
+        this.loadwaits_ = this.loadwaits_.concat($srcAreas.find('img, iframe, frame').map(elem2deferred).get());
 
         for (var j = 0; $srcAreas[j]; j++) {
           $dstAreas[j].parentNode.replaceChild($srcAreas[j], $dstAreas[j]);
@@ -454,11 +442,25 @@ module MODULE.MODEL.APP {
 
         $dstAreas = jQuery(this.areas_[i], dstDocument);
         $dstAreas.find('script').each((i, elem) => this.restoreScript_(<HTMLScriptElement>elem));
-        this.loadwaits_ = this.loadwaits_.concat($dstAreas.find('img').map(map).get());
       }
       this.dispatchEvent(document, setting.nss.event.pjax.DOMContentLoaded, false, false);
 
       if (this.util_.fire(setting.callbacks.update.content.after, setting, [event, setting, jQuery(this.area_, this.srcDocument_).get(), jQuery(this.area_, this.dstDocument_).get()]) === false) { return; }
+
+      function elem2deferred() {
+        if (!jQuery.Deferred) { return; }
+        var defer = jQuery.Deferred();
+        switch (this.tagName.toLowerCase()) {
+          case 'img':
+            jQuery(this).one('load error abort', defer.resolve);
+            break;
+          case 'iframe':
+          case 'frame':
+            jQuery(this).one('load', defer.resolve);
+            break;
+        }
+        return defer;
+      }
     }
     
     private balance_(): void {

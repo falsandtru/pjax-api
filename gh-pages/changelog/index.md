@@ -9,11 +9,15 @@ nav: nav
 Version 3.0.0で互換性をjQuery1.8+対応に変更する予定です。
 jQuery1.4.2+の対応はVersion 2.xで終了します。バグフィクスは2.xでも継続する予定です。
 
+## 2.36.0
+
+* `pjax:load`イベントの読み込み待機対象にIFRAME, FRAME要素を追加
+
 ## 2.35.0
 
 * MacのChromeでURLの更新がちらつくバグを修正
 * `pjax:load`イベントがIFRAME要素またはFRAME要素がある場合に動作しないバグを修正
-* `pjax:load`イベントの読み込み待機対称をIMG要素のみに変更
+* `pjax:load`イベントの読み込み待機対象をIMG要素のみに変更
 
 ## 2.34.2
 
