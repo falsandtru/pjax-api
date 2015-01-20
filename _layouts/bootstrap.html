@@ -12,24 +12,16 @@
 <title>{{ page.title }} | {{ site.title }}</title>
 {% endif %}
 
-<!-- This base url is not support IE6-7 JavaScript is disabled -->
 <base href="{{ site.baseurl }}">
-<!--[if lt IE 8]>
-<script>
-(function(base){
-  base && !base.href.split(/\/+/, 2).pop() && base.setAttribute('href', '//' + location.host + base.href)
-})(document.getElementsByTagName('base')[0])
-</script>
-<![endif]-->
 
 <!-- Bootstrap -->
-<link href="{{ site.baseurl }}assets/css/bootstrap.min.css" rel="stylesheet">
-<link href="{{ site.baseurl }}assets/css/style.css" rel="stylesheet">
-<link href="{{ site.baseurl }}assets/css/shCoreCustom.css" rel="stylesheet">
-<link href="{{ site.baseurl }}assets/css/shThemeCustom.css" rel="stylesheet">
+<link href="{{ site.basepath }}assets/css/bootstrap.min.css" rel="stylesheet">
+<link href="{{ site.basepath }}assets/css/style.css" rel="stylesheet">
+<link href="{{ site.basepath }}assets/css/shCoreCustom.css" rel="stylesheet">
+<link href="{{ site.basepath }}assets/css/shThemeCustom.css" rel="stylesheet">
 <link href='//fonts.googleapis.com/css?family=Roboto:400' rel='stylesheet' type='text/css'>
 <link href="//ajax.googleapis.com/ajax/libs/jqueryui/1/themes/start/jquery-ui.min.css" rel="stylesheet">
-<link href="{{ site.baseurl }}sitemap.xml" rel="sitemap" type="application/xml" title="Sitemap">
+<link href="{{ site.basepath }}sitemap.xml" rel="sitemap" type="application/xml" title="Sitemap">
 
 <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
 <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -47,7 +39,7 @@
 <div id="container" class="container {{page.class}}">
 <!-- ----- HEADER ------------------------------------------------------------- -->
 <header id="header" class="row">
-<h1><a href="{{ site.baseurl }}">{{ site.title }}</a></h1>
+<h1><a href="{{ site.basepath }}">{{ site.title }}</a></h1>
 </header>
 
 <div id="wrapper" class="row">
@@ -100,12 +92,12 @@
 <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
 <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1/i18n/jquery-ui-i18n.min.js"></script>
 <!-- Include all compiled plugins (below), or include individual files as needed -->
-<script src="{{ site.baseurl }}assets/js/bootstrap.min.js"></script>
-<script src="{{ site.baseurl }}assets/js/plugins.min.js"></script>
-<script src="{{ site.baseurl }}assets/js/shCore.js"></script>
-<script src="{{ site.baseurl }}assets/js/shBrushXml.js"></script>
-<script src="{{ site.baseurl }}assets/js/shBrushJScript.js"></script>
-<script src="{{ site.baseurl }}assets/js/config.js"></script>
+<script src="{{ site.basepath }}assets/js/bootstrap.min.js"></script>
+<script src="{{ site.basepath }}assets/js/plugins.min.js"></script>
+<script src="{{ site.basepath }}assets/js/shCore.js"></script>
+<script src="{{ site.basepath }}assets/js/shBrushXml.js"></script>
+<script src="{{ site.basepath }}assets/js/shBrushJScript.js"></script>
+<script src="{{ site.basepath }}assets/js/config.js"></script>
 
 <script>
 if (!window.ga) {

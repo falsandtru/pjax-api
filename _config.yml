@@ -3,14 +3,15 @@ encoding: UTF-8
 markdown: kramdown
 kramdown:
   input: GFM
-  
+
 # Install
 gems:
   - jekyll-sitemap
 
 # Config
-baseurl: http://falsandtru.github.io/jquery-pjax/
-permalink: /:categories/:year/:month/:day/:title 
+baseurl: //falsandtru.github.io/jquery-pjax/
+basepath: /jquery-pjax/
+permalink: /:categories/:year/:month/:day/:title
 
 # Param
 title: PJAX
