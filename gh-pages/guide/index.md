@@ -18,8 +18,8 @@ preloadによる高速化実装例です。タッチデバイスでは動作で�
 &lt;script charset="utf-8" src="/js/accelerate.js"&gt;&lt;/script&gt;
 </pre>
 
-preload: [https://github.com/falsandtru/jquery-preload](https://github.com/falsandtru/jquery-preload)  
-pjax: [https://github.com/falsandtru/jquery-pjax](https://github.com/falsandtru/jquery-pjax)
+preload: [https://github.com/falsandtru/jquery-preload]({{ site.basepath }}https://github.com/falsandtru/jquery-preload)  
+pjax: [https://github.com/falsandtru/jquery-pjax]({{ site.basepath }}https://github.com/falsandtru/jquery-pjax)
 accelerate:
 
 <pre class="sh brush: js;">
@@ -90,7 +90,7 @@ accelerate:
 ## ローディングエフェクト
 ローディングエフェクトを表示します。
 
-<a href="demo/effect/" target="_blank" class="btn btn-primary" role="button">demo</a>
+<a href="{{ site.basepath }}demo/effect/" target="_blank" class="btn btn-primary" role="button">demo</a>
 
 <pre class="sh brush: js;">
   $.pjax({
@@ -134,7 +134,7 @@ accelerate:
 ## プログレスバー
 プログレスバーを表示します。
 
-<a href="demo/progress/" target="_blank" class="btn btn-primary" role="button">demo</a>
+<a href="{{ site.basepath }}demo/progress/" target="_blank" class="btn btn-primary" role="button">demo</a>
 
 <pre class="sh brush: js;">
   $.pjax({
@@ -247,7 +247,7 @@ pjaxは移動先のページのJavaScriptが読み込み済みであり、コー
 ## JavaScriptの状態管理
 当サイトでは次のようにJavaScriptの実行状態を管理しています。
 
-[FunctionManager](https://github.com/falsandtru/funcmanager.js)によりドキュメントのようにJavaScriptを記述・管理できます。
+[FunctionManager]({{ site.basepath }}https://github.com/falsandtru/funcmanager.js)によりドキュメントのようにJavaScriptを記述・管理できます。
 
 <pre class="sh brush: js;">
 new Function().apply.apply(function (accessor) {

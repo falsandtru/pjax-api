@@ -11,7 +11,7 @@ pjaxを設定します。
 
 pjaxのメソッドを追加したコンテキストを返します。コンテキストがjQueryオブジェクトである場合、jQueryの`end()`メソッドを実行することでpjaxのメソッドを追加する前の状態に戻すことができます。
 
-<a href="demo/falsandtru/" target="_blank" class="btn btn-primary" role="button">demo</a>
+<a href="{{ site.basepath }}demo/falsandtru/" target="_blank" class="btn btn-primary" role="button">demo</a>
 
 ## $.pjax( Setting: setting ): this
 `document`オブジェクトへのデリゲートによりpjaxを設定します。

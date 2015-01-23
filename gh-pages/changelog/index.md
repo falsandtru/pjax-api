@@ -413,7 +413,7 @@ jQuery1.4.2+の対応はVersion 2.xで終了します。バグフィクスは2.x
 * リファクタリング
 * TypeScriptを導入
 * MVCモデルを導入
-* CI開発環境を整備・導入([TypeScriptMVCTemplate](https://github.com/falsandtru/TypeScriptMVCTemplate))
+* CI開発環境を整備・導入([TypeScriptMVCTemplate]({{ site.basepath }}https://github.com/falsandtru/TypeScriptMVCTemplate))
 * コールバックにURLを渡す順序を`(..., origin, destination)`の順に変更
 * `area`パラメータに一致する要素の更新処理を要素の中身でなく要素自体を置換するよう変更
 * `area`パラメータで列挙された更新範囲のうち1つでも存在しない範囲があればエラーとするよう変更
