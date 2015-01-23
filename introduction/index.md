@@ -91,7 +91,7 @@ preloadとpjaxの併用は、スクリプトファイルを置くだけでペー
 |preload+pjax|0-700ms|50-100ms|50-800ms|
 
 ## Client-side Load Balancer
-通常のロードバランサと異なり、ルーターやロードバランサなどのハードウェアを使用せず回線帯域を約1.5-20倍に増設・分散する効果を得られます。詳細は[Client-side Load Balancer](client-side-load-balancer/)をお読みください。
+通常のロードバランサと異なり、ルーターやロードバランサなどのハードウェアを使用せず回線帯域を約1.5-20倍に増設・分散する効果を得られます。詳細は[Client-side Load Balancer]({{ site.basepath }}client-side-load-balancer/)をお読みください。
 
 ## Hash relational content overlay
 URLのハッシュと一致するDOM要素に関連付けられた要素を現在のページに重ねて表示します。
@@ -149,5 +149,5 @@ Turbolinks、defunkt版（v1.7.0/2013年6月時点最新版）との主な違い
 |ユーザー定義関数の実行形式|イベント|コールバック＋イベント|イベント|
 |ユーザー定義関数の設定箇所|9|30+6|7|
 |部分更新キャンセル|×|○|×|
-|比較デモ|<a href="demo/defunkt/" target="_blank">defunkt</a>|<a href="demo/falsandtru/" target="_blank">falsandtru</a>|-|
-|CsLBデモ|-|<a href="demo/balance/" target="_blank">Client-side <br>Load Balancer</a>|-|
+|比較デモ|<a href="{{ site.basepath }}demo/defunkt/" target="_blank">defunkt</a>|<a href="{{ site.basepath }}demo/falsandtru/" target="_blank">falsandtru</a>|-|
+|CsLBデモ|-|<a href="{{ site.basepath }}demo/balance/" target="_blank">Client-side <br>Load Balancer</a>|-|

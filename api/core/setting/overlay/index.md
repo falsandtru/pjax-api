@@ -12,7 +12,7 @@ class: style-api style-api-detail
 pjaxのシンプルな補助機能です。ハッシュと一致するDOM要素およびその後続の次のヘッディング・コンテンツが現れるまでの兄弟要素に含まるパラメータに一致する最初の要素がポップアップします。パラメータに一致する要素がない場合は既定の動作となります。
 IE10未満のpjaxを使用できないレガシーブラウザでは動作しないため互換性の確保には独自の対応が必要です。
 
-<a href="demo/overlay/" target="_blank" class="btn btn-primary" role="button">demo</a>
+<a href="{{ site.basepath }}demo/overlay/" target="_blank" class="btn btn-primary" role="button">demo</a>
 
 ## overlay: string
 jQueryセレクタによりポップアップさせるDOM要素を設定します。
