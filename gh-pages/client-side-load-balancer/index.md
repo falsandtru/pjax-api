@@ -19,7 +19,7 @@ class: style-info
 
 ※ 帯域計算は大手ニュースサイトのビジターのブラウザ比率に基づく(95%がバランス可能なブラウザ)。
 
-<a href="demo/balance/" target="_blank" class="btn btn-primary" role="button">demo</a>
+<a href="{{ site.basepath }}demo/balance/" target="_blank" class="btn btn-primary" role="button">demo</a>
 
 ## 概要
 
@@ -157,7 +157,7 @@ $.pjax({
 
 4B: [AjaxServer] 往路でLBサーバを経由している場合は復路もLBサーバを経由してレスポンスを返す
 
-5 . [Client] Ajaxレスポンスによりページ遷移
+5 . [Client] Ajaxレスポン���によりページ遷移
 
 6 . [Client] `X-Ajax-Host`ヘッダのサーバーをバランス先としてクライアントで登録
 
@@ -182,7 +182,7 @@ $.pjax({
 ### クライアント設定
 ブラウザによってはクロスドメインAjaxにリクエストヘッダを追加できないことに注意してください。
 
-[API: balance](api/core/setting/balance/)
+[API: balance]({{ site.basepath }}api/core/setting/balance/)
 
 <pre class="sh brush: js;">
 $.pjax({
