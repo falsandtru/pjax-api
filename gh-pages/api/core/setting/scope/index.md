@@ -9,7 +9,7 @@ class: style-api style-api-detail
 # scope
 ページ遷移にpjaxを使用するURLを設定します。設定はサブディレクトリにも適用されます。初期値は`null`です。
 
-<a href="demo/scope/" target="_blank" class="btn btn-primary" role="button">demo</a>
+<a href="{{ site.basepath }}demo/scope/" target="_blank" class="btn btn-primary" role="button">demo</a>
 
 * aboutディレクトリ下はprimaryのみ更新される
 * blogディレクトリ下と外部とのページ遷移はprimaryとsecondaryが更新される

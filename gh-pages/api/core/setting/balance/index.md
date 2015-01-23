@@ -7,7 +7,7 @@ class: style-api style-api-detail
 ---
 
 # balance
-ロードバランスを設定します。サーバーサイドのみでバランスする場合は設定する必要はありません。機能の解説は[Client-side Load Balancer](client-side-load-balancer/)をお読みください。
+ロードバランスを設定します。サーバーサイドのみでバランスする場合は設定する必要はありません。機能の解説は[Client-side Load Balancer]({{ site.basepath }}client-side-load-balancer/)をお読みください。
 
 サーバーはホスト(`domain.com`)形式で設定します。バランスさせない場合は空文字`''`を設定します。
 

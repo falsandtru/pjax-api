@@ -9,7 +9,7 @@ class: style-api style-api-detail
 # rewrite
 ページ遷移に使用するHTMLDocumentをあらかじめ書き換えます。初期値は`null`です。
 
-<a href="demo/area/" target="_blank" class="btn btn-primary" role="button">demo</a>
+<a href="{{ site.basepath }}demo/area/" target="_blank" class="btn btn-primary" role="button">demo</a>
 
 ## rewrite: function(document, area, host)
 
