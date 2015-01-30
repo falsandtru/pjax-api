@@ -18,8 +18,8 @@ preloadによる高速化実装例です。タッチデバイスでは動作で�
 &lt;script charset="utf-8" src="/js/accelerate.js"&gt;&lt;/script&gt;
 </pre>
 
-preload: [https://github.com/falsandtru/jquery-preload]({{ site.basepath }}https://github.com/falsandtru/jquery-preload)  
-pjax: [https://github.com/falsandtru/jquery-pjax]({{ site.basepath }}https://github.com/falsandtru/jquery-pjax)
+preload: [https://github.com/falsandtru/jquery-preload](https://github.com/falsandtru/jquery-preload)  
+pjax: [https://github.com/falsandtru/jquery-pjax](https://github.com/falsandtru/jquery-pjax)
 accelerate:
 
 <pre class="sh brush: js;">
