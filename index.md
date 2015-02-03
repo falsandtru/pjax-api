@@ -1,6 +1,6 @@
 ---
 layout: bootstrap
-title: PJAX
+title: PJAX - Solution of Client-side Load Balancing
 type: index
 class: style-top
 ---
