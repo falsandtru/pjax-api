@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.36.0
+ * @version 2.36.1
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -2227,7 +2227,7 @@ var MODULE;
                             _this.data_.removeServer(server.host);
                         }
                         switch (true) {
-                            case result.length >= setting.balance.random:
+                            case result.length >= setting.balance.random && setting.balance.random > 0:
                                 return false;
                             case weight && !host && !!Math.floor(Math.random() * weight):
                             case timeout && time >= timeout:
@@ -2257,7 +2257,7 @@ var MODULE;
                         case this.force_ && !history.host:
                             break;
                         default:
-                            hosts = jQuery.map(this.data_.getServerBuffers(), function (i, server) {
+                            hosts = jQuery.map(this.data_.getServerBuffers(), function (server) {
                                 if (server.host !== history.host) {
                                     return;
                                 }
