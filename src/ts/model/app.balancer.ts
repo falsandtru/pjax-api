@@ -137,7 +137,7 @@ module MODULE.MODEL.APP {
         }
 
         switch (true) {
-          case result.length >= setting.balance.random:
+          case result.length >= setting.balance.random && setting.balance.random > 0:
             return false;
           case weight && !host && !!Math.floor(Math.random() * weight):
           case timeout && time >= timeout:
