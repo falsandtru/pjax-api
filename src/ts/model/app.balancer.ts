@@ -137,7 +137,7 @@ module MODULE.MODEL.APP {
         }
 
         switch (true) {
-          case result.length >= setting.balance.random:
+          case result.length >= setting.balance.random && setting.balance.random > 0:
             return false;
           case weight && !host && !!Math.floor(Math.random() * weight):
           case timeout && time >= timeout:
@@ -169,7 +169,7 @@ module MODULE.MODEL.APP {
         case this.force_ && !history.host:
           break;
         default:
-          hosts = jQuery.map(this.data_.getServerBuffers(), (i, server: ServerStoreSchema) => {
+          hosts = jQuery.map(this.data_.getServerBuffers(), (server: ServerStoreSchema) => {
             if (server.host !== history.host) { return; }
             if (server.state >= new Date().getTime()) {
               this.data_.saveExpires(history.url, history.host, 0);
