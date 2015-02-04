@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.36.1
+ * @version 2.36.2
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -2227,7 +2227,7 @@ var MODULE;
                             _this.data_.removeServer(server.host);
                         }
                         switch (true) {
-                            case result.length >= setting.balance.random && setting.balance.random > 0:
+                            case result.length >= setting.balance.random && 0 < result.length:
                                 return false;
                             case weight && !host && !!Math.floor(Math.random() * weight):
                             case timeout && time >= timeout:
