@@ -55,7 +55,10 @@ class: style-info
 $.pjax({
   balance: {
     active: true,
-    bounds: /^\d+\.site\.com$|cdn\.sites\.net:8080|^$/,
+    bounds: [
+      '.site.com',
+      'cdn.sites.net:8080'
+    ],
     client: {
       hosts: ['', '0.site.com', '1.site.com', 'cdn.sites.net:8080']
     }

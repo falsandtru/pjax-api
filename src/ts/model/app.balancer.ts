@@ -42,7 +42,10 @@ module MODULE.MODEL.APP {
           break
       }
       host = host || '';
-      return !/[/?#"`^|\\<>{}\[\]\s]/.test(host) && setting.balance.bounds.test(host) && host;
+      return !/[/?#"`^|\\<>{}\[\]\s]/.test(host)
+          && jQuery.grep(setting.balance.bounds, bound => '' === host || '*' === bound || host === bound || '.' + host === bound || '.' + host === bound.slice(-host.length - 1)).length
+          && host
+          || '';
     }
 
     enable(setting: SettingInterface): void {
