@@ -84,11 +84,7 @@ module MODULE {
     convertUrlToKey(unsafe_url: string, canonicalize?: boolean): string
     compareKeyByUrl(a: string, b: string): boolean
     comparePageByUrl(a: string, b: string): boolean
-    configure(event: Event): SettingInterface
-    configure(destination: string): SettingInterface
-    configure(destination: HTMLAnchorElement): SettingInterface
-    configure(destination: HTMLFormElement): SettingInterface
-    configure(destination: Location): SettingInterface
+    configure(destination: string | Event | HTMLAnchorElement | HTMLFormElement | Location): SettingInterface
     getXHR(): JQueryXHR
     setXHR($xhr: JQueryXHR): JQueryXHR
     isOperatable(event: JQueryEventObject): boolean
@@ -189,12 +185,7 @@ module MODULE.MODEL {
     data: DataInterface
 
     initialize($context: JQuery, setting: SettingInterface): void
-    configure(option: PjaxSetting): SettingInterface
-    configure(event: Event): SettingInterface
-    configure(destination: string): SettingInterface
-    configure(destination: HTMLAnchorElement): SettingInterface
-    configure(destination: HTMLFormElement): SettingInterface
-    configure(destination: Location): SettingInterface
+    configure(destination: string | Event | HTMLAnchorElement | HTMLFormElement | Location | PjaxSetting): SettingInterface
   }
 
   // Balanse
@@ -280,10 +271,8 @@ module MODULE.MODEL {
   }
   // Page::Utility
   export declare class PageUtilityInterface {
-    chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
-    chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
-    chooseArea(areas: string|string[], srcDocument: Document, dstDocument: Document): string
-    dispatchEvent(target: Window|Document|HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
+    chooseArea(area: string | string[], srcDocument: Document, dstDocument: Document): string
+    dispatchEvent(target: Window | Document | HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
   }
 
   // Data

@@ -250,9 +250,9 @@ module MODULE.MODEL.APP {
     // mixin utility
     chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
-    chooseArea(areas: string|string[], srcDocument: Document, dstDocument: Document): string
-    chooseArea(areas: string|string[], srcDocument: Document, dstDocument: Document): string { return }
-    dispatchEvent(target: Window|Document|HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void { }
+    chooseArea(areas: string | string[], srcDocument: Document, dstDocument: Document): string
+    chooseArea(areas: string | string[], srcDocument: Document, dstDocument: Document): string { return }
+    dispatchEvent(target: Window | Document | HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void { }
 
   }
 
