@@ -26,9 +26,7 @@ module MODULE.MODEL {
     host(): string { return this.app_.balancer.host() }
     state(): State { return this.state_; }
     
-    main_($context: ExtensionInterface, setting: PjaxSetting): ExtensionInterface
-    main_($context: ExtensionStaticInterface, setting: PjaxSetting): ExtensionStaticInterface
-    main_($context: any, option: any): any {
+    main_($context: ExtensionInterface | ExtensionStaticInterface, option: PjaxSetting): ExtensionInterface | ExtensionStaticInterface {
 
       switch (typeof option) {
         case 'object':
@@ -57,7 +55,7 @@ module MODULE.MODEL {
       };
 
       jQuery(() => {
-        this.app_.initialize($context, setting);
+        this.app_.initialize(<ExtensionInterface>$context, setting);
         this.state_ = this.state() === State.initiate ? State.open : this.state();
         this.overlay(setting, true);
       });
@@ -82,12 +80,7 @@ module MODULE.MODEL {
       return a === b;
     }
 
-    configure(event: Event): SettingInterface
-    configure(destination: string): SettingInterface
-    configure(destination: HTMLAnchorElement): SettingInterface
-    configure(destination: HTMLFormElement): SettingInterface
-    configure(destination: Location): SettingInterface
-    configure(destination: any): SettingInterface {
+    configure(destination: string | Event | HTMLAnchorElement | HTMLFormElement | Location): SettingInterface {
       return this.app_.configure(destination);
     }
 
