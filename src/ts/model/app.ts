@@ -127,7 +127,7 @@ module MODULE.MODEL.APP {
             },
             balance: {
               active: false,
-              bounds: /^.*$/,
+              bounds: ['*'],
               weight: 1,
               random: 0,
               option: <PjaxSetting>{

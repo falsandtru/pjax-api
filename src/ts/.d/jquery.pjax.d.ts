@@ -61,7 +61,7 @@ interface PjaxSetting {
     }
     balance?: {
         active?: boolean
-        bounds?: RegExp
+        bounds?: string[]
         weight?: number
         random?: number
         option?: PjaxSetting
