@@ -19,7 +19,7 @@ interface JQueryStatic {
 interface PjaxSetting {
     area?: string|string[]
     link?: string
-    filter?: string|((event: JQueryEventObject) => boolean)
+    filter?: string | ((index?: number, element?: HTMLAnchorElement) => boolean)
     form?: string
     scope?: {
         [index: string]: any
