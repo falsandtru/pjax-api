@@ -207,10 +207,10 @@ module MODULE.MODEL.APP {
           compute = () => {
             setting.ns = setting.ns ? setting.ns.split('.').sort().join('.') : '';
             var nsArray: string[] = [DEF.NAME].concat(setting.ns ? setting.ns.split('.') : []);
-            var query: string = setting.server.query;
+            var query = setting.server.query;
             switch (query && typeof query) {
               case 'string':
-                query = eval('({' + query.match(/[^?=&]+=[^&]*/g).join('&').replace(/"/g, '\\"').replace(/([^?=&]+)=([^&]*)/g, '"$1": "$2"').replace(/&/g, ',') + '})');
+                query = eval('({' + query.toString().match(/[^?=&]+=[^&]*/g).join('&').replace(/"/g, '\\"').replace(/([^?=&]+)=([^&]*)/g, '"$1": "$2"').replace(/&/g, ',') + '})');
               case 'object':
                 query = jQuery.param(query);
                 break;

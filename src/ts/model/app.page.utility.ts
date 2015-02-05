@@ -8,6 +8,7 @@ module MODULE.MODEL.APP {
     
     chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
+    chooseArea(areas: string|string[], srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: any, srcDocument: Document, dstDocument: Document): string {
       areas = areas instanceof Array ? areas : [areas];
 
@@ -25,10 +26,7 @@ module MODULE.MODEL.APP {
     }
 
     // addEventListenerとjQuery以外で発行されたカスタムイベントはjQueryでは発信できない
-    dispatchEvent(target: Window, eventType: string, bubbling: boolean, cancelable: boolean): void
-    dispatchEvent(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
-    dispatchEvent(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
-    dispatchEvent(target: any, eventType: string, bubbling: boolean, cancelable: boolean): void {
+    dispatchEvent(target: Window|Document|HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void {
       var event = document.createEvent('HTMLEvents');
       event.initEvent(eventType, bubbling, cancelable);
       target.dispatchEvent(event);
