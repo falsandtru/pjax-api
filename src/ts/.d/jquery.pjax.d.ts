@@ -17,18 +17,18 @@ interface JQueryStatic {
 }
 
 interface PjaxSetting {
-    area?: any       // string, array
+    area?: string|string[]
     link?: string
-    filter?: any     // string, function()
+    filter?: string|((event: JQueryEventObject) => boolean)
     form?: string
     scope?: {
         [index: string]: any
         rewrite?(url: string): string
     }
     rewrite?: (document: Document, area?: string, host?: string) => void
-    state?: any      // any, function(event, setting, origLocation, destLocation )
-    scrollTop?: any  // number, function( event, setting, origLocation, destLocation ), null, false
-    scrollLeft?: any // number, function( event, setting, origLocation, destLocation ), null, false
+    state?: ((event?: JQueryEventObject, setting?: PjaxSetting, origLocation?: HTMLAnchorElement, destLocation?: HTMLAnchorElement) => any)|any
+    scrollTop?: number|boolean|((event?: JQueryEventObject, setting?: PjaxSetting, origLocation?: HTMLAnchorElement, destLocation?: HTMLAnchorElement) => number|boolean)
+    scrollLeft?: number|boolean|((event?: JQueryEventObject, setting?: PjaxSetting, origLocation?: HTMLAnchorElement, destLocation?: HTMLAnchorElement) => number|boolean)
     ajax?: JQueryAjaxSettings
     contentType?: string
     redirect?: boolean
@@ -56,7 +56,7 @@ interface PjaxSetting {
         ignore?: string
         reload?: string
         log?: string
-        error?: any
+        error?: boolean|((error?: Error, element?: HTMLScriptElement) => any)
         ajax?: JQueryAjaxSettings
     }
     balance?: {
@@ -83,8 +83,8 @@ interface PjaxSetting {
             expires?: number
         }
     }
-    wait?: any     // number, function( event, setting, origLocation, destLocation ): number
-    fallback?: any // boolean, function( event, setting, origLocation, destLocation ): boolean
+    wait?: number|((event?: JQueryEventObject, setting?: PjaxSetting, origLocation?: HTMLAnchorElement, destLocation?: HTMLAnchorElement) => number)
+    fallback?: boolean|((event?: JQueryEventObject, setting?: PjaxSetting, origLocation?: HTMLAnchorElement, destLocation?: HTMLAnchorElement) => void|boolean)
     reset?: {
         type?: string
         count?: number
@@ -103,7 +103,7 @@ interface PjaxSetting {
         refresh?: number
     }
     server?: {
-        query?: any // string, object
+        query?: string|{}
         header?: {
             area?: boolean
             head?: boolean
@@ -181,7 +181,7 @@ interface JQueryPjax extends PJAX.Core<JQueryPjax>, PJAX.Method<JQueryPjax>, JQu
     click(url: HTMLAnchorElement): JQueryPjax
     click(url: JQuery): JQueryPjax
     submit(): JQueryPjax
-    submit(url: string, attrs: {}, data: any): JQueryPjax
+    submit(url: string, attrs: {}, data: {}|{}[]): JQueryPjax
     submit(url: HTMLFormElement): JQueryPjax
     submit(url: JQuery): JQueryPjax
 }
@@ -204,7 +204,7 @@ declare module PJAX {
         click(url: HTMLAnchorElement): T
         click(url: JQuery): T
         submit(): T
-        submit(url: string, attrs: {}, data: any): T
+        submit(url: string, attrs: {}, data: {}|{}[]): T
         submit(url: HTMLFormElement): T
         submit(url: JQuery): T
         setCache(): T

@@ -34,7 +34,7 @@ module MODULE.MODEL.APP {
       var that = this,
           setting = this.setting_,
           event = this.event_ = jQuery.extend(true, {}, this.event_),
-          wait: number = this.util_.fire(setting.wait, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]);
+          wait: number = <number>this.util_.fire(setting.wait, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]);
 
       var speedcheck = setting.speedcheck, speed = this.model_.speed;
       speedcheck && (speed.fire = event.timeStamp);
@@ -250,11 +250,9 @@ module MODULE.MODEL.APP {
     // mixin utility
     chooseArea(area: string, srcDocument: Document, dstDocument: Document): string
     chooseArea(areas: string[], srcDocument: Document, dstDocument: Document): string
-    chooseArea(areas: any, srcDocument: Document, dstDocument: Document): string { return }
-    dispatchEvent(target: Window, eventType: string, bubbling: boolean, cancelable: boolean): void
-    dispatchEvent(target: Document, eventType: string, bubbling: boolean, cancelable: boolean): void
-    dispatchEvent(target: HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void
-    dispatchEvent(target: any, eventType: string, bubbling: boolean, cancelable: boolean): void { }
+    chooseArea(areas: string|string[], srcDocument: Document, dstDocument: Document): string
+    chooseArea(areas: string|string[], srcDocument: Document, dstDocument: Document): string { return }
+    dispatchEvent(target: Window|Document|HTMLElement, eventType: string, bubbling: boolean, cancelable: boolean): void { }
 
   }
 
