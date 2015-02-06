@@ -117,12 +117,12 @@ if (!/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.nav
 
 Name|Type|Description
 ----|----|-----------
-[area](http://falsandtru.github.io/jquery-pjax/api/core/area/)|string/array|Update the area specified by jQuery selector.
-[state](http://falsandtru.github.io/jquery-pjax/api/core/state/)|any|Setting the `window.history.state`.
-[ajax](http://falsandtru.github.io/jquery-pjax/api/core/ajax/)|ajaxSettings|Ajax settings without callbacks.
-[rewrite](http://falsandtru.github.io/jquery-pjax/api/core/rewrite/)|function|Rewrite the source document object in advance.
-[load](http://falsandtru.github.io/jquery-pjax/api/core/load/)|object|Load and sync CSS, SCRIPT and more head content.
-[cache](http://falsandtru.github.io/jquery-pjax/api/core/cache/)|object|Cache the page data.
+[area](http://falsandtru.github.io/jquery-pjax/api/core/setting/area/)|string/array|Update the area specified by jQuery selector.
+[state](http://falsandtru.github.io/jquery-pjax/api/core/setting/state/)|any|Setting the `window.history.state`.
+[ajax](http://falsandtru.github.io/jquery-pjax/api/core/setting/ajax/)|ajaxSettings|Ajax settings without callbacks.
+[rewrite](http://falsandtru.github.io/jquery-pjax/api/core/setting/rewrite/)|function|Rewrite the source document object in advance.
+[load](http://falsandtru.github.io/jquery-pjax/api/core/setting/load/)|object|Load and sync CSS, SCRIPT and more head content.
+[cache](http://falsandtru.github.io/jquery-pjax/api/core/setting/cache/)|object|Cache the page data.
 [more...](http://falsandtru.github.io/jquery-pjax/api/core/)||
 
 ### Method
