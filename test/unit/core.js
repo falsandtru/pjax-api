@@ -2,6 +2,10 @@
 suite("Core", function () {
   this.timeout(5000);
 
+  $.ajax({ url: (window.__karma__ ? "/base/test/" : "./") + "fixture/index.html" })
+  $.ajax({ url: (window.__karma__ ? "/base/test/" : "./") + "fixture/2.html" })
+  $.ajax({ url: (window.__karma__ ? "/base/test/" : "./") + "fixture/3.html" })
+
   test("pjax", function (done) {
     var query = '?jquery=' + env.jquery + '&test=pjax.js';
 
