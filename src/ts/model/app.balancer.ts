@@ -43,7 +43,7 @@ module MODULE.MODEL.APP {
       }
       host = host || '';
       return !/[/?#"`^|\\<>{}\[\]\s]/.test(host)
-          && jQuery.grep(setting.balance.bounds, bound => '' === host || '*' === bound || host === bound || '.' + host === bound || '.' + host === bound.slice(-host.length - 1)).length
+          && jQuery.grep(setting.balance.bounds, bound => '' === host || '*' === bound || host === bound || '.' === bound.charAt(0) && bound === host.slice(-bound.length)).length
           && host
           || '';
     }
