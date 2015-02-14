@@ -93,7 +93,7 @@ module MODULE.MODEL {
       switch (event.type.toLowerCase()) {
         case EVENT.CLICK:
           setting = this.app_.configure(<HTMLAnchorElement>event.currentTarget);
-          if (setting && !jQuery(event.currentTarget).filter(<string>setting.filter).length) { return false; }
+          if (setting && !jQuery(event.currentTarget).filter(setting.filter).length) { return false; }
           break;
         case EVENT.SUBMIT:
           setting = this.app_.configure(<HTMLFormElement>event.currentTarget);

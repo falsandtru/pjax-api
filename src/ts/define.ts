@@ -1,4 +1,5 @@
 /// <reference path=".d/jquery.d.ts"/>
+/// <reference path=".d/jquery.extend.d.ts"/>
 /// <reference path=".d/jquery.pjax.d.ts"/>
 
 // Correct
