@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.36.2
+ * @version 2.37.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -14,6 +14,7 @@
 !new function(window, document, undefined, $) {
 "use strict";
 /// <reference path=".d/jquery.d.ts"/>
+/// <reference path=".d/jquery.extend.d.ts"/>
 /// <reference path=".d/jquery.pjax.d.ts"/>
 var MODULE;
 (function (MODULE) {
@@ -2144,7 +2145,7 @@ var MODULE;
                             break;
                     }
                     host = host || '';
-                    return !/[/?#"`^|\\<>{}\[\]\s]/.test(host) && setting.balance.bounds.test(host) && host;
+                    return !/[/?#"`^|\\<>{}\[\]\s]/.test(host) && jQuery.grep(setting.balance.bounds, function (bound) { return '' === host || '*' === bound || host === bound || '.' === bound.charAt(0) && bound === host.slice(-bound.length); }).length && host || '';
                 };
                 Balancer.prototype.enable = function (setting) {
                     if (!setting.balance.active) {
@@ -2465,20 +2466,21 @@ var MODULE;
             var PageUtility = (function () {
                 function PageUtility() {
                 }
-                PageUtility.prototype.chooseArea = function (areas, srcDocument, dstDocument) {
-                    areas = areas instanceof Array ? areas : [areas];
-                    var i = -1, area;
-                    AREA: while (area = areas[++i]) {
-                        var options = area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
+                PageUtility.prototype.chooseArea = function (area, srcDocument, dstDocument) {
+                    var areas = typeof area === 'string' ? [area] : area;
+                    var i = -1, v;
+                    AREA: while (v = areas[++i]) {
+                        var options = v.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
                         var j = -1;
                         while (options[++j]) {
                             if (!jQuery(options[j], srcDocument).length || !jQuery(options[j], dstDocument).length) {
                                 continue AREA;
                             }
                         }
-                        return area;
+                        return v;
                     }
                 };
+                // addEventListenerとjQuery以外で発行されたカスタムイベントはjQueryでは発信できない
                 PageUtility.prototype.dispatchEvent = function (target, eventType, bubbling, cancelable) {
                     var event = document.createEvent('HTMLEvents');
                     event.initEvent(eventType, bubbling, cancelable);
@@ -2710,6 +2712,7 @@ var MODULE;
                     }, ms);
                     return defer;
                 };
+                // mixin utility
                 PageFetch.prototype.chooseArea = function (areas, srcDocument, dstDocument) {
                     return;
                 };
@@ -3528,6 +3531,7 @@ var MODULE;
                     script.innerHTML = jQuery.data(script, 'code');
                     jQuery.removeData(script, 'code');
                 };
+                // mixin utility
                 PageUpdate.prototype.chooseArea = function (areas, srcDocument, dstDocument) {
                     return;
                 };
@@ -3884,7 +3888,7 @@ var MODULE;
                         },
                         balance: {
                             active: false,
-                            bounds: /^.*$/,
+                            bounds: ['*'],
                             weight: 1,
                             random: 0,
                             option: {
@@ -3963,7 +3967,7 @@ var MODULE;
                         var query = setting.server.query;
                         switch (query && typeof query) {
                             case 'string':
-                                query = eval('({' + query.match(/[^?=&]+=[^&]*/g).join('&').replace(/"/g, '\\"').replace(/([^?=&]+)=([^&]*)/g, '"$1": "$2"').replace(/&/g, ',') + '})');
+                                query = eval('({' + query.toString().match(/[^?=&]+=[^&]*/g).join('&').replace(/"/g, '\\"').replace(/([^?=&]+)=([^&]*)/g, '"$1": "$2"').replace(/&/g, ',') + '})');
                             case 'object':
                                 query = jQuery.param(query);
                                 break;
