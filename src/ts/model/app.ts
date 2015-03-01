@@ -32,15 +32,9 @@ module MODULE.MODEL.APP {
       this.data.loadBuffers();
       setTimeout(() => this.page.landing = null, 1500);
     }
-    
-    configure(option: PjaxSetting): SettingInterface
-    configure(event: Event): SettingInterface
-    configure(destination: string): SettingInterface
-    configure(destination: HTMLAnchorElement): SettingInterface
-    configure(destination: HTMLFormElement): SettingInterface
-    configure(destination: Location): SettingInterface
-    configure(destination: any): SettingInterface {
-      var event: Event = (<Event>destination).preventDefault ? destination : null;
+
+    configure(destination: string | Event | HTMLAnchorElement | HTMLFormElement | Location | PjaxSetting): SettingInterface {
+      var event: Event = (<Event>destination).preventDefault ? <Event>destination : null;
       switch (event && 'object' === typeof event && event.type.toLowerCase()) {
         case EVENT.CLICK:
           return this.configure(<HTMLAnchorElement>event.currentTarget);
@@ -55,14 +49,14 @@ module MODULE.MODEL.APP {
       var url: string;
       switch (true) {
         case 'string' === typeof destination:
-          url = destination;
+          url = <string>destination;
           break;
-        case 'href' in destination:
-          url = this.util_.normalizeUrl(destination.href);
+        case 'href' in <HTMLAnchorElement>destination:
+          url = this.util_.normalizeUrl((<HTMLAnchorElement>destination).href);
           break;
-        case 'action' in destination:
-          url = this.util_.normalizeUrl(destination.action.replace(/[?#].*/, ''));
-          switch (destination.method.toUpperCase()) {
+        case 'action' in <HTMLFormElement>destination:
+          url = this.util_.normalizeUrl((<HTMLFormElement>destination).action.replace(/[?#].*/, ''));
+          switch ((<HTMLFormElement>destination).method.toUpperCase()) {
             case 'GET':
               url += '?' + jQuery(destination).serialize();
               break;
@@ -127,7 +121,7 @@ module MODULE.MODEL.APP {
             },
             balance: {
               active: false,
-              bounds: /^.*$/,
+              bounds: ['*'],
               weight: 1,
               random: 0,
               option: <PjaxSetting>{
@@ -207,10 +201,10 @@ module MODULE.MODEL.APP {
           compute = () => {
             setting.ns = setting.ns ? setting.ns.split('.').sort().join('.') : '';
             var nsArray: string[] = [DEF.NAME].concat(setting.ns ? setting.ns.split('.') : []);
-            var query: string = setting.server.query;
+            var query = setting.server.query;
             switch (query && typeof query) {
               case 'string':
-                query = eval('({' + query.match(/[^?=&]+=[^&]*/g).join('&').replace(/"/g, '\\"').replace(/([^?=&]+)=([^&]*)/g, '"$1": "$2"').replace(/&/g, ',') + '})');
+                query = eval('({' + query.toString().match(/[^?=&]+=[^&]*/g).join('&').replace(/"/g, '\\"').replace(/([^?=&]+)=([^&]*)/g, '"$1": "$2"').replace(/&/g, ',') + '})');
               case 'object':
                 query = jQuery.param(query);
                 break;

@@ -3,6 +3,10 @@ language: node_js
 node_js:
   - "0.10"
 
+sudo: false
+
+cache: bundler
+
 env:
   global:
     - secure: "Rm4C2xPbb3a1j9BfA29mwtbkRF3GF9pAXdr3F3Stu46/wJb2uToxstvqbP7Q1QkpXKmOB26GYHtlC5ANgjuakLNm59Ke1JLMO4Nfg7H4aPdLJb/8xnJYmZK7ACRUGpa/Q7vQZ+3loN2BmwIytX/bDkGuJ9ONjg6DdGL1egjPDS0="

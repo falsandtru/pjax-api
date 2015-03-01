@@ -1,6 +1,6 @@
 {
   "name": "jquery-pjax",
-  "version": "2.36.2",
+  "version": "2.37.0",
   "description": "",
   "repository": {
     "type": "git",
@@ -11,19 +11,19 @@
     "url": "https://github.com/falsandtru/jquery-pjax/issues"
   },
   "devDependencies": {
-    "chai": "^1.10.0",
+    "chai": "^2.1.0",
     "grunt-cli": "^0.1.13",
     "grunt-contrib-clean": "^0.6.0",
-    "grunt-contrib-concat": "^0.5.0",
-    "grunt-contrib-copy": "^0.7.0",
+    "grunt-contrib-concat": "^0.5.1",
+    "grunt-contrib-copy": "^0.8.0",
     "grunt-contrib-jshint": "^0.11.0",
-    "grunt-contrib-uglify": "^0.7.0",
+    "grunt-contrib-uglify": "^0.8.0",
     "grunt-contrib-watch": "^0.6.1",
     "grunt-contrib-yuidoc": "^0.7.0",
     "grunt-jekyll": "^0.4.2",
     "grunt-karma": "^0.10.1",
     "grunt-karma-coveralls": "^2.5.3",
-    "grunt-shell-spawn": "^0.3.0",
+    "grunt-shell-spawn": "0.3.1",
     "grunt-tslint": "^2.0.0",
     "grunt-typescript": "^0.6.1",
     "json": "^9.0.3",
@@ -40,7 +40,7 @@
     "karma-requirejs": "^0.2.2",
     "mocha": "^2.1.0",
     "phantomjs": "^1.9.15",
-    "requirejs": "^2.1.15",
+    "requirejs": "^2.1.16",
     "typescript": "^1.4.1"
   },
   "author": "falsandtru",
