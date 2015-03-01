@@ -308,7 +308,7 @@ interface JQuery {
      * 
      * @param selector A string containing a selector expression to match elements against.
      */
-    is(selector: string|Element|JQuery|((index: number, element: Element) => boolean)): JQuery;
+    is(selector: string|Element|JQuery|((index: number, element: Element) => boolean)): boolean;
 
     /**
      * Remove elements from the set of matched elements.
