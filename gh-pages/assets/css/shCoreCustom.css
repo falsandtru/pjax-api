@@ -94,6 +94,10 @@
 .syntaxhighlighter table td.code .container {
   position: relative !important;
 }
+.syntaxhighlighter table td.code .container::before,
+.syntaxhighlighter table td.code .container::after {
+  display: none !important;
+}
 .syntaxhighlighter table td.code .container textarea {
   box-sizing: border-box !important;
   position: absolute !important;
