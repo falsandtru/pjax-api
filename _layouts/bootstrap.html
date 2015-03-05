@@ -7,13 +7,15 @@
 <meta name="robots" content="noarchive">
 
 {% if page.type == "index" %}
-<title>{{ page.title }}</title>
+<title>{{ site.title }}</title>
 {% else %}
 <title>{{ page.title }} | {{ site.title }}</title>
 {% endif %}
 
 <!-- Bootstrap -->
-<link href="{{ site.basepath }}assets/css/bootstrap.min.css" rel="stylesheet">
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+
 <link href="{{ site.basepath }}assets/css/style.css" rel="stylesheet">
 <link href="{{ site.basepath }}assets/css/shCoreCustom.css" rel="stylesheet">
 <link href="{{ site.basepath }}assets/css/shThemeCustom.css" rel="stylesheet">
@@ -51,27 +53,29 @@
 {% if page.type == "index" %}
 {% include billboard.html %}
 {% endif %}
+
 {{ content }}
 </article>
 <aside></aside>
-
 </div>
+
 <!-- ----- SECONDARY ---------------------------------------------------------- -->
 {% if page.nav == nil %}
 <div id="secondary" class="col-md-0 col-md-pull-0">
 <nav></nav>
+</div>
 {% else %}
 <div id="secondary" class="col-md-2 col-md-pull-10">
 {% assign nav = {{page.nav | append:'.html'}} %}
 {% include {{nav}} %}
+</div>
 {% endif %}
 
-</div>
 <!-- ----- TERTIARY ----------------------------------------------------------- -->
 <div id="tertiary">
 <aside></aside>
-
 </div>
+
 </div>
 
 <!-- ----- FOOTER ------------------------------------------------------------- -->
@@ -89,8 +93,9 @@
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
 <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1/i18n/jquery-ui-i18n.min.js"></script>
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
 <!-- Include all compiled plugins (below), or include individual files as needed -->
-<script src="{{ site.basepath }}assets/js/bootstrap.min.js"></script>
 <script src="{{ site.basepath }}assets/js/plugins.min.js"></script>
 <script src="{{ site.basepath }}assets/js/shCore.js"></script>
 <script src="{{ site.basepath }}assets/js/shBrushXml.js"></script>
