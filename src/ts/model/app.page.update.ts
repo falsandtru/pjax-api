@@ -81,12 +81,25 @@ module MODULE.MODEL.APP {
     }
 
     private isRegister_(setting: SettingInterface, event: JQueryEventObject): boolean {
-      switch (true) {
-        case setting.destLocation.href === setting.origLocation.href:
-        case EVENT.POPSTATE === event.type.toLowerCase():
-          return false;
-        default:
+      if (setting.destLocation.href === setting.origLocation.href) {
+        return false;
+      }
+      switch (event.type.toLowerCase()) {
+        case EVENT.CLICK:
+        case EVENT.SUBMIT:
           return true;
+        case EVENT.POPSTATE:
+          return false;
+      }
+    }
+
+    private isReplace_(setting: SettingInterface, event: JQueryEventObject): boolean {
+      switch (event.type.toLowerCase()) {
+        case EVENT.CLICK:
+        case EVENT.SUBMIT:
+          return jQuery(event.currentTarget).is(setting.replace);
+        case EVENT.POPSTATE:
+          return false;
       }
     }
 
@@ -160,10 +173,21 @@ module MODULE.MODEL.APP {
 
       if (this.util_.fire(setting.callbacks.update.url.before, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) { return; };
 
-      if (this.isRegister_(setting, event)) {
-        window.history.pushState(this.util_.fire(setting.state, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]),
-                                 ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstTitle_ : this.srcTitle_,
-                                 setting.destLocation.href);
+      if (this.isReplace_(setting, event)) {
+        window.history.replaceState(
+          this.util_.fire(setting.state, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]),
+          this.srcTitle_,
+          setting.destLocation.href);
+
+        if (setting.fix.location && !this.util_.compareUrl(setting.destLocation.href, window.location.href)) {
+          window.location.replace(setting.destLocation.href);
+        }
+      }
+      else if (this.isRegister_(setting, event)) {
+        window.history.pushState(
+          this.util_.fire(setting.state, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]),
+          ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstTitle_ : this.srcTitle_,
+          setting.destLocation.href);
 
         if (setting.fix.location && !this.util_.compareUrl(setting.destLocation.href, window.location.href)) {
           jQuery[DEF.NAME].disable();

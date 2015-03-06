@@ -23,6 +23,9 @@ pjaxを設定します。
 ### [form:]({{ site.basepath }}api/core/setting/form/)
 ページ遷移にpjaxを使用するフォームを設定します。
 
+### [replace:]({{ site.basepath }}api/core/setting/replace/)
+`replace`パラメータに一致した要素からのページ遷移をURLを追加せず書き換えて行います。。
+
 ### [scope:]({{ site.basepath }}api/core/setting/scope/)
 ページ遷移にpjaxを使用するURLを設定します。
 
