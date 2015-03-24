@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.37.0
+ * @version 2.38.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -2872,12 +2872,24 @@ var MODULE;
                     }
                 };
                 PageUpdate.prototype.isRegister_ = function (setting, event) {
-                    switch (true) {
-                        case setting.destLocation.href === setting.origLocation.href:
-                        case MODULE.EVENT.POPSTATE === event.type.toLowerCase():
-                            return false;
-                        default:
+                    if (setting.destLocation.href === setting.origLocation.href) {
+                        return false;
+                    }
+                    switch (event.type.toLowerCase()) {
+                        case MODULE.EVENT.CLICK:
+                        case MODULE.EVENT.SUBMIT:
                             return true;
+                        case MODULE.EVENT.POPSTATE:
+                            return false;
+                    }
+                };
+                PageUpdate.prototype.isReplace_ = function (setting, event) {
+                    switch (event.type.toLowerCase()) {
+                        case MODULE.EVENT.CLICK:
+                        case MODULE.EVENT.SUBMIT:
+                            return jQuery(event.currentTarget).is(setting.replace);
+                        case MODULE.EVENT.POPSTATE:
+                            return false;
                     }
                 };
                 PageUpdate.prototype.isCacheUsable_ = function (event, setting) {
@@ -2948,7 +2960,13 @@ var MODULE;
                         return;
                     }
                     ;
-                    if (this.isRegister_(setting, event)) {
+                    if (this.isReplace_(setting, event)) {
+                        window.history.replaceState(this.util_.fire(setting.state, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]), this.srcTitle_, setting.destLocation.href);
+                        if (setting.fix.location && !this.util_.compareUrl(setting.destLocation.href, window.location.href)) {
+                            window.location.replace(setting.destLocation.href);
+                        }
+                    }
+                    else if (this.isRegister_(setting, event)) {
                         window.history.pushState(this.util_.fire(setting.state, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]), ~window.navigator.userAgent.toLowerCase().indexOf('opera') ? this.dstTitle_ : this.srcTitle_, setting.destLocation.href);
                         if (setting.fix.location && !this.util_.compareUrl(setting.destLocation.href, window.location.href)) {
                             jQuery[MODULE.DEF.NAME].disable();
@@ -3854,6 +3872,7 @@ var MODULE;
                             return /^https?:/.test(this.href) && /\/[^.]*$|\.(html?|php)$/.test(this.pathname.replace(/^\/?/, '/'));
                         },
                         form: null,
+                        replace: null,
                         scope: null,
                         rewrite: null,
                         state: null,
