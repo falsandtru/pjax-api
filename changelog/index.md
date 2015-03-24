@@ -9,7 +9,7 @@ nav: nav
 
 Version 3.0.0で全互換性をLazyChain0.3.0+とjQuery1.4.2+に変更予定。
 jQueryはDOMとAjaxにのみ使用し、その他の非同期処理はLazyChain実装のPromiseを使用するためjQueryのバージョンに依存しない。
-ただし`forward`メソッドはAjaxオブジェクトが`then`メソッドを持つ必要があるためこれをjQueryで作成する場合はjQuery1.6.0+が必要となる。
+ただし`forward`メソッドはAjaxオブジェクトが`then`メソッドを持つ必要があるためこれをjQueryで作成する場合はjQuery1.8.0+が必要となる。
 クラスの依存関係が昼メロ状態で実際に手をつけるめどは立っていない。
 
 ## 2.38.0
