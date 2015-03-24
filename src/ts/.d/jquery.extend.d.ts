@@ -31,49 +31,6 @@ interface JQueryCallback {
 }
 
 /**
- * Interface for the JQuery promise/deferred callbacks
- */
-interface JQueryPromiseOperator<T, R> {
-    (callback: JQueryPromiseCallback<T>|JQueryPromiseCallback<T>[], ...callbacks: JQueryPromiseCallback<T>[]): JQueryPromise<R>;
-}
-
-/**
- * Interface for the JQuery deferred, part of callbacks
- */
-interface JQueryDeferred<T> extends JQueryPromise<T> {
-    /**
-     * Add handlers to be called when the Deferred object is either resolved or rejected.
-     * 
-     * @param alwaysCallbacks1 A function, or array of functions, that is called when the Deferred is resolved or rejected.
-     * @param alwaysCallbacks2 Optional additional functions, or arrays of functions, that are called when the Deferred is resolved or rejected.
-     */
-    always(alwaysCallbacks1?: JQueryPromiseCallback<T>|JQueryPromiseCallback<T>[], ...alwaysCallbacks2: JQueryPromiseCallback<T>[]): JQueryDeferred<T>;
-    always(alwaysCallbacks1?: JQueryPromiseCallback<T>|JQueryPromiseCallback<T>[], ...alwaysCallbacks2: any[]): JQueryDeferred<T>;
-    /**
-     * Add handlers to be called when the Deferred object is resolved.
-     * 
-     * @param doneCallbacks1 A function, or array of functions, that are called when the Deferred is resolved.
-     * @param doneCallbacks2 Optional additional functions, or arrays of functions, that are called when the Deferred is resolved.
-     */
-    done(doneCallbacks1?: JQueryPromiseCallback<T>|JQueryPromiseCallback<T>[], ...doneCallbacks2: JQueryPromiseCallback<T>[]): JQueryDeferred<T>;
-    done(doneCallbacks1?: JQueryPromiseCallback<T>|JQueryPromiseCallback<T>[], ...doneCallbacks2: any[]): JQueryDeferred<T>;
-    /**
-     * Add handlers to be called when the Deferred object is rejected.
-     * 
-     * @param failCallbacks1 A function, or array of functions, that are called when the Deferred is rejected.
-     * @param failCallbacks2 Optional additional functions, or arrays of functions, that are called when the Deferred is rejected.
-     */
-    fail(failCallbacks1?: JQueryPromiseCallback<T>|JQueryPromiseCallback<T>[], ...failCallbacks2: JQueryPromiseCallback<T>[]): JQueryDeferred<T>;
-    fail(failCallbacks1?: JQueryPromiseCallback<T>|JQueryPromiseCallback<T>[], ...failCallbacks2: any[]): JQueryDeferred<T>;
-    /**
-     * Add handlers to be called when the Deferred object generates progress notifications.
-     * 
-     * @param progressCallbacks A function, or array of functions, to be called when the Deferred generates progress notifications.
-     */
-    progress(progressCallback: JQueryPromiseCallback<T>|JQueryPromiseCallback<T>[]): JQueryDeferred<T>;
-}
-
-/**
  * Static members of jQuery (those on $ and jQuery themselves)
  */
 interface JQueryStatic {
