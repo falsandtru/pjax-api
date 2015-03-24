@@ -21,6 +21,7 @@ interface PjaxSetting {
     link?: string
     filter?: string | ((index?: number, element?: HTMLAnchorElement) => boolean)
     form?: string
+    replace?: string | ((index?: number, element?: HTMLAnchorElement) => boolean)
     scope?: {
         [index: string]: any
         rewrite?(url: string): string

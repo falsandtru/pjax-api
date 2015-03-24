@@ -64,7 +64,7 @@ module MODULE.MODEL.APP {
           break;
         default:
           url = this.model_.location.href;
-          this.option_ = destination;
+          this.option_ = <PjaxSetting>destination;
       }
 
       var index: string = [
@@ -93,6 +93,7 @@ module MODULE.MODEL.APP {
             // this.protocolはIEでエラー
             filter: function () { return /^https?:/.test(this.href) && /\/[^.]*$|\.(html?|php)$/.test(this.pathname.replace(/^\/?/, '/')); },
             form: null,
+            replace: null,
             scope: null,
             rewrite: null,
             state: null,
