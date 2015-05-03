@@ -54,7 +54,7 @@ accelerate:
 ## Google Analytics アクセス解析
 ページに直接埋め込んで使用します。
 
-###新 Google Analytics
+### New Google Analytics
 
 <pre class="sh brush: js;">
   if (!window.ga) {
@@ -69,7 +69,7 @@ accelerate:
   ga('send', 'pageview', window.location.pathname.replace(/^\/?/, '/') + window.location.search);
 </pre>
 
-###旧 Google Analytics
+### Old Google Analytics
 
 <pre class="sh brush: js;">
   if (!window._gaq) {
