@@ -36,17 +36,17 @@ module MODULE.VIEW {
 
     // VIEWの待ち受けるイベントに登録されるハンドラ
     handlers = {
-      click: (): void => {
-        this.controller_.click(arguments);
+      click: (...args): void => {
+        this.controller_.click(args);
       },
-      submit: (): void => {
-        this.controller_.submit(arguments);
+      submit: (...args): void => {
+        this.controller_.submit(args);
       },
-      popstate: (): void => {
-        this.controller_.popstate(arguments);
+      popstate: (...args): void => {
+        this.controller_.popstate(args);
       },
-      scroll: (): void => {
-        this.controller_.scroll(arguments);
+      scroll: (...args): void => {
+        this.controller_.scroll(args);
       }
     }
     
