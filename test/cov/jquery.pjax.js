@@ -175,7 +175,7 @@ var MODULE;
                  * @property state_
                  * @type {State}
                  */
-                this.state_ = 0 /* blank */;
+                this.state_ = MODULE.State.blank;
                 this.state_ = state;
             }
             Template.prototype.MAIN = function (context) {
@@ -218,7 +218,7 @@ var MODULE;
                  * @property state_
                  * @type {State}
                  */
-                this.state_ = 0 /* blank */;
+                this.state_ = MODULE.State.blank;
                 this.state_ = state;
             }
             return Template;
@@ -243,23 +243,39 @@ var MODULE;
             __extends(Main, _super);
             function Main(model_, controller_, context_, setting) {
                 var _this = this;
-                _super.call(this, 1 /* initiate */);
+                _super.call(this, MODULE.State.initiate);
                 this.model_ = model_;
                 this.controller_ = controller_;
                 this.context_ = context_;
                 // VIEWの待ち受けるイベントに登録されるハンドラ
                 this.handlers = {
                     click: function () {
-                        _this.controller_.click(arguments);
+                        var args = [];
+                        for (var _i = 0; _i < arguments.length; _i++) {
+                            args[_i - 0] = arguments[_i];
+                        }
+                        _this.controller_.click(args);
                     },
                     submit: function () {
-                        _this.controller_.submit(arguments);
+                        var args = [];
+                        for (var _i = 0; _i < arguments.length; _i++) {
+                            args[_i - 0] = arguments[_i];
+                        }
+                        _this.controller_.submit(args);
                     },
                     popstate: function () {
-                        _this.controller_.popstate(arguments);
+                        var args = [];
+                        for (var _i = 0; _i < arguments.length; _i++) {
+                            args[_i - 0] = arguments[_i];
+                        }
+                        _this.controller_.popstate(args);
                     },
                     scroll: function () {
-                        _this.controller_.scroll(arguments);
+                        var args = [];
+                        for (var _i = 0; _i < arguments.length; _i++) {
+                            args[_i - 0] = arguments[_i];
+                        }
+                        _this.controller_.scroll(args);
                     }
                 };
                 MODULE.FREEZE(this);
@@ -270,14 +286,16 @@ var MODULE;
                 setting.link && this.context_.delegate(setting.link, setting.nss.event.click, this.handlers.click);
                 setting.form && this.context_.delegate(setting.form, setting.nss.event.submit, this.handlers.submit);
                 jQuery(window).bind(setting.nss.event.popstate, this.handlers.popstate);
-                setting.database.active && setting.fix.scroll && jQuery(window).bind(setting.nss.event.scroll, this.handlers.scroll);
+                setting.database.active && setting.fix.scroll &&
+                    jQuery(window).bind(setting.nss.event.scroll, this.handlers.scroll);
                 return this;
             };
             Main.prototype.release_ = function (setting) {
                 setting.link && this.context_.undelegate(setting.link, setting.nss.event.click);
                 setting.form && this.context_.undelegate(setting.form, setting.nss.event.submit);
                 jQuery(window).unbind(setting.nss.event.popstate);
-                setting.database.active && setting.fix.scroll && jQuery(window).unbind(setting.nss.event.scroll);
+                setting.database.active && setting.fix.scroll &&
+                    jQuery(window).unbind(setting.nss.event.scroll);
                 return this;
             };
             return Main;
@@ -325,7 +343,13 @@ var MODULE;
                         return this;
                 }
                 var setting = MODULE.Model.singleton().configure($anchor[0]);
-                setting && $anchor.first().one(setting.nss.event.click, function () { return MODULE.Controller.singleton().click(arguments); }).click();
+                setting && $anchor.first().one(setting.nss.event.click, function () {
+                    var args = [];
+                    for (var _i = 0; _i < arguments.length; _i++) {
+                        args[_i - 0] = arguments[_i];
+                    }
+                    return MODULE.Controller.singleton().click(args);
+                }).click();
                 return this;
             };
             Functions.prototype.submit = function (url, attrs, data) {
@@ -365,7 +389,13 @@ var MODULE;
                         return this;
                 }
                 var setting = MODULE.Model.singleton().configure($form[0]);
-                setting && $form.first().one(setting.nss.event.submit, function () { return MODULE.Controller.singleton().submit(arguments); }).submit();
+                setting && $form.first().one(setting.nss.event.submit, function () {
+                    var args = [];
+                    for (var _i = 0; _i < arguments.length; _i++) {
+                        args[_i - 0] = arguments[_i];
+                    }
+                    return MODULE.Controller.singleton().submit(args);
+                }).submit();
                 return this;
             };
             Functions.prototype.getCache = function (url) {
@@ -416,7 +446,8 @@ var MODULE;
                     $xhr.timeStamp = timeStamp || event.timeStamp;
                 }
                 MODULE.Model.singleton().setXHR($xhr);
-                jQuery.when($xhr).done(function () {
+                jQuery.when($xhr)
+                    .done(function () {
                     !MODULE.Model.singleton().getCache(anchor.href) && MODULE.Model.singleton().isOperatable(event) && MODULE.Model.singleton().setCache(anchor.href, undefined, undefined, $xhr);
                 });
                 jQuery[MODULE.DEF.NAME].click(anchor.href);
@@ -474,7 +505,7 @@ var MODULE;
                  * @property state_
                  * @type {State}
                  */
-                this.state_ = 0 /* blank */;
+                this.state_ = MODULE.State.blank;
                 /**
                  * 拡張のプロパティを指定する
                  *
@@ -594,7 +625,7 @@ var MODULE;
         var Main = (function (_super) {
             __extends(Main, _super);
             function Main(model_) {
-                _super.call(this, model_, 1 /* initiate */);
+                _super.call(this, model_, MODULE.State.initiate);
                 this.model_ = model_;
                 this.FUNCTIONS = new CONTROLLER.Functions();
                 this.METHODS = new CONTROLLER.Methods();
@@ -879,17 +910,17 @@ var MODULE;
                                 return _this.cache_.stateful[_this.state_()] = _this.cache_.stateful[_this.state_()] || new statefulClass(_this.origin_, _this.connect_, _this.extend_, _this.task_, taskable);
                             };
                             switch (this.state_()) {
-                                case 0 /* blank */:
+                                case MODULE.State.blank:
                                     return select(DB.STATE.Blank, true);
-                                case 1 /* initiate */:
+                                case MODULE.State.initiate:
                                     return select(DB.STATE.Initiate, true);
-                                case 2 /* open */:
+                                case MODULE.State.open:
                                     return select(DB.STATE.Open, true);
-                                case 9 /* close */:
+                                case MODULE.State.close:
                                     return select(DB.STATE.Close, true);
-                                case 8 /* terminate */:
+                                case MODULE.State.terminate:
                                     return select(DB.STATE.Terminate, true);
-                                case 6 /* error */:
+                                case MODULE.State.error:
                                     return select(DB.STATE.Error, false);
                                 default:
                                     return select(DB.STATE.Except, false);
@@ -1099,9 +1130,7 @@ var MODULE;
                         var index = 'string' === typeof arguments[0] && arguments[0], callback = arguments[index ? 1 : 0];
                         this.accessStore(function (store) {
                             var req = index ? store.index(index).count() : store.count();
-                            req.onsuccess = function () {
-                                callback.apply(this, [].slice.call(arguments, 1).concat(this.result));
-                            };
+                            req.onsuccess = function () { callback.apply(this, [].slice.call(arguments, 1).concat(this.result)); };
                         });
                     };
                     Store.prototype.accessRecord = function (key, callback, mode) {
@@ -1191,7 +1220,8 @@ var MODULE;
                         }
                         var buffer = this.buffer;
                         if (this.indexes.length) {
-                            this.DB.IDBKeyRange && this.accessAll(this.indexes[0].name, this.DB.IDBKeyRange.upperBound(Infinity), 'prev', proc);
+                            this.DB.IDBKeyRange &&
+                                this.accessAll(this.indexes[0].name, this.DB.IDBKeyRange.upperBound(Infinity), 'prev', proc);
                         }
                         else {
                             this.accessAll(proc);
@@ -1391,7 +1421,7 @@ var MODULE;
                         this.refresh = 10;
                         this.upgrade = 0; // 0:virtual 1:native
                         this.revision = 0;
-                        this.state_ = 0 /* blank */;
+                        this.state_ = MODULE.State.blank;
                         this.stateful = new DATA.DB.Stateful(this, function () { return _this.connect(); }, function () { return _this.extend(); });
                         this.age = 10 * 1000;
                         this.expires = 0;
@@ -1407,9 +1437,7 @@ var MODULE;
                             revision: { key: 'revision', value: undefined }
                         };
                     }
-                    Database.prototype.state = function () {
-                        return this.state_;
-                    };
+                    Database.prototype.state = function () { return this.state_; };
                     Database.prototype.extend = function () {
                         var _this = this;
                         this.expires = new Date().getTime() + this.age;
@@ -1420,7 +1448,7 @@ var MODULE;
                         if (!this.age || new Date().getTime() <= this.expires) {
                             return;
                         }
-                        2 /* open */ === this.state() && this.close();
+                        MODULE.State.open === this.state() && this.close();
                     };
                     Database.prototype.database = function () {
                         this.extend();
@@ -1431,13 +1459,13 @@ var MODULE;
                         this.refresh = refresh;
                     };
                     Database.prototype.up = function () {
-                        this.state_ = 0 /* blank */;
+                        this.state_ = MODULE.State.blank;
                         this.open();
                     };
                     Database.prototype.down = function () {
                         this.reject();
                         this.close();
-                        this.state_ = 6 /* error */;
+                        this.state_ = MODULE.State.error;
                     };
                     Database.prototype.open = function () {
                         !this.IDBFactory && this.down();
@@ -1445,7 +1473,7 @@ var MODULE;
                     };
                     Database.prototype.close = function () {
                         this.database_ && this.database_.close && this.database_.close();
-                        this.state_ = 9 /* close */;
+                        this.state_ = MODULE.State.close;
                     };
                     Database.prototype.resolve = function () {
                         this.stateful.resolve();
@@ -1461,11 +1489,11 @@ var MODULE;
                         var _this = this;
                         try {
                             this.close();
-                            this.state_ = 1 /* initiate */;
+                            this.state_ = MODULE.State.initiate;
                             var req = this.IDBFactory.open(this.name, this.upgrade ? this.version : 1);
                             var verify = function () {
                                 _this.verify(function () {
-                                    _this.state_ = 2 /* open */;
+                                    _this.state_ = MODULE.State.open;
                                     _this.resolve();
                                     _this.extend();
                                 });
@@ -1512,13 +1540,13 @@ var MODULE;
                         var _this = this;
                         try {
                             this.close();
-                            this.state_ = 8 /* terminate */;
+                            this.state_ = MODULE.State.terminate;
                             var req = this.IDBFactory.deleteDatabase(this.name);
                             if (req) {
                                 req.onsuccess = success;
                                 req.onerror = failure;
                             }
-                            setTimeout(function () { return 8 /* terminate */ === _this.state() && _this.down(); }, 3000);
+                            setTimeout(function () { return MODULE.State.terminate === _this.state() && _this.down(); }, 3000);
                         }
                         catch (err) {
                             this.down();
@@ -1654,6 +1682,7 @@ var MODULE;
                             encodeURIComponent(key) + '=' + encodeURIComponent(value),
                             option.age ? '; expires=' + new Date(new Date().getTime() + option.age * 1000).toUTCString() : '',
                             option.path ? '; path=' + option.path : '; path=/',
+                            //option.domain ? '; domain=' + option.domain : '',
                             option.secure ? '; secure' : ''
                         ].join('');
                         return this.getCookie(key);
@@ -1768,9 +1797,7 @@ var MODULE;
                 if (context === void 0) { context = window; }
                 if (args === void 0) { args = []; }
                 if ('function' === typeof fn) {
-                    return async ? setTimeout(function () {
-                        fn.apply(context || window, args);
-                    }, 0) : fn.apply(context || window, args);
+                    return async ? setTimeout(function () { fn.apply(context || window, args); }, 0) : fn.apply(context || window, args);
                 }
                 else {
                     return fn;
@@ -1891,10 +1918,7 @@ var MODULE;
                 // Trim
                 ret = this.trim(url);
                 // Convert to absolute path
-                ret = /^([^:/?#]+):\/\/[^/?#.]+\.[^/?#]+/i.test(ret) ? ret : (function (url, a) {
-                    a.href = url;
-                    return a.href;
-                })(ret, document.createElement('a'));
+                ret = /^([^:/?#]+):\/\/[^/?#.]+\.[^/?#]+/i.test(ret) ? ret : (function (url, a) { a.href = url; return a.href; })(ret, document.createElement('a'));
                 // Convert to UTF-8 encoded string
                 ret = encodeURI(decodeURI(ret));
                 // Remove string of starting with an invalid character
@@ -2145,7 +2169,10 @@ var MODULE;
                             break;
                     }
                     host = host || '';
-                    return !/[/?#"`^|\\<>{}\[\]\s]/.test(host) && jQuery.grep(setting.balance.bounds, function (bound) { return '' === host || '*' === bound || host === bound || '.' === bound.charAt(0) && bound === host.slice(-bound.length); }).length && host || '';
+                    return !/[/?#"`^|\\<>{}\[\]\s]/.test(host)
+                        && jQuery.grep(setting.balance.bounds, function (bound) { return '' === host || '*' === bound || host === bound || '.' === bound.charAt(0) && bound === host.slice(-bound.length); }).length
+                        && host
+                        || '';
                 };
                 Balancer.prototype.enable = function (setting) {
                     if (!setting.balance.active) {
@@ -2294,61 +2321,62 @@ var MODULE;
                     var index = 0, length = hosts.length;
                     var test = function (host) {
                         var that = _this, time = new Date().getTime();
-                        'pending' === deferred.state() && jQuery.ajax(jQuery.extend({}, option, {
-                            url: that.util_.normalizeUrl(window.location.protocol + '//' + host + window.location.pathname.replace(/^\/?/, '/') + window.location.search),
-                            xhr: !setting.balance.option.callbacks.ajax.xhr ? undefined : function () {
-                                var $xhr;
-                                $xhr = that.util_.fire(setting.balance.option.callbacks.ajax.xhr, this, [event, setting]);
-                                $xhr = 'object' === typeof $xhr ? $xhr : jQuery.ajaxSettings.xhr();
-                                return $xhr;
-                            },
-                            beforeSend: !setting.balance.option.callbacks.ajax.beforeSend && !setting.server.header ? undefined : function ($xhr, ajaxSetting) {
-                                if (setting.server.header) {
-                                    $xhr.setRequestHeader(setting.nss.requestHeader, 'true');
+                        'pending' === deferred.state() &&
+                            jQuery.ajax(jQuery.extend({}, option, {
+                                url: that.util_.normalizeUrl(window.location.protocol + '//' + host + window.location.pathname.replace(/^\/?/, '/') + window.location.search),
+                                xhr: !setting.balance.option.callbacks.ajax.xhr ? undefined : function () {
+                                    var $xhr;
+                                    $xhr = that.util_.fire(setting.balance.option.callbacks.ajax.xhr, this, [event, setting]);
+                                    $xhr = 'object' === typeof $xhr ? $xhr : jQuery.ajaxSettings.xhr();
+                                    return $xhr;
+                                },
+                                beforeSend: !setting.balance.option.callbacks.ajax.beforeSend && !setting.server.header ? undefined : function ($xhr, ajaxSetting) {
+                                    if (setting.server.header) {
+                                        $xhr.setRequestHeader(setting.nss.requestHeader, 'true');
+                                    }
+                                    if ('object' === typeof setting.server.header) {
+                                        $xhr.setRequestHeader(setting.nss.requestHeader, 'true');
+                                        setting.server.header.area && $xhr.setRequestHeader(setting.nss.requestHeader + '-Area', this.app_.chooseArea(setting.area, document, document));
+                                        setting.server.header.head && $xhr.setRequestHeader(setting.nss.requestHeader + '-Head', setting.load.head);
+                                        setting.server.header.css && $xhr.setRequestHeader(setting.nss.requestHeader + '-CSS', setting.load.css.toString());
+                                        setting.server.header.script && $xhr.setRequestHeader(setting.nss.requestHeader + '-Script', setting.load.script.toString());
+                                    }
+                                    that.util_.fire(setting.balance.option.callbacks.ajax.beforeSend, this, [event, setting, $xhr, ajaxSetting]);
+                                },
+                                dataFilter: !setting.balance.option.callbacks.ajax.dataFilter ? undefined : function (data, type) {
+                                    return that.util_.fire(setting.balance.option.callbacks.ajax.dataFilter, this, [event, setting, data, type]) || data;
+                                },
+                                success: function (data, textStatus, $xhr) {
+                                    time = new Date().getTime() - time;
+                                    var server = that.data_.getServerBuffer(this.url), score = that.score(time, $xhr.responseText.length);
+                                    time = server && !server.state && server.time ? Math.round((server.time + time) / 2) : time;
+                                    score = server && !server.state && server.score ? Math.round((server.score + score) / 2) : score;
+                                    that.data_.saveServer(host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
+                                    host = that.sanitize($xhr, setting) || host;
+                                    that.util_.fire(setting.balance.option.ajax.success, this, arguments);
+                                },
+                                error: function ($xhr) {
+                                    that.data_.saveServer(host, new Date().getTime() + setting.balance.server.expires, 0, 0, new Date().getTime());
+                                    host = null;
+                                    that.util_.fire(setting.balance.option.ajax.error, this, arguments);
+                                },
+                                complete: function () {
+                                    that.util_.fire(setting.balance.option.ajax.complete, this, arguments);
+                                    ++index;
+                                    deferred.notify(index, length, host);
+                                    if (host) {
+                                        that.host_(host, setting);
+                                        hosts.splice(0, hosts.length);
+                                        deferred.resolve(host);
+                                    }
+                                    else if (!that.host() && hosts.length) {
+                                        test(hosts.shift());
+                                    }
+                                    else {
+                                        deferred.reject();
+                                    }
                                 }
-                                if ('object' === typeof setting.server.header) {
-                                    $xhr.setRequestHeader(setting.nss.requestHeader, 'true');
-                                    setting.server.header.area && $xhr.setRequestHeader(setting.nss.requestHeader + '-Area', this.app_.chooseArea(setting.area, document, document));
-                                    setting.server.header.head && $xhr.setRequestHeader(setting.nss.requestHeader + '-Head', setting.load.head);
-                                    setting.server.header.css && $xhr.setRequestHeader(setting.nss.requestHeader + '-CSS', setting.load.css.toString());
-                                    setting.server.header.script && $xhr.setRequestHeader(setting.nss.requestHeader + '-Script', setting.load.script.toString());
-                                }
-                                that.util_.fire(setting.balance.option.callbacks.ajax.beforeSend, this, [event, setting, $xhr, ajaxSetting]);
-                            },
-                            dataFilter: !setting.balance.option.callbacks.ajax.dataFilter ? undefined : function (data, type) {
-                                return that.util_.fire(setting.balance.option.callbacks.ajax.dataFilter, this, [event, setting, data, type]) || data;
-                            },
-                            success: function (data, textStatus, $xhr) {
-                                time = new Date().getTime() - time;
-                                var server = that.data_.getServerBuffer(this.url), score = that.score(time, $xhr.responseText.length);
-                                time = server && !server.state && server.time ? Math.round((server.time + time) / 2) : time;
-                                score = server && !server.state && server.score ? Math.round((server.score + score) / 2) : score;
-                                that.data_.saveServer(host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
-                                host = that.sanitize($xhr, setting) || host;
-                                that.util_.fire(setting.balance.option.ajax.success, this, arguments);
-                            },
-                            error: function ($xhr) {
-                                that.data_.saveServer(host, new Date().getTime() + setting.balance.server.expires, 0, 0, new Date().getTime());
-                                host = null;
-                                that.util_.fire(setting.balance.option.ajax.error, this, arguments);
-                            },
-                            complete: function () {
-                                that.util_.fire(setting.balance.option.ajax.complete, this, arguments);
-                                ++index;
-                                deferred.notify(index, length, host);
-                                if (host) {
-                                    that.host_(host, setting);
-                                    hosts.splice(0, hosts.length);
-                                    deferred.resolve(host);
-                                }
-                                else if (!that.host() && hosts.length) {
-                                    test(hosts.shift());
-                                }
-                                else {
-                                    deferred.reject();
-                                }
-                            }
-                        }));
+                            }));
                     };
                     while (parallel-- && hosts.length) {
                         test(hosts.shift());
@@ -2552,7 +2580,8 @@ var MODULE;
                         if (this.model_.isDeferrable) {
                             var defer = this.wait_(wait);
                             this.page_.setWait(defer);
-                            jQuery.when(jQuery.Deferred().resolve(this.data_, this.textStatus_, this.jqXHR_), defer).done(done).fail(fail).always(always);
+                            jQuery.when(jQuery.Deferred().resolve(this.data_, this.textStatus_, this.jqXHR_), defer)
+                                .done(done).fail(fail).always(always);
                         }
                         else {
                             var context = jQuery.extend({}, jQuery.ajaxSettings, setting.ajax);
@@ -2576,7 +2605,8 @@ var MODULE;
                         var defer = this.wait_(wait);
                         this.page_.setWait(defer);
                         delete $xhr.timeStamp;
-                        jQuery.when($xhr, defer).done(done).fail(fail).always(always);
+                        jQuery.when($xhr, defer)
+                            .done(done).fail(fail).always(always);
                     }
                     else {
                         // default
@@ -2585,14 +2615,15 @@ var MODULE;
                         this.balancer_.changeServer(this.balancer_.chooseServer(setting), setting);
                         this.host_ = setting.balance.active && this.model_.host().split('//').pop() || '';
                         requestLocation.host = this.host_ || setting.destLocation.host;
-                        ajax.url = !setting.server.query ? requestLocation.href : [
-                            requestLocation.protocol,
-                            '//',
-                            requestLocation.host,
-                            requestLocation.pathname.replace(/^\/?/, '/'),
-                            requestLocation.search.replace(/&*$/, '&' + setting.server.query).replace(/^\??&/, '?').replace(/(\?|&)$/, ''),
-                            requestLocation.hash
-                        ].join('');
+                        ajax.url = !setting.server.query ? requestLocation.href
+                            : [
+                                requestLocation.protocol,
+                                '//',
+                                requestLocation.host,
+                                requestLocation.pathname.replace(/^\/?/, '/'),
+                                requestLocation.search.replace(/&*$/, '&' + setting.server.query).replace(/^\??&/, '?').replace(/(\?|&)$/, ''),
+                                requestLocation.hash
+                            ].join('');
                         switch (event.type.toLowerCase()) {
                             case MODULE.EVENT.CLICK:
                                 ajax.type = 'GET';
@@ -2658,7 +2689,8 @@ var MODULE;
                         }
                         var defer = this.wait_(wait);
                         this.page_.setWait(defer);
-                        jQuery.when(this.model_.getXHR(), defer).done(done).fail(fail).always(always);
+                        jQuery.when(this.model_.getXHR(), defer)
+                            .done(done).fail(fail).always(always);
                     }
                     function success(data, textStatus, $xhr) {
                         return done.call(this, [].slice.call(arguments), undefined);
@@ -2707,17 +2739,12 @@ var MODULE;
                     if (!ms) {
                         return defer.resolve();
                     }
-                    setTimeout(function () {
-                        defer.resolve();
-                    }, ms);
+                    setTimeout(function () { defer.resolve(); }, ms);
                     return defer;
                 };
                 // mixin utility
-                PageFetch.prototype.chooseArea = function (areas, srcDocument, dstDocument) {
-                    return;
-                };
-                PageFetch.prototype.dispatchEvent = function (target, eventType, bubbling, cancelable) {
-                };
+                PageFetch.prototype.chooseArea = function (areas, srcDocument, dstDocument) { return; };
+                PageFetch.prototype.dispatchEvent = function (target, eventType, bubbling, cancelable) { };
                 return PageFetch;
             })();
             APP.PageFetch = PageFetch;
@@ -2847,6 +2874,7 @@ var MODULE;
                     if (setting.cache.mix && MODULE.EVENT.POPSTATE !== event.type.toLowerCase() && new Date().getTime() - event.timeStamp <= setting.cache.mix) {
                         return this.model_.fallback(event);
                     }
+                    /* variable initialization */
                     try {
                         this.page_.landing = null;
                         if (!~(record.data.jqXHR().getResponseHeader('Content-Type') || '').toLowerCase().search(setting.contentType)) {
@@ -2867,7 +2895,8 @@ var MODULE;
                         if (!err) {
                             return;
                         }
-                        this.model_.getCache(window.location.href) && this.model_.removeCache(setting.destLocation.href);
+                        this.model_.getCache(window.location.href) &&
+                            this.model_.removeCache(setting.destLocation.href);
                         this.model_.fallback(event);
                     }
                 };
@@ -3005,8 +3034,10 @@ var MODULE;
                     // 更新範囲をセレクタごとに分割
                     this.areas_ = this.area_.match(/(?:[^,]+?|\(.*?\)|\[.*?\])+/g);
                     this.overwriteDocumentByCache_();
-                    setting.fix.noscript && this.escapeNoscript_(this.srcDocument_);
-                    setting.fix.reference && this.fixReference_(setting.origLocation.href, this.dstDocument_);
+                    setting.fix.noscript &&
+                        this.escapeNoscript_(this.srcDocument_);
+                    setting.fix.reference &&
+                        this.fixReference_(setting.origLocation.href, this.dstDocument_);
                     this.rewrite_();
                     this.title_();
                     setting.fix.history && this.data_.saveTitle();
@@ -3019,7 +3050,8 @@ var MODULE;
                     speedcheck && speed.name.push('content(' + speed.time.slice(-1) + ')');
                     this.balance_();
                     this.css_('link[rel~="stylesheet"], style');
-                    jQuery(window).one(MODULE.DEF.NAME + ':rendering', function (e) {
+                    jQuery(window)
+                        .one(MODULE.DEF.NAME + ':rendering', function (e) {
                         e.preventDefault();
                         e.stopImmediatePropagation();
                         var onready = function (callback) {
@@ -3081,7 +3113,8 @@ var MODULE;
                         else {
                             onready(function () { return onrender(function () { return onload(); }); });
                         }
-                    }).trigger(MODULE.DEF.NAME + ':rendering');
+                    })
+                        .trigger(MODULE.DEF.NAME + ':rendering');
                 };
                 PageUpdate.prototype.overwriteDocumentByCache_ = function () {
                     var setting = this.setting_, event = this.event_, cache = this.model_.getCache(setting.destLocation.href);
@@ -3320,9 +3353,7 @@ var MODULE;
                                         async: false,
                                         global: false,
                                         success: function () { return null; },
-                                        error: function (err) {
-                                            throw err;
-                                        }
+                                        error: function (err) { throw err; }
                                     }));
                                 }
                                 else {
@@ -3389,7 +3420,7 @@ var MODULE;
                                             dataType: 'text',
                                             async: true,
                                             global: false,
-                                            success: function () { return defer.resolve([element, arguments[0]]); },
+                                            success: function (data) { return defer.resolve([element, data]); },
                                             error: function (err) { return defer.resolve([element, err]); }
                                         }));
                                         scriptwaits.push(defer);
@@ -3411,7 +3442,14 @@ var MODULE;
                     }
                     try {
                         if (this.model_.isDeferrable) {
-                            jQuery.when.apply(jQuery, scriptwaits).always(function () { return jQuery.each(arguments, function (i, args) { return exec.apply(_this, args); }); });
+                            jQuery.when.apply(jQuery, scriptwaits)
+                                .always(function () {
+                                var results = [];
+                                for (var _i = 0; _i < arguments.length; _i++) {
+                                    results[_i - 0] = arguments[_i];
+                                }
+                                return jQuery.each(results, function (i, result) { return exec.apply(_this, result); });
+                            });
                         }
                         else {
                             jQuery.each(scripts, function (i, elem) { return exec(elem); });
@@ -3463,7 +3501,8 @@ var MODULE;
                     }
                     var $hashTargetElement = jQuery('#' + hash + ', [name~=' + hash + ']').first();
                     if ($hashTargetElement.length) {
-                        isFinite($hashTargetElement.offset().top) && window.scrollTo(jQuery(window).scrollLeft(), parseInt(Number($hashTargetElement.offset().top) + '', 10));
+                        isFinite($hashTargetElement.offset().top) &&
+                            window.scrollTo(jQuery(window).scrollLeft(), parseInt(Number($hashTargetElement.offset().top) + '', 10));
                         this.data_.saveScrollPosition();
                         return true;
                     }
@@ -3486,14 +3525,16 @@ var MODULE;
                             direction = -1;
                             break;
                     }
-                    jQuery('[href], [src]', document).not([
+                    jQuery('[href], [src]', document)
+                        .not([
                         '[href^="/"]',
                         '[href^= "http:"]',
                         '[href^= "https:"]',
                         '[src^= "/"]',
                         '[src^= "http:"]',
                         '[src^= "https:"]'
-                    ].join(',')).each(eachFixPath);
+                    ].join(','))
+                        .each(eachFixPath);
                     function eachFixPath(i, elem) {
                         var attr;
                         if ('href' in elem) {
@@ -3550,11 +3591,8 @@ var MODULE;
                     jQuery.removeData(script, 'code');
                 };
                 // mixin utility
-                PageUpdate.prototype.chooseArea = function (areas, srcDocument, dstDocument) {
-                    return;
-                };
-                PageUpdate.prototype.dispatchEvent = function (target, eventType, bubbling, cancelable) {
-                };
+                PageUpdate.prototype.chooseArea = function (areas, srcDocument, dstDocument) { return; };
+                PageUpdate.prototype.dispatchEvent = function (target, eventType, bubbling, cancelable) { };
                 return PageUpdate;
             })();
             APP.PageUpdate = PageUpdate;
@@ -3581,11 +3619,14 @@ var MODULE;
                     if (uri === void 0) { uri = window.location.href; }
                     uri = this.util_.canonicalizeUrl(uri).split('#').shift();
                     if (!this.sandbox_cache_[uri] || 'object' !== typeof this.sandbox_cache_[uri].document || this.sandbox_cache_[uri].document.URL !== uri) {
-                        jQuery('<iframe srcdoc="<!DOCTYPE html>" sandbox="allow-same-origin"></iframe>').appendTo('body').each(function (i, elem) {
+                        jQuery('<iframe srcdoc="<!DOCTYPE html>" sandbox="allow-same-origin"></iframe>')
+                            .appendTo('body')
+                            .each(function (i, elem) {
                             _this.sandbox_cache_[uri] = elem['contentWindow'];
                             _this.sandbox_cache_[uri].document.open();
                             _this.sandbox_cache_[uri].document.close();
-                        }).remove();
+                        })
+                            .remove();
                     }
                     return this.sandbox_cache_[uri];
                 };
@@ -3614,9 +3655,11 @@ var MODULE;
                     html += ~html.search(/<title[\s>]/i) ? '' : '<title></title>';
                     var doc;
                     switch (mode) {
+                        // firefox
                         case 'dom':
                             doc = new window.DOMParser().parseFromString(html, 'text/html');
                             break;
+                        // chrome, safari, phantomjs
                         case 'doc':
                             doc = document.implementation.createHTMLDocument('');
                             // IE, Operaクラッシュ対策
@@ -3634,6 +3677,7 @@ var MODULE;
                                 doc.title = doc.querySelector('title').textContent;
                             }
                             break;
+                        // ie10+, opera
                         case 'manipulate':
                             doc = manipulate(document.implementation.createHTMLDocument(''), html);
                             break;
@@ -3774,11 +3818,8 @@ var MODULE;
                     }
                     setTimeout(function () { return _this.model_.fallback(event); }, 100);
                 };
-                Page.prototype.chooseArea = function (areas, srcDocument, dstDocument) {
-                    return;
-                };
-                Page.prototype.dispatchEvent = function (target, eventType, bubbling, cancelable) {
-                };
+                Page.prototype.chooseArea = function (areas, srcDocument, dstDocument) { return; };
+                Page.prototype.dispatchEvent = function (target, eventType, bubbling, cancelable) { };
                 return Page;
             })();
             APP.Page = Page;
@@ -3868,9 +3909,7 @@ var MODULE;
                         area: 'body',
                         link: 'a:not([target])',
                         // this.protocolはIEでエラー
-                        filter: function () {
-                            return /^https?:/.test(this.href) && /\/[^.]*$|\.(html?|php)$/.test(this.pathname.replace(/^\/?/, '/'));
-                        },
+                        filter: function () { return /^https?:/.test(this.href) && /\/[^.]*$|\.(html?|php)$/.test(this.pathname.replace(/^\/?/, '/')); },
                         form: null,
                         replace: null,
                         scope: null,
@@ -3882,14 +3921,8 @@ var MODULE;
                         contentType: 'text/html',
                         redirect: true,
                         cache: {
-                            click: false,
-                            submit: false,
-                            popstate: false,
-                            get: true,
-                            post: true,
-                            mix: 0,
-                            limit: 100 /* pages */,
-                            expires: { max: null, min: 5 * 60 * 1000 /* 5min */ }
+                            click: false, submit: false, popstate: false, get: true, post: true, mix: 0,
+                            limit: 100 /* pages */, expires: { max: null, min: 5 * 60 * 1000 /* 5min */ }
                         },
                         buffer: {
                             limit: 30,
@@ -4021,9 +4054,7 @@ var MODULE;
                                     scroll: [MODULE.EVENT.SCROLL].concat(nsArray.join(':')).join('.')
                                 },
                                 elem: nsArray.join('-'),
-                                requestHeader: ['X', nsArray[0].replace(/^\w/, function (str) {
-                                    return str.toUpperCase();
-                                })].join('-')
+                                requestHeader: ['X', nsArray[0].replace(/^\w/, function (str) { return str.toUpperCase(); })].join('-')
                             },
                             fix: /android|iphone os|like mac os x/i.test(window.navigator.userAgent) ? undefined : { location: false },
                             contentType: setting.contentType.replace(/\s*[,;]\s*/g, '|').toLowerCase(),
@@ -4193,7 +4224,7 @@ var MODULE;
         var Main = (function (_super) {
             __extends(Main, _super);
             function Main() {
-                _super.call(this, 1 /* initiate */);
+                _super.call(this, MODULE.State.initiate);
                 this.controller_ = new MODULE.Controller(this).singleton();
                 this.app_ = new MODEL.App(this, this.controller_);
                 this.util_ = MODULE.LIBRARY.Utility;
@@ -4201,12 +4232,8 @@ var MODULE;
                 this.location = document.createElement('a');
                 this.queue_ = [];
             }
-            Main.prototype.host = function () {
-                return this.app_.balancer.host();
-            };
-            Main.prototype.state = function () {
-                return this.state_;
-            };
+            Main.prototype.host = function () { return this.app_.balancer.host(); };
+            Main.prototype.state = function () { return this.state_; };
             Main.prototype.main_ = function ($context, option) {
                 var _this = this;
                 switch (typeof option) {
@@ -4230,13 +4257,11 @@ var MODULE;
                     fire: 0,
                     time: [],
                     name: [],
-                    now: function () {
-                        return new Date().getTime();
-                    }
+                    now: function () { return new Date().getTime(); }
                 };
                 jQuery(function () {
                     _this.app_.initialize($context, setting);
-                    _this.state_ = _this.state() === 1 /* initiate */ ? 2 /* open */ : _this.state();
+                    _this.state_ = _this.state() === MODULE.State.initiate ? MODULE.State.open : _this.state();
                     _this.overlay(setting, true);
                 });
                 return $context;
@@ -4259,7 +4284,7 @@ var MODULE;
                 return this.app_.configure(destination);
             };
             Main.prototype.isOperatable = function (event) {
-                if (2 /* open */ !== this.state()) {
+                if (MODULE.State.open !== this.state()) {
                     return false;
                 }
                 if (event.which > 1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
@@ -4321,7 +4346,7 @@ var MODULE;
                 switch (true) {
                     case !setting:
                     case event.isDefaultPrevented():
-                    case this.state() !== 2 /* open */:
+                    case this.state() !== MODULE.State.open:
                         break;
                     case this.isOperatable(event):
                         this.app_.page.transfer(setting, event);
@@ -4345,7 +4370,7 @@ var MODULE;
                 switch (true) {
                     case !setting:
                     case event.isDefaultPrevented():
-                    case this.state() !== 2 /* open */:
+                    case this.state() !== MODULE.State.open:
                         break;
                     case this.isOperatable(event):
                         this.app_.page.transfer(setting, event);
@@ -4367,7 +4392,8 @@ var MODULE;
                     case !setting:
                         !this.comparePageByUrl(this.location.href, window.location.href) && this.fallback(event);
                         break;
-                    case this.state() !== 2 /* open */:
+                    //case event.isDefaultPrevented():
+                    case this.state() !== MODULE.State.open:
                         break;
                     case this.isOperatable(event):
                         this.app_.page.transfer(setting, event);
@@ -4426,7 +4452,9 @@ var MODULE;
                 }
             };
             Main.prototype.isHashChange = function (setting) {
-                return !!setting && setting.origLocation.href.replace(/#.*/, '') === setting.destLocation.href.replace(/#.*/, '') && setting.origLocation.hash !== setting.destLocation.hash;
+                return !!setting &&
+                    setting.origLocation.href.replace(/#.*/, '') === setting.destLocation.href.replace(/#.*/, '') &&
+                    setting.origLocation.hash !== setting.destLocation.hash;
             };
             Main.prototype.overlay = function (setting, immediate) {
                 var _this = this;
@@ -4446,7 +4474,9 @@ var MODULE;
                 }
                 var $container = jQuery('<div>');
                 $hashTargetElement = $hashTargetElement.clone(true);
-                $container.addClass(setting.nss.elem + '-overlay').css({
+                $container
+                    .addClass(setting.nss.elem + '-overlay')
+                    .css({
                     background: 'rgba(255, 255, 255, 0.8)',
                     display: 'none',
                     position: 'fixed',
@@ -4457,7 +4487,8 @@ var MODULE;
                     margin: 0,
                     padding: 0,
                     border: 'none'
-                }).append($hashTargetElement.css({
+                })
+                    .append($hashTargetElement.css({
                     position: 'absolute',
                     top: 0,
                     left: 0,
@@ -4483,10 +4514,10 @@ var MODULE;
                 return true;
             };
             Main.prototype.enable = function () {
-                this.state_ = 2 /* open */;
+                this.state_ = MODULE.State.open;
             };
             Main.prototype.disable = function () {
-                this.state_ = 3 /* pause */;
+                this.state_ = MODULE.State.pause;
             };
             Main.prototype.getCache = function (unsafe_url) {
                 var setting = this.configure(this.convertUrlToKey(unsafe_url));
