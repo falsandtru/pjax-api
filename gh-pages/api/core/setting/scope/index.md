@@ -111,18 +111,3 @@ $.pjax({
   }
 });
 </pre>
-
-`'rewrite'`キーワードを指定すると`scope.rewrite`に定義した関数によりハッシュテーブルでキーとして走査する遷移元URLを一度だけ書き換えます。このときURLの階層に`'/*/'`を含めるとこの階層に位置する実際のディレクトリに置換して比較が行われます。
-
-<pre class="sh brush: js;">
-$.pjax({
-  scope: {
-    // `/scope/`ディレクトリ下で直下のディレクトリをまたがないページ遷移のみpjaxを使用する。
-    // /scope/foo/fizz/  >>  /scope/foo/buzz/  OK
-    // /scope/foo/fizz/  >>  /scope/bar/buzz/  NG
-    '/scope/': ['rewrite'],
-    '/scope/*/': ['/scope/*/'],
-    rewrite: function(key){return key.replace(/^(\/scope\/)\w+/, '$1*');}
-  }
-});
-</pre>
