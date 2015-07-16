@@ -102,7 +102,7 @@ module MODULE.CONTROLLER {
       this.EXTEND(this.EXTENSION);
 
       // プラグインに関数を設定してネームスペースに登録
-      window[DEF.NAMESPACE] = window[DEF.NAMESPACE] || {};
+      (<any>window)[DEF.NAMESPACE] = window[DEF.NAMESPACE] || {};
       if (DEF.NAMESPACE.prototype) {
         DEF.NAMESPACE[DEF.NAME] = DEF.NAMESPACE.prototype[DEF.NAME] = this.EXTENSION;
       } else {

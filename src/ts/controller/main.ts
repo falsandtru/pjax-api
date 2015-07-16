@@ -36,16 +36,16 @@ module MODULE.CONTROLLER {
       return new View(this.model_, this, context, setting);
     }
 
-    click(args: IArguments): void {
+    click(args: any[]): void {
       this.model_.click.apply(this.model_, args);
     }
-    submit(args: IArguments): void {
+    submit(args: any): void {
       this.model_.submit.apply(this.model_, args);
     }
-    popstate(args: IArguments): void {
+    popstate(args: any[]): void {
       this.model_.popstate.apply(this.model_, args);
     }
-    scroll(args: IArguments): void {
+    scroll(args: any[]): void {
       this.model_.scroll.apply(this.model_, args);
     }
 
