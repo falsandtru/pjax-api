@@ -687,7 +687,7 @@ module MODULE.MODEL.APP {
                   dataType: 'text',
                   async: true,
                   global: false,
-                  success: () => defer.resolve([element, <string>arguments[0]]),
+                  success: (data) => defer.resolve([element, <string>data]),
                   error: (err) => defer.resolve([element, err])
                 }));
                 scriptwaits.push(defer);
@@ -708,7 +708,7 @@ module MODULE.MODEL.APP {
       try {
         if (this.model_.isDeferrable) {
           jQuery.when.apply(jQuery, scriptwaits)
-          .always(() => jQuery.each(arguments, (i, args) => exec.apply(this, args)));
+          .always((...results) => jQuery.each(results, (i, result) => exec.apply(this, result)));
         } else {
           jQuery.each(scripts, (i, elem) => exec(elem));
         }

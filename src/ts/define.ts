@@ -117,10 +117,10 @@ module MODULE {
     
     view(context: JQuery, setting: SettingInterface): ViewInterface
 
-    click(args: IArguments): void
-    submit(args: IArguments): void
-    popstate(args: IArguments): void
-    scroll(args: IArguments): void
+    click(args: any[]): void
+    submit(args: any[]): void
+    popstate(args: any[]): void
+    scroll(args: any[]): void
   }
 
   // State
