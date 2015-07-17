@@ -14,6 +14,8 @@ jQueryはDOMとAjaxにのみ使用し、その他の非同期処理はLazyChain�
 
 ## 2.39.0
 
+* `bind`パラメータを追加
+* `rewrite`パラメータの仕様を拡張
 * `scope.rewrite`パラメータを削除
 
 ## 2.38.0
