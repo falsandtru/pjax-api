@@ -24,7 +24,6 @@ interface PjaxSetting {
     replace?: string | ((index?: number, element?: HTMLAnchorElement) => boolean)
     scope?: {
         [index: string]: any
-        rewrite?(url: string): string
     }
     rewrite?: (document: Document, area?: string, host?: string) => void
     state?: ((event?: JQueryEventObject, setting?: PjaxSetting, origLocation?: HTMLAnchorElement, destLocation?: HTMLAnchorElement) => any) | any
