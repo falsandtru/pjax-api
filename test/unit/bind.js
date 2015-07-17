@@ -1,5 +1,5 @@
 
-env.jquery.split('.').slice(0, 2).join('.') > 1.5 &&
+/^\d\.(?:[6-9]|\d{2,})\./.test(env.jquery) &&
 suite("Bind", function () {
   this.timeout(5000);
 
