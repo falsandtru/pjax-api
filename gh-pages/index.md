@@ -7,15 +7,13 @@ class: style-top
 
 {::options parse_block_html="true" /}
 
-**PJAX**はプリロードによる**0.5秒の高速化**とクライアントサイドロードバランサによる**最大2.0Gbpsの大容量回線**を提供します。
+高速化と負荷分散を実施する**プリロード**、**データバインディング補助**、**クライアントサイドロードバランサ**を備えたPJAXです。
 
 <div class="row">
 
 <div class="col-md-4">
 ## Introduction
-pjaxはリクエストと描画を最小限に抑えた高速かつシームレスなページ遷移を提供する技術です。
-
-また、このpjaxではプリロードによる高速化とクライアントサイドロードバランサ(CsLB)によるネットワーク負荷分散を利用できます。[>>more]({{ site.basepath }}introduction/)
+pjaxはリクエストと描画を最小限に抑えた高速かつシームレスなページ遷移を提供する技術です。[>>more]({{ site.basepath }}introduction/)
 </div>
 
 <div class="col-md-4">

@@ -94,8 +94,9 @@ module MODULE.MODEL.APP {
             filter: function () { return /^https?:/.test(this.href) && /\/[^.]*$|\.(html?|php)$/.test(this.pathname.replace(/^\/?/, '/')); },
             form: null,
             replace: null,
-            scope: null,
+            bind: null,
             rewrite: null,
+            scope: null,
             state: null,
             scrollTop: 0,
             scrollLeft: 0,
@@ -203,6 +204,7 @@ module MODULE.MODEL.APP {
             setting.ns = setting.ns ? setting.ns.split('.').sort().join('.') : '';
             var nsArray: string[] = [DEF.NAME].concat(setting.ns ? setting.ns.split('.') : []);
             var query = setting.server.query;
+            var bind = setting.bind;
             switch (query && typeof query) {
               case 'string':
                 query = eval('({' + query.toString().match(/[^?=&]+=[^&]*/g).join('&').replace(/"/g, '\\"').replace(/([^?=&]+)=([^&]*)/g, '"$1": "$2"').replace(/&/g, ',') + '})');
@@ -243,6 +245,7 @@ module MODULE.MODEL.APP {
                 elem: nsArray.join('-'),
                 requestHeader: ['X', nsArray[0].replace(/^\w/, function (str) { return str.toUpperCase(); })].join('-')
               },
+              bind: bind && (() => (...args) => this.model_.setDataXHR(bind.apply(this, args)))(),
               fix: /android|iphone os|like mac os x/i.test(window.navigator.userAgent) ? undefined : { location: false },
               contentType: setting.contentType.replace(/\s*[,;]\s*/g, '|').toLowerCase(),
               database: {

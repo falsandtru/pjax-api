@@ -26,11 +26,23 @@ pjaxを設定します。
 ### [replace:]({{ site.basepath }}api/core/setting/replace/)
 `replace`パラメータに一致した要素からのページ遷移をURLを追加せず書き換えて行います。
 
-### [scope:]({{ site.basepath }}api/core/setting/scope/)
-ページ遷移にpjaxを使用するURLを設定します。
+### [load:]({{ site.basepath }}api/core/setting/load/)
+遷移先のCSSやJavaScriptなどの読み込みを設定します。
+
+### [cache:]({{ site.basepath }}api/core/setting/cache/)
+キャッシュの使用を設定します。
+
+### [bind:]({{ site.basepath }}api/core/setting/bind/) <small><span class="label label-primary">jQuery1.6+</span></small>
+データバインディングに使用するデータのリクエストを設定します。
 
 ### [rewrite:]({{ site.basepath }}api/core/setting/rewrite/)
 ページ遷移に使用するHTMLDocumentをあらかじめ書き換えます。
+
+### [balance:]({{ site.basepath }}api/core/setting/balance/)
+ロードバランスを設定します。
+
+### [scope:]({{ site.basepath }}api/core/setting/scope/)
+ページ遷移にpjaxを使用するURLを設定します。
 
 ### [state:]({{ site.basepath }}api/core/setting/state/)
 ページ遷移時に設定する`window.history.state`の値を設定します。
@@ -46,15 +58,6 @@ pjaxを設定します。
 
 ### [contentType:]({{ site.basepath }}api/core/setting/content-type/)
 遷移先として読み込むデータで許容するコンテントタイプを設定します。
-
-### [load:]({{ site.basepath }}api/core/setting/load/)
-遷移先のCSSやJavaScriptなどの読み込みを設定します。
-
-### [cache:]({{ site.basepath }}api/core/setting/cache/)
-キャッシュの使用を設定します。
-
-### [balance:]({{ site.basepath }}api/core/setting/balance/)
-ロードバランスを設定します。
 
 ### [redirect:]({{ site.basepath }}api/core/setting/redirect/)
 リダイレクト先への再移動にpjaxを使用するかを設定します。

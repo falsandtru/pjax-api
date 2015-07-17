@@ -22,10 +22,11 @@ interface PjaxSetting {
     filter?: string | ((index?: number, element?: HTMLAnchorElement) => boolean)
     form?: string
     replace?: string | ((index?: number, element?: HTMLAnchorElement) => boolean)
+    bind?: ((event?: JQueryEventObject, setting?: PjaxSetting, origLocation?: HTMLAnchorElement, destLocation?: HTMLAnchorElement) => JQueryAjaxSettings)
+    rewrite?: (document: Document, area?: string, host?: string, data?: JQueryXHR) => void
     scope?: {
         [index: string]: any
     }
-    rewrite?: (document: Document, area?: string, host?: string) => void
     state?: ((event?: JQueryEventObject, setting?: PjaxSetting, origLocation?: HTMLAnchorElement, destLocation?: HTMLAnchorElement) => any) | any
     scrollTop?: number | boolean | ((event?: JQueryEventObject, setting?: PjaxSetting, origLocation?: HTMLAnchorElement, destLocation?: HTMLAnchorElement) => number | boolean)
     scrollLeft?: number | boolean | ((event?: JQueryEventObject, setting?: PjaxSetting, origLocation?: HTMLAnchorElement, destLocation?: HTMLAnchorElement) => number | boolean)

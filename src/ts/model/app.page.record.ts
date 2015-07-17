@@ -7,20 +7,22 @@ module MODULE.MODEL.APP {
   export class PageRecord implements PageRecordInterface {
     
     constructor()
-    constructor(url: string, data: string, textStatus: string, $xhr: JQueryXHR, host: string)
-    constructor(url?: string, data?: string, textStatus?: string, $xhr?: JQueryXHR, host?: string) {
+    constructor(url: string, data: string, textStatus: string, $xhr: JQueryXHR, host: string, bind: JQueryXHR)
+    constructor(url?: string, data?: string, textStatus?: string, $xhr?: JQueryXHR, host?: string, bind?: JQueryXHR) {
       this.data_ = url ? {
         url: url,
         data: data,
         textStatus: textStatus,
         jqXHR: $xhr,
-        host: host
+        host: host,
+        bind: bind
       } : {
         url: undefined,
         data: undefined,
         textStatus: undefined,
         jqXHR: undefined,
-        host: undefined
+        host: undefined,
+        bind: undefined
       };
 
       this.data = new PageRecordData(this.data_);
@@ -62,6 +64,10 @@ module MODULE.MODEL.APP {
 
     jqXHR(): JQueryXHR {
       return this.data_.jqXHR;
+    }
+
+    bind(): JQueryXHR {
+      return this.data_.bind;
     }
 
     host(): string {

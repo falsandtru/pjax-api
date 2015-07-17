@@ -51,8 +51,8 @@ module.exports = function (config) {
       { pattern: 'test/env/*', watched: true, served: true, included: true },
 
       // fixtures
-      { pattern: 'test/**.html', watched: true, served: true, included: false },
       { pattern: 'test/**/*.html', watched: true, served: true, included: false },
+      { pattern: 'test/**/*.json', watched: true, served: true, included: false },
       { pattern: 'test/cov/*.js', watched: true, served: true, included: false },
       { pattern: 'test/fixture/img/*.*', watched: true, served: true, included: false },
       { pattern: 'test/fixture/js/*.js', watched: true, served: true, included: false },

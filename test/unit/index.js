@@ -23,6 +23,7 @@ document.write('<script src="' + (window.__karma__ ? "/base/test/" : "") + 'unit
 document.write('<script src="' + (window.__karma__ ? "/base/test/" : "") + 'unit/filter.js" charset="utf-8"><\/script>');
 document.write('<script src="' + (window.__karma__ ? "/base/test/" : "") + 'unit/cache.js" charset="utf-8"><\/script>');
 document.write('<script src="' + (window.__karma__ ? "/base/test/" : "") + 'unit/rewrite.js" charset="utf-8"><\/script>');
+document.write('<script src="' + (window.__karma__ ? "/base/test/" : "") + 'unit/bind.js" charset="utf-8"><\/script>');
 document.write('<script src="' + (window.__karma__ ? "/base/test/" : "") + 'unit/load.js" charset="utf-8"><\/script>');
 document.write('<script src="' + (window.__karma__ ? "/base/test/" : "") + 'unit/scope.js" charset="utf-8"><\/script>');
 document.write('<script src="' + (window.__karma__ ? "/base/test/" : "") + 'unit/fragment.js" charset="utf-8"><\/script>');
