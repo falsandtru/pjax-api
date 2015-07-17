@@ -152,7 +152,7 @@ module MODULE.CONTROLLER {
       $xhr.follow = true;
       $xhr.host = host || '';
       if (isFinite(event.timeStamp)) { $xhr.timeStamp = timeStamp || event.timeStamp; }
-      Model.singleton().setXHR($xhr);
+      Model.singleton().setPageXHR($xhr);
       jQuery.when($xhr)
       .done(function () {
         !Model.singleton().getCache(anchor.href) && Model.singleton().isOperatable(event) && Model.singleton().setCache(anchor.href, undefined, undefined, $xhr);

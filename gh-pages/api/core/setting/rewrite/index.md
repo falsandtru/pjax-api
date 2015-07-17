@@ -11,7 +11,7 @@ class: style-api style-api-detail
 
 <a href="{{ site.basepath }}demo/area/" target="_blank" class="btn btn-primary" role="button">demo</a>
 
-## rewrite: function(document, area, host)
+## rewrite: function(document: document, area: string, host: string, data: json|string)
 
 <pre class="sh brush: js;">
 $.pjax({

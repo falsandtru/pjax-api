@@ -379,7 +379,8 @@ module MODULE.MODEL.APP {
 
       if (this.util_.fire(setting.callbacks.update.rewrite.before, setting, [event, setting, this.srcDocument_, this.dstDocument_]) === false) { return; }
 
-      this.util_.fire(setting.rewrite, setting, [this.srcDocument_, this.area_, this.record_.data.host()])
+      var bind = this.record_.data.bind();
+      this.util_.fire(setting.rewrite, setting, [this.srcDocument_, this.area_, this.record_.data.host(), bind && (bind.responseJSON || bind.responseText)])
 
       if (this.util_.fire(setting.callbacks.update.rewrite.before, setting, [event, setting, this.srcDocument_, this.dstDocument_]) === false) { return; }
     }
@@ -493,7 +494,7 @@ module MODULE.MODEL.APP {
 
       if (!setting.balance.active || this.page_.loadtime < 100) { return; }
 
-      var $xhr = this.record_.data.jqXHR();
+      var $xhr = this.record_.data.bind() || this.record_.data.jqXHR();
       var host = this.balancer_.sanitize($xhr, setting) || this.record_.data.host() || '',
           time = this.page_.loadtime,
           score = this.balancer_.score(time, $xhr.responseText.length);

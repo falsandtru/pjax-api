@@ -123,13 +123,22 @@ module MODULE.MODEL {
       return true;
     }
 
-    getXHR(): JQueryXHR {
-      return this.app_.page.xhr;
+    getPageXHR(): JQueryXHR {
+      return this.app_.page.pageXHR;
     }
-    setXHR($xhr: JQueryXHR): JQueryXHR {
+    setPageXHR($xhr: JQueryXHR): JQueryXHR {
       this.app_.balancer.sanitize($xhr, this.app_.configure(window.location));
-      this.app_.page.xhr && this.app_.page.xhr.readyState < 4 && this.app_.page.xhr !== $xhr && this.app_.page.xhr.abort();
-      return this.app_.page.xhr = $xhr;
+      this.app_.page.pageXHR && this.app_.page.pageXHR.readyState < 4 && this.app_.page.pageXHR !== $xhr && this.app_.page.pageXHR.abort();
+      return this.app_.page.pageXHR = $xhr;
+    }
+    
+    getDataXHR(): JQueryXHR {
+      return this.app_.page.dataXHR;
+    }
+    setDataXHR($xhr: JQueryXHR): JQueryXHR {
+      this.app_.balancer.sanitize($xhr, this.app_.configure(window.location));
+      this.app_.page.dataXHR && this.app_.page.dataXHR.readyState < 4 && this.app_.page.dataXHR !== $xhr && this.app_.page.dataXHR.abort();
+      return this.app_.page.dataXHR = $xhr;
     }
     
     click(event: JQueryEventObject): void {
@@ -354,7 +363,8 @@ module MODULE.MODEL {
                                         data || '',
                                         textStatus || record.data.textStatus(),
                                         jqXHR || record.data.jqXHR(),
-                                        this.app_.balancer.sanitize(jqXHR, setting) || record.data.host() || '');
+                                        this.app_.balancer.sanitize(jqXHR, setting) || record.data.host() || '',
+                                        null);
     }
 
     removeCache(unsafe_url: string): void {

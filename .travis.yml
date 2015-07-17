@@ -25,9 +25,9 @@ env:
       deploy=false
     - jquery=1.7.2
       deploy=true
-    - jquery=1.11.1
+    - jquery=1.11.3
       deploy=false
-    - jquery=2.1.1
+    - jquery=2.1.4
       deploy=false
 
 script:

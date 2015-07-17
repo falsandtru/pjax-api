@@ -15,7 +15,8 @@ You will be able most of your want.
 
 ## Feature
 
-* Faster by preloading
+* Preloading
+* Data binding support
 * Network Load Balancing by Client-side Load Balancer
 * Sync the head content, such as CSS, SCRIPT, RSS
 * Disabling update itemes such as URL, TITLE
@@ -120,6 +121,7 @@ Name|Type|Description
 [area](http://falsandtru.github.io/jquery-pjax/api/core/setting/area/)|string/array|Update the area specified by jQuery selector.
 [state](http://falsandtru.github.io/jquery-pjax/api/core/setting/state/)|any|Setting the `window.history.state`.
 [ajax](http://falsandtru.github.io/jquery-pjax/api/core/setting/ajax/)|ajaxSettings|Ajax settings without callbacks.
+[bind](http://falsandtru.github.io/jquery-pjax/api/core/setting/bind/)|function|Request the binding data.
 [rewrite](http://falsandtru.github.io/jquery-pjax/api/core/setting/rewrite/)|function|Rewrite the source document object in advance.
 [load](http://falsandtru.github.io/jquery-pjax/api/core/setting/load/)|object|Load and sync CSS, SCRIPT and more head content.
 [cache](http://falsandtru.github.io/jquery-pjax/api/core/setting/cache/)|object|Cache the page data.

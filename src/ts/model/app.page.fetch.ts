@@ -16,8 +16,8 @@ module MODULE.MODEL.APP {
     private balancer_: BalancerInterface,
     private setting_: SettingInterface,
     private event_: JQueryEventObject,
-    private success_: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, $xhr: JQueryXHR, host: string) => any,
-    private failure_: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, $xhr: JQueryXHR, host: string) => any
+    private success_: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, $xhr: JQueryXHR, host: string, bind: JQueryXHR) => any,
+    private failure_: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, $xhr: JQueryXHR, host: string, bind: JQueryXHR) => any
     ) {
       this.main_();
     }
@@ -28,6 +28,7 @@ module MODULE.MODEL.APP {
     private data_: string
     private textStatus_: string
     private jqXHR_: JQueryXHR
+    private bind_: JQueryXHR
     private errorThrown_: string
 
     private main_(): void {
@@ -56,19 +57,29 @@ module MODULE.MODEL.APP {
           break;
       }
 
-      var $xhr = this.model_.getXHR();
+      var $xhr = this.model_.getPageXHR();
       if ($xhr && $xhr.readyState < 4 && $xhr.location && this.model_.comparePageByUrl($xhr.location.href, setting.destLocation.href)) {
         return;
       }
 
       this.dispatchEvent(document, setting.nss.event.pjax.fetch, false, false);
 
+      // rebalance
+      this.balancer_.changeServer(this.balancer_.chooseServer(setting), setting);
+      this.host_ = setting.balance.active && this.model_.host().split('//').pop() || '';
+      var requestLocation = <HTMLAnchorElement>setting.destLocation.cloneNode();
+      requestLocation.host = this.host_ || setting.destLocation.host;
+
+      // bind
+      var bind = this.util_.fire(setting.bind, setting, [event, setting, setting.origLocation.cloneNode(), requestLocation.cloneNode()]);
+      this.model_.setDataXHR(bind && jQuery.ajax(bind));
+
       if (cache && cache.jqXHR && 200 === +cache.jqXHR.status) {
         // cache
         speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
         $xhr = cache.jqXHR;
         $xhr.location = $xhr.location || <HTMLAnchorElement>setting.destLocation.cloneNode();
-        this.model_.setXHR($xhr);
+        this.model_.setPageXHR($xhr);
         this.page_.loadtime = 0;
         this.host_ = this.balancer_.sanitize(cache.host, setting);
         this.data_ = cache.jqXHR.responseText;
@@ -77,7 +88,7 @@ module MODULE.MODEL.APP {
         if (this.model_.isDeferrable) {
           var defer: JQueryDeferred<any> = this.wait_(wait);
           this.page_.setWait(defer);
-          jQuery.when(jQuery.Deferred().resolve(this.data_, this.textStatus_, this.jqXHR_), defer)
+          jQuery.when(jQuery.Deferred().resolve(this.data_, this.textStatus_, this.jqXHR_), defer, this.model_.getDataXHR())
           .done(done).fail(fail).always(always);
         } else {
           var context: JQueryAjaxSettings = jQuery.extend({}, jQuery.ajaxSettings, setting.ajax);
@@ -92,7 +103,7 @@ module MODULE.MODEL.APP {
         speedcheck && speed.time.push(speed.now() - speed.fire);
         speedcheck && speed.name.push('continue(' + speed.time.slice(-1) + ')');
         $xhr.location = <HTMLAnchorElement>setting.destLocation.cloneNode();
-        this.model_.setXHR($xhr);
+        this.model_.setPageXHR($xhr);
         this.balancer_.sanitize($xhr, setting);
         this.balancer_.changeServer($xhr.host, setting);
         this.host_ = this.model_.host();
@@ -100,18 +111,14 @@ module MODULE.MODEL.APP {
         var defer: JQueryDeferred<any> = this.wait_(wait);
         this.page_.setWait(defer);
         delete $xhr.timeStamp;
-        jQuery.when($xhr, defer)
+        jQuery.when($xhr, defer, this.model_.getDataXHR())
         .done(done).fail(fail).always(always);
       } else {
         // default
         this.page_.loadtime = event.timeStamp;
-        var requestLocation = <HTMLAnchorElement>setting.destLocation.cloneNode(),
-            ajax: JQueryAjaxSettings = {},
+        var ajax: JQueryAjaxSettings = {},
             callbacks: JQueryAjaxSettings = {};
 
-        this.balancer_.changeServer(this.balancer_.chooseServer(setting), setting);
-        this.host_ = setting.balance.active && this.model_.host().split('//').pop() || '';
-        requestLocation.host = this.host_ || setting.destLocation.host;
         ajax.url = !setting.server.query ? requestLocation.href
                                          : [
                                              requestLocation.protocol,
@@ -184,7 +191,7 @@ module MODULE.MODEL.APP {
 
         $xhr = jQuery.ajax(ajax);
         $xhr.location = <HTMLAnchorElement>setting.destLocation.cloneNode();
-        this.model_.setXHR($xhr);
+        this.model_.setPageXHR($xhr);
         this.balancer_.sanitize($xhr, setting);
 
         if (!this.model_.isDeferrable) { return; }
@@ -192,7 +199,7 @@ module MODULE.MODEL.APP {
         var defer: JQueryDeferred<any> = this.wait_(wait);
         this.page_.setWait(defer);
 
-        jQuery.when(this.model_.getXHR(), defer)
+        jQuery.when(this.model_.getPageXHR(), defer, this.model_.getDataXHR())
         .done(done).fail(fail).always(always);
       }
       
@@ -205,12 +212,20 @@ module MODULE.MODEL.APP {
       function complete($xhr: JQueryXHR, textStatus: string) {
         return always.apply(this, arguments);
       }
-      function done(ajax: any[], wait: void) {
+      function done(page: any[], wait: void, data: any[]) {
         if (!arguments.length || !arguments[0]) { return; }
 
-        that.data_ = ajax[0];
-        that.textStatus_ = ajax[1];
-        that.jqXHR_ = ajax[2];
+        that.data_ = page[0];
+        that.textStatus_ = page[1];
+        that.jqXHR_ = page[2];
+
+        switch (data && typeof data[0] === 'object' && (bind.dataType || data[2].getResponseHeader('Content-Type').split('/').pop())) {
+          case 'json':
+          case 'jsonp':
+            data[2].responseJSON = data[0];
+            break;
+        }
+        that.bind_ = data && data[2];
 
         that.util_.fire(setting.callbacks.ajax.success, this[0] || this, [event, setting, that.data_, that.textStatus_, that.jqXHR_]);
       }
@@ -228,13 +243,13 @@ module MODULE.MODEL.APP {
 
         that.util_.fire(setting.callbacks.ajax.complete, this[0] || this, [event, setting, that.jqXHR_, that.textStatus_]);
 
-        that.model_.setXHR(null);
-
-        if (200 === +that.jqXHR_.status) {
+        that.model_.setPageXHR(null);
+        that.model_.setDataXHR(null);
+        if (200 === +that.jqXHR_.status && (!that.bind_ || 200 === +that.bind_.status)) {
           that.model_.setCache(setting.destLocation.href, cache && cache.data || null, that.textStatus_, that.jqXHR_);
-          that.success_(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_);
+          that.success_(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_, that.bind_);
         } else {
-          that.failure_(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_);
+          that.failure_(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_, that.bind_);
         }
       }
     }
