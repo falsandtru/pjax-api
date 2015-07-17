@@ -14,7 +14,7 @@ jQueryはDOMとAjaxにのみ使用し、その他の非同期処理はLazyChain�
 
 ## 2.40.0
 
-* SVG要素内のANCHOR要素のクリックに対応
+* SVG要素内のANCHOR要素のクリックに対応(jQuery1.5.0+)
 * `filter`パラメータの初期値を修正
 
 ## 2.39.0
