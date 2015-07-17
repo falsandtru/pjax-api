@@ -23,8 +23,8 @@ $('form').pjax().submit();
 $.pjax.submit($('form'));
 </pre>
 
-## submit( Url: string, Attributes: object, Data: object/array ): this
-渡されたデータを元に生成したフォームを使用します。第二引数のプロパティがフォームの属性となります。第三引数は送信するデータセットをオブジェクトで、またはフォームの構成要素の仕様を配列で渡します。
+## submit( Url: string, Attributes: json, Data: json|array ): this
+渡されたデータを元に生成したフォームを使用します。第二引数はフォームの属性となります。第三引数は送信するデータセットをJSON、またはフォームの構成要素の仕様を配列で渡します。
 
 ### Object
 
