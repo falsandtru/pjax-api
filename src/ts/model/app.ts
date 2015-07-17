@@ -51,8 +51,11 @@ module MODULE.MODEL.APP {
         case 'string' === typeof destination:
           url = <string>destination;
           break;
-        case 'href' in <HTMLAnchorElement>destination:
+        case 'href' in <HTMLAnchorElement>destination && typeof (<HTMLAnchorElement>destination).href === 'string':
           url = this.util_.normalizeUrl((<HTMLAnchorElement>destination).href);
+          break;
+        case 'href' in <HTMLAnchorElement>destination && typeof (<HTMLAnchorElement>destination).href === 'object':
+          url = this.util_.normalizeUrl((<HTMLAnchorElement>destination).href['baseVal']);
           break;
         case 'action' in <HTMLFormElement>destination:
           url = this.util_.normalizeUrl((<HTMLFormElement>destination).action.replace(/[?#].*/, ''));
@@ -91,7 +94,12 @@ module MODULE.MODEL.APP {
             area: 'body',
             link: 'a:not([target])',
             // this.protocolはIEでエラー
-            filter: function () { return /^https?:/.test(this.href) && /\/[^.]*$|\.(html?|php)$/.test(this.pathname.replace(/^\/?/, '/')); },
+            filter: function () {
+              var dest = document.createElement('a');
+              dest.href = typeof this.href === 'string' ? this.href : this.href.baseVal;
+              return /^https?:/.test(dest.href)
+                  && /\/[^.]*$|\.(html?|php)$/.test(dest.pathname.replace(/^\/?/, '/'));
+            },
             form: null,
             replace: null,
             bind: null,

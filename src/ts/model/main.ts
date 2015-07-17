@@ -253,7 +253,12 @@ module MODULE.MODEL {
     private movePageNormally_(event: JQueryEventObject): void {
       switch (event.type.toLowerCase()) {
         case EVENT.CLICK:
-          window.location.assign((<HTMLAnchorElement>event.currentTarget).href);
+          if (typeof (<HTMLAnchorElement>event.currentTarget).href === 'string') {
+            window.location.assign((<HTMLAnchorElement>event.currentTarget).href);
+          }
+          else {
+            window.location.assign((<HTMLAnchorElement>event.currentTarget).href['baseVal']);
+          }
           break;
         case EVENT.SUBMIT:
           switch ((<HTMLFormElement>event.currentTarget).method.toUpperCase()) {

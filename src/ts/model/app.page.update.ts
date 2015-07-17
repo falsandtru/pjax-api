@@ -807,12 +807,17 @@ module MODULE.MODEL.APP {
       .each(eachFixPath);
       function eachFixPath(i, elem: HTMLElement) {
         var attr: string;
-        if ('href' in elem) {
-          attr = 'href';
-        } else if ('src' in elem) {
-          attr = 'src';
-        } else {
-          return;
+        switch (true) {
+          case 'href' in elem:
+            attr = 'href';
+            break;
+
+          case 'src' in elem:
+            attr = 'src';
+            break;
+
+          default:
+            return;
         }
 
         switch (direction) {
