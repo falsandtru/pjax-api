@@ -1,4 +1,5 @@
 
+/^\d\.(?:[5-9]|\d{2,})\./.test(env.jquery) &&
 suite("SVG", function () {
   this.timeout(5000);
 
