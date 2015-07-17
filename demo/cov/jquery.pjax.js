@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.38.0
+ * @version 2.39.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -445,7 +445,7 @@ var MODULE;
                 if (isFinite(event.timeStamp)) {
                     $xhr.timeStamp = timeStamp || event.timeStamp;
                 }
-                MODULE.Model.singleton().setXHR($xhr);
+                MODULE.Model.singleton().setPageXHR($xhr);
                 jQuery.when($xhr)
                     .done(function () {
                     !MODULE.Model.singleton().getCache(anchor.href) && MODULE.Model.singleton().isOperatable(event) && MODULE.Model.singleton().setCache(anchor.href, undefined, undefined, $xhr);
@@ -2398,19 +2398,21 @@ var MODULE;
         var APP;
         (function (APP) {
             var PageRecord = (function () {
-                function PageRecord(url, data, textStatus, $xhr, host) {
+                function PageRecord(url, data, textStatus, $xhr, host, bind) {
                     this.data_ = url ? {
                         url: url,
                         data: data,
                         textStatus: textStatus,
                         jqXHR: $xhr,
-                        host: host
+                        host: host,
+                        bind: bind
                     } : {
                         url: undefined,
                         data: undefined,
                         textStatus: undefined,
                         jqXHR: undefined,
-                        host: undefined
+                        host: undefined,
+                        bind: undefined
                     };
                     this.data = new PageRecordData(this.data_);
                 }
@@ -2442,6 +2444,9 @@ var MODULE;
                 };
                 PageRecordData.prototype.jqXHR = function () {
                     return this.data_.jqXHR;
+                };
+                PageRecordData.prototype.bind = function () {
+                    return this.data_.bind;
                 };
                 PageRecordData.prototype.host = function () {
                     return this.data_.host;
@@ -2561,17 +2566,25 @@ var MODULE;
                             cache = this.model_.getCache(setting.destLocation.href);
                             break;
                     }
-                    var $xhr = this.model_.getXHR();
+                    var $xhr = this.model_.getPageXHR();
                     if ($xhr && $xhr.readyState < 4 && $xhr.location && this.model_.comparePageByUrl($xhr.location.href, setting.destLocation.href)) {
                         return;
                     }
                     this.dispatchEvent(document, setting.nss.event.pjax.fetch, false, false);
+                    // rebalance
+                    this.balancer_.changeServer(this.balancer_.chooseServer(setting), setting);
+                    this.host_ = setting.balance.active && this.model_.host().split('//').pop() || '';
+                    var requestLocation = setting.destLocation.cloneNode();
+                    requestLocation.host = this.host_ || setting.destLocation.host;
+                    // bind
+                    var bind = this.util_.fire(setting.bind, setting, [event, setting, setting.origLocation.cloneNode(), requestLocation.cloneNode()]);
+                    this.model_.setDataXHR(bind && jQuery.ajax(bind));
                     if (cache && cache.jqXHR && 200 === +cache.jqXHR.status) {
                         // cache
                         speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
                         $xhr = cache.jqXHR;
                         $xhr.location = $xhr.location || setting.destLocation.cloneNode();
-                        this.model_.setXHR($xhr);
+                        this.model_.setPageXHR($xhr);
                         this.page_.loadtime = 0;
                         this.host_ = this.balancer_.sanitize(cache.host, setting);
                         this.data_ = cache.jqXHR.responseText;
@@ -2580,7 +2593,7 @@ var MODULE;
                         if (this.model_.isDeferrable) {
                             var defer = this.wait_(wait);
                             this.page_.setWait(defer);
-                            jQuery.when(jQuery.Deferred().resolve(this.data_, this.textStatus_, this.jqXHR_), defer)
+                            jQuery.when(jQuery.Deferred().resolve(this.data_, this.textStatus_, this.jqXHR_), defer, this.model_.getDataXHR())
                                 .done(done).fail(fail).always(always);
                         }
                         else {
@@ -2597,7 +2610,7 @@ var MODULE;
                         speedcheck && speed.time.push(speed.now() - speed.fire);
                         speedcheck && speed.name.push('continue(' + speed.time.slice(-1) + ')');
                         $xhr.location = setting.destLocation.cloneNode();
-                        this.model_.setXHR($xhr);
+                        this.model_.setPageXHR($xhr);
                         this.balancer_.sanitize($xhr, setting);
                         this.balancer_.changeServer($xhr.host, setting);
                         this.host_ = this.model_.host();
@@ -2605,16 +2618,13 @@ var MODULE;
                         var defer = this.wait_(wait);
                         this.page_.setWait(defer);
                         delete $xhr.timeStamp;
-                        jQuery.when($xhr, defer)
+                        jQuery.when($xhr, defer, this.model_.getDataXHR())
                             .done(done).fail(fail).always(always);
                     }
                     else {
                         // default
                         this.page_.loadtime = event.timeStamp;
-                        var requestLocation = setting.destLocation.cloneNode(), ajax = {}, callbacks = {};
-                        this.balancer_.changeServer(this.balancer_.chooseServer(setting), setting);
-                        this.host_ = setting.balance.active && this.model_.host().split('//').pop() || '';
-                        requestLocation.host = this.host_ || setting.destLocation.host;
+                        var ajax = {}, callbacks = {};
                         ajax.url = !setting.server.query ? requestLocation.href
                             : [
                                 requestLocation.protocol,
@@ -2682,14 +2692,14 @@ var MODULE;
                         });
                         $xhr = jQuery.ajax(ajax);
                         $xhr.location = setting.destLocation.cloneNode();
-                        this.model_.setXHR($xhr);
+                        this.model_.setPageXHR($xhr);
                         this.balancer_.sanitize($xhr, setting);
                         if (!this.model_.isDeferrable) {
                             return;
                         }
                         var defer = this.wait_(wait);
                         this.page_.setWait(defer);
-                        jQuery.when(this.model_.getXHR(), defer)
+                        jQuery.when(this.model_.getPageXHR(), defer, this.model_.getDataXHR())
                             .done(done).fail(fail).always(always);
                     }
                     function success(data, textStatus, $xhr) {
@@ -2701,13 +2711,20 @@ var MODULE;
                     function complete($xhr, textStatus) {
                         return always.apply(this, arguments);
                     }
-                    function done(ajax, wait) {
+                    function done(page, wait, data) {
                         if (!arguments.length || !arguments[0]) {
                             return;
                         }
-                        that.data_ = ajax[0];
-                        that.textStatus_ = ajax[1];
-                        that.jqXHR_ = ajax[2];
+                        that.data_ = page[0];
+                        that.textStatus_ = page[1];
+                        that.jqXHR_ = page[2];
+                        switch (data && typeof data[0] === 'object' && (bind.dataType || data[2].getResponseHeader('Content-Type').split('/').pop())) {
+                            case 'json':
+                            case 'jsonp':
+                                data[2].responseJSON = data[0];
+                                break;
+                        }
+                        that.bind_ = data && data[2];
                         that.util_.fire(setting.callbacks.ajax.success, this[0] || this, [event, setting, that.data_, that.textStatus_, that.jqXHR_]);
                     }
                     function fail($xhr, textStatus, errorThrown) {
@@ -2724,13 +2741,14 @@ var MODULE;
                             return;
                         }
                         that.util_.fire(setting.callbacks.ajax.complete, this[0] || this, [event, setting, that.jqXHR_, that.textStatus_]);
-                        that.model_.setXHR(null);
-                        if (200 === +that.jqXHR_.status) {
+                        that.model_.setPageXHR(null);
+                        that.model_.setDataXHR(null);
+                        if (200 === +that.jqXHR_.status && (!that.bind_ || 200 === +that.bind_.status)) {
                             that.model_.setCache(setting.destLocation.href, cache && cache.data || null, that.textStatus_, that.jqXHR_);
-                            that.success_(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_);
+                            that.success_(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_, that.bind_);
                         }
                         else {
-                            that.failure_(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_);
+                            that.failure_(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_, that.bind_);
                         }
                     }
                 };
@@ -2785,23 +2803,23 @@ var MODULE;
                     var _this = this;
                     new this.fetch_(this.model_, this.page_, this.balancer_, setting, event, 
                     // success
-                    function (setting, event, data, textStatus, jqXHR, host) {
-                        var record = _this.setRecord(setting, _this.getRecord(setting).data.data() || '', textStatus, jqXHR, host);
+                    function (setting, event, data, textStatus, jqXHR, host, bind) {
+                        var record = _this.setRecord(setting, _this.getRecord(setting).data.data() || '', textStatus, jqXHR, host, bind);
                         success(record, setting, event);
                     }, 
                     // failure
-                    function (setting, event, data, textStatus, jqXHR, host) {
-                        var record = _this.setRecord(setting, _this.getRecord(setting).data.data() || '', textStatus, jqXHR, host);
+                    function (setting, event, data, textStatus, jqXHR, host, bind) {
+                        var record = _this.setRecord(setting, _this.getRecord(setting).data.data() || '', textStatus, jqXHR, host, bind);
                         failure(record, setting, event);
                     });
                 };
                 PageProvider.prototype.getRecord = function (setting) {
                     return this.table_[this.hash_(setting)] = this.table_[this.hash_(setting)] || new this.Record_();
                 };
-                PageProvider.prototype.setRecord = function (setting, data, textStatus, jqXHR, host) {
+                PageProvider.prototype.setRecord = function (setting, data, textStatus, jqXHR, host, bind) {
                     this.cleanRecords_(setting);
                     this.addOrder_(setting);
-                    return this.table_[this.hash_(setting)] = new this.Record_(setting.nss.url, data, textStatus, jqXHR, host);
+                    return this.table_[this.hash_(setting)] = new this.Record_(setting.nss.url, data, textStatus, jqXHR, host, bind);
                 };
                 PageProvider.prototype.removeRecord = function (setting) {
                     this.removeOrder_(setting);
@@ -3145,7 +3163,8 @@ var MODULE;
                     if (this.util_.fire(setting.callbacks.update.rewrite.before, setting, [event, setting, this.srcDocument_, this.dstDocument_]) === false) {
                         return;
                     }
-                    this.util_.fire(setting.rewrite, setting, [this.srcDocument_, this.area_, this.record_.data.host()]);
+                    var bind = this.record_.data.bind();
+                    this.util_.fire(setting.rewrite, setting, [this.srcDocument_, this.area_, this.record_.data.host(), bind && (bind.responseJSON || bind.responseText)]);
                     if (this.util_.fire(setting.callbacks.update.rewrite.before, setting, [event, setting, this.srcDocument_, this.dstDocument_]) === false) {
                         return;
                     }
@@ -3245,7 +3264,7 @@ var MODULE;
                     if (!setting.balance.active || this.page_.loadtime < 100) {
                         return;
                     }
-                    var $xhr = this.record_.data.jqXHR();
+                    var $xhr = this.record_.data.bind() || this.record_.data.jqXHR();
                     var host = this.balancer_.sanitize($xhr, setting) || this.record_.data.host() || '', time = this.page_.loadtime, score = this.balancer_.score(time, $xhr.responseText.length);
                     if (this.util_.fire(setting.callbacks.update.balance.before, setting, [event, setting, host, this.page_.loadtime, $xhr.responseText.length]) === false) {
                         return;
@@ -3912,8 +3931,9 @@ var MODULE;
                         filter: function () { return /^https?:/.test(this.href) && /\/[^.]*$|\.(html?|php)$/.test(this.pathname.replace(/^\/?/, '/')); },
                         form: null,
                         replace: null,
-                        scope: null,
+                        bind: null,
                         rewrite: null,
+                        scope: null,
                         state: null,
                         scrollTop: 0,
                         scrollLeft: 0,
@@ -4017,6 +4037,7 @@ var MODULE;
                         setting.ns = setting.ns ? setting.ns.split('.').sort().join('.') : '';
                         var nsArray = [MODULE.DEF.NAME].concat(setting.ns ? setting.ns.split('.') : []);
                         var query = setting.server.query;
+                        var bind = setting.bind;
                         switch (query && typeof query) {
                             case 'string':
                                 query = eval('({' + query.toString().match(/[^?=&]+=[^&]*/g).join('&').replace(/"/g, '\\"').replace(/([^?=&]+)=([^&]*)/g, '"$1": "$2"').replace(/&/g, ',') + '})');
@@ -4056,6 +4077,13 @@ var MODULE;
                                 elem: nsArray.join('-'),
                                 requestHeader: ['X', nsArray[0].replace(/^\w/, function (str) { return str.toUpperCase(); })].join('-')
                             },
+                            bind: bind && (function () { return function () {
+                                var args = [];
+                                for (var _i = 0; _i < arguments.length; _i++) {
+                                    args[_i - 0] = arguments[_i];
+                                }
+                                return _this.model_.setDataXHR(bind.apply(_this, args));
+                            }; })(),
                             fix: /android|iphone os|like mac os x/i.test(window.navigator.userAgent) ? undefined : { location: false },
                             contentType: setting.contentType.replace(/\s*[,;]\s*/g, '|').toLowerCase(),
                             database: {
@@ -4084,8 +4112,7 @@ var MODULE;
                         return null;
                     }
                 };
-                Main.prototype.scope_ = function (option, origURL, destURL, rewriteKeyUrl) {
-                    if (rewriteKeyUrl === void 0) { rewriteKeyUrl = ''; }
+                Main.prototype.scope_ = function (option, origURL, destURL) {
                     option = jQuery.extend(true, {}, option);
                     if (!option.scope) {
                         return option;
@@ -4093,21 +4120,10 @@ var MODULE;
                     var origKeyUrl, destKeyUrl, scpTable = option.scope, dirs, scpKeys, scpKey, scpTag, scope;
                     origKeyUrl = this.model_.convertUrlToKey(origURL, true).match(/.+?\w(\/.*)/).pop();
                     destKeyUrl = this.model_.convertUrlToKey(destURL, true).match(/.+?\w(\/.*)/).pop();
-                    rewriteKeyUrl = rewriteKeyUrl.replace(/[#?].*/, '');
-                    scpKeys = (rewriteKeyUrl || origKeyUrl).split('/');
-                    if (rewriteKeyUrl) {
-                        if (!~rewriteKeyUrl.indexOf('*')) {
-                            return undefined;
-                        }
-                        dirs = [];
-                        var arr = origKeyUrl.split('/');
-                        for (var i = 0, len = scpKeys.length; i < len; i++) {
-                            '*' === scpKeys[i] && dirs.push(arr[i]);
-                        }
-                    }
+                    scpKeys = origKeyUrl.split('/');
                     for (var i = scpKeys.length; i--;) {
                         scpKey = scpKeys.slice(0, i + 1).join('/');
-                        scpKey = scpKey + ('/' === (rewriteKeyUrl || origKeyUrl).charAt(scpKey.length) ? '/' : '');
+                        scpKey = scpKey + ('/' === origKeyUrl.charAt(scpKey.length) ? '/' : '');
                         if (!scpKey || !(scpKey in scpTable)) {
                             continue;
                         }
@@ -4144,25 +4160,11 @@ var MODULE;
                             if ('inherit' === pattern) {
                                 inherit = true;
                             }
-                            else if ('rewrite' === pattern && 'function' === typeof scpTable.rewrite && !rewriteKeyUrl) {
-                                scope = this.scope_(option, origURL, destURL, this.util_.fire(scpTable.rewrite, null, [destKeyUrl]));
-                                if (scope) {
-                                    hit_src = hit_dst = true;
-                                }
-                                else if (null === scope) {
-                                    hit_src = hit_dst = false;
-                                }
-                            }
                             else if ('string' === typeof pattern) {
                                 var not = '!' === pattern.charAt(0);
                                 pattern = not ? pattern.slice(1) : pattern;
                                 var reg = '*' === pattern.charAt(0);
                                 pattern = reg ? pattern.slice(1) : pattern;
-                                if (rewriteKeyUrl && ~pattern.indexOf('/*/')) {
-                                    for (var k = 0, len = dirs.length; k < len; k++) {
-                                        pattern = pattern.replace('/*/', '/' + dirs[k] + '/');
-                                    }
-                                }
                                 if (reg ? ~origKeyUrl.search(pattern) : ~origKeyUrl.indexOf(pattern)) {
                                     if (not) {
                                         hit_src = false;
@@ -4330,13 +4332,21 @@ var MODULE;
                 }
                 return true;
             };
-            Main.prototype.getXHR = function () {
-                return this.app_.page.xhr;
+            Main.prototype.getPageXHR = function () {
+                return this.app_.page.pageXHR;
             };
-            Main.prototype.setXHR = function ($xhr) {
+            Main.prototype.setPageXHR = function ($xhr) {
                 this.app_.balancer.sanitize($xhr, this.app_.configure(window.location));
-                this.app_.page.xhr && this.app_.page.xhr.readyState < 4 && this.app_.page.xhr !== $xhr && this.app_.page.xhr.abort();
-                return this.app_.page.xhr = $xhr;
+                this.app_.page.pageXHR && this.app_.page.pageXHR.readyState < 4 && this.app_.page.pageXHR !== $xhr && this.app_.page.pageXHR.abort();
+                return this.app_.page.pageXHR = $xhr;
+            };
+            Main.prototype.getDataXHR = function () {
+                return this.app_.page.dataXHR;
+            };
+            Main.prototype.setDataXHR = function ($xhr) {
+                this.app_.balancer.sanitize($xhr, this.app_.configure(window.location));
+                this.app_.page.dataXHR && this.app_.page.dataXHR.readyState < 4 && this.app_.page.dataXHR !== $xhr && this.app_.page.dataXHR.abort();
+                return this.app_.page.dataXHR = $xhr;
             };
             Main.prototype.click = function (event) {
                 event.timeStamp = new Date().getTime();
@@ -4539,7 +4549,7 @@ var MODULE;
                     return;
                 }
                 var record = this.app_.page.provider.getRecord(setting);
-                this.app_.page.provider.setRecord(setting, data || '', textStatus || record.data.textStatus(), jqXHR || record.data.jqXHR(), this.app_.balancer.sanitize(jqXHR, setting) || record.data.host() || '');
+                this.app_.page.provider.setRecord(setting, data || '', textStatus || record.data.textStatus(), jqXHR || record.data.jqXHR(), this.app_.balancer.sanitize(jqXHR, setting) || record.data.host() || '', null);
             };
             Main.prototype.removeCache = function (unsafe_url) {
                 var setting = this.configure(this.convertUrlToKey(unsafe_url));
