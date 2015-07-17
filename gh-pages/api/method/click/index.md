@@ -23,8 +23,8 @@ $('a').pjax().click();
 $.pjax.click($('a'));
 </pre>
 
-## click( Url: string [, Attributes: object ] ): this
-渡されたデータを元にアンカーリンクを生成して使用します。第二引数のプロパティがアンカーリンクの属性となります。
+## click( Url: string [, Attributes: json ] ): this
+渡されたデータを元にアンカーリンクを生成して使用します。第二引数はアンカーリンクの属性となります。
 
 <pre class="sh brush: js;">
 $.pjax.click('');

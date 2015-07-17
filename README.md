@@ -133,8 +133,8 @@ Name|Parameter|Return
 ----|---------|------
 [enable()](http://falsandtru.github.io/jquery-pjax/api/method/enable/)|-|this
 [disable()](http://falsandtru.github.io/jquery-pjax/api/method/disable/)|-|this
-[click()](http://falsandtru.github.io/jquery-pjax/api/method/click/)|-<br>Anchor: element/jQuery<br>Url: string [, Attributes: object ]|this
-[submit()](http://falsandtru.github.io/jquery-pjax/api/method/submit/)|-<br>Form: element/jQuery<br>Url: string, Attributes: object, Data: object/array|this
+[click()](http://falsandtru.github.io/jquery-pjax/api/method/click/)|-<br>Anchor: element/jQuery<br>Url: string [, Attributes: json ]|this
+[submit()](http://falsandtru.github.io/jquery-pjax/api/method/submit/)|-<br>Form: element/jQuery<br>Url: string, Attributes: json, Data: json/array|this
 [follow()](http://falsandtru.github.io/jquery-pjax/api/method/follow/)|Event: event, Ajax: jQueryXHR [, Host: string ]|boolean
 [more...](http://falsandtru.github.io/jquery-pjax/api/method/)||
 
