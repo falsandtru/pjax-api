@@ -4,8 +4,7 @@ $.pjax({
     return {
       url: dest.href,
       dataType: 'json',
-      timeout: 2500,
-      always: function(){console.log(arguments)}
+      timeout: 2500
     };
   },
   rewrite: function(document, area, host, data) {
