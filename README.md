@@ -188,8 +188,8 @@ jQuery1.6+ Recommended.
 
 * v1.4.2
 * v1.7.2
-* v1.11.1
-* v2.1.1
+* v1.11.3
+* v2.1.4
 
 ## Caution
 Please do not use the non-release version in a production environment. Error may be caused by inconsistencies in the database schema.
