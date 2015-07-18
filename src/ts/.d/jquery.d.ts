@@ -106,6 +106,10 @@ interface JQueryAjaxSettings {
      */
     jsonpCallback?: any;
     /**
+     * The HTTP method to use for the request (e.g. "POST", "GET", "PUT"). (version added: 1.9.0)
+     */
+    method?: string;
+    /**
      * A mime type to override the XHR mime type. (version added: 1.5.1)
      */
     mimeType?: string;
@@ -276,7 +280,15 @@ interface JQueryGenericPromise<T> {
      * @param doneFilter A function that is called when the Deferred is resolved.
      * @param failFilter An optional function that is called when the Deferred is rejected.
      */
-    then<U>(doneFilter: (value: T, ...values: any[]) => U|JQueryPromise<U>, failFilter?: (...reasons: any[]) => U|JQueryPromise<U>, progressFilter?: (...progression: any[]) => any): JQueryPromise<U>;
+    then<U>(doneFilter: (value?: T, ...values: any[]) => U|JQueryPromise<U>, failFilter?: (...reasons: any[]) => any, progressFilter?: (...progression: any[]) => any): JQueryPromise<U>;
+
+    /**
+     * Add handlers to be called when the Deferred object is resolved, rejected, or still in progress.
+     * 
+     * @param doneFilter A function that is called when the Deferred is resolved.
+     * @param failFilter An optional function that is called when the Deferred is rejected.
+     */
+    then(doneFilter: (value?: T, ...values: any[]) => void, failFilter?: (...reasons: any[]) => any, progressFilter?: (...progression: any[]) => any): JQueryPromise<void>;
 }
 
 /**
@@ -717,30 +729,42 @@ interface JQueryStatic {
      * @param context A DOM Element, Document, or jQuery to use as context
      */
     (selector: string, context?: Element|JQuery): JQuery;
+
     /**
      * Accepts a string containing a CSS selector which is then used to match a set of elements.
      *
      * @param element A DOM element to wrap in a jQuery object.
      */
     (element: Element): JQuery;
+
     /**
      * Accepts a string containing a CSS selector which is then used to match a set of elements.
      *
      * @param elementArray An array containing a set of DOM elements to wrap in a jQuery object.
      */
     (elementArray: Element[]): JQuery;
+
+    /**
+     * Binds a function to be executed when the DOM has finished loading.
+     *
+     * @param callback A function to execute after the DOM is ready.
+     */
+    (callback: (jQueryAlias?: JQueryStatic) => any): JQuery;
+
     /**
      * Accepts a string containing a CSS selector which is then used to match a set of elements.
      *
      * @param object A plain object to wrap in a jQuery object.
      */
     (object: {}): JQuery;
+
     /**
      * Accepts a string containing a CSS selector which is then used to match a set of elements.
      *
      * @param object An existing jQuery object to clone.
      */
     (object: JQuery): JQuery;
+
     /**
      * Specify a function to execute when the DOM is fully loaded.
      */
@@ -753,6 +777,7 @@ interface JQueryStatic {
      * @param ownerDocument A document in which the new elements will be created.
      */
     (html: string, ownerDocument?: Document): JQuery;
+
     /**
      * Creates DOM elements on the fly from the provided string of raw HTML.
      *
@@ -760,13 +785,6 @@ interface JQueryStatic {
      * @param attributes An object of attributes, events, and methods to call on the newly-created element.
      */
     (html: string, attributes: Object): JQuery;
-
-    /**
-     * Binds a function to be executed when the DOM has finished loading.
-     *
-     * @param callback A function to execute after the DOM is ready.
-     */
-    (callback: Function): JQuery;
 
     /**
      * Relinquish jQuery's control of the $ variable.
@@ -2344,7 +2362,7 @@ interface JQuery {
      *
      * @param handler A function to execute after the DOM is ready.
      */
-    ready(handler: Function): JQuery;
+    ready(handler: (jQueryAlias?: JQueryStatic) => any): JQuery;
 
     /**
      * Trigger the "resize" event on an element.
@@ -2440,6 +2458,14 @@ interface JQuery {
      * @param extraParameters An array of additional parameters to pass along to the event handler.
      */
     triggerHandler(eventType: string, ...extraParameters: any[]): Object;
+
+    /**
+     * Execute all handlers attached to an element for an event.
+     * 
+     * @param event A jQuery.Event object.
+     * @param extraParameters An array of additional parameters to pass along to the event handler.
+     */
+    triggerHandler(event: JQueryEventObject, ...extraParameters: any[]): Object;
 
     /**
      * Remove a previously-attached event handler from the elements.
