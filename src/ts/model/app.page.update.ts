@@ -379,22 +379,20 @@ module MODULE.MODEL.APP {
 
       if (this.util_.fire(setting.callbacks.update.rewrite.before, setting, [event, setting, this.srcDocument_, this.dstDocument_]) === false) { return; }
 
-      var data;
-      if (this.record_.data.bind()) {
-        const bind = this.record_.data.bind();
-        switch (bind.getResponseHeader('Content-Type').split('/').pop()) {
-          case 'json':
-            data = bind.responseJSON;
-            break;
-
-          default:
-            data = bind.responseText;
-        }
-      }
-
-      this.util_.fire(setting.rewrite, setting, [this.srcDocument_, this.area_, this.record_.data.host(), data])
+      this.util_.fire(setting.rewrite, setting, [this.srcDocument_, this.area_, this.record_.data.host(), strip(this.record_.data.bind())])
 
       if (this.util_.fire(setting.callbacks.update.rewrite.before, setting, [event, setting, this.srcDocument_, this.dstDocument_]) === false) { return; }
+
+      function strip($xhr: JQueryXHR): {}|string|void {
+        if (!$xhr) { return void 0; }
+        switch ($xhr.getResponseHeader('Content-Type').split('/').pop()) {
+          case 'json':
+            return $xhr.responseJSON;
+
+          default:
+            return $xhr.responseText;
+        }
+      }
     }
 
     private title_(): void {
