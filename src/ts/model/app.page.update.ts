@@ -379,8 +379,20 @@ module MODULE.MODEL.APP {
 
       if (this.util_.fire(setting.callbacks.update.rewrite.before, setting, [event, setting, this.srcDocument_, this.dstDocument_]) === false) { return; }
 
-      var bind = this.record_.data.bind();
-      this.util_.fire(setting.rewrite, setting, [this.srcDocument_, this.area_, this.record_.data.host(), bind && (bind.responseJSON || bind.responseText)])
+      var data;
+      if (this.record_.data.bind()) {
+        const bind = this.record_.data.bind();
+        switch (bind.getResponseHeader('Content-Type').split('/').pop()) {
+          case 'json':
+            data = bind.responseJSON;
+            break;
+
+          default:
+            data = bind.responseText;
+        }
+      }
+
+      this.util_.fire(setting.rewrite, setting, [this.srcDocument_, this.area_, this.record_.data.host(), data])
 
       if (this.util_.fire(setting.callbacks.update.rewrite.before, setting, [event, setting, this.srcDocument_, this.dstDocument_]) === false) { return; }
     }
