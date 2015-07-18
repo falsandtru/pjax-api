@@ -29,6 +29,7 @@ module MODULE.MODEL.APP {
     private textStatus_: string
     private jqXHR_: JQueryXHR
     private bind_: JQueryXHR
+    private json_: {}
     private errorThrown_: string
 
     private main_(): void {
@@ -219,13 +220,24 @@ module MODULE.MODEL.APP {
         that.textStatus_ = page[1];
         that.jqXHR_ = page[2];
 
-        switch (data && typeof data[0] === 'object' && (bind.dataType || data[2].getResponseHeader('Content-Type').split('/').pop())) {
-          case 'json':
-          case 'jsonp':
-            data[2].responseJSON = data[0];
-            break;
+        if (bind) {
+          const chunk: {} = data[0];
+          const $xhr: JQueryXHR = data[2];
+          switch ($xhr.getResponseHeader('Content-Type').split('/').pop()) {
+            case 'json':
+              if ($xhr.responseJSON) { break; }
+              if (!that.json_) {
+                that.json_ = chunk;
+              }
+              else {
+                for (let key in chunk) {
+                  that.json_[key] = chunk[key];
+                }
+              }
+              break;
+          }
+          that.bind_ = $xhr;
         }
-        that.bind_ = data && data[2];
 
         that.util_.fire(setting.callbacks.ajax.success, this[0] || this, [event, setting, that.data_, that.textStatus_, that.jqXHR_]);
       }
@@ -245,6 +257,11 @@ module MODULE.MODEL.APP {
 
         that.model_.setPageXHR(null);
         that.model_.setDataXHR(null);
+        
+        if (bind) {
+          that.bind_.responseJSON = that.bind_.responseJSON || that.json_;
+        }
+
         if (200 === +that.jqXHR_.status && (!that.bind_ || 200 === +that.bind_.status)) {
           that.model_.setCache(setting.destLocation.href, cache && cache.data || null, that.textStatus_, that.jqXHR_);
           that.success_(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_, that.bind_);
