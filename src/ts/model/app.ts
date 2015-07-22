@@ -29,6 +29,7 @@ module MODULE.MODEL.APP {
     initialize($context: JQuery, setting: SettingInterface): void {
       this.controller_.view($context, setting);
       this.balancer.enable(setting);
+      this.balancer.changeServer(this.balancer.chooseServer(setting), setting);
       this.data.loadBuffers();
       setTimeout(() => this.page.landing = null, 1500);
     }
