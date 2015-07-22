@@ -244,222 +244,45 @@ pjaxではJavaScriptの実行状態がページ移動後も維持されるため
 ### WordpressプラグインのJavaScriptを使用するページへの再アクセス
 pjaxは移動先のページのJavaScriptが読み込み済みであり、コードが外部ファイルに記述されている場合はこれを読み込まず、同一ページに埋め込まれている場合は再度読み込み実行します。このため、併用するJavaScriptによっては正常に動作させるために適宜再実行により実行状態をリセットするか、または読み込ませずリセットさせない処理を追加する必要があります。
 
+## パフォーマンスチューニング
+初期設定のいくつかは互換性を優先して本来不要な処理も行うよう設定されており、これらは解除すべきものです。
+
+### area
+初期値では`body`ですが全要素を再描画するのは当然重く遅い処理です。
+最小限の範囲を設定すれば素早く更新されます。
+
+### fix.reference
+相当数のDOM要素を検索修正するため相応に負荷がかかります。
+適切に参照が設定されていれば不要な修正なので参照を修正して無効にしてください。
+
+### load.log
+デバッグには有用ですがページがリセットされるまでログが溜まり続けDOMが肥大化するため無効にすべきです。
+
 ## JavaScriptの状態管理
-当サイトでは次のようにJavaScriptの実行状態を管理しています。
+ブラウザ上での複数ページにまたがるJavaScriptの実行状態の管理は並列プログラミングと同質の困難性があるため難しいものです。
+しかし以下のポイントを守ればほとんどの問題は解決するので必ず守ってください。
 
-[FunctionManager]({{ site.basepath }}https://github.com/falsandtru/funcmanager.js)によりドキュメントのようにJavaScriptを記述・管理できます。
+### 各プロセスのライフサイクル(開始)は統一的に管理する
+各プロセスは`document.ready`や`pjax:render`イベントなどに登録してページロードごとに開始させます。
+ページロードごとに重複して登録させないよう注意してください。
+ライフサイクル管理のためにイベントに登録されたコールバックは逐次プロセスを生成するためプロセス固有のコールバックではありません。
 
-<pre class="sh brush: js;">
-new Function().apply.apply(function (accessor) {
-  var spec = accessor, initialize = true, always = true, finalize = false;
+### 各プロセスのライフタイム(終了)は各プロセス自身で管理する
+各プロセスは自身の終了すべき状況を自身で検知して終了させます。
+異常が発生しても適切に対処すれば異常も正常なプロセスの一部となるということです。
+自身のプロセス固有の、コールバックの登録やDOMの変更といった外部への変更箇所は、終了処理として必ずすべて解除してから終了しなければなりません。
+主な検知すべき状況は以下のとおりです。
 
-/* init
-  ========================================================================== */
-  $(spec.init);
-  spec.init = spec.clientenv;
-  spec.init = spec.preload;
-  spec.init = spec.pjax;
-  spec.init = spec.visibilitytrigger;
-  spec.init = function () { initialize = false; };
+#### 正常終了
+プロセスがその目的を完了したら、上記のように実行結果を除く自身の痕跡をすべて消して終了させます。
+異常が発生しても適切に対処して終了したものはすべて正常終了です。
 
-/* component
-  ========================================================================== */
+#### 異常終了
+プロセスがその目的を完了できなくなった場合、必要に応じて中途の実行結果を実行前の状態に復元してから正常終了させます。
+該当する状況としてはURLやDOMといった実行環境の不一致、既定数を超えるプロセスの同時実行、実行エラーの発生、実行の失敗などが挙げられます。
 
-/* clientenv
-  -------------------------------------------------------------------------- */
-  spec.clientenv = function () {
-    if (initialize) {
-      $.clientenv({ font: { lang: 'ja' } })
-      .addClass('hardware platform os windowsXP:lte windowsXP:gt browser ie ie8:lte')
-      .addClass('font', 'Meiryo, メイリオ', 'meiryo')
-      .clientenv({ not: false })
-      .addClass('touch');
-    }
-  };
+#### 異常開始
+開始するべきでない状況で開始されたプロセスは速やかに異常終了させます。
 
-/* preload
-  -------------------------------------------------------------------------- */
-  spec.preload = function () {
-    if (/touch|tablet|mobile|phone|android|iphone|ipad|blackberry/i.test(window.navigator.userAgent)) { return; }
-
-    if (initialize) {
-      $.preload({
-        forward: $.pjax.follow,
-        check: $.pjax.getCache,
-        encode: true,
-        ajax: {
-          timeout: 2000,
-          xhr: function () {
-            var xhr = jQuery.ajaxSettings.xhr();
-
-            $('div.loading').children().width('5%');
-            if (xhr instanceof Object && 'onprogress' in xhr) {
-              xhr.addEventListener('progress', function (event) {
-                var percentage = event.total ? event.loaded / event.total : 0.4;
-                percentage = percentage * 90 + 5;
-                $('div.loading').children().width(percentage + '%');
-              }, false);
-              xhr.addEventListener('load', function (event) {
-                $('div.loading').children().width('95%');
-              }, false);
-              xhr.addEventListener('error', function (event) {
-                $('div.loading').children().css('background-color', '#00f');
-              }, false);
-            }
-            return xhr;
-          },
-          success: function (data, textStatus, XMLHttpRequest) {
-            !$.pjax.getCache(this.url) && $.pjax.setCache(this.url, null, textStatus, XMLHttpRequest);
-          }
-        }
-      });
-    }
-
-    if (always) {
-      setTimeout(function () { $(document).trigger('preload'); }, 1000);
-    }
-  };
-
-/* pjax
-  -------------------------------------------------------------------------- */
-  spec.pjax = function () {
-    if (initialize) {
-      $.pjax({
-        area: ['#container', 'body'],
-        rewrite: function (document) {
-          $('#primary, #secondary', document).find('img').each(escapeImage);
-          function escapeImage() {
-            this.setAttribute('data-original', this.src);
-            this.setAttribute('src', '/img/gray.gif');
-          }
-
-          $('#primary', document).find('iframe').each(escapeIframe);
-          function escapeIframe() {
-            this.setAttribute('data-original', this.src);
-            this.setAttribute('src', 'javascript:false');
-          }
-        },
-        load: { css: true, script: true },
-        cache: { click: true, submit: false, popstate: true },
-        ajax: { cache: true, timeout: 3000 },
-        scope: {
-          test: '!*/[^/]+/test/',
-          '/': ['/', '#test']
-        },
-        callbacks: {
-          ajax: {
-            xhr: function () {
-              var xhr = jQuery.ajaxSettings.xhr();
-
-              $('div.loading').children().width('5%');
-              if (xhr instanceof Object && 'onprogress' in xhr) {
-                xhr.addEventListener('progress', function (event) {
-                  var percentage = event.loaded / event.total;
-                  percentage = isFinite(percentage) ? percentage : 0.4;
-                  percentage = percentage * 90 + 5;
-                  $('div.loading').children().width(percentage + '%');
-                }, false);
-                xhr.addEventListener('loadend', function (event) {
-                }, false);
-              }
-              return xhr;
-            }
-          },
-          update: {
-            url: {
-              after: function () {
-                $('div.loading').children().width('95%');
-              }
-            },
-            head: {
-              after: function () {
-                $('div.loading').children().width('96.25%');
-              }
-            },
-            content: {
-              after: function () {
-                $('div.loading').children().width('97.5%');
-              }
-            },
-            css: {
-              after: function () {
-                $('div.loading').children().width('98.75%');
-              }
-            },
-            script: {
-              after: function () {
-                $('div.loading').children().width('100%');
-              }
-            }
-          }
-        },
-        load: {
-          head: 'base, meta, link',
-          css: true,
-          script: true
-        },
-        speedcheck: true
-      });
-
-      $(document).bind('pjax:ready', spec.init);
-      $(document).bind('pjax:fetch', function () {
-        $('div.loading').children().width('');
-        $('div.loading').fadeIn(0);
-      });
-      $(document).bind('pjax:render', function () {
-        $('div.loading').children().width('100%');
-        $('div.loading').fadeOut(50);
-      });
-    }
-  };
-
-/* visibilitytrigger
-  -------------------------------------------------------------------------- */
-  spec.visibilitytrigger = function () {
-    if (always) {
-      $.visibilitytrigger
-      .open({
-        ns: '.img.primary',
-        trigger: '#primary img[data-original]',
-        handler: function () { this.src = this.getAttribute('data-original'); },
-        ahead: [0, .1],
-        skip: true
-      })
-      .open({
-        ns: '.img.secondary',
-        trigger: '#secondary img[data-original]',
-        handler: function () { this.src = this.getAttribute('data-original'); },
-        ahead: [0, .1],
-        skip: true
-      })
-      .open({
-        ns: '.iframe.primary',
-        trigger: '#primary iframe[data-original]',
-        handler: function () { this.src = this.getAttribute('data-original'); },
-        ahead: [0, .1],
-        skip: true
-      })
-      .open({
-        ns: ".sh.primary",
-        trigger: "#primary pre.sh",
-        handler: function () { SyntaxHighlighter && SyntaxHighlighter.highlight(SyntaxHighlighter.defaults, this); },
-        ahead: [0, .1],
-        step: 0,
-        skip: true
-      })
-      .disable().enable('img').vtrigger();
-
-      setTimeout(function () { $.vt.enable().vtrigger(); }, 20);
-    }
-  };
-
-  return this;
-},
-FuncManager([
-  'init',
-  'preload',
-  'pjax',
-  'visibilitytrigger',
-  'clientenv'
-]).contextArguments);
-</pre>
+### 他のプロセスの状態や実行結果を参照しない
+前回のプロセスが残したデータや他のプロセスの実行状態などを参照せず、自身以外のプロセスの存在に一切影響を受けないよう設計してください。
