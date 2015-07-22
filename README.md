@@ -16,7 +16,7 @@ You will be able most of your want.
 ## Feature
 
 * Preloading
-* Data binding support
+* Data binding assist
 * Network Load Balancing by Client-side Load Balancer
 * Sync the head content, such as CSS, SCRIPT, RSS
 * Disabling update itemes such as URL, TITLE
