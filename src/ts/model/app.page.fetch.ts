@@ -65,8 +65,7 @@ module MODULE.MODEL.APP {
 
       this.dispatchEvent(document, setting.nss.event.pjax.fetch, false, false);
 
-      // rebalance
-      this.balancer_.changeServer(this.balancer_.chooseServer(setting), setting);
+      // balance
       this.host_ = setting.balance.active && this.model_.host().split('//').pop() || '';
       var requestLocation = <HTMLAnchorElement>setting.destLocation.cloneNode();
       requestLocation.host = this.host_ || setting.destLocation.host;
