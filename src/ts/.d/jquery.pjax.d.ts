@@ -22,8 +22,8 @@ interface PjaxSetting {
     filter?: string | ((index?: number, element?: HTMLAnchorElement) => boolean)
     form?: string
     replace?: string | ((index?: number, element?: HTMLAnchorElement) => boolean)
-    bind?: ((event?: JQueryEventObject, setting?: PjaxSetting, origLocation?: HTMLAnchorElement, destLocation?: HTMLAnchorElement) => JQueryAjaxSettings)
-    rewrite?: (document: Document, area?: string, host?: string, data?: JQueryXHR) => void
+    bind?: ((event?: JQueryEventObject, setting?: PjaxSetting, origLocation?: HTMLAnchorElement, destLocation?: HTMLAnchorElement) => JQueryAjaxSettings[])
+    rewrite?: (document: Document, area?: string, host?: string, data?: {}[]) => void
     scope?: {
         [index: string]: any
     }

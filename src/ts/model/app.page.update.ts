@@ -379,18 +379,15 @@ module MODULE.MODEL.APP {
 
       if (this.util_.fire(setting.callbacks.update.rewrite.before, setting, [event, setting, this.srcDocument_, this.dstDocument_]) === false) { return; }
 
-      this.util_.fire(setting.rewrite, setting, [this.srcDocument_, this.area_, this.record_.data.host(), strip(this.record_.data.bind())])
+      this.util_.fire(setting.rewrite, setting, [this.srcDocument_, this.area_, this.record_.data.host(), this.record_.data.bind().map(strip)])
 
       if (this.util_.fire(setting.callbacks.update.rewrite.before, setting, [event, setting, this.srcDocument_, this.dstDocument_]) === false) { return; }
 
-      function strip($xhr: JQueryXHR): {}|string|void {
-        if (!$xhr) { return void 0; }
+      function strip($xhr: JQueryXHR): {} {
+        if (!$xhr) { return {}; }
         switch ($xhr.getResponseHeader('Content-Type').split('/').pop()) {
           case 'json':
             return $xhr.responseJSON;
-
-          default:
-            return $xhr.responseText;
         }
       }
     }
@@ -504,21 +501,23 @@ module MODULE.MODEL.APP {
 
       if (!setting.balance.active || this.page_.loadtime < 100) { return; }
 
-      var $xhr = this.record_.data.bind() || this.record_.data.jqXHR();
-      var host = this.balancer_.sanitize($xhr, setting) || this.record_.data.host() || '',
-          time = this.page_.loadtime,
-          score = this.balancer_.score(time, $xhr.responseText.length);
+      [this.record_.data.jqXHR()].concat(this.record_.data.bind())
+        .forEach($xhr => {
+          var host = this.balancer_.sanitize($xhr, setting) || this.record_.data.host() || '',
+            time = this.page_.loadtime,
+            score = this.balancer_.score(time, $xhr.responseText.length);
 
-      if (this.util_.fire(setting.callbacks.update.balance.before, setting, [event, setting, host, this.page_.loadtime, $xhr.responseText.length]) === false) { return; }
+          if (this.util_.fire(setting.callbacks.update.balance.before, setting, [event, setting, host, this.page_.loadtime, $xhr.responseText.length]) === false) { return; }
 
-      var server = this.data_.getServerBuffer(setting.destLocation.href),
-          score = this.balancer_.score(time, $xhr.responseText.length);
-      time = server && !server.state && server.time ? Math.round((server.time + time) / 2) : time;
-      score = server && !server.state && server.score ? Math.round((server.score + score) / 2) : score;
-      this.data_.saveServer(host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
-      this.balancer_.changeServer(this.balancer_.chooseServer(setting), setting);
+          var server = this.data_.getServerBuffer(setting.destLocation.href),
+            score = this.balancer_.score(time, $xhr.responseText.length);
+          time = server && !server.state && server.time ? Math.round((server.time + time) / 2) : time;
+          score = server && !server.state && server.score ? Math.round((server.score + score) / 2) : score;
+          this.data_.saveServer(host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
+          this.balancer_.changeServer(this.balancer_.chooseServer(setting), setting);
 
-      if (this.util_.fire(setting.callbacks.update.balance.after, setting, [event, setting, host, this.page_.loadtime, $xhr.responseText.length]) === false) { return; }
+          if (this.util_.fire(setting.callbacks.update.balance.after, setting, [event, setting, host, this.page_.loadtime, $xhr.responseText.length]) === false) { return; }
+        });
     }
 
     private css_(selector: string): void {

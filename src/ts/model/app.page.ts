@@ -28,7 +28,7 @@ module MODULE.MODEL.APP {
     landing: string = this.util_.normalizeUrl(window.location.href)
     loadedScripts: { [index: string]: boolean } = {}
     pageXHR: JQueryXHR
-    dataXHR: JQueryXHR
+    dataXHR: JQueryXHR[] = []
 
     loadtime: number = 0
     count: number = 0

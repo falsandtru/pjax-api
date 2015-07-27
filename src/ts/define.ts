@@ -87,8 +87,8 @@ module MODULE {
     configure(destination: string | Event | HTMLAnchorElement | HTMLFormElement | Location): SettingInterface
     getPageXHR(): JQueryXHR
     setPageXHR($xhr: JQueryXHR): JQueryXHR
-    getDataXHR(): JQueryXHR
-    setDataXHR($xhr: JQueryXHR): JQueryXHR
+    getDataXHR(): JQueryXHR[]
+    setDataXHR($xhrs: JQueryXHR[]): JQueryXHR[]
     isOperatable(event: JQueryEventObject): boolean
     fallback(event: JQueryEventObject): void
     isHashChange(setting: SettingInterface): boolean
@@ -215,7 +215,7 @@ module MODULE.MODEL {
     landing: string
     loadedScripts: { [url: string]: boolean }
     pageXHR: JQueryXHR
-    dataXHR: JQueryXHR
+    dataXHR: JQueryXHR[]
 
     loadtime: number
     count: number
@@ -242,13 +242,13 @@ module MODULE.MODEL {
       failure: (record: PageRecordInterface, setting: SettingInterface, event: JQueryEventObject) => void
     ): void
     getRecord(setting: SettingInterface): PageRecordInterface
-    setRecord(setting: SettingInterface, data: string, textStatus: string, $xhr: JQueryXHR, host: string, bind: JQueryXHR): PageRecordInterface
+    setRecord(setting: SettingInterface, data: string, textStatus: string, $xhr: JQueryXHR, host: string, bind: JQueryXHR[]): PageRecordInterface
     removeRecord(setting: SettingInterface): PageRecordInterface
     clearRecord(): void
   }
   export declare class PageRecordInterface implements RecordInterface {
     constructor()
-    constructor(url: string, data: string, textStatus: string, $xhr: JQueryXHR, host: string, bind: JQueryXHR)
+    constructor(url: string, data: string, textStatus: string, $xhr: JQueryXHR, host: string, bind: JQueryXHR[])
     data: PageRecordDataInterface
     state(setting?: SettingInterface): boolean
   }
@@ -258,7 +258,7 @@ module MODULE.MODEL {
     textStatus(): string
     jqXHR(): JQueryXHR
     host(): string
-    bind(): JQueryXHR
+    bind(): JQueryXHR[]
     expires(): number
     expires(min: number, max: number): number
   }
@@ -268,7 +268,7 @@ module MODULE.MODEL {
     textStatus: string
     jqXHR: JQueryXHR
     host: string
-    bind: JQueryXHR
+    bind: JQueryXHR[]
   }
   // Page::Parser
   export declare class PageParserInterface {
