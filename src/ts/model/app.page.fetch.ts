@@ -16,8 +16,8 @@ module MODULE.MODEL.APP {
     private balancer_: BalancerInterface,
     private setting_: SettingInterface,
     private event_: JQueryEventObject,
-    private success_: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, $xhr: JQueryXHR, host: string, bind: JQueryXHR) => any,
-    private failure_: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, $xhr: JQueryXHR, host: string, bind: JQueryXHR) => any
+    private success_: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, $xhr: JQueryXHR, host: string, bind: JQueryXHR[]) => any,
+    private failure_: (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, $xhr: JQueryXHR, host: string, bind: JQueryXHR[]) => any
     ) {
       this.main_();
     }
@@ -28,8 +28,8 @@ module MODULE.MODEL.APP {
     private data_: string
     private textStatus_: string
     private jqXHR_: JQueryXHR
-    private bind_: JQueryXHR
-    private json_: {}
+    private binds_: JQueryXHR[] = []
+    private jsons_: {}[] = []
     private errorThrown_: string
 
     private main_(): void {
@@ -65,15 +65,6 @@ module MODULE.MODEL.APP {
 
       this.dispatchEvent(document, setting.nss.event.pjax.fetch, false, false);
 
-      // balance
-      this.host_ = setting.balance.active && this.model_.host().split('//').pop() || '';
-      var requestLocation = <HTMLAnchorElement>setting.destLocation.cloneNode();
-      requestLocation.host = this.host_ || setting.destLocation.host;
-
-      // bind
-      var bind = this.util_.fire(setting.bind, setting, [event, setting, setting.origLocation.cloneNode(), requestLocation.cloneNode()]);
-      this.model_.setDataXHR(bind && jQuery.ajax(bind));
-
       if (cache && cache.jqXHR && 200 === +cache.jqXHR.status) {
         // cache
         speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
@@ -88,7 +79,9 @@ module MODULE.MODEL.APP {
         if (this.model_.isDeferrable) {
           var defer: JQueryDeferred<any> = this.wait_(wait);
           this.page_.setWait(defer);
-          jQuery.when(jQuery.Deferred().resolve(this.data_, this.textStatus_, this.jqXHR_), defer, this.model_.getDataXHR())
+          let requestLocation = this.balance_(setting.destLocation.href);
+          this.model_.setDataXHR(this.bind_(<JQueryAjaxSettings[]>this.util_.fire(setting.bind, setting, [event, setting, setting.origLocation.cloneNode(), requestLocation.cloneNode()])));
+          jQuery.when(jQuery.Deferred().resolve(this.data_, this.textStatus_, this.jqXHR_), defer, jQuery.when.apply(null, this.model_.getDataXHR()))
           .done(done).fail(fail).always(always);
         } else {
           var context: JQueryAjaxSettings = jQuery.extend({}, jQuery.ajaxSettings, setting.ajax);
@@ -104,20 +97,23 @@ module MODULE.MODEL.APP {
         speedcheck && speed.name.push('continue(' + speed.time.slice(-1) + ')');
         $xhr.location = <HTMLAnchorElement>setting.destLocation.cloneNode();
         this.model_.setPageXHR($xhr);
-        this.balancer_.sanitize($xhr, setting);
-        this.balancer_.changeServer($xhr.host, setting);
         this.host_ = this.model_.host();
         this.page_.loadtime = $xhr.timeStamp;
         var defer: JQueryDeferred<any> = this.wait_(wait);
         this.page_.setWait(defer);
         delete $xhr.timeStamp;
-        jQuery.when($xhr, defer, this.model_.getDataXHR())
+        let requestLocation = this.balance_(setting.destLocation.href);
+        this.model_.setDataXHR(this.bind_(<JQueryAjaxSettings[]>this.util_.fire(setting.bind, setting, [event, setting, setting.origLocation.cloneNode(), requestLocation.cloneNode()])));
+        jQuery.when($xhr, defer, jQuery.when.apply(null, this.model_.getDataXHR()))
         .done(done).fail(fail).always(always);
       } else {
         // default
         this.page_.loadtime = event.timeStamp;
         var ajax: JQueryAjaxSettings = {},
             callbacks: JQueryAjaxSettings = {};
+
+        this.host_ = setting.balance.active && this.model_.host().split('//').pop() || '';
+        let requestLocation = this.balance_(setting.destLocation.href);
 
         ajax.url = !setting.server.query ? requestLocation.href
                                          : [
@@ -192,14 +188,14 @@ module MODULE.MODEL.APP {
         $xhr = jQuery.ajax(ajax);
         $xhr.location = <HTMLAnchorElement>setting.destLocation.cloneNode();
         this.model_.setPageXHR($xhr);
-        this.balancer_.sanitize($xhr, setting);
 
         if (!this.model_.isDeferrable) { return; }
 
         var defer: JQueryDeferred<any> = this.wait_(wait);
         this.page_.setWait(defer);
 
-        jQuery.when(this.model_.getPageXHR(), defer, this.model_.getDataXHR())
+        this.model_.setDataXHR(this.bind_(<JQueryAjaxSettings[]>this.util_.fire(setting.bind, setting, [event, setting, setting.origLocation.cloneNode(), requestLocation.cloneNode()])));
+        jQuery.when(this.model_.getPageXHR(), defer, jQuery.when.apply(null, this.model_.getDataXHR()))
         .done(done).fail(fail).always(always);
       }
       
@@ -212,31 +208,14 @@ module MODULE.MODEL.APP {
       function complete($xhr: JQueryXHR, textStatus: string) {
         return always.apply(this, arguments);
       }
-      function done(page: any[], wait: void, data: any[]) {
+      function done(page: any[], wait: void, data: JQueryXHR[] = []) {
         if (!arguments.length || !arguments[0]) { return; }
 
         that.data_ = page[0];
         that.textStatus_ = page[1];
         that.jqXHR_ = page[2];
 
-        if (bind) {
-          const chunk: {} = data[0];
-          const $xhr: JQueryXHR = data[2];
-          switch ($xhr.getResponseHeader('Content-Type').split('/').pop()) {
-            case 'json':
-              if ($xhr.responseJSON) { break; }
-              if (!that.json_) {
-                that.json_ = chunk;
-              }
-              else {
-                for (let key in chunk) {
-                  that.json_[key] = chunk[key];
-                }
-              }
-              break;
-          }
-          that.bind_ = $xhr;
-        }
+        that.binds_ = data.every($xhr => !!$xhr && typeof $xhr === 'object') ? data : [data[2]];
 
         that.util_.fire(setting.callbacks.ajax.success, this[0] || this, [event, setting, that.data_, that.textStatus_, that.jqXHR_]);
       }
@@ -246,6 +225,8 @@ module MODULE.MODEL.APP {
         that.jqXHR_ = $xhr;
         that.textStatus_ = textStatus;
         that.errorThrown_ = errorThrown;
+
+        that.binds_ = [];
 
         that.util_.fire(setting.callbacks.ajax.error, this[0] || this, [event, setting, that.jqXHR_, that.textStatus_, that.errorThrown_]);
       }
@@ -257,17 +238,54 @@ module MODULE.MODEL.APP {
         that.model_.setPageXHR(null);
         that.model_.setDataXHR(null);
         
-        if (bind) {
-          that.bind_.responseJSON = that.bind_.responseJSON || that.json_;
-        }
+        if (200 === +that.jqXHR_.status && that.binds_.every($xhr => 200 === +$xhr.status)) {
+          that.binds_
+            .forEach((_, i) => that.binds_[i].responseJSON = that.binds_[i].responseJSON || that.jsons_[i]);
 
-        if (200 === +that.jqXHR_.status && (!that.bind_ || 200 === +that.bind_.status)) {
           that.model_.setCache(setting.destLocation.href, cache && cache.data || null, that.textStatus_, that.jqXHR_);
-          that.success_(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_, that.bind_);
+          that.success_(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_, that.binds_);
         } else {
-          that.failure_(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_, that.bind_);
+          that.failure_(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_, that.binds_);
         }
       }
+    }
+
+    private balance_(url: string): HTMLAnchorElement {
+      const setting = this.setting_,
+            location = document.createElement('a');
+      location.href = url;
+      location.host = this.host_ || location.host;
+      return location;
+    }
+
+    private bind_(settings: JQueryAjaxSettings[]): JQueryXHR[] {
+      return (settings || [])
+        .map(v => {
+          v.url = this.util_.canonicalizeUrl(v.url);
+          if (v.url.indexOf('//') > -1) { return v; }
+          v.url = this.balance_(v.url).href;
+          return v;
+        })
+        .map(jQuery.ajax)
+        .map(($xhr, i) => {
+          return <JQueryXHR>$xhr
+            .done((data: {}, _, $xhr: JQueryXHR) => {
+              const chunk: {} = data;
+              switch ($xhr.getResponseHeader('Content-Type').split('/').pop()) {
+                case 'json':
+                  if ($xhr.responseJSON) { break; }
+                  if (!this.jsons_[i]) {
+                    this.jsons_[i] = chunk;
+                  }
+                  else {
+                    for (let key in chunk) {
+                      this.jsons_[i][key] = chunk[key];
+                    }
+                  }
+                  break;
+              }
+            });
+        });
     }
 
     private wait_(ms: number): JQueryDeferred<any> {

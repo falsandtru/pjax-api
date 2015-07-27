@@ -33,12 +33,12 @@ module MODULE.MODEL.APP {
         setting,
         event,
         // success
-        (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string, bind: JQueryXHR) => {
+        (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string, bind: JQueryXHR[]) => {
           var record = this.setRecord(setting, this.getRecord(setting).data.data() || '', textStatus, jqXHR, host, bind);
           success(record, setting, event);
         },
         // failure
-        (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string, bind: JQueryXHR) => {
+        (setting: SettingInterface, event: JQueryEventObject, data: string, textStatus: string, jqXHR: JQueryXHR, host: string, bind: JQueryXHR[]) => {
           var record = this.setRecord(setting, this.getRecord(setting).data.data() || '', textStatus, jqXHR, host, bind);
           failure(record, setting, event);
         }
@@ -49,7 +49,7 @@ module MODULE.MODEL.APP {
       return this.table_[this.hash_(setting)] = this.table_[this.hash_(setting)] || new this.Record_();
     }
 
-    setRecord(setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string, bind: JQueryXHR): PageRecordInterface {
+    setRecord(setting: SettingInterface, data: string, textStatus: string, jqXHR: JQueryXHR, host: string, bind: JQueryXHR[]): PageRecordInterface {
       this.cleanRecords_(setting);
       this.addOrder_(setting);
       return this.table_[this.hash_(setting)] = new this.Record_(setting.nss.url, data, textStatus, jqXHR, host, bind);

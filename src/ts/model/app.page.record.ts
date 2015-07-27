@@ -7,8 +7,8 @@ module MODULE.MODEL.APP {
   export class PageRecord implements PageRecordInterface {
     
     constructor()
-    constructor(url: string, data: string, textStatus: string, $xhr: JQueryXHR, host: string, bind: JQueryXHR)
-    constructor(url?: string, data?: string, textStatus?: string, $xhr?: JQueryXHR, host?: string, bind?: JQueryXHR) {
+    constructor(url: string, data: string, textStatus: string, $xhr: JQueryXHR, host: string, bind: JQueryXHR[])
+    constructor(url?: string, data?: string, textStatus?: string, $xhr?: JQueryXHR, host?: string, bind?: JQueryXHR[]) {
       this.data_ = url ? {
         url: url,
         data: data,
@@ -66,7 +66,7 @@ module MODULE.MODEL.APP {
       return this.data_.jqXHR;
     }
 
-    bind(): JQueryXHR {
+    bind(): JQueryXHR[] {
       return this.data_.bind;
     }
 
