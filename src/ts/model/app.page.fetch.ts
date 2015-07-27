@@ -68,6 +68,11 @@ module MODULE.MODEL.APP {
       if (cache && cache.jqXHR && 200 === +cache.jqXHR.status) {
         // cache
         speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
+
+        this.host_ = setting.balance.active && this.model_.host().split('//').pop() || '';
+        let requestDataLocation = this.balance_(setting.destLocation.href);
+        this.model_.setDataXHR(this.bind_(<JQueryAjaxSettings[]>this.util_.fire(setting.bind, setting, [event, setting, setting.origLocation.cloneNode(), requestDataLocation.cloneNode()])));
+
         $xhr = cache.jqXHR;
         $xhr.location = $xhr.location || <HTMLAnchorElement>setting.destLocation.cloneNode();
         this.model_.setPageXHR($xhr);
@@ -79,8 +84,6 @@ module MODULE.MODEL.APP {
         if (this.model_.isDeferrable) {
           var defer: JQueryDeferred<any> = this.wait_(wait);
           this.page_.setWait(defer);
-          let requestLocation = this.balance_(setting.destLocation.href);
-          this.model_.setDataXHR(this.bind_(<JQueryAjaxSettings[]>this.util_.fire(setting.bind, setting, [event, setting, setting.origLocation.cloneNode(), requestLocation.cloneNode()])));
           jQuery.when(jQuery.Deferred().resolve(this.data_, this.textStatus_, this.jqXHR_), defer, jQuery.when.apply(null, this.model_.getDataXHR()))
           .done(done).fail(fail).always(always);
         } else {
@@ -95,6 +98,11 @@ module MODULE.MODEL.APP {
         speedcheck && speed.name.splice(0, 1, 'preload(' + speed.time.slice(-1) + ')');
         speedcheck && speed.time.push(speed.now() - speed.fire);
         speedcheck && speed.name.push('continue(' + speed.time.slice(-1) + ')');
+
+        this.host_ = setting.balance.active && this.model_.host().split('//').pop() || '';
+        let requestDataLocation = this.balance_(setting.destLocation.href);
+        this.model_.setDataXHR(this.bind_(<JQueryAjaxSettings[]>this.util_.fire(setting.bind, setting, [event, setting, setting.origLocation.cloneNode(), requestDataLocation.cloneNode()])));
+
         $xhr.location = <HTMLAnchorElement>setting.destLocation.cloneNode();
         this.model_.setPageXHR($xhr);
         this.host_ = this.model_.host();
@@ -102,8 +110,6 @@ module MODULE.MODEL.APP {
         var defer: JQueryDeferred<any> = this.wait_(wait);
         this.page_.setWait(defer);
         delete $xhr.timeStamp;
-        let requestLocation = this.balance_(setting.destLocation.href);
-        this.model_.setDataXHR(this.bind_(<JQueryAjaxSettings[]>this.util_.fire(setting.bind, setting, [event, setting, setting.origLocation.cloneNode(), requestLocation.cloneNode()])));
         jQuery.when($xhr, defer, jQuery.when.apply(null, this.model_.getDataXHR()))
         .done(done).fail(fail).always(always);
       } else {
@@ -113,16 +119,18 @@ module MODULE.MODEL.APP {
             callbacks: JQueryAjaxSettings = {};
 
         this.host_ = setting.balance.active && this.model_.host().split('//').pop() || '';
-        let requestLocation = this.balance_(setting.destLocation.href);
+        let requestDataLocation = this.balance_(setting.destLocation.href);
+        this.model_.setDataXHR(this.bind_(<JQueryAjaxSettings[]>this.util_.fire(setting.bind, setting, [event, setting, setting.origLocation.cloneNode(), requestDataLocation.cloneNode()])));
 
-        ajax.url = !setting.server.query ? requestLocation.href
+        let requestPageLocation = this.balance_(setting.destLocation.href);
+        ajax.url = !setting.server.query ? requestPageLocation.href
                                          : [
-                                             requestLocation.protocol,
+                                             requestPageLocation.protocol,
                                              '//',
-                                             requestLocation.host,
-                                             requestLocation.pathname.replace(/^\/?/, '/'),
-                                             requestLocation.search.replace(/&*$/, '&' + setting.server.query).replace(/^\??&/, '?').replace(/(\?|&)$/, ''),
-                                             requestLocation.hash
+                                             requestPageLocation.host,
+                                             requestPageLocation.pathname.replace(/^\/?/, '/'),
+                                             requestPageLocation.search.replace(/&*$/, '&' + setting.server.query).replace(/^\??&/, '?').replace(/(\?|&)$/, ''),
+                                             requestPageLocation.hash
                                            ].join('');
         switch (event.type.toLowerCase()) {
           case EVENT.CLICK:
@@ -194,7 +202,6 @@ module MODULE.MODEL.APP {
         var defer: JQueryDeferred<any> = this.wait_(wait);
         this.page_.setWait(defer);
 
-        this.model_.setDataXHR(this.bind_(<JQueryAjaxSettings[]>this.util_.fire(setting.bind, setting, [event, setting, setting.origLocation.cloneNode(), requestLocation.cloneNode()])));
         jQuery.when(this.model_.getPageXHR(), defer, jQuery.when.apply(null, this.model_.getDataXHR()))
         .done(done).fail(fail).always(always);
       }
