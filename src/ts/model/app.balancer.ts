@@ -19,7 +19,7 @@ module MODULE.MODEL.APP {
     private host_(host: string, setting: SettingInterface): string
     private host_(host?: string, setting?: SettingInterface): string {
       if (setting) {
-        this._host = this.sanitize(host, setting);
+        this._host = setting.balance.active ? this.sanitize(host, setting).split('//').pop().split('/').shift() || '' : '';
       }
       return this._host;
     }
