@@ -70,8 +70,7 @@ module MODULE.MODEL.APP {
         speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
 
         this.host_ = setting.balance.active && this.model_.host().split('//').pop() || '';
-        let requestDataLocation = this.balance_(setting.destLocation.href);
-        this.model_.setDataXHR(this.bind_(<JQueryAjaxSettings[]>this.util_.fire(setting.bind, setting, [event, setting, setting.origLocation.cloneNode(), requestDataLocation.cloneNode()])));
+        this.model_.setDataXHR(this.bind_(<JQueryAjaxSettings[]>this.util_.fire(setting.bind, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()])));
 
         $xhr = cache.jqXHR;
         $xhr.location = $xhr.location || <HTMLAnchorElement>setting.destLocation.cloneNode();
@@ -100,8 +99,7 @@ module MODULE.MODEL.APP {
         speedcheck && speed.name.push('continue(' + speed.time.slice(-1) + ')');
 
         this.host_ = setting.balance.active && this.model_.host().split('//').pop() || '';
-        let requestDataLocation = this.balance_(setting.destLocation.href);
-        this.model_.setDataXHR(this.bind_(<JQueryAjaxSettings[]>this.util_.fire(setting.bind, setting, [event, setting, setting.origLocation.cloneNode(), requestDataLocation.cloneNode()])));
+        this.model_.setDataXHR(this.bind_(<JQueryAjaxSettings[]>this.util_.fire(setting.bind, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()])));
 
         $xhr.location = <HTMLAnchorElement>setting.destLocation.cloneNode();
         this.model_.setPageXHR($xhr);
@@ -119,18 +117,17 @@ module MODULE.MODEL.APP {
             callbacks: JQueryAjaxSettings = {};
 
         this.host_ = setting.balance.active && this.model_.host().split('//').pop() || '';
-        let requestDataLocation = this.balance_(setting.destLocation.href);
-        this.model_.setDataXHR(this.bind_(<JQueryAjaxSettings[]>this.util_.fire(setting.bind, setting, [event, setting, setting.origLocation.cloneNode(), requestDataLocation.cloneNode()])));
+        this.model_.setDataXHR(this.bind_(<JQueryAjaxSettings[]>this.util_.fire(setting.bind, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()])));
 
-        let requestPageLocation = this.balance_(setting.destLocation.href);
-        ajax.url = !setting.server.query ? requestPageLocation.href
+        let requestLocation = this.balance_(setting.destLocation.href);
+        ajax.url = !setting.server.query ? requestLocation.href
                                          : [
-                                             requestPageLocation.protocol,
+                                             requestLocation.protocol,
                                              '//',
-                                             requestPageLocation.host,
-                                             requestPageLocation.pathname.replace(/^\/?/, '/'),
-                                             requestPageLocation.search.replace(/&*$/, '&' + setting.server.query).replace(/^\??&/, '?').replace(/(\?|&)$/, ''),
-                                             requestPageLocation.hash
+                                             requestLocation.host,
+                                             requestLocation.pathname.replace(/^\/?/, '/'),
+                                             requestLocation.search.replace(/&*$/, '&' + setting.server.query).replace(/^\??&/, '?').replace(/(\?|&)$/, ''),
+                                             requestLocation.hash
                                            ].join('');
         switch (event.type.toLowerCase()) {
           case EVENT.CLICK:
