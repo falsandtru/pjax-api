@@ -69,7 +69,7 @@ module MODULE.MODEL.APP {
         // cache
         speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
 
-        this.host_ = setting.balance.active && this.model_.host().split('//').pop() || '';
+        this.host_ = this.model_.host();
         this.model_.setDataXHR(this.bind_(<JQueryAjaxSettings[]>this.util_.fire(setting.bind, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()])));
 
         $xhr = cache.jqXHR;
@@ -98,7 +98,7 @@ module MODULE.MODEL.APP {
         speedcheck && speed.time.push(speed.now() - speed.fire);
         speedcheck && speed.name.push('continue(' + speed.time.slice(-1) + ')');
 
-        this.host_ = setting.balance.active && this.model_.host().split('//').pop() || '';
+        this.host_ = this.model_.host();
         this.model_.setDataXHR(this.bind_(<JQueryAjaxSettings[]>this.util_.fire(setting.bind, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()])));
 
         $xhr.location = <HTMLAnchorElement>setting.destLocation.cloneNode();
@@ -116,7 +116,7 @@ module MODULE.MODEL.APP {
         var ajax: JQueryAjaxSettings = {},
             callbacks: JQueryAjaxSettings = {};
 
-        this.host_ = setting.balance.active && this.model_.host().split('//').pop() || '';
+        this.host_ = this.model_.host();
         this.model_.setDataXHR(this.bind_(<JQueryAjaxSettings[]>this.util_.fire(setting.bind, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()])));
 
         let requestLocation = this.balance_(setting.destLocation.href);
