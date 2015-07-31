@@ -6,20 +6,24 @@ module MODULE.MODEL.APP {
 
   export class PageUtility implements PageUtilityInterface {
     
-    chooseArea(area: string | string[], srcDocument: Document, dstDocument: Document): string {
-      var areas = typeof area === 'string' ? [area] : area;
+    chooseArea(area: string | string[], srcDocument: Document, dstDocument: Document, fallback = true): string {
+      const areas = typeof area === 'string' ? [area] : area;
 
-      var i: number = -1, v: string;
-      AREA: while (v = areas[++i]) {
-        var options: string[] = v.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
-        var j: number = -1;
-        while (options[++j]) {
-          if (!jQuery(options[j], srcDocument).length || !jQuery(options[j], dstDocument).length) {
-            continue AREA;
+      SELECTOR:
+      for (let i = 0; i < areas.length; i++) {
+        const selector = areas[i],
+              parts: string[] = selector.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g) || [selector];
+        for (let j = parts.length; j--;) {
+          const part = parts[j];
+          switch (true) {
+            case jQuery(part, srcDocument).length === 0:
+            case jQuery(part, srcDocument).length !== jQuery(part, dstDocument).length:
+              continue SELECTOR;
           }
         }
-        return v;
+        return selector;
       }
+      return '';
     }
 
     // addEventListenerとjQuery以外で発行されたカスタムイベントはjQueryでは発信できない
