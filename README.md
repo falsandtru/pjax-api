@@ -34,15 +34,15 @@ Pickup some features.
 |Feature|defunkt|falsandtru|Turbolinks|
 |:------|:-----:|:--------:|:--------:|
 |jQuery|1.8.x|1.4.2|-|
-|Preloading|X|O|X|
-|Data binding assist|X|O|X|
-|Lightweight source rewrite|X|O|X|
-|Client side load balancing|X|O|X|
+|**Preloading**|X|O|X|
+|**Data binding assist**|X|O|X|
+|**Lightweight source rewrite**|X|O|X|
+|**Client side load balancing**|X|O|X|
+|**Wrong histories fixing**|**X**|O|**X**|
+|**Scroll position restoration**|**X**|O|**X**|
+|**NOSCRIPT tags reparation**|**X**|O|**X**|
+|**Relational path complement**|**X**|O|**X**|
 |history.state free|X|O|X|
-|Wrong histories fixing|**X**|O|**X**|
-|NOSCRIPT tags reparation|**X**|O|**X**|
-|Relational path complement|**X**|O|**X**|
-|Scroll position restoration|**X**|O|**X**|
 |Content type detection|X|O|O|
 |Markless script auto loading|X|O|X|
 |External script loading|O|O|X|
