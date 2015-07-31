@@ -9,19 +9,61 @@
 [![Build Status](https://travis-ci.org/falsandtru/jquery-pjax.svg?branch=master)](https://travis-ci.org/falsandtru/jquery-pjax)
 [![Dependency Status](https://gemnasium.com/falsandtru/jquery-pjax.svg)](https://gemnasium.com/falsandtru/jquery-pjax)
 
-This pjax has a extremely high flexibility and compatibility.
+PJAX for the next generation web framework.
 
-You will be able most of your want.
+## What is the next generation web framework?
 
-## Feature
+### Client(Browser) as an application server
 
-* Preloading
-* Data binding assist
-* Network Load Balancing by Client-side Load Balancer
-* Sync the head content, such as CSS, SCRIPT, RSS
-* Disabling update itemes such as URL, TITLE
-* Resolution of pjax common problems
-* etc...
+Delegate almost application logics from server to client browser.
+Role of servers is only the database access and http(s) request processing.
+
+You can realize the multiple page application using this pjax and data binding.
+Let's throw away the single page application.
+
+### Client(Browser) as an infrastructure
+
+Infrastructured browser by client side load balancer and movement of application logics.
+This is a further advanced definition.
+
+This pjax realized the browser base client side load balancer.
+
+## Feature & Comparison
+
+Pickup some features.
+
+|Feature|defunkt|falsandtru|Turbolinks|
+|:------|:-----:|:--------:|:--------:|
+|jQuery|1.8.x|1.4.2|-|
+|**Preloading**|X|O|X|
+|**Data binding assist**|X|O|X|
+|**Lightweight source rewrite**|X|O|X|
+|**Client side load balancing**|X|O|X|
+|**Wrong histories fixing**|**X**|O|**X**|
+|**Scroll position restoration**|**X**|O|**X**|
+|**NOSCRIPT tags reparation**|**X**|O|**X**|
+|**Relational path complement**|**X**|O|**X**|
+|history.state free|X|O|X|
+|Content type detection|X|O|O|
+|Markless script auto loading|X|O|X|
+|External script loading|O|O|X|
+|Inline script execution|X|O|O|
+|Keep execution sequence|X|O|O|
+|Non-blocking script loading|O|O|-|
+|Markless CSS auto sync|X|O|X|
+|CSS sync|X|O|X|
+|Markless HEAD element contents auto sync|X|O|X|
+|HEAD element contents sync such as RSS|X|O|X|
+|Cache controll|X|O|X|
+|Cache disabling|X|O|O|
+|Cache creation timing|leave|enter & any time|enter & any time|
+|URL scope|X|O|X|
+|URL scope base ovarride setting|X|O|X|
+|Multiple area update|X|O|X|
+|Fallback area matching|X|O|X|
+|Custom function execute style|event|callback + event|event|
+|Custom function execute points|9|30 + 6|7|
+|Cancelable modular update|X|O|X|
 
 ## Demo
 
@@ -56,7 +98,7 @@ $.pjax({
     click: true, submit: true, popstate: true,
     get: true, post: false
   },
-  // Rewrite source document
+  // Rewrite source document without rendering
   rewrite: function(document, area) {
     $(area, document).find('img').each(function(){
       this.setAttribute('data-original', this.src);

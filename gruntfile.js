@@ -132,7 +132,7 @@ module.exports = function(grunt) {
         browsers: ['Chrome'],
         singleRun: true
       },
-      ff: {
+      fx: {
         browsers: ['Firefox'],
         singleRun: true
       },
@@ -148,10 +148,10 @@ module.exports = function(grunt) {
         browsers: ['PhantomJS'],
         singleRun: false
       },
-      test: {
-        browsers: ['PhantomJS', 'Chrome', 'Firefox', 'IE10', 'IE11'],
-        singleRun: true
-      },
+      //test: {
+      //  browsers: ['PhantomJS', 'Chrome', 'Firefox', 'IE10', 'IE11'],
+      //  singleRun: true
+      //},
       ci: {
         //reporters: process.env.deploy ? ['progress', 'coverage', 'coveralls'] : ['progress', 'coverage'],
         browsers: ['PhantomJS'],
@@ -183,6 +183,18 @@ module.exports = function(grunt) {
       },
       jekyll: {
         command: 'grunt jekyll:serve'
+      },
+      test: {
+        options: {
+          async: false
+        },
+        command: [
+          'grunt karma:ph',
+          'grunt karma:ch',
+          'grunt karma:fx',
+          'grunt karma:ie10',
+          'grunt karma:ie11'
+        ].join(' && ')
       }
     },
 
@@ -210,7 +222,7 @@ module.exports = function(grunt) {
   grunt.registerTask('build', ['typescript:build', 'concat', 'copy', 'uglify']);
   grunt.registerTask('view', ['build', 'shell:typescript', 'shell:watch', 'jekyll:serve']);
   grunt.registerTask('dev', ['build', 'shell:typescript', 'shell:watch', 'shell:jekyll', 'karma:dev']);
-  grunt.registerTask('test', ['build', 'karma:test']);
+  grunt.registerTask('test', ['build', 'shell:test']);
   grunt.registerTask('travis', ['dist', 'karma:ci']);
   grunt.registerTask('dist', ['clean:dest', 'build', 'clean:temp']);
 };

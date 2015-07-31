@@ -29,6 +29,7 @@ module MODULE.MODEL.APP {
     initialize($context: JQuery, setting: SettingInterface): void {
       this.controller_.view($context, setting);
       this.balancer.enable(setting);
+      this.balancer.changeServer(this.balancer.chooseServer(setting), setting);
       this.data.loadBuffers();
       setTimeout(() => this.page.landing = null, 1500);
     }
@@ -51,8 +52,11 @@ module MODULE.MODEL.APP {
         case 'string' === typeof destination:
           url = <string>destination;
           break;
-        case 'href' in <HTMLAnchorElement>destination:
+        case 'href' in <HTMLAnchorElement>destination && typeof (<HTMLAnchorElement>destination).href === 'string':
           url = this.util_.normalizeUrl((<HTMLAnchorElement>destination).href);
+          break;
+        case 'href' in <HTMLAnchorElement>destination && typeof (<HTMLAnchorElement>destination).href === 'object':
+          url = this.util_.normalizeUrl((<HTMLAnchorElement>destination).href['baseVal']);
           break;
         case 'action' in <HTMLFormElement>destination:
           url = this.util_.normalizeUrl((<HTMLFormElement>destination).action.replace(/[?#].*/, ''));
@@ -91,7 +95,12 @@ module MODULE.MODEL.APP {
             area: 'body',
             link: 'a:not([target])',
             // this.protocolはIEでエラー
-            filter: function () { return /^https?:/.test(this.href) && /\/[^.]*$|\.(html?|php)$/.test(this.pathname.replace(/^\/?/, '/')); },
+            filter: function () {
+              var dest = document.createElement('a');
+              dest.href = typeof this.href === 'string' ? this.href : this.href.baseVal;
+              return /^https?:/.test(dest.href)
+                  && /\/[^.]*$|\.(html?|php)$/.test(dest.pathname.replace(/^\/?/, '/'));
+            },
             form: null,
             replace: null,
             bind: null,
@@ -204,7 +213,6 @@ module MODULE.MODEL.APP {
             setting.ns = setting.ns ? setting.ns.split('.').sort().join('.') : '';
             var nsArray: string[] = [DEF.NAME].concat(setting.ns ? setting.ns.split('.') : []);
             var query = setting.server.query;
-            var bind = setting.bind;
             switch (query && typeof query) {
               case 'string':
                 query = eval('({' + query.toString().match(/[^?=&]+=[^&]*/g).join('&').replace(/"/g, '\\"').replace(/([^?=&]+)=([^&]*)/g, '"$1": "$2"').replace(/&/g, ',') + '})');
@@ -245,7 +253,6 @@ module MODULE.MODEL.APP {
                 elem: nsArray.join('-'),
                 requestHeader: ['X', nsArray[0].replace(/^\w/, function (str) { return str.toUpperCase(); })].join('-')
               },
-              bind: bind && (() => (...args) => this.model_.setDataXHR(bind.apply(this, args)))(),
               fix: /android|iphone os|like mac os x/i.test(window.navigator.userAgent) ? undefined : { location: false },
               contentType: setting.contentType.replace(/\s*[,;]\s*/g, '|').toLowerCase(),
               database: {

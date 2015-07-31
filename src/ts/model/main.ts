@@ -93,7 +93,7 @@ module MODULE.MODEL {
       switch (event.type.toLowerCase()) {
         case EVENT.CLICK:
           setting = this.app_.configure(<HTMLAnchorElement>event.currentTarget);
-          if (setting && !jQuery(event.currentTarget).filter(setting.filter).length) { return false; }
+          if (setting && !jQuery(event.currentTarget).filter(<string>setting.filter).length) { return false; }
           break;
         case EVENT.SUBMIT:
           setting = this.app_.configure(<HTMLFormElement>event.currentTarget);
@@ -127,18 +127,30 @@ module MODULE.MODEL {
       return this.app_.page.pageXHR;
     }
     setPageXHR($xhr: JQueryXHR): JQueryXHR {
-      this.app_.balancer.sanitize($xhr, this.app_.configure(window.location));
       this.app_.page.pageXHR && this.app_.page.pageXHR.readyState < 4 && this.app_.page.pageXHR !== $xhr && this.app_.page.pageXHR.abort();
       return this.app_.page.pageXHR = $xhr;
     }
     
-    getDataXHR(): JQueryXHR {
+    getDataXHR(): JQueryXHR[] {
       return this.app_.page.dataXHR;
     }
-    setDataXHR($xhr: JQueryXHR): JQueryXHR {
-      this.app_.balancer.sanitize($xhr, this.app_.configure(window.location));
-      this.app_.page.dataXHR && this.app_.page.dataXHR.readyState < 4 && this.app_.page.dataXHR !== $xhr && this.app_.page.dataXHR.abort();
-      return this.app_.page.dataXHR = $xhr;
+    setDataXHR($xhrs: JQueryXHR[]): JQueryXHR[] {
+      $xhrs = $xhrs || [];
+      const $reqs = this.app_.page.dataXHR;
+      return this.app_.page.dataXHR = (<JQueryXHR[]>Array.apply(null, Array(Math.max($xhrs.length, this.app_.page.dataXHR.length))))
+        .map((_, i) => swap(i))
+        .filter($xhr => !!$xhr);
+
+      function swap(i: number) {
+        switch (true) {
+          case i >= $reqs.length:
+          case $reqs[i].readyState === 4:
+          case $reqs.indexOf($xhrs[i]) > -1:
+            return $xhrs[i];
+        }
+        $reqs[i].abort();
+        return $xhrs[i];
+      }
     }
     
     click(event: JQueryEventObject): void {
@@ -253,7 +265,12 @@ module MODULE.MODEL {
     private movePageNormally_(event: JQueryEventObject): void {
       switch (event.type.toLowerCase()) {
         case EVENT.CLICK:
-          window.location.assign((<HTMLAnchorElement>event.currentTarget).href);
+          if (typeof (<HTMLAnchorElement>event.currentTarget).href === 'string') {
+            window.location.assign((<HTMLAnchorElement>event.currentTarget).href);
+          }
+          else {
+            window.location.assign((<HTMLAnchorElement>event.currentTarget).href['baseVal']);
+          }
           break;
         case EVENT.SUBMIT:
           switch ((<HTMLFormElement>event.currentTarget).method.toUpperCase()) {
