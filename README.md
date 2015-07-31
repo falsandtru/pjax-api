@@ -24,6 +24,7 @@ Let's throw away the single page application.
 ### Client(Browser) as an infrastructure
 
 Infrastructured browser by client side load balancer and movement of application logics.
+This is a further advanced definition.
 
 This pjax realized the browser base client side load balancer.
 
