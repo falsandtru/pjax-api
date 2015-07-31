@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.39.0
+ * @version 2.40.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -14,7 +14,6 @@
 !new function(window, document, undefined, $) {
 "use strict";
 /// <reference path=".d/jquery.d.ts"/>
-/// <reference path=".d/jquery.extend.d.ts"/>
 /// <reference path=".d/jquery.pjax.d.ts"/>
 var MODULE;
 (function (MODULE) {
@@ -2147,7 +2146,7 @@ var MODULE;
                 }
                 Balancer.prototype.host_ = function (host, setting) {
                     if (setting) {
-                        this._host = this.sanitize(host, setting);
+                        this._host = setting.balance.active ? this.sanitize(host, setting).split('//').pop().split('/').shift() || '' : '';
                     }
                     return this._host;
                 };
@@ -2499,19 +2498,22 @@ var MODULE;
             var PageUtility = (function () {
                 function PageUtility() {
                 }
-                PageUtility.prototype.chooseArea = function (area, srcDocument, dstDocument) {
+                PageUtility.prototype.chooseArea = function (area, srcDocument, dstDocument, fallback) {
+                    if (fallback === void 0) { fallback = true; }
                     var areas = typeof area === 'string' ? [area] : area;
-                    var i = -1, v;
-                    AREA: while (v = areas[++i]) {
-                        var options = v.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g);
-                        var j = -1;
-                        while (options[++j]) {
-                            if (!jQuery(options[j], srcDocument).length || !jQuery(options[j], dstDocument).length) {
-                                continue AREA;
+                    SELECTOR: for (var i = 0; i < areas.length; i++) {
+                        var selector = areas[i], parts = selector.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g) || [selector];
+                        for (var j = parts.length; j--;) {
+                            var part = parts[j];
+                            switch (true) {
+                                case jQuery(part, srcDocument).length === 0:
+                                case jQuery(part, srcDocument).length !== jQuery(part, dstDocument).length:
+                                    continue SELECTOR;
                             }
                         }
-                        return v;
+                        return selector;
                     }
+                    return '';
                 };
                 // addEventListenerとjQuery以外で発行されたカスタムイベントはjQueryでは発信できない
                 PageUtility.prototype.dispatchEvent = function (target, eventType, bubbling, cancelable) {
@@ -2546,6 +2548,8 @@ var MODULE;
                     this.success_ = success_;
                     this.failure_ = failure_;
                     this.util_ = MODULE.LIBRARY.Utility;
+                    this.binds_ = [];
+                    this.jsons_ = [];
                     this.main_();
                 }
                 PageFetch.prototype.main_ = function () {
@@ -2571,17 +2575,11 @@ var MODULE;
                         return;
                     }
                     this.dispatchEvent(document, setting.nss.event.pjax.fetch, false, false);
-                    // rebalance
-                    this.balancer_.changeServer(this.balancer_.chooseServer(setting), setting);
-                    this.host_ = setting.balance.active && this.model_.host().split('//').pop() || '';
-                    var requestLocation = setting.destLocation.cloneNode();
-                    requestLocation.host = this.host_ || setting.destLocation.host;
-                    // bind
-                    var bind = this.util_.fire(setting.bind, setting, [event, setting, setting.origLocation.cloneNode(), requestLocation.cloneNode()]);
-                    this.model_.setDataXHR(bind && jQuery.ajax(bind));
                     if (cache && cache.jqXHR && 200 === +cache.jqXHR.status) {
                         // cache
                         speedcheck && speed.name.splice(0, 1, 'cache(' + speed.time.slice(-1) + ')');
+                        this.host_ = this.model_.host();
+                        this.model_.setDataXHR(this.bind_(this.util_.fire(setting.bind, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()])));
                         $xhr = cache.jqXHR;
                         $xhr.location = $xhr.location || setting.destLocation.cloneNode();
                         this.model_.setPageXHR($xhr);
@@ -2593,7 +2591,7 @@ var MODULE;
                         if (this.model_.isDeferrable) {
                             var defer = this.wait_(wait);
                             this.page_.setWait(defer);
-                            jQuery.when(jQuery.Deferred().resolve(this.data_, this.textStatus_, this.jqXHR_), defer, this.model_.getDataXHR())
+                            jQuery.when(jQuery.Deferred().resolve(this.data_, this.textStatus_, this.jqXHR_), defer, jQuery.when.apply(null, this.model_.getDataXHR()))
                                 .done(done).fail(fail).always(always);
                         }
                         else {
@@ -2609,22 +2607,25 @@ var MODULE;
                         speedcheck && speed.name.splice(0, 1, 'preload(' + speed.time.slice(-1) + ')');
                         speedcheck && speed.time.push(speed.now() - speed.fire);
                         speedcheck && speed.name.push('continue(' + speed.time.slice(-1) + ')');
+                        this.host_ = this.model_.host();
+                        this.model_.setDataXHR(this.bind_(this.util_.fire(setting.bind, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()])));
                         $xhr.location = setting.destLocation.cloneNode();
                         this.model_.setPageXHR($xhr);
-                        this.balancer_.sanitize($xhr, setting);
-                        this.balancer_.changeServer($xhr.host, setting);
                         this.host_ = this.model_.host();
                         this.page_.loadtime = $xhr.timeStamp;
                         var defer = this.wait_(wait);
                         this.page_.setWait(defer);
                         delete $xhr.timeStamp;
-                        jQuery.when($xhr, defer, this.model_.getDataXHR())
+                        jQuery.when($xhr, defer, jQuery.when.apply(null, this.model_.getDataXHR()))
                             .done(done).fail(fail).always(always);
                     }
                     else {
                         // default
                         this.page_.loadtime = event.timeStamp;
                         var ajax = {}, callbacks = {};
+                        this.host_ = this.model_.host();
+                        this.model_.setDataXHR(this.bind_(this.util_.fire(setting.bind, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()])));
+                        var requestLocation = this.balance_(setting.destLocation.href);
                         ajax.url = !setting.server.query ? requestLocation.href
                             : [
                                 requestLocation.protocol,
@@ -2693,13 +2694,12 @@ var MODULE;
                         $xhr = jQuery.ajax(ajax);
                         $xhr.location = setting.destLocation.cloneNode();
                         this.model_.setPageXHR($xhr);
-                        this.balancer_.sanitize($xhr, setting);
                         if (!this.model_.isDeferrable) {
                             return;
                         }
                         var defer = this.wait_(wait);
                         this.page_.setWait(defer);
-                        jQuery.when(this.model_.getPageXHR(), defer, this.model_.getDataXHR())
+                        jQuery.when(this.model_.getPageXHR(), defer, jQuery.when.apply(null, this.model_.getDataXHR()))
                             .done(done).fail(fail).always(always);
                     }
                     function success(data, textStatus, $xhr) {
@@ -2712,19 +2712,14 @@ var MODULE;
                         return always.apply(this, arguments);
                     }
                     function done(page, wait, data) {
+                        if (data === void 0) { data = []; }
                         if (!arguments.length || !arguments[0]) {
                             return;
                         }
                         that.data_ = page[0];
                         that.textStatus_ = page[1];
                         that.jqXHR_ = page[2];
-                        switch (data && typeof data[0] === 'object' && (bind.dataType || data[2].getResponseHeader('Content-Type').split('/').pop())) {
-                            case 'json':
-                            case 'jsonp':
-                                data[2].responseJSON = data[0];
-                                break;
-                        }
-                        that.bind_ = data && data[2];
+                        that.binds_ = data.every(function ($xhr) { return !!$xhr && typeof $xhr === 'object'; }) ? data : [data[2]];
                         that.util_.fire(setting.callbacks.ajax.success, this[0] || this, [event, setting, that.data_, that.textStatus_, that.jqXHR_]);
                     }
                     function fail($xhr, textStatus, errorThrown) {
@@ -2734,6 +2729,7 @@ var MODULE;
                         that.jqXHR_ = $xhr;
                         that.textStatus_ = textStatus;
                         that.errorThrown_ = errorThrown;
+                        that.binds_ = [];
                         that.util_.fire(setting.callbacks.ajax.error, this[0] || this, [event, setting, that.jqXHR_, that.textStatus_, that.errorThrown_]);
                     }
                     function always() {
@@ -2743,14 +2739,56 @@ var MODULE;
                         that.util_.fire(setting.callbacks.ajax.complete, this[0] || this, [event, setting, that.jqXHR_, that.textStatus_]);
                         that.model_.setPageXHR(null);
                         that.model_.setDataXHR(null);
-                        if (200 === +that.jqXHR_.status && (!that.bind_ || 200 === +that.bind_.status)) {
+                        if (200 === +that.jqXHR_.status && that.binds_.every(function ($xhr) { return 200 === +$xhr.status; })) {
+                            that.binds_
+                                .forEach(function (_, i) { return that.binds_[i].responseJSON = that.binds_[i].responseJSON || that.jsons_[i]; });
                             that.model_.setCache(setting.destLocation.href, cache && cache.data || null, that.textStatus_, that.jqXHR_);
-                            that.success_(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_, that.bind_);
+                            that.success_(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_, that.binds_);
                         }
                         else {
-                            that.failure_(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_, that.bind_);
+                            that.failure_(setting, event, that.data_, that.textStatus_, that.jqXHR_, that.host_, that.binds_);
                         }
                     }
+                };
+                PageFetch.prototype.balance_ = function (url) {
+                    var setting = this.setting_, location = document.createElement('a');
+                    location.href = url;
+                    location.host = this.host_ || location.host;
+                    return location;
+                };
+                PageFetch.prototype.bind_ = function (settings) {
+                    var _this = this;
+                    return (settings || [])
+                        .map(function (v) {
+                        v.url = _this.util_.canonicalizeUrl(v.url);
+                        if (v.url.indexOf('//') > -1) {
+                            return v;
+                        }
+                        v.url = _this.balance_(v.url).href;
+                        return v;
+                    })
+                        .map(jQuery.ajax)
+                        .map(function ($xhr, i) {
+                        return $xhr
+                            .done(function (data, _, $xhr) {
+                            var chunk = data;
+                            switch ($xhr.getResponseHeader('Content-Type').split('/').pop()) {
+                                case 'json':
+                                    if ($xhr.responseJSON) {
+                                        break;
+                                    }
+                                    if (!_this.jsons_[i]) {
+                                        _this.jsons_[i] = chunk;
+                                    }
+                                    else {
+                                        for (var key in chunk) {
+                                            _this.jsons_[i][key] = chunk[key];
+                                        }
+                                    }
+                                    break;
+                            }
+                        });
+                    });
                 };
                 PageFetch.prototype.wait_ = function (ms) {
                     var defer = jQuery.Deferred();
@@ -3163,10 +3201,18 @@ var MODULE;
                     if (this.util_.fire(setting.callbacks.update.rewrite.before, setting, [event, setting, this.srcDocument_, this.dstDocument_]) === false) {
                         return;
                     }
-                    var bind = this.record_.data.bind();
-                    this.util_.fire(setting.rewrite, setting, [this.srcDocument_, this.area_, this.record_.data.host(), bind && (bind.responseJSON || bind.responseText)]);
+                    this.util_.fire(setting.rewrite, setting, [this.srcDocument_, this.area_, this.record_.data.host(), this.record_.data.bind().map(strip)]);
                     if (this.util_.fire(setting.callbacks.update.rewrite.before, setting, [event, setting, this.srcDocument_, this.dstDocument_]) === false) {
                         return;
+                    }
+                    function strip($xhr) {
+                        if (!$xhr) {
+                            return {};
+                        }
+                        switch ($xhr.getResponseHeader('Content-Type').split('/').pop()) {
+                            case 'json':
+                                return $xhr.responseJSON;
+                        }
                     }
                 };
                 PageUpdate.prototype.title_ = function () {
@@ -3260,23 +3306,26 @@ var MODULE;
                     }
                 };
                 PageUpdate.prototype.balance_ = function () {
+                    var _this = this;
                     var setting = this.setting_, event = this.event_;
                     if (!setting.balance.active || this.page_.loadtime < 100) {
                         return;
                     }
-                    var $xhr = this.record_.data.bind() || this.record_.data.jqXHR();
-                    var host = this.balancer_.sanitize($xhr, setting) || this.record_.data.host() || '', time = this.page_.loadtime, score = this.balancer_.score(time, $xhr.responseText.length);
-                    if (this.util_.fire(setting.callbacks.update.balance.before, setting, [event, setting, host, this.page_.loadtime, $xhr.responseText.length]) === false) {
-                        return;
-                    }
-                    var server = this.data_.getServerBuffer(setting.destLocation.href), score = this.balancer_.score(time, $xhr.responseText.length);
-                    time = server && !server.state && server.time ? Math.round((server.time + time) / 2) : time;
-                    score = server && !server.state && server.score ? Math.round((server.score + score) / 2) : score;
-                    this.data_.saveServer(host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
-                    this.balancer_.changeServer(this.balancer_.chooseServer(setting), setting);
-                    if (this.util_.fire(setting.callbacks.update.balance.after, setting, [event, setting, host, this.page_.loadtime, $xhr.responseText.length]) === false) {
-                        return;
-                    }
+                    [this.record_.data.jqXHR()].concat(this.record_.data.bind())
+                        .forEach(function ($xhr) {
+                        var host = _this.balancer_.sanitize($xhr, setting) || _this.record_.data.host() || '', time = _this.page_.loadtime, score = _this.balancer_.score(time, $xhr.responseText.length);
+                        if (_this.util_.fire(setting.callbacks.update.balance.before, setting, [event, setting, host, _this.page_.loadtime, $xhr.responseText.length]) === false) {
+                            return;
+                        }
+                        var server = _this.data_.getServerBuffer(setting.destLocation.href), score = _this.balancer_.score(time, $xhr.responseText.length);
+                        time = server && !server.state && server.time ? Math.round((server.time + time) / 2) : time;
+                        score = server && !server.state && server.score ? Math.round((server.score + score) / 2) : score;
+                        _this.data_.saveServer(host, new Date().getTime() + setting.balance.server.expires, time, score, 0);
+                        _this.balancer_.changeServer(_this.balancer_.chooseServer(setting), setting);
+                        if (_this.util_.fire(setting.callbacks.update.balance.after, setting, [event, setting, host, _this.page_.loadtime, $xhr.responseText.length]) === false) {
+                            return;
+                        }
+                    });
                 };
                 PageUpdate.prototype.css_ = function (selector) {
                     var setting = this.setting_, event = this.event_, srcDocument = this.srcDocument_, dstDocument = this.dstDocument_;
@@ -3556,14 +3605,15 @@ var MODULE;
                         .each(eachFixPath);
                     function eachFixPath(i, elem) {
                         var attr;
-                        if ('href' in elem) {
-                            attr = 'href';
-                        }
-                        else if ('src' in elem) {
-                            attr = 'src';
-                        }
-                        else {
-                            return;
+                        switch (true) {
+                            case 'href' in elem:
+                                attr = 'href';
+                                break;
+                            case 'src' in elem:
+                                attr = 'src';
+                                break;
+                            default:
+                                return;
                         }
                         switch (direction) {
                             case 0:
@@ -3785,6 +3835,7 @@ var MODULE;
                     this.provider = new APP.PageProvider(APP.PageRecord, this.model_, this.balancer_, this);
                     this.landing = this.util_.normalizeUrl(window.location.href);
                     this.loadedScripts = {};
+                    this.dataXHR = [];
                     this.loadtime = 0;
                     this.count = 0;
                     this.time = new Date().getTime();
@@ -3874,6 +3925,7 @@ var MODULE;
                     var _this = this;
                     this.controller_.view($context, setting);
                     this.balancer.enable(setting);
+                    this.balancer.changeServer(this.balancer.chooseServer(setting), setting);
                     this.data.loadBuffers();
                     setTimeout(function () { return _this.page.landing = null; }, 1500);
                 };
@@ -3895,8 +3947,11 @@ var MODULE;
                         case 'string' === typeof destination:
                             url = destination;
                             break;
-                        case 'href' in destination:
+                        case 'href' in destination && typeof destination.href === 'string':
                             url = this.util_.normalizeUrl(destination.href);
+                            break;
+                        case 'href' in destination && typeof destination.href === 'object':
+                            url = this.util_.normalizeUrl(destination.href['baseVal']);
                             break;
                         case 'action' in destination:
                             url = this.util_.normalizeUrl(destination.action.replace(/[?#].*/, ''));
@@ -3928,7 +3983,12 @@ var MODULE;
                         area: 'body',
                         link: 'a:not([target])',
                         // this.protocolはIEでエラー
-                        filter: function () { return /^https?:/.test(this.href) && /\/[^.]*$|\.(html?|php)$/.test(this.pathname.replace(/^\/?/, '/')); },
+                        filter: function () {
+                            var dest = document.createElement('a');
+                            dest.href = typeof this.href === 'string' ? this.href : this.href.baseVal;
+                            return /^https?:/.test(dest.href)
+                                && /\/[^.]*$|\.(html?|php)$/.test(dest.pathname.replace(/^\/?/, '/'));
+                        },
                         form: null,
                         replace: null,
                         bind: null,
@@ -4037,7 +4097,6 @@ var MODULE;
                         setting.ns = setting.ns ? setting.ns.split('.').sort().join('.') : '';
                         var nsArray = [MODULE.DEF.NAME].concat(setting.ns ? setting.ns.split('.') : []);
                         var query = setting.server.query;
-                        var bind = setting.bind;
                         switch (query && typeof query) {
                             case 'string':
                                 query = eval('({' + query.toString().match(/[^?=&]+=[^&]*/g).join('&').replace(/"/g, '\\"').replace(/([^?=&]+)=([^&]*)/g, '"$1": "$2"').replace(/&/g, ',') + '})');
@@ -4077,13 +4136,6 @@ var MODULE;
                                 elem: nsArray.join('-'),
                                 requestHeader: ['X', nsArray[0].replace(/^\w/, function (str) { return str.toUpperCase(); })].join('-')
                             },
-                            bind: bind && (function () { return function () {
-                                var args = [];
-                                for (var _i = 0; _i < arguments.length; _i++) {
-                                    args[_i - 0] = arguments[_i];
-                                }
-                                return _this.model_.setDataXHR(bind.apply(_this, args));
-                            }; })(),
                             fix: /android|iphone os|like mac os x/i.test(window.navigator.userAgent) ? undefined : { location: false },
                             contentType: setting.contentType.replace(/\s*[,;]\s*/g, '|').toLowerCase(),
                             database: {
@@ -4336,17 +4388,28 @@ var MODULE;
                 return this.app_.page.pageXHR;
             };
             Main.prototype.setPageXHR = function ($xhr) {
-                this.app_.balancer.sanitize($xhr, this.app_.configure(window.location));
                 this.app_.page.pageXHR && this.app_.page.pageXHR.readyState < 4 && this.app_.page.pageXHR !== $xhr && this.app_.page.pageXHR.abort();
                 return this.app_.page.pageXHR = $xhr;
             };
             Main.prototype.getDataXHR = function () {
                 return this.app_.page.dataXHR;
             };
-            Main.prototype.setDataXHR = function ($xhr) {
-                this.app_.balancer.sanitize($xhr, this.app_.configure(window.location));
-                this.app_.page.dataXHR && this.app_.page.dataXHR.readyState < 4 && this.app_.page.dataXHR !== $xhr && this.app_.page.dataXHR.abort();
-                return this.app_.page.dataXHR = $xhr;
+            Main.prototype.setDataXHR = function ($xhrs) {
+                $xhrs = $xhrs || [];
+                var $reqs = this.app_.page.dataXHR;
+                return this.app_.page.dataXHR = Array.apply(null, Array(Math.max($xhrs.length, this.app_.page.dataXHR.length)))
+                    .map(function (_, i) { return swap(i); })
+                    .filter(function ($xhr) { return !!$xhr; });
+                function swap(i) {
+                    switch (true) {
+                        case i >= $reqs.length:
+                        case $reqs[i].readyState === 4:
+                        case $reqs.indexOf($xhrs[i]) > -1:
+                            return $xhrs[i];
+                    }
+                    $reqs[i].abort();
+                    return $xhrs[i];
+                }
             };
             Main.prototype.click = function (event) {
                 event.timeStamp = new Date().getTime();
@@ -4444,7 +4507,12 @@ var MODULE;
             Main.prototype.movePageNormally_ = function (event) {
                 switch (event.type.toLowerCase()) {
                     case MODULE.EVENT.CLICK:
-                        window.location.assign(event.currentTarget.href);
+                        if (typeof event.currentTarget.href === 'string') {
+                            window.location.assign(event.currentTarget.href);
+                        }
+                        else {
+                            window.location.assign(event.currentTarget.href['baseVal']);
+                        }
                         break;
                     case MODULE.EVENT.SUBMIT:
                         switch (event.currentTarget.method.toUpperCase()) {
