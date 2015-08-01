@@ -37,33 +37,32 @@ Pickup some features.
 |jQuery|1.8.x|1.4.2|-|
 |**Preloading**|X|O|X|
 |**Data binding assist**|X|O|X|
-|**Lightweight source rewrite**|X|O|X|
+|**Lightweight source rewrite**|X|O|O|
 |**Client side load balancing**|X|O|X|
 |**Wrong histories fixing**|**X**|O|**X**|
 |**Scroll position restoration**|**X**|O|**X**|
 |**NOSCRIPT tags reparation**|**X**|O|**X**|
 |**Relational path complement**|**X**|O|**X**|
-|history.state free|X|O|X|
+|Multiple area update|X|O|O|
+|Fallback area matching|X|O|X|
 |Content type detection|X|O|O|
 |Markless script auto loading|X|O|X|
-|External script loading|O|O|X|
+|External script loading|O|O|O|
 |Inline script execution|X|O|O|
-|Keep execution sequence|X|O|O|
-|Non-blocking script loading|O|O|-|
+|Keep execution sequence|X|O|X|
+|Non-blocking script loading|O|O|O|
 |Markless CSS auto sync|X|O|X|
-|CSS sync|X|O|X|
-|Markless HEAD element contents auto sync|X|O|X|
-|HEAD element contents sync such as RSS|X|O|X|
-|Cache controll|X|O|X|
+|CSS sync|X|O|O|
+|Markless HEAD contents auto sync|X|O|X|
+|HEAD contents sync|X|O|X|
+|Cache creation timing|leave|enter + any time|enter + any time|
 |Cache disabling|X|O|O|
-|Cache creation timing|leave|enter & any time|enter & any time|
 |URL scope|X|O|X|
 |URL scope base ovarride setting|X|O|X|
-|Multiple area update|X|O|X|
-|Fallback area matching|X|O|X|
+|history.state free|X|O|X|
+|Cancelable modular update|X|O|X|
 |Custom function execute style|event|callback + event|event|
 |Custom function execute points|9|30 + 6|7|
-|Cancelable modular update|X|O|X|
 
 ## Demo
 
