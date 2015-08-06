@@ -11,7 +11,7 @@
     "url": "https://github.com/falsandtru/jquery-pjax/issues"
   },
   "devDependencies": {
-    "chai": "^3.0.0",
+    "chai": "^3.2.0",
     "grunt-cli": "^0.1.13",
     "grunt-contrib-clean": "^0.6.0",
     "grunt-contrib-concat": "^0.5.1",
@@ -19,15 +19,15 @@
     "grunt-contrib-jshint": "^0.11.2",
     "grunt-contrib-uglify": "^0.9.1",
     "grunt-contrib-watch": "^0.6.1",
-    "grunt-contrib-yuidoc": "^0.8.0",
+    "grunt-contrib-yuidoc": "^0.9.0",
     "grunt-jekyll": "^0.4.2",
     "grunt-karma": "^0.12.0",
     "grunt-karma-coveralls": "^2.5.3",
     "grunt-shell-spawn": "0.3.8",
-    "grunt-tslint": "^2.3.1-beta",
+    "grunt-tslint": "^2.4.0",
     "grunt-typescript": "^0.6.2",
     "json": "^9.0.3",
-    "karma": "^0.13.0",
+    "karma": "^0.13.7",
     "karma-chai": "^0.1.0",
     "karma-chrome-launcher": "^0.2.0",
     "karma-coverage": "^0.4.2",
@@ -36,12 +36,11 @@
     "karma-html2js-preprocessor": "^0.1.0",
     "karma-ie-launcher": "^0.2.0",
     "karma-mocha": "^0.2.0",
-    "karma-phantomjs-launcher": "^0.2.0",
+    "karma-phantomjs-launcher": "^0.2.1",
     "karma-requirejs": "^0.2.2",
     "mocha": "^2.2.5",
     "phantomjs": "^1.9.17",
-    "requirejs": "^2.1.19",
-    "typescript": "1.5.0-beta"
+    "requirejs": "^2.1.20"
   },
   "author": "falsandtru",
   "license": "MIT"
