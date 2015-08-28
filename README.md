@@ -62,7 +62,7 @@ Pickup some features.
 |history.state free|X|O|X|
 |Cancelable modular update|X|O|X|
 |Custom function execute style|event|callback + event|event|
-|Custom function execute points|9|30 + 6|7|
+|Custom function execute points|9|31 + 6|7|
 
 ## Demo
 

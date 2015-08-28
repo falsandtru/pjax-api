@@ -129,6 +129,10 @@ interface PjaxSetting {
                 before?: (event?: JQueryEventObject, setting?: PjaxSetting, redirectLocation?: HTMLAnchorElement, origLocation?: HTMLAnchorElement, destLocation?: HTMLAnchorElement) => boolean
                 after?: (event?: JQueryEventObject, setting?: PjaxSetting, redirectLocation?: HTMLAnchorElement, origLocation?: HTMLAnchorElement, destLocation?: HTMLAnchorElement) => boolean
             }
+            blur?: {
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting, origLocation?: HTMLAnchorElement, destLocation?: HTMLAnchorElement) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting, origLocation?: HTMLAnchorElement, destLocation?: HTMLAnchorElement) => boolean
+            }
             url?: {
                 before?: (event?: JQueryEventObject, setting?: PjaxSetting, origLocation?: HTMLAnchorElement, destLocation?: HTMLAnchorElement) => boolean
                 after?: (event?: JQueryEventObject, setting?: PjaxSetting, origLocation?: HTMLAnchorElement, destLocation?: HTMLAnchorElement) => boolean
@@ -148,6 +152,10 @@ interface PjaxSetting {
             content?: {
                 before?: (event?: JQueryEventObject, setting?: PjaxSetting, srcContent?: HTMLElement[], dstContent?: HTMLElement[]) => boolean
                 after?: (event?: JQueryEventObject, setting?: PjaxSetting, srcContent?: HTMLElement[], dstContent?: HTMLElement[]) => boolean
+            }
+            focus?: {
+                before?: (event?: JQueryEventObject, setting?: PjaxSetting, origLocation?: HTMLAnchorElement, destLocation?: HTMLAnchorElement) => boolean
+                after?: (event?: JQueryEventObject, setting?: PjaxSetting, origLocation?: HTMLAnchorElement, destLocation?: HTMLAnchorElement) => boolean
             }
             balance?: {
                 before?: (event?: JQueryEventObject, setting?: PjaxSetting, host?: string, loadtime?: number, size?: number) => boolean
