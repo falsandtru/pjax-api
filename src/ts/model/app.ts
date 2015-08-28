@@ -193,7 +193,20 @@ module MODULE.MODEL.APP {
             callback: null,
             callbacks: {
               ajax: {},
-              update: { redirect: {}, url: {}, rewrite: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, balance: {} }
+              update: {
+                redirect: {},
+                blur: {},
+                url: {},
+                rewrite: {},
+                title: {},
+                head: {},
+                content: {},
+                focus: {},
+                scroll: {},
+                css: {},
+                script: {},
+                balance: {}
+              }
             },
             data: undefined
           },

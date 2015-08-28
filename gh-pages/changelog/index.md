@@ -12,6 +12,13 @@ jQueryはDOMとAjaxにのみ使用し、その他の非同期処理はLazyChain�
 ただし`forward`メソッドはAjaxオブジェクトが`then`メソッドを持つ必要があるためこれをjQueryで作成する場合はjQuery1.8.0+が必要となる。
 クラスの依存関係が昼メロ状態で実際に手をつけるめどは立っていない。
 
+## 2.41.0
+
+* オートフォーカス機能を追加
+  * `autofocus`属性に対応
+  * `callbacks.update.blur`系コールバックを追加
+  * `callbacks.update.focus`系コールバックを追加
+
 ## 2.40.0
 
 * `bind`パラメータの仕様を変更

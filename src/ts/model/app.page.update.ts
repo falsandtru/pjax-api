@@ -61,6 +61,8 @@ module MODULE.MODEL.APP {
         this.dstTitle_ = document.title;
         
         this.redirect_();
+
+        this.blur_();
         
         this.dispatchEvent(window, setting.nss.event.pjax.unload, false, false);
         
@@ -164,6 +166,19 @@ module MODULE.MODEL.APP {
 
       if (this.util_.fire(setting.callbacks.update.redirect.after, setting, [event, setting, redirect.cloneNode(), setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) { return; }
     }
+
+    private blur_() {
+      var setting: SettingInterface = this.setting_,
+          event: JQueryEventObject = this.event_;
+
+      if (this.util_.fire(setting.callbacks.update.blur.before, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) { return; };
+
+      jQuery(document.activeElement)
+        .not('body')
+        .blur();
+
+      if (this.util_.fire(setting.callbacks.update.blur.after, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) { return; }
+    }
     
     private url_(): void {
       var setting: SettingInterface = this.setting_,
@@ -247,6 +262,8 @@ module MODULE.MODEL.APP {
       speedcheck && speed.name.push('head(' + speed.time.slice(-1) + ')');
 
       this.content_();
+      this.focus_();
+      this.dispatchEvent(document, setting.nss.event.pjax.DOMContentLoaded, false, false);
 
       speedcheck && speed.time.push(speed.now() - speed.fire);
       speedcheck && speed.name.push('content(' + speed.time.slice(-1) + ')');
@@ -475,7 +492,6 @@ module MODULE.MODEL.APP {
         $dstAreas = jQuery(this.areas_[i], dstDocument);
         $dstAreas.find('script').each((i, elem) => this.restoreScript_(<HTMLScriptElement>elem));
       }
-      this.dispatchEvent(document, setting.nss.event.pjax.DOMContentLoaded, false, false);
 
       if (this.util_.fire(setting.callbacks.update.content.after, setting, [event, setting, jQuery(this.area_, this.srcDocument_).get(), jQuery(this.area_, this.dstDocument_).get()]) === false) { return; }
 
@@ -493,6 +509,20 @@ module MODULE.MODEL.APP {
         }
         return defer;
       }
+    }
+
+    private focus_() {
+      var setting: SettingInterface = this.setting_,
+          event: JQueryEventObject = this.event_;
+
+      if (this.util_.fire(setting.callbacks.update.focus.before, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) { return; };
+
+      jQuery('body, input[autofocus], textarea[autofocus]')
+        .last()
+        .not(document.activeElement)
+        .focus();
+
+      if (this.util_.fire(setting.callbacks.update.focus.after, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) { return; };
     }
     
     private balance_(): void {

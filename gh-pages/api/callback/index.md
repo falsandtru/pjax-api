@@ -45,6 +45,12 @@ Ajaxの同名のメソッド内で実行されます。jQuery1.6+ではDeferred�
 ### update.redirect.after( event, setting, redirectLocation, origLocation, destLocation )
 ページの更新処理においてリダイレクトの確認後に実行されます。
 
+### update.blur.before( event, setting, origLocation, destLocation )
+ページの更新処理においてフォーカスの解除前に実行されます。
+
+### update.blur.after( event, setting, origLocation, destLocation )
+ページの更新処理においてフォーカスの解除後に実行されます。
+
 ### update.url.before( event, setting, origLocation, destLocation )
 ページの更新処理においてURLの更新前に実行されます。
 
@@ -74,6 +80,12 @@ Ajaxの同名のメソッド内で実行されます。jQuery1.6+ではDeferred�
 
 ### update.content.after( event, setting, srcContent, dstContent )
 ページの更新処理においてコンテンツの更新後に実行されます。
+
+### update.focus.before( event, setting, origLocation, destLocation )
+ページの更新処理においてフォーカスの設定前に実行されます。
+
+### update.focus.after( event, setting, origLocation, destLocation )
+ページの更新処理においてフォーカスの設定後に実行されます。
 
 ### update.balance.before( event, setting, host, loadtime, size )
 ページの更新処理においてロードバランスの周辺処理前に実行されます。
