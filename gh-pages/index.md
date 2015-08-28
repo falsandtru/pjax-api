@@ -117,11 +117,6 @@ Wordpressプラグインをサンプルとして提供しています。使用�
 <div class="row">
 
 <div class="col-md-4">
-## Framework
-TypeScriptとMVCモデルを使用したフレームワーク｢*TypeScriptMVCTemplate*｣で開発されています。[>>more](http://falsandtru.github.io/TypeScriptMVCTemplate/)
-</div>
-
-<div class="col-md-4">
 ## ChangeLog
 [>>more]({{ site.basepath }}changelog/)
 </div>
@@ -129,6 +124,9 @@ TypeScriptとMVCモデルを使用したフレームワーク｢*TypeScriptMVCTe
 <div class="col-md-4">
 ## License
 MIT Licenseで公開しています。商用非商用を問わず無償無許諾で使用・改変できます。すべてのコンテンツは無保証であり開発者は一切責任を負いません。著作権表示と本許諾表示は必要です。[>>more](https://github.com/falsandtru/jquery-pjax/blob/master/LICENSE)
+</div>
+
+<div class="col-md-4">
 </div>
 
 </div>
