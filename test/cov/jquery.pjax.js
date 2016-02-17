@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.40.0
+ * @version 2.41.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -227,11 +227,10 @@ var MODULE;
 })(MODULE || (MODULE = {}));
 /// <reference path="../define.ts"/>
 /// <reference path="_template.ts"/>
-var __extends = this.__extends || function (d, b) {
+var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 /* VIEW */
 var MODULE;
@@ -2841,10 +2840,12 @@ var MODULE;
                     var _this = this;
                     new this.fetch_(this.model_, this.page_, this.balancer_, setting, event, 
                     // success
+                    // success
                     function (setting, event, data, textStatus, jqXHR, host, bind) {
                         var record = _this.setRecord(setting, _this.getRecord(setting).data.data() || '', textStatus, jqXHR, host, bind);
                         success(record, setting, event);
                     }, 
+                    // failure
                     // failure
                     function (setting, event, data, textStatus, jqXHR, host, bind) {
                         var record = _this.setRecord(setting, _this.getRecord(setting).data.data() || '', textStatus, jqXHR, host, bind);
@@ -2940,6 +2941,7 @@ var MODULE;
                         this.srcTitle_ = jQuery(record.data.jqXHR().responseText.match(/<title(?:\s.*?[^\\])?>(?:.*?[^\\])?<\/title>|$/i).pop()).text();
                         this.dstTitle_ = document.title;
                         this.redirect_();
+                        this.blur_();
                         this.dispatchEvent(window, setting.nss.event.pjax.unload, false, false);
                         this.url_();
                         if (!this.model_.comparePageByUrl(setting.destLocation.href, window.location.href)) {
@@ -3038,6 +3040,19 @@ var MODULE;
                         return;
                     }
                 };
+                PageUpdate.prototype.blur_ = function () {
+                    var setting = this.setting_, event = this.event_;
+                    if (this.util_.fire(setting.callbacks.update.blur.before, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) {
+                        return;
+                    }
+                    ;
+                    jQuery(document.activeElement)
+                        .not('body')
+                        .blur();
+                    if (this.util_.fire(setting.callbacks.update.blur.after, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) {
+                        return;
+                    }
+                };
                 PageUpdate.prototype.url_ = function () {
                     var setting = this.setting_, event = this.event_;
                     this.model_.location.href = setting.destLocation.href;
@@ -3102,6 +3117,8 @@ var MODULE;
                     speedcheck && speed.time.push(speed.now() - speed.fire);
                     speedcheck && speed.name.push('head(' + speed.time.slice(-1) + ')');
                     this.content_();
+                    this.focus_();
+                    this.dispatchEvent(document, setting.nss.event.pjax.DOMContentLoaded, false, false);
                     speedcheck && speed.time.push(speed.now() - speed.fire);
                     speedcheck && speed.name.push('content(' + speed.time.slice(-1) + ')');
                     this.balance_();
@@ -3284,7 +3301,6 @@ var MODULE;
                         $dstAreas = jQuery(this.areas_[i], dstDocument);
                         $dstAreas.find('script').each(function (i, elem) { return _this.restoreScript_(elem); });
                     }
-                    this.dispatchEvent(document, setting.nss.event.pjax.DOMContentLoaded, false, false);
                     if (this.util_.fire(setting.callbacks.update.content.after, setting, [event, setting, jQuery(this.area_, this.srcDocument_).get(), jQuery(this.area_, this.dstDocument_).get()]) === false) {
                         return;
                     }
@@ -3304,6 +3320,21 @@ var MODULE;
                         }
                         return defer;
                     }
+                };
+                PageUpdate.prototype.focus_ = function () {
+                    var setting = this.setting_, event = this.event_;
+                    if (this.util_.fire(setting.callbacks.update.focus.before, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) {
+                        return;
+                    }
+                    ;
+                    jQuery('body, input[autofocus], textarea[autofocus]')
+                        .last()
+                        .not(document.activeElement)
+                        .focus();
+                    if (this.util_.fire(setting.callbacks.update.focus.after, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) {
+                        return;
+                    }
+                    ;
                 };
                 PageUpdate.prototype.balance_ = function () {
                     var _this = this;
@@ -4081,7 +4112,20 @@ var MODULE;
                         callback: null,
                         callbacks: {
                             ajax: {},
-                            update: { redirect: {}, url: {}, rewrite: {}, title: {}, head: {}, content: {}, scroll: {}, css: {}, script: {}, balance: {} }
+                            update: {
+                                redirect: {},
+                                blur: {},
+                                url: {},
+                                rewrite: {},
+                                title: {},
+                                head: {},
+                                content: {},
+                                focus: {},
+                                scroll: {},
+                                css: {},
+                                script: {},
+                                balance: {}
+                            }
                         },
                         data: undefined
                     }, force = {
@@ -4447,7 +4491,7 @@ var MODULE;
                         break;
                     case this.isOperatable(event):
                         this.app_.page.transfer(setting, event);
-                        event.preventDefault;
+                        event.preventDefault();
                         break;
                     case !event.originalEvent && !jQuery(document).has(context).length:
                         // submitメソッド用
