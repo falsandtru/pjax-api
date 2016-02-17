@@ -200,7 +200,7 @@ module MODULE.MODEL {
 
         case this.isOperatable(event):
           this.app_.page.transfer(setting, event);
-          event.preventDefault
+          event.preventDefault();
           break;
 
         case !event.originalEvent && !jQuery(document).has(context).length:

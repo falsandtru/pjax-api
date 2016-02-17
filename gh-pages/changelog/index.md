@@ -19,6 +19,7 @@ APIは基本的に継承する。
   - `autofocus`属性に対応
   - `callbacks.update.blur`系コールバックを追加
   - `callbacks.update.focus`系コールバックを追加
+- フォーム送信時にデフォルトの動作をキャンセルしないバグを修正
 
 ## 2.40.0
 
