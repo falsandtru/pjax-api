@@ -119,7 +119,7 @@ module MODULE.MODEL.APP {
       var setting: SettingInterface = this.setting_,
           event: JQueryEventObject = this.event_;
 
-      var url: string = (jQuery('head meta[http-equiv="Refresh"][content*="URL="]').attr('content') || '').match(/\w+:\/\/[^;\s"']+|$/i).shift();
+      var url: string = (jQuery('head meta[http-equiv="Refresh"][content*="URL="]').attr('content') || '').match(/(?:\d+;\s*)(.+)|$/).shift();
       if (!url || this.model_.comparePageByUrl(setting.destLocation.href, url)) { return; }
 
       var redirect = <HTMLAnchorElement>setting.destLocation.cloneNode();
