@@ -216,7 +216,7 @@ Sorry, there are only Japanese documents. I welcome translation.
 ## Browser
 Support major browsers.
 
-* IE10+
+* IE11+
 * Chrome
 * Firefox
 * Safari

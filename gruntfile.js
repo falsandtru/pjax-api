@@ -136,10 +136,6 @@ module.exports = function(grunt) {
         browsers: ['Firefox'],
         singleRun: true
       },
-      ie10: {
-        browsers: ['IE10'],
-        singleRun: true
-      },
       ie11: {
         browsers: ['IE11'],
         singleRun: true
@@ -149,7 +145,7 @@ module.exports = function(grunt) {
         singleRun: false
       },
       //test: {
-      //  browsers: ['PhantomJS', 'Chrome', 'Firefox', 'IE10', 'IE11'],
+      //  browsers: ['PhantomJS', 'Chrome', 'Firefox', 'IE11'],
       //  singleRun: true
       //},
       ci: {
@@ -192,7 +188,6 @@ module.exports = function(grunt) {
           'grunt karma:ph',
           'grunt karma:ch',
           'grunt karma:fx',
-          'grunt karma:ie10',
           'grunt karma:ie11'
         ].join(' && ')
       }
