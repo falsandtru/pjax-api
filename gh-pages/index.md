@@ -80,7 +80,7 @@ info
 <aside class="overlay">
 下記の主要ブラウザで動作します。タッチデバイスではpreloadを使用できないため高速化の効果は限定的なものとなります。
 
-* IE10+
+* IE11+
 * Chrome
 * Firefox
 * Safari

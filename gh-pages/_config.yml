@@ -9,7 +9,7 @@ gems:
   - jekyll-sitemap
 
 # Config
-baseurl: /jquery-pjax/
+baseurl: /jquery-pjax
 basepath: /jquery-pjax/
 permalink: /:categories/:year/:month/:day/:title
 
