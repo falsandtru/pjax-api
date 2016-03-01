@@ -3,7 +3,7 @@
  * jquery-pjax
  * 
  * @name jquery-pjax
- * @version 2.41.0
+ * @version 2.42.0
  * ---
  * @author falsandtru https://github.com/falsandtru/jquery-pjax
  * @copyright 2012, falsandtru
@@ -2991,7 +2991,7 @@ var MODULE;
                 PageUpdate.prototype.redirect_ = function () {
                     var _this = this;
                     var setting = this.setting_, event = this.event_;
-                    var url = (jQuery('head meta[http-equiv="Refresh"][content*="URL="]').attr('content') || '').match(/\w+:\/\/[^;\s"']+|$/i).shift();
+                    var url = (jQuery('head meta[http-equiv="Refresh"][content*="URL="]').attr('content') || '').match(/(?:\d+;\s*)(.+)|$/).shift();
                     if (!url || this.model_.comparePageByUrl(setting.destLocation.href, url)) {
                         return;
                     }
@@ -3057,6 +3057,7 @@ var MODULE;
                     var setting = this.setting_, event = this.event_;
                     this.model_.location.href = setting.destLocation.href;
                     if (this.util_.fire(setting.callbacks.update.url.before, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) {
+                        setting.destLocation.href = this.util_.canonicalizeUrl(window.location.href);
                         return;
                     }
                     ;
@@ -3076,6 +3077,7 @@ var MODULE;
                         }
                     }
                     if (this.util_.fire(setting.callbacks.update.url.after, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) {
+                        setting.destLocation.href = this.util_.canonicalizeUrl(window.location.href);
                         return;
                     }
                 };
