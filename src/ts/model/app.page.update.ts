@@ -186,7 +186,10 @@ module MODULE.MODEL.APP {
 
       this.model_.location.href = setting.destLocation.href;
 
-      if (this.util_.fire(setting.callbacks.update.url.before, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) { return; };
+      if (this.util_.fire(setting.callbacks.update.url.before, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) {
+        setting.destLocation.href = this.util_.canonicalizeUrl(window.location.href);
+        return;
+      };
 
       if (this.isReplace_(setting, event)) {
         window.history.replaceState(
@@ -212,7 +215,10 @@ module MODULE.MODEL.APP {
         }
       }
 
-      if (this.util_.fire(setting.callbacks.update.url.after, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) { return; }
+      if (this.util_.fire(setting.callbacks.update.url.after, setting, [event, setting, setting.origLocation.cloneNode(), setting.destLocation.cloneNode()]) === false) {
+        setting.destLocation.href = this.util_.canonicalizeUrl(window.location.href);
+        return;
+      }
     }
 
     private document_(): void {
