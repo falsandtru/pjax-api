@@ -1434,7 +1434,7 @@ define('src/layer/data/store/path', [
     'src/lib/url'
 ], function (require, exports, localsocket_1, path_1, url_13) {
     'use strict';
-    var sock = localsocket_1.socket('path', {
+    var sock = localsocket_1.socket('pjax:path', {
         schema: function () {
             return new path_1.PathSchema();
         }
