@@ -21,6 +21,8 @@ export class FetchValue {
       void Object.freeze(this);
     }
     public readonly headers: { [name: string]: string; } = {};
-    public readonly document: Document = this.xhr.responseXML || parse(this.xhr.responseText);
+    public readonly document: Document = this.xhr.responseType === 'document'
+      ? this.xhr.responseXML
+      : parse(this.xhr.responseText).extract();
   }(this.xhr);
 }

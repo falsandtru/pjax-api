@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.2
+
+- Fix a xhr response parsing.
+
 ## 3.0.1
 
 - Fix a bug of history fix.
