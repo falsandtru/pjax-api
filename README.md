@@ -65,7 +65,6 @@ new Pjax({
 * Firefox
 * Safari
 * Edge
-* IE11+ (need user contributions)
 
 ## License
 
