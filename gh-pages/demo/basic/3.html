@@ -1,0 +1,81 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noarchive">
+  <title>Title 3</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <style>
+    #header {
+      background: #0ee;
+    }
+
+    #footer {
+      background: #e00;
+    }
+
+    #wrapper {
+      background: #e0e;
+    }
+
+    #primary {
+      background: #ee0;
+    }
+
+    #secondary {
+      background: #0e0;
+    }
+
+    #tertiary {
+      background: #00e;
+    }
+
+    #wrapper > div {
+      min-height: 150px;
+    }
+  </style>
+</head>
+<body>
+  <div id="container" class="container">
+    <header id="header" class="row">Header 3</header>
+    <div id="wrapper" class="row">
+      <div id="primary" class="col-md-10 col-md-push-2">
+        <article>
+          Primary 3
+          <ol>
+            <li><a href="1.html">1</a></li>
+            <li><a href="2.html">2</a></li>
+            <li><a href="3.html">3</a></li>
+            <li><a href="4.html">4(404)</a></li>
+          </ol>
+        </article>
+      </div>
+      <div id="secondary" class="col-md-2 col-md-pull-10">
+        <nav>Secondary 3</nav>
+      </div>
+    </div>
+    <footer id="footer" class="row">Footer 3</footer>
+  </div>
+  <script src="../../assets/js/lib/spica.js"></script>
+  <script src="../../assets/js/lib/localsocket.js"></script>
+  <script src="../../assets/js/lib/pjax-api.js"></script>
+  <script src="./config.js"></script>
+
+  <script>
+    if (!window.ga) {
+      (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
+          (i[r].q = i[r].q || []).push(arguments)
+        }, i[r].l = 1 * new Date(); a = s.createElement(o),
+        m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+      })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+      ga('create', 'UA-43533651-1', 'auto');
+      ga('require', 'linkid', 'linkid.js');
+      ga('require', 'displayfeatures');
+    }
+    ga('send', 'pageview', window.location.pathname.replace(/^\/?/, '/') + window.location.search);
+  </script>
+</body>
+</html>

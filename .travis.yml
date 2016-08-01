@@ -1,66 +1,68 @@
+sudo: required
+dist: trusty
 language: node_js
-
 node_js:
-  - 'stable'
-
-sudo: false
-
-cache: bundler
-
+- stable
+addons:
+  firefox: latest
+  apt:
+    sources:
+    - google-chrome
+    packages:
+    - google-chrome-stable
 env:
   global:
-    - secure: "Rm4C2xPbb3a1j9BfA29mwtbkRF3GF9pAXdr3F3Stu46/wJb2uToxstvqbP7Q1QkpXKmOB26GYHtlC5ANgjuakLNm59Ke1JLMO4Nfg7H4aPdLJb/8xnJYmZK7ACRUGpa/Q7vQZ+3loN2BmwIytX/bDkGuJ9ONjg6DdGL1egjPDS0="
-    - GIT_REPO=jquery-pjax
-    - GIT_COMMITTER_NAME=Travis-CI
-    - GIT_COMMITTER_EMAIL=Travis-CI
-    - GIT_AUTHOR_NAME=falsandtru
-    - GIT_AUTHOR_EMAIL=falsandtru
-
-  matrix:
-    - jquery=1.4.2
-      deploy=false
-    - jquery=1.5.0
-      deploy=false
-    - jquery=1.6.0
-      deploy=false
-    - jquery=1.7.2
-      deploy=true
-    - jquery=1.12.0
-      deploy=false
-    - jquery=2.2.0
-      deploy=false
-
-script:
-  - grunt travis
-
-after_success:
-  - if [ $TRAVIS_BRANCH != "master" ] || [ ! $GH_TOKEN ]; then exit 0; fi
-  - if [ $deploy == "false" ]; then exit 0; fi
-  - mkdir ../gh-pages
-  - cp -rf ./gh-pages ../
-  - cp -rf ./test ../gh-pages
-  - cat package.json | json version
-  - new_version=`cat package.json | json version | awk -F. '{printf("%d%05d%06d", ++$1, $2, $3)}'`
-  - git reset --hard HEAD~
-  - cat package.json | json version
-  - cat package.json | json version | awk -F. '{printf("%d%05d%06d", ++$1, $2, $3)}'
-  - old_version=`cat package.json | json version | awk -F. '{printf("%d%05d%06d", ++$1, $2, $3)}'`
-  - git reset --hard ORIG_HEAD
-  - if [ $new_version -lt $old_version ]; then exit 0; fi
-  - git fetch origin gh-pages:gh-pages
-  - git checkout --orphan gh-pages
-  - git checkout -m gh-pages
-  - ls -a | grep -vE "^.git$|^\.+$" | xargs rm -rf
-  - cp -rf ../gh-pages/* ./
-  - find | grep -vE "^./.git(/|$)"
-  - sed -i 's|\(baseurl:\s\+\)|\1//falsandtru.github.io|' _config.yml
-  - git add -A :/
-  - git commit -m 'Deploy by Travis-CI'
-  - git push https://${GH_TOKEN}@github.com/${GIT_AUTHOR_NAME}/${GIT_REPO}.git gh-pages:gh-pages 2>&1 | sed -e "s/:\/\/\w\+@/:\/\/[secure]@/g"
-
+  - secure: byBYsMBLNyb+DGul6ET+jHuIp2TW1V18zPYZqqAi8HH3jeHErKlN+o3b9jSzz+314hfqVNlvu15ZRjCAF36gQ3BtATjULYmVjdkQxaXY+4zFWdfhEvWmGZ8MWYiUmerizKcPoGbc8FoBlBRBgWMOZO1GhGJF6mzP2F3v2l/dC7o=
+  - GIT_OWNER=$(echo $TRAVIS_REPO_SLUG | cut -d/ -f1)
+  - GIT_REPO=$(echo $TRAVIS_REPO_SLUG | cut -d/ -f2)
+  - GIT_COMMITTER_NAME=$(git log -1 --pretty=format:%an)
+  - GIT_COMMITTER_EMAIL=$(git log -1 --pretty=format:%ae)
+  - GIT_COMMIT_ID=$(git rev-parse HEAD)
+before_install:
+- export DISPLAY=:99.0
+- export CHROME_BIN=google-chrome-stable
+- sh -e /etc/init.d/xvfb start
+before_deploy:
+- sed -i 's/"private":\ true/"private":\ false/' package.json
+- sed -i -E 's/^dist\/?.*$//' .gitignore
+deploy:
+  provider: npm
+  email:
+    secure: HzpoPuyrb3gPAJPU1q0utvRz0SyzuLKG+4yRrc9ev9FjgCUFLUwWEq79RGMmTDiziXSjn6o0YKkQfp6LnkYWby7PRf50SJIUyyuWlPVcv5eH7makG9/y3M9HsPsbuz5hfmy1dQ95lZWgoM9aAjkK358ws9pIa/NG/Y4PJ46icE8=
+  api_key:
+    secure: k9k/ScWG5ig5AnzTgYe43i6I+PgftS100qsF8kAvFPX7GYQEsugK5SCpO5rKFamNFul+dK8yDpGE3rEI87Ec/t3oTeneq51jTTxaTTwgC3X6GgzmaN80DMpqfXBIaksMzFjxjSifsO6NqCE2p6JWP4hLfJeXTX7CdlcZh8T0ois=
+  on:
+    branch: master
+    node: stable
+  skip_cleanup: true
 notifications:
   email:
     recipients:
-      - secure: "YLOgVXRlFdYYN6uxjq0C3M+5V0oWqDL45M89Z4HaDkKdMXOGGgv67GKVpEGyXFrEHSWiqe+Ud2xe9O+N4LVxuRpOCoskQxG9qlSYe486xpHdDoK271FfhupN4JxJjKPJmnIsCV2lPmiTW9AS0+ZtELE1cDn8+mQQL19m2RyT4q4="
-    on_success: change # default: change
-    on_failure: always # default: always
+    - secure: HzpoPuyrb3gPAJPU1q0utvRz0SyzuLKG+4yRrc9ev9FjgCUFLUwWEq79RGMmTDiziXSjn6o0YKkQfp6LnkYWby7PRf50SJIUyyuWlPVcv5eH7makG9/y3M9HsPsbuz5hfmy1dQ95lZWgoM9aAjkK358ws9pIa/NG/Y4PJ46icE8=
+    on_success: change
+    on_failure: always
+after_deploy:
+- if [ $TRAVIS_BRANCH != "master" ] || [ ! $GH_TOKEN ]; then exit 0; fi
+- if [ $deploy == "false" ]; then exit 0; fi
+- mkdir ../gh-pages
+- cp -rf ./gh-pages ../
+- cp -rf ./dist/* ../gh-pages/assets/js
+- cat package.json | json version
+- new_version=$(cat package.json | json version)
+- git reset --hard HEAD~
+- cat package.json | json version
+- old_version=$(cat package.json | json version)
+- git reset --hard ORIG_HEAD
+- node -e 'if (!require("semver").gte(process.argv[1], process.argv[2])) process.exit(1)' $new_version $old_version || exit 0
+- git fetch origin gh-pages:gh-pages
+- git checkout --orphan gh-pages
+- git checkout -m gh-pages
+- ls -a | grep -vE "^.git$|^\.+$" | xargs rm -rf
+- cp -rf ../gh-pages/* ./
+- find | grep -vE "^./.git(/|$)"
+- sed -i 's|\(baseurl:\s\+\)|\1//falsandtru.github.io|' _config.yml
+- git config user.name "Travis-CI"
+- git config user.email "Travis-CI"
+- git add -A :/
+- git commit -m 'chore(deploy)'\:' deploy web contents by Travis-CI'
+- git push https://${GH_TOKEN}@github.com/${GIT_OWNER}/${GIT_REPO}.git gh-pages:gh-pages 2>&1 | sed -e "s/:\/\/\w\+@/:\/\/[secure]@/g"

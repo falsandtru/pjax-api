@@ -1,0 +1,97 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noarchive">
+
+  {% if page.type == "index" %}
+  <title>{{ site.title }}</title>
+  {% else %}
+  <title>{{ page.title }} | {{ site.title }}</title>
+  {% endif %}
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <link href="{{ site.basepath }}assets/css/syntax.css" rel="stylesheet">
+  <link href="{{ site.basepath }}assets/css/style.css" rel="stylesheet">
+  <link href='//fonts.googleapis.com/css?family=Roboto:400' rel='stylesheet' type='text/css'>
+</head>
+<body>
+  <noscript><p class="browsehappy warning">Please enable <strong>JavaScript</strong></p></noscript>
+  <!--[if lte IE 11]>
+    <p class="alert alert-warning" role="alert">You are using an <strong>outdated</strong> browser. Please <a class="alert-link" href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+  <![endif]-->
+
+  <div id="container" class="container {{ page.class }}">
+    <!-- ----- HEADER ------------------------------------------------------------- -->
+    <header id="header" class="row">
+      <h1><a href="{{ site.basepath }}">{{ site.title }}</a></h1>
+    </header>
+
+    <div id="wrapper" class="row">
+      <!-- ----- PRIMARY ------------------------------------------------------------ -->
+      {% if page.nav == nil %}
+      <div id="primary" class="col-md-12 col-md-push-0">
+      {% else %}
+      <div id="primary" class="col-md-10 col-md-push-2">
+      {% endif %}
+        <article id="content">
+          {% if page.type == "index" %}
+          {% include billboard.html %}
+          {% endif %}
+
+          {{ content }}
+        </article>
+        <aside></aside>
+      </div>
+
+      <!-- ----- SECONDARY ---------------------------------------------------------- -->
+      {% if page.nav == nil %}
+      <div id="secondary" class="col-md-0 col-md-pull-0">
+        <nav></nav>
+      </div>
+      {% else %}
+      <div id="secondary" class="col-md-2 col-md-pull-10">
+        {% include {{ page.nav | append:'.html' }} %}
+      </div>
+      {% endif %}
+
+      <!-- ----- TERTIARY ----------------------------------------------------------- -->
+      <div id="tertiary">
+        <aside></aside>
+      </div>
+
+    </div>
+
+    <!-- ----- FOOTER ------------------------------------------------------------- -->
+    <footer id="footer"></footer>
+
+  </div>
+
+  <script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+  <script src="{{ site.basepath }}assets/js/lib/spica.js"></script>
+  <script src="{{ site.basepath }}assets/js/lib/localsocket.js"></script>
+  <script src="{{ site.basepath }}assets/js/lib/pjax-api.js"></script>
+  <script src="{{ site.basepath }}assets/js/config.js"></script>
+
+  <script>
+    if (!window.ga) {
+      (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
+          (i[r].q = i[r].q || []).push(arguments)
+        }, i[r].l = 1 * new Date(); a = s.createElement(o),
+        m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+      })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+      ga('create', 'UA-43533651-1', 'auto');
+      ga('require', 'linkid', 'linkid.js');
+      ga('require', 'displayfeatures');
+    }
+    ga('send', 'pageview', window.location.pathname.replace(/^\/?/, '/') + window.location.search);
+  </script>
+
+</body>
+
+</html>

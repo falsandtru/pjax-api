@@ -13,13 +13,8 @@ body{
   background: #fafafa;
   height: 100%;
 }
-html body,
-html:not(#identified) body{
-  font-family: "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", Arial, sans-serif;
-}
-html:not(.not-lte-windowsXP):not(.ie) body,
-html.ie.not-meiryo body{
-  font-family: "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", Osaka, "ＭＳ Ｐゴシック", "MS PGothic", Arial, sans-serif;
+html body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 }
 a{
   color: #12c;
@@ -66,7 +61,7 @@ h1 a,
 h1 a:visited{
   color: #444;
   line-height: 1.6;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.05em;
 }
 h2,
 h3,
@@ -75,7 +70,7 @@ h5,
 h6{
   color: #333;
   line-height: 1.6;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.05em;
 }
 p,
 blockquote,
@@ -89,7 +84,7 @@ input,
 textarea{
   color: #333;
   line-height: 1.6;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.10em;
 }
 
 
@@ -101,6 +96,7 @@ textarea{
 #header h1{
   font-family: 'Roboto', sans-serif;
   font-size: 18px;
+  letter-spacing: 0.15em;
 }
 #header h1 a,
 #header h1 a:visited{
@@ -167,41 +163,21 @@ textarea{
 }
 .style-api #content h2 {
   font-size: x-large;
-  margin-bottom: 0;
-  border-bottom: dashed 1px;
 }
 .style-api #content h3 {
-  font-size: x-large;
-  margin-bottom: 0;
-  border-bottom: dotted 1px;
+  font-size: large;
 }
 .style-api #content h4 {
-  font-size: large;
-  margin-bottom: 0;
-  border-bottom: dotted 1px;
-}
-.style-api #content h1 small,
-.style-api #content h2 small,
-.style-api #content h3 small {
-  float: right;
-  margin-top: 0.4em;
+  font-size: medium;
 }
 .style-api-detail #content h2 {
-  font-weight: bold;
-  line-height: 1.2;
-  letter-spacing: .01em;
   margin-top: 1.5em;
   margin-bottom: .5em;
 }
 .style-api-detail #content h3 {
-  line-height: 1.2;
-  letter-spacing: .01em;
   margin-bottom: .5em;
 }
 .style-api-detail #content h4 {
-  font-weight: bold;
-  line-height: 1.2;
-  letter-spacing: .01em;
   margin-bottom: .5em;
 }
 
@@ -214,17 +190,11 @@ textarea{
   font-family: 'Roboto', sans-serif;
   padding: 50px 0 200px 0;
   text-align: center;
+  letter-spacing: 0.15em;
 }
 #billboard h2 {
   font-size: 48px;
-}
-#billboard pre {
-  text-align: left;
-}
-#billboard pre,
-#billboard .syntaxhighlighter {
-  max-width: 800px;
-  margin: auto !important;
+  letter-spacing: 0.15em;
 }
 a.btn,
 a.btn:visited{
@@ -248,17 +218,9 @@ a.btn:visited{
    -------------------------------------------------------------------------- */
 
 .radius{
- -webkit-border-radius: 5px;
- -moz-border-radius: 5px;
- -ms-border-radius: 5px;
- -o-border-radius: 5px;
   border-radius: 5px;
 }
 .shadow{
-  -webkit-box-shadow: 3px 3px 10px 5px rgba(0, 0, 0, 0.4);
-  -moz-box-shadow: 3px 3px 10px 5px rgba(0, 0, 0, 0.4);
-  -ms-box-shadow: 3px 3px 10px 5px rgba(0, 0, 0, 0.4);
-  -o-box-shadow: 3px 3px 10px 5px rgba(0, 0, 0, 0.4);
   box-shadow: 3px 3px 10px 5px rgba(0, 0, 0, 0.4);
 }
 
@@ -284,15 +246,7 @@ a.btn:visited{
    -------------------------------------------------------------------------- */
 .boxlayout {
   width: 100%;
-  display: -webkit-box;
-  display: -moz-box;
-  display: -ms-box;
-  display: -o-box;
   display: box;
-  -webkit-box-orient: horizontal;
-  -moz-box-orient: horizontal;
-  -ms-box-orient: horizontal;
-  -o-box-orient: horizontal;
   box-orient: horizontal;
 }
 
