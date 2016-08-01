@@ -98,14 +98,14 @@ export class GUI {
         [],
         new NavigationView(window, event =>
           void Just(new Url(canonicalizeUrl(validateUrl(window.location.href))))
-            .bind(url =>
+            .bind<string>(url =>
               !!isAccessible(url)
                 && !isHashChange(url)
-                ? Just(url)
+                ? Just(loadTitle(url.path))
                 : Nothing)
-            .fmap(url => (
-              loadTitle(url)
-                ? io.document.title = loadTitle(url)
+            .fmap(title => (
+              title
+                ? io.document.title = title
                 : void 0,
               initialization
                 .then(() =>
