@@ -647,7 +647,7 @@ define('src/layer/domain/router/model/eav/value/fetch', [
                 function class_1(xhr) {
                     this.xhr = xhr;
                     this.headers = {};
-                    this.document = this.xhr.responseXML || html_1.parse(this.xhr.responseText);
+                    this.document = this.xhr.responseType === 'document' ? this.xhr.responseXML : html_1.parse(this.xhr.responseText).extract();
                     var separator = ':';
                     var regHeaderName = /^[0-9A-z\-]+$/;
                     void this.xhr.getAllResponseHeaders().split('\n').filter(function (s) {
