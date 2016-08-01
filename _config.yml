@@ -4,6 +4,10 @@ markdown: kramdown
 kramdown:
   input: GFM
 
+## Plugin
+gems:
+  - jekyll-redirect-from
+
 # Config
 baseurl: //falsandtru.github.io/pjax-api
 permalink: /:categories/:year/:month/:day/:title

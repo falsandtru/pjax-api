@@ -1,4 +1,5 @@
 ---
+redirect_from: "/jquery-pjax"
 layout: layout
 title: PJAX
 type: index
