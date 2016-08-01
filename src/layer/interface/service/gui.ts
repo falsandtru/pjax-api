@@ -48,9 +48,9 @@ export class GUI {
           void Just(new Url(canonicalizeUrl(validateUrl((<RouterEvent.Source.Anchor>event._currentTarget).href))))
             .bind(url =>
               !! !hasModifierKey(event)
-                && isAccessible(url)
-                && !isHashChange(url)
-                && this.config.filter(<RouterEvent.Source.Anchor>event._currentTarget)
+              && isAccessible(url)
+              && !isHashChange(url)
+              && this.config.filter(<RouterEvent.Source.Anchor>event._currentTarget)
                 ? Just(0)
                 : Nothing)
             .fmap(() => (
@@ -75,7 +75,7 @@ export class GUI {
           void Just(new Url(canonicalizeUrl(validateUrl((<RouterEvent.Source.Form>event._currentTarget).action))))
             .bind(url =>
               !! !hasModifierKey(event)
-                && isAccessible(url)
+              && isAccessible(url)
                 ? Just(0)
                 : Nothing)
             .fmap(() => (
@@ -99,8 +99,8 @@ export class GUI {
         new NavigationView(window, event =>
           void Just(new Url(canonicalizeUrl(validateUrl(window.location.href))))
             .bind<string>(url =>
-              !!isAccessible(url)
-                && !isHashChange(url)
+              !! isAccessible(url)
+              && !isHashChange(url)
                 ? Just(loadTitle(url.path))
                 : Nothing)
             .fmap(title => (
