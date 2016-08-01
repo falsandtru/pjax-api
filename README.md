@@ -33,7 +33,7 @@ The second generation PJAX for advanced web framework.
 
 ## Demo
 
-- <a href="http://falsandtru.github.io/pjax-api/demo/basic/" target="_blank">Basic</a>
+- <a href="http://falsandtru.github.io/pjax-api/demo/basic/1.html" target="_blank">Basic</a>
 
 ## Usage
 
