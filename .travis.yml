@@ -44,9 +44,9 @@ notifications:
 after_deploy:
 - if [ $TRAVIS_BRANCH != "master" ] || [ ! $GH_TOKEN ]; then exit 0; fi
 - if [ $deploy == "false" ]; then exit 0; fi
+- gulp site
 - mkdir ../gh-pages
 - cp -rf ./gh-pages ../
-- cp -rf ./dist/* ../gh-pages/assets/js
 - cat package.json | json version
 - new_version=$(cat package.json | json version)
 - git reset --hard HEAD~
