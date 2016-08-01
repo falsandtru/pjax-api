@@ -4,5 +4,5 @@
     'body'
   ]
 });
-window.addEventListener('pjax:fetch', () => console.time('pjax: fetch -> ready'));
-document.addEventListener('pjax:ready', () => console.timeEnd('pjax: fetch -> ready'));
+window.addEventListener('pjax:fetch', function () { console.time('pjax: fetch -> ready'); });
+document.addEventListener('pjax:ready', function () { console.timeEnd('pjax: fetch -> ready'); });
