@@ -3,7 +3,7 @@ import { HostSchema } from '../schema/host';
 import { Url } from '../../../lib/url';
 import { CanonicalUrl } from '../model/canonicalization/url';
 
-const sock = socket<Url.Host<string>, HostSchema>('host', {
+const sock = socket<Url.Host<string>, HostSchema>('pjax:host', {
   schema() {
     return new HostSchema();
   }

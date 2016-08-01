@@ -3,7 +3,7 @@ import { PathSchema } from '../schema/path';
 import { Url } from '../../../lib/url';
 import { CanonicalUrl } from '../model/canonicalization/url';
 
-const sock = socket<Url.Path<string>, PathSchema>('path', {
+const sock = socket<Url.Path<string>, PathSchema>('pjax:path', {
   schema() {
     return new PathSchema();
   }

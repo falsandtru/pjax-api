@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.1.0
+
+- Change database names.
+
 ## 3.0.2
 
 - Fix a xhr response parsing.
