@@ -10,7 +10,7 @@ class: style-api style-api-detail
 
 ## Typings
 
-<a href="https://github.com/falsandtru/pjax-api/pjax-api.d.ts" target="_blank">pjax-api.d.ts</a>
+<a href="https://github.com/falsandtru/pjax-api/blob/master/pjax-api.d.ts" target="_blank">pjax-api.d.ts</a>
 
 ## new Pjax(config: Config): Pjax
 
