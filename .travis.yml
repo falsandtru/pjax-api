@@ -53,7 +53,7 @@ after_deploy:
 - cat package.json | json version
 - old_version=$(cat package.json | json version)
 - git reset --hard ORIG_HEAD
-- #node -e 'if (!require("semver").gte(process.argv[1], process.argv[2])) process.exit(1)' $new_version $old_version || exit 0
+- node -e 'if (!require("semver").gte(process.argv[1], process.argv[2])) process.exit(1)' $new_version $old_version || exit 0
 - git fetch origin gh-pages:gh-pages
 - git checkout --orphan gh-pages
 - git checkout -m gh-pages
