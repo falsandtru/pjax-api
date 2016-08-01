@@ -1,17 +1,13 @@
-﻿# Engine
+# Engine
 encoding: UTF-8
 markdown: kramdown
 kramdown:
   input: GFM
 
-# Install
-gems:
-  - jekyll-sitemap
-
 # Config
-baseurl: //falsandtru.github.io/jquery-pjax
-basepath: /jquery-pjax/
+baseurl: //falsandtru.github.io/pjax-api
 permalink: /:categories/:year/:month/:day/:title
 
 # Param
+basepath: /pjax-api/
 title: PJAX
