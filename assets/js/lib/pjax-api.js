@@ -1918,9 +1918,9 @@ define('src/layer/interface/service/gui', [
                     });
                 }).close), void GUI.sv.events.exit.once([], new navigation_1.NavigationView(window, function (event) {
                     return void spica_19.Just(new url_21.Url(url_22.canonicalizeUrl(url_23.validateUrl(window.location.href)))).bind(function (url) {
-                        return !!isAccessible(url) && !isHashChange(url) ? spica_19.Just(url) : spica_19.Nothing;
-                    }).fmap(function (url) {
-                        return api_7.loadTitle(url) ? io.document.title = api_7.loadTitle(url) : void 0, initialization_1.initialization.then(function () {
+                        return !!isAccessible(url) && !isHashChange(url) ? spica_19.Just(api_7.loadTitle(url.path)) : spica_19.Nothing;
+                    }).fmap(function (title) {
+                        return title ? io.document.title = title : void 0, initialization_1.initialization.then(function () {
                             return router_4.route(_this.config, event, {
                                 router: router,
                                 script: script_3.script,
