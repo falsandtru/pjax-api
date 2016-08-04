@@ -1,4 +1,4 @@
-/*! localsocket v0.4.2 https://github.com/falsandtru/localsocket | (c) 2016, falsandtru | MIT License */
+/*! localsocket v0.4.3 https://github.com/falsandtru/localsocket | (c) 2016, falsandtru | MIT License */
 define = typeof define === 'function' && define.amd
   ? define
   : (function () {

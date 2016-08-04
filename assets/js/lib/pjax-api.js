@@ -161,6 +161,7 @@ define('src/layer/domain/data/config', [
                 reload: '',
                 logger: ''
             };
+            this.sequence = new Sequence();
             this.balance = {
                 bounds: [''],
                 weight: 1,
@@ -210,6 +211,22 @@ define('src/layer/domain/data/config', [
         return Config;
     }();
     exports.Config = Config;
+    var Sequence = function () {
+        function Sequence() {
+        }
+        Sequence.prototype.fetch = function (_result, _request) {
+            return Promise.resolve();
+        };
+        Sequence.prototype.unload = function (_result, _response) {
+            return Promise.resolve();
+        };
+        Sequence.prototype.ready = function (_result) {
+            return Promise.resolve();
+        };
+        Sequence.prototype.load = function (_result) {
+        };
+        return Sequence;
+    }();
 });
 define('src/layer/data/model/validation/url', [
     'require',
@@ -721,28 +738,28 @@ define('src/layer/domain/router/module/fetch/xhr', [
         return new Promise(function (resolve) {
             return void xhr.open(method, url + '', true), xhr.responseType = /chrome|firefox|edge/i.test(window.navigator.userAgent) ? 'document' : 'text', xhr.timeout = setting.timeout, void xhr.setRequestHeader('X-Pjax', '1'), void xhr.send(data), void xhr.addEventListener('abort', function () {
                 return void handle(cancelable, function () {
-                    return void resolve(spica_4.Left(new error_2.DomainError('XHR request is aborted.')));
+                    return void resolve(spica_4.Left(new error_2.DomainError('Failed to request by abort.')));
                 }, function (err) {
                     return void resolve(spica_4.Left(err));
                 });
             }), void xhr.addEventListener('error', function () {
                 return void handle(cancelable, function () {
-                    return void resolve(spica_4.Left(new error_2.DomainError('XHR request is failed.')));
+                    return void resolve(spica_4.Left(new error_2.DomainError('Failed to request by error.')));
                 }, function (err) {
                     return void resolve(spica_4.Left(err));
                 });
             }), void xhr.addEventListener('timeout', function () {
                 return void handle(cancelable, function () {
-                    return void resolve(spica_4.Left(new error_2.DomainError('XHR request is timeout.')));
+                    return void resolve(spica_4.Left(new error_2.DomainError('Failed to request by timeout.')));
                 }, function (err) {
                     return void resolve(spica_4.Left(err));
                 });
             }), void xhr.addEventListener('load', function () {
                 return void handle(cancelable, function () {
-                    return void verify(xhr).fmap(function (xhr) {
-                        return void resolve(spica_4.Right(new fetch_1.FetchValue(xhr)));
-                    }).extract(function (err) {
+                    return void verify(xhr).extract(function (err) {
                         return void resolve(spica_4.Left(err));
+                    }, function (xhr) {
+                        return void resolve(spica_4.Right(new fetch_1.FetchValue(xhr)));
                     });
                 }, function (err) {
                     return void resolve(spica_4.Left(err));
@@ -756,13 +773,13 @@ define('src/layer/domain/router/module/fetch/xhr', [
             });
         });
         function handle(state, done, fail) {
-            return void state.either(0).fmap(done).extract(fail);
+            return void state.either(0).extract(fail, done);
         }
     }
     exports.xhr = xhr;
     function verify(xhr) {
         return spica_4.Right(xhr).bind(function (xhr) {
-            return match(xhr.getResponseHeader('Content-Type'), ContentType) ? spica_4.Right(xhr) : spica_4.Left(new error_2.DomainError('XHR response content type is mismatched.'));
+            return match(xhr.getResponseHeader('Content-Type'), ContentType) ? spica_4.Right(xhr) : spica_4.Left(new error_2.DomainError('Faild to validate a content type of response.'));
         });
     }
     exports.verify = verify;
@@ -783,14 +800,32 @@ define('src/layer/domain/router/module/fetch/xhr', [
 define('src/layer/domain/router/service/fetch/api', [
     'require',
     'exports',
-    'src/layer/domain/router/module/fetch/xhr'
-], function (require, exports, xhr_1) {
+    'spica',
+    'src/layer/domain/router/module/fetch/xhr',
+    'src/lib/url'
+], function (require, exports, spica_5, xhr_1, url_6) {
     'use strict';
-    function fetch(_a, setting, cancelable) {
+    function fetch(_a, setting, sequence, cancelable) {
         var method = _a.method, url = _a.url, data = _a.data;
-        var promise = xhr_1.xhr(method, url, data, setting, cancelable);
-        void window.dispatchEvent(new Event('pjax:fetch'));
-        return promise;
+        return new spica_5.HNil().push(xhr_1.xhr(method, url, data, setting, cancelable)).modify(function (p) {
+            return void window.dispatchEvent(new Event('pjax:fetch')), sequence.fetch(void 0, {
+                host: '',
+                path: new url_6.Url(url).path + '',
+                method: method,
+                data: data
+            }).then(function (s) {
+                return p.then(function (m) {
+                    return m.fmap(function (v) {
+                        return [
+                            v,
+                            s
+                        ];
+                    });
+                });
+            }, function (e) {
+                return spica_5.Left(e instanceof Error ? e : new Error(e));
+            });
+        }).head();
     }
     exports.fetch = fetch;
 });
@@ -880,7 +915,7 @@ define('src/layer/domain/router/module/update/sync', [
     'require',
     'exports',
     'spica'
-], function (require, exports, spica_5) {
+], function (require, exports, spica_6) {
     'use strict';
     function sync(pairs, fallback, io) {
         if (io === void 0) {
@@ -916,12 +951,12 @@ define('src/layer/domain/router/module/update/sync', [
         });
         function bind(srcs, dsts, compare) {
             return srcs.reduce(function (link, src) {
-                return dsts.length === 0 ? (void link.set(null, spica_5.concat(link.get(null) || [], [src])), link) : dsts.reduce(function (m, dst) {
+                return dsts.length === 0 ? link.set(null, spica_6.concat(link.get(null) || [], [src])) : dsts.reduce(function (m, dst) {
                     return m.bind(function (link) {
-                        return !link.has(dst) && compare(src, dst) ? (void link.set(dst, spica_5.concat(link.get(null) || [], [src])), void link.delete(null), spica_5.Left(link)) : spica_5.Right(link);
+                        return !link.has(dst) && compare(src, dst) ? (void link.set(dst, spica_6.concat(link.get(null) || [], [src])), void link.delete(null), spica_6.Left(link)) : spica_6.Right(link);
                     });
-                }, spica_5.Right(link)).fmap(function (link) {
-                    return void link.set(null, spica_5.concat(link.get(null) || [], [src])), link;
+                }, spica_6.Right(link)).fmap(function (link) {
+                    return link.set(null, spica_6.concat(link.get(null) || [], [src]));
                 }).extract(function (link) {
                     return link;
                 });
@@ -967,7 +1002,7 @@ define('src/layer/domain/router/module/update/script', [
     'src/lib/dom',
     'src/layer/data/model/canonicalization/url',
     'src/layer/data/model/validation/url'
-], function (require, exports, spica_6, dom_4, url_6, url_7) {
+], function (require, exports, spica_7, dom_4, url_7, url_8) {
     'use strict';
     function script(document, skip, selector, cancelable, io) {
         if (io === void 0) {
@@ -982,17 +1017,21 @@ define('src/layer/domain/router/module/update/script', [
         }).filter(function (el) {
             return !el.matches(selector.ignore.trim() || '_');
         }).filter(function (el) {
-            return el.hasAttribute('src') ? skip.indexOf(url_6.canonicalizeUrl(url_7.validateUrl(el.src))) === -1 || el.matches(selector.reload.trim() || '_') : true;
+            return el.hasAttribute('src') ? skip.indexOf(url_7.canonicalizeUrl(url_8.validateUrl(el.src))) === -1 || el.matches(selector.reload.trim() || '_') : true;
         });
         return new Promise(function (resolve, reject) {
             return void Promise.all(scripts.reduce(function (rs, script) {
-                return spica_6.concat(rs, [io.request(script)]);
-            }, [])).then(cancelable.promise).then(function (rs) {
-                return rs.reduce(run, spica_6.Right([]));
+                return spica_7.concat(rs, [io.request(script)]);
+            }, [])).then(function (rs) {
+                return rs.reduce(function (acc, m) {
+                    return m.bind(function (res) {
+                        return run(acc, res);
+                    });
+                }, spica_7.Right([]));
             }).then(resolve, reject);
         });
         function run(state, response) {
-            return state.bind(function (scripts) {
+            return state.bind(cancelable.either).bind(function (scripts) {
                 return io.evaluate(response).fmap(function (script) {
                     return script.parentElement.matches(selector.logger.trim() || '_') ? void io.log(script, document.dst) : void 0, scripts.concat([script]);
                 });
@@ -1015,7 +1054,7 @@ define('src/layer/domain/router/module/update/script', [
             var xhr_2 = new XMLHttpRequest();
             void xhr_2.open('GET', script.src, true);
             void xhr_2.send();
-            return new Promise(function (resolve, reject) {
+            return new Promise(function (resolve) {
                 return [
                     'load',
                     'abort',
@@ -1025,23 +1064,23 @@ define('src/layer/domain/router/module/update/script', [
                     switch (type) {
                     case 'load':
                         return void xhr_2.addEventListener(type, function () {
-                            return void resolve([
+                            return void resolve(spica_7.Right([
                                 script,
                                 xhr_2.response
-                            ]);
+                            ]));
                         });
                     default:
-                        return void xhr_2.addEventListener(type, function (event) {
-                            return void reject(event);
+                        return void xhr_2.addEventListener(type, function () {
+                            return void resolve(spica_7.Left(new Error(script.src + ': ' + xhr_2.statusText)));
                         });
                     }
                 });
             });
         } else {
-            return Promise.resolve([
+            return Promise.resolve(spica_7.Right([
                 script,
                 script.innerHTML
-            ]);
+            ]));
         }
     }
     exports._request = request;
@@ -1052,12 +1091,12 @@ define('src/layer/domain/router/module/update/script', [
             if (script.hasAttribute('src')) {
                 void script.dispatchEvent(new Event('load'));
             }
-            return spica_6.Right(script);
+            return spica_7.Right(script);
         } catch (err) {
             if (script.hasAttribute('src')) {
                 void script.dispatchEvent(new Event('error'));
             }
-            return spica_6.Left(err);
+            return spica_7.Left(err);
         }
     }
     exports._evaluate = evaluate;
@@ -1078,7 +1117,7 @@ define('src/layer/domain/router/module/update/content', [
     'spica',
     'src/lib/dom',
     'src/layer/domain/router/module/update/script'
-], function (require, exports, spica_7, dom_5, script_1) {
+], function (require, exports, spica_8, dom_5, script_1) {
     'use strict';
     function content(document, areas, io) {
         if (io === void 0) {
@@ -1090,7 +1129,7 @@ define('src/layer/domain/router/module/update/content', [
         }
         return separate(document, areas).fmap(function (_a) {
             var as = _a[1];
-            return as.map(load).reduce(spica_7.concat, []);
+            return as.map(load).reduce(spica_8.concat, []);
         }).fmap(function (ps) {
             return Promise.all(ps).then(function (es) {
                 return [
@@ -1107,7 +1146,7 @@ define('src/layer/domain/router/module/update/content', [
                 };
             }).map(function (area) {
                 return void replace(area), dom_5.find(area.src, 'img, iframe, frame').map(wait);
-            }).reduce(spica_7.concat, []);
+            }).reduce(spica_8.concat, []);
             function replace(area) {
                 var unescape = dom_5.find(area.src, 'script').map(script_1.escape).reduce(function (f, g) {
                     return function () {
@@ -1124,25 +1163,25 @@ define('src/layer/domain/router/module/update/content', [
     exports.content = content;
     function separate(document, areas) {
         return areas.reduce(function (m, area) {
-            return spica_7.Maybe.mplus(m, sep(document, area).fmap(function (as) {
+            return spica_8.Maybe.mplus(m, sep(document, area).fmap(function (as) {
                 return [
                     area,
                     as
                 ];
             }));
-        }, spica_7.Nothing);
+        }, spica_8.Nothing);
         function sep(document, area) {
             return split(area).reduce(function (acc, area) {
                 return acc.bind(function (as) {
                     return pair(area).fmap(function (a) {
-                        return spica_7.concat(as, [a]);
+                        return spica_8.concat(as, [a]);
                     });
                 });
-            }, spica_7.Just([]));
+            }, spica_8.Just([]));
             function pair(area) {
                 return maybeValid(cons(area));
                 function maybeValid(area) {
-                    return validate(area) ? spica_7.Just(area) : spica_7.Nothing;
+                    return validate(area) ? spica_8.Just(area) : spica_8.Nothing;
                     function validate(area) {
                         return area.src.length > 0 && area.src.length === area.dst.length;
                     }
@@ -1158,19 +1197,19 @@ define('src/layer/domain/router/module/update/content', [
     }
     exports.separate = separate;
     function match(document, areas) {
-        return spica_7.Sequence.from(areas).bind(function (area) {
-            return spica_7.Sequence.from(validate(document, area).fmap(function (area) {
-                return [area];
-            }).extract(function () {
+        return spica_8.Sequence.from(areas).bind(function (area) {
+            return spica_8.Sequence.from(validate(document, area).extract(function () {
                 return [];
+            }, function (area) {
+                return [area];
             }));
         });
         function validate(document, area) {
             return split(area).reduce(function (m, area) {
                 return m.bind(function () {
-                    return dom_5.find(document, area).length > 0 ? m : spica_7.Nothing;
+                    return dom_5.find(document, area).length > 0 ? m : spica_8.Nothing;
                 });
-            }, spica_7.Just(area));
+            }, spica_8.Just(area));
         }
     }
     exports.match = match;
@@ -1244,7 +1283,7 @@ define('src/layer/domain/router/module/update/scroll', [
     'src/layer/data/model/canonicalization/url',
     'src/layer/data/model/validation/url',
     'src/lib/dom'
-], function (require, exports, spica_8, router_2, url_8, url_9, url_10, dom_8) {
+], function (require, exports, spica_9, router_2, url_9, url_10, url_11, dom_8) {
     'use strict';
     function scroll(type, document, target, io) {
         if (io === void 0) {
@@ -1265,7 +1304,7 @@ define('src/layer/domain/router/module/update/scroll', [
         case router_2.RouterEvent.Type.submit:
             return void scroll(target);
         case router_2.RouterEvent.Type.popstate:
-            return void scroll(io.position(new url_8.Url(url_9.canonicalizeUrl(url_10.validateUrl(window.location.href))).path));
+            return void scroll(io.position(new url_9.Url(url_10.canonicalizeUrl(url_11.validateUrl(window.location.href))).path));
         default:
             throw new TypeError(type);
         }
@@ -1281,131 +1320,23 @@ define('src/layer/domain/router/module/update/scroll', [
         if (io === void 0) {
             io = { scroll: window.scrollTo };
         }
-        return spica_8.Just(hash.split('#').pop() || '').bind(function (hash) {
-            return hash.length > 0 ? spica_8.Just(hash) : spica_8.Nothing;
+        return spica_9.Just(hash.split('#').pop() || '').bind(function (hash) {
+            return hash.length > 0 ? spica_9.Just(hash) : spica_9.Nothing;
         }).bind(function (hash) {
             return dom_8.find(document, '#' + hash + ', [name="' + hash + '"]').reduce(function (m, el) {
-                return spica_8.Just(m.extract(function () {
-                    return el;
-                }));
-            }, spica_8.Nothing);
+                return m.extract(function () {
+                    return spica_9.Just(el);
+                }, spica_9.Just);
+            }, spica_9.Nothing);
         }).fmap(function (el) {
-            return void io.scroll.call(window, window.pageXOffset, window.pageYOffset + el.getBoundingClientRect().top | 0), true;
+            return void io.scroll.call(window, window.pageXOffset, window.pageYOffset + el.getBoundingClientRect().top | 0);
         }).extract(function () {
             return false;
+        }, function () {
+            return true;
         });
     }
     exports.hash = hash;
-});
-define('src/layer/domain/router/service/update/api', [
-    'require',
-    'exports',
-    'spica',
-    'src/layer/domain/router/model/eav/value/update',
-    'src/layer/domain/router/module/update/blur',
-    'src/layer/domain/router/module/update/url',
-    'src/layer/domain/router/module/update/title',
-    'src/layer/domain/router/module/update/head',
-    'src/layer/domain/router/module/update/content',
-    'src/layer/domain/router/module/update/css',
-    'src/layer/domain/router/module/update/script',
-    'src/layer/domain/router/module/update/focus',
-    'src/layer/domain/router/module/update/scroll'
-], function (require, exports, spica_9, update_1, blur_1, url_11, title_1, head_1, content_1, css_1, script_2, focus_1, scroll_1) {
-    'use strict';
-    function update(_a, _b, io) {
-        var event = _a.event, config = _a.config, state = _a.state;
-        var response = _b.response;
-        var document = new update_1.UpdateValue({
-            src: response.document,
-            dst: io.document
-        }).document;
-        var loads = [];
-        return new spica_9.HNil().push(spica_9.Just(0)).modify(function (m) {
-            return m.bind(function () {
-                return content_1.separate(document, config.areas).fmap(function (_a) {
-                    var area = _a[0];
-                    return void config.rewrite(document.src, area, '');
-                });
-            });
-        }).modify(function (m) {
-            return m.fmap(function () {
-                return void window.dispatchEvent(new Event('pjax:unload'));
-            });
-        }).modify(function (m) {
-            return m.fmap(function () {
-                return void blur_1.blur(document.dst);
-            });
-        }).modify(function (m) {
-            return m.fmap(function () {
-                return void url_11.url(event.location, document.src.title, event.type, event.source, config.replace);
-            });
-        }).modify(function (m) {
-            return m.fmap(function () {
-                return void title_1.title(document);
-            });
-        }).modify(function (m) {
-            return m.fmap(function () {
-                return void head_1.head({
-                    src: document.src.head,
-                    dst: document.dst.head
-                }, config.load.head, config.load.ignore);
-            });
-        }).modify(function (m) {
-            return m.bind(function () {
-                return content_1.content(document, config.areas);
-            });
-        }).extend(function (m) {
-            return m.fmap(function (p) {
-                return void loads.push(p);
-            });
-        }).modify(function (m) {
-            return m.fmap(function () {
-                return config.load.css ? void css_1.css({
-                    src: document.src.head,
-                    dst: document.dst.head
-                }, config.load.ignore) : void 0;
-            });
-        }).modify(function (m) {
-            return m.fmap(function () {
-                return config.load.css ? void css_1.css({
-                    src: document.src.body,
-                    dst: document.dst.body
-                }, config.load.ignore) : void 0;
-            });
-        }).modify(function (m) {
-            return m.fmap(function () {
-                return void focus_1.focus(document.dst);
-            });
-        }).modify(function (m) {
-            return m.fmap(function () {
-                return void scroll_1.scroll(event.type, document.dst, {
-                    hash: event.location.dest.hash,
-                    top: 0,
-                    left: 0
-                }, {
-                    hash: scroll_1.hash,
-                    scroll: io.scroll,
-                    position: io.position
-                });
-            });
-        }).modify(function (m) {
-            return m.fmap(function () {
-                return config.load.script ? script_2.script(document, state.script, config.load, state.cancelable) : Promise.resolve(spica_9.Right([]));
-            });
-        }).modify(function (m) {
-            return m.fmap(function (p) {
-                return p.then(function (m) {
-                    return m.fmap(function (scripts) {
-                        return void io.document.dispatchEvent(new Event('pjax:ready')), void loads.push(p), void Promise.all(loads).then(function () {
-                            return void window.dispatchEvent(new Event('pjax:load'));
-                        }), scripts;
-                    });
-                });
-            });
-        });
-    }
-    exports.update = update;
 });
 define('src/layer/data/schema/path', [
     'require',
@@ -1471,6 +1402,137 @@ define('src/layer/domain/store/path', [
     }
     exports.savePosition = savePosition;
 });
+define('src/layer/domain/router/service/update/api', [
+    'require',
+    'exports',
+    'spica',
+    'src/layer/domain/router/model/eav/value/update',
+    'src/layer/domain/router/module/update/blur',
+    'src/layer/domain/router/module/update/url',
+    'src/layer/domain/router/module/update/title',
+    'src/layer/domain/router/module/update/head',
+    'src/layer/domain/router/module/update/content',
+    'src/layer/domain/router/module/update/css',
+    'src/layer/domain/router/module/update/script',
+    'src/layer/domain/router/module/update/focus',
+    'src/layer/domain/router/module/update/scroll',
+    'src/layer/domain/store/path',
+    'src/layer/domain/data/error'
+], function (require, exports, spica_10, update_1, blur_1, url_14, title_1, head_1, content_1, css_1, script_2, focus_1, scroll_1, path_3, error_3) {
+    'use strict';
+    function update(_a, _b, seq, io) {
+        var event = _a.event, config = _a.config, state = _a.state;
+        var _c = _b.response, headers = _c.headers, document = _c.document;
+        var cancelable = state.cancelable;
+        var doc = new update_1.UpdateValue({
+            src: document,
+            dst: io.document
+        }).document;
+        return new spica_10.HNil().push(Promise.resolve(cancelable.either(seq))).modify(function (p) {
+            return p.then(function (m) {
+                return m.bind(cancelable.either).fmap(function (seq) {
+                    return content_1.separate(doc, config.areas).fmap(function (_a) {
+                        var area = _a[0];
+                        return void config.rewrite(doc.src, area, '');
+                    }).extract(function () {
+                        return Promise.resolve(spica_10.Left(new error_3.DomainError('Failed to separate areas.')));
+                    }, function () {
+                        return void window.dispatchEvent(new Event('pjax:unload')), config.sequence.unload(seq, {
+                            headers: headers,
+                            document: document
+                        }).then(cancelable.either, function (e) {
+                            return spica_10.Left(e instanceof Error ? e : new Error(e));
+                        });
+                    });
+                }).extract();
+            });
+        }).modify(function (p) {
+            return p.then(function (m) {
+                return m.bind(cancelable.either).fmap(function (seq) {
+                    var ps = [];
+                    void new spica_10.HNil().push(void 0).modify(function () {
+                        return void blur_1.blur(doc.dst);
+                    }).modify(function () {
+                        return void url_14.url(event.location, doc.src.title, event.type, event.source, config.replace);
+                    }).modify(function () {
+                        return void path_3.saveTitle(event.location.orig.path, doc.src.title), void path_3.saveTitle(event.location.dest.path, doc.dst.title), void title_1.title(doc);
+                    }).modify(function () {
+                        return void head_1.head({
+                            src: doc.src.head,
+                            dst: doc.dst.head
+                        }, config.load.head, config.load.ignore);
+                    }).modify(function () {
+                        return content_1.content(doc, config.areas).extract(function () {
+                            return Promise.resolve(spica_10.Left(new error_3.DomainError('Failed to update areas.')));
+                        }, function (p) {
+                            return p.then(cancelable.either, function (e) {
+                                return spica_10.Left(e instanceof Error ? e : new Error(e));
+                            });
+                        });
+                    }).extend(function () {
+                        return config.load.css ? void css_1.css({
+                            src: doc.src.head,
+                            dst: doc.dst.head
+                        }, config.load.ignore) : void 0;
+                    }).modify(function () {
+                        return config.load.css ? void css_1.css({
+                            src: doc.src.body,
+                            dst: doc.dst.body
+                        }, config.load.ignore) : void 0;
+                    }).modify(function () {
+                        return void focus_1.focus(doc.dst);
+                    }).modify(function () {
+                        return void scroll_1.scroll(event.type, doc.dst, {
+                            hash: event.location.dest.hash,
+                            top: 0,
+                            left: 0
+                        }, {
+                            hash: scroll_1.hash,
+                            scroll: io.scroll,
+                            position: io.position
+                        });
+                    }).modify(function () {
+                        return config.load.script ? script_2.script(doc, state.script, config.load, cancelable) : Promise.resolve(cancelable.either([]));
+                    }).extend(function () {
+                        return void io.document.dispatchEvent(new Event('pjax:ready')), config.sequence.ready(seq).then(cancelable.either, spica_10.Left);
+                    }).walk(function (p) {
+                        return ps[2] = p;
+                    }).walk(function (p) {
+                        return ps[1] = p;
+                    }).walk(function (p) {
+                        return ps[0] = p;
+                    });
+                    return ps;
+                });
+            });
+        }).modify(function (p) {
+            return p.then(function (m) {
+                return m.bind(cancelable.either).fmap(function (_a) {
+                    var p1 = _a[0], p2 = _a[1], p3 = _a[2];
+                    return Promise.all([
+                        p1,
+                        p2,
+                        p3
+                    ]).then(function (_a) {
+                        var m1 = _a[0], m2 = _a[1], m3 = _a[2];
+                        return cancelable.either(void 0).bind(function () {
+                            return m1.bind(function () {
+                                return m2;
+                            }).bind(function () {
+                                return m3;
+                            });
+                        }).fmap(function (seq) {
+                            return void window.dispatchEvent(new Event('pjax:load')), void config.sequence.load(seq);
+                        }).bind(function () {
+                            return m2;
+                        });
+                    });
+                }).extract();
+            });
+        }).head();
+    }
+    exports.update = update;
+});
 define('src/layer/domain/router/service/api', [
     'require',
     'exports',
@@ -1481,36 +1543,27 @@ define('src/layer/domain/router/service/api', [
     'src/layer/domain/router/module/update/content',
     'src/layer/domain/store/path',
     'src/layer/domain/data/error'
-], function (require, exports, spica_10, entity_1, api_1, api_2, content_2, path_3, error_3) {
+], function (require, exports, spica_11, entity_1, api_1, api_2, content_2, path_4, error_4) {
     'use strict';
     exports.RouterEntity = entity_1.RouterEntity;
     function route(entity, io) {
-        return spica_10.Just(0).bind(function () {
-            return content_2.match(window.document, entity.config.areas).take(1).read().length > 0 ? spica_10.Just(0) : spica_10.Nothing;
-        }).fmap(function () {
-            return void path_3.saveTitle(entity.event.location.orig.path, io.document.title), api_1.fetch(entity.event.request, entity.config.fetch, entity.state.cancelable).then(function (m) {
-                return m.fmap(function (res) {
-                    return api_2.update(entity, res, {
-                        document: io.document,
-                        scroll: window.scrollTo,
-                        position: path_3.loadPosition
-                    });
+        return Promise.resolve().then(function () {
+            return content_2.match(window.document, entity.config.areas).take(1).read().length > 0 ? entity.state.cancelable.either(void 0) : spica_11.Left(new error_4.DomainError('Failed to match areas.'));
+        }).then(function (m) {
+            return m.bind(entity.state.cancelable.either).fmap(function () {
+                return api_1.fetch(entity.event.request, entity.config.fetch, entity.config.sequence, entity.state.cancelable);
+            }).extract(spica_11.Left);
+        }).then(function (m) {
+            return m.bind(entity.state.cancelable.either).fmap(function (_a) {
+                var res = _a[0], seq = _a[1];
+                return api_2.update(entity, res, seq, {
+                    document: io.document,
+                    scroll: window.scrollTo,
+                    position: path_4.loadPosition
                 });
-            }).then(function (m) {
-                return m.fmap(function (hl) {
-                    return hl.head().extract(function () {
-                        return Promise.resolve(spica_10.Left(new error_3.DomainError('Routing is failed.')));
-                    });
-                });
-            }).then(function (m) {
-                return m.fmap(function (p) {
-                    return void path_3.saveTitle(entity.event.location.dest.path, io.document.title), p;
-                }).extract(function (err) {
-                    return Promise.resolve(spica_10.Left(err));
-                });
+            }).extract(function (e) {
+                return Promise.resolve(spica_11.Left(e));
             });
-        }).extract(function () {
-            return Promise.resolve(spica_10.Left(new error_3.DomainError('Routing is failed.')));
         });
     }
     exports.route = route;
@@ -1532,7 +1585,7 @@ define('src/layer/application/data/error', [
     'require',
     'exports',
     'src/lib/error'
-], function (require, exports, error_4) {
+], function (require, exports, error_5) {
     'use strict';
     var ApplicationError = function (_super) {
         __extends(ApplicationError, _super);
@@ -1540,17 +1593,17 @@ define('src/layer/application/data/error', [
             _super.call(this, 'Application: ' + msg);
         }
         return ApplicationError;
-    }(error_4.PjaxError);
+    }(error_5.PjaxError);
     exports.ApplicationError = ApplicationError;
 });
 define('src/layer/application/store/path', [
     'require',
     'exports',
     'src/layer/domain/store/path'
-], function (require, exports, path_4) {
+], function (require, exports, path_5) {
     'use strict';
-    exports.loadTitle = path_4.loadTitle;
-    exports.savePosition = path_4.savePosition;
+    exports.loadTitle = path_5.loadTitle;
+    exports.savePosition = path_5.savePosition;
 });
 define('src/layer/application/api', [
     'require',
@@ -1563,7 +1616,7 @@ define('src/layer/application/api', [
     'src/layer/application/data/error',
     'src/layer/application/store/path',
     'src/layer/domain/router/module/fetch/html'
-], function (require, exports, spica_11, config_2, scope_1, router_3, api_4, error_5, path_5, html_2) {
+], function (require, exports, spica_12, config_2, scope_1, router_3, api_4, error_6, path_6, html_2) {
     'use strict';
     function __export(m) {
         for (var p in m)
@@ -1576,14 +1629,14 @@ define('src/layer/application/api', [
         return scope_1.scope(config, {
             orig: location.orig.pathname,
             dest: location.dest.pathname
-        }).fmap(function (config) {
-            return api_4.route(new api_4.RouterEntity(new router_3.RouterEvent(event), config, new api_4.RouterEntity.State(state.script, state.cancelable)), io);
         }).extract(function () {
-            return Promise.resolve(spica_11.Left(new error_5.ApplicationError('Pjax is ignored by config.')));
+            return Promise.resolve(spica_12.Left(new error_6.ApplicationError('Disabled to use pjax by config.')));
+        }, function (config) {
+            return api_4.route(new api_4.RouterEntity(new router_3.RouterEvent(event), config, new api_4.RouterEntity.State(state.script, state.cancelable)), io);
         });
     }
     exports.route = route;
-    __export(path_5);
+    __export(path_6);
     exports.parse = html_2.parse;
 });
 define('src/layer/interface/module/view/click', [
@@ -1591,7 +1644,7 @@ define('src/layer/interface/module/view/click', [
     'exports',
     'spica',
     'src/lib/dom'
-], function (require, exports, spica_12, dom_9) {
+], function (require, exports, spica_13, dom_9) {
     'use strict';
     var ClickView = function () {
         function ClickView(document, selector, listener) {
@@ -1602,7 +1655,7 @@ define('src/layer/interface/module/view/click', [
                     _super.apply(this, arguments);
                 }
                 return class_2;
-            }(spica_12.Supervisor))();
+            }(spica_13.Supervisor))();
             this.close = function () {
                 return void _this.sv.terminate();
             };
@@ -1620,7 +1673,7 @@ define('src/layer/interface/module/view/submit', [
     'exports',
     'spica',
     'src/lib/dom'
-], function (require, exports, spica_13, dom_10) {
+], function (require, exports, spica_14, dom_10) {
     'use strict';
     var SubmitView = function () {
         function SubmitView(document, selector, listener) {
@@ -1631,7 +1684,7 @@ define('src/layer/interface/module/view/submit', [
                     _super.apply(this, arguments);
                 }
                 return class_3;
-            }(spica_13.Supervisor))();
+            }(spica_14.Supervisor))();
             this.close = function () {
                 return void _this.sv.terminate();
             };
@@ -1649,7 +1702,7 @@ define('src/layer/interface/module/view/navigation', [
     'exports',
     'spica',
     'src/lib/dom'
-], function (require, exports, spica_14, dom_11) {
+], function (require, exports, spica_15, dom_11) {
     'use strict';
     var NavigationView = function () {
         function NavigationView(window, listener) {
@@ -1660,7 +1713,7 @@ define('src/layer/interface/module/view/navigation', [
                     _super.apply(this, arguments);
                 }
                 return class_4;
-            }(spica_14.Supervisor))();
+            }(spica_15.Supervisor))();
             this.close = function () {
                 return void _this.sv.terminate();
             };
@@ -1678,7 +1731,7 @@ define('src/layer/interface/module/view/scroll', [
     'exports',
     'spica',
     'src/lib/dom'
-], function (require, exports, spica_15, dom_12) {
+], function (require, exports, spica_16, dom_12) {
     'use strict';
     var ScrollView = function () {
         function ScrollView(window, listener) {
@@ -1689,7 +1742,7 @@ define('src/layer/interface/module/view/scroll', [
                     _super.apply(this, arguments);
                 }
                 return class_5;
-            }(spica_15.Supervisor))();
+            }(spica_16.Supervisor))();
             this.close = function () {
                 return void _this.sv.terminate();
             };
@@ -1714,14 +1767,14 @@ define('src/layer/interface/service/state/script', [
     'src/layer/data/model/canonicalization/url',
     'src/layer/data/model/validation/url',
     'src/lib/dom'
-], function (require, exports, spica_16, url_14, url_15, dom_13) {
+], function (require, exports, spica_17, url_15, url_16, dom_13) {
     'use strict';
     exports.script = [];
-    void spica_16.Tick(function () {
-        return void spica_16.concat(exports.script, dom_13.find(document, 'script').filter(function (script) {
+    void spica_17.Tick(function () {
+        return void spica_17.concat(exports.script, dom_13.find(document, 'script').filter(function (script) {
             return script.hasAttribute('src');
         }).map(function (script) {
-            return url_14.canonicalizeUrl(url_15.validateUrl(script.src));
+            return url_15.canonicalizeUrl(url_16.validateUrl(script.src));
         }));
     });
 });
@@ -1730,10 +1783,10 @@ define('src/layer/interface/service/state/initialization', [
     'exports',
     'spica',
     'src/layer/interface/service/state/script'
-], function (require, exports, spica_17) {
+], function (require, exports, spica_18) {
     'use strict';
     exports.initialization = new Promise(function (resolve) {
-        return void spica_17.Tick(resolve);
+        return void spica_18.Tick(resolve);
     });
 });
 define('src/layer/interface/service/state/url', [
@@ -1741,15 +1794,15 @@ define('src/layer/interface/service/state/url', [
     'exports',
     'src/layer/data/model/canonicalization/url',
     'src/layer/data/model/validation/url'
-], function (require, exports, url_16, url_17) {
+], function (require, exports, url_17, url_18) {
     'use strict';
-    var url = url_16.canonicalizeUrl(url_17.validateUrl(location.href));
+    var url = url_17.canonicalizeUrl(url_18.validateUrl(location.href));
     exports.documentUrl = {
         get href() {
             return url;
         },
         sync: function () {
-            return url = url_16.canonicalizeUrl(url_17.validateUrl(location.href));
+            return url = url_17.canonicalizeUrl(url_18.validateUrl(location.href));
         }
     };
 });
@@ -1792,7 +1845,7 @@ define('src/layer/interface/data/error', [
     'require',
     'exports',
     'src/lib/error'
-], function (require, exports, error_6) {
+], function (require, exports, error_7) {
     'use strict';
     var InterfaceError = function (_super) {
         __extends(InterfaceError, _super);
@@ -1800,7 +1853,7 @@ define('src/layer/interface/data/error', [
             _super.call(this, 'Interface: ' + msg);
         }
         return InterfaceError;
-    }(error_6.PjaxError);
+    }(error_7.PjaxError);
     exports.InterfaceError = InterfaceError;
 });
 define('src/layer/interface/service/router', [
@@ -1813,7 +1866,7 @@ define('src/layer/interface/service/router', [
     'src/layer/interface/service/state/url',
     'src/layer/interface/service/progressbar',
     'src/layer/interface/data/error'
-], function (require, exports, spica_18, api_5, url_18, url_19, url_20, progressbar_1, error_7) {
+], function (require, exports, spica_19, api_5, url_19, url_20, url_21, progressbar_1, error_8) {
     'use strict';
     var router = new (function (_super) {
         __extends(class_6, _super);
@@ -1821,9 +1874,9 @@ define('src/layer/interface/service/router', [
             _super.apply(this, arguments);
         }
         return class_6;
-    }(spica_18.Supervisor))();
+    }(spica_19.Supervisor))();
     function route(config, event, state, io) {
-        void router.cast([], new error_7.InterfaceError('Pjax is aborted.'));
+        void router.cast([], new error_8.InterfaceError('Abort.'));
         void router.register([], function (e) {
             throw void state.cancelable.cancel(e);
         });
@@ -1831,15 +1884,15 @@ define('src/layer/interface/service/router', [
         return api_5.route(config, event, state, io).then(function (m) {
             return void router.terminate([]), void m.bind(state.cancelable.either).fmap(function (ss) {
                 return void (_a = state.script).push.apply(_a, ss.map(function (s) {
-                    return url_18.canonicalizeUrl(url_19.validateUrl(s.src));
-                })), void url_20.documentUrl.sync();
+                    return url_19.canonicalizeUrl(url_20.validateUrl(s.src));
+                })), void url_21.documentUrl.sync();
                 var _a;
             }).extract();
         }).catch(function (e) {
-            return void router.terminate([]), void state.cancelable.maybe(0).fmap(function () {
+            return void router.terminate([]), void state.cancelable.maybe(void 0).extract(function () {
+                return void 0;
+            }, function () {
                 return void console.error(e), void Promise.reject(config.fallback(event._currentTarget, e));
-            }).extract(function () {
-                return 0;
             });
         });
     }
@@ -1864,7 +1917,7 @@ define('src/layer/interface/service/gui', [
     'src/layer/application/api',
     'src/lib/dom',
     '../service/state/scroll-restoration'
-], function (require, exports, spica_19, api_6, url_21, url_22, url_23, click_1, submit_1, navigation_1, scroll_2, initialization_1, url_24, script_3, router_4, api_7, dom_14) {
+], function (require, exports, spica_20, api_6, url_22, url_23, url_24, click_1, submit_1, navigation_1, scroll_2, initialization_1, url_25, script_3, router_4, api_7, dom_14) {
     'use strict';
     var router = new (function (_super) {
         __extends(class_7, _super);
@@ -1872,7 +1925,7 @@ define('src/layer/interface/service/gui', [
             _super.apply(this, arguments);
         }
         return class_7;
-    }(spica_19.Supervisor))();
+    }(spica_20.Supervisor))();
     var GUI = function () {
         function GUI(option, io) {
             var _this = this;
@@ -1885,14 +1938,14 @@ define('src/layer/interface/service/gui', [
             void GUI.sv.terminate([]);
             void GUI.sv.register([], function () {
                 return void GUI.sv.events.exit.once([], new click_1.ClickView(_this.io.document, _this.config.link, function (event) {
-                    return void spica_19.Just(new url_21.Url(url_22.canonicalizeUrl(url_23.validateUrl(event._currentTarget.href)))).bind(function (url) {
-                        return !!!hasModifierKey(event) && isAccessible(url) && !isHashChange(url) && _this.config.filter(event._currentTarget) ? spica_19.Just(0) : spica_19.Nothing;
+                    return void spica_20.Just(new url_22.Url(url_23.canonicalizeUrl(url_24.validateUrl(event._currentTarget.href)))).bind(function (url) {
+                        return !!!hasModifierKey(event) && isAccessible(url) && !isHashChange(url) && _this.config.filter(event._currentTarget) ? spica_20.Just(0) : spica_20.Nothing;
                     }).fmap(function () {
                         return void event.preventDefault(), initialization_1.initialization.then(function () {
                             return router_4.route(_this.config, event, {
                                 router: router,
                                 script: script_3.script,
-                                cancelable: new spica_19.Cancelable()
+                                cancelable: new spica_20.Cancelable()
                             }, _this.io);
                         });
                     }).extract(function () {
@@ -1901,14 +1954,14 @@ define('src/layer/interface/service/gui', [
                         return void window.location.assign(event._currentTarget.href);
                     });
                 }).close), void GUI.sv.events.exit.once([], new submit_1.SubmitView(_this.io.document, _this.config.form, function (event) {
-                    return void spica_19.Just(new url_21.Url(url_22.canonicalizeUrl(url_23.validateUrl(event._currentTarget.action)))).bind(function (url) {
-                        return !!!hasModifierKey(event) && isAccessible(url) ? spica_19.Just(0) : spica_19.Nothing;
+                    return void spica_20.Just(new url_22.Url(url_23.canonicalizeUrl(url_24.validateUrl(event._currentTarget.action)))).bind(function (url) {
+                        return !!!hasModifierKey(event) && isAccessible(url) ? spica_20.Just(0) : spica_20.Nothing;
                     }).fmap(function () {
                         return void event.preventDefault(), initialization_1.initialization.then(function () {
                             return router_4.route(_this.config, event, {
                                 router: router,
                                 script: script_3.script,
-                                cancelable: new spica_19.Cancelable()
+                                cancelable: new spica_20.Cancelable()
                             }, _this.io);
                         });
                     }).extract(function () {
@@ -1917,14 +1970,14 @@ define('src/layer/interface/service/gui', [
                         return void window.location.assign(event._currentTarget.action);
                     });
                 }).close), void GUI.sv.events.exit.once([], new navigation_1.NavigationView(window, function (event) {
-                    return void spica_19.Just(new url_21.Url(url_22.canonicalizeUrl(url_23.validateUrl(window.location.href)))).bind(function (url) {
-                        return !!isAccessible(url) && !isHashChange(url) ? spica_19.Just(api_7.loadTitle(url.path)) : spica_19.Nothing;
+                    return void spica_20.Just(new url_22.Url(url_23.canonicalizeUrl(url_24.validateUrl(window.location.href)))).bind(function (url) {
+                        return !!isAccessible(url) && !isHashChange(url) ? spica_20.Just(api_7.loadTitle(url.path)) : spica_20.Nothing;
                     }).fmap(function (title) {
                         return title ? io.document.title = title : void 0, initialization_1.initialization.then(function () {
                             return router_4.route(_this.config, event, {
                                 router: router,
                                 script: script_3.script,
-                                cancelable: new spica_19.Cancelable()
+                                cancelable: new spica_20.Cancelable()
                             }, _this.io);
                         });
                     }).extract(function () {
@@ -1933,9 +1986,9 @@ define('src/layer/interface/service/gui', [
                         return void window.location.reload(true);
                     });
                 }).close), void GUI.sv.events.exit.once([], new scroll_2.ScrollView(window, function () {
-                    return void spica_19.Just(window).fmap(function (_a) {
+                    return void spica_20.Just(window).fmap(function (_a) {
                         var left = _a.pageXOffset, top = _a.pageYOffset;
-                        return url_24.documentUrl.href === new url_21.Url(url_22.canonicalizeUrl(url_23.validateUrl(window.location.href))).href ? void api_7.savePosition(new url_21.Url(url_24.documentUrl.href).path, {
+                        return url_25.documentUrl.href === new url_22.Url(url_23.canonicalizeUrl(url_24.validateUrl(window.location.href))).href ? void api_7.savePosition(new url_22.Url(url_25.documentUrl.href).path, {
                             top: top,
                             left: left
                         }) : void 0;
@@ -1953,7 +2006,7 @@ define('src/layer/interface/service/gui', [
                     return router_4.route(new api_6.Config(option), event, {
                         router: router,
                         script: script_3.script,
-                        cancelable: new spica_19.Cancelable()
+                        cancelable: new spica_20.Cancelable()
                     }, io);
                 });
             });
@@ -1964,10 +2017,10 @@ define('src/layer/interface/service/gui', [
             }
             return void click(url).then(function (event) {
                 return initialization_1.initialization.then(function () {
-                    return router_4.route(new api_6.Config(spica_19.extend({}, option, { replace: '*' })), event, {
+                    return router_4.route(new api_6.Config(spica_20.extend({}, option, { replace: '*' })), event, {
                         router: router,
                         script: script_3.script,
-                        cancelable: new spica_19.Cancelable()
+                        cancelable: new spica_20.Cancelable()
                     }, io);
                 });
             });
@@ -1984,7 +2037,7 @@ define('src/layer/interface/service/gui', [
                 _super.apply(this, arguments);
             }
             return class_8;
-        }(spica_19.Supervisor))();
+        }(spica_20.Supervisor))();
         return GUI;
     }();
     exports.GUI = GUI;
@@ -1993,13 +2046,13 @@ define('src/layer/interface/service/gui', [
     }
     function isAccessible(dest, orig) {
         if (orig === void 0) {
-            orig = new url_21.Url(url_24.documentUrl.href);
+            orig = new url_22.Url(url_25.documentUrl.href);
         }
         return orig.domain === dest.domain;
     }
     function isHashChange(dest, orig) {
         if (orig === void 0) {
-            orig = new url_21.Url(url_24.documentUrl.href);
+            orig = new url_22.Url(url_25.documentUrl.href);
         }
         return orig.domain === dest.domain && orig.path === dest.path && orig.hash !== dest.hash;
     }

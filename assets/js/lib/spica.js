@@ -1,4 +1,4 @@
-/*! spica v0.0.23 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.26 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 define = typeof define === 'function' && define.amd
   ? define
   : (function () {
@@ -943,8 +943,8 @@ define('src/lib/monad/maybe.impl', [
                 throw new TypeError('Spica: Maybe: Invalid monad value.\n\t' + m);
             });
         };
-        Maybe.prototype.extract = function (transform) {
-            return this.evaluate().extract(transform);
+        Maybe.prototype.extract = function (nothing, just) {
+            return !just ? this.evaluate().extract(nothing) : this.fmap(just).extract(nothing);
         };
         return Maybe;
     }(monadplus_1.MonadPlus);
@@ -969,8 +969,8 @@ define('src/lib/monad/maybe.impl', [
                 return f(_this.extract());
             });
         };
-        Just.prototype.extract = function (transform) {
-            return this.a;
+        Just.prototype.extract = function (nothing, just) {
+            return !just ? this.a : just(this.a);
         };
         return Just;
     }(Maybe);
@@ -983,10 +983,10 @@ define('src/lib/monad/maybe.impl', [
         Nothing.prototype.bind = function (f) {
             return this;
         };
-        Nothing.prototype.extract = function (transform) {
-            if (!transform)
+        Nothing.prototype.extract = function (nothing) {
+            if (!nothing)
                 throw void 0;
-            return transform();
+            return nothing();
         };
         return Nothing;
     }(Maybe);
@@ -1063,8 +1063,8 @@ define('src/lib/monad/either.impl', [
                 throw new TypeError('Spica: Either: Invalid monad value.\n\t' + m);
             });
         };
-        Either.prototype.extract = function (transform) {
-            return this.evaluate().extract(transform);
+        Either.prototype.extract = function (left, right) {
+            return !right ? this.evaluate().extract(left) : this.fmap(right).extract(left);
         };
         return Either;
     }(monad_2.Monad);
@@ -1086,10 +1086,10 @@ define('src/lib/monad/either.impl', [
         Left.prototype.bind = function (f) {
             return this;
         };
-        Left.prototype.extract = function (transform) {
-            if (!transform)
+        Left.prototype.extract = function (left) {
+            if (!left)
                 throw this.a;
-            return transform(this.a);
+            return left(this.a);
         };
         return Left;
     }(Either);
@@ -1106,8 +1106,8 @@ define('src/lib/monad/either.impl', [
                 return f(_this.extract());
             });
         };
-        Right.prototype.extract = function (transform) {
-            return this.b;
+        Right.prototype.extract = function (left, right) {
+            return !right ? this.b : right(this.b);
         };
         return Right;
     }(Either);
@@ -2524,24 +2524,18 @@ define('src/lib/assign', [
     });
     exports.clone = template(function (key, target, source) {
         switch (type_2.type(source[key])) {
-        case 'Array': {
-                return target[key] = exports.clone([], source[key]);
-            }
-        case 'Function':
-        case 'Object': {
-                return target[key] = exports.clone({}, source[key]);
-            }
-        default: {
-                return target[key] = source[key];
-            }
+        case 'Array':
+            return target[key] = exports.clone([], source[key]);
+        case 'Object':
+            return target[key] = exports.clone({}, source[key]);
+        default:
+            return target[key] = source[key];
         }
     });
     exports.extend = template(function (key, target, source) {
         switch (type_2.type(source[key])) {
-        case 'Array': {
-                return target[key] = exports.extend([], source[key]);
-            }
-        case 'Function':
+        case 'Array':
+            return target[key] = exports.extend([], source[key]);
         case 'Object': {
                 switch (type_2.type(target[key])) {
                 case 'Function':
@@ -2553,9 +2547,8 @@ define('src/lib/assign', [
                     }
                 }
             }
-        default: {
-                return target[key] = source[key];
-            }
+        default:
+            return target[key] = source[key];
         }
     });
     function template(cb) {
