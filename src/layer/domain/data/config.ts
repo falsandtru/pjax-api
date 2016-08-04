@@ -1,5 +1,5 @@
 import { extend } from 'spica';
-import { Config as Option } from 'pjax-api';
+import { Config as Option, Sequence as ISequence } from 'pjax-api';
 import { Url } from '../../../lib/url';
 
 export class Config implements Option {
@@ -43,6 +43,7 @@ export class Config implements Option {
     }
     throw reason;
   }
+  public readonly sequence: ISequence<void, void, void> = new Sequence();
   public readonly balance = {
     bounds: [
       ''
@@ -73,4 +74,18 @@ export class Config implements Option {
   public readonly scope: { [path: string]: Option | undefined; } = {
     '/': {}
   };
+}
+
+class Sequence implements ISequence<void, void, void> {
+  public fetch(_result: void, _request: { host: string; path: string; method: string; data: FormData | null; }): Promise<void> {
+    return Promise.resolve();
+  }
+  public unload(_result: void, _response: { headers: { [field: string]: string; }; document: Document; }): Promise<void> {
+    return Promise.resolve();
+  }
+  public ready(_result: void): Promise<void> {
+    return Promise.resolve();
+  }
+  public load(_result: void): void {
+  }
 }

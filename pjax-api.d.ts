@@ -33,6 +33,7 @@
       readonly logger?: string;
     };
     readonly fallback?: (target: HTMLAnchorElement | HTMLFormElement | Window, reason: any) => void;
+    readonly sequence?: Sequence<any, any, any>;
     readonly balance?: {
       readonly bounds?: string[];
       readonly weight?: number;
@@ -58,6 +59,13 @@
       readonly expiry?: number;
     };
     readonly scope?: { [path: string]: Config | undefined; };
+  }
+
+  export interface Sequence<a, b, c> {
+    readonly fetch: (result: void, request: { host: string; path: string; method: string; data: FormData | null; }) => Promise<a>;
+    readonly unload: (result: a, response: { headers: { [field: string]: string; }; document: Document; }) => Promise<b>;
+    readonly ready: (result: b) => Promise<c>;
+    readonly load: (result: c) => void;
   }
 
 }

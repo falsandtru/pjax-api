@@ -1,9 +1,10 @@
-import { Either, Left, Just, Nothing } from 'spica';
+import { Either, Left } from 'spica';
 import { RouterEntity } from '../model/eav/entity';
+import { FetchValue } from '../model/eav/value/fetch';
 import { fetch } from './fetch/api';
 import { update } from './update/api';
 import { match } from '../module/update/content';
-import { saveTitle, loadPosition } from '../../store/path';
+import { loadPosition } from '../../store/path';
 import { DomainError } from '../../data/error';
 
 export { RouterEntity }
@@ -16,38 +17,24 @@ export function route(
     document: Document;
   }
 ): RouterResult {
-  return Just(0)
-    .bind(() =>
+  return entity.state.cancelable.promise(void 0)
+    .then<Either<Error, void>>(() =>
       match(window.document, entity.config.areas).take(1).read().length > 0
-        ? Just(0)
-        : Nothing)
-    .fmap<RouterResult>(() => (
-      void saveTitle(entity.event.location.orig.path, io.document.title),
-      fetch(entity.event.request, entity.config.fetch, entity.state.cancelable)
-        .then(m =>
-          m
-            .fmap(res =>
-              update(
-                entity,
-                res,
-                {
-                  document: io.document,
-                  scroll: window.scrollTo,
-                  position: loadPosition
-                })))
-        .then(m =>
-          m
-            .fmap(hl =>
-              hl.head()
-                .extract(() =>
-                  Promise.resolve<RouterResultData>(Left(new DomainError(`Routing is failed.`))))))
-        .then(m =>
-          m
-            .fmap(p => (
-              void saveTitle(entity.event.location.dest.path, io.document.title),
-              p))
-            .extract(err =>
-              Promise.resolve<RouterResultData>(Left(err))))))
-    .extract<RouterResult>(() =>
-      Promise.resolve<RouterResultData>(Left(new DomainError(`Routing is failed.`))));
+        ? entity.state.cancelable.either(void 0)
+        : Left(new DomainError(`Routing is failed.`)))
+    .then<Either<Error, [FetchValue, void]>>(m => m
+      .bind(entity.state.cancelable.either)
+      .fmap(() =>
+        fetch(entity.event.request, entity.config.fetch, entity.config.sequence, entity.state.cancelable))
+      .extract(Left))
+    .then(m => m
+      .bind(entity.state.cancelable.either)
+      .fmap(([res, seq]) =>
+        update(entity, res, seq, {
+          document: io.document,
+          scroll: window.scrollTo,
+          position: loadPosition
+        }))
+      .extract<RouterResult>(e =>
+        Promise.resolve(Left(e))));
 }

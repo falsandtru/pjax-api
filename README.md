@@ -10,7 +10,7 @@ The second generation PJAX for advanced web framework.
 
 |Feature|defunkt|falsandtru|Turbolinks|
 |:------|:-----:|:--------:|:--------:|
-|**Concurrency integration**|X| |X|
+|**Concurrency integration**|X|O|X|
 |**Client side load balancing**|X| |X|
 |Multiple area update|X|O|O|
 |Fallback area matching|X|O|X|

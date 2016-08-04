@@ -1,7 +1,11 @@
-import { Cancelable, Either } from 'spica';
+import { Cancelable, Either, Left, HNil } from 'spica';
+import { Sequence } from 'pjax-api';
 import { RouterEvent } from '../../../event/router';
 import { FetchValue } from '../../model/eav/value/fetch';
 import { xhr } from '../../module/fetch/xhr';
+import { Url } from '../../../../../lib/url';
+
+type Result = Either<Error, [FetchValue, void]>;
 
 export function fetch(
   {
@@ -13,9 +17,23 @@ export function fetch(
     timeout: number;
     wait: number;
   },
+  sequence: Sequence<void, void, void>,
   cancelable: Cancelable<Error>
-): Promise<Either<Error, FetchValue>> {
-  const promise = xhr(method, url, data, setting, cancelable);
-  void window.dispatchEvent(new Event('pjax:fetch'));
-  return promise;
+): Promise<Result> {
+  return new HNil()
+    .push(xhr(method, url, data, setting, cancelable))
+    .modify(p => (
+      void window.dispatchEvent(new Event('pjax:fetch')),
+      sequence.fetch(void 0, {
+        host: '',
+        path: new Url(url).path + '',
+        method,
+        data
+      })
+        .then<Result>(
+          s => p.then<Result>(m => m
+            .fmap<[FetchValue, void]>(v =>
+              [v, s])),
+          e => Left<Error>(e instanceof Error ? e : new Error(e)))))
+    .head();
 }

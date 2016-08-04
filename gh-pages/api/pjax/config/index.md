@@ -106,6 +106,19 @@ Override a fallback processing.
   }
 ```
 
+## sequence?: `Sequence<a, b, c>`
+
+Control the page routing sequence.
+It can integrate and synchronize other async processes.
+
+### fetch: `fetch(result: void, request: { host: string; path: string; method: string; data: FormData | null; }): Promise<a>`
+
+### unload: `unload(result: a, response: { headers: { [field: string]: string; }; document: Document; }): Promise<b>`
+
+### ready: `ready(result: b): Promise<c>`
+
+### load: `load(result: c): void`
+
 ## store?: {...}
 
 ### expiry: number = `3 * 3600* 1e3`

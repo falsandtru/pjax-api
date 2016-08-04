@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.2.0
+
+- Add a concurrency integration feature.
+
 ## 3.1.0
 
 - Change database names.
