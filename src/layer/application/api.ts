@@ -28,7 +28,7 @@ export function route(
     })
     .maybe<RouterResult>(
       () =>
-        Promise.resolve<RouterResultData>(Left(new ApplicationError(`Pjax is ignored by config.`))),
+        Promise.resolve<RouterResultData>(Left(new ApplicationError(`Disabled to use pjax by config.`))),
       config =>
         route_(
           new RouterEntity(

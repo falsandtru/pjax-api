@@ -30,19 +30,19 @@ export function xhr(
     void xhr.addEventListener("abort", () =>
       void handle(
         cancelable,
-        () => void resolve(Left(new DomainError(`XHR request is aborted.`))),
+        () => void resolve(Left(new DomainError(`Failed to request by abort.`))),
         err => void resolve(Left(err)))),
 
     void xhr.addEventListener("error", () =>
       void handle(
         cancelable,
-        () => void resolve(Left(new DomainError(`XHR request is failed.`))),
+        () => void resolve(Left(new DomainError(`Failed to request by error.`))),
         err => void resolve(Left(err)))),
 
     void xhr.addEventListener("timeout", () =>
       void handle(
         cancelable,
-        () => void resolve(Left(new DomainError(`XHR request is timeout.`))),
+        () => void resolve(Left(new DomainError(`Failed to request by timeout.`))),
         err => void resolve(Left(err)))),
 
     void xhr.addEventListener("load", () =>
@@ -69,7 +69,7 @@ export function verify(xhr: XMLHttpRequest): Either<Error, XMLHttpRequest> {
     .bind(xhr =>
       match(xhr.getResponseHeader('Content-Type'), ContentType)
         ? Right(xhr)
-        : Left((new DomainError(`XHR response content type is mismatched.`))));
+        : Left((new DomainError(`Faild to validate a content type of response.`))));
 }
 
 export function match(actualContentType: string | null, expectedContentType: string): boolean {

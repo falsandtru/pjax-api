@@ -20,7 +20,7 @@ export function route(
     document: Document;
   }
 ): Promise<void> {
-  void router.cast([], new InterfaceError(`Pjax is aborted.`));
+  void router.cast([], new InterfaceError(`Abort.`));
   void router.register([], e => {
     throw void state.cancelable.cancel(e);
   });

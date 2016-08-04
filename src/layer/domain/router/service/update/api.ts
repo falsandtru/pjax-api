@@ -48,7 +48,7 @@ export function update(
             void config.rewrite(doc.src, area, ''))
           .maybe(
             () =>
-              Promise.resolve(Left(new DomainError(''))),
+              Promise.resolve(Left(new DomainError(`Failed to separate areas.`))),
             () => (
               void window.dispatchEvent(new Event('pjax:unload')),
               config.sequence.unload(seq, { headers, document })
@@ -81,7 +81,7 @@ export function update(
           .modify(() =>
             content(doc, config.areas)
               .maybe<Promise<Either<Error, [{ src: Document; dst: Document; }, Event[]]>>>(
-                () => Promise.resolve(Left(new DomainError(''))),
+                () => Promise.resolve(Left(new DomainError(`Failed to update areas.`))),
                 p => p
                   .then(
                     cancelable.either,

@@ -21,7 +21,7 @@ export function route(
     .then<Either<Error, void>>(() =>
       match(window.document, entity.config.areas).take(1).read().length > 0
         ? entity.state.cancelable.either(void 0)
-        : Left(new DomainError(`Routing is failed.`)))
+        : Left(new DomainError(`Failed to match areas.`)))
     .then<Either<Error, [FetchValue, void]>>(m => m
       .bind(entity.state.cancelable.either)
       .fmap(() =>
