@@ -16,13 +16,13 @@ export class FetchValue {
         .filter(s => s.indexOf(separator) > 0)
         .map(s => [s.slice(0, s.indexOf(separator)).trim(), s.slice(s.indexOf(separator) + 1).trim()])
         .filter(([k]) => regHeaderName.test(k))
-        .reduce<{ [name: string]: string; }>((h, [k, v]) => (h[k] = v, h), this.headers);
+        .reduce<{ [field: string]: string; }>((h, [k, v]) => (h[k] = v, h), this.headers);
       void Object.freeze(this.headers);
       void Object.freeze(this);
     }
-    public readonly headers: { [name: string]: string; } = {};
+    public readonly headers: { [field: string]: string; } = {};
     public readonly document: Document = this.xhr.responseType === 'document'
-      ? this.xhr.responseXML
+      ? <Document>this.xhr.responseXML
       : parse(this.xhr.responseText).extract();
   }(this.xhr);
 }

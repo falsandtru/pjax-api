@@ -14,7 +14,7 @@ export function xhr(
     timeout: number;
     wait: number;
   },
-  cancelable: Cancelable<DomainError>
+  cancelable: Cancelable<Error>
 ): Promise<Either<Error, FetchValue>> {
   const xhr = new XMLHttpRequest();
   const wait = new Promise<void>(resolve => setTimeout(resolve, setting.wait));
@@ -50,8 +50,9 @@ export function xhr(
         cancelable,
         () =>
           void verify(xhr)
-            .fmap(xhr => void resolve(Right(new FetchValue(xhr))))
-            .extract(err => void resolve(Left(err))),
+            .either(
+              err => void resolve(Left(err)),
+              xhr => void resolve(Right(new FetchValue(xhr)))),
         err => void resolve(Left(err)))),
 
     void cancelable.listeners.add(() => void xhr.abort())))
@@ -59,8 +60,7 @@ export function xhr(
 
   function handle<e>(state: Cancelable<e>, done: () => void, fail: (e: e) => void): undefined {
     return void state.either(0)
-      .fmap(done)
-      .extract(fail);
+      .either(fail, done);
   }
 }
 

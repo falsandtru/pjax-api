@@ -26,15 +26,16 @@ export function route(
       orig: location.orig.pathname,
       dest: location.dest.pathname
     })
-    .fmap<RouterResult>(config =>
-      route_(
-        new RouterEntity(
-          new RouterEvent(event),
-          config,
-          new RouterEntity.State(state.script, state.cancelable)),
-        io))
-    .extract<RouterResult>(() =>
-      Promise.resolve<RouterResultData>(Left(new ApplicationError(`Pjax is ignored by config.`))));
+    .maybe<RouterResult>(
+      () =>
+        Promise.resolve<RouterResultData>(Left(new ApplicationError(`Pjax is ignored by config.`))),
+      config =>
+        route_(
+          new RouterEntity(
+            new RouterEvent(event),
+            config,
+            new RouterEntity.State(state.script, state.cancelable)),
+          io));
 }
 
 export * from './store/path';

@@ -41,9 +41,7 @@ export function pair<T>(srcs: T[], dsts: T[], compare: (a: T, b: T) => boolean):
     return srcs
       .reduce<Map<T | null, T[]>>((link, src) =>
         dsts.length === 0
-          ? (
-            void link.set(null, concat(link.get(null) || [], [src])),
-            link)
+          ? link.set(null, concat(link.get(null) || [], [src]))
           : dsts
             .reduce<Either<typeof link, typeof link>>((m, dst) =>
               m.bind(link =>
@@ -54,10 +52,10 @@ export function pair<T>(srcs: T[], dsts: T[], compare: (a: T, b: T) => boolean):
                     Left(link))
                   : Right(link))
             , Right(link))
-            .fmap<typeof link>(link => (
-              void link.set(null, concat(link.get(null) || [], [src])),
-              link))
-            .extract(link => link)
+            .fmap(link =>
+              link.set(null, concat(link.get(null) || [], [src])))
+            .extract(link =>
+              link)
       , new Map<T, T[]>());
   }
 }

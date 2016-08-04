@@ -38,8 +38,9 @@ export function route(
     .catch(e => (
       void router.terminate([]),
       void state.cancelable.maybe(0)
-        .fmap(() => (
-          void console.error(e),
-          void Promise.reject(config.fallback(<HTMLAnchorElement>event._currentTarget, e))))
-        .extract(() => 0)));
+        .maybe(
+          () => void 0,
+          () => (
+            void console.error(e),
+            void Promise.reject(config.fallback(<HTMLAnchorElement>event._currentTarget, e))))));
 }

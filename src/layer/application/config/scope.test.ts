@@ -5,7 +5,7 @@ import { Url } from '../../../lib/url';
 import { canonicalizeUrl } from '../../data/model/canonicalization/url';
 import { validateUrl } from '../../data/model/validation/url';
 
-describe('Unit: layer/app/config/scope', () => {
+describe('Unit: layer/application/config/scope', () => {
   describe('scope', () => {
     it('match', () => {
       assert.deepStrictEqual(

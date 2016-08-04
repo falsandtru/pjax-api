@@ -100,8 +100,9 @@ export function match(
     .bind(area =>
       Sequence.from(
         validate(document, area)
-          .fmap(area => [area])
-          .extract<string[]>(() => [])));
+          .maybe<string[]>(
+            () => [],
+            area => [area])));
 
   function validate(
     document: Document,
