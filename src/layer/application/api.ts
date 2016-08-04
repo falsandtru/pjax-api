@@ -26,7 +26,7 @@ export function route(
       orig: location.orig.pathname,
       dest: location.dest.pathname
     })
-    .maybe<RouterResult>(
+    .extract<RouterResult>(
       () =>
         Promise.resolve<RouterResultData>(Left(new ApplicationError(`Disabled to use pjax by config.`))),
       config =>

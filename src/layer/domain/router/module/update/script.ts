@@ -33,13 +33,14 @@ export function script(
   return new Promise<Either<Error, HTMLScriptElement[]>>((resolve, reject) => (
     void Promise.all(
       scripts
-        .reduce<Promise<Response>[]>((rs, script) =>
+        .reduce<Promise<Either<Error, Response>>[]>((rs, script) =>
           concat(rs, [io.request(script)])
         , []))
-      .then(cancelable.promise)
       .then(rs =>
         rs
-          .reduce<Either<Error, HTMLScriptElement[]>>(run, Right([])))
+          .reduce<Either<Error, HTMLScriptElement[]>>((acc, m) =>
+            m.bind(res => run(acc, res))
+          , Right([])))
       .then(resolve, reject)));
 
   function run(
@@ -47,6 +48,7 @@ export function script(
     response: Response
   ): Either<Error, HTMLScriptElement[]> {
     return state
+      .bind(cancelable.either)
       .bind<HTMLScriptElement[]>(scripts =>
         io.evaluate(response)
           .fmap(script => (
@@ -70,28 +72,28 @@ export function escape(script: HTMLScriptElement): () => undefined {
       : void 0);
 }
 
-function request(script: HTMLScriptElement): Promise<Response> {
+function request(script: HTMLScriptElement): Promise<Either<Error, Response>> {
   if (script.hasAttribute('src')) {
     const xhr = new XMLHttpRequest();
     void xhr.open('GET', script.src, true);
     void xhr.send();
-    return new Promise<Response>((resolve, reject) =>
+    return new Promise<Either<Error, Response>>(resolve =>
       ['load', 'abort', 'error', 'timeout']
         .forEach(type => {
           switch (type) {
             case 'load':
               return void xhr.addEventListener(
                 type,
-                () => void resolve([script, <string>xhr.response]));
+                () => void resolve(Right<Response>([script, <string>xhr.response])));
             default:
               return void xhr.addEventListener(
                 type,
-                event => void reject(event));
+                () => void resolve(Left(new Error(`${script.src}: ${xhr.statusText}`))));
           }
         }));
   }
   else {
-    return Promise.resolve<Response>([script, script.innerHTML]);
+    return Promise.resolve(Right<Response>([script, script.innerHTML]));
   }
 }
 export { request as _request }

@@ -52,14 +52,14 @@ export function hash(
     .bind<HTMLElement>(hash =>
       find(document, `#${hash}, [name="${hash}"]`)
         .reduce<Maybe<HTMLElement>>((m, el) =>
-          m.maybe(() => Just(el), Just)
+          m.extract(() => Just(el), Just)
         , Nothing))
     .fmap(el =>
       void io.scroll.call(
         window,
         window.pageXOffset,
         window.pageYOffset + el.getBoundingClientRect().top | 0))
-    .maybe(
+    .extract(
       () => false,
       () => true);
 }

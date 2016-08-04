@@ -17,7 +17,7 @@ export function route(
     document: Document;
   }
 ): RouterResult {
-  return entity.state.cancelable.promise(void 0)
+  return Promise.resolve()
     .then<Either<Error, void>>(() =>
       match(window.document, entity.config.areas).take(1).read().length > 0
         ? entity.state.cancelable.either(void 0)

@@ -38,7 +38,7 @@ export function route(
     .catch(e => (
       void router.terminate([]),
       void state.cancelable.maybe(void 0)
-        .maybe(
+        .extract(
           () => void 0,
           () => (
             void console.error(e),

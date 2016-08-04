@@ -100,7 +100,7 @@ export function match(
     .bind(area =>
       Sequence.from(
         validate(document, area)
-          .maybe<string[]>(
+          .extract<string[]>(
             () => [],
             area => [area])));
 

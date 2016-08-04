@@ -20,7 +20,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         },
         new Cancelable<Error>(),
         {
-          request: script => Promise.resolve<[HTMLScriptElement, string]>([script, '']),
+          request: script => Promise.resolve(Right<[HTMLScriptElement, string]>([script, ''])),
           evaluate: ([script]) => Right(script),
           log: () => true
         })
@@ -48,7 +48,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           request: script => {
             assert(++cnt === 1);
             assert(script.className === 'test');
-            return Promise.resolve<[HTMLScriptElement, string]>([script, '']);
+            return Promise.resolve(Right<[HTMLScriptElement, string]>([script, '']));
           },
           evaluate: ([script, code]) => {
             assert(++cnt === 3);
@@ -123,7 +123,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           request: script => {
             assert(++cnt === 1);
             assert(script.className === 'test');
-            return Promise.resolve<[HTMLScriptElement, string]>([script, '']);
+            return Promise.resolve(Right<[HTMLScriptElement, string]>([script, '']));
           },
           evaluate: ([]) => {
             assert(++cnt === 3);
@@ -160,7 +160,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           request: script => {
             assert(++cnt === 1);
             assert(script.className === 'test');
-            return Promise.resolve<[HTMLScriptElement, string]>([script, '']);
+            return Promise.resolve(Right<[HTMLScriptElement, string]>([script, '']));
           },
           evaluate: ([script]) => {
             assert(++cnt === NaN);
@@ -172,11 +172,11 @@ describe('Unit: layer/domain/router/module/update/script', () => {
             return true;
           }
         })
-        .catch(reason => {
+        .then(m => m.extract(err => {
           assert(++cnt === 2);
-          assert(reason instanceof Error);
+          assert(err instanceof Error);
           done();
-        });
+        }));
       cancelable.cancel(new Error());
     });
 
@@ -223,12 +223,14 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       const src = '/base/test/unit/fixture/throw.js';
       script.setAttribute('src', src);
       _request(script)
-        .then(([el, html]) => {
-          assert(el === script);
-          assert(el.getAttribute('src') === src);
-          assert(html === 'throw 0');
-          done();
-        });
+        .then(m => m
+          .fmap(([el, html]) => {
+            assert(el === script);
+            assert(el.getAttribute('src') === src);
+            assert(html === 'throw 0');
+            done();
+          })
+          .extract());
     });
 
     it('inline', done => {
@@ -236,12 +238,14 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       const code = 'alert';
       script.innerHTML = code;
       _request(script)
-        .then(([el, html]) => {
-          assert(el === script);
-          assert(el.innerHTML === html);
-          assert(html === code);
-          done();
-        });
+        .then(m => m
+          .fmap(([el, html]) => {
+            assert(el === script);
+            assert(el.innerHTML === html);
+            assert(html === code);
+            done();
+          })
+          .extract());
     });
 
   });

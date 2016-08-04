@@ -46,7 +46,7 @@ export function update(
         separate(doc, config.areas)
           .fmap(([area]) =>
             void config.rewrite(doc.src, area, ''))
-          .maybe(
+          .extract(
             () =>
               Promise.resolve(Left(new DomainError(`Failed to separate areas.`))),
             () => (
@@ -80,7 +80,7 @@ export function update(
               config.load.ignore))
           .modify(() =>
             content(doc, config.areas)
-              .maybe<Promise<Either<Error, [{ src: Document; dst: Document; }, Event[]]>>>(
+              .extract<Promise<Either<Error, [{ src: Document; dst: Document; }, Event[]]>>>(
                 () => Promise.resolve(Left(new DomainError(`Failed to update areas.`))),
                 p => p
                   .then(
@@ -137,12 +137,12 @@ export function update(
       .fmap(([p1, p2, p3]) =>
           Promise.all([p1, p2, p3])
             .then(([m1, m2, m3]) => (
-              void m1.bind(() => m2).bind(() => m3)
+              cancelable.either(void 0)
+                .bind(() => m1.bind(() => m2).bind(() => m3))
                 .fmap(seq => (
                   void window.dispatchEvent(new Event('pjax:load')),
                   void config.sequence.load(seq)))
-                .extract(e => e),
-              m3.bind(() => m2))))
+                .bind(() => m2))))
       .extract()))
     .head();
 }
