@@ -135,14 +135,14 @@ export function update(
     .modify(p => p.then(m => m
       .bind(cancelable.either)
       .fmap(([p1, p2, p3]) =>
-          Promise.all([p1, p2, p3])
-            .then(([m1, m2, m3]) => (
-              cancelable.either(void 0)
-                .bind(() => m1.bind(() => m2).bind(() => m3))
-                .fmap(seq => (
-                  void window.dispatchEvent(new Event('pjax:load')),
-                  void config.sequence.load(seq)))
-                .bind(() => m2))))
+        Promise.all([p1, p2, p3])
+          .then(([m1, m2, m3]) => (
+            cancelable.either(void 0)
+              .bind(() => m1.bind(() => m2).bind(() => m3))
+              .fmap(seq => (
+                void window.dispatchEvent(new Event('pjax:load')),
+                void config.sequence.load(seq)))
+              .bind(() => m2))))
       .extract()))
     .head();
 }
