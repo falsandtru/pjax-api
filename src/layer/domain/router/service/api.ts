@@ -25,7 +25,7 @@ export function route(
     .then<Either<Error, [FetchValue, void]>>(m => m
       .bind(entity.state.cancelable.either)
       .fmap(() =>
-        fetch(entity.event.request, entity.config.fetch, entity.config.sequence, entity.state.cancelable))
+        fetch(entity.event.request, entity.config, entity.state.cancelable))
       .extract(Left))
     .then(m => m
       .bind(entity.state.cancelable.either)

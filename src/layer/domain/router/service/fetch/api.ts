@@ -1,5 +1,5 @@
 import { Cancelable, Either, Left, HNil } from 'spica';
-import { Sequence } from 'pjax-api';
+import { RouterEntity } from '../../model/eav/entity';
 import { RouterEvent } from '../../../event/router';
 import { FetchValue } from '../../model/eav/value/fetch';
 import { xhr } from '../../module/fetch/xhr';
@@ -13,11 +13,10 @@ export function fetch(
     url,
     data,
   }: RouterEvent.Request,
-  setting: {
-    timeout: number;
-    wait: number;
-  },
-  sequence: Sequence<void, void, void>,
+  {
+    fetch: setting,
+    sequence
+  }: RouterEntity.Config,
   cancelable: Cancelable<Error>
 ): Promise<Result> {
   return new HNil()
