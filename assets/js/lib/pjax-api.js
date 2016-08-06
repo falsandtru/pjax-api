@@ -805,8 +805,9 @@ define('src/layer/domain/router/service/fetch/api', [
     'src/lib/url'
 ], function (require, exports, spica_5, xhr_1, url_6) {
     'use strict';
-    function fetch(_a, setting, sequence, cancelable) {
+    function fetch(_a, _b, cancelable) {
         var method = _a.method, url = _a.url, data = _a.data;
+        var setting = _b.fetch, sequence = _b.sequence;
         return new spica_5.HNil().push(xhr_1.xhr(method, url, data, setting, cancelable)).modify(function (p) {
             return void window.dispatchEvent(new Event('pjax:fetch')), sequence.fetch(void 0, {
                 host: '',
@@ -1551,7 +1552,7 @@ define('src/layer/domain/router/service/api', [
             return content_2.match(window.document, entity.config.areas).take(1).extract().length > 0 ? entity.state.cancelable.either(void 0) : spica_11.Left(new error_4.DomainError('Failed to match areas.'));
         }).then(function (m) {
             return m.bind(entity.state.cancelable.either).fmap(function () {
-                return api_1.fetch(entity.event.request, entity.config.fetch, entity.config.sequence, entity.state.cancelable);
+                return api_1.fetch(entity.event.request, entity.config, entity.state.cancelable);
             }).extract(spica_11.Left);
         }).then(function (m) {
             return m.bind(entity.state.cancelable.either).fmap(function (_a) {
