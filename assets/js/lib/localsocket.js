@@ -1,4 +1,4 @@
-/*! localsocket v0.4.3 https://github.com/falsandtru/localsocket | (c) 2016, falsandtru | MIT License */
+/*! localsocket v0.4.4 https://github.com/falsandtru/localsocket | (c) 2016, falsandtru | MIT License */
 define = typeof define === 'function' && define.amd
   ? define
   : (function () {
@@ -120,8 +120,6 @@ define('src/layer/domain/dao/module/builder', [
                 set: function (newVal) {
                     var oldVal = source[prop];
                     if (!values_1.isValidValue(source)(prop))
-                        return;
-                    if (newVal === oldVal && newVal instanceof Object === false)
                         return;
                     source[prop] = newVal === void 0 ? iniVal : newVal;
                     void update(prop, newVal, oldVal);

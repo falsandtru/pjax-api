@@ -1,4 +1,4 @@
-/*! spica v0.0.26 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.27 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 define = typeof define === 'function' && define.amd
   ? define
   : (function () {
@@ -1322,7 +1322,7 @@ define('src/lib/monad/sequence/member/static/from', [
     Object.defineProperty(exports, '__esModule', { value: true });
     exports.default = default_2;
 });
-define('src/lib/monad/sequence/member/static/write', [
+define('src/lib/monad/sequence/member/static/read', [
     'require',
     'exports',
     'src/lib/monad/sequence/core'
@@ -1333,7 +1333,7 @@ define('src/lib/monad/sequence/member/static/write', [
         function default_3() {
             _super.apply(this, arguments);
         }
-        default_3.write = function (as) {
+        default_3.read = function (as) {
             return new core_3.Sequence(function (_, cons) {
                 return as.length > 0 ? cons(as.shift(), as) : cons();
             });
@@ -1826,38 +1826,69 @@ define('src/lib/monad/sequence/member/static/mplus', [
     Object.defineProperty(exports, '__esModule', { value: true });
     exports.default = default_17;
 });
-define('src/lib/monad/sequence/member/instance/iterate', [
+define('src/lib/monad/sequence/member/instance/extract', [
     'require',
     'exports',
-    'src/lib/monad/sequence/core'
-], function (require, exports, core_18) {
+    'src/lib/monad/sequence/core',
+    'src/lib/concat'
+], function (require, exports, core_18, concat_3) {
     'use strict';
     var default_18 = function (_super) {
         __extends(default_18, _super);
         function default_18() {
             _super.apply(this, arguments);
         }
-        default_18.prototype.iterate = function () {
+        default_18.prototype.extract = function () {
+            var _this = this;
+            var acc = [];
+            var iter = function () {
+                return _this.iterate();
+            };
+            while (true) {
+                var thunk = iter();
+                if (!core_18.Sequence.isIterable(thunk))
+                    return acc;
+                void concat_3.concat(acc, [core_18.Sequence.Thunk.value(thunk)]);
+                iter = core_18.Sequence.Thunk.iterator(thunk);
+            }
+        };
+        return default_18;
+    }(core_18.Sequence);
+    Object.defineProperty(exports, '__esModule', { value: true });
+    exports.default = default_18;
+});
+define('src/lib/monad/sequence/member/instance/iterate', [
+    'require',
+    'exports',
+    'src/lib/monad/sequence/core'
+], function (require, exports, core_19) {
+    'use strict';
+    var default_19 = function (_super) {
+        __extends(default_19, _super);
+        function default_19() {
+            _super.apply(this, arguments);
+        }
+        default_19.prototype.iterate = function () {
             return this.iterate_();
         };
-        default_18.prototype.iterate_ = function (z, i) {
+        default_19.prototype.iterate_ = function (z, i) {
             var _this = this;
             if (i === void 0) {
                 i = 0;
             }
-            var data = this.memory ? this.memory.has(i) ? this.memory.get(i) : this.memory.set(i, this.cons(z, core_18.Sequence.Data.cons)).get(i) : this.cons(z, core_18.Sequence.Data.cons);
+            var data = this.memory ? this.memory.has(i) ? this.memory.get(i) : this.memory.set(i, this.cons(z, core_19.Sequence.Data.cons)).get(i) : this.cons(z, core_19.Sequence.Data.cons);
             switch (data.length) {
             case 0:
                 return [
                     void 0,
-                    core_18.Sequence.Iterator.done,
+                    core_19.Sequence.Iterator.done,
                     -1
                 ];
             case 1:
                 return [
                     data[0],
                     function () {
-                        return core_18.Sequence.Iterator.done();
+                        return core_19.Sequence.Iterator.done();
                     },
                     i
                 ];
@@ -1870,61 +1901,30 @@ define('src/lib/monad/sequence/member/instance/iterate', [
                     i
                 ];
             default:
-                throw core_18.Sequence.Exception.invalidDataError(data);
+                throw core_19.Sequence.Exception.invalidDataError(data);
             }
-        };
-        return default_18;
-    }(core_18.Sequence);
-    Object.defineProperty(exports, '__esModule', { value: true });
-    exports.default = default_18;
-});
-define('src/lib/monad/sequence/member/instance/memoize', [
-    'require',
-    'exports',
-    'src/lib/monad/sequence/core'
-], function (require, exports, core_19) {
-    'use strict';
-    var default_19 = function (_super) {
-        __extends(default_19, _super);
-        function default_19() {
-            _super.apply(this, arguments);
-        }
-        default_19.prototype.memoize = function (memory) {
-            if (memory === void 0) {
-                memory = this.memory || new Map();
-            }
-            return new core_19.Sequence(this.cons, this.memory || memory);
         };
         return default_19;
     }(core_19.Sequence);
     Object.defineProperty(exports, '__esModule', { value: true });
     exports.default = default_19;
 });
-define('src/lib/monad/sequence/member/instance/read', [
+define('src/lib/monad/sequence/member/instance/memoize', [
     'require',
     'exports',
-    'src/lib/monad/sequence/core',
-    'src/lib/concat'
-], function (require, exports, core_20, concat_3) {
+    'src/lib/monad/sequence/core'
+], function (require, exports, core_20) {
     'use strict';
     var default_20 = function (_super) {
         __extends(default_20, _super);
         function default_20() {
             _super.apply(this, arguments);
         }
-        default_20.prototype.read = function () {
-            var _this = this;
-            var acc = [];
-            var iter = function () {
-                return _this.iterate();
-            };
-            while (true) {
-                var thunk = iter();
-                if (!core_20.Sequence.isIterable(thunk))
-                    return acc;
-                void concat_3.concat(acc, [core_20.Sequence.Thunk.value(thunk)]);
-                iter = core_20.Sequence.Thunk.iterator(thunk);
+        default_20.prototype.memoize = function (memory) {
+            if (memory === void 0) {
+                memory = this.memory || new Map();
             }
+            return new core_20.Sequence(this.cons, this.memory || memory);
         };
         return default_20;
     }(core_20.Sequence);
@@ -2182,7 +2182,7 @@ define('src/lib/monad/sequence/member/instance/mapM', [
         default_29.prototype.mapM = function (f) {
             var _this = this;
             return core_29.Sequence.from([0]).bind(function () {
-                var xs = _this.read();
+                var xs = _this.extract();
                 switch (xs.length) {
                 case 0:
                     return core_29.Sequence.mempty;
@@ -2217,7 +2217,7 @@ define('src/lib/monad/sequence/member/instance/filterM', [
         default_30.prototype.filterM = function (f) {
             var _this = this;
             return core_30.Sequence.from([0]).bind(function () {
-                var xs = _this.read();
+                var xs = _this.extract();
                 switch (xs.length) {
                 case 0:
                     return core_30.Sequence.from([[]]);
@@ -2460,7 +2460,7 @@ define('src/lib/monad/sequence/member/instance/permutations', [
         default_37.prototype.permutations = function () {
             var _this = this;
             return core_37.Sequence.from([0]).bind(function () {
-                var xs = _this.read();
+                var xs = _this.extract();
                 return xs.length === 0 ? core_37.Sequence.mempty : core_37.Sequence.from([xs]);
             }).bind(function (xs) {
                 return core_37.Sequence.mappend(core_37.Sequence.from([xs]), perms(core_37.Sequence.from(xs), core_37.Sequence.mempty));
@@ -2502,7 +2502,7 @@ define('src/lib/monad/sequence/member/instance/permutations', [
                                 }, core_37.Sequence.resume(core_37.Sequence.Thunk.iterator(yt)), r), us = _a[0], zs = _a[1];
                             return [
                                 core_37.Sequence.mappend(core_37.Sequence.from([y]), us),
-                                core_37.Sequence.mappend(core_37.Sequence.from([f(core_37.Sequence.mappend(core_37.Sequence.from([t]), core_37.Sequence.mappend(core_37.Sequence.from([y]), us))).read()]), zs)
+                                core_37.Sequence.mappend(core_37.Sequence.from([f(core_37.Sequence.mappend(core_37.Sequence.from([t]), core_37.Sequence.mappend(core_37.Sequence.from([y]), us))).extract()]), zs)
                             ];
                         });
                     }
@@ -2605,7 +2605,7 @@ define('src/lib/monad/sequence', [
     'src/lib/monad/sequence/core',
     'src/lib/monad/sequence/member/static/resume',
     'src/lib/monad/sequence/member/static/from',
-    'src/lib/monad/sequence/member/static/write',
+    'src/lib/monad/sequence/member/static/read',
     'src/lib/monad/sequence/member/static/cycle',
     'src/lib/monad/sequence/member/static/random',
     'src/lib/monad/sequence/member/static/concat',
@@ -2620,9 +2620,9 @@ define('src/lib/monad/sequence', [
     'src/lib/monad/sequence/member/static/mappend',
     'src/lib/monad/sequence/member/static/mzero',
     'src/lib/monad/sequence/member/static/mplus',
+    'src/lib/monad/sequence/member/instance/extract',
     'src/lib/monad/sequence/member/instance/iterate',
     'src/lib/monad/sequence/member/instance/memoize',
-    'src/lib/monad/sequence/member/instance/read',
     'src/lib/monad/sequence/member/instance/take',
     'src/lib/monad/sequence/member/instance/drop',
     'src/lib/monad/sequence/member/instance/takeWhile',
@@ -2641,10 +2641,10 @@ define('src/lib/monad/sequence', [
     'src/lib/monad/sequence/member/instance/subsequences',
     'src/lib/monad/sequence/member/instance/permutations',
     'src/lib/compose'
-], function (require, exports, core_38, resume_1, from_1, write_1, cycle_1, random_1, concat_9, zip_1, difference_1, union_1, intersect_1, pure_1, return_1, mempty_1, mconcat_1, mappend_1, mzero_1, mplus_1, iterate_1, memoize_1, read_1, take_1, drop_1, takeWhile_1, dropWhile_1, takeUntil_1, dropUntil_1, fmap_1, bind_1, mapM_1, filterM_1, map_1, filter_1, scan_1, fold_1, group_1, subsequences_1, permutations_1, compose_1) {
+], function (require, exports, core_38, resume_1, from_1, read_1, cycle_1, random_1, concat_9, zip_1, difference_1, union_1, intersect_1, pure_1, return_1, mempty_1, mconcat_1, mappend_1, mzero_1, mplus_1, extract_1, iterate_1, memoize_1, take_1, drop_1, takeWhile_1, dropWhile_1, takeUntil_1, dropUntil_1, fmap_1, bind_1, mapM_1, filterM_1, map_1, filter_1, scan_1, fold_1, group_1, subsequences_1, permutations_1, compose_1) {
     'use strict';
     exports.Sequence = core_38.Sequence;
-    compose_1.compose(core_38.Sequence, resume_1.default, from_1.default, write_1.default, cycle_1.default, random_1.default, concat_9.default, zip_1.default, difference_1.default, union_1.default, intersect_1.default, pure_1.default, return_1.default, mempty_1.default, mconcat_1.default, mappend_1.default, mzero_1.default, mplus_1.default, iterate_1.default, memoize_1.default, read_1.default, take_1.default, drop_1.default, takeWhile_1.default, dropWhile_1.default, takeUntil_1.default, dropUntil_1.default, fmap_1.default, bind_1.default, mapM_1.default, filterM_1.default, map_1.default, filter_1.default, scan_1.default, fold_1.default, group_1.default, subsequences_1.default, permutations_1.default);
+    compose_1.compose(core_38.Sequence, resume_1.default, from_1.default, read_1.default, cycle_1.default, random_1.default, concat_9.default, zip_1.default, difference_1.default, union_1.default, intersect_1.default, pure_1.default, return_1.default, mempty_1.default, mconcat_1.default, mappend_1.default, mzero_1.default, mplus_1.default, extract_1.default, iterate_1.default, memoize_1.default, take_1.default, drop_1.default, takeWhile_1.default, dropWhile_1.default, takeUntil_1.default, dropUntil_1.default, fmap_1.default, bind_1.default, mapM_1.default, filterM_1.default, map_1.default, filter_1.default, scan_1.default, fold_1.default, group_1.default, subsequences_1.default, permutations_1.default);
 });
 define('src/lib/flip', [
     'require',

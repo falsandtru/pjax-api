@@ -272,7 +272,7 @@ define('src/layer/application/config/scope', [
             return config.scope[pattern];
         }).map(function (option) {
             return option ? spica_2.Just(new config_1.Config(spica_2.extend({}, config, option))) : spica_2.Nothing;
-        }).read().reduce(function (_, m) {
+        }).extract().reduce(function (_, m) {
             return m;
         }, spica_2.Nothing);
     }
@@ -293,8 +293,8 @@ define('src/layer/application/config/scope', [
             return spica_2.Sequence.zip(spica_2.Sequence.from(path), spica_2.Sequence.from(pattern)).takeWhile(function (_a) {
                 var s = _a[0], p = _a[1];
                 return match(s, p);
-            }).read().length === pattern.length;
-        }).take(1).read().length > 0;
+            }).extract().length === pattern.length;
+        }).take(1).extract().length > 0;
     }
     exports.compare = compare;
     function expand(pattern) {
@@ -302,7 +302,7 @@ define('src/layer/application/config/scope', [
             return p[0] === '{' ? p.slice(1, -1).split(',') : [p];
         })).mapM(spica_2.Sequence.from).map(function (ps) {
             return ps.join('');
-        }).read();
+        }).extract();
     }
     exports.expand = expand;
     function match(segment, pattern) {
@@ -351,7 +351,7 @@ define('src/layer/application/config/scope', [
             return s;
         }).take(1).filter(function (s) {
             return s === segment;
-        }).read().length > 0;
+        }).extract().length > 0;
     }
     exports.match = match;
 });
@@ -786,7 +786,7 @@ define('src/layer/domain/router/module/fetch/xhr', [
     function match(actualContentType, expectedContentType) {
         return spica_4.Sequence.intersect(spica_4.Sequence.from(parse(actualContentType || '').sort()), spica_4.Sequence.from(parse(expectedContentType).sort()), function (a, b) {
             return a.localeCompare(b);
-        }).take(1).read().length > 0;
+        }).take(1).extract().length > 0;
     }
     exports.match = match;
     function parse(headerValue) {
@@ -1548,7 +1548,7 @@ define('src/layer/domain/router/service/api', [
     exports.RouterEntity = entity_1.RouterEntity;
     function route(entity, io) {
         return Promise.resolve().then(function () {
-            return content_2.match(window.document, entity.config.areas).take(1).read().length > 0 ? entity.state.cancelable.either(void 0) : spica_11.Left(new error_4.DomainError('Failed to match areas.'));
+            return content_2.match(window.document, entity.config.areas).take(1).extract().length > 0 ? entity.state.cancelable.either(void 0) : spica_11.Left(new error_4.DomainError('Failed to match areas.'));
         }).then(function (m) {
             return m.bind(entity.state.cancelable.either).fmap(function () {
                 return api_1.fetch(entity.event.request, entity.config.fetch, entity.config.sequence, entity.state.cancelable);
