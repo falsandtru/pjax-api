@@ -59,6 +59,19 @@ new window['pjax-api'].Pjax({
 <div class="row">
 
 <div class="col-md-4">
+## Browser
+
+pjax-api needs es6 support or its polyfills.
+Another, pjax-api does not work on some browsers because of incompleteness of polyfills that used for demos.
+So if you want to use pjax-api on more many browsers, you need to use another polyfills.
+
+- Chrome
+- Firefox
+- Safari
+- Edge
+</div>
+
+<div class="col-md-4">
 ## License
 
 [GPL-2.0](https://github.com/falsandtru/pjax-api#license)
@@ -68,9 +81,6 @@ new window['pjax-api'].Pjax({
 ## Source
 
 [GitHub: pjax-api](https://github.com/falsandtru/pjax-api)
-</div>
-
-<div class="col-md-4">
 </div>
 
 </div>
