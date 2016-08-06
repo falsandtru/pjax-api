@@ -24,7 +24,12 @@ export function update(
     config,
     state
   }: RouterEntity,
-  {response: {headers, document}}: FetchValue,
+  {
+    response: {
+      headers,
+      document
+    }
+  }: FetchValue,
   seq: Seq,
   io: {
     document: Document;
