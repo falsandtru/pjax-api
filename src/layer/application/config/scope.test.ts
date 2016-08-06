@@ -163,7 +163,7 @@ describe('Unit: layer/application/config/scope', () => {
         Sequence.from(['a', 'b', 'c'])
           .permutations())
         .map(subs => subs.join(''))
-        .read()
+        .extract()
         .forEach(subs =>
           assert(match(subs, 'abc') === (subs === 'abc')));
     });

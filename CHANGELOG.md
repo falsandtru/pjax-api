@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.2.1
+
+- Update dependencies.
+
 ## 3.2.0
 
 - Add a concurrency integration feature.

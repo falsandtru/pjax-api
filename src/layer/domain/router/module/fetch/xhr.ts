@@ -80,7 +80,7 @@ export function match(actualContentType: string | null, expectedContentType: str
       Sequence.from(parse(expectedContentType).sort()),
       (a, b) => a.localeCompare(b))
     .take(1)
-    .read()
+    .extract()
     .length > 0;
 }
 

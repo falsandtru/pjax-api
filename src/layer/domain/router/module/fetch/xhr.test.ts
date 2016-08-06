@@ -82,7 +82,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
       Sequence.from(['text/html', 'text/html'])
         .mapM(type =>
           Sequence.from([type, type + ';']))
-        .read()
+        .extract()
         .forEach(([a, b]) =>
           assert(match(a, b)));
 
@@ -91,7 +91,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
         .bind(types =>
           Sequence.from([types[0], types.join('; ')])
             .permutations())
-        .read()
+        .extract()
         .forEach(([a, b]) =>
           assert(match(a, b)));
     });
@@ -101,7 +101,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
         .mapM(type =>
           Sequence.from([null, '', type, type + ';']))
         .filter(types => !types.every(type => !type))
-        .read()
+        .extract()
         .forEach(([a, b]) =>
           assert(!match(a, b || '')));
     });

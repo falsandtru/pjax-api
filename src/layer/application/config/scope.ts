@@ -24,7 +24,7 @@ export function scope(
       option
         ? Just(new Config(extend<Option>({}, config, option)))
         : Nothing)
-    .read()
+    .extract()
     .reduce((_, m) => m, Nothing);
 }
 
@@ -44,10 +44,10 @@ export function compare(path: Url.Pathname<CanonicalUrl>, pattern: string): bool
           Sequence.from(path),
           Sequence.from(pattern))
         .takeWhile(([s, p]) => match(s, p))
-        .read()
+        .extract()
         .length === pattern.length)
     .take(1)
-    .read()
+    .extract()
     .length > 0;
 }
 
@@ -61,7 +61,7 @@ export function expand(pattern: string): string[] {
             : [p]))
     .mapM(Sequence.from)
     .map(ps => ps.join(''))
-    .read();
+    .extract();
 }
 
 export function match(segment: string, pattern: string): boolean {
@@ -87,6 +87,6 @@ export function match(segment: string, pattern: string): boolean {
     .map(([s]) => s)
     .take(1)
     .filter(s => s === segment)
-    .read()
+    .extract()
     .length > 0;
 }
