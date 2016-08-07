@@ -1,6 +1,5 @@
 import { Cancelable, Either, Left, HNil } from 'spica';
 import { RouterEntity } from '../../model/eav/entity';
-import { RouterEvent } from '../../../event/router';
 import { FetchValue } from '../../model/eav/value/fetch';
 import { xhr } from '../../module/fetch/xhr';
 import { Url } from '../../../../../lib/url';
@@ -12,7 +11,7 @@ export function fetch(
     method,
     url,
     data,
-  }: RouterEvent.Request,
+  }: RouterEntity.Event.Request,
   {
     fetch: setting,
     sequence

@@ -14,7 +14,7 @@ export class RouterEntity {
 }
 
 export namespace RouterEntity {
-  export type Event = RouterEvent;
+  export import Event = RouterEvent;
   export type Config = RouterConfig;
   export class State {
     constructor(
