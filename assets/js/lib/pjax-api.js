@@ -539,8 +539,9 @@ define('src/layer/domain/event/router', [
 });
 define('src/layer/domain/router/model/eav/entity', [
     'require',
-    'exports'
-], function (require, exports) {
+    'exports',
+    'src/layer/domain/event/router'
+], function (require, exports, router_1) {
     'use strict';
     var RouterEntity = function () {
         function RouterEntity(event, config, state) {
@@ -554,6 +555,7 @@ define('src/layer/domain/router/model/eav/entity', [
     exports.RouterEntity = RouterEntity;
     var RouterEntity;
     (function (RouterEntity) {
+        RouterEntity.Event = router_1.RouterEvent;
         var State = function () {
             function State(script, cancelable) {
                 this.script = script;
@@ -861,8 +863,8 @@ define('src/layer/domain/router/module/update/blur', [
 define('src/layer/domain/router/module/update/url', [
     'require',
     'exports',
-    'src/layer/domain/event/router'
-], function (require, exports, router_1) {
+    'src/layer/domain/router/model/eav/entity'
+], function (require, exports, entity_1) {
     'use strict';
     function url(location, title, type, source, replaceable) {
         switch (true) {
@@ -879,10 +881,10 @@ define('src/layer/domain/router/module/update/url', [
         if (location.orig.href === location.dest.href)
             return false;
         switch (type) {
-        case router_1.RouterEvent.Type.click:
-        case router_1.RouterEvent.Type.submit:
+        case entity_1.RouterEntity.Event.Type.click:
+        case entity_1.RouterEntity.Event.Type.submit:
             return true;
-        case router_1.RouterEvent.Type.popstate:
+        case entity_1.RouterEntity.Event.Type.popstate:
             return false;
         default:
             throw new TypeError(type);
@@ -891,10 +893,10 @@ define('src/layer/domain/router/module/update/url', [
     exports._isRegisterable = isRegisterable;
     function isReplaceable(type, source, selector) {
         switch (type) {
-        case router_1.RouterEvent.Type.click:
-        case router_1.RouterEvent.Type.submit:
+        case entity_1.RouterEntity.Event.Type.click:
+        case entity_1.RouterEntity.Event.Type.submit:
             return source.matches(selector.trim() || '_');
-        case router_1.RouterEvent.Type.popstate:
+        case entity_1.RouterEntity.Event.Type.popstate:
             return false;
         default:
             throw new TypeError(type);
@@ -1279,12 +1281,12 @@ define('src/layer/domain/router/module/update/scroll', [
     'require',
     'exports',
     'spica',
-    'src/layer/domain/event/router',
+    'src/layer/domain/router/model/eav/entity',
     'src/lib/url',
     'src/layer/data/model/canonicalization/url',
     'src/layer/data/model/validation/url',
     'src/lib/dom'
-], function (require, exports, spica_9, router_2, url_9, url_10, url_11, dom_8) {
+], function (require, exports, spica_9, entity_2, url_9, url_10, url_11, dom_8) {
     'use strict';
     function scroll(type, document, target, io) {
         if (io === void 0) {
@@ -1300,11 +1302,11 @@ define('src/layer/domain/router/module/update/scroll', [
             };
         }
         switch (type) {
-        case router_2.RouterEvent.Type.click:
+        case entity_2.RouterEntity.Event.Type.click:
             return void (io.hash(document, target.hash, io) || scroll(target));
-        case router_2.RouterEvent.Type.submit:
+        case entity_2.RouterEntity.Event.Type.submit:
             return void scroll(target);
-        case router_2.RouterEvent.Type.popstate:
+        case entity_2.RouterEntity.Event.Type.popstate:
             return void scroll(io.position(new url_9.Url(url_10.canonicalizeUrl(url_11.validateUrl(window.location.href))).path));
         default:
             throw new TypeError(type);
@@ -1544,9 +1546,9 @@ define('src/layer/domain/router/service/api', [
     'src/layer/domain/router/module/update/content',
     'src/layer/domain/store/path',
     'src/layer/domain/data/error'
-], function (require, exports, spica_11, entity_1, api_1, api_2, content_2, path_4, error_4) {
+], function (require, exports, spica_11, entity_3, api_1, api_2, content_2, path_4, error_4) {
     'use strict';
-    exports.RouterEntity = entity_1.RouterEntity;
+    exports.RouterEntity = entity_3.RouterEntity;
     function route(entity, io) {
         return Promise.resolve().then(function () {
             return content_2.match(window.document, entity.config.areas).take(1).extract().length > 0 ? entity.state.cancelable.either(void 0) : spica_11.Left(new error_4.DomainError('Failed to match areas.'));
@@ -1617,7 +1619,7 @@ define('src/layer/application/api', [
     'src/layer/application/data/error',
     'src/layer/application/store/path',
     'src/layer/domain/router/module/fetch/html'
-], function (require, exports, spica_12, config_2, scope_1, router_3, api_4, error_6, path_6, html_2) {
+], function (require, exports, spica_12, config_2, scope_1, router_2, api_4, error_6, path_6, html_2) {
     'use strict';
     function __export(m) {
         for (var p in m)
@@ -1626,14 +1628,14 @@ define('src/layer/application/api', [
     }
     exports.Config = config_2.Config;
     function route(config, event, state, io) {
-        var location = new router_3.RouterEvent(event).location;
+        var location = new router_2.RouterEvent(event).location;
         return scope_1.scope(config, {
             orig: location.orig.pathname,
             dest: location.dest.pathname
         }).extract(function () {
             return Promise.resolve(spica_12.Left(new error_6.ApplicationError('Disabled to use pjax by config.')));
         }, function (config) {
-            return api_4.route(new api_4.RouterEntity(new router_3.RouterEvent(event), config, new api_4.RouterEntity.State(state.script, state.cancelable)), io);
+            return api_4.route(new api_4.RouterEntity(new router_2.RouterEvent(event), config, new api_4.RouterEntity.State(state.script, state.cancelable)), io);
         });
     }
     exports.route = route;
@@ -1918,7 +1920,7 @@ define('src/layer/interface/service/gui', [
     'src/layer/application/api',
     'src/lib/dom',
     '../service/state/scroll-restoration'
-], function (require, exports, spica_20, api_6, url_22, url_23, url_24, click_1, submit_1, navigation_1, scroll_2, initialization_1, url_25, script_3, router_4, api_7, dom_14) {
+], function (require, exports, spica_20, api_6, url_22, url_23, url_24, click_1, submit_1, navigation_1, scroll_2, initialization_1, url_25, script_3, router_3, api_7, dom_14) {
     'use strict';
     var router = new (function (_super) {
         __extends(class_7, _super);
@@ -1943,7 +1945,7 @@ define('src/layer/interface/service/gui', [
                         return !!!hasModifierKey(event) && isAccessible(url) && !isHashChange(url) && _this.config.filter(event._currentTarget) ? spica_20.Just(0) : spica_20.Nothing;
                     }).fmap(function () {
                         return void event.preventDefault(), initialization_1.initialization.then(function () {
-                            return router_4.route(_this.config, event, {
+                            return router_3.route(_this.config, event, {
                                 router: router,
                                 script: script_3.script,
                                 cancelable: new spica_20.Cancelable()
@@ -1959,7 +1961,7 @@ define('src/layer/interface/service/gui', [
                         return !!!hasModifierKey(event) && isAccessible(url) ? spica_20.Just(0) : spica_20.Nothing;
                     }).fmap(function () {
                         return void event.preventDefault(), initialization_1.initialization.then(function () {
-                            return router_4.route(_this.config, event, {
+                            return router_3.route(_this.config, event, {
                                 router: router,
                                 script: script_3.script,
                                 cancelable: new spica_20.Cancelable()
@@ -1975,7 +1977,7 @@ define('src/layer/interface/service/gui', [
                         return !!isAccessible(url) && !isHashChange(url) ? spica_20.Just(api_7.loadTitle(url.path)) : spica_20.Nothing;
                     }).fmap(function (title) {
                         return title ? io.document.title = title : void 0, initialization_1.initialization.then(function () {
-                            return router_4.route(_this.config, event, {
+                            return router_3.route(_this.config, event, {
                                 router: router,
                                 script: script_3.script,
                                 cancelable: new spica_20.Cancelable()
@@ -2004,7 +2006,7 @@ define('src/layer/interface/service/gui', [
             }
             return void click(url).then(function (event) {
                 return initialization_1.initialization.then(function () {
-                    return router_4.route(new api_6.Config(option), event, {
+                    return router_3.route(new api_6.Config(option), event, {
                         router: router,
                         script: script_3.script,
                         cancelable: new spica_20.Cancelable()
@@ -2018,7 +2020,7 @@ define('src/layer/interface/service/gui', [
             }
             return void click(url).then(function (event) {
                 return initialization_1.initialization.then(function () {
-                    return router_4.route(new api_6.Config(spica_20.extend({}, option, { replace: '*' })), event, {
+                    return router_3.route(new api_6.Config(spica_20.extend({}, option, { replace: '*' })), event, {
                         router: router,
                         script: script_3.script,
                         cancelable: new spica_20.Cancelable()
