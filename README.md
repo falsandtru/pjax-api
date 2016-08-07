@@ -62,8 +62,6 @@ new Pjax({
 ## Browser
 
 pjax-api needs es6 support or its polyfills.
-Another, pjax-api does not work on some browsers because of incompleteness of polyfills that used for demos.
-So if you want to use pjax-api on more many browsers, you need to use another polyfills.
 
 - Chrome
 - Firefox
