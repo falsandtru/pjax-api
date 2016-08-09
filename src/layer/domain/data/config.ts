@@ -11,9 +11,7 @@ export class Config implements Option {
   public readonly link = 'a:not([target])';
   public filter(el: HTMLAnchorElement): boolean {
     if (typeof el.href !== 'string') return false;
-    const dest = new Url(el.href);
-    return /^https?:$/.test(dest.protocol)
-        && /^$|\.(html?|php)$/.test(dest.file);
+    return /^https?:$/.test(new Url(el.href).protocol);
   }
   public readonly form = 'form:not([method])';
   public readonly replace = '';

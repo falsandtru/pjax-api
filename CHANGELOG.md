@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.2.2
+
+- Fix the Config.filter option's default implementation.
+
 ## 3.2.1
 
 - Update dependencies.
