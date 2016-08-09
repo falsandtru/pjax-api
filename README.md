@@ -33,7 +33,7 @@ The second generation PJAX for advanced web framework.
 
 ## Demo
 
-- <a href="http://falsandtru.github.io/pjax-api/demo/basic/1.html" target="_blank">Basic</a>
+- [Basic](http://falsandtru.github.io/pjax-api/demo/basic/1.html)
 
 ## Usage
 
@@ -55,12 +55,12 @@ new Pjax({
 });
 ```
 
-- <a href="https://github.com/falsandtru/localsocket" target="_blank">localsocket</a>
-- <a href="https://github.com/falsandtru/spica" target="_blank">spica</a>
+- [localsocket](https://github.com/falsandtru/localsocket)
+- [spica](https://github.com/falsandtru/spica)
 
 ## Document
 
-<a href="http://falsandtru.github.io/pjax-api" target="_blank">pjax-api</a>
+[pjax-api](http://falsandtru.github.io/pjax-api)
 
 ## Browser
 
