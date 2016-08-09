@@ -55,6 +55,9 @@ new Pjax({
 });
 ```
 
+- <a href="https://github.com/falsandtru/localsocket" target="_blank">localsocket</a>
+- <a href="https://github.com/falsandtru/spica" target="_blank">spica</a>
+
 ## Document
 
 <a href="http://falsandtru.github.io/pjax-api" target="_blank">pjax-api</a>
