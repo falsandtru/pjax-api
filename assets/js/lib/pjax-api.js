@@ -191,8 +191,7 @@ define('src/layer/domain/data/config', [
         Config.prototype.filter = function (el) {
             if (typeof el.href !== 'string')
                 return false;
-            var dest = new url_1.Url(el.href);
-            return /^https?:$/.test(dest.protocol) && /^$|\.(html?|php)$/.test(dest.file);
+            return /^https?:$/.test(new url_1.Url(el.href).protocol);
         };
         Config.prototype.rewrite = function (_doc, _area, _host) {
         };
