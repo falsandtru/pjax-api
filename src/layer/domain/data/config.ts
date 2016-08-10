@@ -21,7 +21,7 @@ export class Config implements Option {
   };
   public rewrite(_doc: Document, _area: string, _host: string): void {
   }
-  public readonly load = {
+  public readonly update = {
     head: 'base, meta, link',
     css: true,
     script: true,

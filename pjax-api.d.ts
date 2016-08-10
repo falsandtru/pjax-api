@@ -24,7 +24,7 @@
       readonly wait?: number;
     };
     readonly rewrite?: (doc: Document, area: string, host: string) => void;
-    readonly load?: {
+    readonly update?: {
       readonly head?: string;
       readonly css?: boolean;
       readonly script?: boolean;

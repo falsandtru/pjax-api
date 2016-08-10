@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.3.0
+
+- Rename a config item `load` to `update`.
+
 ## 3.2.2
 
 - Fix the Config.filter option's default implementation.

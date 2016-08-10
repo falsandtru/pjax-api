@@ -58,7 +58,7 @@ Rewrite a source document object.
   }
 ```
 
-## load?: {...}
+## update?: {...}
 
 ### head: string = `'base, meta, link'`
 

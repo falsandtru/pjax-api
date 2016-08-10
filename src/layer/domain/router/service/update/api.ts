@@ -81,8 +81,8 @@ export function update(
                 src: doc.src.head,
                 dst: doc.dst.head
               },
-              config.load.head,
-              config.load.ignore))
+              config.update.head,
+              config.update.ignore))
           .modify(() =>
             content(doc, config.areas)
               .extract<Promise<Either<Error, [{ src: Document; dst: Document; }, Event[]]>>>(
@@ -92,22 +92,22 @@ export function update(
                     cancelable.either,
                     e => Left<Error>(e instanceof Error ? e : new Error(e)))))
           .extend(() =>
-            config.load.css
+            config.update.css
               ? void css(
                 {
                   src: doc.src.head,
                   dst: doc.dst.head
                 },
-                config.load.ignore)
+                config.update.ignore)
               : void 0)
           .modify(() =>
-            config.load.css
+            config.update.css
               ? void css(
                 {
                   src: <HTMLBodyElement>doc.src.body,
                   dst: <HTMLBodyElement>doc.dst.body
                 },
-                config.load.ignore)
+                config.update.ignore)
               : void 0)
           .modify(() =>
             void focus(doc.dst))
@@ -124,8 +124,8 @@ export function update(
                 position: io.position
               }))
           .modify(() =>
-            config.load.script
-              ? script(doc, state.script, config.load, cancelable)
+            config.update.script
+              ? script(doc, state.script, config.update, cancelable)
               : Promise.resolve<Either<Error, HTMLScriptElement[]>>(cancelable.either([])))
           .extend(() => (
             void io.document.dispatchEvent(new Event('pjax:ready')),
