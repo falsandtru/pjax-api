@@ -72,6 +72,9 @@ Switch css auto sync.
 
 Switch script auto load.
 
+External scripts will be run once per url.
+Inline scripts will be run everytime.
+
 ### ignore: string = `'[href^="chrome-extension://"]'`
 
 Set ignore targets for head, css and script.
