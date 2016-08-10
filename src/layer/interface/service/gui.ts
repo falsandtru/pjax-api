@@ -98,7 +98,7 @@ export class GUI {
         [],
         new NavigationView(window, event =>
           void Just(new Url(canonicalizeUrl(validateUrl(window.location.href))))
-            .bind<string>(url =>
+            .bind(url =>
               !! isAccessible(url)
               && !isHashChange(url)
                 ? Just(loadTitle(url.path))

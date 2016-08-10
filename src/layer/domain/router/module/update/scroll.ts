@@ -48,8 +48,8 @@ export function hash(
   }
 ): boolean {
   return Just(hash.split('#').pop() || '')
-    .bind<string>(hash => hash.length > 0 ? Just(hash) : Nothing)
-    .bind<HTMLElement>(hash =>
+    .bind(hash => hash.length > 0 ? Just(hash) : Nothing)
+    .bind(hash =>
       find(document, `#${hash}, [name="${hash}"]`)
         .reduce<Maybe<HTMLElement>>((m, el) =>
           m.extract(() => Just(el), Just)

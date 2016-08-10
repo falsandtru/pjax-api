@@ -29,7 +29,7 @@
     "del": "^2.2.1",
     "extend": "^3.0.0",
     "gulp": "^3.9.1",
-    "gulp-header": "1.8.7",
+    "gulp-header": "1.8.8",
     "gulp-load-plugins": "^1.2.4",
     "gulp-mocha": "^3.0.0",
     "gulp-rename": "^1.2.2",
@@ -52,9 +52,9 @@
     "power-assert": "^1.4.1",
     "run-sequence": "^1.2.2",
     "semver": "^5.3.0",
-    "spica": "0.0.27",
+    "spica": "0.0.28",
     "typed-dom": "0.0.7",
-    "typescript": "2.1.0-dev.20160804"
+    "typescript": "2.1.0-dev.20160809"
   },
   "scripts": {
     "test": "gulp server"

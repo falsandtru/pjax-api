@@ -58,13 +58,13 @@ export function separate(
             [area, as]))
     , Nothing)
 
-  function sep(document: DocumentRecord, area: string) {
+  function sep(document: DocumentRecord, area: string): Maybe<AreaRecord[]> {
     return split(area)
       .reduce<Maybe<AreaRecord[]>>((acc, area) =>
         acc
-          .bind<AreaRecord[]>(as =>
+          .bind(as =>
             pair(area)
-              .fmap<AreaRecord[]>(a =>
+              .fmap(a =>
                 concat(as, [a])))
       , Just([]));
 
@@ -110,7 +110,7 @@ export function match(
   ): Maybe<string> {
     return split(area)
       .reduce<Maybe<string>>((m, area) =>
-        m.bind<string>(() =>
+        m.bind(() =>
           find(document, area).length > 0
             ? m
             : Nothing)
