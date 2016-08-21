@@ -153,7 +153,7 @@ define('src/layer/domain/data/config', [
                 timeout: 3000,
                 wait: 0
             };
-            this.load = {
+            this.update = {
                 head: 'base, meta, link',
                 css: true,
                 script: true,
@@ -1462,7 +1462,7 @@ define('src/layer/domain/router/service/update/api', [
                         return void head_1.head({
                             src: doc.src.head,
                             dst: doc.dst.head
-                        }, config.load.head, config.load.ignore);
+                        }, config.update.head, config.update.ignore);
                     }).modify(function () {
                         return content_1.content(doc, config.areas).extract(function () {
                             return Promise.resolve(spica_10.Left(new error_3.DomainError('Failed to update areas.')));
@@ -1472,15 +1472,15 @@ define('src/layer/domain/router/service/update/api', [
                             });
                         });
                     }).extend(function () {
-                        return config.load.css ? void css_1.css({
+                        return config.update.css ? void css_1.css({
                             src: doc.src.head,
                             dst: doc.dst.head
-                        }, config.load.ignore) : void 0;
+                        }, config.update.ignore) : void 0;
                     }).modify(function () {
-                        return config.load.css ? void css_1.css({
+                        return config.update.css ? void css_1.css({
                             src: doc.src.body,
                             dst: doc.dst.body
-                        }, config.load.ignore) : void 0;
+                        }, config.update.ignore) : void 0;
                     }).modify(function () {
                         return void focus_1.focus(doc.dst);
                     }).modify(function () {
@@ -1494,7 +1494,7 @@ define('src/layer/domain/router/service/update/api', [
                             position: io.position
                         });
                     }).modify(function () {
-                        return config.load.script ? script_2.script(doc, state.script, config.load, cancelable) : Promise.resolve(cancelable.either([]));
+                        return config.update.script ? script_2.script(doc, state.script, config.update, cancelable) : Promise.resolve(cancelable.either([]));
                     }).extend(function () {
                         return void io.document.dispatchEvent(new Event('pjax:ready')), config.sequence.ready(seq).then(cancelable.either, spica_10.Left);
                     }).walk(function (p) {
