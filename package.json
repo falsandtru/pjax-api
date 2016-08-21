@@ -24,21 +24,21 @@
   ],
   "dependencies": {},
   "devDependencies": {
-    "@types/mocha": "^2.2.29",
+    "@types/mocha": "^2.2.30",
     "@types/power-assert": "0.0.27",
-    "del": "^2.2.1",
+    "del": "^2.2.2",
     "extend": "^3.0.0",
     "gulp": "^3.9.1",
     "gulp-header": "1.8.8",
     "gulp-load-plugins": "^1.2.4",
-    "gulp-mocha": "^3.0.0",
+    "gulp-mocha": "^3.0.1",
     "gulp-rename": "^1.2.2",
     "gulp-typescript": "^2.13.6",
     "gulp-uglify": "^2.0.0",
     "gulp-unassert": "^1.0.0",
     "json": "^9.0.4",
-    "karma": "^1.1.2",
-    "karma-chrome-launcher": "^1.0.1",
+    "karma": "^1.2.0",
+    "karma-chrome-launcher": "^2.0.0",
     "karma-coverage": "^1.1.1",
     "karma-coveralls": "^1.1.2",
     "karma-espower-preprocessor": "1.1.0",
@@ -54,7 +54,7 @@
     "semver": "^5.3.0",
     "spica": "0.0.28",
     "typed-dom": "0.0.7",
-    "typescript": "2.1.0-dev.20160809"
+    "typescript": "2.1.0-dev.20160821"
   },
   "scripts": {
     "test": "gulp server"
