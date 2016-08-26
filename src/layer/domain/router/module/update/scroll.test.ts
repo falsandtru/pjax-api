@@ -14,7 +14,7 @@ describe('Unit: layer/domain/router/module/update/scroll', () => {
           DOM.div([], { id: 'hash' }),
         ]).raw.outerHTML).extract(),
         new Url(canonicalizeUrl(validateUrl('#hash'))).hash, {
-          scroll: (x, y) => {
+          scroll: (x?: number, y?: number): void => {
             assert(++cnt === 1);
             assert(x === 0);
             assert(y === 0);
