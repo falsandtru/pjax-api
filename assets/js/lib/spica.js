@@ -1,4 +1,4 @@
-/*! spica v0.0.28 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.29 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 define = typeof define === 'function' && define.amd
   ? define
   : (function () {
@@ -454,7 +454,6 @@ define('src/lib/supervisor', [
                 var _a = this.queue.shift(), namespace = _a[0], data = _a[1];
                 void this.events.loss.emit(namespace, [
                     namespace,
-                    void 0,
                     data
                 ]);
             }
@@ -523,7 +522,6 @@ define('src/lib/supervisor', [
             if (results.length === 0) {
                 void this.events.fail.emit(namespace, [
                     namespace,
-                    void 0,
                     data
                 ]);
             }
@@ -569,7 +567,6 @@ define('src/lib/supervisor', [
                 if (results.length === 0) {
                     void this_1.events.fail.emit(namespace, [
                         namespace,
-                        void 0,
                         data
                     ]);
                 }
@@ -580,7 +577,6 @@ define('src/lib/supervisor', [
                 if (results.length === 0) {
                     void this_1.events.loss.emit(namespace, [
                         namespace,
-                        void 0,
                         data
                     ]);
                 }
@@ -677,7 +673,7 @@ define('src/lib/supervisor', [
                 reason
             ]);
         };
-        Worker.prototype.tryDependencyResolving = function (cmd) {
+        Worker.prototype.tryDependencyResolving = function () {
             if (this.receive(new WorkerCommand.Deps(this.namespace))) {
                 this.sharedResource.dependenciesStack = [];
                 return;
@@ -713,7 +709,7 @@ define('src/lib/supervisor', [
             if (cmd instanceof WorkerCommand.Call) {
                 if (this.concurrency === 0)
                     throw void 0;
-                void this.tryDependencyResolving(cmd);
+                void this.tryDependencyResolving();
                 if (!this.called) {
                     this.called = true;
                     void this.sv.events.exec.emit(this.namespace, [
