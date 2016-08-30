@@ -64,9 +64,8 @@ export function update(
     // unload -> ready
     .modify(p => p.then(m => m
       .bind(cancelable.either)
-      .fmap<[Promise<Either<Error, [{ src: Document; dst: Document; }, Event[]]>>, Promise<Either<Error, HTMLScriptElement[]>>, Promise<Either<Error, Seq>>]>(seq => {
-        const ps: [Promise<Either<Error, [{ src: Document; dst: Document; }, Event[]]>>, Promise<Either<Error, HTMLScriptElement[]>>, Promise<Either<Error, Seq>>] = <any>[];
-        void new HNil().push(void 0)
+      .fmap(seq =>
+        new HNil().push(void 0)
           .modify(() =>
             void blur(doc.dst))
           .modify(() =>
@@ -131,16 +130,13 @@ export function update(
             void io.document.dispatchEvent(new Event('pjax:ready')),
             config.sequence.ready(seq)
               .then<Either<Error, Seq>>(cancelable.either, Left)))
-          .walk(p => ps[2] = p)
-          .walk(p => ps[1] = p)
-          .walk(p => ps[0] = p);
-        return ps;
-      })))
+          .reverse()
+          .tuple())))
     // ready -> load
     .modify(p => p.then(m => m
       .bind(cancelable.either)
-      .fmap(([p1, p2, p3]) =>
-        Promise.all([p1, p2, p3])
+      .fmap(ps =>
+        Promise.all(ps)
           .then(([m1, m2, m3]) => (
             cancelable.either(void 0)
               .bind(() => m1.bind(() => m2).bind(() => m3))
