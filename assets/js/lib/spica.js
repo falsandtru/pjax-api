@@ -1,4 +1,4 @@
-/*! spica v0.0.29 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.30 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 define = typeof define === 'function' && define.amd
   ? define
   : (function () {
@@ -137,7 +137,7 @@ define('src/lib/observable', [
             void this.drain_(namespace, data, tracker);
         };
         Observable.prototype.reflect = function (namespace, data) {
-            var results;
+            var results = [];
             void this.emit(namespace, data, function (_, r) {
                 return results = r;
             });
@@ -487,31 +487,30 @@ define('src/lib/supervisor', [
             void this.schedule();
             return new Worker(this, this.workerSharedResource, namespace, process, this.deps.get(namespace) || []).terminate;
         };
-        Supervisor.prototype.call = function (namespace, data, timeout, callback) {
+        Supervisor.prototype.call = function (namespace, data, timeout) {
             var _this = this;
             if (timeout === void 0) {
                 timeout = this.timeout;
             }
-            if (callback === void 0) {
-                callback = noop_1.noop;
-            }
             void this.checkState();
             namespace = concat_2.concat([], namespace);
-            void this.queue.push([
-                namespace,
-                data,
-                function (data, results) {
-                    return void callback(results, data);
-                },
-                timeout,
-                Date.now()
-            ]);
-            void this.schedule();
-            if (timeout > 0 === false)
-                return;
-            void setTimeout(function () {
-                return _this.drain(namespace);
-            }, timeout);
+            return new Promise(function (resolve, reject) {
+                void _this.queue.push([
+                    namespace,
+                    data,
+                    function (results) {
+                        return results.length === 0 ? void reject(data) : void resolve(results);
+                    },
+                    timeout,
+                    Date.now()
+                ]);
+                void _this.schedule();
+                if (timeout > 0 === false)
+                    return;
+                void setTimeout(function () {
+                    return void _this.drain(namespace);
+                }, timeout + 9);
+            });
         };
         Supervisor.prototype.cast = function (namespace, data, retry) {
             if (retry === void 0) {
@@ -530,8 +529,8 @@ define('src/lib/supervisor', [
         Supervisor.prototype.refs = function (namespace) {
             void this.checkState();
             return this.procs.refs(namespace).map(function (_a) {
-                var namespace = _a[0], recv = _a[1];
-                var worker = recv(void 0);
+                var recv = _a[1];
+                var worker = recv(new WorkerCommand.Self());
                 return [
                     worker.namespace,
                     worker.process,
@@ -583,7 +582,7 @@ define('src/lib/supervisor', [
                 if (!callback)
                     return out_i_1 = i, 'continue';
                 try {
-                    void callback(data, results);
+                    void callback(results);
                 } catch (err) {
                     void console.error(err);
                 }
@@ -592,10 +591,8 @@ define('src/lib/supervisor', [
             var out_i_1;
             var this_1 = this;
             for (var i = 0; i < this.queue.length; ++i) {
-                var state_1 = _loop_1(i);
+                _loop_1(i);
                 i = out_i_1;
-                if (state_1 === 'continue')
-                    continue;
             }
         };
         Supervisor.count = 0;
@@ -607,14 +604,25 @@ define('src/lib/supervisor', [
     (function (WorkerCommand) {
         var AbstractCommand = function () {
             function AbstractCommand() {
+                void this.WORKER_COMMAND;
             }
             return AbstractCommand;
         }();
+        var Self = function (_super) {
+            __extends(Self, _super);
+            function Self() {
+                _super.call(this);
+                void this.COMMAND;
+            }
+            return Self;
+        }(AbstractCommand);
+        WorkerCommand.Self = Self;
         var Deps = function (_super) {
             __extends(Deps, _super);
             function Deps(namespace) {
                 _super.call(this);
                 this.namespace = namespace;
+                void this.COMMAND;
             }
             return Deps;
         }(AbstractCommand);
@@ -624,6 +632,7 @@ define('src/lib/supervisor', [
             function Call(data) {
                 _super.call(this);
                 this.data = data;
+                void this.COMMAND;
             }
             return Call;
         }(AbstractCommand);
@@ -633,6 +642,7 @@ define('src/lib/supervisor', [
             function Exit(reason) {
                 _super.call(this);
                 this.reason = reason;
+                void this.COMMAND;
             }
             return Exit;
         }(AbstractCommand);
@@ -685,7 +695,7 @@ define('src/lib/supervisor', [
         Worker.prototype.receive = function (cmd) {
             var _this = this;
             void this.checkState();
-            if (cmd === void 0) {
+            if (cmd instanceof WorkerCommand.Self) {
                 return this;
             }
             if (cmd instanceof WorkerCommand.Deps) {
@@ -809,11 +819,32 @@ define('src/lib/monad/functor', [
         Functor.fmap = fmap;
     }(Functor = exports.Functor || (exports.Functor = {})));
 });
+define('src/lib/curry', [
+    'require',
+    'exports'
+], function (require, exports) {
+    'use strict';
+    exports.curry = function (f, ctx) {
+        return f.length === 0 ? function () {
+            return f.call(ctx);
+        } : curry_(f, [], ctx);
+    };
+    function curry_(f, xs, ctx) {
+        return f.length === xs.length ? f.apply(ctx, xs) : function () {
+            var ys = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                ys[_i - 0] = arguments[_i];
+            }
+            return curry_(f, xs.concat(ys), ctx);
+        };
+    }
+});
 define('src/lib/monad/applicative', [
     'require',
     'exports',
-    'src/lib/monad/functor'
-], function (require, exports, functor_1) {
+    'src/lib/monad/functor',
+    'src/lib/curry'
+], function (require, exports, functor_1, curry_1) {
     'use strict';
     var Applicative = function (_super) {
         __extends(Applicative, _super);
@@ -825,15 +856,15 @@ define('src/lib/monad/applicative', [
     exports.Applicative = Applicative;
     var Applicative;
     (function (Applicative) {
-        function ap(ff, fa) {
-            return fa ? ff.bind(function (f) {
-                return fa.fmap(function (a) {
-                    return f(a);
+        function ap(af, aa) {
+            return aa ? af.bind(function (f) {
+                return aa.fmap(function (a) {
+                    return f.length === 0 ? f(a) : curry_1.curry(f)(a);
                 });
-            }) : function (fa) {
-                return ff.bind(function (f) {
-                    return fa.fmap(function (a) {
-                        return f(a);
+            }) : function (aa) {
+                return af.bind(function (f) {
+                    return aa.fmap(function (a) {
+                        return f.length === 0 ? f(a) : curry_1.curry(f)(a);
                     });
                 });
             };
@@ -883,30 +914,6 @@ define('src/lib/monad/monadplus', [
     (function (MonadPlus) {
     }(MonadPlus = exports.MonadPlus || (exports.MonadPlus = {})));
 });
-define('src/lib/curry', [
-    'require',
-    'exports'
-], function (require, exports) {
-    'use strict';
-    var _this = this;
-    exports.curry = function (f, ctx) {
-        if (ctx === void 0) {
-            ctx = _this;
-        }
-        return f.length === 0 ? function () {
-            return f.call(ctx);
-        } : curry_(f, [], ctx);
-    };
-    function curry_(f, xs, ctx) {
-        return f.length === xs.length ? f.apply(ctx, xs) : function () {
-            var ys = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                ys[_i - 0] = arguments[_i];
-            }
-            return curry_(f, xs.concat(ys), ctx);
-        };
-    }
-});
 define('src/lib/monad/maybe.impl', [
     'require',
     'exports',
@@ -922,6 +929,9 @@ define('src/lib/monad/maybe.impl', [
             return this.bind(function (a) {
                 return new Just(f(a));
             });
+        };
+        Maybe.prototype.ap = function (a) {
+            return Maybe.ap(this, a);
         };
         Maybe.prototype.bind = function (f) {
             var _this = this;
@@ -965,7 +975,7 @@ define('src/lib/monad/maybe.impl', [
                 return f(_this.extract());
             });
         };
-        Just.prototype.extract = function (nothing, just) {
+        Just.prototype.extract = function (_, just) {
             return !just ? this.a : just(this.a);
         };
         return Just;
@@ -976,7 +986,7 @@ define('src/lib/monad/maybe.impl', [
         function Nothing() {
             _super.call(this, throwCallError);
         }
-        Nothing.prototype.bind = function (f) {
+        Nothing.prototype.bind = function (_) {
             return this;
         };
         Nothing.prototype.extract = function (nothing) {
@@ -1043,6 +1053,9 @@ define('src/lib/monad/either.impl', [
                 return new Right(f(b));
             });
         };
+        Either.prototype.ap = function (b) {
+            return Either.ap(this, b);
+        };
         Either.prototype.bind = function (f) {
             var _this = this;
             return new Either(function () {
@@ -1079,7 +1092,7 @@ define('src/lib/monad/either.impl', [
             _super.call(this, throwCallError);
             this.a = a;
         }
-        Left.prototype.bind = function (f) {
+        Left.prototype.bind = function (_) {
             return this;
         };
         Left.prototype.extract = function (left) {
@@ -1102,7 +1115,7 @@ define('src/lib/monad/either.impl', [
                 return f(_this.extract());
             });
         };
-        Right.prototype.extract = function (left, right) {
+        Right.prototype.extract = function (_, right) {
             return !right ? this.b : right(this.b);
         };
         return Right;
@@ -1180,7 +1193,7 @@ define('src/lib/monad/sequence/core', [
     var Sequence = function (_super) {
         __extends(Sequence, _super);
         function Sequence(cons, memory) {
-            _super.call(this);
+            _super.call(this, throwCallError);
             this.cons = cons;
             this.memory = memory;
         }
@@ -1265,6 +1278,9 @@ define('src/lib/monad/sequence/core', [
             Exception.invalidThunkError = invalidThunkError;
         }(Exception = Sequence.Exception || (Sequence.Exception = {})));
     }(Sequence = exports.Sequence || (exports.Sequence = {})));
+    function throwCallError() {
+        throw new Error('Spica: Sequence: Invalid thunk call.');
+    }
 });
 define('src/lib/monad/sequence/member/static/resume', [
     'require',
@@ -2144,7 +2160,7 @@ define('src/lib/monad/sequence/member/instance/fmap', [
     Object.defineProperty(exports, '__esModule', { value: true });
     exports.default = default_27;
 });
-define('src/lib/monad/sequence/member/instance/bind', [
+define('src/lib/monad/sequence/member/instance/ap', [
     'require',
     'exports',
     'src/lib/monad/sequence/core'
@@ -2155,74 +2171,58 @@ define('src/lib/monad/sequence/member/instance/bind', [
         function default_28() {
             _super.apply(this, arguments);
         }
-        default_28.prototype.bind = function (f) {
-            return core_28.Sequence.concat(this.fmap(f));
+        default_28.prototype.ap = function (a) {
+            return core_28.Sequence.ap(this, a);
         };
         return default_28;
     }(core_28.Sequence);
     Object.defineProperty(exports, '__esModule', { value: true });
     exports.default = default_28;
 });
-define('src/lib/monad/sequence/member/instance/mapM', [
+define('src/lib/monad/sequence/member/instance/bind', [
     'require',
     'exports',
-    'src/lib/monad/sequence/core',
-    'src/lib/concat'
-], function (require, exports, core_29, concat_4) {
+    'src/lib/monad/sequence/core'
+], function (require, exports, core_29) {
     'use strict';
     var default_29 = function (_super) {
         __extends(default_29, _super);
         function default_29() {
             _super.apply(this, arguments);
         }
-        default_29.prototype.mapM = function (f) {
-            var _this = this;
-            return core_29.Sequence.from([0]).bind(function () {
-                var xs = _this.extract();
-                switch (xs.length) {
-                case 0:
-                    return core_29.Sequence.mempty;
-                default: {
-                        var x = xs.shift();
-                        return f(x).bind(function (y) {
-                            return xs.length === 0 ? core_29.Sequence.from([[y]]) : core_29.Sequence.from(xs).mapM(f).fmap(function (ys) {
-                                return concat_4.concat([y], ys);
-                            });
-                        });
-                    }
-                }
-            });
+        default_29.prototype.bind = function (f) {
+            return core_29.Sequence.concat(this.fmap(f));
         };
         return default_29;
     }(core_29.Sequence);
     Object.defineProperty(exports, '__esModule', { value: true });
     exports.default = default_29;
 });
-define('src/lib/monad/sequence/member/instance/filterM', [
+define('src/lib/monad/sequence/member/instance/mapM', [
     'require',
     'exports',
     'src/lib/monad/sequence/core',
     'src/lib/concat'
-], function (require, exports, core_30, concat_5) {
+], function (require, exports, core_30, concat_4) {
     'use strict';
     var default_30 = function (_super) {
         __extends(default_30, _super);
         function default_30() {
             _super.apply(this, arguments);
         }
-        default_30.prototype.filterM = function (f) {
+        default_30.prototype.mapM = function (f) {
             var _this = this;
             return core_30.Sequence.from([0]).bind(function () {
                 var xs = _this.extract();
                 switch (xs.length) {
                 case 0:
-                    return core_30.Sequence.from([[]]);
+                    return core_30.Sequence.mempty;
                 default: {
-                        var x_1 = xs.shift();
-                        return f(x_1).bind(function (b) {
-                            return b ? xs.length === 0 ? core_30.Sequence.from([[x_1]]) : core_30.Sequence.from(xs).filterM(f).fmap(function (ys) {
-                                return concat_5.concat([x_1], ys);
-                            }) : xs.length === 0 ? core_30.Sequence.from([[]]) : core_30.Sequence.from(xs).filterM(f);
+                        var x = xs.shift();
+                        return f(x).bind(function (y) {
+                            return xs.length === 0 ? core_30.Sequence.from([[y]]) : core_30.Sequence.from(xs).mapM(f).fmap(function (ys) {
+                                return concat_4.concat([y], ys);
+                            });
                         });
                     }
                 }
@@ -2233,30 +2233,34 @@ define('src/lib/monad/sequence/member/instance/filterM', [
     Object.defineProperty(exports, '__esModule', { value: true });
     exports.default = default_30;
 });
-define('src/lib/monad/sequence/member/instance/map', [
+define('src/lib/monad/sequence/member/instance/filterM', [
     'require',
     'exports',
-    'src/lib/monad/sequence/core'
-], function (require, exports, core_31) {
+    'src/lib/monad/sequence/core',
+    'src/lib/concat'
+], function (require, exports, core_31, concat_5) {
     'use strict';
     var default_31 = function (_super) {
         __extends(default_31, _super);
         function default_31() {
             _super.apply(this, arguments);
         }
-        default_31.prototype.map = function (f) {
+        default_31.prototype.filterM = function (f) {
             var _this = this;
-            return new core_31.Sequence(function (iter) {
-                if (iter === void 0) {
-                    iter = function () {
-                        return _this.iterate();
-                    };
+            return core_31.Sequence.from([0]).bind(function () {
+                var xs = _this.extract();
+                switch (xs.length) {
+                case 0:
+                    return core_31.Sequence.from([[]]);
+                default: {
+                        var x_1 = xs.shift();
+                        return f(x_1).bind(function (b) {
+                            return b ? xs.length === 0 ? core_31.Sequence.from([[x_1]]) : core_31.Sequence.from(xs).filterM(f).fmap(function (ys) {
+                                return concat_5.concat([x_1], ys);
+                            }) : xs.length === 0 ? core_31.Sequence.from([[]]) : core_31.Sequence.from(xs).filterM(f);
+                        });
+                    }
                 }
-                return core_31.Sequence.Iterator.when(iter(), function () {
-                    return core_31.Sequence.Data.cons();
-                }, function (thunk) {
-                    return core_31.Sequence.Data.cons(f(core_31.Sequence.Thunk.value(thunk), core_31.Sequence.Thunk.index(thunk)), core_31.Sequence.Thunk.iterator(thunk));
-                });
             });
         };
         return default_31;
@@ -2264,7 +2268,7 @@ define('src/lib/monad/sequence/member/instance/map', [
     Object.defineProperty(exports, '__esModule', { value: true });
     exports.default = default_31;
 });
-define('src/lib/monad/sequence/member/instance/filter', [
+define('src/lib/monad/sequence/member/instance/map', [
     'require',
     'exports',
     'src/lib/monad/sequence/core'
@@ -2275,18 +2279,18 @@ define('src/lib/monad/sequence/member/instance/filter', [
         function default_32() {
             _super.apply(this, arguments);
         }
-        default_32.prototype.filter = function (f) {
+        default_32.prototype.map = function (f) {
             var _this = this;
-            return new core_32.Sequence(function (iter, cons) {
+            return new core_32.Sequence(function (iter) {
                 if (iter === void 0) {
                     iter = function () {
                         return _this.iterate();
                     };
                 }
                 return core_32.Sequence.Iterator.when(iter(), function () {
-                    return cons();
-                }, function (thunk, recur) {
-                    return f(core_32.Sequence.Thunk.value(thunk), core_32.Sequence.Thunk.index(thunk)) ? cons(core_32.Sequence.Thunk.value(thunk), core_32.Sequence.Thunk.iterator(thunk)) : recur();
+                    return core_32.Sequence.Data.cons();
+                }, function (thunk) {
+                    return core_32.Sequence.Data.cons(f(core_32.Sequence.Thunk.value(thunk), core_32.Sequence.Thunk.index(thunk)), core_32.Sequence.Thunk.iterator(thunk));
                 });
             });
         };
@@ -2295,7 +2299,7 @@ define('src/lib/monad/sequence/member/instance/filter', [
     Object.defineProperty(exports, '__esModule', { value: true });
     exports.default = default_32;
 });
-define('src/lib/monad/sequence/member/instance/scan', [
+define('src/lib/monad/sequence/member/instance/filter', [
     'require',
     'exports',
     'src/lib/monad/sequence/core'
@@ -2306,24 +2310,18 @@ define('src/lib/monad/sequence/member/instance/scan', [
         function default_33() {
             _super.apply(this, arguments);
         }
-        default_33.prototype.scan = function (f, z) {
+        default_33.prototype.filter = function (f) {
             var _this = this;
-            return new core_33.Sequence(function (_a) {
-                var _b = _a === void 0 ? [
-                        z,
-                        function () {
-                            return _this.iterate();
-                        },
-                        0
-                    ] : _a, prev = _b[0], iter = _b[1], i = _b[2];
+            return new core_33.Sequence(function (iter, cons) {
+                if (iter === void 0) {
+                    iter = function () {
+                        return _this.iterate();
+                    };
+                }
                 return core_33.Sequence.Iterator.when(iter(), function () {
-                    return i === 0 ? core_33.Sequence.Data.cons(z) : core_33.Sequence.Data.cons();
-                }, function (thunk) {
-                    return core_33.Sequence.Data.cons(prev = f(prev, core_33.Sequence.Thunk.value(thunk)), [
-                        prev,
-                        core_33.Sequence.Thunk.iterator(thunk),
-                        core_33.Sequence.Thunk.index(thunk) + 1
-                    ]);
+                    return cons();
+                }, function (thunk, recur) {
+                    return f(core_33.Sequence.Thunk.value(thunk), core_33.Sequence.Thunk.index(thunk)) ? cons(core_33.Sequence.Thunk.value(thunk), core_33.Sequence.Thunk.iterator(thunk)) : recur();
                 });
             });
         };
@@ -2332,7 +2330,7 @@ define('src/lib/monad/sequence/member/instance/scan', [
     Object.defineProperty(exports, '__esModule', { value: true });
     exports.default = default_33;
 });
-define('src/lib/monad/sequence/member/instance/fold', [
+define('src/lib/monad/sequence/member/instance/scan', [
     'require',
     'exports',
     'src/lib/monad/sequence/core'
@@ -2343,22 +2341,25 @@ define('src/lib/monad/sequence/member/instance/fold', [
         function default_34() {
             _super.apply(this, arguments);
         }
-        default_34.prototype.fold = function (f, z) {
+        default_34.prototype.scan = function (f, z) {
             var _this = this;
             return new core_34.Sequence(function (_a) {
                 var _b = _a === void 0 ? [
+                        z,
                         function () {
                             return _this.iterate();
                         },
                         0
-                    ] : _a, iter = _b[0], i = _b[1];
-                return core_34.Sequence.Iterator.when(iter(), function (thunk) {
-                    return core_34.Sequence.Data.cons(z);
+                    ] : _a, prev = _b[0], iter = _b[1], i = _b[2];
+                return core_34.Sequence.Iterator.when(iter(), function () {
+                    return i === 0 ? core_34.Sequence.Data.cons(z) : core_34.Sequence.Data.cons();
                 }, function (thunk) {
-                    return core_34.Sequence.Data.cons(f(core_34.Sequence.Thunk.value(thunk), core_34.Sequence.resume(core_34.Sequence.Thunk.iterator(thunk)).fold(f, z)));
+                    return core_34.Sequence.Data.cons(prev = f(prev, core_34.Sequence.Thunk.value(thunk)), [
+                        prev,
+                        core_34.Sequence.Thunk.iterator(thunk),
+                        core_34.Sequence.Thunk.index(thunk) + 1
+                    ]);
                 });
-            }).bind(function (s) {
-                return s;
             });
         };
         return default_34;
@@ -2366,35 +2367,32 @@ define('src/lib/monad/sequence/member/instance/fold', [
     Object.defineProperty(exports, '__esModule', { value: true });
     exports.default = default_34;
 });
-define('src/lib/monad/sequence/member/instance/group', [
+define('src/lib/monad/sequence/member/instance/fold', [
     'require',
     'exports',
-    'src/lib/monad/sequence/core',
-    'src/lib/concat'
-], function (require, exports, core_35, concat_6) {
+    'src/lib/monad/sequence/core'
+], function (require, exports, core_35) {
     'use strict';
     var default_35 = function (_super) {
         __extends(default_35, _super);
         function default_35() {
             _super.apply(this, arguments);
         }
-        default_35.prototype.group = function (f) {
+        default_35.prototype.fold = function (f, z) {
             var _this = this;
-            return new core_35.Sequence(function (_a, cons) {
-                var _b = _a === void 0 ? [
-                        function () {
-                            return _this.iterate();
-                        },
-                        []
-                    ] : _a, iter = _b[0], acc = _b[1];
+            return new core_35.Sequence(function (iter) {
+                if (iter === void 0) {
+                    iter = function () {
+                        return _this.iterate();
+                    };
+                }
                 return core_35.Sequence.Iterator.when(iter(), function () {
-                    return acc.length === 0 ? cons() : cons(acc);
-                }, function (thunk, recur) {
-                    return acc.length === 0 || f(acc[0], core_35.Sequence.Thunk.value(thunk)) ? (concat_6.concat(acc, [core_35.Sequence.Thunk.value(thunk)]), recur()) : cons(acc, [
-                        core_35.Sequence.Thunk.iterator(thunk),
-                        concat_6.concat([], [core_35.Sequence.Thunk.value(thunk)])
-                    ]);
+                    return core_35.Sequence.Data.cons(z);
+                }, function (thunk) {
+                    return core_35.Sequence.Data.cons(f(core_35.Sequence.Thunk.value(thunk), core_35.Sequence.resume(core_35.Sequence.Thunk.iterator(thunk)).fold(f, z)));
                 });
+            }).bind(function (s) {
+                return s;
             });
         };
         return default_35;
@@ -2402,39 +2400,75 @@ define('src/lib/monad/sequence/member/instance/group', [
     Object.defineProperty(exports, '__esModule', { value: true });
     exports.default = default_35;
 });
-define('src/lib/monad/sequence/member/instance/subsequences', [
+define('src/lib/monad/sequence/member/instance/group', [
     'require',
     'exports',
     'src/lib/monad/sequence/core',
     'src/lib/concat'
-], function (require, exports, core_36, concat_7) {
+], function (require, exports, core_36, concat_6) {
     'use strict';
     var default_36 = function (_super) {
         __extends(default_36, _super);
         function default_36() {
             _super.apply(this, arguments);
         }
-        default_36.prototype.subsequences = function () {
+        default_36.prototype.group = function (f) {
             var _this = this;
-            return core_36.Sequence.mappend(core_36.Sequence.from([[]]), core_36.Sequence.from([0]).bind(function () {
-                return nonEmptySubsequences(_this);
-            }));
+            return new core_36.Sequence(function (_a, cons) {
+                var _b = _a === void 0 ? [
+                        function () {
+                            return _this.iterate();
+                        },
+                        []
+                    ] : _a, iter = _b[0], acc = _b[1];
+                return core_36.Sequence.Iterator.when(iter(), function () {
+                    return acc.length === 0 ? cons() : cons(acc);
+                }, function (thunk, recur) {
+                    return acc.length === 0 || f(acc[0], core_36.Sequence.Thunk.value(thunk)) ? (concat_6.concat(acc, [core_36.Sequence.Thunk.value(thunk)]), recur()) : cons(acc, [
+                        core_36.Sequence.Thunk.iterator(thunk),
+                        concat_6.concat([], [core_36.Sequence.Thunk.value(thunk)])
+                    ]);
+                });
+            });
         };
         return default_36;
     }(core_36.Sequence);
     Object.defineProperty(exports, '__esModule', { value: true });
     exports.default = default_36;
+});
+define('src/lib/monad/sequence/member/instance/subsequences', [
+    'require',
+    'exports',
+    'src/lib/monad/sequence/core',
+    'src/lib/concat'
+], function (require, exports, core_37, concat_7) {
+    'use strict';
+    var default_37 = function (_super) {
+        __extends(default_37, _super);
+        function default_37() {
+            _super.apply(this, arguments);
+        }
+        default_37.prototype.subsequences = function () {
+            var _this = this;
+            return core_37.Sequence.mappend(core_37.Sequence.from([[]]), core_37.Sequence.from([0]).bind(function () {
+                return nonEmptySubsequences(_this);
+            }));
+        };
+        return default_37;
+    }(core_37.Sequence);
+    Object.defineProperty(exports, '__esModule', { value: true });
+    exports.default = default_37;
     function nonEmptySubsequences(xs) {
-        return core_36.Sequence.Iterator.when(xs.iterate(), function () {
-            return core_36.Sequence.mempty;
+        return core_37.Sequence.Iterator.when(xs.iterate(), function () {
+            return core_37.Sequence.mempty;
         }, function (xt) {
-            return core_36.Sequence.mappend(core_36.Sequence.from([[core_36.Sequence.Thunk.value(xt)]]), new core_36.Sequence(function (_, cons) {
-                return core_36.Sequence.Iterator.when(xt, function () {
+            return core_37.Sequence.mappend(core_37.Sequence.from([[core_37.Sequence.Thunk.value(xt)]]), new core_37.Sequence(function (_, cons) {
+                return core_37.Sequence.Iterator.when(xt, function () {
                     return cons();
                 }, function (xt) {
-                    return cons(nonEmptySubsequences(core_36.Sequence.resume(core_36.Sequence.Thunk.iterator(xt))).fold(function (ys, r) {
-                        return core_36.Sequence.mappend(core_36.Sequence.mappend(core_36.Sequence.from([ys]), core_36.Sequence.from([concat_7.concat([core_36.Sequence.Thunk.value(xt)], ys)])), r);
-                    }, core_36.Sequence.mempty));
+                    return cons(nonEmptySubsequences(core_37.Sequence.resume(core_37.Sequence.Thunk.iterator(xt))).fold(function (ys, r) {
+                        return core_37.Sequence.mappend(core_37.Sequence.mappend(core_37.Sequence.from([ys]), core_37.Sequence.from([concat_7.concat([core_37.Sequence.Thunk.value(xt)], ys)])), r);
+                    }, core_37.Sequence.mempty));
                 });
             }).bind(function (xs) {
                 return xs;
@@ -2446,59 +2480,58 @@ define('src/lib/monad/sequence/member/instance/permutations', [
     'require',
     'exports',
     'src/lib/monad/sequence/core'
-], function (require, exports, core_37) {
+], function (require, exports, core_38) {
     'use strict';
-    var default_37 = function (_super) {
-        __extends(default_37, _super);
-        function default_37() {
+    var default_38 = function (_super) {
+        __extends(default_38, _super);
+        function default_38() {
             _super.apply(this, arguments);
         }
-        default_37.prototype.permutations = function () {
+        default_38.prototype.permutations = function () {
             var _this = this;
-            return core_37.Sequence.from([0]).bind(function () {
+            return core_38.Sequence.from([0]).bind(function () {
                 var xs = _this.extract();
-                return xs.length === 0 ? core_37.Sequence.mempty : core_37.Sequence.from([xs]);
+                return xs.length === 0 ? core_38.Sequence.mempty : core_38.Sequence.from([xs]);
             }).bind(function (xs) {
-                return core_37.Sequence.mappend(core_37.Sequence.from([xs]), perms(core_37.Sequence.from(xs), core_37.Sequence.mempty));
+                return core_38.Sequence.mappend(core_38.Sequence.from([xs]), perms(core_38.Sequence.from(xs), core_38.Sequence.mempty));
             });
         };
-        return default_37;
-    }(core_37.Sequence);
+        return default_38;
+    }(core_38.Sequence);
     Object.defineProperty(exports, '__esModule', { value: true });
-    exports.default = default_37;
+    exports.default = default_38;
     function perms(ts, is) {
-        return core_37.Sequence.Iterator.when(ts.iterate(), function () {
-            return core_37.Sequence.mempty;
+        return core_38.Sequence.Iterator.when(ts.iterate(), function () {
+            return core_38.Sequence.mempty;
         }, function (tt) {
-            return new core_37.Sequence(function (_, cons) {
-                return core_37.Sequence.Iterator.when(tt, function () {
+            return new core_38.Sequence(function (_, cons) {
+                return core_38.Sequence.Iterator.when(tt, function () {
                     return cons();
                 }, function (tt) {
-                    var t = core_37.Sequence.Thunk.value(tt);
-                    var ts = core_37.Sequence.resume(core_37.Sequence.Thunk.iterator(tt)).memoize();
+                    var t = core_38.Sequence.Thunk.value(tt);
+                    var ts = core_38.Sequence.resume(core_38.Sequence.Thunk.iterator(tt)).memoize();
                     return cons(is.permutations().fold(function (ys, r) {
-                        return interleave(core_37.Sequence.from(ys), r);
-                    }, perms(ts, core_37.Sequence.mappend(core_37.Sequence.from([t]), is))));
+                        return interleave(core_38.Sequence.from(ys), r);
+                    }, perms(ts, core_38.Sequence.mappend(core_38.Sequence.from([t]), is))));
                     function interleave(xs, r) {
                         return interleave_(function (as) {
                             return as;
                         }, xs, r)[1];
                     }
                     function interleave_(f, ys, r) {
-                        return core_37.Sequence.Iterator.when(ys.iterate(), function () {
+                        return core_38.Sequence.Iterator.when(ys.iterate(), function () {
                             return [
                                 ts,
                                 r
                             ];
                         }, function (yt) {
-                            var y = core_37.Sequence.Thunk.value(yt);
-                            var ys = core_37.Sequence.resume(core_37.Sequence.Thunk.iterator(yt));
+                            var y = core_38.Sequence.Thunk.value(yt);
                             var _a = interleave_(function (as) {
-                                    return f(core_37.Sequence.mappend(core_37.Sequence.from([y]), as));
-                                }, core_37.Sequence.resume(core_37.Sequence.Thunk.iterator(yt)), r), us = _a[0], zs = _a[1];
+                                    return f(core_38.Sequence.mappend(core_38.Sequence.from([y]), as));
+                                }, core_38.Sequence.resume(core_38.Sequence.Thunk.iterator(yt)), r), us = _a[0], zs = _a[1];
                             return [
-                                core_37.Sequence.mappend(core_37.Sequence.from([y]), us),
-                                core_37.Sequence.mappend(core_37.Sequence.from([f(core_37.Sequence.mappend(core_37.Sequence.from([t]), core_37.Sequence.mappend(core_37.Sequence.from([y]), us))).extract()]), zs)
+                                core_38.Sequence.mappend(core_38.Sequence.from([y]), us),
+                                core_38.Sequence.mappend(core_38.Sequence.from([f(core_38.Sequence.mappend(core_38.Sequence.from([t]), core_38.Sequence.mappend(core_38.Sequence.from([y]), us))).extract()]), zs)
                             ];
                         });
                     }
@@ -2626,6 +2659,7 @@ define('src/lib/monad/sequence', [
     'src/lib/monad/sequence/member/instance/takeUntil',
     'src/lib/monad/sequence/member/instance/dropUntil',
     'src/lib/monad/sequence/member/instance/fmap',
+    'src/lib/monad/sequence/member/instance/ap',
     'src/lib/monad/sequence/member/instance/bind',
     'src/lib/monad/sequence/member/instance/mapM',
     'src/lib/monad/sequence/member/instance/filterM',
@@ -2637,19 +2671,19 @@ define('src/lib/monad/sequence', [
     'src/lib/monad/sequence/member/instance/subsequences',
     'src/lib/monad/sequence/member/instance/permutations',
     'src/lib/compose'
-], function (require, exports, core_38, resume_1, from_1, read_1, cycle_1, random_1, concat_9, zip_1, difference_1, union_1, intersect_1, pure_1, return_1, mempty_1, mconcat_1, mappend_1, mzero_1, mplus_1, extract_1, iterate_1, memoize_1, take_1, drop_1, takeWhile_1, dropWhile_1, takeUntil_1, dropUntil_1, fmap_1, bind_1, mapM_1, filterM_1, map_1, filter_1, scan_1, fold_1, group_1, subsequences_1, permutations_1, compose_1) {
+], function (require, exports, core_39, resume_1, from_1, read_1, cycle_1, random_1, concat_9, zip_1, difference_1, union_1, intersect_1, pure_1, return_1, mempty_1, mconcat_1, mappend_1, mzero_1, mplus_1, extract_1, iterate_1, memoize_1, take_1, drop_1, takeWhile_1, dropWhile_1, takeUntil_1, dropUntil_1, fmap_1, ap_1, bind_1, mapM_1, filterM_1, map_1, filter_1, scan_1, fold_1, group_1, subsequences_1, permutations_1, compose_1) {
     'use strict';
-    exports.Sequence = core_38.Sequence;
-    compose_1.compose(core_38.Sequence, resume_1.default, from_1.default, read_1.default, cycle_1.default, random_1.default, concat_9.default, zip_1.default, difference_1.default, union_1.default, intersect_1.default, pure_1.default, return_1.default, mempty_1.default, mconcat_1.default, mappend_1.default, mzero_1.default, mplus_1.default, extract_1.default, iterate_1.default, memoize_1.default, take_1.default, drop_1.default, takeWhile_1.default, dropWhile_1.default, takeUntil_1.default, dropUntil_1.default, fmap_1.default, bind_1.default, mapM_1.default, filterM_1.default, map_1.default, filter_1.default, scan_1.default, fold_1.default, group_1.default, subsequences_1.default, permutations_1.default);
+    exports.Sequence = core_39.Sequence;
+    compose_1.compose(core_39.Sequence, resume_1.default, from_1.default, read_1.default, cycle_1.default, random_1.default, concat_9.default, zip_1.default, difference_1.default, union_1.default, intersect_1.default, pure_1.default, return_1.default, mempty_1.default, mconcat_1.default, mappend_1.default, mzero_1.default, mplus_1.default, extract_1.default, iterate_1.default, memoize_1.default, take_1.default, drop_1.default, takeWhile_1.default, dropWhile_1.default, takeUntil_1.default, dropUntil_1.default, fmap_1.default, ap_1.default, bind_1.default, mapM_1.default, filterM_1.default, map_1.default, filter_1.default, scan_1.default, fold_1.default, group_1.default, subsequences_1.default, permutations_1.default);
 });
 define('src/lib/flip', [
     'require',
     'exports',
     'src/lib/curry'
-], function (require, exports, curry_1) {
+], function (require, exports, curry_2) {
     'use strict';
     function flip(f) {
-        return curry_1.curry(function (b, a) {
+        return curry_2.curry(function (b, a) {
             return f.length > 1 ? f(a, b) : f(a)(b);
         });
     }
@@ -2663,9 +2697,13 @@ define('src/lib/list', [
     'use strict';
     var Nil = function () {
         function Nil() {
+            void this.NIL;
         }
         Nil.prototype.push = function (a) {
             return new Cons(a, this);
+        };
+        Nil.prototype.array = function () {
+            return [];
         };
         return Nil;
     }();
@@ -2674,6 +2712,7 @@ define('src/lib/list', [
         function Cons(head_, tail_) {
             this.head_ = head_;
             this.tail_ = tail_;
+            void this.CONS;
         }
         Cons.prototype.push = function (a) {
             return new Cons(a, this);
@@ -2694,22 +2733,41 @@ define('src/lib/list', [
         Cons.prototype.extend = function (f) {
             return this.push(f(this.head()));
         };
+        Cons.prototype.compact = function (f) {
+            var _this = this;
+            return this.tail().modify(function (r) {
+                return f(_this.head(), r);
+            });
+        };
+        Cons.prototype.reverse = function () {
+            return this.array().reduce(function (l, e) {
+                return l.push(e);
+            }, new Nil());
+        };
+        Cons.prototype.tuple = function () {
+            return this.array();
+        };
         Cons.prototype.array = function () {
-            return concat_10.concat([this.head()], this.tail().array ? this.tail().array() : []);
+            return concat_10.concat([this.head()], this.tail().array());
         };
         return Cons;
     }();
 });
 define('src/lib/hlist', [
     'require',
-    'exports'
-], function (require, exports) {
+    'exports',
+    'src/lib/concat'
+], function (require, exports, concat_11) {
     'use strict';
     var HNil = function () {
         function HNil() {
+            void this.NIL;
         }
         HNil.prototype.push = function (b) {
             return new HCons(b, this);
+        };
+        HNil.prototype.array = function () {
+            return [];
         };
         return HNil;
     }();
@@ -2718,6 +2776,7 @@ define('src/lib/hlist', [
         function HCons(head_, tail_) {
             this.head_ = head_;
             this.tail_ = tail_;
+            void this.CONS;
         }
         HCons.prototype.push = function (b) {
             return new HCons(b, this);
@@ -2737,6 +2796,23 @@ define('src/lib/hlist', [
         };
         HCons.prototype.extend = function (f) {
             return this.push(f(this.head()));
+        };
+        HCons.prototype.compact = function (f) {
+            var _this = this;
+            return this.tail().modify(function (r) {
+                return f(_this.head(), r);
+            });
+        };
+        HCons.prototype.reverse = function () {
+            return this.array().reduce(function (l, e) {
+                return l.push(e);
+            }, new HNil());
+        };
+        HCons.prototype.tuple = function () {
+            return this.array();
+        };
+        HCons.prototype.array = function () {
+            return concat_11.concat([this.head()], this.tail().array());
         };
         return HCons;
     }();
@@ -2958,7 +3034,7 @@ define('src/export', [
     'src/lib/assign',
     'src/lib/concat',
     'src/lib/sort'
-], function (require, exports, supervisor_1, observable_2, cancelable_1, sequence_1, maybe_2, either_2, curry_2, flip_1, list_1, hlist_1, datamap_2, attrmap_1, relationmap_1, mixin_1, tick_2, fingerprint_2, uuid_1, sqid_2, assign_3, concat_11, sort_1) {
+], function (require, exports, supervisor_1, observable_2, cancelable_1, sequence_1, maybe_2, either_2, curry_3, flip_1, list_1, hlist_1, datamap_2, attrmap_1, relationmap_1, mixin_1, tick_2, fingerprint_2, uuid_1, sqid_2, assign_3, concat_12, sort_1) {
     'use strict';
     exports.Supervisor = supervisor_1.Supervisor;
     exports.Observable = observable_2.Observable;
@@ -2970,7 +3046,7 @@ define('src/export', [
     exports.Either = either_2.Either;
     exports.Left = either_2.Left;
     exports.Right = either_2.Right;
-    exports.curry = curry_2.curry;
+    exports.curry = curry_3.curry;
     exports.flip = flip_1.flip;
     exports.Nil = list_1.Nil;
     exports.HNil = hlist_1.HNil;
@@ -2985,13 +3061,14 @@ define('src/export', [
     exports.assign = assign_3.assign;
     exports.clone = assign_3.clone;
     exports.extend = assign_3.extend;
-    exports.concat = concat_11.concat;
+    exports.concat = concat_12.concat;
     exports.sort = sort_1.sort;
 });
 define('spica', [
     'require',
     'exports',
-    'src/export'
+    'src/export',
+    './src/import'
 ], function (require, exports, export_1) {
     'use strict';
     function __export(m) {

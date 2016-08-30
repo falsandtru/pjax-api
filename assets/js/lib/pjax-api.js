@@ -1451,8 +1451,7 @@ define('src/layer/domain/router/service/update/api', [
         }).modify(function (p) {
             return p.then(function (m) {
                 return m.bind(cancelable.either).fmap(function (seq) {
-                    var ps = [];
-                    void new spica_10.HNil().push(void 0).modify(function () {
+                    return new spica_10.HNil().push(void 0).modify(function () {
                         return void blur_1.blur(doc.dst);
                     }).modify(function () {
                         return void url_14.url(event.location, doc.src.title, event.type, event.source, config.replace);
@@ -1497,25 +1496,13 @@ define('src/layer/domain/router/service/update/api', [
                         return config.update.script ? script_2.script(doc, state.script, config.update, cancelable) : Promise.resolve(cancelable.either([]));
                     }).extend(function () {
                         return void io.document.dispatchEvent(new Event('pjax:ready')), config.sequence.ready(seq).then(cancelable.either, spica_10.Left);
-                    }).walk(function (p) {
-                        return ps[2] = p;
-                    }).walk(function (p) {
-                        return ps[1] = p;
-                    }).walk(function (p) {
-                        return ps[0] = p;
-                    });
-                    return ps;
+                    }).reverse().tuple();
                 });
             });
         }).modify(function (p) {
             return p.then(function (m) {
-                return m.bind(cancelable.either).fmap(function (_a) {
-                    var p1 = _a[0], p2 = _a[1], p3 = _a[2];
-                    return Promise.all([
-                        p1,
-                        p2,
-                        p3
-                    ]).then(function (_a) {
+                return m.bind(cancelable.either).fmap(function (ps) {
+                    return Promise.all(ps).then(function (_a) {
                         var m1 = _a[0], m2 = _a[1], m3 = _a[2];
                         return cancelable.either(void 0).bind(function () {
                             return m1.bind(function () {
