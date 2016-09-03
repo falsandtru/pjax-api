@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.3.1
+
+- Update the Config.update.ignore option's default value.
+
 ## 3.3.0
 
 - Rename a config item `load` to `update`.
