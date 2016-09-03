@@ -46,15 +46,15 @@
     "karma-html2js-preprocessor": "^1.0.0",
     "karma-ie-launcher": "^1.0.0",
     "karma-mocha": "^1.1.1",
-    "localsocket": "^0.4.4",
+    "localsocket": "^0.4.5",
     "mocha": "^3.0.2",
     "npm-check-updates": "^2.8.0",
     "power-assert": "^1.4.1",
     "run-sequence": "^1.2.2",
     "semver": "^5.3.0",
-    "spica": "0.0.30",
+    "spica": "0.0.31",
     "typed-dom": "0.0.8",
-    "typescript": "2.1.0-dev.20160829"
+    "typescript": "2.1.0-dev.20160903"
   },
   "scripts": {
     "test": "gulp server"

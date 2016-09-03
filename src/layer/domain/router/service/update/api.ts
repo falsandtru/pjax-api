@@ -57,7 +57,7 @@ export function update(
             () => (
               void window.dispatchEvent(new Event('pjax:unload')),
               config.sequence.unload(seq, { headers, document })
-                .then<Either<Error, Seq>>(
+                .then(
                 cancelable.either,
                 e => Left<Error>(e instanceof Error ? e : new Error(e))))))
       .extract()))
