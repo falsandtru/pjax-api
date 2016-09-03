@@ -1,4 +1,4 @@
-/*! pjax-api v3.3.0 https://github.com/falsandtru/pjax-api | (c) 2016, falsandtru | GPL-2.0 License */
+/*! pjax-api v3.3.1 https://github.com/falsandtru/pjax-api | (c) 2016, falsandtru | GPL-2.0 License */
 define = typeof define === 'function' && define.amd
   ? define
   : (function () {
