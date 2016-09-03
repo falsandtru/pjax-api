@@ -157,7 +157,7 @@ define('src/layer/domain/data/config', [
                 head: 'base, meta, link',
                 css: true,
                 script: true,
-                ignore: '[href^="chrome-extension://"]',
+                ignore: '[href^="chrome-extension://"], [src*=".kis.scr.kaspersky-labs.com/"]',
                 reload: '',
                 logger: ''
             };

@@ -1,4 +1,4 @@
-/*! localsocket v0.4.4 https://github.com/falsandtru/localsocket | (c) 2016, falsandtru | MIT License */
+/*! localsocket v0.4.5 https://github.com/falsandtru/localsocket | (c) 2016, falsandtru | MIT License */
 define = typeof define === 'function' && define.amd
   ? define
   : (function () {
@@ -2113,7 +2113,9 @@ define('src/layer/domain/indexeddb/repository/socket', [
             });
         };
         Port.prototype.send = function (msg) {
-            this.msgs = spica_10.concat([msg], this.msgs.slice(0, 9));
+            this.msgs = this.msgs.reduceRight(function (ms, m) {
+                return m.key === ms[0].key || m.date < ms[0].date - 1000 * 1000 ? ms : spica_10.concat([m], ms);
+            }, [msg]).slice(-9);
         };
         return Port;
     }();
