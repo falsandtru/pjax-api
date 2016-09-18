@@ -11,10 +11,10 @@ describe('Integration: Usecase', function () {
         assert(decodeURIComponent(window.location.search) === '?query=あアｱ亜=&');
         done();
       });
-      const form = DOM.form([
-        DOM.input([], { type: 'search', name: 'query', value: 'あアｱ亜=&' }),
-        DOM.input([], { type: 'submit', value: 'submit' })
-      ], { action: url }).raw;
+      const form = DOM.form({ action: url }, [
+        DOM.input({ type: 'search', name: 'query', value: 'あアｱ亜=&' }, []),
+        DOM.input({ type: 'submit', value: 'submit' }, [])
+      ]).raw;
       document.body.appendChild(form);
       (<HTMLElement>form.querySelector('input[type="submit"]')).click();
     });

@@ -34,20 +34,4 @@ describe('Interface: Package', function () {
 
   });
 
-  describe('power-assert', function () {
-    it('assertion self-check', function (done) {
-      setTimeout(function () {
-        try {
-          console.log(assert(!false === !true), assert); // LOG: undefined, function powerAssert() { ... }
-        }
-        catch (e) {
-          done();
-          return;
-        }
-        throw new Error('WARNING!: assert function does not work.');
-      }, 1);
-    });
-
-  });
-
 });

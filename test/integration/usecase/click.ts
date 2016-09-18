@@ -11,7 +11,7 @@ describe('Integration: Usecase', function () {
       once(document, 'pjax:ready', () => {
         assert(window.location.pathname === url);
         assert(document.title === 'Title 1');
-        assert(document.querySelector('#primary').textContent === 'Primary 1');
+        assert(document.querySelector('#primary')!.textContent === 'Primary 1');
         done();
       });
       const a = document.createElement('a');

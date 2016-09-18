@@ -34,7 +34,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       let cnt = 0;
       script(
         {
-          src: parse(DOM.head([DOM.script([], { class: 'test' })]).raw.outerHTML).extract(),
+          src: parse(DOM.head([DOM.script({ class: 'test' }, [])]).raw.outerHTML).extract(),
           dst: parse('').extract()
         },
         [],
@@ -73,7 +73,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       let cnt = 0;
       script(
         {
-          src: parse(DOM.head([DOM.script([], { class: 'test' })]).raw.outerHTML).extract(),
+          src: parse(DOM.head([DOM.script({ class: 'test' }, [])]).raw.outerHTML).extract(),
           dst: parse('').extract()
         },
         [],
@@ -109,7 +109,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       let cnt = 0;
       script(
         {
-          src: parse(DOM.head([DOM.script([], { class: 'test' })]).raw.outerHTML).extract(),
+          src: parse(DOM.head([DOM.script({ class: 'test' }, [])]).raw.outerHTML).extract(),
           dst: parse('').extract()
         },
         [],
@@ -146,7 +146,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       const cancelable = new Cancelable<Error>();
       script(
         {
-          src: parse(DOM.head([DOM.script([], { class: 'test' })]).raw.outerHTML).extract(),
+          src: parse(DOM.head([DOM.script({ class: 'test' }, [])]).raw.outerHTML).extract(),
           dst: parse('').extract()
         },
         [],

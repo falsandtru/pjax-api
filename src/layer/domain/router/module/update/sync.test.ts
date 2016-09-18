@@ -20,9 +20,9 @@ describe('Unit: layer/domain/router/module/update/sync', () => {
     it('nothing to all', () => {
       const document = {
         src: parse(DOM.head([
-          DOM.meta([], { id: 'a' }),
-          DOM.meta([], { id: 'b' }),
-          DOM.meta([], { id: 'c' })
+          DOM.meta({ id: 'a' }, []),
+          DOM.meta({ id: 'b' }, []),
+          DOM.meta({ id: 'c' }, [])
         ]).raw.outerHTML).extract(),
         dst: parse(DOM.head([
         ]).raw.outerHTML).extract()
@@ -40,9 +40,9 @@ describe('Unit: layer/domain/router/module/update/sync', () => {
         src: parse(DOM.head([
         ]).raw.outerHTML).extract(),
         dst: parse(DOM.head([
-          DOM.meta([], { id: 'a' }),
-          DOM.meta([], { id: 'b' }),
-          DOM.meta([], { id: 'c' })
+          DOM.meta({ id: 'a' }, []),
+          DOM.meta({ id: 'b' }, []),
+          DOM.meta({ id: 'c' }, [])
         ]).raw.outerHTML).extract()
       };
       sync(pair(find(document.src, 'meta'), find(document.dst, 'meta'), (a, b) => a.id === b.id), document.dst.head);
@@ -53,14 +53,14 @@ describe('Unit: layer/domain/router/module/update/sync', () => {
     it('partial', () => {
       const document = {
         src: parse(DOM.head([
-          DOM.meta([], { id: 'a' }),
-          DOM.meta([], { id: 'c' }),
-          DOM.meta([], { id: 'e' })
+          DOM.meta({ id: 'a' }, []),
+          DOM.meta({ id: 'c' }, []),
+          DOM.meta({ id: 'e' }, [])
         ]).raw.outerHTML).extract(),
         dst: parse(DOM.head([
-          DOM.meta([], { id: 'b' }),
-          DOM.meta([], { id: 'c' }),
-          DOM.meta([], { id: 'd' })
+          DOM.meta({ id: 'b' }, []),
+          DOM.meta({ id: 'c' }, []),
+          DOM.meta({ id: 'd' }, [])
         ]).raw.outerHTML).extract()
       };
       sync(pair(find(document.src, 'meta'), find(document.dst, 'meta'), (a, b) => a.id === b.id), document.dst.head);

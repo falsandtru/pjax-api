@@ -11,7 +11,7 @@ describe('Integration: Usecase', function () {
       once(document, 'pjax:ready', () => {
         assert(decodeURIComponent(window.location.pathname) === url);
         assert(decodeURIComponent(document.title) === 'Title あアｱ亜');
-        assert(decodeURIComponent(document.querySelector('#primary').textContent!) === 'Primary あアｱ亜');
+        assert(decodeURIComponent(document.querySelector('#primary')!.textContent!) === 'Primary あアｱ亜');
         done();
       });
       const a = document.createElement('a');

@@ -78,10 +78,10 @@ describe('Unit: lib/dom', () => {
   describe('serialize', () => {
     it('form', () => {
       const query = serialize(DOM.form([
-        DOM.input([], { name: 'check', type: 'checkbox', checked: '' }),
-        DOM.input([], { name: 'text', type: 'text', value: '1' }),
-        DOM.input([], { name: 'hidden', type: 'hidden', value: '0' }),
-        DOM.input([], { name: 'button', type: 'submit', value: 'submit' })
+        DOM.input({ name: 'check', type: 'checkbox', checked: '' }, []),
+        DOM.input({ name: 'text', type: 'text', value: '1' }, []),
+        DOM.input({ name: 'hidden', type: 'hidden', value: '0' }, []),
+        DOM.input({ name: 'button', type: 'submit', value: 'submit' }, [])
       ]).raw);
       assert(query === 'check=on&text=1&hidden=0');
     });

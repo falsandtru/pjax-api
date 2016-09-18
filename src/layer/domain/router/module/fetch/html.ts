@@ -25,7 +25,7 @@ function parseByDoc(html: string): Document {
   void document.write(html);
   void document.close();
   if (document.title !== title) {
-    document.title = document.querySelector('title').textContent || '';
+    document.title = document.querySelector('title')!.textContent || '';
   }
   void fix(document);
   return document;
@@ -64,16 +64,15 @@ function test(parser: (html: string) => Document): boolean {
 `;
     const doc = parser(html);
     switch (false) {
-      case !!doc:
       case doc.URL && decodeURI(doc.URL) === decodeURI(window.location.href):
       case doc.title === '&':
       case !!doc.querySelector('html.html[lang="en"]'):
-      case !!doc.querySelector('head>link')['href']:
-      case !!doc.querySelector('body>a')['href']:
+      case !!doc.querySelector('head>link')!['href']:
+      case !!doc.querySelector('body>a')!['href']:
       case !doc.querySelector('head>noscript>*'):
-      case doc.querySelector('script')['innerHTML'] === 'document.head.remove();':
-      case doc.querySelector('head>noscript')['textContent'] === '<style>/**/</style>':
-      case doc.querySelector('body>noscript')['textContent'] === 'noscript':
+      case doc.querySelector('script')!['innerHTML'] === 'document.head.remove();':
+      case doc.querySelector('head>noscript')!['textContent'] === '<style>/**/</style>':
+      case doc.querySelector('body>noscript')!['textContent'] === 'noscript':
         throw void 0;
     }
     return true;
