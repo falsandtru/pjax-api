@@ -634,7 +634,6 @@ define('src/layer/domain/router/module/fetch/html', [
             var html = '\n<html lang="en" class="html">\n  <head>\n    <link href="/">\n    <title>&amp;</title>\n    <noscript><style>/**/</style></noscript>\n  </head>\n  <body>\n    <noscript>noscript</noscript>\n    <a href="/"></a>\n    <script>document.head.remove();</script>\n  </body>\n</html>\n';
             var doc = parser(html);
             switch (false) {
-            case !!doc:
             case doc.URL && decodeURI(doc.URL) === decodeURI(window.location.href):
             case doc.title === '&':
             case !!doc.querySelector('html.html[lang="en"]'):
