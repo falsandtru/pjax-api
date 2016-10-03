@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.3.3
+
+- Fix the initial script detection.
+
 ## 3.3.2
 
 - Update dependencies.
