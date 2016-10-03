@@ -17,10 +17,10 @@ import { route } from '../service/router';
 import { loadTitle, savePosition, parse } from '../../application/api';
 import { once } from '../../../lib/dom';
 
-const router = new class extends Supervisor<string[], Error, undefined> { }();
+const router = new class extends Supervisor<string, Error, void, void> { }();
 
 export class GUI {
-  private static readonly sv = new class extends Supervisor<string[], undefined, undefined>{ }();
+  private static readonly sv = new class extends Supervisor<string, void, void, void>{ }();
   public static assign(url: string, option: Option, io = { document: window.document }): undefined {
     return void click(url)
       .then(event =>
@@ -40,8 +40,8 @@ export class GUI {
     }
   ) {
     this.config = new Config(this.option);
-    void GUI.sv.terminate([]);
-    void GUI.sv.register([], () => (
+    void GUI.sv.terminate('');
+    void GUI.sv.register('', () => [
       void GUI.sv.events.exit.once(
         [],
         new ClickView(this.io.document, this.config.link, event =>
@@ -130,8 +130,10 @@ export class GUI {
                 ? void savePosition(new Url(documentUrl.href).path, { top, left })
                 : void 0)
             .extract())
-          .close)));
-    void GUI.sv.cast([], void 0);
+          .close),
+      void 0
+    ], void 0);
+    void GUI.sv.cast('', void 0);
   }
   private readonly config: Config;
   public assign(url: string): undefined {

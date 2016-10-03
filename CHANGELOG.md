@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.3.2
+
+- Update dependencies.
+
 ## 3.3.1
 
 - Update the Config.update.ignore option's default value.

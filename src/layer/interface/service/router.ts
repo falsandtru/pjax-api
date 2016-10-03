@@ -6,13 +6,13 @@ import { documentUrl } from './state/url';
 import { progressbar } from './progressbar';
 import { InterfaceError } from '../data/error';
 
-const router = new class extends Supervisor<string[], Error, undefined> { }();
+const router = new class extends Supervisor<string, Error, void, void> { }();
 
 export function route(
   config: Config,
   event: Event,
   state: {
-    router: Supervisor<string[], Error, undefined>;
+    router: Supervisor<string, Error, void, void>;
     script: CanonicalUrl[];
     cancelable: Cancelable<Error>;
   },
@@ -20,15 +20,15 @@ export function route(
     document: Document;
   }
 ): Promise<void> {
-  void router.cast([], new InterfaceError(`Abort.`));
-  void router.register([], e => {
+  void router.cast('', new InterfaceError(`Abort.`));
+  void router.register('', e => {
     throw void state.cancelable.cancel(e);
-  });
+  }, void 0);
   void progressbar(config.progressbar);
   return route_(config, event, state, io)
     .then<void>(
       m => (
-        void router.terminate([]),
+        void router.terminate(''),
         void m
           .bind(state.cancelable.either)
           .fmap(ss => (
@@ -36,7 +36,7 @@ export function route(
             void documentUrl.sync()))
         .extract()))
     .catch(e => (
-      void router.terminate([]),
+      void router.terminate(''),
       void state.cancelable.maybe(void 0)
         .extract(
           () => void 0,

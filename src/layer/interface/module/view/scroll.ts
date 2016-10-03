@@ -7,7 +7,7 @@ export class ScrollView {
     listener: (event: Event) => any
   ) {
     let timer = 0;
-    void this.sv.register([], () =>
+    void this.sv.register('', () => [
       void this.sv.events.exit.once(
         [],
         bind(window, 'scroll', event =>
@@ -18,10 +18,12 @@ export class ScrollView {
                 timer = 0,
                 void listener(event)),
               300),
-          { passive: true })));
-    void this.sv.cast([], void 0);
+          { passive: true })),
+      void 0
+    ], void 0);
+    void this.sv.cast('', void 0);
   }
-  private readonly sv = new class extends Supervisor<string[], undefined, undefined>{ }();
-  public readonly close = (): undefined =>
+  private readonly sv = new class extends Supervisor<string, void, void, void>{ }();
+  public readonly close = (): void =>
     void this.sv.terminate();
 }
