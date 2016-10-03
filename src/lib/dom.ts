@@ -64,22 +64,20 @@ export function serialize(form: HTMLFormElement): string {
     .join('&');
 }
 
-// Test via a getter in the options object to see if the passive property is accessed
-let supportsPassive = false;
+let supportEventListenerOptions = false;
 try {
-  const opts = Object.defineProperty({}, 'passive', {
+  window.addEventListener("test", <any>null, Object.defineProperty({}, 'capture', {
     get: function () {
-      supportsPassive = true;
+      supportEventListenerOptions = true;
     }
-  });
-  window.addEventListener("test", <any>null, opts);
+  }));
 } catch (e) { }
 interface EventListenerOption {
   capture?: boolean;
   passive?: boolean;
 }
-function adjustEventListenerOptions(option: boolean | EventListenerOption): boolean {
-  return supportsPassive
+function adjustEventListenerOptions(option: boolean | EventListenerOption): boolean | undefined {
+  return supportEventListenerOptions
     ? <boolean>option
-    : <boolean>(<EventListenerOption>option).capture;
+    : (<EventListenerOption>option).capture;
 }
