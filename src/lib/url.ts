@@ -5,6 +5,7 @@ export class Url<T extends string | String> {
   constructor(url: T) {
     this.URL;
     this.parser.href = url + '' || location.href;
+    this.parser.setAttribute('href', this.parser.href);
   }
   private readonly parser = document.createElement('a');
   public get href(): T {
