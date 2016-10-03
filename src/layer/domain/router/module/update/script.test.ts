@@ -12,7 +12,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           src: parse('').extract(),
           dst: parse('').extract()
         },
-        [],
+        new Set([]),
         {
           ignore: '',
           reload: '',
@@ -37,7 +37,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           src: parse(DOM.head([DOM.script({ class: 'test' }, [])]).raw.outerHTML).extract(),
           dst: parse('').extract()
         },
-        [],
+        new Set([]),
         {
           ignore: '',
           reload: '',
@@ -76,7 +76,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           src: parse(DOM.head([DOM.script({ class: 'test' }, [])]).raw.outerHTML).extract(),
           dst: parse('').extract()
         },
-        [],
+        new Set([]),
         {
           ignore: '',
           reload: '',
@@ -112,7 +112,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           src: parse(DOM.head([DOM.script({ class: 'test' }, [])]).raw.outerHTML).extract(),
           dst: parse('').extract()
         },
-        [],
+        new Set([]),
         {
           ignore: '',
           reload: '',
@@ -149,7 +149,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           src: parse(DOM.head([DOM.script({ class: 'test' }, [])]).raw.outerHTML).extract(),
           dst: parse('').extract()
         },
-        [],
+        new Set([]),
         {
           ignore: '',
           reload: '',

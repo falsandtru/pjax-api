@@ -12,7 +12,7 @@ export function route(
   config: Config,
   event: Event,
   state: {
-    script: CanonicalUrl[];
+    scripts: Set<CanonicalUrl>;
     cancelable: Cancelable<Error>
   },
   io: {
@@ -34,7 +34,7 @@ export function route(
           new RouterEntity(
             new RouterEvent(event),
             config,
-            new RouterEntity.State(state.script, state.cancelable)),
+            new RouterEntity.State(state.scripts, state.cancelable)),
           io));
 }
 

@@ -10,7 +10,7 @@ export function script(
     src: Document;
     dst: Document;
   },
-  skip: CanonicalUrl[],
+  skip: Set<CanonicalUrl>,
   selector: {
     ignore: string;
     reload: string;
@@ -28,7 +28,7 @@ export function script(
     .filter(el => !el.matches(selector.ignore.trim() || '_'))
     .filter(el =>
       el.hasAttribute('src')
-        ? skip.indexOf(canonicalizeUrl(validateUrl(el.src))) === -1 || el.matches(selector.reload.trim() || '_')
+        ? !skip.has(canonicalizeUrl(validateUrl(el.src))) || el.matches(selector.reload.trim() || '_')
         : true);
   return new Promise<Either<Error, HTMLScriptElement[]>>((resolve, reject) => (
     void Promise.all(

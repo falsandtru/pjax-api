@@ -124,7 +124,7 @@ export function update(
               }))
           .modify(() =>
             config.update.script
-              ? script(doc, state.script, config.update, cancelable)
+              ? script(doc, state.scripts, config.update, cancelable)
               : Promise.resolve<Either<Error, HTMLScriptElement[]>>(cancelable.either([])))
           .extend(() => (
             void io.document.dispatchEvent(new Event('pjax:ready')),

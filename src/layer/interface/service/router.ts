@@ -13,7 +13,7 @@ export function route(
   event: Event,
   state: {
     router: Supervisor<string, Error, void, void>;
-    script: CanonicalUrl[];
+    scripts: Set<CanonicalUrl>;
     cancelable: Cancelable<Error>;
   },
   io: {
@@ -32,7 +32,7 @@ export function route(
         void m
           .bind(state.cancelable.either)
           .fmap(ss => (
-            void state.script.push(...ss.map(s => canonicalizeUrl(validateUrl(s.src)))),
+            void ss.forEach(s => void state.scripts.add(canonicalizeUrl(validateUrl(s.src)))),
             void documentUrl.sync()))
         .extract()))
     .catch(e => (

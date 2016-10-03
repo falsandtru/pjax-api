@@ -1,11 +1,11 @@
-import { concat } from 'spica';
 import { canonicalizeUrl, CanonicalUrl } from '../../../data/model/canonicalization/url';
 import { validateUrl } from '../../../data/model/validation/url';
 import { find } from '../../../../lib/dom';
 
-export const script: CanonicalUrl[] = [];
+export const scripts = new Set<CanonicalUrl>();
 
 void setTimeout(() =>
-  void concat(script, find<HTMLScriptElement>(document, 'script')
+  void find<HTMLScriptElement>(document, 'script')
     .filter(script => script.hasAttribute('src'))
-    .map(script => canonicalizeUrl(validateUrl(script.src)))));
+    .forEach(script =>
+      void scripts.add(canonicalizeUrl(validateUrl(script.src)))));

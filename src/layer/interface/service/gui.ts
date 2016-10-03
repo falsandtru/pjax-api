@@ -11,7 +11,7 @@ import { NavigationView } from '../module/view/navigation';
 import { ScrollView } from '../module/view/scroll';
 import { initialization } from '../service/state/initialization';
 import { documentUrl } from '../service/state/url';
-import { script } from '../service/state/script';
+import { scripts } from '../service/state/script';
 import '../service/state/scroll-restoration';
 import { route } from '../service/router';
 import { loadTitle, savePosition, parse } from '../../application/api';
@@ -25,13 +25,13 @@ export class GUI {
     return void click(url)
       .then(event =>
         initialization
-          .then(() => route(new Config(option), event, { router, script, cancelable: new Cancelable<Error>() }, io)));
+          .then(() => route(new Config(option), event, { router, scripts, cancelable: new Cancelable<Error>() }, io)));
   }
   public static replace(url: string, option: Option, io = { document: window.document }): undefined {
     return void click(url)
       .then(event =>
         initialization
-          .then(() => route(new Config(extend({}, option, { replace: '*' })), event, { router, script, cancelable: new Cancelable<Error>() }, io)));
+          .then(() => route(new Config(extend({}, option, { replace: '*' })), event, { router, scripts, cancelable: new Cancelable<Error>() }, io)));
   }
   constructor(
     private readonly option: Option,
@@ -62,7 +62,7 @@ export class GUI {
                     event,
                     {
                       router,
-                      script,
+                      scripts,
                       cancelable: new Cancelable<Error>()
                     },
                     this.io))))
@@ -87,7 +87,7 @@ export class GUI {
                     event,
                     {
                       router,
-                      script,
+                      scripts,
                       cancelable: new Cancelable<Error>()
                     },
                     this.io))))
@@ -114,7 +114,7 @@ export class GUI {
                     event,
                     {
                       router,
-                      script,
+                      scripts,
                       cancelable: new Cancelable<Error>()
                     },
                     this.io))))
