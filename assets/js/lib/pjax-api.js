@@ -1770,7 +1770,7 @@ define('src/layer/interface/service/state/script', [
 ], function (require, exports, spica_17, url_15, url_16, dom_13) {
     'use strict';
     exports.script = [];
-    void spica_17.Tick(function () {
+    void setTimeout(function () {
         return void spica_17.concat(exports.script, dom_13.find(document, 'script').filter(function (script) {
             return script.hasAttribute('src');
         }).map(function (script) {
