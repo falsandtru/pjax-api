@@ -47,6 +47,7 @@ define('src/lib/url', [
             this.parser = document.createElement('a');
             this.URL;
             this.parser.href = url + '' || location.href;
+            this.parser.setAttribute('href', this.parser.href);
         }
         Object.defineProperty(Url.prototype, 'href', {
             get: function () {
@@ -429,18 +430,17 @@ define('src/lib/dom', [
         }).join('&');
     }
     exports.serialize = serialize;
-    var supportsPassive = false;
+    var supportEventListenerOptions = false;
     try {
-        var opts = Object.defineProperty({}, 'passive', {
+        window.addEventListener('test', null, Object.defineProperty({}, 'capture', {
             get: function () {
-                supportsPassive = true;
+                supportEventListenerOptions = true;
             }
-        });
-        window.addEventListener('test', null, opts);
+        }));
     } catch (e) {
     }
     function adjustEventListenerOptions(option) {
-        return supportsPassive ? option : option.capture;
+        return supportEventListenerOptions ? option : option.capture;
     }
 });
 define('src/layer/domain/event/router', [
@@ -1647,10 +1647,13 @@ define('src/layer/interface/module/view/click', [
             this.close = function () {
                 return void _this.sv.terminate();
             };
-            void this.sv.register([], function () {
-                return void _this.sv.events.exit.once([], dom_9.delegate(document.documentElement, selector, 'click', listener));
-            });
-            void this.sv.cast([], void 0);
+            void this.sv.register('', function () {
+                return [
+                    void _this.sv.events.exit.once([], dom_9.delegate(document.documentElement, selector, 'click', listener)),
+                    void 0
+                ];
+            }, void 0);
+            void this.sv.cast('', void 0);
         }
         return ClickView;
     }();
@@ -1676,10 +1679,13 @@ define('src/layer/interface/module/view/submit', [
             this.close = function () {
                 return void _this.sv.terminate();
             };
-            void this.sv.register([], function () {
-                return void _this.sv.events.exit.once([], dom_10.delegate(document.documentElement, selector, 'submit', listener));
-            });
-            void this.sv.cast([], void 0);
+            void this.sv.register('', function () {
+                return [
+                    void _this.sv.events.exit.once([], dom_10.delegate(document.documentElement, selector, 'submit', listener)),
+                    void 0
+                ];
+            }, void 0);
+            void this.sv.cast('', void 0);
         }
         return SubmitView;
     }();
@@ -1705,10 +1711,13 @@ define('src/layer/interface/module/view/navigation', [
             this.close = function () {
                 return void _this.sv.terminate();
             };
-            void this.sv.register([], function () {
-                return void _this.sv.events.exit.once([], dom_11.bind(window, 'popstate', listener));
-            });
-            void this.sv.cast([], void 0);
+            void this.sv.register('', function () {
+                return [
+                    void _this.sv.events.exit.once([], dom_11.bind(window, 'popstate', listener)),
+                    void 0
+                ];
+            }, void 0);
+            void this.sv.cast('', void 0);
         }
         return NavigationView;
     }();
@@ -1735,14 +1744,17 @@ define('src/layer/interface/module/view/scroll', [
                 return void _this.sv.terminate();
             };
             var timer = 0;
-            void this.sv.register([], function () {
-                return void _this.sv.events.exit.once([], dom_12.bind(window, 'scroll', function (event) {
-                    return timer = timer > 0 ? timer : setTimeout(function () {
-                        return timer = 0, void listener(event);
-                    }, 300);
-                }, { passive: true }));
-            });
-            void this.sv.cast([], void 0);
+            void this.sv.register('', function () {
+                return [
+                    void _this.sv.events.exit.once([], dom_12.bind(window, 'scroll', function (event) {
+                        return timer = timer > 0 ? timer : setTimeout(function () {
+                            return timer = 0, void listener(event);
+                        }, 300);
+                    }, { passive: true })),
+                    void 0
+                ];
+            }, void 0);
+            void this.sv.cast('', void 0);
         }
         return ScrollView;
     }();
@@ -1864,20 +1876,20 @@ define('src/layer/interface/service/router', [
         return class_6;
     }(spica_19.Supervisor))();
     function route(config, event, state, io) {
-        void router.cast([], new error_8.InterfaceError('Abort.'));
-        void router.register([], function (e) {
+        void router.cast('', new error_8.InterfaceError('Abort.'));
+        void router.register('', function (e) {
             throw void state.cancelable.cancel(e);
-        });
+        }, void 0);
         void progressbar_1.progressbar(config.progressbar);
         return api_5.route(config, event, state, io).then(function (m) {
-            return void router.terminate([]), void m.bind(state.cancelable.either).fmap(function (ss) {
+            return void router.terminate(''), void m.bind(state.cancelable.either).fmap(function (ss) {
                 return void (_a = state.script).push.apply(_a, ss.map(function (s) {
                     return url_19.canonicalizeUrl(url_20.validateUrl(s.src));
                 })), void url_21.documentUrl.sync();
                 var _a;
             }).extract();
         }).catch(function (e) {
-            return void router.terminate([]), void state.cancelable.maybe(void 0).extract(function () {
+            return void router.terminate(''), void state.cancelable.maybe(void 0).extract(function () {
                 return void 0;
             }, function () {
                 return void console.error(e), void Promise.reject(config.fallback(event._currentTarget, e));
@@ -1923,67 +1935,73 @@ define('src/layer/interface/service/gui', [
             this.option = option;
             this.io = io;
             this.config = new api_6.Config(this.option);
-            void GUI.sv.terminate([]);
-            void GUI.sv.register([], function () {
-                return void GUI.sv.events.exit.once([], new click_1.ClickView(_this.io.document, _this.config.link, function (event) {
-                    return void spica_20.Just(new url_22.Url(url_23.canonicalizeUrl(url_24.validateUrl(event._currentTarget.href)))).bind(function (url) {
-                        return !!!hasModifierKey(event) && isAccessible(url) && !isHashChange(url) && _this.config.filter(event._currentTarget) ? spica_20.Just(0) : spica_20.Nothing;
-                    }).fmap(function () {
-                        return void event.preventDefault(), initialization_1.initialization.then(function () {
-                            return router_3.route(_this.config, event, {
-                                router: router,
-                                script: script_3.script,
-                                cancelable: new spica_20.Cancelable()
-                            }, _this.io);
+            void GUI.sv.terminate('');
+            void GUI.sv.register('', function () {
+                return [
+                    void GUI.sv.events.exit.once([], new click_1.ClickView(_this.io.document, _this.config.link, function (event) {
+                        return void spica_20.Just(new url_22.Url(url_23.canonicalizeUrl(url_24.validateUrl(event._currentTarget.href)))).bind(function (url) {
+                            return !!!hasModifierKey(event) && isAccessible(url) && !isHashChange(url) && _this.config.filter(event._currentTarget) ? spica_20.Just(0) : spica_20.Nothing;
+                        }).fmap(function () {
+                            return void event.preventDefault(), initialization_1.initialization.then(function () {
+                                return router_3.route(_this.config, event, {
+                                    router: router,
+                                    script: script_3.script,
+                                    cancelable: new spica_20.Cancelable()
+                                }, _this.io);
+                            });
+                        }).extract(function () {
+                            return Promise.resolve();
+                        }).catch(function () {
+                            return void window.location.assign(event._currentTarget.href);
                         });
-                    }).extract(function () {
-                        return Promise.resolve();
-                    }).catch(function () {
-                        return void window.location.assign(event._currentTarget.href);
-                    });
-                }).close), void GUI.sv.events.exit.once([], new submit_1.SubmitView(_this.io.document, _this.config.form, function (event) {
-                    return void spica_20.Just(new url_22.Url(url_23.canonicalizeUrl(url_24.validateUrl(event._currentTarget.action)))).bind(function (url) {
-                        return !!!hasModifierKey(event) && isAccessible(url) ? spica_20.Just(0) : spica_20.Nothing;
-                    }).fmap(function () {
-                        return void event.preventDefault(), initialization_1.initialization.then(function () {
-                            return router_3.route(_this.config, event, {
-                                router: router,
-                                script: script_3.script,
-                                cancelable: new spica_20.Cancelable()
-                            }, _this.io);
+                    }).close),
+                    void GUI.sv.events.exit.once([], new submit_1.SubmitView(_this.io.document, _this.config.form, function (event) {
+                        return void spica_20.Just(new url_22.Url(url_23.canonicalizeUrl(url_24.validateUrl(event._currentTarget.action)))).bind(function (url) {
+                            return !!!hasModifierKey(event) && isAccessible(url) ? spica_20.Just(0) : spica_20.Nothing;
+                        }).fmap(function () {
+                            return void event.preventDefault(), initialization_1.initialization.then(function () {
+                                return router_3.route(_this.config, event, {
+                                    router: router,
+                                    script: script_3.script,
+                                    cancelable: new spica_20.Cancelable()
+                                }, _this.io);
+                            });
+                        }).extract(function () {
+                            return Promise.resolve();
+                        }).catch(function () {
+                            return void window.location.assign(event._currentTarget.action);
                         });
-                    }).extract(function () {
-                        return Promise.resolve();
-                    }).catch(function () {
-                        return void window.location.assign(event._currentTarget.action);
-                    });
-                }).close), void GUI.sv.events.exit.once([], new navigation_1.NavigationView(window, function (event) {
-                    return void spica_20.Just(new url_22.Url(url_23.canonicalizeUrl(url_24.validateUrl(window.location.href)))).bind(function (url) {
-                        return !!isAccessible(url) && !isHashChange(url) ? spica_20.Just(api_7.loadTitle(url.path)) : spica_20.Nothing;
-                    }).fmap(function (title) {
-                        return title ? io.document.title = title : void 0, initialization_1.initialization.then(function () {
-                            return router_3.route(_this.config, event, {
-                                router: router,
-                                script: script_3.script,
-                                cancelable: new spica_20.Cancelable()
-                            }, _this.io);
+                    }).close),
+                    void GUI.sv.events.exit.once([], new navigation_1.NavigationView(window, function (event) {
+                        return void spica_20.Just(new url_22.Url(url_23.canonicalizeUrl(url_24.validateUrl(window.location.href)))).bind(function (url) {
+                            return !!isAccessible(url) && !isHashChange(url) ? spica_20.Just(api_7.loadTitle(url.path)) : spica_20.Nothing;
+                        }).fmap(function (title) {
+                            return title ? io.document.title = title : void 0, initialization_1.initialization.then(function () {
+                                return router_3.route(_this.config, event, {
+                                    router: router,
+                                    script: script_3.script,
+                                    cancelable: new spica_20.Cancelable()
+                                }, _this.io);
+                            });
+                        }).extract(function () {
+                            return Promise.resolve();
+                        }).catch(function () {
+                            return void window.location.reload(true);
                         });
-                    }).extract(function () {
-                        return Promise.resolve();
-                    }).catch(function () {
-                        return void window.location.reload(true);
-                    });
-                }).close), void GUI.sv.events.exit.once([], new scroll_2.ScrollView(window, function () {
-                    return void spica_20.Just(window).fmap(function (_a) {
-                        var left = _a.pageXOffset, top = _a.pageYOffset;
-                        return url_25.documentUrl.href === new url_22.Url(url_23.canonicalizeUrl(url_24.validateUrl(window.location.href))).href ? void api_7.savePosition(new url_22.Url(url_25.documentUrl.href).path, {
-                            top: top,
-                            left: left
-                        }) : void 0;
-                    }).extract();
-                }).close);
-            });
-            void GUI.sv.cast([], void 0);
+                    }).close),
+                    void GUI.sv.events.exit.once([], new scroll_2.ScrollView(window, function () {
+                        return void spica_20.Just(window).fmap(function (_a) {
+                            var left = _a.pageXOffset, top = _a.pageYOffset;
+                            return url_25.documentUrl.href === new url_22.Url(url_23.canonicalizeUrl(url_24.validateUrl(window.location.href))).href ? void api_7.savePosition(new url_22.Url(url_25.documentUrl.href).path, {
+                                top: top,
+                                left: left
+                            }) : void 0;
+                        }).extract();
+                    }).close),
+                    void 0
+                ];
+            }, void 0);
+            void GUI.sv.cast('', void 0);
         }
         GUI.assign = function (url, option, io) {
             if (io === void 0) {

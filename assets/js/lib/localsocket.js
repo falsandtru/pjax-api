@@ -1,4 +1,4 @@
-/*! localsocket v0.4.5 https://github.com/falsandtru/localsocket | (c) 2016, falsandtru | MIT License */
+/*! localsocket v0.4.6 https://github.com/falsandtru/localsocket | (c) 2016, falsandtru | MIT License */
 define = typeof define === 'function' && define.amd
   ? define
   : (function () {
@@ -706,11 +706,12 @@ define('src/layer/data/schema/event', [
             if (date === void 0) {
                 date = Date.now();
             }
-            _super.call(this, key, value, date, type);
-            this.EVENT_RECORD;
-            if (this.id !== void 0 || 'id' in this)
-                throw new TypeError('LocalSocket: UnsavedEventRecord: Invalid event id: ' + this.id);
-            void Object.freeze(this);
+            var _this = _super.call(this, key, value, date, type) || this;
+            _this.EVENT_RECORD;
+            if (_this.id !== void 0 || 'id' in _this)
+                throw new TypeError('LocalSocket: UnsavedEventRecord: Invalid event id: ' + _this.id);
+            void Object.freeze(_this);
+            return _this;
         }
         return UnsavedEventRecord;
     }(EventRecord);
@@ -718,12 +719,13 @@ define('src/layer/data/schema/event', [
     var SavedEventRecord = function (_super) {
         __extends(SavedEventRecord, _super);
         function SavedEventRecord(id, key, value, type, date) {
-            _super.call(this, key, value, date, type);
-            this.id = id;
-            this.EVENT_RECORD;
-            if (this.id > 0 === false)
-                throw new TypeError('LocalSocket: SavedEventRecord: Invalid event id: ' + this.id);
-            void Object.freeze(this);
+            var _this = _super.call(this, key, value, date, type) || this;
+            _this.id = id;
+            _this.EVENT_RECORD;
+            if (_this.id > 0 === false)
+                throw new TypeError('LocalSocket: SavedEventRecord: Invalid event id: ' + _this.id);
+            void Object.freeze(_this);
+            return _this;
         }
         return SavedEventRecord;
     }(EventRecord);
@@ -758,36 +760,31 @@ define('src/layer/data/store/event', [
             var _this = this;
             this.database = database;
             this.name = name;
-            this.memory = new (function (_super) {
-                __extends(class_1, _super);
-                function class_1() {
-                    _super.apply(this, arguments);
-                }
-                return class_1;
-            }(spica_3.Supervisor))();
+            this.memory = new spica_3.Observable();
             this.events = {
                 load: new spica_3.Observable(),
                 save: new spica_3.Observable(),
                 loss: new spica_3.Observable()
             };
-            this.events_ = { access: new spica_3.Observable() };
+            this.events_ = {
+                update: new spica_3.Observable(),
+                access: new spica_3.Observable()
+            };
             this.syncState = new Map();
             this.syncWaits = new spica_3.Observable();
             this.snapshotCycle = 9;
             var states = new (function () {
-                function class_2() {
+                function class_1() {
                     this.id = new Map();
                     this.date = new Map();
                 }
-                class_2.prototype.update = function (event) {
+                class_1.prototype.update = function (event) {
                     void this.id.set(event.key, types_1.IdNumber(Math.max(event.id || 0, this.id.get(event.key) || 0)));
                     void this.date.set(event.key, Math.max(event.date, this.date.get(event.key) || 0));
                 };
-                return class_2;
+                return class_1;
             }())();
-            void this.memory.events.exec.monitor([], function (_a) {
-                var sub = _a[1];
-                var event = sub(void 0);
+            void this.events_.update.monitor([], function (event) {
                 if (event instanceof event_3.UnsavedEventRecord)
                     return;
                 if (event.date <= states.date.get(event.key) && event.id <= states.id.get(event.key))
@@ -798,9 +795,7 @@ define('src/layer/data/store/event', [
                     event.type
                 ], new EventStore.Event(event.type, event.id, event.key, event.attr, event.date));
             });
-            void this.memory.events.exec.monitor([], function (_a) {
-                var sub = _a[1];
-                var event = sub(void 0);
+            void this.events_.update.monitor([], function (event) {
                 void states.update(new EventStore.Event(event.type, event.id || types_1.IdNumber(0), event.key, event.attr, event.date));
             });
             void this.events.load.monitor([], function (event) {
@@ -859,14 +854,14 @@ define('src/layer/data/store/event', [
             };
         };
         EventStore.prototype.update = function (key, attr, id) {
-            return typeof id === 'string' && typeof attr === 'string' ? void this.memory.cast([
+            return typeof id === 'string' && typeof attr === 'string' ? void this.memory.emit([
                 key,
                 attr,
                 id
-            ], void 0) : typeof attr === 'string' ? void this.memory.cast([
+            ], void 0) : typeof attr === 'string' ? void this.memory.emit([
                 key,
                 attr
-            ], void 0) : void this.memory.cast([key], void 0);
+            ], void 0) : void this.memory.emit([key], void 0);
         };
         EventStore.prototype.sync = function (keys, cb, timeout) {
             var _this = this;
@@ -955,12 +950,19 @@ define('src/layer/data/store/event', [
                     }, new Map()).values()).sort(function (a, b) {
                         return a.date - b.date || a.id - b.id;
                     }).forEach(function (e) {
-                        void _this.memory.register([
+                        void _this.memory.on([
                             e.key,
                             e.attr,
                             spica_3.sqid(e.id)
                         ], function () {
                             return e;
+                        });
+                        void _this.memory.once([e.key], function () {
+                            throw void _this.events_.update.emit([
+                                e.key,
+                                e.attr,
+                                spica_3.sqid(e.id)
+                            ], e);
                         });
                     });
                     void _this.syncState.set(key, true);
@@ -986,12 +988,12 @@ define('src/layer/data/store/event', [
             });
         };
         EventStore.prototype.keys = function () {
-            return this.memory.cast([], void 0).reduce(function (keys, e) {
+            return this.memory.reflect([], void 0).reduce(function (keys, e) {
                 return keys.length === 0 || keys[keys.length - 1] !== e.key ? spica_3.concat(keys, [e.key]) : keys;
             }, []).sort();
         };
         EventStore.prototype.meta = function (key) {
-            var events = this.memory.cast([key], void 0);
+            var events = this.memory.reflect([key], void 0);
             return Object.freeze({
                 key: key,
                 id: events.reduce(function (id, e) {
@@ -1003,12 +1005,12 @@ define('src/layer/data/store/event', [
             });
         };
         EventStore.prototype.has = function (key) {
-            return compose(key, this.memory.cast([key], void 0)).type !== EventStore.EventType.delete;
+            return compose(key, this.memory.reflect([key], void 0)).type !== EventStore.EventType.delete;
         };
         EventStore.prototype.get = function (key) {
             void this.sync([key]);
             void this.events_.access.emit([key], new InternalEvent(InternalEventType.query, types_1.IdNumber(0), key, ''));
-            return compose(key, this.memory.cast([key], void 0)).value;
+            return compose(key, this.memory.reflect([key], void 0)).value;
         };
         EventStore.prototype.add = function (event, tx) {
             var _this = this;
@@ -1022,7 +1024,7 @@ define('src/layer/data/store/event', [
             void this.sync([event.key]);
             switch (event.type) {
             case EventStore.EventType.put: {
-                    void this.memory.terminate([
+                    void this.memory.off([
                         event.key,
                         event.attr,
                         spica_3.sqid(0)
@@ -1042,18 +1044,29 @@ define('src/layer/data/store/event', [
                             id
                         ]);
                     }, new Map()).forEach(function (ns) {
-                        return void _this.memory.terminate(ns);
+                        return void _this.memory.off(ns);
                     });
                     break;
                 }
             }
-            var terminate = this.memory.register([
+            var terminate = this.memory.on([
                 event.key,
                 event.attr,
                 spica_3.sqid(0),
                 spica_3.sqid()
             ], function () {
                 return event;
+            });
+            void this.memory.once([
+                event.key,
+                event.attr,
+                spica_3.sqid(0)
+            ], function () {
+                throw void _this.events_.update.emit([
+                    event.key,
+                    event.attr,
+                    spica_3.sqid(0)
+                ], event);
             });
             void this.update(event.key, event.attr, spica_3.sqid(0));
             return void new Promise(function (resolve, reject) {
@@ -1075,12 +1088,23 @@ define('src/layer/data/store/event', [
                     tx.oncomplete = function () {
                         void terminate();
                         var savedEvent = new event_3.SavedEventRecord(types_1.IdNumber(req.result), event.key, event.value, event.type, event.date);
-                        void _this.memory.register([
+                        void _this.memory.on([
                             savedEvent.key,
                             savedEvent.attr,
                             spica_3.sqid(savedEvent.id)
                         ], function () {
                             return savedEvent;
+                        });
+                        void _this.memory.once([
+                            savedEvent.key,
+                            savedEvent.attr,
+                            spica_3.sqid(savedEvent.id)
+                        ], function () {
+                            throw void _this.events_.update.emit([
+                                savedEvent.key,
+                                savedEvent.attr,
+                                spica_3.sqid(savedEvent.id)
+                            ], savedEvent);
                         });
                         void _this.events.save.emit([
                             savedEvent.key,
@@ -1166,7 +1190,7 @@ define('src/layer/data/store/event', [
             ]) : api_1.IDBKeyRange.upperBound(until), key ? event_3.EventRecordFields.surrogateKeyDateField : event_3.EventRecordFields.date, api_1.IDBCursorDirection.prev, api_1.IDBTransactionMode.readwrite, function (cursor) {
                 if (!cursor) {
                     return void removedEvents.reduce(function (_, event) {
-                        return void _this.memory.terminate([
+                        return void _this.memory.off([
                             event.key,
                             event.attr,
                             spica_3.sqid(event.id)
@@ -1217,11 +1241,10 @@ define('src/layer/data/store/event', [
                 };
             });
         };
-        EventStore.fields = Object.freeze(event_3.EventRecordFields);
         return EventStore;
     }();
     exports.EventStore = EventStore;
-    var EventStore;
+    EventStore.fields = Object.freeze(event_3.EventRecordFields);
     (function (EventStore) {
         EventStore.EventType = Schema.EventType;
         var Event = function () {
@@ -1239,7 +1262,7 @@ define('src/layer/data/store/event', [
         var Record = function (_super) {
             __extends(Record, _super);
             function Record() {
-                _super.apply(this, arguments);
+                return _super.apply(this, arguments) || this;
             }
             return Record;
         }(event_3.UnsavedEventRecord);
@@ -1247,7 +1270,7 @@ define('src/layer/data/store/event', [
         var Value = function (_super) {
             __extends(Value, _super);
             function Value() {
-                _super.apply(this, arguments);
+                return _super.apply(this, arguments) || this;
             }
             return Value;
         }(Schema.EventValue);
@@ -1323,8 +1346,9 @@ define('src/layer/domain/indexeddb/model/socket/data', [
     var DataStore = function (_super) {
         __extends(DataStore, _super);
         function DataStore(database) {
-            _super.call(this, database, exports.STORE_NAME);
-            void Object.freeze(this);
+            var _this = _super.call(this, database, exports.STORE_NAME) || this;
+            void Object.freeze(_this);
+            return _this;
         }
         DataStore.configure = function () {
             return event_7.EventStore.configure(exports.STORE_NAME);
@@ -1332,13 +1356,12 @@ define('src/layer/domain/indexeddb/model/socket/data', [
         return DataStore;
     }(event_7.EventStore);
     exports.DataStore = DataStore;
-    var DataStore;
     (function (DataStore) {
         DataStore.EventType = event_7.EventStore.EventType;
         var Event = function (_super) {
             __extends(Event, _super);
             function Event() {
-                _super.apply(this, arguments);
+                return _super.apply(this, arguments) || this;
             }
             return Event;
         }(event_7.EventStore.Event);
@@ -1346,7 +1369,7 @@ define('src/layer/domain/indexeddb/model/socket/data', [
         var Record = function (_super) {
             __extends(Record, _super);
             function Record() {
-                _super.apply(this, arguments);
+                return _super.apply(this, arguments) || this;
             }
             return Record;
         }(event_7.EventStore.Record);
@@ -1354,7 +1377,7 @@ define('src/layer/domain/indexeddb/model/socket/data', [
         var Value = function (_super) {
             __extends(Value, _super);
             function Value() {
-                _super.apply(this, arguments);
+                return _super.apply(this, arguments) || this;
             }
             return Value;
         }(event_7.EventStore.Value);
@@ -1482,7 +1505,6 @@ define('src/layer/data/store/key-value', [
         return KeyValueStore;
     }();
     exports.KeyValueStore = KeyValueStore;
-    var KeyValueStore;
     (function (KeyValueStore) {
         KeyValueStore.EventType = {
             get: 'get',
@@ -1502,13 +1524,13 @@ define('src/layer/domain/indexeddb/model/socket/access', [
     var AccessStore = function (_super) {
         __extends(AccessStore, _super);
         function AccessStore(database, event) {
-            var _this = this;
-            _super.call(this, database, exports.STORE_NAME, AccessStore.fields.key);
-            void Object.freeze(this);
+            var _this = _super.call(this, database, exports.STORE_NAME, AccessStore.fields.key) || this;
+            void Object.freeze(_this);
             void event.monitor([], function (_a) {
                 var key = _a.key, type = _a.type;
                 return type === event_8.EventStore.EventType.delete ? void _this.delete(key) : void _this.set(key, new AccessRecord(key, Date.now()));
             });
+            return _this;
         }
         AccessStore.configure = function () {
             return {
@@ -1533,13 +1555,13 @@ define('src/layer/domain/indexeddb/model/socket/access', [
                 }
             };
         };
-        AccessStore.fields = Object.freeze({
-            key: 'key',
-            date: 'date'
-        });
         return AccessStore;
     }(key_value_1.KeyValueStore);
     exports.AccessStore = AccessStore;
+    AccessStore.fields = Object.freeze({
+        key: 'key',
+        date: 'date'
+    });
     var AccessRecord = function () {
         function AccessRecord(key, date) {
             this.key = key;
@@ -1560,9 +1582,8 @@ define('src/layer/domain/indexeddb/model/socket/expiry', [
     var ExpiryStore = function (_super) {
         __extends(ExpiryStore, _super);
         function ExpiryStore(database, store, data, expiries) {
-            var _this = this;
-            _super.call(this, database, exports.STORE_NAME, ExpiryStore.fields.key);
-            void Object.freeze(this);
+            var _this = _super.call(this, database, exports.STORE_NAME, ExpiryStore.fields.key) || this;
+            void Object.freeze(_this);
             var timer = 0;
             var scheduled = Infinity;
             var schedule = function (date) {
@@ -1603,6 +1624,7 @@ define('src/layer/domain/indexeddb/model/socket/expiry', [
                     return void schedule(expiry);
                 }
             });
+            return _this;
         }
         ExpiryStore.configure = function () {
             return {
@@ -1627,13 +1649,13 @@ define('src/layer/domain/indexeddb/model/socket/expiry', [
                 }
             };
         };
-        ExpiryStore.fields = Object.freeze({
-            key: 'key',
-            expiry: 'expiry'
-        });
         return ExpiryStore;
     }(key_value_2.KeyValueStore);
     exports.ExpiryStore = ExpiryStore;
+    ExpiryStore.fields = Object.freeze({
+        key: 'key',
+        expiry: 'expiry'
+    });
     var ExpiryRecord = function () {
         function ExpiryRecord(key, expiry) {
             this.key = key;
@@ -1655,10 +1677,10 @@ define('src/layer/domain/indexeddb/model/socket', [
     'use strict';
     var SocketStore = function () {
         function SocketStore(database, destroy, expiry) {
-            var _this = this;
             if (expiry === void 0) {
                 expiry = Infinity;
             }
+            var _this = this;
             this.database = database;
             this.expiry = expiry;
             this.uuid = spica_5.uuid();
@@ -1747,13 +1769,12 @@ define('src/layer/domain/indexeddb/model/socket', [
         return SocketStore;
     }();
     exports.SocketStore = SocketStore;
-    var SocketStore;
     (function (SocketStore) {
         SocketStore.EventType = data_1.DataStore.EventType;
         var Event = function (_super) {
             __extends(Event, _super);
             function Event() {
-                _super.apply(this, arguments);
+                return _super.apply(this, arguments) || this;
             }
             return Event;
         }(data_1.DataStore.Event);
@@ -1761,7 +1782,7 @@ define('src/layer/domain/indexeddb/model/socket', [
         var Record = function (_super) {
             __extends(Record, _super);
             function Record() {
-                _super.apply(this, arguments);
+                return _super.apply(this, arguments) || this;
             }
             return Record;
         }(data_1.DataStore.Record);
@@ -1769,7 +1790,7 @@ define('src/layer/domain/indexeddb/model/socket', [
         var Value = function (_super) {
             __extends(Value, _super);
             function Value() {
-                _super.apply(this, arguments);
+                return _super.apply(this, arguments) || this;
             }
             return Value;
         }(data_1.DataStore.Value);
@@ -2122,16 +2143,15 @@ define('src/layer/domain/indexeddb/repository/socket', [
     var Socket = function (_super) {
         __extends(Socket, _super);
         function Socket(database, factory, expiry, destroy) {
-            var _this = this;
-            _super.call(this, database, destroy, expiry);
-            this.factory = factory;
-            this.proxy = api_11.webstorage(this.database, api_10.localStorage, function () {
+            var _this = _super.call(this, database, destroy, expiry) || this;
+            _this.factory = factory;
+            _this.proxy = api_11.webstorage(_this.database, api_10.localStorage, function () {
                 return new Port();
             });
-            this.port = this.proxy.link();
-            this.links = new Map();
-            this.sources = new Map();
-            void this.port.__event.on([
+            _this.port = _this.proxy.link();
+            _this.links = new Map();
+            _this.sources = new Map();
+            void _this.port.__event.on([
                 api_11.WebStorageEventType.recv,
                 'msgs'
             ], function () {
@@ -2139,11 +2159,11 @@ define('src/layer/domain/indexeddb/repository/socket', [
                     return void _this.schema.data.fetch(key);
                 }, void 0);
             });
-            void this.events.save.monitor([], function (_a) {
+            void _this.events.save.monitor([], function (_a) {
                 var key = _a.key, attr = _a.attr;
                 return void _this.port.send(new Message(key, attr, Date.now()));
             });
-            void this.events.load.monitor([], function (_a) {
+            void _this.events.load.monitor([], function (_a) {
                 var key = _a.key, attr = _a.attr, type = _a.type;
                 var source = _this.sources.get(key);
                 if (!source)
@@ -2187,7 +2207,8 @@ define('src/layer/domain/indexeddb/repository/socket', [
                     }
                 }
             });
-            void Object.freeze(this);
+            void Object.freeze(_this);
+            return _this;
         }
         Socket.prototype.link = function (key, expiry) {
             var _this = this;
