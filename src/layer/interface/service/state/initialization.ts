@@ -1,5 +1,7 @@
-import { Tick } from 'spica';
-import './script';
+import { scripts } from './script';
 
-export const initialization = new Promise<void>(resolve =>
-  void Tick(resolve));
+export const init = new Promise<void>(setTimeout)
+  .then(() =>
+    Promise.all([
+      scripts
+    ]));

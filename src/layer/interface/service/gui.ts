@@ -9,9 +9,8 @@ import { ClickView } from '../module/view/click';
 import { SubmitView } from '../module/view/submit';
 import { NavigationView } from '../module/view/navigation';
 import { ScrollView } from '../module/view/scroll';
-import { initialization } from '../service/state/initialization';
+import { init } from '../service/state/initialization';
 import { documentUrl } from '../service/state/url';
-import { scripts } from '../service/state/script';
 import '../service/state/scroll-restoration';
 import { route } from '../service/router';
 import { loadTitle, savePosition, parse } from '../../application/api';
@@ -24,14 +23,14 @@ export class GUI {
   public static assign(url: string, option: Option, io = { document: window.document }): undefined {
     return void click(url)
       .then(event =>
-        initialization
-          .then(() => route(new Config(option), event, { router, scripts, cancelable: new Cancelable<Error>() }, io)));
+        init
+          .then(([scripts]) => route(new Config(option), event, { router, scripts, cancelable: new Cancelable<Error>() }, io)));
   }
   public static replace(url: string, option: Option, io = { document: window.document }): undefined {
     return void click(url)
       .then(event =>
-        initialization
-          .then(() => route(new Config(extend({}, option, { replace: '*' })), event, { router, scripts, cancelable: new Cancelable<Error>() }, io)));
+        init
+          .then(([scripts]) => route(new Config(extend({}, option, { replace: '*' })), event, { router, scripts, cancelable: new Cancelable<Error>() }, io)));
   }
   constructor(
     private readonly option: Option,
@@ -55,8 +54,8 @@ export class GUI {
                 : Nothing)
             .fmap(() => (
               void event.preventDefault(),
-              initialization
-                .then(() =>
+              init
+                .then(([scripts]) =>
                   route(
                     this.config,
                     event,
@@ -80,8 +79,8 @@ export class GUI {
                 : Nothing)
             .fmap(() => (
               void event.preventDefault(),
-              initialization
-                .then(() =>
+              init
+                .then(([scripts]) =>
                   route(
                     this.config,
                     event,
@@ -107,8 +106,8 @@ export class GUI {
               title
                 ? io.document.title = title
                 : void 0,
-              initialization
-                .then(() =>
+              init
+                .then(([scripts]) =>
                   route(
                     this.config,
                     event,

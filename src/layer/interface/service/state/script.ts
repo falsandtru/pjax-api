@@ -2,10 +2,11 @@ import { canonicalizeUrl, CanonicalUrl } from '../../../data/model/canonicalizat
 import { validateUrl } from '../../../data/model/validation/url';
 import { find } from '../../../../lib/dom';
 
-export const scripts = new Set<CanonicalUrl>();
-
-void setTimeout(() =>
-  void find<HTMLScriptElement>(document, 'script')
-    .filter(script => script.hasAttribute('src'))
-    .forEach(script =>
-      void scripts.add(canonicalizeUrl(validateUrl(script.src)))));
+export const scripts: Promise<Set<CanonicalUrl>> = new Promise<void>(setTimeout)
+  .then<Set<CanonicalUrl>>(() =>
+    find<HTMLScriptElement>(document, 'script')
+      .filter(script => script.hasAttribute('src'))
+      .reduce(
+        (scripts, script) =>
+          scripts.add(canonicalizeUrl(validateUrl(script.src))),
+        new Set<CanonicalUrl>()));
