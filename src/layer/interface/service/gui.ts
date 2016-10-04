@@ -16,10 +16,10 @@ import { route } from '../service/router';
 import { loadTitle, savePosition, parse } from '../../application/api';
 import { once } from '../../../lib/dom';
 
-const router = new class extends Supervisor<string, Error, void, void> { }();
+const router = new class extends Supervisor<'', Error, void, void> { }();
 
 export class GUI {
-  private static readonly sv = new class extends Supervisor<string, void, void, void>{ }();
+  private static readonly sv = new class extends Supervisor<'', void, void, void>{ }();
   public static assign(url: string, option: Option, io = { document: window.document }): undefined {
     return void click(url)
       .then(event =>

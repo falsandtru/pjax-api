@@ -6,13 +6,13 @@ import { documentUrl } from './state/url';
 import { progressbar } from './progressbar';
 import { InterfaceError } from '../data/error';
 
-const router = new class extends Supervisor<string, Error, void, void> { }();
+const router = new class extends Supervisor<'', Error, void, void> { }();
 
 export function route(
   config: Config,
   event: Event,
   state: {
-    router: Supervisor<string, Error, void, void>;
+    router: Supervisor<'', Error, void, void>;
     scripts: Set<CanonicalUrl>;
     cancelable: Cancelable<Error>;
   },

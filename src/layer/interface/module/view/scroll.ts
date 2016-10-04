@@ -23,7 +23,7 @@ export class ScrollView {
     ], void 0);
     void this.sv.cast('', void 0);
   }
-  private readonly sv = new class extends Supervisor<string, void, void, void>{ }();
+  private readonly sv = new class extends Supervisor<'', void, void, void>{ }();
   public readonly close = (): void =>
     void this.sv.terminate();
 }
