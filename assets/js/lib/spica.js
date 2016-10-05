@@ -1,4 +1,4 @@
-/*! spica v0.0.33 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.34 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 define = typeof define === 'function' && define.amd
   ? define
   : (function () {
@@ -249,6 +249,7 @@ define('src/lib/tick', [
         void schedule();
     }
     function dequeue() {
+        scheduled = false;
         var rem = Queue.length;
         while (true) {
             try {
@@ -262,7 +263,6 @@ define('src/lib/tick', [
             }
             break;
         }
-        scheduled = false;
     }
     function schedule() {
         if (scheduled)
@@ -471,14 +471,20 @@ define('src/lib/supervisor', [
                         name_2,
                         param
                     ]);
-                }
-                if (this_1.alive && replies.length > 0) {
+                    try {
+                        void callback(void 0, new Error('Spica: Supervisor: Task: Failed.'));
+                    } catch (reason) {
+                        void console.error(reason);
+                    }
+                } else {
                     var reply = replies[0];
                     if (thenable_1.isThenable(reply)) {
                         void Promise.resolve(reply).then(function (reply) {
-                            return _this.alive ? void callback(reply) : void callback(void 0, new Error('Spica: Supervisor: <' + _this.id + '/' + _this.name + '/' + name_2 + '>: A request is expired.'));
-                        }, function (reason) {
-                            return void callback(void 0, reason);
+                            return _this.alive ? void callback(reply) : void callback(void 0, new Error('Spica: Supervisor: Task: Failed.'));
+                        }, function () {
+                            return void callback(void 0, new Error('Spica: Supervisor: Task: Failed.'));
+                        }).catch(function (reason) {
+                            return void console.error(reason);
                         });
                     } else {
                         try {
@@ -487,8 +493,6 @@ define('src/lib/supervisor', [
                             void console.error(reason);
                         }
                     }
-                } else {
-                    void callback(void 0, new Error('Spica: Supervisor: <' + this_1.id + '/' + this_1.name + '/' + name_2 + '>: A request is expired.'));
                 }
                 out_i_1 = i;
             };
@@ -601,7 +605,7 @@ define('src/lib/supervisor', [
                             if (cmd.timeout < Infinity === false)
                                 return;
                             void setTimeout(function () {
-                                return void reject(new Error('Spica: Supervisor: <' + _this.sv.id + '/' + _this.sv.name + '/' + _this.name + '>: Timeout while processing.'));
+                                return void reject(new Error('Spica: Supervisor: Task: Timeout while processing.'));
                             }, cmd.timeout);
                         }).then(function (_a) {
                             var reply = _a[0], state = _a[1];
@@ -2841,9 +2845,10 @@ define('src/lib/collection/cachemap', [
 ], function (require, exports) {
     'use strict';
     var time = Date.now();
-    void setInterval(function () {
-        return time = Date.now();
-    }, 100);
+    void function loop() {
+        time = Date.now();
+        void setTimeout(loop, 100);
+    }();
     var CacheMap = function () {
         function CacheMap(entries) {
             if (entries === void 0) {

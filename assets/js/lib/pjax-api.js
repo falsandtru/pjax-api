@@ -556,8 +556,8 @@ define('src/layer/domain/router/model/eav/entity', [
     (function (RouterEntity) {
         RouterEntity.Event = router_1.RouterEvent;
         var State = function () {
-            function State(script, cancelable) {
-                this.script = script;
+            function State(scripts, cancelable) {
+                this.scripts = scripts;
                 this.cancelable = cancelable;
                 void Object.freeze(this);
             }
@@ -1018,7 +1018,7 @@ define('src/layer/domain/router/module/update/script', [
         }).filter(function (el) {
             return !el.matches(selector.ignore.trim() || '_');
         }).filter(function (el) {
-            return el.hasAttribute('src') ? skip.indexOf(url_7.canonicalizeUrl(url_8.validateUrl(el.src))) === -1 || el.matches(selector.reload.trim() || '_') : true;
+            return el.hasAttribute('src') ? !skip.has(url_7.canonicalizeUrl(url_8.validateUrl(el.src))) || el.matches(selector.reload.trim() || '_') : true;
         });
         return new Promise(function (resolve, reject) {
             return void Promise.all(scripts.reduce(function (rs, script) {
@@ -1492,7 +1492,7 @@ define('src/layer/domain/router/service/update/api', [
                             position: io.position
                         });
                     }).modify(function () {
-                        return config.update.script ? script_2.script(doc, state.script, config.update, cancelable) : Promise.resolve(cancelable.either([]));
+                        return config.update.script ? script_2.script(doc, state.scripts, config.update, cancelable) : Promise.resolve(cancelable.either([]));
                     }).extend(function () {
                         return void io.document.dispatchEvent(new Event('pjax:ready')), config.sequence.ready(seq).then(cancelable.either, spica_10.Left);
                     }).reverse().tuple();
@@ -1620,7 +1620,7 @@ define('src/layer/application/api', [
         }).extract(function () {
             return Promise.resolve(spica_12.Left(new error_6.ApplicationError('Disabled to use pjax by config.')));
         }, function (config) {
-            return api_4.route(new api_4.RouterEntity(new router_2.RouterEvent(event), config, new api_4.RouterEntity.State(state.script, state.cancelable)), io);
+            return api_4.route(new api_4.RouterEntity(new router_2.RouterEvent(event), config, new api_4.RouterEntity.State(state.scripts, state.cancelable)), io);
         });
     }
     exports.route = route;
@@ -1763,30 +1763,27 @@ define('src/layer/interface/module/view/scroll', [
 define('src/layer/interface/service/state/script', [
     'require',
     'exports',
-    'spica',
     'src/layer/data/model/canonicalization/url',
     'src/layer/data/model/validation/url',
     'src/lib/dom'
-], function (require, exports, spica_17, url_15, url_16, dom_13) {
+], function (require, exports, url_15, url_16, dom_13) {
     'use strict';
-    exports.script = [];
-    void setTimeout(function () {
-        return void spica_17.concat(exports.script, dom_13.find(document, 'script').filter(function (script) {
+    exports.scripts = new Promise(setTimeout).then(function () {
+        return dom_13.find(document, 'script').filter(function (script) {
             return script.hasAttribute('src');
-        }).map(function (script) {
-            return url_15.canonicalizeUrl(url_16.validateUrl(script.src));
-        }));
+        }).reduce(function (scripts, script) {
+            return scripts.add(url_15.canonicalizeUrl(url_16.validateUrl(script.src)));
+        }, new Set());
     });
 });
 define('src/layer/interface/service/state/initialization', [
     'require',
     'exports',
-    'spica',
     'src/layer/interface/service/state/script'
-], function (require, exports, spica_18) {
+], function (require, exports, script_3) {
     'use strict';
-    exports.initialization = new Promise(function (resolve) {
-        return void spica_18.Tick(resolve);
+    exports.init = new Promise(setTimeout).then(function () {
+        return Promise.all([script_3.scripts]);
     });
 });
 define('src/layer/interface/service/state/url', [
@@ -1866,7 +1863,7 @@ define('src/layer/interface/service/router', [
     'src/layer/interface/service/state/url',
     'src/layer/interface/service/progressbar',
     'src/layer/interface/data/error'
-], function (require, exports, spica_19, api_5, url_19, url_20, url_21, progressbar_1, error_8) {
+], function (require, exports, spica_17, api_5, url_19, url_20, url_21, progressbar_1, error_8) {
     'use strict';
     var router = new (function (_super) {
         __extends(class_6, _super);
@@ -1874,7 +1871,7 @@ define('src/layer/interface/service/router', [
             _super.apply(this, arguments);
         }
         return class_6;
-    }(spica_19.Supervisor))();
+    }(spica_17.Supervisor))();
     function route(config, event, state, io) {
         void router.cast('', new error_8.InterfaceError('Abort.'));
         void router.register('', function (e) {
@@ -1883,10 +1880,9 @@ define('src/layer/interface/service/router', [
         void progressbar_1.progressbar(config.progressbar);
         return api_5.route(config, event, state, io).then(function (m) {
             return void router.terminate(''), void m.bind(state.cancelable.either).fmap(function (ss) {
-                return void (_a = state.script).push.apply(_a, ss.map(function (s) {
-                    return url_19.canonicalizeUrl(url_20.validateUrl(s.src));
-                })), void url_21.documentUrl.sync();
-                var _a;
+                return void ss.forEach(function (s) {
+                    return void state.scripts.add(url_19.canonicalizeUrl(url_20.validateUrl(s.src)));
+                }), void url_21.documentUrl.sync();
             }).extract();
         }).catch(function (e) {
             return void router.terminate(''), void state.cancelable.maybe(void 0).extract(function () {
@@ -1912,12 +1908,11 @@ define('src/layer/interface/service/gui', [
     'src/layer/interface/module/view/scroll',
     'src/layer/interface/service/state/initialization',
     'src/layer/interface/service/state/url',
-    'src/layer/interface/service/state/script',
     'src/layer/interface/service/router',
     'src/layer/application/api',
     'src/lib/dom',
     '../service/state/scroll-restoration'
-], function (require, exports, spica_20, api_6, url_22, url_23, url_24, click_1, submit_1, navigation_1, scroll_2, initialization_1, url_25, script_3, router_3, api_7, dom_14) {
+], function (require, exports, spica_18, api_6, url_22, url_23, url_24, click_1, submit_1, navigation_1, scroll_2, initialization_1, url_25, router_3, api_7, dom_14) {
     'use strict';
     var router = new (function (_super) {
         __extends(class_7, _super);
@@ -1925,7 +1920,7 @@ define('src/layer/interface/service/gui', [
             _super.apply(this, arguments);
         }
         return class_7;
-    }(spica_20.Supervisor))();
+    }(spica_18.Supervisor))();
     var GUI = function () {
         function GUI(option, io) {
             var _this = this;
@@ -1939,14 +1934,15 @@ define('src/layer/interface/service/gui', [
             void GUI.sv.register('', function () {
                 return [
                     void GUI.sv.events.exit.once([], new click_1.ClickView(_this.io.document, _this.config.link, function (event) {
-                        return void spica_20.Just(new url_22.Url(url_23.canonicalizeUrl(url_24.validateUrl(event._currentTarget.href)))).bind(function (url) {
-                            return !!!hasModifierKey(event) && isAccessible(url) && !isHashChange(url) && _this.config.filter(event._currentTarget) ? spica_20.Just(0) : spica_20.Nothing;
+                        return void spica_18.Just(new url_22.Url(url_23.canonicalizeUrl(url_24.validateUrl(event._currentTarget.href)))).bind(function (url) {
+                            return !!!hasModifierKey(event) && isAccessible(url) && !isHashChange(url) && _this.config.filter(event._currentTarget) ? spica_18.Just(0) : spica_18.Nothing;
                         }).fmap(function () {
-                            return void event.preventDefault(), initialization_1.initialization.then(function () {
+                            return void event.preventDefault(), initialization_1.init.then(function (_a) {
+                                var scripts = _a[0];
                                 return router_3.route(_this.config, event, {
                                     router: router,
-                                    script: script_3.script,
-                                    cancelable: new spica_20.Cancelable()
+                                    scripts: scripts,
+                                    cancelable: new spica_18.Cancelable()
                                 }, _this.io);
                             });
                         }).extract(function () {
@@ -1956,14 +1952,15 @@ define('src/layer/interface/service/gui', [
                         });
                     }).close),
                     void GUI.sv.events.exit.once([], new submit_1.SubmitView(_this.io.document, _this.config.form, function (event) {
-                        return void spica_20.Just(new url_22.Url(url_23.canonicalizeUrl(url_24.validateUrl(event._currentTarget.action)))).bind(function (url) {
-                            return !!!hasModifierKey(event) && isAccessible(url) ? spica_20.Just(0) : spica_20.Nothing;
+                        return void spica_18.Just(new url_22.Url(url_23.canonicalizeUrl(url_24.validateUrl(event._currentTarget.action)))).bind(function (url) {
+                            return !!!hasModifierKey(event) && isAccessible(url) ? spica_18.Just(0) : spica_18.Nothing;
                         }).fmap(function () {
-                            return void event.preventDefault(), initialization_1.initialization.then(function () {
+                            return void event.preventDefault(), initialization_1.init.then(function (_a) {
+                                var scripts = _a[0];
                                 return router_3.route(_this.config, event, {
                                     router: router,
-                                    script: script_3.script,
-                                    cancelable: new spica_20.Cancelable()
+                                    scripts: scripts,
+                                    cancelable: new spica_18.Cancelable()
                                 }, _this.io);
                             });
                         }).extract(function () {
@@ -1973,14 +1970,15 @@ define('src/layer/interface/service/gui', [
                         });
                     }).close),
                     void GUI.sv.events.exit.once([], new navigation_1.NavigationView(window, function (event) {
-                        return void spica_20.Just(new url_22.Url(url_23.canonicalizeUrl(url_24.validateUrl(window.location.href)))).bind(function (url) {
-                            return !!isAccessible(url) && !isHashChange(url) ? spica_20.Just(api_7.loadTitle(url.path)) : spica_20.Nothing;
+                        return void spica_18.Just(new url_22.Url(url_23.canonicalizeUrl(url_24.validateUrl(window.location.href)))).bind(function (url) {
+                            return !!isAccessible(url) && !isHashChange(url) ? spica_18.Just(api_7.loadTitle(url.path)) : spica_18.Nothing;
                         }).fmap(function (title) {
-                            return title ? io.document.title = title : void 0, initialization_1.initialization.then(function () {
+                            return title ? io.document.title = title : void 0, initialization_1.init.then(function (_a) {
+                                var scripts = _a[0];
                                 return router_3.route(_this.config, event, {
                                     router: router,
-                                    script: script_3.script,
-                                    cancelable: new spica_20.Cancelable()
+                                    scripts: scripts,
+                                    cancelable: new spica_18.Cancelable()
                                 }, _this.io);
                             });
                         }).extract(function () {
@@ -1990,7 +1988,7 @@ define('src/layer/interface/service/gui', [
                         });
                     }).close),
                     void GUI.sv.events.exit.once([], new scroll_2.ScrollView(window, function () {
-                        return void spica_20.Just(window).fmap(function (_a) {
+                        return void spica_18.Just(window).fmap(function (_a) {
                             var left = _a.pageXOffset, top = _a.pageYOffset;
                             return url_25.documentUrl.href === new url_22.Url(url_23.canonicalizeUrl(url_24.validateUrl(window.location.href))).href ? void api_7.savePosition(new url_22.Url(url_25.documentUrl.href).path, {
                                 top: top,
@@ -2008,11 +2006,12 @@ define('src/layer/interface/service/gui', [
                 io = { document: window.document };
             }
             return void click(url).then(function (event) {
-                return initialization_1.initialization.then(function () {
+                return initialization_1.init.then(function (_a) {
+                    var scripts = _a[0];
                     return router_3.route(new api_6.Config(option), event, {
                         router: router,
-                        script: script_3.script,
-                        cancelable: new spica_20.Cancelable()
+                        scripts: scripts,
+                        cancelable: new spica_18.Cancelable()
                     }, io);
                 });
             });
@@ -2022,11 +2021,12 @@ define('src/layer/interface/service/gui', [
                 io = { document: window.document };
             }
             return void click(url).then(function (event) {
-                return initialization_1.initialization.then(function () {
-                    return router_3.route(new api_6.Config(spica_20.extend({}, option, { replace: '*' })), event, {
+                return initialization_1.init.then(function (_a) {
+                    var scripts = _a[0];
+                    return router_3.route(new api_6.Config(spica_18.extend({}, option, { replace: '*' })), event, {
                         router: router,
-                        script: script_3.script,
-                        cancelable: new spica_20.Cancelable()
+                        scripts: scripts,
+                        cancelable: new spica_18.Cancelable()
                     }, io);
                 });
             });
@@ -2043,7 +2043,7 @@ define('src/layer/interface/service/gui', [
                 _super.apply(this, arguments);
             }
             return class_8;
-        }(spica_20.Supervisor))();
+        }(spica_18.Supervisor))();
         return GUI;
     }();
     exports.GUI = GUI;
