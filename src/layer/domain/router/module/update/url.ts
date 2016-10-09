@@ -12,12 +12,12 @@ export function url(
       return void window.history.replaceState(
         null,
         title,
-        location.dest.href + '');
+        location.dest.href);
     case isRegisterable(type, location):
       return void window.history.pushState(
         null,
         title,
-        location.dest.href + '');
+        location.dest.href);
     default:
       return;
   }

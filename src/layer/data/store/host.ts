@@ -14,5 +14,5 @@ void sock.recent(100, keys =>
 
 export const store = {
   link: (host: Url.Host<CanonicalUrl>, expiry: number) =>
-    sock.link(new Url(host + '').host, expiry)
+    sock.link(new Url(host).host, expiry)
 }

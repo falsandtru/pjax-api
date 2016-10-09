@@ -24,7 +24,7 @@ export function fetch(
       void window.dispatchEvent(new Event('pjax:fetch')),
       sequence.fetch(void 0, {
         host: '',
-        path: new Url(url).path + '',
+        path: new Url(url).path,
         method,
         data
       })

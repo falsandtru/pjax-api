@@ -1,10 +1,10 @@
-export class Url<T extends string | String> {
+export class Url<T extends string> {
   private readonly URL: T;
   constructor(url: PartialUrl<string> & T)
   constructor(url: T)
   constructor(url: T) {
     this.URL;
-    this.parser.href = url + '' || location.href;
+    this.parser.href = url || location.href;
     this.parser.setAttribute('href', this.parser.href);
   }
   private readonly parser = document.createElement('a');
@@ -46,17 +46,17 @@ export class Url<T extends string | String> {
   }
 }
 export namespace Url {
-  export type Domain<T extends string | String> = PartialUrl<'domain'> & T;
-  export type Protocol<T extends string | String> = PartialUrl<'protocol'> & T;
-  export type Host<T extends string | String> = PartialUrl<'host'> & T;
-  export type Hostname<T extends string | String> = PartialUrl<'hostname'> & T;
-  export type Port<T extends string | String> = PartialUrl<'port'> & T;
-  export type Path<T extends string | String> = PartialUrl<'path'> & T;
-  export type Dir<T extends string | String> = PartialUrl<'dir'> & T;
-  export type File<T extends string | String> = PartialUrl<'file'> & T;
-  export type Pathname<T extends string | String> = PartialUrl<'pathname'> & T;
-  export type Query<T extends string | String> = PartialUrl<'query'> & T;
-  export type Hash<T extends string | String> = PartialUrl<'hash'> & T;
+  export type Domain<T extends string> = PartialUrl<'domain'> & T;
+  export type Protocol<T extends string> = PartialUrl<'protocol'> & T;
+  export type Host<T extends string> = PartialUrl<'host'> & T;
+  export type Hostname<T extends string> = PartialUrl<'hostname'> & T;
+  export type Port<T extends string> = PartialUrl<'port'> & T;
+  export type Path<T extends string> = PartialUrl<'path'> & T;
+  export type Dir<T extends string> = PartialUrl<'dir'> & T;
+  export type File<T extends string> = PartialUrl<'file'> & T;
+  export type Pathname<T extends string> = PartialUrl<'pathname'> & T;
+  export type Query<T extends string> = PartialUrl<'query'> & T;
+  export type Hash<T extends string> = PartialUrl<'hash'> & T;
 }
 
 declare class PartialUrl<T extends string> {

@@ -1,8 +1,7 @@
+import { Canonical } from './canonical';
 import { ValidUrl } from '../validation/url';
 
-export declare class CanonicalUrl extends ValidUrl {
-  private CANONICAL;
-}
+export type CanonicalUrl = Canonical & string;
 
 export function canonicalizeUrl(url: ValidUrl): CanonicalUrl {
   // Fix case of percent encoding

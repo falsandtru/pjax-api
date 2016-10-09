@@ -14,5 +14,5 @@ void sock.recent(100, keys =>
 
 export const store = {
   link: (path: Url.Path<CanonicalUrl>) =>
-    sock.link(new Url(path + '').path, 3 * 24 * 3600 * 1e3)
+    sock.link(new Url(path).path, 3 * 24 * 3600 * 1e3)
 }

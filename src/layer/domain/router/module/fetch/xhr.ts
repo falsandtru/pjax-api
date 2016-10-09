@@ -19,7 +19,7 @@ export function xhr(
   const xhr = new XMLHttpRequest();
   const wait = new Promise<void>(resolve => setTimeout(resolve, setting.wait));
   return new Promise<Either<Error, FetchValue>>(resolve => (
-    void xhr.open(method, url + '', true),
+    void xhr.open(method, url, true),
     xhr.responseType = /chrome|firefox|edge/i.test(window.navigator.userAgent)
       ? 'document'
       : 'text',

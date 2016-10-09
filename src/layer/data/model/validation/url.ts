@@ -1,6 +1,6 @@
-export declare class ValidUrl extends String {
-  private VALID;
-}
+import { Valid } from './valid';
+
+export type ValidUrl = Valid & string;
 
 const parser = document.createElement('a');
 
