@@ -1,4 +1,4 @@
-/*! spica v0.0.34 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.35 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 define = typeof define === 'function' && define.amd
   ? define
   : (function () {
@@ -196,12 +196,12 @@ define('src/lib/observable', [
             var childrenList = _a.childrenList, childrenMap = _a.childrenMap, registers = _a.registers;
             registers = concat_1.concat([], registers);
             for (var i = 0; i < childrenList.length; ++i) {
-                var name_1 = childrenList[i];
-                var below = this.refsBelow_(childrenMap[name_1]);
+                var name = childrenList[i];
+                var below = this.refsBelow_(childrenMap[name]);
                 registers = concat_1.concat(registers, below);
                 if (below.length === 0) {
-                    void delete childrenMap[name_1];
-                    void childrenList.splice(childrenList.indexOf(name_1), 1);
+                    void delete childrenMap[name];
+                    void childrenList.splice(childrenList.indexOf(name), 1);
                     void --i;
                 }
             }
@@ -460,15 +460,15 @@ define('src/lib/supervisor', [
             var _this = this;
             var now = Date.now();
             var _loop_1 = function (i) {
-                var _a = this_1.queue[i], name_2 = _a[0], param = _a[1], callback = _a[2], timeout = _a[3], since = _a[4];
-                var replies = target === void 0 || target === name_2 ? this_1.procs.reflect([name_2], new WorkerCommand.Call(param, since + timeout - now)) : [];
+                var _a = this_1.queue[i], name = _a[0], param = _a[1], callback = _a[2], timeout = _a[3], since = _a[4];
+                var replies = target === void 0 || target === name ? this_1.procs.reflect([name], new WorkerCommand.Call(param, since + timeout - now)) : [];
                 if (this_1.alive && replies.length === 0 && now < since + timeout)
                     return out_i_1 = i, 'continue';
                 i === 0 ? void this_1.queue.shift() : void this_1.queue.splice(i, 1);
                 void --i;
                 if (replies.length === 0) {
-                    void this_1.events.loss.emit([name_2], [
-                        name_2,
+                    void this_1.events.loss.emit([name], [
+                        name,
                         param
                     ]);
                     try {
@@ -2357,39 +2357,58 @@ define('src/lib/monad/sequence/member/instance/group', [
     Object.defineProperty(exports, '__esModule', { value: true });
     exports.default = default_36;
 });
-define('src/lib/monad/sequence/member/instance/subsequences', [
+define('src/lib/monad/sequence/member/instance/sort', [
     'require',
     'exports',
-    'src/lib/monad/sequence/core',
-    'src/lib/concat'
-], function (require, exports, core_37, concat_6) {
+    'src/lib/monad/sequence/core'
+], function (require, exports, core_37) {
     'use strict';
     var default_37 = function (_super) {
         __extends(default_37, _super);
         function default_37() {
             return _super.apply(this, arguments) || this;
         }
-        default_37.prototype.subsequences = function () {
-            var _this = this;
-            return core_37.Sequence.mappend(core_37.Sequence.from([[]]), core_37.Sequence.from([0]).bind(function () {
-                return nonEmptySubsequences(_this);
-            }));
+        default_37.prototype.sort = function (cmp) {
+            return core_37.Sequence.from(this.extract().sort(cmp));
         };
         return default_37;
     }(core_37.Sequence);
     Object.defineProperty(exports, '__esModule', { value: true });
     exports.default = default_37;
+});
+define('src/lib/monad/sequence/member/instance/subsequences', [
+    'require',
+    'exports',
+    'src/lib/monad/sequence/core',
+    'src/lib/concat'
+], function (require, exports, core_38, concat_6) {
+    'use strict';
+    var default_38 = function (_super) {
+        __extends(default_38, _super);
+        function default_38() {
+            return _super.apply(this, arguments) || this;
+        }
+        default_38.prototype.subsequences = function () {
+            var _this = this;
+            return core_38.Sequence.mappend(core_38.Sequence.from([[]]), core_38.Sequence.from([0]).bind(function () {
+                return nonEmptySubsequences(_this);
+            }));
+        };
+        return default_38;
+    }(core_38.Sequence);
+    Object.defineProperty(exports, '__esModule', { value: true });
+    exports.default = default_38;
     function nonEmptySubsequences(xs) {
-        return core_37.Sequence.Iterator.when(xs.iterate(), function () {
-            return core_37.Sequence.mempty;
+        return core_38.Sequence.Iterator.when(xs.iterate(), function () {
+            return core_38.Sequence.mempty;
         }, function (xt) {
-            return core_37.Sequence.mappend(core_37.Sequence.from([[core_37.Sequence.Thunk.value(xt)]]), new core_37.Sequence(function (_, cons) {
-                return core_37.Sequence.Iterator.when(xt, function () {
+            return core_38.Sequence.mappend(core_38.Sequence.from([[core_38.Sequence.Thunk.value(xt)]]), new core_38.Sequence(function (_, cons) {
+                return core_38.Sequence.Iterator.when(xt, function () {
                     return cons();
                 }, function (xt) {
-                    return cons(nonEmptySubsequences(core_37.Sequence.resume(core_37.Sequence.Thunk.iterator(xt))).fold(function (ys, r) {
-                        return core_37.Sequence.mappend(core_37.Sequence.mappend(core_37.Sequence.from([ys]), core_37.Sequence.from([concat_6.concat([core_37.Sequence.Thunk.value(xt)], ys)])), r);
-                    }, core_37.Sequence.mempty));
+                    return cons(nonEmptySubsequences(core_38.Sequence.resume(core_38.Sequence.Thunk.iterator(xt))).fold(function (ys, r) {
+                        return core_38.Sequence.mappend(core_38.Sequence.mappend(core_38.Sequence.from([ys]), core_38.Sequence.from([concat_6.concat([core_38.Sequence.Thunk.value(xt)], ys)])), r);
+                    }, core_38.Sequence.mempty));
                 });
             }).bind(function (xs) {
                 return xs;
@@ -2401,58 +2420,58 @@ define('src/lib/monad/sequence/member/instance/permutations', [
     'require',
     'exports',
     'src/lib/monad/sequence/core'
-], function (require, exports, core_38) {
+], function (require, exports, core_39) {
     'use strict';
-    var default_38 = function (_super) {
-        __extends(default_38, _super);
-        function default_38() {
+    var default_39 = function (_super) {
+        __extends(default_39, _super);
+        function default_39() {
             return _super.apply(this, arguments) || this;
         }
-        default_38.prototype.permutations = function () {
+        default_39.prototype.permutations = function () {
             var _this = this;
-            return core_38.Sequence.from([0]).bind(function () {
+            return core_39.Sequence.from([0]).bind(function () {
                 var xs = _this.extract();
-                return xs.length === 0 ? core_38.Sequence.mempty : core_38.Sequence.from([xs]);
+                return xs.length === 0 ? core_39.Sequence.mempty : core_39.Sequence.from([xs]);
             }).bind(function (xs) {
-                return core_38.Sequence.mappend(core_38.Sequence.from([xs]), perms(core_38.Sequence.from(xs), core_38.Sequence.mempty));
+                return core_39.Sequence.mappend(core_39.Sequence.from([xs]), perms(core_39.Sequence.from(xs), core_39.Sequence.mempty));
             });
         };
-        return default_38;
-    }(core_38.Sequence);
+        return default_39;
+    }(core_39.Sequence);
     Object.defineProperty(exports, '__esModule', { value: true });
-    exports.default = default_38;
+    exports.default = default_39;
     function perms(ts, is) {
-        return core_38.Sequence.Iterator.when(ts.iterate(), function () {
-            return core_38.Sequence.mempty;
+        return core_39.Sequence.Iterator.when(ts.iterate(), function () {
+            return core_39.Sequence.mempty;
         }, function (tt) {
-            return new core_38.Sequence(function (_, cons) {
-                return core_38.Sequence.Iterator.when(tt, function () {
+            return new core_39.Sequence(function (_, cons) {
+                return core_39.Sequence.Iterator.when(tt, function () {
                     return cons();
                 }, function (tt) {
-                    var t = core_38.Sequence.Thunk.value(tt);
-                    var ts = core_38.Sequence.resume(core_38.Sequence.Thunk.iterator(tt)).memoize();
+                    var t = core_39.Sequence.Thunk.value(tt);
+                    var ts = core_39.Sequence.resume(core_39.Sequence.Thunk.iterator(tt)).memoize();
                     return cons(is.permutations().fold(function (ys, r) {
-                        return interleave(core_38.Sequence.from(ys), r);
-                    }, perms(ts, core_38.Sequence.mappend(core_38.Sequence.from([t]), is))));
+                        return interleave(core_39.Sequence.from(ys), r);
+                    }, perms(ts, core_39.Sequence.mappend(core_39.Sequence.from([t]), is))));
                     function interleave(xs, r) {
                         return interleave_(function (as) {
                             return as;
                         }, xs, r)[1];
                     }
                     function interleave_(f, ys, r) {
-                        return core_38.Sequence.Iterator.when(ys.iterate(), function () {
+                        return core_39.Sequence.Iterator.when(ys.iterate(), function () {
                             return [
                                 ts,
                                 r
                             ];
                         }, function (yt) {
-                            var y = core_38.Sequence.Thunk.value(yt);
+                            var y = core_39.Sequence.Thunk.value(yt);
                             var _a = interleave_(function (as) {
-                                    return f(core_38.Sequence.mappend(core_38.Sequence.from([y]), as));
-                                }, core_38.Sequence.resume(core_38.Sequence.Thunk.iterator(yt)), r), us = _a[0], zs = _a[1];
+                                    return f(core_39.Sequence.mappend(core_39.Sequence.from([y]), as));
+                                }, core_39.Sequence.resume(core_39.Sequence.Thunk.iterator(yt)), r), us = _a[0], zs = _a[1];
                             return [
-                                core_38.Sequence.mappend(core_38.Sequence.from([y]), us),
-                                core_38.Sequence.mappend(core_38.Sequence.from([f(core_38.Sequence.mappend(core_38.Sequence.from([t]), core_38.Sequence.mappend(core_38.Sequence.from([y]), us))).extract()]), zs)
+                                core_39.Sequence.mappend(core_39.Sequence.from([y]), us),
+                                core_39.Sequence.mappend(core_39.Sequence.from([f(core_39.Sequence.mappend(core_39.Sequence.from([t]), core_39.Sequence.mappend(core_39.Sequence.from([y]), us))).extract()]), zs)
                             ];
                         });
                     }
@@ -2598,13 +2617,14 @@ define('src/lib/monad/sequence', [
     'src/lib/monad/sequence/member/instance/scan',
     'src/lib/monad/sequence/member/instance/fold',
     'src/lib/monad/sequence/member/instance/group',
+    'src/lib/monad/sequence/member/instance/sort',
     'src/lib/monad/sequence/member/instance/subsequences',
     'src/lib/monad/sequence/member/instance/permutations',
     'src/lib/compose'
-], function (require, exports, core_39, resume_1, from_1, cycle_1, random_1, concat_7, zip_1, difference_1, union_1, intersect_1, pure_1, return_1, mempty_1, mconcat_1, mappend_1, mzero_1, mplus_1, extract_1, iterate_1, memoize_1, reduce_1, take_1, drop_1, takeWhile_1, dropWhile_1, takeUntil_1, dropUntil_1, fmap_1, ap_1, bind_1, mapM_1, filterM_1, map_1, filter_1, scan_1, fold_1, group_1, subsequences_1, permutations_1, compose_1) {
+], function (require, exports, core_40, resume_1, from_1, cycle_1, random_1, concat_7, zip_1, difference_1, union_1, intersect_1, pure_1, return_1, mempty_1, mconcat_1, mappend_1, mzero_1, mplus_1, extract_1, iterate_1, memoize_1, reduce_1, take_1, drop_1, takeWhile_1, dropWhile_1, takeUntil_1, dropUntil_1, fmap_1, ap_1, bind_1, mapM_1, filterM_1, map_1, filter_1, scan_1, fold_1, group_1, sort_1, subsequences_1, permutations_1, compose_1) {
     'use strict';
-    exports.Sequence = core_39.Sequence;
-    void compose_1.compose(core_39.Sequence, resume_1.default, from_1.default, cycle_1.default, random_1.default, concat_7.default, zip_1.default, difference_1.default, union_1.default, intersect_1.default, pure_1.default, return_1.default, mempty_1.default, mconcat_1.default, mappend_1.default, mzero_1.default, mplus_1.default, extract_1.default, iterate_1.default, memoize_1.default, reduce_1.default, take_1.default, drop_1.default, takeWhile_1.default, dropWhile_1.default, takeUntil_1.default, dropUntil_1.default, fmap_1.default, ap_1.default, bind_1.default, mapM_1.default, filterM_1.default, map_1.default, filter_1.default, scan_1.default, fold_1.default, group_1.default, subsequences_1.default, permutations_1.default);
+    exports.Sequence = core_40.Sequence;
+    void compose_1.compose(core_40.Sequence, resume_1.default, from_1.default, cycle_1.default, random_1.default, concat_7.default, zip_1.default, difference_1.default, union_1.default, intersect_1.default, pure_1.default, return_1.default, mempty_1.default, mconcat_1.default, mappend_1.default, mzero_1.default, mplus_1.default, extract_1.default, iterate_1.default, memoize_1.default, reduce_1.default, take_1.default, drop_1.default, takeWhile_1.default, dropWhile_1.default, takeUntil_1.default, dropUntil_1.default, fmap_1.default, ap_1.default, bind_1.default, mapM_1.default, filterM_1.default, map_1.default, filter_1.default, scan_1.default, fold_1.default, group_1.default, sort_1.default, subsequences_1.default, permutations_1.default);
 });
 define('src/lib/flip', [
     'require',
@@ -2839,73 +2859,6 @@ define('src/lib/collection/datamap', [
     }();
     exports.DataMap = DataMap;
 });
-define('src/lib/collection/cachemap', [
-    'require',
-    'exports'
-], function (require, exports) {
-    'use strict';
-    var time = Date.now();
-    void function loop() {
-        time = Date.now();
-        void setTimeout(loop, 100);
-    }();
-    var CacheMap = function () {
-        function CacheMap(entries) {
-            if (entries === void 0) {
-                entries = [];
-            }
-            var _this = this;
-            this.store = new Map();
-            void Array.from(entries).forEach(function (_a) {
-                var k = _a[0], v = _a[1];
-                return void _this.set(k, v);
-            });
-        }
-        CacheMap.prototype.clean = function (key) {
-            if (this.store.has(key) && this.store.get(key)[0] < time) {
-                void this.store.delete(key);
-            }
-        };
-        CacheMap.prototype.get = function (key) {
-            void this.clean(key);
-            return (this.store.get(key) || [
-                0,
-                void 0
-            ])[1];
-        };
-        CacheMap.prototype.set = function (key, val, expiry) {
-            if (expiry === void 0) {
-                expiry = Infinity;
-            }
-            void this.clean(key);
-            void this.store.set(key, [
-                time + expiry,
-                val
-            ]);
-            return this;
-        };
-        CacheMap.prototype.has = function (key) {
-            void this.clean(key);
-            return this.store.has(key);
-        };
-        CacheMap.prototype.delete = function (key) {
-            void this.clean(key);
-            return this.store.delete(key);
-        };
-        CacheMap.prototype.clear = function () {
-            return this.store.clear();
-        };
-        Object.defineProperty(CacheMap.prototype, 'size', {
-            get: function () {
-                return this.store.size;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        return CacheMap;
-    }();
-    exports.CacheMap = CacheMap;
-});
 define('src/lib/collection/attrmap', [
     'require',
     'exports'
@@ -2948,6 +2901,123 @@ define('src/lib/collection/attrmap', [
         return AttrMap;
     }();
     exports.AttrMap = AttrMap;
+});
+define('src/lib/cache', [
+    'require',
+    'exports'
+], function (require, exports) {
+    'use strict';
+    var Cache = function () {
+        function Cache(size, callback) {
+            if (callback === void 0) {
+                callback = function () {
+                    return void 0;
+                };
+            }
+            this.size = size;
+            this.callback = callback;
+            this.store = new Map();
+            this.stats = {
+                LRU: [],
+                LFU: []
+            };
+            if (size > 0 === false)
+                throw new Error('Spica: Cache: Cache size must be greater than 0.');
+        }
+        Cache.prototype.put = function (key, value) {
+            if (key !== key)
+                throw new TypeError('Spica: Cache: Cannot use NaN for key.');
+            if (this.access(key))
+                return void this.store.set(key, value), true;
+            var _a = this.stats, LRU = _a.LRU, LFU = _a.LFU;
+            if (LRU.length + LFU.length === this.size && LRU.length < LFU.length) {
+                var key_2 = LFU.pop();
+                var val = this.store.get(key_2);
+                void this.store.delete(key_2);
+                void this.callback(key_2, val);
+            }
+            void LRU.unshift(key);
+            void this.store.set(key, value);
+            if (LRU.length + LFU.length > this.size) {
+                var key_3 = LRU.pop();
+                var val = this.store.get(key_3);
+                void this.store.delete(key_3);
+                void this.callback(key_3, val);
+            }
+            return false;
+        };
+        Cache.prototype.get = function (key) {
+            void this.access(key);
+            return this.store.get(key);
+        };
+        Cache.prototype.has = function (key) {
+            return this.store.has(key);
+        };
+        Cache.prototype.delete = function (key) {
+            var _a = this.stats, LRU = _a.LRU, LFU = _a.LFU;
+            for (var _i = 0, _b = [
+                        LFU,
+                        LRU
+                    ]; _i < _b.length; _i++) {
+                var log = _b[_i];
+                var index = log.indexOf(key);
+                if (index === -1)
+                    continue;
+                var val = this.store.get(key);
+                void this.store.delete(log.splice(index, 1)[0]);
+                void this.callback(key, val);
+                return true;
+            }
+            return false;
+        };
+        Cache.prototype.clear = function () {
+            var _a = this.stats, LRU = _a.LRU, LFU = _a.LFU;
+            for (var _i = 0, _b = [
+                        LFU,
+                        LRU
+                    ]; _i < _b.length; _i++) {
+                var log = _b[_i];
+                while (log.length > 0) {
+                    var key = log.shift();
+                    var val = this.store.get(key);
+                    void this.store.delete(key);
+                    void this.callback(key, val);
+                }
+            }
+        };
+        Cache.prototype[Symbol.iterator] = function () {
+            return this.store[Symbol.iterator]();
+        };
+        Cache.prototype.inspect = function () {
+            var _a = this.stats, LRU = _a.LRU, LFU = _a.LFU;
+            return [
+                LRU,
+                LFU
+            ];
+        };
+        Cache.prototype.access = function (key) {
+            return this.accessLRU(key) || this.accessLFU(key);
+        };
+        Cache.prototype.accessLRU = function (key) {
+            var LRU = this.stats.LRU;
+            var index = LRU.indexOf(key);
+            if (index === -1)
+                return false;
+            var LFU = this.stats.LFU;
+            void LFU.unshift.apply(LFU, LRU.splice(index, 1));
+            return true;
+        };
+        Cache.prototype.accessLFU = function (key) {
+            var LFU = this.stats.LFU;
+            var index = LFU.indexOf(key);
+            if (index === -1)
+                return false;
+            void LFU.unshift.apply(LFU, LFU.splice(index, 1));
+            return true;
+        };
+        return Cache;
+    }();
+    exports.Cache = Cache;
 });
 define('src/lib/mixin', [
     'require',
@@ -3011,9 +3081,9 @@ define('src/lib/fingerprint', [
     }
     exports.hash = hash;
     function str2digit(str) {
-        return str.split('').map(function (c) {
-            return c.charCodeAt(0);
-        }).join('');
+        return str.split('').reduce(function (s, c) {
+            return s + c.charCodeAt(0);
+        }, '');
     }
     exports.str2digit = str2digit;
     function stringify(obj, depth) {
@@ -3102,8 +3172,8 @@ define('src/export', [
     'src/lib/list',
     'src/lib/hlist',
     'src/lib/collection/datamap',
-    'src/lib/collection/cachemap',
     'src/lib/collection/attrmap',
+    'src/lib/cache',
     'src/lib/mixin',
     'src/lib/tick',
     'src/lib/fingerprint',
@@ -3112,7 +3182,7 @@ define('src/export', [
     'src/lib/assign',
     'src/lib/concat',
     'src/lib/sort'
-], function (require, exports, supervisor_1, observable_2, cancelable_1, sequence_1, maybe_2, either_2, curry_3, flip_1, list_1, hlist_1, datamap_1, cachemap_1, attrmap_1, mixin_1, tick_2, fingerprint_2, uuid_1, sqid_3, assign_3, concat_10, sort_1) {
+], function (require, exports, supervisor_1, observable_2, cancelable_1, sequence_1, maybe_2, either_2, curry_3, flip_1, list_1, hlist_1, datamap_1, attrmap_1, cache_1, mixin_1, tick_2, fingerprint_2, uuid_1, sqid_3, assign_3, concat_10, sort_2) {
     'use strict';
     exports.Supervisor = supervisor_1.Supervisor;
     exports.Observable = observable_2.Observable;
@@ -3129,8 +3199,8 @@ define('src/export', [
     exports.Nil = list_1.Nil;
     exports.HNil = hlist_1.HNil;
     exports.DataMap = datamap_1.DataMap;
-    exports.CacheMap = cachemap_1.CacheMap;
     exports.AttrMap = attrmap_1.AttrMap;
+    exports.Cache = cache_1.Cache;
     exports.Mixin = mixin_1.Mixin;
     exports.Tick = tick_2.Tick;
     exports.FINGERPRINT = fingerprint_2.FINGERPRINT;
@@ -3140,7 +3210,7 @@ define('src/export', [
     exports.clone = assign_3.clone;
     exports.extend = assign_3.extend;
     exports.concat = concat_10.concat;
-    exports.sort = sort_1.sort;
+    exports.sort = sort_2.sort;
 });
 define('spica', [
     'require',
