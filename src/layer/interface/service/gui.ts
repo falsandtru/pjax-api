@@ -16,21 +16,22 @@ import { route } from '../service/router';
 import { loadTitle, savePosition, parse } from '../../application/api';
 import { once } from '../../../lib/dom';
 
-const router = new class extends Supervisor<'', Error, void, void> { }();
-
 export class GUI {
+  private static readonly router = new class extends Supervisor<'', Error, void, void> { }();
   private static readonly sv = new class extends Supervisor<'', void, void, void>{ }();
   public static assign(url: string, option: Option, io = { document: window.document }): undefined {
     return void click(url)
       .then(event =>
         init
-          .then(([scripts]) => route(new Config(option), event, { router, scripts, cancelable: new Cancelable<Error>() }, io)));
+          .then(([scripts]) =>
+            route(new Config(option), event, { router: GUI.router, scripts, cancelable: new Cancelable<Error>() }, io)));
   }
   public static replace(url: string, option: Option, io = { document: window.document }): undefined {
     return void click(url)
       .then(event =>
         init
-          .then(([scripts]) => route(new Config(extend({}, option, { replace: '*' })), event, { router, scripts, cancelable: new Cancelable<Error>() }, io)));
+          .then(([scripts]) =>
+            route(new Config(extend({}, option, { replace: '*' })), event, { router: GUI.router, scripts, cancelable: new Cancelable<Error>() }, io)));
   }
   constructor(
     private readonly option: Option,
@@ -40,7 +41,7 @@ export class GUI {
   ) {
     this.config = new Config(this.option);
     void GUI.sv.terminate('');
-    void GUI.sv.register('', () => [
+    void GUI.sv.register('', () => [(
       void GUI.sv.events.exit.once(
         [],
         new ClickView(this.io.document, this.config.link, event =>
@@ -60,7 +61,7 @@ export class GUI {
                     this.config,
                     event,
                     {
-                      router,
+                      router: GUI.router,
                       scripts,
                       cancelable: new Cancelable<Error>()
                     },
@@ -85,7 +86,7 @@ export class GUI {
                     this.config,
                     event,
                     {
-                      router,
+                      router: GUI.router,
                       scripts,
                       cancelable: new Cancelable<Error>()
                     },
@@ -112,7 +113,7 @@ export class GUI {
                     this.config,
                     event,
                     {
-                      router,
+                      router: GUI.router,
                       scripts,
                       cancelable: new Cancelable<Error>()
                     },
@@ -129,7 +130,7 @@ export class GUI {
                 ? void savePosition(new Url(documentUrl.href).path, { top, left })
                 : void 0)
             .extract())
-          .close),
+          .close)),
       void 0
     ], void 0);
     void GUI.sv.cast('', void 0);

@@ -6,8 +6,6 @@ import { documentUrl } from './state/url';
 import { progressbar } from './progressbar';
 import { InterfaceError } from '../data/error';
 
-const router = new class extends Supervisor<'', Error, void, void> { }();
-
 export function route(
   config: Config,
   event: Event,
@@ -20,14 +18,14 @@ export function route(
     document: Document;
   }
 ): Promise<void> {
-  void router.cast('', new InterfaceError(`Abort.`));
-  void router.register('', e => {
+  void state.router.cast('', new InterfaceError(`Abort.`));
+  void state.router.register('', e => {
     throw void state.cancelable.cancel(e);
   }, void 0);
   void progressbar(config.progressbar);
   return route_(config, event, state, io)
-    .then<void>(m => (
-      void router.terminate(''),
+    .then(m => (
+      void state.router.terminate(''),
       void m
         .bind(state.cancelable.either)
         .fmap(ss => (
@@ -35,7 +33,7 @@ export function route(
           void documentUrl.sync()))
         .extract()))
     .catch(e => (
-      void router.terminate(''),
+      void state.router.terminate(''),
       void state.cancelable.maybe(void 0)
         .extract(
           () => void 0,
