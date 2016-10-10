@@ -26,14 +26,13 @@ export function route(
   }, void 0);
   void progressbar(config.progressbar);
   return route_(config, event, state, io)
-    .then<void>(
-      m => (
-        void router.terminate(''),
-        void m
-          .bind(state.cancelable.either)
-          .fmap(ss => (
-            void ss.forEach(s => void state.scripts.add(canonicalizeUrl(validateUrl(s.src)))),
-            void documentUrl.sync()))
+    .then<void>(m => (
+      void router.terminate(''),
+      void m
+        .bind(state.cancelable.either)
+        .fmap(ss => (
+          void ss.forEach(s => void state.scripts.add(canonicalizeUrl(validateUrl(s.src)))),
+          void documentUrl.sync()))
         .extract()))
     .catch(e => (
       void router.terminate(''),
