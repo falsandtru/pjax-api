@@ -1,4 +1,4 @@
-/*! localsocket v0.4.7 https://github.com/falsandtru/localsocket | (c) 2016, falsandtru | MIT License */
+/*! localsocket v0.4.8 https://github.com/falsandtru/localsocket | (c) 2016, falsandtru | MIT License */
 define = typeof define === 'function' && define.amd
   ? define
   : (function () {
@@ -1153,7 +1153,7 @@ define('src/layer/data/store/event', [
                         var event_5 = cursor.value;
                         void savedEvents.unshift(new event_3.SavedEventRecord(event_5.id, event_5.key, event_5.value, event_5.type, event_5.date));
                     }
-                    if (!cursor || cursor.value.type !== EventStore.EventType.put) {
+                    if (!cursor) {
                         if (savedEvents.length === 0)
                             return;
                         var composedEvent = compose(key, savedEvents);
