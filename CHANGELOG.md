@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.3.5
+
+- Update dependencies.
+
 ## 3.3.4
 
 - Fix internal polyfills.
