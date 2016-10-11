@@ -66,11 +66,12 @@ export function serialize(form: HTMLFormElement): string {
 
 let supportEventListenerOptions = false;
 try {
-  window.addEventListener("test", <any>null, Object.defineProperty({}, 'capture', {
-    get: function () {
+  document.createElement("div").addEventListener("test", function () { }, <any>{
+    get capture() {
       supportEventListenerOptions = true;
+      return false;
     }
-  }));
+  });
 } catch (e) { }
 interface EventListenerOption {
   capture?: boolean;
