@@ -1,4 +1,4 @@
-/*! localsocket v0.4.6 https://github.com/falsandtru/localsocket | (c) 2016, falsandtru | MIT License */
+/*! localsocket v0.4.7 https://github.com/falsandtru/localsocket | (c) 2016, falsandtru | MIT License */
 define = typeof define === 'function' && define.amd
   ? define
   : (function () {
@@ -231,22 +231,22 @@ define('src/layer/infrastructure/indexeddb/model/access', [
     'use strict';
     var IDBEventObserver = new spica_1.Observable();
     exports.event = IDBEventObserver;
-    exports.ConfigMap = new Map();
-    var CommandMap = new Map();
-    var CommandType;
-    (function (CommandType) {
-        CommandType[CommandType['open'] = 0] = 'open';
-        CommandType[CommandType['close'] = 1] = 'close';
-        CommandType[CommandType['destroy'] = 2] = 'destroy';
-    }(CommandType || (CommandType = {})));
-    var StateMap = new Map();
+    var configs = new Map();
+    var commands = new Map();
+    var Command;
+    (function (Command) {
+        Command[Command['open'] = 0] = 'open';
+        Command[Command['close'] = 1] = 'close';
+        Command[Command['destroy'] = 2] = 'destroy';
+    }(Command || (Command = {})));
+    var states = new Map();
     var State;
     (function (State) {
         var Initial = function () {
             function Initial(database) {
                 this.database = database;
                 this.STATE;
-                void StateMap.set(database, this);
+                void states.set(database, this);
             }
             return Initial;
         }();
@@ -255,7 +255,7 @@ define('src/layer/infrastructure/indexeddb/model/access', [
             function Block(database) {
                 this.database = database;
                 this.STATE;
-                void StateMap.set(database, this);
+                void states.set(database, this);
             }
             return Block;
         }();
@@ -265,7 +265,7 @@ define('src/layer/infrastructure/indexeddb/model/access', [
                 this.database = database;
                 this.session = session;
                 this.STATE;
-                void StateMap.set(database, this);
+                void states.set(database, this);
             }
             return Upgrade;
         }();
@@ -275,7 +275,7 @@ define('src/layer/infrastructure/indexeddb/model/access', [
                 this.database = database;
                 this.connection = connection;
                 this.STATE;
-                void StateMap.set(database, this);
+                void states.set(database, this);
             }
             return Success;
         }();
@@ -286,7 +286,7 @@ define('src/layer/infrastructure/indexeddb/model/access', [
                 this.error = error;
                 this.event = event;
                 this.STATE;
-                void StateMap.set(database, this);
+                void states.set(database, this);
             }
             return Error;
         }();
@@ -297,7 +297,7 @@ define('src/layer/infrastructure/indexeddb/model/access', [
                 this.error = error;
                 this.event = event;
                 this.STATE;
-                void StateMap.set(database, this);
+                void states.set(database, this);
             }
             return Abort;
         }();
@@ -307,7 +307,7 @@ define('src/layer/infrastructure/indexeddb/model/access', [
                 this.database = database;
                 this.error = error;
                 this.STATE;
-                void StateMap.set(database, this);
+                void states.set(database, this);
             }
             return Crash;
         }();
@@ -316,7 +316,7 @@ define('src/layer/infrastructure/indexeddb/model/access', [
             function Destroy(database) {
                 this.database = database;
                 this.STATE;
-                void StateMap.set(database, this);
+                void states.set(database, this);
             }
             return Destroy;
         }();
@@ -325,7 +325,7 @@ define('src/layer/infrastructure/indexeddb/model/access', [
             function End(database) {
                 this.database = database;
                 this.STATE;
-                void StateMap.set(database, this);
+                void states.set(database, this);
             }
             return End;
         }();
@@ -333,9 +333,9 @@ define('src/layer/infrastructure/indexeddb/model/access', [
     }(State || (State = {})));
     var requests = new Map();
     function open(name, config) {
-        void CommandMap.set(name, 0);
-        void exports.ConfigMap.set(name, config);
-        if (StateMap.has(name))
+        void commands.set(name, 0);
+        void configs.set(name, config);
+        if (states.has(name))
             return;
         void handleFromInitialState(new State.Initial(name));
     }
@@ -344,7 +344,7 @@ define('src/layer/infrastructure/indexeddb/model/access', [
         return function (req) {
             var queue = requests.get(name) || requests.set(name, []).get(name);
             void queue.push(req);
-            var state = StateMap.get(name);
+            var state = states.get(name);
             if (state instanceof State.Success) {
                 void state.drain();
             }
@@ -352,8 +352,8 @@ define('src/layer/infrastructure/indexeddb/model/access', [
     }
     exports.listen = listen;
     function close(name) {
-        void CommandMap.set(name, 1);
-        void exports.ConfigMap.set(name, {
+        void commands.set(name, 1);
+        void configs.set(name, {
             make: function () {
                 return false;
             },
@@ -364,16 +364,16 @@ define('src/layer/infrastructure/indexeddb/model/access', [
                 return false;
             }
         });
-        if (StateMap.get(name) instanceof State.Success)
-            return StateMap.get(name).end();
-        if (StateMap.has(name))
+        if (states.get(name) instanceof State.Success)
+            return states.get(name).end();
+        if (states.has(name))
             return;
         void handleFromInitialState(new State.Initial(name));
     }
     exports.close = close;
     function destroy(name) {
-        void CommandMap.set(name, 2);
-        void exports.ConfigMap.set(name, {
+        void commands.set(name, 2);
+        void configs.set(name, {
             make: function () {
                 return false;
             },
@@ -384,9 +384,9 @@ define('src/layer/infrastructure/indexeddb/model/access', [
                 return true;
             }
         });
-        if (StateMap.get(name) instanceof State.Success)
-            return StateMap.get(name).destroy();
-        if (StateMap.has(name))
+        if (states.get(name) instanceof State.Success)
+            return states.get(name).destroy();
+        if (states.has(name))
             return;
         void handleFromInitialState(new State.Initial(name));
     }
@@ -396,7 +396,7 @@ define('src/layer/infrastructure/indexeddb/model/access', [
         if (version === void 0) {
             version = 0;
         }
-        var config = exports.ConfigMap.get(database);
+        var config = configs.get(database);
         try {
             var openRequest_1 = version ? global_1.indexedDB.open(database, version) : global_1.indexedDB.open(database);
             var clear_1 = function () {
@@ -428,7 +428,7 @@ define('src/layer/infrastructure/indexeddb/model/access', [
         function handleFromUpgradeState(_a) {
             var database = _a.database, session = _a.session;
             var db = session.transaction.db;
-            var _b = exports.ConfigMap.get(database), make = _b.make, destroy = _b.destroy;
+            var _b = configs.get(database), make = _b.make, destroy = _b.destroy;
             try {
                 if (make(db)) {
                     session.onsuccess = function () {
@@ -464,7 +464,7 @@ define('src/layer/infrastructure/indexeddb/model/access', [
                         event_1.IDBEventType.destroy
                     ], new event_1.IDBEvent(event_1.IDBEventType.destroy, database));
                 }
-                if (StateMap.get(database) !== state)
+                if (states.get(database) !== state)
                     return;
                 void handleFromEndState(new State.End(database));
             };
@@ -478,7 +478,7 @@ define('src/layer/infrastructure/indexeddb/model/access', [
                 return void clear(), void IDBEventObserver.emit([
                     database,
                     event_1.IDBEventType.destroy
-                ], new event_1.IDBEvent(event_1.IDBEventType.destroy, database)), StateMap.get(database) === state ? void handleFromEndState(new State.End(database)) : void 0;
+                ], new event_1.IDBEvent(event_1.IDBEventType.destroy, database)), states.get(database) === state ? void handleFromEndState(new State.End(database)) : void 0;
             };
             state.destroy = function () {
                 return void clear(), void connection.close(), void handleFromDestroyState(new State.Destroy(database));
@@ -489,7 +489,7 @@ define('src/layer/infrastructure/indexeddb/model/access', [
             state.drain = function () {
                 var reqs = requests.get(database) || [];
                 try {
-                    while (reqs.length > 0 && CommandMap.get(database) === 0) {
+                    while (reqs.length > 0 && commands.get(database) === 0) {
                         void reqs[0](connection);
                         void reqs.shift();
                     }
@@ -503,9 +503,9 @@ define('src/layer/infrastructure/indexeddb/model/access', [
                     void handleFromCrashState(new State.Crash(database, err));
                 }
             };
-            switch (CommandMap.get(database)) {
+            switch (commands.get(database)) {
             case 0: {
-                    var verify = exports.ConfigMap.get(database).verify;
+                    var verify = configs.get(database).verify;
                     try {
                         if (!verify(connection))
                             return void handleFromEndState(new State.End(database), connection.version + 1);
@@ -523,7 +523,7 @@ define('src/layer/infrastructure/indexeddb/model/access', [
             case 2:
                 return void state.destroy();
             }
-            throw new TypeError('LocalSocket: Invalid command ' + CommandMap.get(database) + '.');
+            throw new TypeError('LocalSocket: Invalid command ' + commands.get(database) + '.');
         }
         function handleFromErrorState(_a) {
             var database = _a.database, error = _a.error, event = _a.event;
@@ -532,7 +532,7 @@ define('src/layer/infrastructure/indexeddb/model/access', [
                 database,
                 event_1.IDBEventType.error
             ], new event_1.IDBEvent(event_1.IDBEventType.error, database));
-            var destroy = exports.ConfigMap.get(database).destroy;
+            var destroy = configs.get(database).destroy;
             if (destroy(error, event)) {
                 return void handleFromDestroyState(new State.Destroy(database));
             } else {
@@ -546,7 +546,7 @@ define('src/layer/infrastructure/indexeddb/model/access', [
                 database,
                 event_1.IDBEventType.abort
             ], new event_1.IDBEvent(event_1.IDBEventType.abort, database));
-            var destroy = exports.ConfigMap.get(database).destroy;
+            var destroy = configs.get(database).destroy;
             if (destroy(error, event)) {
                 return void handleFromDestroyState(new State.Destroy(database));
             } else {
@@ -559,7 +559,7 @@ define('src/layer/infrastructure/indexeddb/model/access', [
                 database,
                 event_1.IDBEventType.crash
             ], new event_1.IDBEvent(event_1.IDBEventType.crash, database));
-            var destroy = exports.ConfigMap.get(database).destroy;
+            var destroy = configs.get(database).destroy;
             if (destroy(error, null)) {
                 return void handleFromDestroyState(new State.Destroy(database));
             } else {
@@ -584,22 +584,22 @@ define('src/layer/infrastructure/indexeddb/model/access', [
             if (version === void 0) {
                 version = 0;
             }
-            void StateMap.delete(database);
-            switch (CommandMap.get(database)) {
+            void states.delete(database);
+            switch (commands.get(database)) {
             case 0:
                 return void handleFromInitialState(new State.Initial(database), version);
             case 1:
-                return void CommandMap.delete(database), void exports.ConfigMap.delete(database), void IDBEventObserver.emit([
+                return void commands.delete(database), void configs.delete(database), void IDBEventObserver.emit([
                     database,
                     event_1.IDBEventType.disconnect
                 ], new event_1.IDBEvent(event_1.IDBEventType.disconnect, database));
             case 2:
-                return void CommandMap.delete(database), void exports.ConfigMap.delete(database), void IDBEventObserver.emit([
+                return void commands.delete(database), void configs.delete(database), void IDBEventObserver.emit([
                     database,
                     event_1.IDBEventType.disconnect
                 ], new event_1.IDBEvent(event_1.IDBEventType.disconnect, database));
             }
-            throw new TypeError('LocalSocket: Invalid command ' + CommandMap.get(database) + '.');
+            throw new TypeError('LocalSocket: Invalid command ' + commands.get(database) + '.');
         }
     }
 });
@@ -775,19 +775,19 @@ define('src/layer/data/store/event', [
             this.snapshotCycle = 9;
             var states = new (function () {
                 function class_1() {
-                    this.id = new Map();
-                    this.date = new Map();
+                    this.ids = new Map();
+                    this.dates = new Map();
                 }
                 class_1.prototype.update = function (event) {
-                    void this.id.set(event.key, types_1.IdNumber(Math.max(event.id || 0, this.id.get(event.key) || 0)));
-                    void this.date.set(event.key, Math.max(event.date, this.date.get(event.key) || 0));
+                    void this.ids.set(event.key, types_1.IdNumber(Math.max(event.id || 0, this.ids.get(event.key) || 0)));
+                    void this.dates.set(event.key, Math.max(event.date, this.dates.get(event.key) || 0));
                 };
                 return class_1;
             }())();
             void this.events_.update.monitor([], function (event) {
                 if (event instanceof event_3.UnsavedEventRecord)
                     return;
-                if (event.date <= states.date.get(event.key) && event.id <= states.id.get(event.key))
+                if (event.date <= states.dates.get(event.key) && event.id <= states.ids.get(event.key))
                     return;
                 void _this.events.load.emit([
                     event.key,
@@ -1180,7 +1180,7 @@ define('src/layer/data/store/event', [
                 until = Infinity;
             }
             var removedEvents = [];
-            var cleanStateMap = new Map();
+            var cleanState = new Map();
             return void this.cursor(key ? api_1.IDBKeyRange.bound([
                 key,
                 0
@@ -1200,23 +1200,23 @@ define('src/layer/data/store/event', [
                     var event_6 = cursor.value;
                     switch (event_6.type) {
                     case EventStore.EventType.put: {
-                            void cleanStateMap.set(event_6.key, cleanStateMap.get(event_6.key) || false);
+                            void cleanState.set(event_6.key, cleanState.get(event_6.key) || false);
                             break;
                         }
                     case EventStore.EventType.snapshot: {
-                            if (!cleanStateMap.get(event_6.key)) {
-                                void cleanStateMap.set(event_6.key, true);
+                            if (!cleanState.get(event_6.key)) {
+                                void cleanState.set(event_6.key, true);
                                 void cursor.continue();
                                 return;
                             }
                             break;
                         }
                     case EventStore.EventType.delete: {
-                            void cleanStateMap.set(event_6.key, true);
+                            void cleanState.set(event_6.key, true);
                             break;
                         }
                     }
-                    if (cleanStateMap.get(event_6.key)) {
+                    if (cleanState.get(event_6.key)) {
                         void cursor.delete();
                         void removedEvents.unshift(event_6);
                     }
@@ -1867,7 +1867,7 @@ define('src/layer/infrastructure/webstorage/model/event', [
         sessionStorage: new spica_7.Observable()
     };
     exports.events = storageEvents;
-    void window.addEventListener('storage', function (event) {
+    void self.addEventListener('storage', function (event) {
         switch (event.storageArea) {
         case global_3.localStorage:
             return void storageEvents.localStorage.emit(['storage'], event);
