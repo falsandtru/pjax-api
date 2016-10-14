@@ -1,4 +1,4 @@
-/*! localsocket v0.4.8 https://github.com/falsandtru/localsocket | (c) 2016, falsandtru | MIT License */
+/*! localsocket v0.4.9 https://github.com/falsandtru/localsocket | (c) 2016, falsandtru | MIT License */
 define = typeof define === 'function' && define.amd
   ? define
   : (function () {
@@ -344,6 +344,8 @@ define('src/layer/infrastructure/indexeddb/model/access', [
         return function (req) {
             var queue = requests.get(name) || requests.set(name, []).get(name);
             void queue.push(req);
+            if (!states.has(name))
+                return;
             var state = states.get(name);
             if (state instanceof State.Success) {
                 void state.drain();
@@ -364,11 +366,12 @@ define('src/layer/infrastructure/indexeddb/model/access', [
                 return false;
             }
         });
-        if (states.get(name) instanceof State.Success)
-            return states.get(name).end();
-        if (states.has(name))
-            return;
-        void handleFromInitialState(new State.Initial(name));
+        if (!states.has(name))
+            return void handleFromInitialState(new State.Initial(name));
+        var state = states.get(name);
+        if (state instanceof State.Success) {
+            state.end();
+        }
     }
     exports.close = close;
     function destroy(name) {
@@ -384,11 +387,12 @@ define('src/layer/infrastructure/indexeddb/model/access', [
                 return true;
             }
         });
-        if (states.get(name) instanceof State.Success)
-            return states.get(name).destroy();
-        if (states.has(name))
-            return;
-        void handleFromInitialState(new State.Initial(name));
+        if (!states.has(name))
+            return void handleFromInitialState(new State.Initial(name));
+        var state = states.get(name);
+        if (state instanceof State.Success) {
+            state.destroy();
+        }
     }
     exports.destroy = destroy;
     function handleFromInitialState(_a, version) {
@@ -478,7 +482,7 @@ define('src/layer/infrastructure/indexeddb/model/access', [
                 return void clear(), void IDBEventObserver.emit([
                     database,
                     event_1.IDBEventType.destroy
-                ], new event_1.IDBEvent(event_1.IDBEventType.destroy, database)), states.get(database) === state ? void handleFromEndState(new State.End(database)) : void 0;
+                ], new event_1.IDBEvent(event_1.IDBEventType.destroy, database)), void handleFromEndState(new State.End(database));
             };
             state.destroy = function () {
                 return void clear(), void connection.close(), void handleFromDestroyState(new State.Destroy(database));
@@ -858,10 +862,10 @@ define('src/layer/data/store/event', [
                 key,
                 attr,
                 id
-            ], void 0) : typeof attr === 'string' ? void this.memory.emit([
+            ]) : typeof attr === 'string' ? void this.memory.emit([
                 key,
                 attr
-            ], void 0) : void this.memory.emit([key], void 0);
+            ]) : void this.memory.emit([key]);
         };
         EventStore.prototype.sync = function (keys, cb, timeout) {
             var _this = this;
@@ -988,12 +992,12 @@ define('src/layer/data/store/event', [
             });
         };
         EventStore.prototype.keys = function () {
-            return this.memory.reflect([], void 0).reduce(function (keys, e) {
+            return this.memory.reflect([]).reduce(function (keys, e) {
                 return keys.length === 0 || keys[keys.length - 1] !== e.key ? spica_3.concat(keys, [e.key]) : keys;
             }, []).sort();
         };
         EventStore.prototype.meta = function (key) {
-            var events = this.memory.reflect([key], void 0);
+            var events = this.memory.reflect([key]);
             return Object.freeze({
                 key: key,
                 id: events.reduce(function (id, e) {
@@ -1005,12 +1009,12 @@ define('src/layer/data/store/event', [
             });
         };
         EventStore.prototype.has = function (key) {
-            return compose(key, this.memory.reflect([key], void 0)).type !== EventStore.EventType.delete;
+            return compose(key, this.memory.reflect([key])).type !== EventStore.EventType.delete;
         };
         EventStore.prototype.get = function (key) {
             void this.sync([key]);
             void this.events_.access.emit([key], new InternalEvent(InternalEventType.query, types_1.IdNumber(0), key, ''));
-            return compose(key, this.memory.reflect([key], void 0)).value;
+            return compose(key, this.memory.reflect([key])).value;
         };
         EventStore.prototype.add = function (event, tx) {
             var _this = this;
@@ -1070,20 +1074,19 @@ define('src/layer/data/store/event', [
             });
             void this.update(event.key, event.attr, spica_3.sqid(0));
             return void new Promise(function (resolve, reject) {
-                void setTimeout(reject, 1000);
                 var cont = function (tx) {
                     var active = function () {
                         return _this.memory.refs([
                             event.key,
                             event.attr,
                             spica_3.sqid(0)
-                        ]).reduce(function (acc, _a) {
+                        ]).some(function (_a) {
                             var s = _a[1];
-                            return acc || s(void 0) === event;
-                        }, false);
+                            return s(void 0) === event;
+                        });
                     };
                     if (!active())
-                        return;
+                        return void resolve();
                     var req = tx.objectStore(_this.name).add(Object.assign({}, event));
                     tx.oncomplete = function () {
                         void terminate();
@@ -1124,8 +1127,18 @@ define('src/layer/data/store/event', [
                         return active() ? void reject() : void resolve();
                     };
                 };
-                tx ? void cont(tx) : void api_1.listen(_this.database)(function (db) {
-                    return void cont(db.transaction(_this.name, api_1.IDBTransactionMode.readwrite));
+                if (tx)
+                    return void cont(tx);
+                var cancelable = new spica_3.Cancelable();
+                void cancelable.listeners.add(reject);
+                void setTimeout(function () {
+                    return void setTimeout(cancelable.cancel, 1000), void api_1.listen(_this.database)(function (db) {
+                        return void cancelable.listeners.clear(), void cancelable.maybe(db).fmap(function (db) {
+                            return void cont(db.transaction(_this.name, api_1.IDBTransactionMode.readwrite));
+                        }).extract(function () {
+                            return void 0;
+                        });
+                    });
                 });
             }).catch(function () {
                 return void _this.events.loss.emit([
@@ -1523,10 +1536,10 @@ define('src/layer/domain/indexeddb/model/socket/access', [
     exports.STORE_NAME = 'access';
     var AccessStore = function (_super) {
         __extends(AccessStore, _super);
-        function AccessStore(database, event) {
+        function AccessStore(database, access) {
             var _this = _super.call(this, database, exports.STORE_NAME, AccessStore.fields.key) || this;
             void Object.freeze(_this);
-            void event.monitor([], function (_a) {
+            void access.monitor([], function (_a) {
                 var key = _a.key, type = _a.type;
                 return type === event_8.EventStore.EventType.delete ? void _this.delete(key) : void _this.set(key, new AccessRecord(key, Date.now()));
             });
@@ -1581,7 +1594,7 @@ define('src/layer/domain/indexeddb/model/socket/expiry', [
     exports.STORE_NAME = 'expiry';
     var ExpiryStore = function (_super) {
         __extends(ExpiryStore, _super);
-        function ExpiryStore(database, store, data, expiries) {
+        function ExpiryStore(database, store, access, expiries) {
             var _this = _super.call(this, database, exports.STORE_NAME, ExpiryStore.fields.key) || this;
             void Object.freeze(_this);
             var timer = 0;
@@ -1611,7 +1624,7 @@ define('src/layer/domain/indexeddb/model/socket/expiry', [
                 });
             };
             void schedule(Date.now());
-            void data.events_.access.monitor([], function (_a) {
+            void access.monitor([], function (_a) {
                 var key = _a.key, type = _a.type;
                 switch (type) {
                 case event_9.EventStore.EventType.delete:
@@ -1828,7 +1841,7 @@ define('src/layer/domain/indexeddb/model/socket', [
                 ], ev);
             });
             this.access = new access_2.AccessStore(this.store_.database, this.data.events_.access);
-            this.expire = new expiry_1.ExpiryStore(this.store_.database, this.store_, this.data, this.expiries_);
+            this.expire = new expiry_1.ExpiryStore(this.store_.database, this.store_, this.data.events_.access, this.expiries_);
             void this.data.sync(keys);
         };
         return Schema;

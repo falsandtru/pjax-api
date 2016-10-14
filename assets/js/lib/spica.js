@@ -1,4 +1,4 @@
-/*! spica v0.0.35 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.38 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 define = typeof define === 'function' && define.amd
   ? define
   : (function () {
@@ -1034,8 +1034,8 @@ define('src/lib/cancelable', [
     var Cancelable = function () {
         function Cancelable() {
             var _this = this;
-            this.canceled = false;
             this.listeners = new Set();
+            this.canceled = false;
             this.promise = function (val) {
                 return _this.canceled ? _this.promise_ = _this.promise_ || new Promise(function (_, reject) {
                     return void reject(_this.reason);
