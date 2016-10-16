@@ -465,7 +465,6 @@ define('src/layer/domain/event/router', [
         return RouterEvent;
     }();
     exports.RouterEvent = RouterEvent;
-    var RouterEvent;
     (function (RouterEvent) {
         var Type;
         (function (Type) {
@@ -553,7 +552,6 @@ define('src/layer/domain/router/model/eav/entity', [
         return RouterEntity;
     }();
     exports.RouterEntity = RouterEntity;
-    var RouterEntity;
     (function (RouterEntity) {
         RouterEntity.Event = router_1.RouterEvent;
         var State = function () {
@@ -701,7 +699,7 @@ define('src/lib/error', [
     var PjaxError = function (_super) {
         __extends(PjaxError, _super);
         function PjaxError(msg) {
-            _super.call(this, 'Pjax: ' + msg);
+            return _super.call(this, 'Pjax: ' + msg) || this;
         }
         return PjaxError;
     }(Error);
@@ -716,7 +714,7 @@ define('src/layer/domain/data/error', [
     var DomainError = function (_super) {
         __extends(DomainError, _super);
         function DomainError(msg) {
-            _super.call(this, 'Domain: ' + msg);
+            return _super.call(this, 'Domain: ' + msg) || this;
         }
         return DomainError;
     }(error_1.PjaxError);
@@ -1579,7 +1577,7 @@ define('src/layer/application/data/error', [
     var ApplicationError = function (_super) {
         __extends(ApplicationError, _super);
         function ApplicationError(msg) {
-            _super.call(this, 'Application: ' + msg);
+            return _super.call(this, 'Application: ' + msg) || this;
         }
         return ApplicationError;
     }(error_5.PjaxError);
@@ -1641,7 +1639,7 @@ define('src/layer/interface/module/view/click', [
             this.sv = new (function (_super) {
                 __extends(class_2, _super);
                 function class_2() {
-                    _super.apply(this, arguments);
+                    return _super.apply(this, arguments) || this;
                 }
                 return class_2;
             }(spica_13.Supervisor))();
@@ -1673,7 +1671,7 @@ define('src/layer/interface/module/view/submit', [
             this.sv = new (function (_super) {
                 __extends(class_3, _super);
                 function class_3() {
-                    _super.apply(this, arguments);
+                    return _super.apply(this, arguments) || this;
                 }
                 return class_3;
             }(spica_14.Supervisor))();
@@ -1705,7 +1703,7 @@ define('src/layer/interface/module/view/navigation', [
             this.sv = new (function (_super) {
                 __extends(class_4, _super);
                 function class_4() {
-                    _super.apply(this, arguments);
+                    return _super.apply(this, arguments) || this;
                 }
                 return class_4;
             }(spica_15.Supervisor))();
@@ -1737,7 +1735,7 @@ define('src/layer/interface/module/view/scroll', [
             this.sv = new (function (_super) {
                 __extends(class_5, _super);
                 function class_5() {
-                    _super.apply(this, arguments);
+                    return _super.apply(this, arguments) || this;
                 }
                 return class_5;
             }(spica_16.Supervisor))();
@@ -1848,7 +1846,7 @@ define('src/layer/interface/data/error', [
     var InterfaceError = function (_super) {
         __extends(InterfaceError, _super);
         function InterfaceError(msg) {
-            _super.call(this, 'Interface: ' + msg);
+            return _super.call(this, 'Interface: ' + msg) || this;
         }
         return InterfaceError;
     }(error_7.PjaxError);
@@ -1909,10 +1907,10 @@ define('src/layer/interface/service/gui', [
     'use strict';
     var GUI = function () {
         function GUI(option, io) {
-            var _this = this;
             if (io === void 0) {
                 io = { document: window.document };
             }
+            var _this = this;
             this.option = option;
             this.io = io;
             this.config = new api_6.Config(this.option);
@@ -2020,23 +2018,23 @@ define('src/layer/interface/service/gui', [
         GUI.prototype.replace = function (url) {
             return void GUI.replace(url, this.option, this.io);
         };
-        GUI.router = new (function (_super) {
-            __extends(class_6, _super);
-            function class_6() {
-                _super.apply(this, arguments);
-            }
-            return class_6;
-        }(spica_17.Supervisor))();
-        GUI.sv = new (function (_super) {
-            __extends(class_7, _super);
-            function class_7() {
-                _super.apply(this, arguments);
-            }
-            return class_7;
-        }(spica_17.Supervisor))();
         return GUI;
     }();
     exports.GUI = GUI;
+    GUI.router = new (function (_super) {
+        __extends(class_6, _super);
+        function class_6() {
+            return _super.apply(this, arguments) || this;
+        }
+        return class_6;
+    }(spica_17.Supervisor))();
+    GUI.sv = new (function (_super) {
+        __extends(class_7, _super);
+        function class_7() {
+            return _super.apply(this, arguments) || this;
+        }
+        return class_7;
+    }(spica_17.Supervisor))();
     function hasModifierKey(event) {
         return event.which > 1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
     }

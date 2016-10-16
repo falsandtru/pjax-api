@@ -1,4 +1,4 @@
-/*! localsocket v0.4.9 https://github.com/falsandtru/localsocket | (c) 2016, falsandtru | MIT License */
+/*! localsocket v0.4.10 https://github.com/falsandtru/localsocket | (c) 2016, falsandtru | MIT License */
 define = typeof define === 'function' && define.amd
   ? define
   : (function () {
@@ -1688,22 +1688,22 @@ define('src/layer/domain/indexeddb/model/socket', [
     'src/lib/noop'
 ], function (require, exports, spica_5, api_4, data_1, access_2, expiry_1, noop_4) {
     'use strict';
+    var cache = new Map();
     var SocketStore = function () {
-        function SocketStore(database, destroy, expiry) {
-            if (expiry === void 0) {
-                expiry = Infinity;
-            }
+        function SocketStore(name, destroy, expiry) {
             var _this = this;
-            this.database = database;
+            this.name = name;
             this.expiry = expiry;
-            this.uuid = spica_5.uuid();
             this.events = {
                 load: new spica_5.Observable(),
                 save: new spica_5.Observable(),
                 loss: new spica_5.Observable()
             };
             this.expiries = new Map();
-            void api_4.open(database, {
+            if (cache.has(name))
+                return cache.get(name);
+            void cache.set(name, this);
+            void api_4.open(name, {
                 make: function (db) {
                     return data_1.DataStore.configure().make(db) && access_2.AccessStore.configure().make(db) && expiry_1.ExpiryStore.configure().make(db);
                 },
@@ -1716,9 +1716,8 @@ define('src/layer/domain/indexeddb/model/socket', [
             });
             this.schema = new Schema(this, this.expiries);
             void api_4.event.on([
-                database,
-                api_4.IDBEventType.destroy,
-                this.uuid
+                name,
+                api_4.IDBEventType.destroy
             ], function () {
                 return void _this.schema.bind();
             });
@@ -1769,15 +1768,16 @@ define('src/layer/domain/indexeddb/model/socket', [
             });
         };
         SocketStore.prototype.close = function () {
-            return void api_4.close(this.database);
+            void cache.delete(this.name);
+            return void api_4.close(this.name);
         };
         SocketStore.prototype.destroy = function () {
             void api_4.event.off([
-                this.database,
-                api_4.IDBEventType.destroy,
-                this.uuid
+                this.name,
+                api_4.IDBEventType.destroy
             ]);
-            return void api_4.destroy(this.database);
+            void cache.delete(this.name);
+            return void api_4.destroy(this.name);
         };
         return SocketStore;
     }();
@@ -1818,7 +1818,7 @@ define('src/layer/domain/indexeddb/model/socket', [
         Schema.prototype.bind = function () {
             var _this = this;
             var keys = this.data ? this.data.keys() : [];
-            this.data = new data_1.DataStore(this.store_.database);
+            this.data = new data_1.DataStore(this.store_.name);
             this.data.events.load.monitor([], function (ev) {
                 return _this.store_.events.load.emit([
                     ev.key,
@@ -1840,8 +1840,8 @@ define('src/layer/domain/indexeddb/model/socket', [
                     ev.type
                 ], ev);
             });
-            this.access = new access_2.AccessStore(this.store_.database, this.data.events_.access);
-            this.expire = new expiry_1.ExpiryStore(this.store_.database, this.store_, this.data.events_.access, this.expiries_);
+            this.access = new access_2.AccessStore(this.store_.name, this.data.events_.access);
+            this.expire = new expiry_1.ExpiryStore(this.store_.name, this.store_, this.data.events_.access, this.expiries_);
             void this.data.sync(keys);
         };
         return Schema;
@@ -1922,7 +1922,7 @@ define('src/layer/domain/webstorage/service/event', [
         return observer;
     }
 });
-define('src/layer/domain/webstorage/service/storage', [
+define('src/layer/domain/webstorage/model/storage', [
     'require',
     'exports'
 ], function (require, exports) {
@@ -1954,18 +1954,17 @@ define('src/layer/domain/webstorage/service/storage', [
     }();
     exports.fakeStorage = new Storage();
 });
-define('src/layer/domain/webstorage/repository/port', [
+define('src/layer/domain/webstorage/service/port', [
     'require',
     'exports',
     'spica',
     'src/layer/domain/dao/api',
     'src/layer/domain/webstorage/service/event',
     'src/layer/infrastructure/webstorage/api',
-    'src/layer/domain/webstorage/service/storage'
+    'src/layer/domain/webstorage/model/storage'
 ], function (require, exports, spica_9, api_6, event_11, api_7, storage_1) {
     'use strict';
-    var LocalStorageObjectCache = new Map();
-    var SessionStorageObjectCache = new Map();
+    var cache = new Map();
     var PortEventType;
     (function (PortEventType) {
         PortEventType.send = 'send';
@@ -1983,23 +1982,11 @@ define('src/layer/domain/webstorage/repository/port', [
         return PortEvent;
     }();
     exports.PortEvent = PortEvent;
-    function port(name, storage, factory, log) {
-        if (storage === void 0) {
-            storage = api_7.sessionStorage || storage_1.fakeStorage;
-        }
-        if (log === void 0) {
-            log = {
-                update: function (_name) {
-                },
-                delete: function (_name) {
-                }
-            };
-        }
-        return new Port(name, storage, factory, log);
-    }
-    exports.port = port;
     var Port = function () {
         function Port(name, storage, factory, log) {
+            if (storage === void 0) {
+                storage = api_7.sessionStorage || storage_1.fakeStorage;
+            }
             if (log === void 0) {
                 log = {
                     update: function (_name) {
@@ -2008,25 +1995,21 @@ define('src/layer/domain/webstorage/repository/port', [
                     }
                 };
             }
+            var _this = this;
             this.name = name;
             this.storage = storage;
             this.factory = factory;
             this.log = log;
-            this.cache = this.storage === api_7.localStorage ? LocalStorageObjectCache : SessionStorageObjectCache;
             this.eventSource = this.storage === api_7.localStorage ? event_11.events.localStorage : event_11.events.sessionStorage;
-            this.uuid = spica_9.uuid();
             this.events = {
                 send: new spica_9.Observable(),
                 recv: new spica_9.Observable()
             };
-            void Object.freeze(this);
-        }
-        Port.prototype.link = function () {
-            var _this = this;
-            if (this.cache.has(this.name))
-                return this.cache.get(this.name);
+            if (cache.has(name))
+                return cache.get(name);
+            void cache.set(name, this);
             var source = Object.assign((_a = {}, _a[api_6.SCHEMA.KEY.NAME] = this.name, _a[api_6.SCHEMA.EVENT.NAME] = new spica_9.Observable(), _a), parse(this.storage.getItem(this.name)));
-            var dao = api_6.build(source, this.factory, function (attr, newValue, oldValue) {
+            this.link_ = api_6.build(source, this.factory, function (attr, newValue, oldValue) {
                 void _this.log.update(_this.name);
                 void _this.storage.setItem(_this.name, JSON.stringify(Object.keys(source).filter(api_6.isValidPropertyName).filter(api_6.isValidPropertyValue(source)).reduce(function (acc, attr) {
                     acc[attr] = source[attr];
@@ -2056,51 +2039,48 @@ define('src/layer/domain/webstorage/repository/port', [
                     void _this.events.recv.emit([event.attr], event);
                 }, void 0);
             };
-            void this.eventSource.on([
-                this.name,
-                this.uuid
-            ], subscriber);
-            void this.cache.set(this.name, dao);
+            void this.eventSource.on([this.name], subscriber);
             void this.log.update(this.name);
-            return dao;
-            function parse(item) {
-                try {
-                    return JSON.parse(item || '{}') || {};
-                } catch (_) {
-                    return {};
-                }
-            }
+            void Object.freeze(this);
             var _a;
+        }
+        Port.prototype.link = function () {
+            return this.link_;
         };
         Port.prototype.destroy = function () {
-            void this.eventSource.off([
-                this.name,
-                this.uuid
-            ]);
-            void this.cache.delete(this.name);
+            void this.eventSource.off([this.name]);
             void this.storage.removeItem(this.name);
             void this.log.delete(this.name);
+            void cache.delete(this.name);
         };
         return Port;
     }();
+    exports.Port = Port;
+    function parse(item) {
+        try {
+            return JSON.parse(item || '{}') || {};
+        } catch (_) {
+            return {};
+        }
+    }
 });
 define('src/layer/domain/webstorage/api', [
     'require',
     'exports',
     'src/layer/infrastructure/webstorage/api',
     'src/layer/domain/webstorage/service/event',
-    'src/layer/domain/webstorage/repository/port'
+    'src/layer/domain/webstorage/service/port'
 ], function (require, exports, api_8, event_12, port_1) {
     'use strict';
     exports.localStorage = api_8.localStorage;
     exports.sessionStorage = api_8.sessionStorage;
     exports.supportWebStorage = api_8.supportWebStorage;
     exports.events = event_12.events;
-    exports.webstorage = port_1.port;
+    exports.Port = port_1.Port;
     exports.WebStorageEvent = port_1.PortEvent;
     exports.WebStorageEventType = port_1.PortEventType;
 });
-define('src/layer/domain/indexeddb/repository/socket', [
+define('src/layer/domain/indexeddb/service/socket', [
     'require',
     'exports',
     'spica',
@@ -2110,18 +2090,7 @@ define('src/layer/domain/indexeddb/repository/socket', [
     'src/layer/domain/webstorage/api'
 ], function (require, exports, spica_10, api_9, socket_1, api_10, api_11) {
     'use strict';
-    function socket(name, factory, destroy, expiry) {
-        if (destroy === void 0) {
-            destroy = function () {
-                return true;
-            };
-        }
-        if (expiry === void 0) {
-            expiry = Infinity;
-        }
-        return new Socket(name, factory, expiry, destroy);
-    }
-    exports.socket = socket;
+    var cache = new WeakSet();
     var Message = function () {
         function Message(key, attr, date) {
             this.key = key;
@@ -2131,12 +2100,12 @@ define('src/layer/domain/indexeddb/repository/socket', [
         }
         return Message;
     }();
-    var Port = function () {
-        function Port() {
+    var PortSchema = function () {
+        function PortSchema() {
             this.msgs = [];
             this.msgLatestUpdates_ = new Map();
         }
-        Port.prototype.recv = function () {
+        PortSchema.prototype.recv = function () {
             var _this = this;
             return this.msgs.filter(function (msg) {
                 var received = msg.date <= _this.msgLatestUpdates_.get(msg.key);
@@ -2146,35 +2115,45 @@ define('src/layer/domain/indexeddb/repository/socket', [
                 return msg.key;
             });
         };
-        Port.prototype.send = function (msg) {
+        PortSchema.prototype.send = function (msg) {
             this.msgs = this.msgs.reduceRight(function (ms, m) {
                 return m.key === ms[0].key || m.date < ms[0].date - 1000 * 1000 ? ms : spica_10.concat([m], ms);
             }, [msg]).slice(-9);
         };
-        return Port;
+        return PortSchema;
     }();
     var Socket = function (_super) {
         __extends(Socket, _super);
-        function Socket(database, factory, expiry, destroy) {
-            var _this = _super.call(this, database, destroy, expiry) || this;
+        function Socket(name, factory, destroy, expiry) {
+            if (destroy === void 0) {
+                destroy = function () {
+                    return true;
+                };
+            }
+            if (expiry === void 0) {
+                expiry = Infinity;
+            }
+            var _this = _super.call(this, name, destroy, expiry) || this;
             _this.factory = factory;
-            _this.proxy = api_11.webstorage(_this.database, api_10.localStorage, function () {
-                return new Port();
+            _this.port = new api_11.Port(_this.name, api_10.localStorage, function () {
+                return new PortSchema();
             });
-            _this.port = _this.proxy.link();
             _this.links = new Map();
             _this.sources = new Map();
-            void _this.port.__event.on([
+            if (cache.has(_this))
+                return _this;
+            void cache.add(_this);
+            void _this.port.link().__event.on([
                 api_11.WebStorageEventType.recv,
                 'msgs'
             ], function () {
-                return void _this.port.recv().reduce(function (_, key) {
+                return void _this.port.link().recv().reduce(function (_, key) {
                     return void _this.schema.data.fetch(key);
                 }, void 0);
             });
             void _this.events.save.monitor([], function (_a) {
                 var key = _a.key, attr = _a.attr;
-                return void _this.port.send(new Message(key, attr, Date.now()));
+                return void _this.port.link().send(new Message(key, attr, Date.now()));
             });
             void _this.events.load.monitor([], function (_a) {
                 var key = _a.key, attr = _a.attr, type = _a.type;
@@ -2193,8 +2172,8 @@ define('src/layer/domain/indexeddb/repository/socket', [
                         return;
                     }
                 case socket_1.SocketStore.EventType.delete: {
-                        var cache = _this.get(key);
-                        void Object.keys(cache).filter(api_9.isValidPropertyName).filter(api_9.isValidPropertyValue(cache)).sort().reduce(function (_, attr) {
+                        var cache_1 = _this.get(key);
+                        void Object.keys(cache_1).filter(api_9.isValidPropertyName).filter(api_9.isValidPropertyValue(cache_1)).sort().reduce(function (_, attr) {
                             var oldVal = source[attr];
                             var newVal = void 0;
                             source[attr] = newVal;
@@ -2206,10 +2185,10 @@ define('src/layer/domain/indexeddb/repository/socket', [
                         return;
                     }
                 case socket_1.SocketStore.EventType.snapshot: {
-                        var cache_1 = _this.get(key);
-                        void Object.keys(cache_1).filter(api_9.isValidPropertyName).filter(api_9.isValidPropertyValue(cache_1)).sort().reduce(function (_, attr) {
+                        var cache_2 = _this.get(key);
+                        void Object.keys(cache_2).filter(api_9.isValidPropertyName).filter(api_9.isValidPropertyValue(cache_2)).sort().reduce(function (_, attr) {
                             var oldVal = source[attr];
-                            var newVal = cache_1[attr];
+                            var newVal = cache_2[attr];
                             source[attr] = newVal;
                             void source.__event.emit([
                                 api_11.WebStorageEventType.recv,
@@ -2220,7 +2199,7 @@ define('src/layer/domain/indexeddb/repository/socket', [
                     }
                 }
             });
-            void Object.freeze(_this);
+            void Object.seal(_this);
             return _this;
         }
         Socket.prototype.link = function (key, expiry) {
@@ -2257,11 +2236,13 @@ define('src/layer/domain/indexeddb/repository/socket', [
             })).get(key);
         };
         Socket.prototype.destroy = function () {
-            void this.proxy.destroy();
+            void this.port.destroy();
+            void cache.delete(this);
             void _super.prototype.destroy.call(this);
         };
         return Socket;
     }(socket_1.SocketStore);
+    exports.Socket = Socket;
 });
 define('src/layer/domain/indexeddb/service/event', [
     'require',
@@ -2275,11 +2256,11 @@ define('src/layer/domain/indexeddb/service/event', [
 define('src/layer/domain/indexeddb/api', [
     'require',
     'exports',
-    'src/layer/domain/indexeddb/repository/socket',
+    'src/layer/domain/indexeddb/service/socket',
     'src/layer/domain/indexeddb/service/event'
 ], function (require, exports, socket_2, event_13) {
     'use strict';
-    exports.socket = socket_2.socket;
+    exports.Socket = socket_2.Socket;
     exports.event = event_13.event;
     exports.IDBEventType = event_13.IDBEventType;
 });
@@ -2296,7 +2277,7 @@ define('src/layer/application/api', [
     exports.status = api_17.supportWebStorage;
     function socket(name, config) {
         config = configure(config);
-        return api_13.socket(name, config.schema, config.destroy, config.expiry);
+        return new api_13.Socket(name, config.schema, config.destroy, config.expiry);
         function configure(config) {
             var Config = function () {
                 function Config(schema, expiry, destroy) {
@@ -2321,7 +2302,7 @@ define('src/layer/application/api', [
     exports.socket = socket;
     function port(name, config) {
         config = configure(config);
-        return api_14.webstorage(name, api_14.localStorage, config.schema);
+        return new api_14.Port(name, api_14.localStorage, config.schema);
         function configure(config) {
             var Config = function () {
                 function Config(schema, destroy) {
