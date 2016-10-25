@@ -122,7 +122,7 @@ It can integrate and synchronize other async processes.
 
 ## store?: {...}
 
-### expiry: number = `3 * 3600* 1e3`
+### expiry: number = `3 * 3600 * 1e3`
 
 Set an expiry of records.
 
