@@ -1719,7 +1719,7 @@ define('src/layer/interface/service/state/url', [
         return init = undefined;
     });
     function isInvalidPopstateEvent(event) {
-        return event.type !== 'popstate' || init !== url_14.canonicalizeUrl(url_15.validateUrl(location.href));
+        return init === url_14.canonicalizeUrl(url_15.validateUrl(location.href));
     }
     exports.isInvalidPopstateEvent = isInvalidPopstateEvent;
 });
