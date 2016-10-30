@@ -1716,7 +1716,9 @@ define('src/layer/interface/service/state/url', [
         });
     });
     void dom_11.once(document, 'DOMContentLoaded', function () {
-        return init = undefined;
+        return void setTimeout(function () {
+            return init = undefined;
+        }, 1000);
     });
     function isInvalidPopstateEvent(event) {
         return init === url_14.canonicalizeUrl(url_15.validateUrl(location.href));
