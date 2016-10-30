@@ -19,6 +19,6 @@ export const documentUrl = {
 void once(window, 'popstate', () => Tick(() => init = undefined));
 void once(document, 'DOMContentLoaded', () => init = undefined);
 export function isInvalidPopstateEvent(event: Event): boolean {
-  return event.type !== 'popstate'
-      || init !== canonicalizeUrl(validateUrl(location.href));
+  assert(event.type === 'popstate');
+  return init === canonicalizeUrl(validateUrl(location.href));
 }
