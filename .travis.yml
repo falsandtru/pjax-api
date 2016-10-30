@@ -2,7 +2,7 @@ sudo: required
 dist: trusty
 language: node_js
 node_js:
-- 6
+- 7
 addons:
   firefox: latest
   apt:
@@ -33,7 +33,7 @@ deploy:
     secure: k9k/ScWG5ig5AnzTgYe43i6I+PgftS100qsF8kAvFPX7GYQEsugK5SCpO5rKFamNFul+dK8yDpGE3rEI87Ec/t3oTeneq51jTTxaTTwgC3X6GgzmaN80DMpqfXBIaksMzFjxjSifsO6NqCE2p6JWP4hLfJeXTX7CdlcZh8T0ois=
   on:
     branch: master
-    node: stable
+    node: 7
   skip_cleanup: true
 notifications:
   email:
