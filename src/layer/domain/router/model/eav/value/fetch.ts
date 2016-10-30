@@ -4,6 +4,9 @@ export class FetchValue {
   constructor(
     public readonly xhr: XMLHttpRequest
   ) {
+    assert(this.xhr instanceof XMLHttpRequest);
+    assert(this.response.headers instanceof Object);
+    assert(this.response.document instanceof Document);
     void Object.freeze(this);
   }
   public readonly response = new class {

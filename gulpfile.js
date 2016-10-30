@@ -97,7 +97,7 @@ gulp.task('ts:dist', function () {
 gulp.task('karma:watch', function (done) {
   new Server({
     configFile: __dirname + '/karma.conf.js',
-    browsers: ['Chrome', 'Firefox'],
+    browsers: ['Chrome', 'Firefox', 'Edge'],
     preprocessors: {
       'dist/*.js': ['espower']
     },

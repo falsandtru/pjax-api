@@ -20,7 +20,7 @@ export function xhr(
   const wait = new Promise<void>(resolve => setTimeout(resolve, setting.wait));
   return new Promise<Either<Error, FetchValue>>(resolve => (
     void xhr.open(method, url, true),
-    xhr.responseType = /chrome|firefox|edge/i.test(window.navigator.userAgent)
+    xhr.responseType = /chrome|firefox/i.test(window.navigator.userAgent) && !/edge/i.test(window.navigator.userAgent)
       ? 'document'
       : 'text',
     xhr.timeout = setting.timeout,

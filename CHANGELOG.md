@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.3.6
+
+- Fix support for Edge browser.
+
 ## 3.3.5
 
 - Update dependencies.

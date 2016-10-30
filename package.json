@@ -41,6 +41,7 @@
     "karma-chrome-launcher": "^2.0.0",
     "karma-coverage": "^1.1.1",
     "karma-coveralls": "^1.1.2",
+    "karma-edge-launcher": "0.1.1",
     "karma-espower-preprocessor": "1.1.0",
     "karma-firefox-launcher": "^1.0.0",
     "karma-html2js-preprocessor": "^1.1.0",
