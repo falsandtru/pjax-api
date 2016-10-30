@@ -1,4 +1,5 @@
 import { Supervisor } from 'spica';
+import { isInvalidPopstateEvent } from '../../service/state/url';
 import { bind } from '../../../../lib/dom';
 
 export class NavigationView {
@@ -9,7 +10,10 @@ export class NavigationView {
     void this.sv.register('', () => [
       void this.sv.events.exit.once(
         [],
-        bind(window, 'popstate', listener)),
+        bind(window, 'popstate', ev => {
+          if (isInvalidPopstateEvent(ev)) return;
+          void listener(ev);
+        })),
       void 0
     ], void 0);
     void this.sv.cast('', void 0);

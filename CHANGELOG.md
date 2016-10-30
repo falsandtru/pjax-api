@@ -3,6 +3,7 @@
 ## 3.3.6
 
 - Fix support for Edge browser.
+- Fix support for Android browser.
 
 ## 3.3.5
 
