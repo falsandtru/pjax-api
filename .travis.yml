@@ -1,15 +1,13 @@
-sudo: required
-dist: trusty
 language: node_js
-node_js:
-- 7
-addons:
-  firefox: latest
-  apt:
-    sources:
-    - google-chrome
-    packages:
-    - google-chrome-stable
+matrix:
+  include:
+  - os: linux
+    dist: trusty
+    sudo: required
+    node_js: 7
+  - os: osx
+    osx_image: xcode8
+    node_js: 7
 env:
   global:
   - secure: byBYsMBLNyb+DGul6ET+jHuIp2TW1V18zPYZqqAi8HH3jeHErKlN+o3b9jSzz+314hfqVNlvu15ZRjCAF36gQ3BtATjULYmVjdkQxaXY+4zFWdfhEvWmGZ8MWYiUmerizKcPoGbc8FoBlBRBgWMOZO1GhGJF6mzP2F3v2l/dC7o=
@@ -18,10 +16,19 @@ env:
   - GIT_COMMITTER_NAME=$(git log -1 --pretty=format:%an)
   - GIT_COMMITTER_EMAIL=$(git log -1 --pretty=format:%ae)
   - GIT_COMMIT_ID=$(git rev-parse HEAD)
+addons:
+  firefox: latest
+  apt:
+    sources:
+    - google-chrome
+    packages:
+    - google-chrome-stable
 before_install:
-- export DISPLAY=:99.0
-- export CHROME_BIN=google-chrome-stable
-- sh -e /etc/init.d/xvfb start
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CHROME_BIN=chromium-browser; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export DISPLAY=:99.0; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sh -e /etc/init.d/xvfb start; fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew cask install google-chrome; fi
 before_deploy:
 - sed -i 's/"private":\ true/"private":\ false/' package.json
 - sed -i -E 's/^dist\/?.*$//' .gitignore
@@ -34,6 +41,7 @@ deploy:
   on:
     branch: master
     node: 7
+    condition: $TRAVIS_OS_NAME = linux
   skip_cleanup: true
 notifications:
   email:
