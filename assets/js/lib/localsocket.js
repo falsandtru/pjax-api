@@ -1,4 +1,4 @@
-/*! localsocket v0.4.10 https://github.com/falsandtru/localsocket | (c) 2016, falsandtru | MIT License */
+/*! localsocket v0.4.11 https://github.com/falsandtru/localsocket | (c) 2016, falsandtru | MIT License */
 define = typeof define === 'function' && define.amd
   ? define
   : (function () {
@@ -812,7 +812,7 @@ define('src/layer/data/store/event', [
                 switch (event.type) {
                 case EventStore.EventType.delete:
                 case EventStore.EventType.snapshot:
-                    void _this.clean(Infinity, event.key);
+                    void _this.clean(event.key);
                 }
             });
         }
@@ -1187,20 +1187,11 @@ define('src/layer/data/store/event', [
                 };
             });
         };
-        EventStore.prototype.clean = function (until, key) {
+        EventStore.prototype.clean = function (key) {
             var _this = this;
-            if (until === void 0) {
-                until = Infinity;
-            }
             var removedEvents = [];
             var cleanState = new Map();
-            return void this.cursor(key ? api_1.IDBKeyRange.bound([
-                key,
-                0
-            ], [
-                key,
-                until
-            ]) : api_1.IDBKeyRange.upperBound(until), key ? event_3.EventRecordFields.surrogateKeyDateField : event_3.EventRecordFields.date, api_1.IDBCursorDirection.prev, api_1.IDBTransactionMode.readwrite, function (cursor) {
+            return void this.cursor(key ? api_1.IDBKeyRange.bound(key, key) : api_1.IDBKeyRange.upperBound(Infinity), key ? event_3.EventRecordFields.key : event_3.EventRecordFields.date, api_1.IDBCursorDirection.prev, api_1.IDBTransactionMode.readwrite, function (cursor) {
                 if (!cursor) {
                     return void removedEvents.reduce(function (_, event) {
                         return void _this.memory.off([
@@ -1256,8 +1247,8 @@ define('src/layer/data/store/event', [
         };
         return EventStore;
     }();
-    exports.EventStore = EventStore;
     EventStore.fields = Object.freeze(event_3.EventRecordFields);
+    exports.EventStore = EventStore;
     (function (EventStore) {
         EventStore.EventType = Schema.EventType;
         var Event = function () {
@@ -1289,6 +1280,7 @@ define('src/layer/data/store/event', [
         }(Schema.EventValue);
         EventStore.Value = Value;
     }(EventStore = exports.EventStore || (exports.EventStore = {})));
+    exports.EventStore = EventStore;
     var InternalEventType = {
         put: 'put',
         delete: 'delete',
@@ -1396,6 +1388,7 @@ define('src/layer/domain/indexeddb/model/socket/data', [
         }(event_7.EventStore.Value);
         DataStore.Value = Value;
     }(DataStore = exports.DataStore || (exports.DataStore = {})));
+    exports.DataStore = DataStore;
 });
 define('src/layer/data/store/key-value', [
     'require',
@@ -1525,6 +1518,7 @@ define('src/layer/data/store/key-value', [
             delete: 'delete'
         };
     }(KeyValueStore = exports.KeyValueStore || (exports.KeyValueStore = {})));
+    exports.KeyValueStore = KeyValueStore;
 });
 define('src/layer/domain/indexeddb/model/socket/access', [
     'require',
@@ -1570,11 +1564,11 @@ define('src/layer/domain/indexeddb/model/socket/access', [
         };
         return AccessStore;
     }(key_value_1.KeyValueStore);
-    exports.AccessStore = AccessStore;
     AccessStore.fields = Object.freeze({
         key: 'key',
         date: 'date'
     });
+    exports.AccessStore = AccessStore;
     var AccessRecord = function () {
         function AccessRecord(key, date) {
             this.key = key;
@@ -1664,11 +1658,11 @@ define('src/layer/domain/indexeddb/model/socket/expiry', [
         };
         return ExpiryStore;
     }(key_value_2.KeyValueStore);
-    exports.ExpiryStore = ExpiryStore;
     ExpiryStore.fields = Object.freeze({
         key: 'key',
         expiry: 'expiry'
     });
+    exports.ExpiryStore = ExpiryStore;
     var ExpiryRecord = function () {
         function ExpiryRecord(key, expiry) {
             this.key = key;
@@ -1809,6 +1803,7 @@ define('src/layer/domain/indexeddb/model/socket', [
         }(data_1.DataStore.Value);
         SocketStore.Value = Value;
     }(SocketStore = exports.SocketStore || (exports.SocketStore = {})));
+    exports.SocketStore = SocketStore;
     var Schema = function () {
         function Schema(store_, expiries_) {
             this.store_ = store_;
