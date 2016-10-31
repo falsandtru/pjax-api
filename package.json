@@ -58,7 +58,8 @@
     "typescript": "2.1.0-dev.20161025"
   },
   "scripts": {
-    "test": "gulp server"
+    "test": "npm i && gulp test",
+    "ci": "gulp ci"
   },
   "author": "falsandtru",
   "license": "GPL-2.0"

@@ -8,6 +8,16 @@ const Server = require('karma').Server;
 
 const pkg = require('./package.json');
 const config = {
+  browsers: ['Chrome', 'Firefox'].concat((os => {
+    switch (os) {
+      case 'Windows_NT':
+        return ['Edge'];
+      case 'Darwin':
+        return [];
+     default:
+        return [];
+    }
+  })(require('os').type())),
   ts: {
     options: extend(require('./tsconfig.json').compilerOptions, {
       typescript: require('typescript'),
@@ -97,7 +107,7 @@ gulp.task('ts:dist', function () {
 gulp.task('karma:watch', function (done) {
   new Server({
     configFile: __dirname + '/karma.conf.js',
-    browsers: ['Chrome', 'Firefox', 'Edge'],
+    browsers: config.browsers,
     preprocessors: {
       'dist/*.js': ['espower']
     },
@@ -107,7 +117,7 @@ gulp.task('karma:watch', function (done) {
 gulp.task('karma:test', function (done) {
   new Server({
     configFile: __dirname + '/karma.conf.js',
-    browsers: ['Chrome', 'Firefox'],
+    browsers: config.browsers,
     reporters: ['dots', 'coverage'],
     preprocessors: {
       'dist/*.js': ['coverage', 'espower']
@@ -116,10 +126,10 @@ gulp.task('karma:test', function (done) {
   }, done).start();
 });
 
-gulp.task('karma:server', function (done) {
+gulp.task('karma:ci', function (done) {
   new Server({
     configFile: __dirname + '/karma.conf.js',
-    browsers: ['Chrome', 'Firefox'],
+    browsers: config.browsers,
     reporters: ['dots', 'coverage', 'coveralls'],
     preprocessors: {
       'dist/*.js': ['coverage', 'espower']
@@ -182,10 +192,10 @@ gulp.task('site', ['dist'], function () {
     .pipe(gulp.dest('./gh-pages/assets/js/lib'));
 });
 
-gulp.task('server', ['clean'], function (done) {
+gulp.task('ci', ['clean'], function (done) {
   seq(
     'ts:test',
-    'karma:server',
+    'karma:ci',
     'dist',
     function () {
       done();
