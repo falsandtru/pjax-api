@@ -39,9 +39,8 @@ export class GUI {
       document: window.document
     }
   ) {
-    this.config = new Config(this.option);
     void GUI.sv.terminate('');
-    void GUI.sv.register('', () => [(
+    void GUI.sv.register('', () => (
       void GUI.sv.events.exit.once(
         [],
         new ClickView(this.io.document, this.config.link, event =>
@@ -130,12 +129,12 @@ export class GUI {
                 ? void savePosition(new Url(documentUrl.href).path, { top, left })
                 : void 0)
             .extract())
-          .close)),
-      void 0
-    ], void 0);
+          .close),
+      [void 0, void 0]
+    ), void 0);
     void GUI.sv.cast('', void 0);
   }
-  private readonly config: Config;
+  private readonly config: Config = new Config(this.option);
   public assign(url: string): undefined {
     return void GUI.assign(url, this.option, this.io);
   }
