@@ -53,43 +53,38 @@ export namespace RouterEvent {
       private readonly source: Source,
       private readonly eventType: Type
     ) {
-      void this.url;
       void Object.freeze(this);
     }
-    private method_: Method;
-    public get method(): Method {
-      if (this.method_) return this.method_;
+    public method: Method = (() => {
       switch (this.eventType) {
         case Type.click:
-          return this.method_ = Method.GET;
+          return Method.GET;
         case Type.submit:
-          return this.method_ = (<Source.Form>this.source).method.toUpperCase() === Method.POST
+          return (<Source.Form>this.source).method.toUpperCase() === Method.POST
             ? Method.POST
             : Method.GET;
         case Type.popstate:
-          return this.method_ = Method.GET;
+          return Method.GET;
         default:
           throw new TypeError();
       }
-    }
-    private url_: CanonicalUrl;
-    public get url(): CanonicalUrl {
-      if (this.url_) return this.url_;
+    })();
+    public url: CanonicalUrl = (() => {
       switch (this.eventType) {
         case Type.click:
-          return this.url_ = canonicalizeUrl(validateUrl((<Source.Anchor>this.source).href));
+          return canonicalizeUrl(validateUrl((<Source.Anchor>this.source).href));
         case Type.submit:
-          return this.url_ = canonicalizeUrl(validateUrl(
+          return canonicalizeUrl(validateUrl(
             (<Source.Form>this.source).method.toUpperCase() === Method.POST
-              ? (<Source.Form>this.source).action.split(/[?#]/).shift()!
-              : (<Source.Form>this.source).action.split(/[?#]/).shift()!
+              ? (<Source.Form>this.source).action.split(/[?#]/).shift() !
+              : (<Source.Form>this.source).action.split(/[?#]/).shift() !
                 .concat(`?${serialize(<Source.Form>this.source)}`)));
         case Type.popstate:
-          return this.url_ = canonicalizeUrl(validateUrl(window.location.href));
+          return canonicalizeUrl(validateUrl(window.location.href));
         default:
           throw new TypeError();
       }
-    }
+    })();
     public readonly data: FormData | null = this.method === Method.POST
       ? new FormData(<Source.Form>this.source)
       : null;
