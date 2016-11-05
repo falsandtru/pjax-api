@@ -479,48 +479,36 @@ define('src/layer/domain/event/router', [
         }(Method = RouterEvent.Method || (RouterEvent.Method = {})));
         var Request = function () {
             function Request(source, eventType) {
+                var _this = this;
                 this.source = source;
                 this.eventType = eventType;
+                this.method = function () {
+                    switch (_this.eventType) {
+                    case Type.click:
+                        return Method.GET;
+                    case Type.submit:
+                        return _this.source.method.toUpperCase() === Method.POST ? Method.POST : Method.GET;
+                    case Type.popstate:
+                        return Method.GET;
+                    default:
+                        throw new TypeError();
+                    }
+                }();
+                this.url = function () {
+                    switch (_this.eventType) {
+                    case Type.click:
+                        return url_3.canonicalizeUrl(url_4.validateUrl(_this.source.href));
+                    case Type.submit:
+                        return url_3.canonicalizeUrl(url_4.validateUrl(_this.source.method.toUpperCase() === Method.POST ? _this.source.action.split(/[?#]/).shift() : _this.source.action.split(/[?#]/).shift().concat('?' + dom_1.serialize(_this.source))));
+                    case Type.popstate:
+                        return url_3.canonicalizeUrl(url_4.validateUrl(window.location.href));
+                    default:
+                        throw new TypeError();
+                    }
+                }();
                 this.data = this.method === Method.POST ? new FormData(this.source) : null;
-                void this.url;
                 void Object.freeze(this);
             }
-            Object.defineProperty(Request.prototype, 'method', {
-                get: function () {
-                    if (this.method_)
-                        return this.method_;
-                    switch (this.eventType) {
-                    case Type.click:
-                        return this.method_ = Method.GET;
-                    case Type.submit:
-                        return this.method_ = this.source.method.toUpperCase() === Method.POST ? Method.POST : Method.GET;
-                    case Type.popstate:
-                        return this.method_ = Method.GET;
-                    default:
-                        throw new TypeError();
-                    }
-                },
-                enumerable: true,
-                configurable: true
-            });
-            Object.defineProperty(Request.prototype, 'url', {
-                get: function () {
-                    if (this.url_)
-                        return this.url_;
-                    switch (this.eventType) {
-                    case Type.click:
-                        return this.url_ = url_3.canonicalizeUrl(url_4.validateUrl(this.source.href));
-                    case Type.submit:
-                        return this.url_ = url_3.canonicalizeUrl(url_4.validateUrl(this.source.method.toUpperCase() === Method.POST ? this.source.action.split(/[?#]/).shift() : this.source.action.split(/[?#]/).shift().concat('?' + dom_1.serialize(this.source))));
-                    case Type.popstate:
-                        return this.url_ = url_3.canonicalizeUrl(url_4.validateUrl(window.location.href));
-                    default:
-                        throw new TypeError();
-                    }
-                },
-                enumerable: true,
-                configurable: true
-            });
             return Request;
         }();
         RouterEvent.Request = Request;
@@ -1939,67 +1927,67 @@ define('src/layer/interface/service/gui', [
             this.config = new api_6.Config(this.option);
             void GUI.sv.terminate('');
             void GUI.sv.register('', function () {
-                return [
-                    (void GUI.sv.events.exit.once([], new click_1.ClickView(_this.io.document, _this.config.link, function (event) {
-                        return void spica_18.Just(new url_22.Url(url_23.canonicalizeUrl(url_24.validateUrl(event._currentTarget.href)))).bind(function (url) {
-                            return !!!hasModifierKey(event) && isAccessible(url) && !isHashChange(url) && _this.config.filter(event._currentTarget) ? spica_18.Just(0) : spica_18.Nothing;
-                        }).fmap(function () {
-                            return void event.preventDefault(), initialization_1.init.then(function (_a) {
-                                var scripts = _a[0];
-                                return router_3.route(_this.config, event, {
-                                    router: GUI.router,
-                                    scripts: scripts,
-                                    cancelable: new spica_18.Cancelable()
-                                }, _this.io);
-                            });
-                        }).extract(function () {
-                            return Promise.resolve();
-                        }).catch(function () {
-                            return void window.location.assign(event._currentTarget.href);
+                return void GUI.sv.events.exit.once([], new click_1.ClickView(_this.io.document, _this.config.link, function (event) {
+                    return void spica_18.Just(new url_22.Url(url_23.canonicalizeUrl(url_24.validateUrl(event._currentTarget.href)))).bind(function (url) {
+                        return !!!hasModifierKey(event) && isAccessible(url) && !isHashChange(url) && _this.config.filter(event._currentTarget) ? spica_18.Just(0) : spica_18.Nothing;
+                    }).fmap(function () {
+                        return void event.preventDefault(), initialization_1.init.then(function (_a) {
+                            var scripts = _a[0];
+                            return router_3.route(_this.config, event, {
+                                router: GUI.router,
+                                scripts: scripts,
+                                cancelable: new spica_18.Cancelable()
+                            }, _this.io);
                         });
-                    }).close), void GUI.sv.events.exit.once([], new submit_1.SubmitView(_this.io.document, _this.config.form, function (event) {
-                        return void spica_18.Just(new url_22.Url(url_23.canonicalizeUrl(url_24.validateUrl(event._currentTarget.action)))).bind(function (url) {
-                            return !!!hasModifierKey(event) && isAccessible(url) ? spica_18.Just(0) : spica_18.Nothing;
-                        }).fmap(function () {
-                            return void event.preventDefault(), initialization_1.init.then(function (_a) {
-                                var scripts = _a[0];
-                                return router_3.route(_this.config, event, {
-                                    router: GUI.router,
-                                    scripts: scripts,
-                                    cancelable: new spica_18.Cancelable()
-                                }, _this.io);
-                            });
-                        }).extract(function () {
-                            return Promise.resolve();
-                        }).catch(function () {
-                            return void window.location.assign(event._currentTarget.action);
+                    }).extract(function () {
+                        return Promise.resolve();
+                    }).catch(function () {
+                        return void window.location.assign(event._currentTarget.href);
+                    });
+                }).close), void GUI.sv.events.exit.once([], new submit_1.SubmitView(_this.io.document, _this.config.form, function (event) {
+                    return void spica_18.Just(new url_22.Url(url_23.canonicalizeUrl(url_24.validateUrl(event._currentTarget.action)))).bind(function (url) {
+                        return !!!hasModifierKey(event) && isAccessible(url) ? spica_18.Just(0) : spica_18.Nothing;
+                    }).fmap(function () {
+                        return void event.preventDefault(), initialization_1.init.then(function (_a) {
+                            var scripts = _a[0];
+                            return router_3.route(_this.config, event, {
+                                router: GUI.router,
+                                scripts: scripts,
+                                cancelable: new spica_18.Cancelable()
+                            }, _this.io);
                         });
-                    }).close), void GUI.sv.events.exit.once([], new navigation_1.NavigationView(window, function (event) {
-                        return void spica_18.Just(new url_22.Url(url_23.canonicalizeUrl(url_24.validateUrl(window.location.href)))).bind(function (url) {
-                            return !!isAccessible(url) && !isHashChange(url) ? spica_18.Just(api_7.loadTitle(url.path)) : spica_18.Nothing;
-                        }).fmap(function (title) {
-                            return title ? io.document.title = title : void 0, initialization_1.init.then(function (_a) {
-                                var scripts = _a[0];
-                                return router_3.route(_this.config, event, {
-                                    router: GUI.router,
-                                    scripts: scripts,
-                                    cancelable: new spica_18.Cancelable()
-                                }, _this.io);
-                            });
-                        }).extract(function () {
-                            return Promise.resolve();
-                        }).catch(function () {
-                            return void window.location.reload(true);
+                    }).extract(function () {
+                        return Promise.resolve();
+                    }).catch(function () {
+                        return void window.location.assign(event._currentTarget.action);
+                    });
+                }).close), void GUI.sv.events.exit.once([], new navigation_1.NavigationView(window, function (event) {
+                    return void spica_18.Just(new url_22.Url(url_23.canonicalizeUrl(url_24.validateUrl(window.location.href)))).bind(function (url) {
+                        return !!isAccessible(url) && !isHashChange(url) ? spica_18.Just(api_7.loadTitle(url.path)) : spica_18.Nothing;
+                    }).fmap(function (title) {
+                        return title ? io.document.title = title : void 0, initialization_1.init.then(function (_a) {
+                            var scripts = _a[0];
+                            return router_3.route(_this.config, event, {
+                                router: GUI.router,
+                                scripts: scripts,
+                                cancelable: new spica_18.Cancelable()
+                            }, _this.io);
                         });
-                    }).close), void GUI.sv.events.exit.once([], new scroll_2.ScrollView(window, function () {
-                        return void spica_18.Just(window).fmap(function (_a) {
-                            var left = _a.pageXOffset, top = _a.pageYOffset;
-                            return url_25.documentUrl.href === new url_22.Url(url_23.canonicalizeUrl(url_24.validateUrl(window.location.href))).href ? void api_7.savePosition(new url_22.Url(url_25.documentUrl.href).path, {
-                                top: top,
-                                left: left
-                            }) : void 0;
-                        }).extract();
-                    }).close)),
+                    }).extract(function () {
+                        return Promise.resolve();
+                    }).catch(function () {
+                        return void window.location.reload(true);
+                    });
+                }).close), void GUI.sv.events.exit.once([], new scroll_2.ScrollView(window, function () {
+                    return void spica_18.Just(window).fmap(function (_a) {
+                        var left = _a.pageXOffset, top = _a.pageYOffset;
+                        return url_25.documentUrl.href === new url_22.Url(url_23.canonicalizeUrl(url_24.validateUrl(window.location.href))).href ? void api_7.savePosition(new url_22.Url(url_25.documentUrl.href).path, {
+                            top: top,
+                            left: left
+                        }) : void 0;
+                    }).extract();
+                }).close), [
+                    void 0,
                     void 0
                 ];
             }, void 0);
