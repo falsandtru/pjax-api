@@ -52,7 +52,7 @@ export function script(
       .bind<HTMLScriptElement[]>(scripts =>
         io.evaluate(response)
           .fmap(script => (
-            script.parentElement.matches(selector.logger.trim() || '_')
+            script.parentElement!.matches(selector.logger.trim() || '_')
               ? void io.log(script, document.dst)
               : void 0,
             scripts.concat([script]))));
@@ -117,7 +117,7 @@ function evaluate([script, code]: Response): Either<Error, HTMLScriptElement> {
 export { evaluate as _evaluate }
 
 function log(script: HTMLScriptElement, document: Document): boolean {
-  return find(document, script.parentElement.id ? `#${script.parentElement.id}` : script.parentElement.tagName)
+  return find(document, script.parentElement!.id ? `#${script.parentElement!.id}` : script.parentElement!.tagName)
     .slice(-1)
     .reduce((_, parent) => {
       script = <HTMLScriptElement>document.importNode(script.cloneNode(true), true);

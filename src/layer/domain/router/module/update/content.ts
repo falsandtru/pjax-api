@@ -9,7 +9,7 @@ export function content(
   document: DocumentRecord,
   areas: string[],
   io = {
-    replace: (src: Node, dst: Node): void => void dst.parentNode.replaceChild(src, dst)
+    replace: (src: Node, dst: Node): void => void dst.parentNode!.replaceChild(src, dst)
   }
 ): Maybe<Promise<[DocumentRecord, Event[]]>> {
   return separate(document, areas)

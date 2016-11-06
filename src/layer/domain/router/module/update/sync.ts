@@ -22,7 +22,7 @@ export function sync<T extends HTMLElement>(
 
   function parent(dst: T | null): HTMLElement {
     return dst
-      ? dst.parentElement
+      ? dst.parentElement!
       : fallback;
   }
 }
@@ -68,5 +68,5 @@ function before(parent: HTMLElement, children: HTMLElement[], ref: HTMLElement |
 }
 
 function remove(el: HTMLElement): undefined {
-  return void el.parentElement.removeChild(el);
+  return void el.remove();
 }
