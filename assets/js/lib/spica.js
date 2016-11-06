@@ -1,4 +1,4 @@
-/*! spica v0.0.38 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.40 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 define = typeof define === 'function' && define.amd
   ? define
   : (function () {
@@ -60,7 +60,7 @@ define('src/lib/observable', [
         function Observable() {
             this.node_ = {
                 parent: void 0,
-                childrenMap: Object.create(null),
+                children: new Map(),
                 childrenList: [],
                 registers: []
             };
@@ -117,7 +117,7 @@ define('src/lib/observable', [
                 });
             case 'undefined': {
                     var node = this.seekNode_(namespace);
-                    node.childrenMap = Object.create(null);
+                    node.children = new Map();
                     node.childrenList = [];
                     node.registers = [];
                     return;
@@ -193,17 +193,25 @@ define('src/lib/observable', [
             return registers;
         };
         Observable.prototype.refsBelow_ = function (_a) {
-            var childrenList = _a.childrenList, childrenMap = _a.childrenMap, registers = _a.registers;
+            var childrenList = _a.childrenList, children = _a.children, registers = _a.registers;
             registers = concat_1.concat([], registers);
-            for (var i = 0; i < childrenList.length; ++i) {
+            var _loop_1 = function (i) {
                 var name = childrenList[i];
-                var below = this.refsBelow_(childrenMap[name]);
+                var below = this_1.refsBelow_(children.get(name));
                 registers = concat_1.concat(registers, below);
                 if (below.length === 0) {
-                    void delete childrenMap[name];
-                    void childrenList.splice(childrenList.indexOf(name), 1);
+                    void children.delete(name);
+                    void childrenList.splice(childrenList.findIndex(function (value) {
+                        return value === name || name !== name && value !== value;
+                    }), 1);
                     void --i;
                 }
+                out_i_1 = i;
+            };
+            var this_1 = this, out_i_1;
+            for (var i = 0; i < childrenList.length; ++i) {
+                _loop_1(i);
+                i = out_i_1;
             }
             return registers;
         };
@@ -211,17 +219,17 @@ define('src/lib/observable', [
             var node = this.node_;
             for (var _i = 0, types_1 = types; _i < types_1.length; _i++) {
                 var type = types_1[_i];
-                var childrenMap = node.childrenMap;
-                if (!childrenMap[type + '']) {
-                    void node.childrenList.push(type + '');
-                    childrenMap[type + ''] = {
+                var children = node.children;
+                if (!children.has(type)) {
+                    void node.childrenList.push(type);
+                    children.set(type, {
                         parent: node,
-                        childrenMap: Object.create(null),
+                        children: new Map(),
                         childrenList: [],
                         registers: []
-                    };
+                    });
                 }
-                node = childrenMap[type + ''];
+                node = children.get(type);
             }
             return node;
         };
@@ -459,15 +467,15 @@ define('src/lib/supervisor', [
         Supervisor.prototype.drain = function (target) {
             var _this = this;
             var now = Date.now();
-            var _loop_1 = function (i) {
-                var _a = this_1.queue[i], name = _a[0], param = _a[1], callback = _a[2], timeout = _a[3], since = _a[4];
-                var replies = target === void 0 || target === name ? this_1.procs.reflect([name], new WorkerCommand.Call(param, since + timeout - now)) : [];
-                if (this_1.alive && replies.length === 0 && now < since + timeout)
-                    return out_i_1 = i, 'continue';
-                i === 0 ? void this_1.queue.shift() : void this_1.queue.splice(i, 1);
+            var _loop_2 = function (i) {
+                var _a = this_2.queue[i], name = _a[0], param = _a[1], callback = _a[2], timeout = _a[3], since = _a[4];
+                var replies = target === void 0 || target === name ? this_2.procs.reflect([name], new WorkerCommand.Call(param, since + timeout - now)) : [];
+                if (this_2.alive && replies.length === 0 && now < since + timeout)
+                    return out_i_2 = i, 'continue';
+                i === 0 ? void this_2.queue.shift() : void this_2.queue.splice(i, 1);
                 void --i;
                 if (replies.length === 0) {
-                    void this_1.events.loss.emit([name], [
+                    void this_2.events.loss.emit([name], [
                         name,
                         param
                     ]);
@@ -494,21 +502,22 @@ define('src/lib/supervisor', [
                         }
                     }
                 }
-                out_i_1 = i;
+                out_i_2 = i;
             };
-            var this_1 = this, out_i_1;
+            var this_2 = this, out_i_2;
             for (var i = 0; i < this.queue.length; ++i) {
-                _loop_1(i);
-                i = out_i_1;
+                _loop_2(i);
+                i = out_i_2;
             }
         };
         return Supervisor;
     }();
-    exports.Supervisor = Supervisor;
     Supervisor.count = 0;
     Supervisor.procs = 0;
+    exports.Supervisor = Supervisor;
     (function (Supervisor) {
     }(Supervisor = exports.Supervisor || (exports.Supervisor = {})));
+    exports.Supervisor = Supervisor;
     var WorkerCommand;
     (function (WorkerCommand) {
         var Self = function () {
@@ -691,6 +700,7 @@ define('src/lib/monad/functor', [
         }
         Functor.fmap = fmap;
     }(Functor = exports.Functor || (exports.Functor = {})));
+    exports.Functor = Functor;
 });
 define('src/lib/curry', [
     'require',
@@ -739,6 +749,7 @@ define('src/lib/monad/applicative', [
         }
         Applicative.ap = ap;
     }(Applicative = exports.Applicative || (exports.Applicative = {})));
+    exports.Applicative = Applicative;
 });
 define('src/lib/monad/monad', [
     'require',
@@ -762,6 +773,7 @@ define('src/lib/monad/monad', [
         }
         Monad.bind = bind;
     }(Monad = exports.Monad || (exports.Monad = {})));
+    exports.Monad = Monad;
 });
 define('src/lib/monad/monadplus', [
     'require',
@@ -779,6 +791,7 @@ define('src/lib/monad/monadplus', [
     exports.MonadPlus = MonadPlus;
     (function (MonadPlus) {
     }(MonadPlus = exports.MonadPlus || (exports.MonadPlus = {})));
+    exports.MonadPlus = MonadPlus;
 });
 define('src/lib/monad/maybe.impl', [
     'require',
@@ -830,6 +843,7 @@ define('src/lib/monad/maybe.impl', [
         Maybe.pure = pure;
         Maybe.Return = pure;
     }(Maybe = exports.Maybe || (exports.Maybe = {})));
+    exports.Maybe = Maybe;
     var Just = function (_super) {
         __extends(Just, _super);
         function Just(a) {
@@ -881,6 +895,7 @@ define('src/lib/monad/maybe.impl', [
         }
         Maybe.mplus = mplus;
     }(Maybe = exports.Maybe || (exports.Maybe = {})));
+    exports.Maybe = Maybe;
     function throwCallError() {
         throw new Error('Spica: Maybe: Invalid thunk call.');
     }
@@ -957,6 +972,7 @@ define('src/lib/monad/either.impl', [
         Either.pure = pure;
         Either.Return = pure;
     }(Either = exports.Either || (exports.Either = {})));
+    exports.Either = Either;
     var Left = function (_super) {
         __extends(Left, _super);
         function Left(a) {
@@ -1037,7 +1053,7 @@ define('src/lib/cancelable', [
             this.listeners = new Set();
             this.canceled = false;
             this.promise = function (val) {
-                return _this.canceled ? _this.promise_ = _this.promise_ || new Promise(function (_, reject) {
+                return _this.canceled ? new Promise(function (_, reject) {
                     return void reject(_this.reason);
                 }) : Promise.resolve(val);
             };
@@ -1052,7 +1068,7 @@ define('src/lib/cancelable', [
                     return void cb(reason);
                 }), _this.listeners.clear(), _this.listeners.add = function (cb) {
                     return void cb(_this.reason), _this.listeners;
-                }, void 0;
+                }, void Object.freeze(_this);
             };
         }
         return Cancelable;
@@ -1093,6 +1109,7 @@ define('src/lib/monad/sequence/core', [
     exports.Sequence = Sequence;
     (function (Sequence) {
     }(Sequence = exports.Sequence || (exports.Sequence = {})));
+    exports.Sequence = Sequence;
     (function (Sequence) {
         var Data;
         (function (Data) {
@@ -1167,6 +1184,7 @@ define('src/lib/monad/sequence/core', [
             Exception.invalidThunkError = invalidThunkError;
         }(Exception = Sequence.Exception || (Sequence.Exception = {})));
     }(Sequence = exports.Sequence || (exports.Sequence = {})));
+    exports.Sequence = Sequence;
     function throwCallError() {
         throw new Error('Spica: Sequence: Invalid thunk call.');
     }
@@ -1604,11 +1622,11 @@ define('src/lib/monad/sequence/member/static/mempty', [
         }
         return default_12;
     }(core_12.Sequence);
-    Object.defineProperty(exports, '__esModule', { value: true });
-    exports.default = default_12;
     default_12.mempty = new core_12.Sequence(function (_, cons) {
         return cons();
     });
+    Object.defineProperty(exports, '__esModule', { value: true });
+    exports.default = default_12;
 });
 define('src/lib/monad/sequence/member/static/mconcat', [
     'require',
@@ -1693,9 +1711,9 @@ define('src/lib/monad/sequence/member/static/mzero', [
         }
         return default_15;
     }(core_15.Sequence);
+    default_15.mzero = core_15.Sequence.mempty;
     Object.defineProperty(exports, '__esModule', { value: true });
     exports.default = default_15;
-    default_15.mzero = core_15.Sequence.mempty;
 });
 define('src/lib/monad/sequence/member/static/mplus', [
     'require',
@@ -1710,9 +1728,9 @@ define('src/lib/monad/sequence/member/static/mplus', [
         }
         return default_16;
     }(core_16.Sequence);
+    default_16.mplus = core_16.Sequence.mappend;
     Object.defineProperty(exports, '__esModule', { value: true });
     exports.default = default_16;
-    default_16.mplus = core_16.Sequence.mappend;
 });
 define('src/lib/monad/sequence/member/instance/extract', [
     'require',

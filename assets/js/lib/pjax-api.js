@@ -523,6 +523,7 @@ define('src/layer/domain/event/router', [
         }();
         RouterEvent.Location = Location;
     }(RouterEvent = exports.RouterEvent || (exports.RouterEvent = {})));
+    exports.RouterEvent = RouterEvent;
 });
 define('src/layer/domain/router/model/eav/entity', [
     'require',
@@ -552,6 +553,7 @@ define('src/layer/domain/router/model/eav/entity', [
         }();
         RouterEntity.State = State;
     }(RouterEntity = exports.RouterEntity || (exports.RouterEntity = {})));
+    exports.RouterEntity = RouterEntity;
 });
 define('src/layer/domain/router/module/fetch/html', [
     'require',
@@ -960,7 +962,7 @@ define('src/layer/domain/router/module/update/sync', [
         });
     }
     function remove(el) {
-        return void el.parentElement.removeChild(el);
+        return void el.remove();
     }
 });
 define('src/layer/domain/router/module/update/head', [
@@ -2031,7 +2033,6 @@ define('src/layer/interface/service/gui', [
         };
         return GUI;
     }();
-    exports.GUI = GUI;
     GUI.router = new (function (_super) {
         __extends(class_6, _super);
         function class_6() {
@@ -2046,6 +2047,7 @@ define('src/layer/interface/service/gui', [
         }
         return class_7;
     }(spica_18.Supervisor))();
+    exports.GUI = GUI;
     function hasModifierKey(event) {
         return event.which > 1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
     }
