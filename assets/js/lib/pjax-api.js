@@ -354,10 +354,21 @@ define('src/layer/application/config/scope', [
     }
     exports.match = match;
 });
-define('src/lib/dom', [
+define('src/lib/noop', [
     'require',
     'exports'
 ], function (require, exports) {
+    'use strict';
+    function noop() {
+        return;
+    }
+    exports.noop = noop;
+});
+define('src/lib/dom', [
+    'require',
+    'exports',
+    'src/lib/noop'
+], function (require, exports, noop_1) {
     'use strict';
     function parse(html) {
         var parser = document.createElement('div');
@@ -374,11 +385,17 @@ define('src/lib/dom', [
             option = false;
         }
         void el.addEventListener(type, handler, adjustEventListenerOptions(option));
+        var unbind = function () {
+            return unbind = noop_1.noop, void el.removeEventListener(type, handler, adjustEventListenerOptions(option));
+        };
         return function () {
-            return void el.removeEventListener(type, handler, adjustEventListenerOptions(option));
+            return void unbind();
         };
         function handler(ev) {
             ev._currentTarget = ev.currentTarget;
+            if (typeof option === 'object' && option.passive) {
+                ev.preventDefault = noop_1.noop;
+            }
             void listener(ev);
         }
     }
@@ -387,35 +404,30 @@ define('src/lib/dom', [
         if (option === void 0) {
             option = false;
         }
-        var done = false;
         var unbind = bind(el, type, function (ev) {
-            return void unbind(), done = true, listener(ev);
-        }, adjustEventListenerOptions(option));
+            return void unbind(), unbind = noop_1.noop, void listener(ev);
+        }, option);
         return function () {
-            return done ? void 0 : void unbind();
+            return void unbind();
         };
     }
     exports.once = once;
-    function delegate(el, selector, type, listener) {
-        void el.addEventListener(type, handler, true);
-        return function () {
-            return void el.removeEventListener(type, handler, true);
-        };
-        function handler(ev) {
+    function delegate(el, selector, type, listener, option) {
+        if (option === void 0) {
+            option = { capture: true };
+        }
+        return bind(el, type, function (ev) {
             var cx = ev.target.closest(selector);
             if (!cx)
                 return;
             void find(el, selector).filter(function (el) {
                 return el === cx;
             }).forEach(function (el) {
-                return el.addEventListener(type, handler, false);
+                return void once(el, type, function (ev) {
+                    return ev._currentTarget = ev.currentTarget, void listener(ev);
+                }, option);
             });
-            function handler(ev) {
-                ev._currentTarget = ev.currentTarget;
-                void ev._currentTarget.removeEventListener(type, handler);
-                void listener(ev);
-            }
-        }
+        }, Object.assign({}, option, { capture: true }));
     }
     exports.delegate = delegate;
     function serialize(form) {
@@ -441,7 +453,7 @@ define('src/lib/dom', [
     } catch (e) {
     }
     function adjustEventListenerOptions(option) {
-        return supportEventListenerOptions ? option : option.capture;
+        return supportEventListenerOptions ? option : typeof option === 'boolean' ? option : option.capture;
     }
 });
 define('src/layer/domain/event/router', [
