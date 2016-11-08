@@ -1,3 +1,5 @@
+import { noop } from './noop';
+
 export function parse(html: string): HTMLElement {
   const parser = document.createElement('div');
   parser.innerHTML = html;
@@ -12,40 +14,41 @@ export function find<T extends HTMLElement>(el: HTMLElement | Document, selector
 
 export function bind(el: HTMLElement | Document | Window, type: string, listener: (ev: Event) => any, option: boolean | EventListenerOption = false): () => undefined {
   void el.addEventListener(type, handler, adjustEventListenerOptions(option));
-  return () => void el.removeEventListener(type, handler, adjustEventListenerOptions(option));
+  let unbind: () => undefined = () => (
+    unbind = noop,
+    void el.removeEventListener(type, handler, adjustEventListenerOptions(option)));
+  return () => void unbind();
 
   function handler(ev: Event) {
     ev._currentTarget = <HTMLElement>ev.currentTarget;
+    if (typeof option === 'object' && option.passive) {
+      ev.preventDefault = noop;
+    }
     void listener(ev);
   }
 }
 
 export function once(el: HTMLElement | Document | Window, type: string, listener: (ev: Event) => any, option: boolean | EventListenerOption = false): () => undefined {
-  let done = false;
-  let unbind: () => void = bind(el, type, ev => (
+  let unbind: () => undefined = bind(el, type, ev => (
     void unbind(),
-    done = true,
-    listener(ev)),
-    adjustEventListenerOptions(option));
-  return (): undefined => done ? void 0 : void unbind();
+    unbind = noop,
+    void listener(ev)),
+    option);
+  return () => void unbind();
 }
 
-export function delegate(el: HTMLElement, selector: string, type: string, listener: (ev: Event) => any): () => undefined {
-  void el.addEventListener(type, handler, true);
-  return () => void el.removeEventListener(type, handler, true);
-
-  function handler(ev: Event) {
+export function delegate(el: HTMLElement, selector: string, type: string, listener: (ev: Event) => any, option: EventListenerOption = { capture: true }): () => undefined {
+  return bind(el, type, ev => {
     const cx = (<HTMLElement>ev.target).closest(selector);
     if (!cx) return;
     void find(el, selector)
       .filter(el => el === cx)
-      .forEach(el => el.addEventListener(type, handler, false));
-    function handler(ev: Event) {
-      ev._currentTarget = <HTMLElement>ev.currentTarget;
-      void ev._currentTarget.removeEventListener(type, handler);
-      void listener(ev);
-    }
-  }
+      .forEach(el =>
+        void once(el, type, ev => (
+          ev._currentTarget = <HTMLElement>ev.currentTarget,
+          void listener(ev)
+        ), option));
+  }, Object.assign({}, option, { capture: true }));
 }
 
 export function serialize(form: HTMLFormElement): string {
@@ -80,5 +83,5 @@ interface EventListenerOption {
 function adjustEventListenerOptions(option: boolean | EventListenerOption): boolean | undefined {
   return supportEventListenerOptions
     ? <boolean>option
-    : (<EventListenerOption>option).capture;
+    : typeof option === 'boolean' ? option : option.capture;
 }
