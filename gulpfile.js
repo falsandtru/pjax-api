@@ -148,7 +148,7 @@ gulp.task('install', function () {
 
 gulp.task('update', function () {
   shell('bundle update');
-  shell('npm-check-updates -u');
+  shell('ncu -ua');
   shell('npm i');
 });
 
