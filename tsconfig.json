@@ -5,7 +5,7 @@
       "dom",
       "es6"
     ],
-    "module": "amd",
+    "module": "commonjs",
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "strictNullChecks": true,

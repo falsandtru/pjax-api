@@ -1,9 +1,14 @@
 const gulp = require('gulp');
+const glob = require('glob');
 const shell = cmd => require('child_process').execSync(cmd, { stdio: [0, 1, 2] });
 const del = require('del');
 const extend = require('extend');
-const seq = require('run-sequence');
+const source = require('vinyl-source-stream');
+const buffer = require('vinyl-buffer');
 const $ = require('gulp-load-plugins')();
+const seq = require('run-sequence');
+const browserify = require('browserify');
+const tsify = require('tsify');
 const Server = require('karma').Server;
 
 const pkg = require('./package.json');
@@ -19,10 +24,6 @@ const config = {
     }
   })(require('os').type())),
   ts: {
-    options: extend(require('./tsconfig.json').compilerOptions, {
-      typescript: require('typescript'),
-      outFile: `${pkg.name}.js`
-    }),
     dist: {
       src: [
         '*.ts'
@@ -42,61 +43,43 @@ const config = {
     `/*! ${pkg.name} v${pkg.version} ${pkg.repository.url} | (c) 2016, ${pkg.author} | ${pkg.license} License */`,
     ''
   ].join('\n'),
-  exporter:
-`define = typeof define === 'function' && define.amd
-  ? define
-  : (function () {
-    'use strict';
-    var name = '${pkg.name}',
-        workspace = {};
-    return function define(m, rs, f) {
-      return !f
-        ? void define(name, m, rs)
-        : void f.apply(this, rs.map(function (r) {
-          switch (r) {
-            case 'require': {
-              return typeof require === 'function' ? require : void 0;
-            }
-            case 'exports': {
-              return m.indexOf('/') === -1
-                ? workspace[m] = typeof exports === 'undefined' ? self[m] = self[m] || {} : exports
-                : workspace[m] = workspace.hasOwnProperty(m) ? workspace[m] : {};
-            }
-            default: {
-              return r.slice(-2) === '.d' && {}
-                  || workspace.hasOwnProperty(r) && workspace[r]
-                  || typeof require === 'function' && require(r)
-                  || self[r];
-            }
-          }
-        }));
-    };
-  })();
-`,
   clean: {
     dist: 'dist'
   }
 };
+
+function compile(paths) {
+  let done = true;
+  return browserify({
+      basedir: '.',
+      debug: false,
+      entries: Object.values(paths).map(p => glob.sync(p)),
+      bundleExternal: false,
+      cache: {},
+      packageCache: {}
+    })
+    .require(`./${pkg.name}.ts`, { expose: pkg.name })
+    .plugin(tsify, require('./tsconfig.json').compilerOptions)
+    .bundle()
+    .on("error", err => done = console.log(err + ''))
+    .pipe(source(`${pkg.name}.js`))
+    .pipe(buffer())
+    .pipe($.derequire())
+    .once("finish", () => done || process.exit(1));
+}
 
 gulp.task('ts:watch', function () {
   gulp.watch(config.ts.test.src, ['ts:test']);
 });
 
 gulp.task('ts:test', function () {
-  return gulp.src(config.ts.test.src)
-    .pipe($.typescript(config.ts.options))
-    .pipe($.header(config.exporter))
+  return compile(config.ts.test.src)
     .pipe(gulp.dest(config.ts.test.dest));
 });
 
 gulp.task('ts:dist', function () {
-  return gulp.src(config.ts.dist.src)
-    .pipe($.typescript(config.ts.options))
-    .once("error", function () {
-      this.once("finish", () => process.exit(1));
-    })
+  return compile(config.ts.dist.src)
     .pipe($.unassert())
-    .pipe($.header(config.exporter))
     .pipe($.header(config.banner))
     .pipe(gulp.dest(config.ts.dist.dest))
     .pipe($.uglify({ preserveComments: 'license' }))
@@ -197,6 +180,7 @@ gulp.task('ci', ['clean'], function (done) {
     'ts:test',
     'karma:ci',
     'dist',
+    'site',
     function () {
       done();
     }

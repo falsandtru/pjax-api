@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.4.0
+
+- Use Browserify.
+
 ## 3.3.6
 
 - Fix support for Edge browser.
