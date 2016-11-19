@@ -24,7 +24,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
         }).extract());
     });
 
-    it('timeout', done => {
+    it.skip('timeout', done => {
       xhr(
         RouterEvent.Method.GET,
         canonicalizeUrl(validateUrl('?timeout')),
