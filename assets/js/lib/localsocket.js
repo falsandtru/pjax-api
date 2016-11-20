@@ -1,4 +1,4 @@
-/*! localsocket v0.5.0 https://github.com/falsandtru/localsocket | (c) 2016, falsandtru | MIT License */
+/*! localsocket v0.5.1 https://github.com/falsandtru/localsocket | (c) 2016, falsandtru | MIT License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
@@ -2455,6 +2455,7 @@ require = function e(t, n, r) {
             __export(_dereq_('./src/export'));
             var export_1 = _dereq_('./src/export');
             exports.default = export_1.default;
+            exports.__esModule = true;
         },
         { './src/export': 4 }
     ]
