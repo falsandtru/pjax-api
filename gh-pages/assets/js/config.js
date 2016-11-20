@@ -1,4 +1,5 @@
-﻿new require('pjax-api').Pjax({
+﻿var Pjax = require('pjax-api').Pjax;
+new Pjax({
   areas: [
     '#container',
     'body'
