@@ -2326,6 +2326,7 @@ require = function e(t, n, r) {
             __export(_dereq_('./src/export'));
             var export_1 = _dereq_('./src/export');
             exports.default = export_1.default;
+            exports.__esModule = true;
         },
         { './src/export': 4 }
     ]
