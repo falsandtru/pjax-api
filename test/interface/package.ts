@@ -1,6 +1,17 @@
-import _Pjax, { Pjax, Config } from 'pjax-api';
+import _Pjax, { Pjax, Config, __esModule } from 'pjax-api';
+
+declare module 'pjax-api' {
+  export const __esModule: boolean | undefined;
+}
 
 describe('Interface: Package', function () {
+  describe('module', function () {
+    it('module', function () {
+      assert(__esModule === true);
+    });
+
+  });
+
   describe('default', function () {
     it('default', function () {
       assert(_Pjax === Pjax);
