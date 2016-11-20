@@ -34,7 +34,8 @@ $ npm i pjax-api spica localsocket
 <script src="/js/localsocket.js"></script>
 <script src="/js/pjax-api.js"></script>
 <script>
-new require('pjax-api').Pjax({
+var Pjax = require('pjax-api').Pjax;
+new Pjax({
   areas: [
     '#header, #primary',
     '#container',
