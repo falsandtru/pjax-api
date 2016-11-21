@@ -1,4 +1,4 @@
-/*! spica v0.0.43 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.44 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
@@ -25,72 +25,72 @@ require = function e(t, n, r) {
     return s;
 }({
     1: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
         },
         {}
     ],
     2: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             arguments[4][1][0].apply(exports, arguments);
         },
         { 'dup': 1 }
     ],
     3: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             arguments[4][1][0].apply(exports, arguments);
         },
         { 'dup': 1 }
     ],
     4: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var supervisor_1 = _dereq_('./lib/supervisor');
+            var supervisor_1 = require('./lib/supervisor');
             exports.Supervisor = supervisor_1.Supervisor;
-            var observable_1 = _dereq_('./lib/observable');
+            var observable_1 = require('./lib/observable');
             exports.Observable = observable_1.Observable;
-            var cancelable_1 = _dereq_('./lib/cancelable');
+            var cancelable_1 = require('./lib/cancelable');
             exports.Cancelable = cancelable_1.Cancelable;
-            var sequence_1 = _dereq_('./lib/monad/sequence');
+            var sequence_1 = require('./lib/monad/sequence');
             exports.Sequence = sequence_1.Sequence;
-            var maybe_1 = _dereq_('./lib/monad/maybe');
+            var maybe_1 = require('./lib/monad/maybe');
             exports.Maybe = maybe_1.Maybe;
             exports.Just = maybe_1.Just;
             exports.Nothing = maybe_1.Nothing;
-            var either_1 = _dereq_('./lib/monad/either');
+            var either_1 = require('./lib/monad/either');
             exports.Either = either_1.Either;
             exports.Left = either_1.Left;
             exports.Right = either_1.Right;
-            var curry_1 = _dereq_('./lib/curry');
+            var curry_1 = require('./lib/curry');
             exports.curry = curry_1.curry;
-            var flip_1 = _dereq_('./lib/flip');
+            var flip_1 = require('./lib/flip');
             exports.flip = flip_1.flip;
-            var list_1 = _dereq_('./lib/list');
+            var list_1 = require('./lib/list');
             exports.Nil = list_1.Nil;
-            var hlist_1 = _dereq_('./lib/hlist');
+            var hlist_1 = require('./lib/hlist');
             exports.HNil = hlist_1.HNil;
-            var datamap_1 = _dereq_('./lib/collection/datamap');
+            var datamap_1 = require('./lib/collection/datamap');
             exports.DataMap = datamap_1.DataMap;
-            var attrmap_1 = _dereq_('./lib/collection/attrmap');
+            var attrmap_1 = require('./lib/collection/attrmap');
             exports.AttrMap = attrmap_1.AttrMap;
-            var cache_1 = _dereq_('./lib/cache');
+            var cache_1 = require('./lib/cache');
             exports.Cache = cache_1.Cache;
-            var mixin_1 = _dereq_('./lib/mixin');
+            var mixin_1 = require('./lib/mixin');
             exports.Mixin = mixin_1.Mixin;
-            var tick_1 = _dereq_('./lib/tick');
+            var tick_1 = require('./lib/tick');
             exports.Tick = tick_1.Tick;
-            var fingerprint_1 = _dereq_('./lib/fingerprint');
+            var fingerprint_1 = require('./lib/fingerprint');
             exports.FINGERPRINT = fingerprint_1.FINGERPRINT;
-            var uuid_1 = _dereq_('./lib/uuid');
+            var uuid_1 = require('./lib/uuid');
             exports.uuid = uuid_1.v4;
-            var sqid_1 = _dereq_('./lib/sqid');
+            var sqid_1 = require('./lib/sqid');
             exports.sqid = sqid_1.sqid;
-            var assign_1 = _dereq_('./lib/assign');
+            var assign_1 = require('./lib/assign');
             exports.assign = assign_1.assign;
             exports.clone = assign_1.clone;
             exports.extend = assign_1.extend;
-            var concat_1 = _dereq_('./lib/concat');
+            var concat_1 = require('./lib/concat');
             exports.concat = concat_1.concat;
-            var sort_1 = _dereq_('./lib/sort');
+            var sort_1 = require('./lib/sort');
             exports.sort = sort_1.sort;
         },
         {
@@ -118,9 +118,9 @@ require = function e(t, n, r) {
         }
     ],
     5: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var type_1 = _dereq_('./type');
+            var type_1 = require('./type');
             exports.assign = template(function (key, target, source) {
                 return target[key] = source[key];
             });
@@ -182,7 +182,7 @@ require = function e(t, n, r) {
         { './type': 75 }
     ],
     6: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var Cache = function () {
                 function Cache(size, callback) {
@@ -299,11 +299,11 @@ require = function e(t, n, r) {
         {}
     ],
     7: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var noop_1 = _dereq_('./noop');
-            var maybe_1 = _dereq_('./monad/maybe');
-            var either_1 = _dereq_('./monad/either');
+            var noop_1 = require('./noop');
+            var maybe_1 = require('./monad/maybe');
+            var either_1 = require('./monad/either');
             var Cancelable = function () {
                 function Cancelable() {
                     var _this = this;
@@ -339,7 +339,7 @@ require = function e(t, n, r) {
         }
     ],
     8: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var AttrMap = function () {
                 function AttrMap(entries, KeyMap, ValueMap) {
@@ -382,10 +382,10 @@ require = function e(t, n, r) {
         {}
     ],
     9: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var sqid_1 = _dereq_('../sqid');
-            var type_1 = _dereq_('../type');
+            var sqid_1 = require('../sqid');
+            var type_1 = require('../type');
             function isPrimitive(target) {
                 return target instanceof Object === false;
             }
@@ -477,9 +477,9 @@ require = function e(t, n, r) {
         }
     ],
     10: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var assign_1 = _dereq_('./assign');
+            var assign_1 = require('./assign');
             function compose(target) {
                 var sources = [];
                 for (var _i = 1; _i < arguments.length; _i++) {
@@ -498,7 +498,7 @@ require = function e(t, n, r) {
         { './assign': 5 }
     ],
     11: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             function concat(target, source) {
                 for (var i = 0, len = source.length, offset = target.length; i < len; ++i) {
@@ -511,7 +511,7 @@ require = function e(t, n, r) {
         {}
     ],
     12: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             exports.curry = function (f, ctx) {
                 return f.length === 0 ? function () {
@@ -531,7 +531,7 @@ require = function e(t, n, r) {
         {}
     ],
     13: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             exports.FINGERPRINT = typeof window === 'object' ? browser() : server();
             function browser() {
@@ -578,9 +578,9 @@ require = function e(t, n, r) {
         {}
     ],
     14: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var curry_1 = _dereq_('./curry');
+            var curry_1 = require('./curry');
             function flip(f) {
                 return curry_1.curry(function (b, a) {
                     return f.length > 1 ? f(a, b) : f(a)(b);
@@ -591,9 +591,9 @@ require = function e(t, n, r) {
         { './curry': 12 }
     ],
     15: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var concat_1 = _dereq_('./concat');
+            var concat_1 = require('./concat');
             var HNil = function () {
                 function HNil() {
                     void this.NIL;
@@ -655,9 +655,9 @@ require = function e(t, n, r) {
         { './concat': 11 }
     ],
     16: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var concat_1 = _dereq_('./concat');
+            var concat_1 = require('./concat');
             var Nil = function () {
                 function Nil() {
                     void this.NIL;
@@ -719,9 +719,9 @@ require = function e(t, n, r) {
         { './concat': 11 }
     ],
     17: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var assign_1 = _dereq_('./assign');
+            var assign_1 = require('./assign');
             function Mixin() {
                 var mixins = [];
                 for (var _i = 0; _i < arguments.length; _i++) {
@@ -756,7 +756,7 @@ require = function e(t, n, r) {
         { './assign': 5 }
     ],
     18: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -767,8 +767,8 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var functor_1 = _dereq_('./functor');
-            var curry_1 = _dereq_('../curry');
+            var functor_1 = require('./functor');
+            var curry_1 = require('../curry');
             var Applicative = function (_super) {
                 __extends(Applicative, _super);
                 function Applicative() {
@@ -797,7 +797,7 @@ require = function e(t, n, r) {
         }
     ],
     19: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -808,7 +808,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var monad_1 = _dereq_('./monad');
+            var monad_1 = require('./monad');
             var Either = function (_super) {
                 __extends(Either, _super);
                 function Either(thunk) {
@@ -900,9 +900,9 @@ require = function e(t, n, r) {
         { './monad': 25 }
     ],
     20: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var Monad = _dereq_('./either.impl');
+            var Monad = require('./either.impl');
             var Either;
             (function (Either) {
                 Either.fmap = Monad.Either.fmap;
@@ -923,7 +923,7 @@ require = function e(t, n, r) {
         { './either.impl': 19 }
     ],
     21: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -934,7 +934,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var lazy_1 = _dereq_('./lazy');
+            var lazy_1 = require('./lazy');
             var Functor = function (_super) {
                 __extends(Functor, _super);
                 function Functor() {
@@ -956,7 +956,7 @@ require = function e(t, n, r) {
         { './lazy': 22 }
     ],
     22: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var Lazy = function () {
                 function Lazy(thunk) {
@@ -972,7 +972,7 @@ require = function e(t, n, r) {
         {}
     ],
     23: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -983,7 +983,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var monadplus_1 = _dereq_('./monadplus');
+            var monadplus_1 = require('./monadplus');
             var Maybe = function (_super) {
                 __extends(Maybe, _super);
                 function Maybe(thunk) {
@@ -1088,9 +1088,9 @@ require = function e(t, n, r) {
         { './monadplus': 26 }
     ],
     24: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var Monad = _dereq_('./maybe.impl');
+            var Monad = require('./maybe.impl');
             var Maybe;
             (function (Maybe) {
                 Maybe.fmap = Monad.Maybe.fmap;
@@ -1110,7 +1110,7 @@ require = function e(t, n, r) {
         { './maybe.impl': 23 }
     ],
     25: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1121,7 +1121,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var applicative_1 = _dereq_('./applicative');
+            var applicative_1 = require('./applicative');
             var Monad = function (_super) {
                 __extends(Monad, _super);
                 function Monad() {
@@ -1143,7 +1143,7 @@ require = function e(t, n, r) {
         { './applicative': 18 }
     ],
     26: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1154,7 +1154,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var monad_1 = _dereq_('./monad');
+            var monad_1 = require('./monad');
             var MonadPlus = function (_super) {
                 __extends(MonadPlus, _super);
                 function MonadPlus() {
@@ -1170,50 +1170,50 @@ require = function e(t, n, r) {
         { './monad': 25 }
     ],
     27: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var core_1 = _dereq_('./sequence/core');
+            var core_1 = require('./sequence/core');
             exports.Sequence = core_1.Sequence;
-            var resume_1 = _dereq_('./sequence/member/static/resume');
-            var from_1 = _dereq_('./sequence/member/static/from');
-            var cycle_1 = _dereq_('./sequence/member/static/cycle');
-            var random_1 = _dereq_('./sequence/member/static/random');
-            var concat_1 = _dereq_('./sequence/member/static/concat');
-            var zip_1 = _dereq_('./sequence/member/static/zip');
-            var difference_1 = _dereq_('./sequence/member/static/difference');
-            var union_1 = _dereq_('./sequence/member/static/union');
-            var intersect_1 = _dereq_('./sequence/member/static/intersect');
-            var pure_1 = _dereq_('./sequence/member/static/pure');
-            var return_1 = _dereq_('./sequence/member/static/return');
-            var mempty_1 = _dereq_('./sequence/member/static/mempty');
-            var mconcat_1 = _dereq_('./sequence/member/static/mconcat');
-            var mappend_1 = _dereq_('./sequence/member/static/mappend');
-            var mzero_1 = _dereq_('./sequence/member/static/mzero');
-            var mplus_1 = _dereq_('./sequence/member/static/mplus');
-            var extract_1 = _dereq_('./sequence/member/instance/extract');
-            var iterate_1 = _dereq_('./sequence/member/instance/iterate');
-            var memoize_1 = _dereq_('./sequence/member/instance/memoize');
-            var reduce_1 = _dereq_('./sequence/member/instance/reduce');
-            var take_1 = _dereq_('./sequence/member/instance/take');
-            var drop_1 = _dereq_('./sequence/member/instance/drop');
-            var takeWhile_1 = _dereq_('./sequence/member/instance/takeWhile');
-            var dropWhile_1 = _dereq_('./sequence/member/instance/dropWhile');
-            var takeUntil_1 = _dereq_('./sequence/member/instance/takeUntil');
-            var dropUntil_1 = _dereq_('./sequence/member/instance/dropUntil');
-            var fmap_1 = _dereq_('./sequence/member/instance/fmap');
-            var ap_1 = _dereq_('./sequence/member/instance/ap');
-            var bind_1 = _dereq_('./sequence/member/instance/bind');
-            var mapM_1 = _dereq_('./sequence/member/instance/mapM');
-            var filterM_1 = _dereq_('./sequence/member/instance/filterM');
-            var map_1 = _dereq_('./sequence/member/instance/map');
-            var filter_1 = _dereq_('./sequence/member/instance/filter');
-            var scan_1 = _dereq_('./sequence/member/instance/scan');
-            var fold_1 = _dereq_('./sequence/member/instance/fold');
-            var group_1 = _dereq_('./sequence/member/instance/group');
-            var sort_1 = _dereq_('./sequence/member/instance/sort');
-            var subsequences_1 = _dereq_('./sequence/member/instance/subsequences');
-            var permutations_1 = _dereq_('./sequence/member/instance/permutations');
-            var compose_1 = _dereq_('../compose');
+            var resume_1 = require('./sequence/member/static/resume');
+            var from_1 = require('./sequence/member/static/from');
+            var cycle_1 = require('./sequence/member/static/cycle');
+            var random_1 = require('./sequence/member/static/random');
+            var concat_1 = require('./sequence/member/static/concat');
+            var zip_1 = require('./sequence/member/static/zip');
+            var difference_1 = require('./sequence/member/static/difference');
+            var union_1 = require('./sequence/member/static/union');
+            var intersect_1 = require('./sequence/member/static/intersect');
+            var pure_1 = require('./sequence/member/static/pure');
+            var return_1 = require('./sequence/member/static/return');
+            var mempty_1 = require('./sequence/member/static/mempty');
+            var mconcat_1 = require('./sequence/member/static/mconcat');
+            var mappend_1 = require('./sequence/member/static/mappend');
+            var mzero_1 = require('./sequence/member/static/mzero');
+            var mplus_1 = require('./sequence/member/static/mplus');
+            var extract_1 = require('./sequence/member/instance/extract');
+            var iterate_1 = require('./sequence/member/instance/iterate');
+            var memoize_1 = require('./sequence/member/instance/memoize');
+            var reduce_1 = require('./sequence/member/instance/reduce');
+            var take_1 = require('./sequence/member/instance/take');
+            var drop_1 = require('./sequence/member/instance/drop');
+            var takeWhile_1 = require('./sequence/member/instance/takeWhile');
+            var dropWhile_1 = require('./sequence/member/instance/dropWhile');
+            var takeUntil_1 = require('./sequence/member/instance/takeUntil');
+            var dropUntil_1 = require('./sequence/member/instance/dropUntil');
+            var fmap_1 = require('./sequence/member/instance/fmap');
+            var ap_1 = require('./sequence/member/instance/ap');
+            var bind_1 = require('./sequence/member/instance/bind');
+            var mapM_1 = require('./sequence/member/instance/mapM');
+            var filterM_1 = require('./sequence/member/instance/filterM');
+            var map_1 = require('./sequence/member/instance/map');
+            var filter_1 = require('./sequence/member/instance/filter');
+            var scan_1 = require('./sequence/member/instance/scan');
+            var fold_1 = require('./sequence/member/instance/fold');
+            var group_1 = require('./sequence/member/instance/group');
+            var sort_1 = require('./sequence/member/instance/sort');
+            var subsequences_1 = require('./sequence/member/instance/subsequences');
+            var permutations_1 = require('./sequence/member/instance/permutations');
+            var compose_1 = require('../compose');
             void compose_1.compose(core_1.Sequence, resume_1.default, from_1.default, cycle_1.default, random_1.default, concat_1.default, zip_1.default, difference_1.default, union_1.default, intersect_1.default, pure_1.default, return_1.default, mempty_1.default, mconcat_1.default, mappend_1.default, mzero_1.default, mplus_1.default, extract_1.default, iterate_1.default, memoize_1.default, reduce_1.default, take_1.default, drop_1.default, takeWhile_1.default, dropWhile_1.default, takeUntil_1.default, dropUntil_1.default, fmap_1.default, ap_1.default, bind_1.default, mapM_1.default, filterM_1.default, map_1.default, filter_1.default, scan_1.default, fold_1.default, group_1.default, sort_1.default, subsequences_1.default, permutations_1.default);
         },
         {
@@ -1261,7 +1261,7 @@ require = function e(t, n, r) {
         }
     ],
     28: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1272,7 +1272,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var monadplus_1 = _dereq_('../monadplus');
+            var monadplus_1 = require('../monadplus');
             var Sequence = function (_super) {
                 __extends(Sequence, _super);
                 function Sequence(cons) {
@@ -1384,7 +1384,7 @@ require = function e(t, n, r) {
         { '../monadplus': 26 }
     ],
     29: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1395,7 +1395,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -1412,7 +1412,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     30: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1423,7 +1423,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -1440,7 +1440,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     31: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1451,7 +1451,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -1480,7 +1480,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     32: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1491,7 +1491,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -1520,7 +1520,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     33: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1531,7 +1531,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -1560,7 +1560,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     34: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1571,8 +1571,8 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
-            var concat_1 = _dereq_('../../../../concat');
+            var core_1 = require('../../core');
+            var concat_1 = require('../../../../concat');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -1603,7 +1603,7 @@ require = function e(t, n, r) {
         }
     ],
     35: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1614,7 +1614,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -1643,7 +1643,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     36: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1654,8 +1654,8 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
-            var concat_1 = _dereq_('../../../../concat');
+            var core_1 = require('../../core');
+            var concat_1 = require('../../../../concat');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -1690,7 +1690,7 @@ require = function e(t, n, r) {
         }
     ],
     37: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1701,7 +1701,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -1730,7 +1730,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     38: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1741,7 +1741,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -1772,7 +1772,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     39: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1783,8 +1783,8 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
-            var concat_1 = _dereq_('../../../../concat');
+            var core_1 = require('../../core');
+            var concat_1 = require('../../../../concat');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -1820,7 +1820,7 @@ require = function e(t, n, r) {
         }
     ],
     40: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1831,7 +1831,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -1881,7 +1881,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     41: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1892,7 +1892,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -1921,7 +1921,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     42: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1932,8 +1932,8 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
-            var concat_1 = _dereq_('../../../../concat');
+            var core_1 = require('../../core');
+            var concat_1 = require('../../../../concat');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -1968,7 +1968,7 @@ require = function e(t, n, r) {
         }
     ],
     43: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1979,7 +1979,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var memories = new WeakMap();
             var default_1 = function (_super) {
                 __extends(default_1, _super);
@@ -2011,7 +2011,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     44: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -2022,7 +2022,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -2086,7 +2086,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     45: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -2097,7 +2097,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -2128,7 +2128,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     46: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -2139,7 +2139,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -2174,7 +2174,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     47: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -2185,7 +2185,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -2202,7 +2202,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     48: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -2213,8 +2213,8 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
-            var concat_1 = _dereq_('../../../../concat');
+            var core_1 = require('../../core');
+            var concat_1 = require('../../../../concat');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -2254,7 +2254,7 @@ require = function e(t, n, r) {
         }
     ],
     49: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -2265,7 +2265,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -2294,7 +2294,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     50: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -2305,7 +2305,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -2334,7 +2334,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     51: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -2345,7 +2345,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -2374,7 +2374,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     52: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -2385,7 +2385,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -2425,7 +2425,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     53: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -2436,7 +2436,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -2466,7 +2466,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     54: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -2477,7 +2477,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -2539,7 +2539,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     55: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -2550,7 +2550,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -2577,7 +2577,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     56: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -2588,7 +2588,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -2633,7 +2633,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     57: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -2644,7 +2644,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -2664,7 +2664,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     58: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -2675,7 +2675,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -2721,7 +2721,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     59: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -2732,7 +2732,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -2749,7 +2749,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     60: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -2760,7 +2760,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -2775,7 +2775,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     61: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -2786,7 +2786,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -2801,7 +2801,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     62: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -2812,7 +2812,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -2831,7 +2831,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     63: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -2842,7 +2842,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -2868,7 +2868,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     64: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -2879,7 +2879,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -2905,7 +2905,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     65: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -2916,7 +2916,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -2935,7 +2935,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     66: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -2946,7 +2946,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -3009,7 +3009,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     67: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -3020,7 +3020,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var core_1 = _dereq_('../../core');
+            var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
@@ -3061,7 +3061,7 @@ require = function e(t, n, r) {
         { '../../core': 28 }
     ],
     68: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             function noop() {
                 ;
@@ -3071,9 +3071,9 @@ require = function e(t, n, r) {
         {}
     ],
     69: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var concat_1 = _dereq_('./concat');
+            var concat_1 = require('./concat');
             var Observable = function () {
                 function Observable() {
                     this.node_ = {
@@ -3266,7 +3266,7 @@ require = function e(t, n, r) {
         { './concat': 11 }
     ],
     70: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             function sort(as, cmp, times, debug) {
                 if (debug === void 0) {
@@ -3291,7 +3291,7 @@ require = function e(t, n, r) {
         {}
     ],
     71: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var cnt = 0;
             function sqid(id) {
@@ -3310,13 +3310,13 @@ require = function e(t, n, r) {
         {}
     ],
     72: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var observable_1 = _dereq_('./observable');
-            var tick_1 = _dereq_('./tick');
-            var thenable_1 = _dereq_('./thenable');
-            var sqid_1 = _dereq_('./sqid');
-            var noop_1 = _dereq_('./noop');
+            var observable_1 = require('./observable');
+            var tick_1 = require('./tick');
+            var thenable_1 = require('./thenable');
+            var sqid_1 = require('./sqid');
+            var noop_1 = require('./noop');
             var Supervisor = function () {
                 function Supervisor(_a) {
                     var _b = _a === void 0 ? {} : _a, _c = _b.name, name = _c === void 0 ? '' : _c, _d = _b.timeout, timeout = _d === void 0 ? 0 : _d, _e = _b.destructor, destructor = _e === void 0 ? noop_1.noop : _e;
@@ -3656,7 +3656,7 @@ require = function e(t, n, r) {
         }
     ],
     73: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             function isThenable(target) {
                 return !!target && typeof target === 'object' && typeof target.then === 'function';
@@ -3666,7 +3666,7 @@ require = function e(t, n, r) {
         {}
     ],
     74: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var Queue = [];
             var scheduled = false;
@@ -3704,7 +3704,7 @@ require = function e(t, n, r) {
         {}
     ],
     75: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             function type(target) {
                 return Object.prototype.toString.call(target).split(' ').pop().slice(0, -1);
@@ -3714,9 +3714,9 @@ require = function e(t, n, r) {
         {}
     ],
     76: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var fingerprint_1 = _dereq_('./fingerprint');
+            var fingerprint_1 = require('./fingerprint');
             var SEED = fingerprint_1.FINGERPRINT * Date.now() % 1000000000000000;
             if (!SEED || typeof SEED !== 'number' || SEED < 100 || 1000000000000000 < SEED)
                 throw new Error('Spica: uuid: Invalid uuid static seed.\n\t' + fingerprint_1.FINGERPRINT);
@@ -3744,14 +3744,14 @@ require = function e(t, n, r) {
         { './fingerprint': 13 }
     ],
     'spica': [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             function __export(m) {
                 for (var p in m)
                     if (!exports.hasOwnProperty(p))
                         exports[p] = m[p];
             }
-            __export(_dereq_('./src/export'));
+            __export(require('./src/export'));
             exports.__esModule = true;
         },
         { './src/export': 4 }

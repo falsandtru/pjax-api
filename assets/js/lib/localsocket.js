@@ -1,4 +1,4 @@
-/*! localsocket v0.5.1 https://github.com/falsandtru/localsocket | (c) 2016, falsandtru | MIT License */
+/*! localsocket v0.5.2 https://github.com/falsandtru/localsocket | (c) 2016, falsandtru | MIT License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
@@ -25,26 +25,26 @@ require = function e(t, n, r) {
     return s;
 }({
     1: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
         },
         {}
     ],
     2: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             arguments[4][1][0].apply(exports, arguments);
         },
         { 'dup': 1 }
     ],
     3: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             arguments[4][1][0].apply(exports, arguments);
         },
         { 'dup': 1 }
     ],
     4: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var api_1 = _dereq_('./layer/interface/api');
+            var api_1 = require('./layer/interface/api');
             exports.default = api_1.socket;
             exports.socket = api_1.socket;
             exports.port = api_1.port;
@@ -53,13 +53,13 @@ require = function e(t, n, r) {
         { './layer/interface/api': 31 }
     ],
     5: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var api_1 = _dereq_('../domain/indexeddb/api');
-            var api_2 = _dereq_('../domain/webstorage/api');
-            var api_3 = _dereq_('../domain/indexeddb/api');
-            var api_4 = _dereq_('../domain/webstorage/api');
-            var api_5 = _dereq_('../domain/webstorage/api');
+            var api_1 = require('../domain/indexeddb/api');
+            var api_2 = require('../domain/webstorage/api');
+            var api_3 = require('../domain/indexeddb/api');
+            var api_4 = require('../domain/webstorage/api');
+            var api_5 = require('../domain/webstorage/api');
             exports.status = api_5.supportWebStorage;
             function socket(name, config) {
                 var schema = config.schema, _a = config.destroy, destroy = _a === void 0 ? function () {
@@ -86,7 +86,7 @@ require = function e(t, n, r) {
         }
     ],
     6: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             function IdNumber(id) {
                 return +id;
@@ -96,7 +96,7 @@ require = function e(t, n, r) {
         {}
     ],
     7: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var RegValidValueNameFormat = /^[A-z][0-9A-z_]*$/;
             var RegInvalidValueNameFormat = /^[0-9A-Z_]+$/;
@@ -123,7 +123,7 @@ require = function e(t, n, r) {
         {}
     ],
     8: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -134,7 +134,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var spica_1 = _dereq_('spica');
+            var spica_1 = require('spica');
             var EventRecordFields;
             (function (EventRecordFields) {
                 EventRecordFields.id = 'id';
@@ -241,7 +241,7 @@ require = function e(t, n, r) {
         { 'spica': undefined }
     ],
     9: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -252,14 +252,14 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var spica_1 = _dereq_('spica');
-            var api_1 = _dereq_('../../infrastructure/indexeddb/api');
-            var types_1 = _dereq_('../constraint/types');
-            var event_1 = _dereq_('../schema/event');
+            var spica_1 = require('spica');
+            var api_1 = require('../../infrastructure/indexeddb/api');
+            var types_1 = require('../constraint/types');
+            var event_1 = require('../schema/event');
             exports.UnsavedEventRecord = event_1.UnsavedEventRecord;
             exports.SavedEventRecord = event_1.SavedEventRecord;
-            var Schema = _dereq_('../schema/event');
-            var noop_1 = _dereq_('../../../lib/noop');
+            var Schema = require('../schema/event');
+            var noop_1 = require('../../../lib/noop');
             var EventStore = function () {
                 function EventStore(database, name) {
                     var _this = this;
@@ -851,11 +851,11 @@ require = function e(t, n, r) {
         }
     ],
     10: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var spica_1 = _dereq_('spica');
-            var api_1 = _dereq_('../../infrastructure/indexeddb/api');
-            var noop_1 = _dereq_('../../../lib/noop');
+            var spica_1 = require('spica');
+            var api_1 = require('../../infrastructure/indexeddb/api');
+            var noop_1 = require('../../../lib/noop');
             var KeyValueStore = function () {
                 function KeyValueStore(database, name, index) {
                     this.database = database;
@@ -985,9 +985,9 @@ require = function e(t, n, r) {
         }
     ],
     11: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var builder_1 = _dereq_('./module/builder');
+            var builder_1 = require('./module/builder');
             exports.SCHEMA = builder_1.SCHEMA;
             exports.build = builder_1.build;
             exports.isValidPropertyName = builder_1.isValidPropertyName;
@@ -996,12 +996,12 @@ require = function e(t, n, r) {
         { './module/builder': 12 }
     ],
     12: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var values_1 = _dereq_('../../../data/constraint/values');
+            var values_1 = require('../../../data/constraint/values');
             exports.isValidPropertyName = values_1.isValidName;
             exports.isValidPropertyValue = values_1.isValidValue;
-            var noop_1 = _dereq_('../../../../lib/noop');
+            var noop_1 = require('../../../../lib/noop');
             exports.SCHEMA = {
                 META: { NAME: '__meta' },
                 ID: { NAME: '__id' },
@@ -1089,11 +1089,11 @@ require = function e(t, n, r) {
         }
     ],
     13: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var socket_1 = _dereq_('./service/socket');
+            var socket_1 = require('./service/socket');
             exports.Socket = socket_1.Socket;
-            var event_1 = _dereq_('./service/event');
+            var event_1 = require('./service/event');
             exports.event = event_1.event;
             exports.IDBEventType = event_1.IDBEventType;
         },
@@ -1103,7 +1103,7 @@ require = function e(t, n, r) {
         }
     ],
     14: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1114,12 +1114,12 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var spica_1 = _dereq_('spica');
-            var api_1 = _dereq_('../../../infrastructure/indexeddb/api');
-            var data_1 = _dereq_('./socket/data');
-            var access_1 = _dereq_('./socket/access');
-            var expiry_1 = _dereq_('./socket/expiry');
-            var noop_1 = _dereq_('../../../../lib/noop');
+            var spica_1 = require('spica');
+            var api_1 = require('../../../infrastructure/indexeddb/api');
+            var data_1 = require('./socket/data');
+            var access_1 = require('./socket/access');
+            var expiry_1 = require('./socket/expiry');
+            var noop_1 = require('../../../../lib/noop');
             var cache = new Map();
             var SocketStore = function () {
                 function SocketStore(name, destroy, expiry) {
@@ -1290,7 +1290,7 @@ require = function e(t, n, r) {
         }
     ],
     15: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1301,8 +1301,8 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var key_value_1 = _dereq_('../../../../data/store/key-value');
-            var event_1 = _dereq_('../../../../data/store/event');
+            var key_value_1 = require('../../../../data/store/key-value');
+            var event_1 = require('../../../../data/store/event');
             exports.STORE_NAME = 'access';
             var AccessStore = function (_super) {
                 __extends(AccessStore, _super);
@@ -1359,7 +1359,7 @@ require = function e(t, n, r) {
         }
     ],
     16: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1370,7 +1370,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var event_1 = _dereq_('../../../../data/store/event');
+            var event_1 = require('../../../../data/store/event');
             exports.STORE_NAME = 'data';
             var DataStore = function (_super) {
                 __extends(DataStore, _super);
@@ -1417,7 +1417,7 @@ require = function e(t, n, r) {
         { '../../../../data/store/event': 9 }
     ],
     17: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1428,9 +1428,9 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var api_1 = _dereq_('../../../../infrastructure/indexeddb/api');
-            var key_value_1 = _dereq_('../../../../data/store/key-value');
-            var event_1 = _dereq_('../../../../data/store/event');
+            var api_1 = require('../../../../infrastructure/indexeddb/api');
+            var key_value_1 = require('../../../../data/store/key-value');
+            var event_1 = require('../../../../data/store/event');
             exports.STORE_NAME = 'expiry';
             var ExpiryStore = function (_super) {
                 __extends(ExpiryStore, _super);
@@ -1524,16 +1524,16 @@ require = function e(t, n, r) {
         }
     ],
     18: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var api_1 = _dereq_('../../../infrastructure/indexeddb/api');
+            var api_1 = require('../../../infrastructure/indexeddb/api');
             exports.event = api_1.event;
             exports.IDBEventType = api_1.IDBEventType;
         },
         { '../../../infrastructure/indexeddb/api': 24 }
     ],
     19: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1544,11 +1544,11 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var spica_1 = _dereq_('spica');
-            var api_1 = _dereq_('../../dao/api');
-            var socket_1 = _dereq_('../model/socket');
-            var api_2 = _dereq_('../../../infrastructure/webstorage/api');
-            var api_3 = _dereq_('../../webstorage/api');
+            var spica_1 = require('spica');
+            var api_1 = require('../../dao/api');
+            var socket_1 = require('../model/socket');
+            var api_2 = require('../../../infrastructure/webstorage/api');
+            var api_3 = require('../../webstorage/api');
             var cache = new WeakSet();
             var Message = function () {
                 function Message(key, attr, date) {
@@ -1712,15 +1712,15 @@ require = function e(t, n, r) {
         }
     ],
     20: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var api_1 = _dereq_('../../infrastructure/webstorage/api');
+            var api_1 = require('../../infrastructure/webstorage/api');
             exports.localStorage = api_1.localStorage;
             exports.sessionStorage = api_1.sessionStorage;
             exports.supportWebStorage = api_1.supportWebStorage;
-            var event_1 = _dereq_('./service/event');
+            var event_1 = require('./service/event');
             exports.events = event_1.events;
-            var port_1 = _dereq_('./service/port');
+            var port_1 = require('./service/port');
             exports.Port = port_1.Port;
             exports.WebStorageEvent = port_1.PortEvent;
             exports.WebStorageEventType = port_1.PortEventType;
@@ -1732,7 +1732,7 @@ require = function e(t, n, r) {
         }
     ],
     21: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var Storage = function () {
                 function Storage() {
@@ -1764,10 +1764,10 @@ require = function e(t, n, r) {
         {}
     ],
     22: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var spica_1 = _dereq_('spica');
-            var api_1 = _dereq_('../../../infrastructure/webstorage/api');
+            var spica_1 = require('spica');
+            var api_1 = require('../../../infrastructure/webstorage/api');
             exports.events = {
                 localStorage: subscribe(api_1.events.localStorage),
                 sessionStorage: subscribe(api_1.events.sessionStorage)
@@ -1786,13 +1786,13 @@ require = function e(t, n, r) {
         }
     ],
     23: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var spica_1 = _dereq_('spica');
-            var api_1 = _dereq_('../../dao/api');
-            var event_1 = _dereq_('../service/event');
-            var api_2 = _dereq_('../../../infrastructure/webstorage/api');
-            var storage_1 = _dereq_('../model/storage');
+            var spica_1 = require('spica');
+            var api_1 = require('../../dao/api');
+            var event_1 = require('../service/event');
+            var api_2 = require('../../../infrastructure/webstorage/api');
+            var storage_1 = require('../model/storage');
             var cache = new Map();
             var PortEventType;
             (function (PortEventType) {
@@ -1902,20 +1902,20 @@ require = function e(t, n, r) {
         }
     ],
     24: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var global_1 = _dereq_('./module/global');
+            var global_1 = require('./module/global');
             exports.indexedDB = global_1.indexedDB;
             exports.IDBKeyRange = global_1.IDBKeyRange;
             exports.IDBTransactionMode = global_1.IDBTransactionMode;
             exports.IDBCursorDirection = global_1.IDBCursorDirection;
-            var access_1 = _dereq_('./model/access');
+            var access_1 = require('./model/access');
             exports.open = access_1.open;
             exports.listen = access_1.listen;
             exports.close = access_1.close;
             exports.destroy = access_1.destroy;
             exports.event = access_1.event;
-            var event_1 = _dereq_('./model/event');
+            var event_1 = require('./model/event');
             exports.IDBEvent = event_1.IDBEvent;
             exports.IDBEventType = event_1.IDBEventType;
         },
@@ -1926,11 +1926,11 @@ require = function e(t, n, r) {
         }
     ],
     25: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var spica_1 = _dereq_('spica');
-            var global_1 = _dereq_('../module/global');
-            var event_1 = _dereq_('./event');
+            var spica_1 = require('spica');
+            var global_1 = require('../module/global');
+            var event_1 = require('./event');
             var IDBEventObserver = new spica_1.Observable();
             exports.event = IDBEventObserver;
             var configs = new Map();
@@ -2316,7 +2316,7 @@ require = function e(t, n, r) {
         }
     ],
     26: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var IDBEventType;
             (function (IDBEventType) {
@@ -2342,7 +2342,7 @@ require = function e(t, n, r) {
         {}
     ],
     27: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             exports.indexedDB = self.indexedDB;
             exports.IDBKeyRange = self.IDBKeyRange;
@@ -2362,13 +2362,13 @@ require = function e(t, n, r) {
         {}
     ],
     28: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var global_1 = _dereq_('./module/global');
+            var global_1 = require('./module/global');
             exports.localStorage = global_1.localStorage;
             exports.sessionStorage = global_1.sessionStorage;
             exports.supportWebStorage = global_1.supportWebStorage;
-            var event_1 = _dereq_('./model/event');
+            var event_1 = require('./model/event');
             exports.events = event_1.events;
         },
         {
@@ -2377,10 +2377,10 @@ require = function e(t, n, r) {
         }
     ],
     29: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var spica_1 = _dereq_('spica');
-            var global_1 = _dereq_('../module/global');
+            var spica_1 = require('spica');
+            var global_1 = require('../module/global');
             var storageEvents = {
                 localStorage: new spica_1.Observable(),
                 sessionStorage: new spica_1.Observable()
@@ -2403,9 +2403,9 @@ require = function e(t, n, r) {
         }
     ],
     30: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var spica_1 = _dereq_('spica');
+            var spica_1 = require('spica');
             exports.supportWebStorage = function () {
                 try {
                     var key = 'localsocket#' + spica_1.uuid();
@@ -2424,9 +2424,9 @@ require = function e(t, n, r) {
         { 'spica': undefined }
     ],
     31: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var api_1 = _dereq_('../application/api');
+            var api_1 = require('../application/api');
             exports.socket = api_1.socket;
             exports.port = api_1.port;
             exports.events = api_1.events;
@@ -2435,7 +2435,7 @@ require = function e(t, n, r) {
         { '../application/api': 5 }
     ],
     32: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             function noop() {
                 ;
@@ -2445,15 +2445,15 @@ require = function e(t, n, r) {
         {}
     ],
     'localsocket': [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             function __export(m) {
                 for (var p in m)
                     if (!exports.hasOwnProperty(p))
                         exports[p] = m[p];
             }
-            __export(_dereq_('./src/export'));
-            var export_1 = _dereq_('./src/export');
+            __export(require('./src/export'));
+            var export_1 = require('./src/export');
             exports.default = export_1.default;
             exports.__esModule = true;
         },

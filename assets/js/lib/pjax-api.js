@@ -25,47 +25,47 @@ require = function e(t, n, r) {
     return s;
 }({
     1: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
         },
         {}
     ],
     2: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             arguments[4][1][0].apply(exports, arguments);
         },
         { 'dup': 1 }
     ],
     3: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             arguments[4][1][0].apply(exports, arguments);
         },
         { 'dup': 1 }
     ],
     4: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var api_1 = _dereq_('./layer/interface/service/api');
+            var api_1 = require('./layer/interface/service/api');
             exports.Pjax = api_1.API;
-            var api_2 = _dereq_('./layer/interface/service/api');
+            var api_2 = require('./layer/interface/service/api');
             exports.default = api_2.API;
         },
         { './layer/interface/service/api': 41 }
     ],
     5: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             function __export(m) {
                 for (var p in m)
                     if (!exports.hasOwnProperty(p))
                         exports[p] = m[p];
             }
-            var spica_1 = _dereq_('spica');
-            var config_1 = _dereq_('../domain/data/config');
+            var spica_1 = require('spica');
+            var config_1 = require('../domain/data/config');
             exports.Config = config_1.Config;
-            var scope_1 = _dereq_('./config/scope');
-            var router_1 = _dereq_('../domain/event/router');
-            var api_1 = _dereq_('../domain/router/api');
-            var error_1 = _dereq_('./data/error');
+            var scope_1 = require('./config/scope');
+            var router_1 = require('../domain/event/router');
+            var api_1 = require('../domain/router/api');
+            var error_1 = require('./data/error');
             function route(config, event, state, io) {
                 var location = new router_1.RouterEvent(event).location;
                 return scope_1.scope(config, {
@@ -78,8 +78,8 @@ require = function e(t, n, r) {
                 });
             }
             exports.route = route;
-            __export(_dereq_('./store/path'));
-            var html_1 = _dereq_('../domain/router/module/fetch/html');
+            __export(require('./store/path'));
+            var html_1 = require('../domain/router/module/fetch/html');
             exports.parse = html_1.parse;
         },
         {
@@ -94,10 +94,10 @@ require = function e(t, n, r) {
         }
     ],
     6: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var spica_1 = _dereq_('spica');
-            var config_1 = _dereq_('../../domain/data/config');
+            var spica_1 = require('spica');
+            var config_1 = require('../../domain/data/config');
             function scope(config, path) {
                 return spica_1.Sequence.from(Object.keys(config.scope).sort().reverse()).dropWhile(function (pattern) {
                     return !!!compare(path.orig, pattern) && !compare(path.dest, pattern);
@@ -196,7 +196,7 @@ require = function e(t, n, r) {
         }
     ],
     7: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -207,7 +207,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var error_1 = _dereq_('../../../lib/error');
+            var error_1 = require('../../../lib/error');
             var ApplicationError = function (_super) {
                 __extends(ApplicationError, _super);
                 function ApplicationError(msg) {
@@ -220,16 +220,16 @@ require = function e(t, n, r) {
         { '../../../lib/error': 50 }
     ],
     8: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var path_1 = _dereq_('../../domain/store/path');
+            var path_1 = require('../../domain/store/path');
             exports.loadTitle = path_1.loadTitle;
             exports.savePosition = path_1.savePosition;
         },
         { '../../domain/store/path': 35 }
     ],
     9: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             function canonicalizeUrl(url) {
                 return url.replace(/(?:%\w{2})+/g, function (str) {
@@ -241,7 +241,7 @@ require = function e(t, n, r) {
         {}
     ],
     10: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var parser = document.createElement('a');
             function validateUrl(url) {
@@ -256,9 +256,9 @@ require = function e(t, n, r) {
         {}
     ],
     11: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var url_1 = _dereq_('../../../lib/url');
+            var url_1 = require('../../../lib/url');
             var PathSchema = function () {
                 function PathSchema() {
                     this.host = new url_1.Url('').host;
@@ -275,11 +275,11 @@ require = function e(t, n, r) {
         { '../../../lib/url': 52 }
     ],
     12: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var localsocket_1 = _dereq_('localsocket');
-            var path_1 = _dereq_('../schema/path');
-            var url_1 = _dereq_('../../../lib/url');
+            var localsocket_1 = require('localsocket');
+            var path_1 = require('../schema/path');
+            var url_1 = require('../../../lib/url');
             var sock = localsocket_1.socket('pjax:path', {
                 schema: function () {
                     return new path_1.PathSchema();
@@ -301,10 +301,10 @@ require = function e(t, n, r) {
         }
     ],
     13: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var spica_1 = _dereq_('spica');
-            var url_1 = _dereq_('../../../lib/url');
+            var spica_1 = require('spica');
+            var url_1 = require('../../../lib/url');
             var Config = function () {
                 function Config(option) {
                     this.areas = ['body'];
@@ -395,7 +395,7 @@ require = function e(t, n, r) {
         }
     ],
     14: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -406,7 +406,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var error_1 = _dereq_('../../../lib/error');
+            var error_1 = require('../../../lib/error');
             var DomainError = function (_super) {
                 __extends(DomainError, _super);
                 function DomainError(msg) {
@@ -419,12 +419,12 @@ require = function e(t, n, r) {
         { '../../../lib/error': 50 }
     ],
     15: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var url_1 = _dereq_('../../../lib/url');
-            var url_2 = _dereq_('../../data/model/canonicalization/url');
-            var url_3 = _dereq_('../../data/model/validation/url');
-            var dom_1 = _dereq_('../../../lib/dom');
+            var url_1 = require('../../../lib/url');
+            var url_2 = require('../../data/model/canonicalization/url');
+            var url_3 = require('../../data/model/validation/url');
+            var dom_1 = require('../../../lib/dom');
             var RouterEvent = function () {
                 function RouterEvent(original) {
                     this.original = original;
@@ -505,21 +505,21 @@ require = function e(t, n, r) {
         }
     ],
     16: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             function __export(m) {
                 for (var p in m)
                     if (!exports.hasOwnProperty(p))
                         exports[p] = m[p];
             }
-            __export(_dereq_('./service/api'));
+            __export(require('./service/api'));
         },
         { './service/api': 32 }
     ],
     17: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var router_1 = _dereq_('../../../event/router');
+            var router_1 = require('../../../event/router');
             var RouterEntity = function () {
                 function RouterEntity(event, config, state) {
                     this.event = event;
@@ -547,9 +547,9 @@ require = function e(t, n, r) {
         { '../../../event/router': 15 }
     ],
     18: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var html_1 = _dereq_('../../../module/fetch/html');
+            var html_1 = require('../../../module/fetch/html');
             var FetchValue = function () {
                 function FetchValue(xhr) {
                     this.xhr = xhr;
@@ -588,7 +588,7 @@ require = function e(t, n, r) {
         { '../../../module/fetch/html': 20 }
     ],
     19: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var UpdateValue = function () {
                 function UpdateValue(document) {
@@ -603,10 +603,10 @@ require = function e(t, n, r) {
         {}
     ],
     20: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var spica_1 = _dereq_('spica');
-            var dom_1 = _dereq_('../../../../../lib/dom');
+            var spica_1 = require('spica');
+            var dom_1 = require('../../../../../lib/dom');
             exports.parse = [
                 parseByDoc,
                 parseByDOM
@@ -691,11 +691,11 @@ require = function e(t, n, r) {
         }
     ],
     21: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var spica_1 = _dereq_('spica');
-            var fetch_1 = _dereq_('../../model/eav/value/fetch');
-            var error_1 = _dereq_('../../../data/error');
+            var spica_1 = require('spica');
+            var fetch_1 = require('../../model/eav/value/fetch');
+            var error_1 = require('../../../data/error');
             var ContentType = 'text/html';
             function xhr(method, url, data, setting, cancelable) {
                 var xhr = new XMLHttpRequest();
@@ -771,7 +771,7 @@ require = function e(t, n, r) {
         }
     ],
     22: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             function blur(document) {
                 if (document !== window.document || document.activeElement === document.body)
@@ -784,11 +784,11 @@ require = function e(t, n, r) {
         {}
     ],
     23: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var spica_1 = _dereq_('spica');
-            var dom_1 = _dereq_('../../../../../lib/dom');
-            var script_1 = _dereq_('./script');
+            var spica_1 = require('spica');
+            var dom_1 = require('../../../../../lib/dom');
+            var script_1 = require('./script');
             function content(document, areas, io) {
                 if (io === void 0) {
                     io = {
@@ -909,10 +909,10 @@ require = function e(t, n, r) {
         }
     ],
     24: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var dom_1 = _dereq_('../../../../../lib/dom');
-            var sync_1 = _dereq_('./sync');
+            var dom_1 = require('../../../../../lib/dom');
+            var sync_1 = require('./sync');
             function css(scope, ignore) {
                 var selector = 'link[rel~="stylesheet"], style';
                 return void sync_1.sync(sync_1.pair(dom_1.find(scope.src, selector).filter(function (el) {
@@ -939,9 +939,9 @@ require = function e(t, n, r) {
         }
     ],
     25: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var dom_1 = _dereq_('../../../../../lib/dom');
+            var dom_1 = require('../../../../../lib/dom');
             function focus(document) {
                 return void dom_1.find(document, 'body, [autofocus]').slice(-1).filter(function (el) {
                     return document === window.document && el !== document.activeElement;
@@ -954,10 +954,10 @@ require = function e(t, n, r) {
         { '../../../../../lib/dom': 49 }
     ],
     26: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var sync_1 = _dereq_('./sync');
-            var dom_1 = _dereq_('../../../../../lib/dom');
+            var sync_1 = require('./sync');
+            var dom_1 = require('../../../../../lib/dom');
             function head(scope, selector, ignore) {
                 ignore += selector.indexOf('link') > -1 ? ', link[rel~="stylesheet"]' : '';
                 return void sync_1.sync(sync_1.pair(dom_1.find(scope.src, selector).filter(function (el) {
@@ -977,12 +977,12 @@ require = function e(t, n, r) {
         }
     ],
     27: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var spica_1 = _dereq_('spica');
-            var dom_1 = _dereq_('../../../../../lib/dom');
-            var url_1 = _dereq_('../../../../data/model/canonicalization/url');
-            var url_2 = _dereq_('../../../../data/model/validation/url');
+            var spica_1 = require('spica');
+            var dom_1 = require('../../../../../lib/dom');
+            var url_1 = require('../../../../data/model/canonicalization/url');
+            var url_2 = require('../../../../data/model/validation/url');
             function script(document, skip, selector, cancelable, io) {
                 if (io === void 0) {
                     io = {
@@ -1098,14 +1098,14 @@ require = function e(t, n, r) {
         }
     ],
     28: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var spica_1 = _dereq_('spica');
-            var entity_1 = _dereq_('../../model/eav/entity');
-            var url_1 = _dereq_('../../../../../lib/url');
-            var url_2 = _dereq_('../../../../data/model/canonicalization/url');
-            var url_3 = _dereq_('../../../../data/model/validation/url');
-            var dom_1 = _dereq_('../../../../../lib/dom');
+            var spica_1 = require('spica');
+            var entity_1 = require('../../model/eav/entity');
+            var url_1 = require('../../../../../lib/url');
+            var url_2 = require('../../../../data/model/canonicalization/url');
+            var url_3 = require('../../../../data/model/validation/url');
+            var dom_1 = require('../../../../../lib/dom');
             function scroll(type, document, target, io) {
                 if (io === void 0) {
                     io = {
@@ -1169,9 +1169,9 @@ require = function e(t, n, r) {
         }
     ],
     29: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var spica_1 = _dereq_('spica');
+            var spica_1 = require('spica');
             function sync(pairs, fallback, io) {
                 if (io === void 0) {
                     io = {
@@ -1233,7 +1233,7 @@ require = function e(t, n, r) {
         { 'spica': undefined }
     ],
     30: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             function title(document) {
                 document.dst.title = document.src.title;
@@ -1243,9 +1243,9 @@ require = function e(t, n, r) {
         {}
     ],
     31: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var entity_1 = _dereq_('../../model/eav/entity');
+            var entity_1 = require('../../model/eav/entity');
             function url(location, title, type, source, replaceable) {
                 switch (true) {
                 case isReplaceable(type, source, replaceable):
@@ -1287,16 +1287,16 @@ require = function e(t, n, r) {
         { '../../model/eav/entity': 17 }
     ],
     32: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var spica_1 = _dereq_('spica');
-            var entity_1 = _dereq_('../model/eav/entity');
+            var spica_1 = require('spica');
+            var entity_1 = require('../model/eav/entity');
             exports.RouterEntity = entity_1.RouterEntity;
-            var api_1 = _dereq_('./fetch/api');
-            var api_2 = _dereq_('./update/api');
-            var content_1 = _dereq_('../module/update/content');
-            var path_1 = _dereq_('../../store/path');
-            var error_1 = _dereq_('../../data/error');
+            var api_1 = require('./fetch/api');
+            var api_2 = require('./update/api');
+            var content_1 = require('../module/update/content');
+            var path_1 = require('../../store/path');
+            var error_1 = require('../../data/error');
             function route(entity, io) {
                 return Promise.resolve().then(function () {
                     return content_1.match(window.document, entity.config.areas).take(1).extract().length > 0 ? entity.state.cancelable.either(void 0) : spica_1.Left(new error_1.DomainError('Failed to match areas.'));
@@ -1330,11 +1330,11 @@ require = function e(t, n, r) {
         }
     ],
     33: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var spica_1 = _dereq_('spica');
-            var xhr_1 = _dereq_('../../module/fetch/xhr');
-            var url_1 = _dereq_('../../../../../lib/url');
+            var spica_1 = require('spica');
+            var xhr_1 = require('../../module/fetch/xhr');
+            var url_1 = require('../../../../../lib/url');
             function fetch(_a, _b, cancelable) {
                 var method = _a.method, url = _a.url, data = _a.data;
                 var setting = _b.fetch, sequence = _b.sequence;
@@ -1367,21 +1367,21 @@ require = function e(t, n, r) {
         }
     ],
     34: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var spica_1 = _dereq_('spica');
-            var update_1 = _dereq_('../../model/eav/value/update');
-            var blur_1 = _dereq_('../../module/update/blur');
-            var url_1 = _dereq_('../../module/update/url');
-            var title_1 = _dereq_('../../module/update/title');
-            var head_1 = _dereq_('../../module/update/head');
-            var content_1 = _dereq_('../../module/update/content');
-            var css_1 = _dereq_('../../module/update/css');
-            var script_1 = _dereq_('../../module/update/script');
-            var focus_1 = _dereq_('../../module/update/focus');
-            var scroll_1 = _dereq_('../../module/update/scroll');
-            var path_1 = _dereq_('../../../store/path');
-            var error_1 = _dereq_('../../../data/error');
+            var spica_1 = require('spica');
+            var update_1 = require('../../model/eav/value/update');
+            var blur_1 = require('../../module/update/blur');
+            var url_1 = require('../../module/update/url');
+            var title_1 = require('../../module/update/title');
+            var head_1 = require('../../module/update/head');
+            var content_1 = require('../../module/update/content');
+            var css_1 = require('../../module/update/css');
+            var script_1 = require('../../module/update/script');
+            var focus_1 = require('../../module/update/focus');
+            var scroll_1 = require('../../module/update/scroll');
+            var path_1 = require('../../../store/path');
+            var error_1 = require('../../../data/error');
             function update(_a, _b, seq, io) {
                 var event = _a.event, config = _a.config, state = _a.state;
                 var _c = _b.response, headers = _c.headers, document = _c.document;
@@ -1499,9 +1499,9 @@ require = function e(t, n, r) {
         }
     ],
     35: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var path_1 = _dereq_('../../data/store/path');
+            var path_1 = require('../../data/store/path');
             function loadTitle(path) {
                 return path_1.store.link(path).title;
             }
@@ -1522,7 +1522,7 @@ require = function e(t, n, r) {
         { '../../data/store/path': 12 }
     ],
     36: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1533,7 +1533,7 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var error_1 = _dereq_('../../../lib/error');
+            var error_1 = require('../../../lib/error');
             var InterfaceError = function (_super) {
                 __extends(InterfaceError, _super);
                 function InterfaceError(msg) {
@@ -1546,7 +1546,7 @@ require = function e(t, n, r) {
         { '../../../lib/error': 50 }
     ],
     37: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1557,8 +1557,8 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var spica_1 = _dereq_('spica');
-            var dom_1 = _dereq_('../../../../lib/dom');
+            var spica_1 = require('spica');
+            var dom_1 = require('../../../../lib/dom');
             var ClickView = function () {
                 function ClickView(document, selector, listener) {
                     var _this = this;
@@ -1590,7 +1590,7 @@ require = function e(t, n, r) {
         }
     ],
     38: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1601,9 +1601,9 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var spica_1 = _dereq_('spica');
-            var url_1 = _dereq_('../../service/state/url');
-            var dom_1 = _dereq_('../../../../lib/dom');
+            var spica_1 = require('spica');
+            var url_1 = require('../../service/state/url');
+            var dom_1 = require('../../../../lib/dom');
             var NavigationView = function () {
                 function NavigationView(window, listener) {
                     var _this = this;
@@ -1640,7 +1640,7 @@ require = function e(t, n, r) {
         }
     ],
     39: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1651,8 +1651,8 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var spica_1 = _dereq_('spica');
-            var dom_1 = _dereq_('../../../../lib/dom');
+            var spica_1 = require('spica');
+            var dom_1 = require('../../../../lib/dom');
             var ScrollView = function () {
                 function ScrollView(window, listener) {
                     var _this = this;
@@ -1689,7 +1689,7 @@ require = function e(t, n, r) {
         }
     ],
     40: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1700,8 +1700,8 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var spica_1 = _dereq_('spica');
-            var dom_1 = _dereq_('../../../../lib/dom');
+            var spica_1 = require('spica');
+            var dom_1 = require('../../../../lib/dom');
             var SubmitView = function () {
                 function SubmitView(document, selector, listener) {
                     var _this = this;
@@ -1733,15 +1733,15 @@ require = function e(t, n, r) {
         }
     ],
     41: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var gui_1 = _dereq_('./gui');
+            var gui_1 = require('./gui');
             exports.API = gui_1.GUI;
         },
         { './gui': 42 }
     ],
     42: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -1752,21 +1752,21 @@ require = function e(t, n, r) {
                 }
                 d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
             };
-            var spica_1 = _dereq_('spica');
-            var api_1 = _dereq_('../../application/api');
-            var url_1 = _dereq_('../../../lib/url');
-            var url_2 = _dereq_('../../data/model/canonicalization/url');
-            var url_3 = _dereq_('../../data/model/validation/url');
-            var click_1 = _dereq_('../module/view/click');
-            var submit_1 = _dereq_('../module/view/submit');
-            var navigation_1 = _dereq_('../module/view/navigation');
-            var scroll_1 = _dereq_('../module/view/scroll');
-            var initialization_1 = _dereq_('../service/state/initialization');
-            var url_4 = _dereq_('../service/state/url');
-            _dereq_('../service/state/scroll-restoration');
-            var router_1 = _dereq_('../service/router');
-            var api_2 = _dereq_('../../application/api');
-            var dom_1 = _dereq_('../../../lib/dom');
+            var spica_1 = require('spica');
+            var api_1 = require('../../application/api');
+            var url_1 = require('../../../lib/url');
+            var url_2 = require('../../data/model/canonicalization/url');
+            var url_3 = require('../../data/model/validation/url');
+            var click_1 = require('../module/view/click');
+            var submit_1 = require('../module/view/submit');
+            var navigation_1 = require('../module/view/navigation');
+            var scroll_1 = require('../module/view/scroll');
+            var initialization_1 = require('../service/state/initialization');
+            var url_4 = require('../service/state/url');
+            require('../service/state/scroll-restoration');
+            var router_1 = require('../service/router');
+            var api_2 = require('../../application/api');
+            var dom_1 = require('../../../lib/dom');
             var GUI = function () {
                 function GUI(option, io) {
                     if (io === void 0) {
@@ -1941,7 +1941,7 @@ require = function e(t, n, r) {
         }
     ],
     43: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var bar = document.createElement('div');
             void window.addEventListener('pjax:fetch', function () {
@@ -1970,14 +1970,14 @@ require = function e(t, n, r) {
         {}
     ],
     44: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var api_1 = _dereq_('../../application/api');
-            var url_1 = _dereq_('../../data/model/canonicalization/url');
-            var url_2 = _dereq_('../../data/model/validation/url');
-            var url_3 = _dereq_('./state/url');
-            var progressbar_1 = _dereq_('./progressbar');
-            var error_1 = _dereq_('../data/error');
+            var api_1 = require('../../application/api');
+            var url_1 = require('../../data/model/canonicalization/url');
+            var url_2 = require('../../data/model/validation/url');
+            var url_3 = require('./state/url');
+            var progressbar_1 = require('./progressbar');
+            var error_1 = require('../data/error');
             function route(config, event, state, io) {
                 void state.router.cast('', new error_1.InterfaceError('Abort.'));
                 void state.router.register('', function (e) {
@@ -2010,9 +2010,9 @@ require = function e(t, n, r) {
         }
     ],
     45: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var script_1 = _dereq_('./script');
+            var script_1 = require('./script');
             exports.init = new Promise(setTimeout).then(function () {
                 return Promise.all([script_1.scripts]);
             });
@@ -2020,11 +2020,11 @@ require = function e(t, n, r) {
         { './script': 46 }
     ],
     46: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var url_1 = _dereq_('../../../data/model/canonicalization/url');
-            var url_2 = _dereq_('../../../data/model/validation/url');
-            var dom_1 = _dereq_('../../../../lib/dom');
+            var url_1 = require('../../../data/model/canonicalization/url');
+            var url_2 = require('../../../data/model/validation/url');
+            var dom_1 = require('../../../../lib/dom');
             exports.scripts = new Promise(setTimeout).then(function () {
                 return dom_1.find(document, 'script').filter(function (script) {
                     return script.hasAttribute('src');
@@ -2040,7 +2040,7 @@ require = function e(t, n, r) {
         }
     ],
     47: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             void setTimeout(function () {
                 return window.history.scrollRestoration = 'manual';
             }, 0);
@@ -2051,12 +2051,12 @@ require = function e(t, n, r) {
         {}
     ],
     48: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var spica_1 = _dereq_('spica');
-            var url_1 = _dereq_('../../../data/model/canonicalization/url');
-            var url_2 = _dereq_('../../../data/model/validation/url');
-            var dom_1 = _dereq_('../../../../lib/dom');
+            var spica_1 = require('spica');
+            var url_1 = require('../../../data/model/canonicalization/url');
+            var url_2 = require('../../../data/model/validation/url');
+            var dom_1 = require('../../../../lib/dom');
             var url = url_1.canonicalizeUrl(url_2.validateUrl(location.href));
             var init = url;
             exports.documentUrl = {
@@ -2091,9 +2091,9 @@ require = function e(t, n, r) {
         }
     ],
     49: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
-            var noop_1 = _dereq_('./noop');
+            var noop_1 = require('./noop');
             function parse(html) {
                 var parser = document.createElement('div');
                 parser.innerHTML = html;
@@ -2183,7 +2183,7 @@ require = function e(t, n, r) {
         { './noop': 51 }
     ],
     50: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function (d, b) {
                 for (var p in b)
@@ -2206,7 +2206,7 @@ require = function e(t, n, r) {
         {}
     ],
     51: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             function noop() {
                 return;
@@ -2216,7 +2216,7 @@ require = function e(t, n, r) {
         {}
     ],
     52: [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             var Url = function () {
                 function Url(url) {
@@ -2316,15 +2316,15 @@ require = function e(t, n, r) {
         {}
     ],
     'pjax-api': [
-        function (_dereq_, module, exports) {
+        function (require, module, exports) {
             'use strict';
             function __export(m) {
                 for (var p in m)
                     if (!exports.hasOwnProperty(p))
                         exports[p] = m[p];
             }
-            __export(_dereq_('./src/export'));
-            var export_1 = _dereq_('./src/export');
+            __export(require('./src/export'));
+            var export_1 = require('./src/export');
             exports.default = export_1.default;
             exports.__esModule = true;
         },
