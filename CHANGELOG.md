@@ -2,7 +2,7 @@
 
 ## 3.4.2
 
-- Add support for bundling using Browserify.
+- ~~Add support for bundling using Browserify.~~
 
 ## 3.4.1
 
