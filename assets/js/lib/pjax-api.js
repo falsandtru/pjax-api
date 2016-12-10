@@ -319,7 +319,7 @@ require = function e(t, n, r) {
                         head: 'base, meta, link',
                         css: true,
                         script: true,
-                        ignore: '[href^="chrome-extension://"], [src*=".kis.scr.kaspersky-labs.com/"]',
+                        ignore: '[href^="chrome-extension://"], [src*=".scr.kaspersky-labs.com/"]',
                         reload: '',
                         logger: ''
                     };
