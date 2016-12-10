@@ -2041,6 +2041,7 @@ require = function e(t, n, r) {
     ],
     47: [
         function (require, module, exports) {
+            'use strict';
             void setTimeout(function () {
                 return window.history.scrollRestoration = 'manual';
             }, 0);

@@ -1,4 +1,4 @@
-/*! spica v0.0.44 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.45 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
@@ -522,7 +522,7 @@ require = function e(t, n, r) {
                 return f.length === xs.length ? f.apply(ctx, xs) : function () {
                     var ys = [];
                     for (var _i = 0; _i < arguments.length; _i++) {
-                        ys[_i - 0] = arguments[_i];
+                        ys[_i] = arguments[_i];
                     }
                     return curry_(f, xs.concat(ys), ctx);
                 };
@@ -725,7 +725,7 @@ require = function e(t, n, r) {
             function Mixin() {
                 var mixins = [];
                 for (var _i = 0; _i < arguments.length; _i++) {
-                    mixins[_i - 0] = arguments[_i];
+                    mixins[_i] = arguments[_i];
                 }
                 return mixins.reduceRight(function (b, d) {
                     return __extends(d, b);
@@ -3716,21 +3716,13 @@ require = function e(t, n, r) {
     76: [
         function (require, module, exports) {
             'use strict';
-            var fingerprint_1 = require('./fingerprint');
-            var SEED = fingerprint_1.FINGERPRINT * Date.now() % 1000000000000000;
-            if (!SEED || typeof SEED !== 'number' || SEED < 100 || 1000000000000000 < SEED)
-                throw new Error('Spica: uuid: Invalid uuid static seed.\n\t' + fingerprint_1.FINGERPRINT);
             var FORMAT_V4 = Object.freeze('xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.split(''));
-            var seed = SEED;
             function v4() {
-                var k = seed = seed * Date.now() % 1000000000000000;
-                if (k < 16 || 1000000000000000 < k)
-                    throw new Error('Spica: uuid: Invalid uuid dynamic seed.');
                 var acc = '';
                 for (var _i = 0, FORMAT_V4_1 = FORMAT_V4; _i < FORMAT_V4_1.length; _i++) {
                     var c = FORMAT_V4_1[_i];
                     if (c === 'x' || c === 'y') {
-                        var r = Math.random() * k % 16 | 0;
+                        var r = Math.random() * 16 | 0;
                         var v = c == 'x' ? r : r & 3 | 8;
                         acc += v.toString(16);
                     } else {
@@ -3741,7 +3733,7 @@ require = function e(t, n, r) {
             }
             exports.v4 = v4;
         },
-        { './fingerprint': 13 }
+        {}
     ],
     'spica': [
         function (require, module, exports) {
