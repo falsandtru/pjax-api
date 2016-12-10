@@ -7,6 +7,7 @@
     ],
     "module": "commonjs",
     "moduleResolution": "node",
+    "alwaysStrict": true,
     "allowSyntheticDefaultImports": true,
     "strictNullChecks": true,
     "noImplicitAny": true,
