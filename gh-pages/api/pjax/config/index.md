@@ -75,7 +75,7 @@ Switch script auto load.
 External scripts will be run once per url.
 Inline scripts will be run everytime.
 
-### ignore: string = `'[href^="chrome-extension://"], [src*=".kis.scr.kaspersky-labs.com/"]'`
+### ignore: string = `'[href^="chrome-extension://"], [src*=".scr.kaspersky-labs.com/"]'`
 
 Set ignore targets for head, css and script.
 

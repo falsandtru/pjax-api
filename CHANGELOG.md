@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.4.3
+
+- Update the Config.update.ignore option's default value.
+
 ## 3.4.2
 
 - ~~Add support for bundling using Browserify.~~
