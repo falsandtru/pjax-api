@@ -48,7 +48,7 @@ const config = {
   }
 };
 
-function compile(paths) {
+function compile(paths, force) {
   let done = true;
   return browserify({
       basedir: '.',
@@ -64,11 +64,14 @@ function compile(paths) {
     .on("error", err => done = console.log(err + ''))
     .pipe(source(`${pkg.name}.js`))
     .pipe(buffer())
-    .once("finish", () => done || process.exit(1));
+    .once("finish", () => done || force || process.exit(1));
 }
 
 gulp.task('ts:watch', function () {
-  gulp.watch(config.ts.test.src, ['ts:test']);
+  gulp.watch(config.ts.test.src, () => {
+    return compile(config.ts.test.src, true)
+      .pipe(gulp.dest(config.ts.test.dest));
+  });
 });
 
 gulp.task('ts:test', function () {
