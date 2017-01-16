@@ -1,5 +1,5 @@
 import { Config as Option } from 'pjax-api';
-import { Sequence, Maybe, Just, Nothing, extend, concat } from 'spica';
+import { Sequence, Maybe, Just, Nothing, extend } from 'spica';
 import { Config } from '../../domain/data/config';
 import { Url } from '../../../lib/url';
 import { CanonicalUrl } from '../../data/model/canonicalization/url';
@@ -65,28 +65,32 @@ export function expand(pattern: string): string[] {
 }
 
 export function match(segment: string, pattern: string): boolean {
-  return Sequence.from(segment.split(''))
-    .map<[string, number]>((c, i) => [c, i])
-    .scan<[string, string[]]>(([s, [p, ...ps]], [c, i]) => {
+  pattern = pattern
+    .replace(/[?]*[*]+[?]*/g, '*')
+    .replace(/[*]+/g, '*');
+  const [, rest, state] = Array.from(pattern)
+    .map<[string, string]>((p, i) =>
+      p === '*'
+        ? [p, pattern.slice(i + 1).match(/^[^?*/]*/)![0]]
+        : [p, ''])
+    .reduce<[string[], string[], boolean]>(([ls, [r, ...rs], s], [p, ps]) => {
+      if (!s) return [ls, [r].concat(rs), s];
       switch (p) {
         case '?':
-          return [s + c, ps];
+          return [ls.concat([r]), rs, s];
         case '*':
-          return ps.length === 0
-            ? [s + c, i + 1 === segment.length ? [] : [p]]
-            : c === ps[0]
-              ? [s + c, ps.slice(1)]
-              : [s + c, concat([p], ps)];
+          const seg = r.concat(rs.join(''));
+          return seg.includes(ps)
+            ? ps === ''
+              ? [ls.concat(Array.from(seg.replace(/\/$/, ''))), Array.from(seg.replace(/.*?(?=\/?$)/, '')), s]
+              : [ls.concat(Array.from(seg.split(ps, 1).pop()!)), Array.from(ps + seg.split(ps, 2).pop()!), s]
+            : [ls, [r].concat(rs), !s];
         default:
-          return c === p
-            ? [s + c, ps]
-            : [s, []];
+          return r === p
+            ? [ls.concat([r]), rs, s]
+            : [ls, [r].concat(rs), !s];
       }
-    }, ['', pattern.split('')])
-    .dropWhile(([, ps]) => ps.length > 0)
-    .map(([s]) => s)
-    .take(1)
-    .filter(s => s === segment)
-    .extract()
-    .length > 0;
+    }, [Array.from(''), Array.from(segment), true]);
+  return rest.length === 0
+      && state;
 }

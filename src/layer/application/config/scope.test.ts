@@ -183,6 +183,7 @@ describe('Unit: layer/application/config/scope', () => {
       assert(match('abc', '*bc'));
       assert(match('abc', 'a*c'));
       assert(match('abc', '*b*'));
+      assert(match('abbc', '*bc'));
     });
 
   });

@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.4.4
+
+- Fix wildcard matching of scope feature.
+
 ## 3.4.3
 
 - Update the Config.update.ignore option's default value.
