@@ -141,52 +141,63 @@ require = function e(t, n, r) {
             }
             exports.expand = expand;
             function match(segment, pattern) {
-                return spica_1.Sequence.from(segment.split('')).map(function (c, i) {
-                    return [
-                        c,
-                        i
-                    ];
-                }).scan(function (_a, _b) {
-                    var s = _a[0], _c = _a[1], p = _c[0], ps = _c.slice(1);
-                    var c = _b[0], i = _b[1];
-                    switch (p) {
-                    case '?':
-                        return [
-                            s + c,
-                            ps
-                        ];
-                    case '*':
-                        return ps.length === 0 ? [
-                            s + c,
-                            i + 1 === segment.length ? [] : [p]
-                        ] : c === ps[0] ? [
-                            s + c,
-                            ps.slice(1)
+                pattern = pattern.replace(/[?]*[*]+[?]*/g, '*').replace(/[*]+/g, '*');
+                var _a = Array.from(pattern).map(function (p, i) {
+                        return p === '*' ? [
+                            p,
+                            pattern.slice(i + 1).match(/^[^?*\/]*/)[0]
                         ] : [
-                            s + c,
-                            spica_1.concat([p], ps)
+                            p,
+                            ''
                         ];
-                    default:
-                        return c === p ? [
-                            s + c,
-                            ps
-                        ] : [
-                            s,
-                            []
-                        ];
-                    }
-                }, [
-                    '',
-                    pattern.split('')
-                ]).dropWhile(function (_a) {
-                    var ps = _a[1];
-                    return ps.length > 0;
-                }).map(function (_a) {
-                    var s = _a[0];
-                    return s;
-                }).take(1).filter(function (s) {
-                    return s === segment;
-                }).extract().length > 0;
+                    }).reduce(function (_a, _b) {
+                        var ls = _a[0], _c = _a[1], r = _c[0], rs = _c.slice(1), s = _a[2];
+                        var p = _b[0], ps = _b[1];
+                        if (!s)
+                            return [
+                                ls,
+                                [r].concat(rs),
+                                s
+                            ];
+                        switch (p) {
+                        case '?':
+                            return [
+                                ls.concat([r]),
+                                rs,
+                                s
+                            ];
+                        case '*':
+                            var seg = r.concat(rs.join(''));
+                            return seg.includes(ps) ? ps === '' ? [
+                                ls.concat(Array.from(seg.replace(/\/$/, ''))),
+                                Array.from(seg.replace(/.*?(?=\/?$)/, '')),
+                                s
+                            ] : [
+                                ls.concat(Array.from(seg.split(ps, 1).pop())),
+                                Array.from(ps + seg.split(ps, 2).pop()),
+                                s
+                            ] : [
+                                ls,
+                                [r].concat(rs),
+                                !s
+                            ];
+                        default:
+                            return r === p ? [
+                                ls.concat([r]),
+                                rs,
+                                s
+                            ] : [
+                                ls,
+                                [r].concat(rs),
+                                !s
+                            ];
+                        }
+                    }, [
+                        Array.from(''),
+                        Array.from(segment),
+                        true
+                    ]), rest = _a[1], state = _a[2];
+                return rest.length === 0 && state;
             }
             exports.match = match;
         },
@@ -198,15 +209,22 @@ require = function e(t, n, r) {
     7: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var error_1 = require('../../../lib/error');
             var ApplicationError = function (_super) {
                 __extends(ApplicationError, _super);
@@ -397,15 +415,22 @@ require = function e(t, n, r) {
     14: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var error_1 = require('../../../lib/error');
             var DomainError = function (_super) {
                 __extends(DomainError, _super);
@@ -1524,15 +1549,22 @@ require = function e(t, n, r) {
     36: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var error_1 = require('../../../lib/error');
             var InterfaceError = function (_super) {
                 __extends(InterfaceError, _super);
@@ -1548,15 +1580,22 @@ require = function e(t, n, r) {
     37: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var spica_1 = require('spica');
             var dom_1 = require('../../../../lib/dom');
             var ClickView = function () {
@@ -1565,7 +1604,7 @@ require = function e(t, n, r) {
                     this.sv = new (function (_super) {
                         __extends(class_1, _super);
                         function class_1() {
-                            return _super.apply(this, arguments) || this;
+                            return _super !== null && _super.apply(this, arguments) || this;
                         }
                         return class_1;
                     }(spica_1.Supervisor))();
@@ -1592,15 +1631,22 @@ require = function e(t, n, r) {
     38: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var spica_1 = require('spica');
             var url_1 = require('../../service/state/url');
             var dom_1 = require('../../../../lib/dom');
@@ -1610,7 +1656,7 @@ require = function e(t, n, r) {
                     this.sv = new (function (_super) {
                         __extends(class_1, _super);
                         function class_1() {
-                            return _super.apply(this, arguments) || this;
+                            return _super !== null && _super.apply(this, arguments) || this;
                         }
                         return class_1;
                     }(spica_1.Supervisor))();
@@ -1642,15 +1688,22 @@ require = function e(t, n, r) {
     39: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var spica_1 = require('spica');
             var dom_1 = require('../../../../lib/dom');
             var ScrollView = function () {
@@ -1659,7 +1712,7 @@ require = function e(t, n, r) {
                     this.sv = new (function (_super) {
                         __extends(class_1, _super);
                         function class_1() {
-                            return _super.apply(this, arguments) || this;
+                            return _super !== null && _super.apply(this, arguments) || this;
                         }
                         return class_1;
                     }(spica_1.Supervisor))();
@@ -1691,15 +1744,22 @@ require = function e(t, n, r) {
     40: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var spica_1 = require('spica');
             var dom_1 = require('../../../../lib/dom');
             var SubmitView = function () {
@@ -1708,7 +1768,7 @@ require = function e(t, n, r) {
                     this.sv = new (function (_super) {
                         __extends(class_1, _super);
                         function class_1() {
-                            return _super.apply(this, arguments) || this;
+                            return _super !== null && _super.apply(this, arguments) || this;
                         }
                         return class_1;
                     }(spica_1.Supervisor))();
@@ -1743,15 +1803,22 @@ require = function e(t, n, r) {
     42: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var spica_1 = require('spica');
             var api_1 = require('../../application/api');
             var url_1 = require('../../../lib/url');
@@ -1885,14 +1952,14 @@ require = function e(t, n, r) {
             GUI.router = new (function (_super) {
                 __extends(class_1, _super);
                 function class_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 return class_1;
             }(spica_1.Supervisor))();
             GUI.sv = new (function (_super) {
                 __extends(class_2, _super);
                 function class_2() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 return class_2;
             }(spica_1.Supervisor))();
@@ -2186,15 +2253,22 @@ require = function e(t, n, r) {
     50: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var PjaxError = function (_super) {
                 __extends(PjaxError, _super);
                 function PjaxError(msg) {

@@ -1,4 +1,4 @@
-/*! localsocket v0.5.3 https://github.com/falsandtru/localsocket | (c) 2016, falsandtru | MIT License */
+/*! localsocket v0.6.0 https://github.com/falsandtru/localsocket | (c) 2016, falsandtru | MIT License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
@@ -125,15 +125,22 @@ require = function e(t, n, r) {
     8: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var spica_1 = require('spica');
             var EventRecordFields;
             (function (EventRecordFields) {
@@ -243,15 +250,22 @@ require = function e(t, n, r) {
     9: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var spica_1 = require('spica');
             var api_1 = require('../../infrastructure/indexeddb/api');
             var types_1 = require('../constraint/types');
@@ -379,52 +393,37 @@ require = function e(t, n, r) {
                     return void keys.map(function (key) {
                         switch (_this.syncState.get(key)) {
                         case true:
-                            return new Promise(function (resolve) {
-                                return void resolve([
-                                    key,
-                                    null
-                                ]);
-                            });
+                            return Promise.resolve();
                         case false:
-                            return cb === noop_1.noop ? new Promise(function (resolve) {
-                                return void resolve([
-                                    key,
-                                    null
-                                ]);
-                            }) : new Promise(function (resolve) {
+                            return new Promise(function (resolve) {
                                 return void (timeout > 0 ? void (void _this.get(key), void setTimeout(function () {
                                     return resolve([
                                         key,
                                         new Error()
                                     ]);
                                 })) : void 0, void _this.syncWaits.once([key], function (err) {
-                                    return void resolve([
+                                    return void resolve(err ? [
                                         key,
                                         err
-                                    ]);
+                                    ] : void 0);
                                 }));
                             });
-                        default: {
-                                void _this.fetch(key);
-                                return cb === noop_1.noop ? new Promise(function (resolve) {
-                                    return void resolve([
+                        default:
+                            return new Promise(function (resolve) {
+                                return void (timeout > 0 ? void (void _this.get(key), void setTimeout(function () {
+                                    return resolve([
                                         key,
-                                        null
+                                        new Error()
                                     ]);
-                                }) : new Promise(function (resolve) {
-                                    return void (timeout > 0 ? void (void _this.get(key), void setTimeout(function () {
-                                        return resolve([
-                                            key,
-                                            new Error()
-                                        ]);
-                                    })) : void 0, void _this.syncWaits.once([key], function (err) {
-                                        return void resolve([
-                                            key,
-                                            err
-                                        ]);
-                                    }));
-                                });
-                            }
+                                })) : void 0, void _this.syncWaits.once([key], function (err) {
+                                    return void resolve(err ? [
+                                        key,
+                                        err
+                                    ] : void 0);
+                                }), void _this.fetch(key, function (err) {
+                                    return void _this.syncWaits.emit([key], err);
+                                }));
+                            });
                         }
                     }).reduce(function (ps, p) {
                         return ps.then(function (es) {
@@ -432,64 +431,109 @@ require = function e(t, n, r) {
                                 return es.concat([e]);
                             });
                         });
-                    }, new Promise(function (resolve) {
-                        return void resolve([]);
-                    })).then(function (es) {
+                    }, Promise.resolve([])).then(function (es) {
                         return void cb(es.filter(function (e) {
-                            return !!e[1];
+                            return !!e;
                         }));
                     });
                 };
-                EventStore.prototype.fetch = function (key) {
+                EventStore.prototype.fetch = function (key, cb, after) {
                     var _this = this;
-                    var savedEvents = [];
+                    if (cb === void 0) {
+                        cb = noop_1.noop;
+                    }
+                    if (after === void 0) {
+                        after = noop_1.noop;
+                    }
                     void this.syncState.set(key, this.syncState.get(key) === true);
-                    return void this.cursor(key, event_1.EventRecordFields.key, api_1.IDBCursorDirection.prev, api_1.IDBTransactionMode.readonly, function (cursor, err) {
-                        if (err)
-                            return void _this.syncWaits.emit([key], err);
-                        if (!cursor || cursor.value.date < _this.meta(key).date) {
-                            void Array.from(savedEvents.reduceRight(function (acc, e) {
-                                return acc.length === 0 || acc[0].type === EventStore.EventType.put ? spica_1.concat(acc, [e]) : acc;
-                            }, []).reduceRight(function (dict, e) {
-                                return dict.set(e.attr, e);
-                            }, new Map()).values()).sort(function (a, b) {
-                                return a.date - b.date || a.id - b.id;
-                            }).forEach(function (e) {
-                                void _this.memory.on([
-                                    e.key,
-                                    e.attr,
-                                    spica_1.sqid(e.id)
-                                ], function () {
-                                    return e;
-                                });
-                                void _this.memory.once([e.key], function () {
-                                    throw void _this.events_.update.emit([
+                    var savedEvents = [];
+                    return void api_1.listen(this.database)(function (db) {
+                        var tx = db.transaction(_this.name, after ? api_1.IDBTransactionMode.readwrite : api_1.IDBTransactionMode.readonly);
+                        var req = tx.objectStore(_this.name).index(event_1.EventRecordFields.key).openCursor(key, api_1.IDBCursorDirection.prev);
+                        var unbind = function () {
+                            req.onsuccess = tx.onerror = tx.onabort = null;
+                        };
+                        var proc = function (cursor, err) {
+                            if (err)
+                                return void cb(err), void unbind(), void after(tx, err);
+                            if (!cursor || cursor.value.date < _this.meta(key).date) {
+                                void Array.from(savedEvents.reduceRight(function (acc, e) {
+                                    return acc.length === 0 || acc[0].type === EventStore.EventType.put ? spica_1.concat(acc, [e]) : acc;
+                                }, []).reduceRight(function (dict, e) {
+                                    return dict.set(e.attr, e);
+                                }, new Map()).values()).sort(function (a, b) {
+                                    return a.date - b.date || a.id - b.id;
+                                }).forEach(function (e) {
+                                    void _this.memory.on([
                                         e.key,
                                         e.attr,
                                         spica_1.sqid(e.id)
-                                    ], e);
+                                    ], function () {
+                                        return e;
+                                    });
+                                    void _this.memory.once([e.key], function () {
+                                        throw void _this.events_.update.emit([
+                                            e.key,
+                                            e.attr,
+                                            spica_1.sqid(e.id)
+                                        ], e);
+                                    });
                                 });
-                            });
-                            void _this.syncState.set(key, true);
-                            void _this.syncWaits.emit([key], null);
-                            void _this.update(key);
-                            if (savedEvents.length >= _this.snapshotCycle) {
-                                void _this.snapshot(key);
+                                void _this.syncState.set(key, true);
+                                void cb();
+                                void unbind();
+                                void after(tx);
+                                void _this.update(key);
+                                if (savedEvents.length >= _this.snapshotCycle) {
+                                    void _this.snapshot(key);
+                                }
+                                return;
+                            } else {
+                                var event_2 = cursor.value;
+                                if (_this.memory.refs([
+                                        event_2.key,
+                                        event_2.attr,
+                                        spica_1.sqid(event_2.id)
+                                    ]).length > 0)
+                                    return void proc(null, err);
+                                void savedEvents.unshift(new event_1.SavedEventRecord(event_2.id, event_2.key, event_2.value, event_2.type, event_2.date));
+                                if (event_2.type !== EventStore.EventType.put)
+                                    return void proc(null, err);
+                                return void cursor.continue();
                             }
-                            return;
-                        } else {
-                            var event_2 = cursor.value;
-                            if (_this.memory.refs([
-                                    event_2.key,
-                                    event_2.attr,
-                                    spica_1.sqid(event_2.id)
-                                ]).length > 0)
-                                return;
-                            void savedEvents.unshift(new event_1.SavedEventRecord(event_2.id, event_2.key, event_2.value, event_2.type, event_2.date));
-                            if (event_2.type !== EventStore.EventType.put)
-                                return;
-                            return void cursor.continue();
-                        }
+                        };
+                        req.onsuccess = function () {
+                            return void proc(req.result, req.error);
+                        };
+                        tx.onerror = tx.onabort = function () {
+                            return void cb(tx.error);
+                        };
+                    });
+                };
+                EventStore.prototype.transaction = function (key, cb, done, fail) {
+                    var _this = this;
+                    void setTimeout(function () {
+                        return void _this.fetch(key, noop_1.noop, function (tx, err) {
+                            try {
+                                if (err)
+                                    throw err;
+                                _this.tx = tx;
+                                void cb();
+                                void tx.addEventListener('complete', function () {
+                                    return void done();
+                                });
+                                void tx.addEventListener('abort', function () {
+                                    return void fail(tx.error);
+                                });
+                                void tx.addEventListener('error', function () {
+                                    return void fail(tx.error);
+                                });
+                            } catch (e) {
+                                void fail(e);
+                            } finally {
+                                _this.tx = void 0;
+                            }
+                        });
                     });
                 };
                 EventStore.prototype.keys = function () {
@@ -513,12 +557,17 @@ require = function e(t, n, r) {
                     return compose(key, this.memory.reflect([key])).type !== EventStore.EventType.delete;
                 };
                 EventStore.prototype.get = function (key) {
-                    void this.sync([key]);
+                    if (!this.syncState.get(key)) {
+                        void this.fetch(key);
+                    }
                     void this.events_.access.emit([key], new InternalEvent(InternalEventType.query, types_1.IdNumber(0), key, ''));
                     return compose(key, this.memory.reflect([key])).value;
                 };
                 EventStore.prototype.add = function (event, tx) {
                     var _this = this;
+                    if (tx === void 0) {
+                        tx = this.tx;
+                    }
                     void this.events_.access.emit([
                         event.key,
                         event.attr,
@@ -526,7 +575,9 @@ require = function e(t, n, r) {
                     ], new InternalEvent(event.type, types_1.IdNumber(0), event.key, event.attr));
                     if (!(event instanceof event_1.UnsavedEventRecord))
                         throw new Error('LocalSocket: Cannot add a saved event: ' + JSON.stringify(event));
-                    void this.sync([event.key]);
+                    if (!this.syncState.get(event.key)) {
+                        void this.fetch(event.key);
+                    }
                     switch (event.type) {
                     case EventStore.EventType.put: {
                             void this.memory.off([
@@ -735,12 +786,11 @@ require = function e(t, n, r) {
                         var tx = db.transaction(_this.name, mode);
                         var req = index ? tx.objectStore(_this.name).index(index).openCursor(query, direction) : tx.objectStore(_this.name).openCursor(query, direction);
                         req.onsuccess = function () {
-                            return req.result && cb(req.result, req.error);
+                            return req.result && void cb(req.result, req.error);
                         };
                         tx.oncomplete = function () {
                             return void cb(null, tx.error);
                         };
-                        ;
                         tx.onerror = tx.onabort = function () {
                             return void cb(null, tx.error);
                         };
@@ -767,7 +817,7 @@ require = function e(t, n, r) {
                 var Record = function (_super) {
                     __extends(Record, _super);
                     function Record() {
-                        return _super.apply(this, arguments) || this;
+                        return _super !== null && _super.apply(this, arguments) || this;
                     }
                     return Record;
                 }(event_1.UnsavedEventRecord);
@@ -775,7 +825,7 @@ require = function e(t, n, r) {
                 var Value = function (_super) {
                     __extends(Value, _super);
                     function Value() {
-                        return _super.apply(this, arguments) || this;
+                        return _super !== null && _super.apply(this, arguments) || this;
                     }
                     return Value;
                 }(Schema.EventValue);
@@ -955,12 +1005,11 @@ require = function e(t, n, r) {
                         var tx = db.transaction(_this.name, mode);
                         var req = index ? tx.objectStore(_this.name).index(index).openCursor(query, direction) : tx.objectStore(_this.name).openCursor(query, direction);
                         req.onsuccess = function () {
-                            return req.result && cb(req.result, req.error);
+                            return req.result && void cb(req.result, req.error);
                         };
                         tx.oncomplete = function () {
                             return void cb(null, tx.error);
                         };
-                        ;
                         tx.onerror = tx.onabort = function () {
                             return void cb(null, tx.error);
                         };
@@ -1105,15 +1154,22 @@ require = function e(t, n, r) {
     14: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var spica_1 = require('spica');
             var api_1 = require('../../../infrastructure/indexeddb/api');
             var data_1 = require('./socket/data');
@@ -1160,6 +1216,9 @@ require = function e(t, n, r) {
                     }
                     return this.schema.data.sync(keys, cb, timeout);
                 };
+                SocketStore.prototype.transaction = function (key, cb, done, fail) {
+                    return this.schema.data.transaction(key, cb, done, fail);
+                };
                 SocketStore.prototype.meta = function (key) {
                     return this.schema.data.meta(key);
                 };
@@ -1184,13 +1243,8 @@ require = function e(t, n, r) {
                     return void this.expiries.set(key, expiry);
                 };
                 SocketStore.prototype.recent = function (limit, cb) {
-                    if (cb === void 0) {
-                        cb = function () {
-                            return void 0;
-                        };
-                    }
                     var keys = [];
-                    return void this.schema.access.cursor(null, access_1.AccessStore.fields.date, api_1.IDBCursorDirection.prevunique, api_1.IDBTransactionMode.readonly, function (cursor, err) {
+                    return void this.schema.access.cursor(null, access_1.AccessStore.fields.date, api_1.IDBCursorDirection.prev, api_1.IDBTransactionMode.readonly, function (cursor, err) {
                         if (!cursor)
                             return void cb(keys, err);
                         if (--limit < 0)
@@ -1219,7 +1273,7 @@ require = function e(t, n, r) {
                 var Event = function (_super) {
                     __extends(Event, _super);
                     function Event() {
-                        return _super.apply(this, arguments) || this;
+                        return _super !== null && _super.apply(this, arguments) || this;
                     }
                     return Event;
                 }(data_1.DataStore.Event);
@@ -1227,7 +1281,7 @@ require = function e(t, n, r) {
                 var Record = function (_super) {
                     __extends(Record, _super);
                     function Record() {
-                        return _super.apply(this, arguments) || this;
+                        return _super !== null && _super.apply(this, arguments) || this;
                     }
                     return Record;
                 }(data_1.DataStore.Record);
@@ -1235,7 +1289,7 @@ require = function e(t, n, r) {
                 var Value = function (_super) {
                     __extends(Value, _super);
                     function Value() {
-                        return _super.apply(this, arguments) || this;
+                        return _super !== null && _super.apply(this, arguments) || this;
                     }
                     return Value;
                 }(data_1.DataStore.Value);
@@ -1292,15 +1346,22 @@ require = function e(t, n, r) {
     15: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var key_value_1 = require('../../../../data/store/key-value');
             var event_1 = require('../../../../data/store/event');
             exports.STORE_NAME = 'access';
@@ -1361,15 +1422,22 @@ require = function e(t, n, r) {
     16: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var event_1 = require('../../../../data/store/event');
             exports.STORE_NAME = 'data';
             var DataStore = function (_super) {
@@ -1390,7 +1458,7 @@ require = function e(t, n, r) {
                 var Event = function (_super) {
                     __extends(Event, _super);
                     function Event() {
-                        return _super.apply(this, arguments) || this;
+                        return _super !== null && _super.apply(this, arguments) || this;
                     }
                     return Event;
                 }(event_1.EventStore.Event);
@@ -1398,7 +1466,7 @@ require = function e(t, n, r) {
                 var Record = function (_super) {
                     __extends(Record, _super);
                     function Record() {
-                        return _super.apply(this, arguments) || this;
+                        return _super !== null && _super.apply(this, arguments) || this;
                     }
                     return Record;
                 }(event_1.EventStore.Record);
@@ -1406,7 +1474,7 @@ require = function e(t, n, r) {
                 var Value = function (_super) {
                     __extends(Value, _super);
                     function Value() {
-                        return _super.apply(this, arguments) || this;
+                        return _super !== null && _super.apply(this, arguments) || this;
                     }
                     return Value;
                 }(event_1.EventStore.Value);
@@ -1419,15 +1487,22 @@ require = function e(t, n, r) {
     17: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var api_1 = require('../../../../infrastructure/indexeddb/api');
             var key_value_1 = require('../../../../data/store/key-value');
             var event_1 = require('../../../../data/store/event');
@@ -1535,15 +1610,22 @@ require = function e(t, n, r) {
     19: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var spica_1 = require('spica');
             var api_1 = require('../../dao/api');
             var socket_1 = require('../model/socket');
@@ -1685,7 +1767,12 @@ require = function e(t, n, r) {
                                 return this.__meta.date;
                             }
                         },
-                        __event: { value: new spica_1.Observable() }
+                        __event: { value: new spica_1.Observable() },
+                        __transaction: {
+                            value: function (cb, done, fail) {
+                                return _this.transaction(key, cb, done, fail);
+                            }
+                        }
                     }), this.factory, function (attr, newValue, oldValue) {
                         return void _this.add(new socket_1.SocketStore.Record(key, (_a = {}, _a[attr] = newValue, _a))), void _this.sources.get(key).__event.emit([
                             api_3.WebStorageEventType.send,
@@ -2200,7 +2287,7 @@ require = function e(t, n, r) {
                                 void reqs.shift();
                             }
                         } catch (err) {
-                            if (err instanceof DOMError || err instanceof DOMException) {
+                            if (err instanceof DOMException || err instanceof DOMError) {
                                 void console.warn(err);
                             } else {
                                 void console.error(err);
