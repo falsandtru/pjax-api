@@ -24,10 +24,10 @@
   ],
   "dependencies": {
     "localsocket": "^0.6.0",
-    "spica": "0.0.45"
+    "spica": "0.0.46"
   },
   "devDependencies": {
-    "@types/mocha": "^2.2.37",
+    "@types/mocha": "^2.2.38",
     "@types/power-assert": "1.4.29",
     "browserify": "^13.3.0",
     "del": "^2.2.2",
