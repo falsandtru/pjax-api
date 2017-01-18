@@ -1,4 +1,4 @@
-/*! spica v0.0.45 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.46 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
@@ -109,12 +109,12 @@ require = function e(t, n, r) {
             './lib/monad/either': 20,
             './lib/monad/maybe': 24,
             './lib/monad/sequence': 27,
-            './lib/observable': 69,
-            './lib/sort': 70,
-            './lib/sqid': 71,
-            './lib/supervisor': 72,
-            './lib/tick': 74,
-            './lib/uuid': 76
+            './lib/observable': 72,
+            './lib/sort': 73,
+            './lib/sqid': 74,
+            './lib/supervisor': 75,
+            './lib/tick': 77,
+            './lib/uuid': 79
         }
     ],
     5: [
@@ -179,7 +179,7 @@ require = function e(t, n, r) {
                 };
             }
         },
-        { './type': 75 }
+        { './type': 78 }
     ],
     6: [
         function (require, module, exports) {
@@ -335,7 +335,7 @@ require = function e(t, n, r) {
         {
             './monad/either': 20,
             './monad/maybe': 24,
-            './noop': 68
+            './noop': 71
         }
     ],
     8: [
@@ -472,8 +472,8 @@ require = function e(t, n, r) {
             exports.DataMap = DataMap;
         },
         {
-            '../sqid': 71,
-            '../type': 75
+            '../sqid': 74,
+            '../type': 78
         }
     ],
     10: [
@@ -758,21 +758,28 @@ require = function e(t, n, r) {
     18: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var functor_1 = require('./functor');
             var curry_1 = require('../curry');
             var Applicative = function (_super) {
                 __extends(Applicative, _super);
                 function Applicative() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 return Applicative;
             }(functor_1.Functor);
@@ -799,15 +806,22 @@ require = function e(t, n, r) {
     19: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var monad_1 = require('./monad');
             var Either = function (_super) {
                 __extends(Either, _super);
@@ -925,20 +939,27 @@ require = function e(t, n, r) {
     21: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var lazy_1 = require('./lazy');
             var Functor = function (_super) {
                 __extends(Functor, _super);
                 function Functor() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 return Functor;
             }(lazy_1.Lazy);
@@ -974,15 +995,22 @@ require = function e(t, n, r) {
     23: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var monadplus_1 = require('./monadplus');
             var Maybe = function (_super) {
                 __extends(Maybe, _super);
@@ -1112,20 +1140,27 @@ require = function e(t, n, r) {
     25: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var applicative_1 = require('./applicative');
             var Monad = function (_super) {
                 __extends(Monad, _super);
                 function Monad() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 return Monad;
             }(applicative_1.Applicative);
@@ -1145,20 +1180,27 @@ require = function e(t, n, r) {
     26: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var monad_1 = require('./monad');
             var MonadPlus = function (_super) {
                 __extends(MonadPlus, _super);
                 function MonadPlus() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 return MonadPlus;
             }(monad_1.Monad);
@@ -1200,6 +1242,7 @@ require = function e(t, n, r) {
             var dropWhile_1 = require('./sequence/member/instance/dropWhile');
             var takeUntil_1 = require('./sequence/member/instance/takeUntil');
             var dropUntil_1 = require('./sequence/member/instance/dropUntil');
+            var sort_1 = require('./sequence/member/instance/sort');
             var fmap_1 = require('./sequence/member/instance/fmap');
             var ap_1 = require('./sequence/member/instance/ap');
             var bind_1 = require('./sequence/member/instance/bind');
@@ -1210,11 +1253,13 @@ require = function e(t, n, r) {
             var scan_1 = require('./sequence/member/instance/scan');
             var fold_1 = require('./sequence/member/instance/fold');
             var group_1 = require('./sequence/member/instance/group');
-            var sort_1 = require('./sequence/member/instance/sort');
+            var inits_1 = require('./sequence/member/instance/inits');
+            var tails_1 = require('./sequence/member/instance/tails');
+            var segs_1 = require('./sequence/member/instance/segs');
             var subsequences_1 = require('./sequence/member/instance/subsequences');
             var permutations_1 = require('./sequence/member/instance/permutations');
             var compose_1 = require('../compose');
-            void compose_1.compose(core_1.Sequence, resume_1.default, from_1.default, cycle_1.default, random_1.default, concat_1.default, zip_1.default, difference_1.default, union_1.default, intersect_1.default, pure_1.default, return_1.default, mempty_1.default, mconcat_1.default, mappend_1.default, mzero_1.default, mplus_1.default, extract_1.default, iterate_1.default, memoize_1.default, reduce_1.default, take_1.default, drop_1.default, takeWhile_1.default, dropWhile_1.default, takeUntil_1.default, dropUntil_1.default, fmap_1.default, ap_1.default, bind_1.default, mapM_1.default, filterM_1.default, map_1.default, filter_1.default, scan_1.default, fold_1.default, group_1.default, sort_1.default, subsequences_1.default, permutations_1.default);
+            void compose_1.compose(core_1.Sequence, resume_1.default, from_1.default, cycle_1.default, random_1.default, concat_1.default, zip_1.default, difference_1.default, union_1.default, intersect_1.default, pure_1.default, return_1.default, mempty_1.default, mconcat_1.default, mappend_1.default, mzero_1.default, mplus_1.default, extract_1.default, iterate_1.default, memoize_1.default, reduce_1.default, take_1.default, drop_1.default, takeWhile_1.default, dropWhile_1.default, takeUntil_1.default, dropUntil_1.default, sort_1.default, fmap_1.default, ap_1.default, bind_1.default, mapM_1.default, filterM_1.default, map_1.default, filter_1.default, scan_1.default, fold_1.default, group_1.default, inits_1.default, tails_1.default, segs_1.default, subsequences_1.default, permutations_1.default);
         },
         {
             '../compose': 10,
@@ -1230,48 +1275,58 @@ require = function e(t, n, r) {
             './sequence/member/instance/fmap': 37,
             './sequence/member/instance/fold': 38,
             './sequence/member/instance/group': 39,
-            './sequence/member/instance/iterate': 40,
-            './sequence/member/instance/map': 41,
-            './sequence/member/instance/mapM': 42,
-            './sequence/member/instance/memoize': 43,
-            './sequence/member/instance/permutations': 44,
-            './sequence/member/instance/reduce': 45,
-            './sequence/member/instance/scan': 46,
-            './sequence/member/instance/sort': 47,
-            './sequence/member/instance/subsequences': 48,
-            './sequence/member/instance/take': 49,
-            './sequence/member/instance/takeUntil': 50,
-            './sequence/member/instance/takeWhile': 51,
-            './sequence/member/static/concat': 52,
-            './sequence/member/static/cycle': 53,
-            './sequence/member/static/difference': 54,
-            './sequence/member/static/from': 55,
-            './sequence/member/static/intersect': 56,
-            './sequence/member/static/mappend': 57,
-            './sequence/member/static/mconcat': 58,
-            './sequence/member/static/mempty': 59,
-            './sequence/member/static/mplus': 60,
-            './sequence/member/static/mzero': 61,
-            './sequence/member/static/pure': 62,
-            './sequence/member/static/random': 63,
-            './sequence/member/static/resume': 64,
-            './sequence/member/static/return': 65,
-            './sequence/member/static/union': 66,
-            './sequence/member/static/zip': 67
+            './sequence/member/instance/inits': 40,
+            './sequence/member/instance/iterate': 41,
+            './sequence/member/instance/map': 42,
+            './sequence/member/instance/mapM': 43,
+            './sequence/member/instance/memoize': 44,
+            './sequence/member/instance/permutations': 45,
+            './sequence/member/instance/reduce': 46,
+            './sequence/member/instance/scan': 47,
+            './sequence/member/instance/segs': 48,
+            './sequence/member/instance/sort': 49,
+            './sequence/member/instance/subsequences': 50,
+            './sequence/member/instance/tails': 51,
+            './sequence/member/instance/take': 52,
+            './sequence/member/instance/takeUntil': 53,
+            './sequence/member/instance/takeWhile': 54,
+            './sequence/member/static/concat': 55,
+            './sequence/member/static/cycle': 56,
+            './sequence/member/static/difference': 57,
+            './sequence/member/static/from': 58,
+            './sequence/member/static/intersect': 59,
+            './sequence/member/static/mappend': 60,
+            './sequence/member/static/mconcat': 61,
+            './sequence/member/static/mempty': 62,
+            './sequence/member/static/mplus': 63,
+            './sequence/member/static/mzero': 64,
+            './sequence/member/static/pure': 65,
+            './sequence/member/static/random': 66,
+            './sequence/member/static/resume': 67,
+            './sequence/member/static/return': 68,
+            './sequence/member/static/union': 69,
+            './sequence/member/static/zip': 70
         }
     ],
     28: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var monadplus_1 = require('../monadplus');
             var Sequence = function (_super) {
                 __extends(Sequence, _super);
@@ -1386,20 +1441,27 @@ require = function e(t, n, r) {
     29: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.prototype.ap = function (a) {
                     return core_1.Sequence.ap(this, a);
@@ -1414,20 +1476,27 @@ require = function e(t, n, r) {
     30: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.prototype.bind = function (f) {
                     return core_1.Sequence.concat(this.fmap(f));
@@ -1442,20 +1511,27 @@ require = function e(t, n, r) {
     31: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.prototype.drop = function (n) {
                     var _this = this;
@@ -1482,20 +1558,27 @@ require = function e(t, n, r) {
     32: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.prototype.dropUntil = function (f) {
                     var _this = this;
@@ -1522,20 +1605,27 @@ require = function e(t, n, r) {
     33: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.prototype.dropWhile = function (f) {
                     var _this = this;
@@ -1562,21 +1652,28 @@ require = function e(t, n, r) {
     34: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var concat_1 = require('../../../../concat');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.prototype.extract = function () {
                     var _this = this;
@@ -1605,20 +1702,27 @@ require = function e(t, n, r) {
     35: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.prototype.filter = function (f) {
                     var _this = this;
@@ -1645,21 +1749,28 @@ require = function e(t, n, r) {
     36: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var concat_1 = require('../../../../concat');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.prototype.filterM = function (f) {
                     var _this = this;
@@ -1692,20 +1803,27 @@ require = function e(t, n, r) {
     37: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.prototype.fmap = function (f) {
                     var _this = this;
@@ -1732,20 +1850,27 @@ require = function e(t, n, r) {
     38: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.prototype.fold = function (f, z) {
                     var _this = this;
@@ -1774,21 +1899,28 @@ require = function e(t, n, r) {
     39: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var concat_1 = require('../../../../concat');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.prototype.group = function (f) {
                     var _this = this;
@@ -1822,20 +1954,66 @@ require = function e(t, n, r) {
     40: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
+                }
+                default_1.prototype.inits = function () {
+                    return core_1.Sequence.mappend(core_1.Sequence.from([[]]), this.scan(function (b, a) {
+                        return b.concat([a]);
+                    }, []).dropWhile(function (as) {
+                        return as.length === 0;
+                    }));
+                };
+                return default_1;
+            }(core_1.Sequence);
+            Object.defineProperty(exports, '__esModule', { value: true });
+            exports.default = default_1;
+        },
+        { '../../core': 28 }
+    ],
+    41: [
+        function (require, module, exports) {
+            'use strict';
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
+            var core_1 = require('../../core');
+            var default_1 = function (_super) {
+                __extends(default_1, _super);
+                function default_1() {
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.prototype.iterate = function () {
                     return this.iterate_();
@@ -1880,23 +2058,30 @@ require = function e(t, n, r) {
         },
         { '../../core': 28 }
     ],
-    41: [
+    42: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.prototype.map = function (f) {
                     var _this = this;
@@ -1920,24 +2105,31 @@ require = function e(t, n, r) {
         },
         { '../../core': 28 }
     ],
-    42: [
+    43: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var concat_1 = require('../../../../concat');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.prototype.mapM = function (f) {
                     var _this = this;
@@ -1967,24 +2159,31 @@ require = function e(t, n, r) {
             '../../core': 28
         }
     ],
-    43: [
+    44: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var memories = new WeakMap();
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.prototype.memoize = function () {
                     var _this = this;
@@ -2010,23 +2209,30 @@ require = function e(t, n, r) {
         },
         { '../../core': 28 }
     ],
-    44: [
+    45: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.prototype.permutations = function () {
                     var _this = this;
@@ -2085,23 +2291,30 @@ require = function e(t, n, r) {
         },
         { '../../core': 28 }
     ],
-    45: [
+    46: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.prototype.reduce = function () {
                     var _this = this;
@@ -2127,23 +2340,30 @@ require = function e(t, n, r) {
         },
         { '../../core': 28 }
     ],
-    46: [
+    47: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.prototype.scan = function (f, z) {
                     var _this = this;
@@ -2173,23 +2393,77 @@ require = function e(t, n, r) {
         },
         { '../../core': 28 }
     ],
-    47: [
+    48: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
+            var core_1 = require('../../core');
+            var concat_1 = require('../../../../concat');
+            var default_1 = function (_super) {
+                __extends(default_1, _super);
+                function default_1() {
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+                default_1.prototype.segs = function () {
+                    return core_1.Sequence.mappend(this.fold(function (a, bs) {
+                        return bs.take(1).bind(function (b) {
+                            return core_1.Sequence.mappend(core_1.Sequence.from([core_1.Sequence.mappend(core_1.Sequence.from([[a]]), core_1.Sequence.from(b).map(function (c) {
+                                    return concat_1.concat([a], c);
+                                }))]), bs);
+                        });
+                    }, core_1.Sequence.from([core_1.Sequence.from([])])).bind(function (a) {
+                        return a;
+                    }), core_1.Sequence.from([[]]));
+                };
+                return default_1;
+            }(core_1.Sequence);
+            Object.defineProperty(exports, '__esModule', { value: true });
+            exports.default = default_1;
+        },
+        {
+            '../../../../concat': 11,
+            '../../core': 28
+        }
+    ],
+    49: [
+        function (require, module, exports) {
+            'use strict';
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.prototype.sort = function (cmp) {
                     return core_1.Sequence.from(this.extract().sort(cmp));
@@ -2201,24 +2475,31 @@ require = function e(t, n, r) {
         },
         { '../../core': 28 }
     ],
-    48: [
+    50: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var concat_1 = require('../../../../concat');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.prototype.subsequences = function () {
                     var _this = this;
@@ -2253,23 +2534,67 @@ require = function e(t, n, r) {
             '../../core': 28
         }
     ],
-    49: [
+    51: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
+                }
+                default_1.prototype.tails = function () {
+                    return core_1.Sequence.mappend(core_1.Sequence.from(this.extract().map(function (_, i, as) {
+                        return as.slice(i);
+                    })), core_1.Sequence.from([[]]));
+                };
+                return default_1;
+            }(core_1.Sequence);
+            Object.defineProperty(exports, '__esModule', { value: true });
+            exports.default = default_1;
+        },
+        { '../../core': 28 }
+    ],
+    52: [
+        function (require, module, exports) {
+            'use strict';
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
+            var core_1 = require('../../core');
+            var default_1 = function (_super) {
+                __extends(default_1, _super);
+                function default_1() {
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.prototype.take = function (n) {
                     var _this = this;
@@ -2293,23 +2618,30 @@ require = function e(t, n, r) {
         },
         { '../../core': 28 }
     ],
-    50: [
+    53: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.prototype.takeUntil = function (f) {
                     var _this = this;
@@ -2333,23 +2665,30 @@ require = function e(t, n, r) {
         },
         { '../../core': 28 }
     ],
-    51: [
+    54: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.prototype.takeWhile = function (f) {
                     var _this = this;
@@ -2373,23 +2712,30 @@ require = function e(t, n, r) {
         },
         { '../../core': 28 }
     ],
-    52: [
+    55: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.concat = function (as) {
                     return new core_1.Sequence(function (_a, cons) {
@@ -2424,23 +2770,30 @@ require = function e(t, n, r) {
         },
         { '../../core': 28 }
     ],
-    53: [
+    56: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.cycle = function (as) {
                     return new core_1.Sequence(function cycle(_a, cons) {
@@ -2465,23 +2818,30 @@ require = function e(t, n, r) {
         },
         { '../../core': 28 }
     ],
-    54: [
+    57: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.difference = function (a, b, cmp) {
                     return new core_1.Sequence(function (_a, cons) {
@@ -2538,23 +2898,30 @@ require = function e(t, n, r) {
         },
         { '../../core': 28 }
     ],
-    55: [
+    58: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.from = function (as) {
                     return new core_1.Sequence(function (_a, cons) {
@@ -2576,23 +2943,30 @@ require = function e(t, n, r) {
         },
         { '../../core': 28 }
     ],
-    56: [
+    59: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.intersect = function (a, b, cmp) {
                     return new core_1.Sequence(function (_a, cons) {
@@ -2632,23 +3006,30 @@ require = function e(t, n, r) {
         },
         { '../../core': 28 }
     ],
-    57: [
+    60: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.mappend = function (l, r) {
                     return core_1.Sequence.mconcat([
@@ -2663,23 +3044,30 @@ require = function e(t, n, r) {
         },
         { '../../core': 28 }
     ],
-    58: [
+    61: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.mconcat = function (as) {
                     return Array.from(as).reduce(function (a, b) {
@@ -2720,23 +3108,30 @@ require = function e(t, n, r) {
         },
         { '../../core': 28 }
     ],
-    59: [
+    62: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 return default_1;
             }(core_1.Sequence);
@@ -2748,23 +3143,30 @@ require = function e(t, n, r) {
         },
         { '../../core': 28 }
     ],
-    60: [
+    63: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 return default_1;
             }(core_1.Sequence);
@@ -2774,23 +3176,30 @@ require = function e(t, n, r) {
         },
         { '../../core': 28 }
     ],
-    61: [
+    64: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 return default_1;
             }(core_1.Sequence);
@@ -2800,23 +3209,30 @@ require = function e(t, n, r) {
         },
         { '../../core': 28 }
     ],
-    62: [
+    65: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.pure = function (a) {
                     return new core_1.Sequence(function (_, cons) {
@@ -2830,23 +3246,30 @@ require = function e(t, n, r) {
         },
         { '../../core': 28 }
     ],
-    63: [
+    66: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.random = function (p) {
                     if (p === void 0) {
@@ -2867,23 +3290,30 @@ require = function e(t, n, r) {
         },
         { '../../core': 28 }
     ],
-    64: [
+    67: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.resume = function (iterator) {
                     return new core_1.Sequence(function (iter, cons) {
@@ -2904,23 +3334,30 @@ require = function e(t, n, r) {
         },
         { '../../core': 28 }
     ],
-    65: [
+    68: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.Return = function (a) {
                     return new core_1.Sequence(function (_, cons) {
@@ -2934,23 +3371,30 @@ require = function e(t, n, r) {
         },
         { '../../core': 28 }
     ],
-    66: [
+    69: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.union = function (a, b, cmp) {
                     return new core_1.Sequence(function (_a, cons) {
@@ -3008,23 +3452,30 @@ require = function e(t, n, r) {
         },
         { '../../core': 28 }
     ],
-    67: [
+    70: [
         function (require, module, exports) {
             'use strict';
-            var __extends = this && this.__extends || function (d, b) {
-                for (var p in b)
-                    if (b.hasOwnProperty(p))
-                        d[p] = b[p];
-                function __() {
-                    this.constructor = d;
-                }
-                d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-            };
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
             var core_1 = require('../../core');
             var default_1 = function (_super) {
                 __extends(default_1, _super);
                 function default_1() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.zip = function (a, b) {
                     return new core_1.Sequence(function (_a, cons) {
@@ -3060,7 +3511,7 @@ require = function e(t, n, r) {
         },
         { '../../core': 28 }
     ],
-    68: [
+    71: [
         function (require, module, exports) {
             'use strict';
             function noop() {
@@ -3070,7 +3521,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    69: [
+    72: [
         function (require, module, exports) {
             'use strict';
             var concat_1 = require('./concat');
@@ -3265,7 +3716,7 @@ require = function e(t, n, r) {
         },
         { './concat': 11 }
     ],
-    70: [
+    73: [
         function (require, module, exports) {
             'use strict';
             function sort(as, cmp, times, debug) {
@@ -3290,7 +3741,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    71: [
+    74: [
         function (require, module, exports) {
             'use strict';
             var cnt = 0;
@@ -3309,7 +3760,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    72: [
+    75: [
         function (require, module, exports) {
             'use strict';
             var observable_1 = require('./observable');
@@ -3648,14 +4099,14 @@ require = function e(t, n, r) {
             }();
         },
         {
-            './noop': 68,
-            './observable': 69,
-            './sqid': 71,
-            './thenable': 73,
-            './tick': 74
+            './noop': 71,
+            './observable': 72,
+            './sqid': 74,
+            './thenable': 76,
+            './tick': 77
         }
     ],
-    73: [
+    76: [
         function (require, module, exports) {
             'use strict';
             function isThenable(target) {
@@ -3665,7 +4116,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    74: [
+    77: [
         function (require, module, exports) {
             'use strict';
             var Queue = [];
@@ -3703,7 +4154,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    75: [
+    78: [
         function (require, module, exports) {
             'use strict';
             function type(target) {
@@ -3713,7 +4164,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    76: [
+    79: [
         function (require, module, exports) {
             'use strict';
             var FORMAT_V4 = Object.freeze('xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.split(''));
