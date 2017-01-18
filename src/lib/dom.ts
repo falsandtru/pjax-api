@@ -48,7 +48,7 @@ export function delegate(el: HTMLElement, selector: string, type: string, listen
           ev._currentTarget = <HTMLElement>ev.currentTarget,
           void listener(ev)
         ), option));
-  }, Object.assign({}, option, { capture: true }));
+  }, { ...option, capture: true });
 }
 
 export function serialize(form: HTMLFormElement): string {
