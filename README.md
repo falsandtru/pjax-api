@@ -64,7 +64,7 @@ new Pjax({
 
 ## Browser
 
-pjax-api needs es6 support or its polyfills.
+Requires es6 support.
 
 - Chrome
 - Firefox
