@@ -1,4 +1,4 @@
-/*! localsocket v0.6.0 https://github.com/falsandtru/localsocket | (c) 2016, falsandtru | MIT License */
+/*! localsocket v0.7.0 https://github.com/falsandtru/localsocket | (c) 2016, falsandtru | MIT License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
@@ -266,6 +266,15 @@ require = function e(t, n, r) {
                     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
                 };
             }();
+            var __assign = this && this.__assign || Object.assign || function (t) {
+                for (var s, i = 1, n = arguments.length; i < n; i++) {
+                    s = arguments[i];
+                    for (var p in s)
+                        if (Object.prototype.hasOwnProperty.call(s, p))
+                            t[p] = s[p];
+                }
+                return t;
+            };
             var spica_1 = require('spica');
             var api_1 = require('../../infrastructure/indexeddb/api');
             var types_1 = require('../constraint/types');
@@ -382,13 +391,10 @@ require = function e(t, n, r) {
                         attr
                     ]) : void this.memory.emit([key]);
                 };
-                EventStore.prototype.sync = function (keys, cb, timeout) {
+                EventStore.prototype.sync = function (keys, cb) {
                     var _this = this;
                     if (cb === void 0) {
                         cb = noop_1.noop;
-                    }
-                    if (timeout === void 0) {
-                        timeout = 0;
                     }
                     return void keys.map(function (key) {
                         switch (_this.syncState.get(key)) {
@@ -396,26 +402,16 @@ require = function e(t, n, r) {
                             return Promise.resolve();
                         case false:
                             return new Promise(function (resolve) {
-                                return void (timeout > 0 ? void (void _this.get(key), void setTimeout(function () {
-                                    return resolve([
-                                        key,
-                                        new Error()
-                                    ]);
-                                })) : void 0, void _this.syncWaits.once([key], function (err) {
+                                return void void _this.syncWaits.once([key], function (err) {
                                     return void resolve(err ? [
                                         key,
                                         err
                                     ] : void 0);
-                                }));
+                                });
                             });
                         default:
                             return new Promise(function (resolve) {
-                                return void (timeout > 0 ? void (void _this.get(key), void setTimeout(function () {
-                                    return resolve([
-                                        key,
-                                        new Error()
-                                    ]);
-                                })) : void 0, void _this.syncWaits.once([key], function (err) {
+                                return void (void _this.syncWaits.once([key], function (err) {
                                     return void resolve(err ? [
                                         key,
                                         err
@@ -484,6 +480,7 @@ require = function e(t, n, r) {
                                 void unbind();
                                 void after(tx);
                                 void _this.update(key);
+                                void _this.events_.access.emit([key], new InternalEvent(InternalEventType.query, types_1.IdNumber(0), key, ''));
                                 if (savedEvents.length >= _this.snapshotCycle) {
                                     void _this.snapshot(key);
                                 }
@@ -529,6 +526,7 @@ require = function e(t, n, r) {
                                     return void fail(tx.error);
                                 });
                             } catch (e) {
+                                e = e instanceof Error || e instanceof DOMError ? e : new Error();
                                 void fail(e);
                             } finally {
                                 _this.tx = void 0;
@@ -639,7 +637,7 @@ require = function e(t, n, r) {
                             };
                             if (!active())
                                 return void resolve();
-                            var req = tx.objectStore(_this.name).add(Object.assign({}, event));
+                            var req = tx.objectStore(_this.name).add(__assign({}, event));
                             tx.oncomplete = function () {
                                 void terminate();
                                 var savedEvent = new event_1.SavedEventRecord(types_1.IdNumber(req.result), event.key, event.value, event.type, event.date);
@@ -832,12 +830,7 @@ require = function e(t, n, r) {
                 EventStore.Value = Value;
             }(EventStore = exports.EventStore || (exports.EventStore = {})));
             exports.EventStore = EventStore;
-            var InternalEventType = {
-                put: 'put',
-                delete: 'delete',
-                snapshot: 'snapshot',
-                query: 'query'
-            };
+            var InternalEventType = __assign({}, EventStore.EventType, { query: 'query' });
             var InternalEvent = function () {
                 function InternalEvent(type, id, key, attr) {
                     this.type = type;
@@ -1210,11 +1203,11 @@ require = function e(t, n, r) {
                         return void _this.schema.bind();
                     });
                 }
-                SocketStore.prototype.sync = function (keys, cb, timeout) {
+                SocketStore.prototype.sync = function (keys, cb) {
                     if (cb === void 0) {
                         cb = noop_1.noop;
                     }
-                    return this.schema.data.sync(keys, cb, timeout);
+                    return this.schema.data.sync(keys, cb);
                 };
                 SocketStore.prototype.transaction = function (key, cb, done, fail) {
                     return this.schema.data.transaction(key, cb, done, fail);
@@ -1875,6 +1868,15 @@ require = function e(t, n, r) {
     23: [
         function (require, module, exports) {
             'use strict';
+            var __assign = this && this.__assign || Object.assign || function (t) {
+                for (var s, i = 1, n = arguments.length; i < n; i++) {
+                    s = arguments[i];
+                    for (var p in s)
+                        if (Object.prototype.hasOwnProperty.call(s, p))
+                            t[p] = s[p];
+                }
+                return t;
+            };
             var spica_1 = require('spica');
             var api_1 = require('../../dao/api');
             var event_1 = require('../service/event');
@@ -1924,7 +1926,7 @@ require = function e(t, n, r) {
                     if (cache.has(name))
                         return cache.get(name);
                     void cache.set(name, this);
-                    var source = Object.assign((_a = {}, _a[api_1.SCHEMA.KEY.NAME] = this.name, _a[api_1.SCHEMA.EVENT.NAME] = new spica_1.Observable(), _a), parse(this.storage.getItem(this.name)));
+                    var source = __assign((_a = {}, _a[api_1.SCHEMA.KEY.NAME] = this.name, _a[api_1.SCHEMA.EVENT.NAME] = new spica_1.Observable(), _a), parse(this.storage.getItem(this.name)));
                     this.link_ = api_1.build(source, this.factory, function (attr, newValue, oldValue) {
                         void _this.log.update(_this.name);
                         void _this.storage.setItem(_this.name, JSON.stringify(Object.keys(source).filter(api_1.isValidPropertyName).filter(api_1.isValidPropertyValue(source)).reduce(function (acc, attr) {
