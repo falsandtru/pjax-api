@@ -2247,8 +2247,7 @@ require = function e(t, n, r) {
                 document.createElement('div').addEventListener('test', function () {
                 }, {
                     get capture() {
-                        supportEventListenerOptions = true;
-                        return false;
+                        return supportEventListenerOptions = true;
                     }
                 });
             } catch (e) {
