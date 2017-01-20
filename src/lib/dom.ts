@@ -71,8 +71,7 @@ let supportEventListenerOptions = false;
 try {
   document.createElement("div").addEventListener("test", function () { }, <any>{
     get capture() {
-      supportEventListenerOptions = true;
-      return false;
+      return supportEventListenerOptions = true;
     }
   });
 } catch (e) { }
