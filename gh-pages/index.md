@@ -37,8 +37,11 @@ $ npm i pjax-api spica localsocket
 var Pjax = require('pjax-api').Pjax;
 new Pjax({
   areas: [
+    // try to use the first query.
     '#header, #primary',
+    // fallback, retrying with the second query.
     '#container',
+    // fallback.
     'body'
   ]
 });
@@ -62,7 +65,7 @@ new Pjax({
 <div class="col-md-4">
 ## Browser
 
-pjax-api needs es6 support or its polyfills.
+Requires es6 support.
 
 - Chrome
 - Firefox

@@ -48,8 +48,11 @@ import Pjax from 'pjax-api';
 
 new Pjax({
   areas: [
+    // try to use the first query.
     '#header, #primary',
+    // fallback, retrying with the second query.
     '#container',
+    // fallback.
     'body'
   ]
 });
