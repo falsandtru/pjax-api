@@ -12,6 +12,9 @@ class: style-api style-api-detail
 
 Set target areas.
 
+You can define the multiple targets like `['#header, #primary']`.
+Also, you can define the other candidates of targets like `['#container', 'body']`. 
+
 ## link: string = `'a:not([target])'`
 
 Set target anchor links.
