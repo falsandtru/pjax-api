@@ -144,7 +144,11 @@ export class GUI {
 }
 
 function hasModifierKey(event: MouseEvent): boolean {
-  return event.which > 1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+  return event.which > 1
+      || event.metaKey
+      || event.ctrlKey
+      || event.shiftKey
+      || event.altKey;
 }
 
 function isAccessible(
