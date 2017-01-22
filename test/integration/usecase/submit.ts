@@ -14,7 +14,7 @@ describe('Integration: Usecase', function () {
       const form = DOM.form({ action: url }, [
         DOM.input({ type: 'search', name: 'query', value: 'あアｱ亜=&' }, []),
         DOM.input({ type: 'submit', value: 'submit' }, [])
-      ]).raw;
+      ]).element;
       document.body.appendChild(form);
       (<HTMLElement>form.querySelector('input[type="submit"]')).click();
     });

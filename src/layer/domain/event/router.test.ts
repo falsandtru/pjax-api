@@ -6,7 +6,7 @@ import { validateUrl } from '../../data/model/validation/url';
 describe('Unit: layer/domain/event/router', () => {
   describe('RouterEvent.Request', () => {
     it('click', () => {
-      const req = new RouterEvent.Request(DOM.a({ href: location.href }, []).raw, 'click');
+      const req = new RouterEvent.Request(DOM.a({ href: location.href }, []).element, 'click');
       assert(req.url === canonicalizeUrl(validateUrl('')));
       assert(req.method === RouterEvent.Method.GET);
       assert(req.data === null);
@@ -15,7 +15,7 @@ describe('Unit: layer/domain/event/router', () => {
     it('submit get', () => {
       const req = new RouterEvent.Request(DOM.form({ method: 'GET', action: './search' }, [
         DOM.input({ name: 'test', type: 'text', value: 'abc' }, [])
-      ]).raw, 'submit');
+      ]).element, 'submit');
       assert(req.url === canonicalizeUrl(validateUrl('./search?test=abc')));
       assert(req.method === RouterEvent.Method.GET);
       assert(req.data === null);
@@ -24,7 +24,7 @@ describe('Unit: layer/domain/event/router', () => {
     it('submit post', () => {
       const req = new RouterEvent.Request(DOM.form({ method: 'POST', action: './send' }, [
         DOM.input({ name: 'test', type: 'text', value: 'abc' }, [])
-      ]).raw, 'submit');
+      ]).element, 'submit');
       assert(req.url === canonicalizeUrl(validateUrl('./send')));
       assert(req.method === RouterEvent.Method.POST);
       assert(req.data instanceof FormData);

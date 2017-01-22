@@ -34,7 +34,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       let cnt = 0;
       script(
         {
-          src: parse(DOM.head([DOM.script({ class: 'test' }, [])]).raw.outerHTML).extract(),
+          src: parse(DOM.head([DOM.script({ class: 'test' }, [])]).element.outerHTML).extract(),
           dst: parse('').extract()
         },
         new Set([]),
@@ -73,7 +73,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       let cnt = 0;
       script(
         {
-          src: parse(DOM.head([DOM.script({ class: 'test' }, [])]).raw.outerHTML).extract(),
+          src: parse(DOM.head([DOM.script({ class: 'test' }, [])]).element.outerHTML).extract(),
           dst: parse('').extract()
         },
         new Set([]),
@@ -109,7 +109,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       let cnt = 0;
       script(
         {
-          src: parse(DOM.head([DOM.script({ class: 'test' }, [])]).raw.outerHTML).extract(),
+          src: parse(DOM.head([DOM.script({ class: 'test' }, [])]).element.outerHTML).extract(),
           dst: parse('').extract()
         },
         new Set([]),
@@ -146,7 +146,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       const cancelable = new Cancelable<Error>();
       script(
         {
-          src: parse(DOM.head([DOM.script({ class: 'test' }, [])]).raw.outerHTML).extract(),
+          src: parse(DOM.head([DOM.script({ class: 'test' }, [])]).element.outerHTML).extract(),
           dst: parse('').extract()
         },
         new Set([]),
@@ -184,7 +184,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
 
   describe('escape', () => {
     it('external', () => {
-      const script = DOM.script().raw;
+      const script = DOM.script().element;
       const src = '/';
       script.setAttribute('src', src);
       assert(script.getAttribute('src') === src);
@@ -200,7 +200,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
     });
 
     it('inline', () => {
-      const script = DOM.script().raw;
+      const script = DOM.script().element;
       const code = 'alert()';
       script.innerHTML = code;
       assert(!script.hasAttribute('src'));
@@ -219,7 +219,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
 
   describe('_request', () => {
     it('external', done => {
-      const script = DOM.script([]).raw;
+      const script = DOM.script([]).element;
       const src = '/base/test/unit/fixture/throw.js';
       script.setAttribute('src', src);
       _request(script)
@@ -234,7 +234,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
     });
 
     it('inline', done => {
-      const script = DOM.script([]).raw;
+      const script = DOM.script([]).element;
       const code = 'alert';
       script.innerHTML = code;
       _request(script)
@@ -252,7 +252,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
 
   describe('_evaluate', () => {
     it('external load', done => {
-      const script = DOM.script().raw;
+      const script = DOM.script().element;
       script.setAttribute('src', '');
       let cnt = 0;
       script.addEventListener('load', event => {
@@ -272,7 +272,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
     });
 
     it('external error', done => {
-      const script = DOM.script().raw;
+      const script = DOM.script().element;
       script.setAttribute('src', '');
       let cnt = 0;
       script.addEventListener('load', () => {
@@ -291,7 +291,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
     });
 
     it('inline load', done => {
-      const script = DOM.script().raw;
+      const script = DOM.script().element;
       assert(!script.hasAttribute('src'));
       let cnt = 0;
       script.addEventListener('load', () => {
@@ -310,7 +310,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
     });
 
     it('inline error', done => {
-      const script = DOM.script().raw;
+      const script = DOM.script().element;
       assert(!script.hasAttribute('src'));
       let cnt = 0;
       script.addEventListener('load', () => {
@@ -331,7 +331,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
 
   describe('_log', () => {
     it('head', () => {
-      const script = find<HTMLScriptElement>(parse(DOM.head([DOM.script()]).raw.outerHTML).extract(), 'script')[0];
+      const script = find<HTMLScriptElement>(parse(DOM.head([DOM.script()]).element.outerHTML).extract(), 'script')[0];
       const document = parse('').extract();
       assert(_log(script, document));
       assert(document.head.children.length === 1);

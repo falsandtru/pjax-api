@@ -52,14 +52,14 @@ describe('Unit: layer/domain/router/module/update/content', () => {
 
   describe('wait', () => {
     it('img', done => {
-      const el = DOM.img({ src: './' }, []).raw;
+      const el = DOM.img({ src: './' }, []).element;
       document.body.appendChild(el);
       _wait(el)
         .then(() => (el.remove(), done()));
     });
 
     it('iframe', done => {
-      const el = DOM.iframe({ src: './' }, []).raw;
+      const el = DOM.iframe({ src: './' }, []).element;
       document.body.appendChild(el);
       _wait(el)
         .then(() => (el.remove(), done()));

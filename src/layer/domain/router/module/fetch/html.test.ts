@@ -18,7 +18,7 @@ describe('Unit: layer/domain/router/module/fetch/html', () => {
 
   describe('_fixNoscript', () => {
     it('', () => {
-      const el = DOM.noscript([DOM.hr()]).raw;
+      const el = DOM.noscript([DOM.hr()]).element;
       document.body.appendChild(el);
       const texts = _fixNoscript(el.ownerDocument)
         .map(([, {textContent}]) => textContent);

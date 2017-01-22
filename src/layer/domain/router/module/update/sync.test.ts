@@ -8,9 +8,9 @@ describe('Unit: layer/domain/router/module/update/sync', () => {
     it('empty', () => {
       const document = {
         src: parse(DOM.head([
-        ]).raw.outerHTML).extract(),
+        ]).element.outerHTML).extract(),
         dst: parse(DOM.head([
-        ]).raw.outerHTML).extract()
+        ]).element.outerHTML).extract()
       };
       sync(pair(find(document.src, 'meta'), find(document.dst, 'meta'), (a, b) => a.id === b.id), document.dst.head);
       assert.deepStrictEqual(find(document.dst, 'meta').map(el => el.id), [
@@ -23,9 +23,9 @@ describe('Unit: layer/domain/router/module/update/sync', () => {
           DOM.meta({ id: 'a' }, []),
           DOM.meta({ id: 'b' }, []),
           DOM.meta({ id: 'c' }, [])
-        ]).raw.outerHTML).extract(),
+        ]).element.outerHTML).extract(),
         dst: parse(DOM.head([
-        ]).raw.outerHTML).extract()
+        ]).element.outerHTML).extract()
       };
       sync(pair(find(document.src, 'meta'), find(document.dst, 'meta'), (a, b) => a.id === b.id), document.dst.head);
       assert.deepStrictEqual(find(document.dst, 'meta').map(el => el.id), [
@@ -38,12 +38,12 @@ describe('Unit: layer/domain/router/module/update/sync', () => {
     it('all to nothing', () => {
       const document = {
         src: parse(DOM.head([
-        ]).raw.outerHTML).extract(),
+        ]).element.outerHTML).extract(),
         dst: parse(DOM.head([
           DOM.meta({ id: 'a' }, []),
           DOM.meta({ id: 'b' }, []),
           DOM.meta({ id: 'c' }, [])
-        ]).raw.outerHTML).extract()
+        ]).element.outerHTML).extract()
       };
       sync(pair(find(document.src, 'meta'), find(document.dst, 'meta'), (a, b) => a.id === b.id), document.dst.head);
       assert.deepStrictEqual(find(document.dst, 'meta').map(el => el.id), [
@@ -56,12 +56,12 @@ describe('Unit: layer/domain/router/module/update/sync', () => {
           DOM.meta({ id: 'a' }, []),
           DOM.meta({ id: 'c' }, []),
           DOM.meta({ id: 'e' }, [])
-        ]).raw.outerHTML).extract(),
+        ]).element.outerHTML).extract(),
         dst: parse(DOM.head([
           DOM.meta({ id: 'b' }, []),
           DOM.meta({ id: 'c' }, []),
           DOM.meta({ id: 'd' }, [])
-        ]).raw.outerHTML).extract()
+        ]).element.outerHTML).extract()
       };
       sync(pair(find(document.src, 'meta'), find(document.dst, 'meta'), (a, b) => a.id === b.id), document.dst.head);
       assert.deepStrictEqual(find(document.dst, 'meta').map(el => el.id), [

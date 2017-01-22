@@ -28,13 +28,13 @@ describe('Unit: layer/domain/router/module/update/url', () => {
 
   describe('_isReplaceable', () => {
     it('click', () => {
-      assert(!_isReplaceable(RouterEvent.Type.click, DOM.a([]).raw, '.replace'));
-      assert(_isReplaceable(RouterEvent.Type.click, DOM.a({ class: 'replace' }, []).raw, '.replace'));
+      assert(!_isReplaceable(RouterEvent.Type.click, DOM.a([]).element, '.replace'));
+      assert(_isReplaceable(RouterEvent.Type.click, DOM.a({ class: 'replace' }, []).element, '.replace'));
     });
 
     it('submit', () => {
-      assert(!_isReplaceable(RouterEvent.Type.submit, DOM.form([]).raw, '.replace'));
-      assert(_isReplaceable(RouterEvent.Type.submit, DOM.form({ class: 'replace' }, []).raw, '.replace'));
+      assert(!_isReplaceable(RouterEvent.Type.submit, DOM.form([]).element, '.replace'));
+      assert(_isReplaceable(RouterEvent.Type.submit, DOM.form({ class: 'replace' }, []).element, '.replace'));
     });
 
     it('popstate', () => {

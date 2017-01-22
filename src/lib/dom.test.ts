@@ -23,15 +23,15 @@ describe('Unit: lib/dom', () => {
 
   describe('find', () => {
     it('children', () => {
-      assert(find(DOM.div([DOM.p()]).raw, 'p').length === 1);
-      assert(find(DOM.div([DOM.p()]).raw, 'p')[0].matches('p'));
+      assert(find(DOM.div([DOM.p()]).element, 'p').length === 1);
+      assert(find(DOM.div([DOM.p()]).element, 'p')[0].matches('p'));
     });
 
   });
 
   describe('bind', () => {
     it('click', done => {
-      const a = DOM.a().raw;
+      const a = DOM.a().element;
       bind(a, 'click', ev => {
         assert(ev instanceof Event);
         bind(a, 'click', () => done());
@@ -46,22 +46,22 @@ describe('Unit: lib/dom', () => {
   describe('delegate', () => {
     it('click', done => {
       const dom = DOM.div([DOM.a()]);
-      delegate(dom.raw, 'a', 'click', ev => {
+      delegate(dom.element, 'a', 'click', ev => {
         assert(ev instanceof Event);
-        delegate(dom.raw, 'a', 'click', () => done());
+        delegate(dom.element, 'a', 'click', () => done());
       });
-      document.createDocumentFragment().appendChild(dom.raw);
-      dom.contents = [DOM.a()];
-      dom.contents[0].raw.click();
-      dom.contents = [DOM.a()];
-      dom.contents[0].raw.click();
+      document.createDocumentFragment().appendChild(dom.element);
+      dom.children = [DOM.a()];
+      dom.children[0].element.click();
+      dom.children = [DOM.a()];
+      dom.children[0].element.click();
     });
 
   });
 
   describe('once', () => {
     it('click', done => {
-      const a = DOM.a().raw;
+      const a = DOM.a().element;
       let cnt = 0;
       once(a, 'click', ev => {
         assert(ev instanceof Event);
@@ -82,7 +82,7 @@ describe('Unit: lib/dom', () => {
         DOM.input({ name: 'text', type: 'text', value: '1' }, []),
         DOM.input({ name: 'hidden', type: 'hidden', value: '0' }, []),
         DOM.input({ name: 'button', type: 'submit', value: 'submit' }, [])
-      ]).raw);
+      ]).element);
       assert(query === 'check=on&text=1&hidden=0');
     });
 
