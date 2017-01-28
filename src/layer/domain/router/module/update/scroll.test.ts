@@ -17,8 +17,8 @@ describe('Unit: layer/domain/router/module/update/scroll', () => {
         {
           scroll: (x?: number, y?: number): void => {
             assert(++cnt === 1);
-            assert(x >= 0);
-            assert(y >= 0);
+            assert(x! >= 0);
+            assert(y! >= 0);
           }
         });
       assert(++cnt === 2 && result === true);
