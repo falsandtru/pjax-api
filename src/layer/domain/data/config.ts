@@ -78,7 +78,7 @@ class Sequence implements ISequence<void, void, void> {
   public fetch(_result: void, _request: { host: string; path: string; method: string; data: FormData | null; }): Promise<void> {
     return Promise.resolve();
   }
-  public unload(_result: void, _response: { headers: { [field: string]: string; }; document: Document; }): Promise<void> {
+  public unload(_result: void, _response: { url: string; headers: { [field: string]: string; }; document: Document; }): Promise<void> {
     return Promise.resolve();
   }
   public ready(_result: void): Promise<void> {

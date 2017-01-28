@@ -12,9 +12,9 @@ import { script } from '../../module/update/script';
 import { focus } from '../../module/update/focus';
 import { scroll, hash } from '../../module/update/scroll';
 import { saveTitle } from '../../../store/path';
-import { Url } from '../../../../../lib/url';
 import { CanonicalUrl } from '../../../../data/model/canonicalization/url';
 import { DomainError } from '../../../data/error';
+import { Url } from '../../../../../lib/url';
 
 type Seq = void;
 
@@ -25,10 +25,7 @@ export function update(
     state
   }: RouterEntity,
   {
-    response: {
-      headers,
-      document
-    }
+    response
   }: FetchValue,
   seq: Seq,
   io: {
@@ -39,7 +36,7 @@ export function update(
 ): Promise<Either<Error, HTMLScriptElement[]>> {
   const {cancelable} = state;
   const {document: doc} = new UpdateValue({
-    src: document,
+    src: response.document,
     dst: io.document
   });
   return new HNil()
@@ -56,7 +53,7 @@ export function update(
               Promise.resolve(Left(new DomainError(`Failed to separate areas.`))),
             () => (
               void window.dispatchEvent(new Event('pjax:unload')),
-              config.sequence.unload(seq, { headers, document })
+              config.sequence.unload(seq, { ...response })
                 .then(
                 cancelable.either,
                 e => Left<Error>(e instanceof Error ? e : new Error(e))))))
@@ -69,7 +66,7 @@ export function update(
           .modify(() =>
             void blur(doc.dst))
           .modify(() =>
-            void url(event.location, doc.src.title, event.type, event.source, config.replace))
+            void url(new RouterEntity.Event.Location(response.url || event.location.dest.href), doc.src.title, event.type, event.source, config.replace))
           .modify(() => (
             void saveTitle(event.location.orig.path, doc.src.title),
             void saveTitle(event.location.dest.path, doc.dst.title),

@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.5.0
+
+- Use correct url with redirecting.
+
 ## 3.4.4
 
 - Fix wildcard matching of scope feature.

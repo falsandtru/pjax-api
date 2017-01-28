@@ -18,6 +18,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
         new Cancelable<Error>())
         .then(m => m.fmap(res => {
           assert(res.xhr instanceof XMLHttpRequest);
+          assert(res.response.url === canonicalizeUrl(validateUrl('')));
           assert(res.response.headers['Content-Type'] === 'text/html');
           assert(res.response.document instanceof Document);
           done();

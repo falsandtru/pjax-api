@@ -1,4 +1,6 @@
 import { parse } from '../../../module/fetch/html';
+import { canonicalizeUrl } from '../../../../../data/model/canonicalization/url';
+import { validateUrl } from '../../../../../data/model/validation/url';
 
 export class FetchValue {
   constructor(
@@ -23,6 +25,9 @@ export class FetchValue {
       void Object.freeze(this.headers);
       void Object.freeze(this);
     }
+    public readonly url = this.xhr.responseURL
+      ? canonicalizeUrl(validateUrl(this.xhr.responseURL))
+      : '';
     public readonly headers: { [field: string]: string; } = {};
     public readonly document: Document = this.xhr.responseType === 'document'
       ? <Document>this.xhr.responseXML
