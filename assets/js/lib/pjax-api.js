@@ -575,12 +575,15 @@ require = function e(t, n, r) {
         function (require, module, exports) {
             'use strict';
             var html_1 = require('../../../module/fetch/html');
+            var url_1 = require('../../../../../data/model/canonicalization/url');
+            var url_2 = require('../../../../../data/model/validation/url');
             var FetchValue = function () {
                 function FetchValue(xhr) {
                     this.xhr = xhr;
                     this.response = new (function () {
                         function class_1(xhr) {
                             this.xhr = xhr;
+                            this.url = this.xhr.responseURL ? url_1.canonicalizeUrl(url_2.validateUrl(this.xhr.responseURL)) : '';
                             this.headers = {};
                             this.document = this.xhr.responseType === 'document' ? this.xhr.responseXML : html_1.parse(this.xhr.responseText).extract();
                             var separator = ':';
@@ -610,7 +613,11 @@ require = function e(t, n, r) {
             }();
             exports.FetchValue = FetchValue;
         },
-        { '../../../module/fetch/html': 20 }
+        {
+            '../../../../../data/model/canonicalization/url': 9,
+            '../../../../../data/model/validation/url': 10,
+            '../../../module/fetch/html': 20
+        }
     ],
     19: [
         function (require, module, exports) {
@@ -1359,6 +1366,7 @@ require = function e(t, n, r) {
             'use strict';
             var spica_1 = require('spica');
             var xhr_1 = require('../../module/fetch/xhr');
+            var error_1 = require('../../../data/error');
             var url_1 = require('../../../../../lib/url');
             function fetch(_a, _b, cancelable) {
                 var method = _a.method, url = _a.url, data = _a.data;
@@ -1371,7 +1379,9 @@ require = function e(t, n, r) {
                         data: data
                     }).then(function (s) {
                         return p.then(function (m) {
-                            return m.fmap(function (v) {
+                            return m.bind(function (v) {
+                                return v.response.url === '' || new url_1.Url(v.response.url).domain === new url_1.Url(url).domain ? spica_1.Right(v) : spica_1.Left(new error_1.DomainError('Request is redirected to the different domain ' + new url_1.Url(v.response.url).domain));
+                            }).fmap(function (v) {
                                 return [
                                     v,
                                     s
@@ -1387,6 +1397,7 @@ require = function e(t, n, r) {
         },
         {
             '../../../../../lib/url': 52,
+            '../../../data/error': 14,
             '../../module/fetch/xhr': 21,
             'spica': undefined
         }
@@ -1394,7 +1405,17 @@ require = function e(t, n, r) {
     34: [
         function (require, module, exports) {
             'use strict';
+            var __assign = this && this.__assign || Object.assign || function (t) {
+                for (var s, i = 1, n = arguments.length; i < n; i++) {
+                    s = arguments[i];
+                    for (var p in s)
+                        if (Object.prototype.hasOwnProperty.call(s, p))
+                            t[p] = s[p];
+                }
+                return t;
+            };
             var spica_1 = require('spica');
+            var entity_1 = require('../../model/eav/entity');
             var update_1 = require('../../model/eav/value/update');
             var blur_1 = require('../../module/update/blur');
             var url_1 = require('../../module/update/url');
@@ -1409,10 +1430,10 @@ require = function e(t, n, r) {
             var error_1 = require('../../../data/error');
             function update(_a, _b, seq, io) {
                 var event = _a.event, config = _a.config, state = _a.state;
-                var _c = _b.response, headers = _c.headers, document = _c.document;
+                var response = _b.response;
                 var cancelable = state.cancelable;
                 var doc = new update_1.UpdateValue({
-                    src: document,
+                    src: response.document,
                     dst: io.document
                 }).document;
                 return new spica_1.HNil().push(Promise.resolve(cancelable.either(seq))).modify(function (p) {
@@ -1424,10 +1445,7 @@ require = function e(t, n, r) {
                             }).extract(function () {
                                 return Promise.resolve(spica_1.Left(new error_1.DomainError('Failed to separate areas.')));
                             }, function () {
-                                return void window.dispatchEvent(new Event('pjax:unload')), config.sequence.unload(seq, {
-                                    headers: headers,
-                                    document: document
-                                }).then(cancelable.either, function (e) {
+                                return void window.dispatchEvent(new Event('pjax:unload')), config.sequence.unload(seq, __assign({}, response)).then(cancelable.either, function (e) {
                                     return spica_1.Left(e instanceof Error ? e : new Error(e));
                                 });
                             });
@@ -1439,7 +1457,7 @@ require = function e(t, n, r) {
                             return new spica_1.HNil().push(void 0).modify(function () {
                                 return void blur_1.blur(doc.dst);
                             }).modify(function () {
-                                return void url_1.url(event.location, doc.src.title, event.type, event.source, config.replace);
+                                return void url_1.url(new entity_1.RouterEntity.Event.Location(response.url || event.location.dest.href), doc.src.title, event.type, event.source, config.replace);
                             }).modify(function () {
                                 return void path_1.saveTitle(event.location.orig.path, doc.src.title), void path_1.saveTitle(event.location.dest.path, doc.dst.title), void title_1.title(doc);
                             }).modify(function () {
@@ -1510,6 +1528,7 @@ require = function e(t, n, r) {
         {
             '../../../data/error': 14,
             '../../../store/path': 35,
+            '../../model/eav/entity': 17,
             '../../model/eav/value/update': 19,
             '../../module/update/blur': 22,
             '../../module/update/content': 23,
