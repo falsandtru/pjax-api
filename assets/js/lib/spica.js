@@ -1,4 +1,4 @@
-/*! spica v0.0.46 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.47 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
@@ -78,8 +78,6 @@ require = function e(t, n, r) {
             exports.Mixin = mixin_1.Mixin;
             var tick_1 = require('./lib/tick');
             exports.Tick = tick_1.Tick;
-            var fingerprint_1 = require('./lib/fingerprint');
-            exports.FINGERPRINT = fingerprint_1.FINGERPRINT;
             var uuid_1 = require('./lib/uuid');
             exports.uuid = uuid_1.v4;
             var sqid_1 = require('./lib/sqid');
@@ -101,17 +99,16 @@ require = function e(t, n, r) {
             './lib/collection/datamap': 9,
             './lib/concat': 11,
             './lib/curry': 12,
-            './lib/fingerprint': 13,
-            './lib/flip': 14,
-            './lib/hlist': 15,
-            './lib/list': 16,
-            './lib/mixin': 17,
-            './lib/monad/either': 20,
-            './lib/monad/maybe': 24,
-            './lib/monad/sequence': 27,
-            './lib/observable': 72,
-            './lib/sort': 73,
-            './lib/sqid': 74,
+            './lib/flip': 13,
+            './lib/hlist': 14,
+            './lib/list': 15,
+            './lib/mixin': 16,
+            './lib/monad/either': 19,
+            './lib/monad/maybe': 23,
+            './lib/monad/sequence': 26,
+            './lib/observable': 71,
+            './lib/sort': 72,
+            './lib/sqid': 73,
             './lib/supervisor': 75,
             './lib/tick': 77,
             './lib/uuid': 79
@@ -333,9 +330,9 @@ require = function e(t, n, r) {
             exports.Cancelable = Cancelable;
         },
         {
-            './monad/either': 20,
-            './monad/maybe': 24,
-            './noop': 71
+            './monad/either': 19,
+            './monad/maybe': 23,
+            './noop': 70
         }
     ],
     8: [
@@ -472,7 +469,7 @@ require = function e(t, n, r) {
             exports.DataMap = DataMap;
         },
         {
-            '../sqid': 74,
+            '../sqid': 73,
             '../type': 78
         }
     ],
@@ -533,53 +530,6 @@ require = function e(t, n, r) {
     13: [
         function (require, module, exports) {
             'use strict';
-            exports.FINGERPRINT = typeof window === 'object' ? browser() : server();
-            function browser() {
-                return hash(str2digit([
-                    stringify(window.navigator),
-                    stringify(window.screen),
-                    stringify(new Date().getTimezoneOffset())
-                ].join()));
-            }
-            exports.browser = browser;
-            function server() {
-                return hash(str2digit([stringify(process)].join()));
-            }
-            exports.server = server;
-            function hash(digit) {
-                return digit.split('').reduce(function (a, b, i) {
-                    return (+b * i + a) % 1000000000 || a - +b;
-                }, 0);
-            }
-            exports.hash = hash;
-            function str2digit(str) {
-                return str.split('').reduce(function (s, c) {
-                    return s + c.charCodeAt(0);
-                }, '');
-            }
-            exports.str2digit = str2digit;
-            function stringify(obj, depth) {
-                if (depth === void 0) {
-                    depth = 5;
-                }
-                if (depth > 0 && obj && typeof obj === 'object') {
-                    var str = '{';
-                    for (var p in obj) {
-                        str += '"' + p + '": ' + stringify(obj[p], depth - 1) + ',';
-                    }
-                    str += '}';
-                    return str;
-                } else {
-                    return !obj || obj.toString ? '"' + obj + '"' : '"' + Object.prototype.toString.call(obj) + '"';
-                }
-            }
-            exports.stringify = stringify;
-        },
-        {}
-    ],
-    14: [
-        function (require, module, exports) {
-            'use strict';
             var curry_1 = require('./curry');
             function flip(f) {
                 return curry_1.curry(function (b, a) {
@@ -590,7 +540,7 @@ require = function e(t, n, r) {
         },
         { './curry': 12 }
     ],
-    15: [
+    14: [
         function (require, module, exports) {
             'use strict';
             var concat_1 = require('./concat');
@@ -654,7 +604,7 @@ require = function e(t, n, r) {
         },
         { './concat': 11 }
     ],
-    16: [
+    15: [
         function (require, module, exports) {
             'use strict';
             var concat_1 = require('./concat');
@@ -718,7 +668,7 @@ require = function e(t, n, r) {
         },
         { './concat': 11 }
     ],
-    17: [
+    16: [
         function (require, module, exports) {
             'use strict';
             var assign_1 = require('./assign');
@@ -755,7 +705,7 @@ require = function e(t, n, r) {
         },
         { './assign': 5 }
     ],
-    18: [
+    17: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -800,10 +750,10 @@ require = function e(t, n, r) {
         },
         {
             '../curry': 12,
-            './functor': 21
+            './functor': 20
         }
     ],
-    19: [
+    18: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -911,9 +861,9 @@ require = function e(t, n, r) {
                 throw new Error('Spica: Either: Invalid thunk call.');
             }
         },
-        { './monad': 25 }
+        { './monad': 24 }
     ],
-    20: [
+    19: [
         function (require, module, exports) {
             'use strict';
             var Monad = require('./either.impl');
@@ -934,9 +884,9 @@ require = function e(t, n, r) {
             }
             exports.Right = Right;
         },
-        { './either.impl': 19 }
+        { './either.impl': 18 }
     ],
-    21: [
+    20: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -974,9 +924,9 @@ require = function e(t, n, r) {
             }(Functor = exports.Functor || (exports.Functor = {})));
             exports.Functor = Functor;
         },
-        { './lazy': 22 }
+        { './lazy': 21 }
     ],
-    22: [
+    21: [
         function (require, module, exports) {
             'use strict';
             var Lazy = function () {
@@ -992,7 +942,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    23: [
+    22: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -1113,9 +1063,9 @@ require = function e(t, n, r) {
                 throw new Error('Spica: Maybe: Invalid thunk call.');
             }
         },
-        { './monadplus': 26 }
+        { './monadplus': 25 }
     ],
-    24: [
+    23: [
         function (require, module, exports) {
             'use strict';
             var Monad = require('./maybe.impl');
@@ -1135,9 +1085,9 @@ require = function e(t, n, r) {
             exports.Just = Just;
             exports.Nothing = Monad.Maybe.mzero;
         },
-        { './maybe.impl': 23 }
+        { './maybe.impl': 22 }
     ],
-    25: [
+    24: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -1175,9 +1125,9 @@ require = function e(t, n, r) {
             }(Monad = exports.Monad || (exports.Monad = {})));
             exports.Monad = Monad;
         },
-        { './applicative': 18 }
+        { './applicative': 17 }
     ],
-    26: [
+    25: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -1209,9 +1159,9 @@ require = function e(t, n, r) {
             }(MonadPlus = exports.MonadPlus || (exports.MonadPlus = {})));
             exports.MonadPlus = MonadPlus;
         },
-        { './monad': 25 }
+        { './monad': 24 }
     ],
-    27: [
+    26: [
         function (require, module, exports) {
             'use strict';
             var core_1 = require('./sequence/core');
@@ -1263,52 +1213,52 @@ require = function e(t, n, r) {
         },
         {
             '../compose': 10,
-            './sequence/core': 28,
-            './sequence/member/instance/ap': 29,
-            './sequence/member/instance/bind': 30,
-            './sequence/member/instance/drop': 31,
-            './sequence/member/instance/dropUntil': 32,
-            './sequence/member/instance/dropWhile': 33,
-            './sequence/member/instance/extract': 34,
-            './sequence/member/instance/filter': 35,
-            './sequence/member/instance/filterM': 36,
-            './sequence/member/instance/fmap': 37,
-            './sequence/member/instance/fold': 38,
-            './sequence/member/instance/group': 39,
-            './sequence/member/instance/inits': 40,
-            './sequence/member/instance/iterate': 41,
-            './sequence/member/instance/map': 42,
-            './sequence/member/instance/mapM': 43,
-            './sequence/member/instance/memoize': 44,
-            './sequence/member/instance/permutations': 45,
-            './sequence/member/instance/reduce': 46,
-            './sequence/member/instance/scan': 47,
-            './sequence/member/instance/segs': 48,
-            './sequence/member/instance/sort': 49,
-            './sequence/member/instance/subsequences': 50,
-            './sequence/member/instance/tails': 51,
-            './sequence/member/instance/take': 52,
-            './sequence/member/instance/takeUntil': 53,
-            './sequence/member/instance/takeWhile': 54,
-            './sequence/member/static/concat': 55,
-            './sequence/member/static/cycle': 56,
-            './sequence/member/static/difference': 57,
-            './sequence/member/static/from': 58,
-            './sequence/member/static/intersect': 59,
-            './sequence/member/static/mappend': 60,
-            './sequence/member/static/mconcat': 61,
-            './sequence/member/static/mempty': 62,
-            './sequence/member/static/mplus': 63,
-            './sequence/member/static/mzero': 64,
-            './sequence/member/static/pure': 65,
-            './sequence/member/static/random': 66,
-            './sequence/member/static/resume': 67,
-            './sequence/member/static/return': 68,
-            './sequence/member/static/union': 69,
-            './sequence/member/static/zip': 70
+            './sequence/core': 27,
+            './sequence/member/instance/ap': 28,
+            './sequence/member/instance/bind': 29,
+            './sequence/member/instance/drop': 30,
+            './sequence/member/instance/dropUntil': 31,
+            './sequence/member/instance/dropWhile': 32,
+            './sequence/member/instance/extract': 33,
+            './sequence/member/instance/filter': 34,
+            './sequence/member/instance/filterM': 35,
+            './sequence/member/instance/fmap': 36,
+            './sequence/member/instance/fold': 37,
+            './sequence/member/instance/group': 38,
+            './sequence/member/instance/inits': 39,
+            './sequence/member/instance/iterate': 40,
+            './sequence/member/instance/map': 41,
+            './sequence/member/instance/mapM': 42,
+            './sequence/member/instance/memoize': 43,
+            './sequence/member/instance/permutations': 44,
+            './sequence/member/instance/reduce': 45,
+            './sequence/member/instance/scan': 46,
+            './sequence/member/instance/segs': 47,
+            './sequence/member/instance/sort': 48,
+            './sequence/member/instance/subsequences': 49,
+            './sequence/member/instance/tails': 50,
+            './sequence/member/instance/take': 51,
+            './sequence/member/instance/takeUntil': 52,
+            './sequence/member/instance/takeWhile': 53,
+            './sequence/member/static/concat': 54,
+            './sequence/member/static/cycle': 55,
+            './sequence/member/static/difference': 56,
+            './sequence/member/static/from': 57,
+            './sequence/member/static/intersect': 58,
+            './sequence/member/static/mappend': 59,
+            './sequence/member/static/mconcat': 60,
+            './sequence/member/static/mempty': 61,
+            './sequence/member/static/mplus': 62,
+            './sequence/member/static/mzero': 63,
+            './sequence/member/static/pure': 64,
+            './sequence/member/static/random': 65,
+            './sequence/member/static/resume': 66,
+            './sequence/member/static/return': 67,
+            './sequence/member/static/union': 68,
+            './sequence/member/static/zip': 69
         }
     ],
-    28: [
+    27: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -1436,9 +1386,9 @@ require = function e(t, n, r) {
                 throw new Error('Spica: Sequence: Invalid thunk call.');
             }
         },
-        { '../monadplus': 26 }
+        { '../monadplus': 25 }
     ],
-    29: [
+    28: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -1471,9 +1421,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    30: [
+    29: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -1506,9 +1456,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    31: [
+    30: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -1553,9 +1503,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    32: [
+    31: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -1600,9 +1550,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    33: [
+    32: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -1647,9 +1597,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    34: [
+    33: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -1696,10 +1646,10 @@ require = function e(t, n, r) {
         },
         {
             '../../../../concat': 11,
-            '../../core': 28
+            '../../core': 27
         }
     ],
-    35: [
+    34: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -1744,9 +1694,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    36: [
+    35: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -1797,10 +1747,10 @@ require = function e(t, n, r) {
         },
         {
             '../../../../concat': 11,
-            '../../core': 28
+            '../../core': 27
         }
     ],
-    37: [
+    36: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -1845,9 +1795,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    38: [
+    37: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -1894,9 +1844,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    39: [
+    38: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -1948,10 +1898,10 @@ require = function e(t, n, r) {
         },
         {
             '../../../../concat': 11,
-            '../../core': 28
+            '../../core': 27
         }
     ],
-    40: [
+    39: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -1988,9 +1938,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    41: [
+    40: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -2056,9 +2006,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    42: [
+    41: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -2103,9 +2053,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    43: [
+    42: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -2156,10 +2106,10 @@ require = function e(t, n, r) {
         },
         {
             '../../../../concat': 11,
-            '../../core': 28
+            '../../core': 27
         }
     ],
-    44: [
+    43: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -2207,9 +2157,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    45: [
+    44: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -2289,9 +2239,9 @@ require = function e(t, n, r) {
                 });
             }
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    46: [
+    45: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -2338,9 +2288,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    47: [
+    46: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -2391,9 +2341,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    48: [
+    47: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -2437,10 +2387,10 @@ require = function e(t, n, r) {
         },
         {
             '../../../../concat': 11,
-            '../../core': 28
+            '../../core': 27
         }
     ],
-    49: [
+    48: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -2473,9 +2423,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    50: [
+    49: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -2531,10 +2481,10 @@ require = function e(t, n, r) {
         },
         {
             '../../../../concat': 11,
-            '../../core': 28
+            '../../core': 27
         }
     ],
-    51: [
+    50: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -2569,9 +2519,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    52: [
+    51: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -2616,9 +2566,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    53: [
+    52: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -2663,9 +2613,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    54: [
+    53: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -2710,9 +2660,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    55: [
+    54: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -2768,9 +2718,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    56: [
+    55: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -2816,9 +2766,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    57: [
+    56: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -2896,9 +2846,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    58: [
+    57: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -2941,9 +2891,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    59: [
+    58: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -3004,9 +2954,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    60: [
+    59: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -3042,9 +2992,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    61: [
+    60: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -3106,9 +3056,9 @@ require = function e(t, n, r) {
                 });
             }
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    62: [
+    61: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -3141,9 +3091,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    63: [
+    62: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -3174,9 +3124,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    64: [
+    63: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -3207,9 +3157,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    65: [
+    64: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -3244,9 +3194,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    66: [
+    65: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -3288,9 +3238,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    67: [
+    66: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -3332,9 +3282,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    68: [
+    67: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -3369,9 +3319,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    69: [
+    68: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -3450,9 +3400,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    70: [
+    69: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -3509,9 +3459,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.default = default_1;
         },
-        { '../../core': 28 }
+        { '../../core': 27 }
     ],
-    71: [
+    70: [
         function (require, module, exports) {
             'use strict';
             function noop() {
@@ -3521,16 +3471,17 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    72: [
+    71: [
         function (require, module, exports) {
             'use strict';
             var concat_1 = require('./concat');
+            var stringify_1 = require('./stringify');
             var Observable = function () {
                 function Observable() {
                     this.node_ = {
                         parent: void 0,
                         children: new Map(),
-                        childrenList: [],
+                        childrenNames: [],
                         registers: []
                     };
                 }
@@ -3587,7 +3538,7 @@ require = function e(t, n, r) {
                     case 'undefined': {
                             var node = this.seekNode_(namespace);
                             node.children = new Map();
-                            node.childrenList = [];
+                            node.childrenNames = [];
                             node.registers = [];
                             return;
                         }
@@ -3623,9 +3574,9 @@ require = function e(t, n, r) {
                             if (tracker) {
                                 results[results.length] = result;
                             }
-                        } catch (err) {
-                            if (err !== void 0 && err !== null) {
-                                void console.error(err + '');
+                        } catch (reason) {
+                            if (reason !== void 0 && reason !== null) {
+                                void console.error(stringify_1.stringify(reason));
                             }
                         }
                     }, void 0);
@@ -3635,17 +3586,17 @@ require = function e(t, n, r) {
                             return;
                         try {
                             void subscriber(data);
-                        } catch (err) {
-                            if (err !== void 0 && err !== null) {
-                                void console.error(err);
+                        } catch (reason) {
+                            if (reason !== void 0 && reason !== null) {
+                                void console.error(stringify_1.stringify(reason));
                             }
                         }
                     }, void 0);
                     if (tracker) {
                         try {
                             void tracker(data, results);
-                        } catch (err) {
-                            void console.error(err);
+                        } catch (reason) {
+                            void console.error(stringify_1.stringify(reason));
                         }
                     }
                 };
@@ -3662,15 +3613,15 @@ require = function e(t, n, r) {
                     return registers;
                 };
                 Observable.prototype.refsBelow_ = function (_a) {
-                    var childrenList = _a.childrenList, children = _a.children, registers = _a.registers;
+                    var childrenNames = _a.childrenNames, children = _a.children, registers = _a.registers;
                     registers = concat_1.concat([], registers);
                     var _loop_1 = function (i) {
-                        var name = childrenList[i];
+                        var name = childrenNames[i];
                         var below = this_1.refsBelow_(children.get(name));
                         registers = concat_1.concat(registers, below);
                         if (below.length === 0) {
                             void children.delete(name);
-                            void childrenList.splice(childrenList.findIndex(function (value) {
+                            void childrenNames.splice(childrenNames.findIndex(function (value) {
                                 return value === name || name !== name && value !== value;
                             }), 1);
                             void --i;
@@ -3678,7 +3629,7 @@ require = function e(t, n, r) {
                         out_i_1 = i;
                     };
                     var this_1 = this, out_i_1;
-                    for (var i = 0; i < childrenList.length; ++i) {
+                    for (var i = 0; i < childrenNames.length; ++i) {
                         _loop_1(i);
                         i = out_i_1;
                     }
@@ -3690,11 +3641,11 @@ require = function e(t, n, r) {
                         var type = types_1[_i];
                         var children = node.children;
                         if (!children.has(type)) {
-                            void node.childrenList.push(type);
+                            void node.childrenNames.push(type);
                             children.set(type, {
                                 parent: node,
                                 children: new Map(),
-                                childrenList: [],
+                                childrenNames: [],
                                 registers: []
                             });
                         }
@@ -3714,9 +3665,12 @@ require = function e(t, n, r) {
             }();
             exports.Observable = Observable;
         },
-        { './concat': 11 }
+        {
+            './concat': 11,
+            './stringify': 74
+        }
     ],
-    73: [
+    72: [
         function (require, module, exports) {
             'use strict';
             function sort(as, cmp, times, debug) {
@@ -3741,7 +3695,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    74: [
+    73: [
         function (require, module, exports) {
             'use strict';
             var cnt = 0;
@@ -3760,6 +3714,20 @@ require = function e(t, n, r) {
         },
         {}
     ],
+    74: [
+        function (require, module, exports) {
+            'use strict';
+            function stringify(target) {
+                try {
+                    return target instanceof Error && typeof target.stack === 'string' ? target.stack : 'toString' in target && typeof target.toString === 'function' ? target + '' : Object.prototype.toString.call(target);
+                } catch (reason) {
+                    return stringify(reason);
+                }
+            }
+            exports.stringify = stringify;
+        },
+        {}
+    ],
     75: [
         function (require, module, exports) {
             'use strict';
@@ -3767,6 +3735,7 @@ require = function e(t, n, r) {
             var tick_1 = require('./tick');
             var thenable_1 = require('./thenable');
             var sqid_1 = require('./sqid');
+            var stringify_1 = require('./stringify');
             var noop_1 = require('./noop');
             var Supervisor = function () {
                 function Supervisor(_a) {
@@ -3796,8 +3765,8 @@ require = function e(t, n, r) {
                     void this.drain();
                     try {
                         void this.destructor_(reason);
-                    } catch (err) {
-                        void console.error(err);
+                    } catch (reason) {
+                        void console.error(stringify_1.stringify(reason));
                     }
                     void --this.constructor.count;
                     void Object.freeze(this);
@@ -3918,7 +3887,7 @@ require = function e(t, n, r) {
                             try {
                                 void callback(void 0, new Error('Spica: Supervisor: Task: Failed.'));
                             } catch (reason) {
-                                void console.error(reason);
+                                void console.error(stringify_1.stringify(reason));
                             }
                         } else {
                             var reply = replies[0];
@@ -3928,13 +3897,13 @@ require = function e(t, n, r) {
                                 }, function () {
                                     return void callback(void 0, new Error('Spica: Supervisor: Task: Failed.'));
                                 }).catch(function (reason) {
-                                    return void console.error(reason);
+                                    return void console.error(stringify_1.stringify(reason));
                                 });
                             } else {
                                 try {
                                     void callback(reply);
                                 } catch (reason) {
-                                    void console.error(reason);
+                                    void console.error(stringify_1.stringify(reason));
                                 }
                             }
                         }
@@ -4099,9 +4068,10 @@ require = function e(t, n, r) {
             }();
         },
         {
-            './noop': 71,
-            './observable': 72,
-            './sqid': 74,
+            './noop': 70,
+            './observable': 71,
+            './sqid': 73,
+            './stringify': 74,
             './thenable': 76,
             './tick': 77
         }
@@ -4119,6 +4089,7 @@ require = function e(t, n, r) {
     77: [
         function (require, module, exports) {
             'use strict';
+            var stringify_1 = require('./stringify');
             var Queue = [];
             var scheduled = false;
             function enqueue(fn) {
@@ -4135,7 +4106,7 @@ require = function e(t, n, r) {
                             void Queue.shift()();
                         }
                     } catch (e) {
-                        console.error(e);
+                        console.error(stringify_1.stringify(e));
                         continue;
                     }
                     break;
@@ -4152,7 +4123,7 @@ require = function e(t, n, r) {
             var IS_NODE = Function('return typeof process === \'object\' && typeof window !== \'object\'')();
             exports.Tick = IS_NODE ? Function('return fn => process.nextTick(fn)')() : enqueue;
         },
-        {}
+        { './stringify': 74 }
     ],
     78: [
         function (require, module, exports) {

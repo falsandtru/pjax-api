@@ -1156,8 +1156,8 @@ require = function e(t, n, r) {
                 }
                 function scroll(_a) {
                     var top = _a.top, left = _a.left;
-                    left = left >= 0 ? left : window.pageXOffset;
-                    top = top >= 0 ? top : window.pageYOffset;
+                    left = left === void 0 || left >= 0 ? left : window.pageXOffset;
+                    top = top === void 0 || top >= 0 ? top : window.pageYOffset;
                     void io.scroll.call(window, left, top);
                 }
             }
