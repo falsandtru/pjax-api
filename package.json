@@ -23,8 +23,8 @@
     "LICENSE"
   ],
   "dependencies": {
-    "localsocket": "^0.7.1",
-    "spica": "0.0.47"
+    "localsocket": "^0.7.2",
+    "spica": "0.0.50"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.38",
