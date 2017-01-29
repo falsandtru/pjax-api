@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.5.1
+
+- Update dependencies.
+
 ## 3.5.0
 
 - Use correct url with redirecting.
