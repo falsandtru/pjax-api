@@ -4,7 +4,7 @@
 [![Coverage Status](https://coveralls.io/repos/falsandtru/pjax-api/badge.svg?branch=master&service=github)](https://coveralls.io/github/falsandtru/pjax-api?branch=master)
 [![Dependency Status](https://gemnasium.com/falsandtru/pjax-api.svg)](https://gemnasium.com/falsandtru/pjax-api)
 
-The second generation PJAX for advanced web framework.
+The second generation PJAX for the advanced web frameworks.
 
 ## Feature
 
