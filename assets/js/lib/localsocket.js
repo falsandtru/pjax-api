@@ -1,4 +1,4 @@
-/*! localsocket v0.7.1 https://github.com/falsandtru/localsocket | (c) 2016, falsandtru | MIT License */
+/*! localsocket v0.7.2 https://github.com/falsandtru/localsocket | (c) 2016, falsandtru | MIT License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
