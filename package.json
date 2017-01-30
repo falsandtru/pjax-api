@@ -24,7 +24,7 @@
   ],
   "dependencies": {
     "localsocket": "^0.7.2",
-    "spica": "0.0.50"
+    "spica": "0.0.51"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.38",
@@ -40,7 +40,7 @@
     "gulp-uglify": "^2.0.1",
     "gulp-unassert": "^1.0.1",
     "json": "^9.0.4",
-    "karma": "^1.4.0",
+    "karma": "^1.4.1",
     "karma-chrome-launcher": "^2.0.0",
     "karma-coverage": "^1.1.1",
     "karma-coveralls": "^1.1.2",
