@@ -1931,7 +1931,7 @@ require = function e(t, n, r) {
                                 }).close);
                             });
                         },
-                        exit: function (s) {
+                        exit: function (_, s) {
                             return Array.from(s).forEach(function (terminate) {
                                 return void terminate();
                             });

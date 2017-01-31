@@ -1,4 +1,4 @@
-/*! spica v0.0.51 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.53 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
@@ -3733,7 +3733,7 @@ require = function e(t, n, r) {
             var noop_1 = require('./noop');
             var Supervisor = function () {
                 function Supervisor(_a) {
-                    var _b = _a === void 0 ? {} : _a, _c = _b.name, name = _c === void 0 ? '' : _c, _d = _b.timeout, timeout = _d === void 0 ? Infinity : _d, _e = _b.destructor, destructor = _e === void 0 ? noop_1.noop : _e;
+                    var _b = _a === void 0 ? {} : _a, _c = _b.name, name = _c === void 0 ? '' : _c, _d = _b.size, size = _d === void 0 ? Infinity : _d, _e = _b.timeout, timeout = _e === void 0 ? Infinity : _e, _f = _b.destructor, destructor = _f === void 0 ? noop_1.noop : _f;
                     this.id = sqid_1.sqid();
                     this.events = {
                         init: new observable_1.Observable(),
@@ -3744,16 +3744,17 @@ require = function e(t, n, r) {
                     this.alive = true;
                     this.available = true;
                     this.resource = 10;
-                    this.queue = [];
+                    this.messages = [];
                     if (this.constructor === Supervisor)
                         throw new Error('Spica: Supervisor: <' + this.id + '/' + this.name + '>: Cannot instantiate abstract classes.');
                     this.name = name;
+                    this.size = size;
                     this.timeout = timeout;
                     this.destructor_ = destructor;
                     void ++this.constructor.count;
                 }
                 Supervisor.prototype.destructor = function (reason) {
-                    void this.drain();
+                    void this.deliver();
                     try {
                         void this.destructor_(reason);
                     } catch (reason) {
@@ -3771,7 +3772,7 @@ require = function e(t, n, r) {
                     var _this = this;
                     void this.validate();
                     if (this.workers.has(name))
-                        throw new Error('Spica: Supervisor: <' + this.id + '/' + this.name + '/' + name + '>: Cannot register a process multiply using the same name.');
+                        throw new Error('Spica: Supervisor: <' + this.id + '/' + this.name + '/' + name + '>: Cannot register a process multiply with the same name.');
                     void this.schedule();
                     process = typeof process === 'function' ? {
                         init: function (state) {
@@ -3793,7 +3794,19 @@ require = function e(t, n, r) {
                         timeout = this.timeout;
                     }
                     void this.validate();
-                    void this.queue.push([
+                    while (this.messages.length + 1 > this.size) {
+                        var _a = this.messages.shift(), name_1 = _a[0], param_1 = _a[1], callback_1 = _a[2];
+                        void this.events.loss.emit([name_1], [
+                            name_1,
+                            param_1
+                        ]);
+                        try {
+                            void callback_1(void 0, new Error('Spica: Supervisor: A message overflowed.'));
+                        } catch (reason) {
+                            void console.error(stringify_1.stringify(reason));
+                        }
+                    }
+                    void this.messages.push([
                         name,
                         param,
                         callback,
@@ -3806,7 +3819,7 @@ require = function e(t, n, r) {
                     if (timeout === Infinity)
                         return;
                     void setTimeout(function () {
-                        return void _this.drain();
+                        return void _this.deliver();
                     }, timeout + 9);
                 };
                 Supervisor.prototype.cast = function (name, param, timeout) {
@@ -3854,24 +3867,24 @@ require = function e(t, n, r) {
                 Supervisor.prototype.schedule = function () {
                     var _this = this;
                     void tick_1.Tick(function () {
-                        return void _this.drain();
+                        return void _this.deliver();
                     }, true);
                 };
-                Supervisor.prototype.drain = function () {
+                Supervisor.prototype.deliver = function () {
                     var _this = this;
                     var since = Date.now();
                     var resource = this.resource;
                     var _loop_1 = function (i, len) {
                         var now = Date.now();
                         resource -= now - since;
-                        var _a = this_1.queue[i], name = _a[0], param = _a[1], callback = _a[2], timeout = _a[3], registered = _a[4];
+                        var _a = this_1.messages[i], name = _a[0], param = _a[1], callback = _a[2], timeout = _a[3], registered = _a[4];
                         var result = this_1.workers.has(name) ? this_1.workers.get(name).call([
                             param,
                             registered + timeout - now
                         ]) : void 0;
                         if (this_1.available && !result && now < registered + timeout)
                             return out_i_1 = i, out_len_1 = len, 'continue';
-                        i === 0 ? void this_1.queue.shift() : void this_1.queue.splice(i, 1);
+                        i === 0 ? void this_1.messages.shift() : void this_1.messages.splice(i, 1);
                         void --i;
                         void --len;
                         if (!result) {
@@ -3880,7 +3893,7 @@ require = function e(t, n, r) {
                                 param
                             ]);
                             try {
-                                void callback(void 0, new Error('Spica: Supervisor: Task: Failed.'));
+                                void callback(void 0, new Error('Spica: Supervisor: A processing has failed.'));
                             } catch (reason) {
                                 void console.error(stringify_1.stringify(reason));
                             }
@@ -3894,9 +3907,9 @@ require = function e(t, n, r) {
                                 }
                             } else {
                                 void Promise.resolve(reply).then(function (reply) {
-                                    return _this.available ? void callback(reply) : void callback(void 0, new Error('Spica: Supervisor: Task: Failed.'));
+                                    return _this.available ? void callback(reply) : void callback(void 0, new Error('Spica: Supervisor: A processing has failed.'));
                                 }, function () {
-                                    return void callback(void 0, new Error('Spica: Supervisor: Task: Failed.'));
+                                    return void callback(void 0, new Error('Spica: Supervisor: A processing has failed.'));
                                 }).catch(function (reason) {
                                     return void console.error(stringify_1.stringify(reason));
                                 });
@@ -3906,20 +3919,20 @@ require = function e(t, n, r) {
                         out_len_1 = len;
                     };
                     var this_1 = this, out_i_1, out_len_1;
-                    for (var i = 0, len = this.queue.length; this.available && i < len && resource > 0; ++i) {
+                    for (var i = 0, len = this.messages.length; this.available && i < len && resource > 0; ++i) {
                         _loop_1(i, len);
                         i = out_i_1;
                         len = out_len_1;
                     }
                     if (!this.available) {
-                        while (this.queue.length > 0) {
-                            var _a = this.queue.shift(), name = _a[0], param = _a[1];
+                        while (this.messages.length > 0) {
+                            var _a = this.messages.shift(), name = _a[0], param = _a[1];
                             void this.events.loss.emit([name], [
                                 name,
                                 param
                             ]);
                         }
-                        void Object.freeze(this.queue);
+                        void Object.freeze(this.messages);
                         return;
                     }
                     if (resource > 0)
@@ -4002,7 +4015,7 @@ require = function e(t, n, r) {
                     void this.destructor_();
                     void Object.freeze(this);
                     try {
-                        void this.process.exit(this.state, reason);
+                        void this.process.exit(reason, this.state);
                         void this.sv.events.exit.emit([this.name], [
                             this.name,
                             this.process,
