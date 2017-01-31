@@ -40,7 +40,7 @@ export class GUI {
     }
   ) {
     void GUI.sv.terminate('view');
-    void GUI.sv.register('view', <Supervisor.Process<void, void, Set<() => void>>>{
+    void GUI.sv.register('view', {
       init: s => s,
       call: (_, s) =>
         new Promise<never>(() =>
@@ -126,7 +126,7 @@ export class GUI {
                     : void 0)
                 .extract())
               .close)),
-      exit: s =>
+      exit: (_, s) =>
         Array.from(s)
           .forEach(terminate =>
             void terminate()),

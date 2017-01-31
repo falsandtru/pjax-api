@@ -24,7 +24,7 @@
   ],
   "dependencies": {
     "localsocket": "^0.7.2",
-    "spica": "0.0.51"
+    "spica": "0.0.53"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.38",
