@@ -127,7 +127,7 @@ export class GUI {
                 .extract())
               .close)),
       exit: (_, s) =>
-        Array.from(s)
+        void Array.from(s)
           .forEach(terminate =>
             void terminate()),
     }, new Set());

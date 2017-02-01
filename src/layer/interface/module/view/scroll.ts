@@ -7,20 +7,19 @@ export class ScrollView {
     listener: (event: Event) => any
   ) {
     let timer = 0;
-    void this.sv.register('', () => [
-      void this.sv.events.exit.once(
-        [],
-        bind(window, 'scroll', event =>
-          timer = timer > 0
-            ? timer
-            : setTimeout(
-              (): void => (
-                timer = 0,
-                void listener(event)),
-              300),
-          { passive: true })),
-      void 0
-    ], void 0);
+    void this.sv.register('', () => (
+      new Promise<never>(() =>
+        void this.sv.events.exit.once(
+          [],
+          bind(window, 'scroll', ev => (
+            timer = timer > 0
+              ? timer
+              : setTimeout(() => {
+                  timer = 0;
+                  void listener(ev);
+                }, 300)
+          ), { passive: true })))
+    ), void 0);
     void this.sv.cast('', void 0);
   }
   private readonly sv = new class extends Supervisor<'', void, void, void>{ }();
