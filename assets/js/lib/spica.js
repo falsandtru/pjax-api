@@ -1,4 +1,4 @@
-/*! spica v0.0.53 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.54 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
@@ -3734,6 +3734,7 @@ require = function e(t, n, r) {
             var Supervisor = function () {
                 function Supervisor(_a) {
                     var _b = _a === void 0 ? {} : _a, _c = _b.name, name = _c === void 0 ? '' : _c, _d = _b.size, size = _d === void 0 ? Infinity : _d, _e = _b.timeout, timeout = _e === void 0 ? Infinity : _e, _f = _b.destructor, destructor = _f === void 0 ? noop_1.noop : _f;
+                    var _this = this;
                     this.id = sqid_1.sqid();
                     this.events = {
                         init: new observable_1.Observable(),
@@ -3745,6 +3746,76 @@ require = function e(t, n, r) {
                     this.available = true;
                     this.resource = 10;
                     this.messages = [];
+                    this.deliver = function () {
+                        var since = Date.now();
+                        var resource = _this.resource;
+                        var _loop_1 = function (i, len) {
+                            var now = Date.now();
+                            resource -= now - since;
+                            var _a = _this.messages[i], name = _a[0], param = _a[1], callback = _a[2], timeout = _a[3], registered = _a[4];
+                            var result = _this.workers.has(name) ? _this.workers.get(name).call([
+                                param,
+                                registered + timeout - now
+                            ]) : void 0;
+                            if (_this.available && !result && now < registered + timeout)
+                                return out_i_1 = i, out_len_1 = len, 'continue';
+                            i === 0 ? void _this.messages.shift() : void _this.messages.splice(i, 1);
+                            void --i;
+                            void --len;
+                            if (result === void 0) {
+                                void _this.events.loss.emit([name], [
+                                    name,
+                                    param
+                                ]);
+                            }
+                            if (result === void 0 || result instanceof Error) {
+                                try {
+                                    void callback(void 0, new Error('Spica: Supervisor: A processing has failed.'));
+                                } catch (reason) {
+                                    void console.error(stringify_1.stringify(reason));
+                                }
+                                return out_i_1 = i, out_len_1 = len, 'continue';
+                            }
+                            var reply = result[0];
+                            if (!thenable_1.isThenable(reply)) {
+                                try {
+                                    void callback(reply);
+                                } catch (reason) {
+                                    void console.error(stringify_1.stringify(reason));
+                                }
+                            } else {
+                                void Promise.resolve(reply).then(function (reply) {
+                                    return _this.available ? void callback(reply) : void callback(void 0, new Error('Spica: Supervisor: A processing has failed.'));
+                                }, function () {
+                                    return void callback(void 0, new Error('Spica: Supervisor: A processing has failed.'));
+                                }).catch(function (reason) {
+                                    return void console.error(stringify_1.stringify(reason));
+                                });
+                            }
+                            out_i_1 = i;
+                            out_len_1 = len;
+                        };
+                        var out_i_1, out_len_1;
+                        for (var i = 0, len = _this.messages.length; _this.available && i < len && resource > 0; ++i) {
+                            _loop_1(i, len);
+                            i = out_i_1;
+                            len = out_len_1;
+                        }
+                        if (!_this.available) {
+                            while (_this.messages.length > 0) {
+                                var _a = _this.messages.shift(), name = _a[0], param = _a[1];
+                                void _this.events.loss.emit([name], [
+                                    name,
+                                    param
+                                ]);
+                            }
+                            void Object.freeze(_this.messages);
+                            return;
+                        }
+                        if (resource > 0)
+                            return;
+                        void _this.schedule();
+                    };
                     if (this.constructor === Supervisor)
                         throw new Error('Spica: Supervisor: <' + this.id + '/' + this.name + '>: Cannot instantiate abstract classes.');
                     this.name = name;
@@ -3831,13 +3902,15 @@ require = function e(t, n, r) {
                         param,
                         timeout
                     ]) : void 0;
-                    if (!result) {
+                    if (result === void 0) {
                         void this.events.loss.emit([name], [
                             name,
                             param
                         ]);
                     }
-                    return !!result;
+                    if (result === void 0 || result instanceof Error)
+                        return false;
+                    return true;
                 };
                 Supervisor.prototype.refs = function (name) {
                     void this.validate();
@@ -3865,79 +3938,7 @@ require = function e(t, n, r) {
                     }
                 };
                 Supervisor.prototype.schedule = function () {
-                    var _this = this;
-                    void tick_1.Tick(function () {
-                        return void _this.deliver();
-                    }, true);
-                };
-                Supervisor.prototype.deliver = function () {
-                    var _this = this;
-                    var since = Date.now();
-                    var resource = this.resource;
-                    var _loop_1 = function (i, len) {
-                        var now = Date.now();
-                        resource -= now - since;
-                        var _a = this_1.messages[i], name = _a[0], param = _a[1], callback = _a[2], timeout = _a[3], registered = _a[4];
-                        var result = this_1.workers.has(name) ? this_1.workers.get(name).call([
-                            param,
-                            registered + timeout - now
-                        ]) : void 0;
-                        if (this_1.available && !result && now < registered + timeout)
-                            return out_i_1 = i, out_len_1 = len, 'continue';
-                        i === 0 ? void this_1.messages.shift() : void this_1.messages.splice(i, 1);
-                        void --i;
-                        void --len;
-                        if (!result) {
-                            void this_1.events.loss.emit([name], [
-                                name,
-                                param
-                            ]);
-                            try {
-                                void callback(void 0, new Error('Spica: Supervisor: A processing has failed.'));
-                            } catch (reason) {
-                                void console.error(stringify_1.stringify(reason));
-                            }
-                        } else {
-                            var reply = result[0];
-                            if (!thenable_1.isThenable(reply)) {
-                                try {
-                                    void callback(reply);
-                                } catch (reason) {
-                                    void console.error(stringify_1.stringify(reason));
-                                }
-                            } else {
-                                void Promise.resolve(reply).then(function (reply) {
-                                    return _this.available ? void callback(reply) : void callback(void 0, new Error('Spica: Supervisor: A processing has failed.'));
-                                }, function () {
-                                    return void callback(void 0, new Error('Spica: Supervisor: A processing has failed.'));
-                                }).catch(function (reason) {
-                                    return void console.error(stringify_1.stringify(reason));
-                                });
-                            }
-                        }
-                        out_i_1 = i;
-                        out_len_1 = len;
-                    };
-                    var this_1 = this, out_i_1, out_len_1;
-                    for (var i = 0, len = this.messages.length; this.available && i < len && resource > 0; ++i) {
-                        _loop_1(i, len);
-                        i = out_i_1;
-                        len = out_len_1;
-                    }
-                    if (!this.available) {
-                        while (this.messages.length > 0) {
-                            var _a = this.messages.shift(), name = _a[0], param = _a[1];
-                            void this.events.loss.emit([name], [
-                                name,
-                                param
-                            ]);
-                        }
-                        void Object.freeze(this.messages);
-                        return;
-                    }
-                    if (resource > 0)
-                        return;
-                    void this.schedule();
+                    void tick_1.Tick(this.deliver, true);
                 };
                 return Supervisor;
             }();
@@ -4000,7 +4001,7 @@ require = function e(t, n, r) {
                             }
                         } catch (reason) {
                             void _this.terminate(reason);
-                            return;
+                            return new Error();
                         }
                     };
                     this.terminate = function (reason) {
