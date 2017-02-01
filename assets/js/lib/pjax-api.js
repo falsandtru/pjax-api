@@ -1631,10 +1631,9 @@ require = function e(t, n, r) {
                         return void _this.sv.terminate();
                     };
                     void this.sv.register('', function () {
-                        return [
-                            void _this.sv.events.exit.once([], dom_1.delegate(document.documentElement, selector, 'click', listener)),
-                            void 0
-                        ];
+                        return new Promise(function () {
+                            return void _this.sv.events.exit.once([], dom_1.delegate(document.documentElement, selector, 'click', listener));
+                        });
                     }, void 0);
                     void this.sv.cast('', void 0);
                 }
@@ -1683,14 +1682,13 @@ require = function e(t, n, r) {
                         return void _this.sv.terminate();
                     };
                     void this.sv.register('', function () {
-                        return [
-                            void _this.sv.events.exit.once([], dom_1.bind(window, 'popstate', function (ev) {
+                        return new Promise(function () {
+                            return void _this.sv.events.exit.once([], dom_1.bind(window, 'popstate', function (ev) {
                                 if (url_1.isInvalidPopstateEvent(ev))
                                     return;
                                 void listener(ev);
-                            })),
-                            void 0
-                        ];
+                            }));
+                        });
                     }, void 0);
                     void this.sv.cast('', void 0);
                 }
@@ -1740,14 +1738,14 @@ require = function e(t, n, r) {
                     };
                     var timer = 0;
                     void this.sv.register('', function () {
-                        return [
-                            void _this.sv.events.exit.once([], dom_1.bind(window, 'scroll', function (event) {
+                        return new Promise(function () {
+                            return void _this.sv.events.exit.once([], dom_1.bind(window, 'scroll', function (ev) {
                                 return timer = timer > 0 ? timer : setTimeout(function () {
-                                    return timer = 0, void listener(event);
+                                    timer = 0;
+                                    void listener(ev);
                                 }, 300);
-                            }, { passive: true })),
-                            void 0
-                        ];
+                            }, { passive: true }));
+                        });
                     }, void 0);
                     void this.sv.cast('', void 0);
                 }
@@ -1795,10 +1793,9 @@ require = function e(t, n, r) {
                         return void _this.sv.terminate();
                     };
                     void this.sv.register('', function () {
-                        return [
-                            void _this.sv.events.exit.once([], dom_1.delegate(document.documentElement, selector, 'submit', listener)),
-                            void 0
-                        ];
+                        return new Promise(function () {
+                            return void _this.sv.events.exit.once([], dom_1.delegate(document.documentElement, selector, 'submit', listener));
+                        });
                     }, void 0);
                     void this.sv.cast('', void 0);
                 }
@@ -1932,7 +1929,7 @@ require = function e(t, n, r) {
                             });
                         },
                         exit: function (_, s) {
-                            return Array.from(s).forEach(function (terminate) {
+                            return void Array.from(s).forEach(function (terminate) {
                                 return void terminate();
                             });
                         }
