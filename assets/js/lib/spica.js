@@ -1,4 +1,4 @@
-/*! spica v0.0.54 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.55 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
@@ -4066,10 +4066,10 @@ require = function e(t, n, r) {
                 if (dedup === void 0) {
                     dedup = false;
                 }
-                if (dedup && fs.has(fn))
-                    return;
-                void queue.push(fn);
-                dedup && void fs.add(fn);
+                void queue.push([
+                    fn,
+                    dedup
+                ]);
                 void schedule();
             }
             exports.Tick = enqueue;
@@ -4080,14 +4080,19 @@ require = function e(t, n, r) {
                     try {
                         while (rem > 0) {
                             void --rem;
-                            var fn = queue.shift();
-                            void fs.delete(fn);
+                            var _a = queue.shift(), fn = _a[0], dedup = _a[1];
+                            if (dedup) {
+                                if (fs.has(fn))
+                                    continue;
+                                void fs.add(fn);
+                            }
                             void fn();
                         }
                     } catch (e) {
                         console.error(stringify_1.stringify(e));
                         continue;
                     }
+                    fs = new WeakSet();
                     break;
                 }
             }
