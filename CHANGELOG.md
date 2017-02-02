@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.5.4
+
+- Fix error response handling.
+
 ## 3.5.3
 
 - Fix popstate event behaviours in the same page.

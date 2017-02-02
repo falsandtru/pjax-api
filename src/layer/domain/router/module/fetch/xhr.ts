@@ -67,6 +67,10 @@ export function xhr(
 function verify(xhr: XMLHttpRequest): Either<Error, XMLHttpRequest> {
   return Right(xhr)
     .bind(xhr =>
+      /2..|304/.test(`${xhr.status}`)
+        ? Right(xhr)
+        : Left(new DomainError(`Faild to validate a content type of response.`)))
+    .bind(xhr =>
       match(xhr.getResponseHeader('Content-Type'), ContentType)
         ? Right(xhr)
         : Left(new DomainError(`Faild to validate a content type of response.`)));
