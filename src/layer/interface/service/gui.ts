@@ -67,7 +67,7 @@ export class GUI {
                           cancelable: new Cancelable<Error>()
                         },
                         this.io))))
-                .extract(() => Promise.resolve())
+                .extract(failure, success)
                 .catch(() => void window.location.assign((<RouterEvent.Source.Anchor>event._currentTarget).href)))
               .close)
             .add(new SubmitView(this.io.document, this.config.form, event =>
@@ -90,7 +90,7 @@ export class GUI {
                           cancelable: new Cancelable<Error>()
                         },
                         this.io))))
-                .extract(() => Promise.resolve())
+                .extract(failure, success)
                 .catch(() => void window.location.assign((<RouterEvent.Source.Form>event._currentTarget).action)))
               .close)
             .add(new NavigationView(window, event =>
@@ -115,7 +115,7 @@ export class GUI {
                           cancelable: new Cancelable<Error>()
                         },
                         this.io))))
-                .extract(() => Promise.resolve())
+                .extract(failure, success)
                 .catch(() => void window.location.reload(true)))
               .close)
             .add(new ScrollView(window, () =>
@@ -142,6 +142,18 @@ export class GUI {
   }
 }
 
+function success<T extends Promise<any>>(p: T): T {
+  window.history.scrollRestoration = 'manual';
+  void p.then(() =>
+    window.history.scrollRestoration = 'auto');
+  return p;
+}
+function failure(): Promise<void> {
+  void documentUrl.sync();
+  window.history.scrollRestoration = 'auto';
+  return Promise.resolve();
+}
+
 function hasModifierKey(event: MouseEvent): boolean {
   return event.which > 1
       || event.metaKey
@@ -166,7 +178,7 @@ function isHashChange(
       && orig.hash !== dest.hash;
 }
 
-export function click(url: string): Promise<Event> {
+function click(url: string): Promise<Event> {
   const el: RouterEvent.Source.Anchor = document.createElement('a');
   el.href = url;
   return new Promise<Event>(resolve => (

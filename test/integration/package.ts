@@ -5,7 +5,7 @@ import { once } from '../../src/lib/dom';
 describe('Integration: Package', function () {
   describe('state', function () {
     it('scrollRestoration', function () {
-      assert(window.history.scrollRestoration === 'manual');
+      assert(window.history.scrollRestoration === 'auto' || window.history.scrollRestoration === void 0);
     });
 
   });

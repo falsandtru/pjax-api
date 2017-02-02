@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.5.3
+
+- Fix popstate event behaviours in the same page.
+
 ## 3.5.2
 
 - Update dependencies.

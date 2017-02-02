@@ -1,6 +1,8 @@
 import { Supervisor } from 'spica';
-import { isInvalidPopstateEvent } from '../../service/state/url';
+import { canonicalizeUrl } from '../../../data/model/canonicalization/url';
+import { validateUrl } from '../../../data/model/validation/url';
 import { bind } from '../../../../lib/dom';
+import { documentUrl } from '../../service/state/url';
 
 export class NavigationView {
   constructor(
@@ -12,7 +14,7 @@ export class NavigationView {
         void this.sv.events.exit.once(
           [],
           bind(window, 'popstate', ev => {
-            if (isInvalidPopstateEvent(ev)) return;
+            if (canonicalizeUrl(validateUrl(location.href)) === documentUrl.href) return;
             void listener(ev);
           })))
     ), void 0);

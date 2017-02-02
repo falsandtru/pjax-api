@@ -8,8 +8,4 @@ declare global {
     _currentTarget: HTMLElement;
   }
 
-  interface History {
-    scrollRestoration: 'auto' | 'manual';
-  }
-
 }
