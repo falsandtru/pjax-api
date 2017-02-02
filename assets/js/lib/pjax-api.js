@@ -1666,8 +1666,10 @@ require = function e(t, n, r) {
                 };
             }();
             var spica_1 = require('spica');
-            var url_1 = require('../../service/state/url');
+            var url_1 = require('../../../data/model/canonicalization/url');
+            var url_2 = require('../../../data/model/validation/url');
             var dom_1 = require('../../../../lib/dom');
+            var url_3 = require('../../service/state/url');
             var NavigationView = function () {
                 function NavigationView(window, listener) {
                     var _this = this;
@@ -1684,7 +1686,7 @@ require = function e(t, n, r) {
                     void this.sv.register('', function () {
                         return new Promise(function () {
                             return void _this.sv.events.exit.once([], dom_1.bind(window, 'popstate', function (ev) {
-                                if (url_1.isInvalidPopstateEvent(ev))
+                                if (url_1.canonicalizeUrl(url_2.validateUrl(location.href)) === url_3.documentUrl.href)
                                     return;
                                 void listener(ev);
                             }));
@@ -1698,6 +1700,8 @@ require = function e(t, n, r) {
         },
         {
             '../../../../lib/dom': 49,
+            '../../../data/model/canonicalization/url': 9,
+            '../../../data/model/validation/url': 10,
             '../../service/state/url': 48,
             'spica': undefined
         }
@@ -1878,9 +1882,7 @@ require = function e(t, n, r) {
                                                 cancelable: new spica_1.Cancelable()
                                             }, _this.io);
                                         });
-                                    }).extract(function () {
-                                        return Promise.resolve();
-                                    }).catch(function () {
+                                    }).extract(failure, success).catch(function () {
                                         return void window.location.assign(event._currentTarget.href);
                                     });
                                 }).close).add(new submit_1.SubmitView(_this.io.document, _this.config.form, function (event) {
@@ -1895,9 +1897,7 @@ require = function e(t, n, r) {
                                                 cancelable: new spica_1.Cancelable()
                                             }, _this.io);
                                         });
-                                    }).extract(function () {
-                                        return Promise.resolve();
-                                    }).catch(function () {
+                                    }).extract(failure, success).catch(function () {
                                         return void window.location.assign(event._currentTarget.action);
                                     });
                                 }).close).add(new navigation_1.NavigationView(window, function (event) {
@@ -1912,9 +1912,7 @@ require = function e(t, n, r) {
                                                 cancelable: new spica_1.Cancelable()
                                             }, _this.io);
                                         });
-                                    }).extract(function () {
-                                        return Promise.resolve();
-                                    }).catch(function () {
+                                    }).extract(failure, success).catch(function () {
                                         return void window.location.reload(true);
                                     });
                                 }).close).add(new scroll_1.ScrollView(window, function () {
@@ -1949,6 +1947,8 @@ require = function e(t, n, r) {
                                 cancelable: new spica_1.Cancelable()
                             }, io);
                         });
+                    }).then(failure, success).catch(function () {
+                        return void window.location.assign(url);
                     });
                 };
                 GUI.replace = function (url, option, io) {
@@ -1964,6 +1964,8 @@ require = function e(t, n, r) {
                                 cancelable: new spica_1.Cancelable()
                             }, io);
                         });
+                    }).then(failure, success).catch(function () {
+                        return void window.location.replace(url);
                     });
                 };
                 GUI.prototype.assign = function (url) {
@@ -1989,6 +1991,18 @@ require = function e(t, n, r) {
                 return class_2;
             }(spica_1.Supervisor))();
             exports.GUI = GUI;
+            function success(p) {
+                window.history.scrollRestoration = 'manual';
+                void p.then(function () {
+                    return window.history.scrollRestoration = 'auto';
+                });
+                return p;
+            }
+            function failure() {
+                void url_4.documentUrl.sync();
+                window.history.scrollRestoration = 'auto';
+                return Promise.resolve();
+            }
             function hasModifierKey(event) {
                 return event.which > 1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
             }
@@ -2013,7 +2027,6 @@ require = function e(t, n, r) {
                     }), void api_2.parse('').extract().body.appendChild(el), void el.click(), void el.remove();
                 });
             }
-            exports.click = click;
         },
         {
             '../../../lib/dom': 49,
@@ -2134,53 +2147,31 @@ require = function e(t, n, r) {
     47: [
         function (require, module, exports) {
             'use strict';
-            void setTimeout(function () {
-                return window.history.scrollRestoration = 'manual';
-            }, 0);
-            void window.addEventListener('unload', function () {
+            var dom_1 = require('../../../../lib/dom');
+            void dom_1.bind(window, 'unload', function () {
                 return window.history.scrollRestoration = 'auto';
-            }, true);
+            }, false);
         },
-        {}
+        { '../../../../lib/dom': 49 }
     ],
     48: [
         function (require, module, exports) {
             'use strict';
-            var spica_1 = require('spica');
             var url_1 = require('../../../data/model/canonicalization/url');
             var url_2 = require('../../../data/model/validation/url');
-            var dom_1 = require('../../../../lib/dom');
-            var url = url_1.canonicalizeUrl(url_2.validateUrl(location.href));
-            var init = url;
-            exports.documentUrl = {
-                get href() {
-                    return url;
-                },
-                sync: function () {
-                    init = undefined;
-                    return url = url_1.canonicalizeUrl(url_2.validateUrl(location.href));
+            exports.documentUrl = new (function () {
+                function class_1() {
+                    this.href = url_1.canonicalizeUrl(url_2.validateUrl(location.href));
                 }
-            };
-            void dom_1.once(window, 'popstate', function () {
-                return spica_1.Tick(function () {
-                    return init = undefined;
-                });
-            });
-            void dom_1.once(document, 'DOMContentLoaded', function () {
-                return void setTimeout(function () {
-                    return init = undefined;
-                }, 1000);
-            });
-            function isInvalidPopstateEvent(event) {
-                return init === url_1.canonicalizeUrl(url_2.validateUrl(location.href));
-            }
-            exports.isInvalidPopstateEvent = isInvalidPopstateEvent;
+                class_1.prototype.sync = function () {
+                    return this.href = url_1.canonicalizeUrl(url_2.validateUrl(location.href));
+                };
+                return class_1;
+            }())();
         },
         {
-            '../../../../lib/dom': 49,
             '../../../data/model/canonicalization/url': 9,
-            '../../../data/model/validation/url': 10,
-            'spica': undefined
+            '../../../data/model/validation/url': 10
         }
     ],
     49: [
