@@ -64,12 +64,12 @@ export function xhr(
   }
 }
 
-export function verify(xhr: XMLHttpRequest): Either<Error, XMLHttpRequest> {
+function verify(xhr: XMLHttpRequest): Either<Error, XMLHttpRequest> {
   return Right(xhr)
     .bind(xhr =>
       match(xhr.getResponseHeader('Content-Type'), ContentType)
         ? Right(xhr)
-        : Left((new DomainError(`Faild to validate a content type of response.`))));
+        : Left(new DomainError(`Faild to validate a content type of response.`)));
 }
 
 export function match(actualContentType: string | null, expectedContentType: string): boolean {
@@ -82,10 +82,10 @@ export function match(actualContentType: string | null, expectedContentType: str
     .take(1)
     .extract()
     .length > 0;
-}
 
-function parse(headerValue: string): string[] {
-  return headerValue.split(';')
-    .map(type => type.trim())
-    .filter(type => type.length > 0);
+  function parse(headerValue: string): string[] {
+    return headerValue.split(';')
+      .map(type => type.trim())
+      .filter(type => type.length > 0);
+  }
 }
