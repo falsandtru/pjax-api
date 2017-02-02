@@ -24,14 +24,18 @@ export class GUI {
       .then(event =>
         init
           .then(([scripts]) =>
-            route(new Config(option), event, { router: GUI.router, scripts, cancelable: new Cancelable<Error>() }, io)));
+            route(new Config(option), event, { router: GUI.router, scripts, cancelable: new Cancelable<Error>() }, io)))
+      .then(failure, success)
+      .catch(() => void window.location.assign(url));
   }
   public static replace(url: string, option: Option, io = { document: window.document }): undefined {
     return void click(url)
       .then(event =>
         init
           .then(([scripts]) =>
-            route(new Config(extend({}, option, { replace: '*' })), event, { router: GUI.router, scripts, cancelable: new Cancelable<Error>() }, io)));
+            route(new Config(extend({}, option, { replace: '*' })), event, { router: GUI.router, scripts, cancelable: new Cancelable<Error>() }, io)))
+      .then(failure, success)
+      .catch(() => void window.location.replace(url));
   }
   constructor(
     private readonly option: Option,

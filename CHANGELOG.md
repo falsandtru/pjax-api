@@ -3,6 +3,7 @@
 ## 3.5.3
 
 - Fix popstate event behaviours in the same page.
+- Fix assign/replace static methods.
 
 ## 3.5.2
 
