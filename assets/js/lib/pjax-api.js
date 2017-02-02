@@ -778,23 +778,24 @@ require = function e(t, n, r) {
             exports.xhr = xhr;
             function verify(xhr) {
                 return spica_1.Right(xhr).bind(function (xhr) {
+                    return /2..|304/.test('' + xhr.status) ? spica_1.Right(xhr) : spica_1.Left(new error_1.DomainError('Faild to validate a content type of response.'));
+                }).bind(function (xhr) {
                     return match(xhr.getResponseHeader('Content-Type'), ContentType) ? spica_1.Right(xhr) : spica_1.Left(new error_1.DomainError('Faild to validate a content type of response.'));
                 });
             }
-            exports.verify = verify;
             function match(actualContentType, expectedContentType) {
                 return spica_1.Sequence.intersect(spica_1.Sequence.from(parse(actualContentType || '').sort()), spica_1.Sequence.from(parse(expectedContentType).sort()), function (a, b) {
                     return a.localeCompare(b);
                 }).take(1).extract().length > 0;
+                function parse(headerValue) {
+                    return headerValue.split(';').map(function (type) {
+                        return type.trim();
+                    }).filter(function (type) {
+                        return type.length > 0;
+                    });
+                }
             }
             exports.match = match;
-            function parse(headerValue) {
-                return headerValue.split(';').map(function (type) {
-                    return type.trim();
-                }).filter(function (type) {
-                    return type.length > 0;
-                });
-            }
         },
         {
             '../../../data/error': 14,
