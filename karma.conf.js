@@ -7,7 +7,6 @@ module.exports = function (config) {
       { pattern: 'node_modules/power-assert/build/power-assert.js', watched: true, served: true, included: true },
       { pattern: 'node_modules/typed-dom/dist/typed-dom.js', watched: true, served: true, included: true },
       { pattern: 'node_modules/spica/dist/spica.js', watched: true, served: true, included: true },
-      { pattern: 'node_modules/localsocket/dist/localsocket.js', watched: true, served: true, included: true },
       { pattern: 'dist/*.js', watched: true, served: true, included: true },
       { pattern: 'test/integration/usecase/**/*.{html,css,js}', watched: true, served: true, included: true },
       { pattern: 'test/unit/fixture/**/*', watched: true, served: true, included: false }

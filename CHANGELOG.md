@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.6.0
+
+- Use history.state.
+
 ## 3.5.4
 
 - Fix error response handling.

@@ -23,7 +23,6 @@
     "LICENSE"
   ],
   "dependencies": {
-    "localsocket": "^0.7.2",
     "spica": "0.0.55"
   },
   "devDependencies": {

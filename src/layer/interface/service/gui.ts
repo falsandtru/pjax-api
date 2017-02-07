@@ -102,7 +102,7 @@ export class GUI {
                 .bind(url =>
                   isAccessible(url)
                   && !isHashChange(url)
-                    ? Just(loadTitle(url.path))
+                    ? Just(loadTitle())
                     : Nothing)
                 .fmap(title => (
                   title
@@ -123,10 +123,10 @@ export class GUI {
                 .catch(() => void window.location.reload(true)))
               .close)
             .add(new ScrollView(window, () =>
-              void Just(window)
-                .fmap(({pageXOffset: left, pageYOffset: top}) =>
-                  documentUrl.href === new Url(canonicalizeUrl(validateUrl(window.location.href))).href
-                    ? void savePosition(new Url(documentUrl.href).path, { top, left })
+              void Just(new Url(canonicalizeUrl(validateUrl(window.location.href))))
+                .fmap(url =>
+                  documentUrl.href === url.href
+                    ? void savePosition()
                     : void 0)
                 .extract())
               .close)),

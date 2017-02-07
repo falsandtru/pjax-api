@@ -171,7 +171,6 @@ gulp.task('dist', ['clean'], function (done) {
 gulp.task('site', ['dist'], function () {
   return gulp.src([
     'node_modules/spica/dist/spica.js',
-    'node_modules/localsocket/dist/localsocket.js',
     'dist/pjax-api.js'
   ])
     .pipe(gulp.dest('./gh-pages/assets/js/lib'));

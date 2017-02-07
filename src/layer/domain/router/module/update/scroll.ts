@@ -1,8 +1,7 @@
 import { Maybe, Just, Nothing } from 'spica';
 import { RouterEntity } from '../../model/eav/entity';
 import { Url } from '../../../../../lib/url';
-import { canonicalizeUrl, CanonicalUrl } from '../../../../data/model/canonicalization/url';
-import { validateUrl } from '../../../../data/model/validation/url';
+import { CanonicalUrl } from '../../../../data/model/canonicalization/url';
 import { find } from '../../../../../lib/dom';
 
 export function scroll(
@@ -16,9 +15,9 @@ export function scroll(
   io = {
     hash,
     scroll: window.scrollTo,
-    position: (_path: Url.Path<CanonicalUrl>) => ({
-      top: <number | undefined>0,
-      left: <number | undefined>0
+    position: () => ({
+      top: 0,
+      left: 0
     })
   }
 ): void {
@@ -28,7 +27,7 @@ export function scroll(
     case RouterEntity.Event.Type.submit:
       return void scroll(target);
     case RouterEntity.Event.Type.popstate:
-      return void scroll(io.position(new Url(canonicalizeUrl(validateUrl(window.location.href))).path));
+      return void scroll(io.position());
     default:
       throw new TypeError(type);
   }

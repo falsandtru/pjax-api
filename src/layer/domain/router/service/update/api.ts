@@ -11,10 +11,8 @@ import { css } from '../../module/update/css';
 import { script } from '../../module/update/script';
 import { focus } from '../../module/update/focus';
 import { scroll, hash } from '../../module/update/scroll';
-import { saveTitle } from '../../../store/path';
-import { CanonicalUrl } from '../../../../data/model/canonicalization/url';
+import { saveTitle, savePosition } from '../../../store/path';
 import { DomainError } from '../../../data/error';
-import { Url } from '../../../../../lib/url';
 
 type Seq = void;
 
@@ -31,7 +29,7 @@ export function update(
   io: {
     document: Document;
     scroll: (x?: number, y?: number) => void;
-    position: (path: Url.Path<CanonicalUrl>) => { top: number | undefined; left: number | undefined; };
+    position: () => { top: number; left: number; };
   }
 ): Promise<Either<Error, HTMLScriptElement[]>> {
   const {cancelable} = state;
@@ -68,9 +66,8 @@ export function update(
           .modify(() =>
             void url(new RouterEntity.Event.Location(response.url || event.location.dest.href), doc.src.title, event.type, event.source, config.replace))
           .modify(() => (
-            void saveTitle(event.location.orig.path, doc.src.title),
-            void saveTitle(event.location.dest.path, doc.dst.title),
-            void title(doc)))
+            void title(doc),
+            void saveTitle()))
           .modify(() =>
             void head(
               {
@@ -107,7 +104,7 @@ export function update(
               : void 0)
           .modify(() =>
             void focus(doc.dst))
-          .modify(() =>
+          .modify(() => (
             void scroll(event.type, doc.dst,
               {
                 hash: event.location.dest.hash,
@@ -118,7 +115,8 @@ export function update(
                 hash: hash,
                 scroll: io.scroll,
                 position: io.position
-              }))
+              }),
+            void savePosition()))
           .modify(() =>
             config.update.script
               ? script(doc, state.scripts, config.update, cancelable)

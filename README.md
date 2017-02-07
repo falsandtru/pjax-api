@@ -26,7 +26,6 @@ The second generation PJAX for the advanced web frameworks.
 |Caching|O|X|O|
 |URL scope|X|O|X|
 |URL scope base ovarride setting|X|O|X|
-|history.state free|X|O|X|
 |**Browser history fix**|**X**|O|**X**|
 |**Scroll position restoration**|**X**|O|**X**|
 |NOSCRIPT tag restoration|X|O|X|
@@ -39,7 +38,6 @@ The second generation PJAX for the advanced web frameworks.
 
 ```html
 <script src="/js/spica.js"></script>
-<script src="/js/localsocket.js"></script>
 <script src="/js/pjax-api.js"></script>
 ```
 
@@ -58,7 +56,6 @@ new Pjax({
 });
 ```
 
-- [localsocket](https://github.com/falsandtru/localsocket)
 - [spica](https://github.com/falsandtru/spica)
 
 ## Document
