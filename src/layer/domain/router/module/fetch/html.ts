@@ -19,7 +19,7 @@ function parseByDoc(html: string): Document {
   const title = find(parseHTML(html.slice(0, html.search(/<\/title>/i) + 8)), 'title')
     .reduce((title, el) => el.textContent || title, '');
   if ('function' === typeof DOMParser) {
-    document.title = title
+    document.title = title;
   }
   void document.open();
   void document.write(html);
