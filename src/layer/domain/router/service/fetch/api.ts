@@ -34,7 +34,7 @@ export function fetch(
             .bind(v =>
               v.response.url === '' || new Url(v.response.url).domain === new Url(url).domain
                 ? Right(v)
-                : Left(new DomainError(`Request is redirected to the different domain ${new Url(v.response.url).domain}`)))
+                : Left(new DomainError(`Request is redirected to the different domain url ${new Url(v.response.url).href}`)))
             .fmap<[FetchValue, void]>(v =>
               [v, s])),
           e => Left<Error>(e instanceof Error ? e : new Error(e)))))

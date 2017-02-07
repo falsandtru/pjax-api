@@ -2,6 +2,7 @@ import { Url } from '../../../lib/url';
 import { canonicalizeUrl, CanonicalUrl } from '../../data/model/canonicalization/url';
 import { validateUrl } from '../../data/model/validation/url';
 import { serialize } from '../../../lib/dom';
+import { DomainError } from '../data/error';
 
 export class RouterEvent {
   constructor(
@@ -94,6 +95,7 @@ export namespace RouterEvent {
     constructor(
       private readonly target: CanonicalUrl
     ) {
+      if (this.orig.domain !== this.dest.domain) throw new DomainError(`Cannot go to the different domain url ${this.dest.href}`);
       void Object.freeze(this);
     }
     public readonly orig: Url<CanonicalUrl> = new Url(canonicalizeUrl(validateUrl(window.location.href)));
