@@ -26,12 +26,11 @@ class: style-top
 ## Installation
 
 ```
-$ npm i pjax-api spica localsocket
+$ npm i pjax-api spica
 ```
 
 ```html
 <script src="/js/spica.js"></script>
-<script src="/js/localsocket.js"></script>
 <script src="/js/pjax-api.js"></script>
 <script>
 var Pjax = require('pjax-api').Pjax;
