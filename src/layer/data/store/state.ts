@@ -9,7 +9,7 @@ assert(window.history.state instanceof Object);
 void saveTitle();
 void savePosition();
 
-export function loadTitle(): string {
+export function loadTitle(): StateSchema.Title {
   return window.history.state.title
       || document.title;
 }
