@@ -18,7 +18,7 @@ import { once } from '../../../lib/dom';
 
 export class GUI {
   private static readonly router = new class extends Supervisor<'', Error, void, void> { }();
-  private static readonly sv = new class extends Supervisor<'view', void, void, Set<() => void>>{ }();
+  private static readonly view = new class extends Supervisor<'', void, void, Cancelable<void>>{ }();
   public static assign(url: string, option: Option, io = { document: window.document }): undefined {
     return void click(url)
       .then(event =>
@@ -43,12 +43,12 @@ export class GUI {
       document: window.document
     }
   ) {
-    void GUI.sv.terminate('view');
-    void GUI.sv.register('view', {
+    void GUI.view.terminate('');
+    void GUI.view.register('', {
       init: s => s,
-      call: (_, s) =>
+      call: (_, {listeners}) =>
         new Promise<never>(() =>
-          void s
+          void listeners
             .add(new ClickView(this.io.document, this.config.link, event =>
               void Just(new Url(canonicalizeUrl(validateUrl((<RouterEvent.Source.Anchor>event._currentTarget).href))))
                 .bind(url =>
@@ -131,11 +131,9 @@ export class GUI {
                 .extract())
               .close)),
       exit: (_, s) =>
-        void Array.from(s)
-          .forEach(terminate =>
-            void terminate()),
-    }, new Set());
-    void GUI.sv.cast('view', void 0);
+        void s.cancel()
+    }, new Cancelable<void>());
+    void GUI.view.cast('', void 0);
   }
   private readonly config: Config = new Config(this.option);
   public assign(url: string): undefined {
