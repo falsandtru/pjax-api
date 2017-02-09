@@ -1,7 +1,7 @@
 import { script, escape, _log, _request, _evaluate } from './script';
+import { Cancelable, Left, Right } from 'spica';
 import { parse } from '../../../../../lib/html';
 import { find } from '../../../../../lib/dom';
-import { Cancelable, Left, Right } from 'spica';
 import DOM from 'typed-dom';
 
 describe('Unit: layer/domain/router/module/update/script', () => {

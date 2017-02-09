@@ -1,9 +1,9 @@
-import { Sequence } from 'spica';
 import { scope, compare, expand, match } from './scope';
 import { Config } from '../../domain/data/config';
 import { Url } from '../../../lib/url';
 import { canonicalizeUrl } from '../../data/model/canonicalization/url';
 import { validateUrl } from '../../data/model/validation/url';
+import { Sequence } from 'spica';
 
 describe('Unit: layer/application/config/scope', () => {
   describe('scope', () => {

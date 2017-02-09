@@ -1,9 +1,9 @@
 import { hash } from './scroll';
 import { parse } from '../../../../../lib/html';
-import DOM from 'typed-dom';
 import { Url } from '../../../../../lib/url';
 import { canonicalizeUrl } from '../../../../data/model/canonicalization/url';
 import { validateUrl } from '../../../../data/model/validation/url';
+import DOM from 'typed-dom';
 
 describe('Unit: layer/domain/router/module/update/scroll', () => {
   describe('hash', () => {

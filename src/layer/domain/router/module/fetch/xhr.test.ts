@@ -1,8 +1,8 @@
 import { xhr, match } from './xhr';
-import { Sequence, Cancelable } from 'spica';
 import { RouterEvent } from '../../../event/router';
 import { canonicalizeUrl } from '../../../../data/model/canonicalization/url';
 import { validateUrl } from '../../../../data/model/validation/url';
+import { Sequence, Cancelable } from 'spica';
 
 describe('Unit: layer/domain/router/module/fetch/xhr', () => {
   describe('xhr', () => {

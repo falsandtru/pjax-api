@@ -1,7 +1,7 @@
 import { RouterEvent } from './router';
-import DOM from 'typed-dom';
 import { canonicalizeUrl } from '../../data/model/canonicalization/url';
 import { validateUrl } from '../../data/model/validation/url';
+import DOM from 'typed-dom';
 
 describe('Unit: layer/domain/event/router', () => {
   describe('RouterEvent.Request', () => {
