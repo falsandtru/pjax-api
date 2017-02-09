@@ -33,7 +33,7 @@ export function update(
   }
 ): Promise<Either<Error, HTMLScriptElement[]>> {
   const {cancelable} = state;
-  const {document: doc} = new UpdateValue({
+  const {documents} = new UpdateValue({
     src: response.document,
     dst: io.document
   });
@@ -43,9 +43,9 @@ export function update(
     .modify(p => p.then(m => m
       .bind(cancelable.either)
       .fmap<Promise<Either<Error, Seq>>>(seq =>
-        separate(doc, config.areas)
+        separate(documents, config.areas)
           .fmap(([area]) =>
-            void config.rewrite(doc.src, area, ''))
+            void config.rewrite(documents.src, area, ''))
           .extract(
             () =>
               Promise.resolve(Left(new DomainError(`Failed to separate areas.`))),
@@ -60,52 +60,50 @@ export function update(
     .modify(p => p.then(m => m
       .bind(cancelable.either)
       .fmap(seq =>
-        new HNil().push(void 0)
-          .modify(() =>
-            void blur(doc.dst))
-          .modify(() =>
-            void url(new RouterEntity.Event.Location(response.url || event.location.dest.href), doc.src.title, event.type, event.source, config.replace))
-          .modify(() => (
-            void title(doc),
-            void saveTitle()))
-          .modify(() =>
+        new HNil()
+          .push((
+            void blur(documents.dst),
+            void url(
+              new RouterEntity.Event.Location(response.url || event.location.dest.href),
+              documents.src.title,
+              event.type,
+              event.source,
+              config.replace),
+            void title(documents),
+            void saveTitle(),
             void head(
               {
-                src: doc.src.head,
-                dst: doc.dst.head
+                src: documents.src.head,
+                dst: documents.dst.head
               },
               config.update.head,
-              config.update.ignore))
-          .modify(() =>
-            content(doc, config.areas)
+              config.update.ignore),
+            content(documents, config.areas)
               .extract<Promise<Either<Error, [{ src: Document; dst: Document; }, Event[]]>>>(
                 () => Promise.resolve(Left(new DomainError(`Failed to update areas.`))),
                 p => p
                   .then(
                     cancelable.either,
-                    e => Left<Error>(e instanceof Error ? e : new Error(e)))))
-          .extend(() =>
+                    e => Left<Error>(e instanceof Error ? e : new Error(e))))))
+          .extend(() => (
             config.update.css
               ? void css(
-                {
-                  src: doc.src.head,
-                  dst: doc.dst.head
-                },
-                config.update.ignore)
-              : void 0)
-          .modify(() =>
+                  {
+                    src: documents.src.head,
+                    dst: documents.dst.head
+                  },
+                  config.update.ignore)
+              : void 0,
             config.update.css
               ? void css(
-                {
-                  src: <HTMLBodyElement>doc.src.body,
-                  dst: <HTMLBodyElement>doc.dst.body
-                },
-                config.update.ignore)
-              : void 0)
-          .modify(() =>
-            void focus(doc.dst))
-          .modify(() => (
-            void scroll(event.type, doc.dst,
+                  {
+                    src: <HTMLBodyElement>documents.src.body,
+                    dst: <HTMLBodyElement>documents.dst.body
+                  },
+                  config.update.ignore)
+              : void 0,
+            void focus(documents.dst),
+            void scroll(event.type, documents.dst,
               {
                 hash: event.location.dest.hash,
                 top: 0,
@@ -116,11 +114,10 @@ export function update(
                 scroll: io.scroll,
                 position: io.position
               }),
-            void savePosition()))
-          .modify(() =>
+            void savePosition(),
             config.update.script
-              ? script(doc, state.scripts, config.update, cancelable)
-              : Promise.resolve<Either<Error, HTMLScriptElement[]>>(cancelable.either([])))
+              ? script(documents, state.scripts, config.update, cancelable)
+              : Promise.resolve<Either<Error, HTMLScriptElement[]>>(cancelable.either([]))))
           .extend(() => (
             void io.document.dispatchEvent(new Event('pjax:ready')),
             config.sequence.ready(seq)

@@ -6,7 +6,7 @@ import { validateUrl } from '../../../../data/model/validation/url';
 type Response = [HTMLScriptElement, string];
 
 export function script(
-  document: {
+  documents: {
     src: Document;
     dst: Document;
   },
@@ -23,7 +23,7 @@ export function script(
     log
   }
 ): Promise<Either<Error, HTMLScriptElement[]>> {
-  const scripts: HTMLScriptElement[] = find<HTMLScriptElement>(document.src, 'script')
+  const scripts: HTMLScriptElement[] = find<HTMLScriptElement>(documents.src, 'script')
     .filter(el => !el.type || /(?:application|text)\/(?:java|ecma)script/i.test(el.type))
     .filter(el => !el.matches(selector.ignore.trim() || '_'))
     .filter(el =>
@@ -53,7 +53,7 @@ export function script(
         io.evaluate(response)
           .fmap(script => (
             script.parentElement!.matches(selector.logger.trim() || '_')
-              ? void io.log(script, document.dst)
+              ? void io.log(script, documents.dst)
               : void 0,
             scripts.concat([script]))));
   }

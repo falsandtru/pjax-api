@@ -6,24 +6,24 @@ type DocumentRecord = { src: Document; dst: Document; };
 type AreaRecord = { src: HTMLElement[]; dst: HTMLElement[]; };
 
 export function content(
-  document: DocumentRecord,
+  documents: DocumentRecord,
   areas: string[],
   io = {
     replace: (src: Node, dst: Node): void => void dst.parentNode!.replaceChild(src, dst)
   }
 ): Maybe<Promise<[DocumentRecord, Event[]]>> {
-  return separate(document, areas)
+  return separate(documents, areas)
     .fmap<Promise<Event>[]>(([, as]) =>
       as.map(load).reduce<Promise<Event>[]>(concat, []))
     .fmap<Promise<[DocumentRecord, Event[]]>>(ps =>
       Promise.all(ps)
         .then<[DocumentRecord, Event[]]>(es =>
-          [document, es]));
+          [documents, es]));
 
   function load(area: AreaRecord): Promise<Event>[] {
     return area.src
       .map((_, i) => ({
-        src: <HTMLElement>window.document.importNode(area.src[i].cloneNode(true), true),
+        src: <HTMLElement>documents.dst.importNode(area.src[i].cloneNode(true), true),
         dst: area.dst[i]
       }))
       .map(area => (
@@ -46,19 +46,19 @@ export function content(
 }
 
 export function separate(
-  document: DocumentRecord,
+  documents: DocumentRecord,
   areas: string[]
 ): Maybe<[string, AreaRecord[]]> {
   return areas
     .reduce<Maybe<[string, AreaRecord[]]>>((m, area) =>
       Maybe.mplus(
         m,
-        sep(document, area)
+        sep(documents, area)
           .fmap<[string, AreaRecord[]]>(as =>
             [area, as]))
     , Nothing)
 
-  function sep(document: DocumentRecord, area: string): Maybe<AreaRecord[]> {
+  function sep(documents: DocumentRecord, area: string): Maybe<AreaRecord[]> {
     return split(area)
       .reduce<Maybe<AreaRecord[]>>((acc, area) =>
         acc
@@ -84,8 +84,8 @@ export function separate(
 
       function cons(area: string): AreaRecord {
         return {
-          src: find(document.src, area),
-          dst: find(document.dst, area)
+          src: find(documents.src, area),
+          dst: find(documents.dst, area)
         };
       }
     }
@@ -95,14 +95,17 @@ export function separate(
 export function match(
   document: Document,
   areas: string[]
-): Sequence<string, any> {
+): boolean {
   return Sequence.from(areas)
     .bind(area =>
       Sequence.from(
         validate(document, area)
           .extract<string[]>(
             () => [],
-            area => [area])));
+            area => [area])))
+    .take(1)
+    .extract()
+    .length > 0;
 
   function validate(
     document: Document,

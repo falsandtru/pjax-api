@@ -1,8 +1,8 @@
 export function title(
-  document: {
+  documents: {
     src: Document;
     dst: Document;
   }
 ): void {
-  document.dst.title = document.src.title;
+  documents.dst.title = documents.src.title;
 }
