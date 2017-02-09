@@ -13,8 +13,9 @@ import { init } from '../service/state/initialization';
 import { documentUrl } from '../service/state/url';
 import '../service/state/scroll-restoration';
 import { route } from '../service/router';
-import { loadTitle, savePosition, parse } from '../../application/api';
+import { loadTitle, savePosition } from '../../application/api';
 import { once } from '../../../lib/dom';
+import { parse } from '../../../lib/html';
 
 export class GUI {
   private static readonly router = new class extends Supervisor<'', Error, void, void> { }();

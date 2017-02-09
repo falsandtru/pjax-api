@@ -39,4 +39,3 @@ export function route(
 }
 
 export * from './store/path';
-export { parse } from '../domain/router/module/fetch/html';

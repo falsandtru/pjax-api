@@ -1,6 +1,6 @@
 import { parse, _fixNoscript } from './html';
+import { find } from './dom';
 import DOM from 'typed-dom';
-import { find } from '../../../../../lib/dom';
 
 describe('Unit: layer/domain/router/module/fetch/html', () => {
   describe('parse', () => {

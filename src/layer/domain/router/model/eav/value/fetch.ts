@@ -1,4 +1,4 @@
-import { parse } from '../../../module/fetch/html';
+import { parse } from '../../../../../../lib/html';
 import { canonicalizeUrl } from '../../../../../data/model/canonicalization/url';
 import { validateUrl } from '../../../../../data/model/validation/url';
 

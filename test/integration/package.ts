@@ -1,5 +1,5 @@
 import { Pjax, Sequence } from 'pjax-api';
-import { parse } from '../../src/layer/application/api';
+import { parse } from '../../src/lib/html';
 import { once } from '../../src/lib/dom';
 
 describe('Integration: Package', function () {

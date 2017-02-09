@@ -1,5 +1,5 @@
 import { hash } from './scroll';
-import { parse } from '../fetch/html';
+import { parse } from '../../../../../lib/html';
 import DOM from 'typed-dom';
 import { Url } from '../../../../../lib/url';
 import { canonicalizeUrl } from '../../../../data/model/canonicalization/url';

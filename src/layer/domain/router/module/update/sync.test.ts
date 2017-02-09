@@ -1,5 +1,5 @@
 import { sync, pair } from './sync';
-import { parse } from '../fetch/html';
+import { parse } from '../../../../../lib/html';
 import { find } from '../../../../../lib/dom';
 import DOM from 'typed-dom';
 

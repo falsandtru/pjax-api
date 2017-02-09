@@ -1,5 +1,5 @@
 import { script, escape, _log, _request, _evaluate } from './script';
-import { parse } from '../fetch/html';
+import { parse } from '../../../../../lib/html';
 import { find } from '../../../../../lib/dom';
 import { Cancelable, Left, Right } from 'spica';
 import DOM from 'typed-dom';

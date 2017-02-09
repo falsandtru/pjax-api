@@ -1,5 +1,5 @@
 import { content, _split, _wait } from './content';
-import { parse } from '../fetch/html';
+import { parse } from '../../../../../lib/html';
 import DOM from 'typed-dom';
 
 describe('Unit: layer/domain/router/module/update/content', () => {
