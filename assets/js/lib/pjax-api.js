@@ -49,7 +49,7 @@ require = function e(t, n, r) {
             var api_2 = require('./layer/interface/service/api');
             exports.default = api_2.API;
         },
-        { './layer/interface/service/api': 40 }
+        { './layer/interface/service/api': 39 }
     ],
     5: [
         function (require, module, exports) {
@@ -79,14 +79,11 @@ require = function e(t, n, r) {
             }
             exports.route = route;
             __export(require('./store/path'));
-            var html_1 = require('../domain/router/module/fetch/html');
-            exports.parse = html_1.parse;
         },
         {
             '../domain/data/config': 12,
             '../domain/event/router': 14,
             '../domain/router/api': 15,
-            '../domain/router/module/fetch/html': 19,
             './config/scope': 6,
             './data/error': 7,
             './store/path': 8,
@@ -235,7 +232,7 @@ require = function e(t, n, r) {
             }(error_1.PjaxError);
             exports.ApplicationError = ApplicationError;
         },
-        { '../../../lib/error': 49 }
+        { '../../../lib/error': 48 }
     ],
     8: [
         function (require, module, exports) {
@@ -244,7 +241,7 @@ require = function e(t, n, r) {
             exports.loadTitle = path_1.loadTitle;
             exports.savePosition = path_1.savePosition;
         },
-        { '../../domain/store/path': 34 }
+        { '../../domain/store/path': 33 }
     ],
     9: [
         function (require, module, exports) {
@@ -432,7 +429,7 @@ require = function e(t, n, r) {
             }(error_1.PjaxError);
             exports.DomainError = DomainError;
         },
-        { '../../../lib/error': 49 }
+        { '../../../lib/error': 48 }
     ],
     14: [
         function (require, module, exports) {
@@ -517,7 +514,7 @@ require = function e(t, n, r) {
             exports.RouterEvent = RouterEvent;
         },
         {
-            '../../../lib/dom': 48,
+            '../../../lib/dom': 47,
             '../../../lib/url': 51,
             '../../data/model/canonicalization/url': 9,
             '../../data/model/validation/url': 10,
@@ -534,7 +531,7 @@ require = function e(t, n, r) {
             }
             __export(require('./service/api'));
         },
-        { './service/api': 31 }
+        { './service/api': 30 }
     ],
     16: [
         function (require, module, exports) {
@@ -569,7 +566,7 @@ require = function e(t, n, r) {
     17: [
         function (require, module, exports) {
             'use strict';
-            var html_1 = require('../../../module/fetch/html');
+            var html_1 = require('../../../../../../lib/html');
             var url_1 = require('../../../../../data/model/canonicalization/url');
             var url_2 = require('../../../../../data/model/validation/url');
             var FetchValue = function () {
@@ -609,18 +606,18 @@ require = function e(t, n, r) {
             exports.FetchValue = FetchValue;
         },
         {
+            '../../../../../../lib/html': 49,
             '../../../../../data/model/canonicalization/url': 9,
-            '../../../../../data/model/validation/url': 10,
-            '../../../module/fetch/html': 19
+            '../../../../../data/model/validation/url': 10
         }
     ],
     18: [
         function (require, module, exports) {
             'use strict';
             var UpdateValue = function () {
-                function UpdateValue(document) {
-                    this.document = document;
-                    void Object.freeze(this.document);
+                function UpdateValue(documents) {
+                    this.documents = documents;
+                    void Object.freeze(this.documents);
                     void Object.freeze(this);
                 }
                 return UpdateValue;
@@ -630,94 +627,6 @@ require = function e(t, n, r) {
         {}
     ],
     19: [
-        function (require, module, exports) {
-            'use strict';
-            var spica_1 = require('spica');
-            var dom_1 = require('../../../../../lib/dom');
-            exports.parse = [
-                parseByDoc,
-                parseByDOM
-            ].reduce(function (m, parser) {
-                return m.bind(function () {
-                    return test(parser) ? spica_1.Left(parser) : m;
-                });
-            }, spica_1.Right(function () {
-                return spica_1.Nothing;
-            })).extract(function (parser) {
-                return function (html) {
-                    return spica_1.Just(parser(html));
-                };
-            });
-            function parseByDOM(html) {
-                var doc = new DOMParser().parseFromString(html, 'text/html');
-                void fix(doc);
-                return doc;
-            }
-            function parseByDoc(html) {
-                var document = window.document.implementation.createHTMLDocument('');
-                var title = dom_1.find(dom_1.parse(html.slice(0, html.search(/<\/title>/i) + 8)), 'title').reduce(function (title, el) {
-                    return el.textContent || title;
-                }, '');
-                if ('function' === typeof DOMParser) {
-                    document.title = title;
-                }
-                void document.open();
-                void document.write(html);
-                void document.close();
-                if (document.title !== title) {
-                    document.title = document.querySelector('title').textContent || '';
-                }
-                void fix(document);
-                return document;
-            }
-            function fix(doc) {
-                return void fixNoscript(doc).forEach(function (_a) {
-                    var src = _a[0], fixed = _a[1];
-                    return src.textContent = fixed.textContent;
-                });
-            }
-            exports.fix = fix;
-            function fixNoscript(doc) {
-                return dom_1.find(doc, 'noscript').filter(function (el) {
-                    return el.children.length > 0;
-                }).map(function (el) {
-                    var clone = el.cloneNode(true);
-                    clone.textContent = el.innerHTML;
-                    return [
-                        el,
-                        clone
-                    ];
-                });
-            }
-            exports._fixNoscript = fixNoscript;
-            function test(parser) {
-                try {
-                    var html = '\n<html lang="en" class="html">\n  <head>\n    <link href="/">\n    <title>&amp;</title>\n    <noscript><style>/**/</style></noscript>\n  </head>\n  <body>\n    <noscript>noscript</noscript>\n    <a href="/"></a>\n    <script>document.head.remove();</script>\n  </body>\n</html>\n';
-                    var doc = parser(html);
-                    switch (false) {
-                    case doc.URL && decodeURI(doc.URL) === decodeURI(window.location.href):
-                    case doc.title === '&':
-                    case !!doc.querySelector('html.html[lang="en"]'):
-                    case !!doc.querySelector('head>link')['href']:
-                    case !!doc.querySelector('body>a')['href']:
-                    case !doc.querySelector('head>noscript>*'):
-                    case doc.querySelector('script')['innerHTML'] === 'document.head.remove();':
-                    case doc.querySelector('head>noscript')['textContent'] === '<style>/**/</style>':
-                    case doc.querySelector('body>noscript')['textContent'] === 'noscript':
-                        throw void 0;
-                    }
-                    return true;
-                } catch (err) {
-                    return false;
-                }
-            }
-        },
-        {
-            '../../../../../lib/dom': 48,
-            'spica': undefined
-        }
-    ],
-    20: [
         function (require, module, exports) {
             'use strict';
             var spica_1 = require('spica');
@@ -798,7 +707,7 @@ require = function e(t, n, r) {
             'spica': undefined
         }
     ],
-    21: [
+    20: [
         function (require, module, exports) {
             'use strict';
             function blur(document) {
@@ -811,13 +720,13 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    22: [
+    21: [
         function (require, module, exports) {
             'use strict';
             var spica_1 = require('spica');
             var dom_1 = require('../../../../../lib/dom');
             var script_1 = require('./script');
-            function content(document, areas, io) {
+            function content(documents, areas, io) {
                 if (io === void 0) {
                     io = {
                         replace: function (src, dst) {
@@ -825,13 +734,13 @@ require = function e(t, n, r) {
                         }
                     };
                 }
-                return separate(document, areas).fmap(function (_a) {
+                return separate(documents, areas).fmap(function (_a) {
                     var as = _a[1];
                     return as.map(load).reduce(spica_1.concat, []);
                 }).fmap(function (ps) {
                     return Promise.all(ps).then(function (es) {
                         return [
-                            document,
+                            documents,
                             es
                         ];
                     });
@@ -839,7 +748,7 @@ require = function e(t, n, r) {
                 function load(area) {
                     return area.src.map(function (_, i) {
                         return {
-                            src: window.document.importNode(area.src[i].cloneNode(true), true),
+                            src: documents.dst.importNode(area.src[i].cloneNode(true), true),
                             dst: area.dst[i]
                         };
                     }).map(function (area) {
@@ -859,16 +768,16 @@ require = function e(t, n, r) {
                 }
             }
             exports.content = content;
-            function separate(document, areas) {
+            function separate(documents, areas) {
                 return areas.reduce(function (m, area) {
-                    return spica_1.Maybe.mplus(m, sep(document, area).fmap(function (as) {
+                    return spica_1.Maybe.mplus(m, sep(documents, area).fmap(function (as) {
                         return [
                             area,
                             as
                         ];
                     }));
                 }, spica_1.Nothing);
-                function sep(document, area) {
+                function sep(documents, area) {
                     return split(area).reduce(function (acc, area) {
                         return acc.bind(function (as) {
                             return pair(area).fmap(function (a) {
@@ -886,8 +795,8 @@ require = function e(t, n, r) {
                         }
                         function cons(area) {
                             return {
-                                src: dom_1.find(document.src, area),
-                                dst: dom_1.find(document.dst, area)
+                                src: dom_1.find(documents.src, area),
+                                dst: dom_1.find(documents.dst, area)
                             };
                         }
                     }
@@ -901,7 +810,7 @@ require = function e(t, n, r) {
                     }, function (area) {
                         return [area];
                     }));
-                });
+                }).take(1).extract().length > 0;
                 function validate(document, area) {
                     return split(area).reduce(function (m, area) {
                         return m.bind(function () {
@@ -931,12 +840,12 @@ require = function e(t, n, r) {
             exports._wait = wait;
         },
         {
-            '../../../../../lib/dom': 48,
-            './script': 26,
+            '../../../../../lib/dom': 47,
+            './script': 25,
             'spica': undefined
         }
     ],
-    23: [
+    22: [
         function (require, module, exports) {
             'use strict';
             var dom_1 = require('../../../../../lib/dom');
@@ -962,11 +871,11 @@ require = function e(t, n, r) {
             }
         },
         {
-            '../../../../../lib/dom': 48,
-            './sync': 28
+            '../../../../../lib/dom': 47,
+            './sync': 27
         }
     ],
-    24: [
+    23: [
         function (require, module, exports) {
             'use strict';
             var dom_1 = require('../../../../../lib/dom');
@@ -979,9 +888,9 @@ require = function e(t, n, r) {
             }
             exports.focus = focus;
         },
-        { '../../../../../lib/dom': 48 }
+        { '../../../../../lib/dom': 47 }
     ],
-    25: [
+    24: [
         function (require, module, exports) {
             'use strict';
             var sync_1 = require('./sync');
@@ -1000,18 +909,18 @@ require = function e(t, n, r) {
             }
         },
         {
-            '../../../../../lib/dom': 48,
-            './sync': 28
+            '../../../../../lib/dom': 47,
+            './sync': 27
         }
     ],
-    26: [
+    25: [
         function (require, module, exports) {
             'use strict';
             var spica_1 = require('spica');
             var dom_1 = require('../../../../../lib/dom');
             var url_1 = require('../../../../data/model/canonicalization/url');
             var url_2 = require('../../../../data/model/validation/url');
-            function script(document, skip, selector, cancelable, io) {
+            function script(documents, skip, selector, cancelable, io) {
                 if (io === void 0) {
                     io = {
                         request: request,
@@ -1019,7 +928,7 @@ require = function e(t, n, r) {
                         log: log
                     };
                 }
-                var scripts = dom_1.find(document.src, 'script').filter(function (el) {
+                var scripts = dom_1.find(documents.src, 'script').filter(function (el) {
                     return !el.type || /(?:application|text)\/(?:java|ecma)script/i.test(el.type);
                 }).filter(function (el) {
                     return !el.matches(selector.ignore.trim() || '_');
@@ -1040,7 +949,7 @@ require = function e(t, n, r) {
                 function run(state, response) {
                     return state.bind(cancelable.either).bind(function (scripts) {
                         return io.evaluate(response).fmap(function (script) {
-                            return script.parentElement.matches(selector.logger.trim() || '_') ? void io.log(script, document.dst) : void 0, scripts.concat([script]);
+                            return script.parentElement.matches(selector.logger.trim() || '_') ? void io.log(script, documents.dst) : void 0, scripts.concat([script]);
                         });
                     });
                 }
@@ -1119,13 +1028,13 @@ require = function e(t, n, r) {
             exports._log = log;
         },
         {
-            '../../../../../lib/dom': 48,
+            '../../../../../lib/dom': 47,
             '../../../../data/model/canonicalization/url': 9,
             '../../../../data/model/validation/url': 10,
             'spica': undefined
         }
     ],
-    27: [
+    26: [
         function (require, module, exports) {
             'use strict';
             var spica_1 = require('spica');
@@ -1185,12 +1094,12 @@ require = function e(t, n, r) {
             exports.hash = hash;
         },
         {
-            '../../../../../lib/dom': 48,
+            '../../../../../lib/dom': 47,
             '../../model/eav/entity': 16,
             'spica': undefined
         }
     ],
-    28: [
+    27: [
         function (require, module, exports) {
             'use strict';
             var spica_1 = require('spica');
@@ -1254,17 +1163,17 @@ require = function e(t, n, r) {
         },
         { 'spica': undefined }
     ],
-    29: [
+    28: [
         function (require, module, exports) {
             'use strict';
-            function title(document) {
-                document.dst.title = document.src.title;
+            function title(documents) {
+                documents.dst.title = documents.src.title;
             }
             exports.title = title;
         },
         {}
     ],
-    30: [
+    29: [
         function (require, module, exports) {
             'use strict';
             var entity_1 = require('../../model/eav/entity');
@@ -1308,7 +1217,7 @@ require = function e(t, n, r) {
         },
         { '../../model/eav/entity': 16 }
     ],
-    31: [
+    30: [
         function (require, module, exports) {
             'use strict';
             var spica_1 = require('spica');
@@ -1321,7 +1230,7 @@ require = function e(t, n, r) {
             var error_1 = require('../../data/error');
             function route(entity, io) {
                 return Promise.resolve().then(function () {
-                    return content_1.match(window.document, entity.config.areas).take(1).extract().length > 0 ? entity.state.cancelable.either(void 0) : spica_1.Left(new error_1.DomainError('Failed to match areas.'));
+                    return content_1.match(io.document, entity.config.areas) ? entity.state.cancelable.either(void 0) : spica_1.Left(new error_1.DomainError('Failed to match areas.'));
                 }).then(function (m) {
                     return m.bind(entity.state.cancelable.either).fmap(function () {
                         return api_1.fetch(entity.event.request, entity.config, entity.state.cancelable);
@@ -1343,15 +1252,15 @@ require = function e(t, n, r) {
         },
         {
             '../../data/error': 13,
-            '../../store/path': 34,
+            '../../store/path': 33,
             '../model/eav/entity': 16,
-            '../module/update/content': 22,
-            './fetch/api': 32,
-            './update/api': 33,
+            '../module/update/content': 21,
+            './fetch/api': 31,
+            './update/api': 32,
             'spica': undefined
         }
     ],
-    32: [
+    31: [
         function (require, module, exports) {
             'use strict';
             var spica_1 = require('spica');
@@ -1388,11 +1297,11 @@ require = function e(t, n, r) {
         {
             '../../../../../lib/url': 51,
             '../../../data/error': 13,
-            '../../module/fetch/xhr': 20,
+            '../../module/fetch/xhr': 19,
             'spica': undefined
         }
     ],
-    33: [
+    32: [
         function (require, module, exports) {
             'use strict';
             var __assign = this && this.__assign || Object.assign || function (t) {
@@ -1422,16 +1331,16 @@ require = function e(t, n, r) {
                 var event = _a.event, config = _a.config, state = _a.state;
                 var response = _b.response;
                 var cancelable = state.cancelable;
-                var doc = new update_1.UpdateValue({
+                var documents = new update_1.UpdateValue({
                     src: response.document,
                     dst: io.document
-                }).document;
+                }).documents;
                 return new spica_1.HNil().push(Promise.resolve(cancelable.either(seq))).modify(function (p) {
                     return p.then(function (m) {
                         return m.bind(cancelable.either).fmap(function (seq) {
-                            return content_1.separate(doc, config.areas).fmap(function (_a) {
+                            return content_1.separate(documents, config.areas).fmap(function (_a) {
                                 var area = _a[0];
-                                return void config.rewrite(doc.src, area, '');
+                                return void config.rewrite(documents.src, area, '');
                             }).extract(function () {
                                 return Promise.resolve(spica_1.Left(new error_1.DomainError('Failed to separate areas.')));
                             }, function () {
@@ -1444,39 +1353,23 @@ require = function e(t, n, r) {
                 }).modify(function (p) {
                     return p.then(function (m) {
                         return m.bind(cancelable.either).fmap(function (seq) {
-                            return new spica_1.HNil().push(void 0).modify(function () {
-                                return void blur_1.blur(doc.dst);
-                            }).modify(function () {
-                                return void url_1.url(new entity_1.RouterEntity.Event.Location(response.url || event.location.dest.href), doc.src.title, event.type, event.source, config.replace);
-                            }).modify(function () {
-                                return void title_1.title(doc), void path_1.saveTitle();
-                            }).modify(function () {
-                                return void head_1.head({
-                                    src: doc.src.head,
-                                    dst: doc.dst.head
-                                }, config.update.head, config.update.ignore);
-                            }).modify(function () {
-                                return content_1.content(doc, config.areas).extract(function () {
-                                    return Promise.resolve(spica_1.Left(new error_1.DomainError('Failed to update areas.')));
-                                }, function (p) {
-                                    return p.then(cancelable.either, function (e) {
-                                        return spica_1.Left(e instanceof Error ? e : new Error(e));
-                                    });
+                            return new spica_1.HNil().push((void blur_1.blur(documents.dst), void url_1.url(new entity_1.RouterEntity.Event.Location(response.url || event.location.dest.href), documents.src.title, event.type, event.source, config.replace), void title_1.title(documents), void path_1.saveTitle(), void head_1.head({
+                                src: documents.src.head,
+                                dst: documents.dst.head
+                            }, config.update.head, config.update.ignore), content_1.content(documents, config.areas).extract(function () {
+                                return Promise.resolve(spica_1.Left(new error_1.DomainError('Failed to update areas.')));
+                            }, function (p) {
+                                return p.then(cancelable.either, function (e) {
+                                    return spica_1.Left(e instanceof Error ? e : new Error(e));
                                 });
-                            }).extend(function () {
+                            }))).extend(function () {
                                 return config.update.css ? void css_1.css({
-                                    src: doc.src.head,
-                                    dst: doc.dst.head
-                                }, config.update.ignore) : void 0;
-                            }).modify(function () {
-                                return config.update.css ? void css_1.css({
-                                    src: doc.src.body,
-                                    dst: doc.dst.body
-                                }, config.update.ignore) : void 0;
-                            }).modify(function () {
-                                return void focus_1.focus(doc.dst);
-                            }).modify(function () {
-                                return void scroll_1.scroll(event.type, doc.dst, {
+                                    src: documents.src.head,
+                                    dst: documents.dst.head
+                                }, config.update.ignore) : void 0, config.update.css ? void css_1.css({
+                                    src: documents.src.body,
+                                    dst: documents.dst.body
+                                }, config.update.ignore) : void 0, void focus_1.focus(documents.dst), void scroll_1.scroll(event.type, documents.dst, {
                                     hash: event.location.dest.hash,
                                     top: 0,
                                     left: 0
@@ -1484,9 +1377,7 @@ require = function e(t, n, r) {
                                     hash: scroll_1.hash,
                                     scroll: io.scroll,
                                     position: io.position
-                                }), void path_1.savePosition();
-                            }).modify(function () {
-                                return config.update.script ? script_1.script(doc, state.scripts, config.update, cancelable) : Promise.resolve(cancelable.either([]));
+                                }), void path_1.savePosition(), config.update.script ? script_1.script(documents, state.scripts, config.update, cancelable) : Promise.resolve(cancelable.either([]));
                             }).extend(function () {
                                 return void io.document.dispatchEvent(new Event('pjax:ready')), config.sequence.ready(seq).then(cancelable.either, spica_1.Left);
                             }).reverse().tuple();
@@ -1517,22 +1408,22 @@ require = function e(t, n, r) {
         },
         {
             '../../../data/error': 13,
-            '../../../store/path': 34,
+            '../../../store/path': 33,
             '../../model/eav/entity': 16,
             '../../model/eav/value/update': 18,
-            '../../module/update/blur': 21,
-            '../../module/update/content': 22,
-            '../../module/update/css': 23,
-            '../../module/update/focus': 24,
-            '../../module/update/head': 25,
-            '../../module/update/script': 26,
-            '../../module/update/scroll': 27,
-            '../../module/update/title': 29,
-            '../../module/update/url': 30,
+            '../../module/update/blur': 20,
+            '../../module/update/content': 21,
+            '../../module/update/css': 22,
+            '../../module/update/focus': 23,
+            '../../module/update/head': 24,
+            '../../module/update/script': 25,
+            '../../module/update/scroll': 26,
+            '../../module/update/title': 28,
+            '../../module/update/url': 29,
             'spica': undefined
         }
     ],
-    34: [
+    33: [
         function (require, module, exports) {
             'use strict';
             function __export(m) {
@@ -1544,7 +1435,7 @@ require = function e(t, n, r) {
         },
         { '../../data/store/state': 11 }
     ],
-    35: [
+    34: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -1573,9 +1464,9 @@ require = function e(t, n, r) {
             }(error_1.PjaxError);
             exports.InterfaceError = InterfaceError;
         },
-        { '../../../lib/error': 49 }
+        { '../../../lib/error': 48 }
     ],
-    36: [
+    35: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -1621,11 +1512,11 @@ require = function e(t, n, r) {
             exports.ClickView = ClickView;
         },
         {
-            '../../../../lib/dom': 48,
+            '../../../../lib/dom': 47,
             'spica': undefined
         }
     ],
-    37: [
+    36: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -1678,14 +1569,14 @@ require = function e(t, n, r) {
             exports.NavigationView = NavigationView;
         },
         {
-            '../../../../lib/dom': 48,
+            '../../../../lib/dom': 47,
             '../../../data/model/canonicalization/url': 9,
             '../../../data/model/validation/url': 10,
-            '../../service/state/url': 47,
+            '../../service/state/url': 46,
             'spica': undefined
         }
     ],
-    38: [
+    37: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -1737,11 +1628,11 @@ require = function e(t, n, r) {
             exports.ScrollView = ScrollView;
         },
         {
-            '../../../../lib/dom': 48,
+            '../../../../lib/dom': 47,
             'spica': undefined
         }
     ],
-    39: [
+    38: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -1787,19 +1678,19 @@ require = function e(t, n, r) {
             exports.SubmitView = SubmitView;
         },
         {
-            '../../../../lib/dom': 48,
+            '../../../../lib/dom': 47,
             'spica': undefined
         }
     ],
-    40: [
+    39: [
         function (require, module, exports) {
             'use strict';
             var gui_1 = require('./gui');
             exports.API = gui_1.GUI;
         },
-        { './gui': 41 }
+        { './gui': 40 }
     ],
-    41: [
+    40: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -1833,6 +1724,7 @@ require = function e(t, n, r) {
             var router_1 = require('../service/router');
             var api_2 = require('../../application/api');
             var dom_1 = require('../../../lib/dom');
+            var html_1 = require('../../../lib/html');
             var GUI = function () {
                 function GUI(option, io) {
                     if (io === void 0) {
@@ -1842,14 +1734,15 @@ require = function e(t, n, r) {
                     this.option = option;
                     this.io = io;
                     this.config = new api_1.Config(this.option);
-                    void GUI.sv.terminate('view');
-                    void GUI.sv.register('view', {
+                    void GUI.view.terminate('');
+                    void GUI.view.register('', {
                         init: function (s) {
                             return s;
                         },
-                        call: function (_, s) {
+                        call: function (_, _a) {
+                            var listeners = _a.listeners;
                             return new Promise(function () {
-                                return void s.add(new click_1.ClickView(_this.io.document, _this.config.link, function (event) {
+                                return void listeners.add(new click_1.ClickView(_this.io.document, _this.config.link, function (event) {
                                     return void spica_1.Just(new url_1.Url(url_2.canonicalizeUrl(url_3.validateUrl(event._currentTarget.href)))).bind(function (url) {
                                         return isAccessible(url) && !isHashChange(url) && !hasModifierKey(event) && _this.config.filter(event._currentTarget) ? spica_1.Just(0) : spica_1.Nothing;
                                     }).fmap(function () {
@@ -1902,12 +1795,10 @@ require = function e(t, n, r) {
                             });
                         },
                         exit: function (_, s) {
-                            return void Array.from(s).forEach(function (terminate) {
-                                return void terminate();
-                            });
+                            return void s.cancel();
                         }
-                    }, new Set());
-                    void GUI.sv.cast('view', void 0);
+                    }, new spica_1.Cancelable());
+                    void GUI.view.cast('', void 0);
                 }
                 GUI.assign = function (url, option, io) {
                     if (io === void 0) {
@@ -1958,7 +1849,7 @@ require = function e(t, n, r) {
                 }
                 return class_1;
             }(spica_1.Supervisor))();
-            GUI.sv = new (function (_super) {
+            GUI.view = new (function (_super) {
                 __extends(class_2, _super);
                 function class_2() {
                     return _super !== null && _super.apply(this, arguments) || this;
@@ -1999,28 +1890,29 @@ require = function e(t, n, r) {
                 return new Promise(function (resolve) {
                     return void dom_1.once(el, 'click', function (event) {
                         return void event.preventDefault(), void resolve(event);
-                    }), void api_2.parse('').extract().body.appendChild(el), void el.click(), void el.remove();
+                    }), void html_1.parse('').extract().body.appendChild(el), void el.click(), void el.remove();
                 });
             }
         },
         {
-            '../../../lib/dom': 48,
+            '../../../lib/dom': 47,
+            '../../../lib/html': 49,
             '../../../lib/url': 51,
             '../../application/api': 5,
             '../../data/model/canonicalization/url': 9,
             '../../data/model/validation/url': 10,
-            '../module/view/click': 36,
-            '../module/view/navigation': 37,
-            '../module/view/scroll': 38,
-            '../module/view/submit': 39,
-            '../service/router': 43,
-            '../service/state/initialization': 44,
-            '../service/state/scroll-restoration': 46,
-            '../service/state/url': 47,
+            '../module/view/click': 35,
+            '../module/view/navigation': 36,
+            '../module/view/scroll': 37,
+            '../module/view/submit': 38,
+            '../service/router': 42,
+            '../service/state/initialization': 43,
+            '../service/state/scroll-restoration': 45,
+            '../service/state/url': 46,
             'spica': undefined
         }
     ],
-    42: [
+    41: [
         function (require, module, exports) {
             'use strict';
             var bar = document.createElement('div');
@@ -2049,7 +1941,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    43: [
+    42: [
         function (require, module, exports) {
             'use strict';
             var api_1 = require('../../application/api');
@@ -2084,12 +1976,12 @@ require = function e(t, n, r) {
             '../../application/api': 5,
             '../../data/model/canonicalization/url': 9,
             '../../data/model/validation/url': 10,
-            '../data/error': 35,
-            './progressbar': 42,
-            './state/url': 47
+            '../data/error': 34,
+            './progressbar': 41,
+            './state/url': 46
         }
     ],
-    44: [
+    43: [
         function (require, module, exports) {
             'use strict';
             var script_1 = require('./script');
@@ -2097,9 +1989,9 @@ require = function e(t, n, r) {
                 return Promise.all([script_1.scripts]);
             });
         },
-        { './script': 45 }
+        { './script': 44 }
     ],
-    45: [
+    44: [
         function (require, module, exports) {
             'use strict';
             var url_1 = require('../../../data/model/canonicalization/url');
@@ -2114,12 +2006,12 @@ require = function e(t, n, r) {
             });
         },
         {
-            '../../../../lib/dom': 48,
+            '../../../../lib/dom': 47,
             '../../../data/model/canonicalization/url': 9,
             '../../../data/model/validation/url': 10
         }
     ],
-    46: [
+    45: [
         function (require, module, exports) {
             'use strict';
             var dom_1 = require('../../../../lib/dom');
@@ -2127,9 +2019,9 @@ require = function e(t, n, r) {
                 return window.history.scrollRestoration = 'auto';
             }, false);
         },
-        { '../../../../lib/dom': 48 }
+        { '../../../../lib/dom': 47 }
     ],
-    47: [
+    46: [
         function (require, module, exports) {
             'use strict';
             var url_1 = require('../../../data/model/canonicalization/url');
@@ -2149,7 +2041,7 @@ require = function e(t, n, r) {
             '../../../data/model/validation/url': 10
         }
     ],
-    48: [
+    47: [
         function (require, module, exports) {
             'use strict';
             var __assign = this && this.__assign || Object.assign || function (t) {
@@ -2249,7 +2141,7 @@ require = function e(t, n, r) {
         },
         { './noop': 50 }
     ],
-    49: [
+    48: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -2278,6 +2170,93 @@ require = function e(t, n, r) {
             exports.PjaxError = PjaxError;
         },
         {}
+    ],
+    49: [
+        function (require, module, exports) {
+            'use strict';
+            var spica_1 = require('spica');
+            var dom_1 = require('./dom');
+            exports.parse = [
+                parseByDoc,
+                parseByDOM
+            ].reduce(function (m, parser) {
+                return m.bind(function () {
+                    return test(parser) ? spica_1.Left(parser) : m;
+                });
+            }, spica_1.Right(function () {
+                return spica_1.Nothing;
+            })).extract(function (parser) {
+                return function (html) {
+                    return spica_1.Just(parser(html));
+                };
+            });
+            function parseByDOM(html) {
+                var doc = new DOMParser().parseFromString(html, 'text/html');
+                void fix(doc);
+                return doc;
+            }
+            function parseByDoc(html) {
+                var document = window.document.implementation.createHTMLDocument('');
+                var title = dom_1.find(dom_1.parse(html.slice(0, html.search(/<\/title>/i) + 8)), 'title').reduce(function (title, el) {
+                    return el.textContent || title;
+                }, '');
+                if ('function' === typeof DOMParser) {
+                    document.title = title;
+                }
+                void document.open();
+                void document.write(html);
+                void document.close();
+                if (document.title !== title) {
+                    document.title = document.querySelector('title').textContent || '';
+                }
+                void fix(document);
+                return document;
+            }
+            function fix(doc) {
+                return void fixNoscript(doc).forEach(function (_a) {
+                    var src = _a[0], fixed = _a[1];
+                    return src.textContent = fixed.textContent;
+                });
+            }
+            function fixNoscript(doc) {
+                return dom_1.find(doc, 'noscript').filter(function (el) {
+                    return el.children.length > 0;
+                }).map(function (el) {
+                    var clone = el.cloneNode(true);
+                    clone.textContent = el.innerHTML;
+                    return [
+                        el,
+                        clone
+                    ];
+                });
+            }
+            exports._fixNoscript = fixNoscript;
+            function test(parser) {
+                try {
+                    var html = '\n<html lang="en" class="html">\n  <head>\n    <link href="/">\n    <title>&amp;</title>\n    <noscript><style>/**/</style></noscript>\n  </head>\n  <body>\n    <noscript>noscript</noscript>\n    <a href="/"></a>\n    <script>document.head.remove();</script>\n  </body>\n</html>\n';
+                    var doc = parser(html);
+                    switch (false) {
+                    case doc.URL && decodeURI(doc.URL) === decodeURI(window.location.href):
+                    case doc.title === '&':
+                    case !!doc.querySelector('html.html[lang="en"]'):
+                    case !!doc.querySelector('head>link')['href']:
+                    case !!doc.querySelector('body>a')['href']:
+                    case !doc.querySelector('head>noscript>*'):
+                    case doc.querySelector('script')['innerHTML'] === 'document.head.remove();':
+                    case doc.querySelector('head>noscript')['textContent'] === '<style>/**/</style>':
+                    case doc.querySelector('body>noscript')['textContent'] === 'noscript':
+                        throw void 0;
+                    }
+                    return true;
+                } catch (err) {
+                    return false;
+                }
+            }
+        },
+        {
+            './dom': 47,
+            'spica': undefined
+        }
     ],
     50: [
         function (require, module, exports) {
