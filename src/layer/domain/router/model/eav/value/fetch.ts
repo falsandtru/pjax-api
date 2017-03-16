@@ -16,7 +16,7 @@ export class FetchValue {
       private readonly xhr: XMLHttpRequest
     ) {
       const separator = ':';
-      const regHeaderName = /^[0-9A-z\-]+$/;
+      const regHeaderName = /^[0-9a-zA-Z\-]+$/;
       void this.xhr.getAllResponseHeaders().split('\n')
         .filter(s => s.indexOf(separator) > 0)
         .map(s => [s.slice(0, s.indexOf(separator)).trim(), s.slice(s.indexOf(separator) + 1).trim()])
