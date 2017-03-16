@@ -579,7 +579,7 @@ require = function e(t, n, r) {
                             this.headers = {};
                             this.document = this.xhr.responseType === 'document' ? this.xhr.responseXML : html_1.parse(this.xhr.responseText).extract();
                             var separator = ':';
-                            var regHeaderName = /^[0-9A-z\-]+$/;
+                            var regHeaderName = /^[0-9a-zA-Z\-]+$/;
                             void this.xhr.getAllResponseHeaders().split('\n').filter(function (s) {
                                 return s.indexOf(separator) > 0;
                             }).map(function (s) {
