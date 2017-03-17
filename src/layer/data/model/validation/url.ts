@@ -12,6 +12,6 @@ export function validateUrl(url: string): ValidUrl {
   // Convert to UTF-8 encoded string
   url = encodeURI(decodeURI(url)).replace(/%25/g, '%');
   // Remove string of starting with an invalid character
-  url = url.replace(/["`^|\\<>{}\[\]\s].*/, '');
+  url = url.split(/["`^|<>{}\[\]\s\\]/)[0];
   return <any>url;
 }

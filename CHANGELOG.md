@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.6.2
+
+- Improve url validation.
+
 ## 3.6.1
 
 - Fix header name constraints.
