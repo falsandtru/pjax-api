@@ -50,13 +50,8 @@ const config = {
 
 function compile(paths, force) {
   let done = true;
-  return browserify({
-      basedir: '.',
-      debug: false,
-      entries: Object.values(paths).map(p => glob.sync(p)),
+    return browserify(Object.values(paths).map(p => glob.sync(p)), {
       bundleExternal: false,
-      cache: {},
-      packageCache: {}
     })
     .require(`./${pkg.name}.ts`, { expose: pkg.name })
     .plugin(tsify, require('./tsconfig.json').compilerOptions)
