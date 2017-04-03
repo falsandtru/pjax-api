@@ -263,7 +263,7 @@ require = function e(t, n, r) {
                 url = url.trim();
                 url = (parser.href = url || location.href, parser.href);
                 url = encodeURI(decodeURI(url)).replace(/%25/g, '%');
-                url = url.replace(/["`^|\\<>{}\[\]\s].*/, '');
+                url = url.split(/["`^|<>{}\[\]\s\\]/)[0];
                 return url;
             }
             exports.validateUrl = validateUrl;

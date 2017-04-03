@@ -1,4 +1,4 @@
-/*! spica v0.0.57 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.58 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
@@ -147,7 +147,8 @@ require = function e(t, n, r) {
                 }
             });
             function template(cb) {
-                return function walk(target) {
+                return walk;
+                function walk(target) {
                     var sources = [];
                     for (var _i = 1; _i < arguments.length; _i++) {
                         sources[_i - 1] = arguments[_i];
@@ -169,7 +170,8 @@ require = function e(t, n, r) {
                         }
                     }
                     return Object(target);
-                };
+                }
+                ;
             }
         },
         { './type': 77 }
