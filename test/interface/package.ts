@@ -1,4 +1,4 @@
-import _Pjax, { Pjax, Config } from 'pjax-api';
+import _Pjax, { Pjax } from '../../index';
 
 describe('Interface: Package', function () {
   describe('default', function () {
@@ -21,7 +21,7 @@ describe('Interface: Package', function () {
 
   describe('method', function () {
     it('new', function () {
-      assert(new Pjax(<Config>{}) instanceof Object);
+      assert(new Pjax({}) instanceof Object);
     });
 
     it('assign', function () {

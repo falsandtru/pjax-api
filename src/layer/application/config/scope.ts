@@ -1,4 +1,4 @@
-import { Config as Option } from 'pjax-api';
+import { Config as Option } from '../../../../';
 import { Sequence, Maybe, Just, Nothing, extend } from 'spica';
 import { Config } from '../../domain/data/config';
 import { Url } from '../../../lib/url';

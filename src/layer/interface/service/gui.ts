@@ -1,4 +1,4 @@
-import { Config as Option } from 'pjax-api';
+import { Config as Option } from '../../../../';
 import { Cancelable, Supervisor, Just, Nothing, extend } from 'spica';
 import { Config } from '../../application/api';
 import { Url } from '../../../lib/url';

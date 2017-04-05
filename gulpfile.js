@@ -53,7 +53,7 @@ function compile(paths, force) {
     return browserify(Object.values(paths).map(p => glob.sync(p)), {
       bundleExternal: false,
     })
-    .require(`./${pkg.name}.ts`, { expose: pkg.name })
+    .require(`./index.ts`, { expose: pkg.name })
     .plugin(tsify, require('./tsconfig.json').compilerOptions)
     .bundle()
     .on("error", err => done = console.log(err + ''))

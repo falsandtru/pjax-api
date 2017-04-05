@@ -1,5 +1,5 @@
 import { extend } from 'spica';
-import { Config as Option, Sequence as ISequence } from 'pjax-api';
+import { Config as Option, Sequence as ISequence } from '../../../../';
 import { Url } from '../../../lib/url';
 
 export class Config implements Option {

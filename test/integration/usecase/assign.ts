@@ -1,4 +1,4 @@
-import { Pjax } from 'pjax-api';
+import { Pjax } from '../../../index';
 import { parse } from '../../../src/lib/html';
 import { once } from '../../../src/lib/dom';
 

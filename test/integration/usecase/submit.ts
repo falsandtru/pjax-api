@@ -1,4 +1,4 @@
-import { Pjax } from 'pjax-api';
+import { Pjax } from '../../../index';
 import DOM from 'typed-dom';
 import { once } from '../../../src/lib/dom';
 
