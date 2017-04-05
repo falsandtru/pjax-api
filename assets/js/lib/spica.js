@@ -1,4 +1,4 @@
-/*! spica v0.0.58 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.59 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
@@ -171,7 +171,6 @@ require = function e(t, n, r) {
                     }
                     return Object(target);
                 }
-                ;
             }
         },
         { './type': 77 }
