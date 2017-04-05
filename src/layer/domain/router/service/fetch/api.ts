@@ -29,7 +29,7 @@ export function fetch(
         method,
         data
       })
-        .then<Result>(
+        .then(
           s => p.then<Result>(m => m
             .bind(v =>
               v.response.url === '' || new Url(v.response.url).domain === new Url(url).domain

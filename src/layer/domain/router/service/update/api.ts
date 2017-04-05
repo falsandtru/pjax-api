@@ -121,21 +121,20 @@ export function update(
           .extend(() => (
             void io.document.dispatchEvent(new Event('pjax:ready')),
             config.sequence.ready(seq)
-              .then<Either<Error, Seq>>(cancelable.either, Left)))
+              .then(cancelable.either, Left)))
           .reverse()
           .tuple())))
     // ready -> load
     .modify(p => p.then(m => m
       .bind(cancelable.either)
       .fmap(ps =>
-        Promise.all(ps)
-          .then(([m1, m2, m3]) => (
-            cancelable.either(void 0)
-              .bind(() => m1.bind(() => m2).bind(() => m3))
-              .fmap(seq => (
-                void window.dispatchEvent(new Event('pjax:load')),
-                void config.sequence.load(seq)))
-              .bind(() => m2))))
+        ps[0].then(m1 => ps[1].then(m2 => ps[2].then(m3 =>
+          cancelable.either(void 0)
+            .bind(() => m1.bind(() => m2).bind(() => m3))
+            .fmap(seq => (
+              void window.dispatchEvent(new Event('pjax:load')),
+              void config.sequence.load(seq)))
+            .bind(() => m2)))))
       .extract()))
     .head();
 }

@@ -8,7 +8,7 @@
       config: Config,
       io?: {
         document: Document;
-      })
+      });
     assign(url: string): undefined;
     replace(url: string): undefined;
   }

@@ -34,7 +34,7 @@ export class GUI {
       .then(event =>
         init
           .then(([scripts]) =>
-            route(new Config(extend({}, option, { replace: '*' })), event, { router: GUI.router, scripts, cancelable: new Cancelable<Error>() }, io)))
+            route(new Config(extend<Option>({}, option, { replace: '*' })), event, { router: GUI.router, scripts, cancelable: new Cancelable<Error>() }, io)))
       .then(failure, success)
       .catch(() => void window.location.replace(url));
   }
