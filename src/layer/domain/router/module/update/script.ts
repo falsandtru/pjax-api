@@ -10,7 +10,7 @@ export function script(
     src: Document;
     dst: Document;
   },
-  skip: Set<CanonicalUrl>,
+  skip: ReadonlySet<CanonicalUrl>,
   selector: {
     ignore: string;
     reload: string;

@@ -18,7 +18,7 @@ export namespace RouterEntity {
   export type Config = RouterConfig;
   export class State {
     constructor(
-      public readonly scripts: Set<CanonicalUrl>,
+      public readonly scripts: ReadonlySet<CanonicalUrl>,
       public readonly cancelable: Cancelable<Error>
     ) {
       void Object.freeze(this);
