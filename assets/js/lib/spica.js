@@ -1,4 +1,4 @@
-/*! spica v0.0.59 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.60 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
@@ -3863,6 +3863,10 @@ require = function e(t, n, r) {
                     void ++this.constructor.count;
                 }
                 Supervisor.prototype.destructor = function (reason) {
+                    this.available = false;
+                    void Array.from(this.workers.values()).forEach(function (worker) {
+                        return void worker.terminate(reason);
+                    });
                     void this.deliver();
                     try {
                         void this.destructor_(reason);
@@ -3964,16 +3968,12 @@ require = function e(t, n, r) {
                 };
                 Supervisor.prototype.terminate = function (name, reason) {
                     if (!this.available)
-                        return;
-                    if (name === void 0) {
-                        this.available = false;
-                    }
-                    void Array.from(this.workers.values()).forEach(function (worker) {
-                        return void worker.terminate(reason);
-                    });
-                    if (name === void 0) {
-                        void this.destructor(reason);
-                    }
+                        return false;
+                    return name === void 0 ? void this.destructor(reason) === void 0 : Array.from(this.workers.values()).filter(function (worker) {
+                        return worker.name === name;
+                    }).filter(function (worker) {
+                        return worker.terminate(reason);
+                    }).length > 0;
                 };
                 Supervisor.prototype.schedule = function () {
                     void tick_1.Tick(this.deliver, true);
@@ -4044,8 +4044,9 @@ require = function e(t, n, r) {
                     };
                     this.terminate = function (reason) {
                         if (!_this.alive)
-                            return;
+                            return false;
                         void _this.destructor(reason);
+                        return true;
                     };
                 }
                 Worker.prototype.destructor = function (reason) {
