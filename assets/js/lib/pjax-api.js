@@ -1530,8 +1530,8 @@ require = function e(t, n, r) {
                         return void _this.sv.terminate();
                     };
                     void this.sv.register('', function () {
-                        return new Promise(function () {
-                            return void _this.sv.events.exit.once([], dom_1.delegate(document.documentElement, selector, 'click', listener));
+                        return void _this.sv.events.exit.once([], dom_1.delegate(document.documentElement, selector, 'click', listener)), new Promise(function () {
+                            return void 0;
                         });
                     }, void 0);
                     void this.sv.cast('', void 0);
@@ -1584,12 +1584,12 @@ require = function e(t, n, r) {
                         return void _this.sv.terminate();
                     };
                     void this.sv.register('', function () {
-                        return new Promise(function () {
-                            return void _this.sv.events.exit.once([], dom_1.bind(window, 'popstate', function (ev) {
-                                if (url_1.canonicalizeUrl(url_2.validateUrl(location.href)) === url_3.documentUrl.href)
-                                    return;
-                                void listener(ev);
-                            }));
+                        return void _this.sv.events.exit.once([], dom_1.bind(window, 'popstate', function (ev) {
+                            if (url_1.canonicalizeUrl(url_2.validateUrl(location.href)) === url_3.documentUrl.href)
+                                return;
+                            void listener(ev);
+                        })), new Promise(function () {
+                            return void 0;
                         });
                     }, void 0);
                     void this.sv.cast('', void 0);
@@ -1643,13 +1643,13 @@ require = function e(t, n, r) {
                     };
                     var timer = 0;
                     void this.sv.register('', function () {
-                        return new Promise(function () {
-                            return void _this.sv.events.exit.once([], dom_1.bind(window, 'scroll', function (ev) {
-                                return timer = timer > 0 ? timer : setTimeout(function () {
-                                    timer = 0;
-                                    void listener(ev);
-                                }, 300);
-                            }, { passive: true }));
+                        return void _this.sv.events.exit.once([], dom_1.bind(window, 'scroll', function (ev) {
+                            return timer = timer > 0 ? timer : setTimeout(function () {
+                                timer = 0;
+                                void listener(ev);
+                            }, 300);
+                        }, { passive: true })), new Promise(function () {
+                            return void 0;
                         });
                     }, void 0);
                     void this.sv.cast('', void 0);
@@ -1699,8 +1699,8 @@ require = function e(t, n, r) {
                         return void _this.sv.terminate();
                     };
                     void this.sv.register('', function () {
-                        return new Promise(function () {
-                            return void _this.sv.events.exit.once([], dom_1.delegate(document.documentElement, selector, 'submit', listener));
+                        return void _this.sv.events.exit.once([], dom_1.delegate(document.documentElement, selector, 'submit', listener)), new Promise(function () {
+                            return void 0;
                         });
                     }, void 0);
                     void this.sv.cast('', void 0);
@@ -1775,57 +1775,57 @@ require = function e(t, n, r) {
                         },
                         call: function (_, _a) {
                             var listeners = _a.listeners;
-                            return new Promise(function () {
-                                return void listeners.add(new click_1.ClickView(_this.io.document, _this.config.link, function (event) {
-                                    return void spica_1.Just(new url_1.Url(url_2.canonicalizeUrl(url_3.validateUrl(event._currentTarget.href)))).bind(function (url) {
-                                        return isAccessible(url) && !isHashChange(url) && !hasModifierKey(event) && _this.config.filter(event._currentTarget) ? spica_1.Just(0) : spica_1.Nothing;
-                                    }).fmap(function () {
-                                        return void event.preventDefault(), initialization_1.init.then(function (_a) {
-                                            var scripts = _a[0];
-                                            return router_1.route(_this.config, event, {
-                                                router: GUI.router,
-                                                scripts: scripts,
-                                                cancelable: new spica_1.Cancelable()
-                                            }, _this.io);
-                                        });
-                                    }).extract(failure, success).catch(function () {
-                                        return void window.location.assign(event._currentTarget.href);
+                            return void listeners.add(new click_1.ClickView(_this.io.document, _this.config.link, function (event) {
+                                return void spica_1.Just(new url_1.Url(url_2.canonicalizeUrl(url_3.validateUrl(event._currentTarget.href)))).bind(function (url) {
+                                    return isAccessible(url) && !isHashChange(url) && !hasModifierKey(event) && _this.config.filter(event._currentTarget) ? spica_1.Just(0) : spica_1.Nothing;
+                                }).fmap(function () {
+                                    return void event.preventDefault(), initialization_1.init.then(function (_a) {
+                                        var scripts = _a[0];
+                                        return router_1.route(_this.config, event, {
+                                            router: GUI.router,
+                                            scripts: scripts,
+                                            cancelable: new spica_1.Cancelable()
+                                        }, _this.io);
                                     });
-                                }).close).add(new submit_1.SubmitView(_this.io.document, _this.config.form, function (event) {
-                                    return void spica_1.Just(new url_1.Url(url_2.canonicalizeUrl(url_3.validateUrl(event._currentTarget.action)))).bind(function (url) {
-                                        return isAccessible(url) && !hasModifierKey(event) ? spica_1.Just(0) : spica_1.Nothing;
-                                    }).fmap(function () {
-                                        return void event.preventDefault(), initialization_1.init.then(function (_a) {
-                                            var scripts = _a[0];
-                                            return router_1.route(_this.config, event, {
-                                                router: GUI.router,
-                                                scripts: scripts,
-                                                cancelable: new spica_1.Cancelable()
-                                            }, _this.io);
-                                        });
-                                    }).extract(failure, success).catch(function () {
-                                        return void window.location.assign(event._currentTarget.action);
+                                }).extract(failure, success).catch(function () {
+                                    return void window.location.assign(event._currentTarget.href);
+                                });
+                            }).close).add(new submit_1.SubmitView(_this.io.document, _this.config.form, function (event) {
+                                return void spica_1.Just(new url_1.Url(url_2.canonicalizeUrl(url_3.validateUrl(event._currentTarget.action)))).bind(function (url) {
+                                    return isAccessible(url) && !hasModifierKey(event) ? spica_1.Just(0) : spica_1.Nothing;
+                                }).fmap(function () {
+                                    return void event.preventDefault(), initialization_1.init.then(function (_a) {
+                                        var scripts = _a[0];
+                                        return router_1.route(_this.config, event, {
+                                            router: GUI.router,
+                                            scripts: scripts,
+                                            cancelable: new spica_1.Cancelable()
+                                        }, _this.io);
                                     });
-                                }).close).add(new navigation_1.NavigationView(window, function (event) {
-                                    return void spica_1.Just(new url_1.Url(url_2.canonicalizeUrl(url_3.validateUrl(window.location.href)))).bind(function (url) {
-                                        return isAccessible(url) && !isHashChange(url) ? spica_1.Just(api_2.loadTitle()) : spica_1.Nothing;
-                                    }).fmap(function (title) {
-                                        return title ? io.document.title = title : void 0, initialization_1.init.then(function (_a) {
-                                            var scripts = _a[0];
-                                            return router_1.route(_this.config, event, {
-                                                router: GUI.router,
-                                                scripts: scripts,
-                                                cancelable: new spica_1.Cancelable()
-                                            }, _this.io);
-                                        });
-                                    }).extract(failure, success).catch(function () {
-                                        return void window.location.reload(true);
+                                }).extract(failure, success).catch(function () {
+                                    return void window.location.assign(event._currentTarget.action);
+                                });
+                            }).close).add(new navigation_1.NavigationView(window, function (event) {
+                                return void spica_1.Just(new url_1.Url(url_2.canonicalizeUrl(url_3.validateUrl(window.location.href)))).bind(function (url) {
+                                    return isAccessible(url) && !isHashChange(url) ? spica_1.Just(api_2.loadTitle()) : spica_1.Nothing;
+                                }).fmap(function (title) {
+                                    return title ? io.document.title = title : void 0, initialization_1.init.then(function (_a) {
+                                        var scripts = _a[0];
+                                        return router_1.route(_this.config, event, {
+                                            router: GUI.router,
+                                            scripts: scripts,
+                                            cancelable: new spica_1.Cancelable()
+                                        }, _this.io);
                                     });
-                                }).close).add(new scroll_1.ScrollView(window, function () {
-                                    return void spica_1.Just(new url_1.Url(url_2.canonicalizeUrl(url_3.validateUrl(window.location.href)))).fmap(function (url) {
-                                        return url_4.documentUrl.href === url.href ? void api_2.savePosition() : void 0;
-                                    }).extract();
-                                }).close);
+                                }).extract(failure, success).catch(function () {
+                                    return void window.location.reload(true);
+                                });
+                            }).close).add(new scroll_1.ScrollView(window, function () {
+                                return void spica_1.Just(new url_1.Url(url_2.canonicalizeUrl(url_3.validateUrl(window.location.href)))).fmap(function (url) {
+                                    return url_4.documentUrl.href === url.href ? void api_2.savePosition() : void 0;
+                                }).extract();
+                            }).close), new Promise(function (resolve) {
+                                return void listeners.add(resolve);
                             });
                         },
                         exit: function (_, s) {
