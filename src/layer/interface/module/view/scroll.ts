@@ -8,17 +8,17 @@ export class ScrollView {
   ) {
     let timer = 0;
     void this.sv.register('', () => (
-      new Promise<never>(() =>
-        void this.sv.events.exit.once(
-          [],
-          bind(window, 'scroll', ev => (
-            timer = timer > 0
-              ? timer
-              : setTimeout(() => {
-                  timer = 0;
-                  void listener(ev);
-                }, 300)
-          ), { passive: true })))
+      void this.sv.events.exit.once(
+        [],
+        bind(window, 'scroll', ev => (
+          timer = timer > 0
+            ? timer
+            : setTimeout(() => {
+              timer = 0;
+              void listener(ev);
+            }, 300)
+        ), { passive: true })),
+      new Promise<never>(() => void 0)
     ), void 0);
     void this.sv.cast('', void 0);
   }

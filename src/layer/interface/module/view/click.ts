@@ -8,10 +8,10 @@ export class ClickView {
     listener: (event: MouseEvent) => any
   ) {
     void this.sv.register('', () => (
-      new Promise<never>(() =>
-        void this.sv.events.exit.once(
-          [],
-          delegate(document.documentElement, selector, 'click', listener)))
+      void this.sv.events.exit.once(
+        [],
+        delegate(document.documentElement, selector, 'click', listener)),
+      new Promise<never>(() => void 0)
     ), void 0);
     void this.sv.cast('', void 0);
   }

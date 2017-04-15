@@ -10,13 +10,13 @@ export class NavigationView {
     listener: (event: Event) => any
   ) {
     void this.sv.register('', () => (
-      new Promise<never>(() =>
-        void this.sv.events.exit.once(
-          [],
-          bind(window, 'popstate', ev => {
-            if (canonicalizeUrl(validateUrl(location.href)) === documentUrl.href) return;
-            void listener(ev);
-          })))
+      void this.sv.events.exit.once(
+        [],
+        bind(window, 'popstate', ev => {
+          if (canonicalizeUrl(validateUrl(location.href)) === documentUrl.href) return;
+          void listener(ev);
+        })),
+      new Promise<never>(() => void 0)
     ), void 0);
     void this.sv.cast('', void 0);
   }

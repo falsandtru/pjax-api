@@ -19,7 +19,7 @@ import { parse } from '../../../lib/html';
 
 export class GUI {
   private static readonly router = new class extends Supervisor<'', Error, void, void> { }();
-  private static readonly view = new class extends Supervisor<'', void, void, Cancelable<void>>{ }();
+  private static readonly view = new class extends Supervisor<'', void, void, Cancelable<undefined>>{ }();
   public static assign(url: string, option: Option, io = { document: window.document }): undefined {
     return void click(url)
       .then(event =>
@@ -47,93 +47,93 @@ export class GUI {
     void GUI.view.terminate('');
     void GUI.view.register('', {
       init: s => s,
-      call: (_, {listeners}) =>
-        new Promise<never>(() =>
-          void listeners
-            .add(new ClickView(this.io.document, this.config.link, event =>
-              void Just(new Url(canonicalizeUrl(validateUrl((<RouterEvent.Source.Anchor>event._currentTarget).href))))
-                .bind(url =>
-                    isAccessible(url)
-                    && !isHashChange(url)
-                    && !hasModifierKey(event)
-                    && this.config.filter(<RouterEvent.Source.Anchor>event._currentTarget)
-                    ? Just(0)
-                    : Nothing)
-                .fmap(() => (
-                  void event.preventDefault(),
-                  init
-                    .then(([scripts]) =>
-                      route(
-                        this.config,
-                        event,
-                        {
-                          router: GUI.router,
-                          scripts,
-                          cancelable: new Cancelable<Error>()
-                        },
-                        this.io))))
-                .extract(failure, success)
-                .catch(() => void window.location.assign((<RouterEvent.Source.Anchor>event._currentTarget).href)))
-              .close)
-            .add(new SubmitView(this.io.document, this.config.form, event =>
-              void Just(new Url(canonicalizeUrl(validateUrl((<RouterEvent.Source.Form>event._currentTarget).action))))
-                .bind(url =>
-                  isAccessible(url)
-                  && !hasModifierKey(event)
-                    ? Just(0)
-                    : Nothing)
-                .fmap(() => (
-                  void event.preventDefault(),
-                  init
-                    .then(([scripts]) =>
-                      route(
-                        this.config,
-                        event,
-                        {
-                          router: GUI.router,
-                          scripts,
-                          cancelable: new Cancelable<Error>()
-                        },
-                        this.io))))
-                .extract(failure, success)
-                .catch(() => void window.location.assign((<RouterEvent.Source.Form>event._currentTarget).action)))
-              .close)
-            .add(new NavigationView(window, event =>
-              void Just(new Url(canonicalizeUrl(validateUrl(window.location.href))))
-                .bind(url =>
+      call: (_, { listeners }) => (
+        void listeners
+          .add(new ClickView(this.io.document, this.config.link, event =>
+            void Just(new Url(canonicalizeUrl(validateUrl((<RouterEvent.Source.Anchor>event._currentTarget).href))))
+              .bind(url =>
                   isAccessible(url)
                   && !isHashChange(url)
-                    ? Just(loadTitle())
-                    : Nothing)
-                .fmap(title => (
-                  title
-                    ? io.document.title = title
-                    : void 0,
-                  init
-                    .then(([scripts]) =>
-                      route(
-                        this.config,
-                        event,
-                        {
-                          router: GUI.router,
-                          scripts,
-                          cancelable: new Cancelable<Error>()
-                        },
-                        this.io))))
-                .extract(failure, success)
-                .catch(() => void window.location.reload(true)))
-              .close)
-            .add(new ScrollView(window, () =>
-              void Just(new Url(canonicalizeUrl(validateUrl(window.location.href))))
-                .fmap(url =>
-                  documentUrl.href === url.href
-                    ? void savePosition()
-                    : void 0)
-                .extract())
-              .close)),
+                  && !hasModifierKey(event)
+                  && this.config.filter(<RouterEvent.Source.Anchor>event._currentTarget)
+                  ? Just(0)
+                  : Nothing)
+              .fmap(() => (
+                void event.preventDefault(),
+                init
+                  .then(([scripts]) =>
+                    route(
+                      this.config,
+                      event,
+                      {
+                        router: GUI.router,
+                        scripts,
+                        cancelable: new Cancelable<Error>()
+                      },
+                      this.io))))
+              .extract(failure, success)
+              .catch(() => void window.location.assign((<RouterEvent.Source.Anchor>event._currentTarget).href)))
+            .close)
+          .add(new SubmitView(this.io.document, this.config.form, event =>
+            void Just(new Url(canonicalizeUrl(validateUrl((<RouterEvent.Source.Form>event._currentTarget).action))))
+              .bind(url =>
+                isAccessible(url)
+                && !hasModifierKey(event)
+                  ? Just(0)
+                  : Nothing)
+              .fmap(() => (
+                void event.preventDefault(),
+                init
+                  .then(([scripts]) =>
+                    route(
+                      this.config,
+                      event,
+                      {
+                        router: GUI.router,
+                        scripts,
+                        cancelable: new Cancelable<Error>()
+                      },
+                      this.io))))
+              .extract(failure, success)
+              .catch(() => void window.location.assign((<RouterEvent.Source.Form>event._currentTarget).action)))
+            .close)
+          .add(new NavigationView(window, event =>
+            void Just(new Url(canonicalizeUrl(validateUrl(window.location.href))))
+              .bind(url =>
+                isAccessible(url)
+                && !isHashChange(url)
+                  ? Just(loadTitle())
+                  : Nothing)
+              .fmap(title => (
+                title
+                  ? io.document.title = title
+                  : void 0,
+                init
+                  .then(([scripts]) =>
+                    route(
+                      this.config,
+                      event,
+                      {
+                        router: GUI.router,
+                        scripts,
+                        cancelable: new Cancelable<Error>()
+                      },
+                      this.io))))
+              .extract(failure, success)
+              .catch(() => void window.location.reload(true)))
+            .close)
+          .add(new ScrollView(window, () =>
+            void Just(new Url(canonicalizeUrl(validateUrl(window.location.href))))
+              .fmap(url =>
+                documentUrl.href === url.href
+                  ? void savePosition()
+                  : void 0)
+              .extract())
+            .close),
+        new Promise<never>(resolve => void listeners.add(resolve))),
       exit: (_, s) =>
         void s.cancel()
-    }, new Cancelable<void>());
+    }, new Cancelable<undefined>());
     void GUI.view.cast('', void 0);
   }
   private readonly config: Config = new Config(this.option);
