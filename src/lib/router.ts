@@ -53,24 +53,25 @@ export function expand(pattern: string): string[] {
 
 export function match(pattern: string, segment: string): boolean {
   pattern = pattern
-    .replace(/[?]*[*]+[?]*/g, '*')
-    .replace(/[*]+/g, '*');
+    .replace(/[*]+/g, '*')
+    .replace(/[*]+[?]/g, '?');
   const [, rest, state] = Array.from(pattern)
     .map<[string, string]>((p, i) =>
       p === '*'
         ? [p, pattern.slice(i + 1).match(/^[^?*/]*/)![0]]
         : [p, ''])
-    .reduce<[string[], string[], boolean]>(([ls, [r, ...rs], s], [p, ps]) => {
+    .reduce<[string[], string[], boolean]>(([ls, [r = '', ...rs], s], [p, ps]) => {
       if (!s) return [ls, [r].concat(rs), s];
       switch (p) {
         case '?':
           return [ls.concat([r]), rs, s];
         case '*':
           const seg = r.concat(rs.join(''));
-          return seg.includes(ps)
-            ? ps === ''
+          const ref = ps.split(/[?*]/, 1)[0];
+          return seg.includes(ref)
+            ? ref === ''
               ? [ls.concat(Array.from(seg.replace(/\/$/, ''))), Array.from(seg.replace(/.*?(?=\/?$)/, '')), s]
-              : [ls.concat(Array.from(seg.split(ps, 1).pop()!)), Array.from(ps + seg.split(ps, 2).pop()!), s]
+              : [ls.concat(Array.from(seg.slice(0, seg.indexOf(ref)))), Array.from(seg.slice(seg.indexOf(ref))), s]
             : [ls, [r].concat(rs), !s];
         default:
           return r === p

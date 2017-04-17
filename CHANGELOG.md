@@ -3,6 +3,7 @@
 ## 3.7.0
 
 - Add router function.
+- Fix routing with wildcards.
 - Improve url validation.
 
 ## 3.6.1

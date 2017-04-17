@@ -95,6 +95,7 @@ describe('Unit: lib/router', () => {
   describe('match', () => {
     it('char', () => {
       assert(match('', ''));
+      assert(!match('', 'a'));
       assert(match('a', 'a'));
       assert(!match('a', 'A'));
       assert(!match('A', 'a'));
@@ -110,21 +111,32 @@ describe('Unit: lib/router', () => {
     });
 
     it('?', () => {
+      assert(!match('', '?'));
       assert(match('?', 'a'));
-      assert(!match('a', '?'));
     });
 
     it('*', () => {
+      assert(!match('', '*'));
+      assert(match('*', ''));
       assert(match('*', 'a'));
-      assert(!match('a', '*'));
       assert(match('*', 'abc'));
+      assert(match('a*', 'a'));
       assert(match('a*', 'abc'));
       assert(match('ab*', 'abc'));
+      assert(match('*c', 'c'));
       assert(match('*c', 'abc'));
       assert(match('*bc', 'abc'));
+      assert(match('a*c', 'ac'));
       assert(match('a*c', 'abc'));
+      assert(match('*b*', 'b'));
       assert(match('*b*', 'abc'));
       assert(match('*bc', 'abbc'));
+      assert(match('*b*b*b', 'abcbeb'));
+      assert(match('a?*c', 'abc'));
+      assert(match('a*?c', 'abc'));
+      assert(!match('a*?c', 'ac'));
+      assert(match('a?*c', 'abbc'));
+      assert(!match('a*?c', 'abbc'));
     });
 
   });
