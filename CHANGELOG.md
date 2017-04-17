@@ -1,7 +1,8 @@
 # Changelog
 
-## 3.6.2
+## 3.7.0
 
+- Add router function.
 - Improve url validation.
 
 ## 3.6.1

@@ -66,3 +66,5 @@ export interface Sequence<a, b, c> {
   readonly ready: (result: b) => Promise<c>;
   readonly load: (result: c) => void;
 }
+
+export function router(config: { [pattern: string]: (path: string) => any; }): (url: string) => void;

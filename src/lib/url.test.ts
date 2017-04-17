@@ -45,11 +45,11 @@ describe('Unit: lib/url', () => {
     });
 
     it('query', () => {
-      assert(new Url(dir + file + query).query === query);
+      assert(new Url(dir + file + query + hash).query === query);
     });
 
     it('path', () => {
-      assert(new Url(dir + file + query).path === dir + file + query);
+      assert(new Url(dir + file + query + hash).path === dir + file + query);
     });
 
     it('hash', () => {

@@ -1,4 +1,4 @@
-import _Pjax, { Pjax } from '../../index';
+import _Pjax, { Pjax, router } from '../../index';
 
 describe('Interface: Package', function () {
   describe('default', function () {
@@ -8,7 +8,7 @@ describe('Interface: Package', function () {
 
   });
 
-  describe('function', function () {
+  describe('Pjax', function () {
     it('assign', function () {
       assert(typeof Pjax.assign === 'function');
     });
@@ -19,17 +19,9 @@ describe('Interface: Package', function () {
 
   });
 
-  describe('method', function () {
-    it('new', function () {
-      assert(new Pjax({}) instanceof Object);
-    });
-
-    it('assign', function () {
-      assert(typeof new Pjax({}).assign === 'function');
-    });
-
-    it('replace', function () {
-      assert(typeof new Pjax({}).replace === 'function');
+  describe('router', function () {
+    it('router', function () {
+      assert(typeof router === 'function');
     });
 
   });
