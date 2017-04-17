@@ -9,7 +9,8 @@
     "url": "https://github.com/falsandtru/pjax-api"
   },
   "keywords": [
-    "pjax"
+    "pjax",
+    "router"
   ],
   "main": "./dist/pjax-api.js",
   "files": [
