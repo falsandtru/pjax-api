@@ -17,12 +17,18 @@ export function router(config: { [pattern: string]: (path: string) => any; }): (
 
 export function compare(pattern: string, path: Url.Pathname<CanonicalUrl>): boolean {
   const regSegment = /\/|[^/]+\/?/g;
+  const regTrailingSlash = /\/(?=$|[?#])/;
   return Sequence
     .zip(
       Sequence.from(expand(pattern)),
       Sequence.cycle([path]))
     .map(([pattern, path]) =>
-      [pattern.match(regSegment) || [], path.match(regSegment) || []])
+      [
+        pattern.match(regSegment) || [],
+        pattern.match(regTrailingSlash)
+          ? path.match(regSegment) || []
+          : path.replace(regTrailingSlash, '').match(regSegment) || []
+      ])
     .filter(([ps, ss]) =>
       ps.length <= ss.length)
     .filter(([patterns, segments]) =>

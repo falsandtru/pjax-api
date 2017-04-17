@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.8.0
+
+- Ignore trailing slash of path in routing.
+
 ## 3.7.0
 
 - Add router function.

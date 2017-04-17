@@ -15,12 +15,22 @@ describe('Unit: lib/router', () => {
         },
         '/b': path => {
           assert(++cnt === 2);
-          assert(path === '/b?c');
+          assert(path === '/b');
+        },
+        '/b/': path => {
+          assert(++cnt === 3);
+          assert(path === '/b/');
+        },
+        '/c': path => {
+          assert(++cnt === 4);
+          assert(path === '/c/?q');
           done();
         }
       });
       route('/a');
-      route('/b?c');
+      route('/b');
+      route('/b/');
+      route('/c/?q');
     });
 
   });
@@ -34,12 +44,12 @@ describe('Unit: lib/router', () => {
       assert(compare('/', new Url(canonicalizeUrl(validateUrl('/abc/'))).pathname));
       assert(compare('/', new Url(canonicalizeUrl(validateUrl('/a/b'))).pathname));
       assert(compare('/', new Url(canonicalizeUrl(validateUrl('/abc/bcd'))).pathname));
-      assert(!compare('/a', new Url(canonicalizeUrl(validateUrl('/'))).pathname));
     });
 
     it('dir', () => {
+      assert(!compare('/abc', new Url(canonicalizeUrl(validateUrl('/'))).pathname));
       assert(compare('/abc', new Url(canonicalizeUrl(validateUrl('/abc'))).pathname));
-      assert(!compare('/abc', new Url(canonicalizeUrl(validateUrl('/abc/'))).pathname));
+      assert(compare('/abc', new Url(canonicalizeUrl(validateUrl('/abc/'))).pathname));
       assert(!compare('/abc/', new Url(canonicalizeUrl(validateUrl('/abc'))).pathname));
       assert(compare('/abc/', new Url(canonicalizeUrl(validateUrl('/abc/'))).pathname));
       assert(!compare('/abc', new Url(canonicalizeUrl(validateUrl('/ab'))).pathname));
@@ -50,13 +60,6 @@ describe('Unit: lib/router', () => {
       assert(compare('/a/b/c.d', new Url(canonicalizeUrl(validateUrl('/a/b/c.d'))).pathname));
       assert(!compare('/a/b/c', new Url(canonicalizeUrl(validateUrl('/a/b/c.d'))).pathname));
       assert(!compare('/a/b/c.d', new Url(canonicalizeUrl(validateUrl('/a/b/c'))).pathname));
-    });
-
-    it('query', () => {
-      assert(compare('/a/b', new Url(canonicalizeUrl(validateUrl('/a/b?c'))).pathname));
-      assert(!compare('/a/b/', new Url(canonicalizeUrl(validateUrl('/a/b?c'))).pathname));
-      assert(!compare('/a/b', new Url(canonicalizeUrl(validateUrl('/a/b/?c'))).pathname));
-      assert(compare('/a/b/', new Url(canonicalizeUrl(validateUrl('/a/b/?c'))).pathname));
     });
 
     it('expand', () => {
