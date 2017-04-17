@@ -40,11 +40,16 @@ require = function e(t, n, r) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             var api_1 = require('./layer/interface/service/api');
-            exports.Pjax = api_1.API;
+            exports.default = api_1.API;
             var api_2 = require('./layer/interface/service/api');
-            exports.default = api_2.API;
+            exports.Pjax = api_2.API;
+            var router_1 = require('./lib/router');
+            exports.router = router_1.router;
         },
-        { './layer/interface/service/api': 38 }
+        {
+            './layer/interface/service/api': 38,
+            './lib/router': 50
+        }
     ],
     4: [
         function (require, module, exports) {
@@ -90,13 +95,14 @@ require = function e(t, n, r) {
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            var spica_1 = require('spica');
+            var router_1 = require('../../../lib/router');
             var config_1 = require('../../domain/data/config');
+            var spica_1 = require('spica');
             function scope(config, path) {
                 return spica_1.Sequence.from(Object.keys(config.scope).sort().reverse()).dropWhile(function (pattern) {
-                    return !!!compare(path.orig, pattern) && !compare(path.dest, pattern);
+                    return !!!router_1.compare(pattern, path.orig) && !router_1.compare(pattern, path.dest);
                 }).take(1).filter(function (pattern) {
-                    return !!compare(path.orig, pattern) && compare(path.dest, pattern);
+                    return !!router_1.compare(pattern, path.orig) && router_1.compare(pattern, path.dest);
                 }).map(function (pattern) {
                     return config.scope[pattern];
                 }).map(function (option) {
@@ -106,96 +112,9 @@ require = function e(t, n, r) {
                 }, spica_1.Nothing);
             }
             exports.scope = scope;
-            function compare(path, pattern) {
-                var regSegment = /\/|[^\/]+\/?/g;
-                return spica_1.Sequence.zip(spica_1.Sequence.cycle([path]), spica_1.Sequence.from(expand(pattern))).map(function (_a) {
-                    var path = _a[0], pattern = _a[1];
-                    return [
-                        path.match(regSegment) || [],
-                        pattern.match(regSegment) || []
-                    ];
-                }).filter(function (_a) {
-                    var path = _a[0], pattern = _a[1];
-                    return path.length >= pattern.length;
-                }).filter(function (_a) {
-                    var path = _a[0], pattern = _a[1];
-                    return spica_1.Sequence.zip(spica_1.Sequence.from(path), spica_1.Sequence.from(pattern)).takeWhile(function (_a) {
-                        var s = _a[0], p = _a[1];
-                        return match(s, p);
-                    }).extract().length === pattern.length;
-                }).take(1).extract().length > 0;
-            }
-            exports.compare = compare;
-            function expand(pattern) {
-                return spica_1.Sequence.from((pattern.match(/{.*?}|[^{]*/g) || []).map(function (p) {
-                    return p[0] === '{' ? p.slice(1, -1).split(',') : [p];
-                })).mapM(spica_1.Sequence.from).map(function (ps) {
-                    return ps.join('');
-                }).extract();
-            }
-            exports.expand = expand;
-            function match(segment, pattern) {
-                pattern = pattern.replace(/[?]*[*]+[?]*/g, '*').replace(/[*]+/g, '*');
-                var _a = Array.from(pattern).map(function (p, i) {
-                        return p === '*' ? [
-                            p,
-                            pattern.slice(i + 1).match(/^[^?*\/]*/)[0]
-                        ] : [
-                            p,
-                            ''
-                        ];
-                    }).reduce(function (_a, _b) {
-                        var ls = _a[0], _c = _a[1], r = _c[0], rs = _c.slice(1), s = _a[2];
-                        var p = _b[0], ps = _b[1];
-                        if (!s)
-                            return [
-                                ls,
-                                [r].concat(rs),
-                                s
-                            ];
-                        switch (p) {
-                        case '?':
-                            return [
-                                ls.concat([r]),
-                                rs,
-                                s
-                            ];
-                        case '*':
-                            var seg = r.concat(rs.join(''));
-                            return seg.includes(ps) ? ps === '' ? [
-                                ls.concat(Array.from(seg.replace(/\/$/, ''))),
-                                Array.from(seg.replace(/.*?(?=\/?$)/, '')),
-                                s
-                            ] : [
-                                ls.concat(Array.from(seg.split(ps, 1).pop())),
-                                Array.from(ps + seg.split(ps, 2).pop()),
-                                s
-                            ] : [
-                                ls,
-                                [r].concat(rs),
-                                !s
-                            ];
-                        default:
-                            return r === p ? [
-                                ls.concat([r]),
-                                rs,
-                                s
-                            ] : [
-                                ls,
-                                [r].concat(rs),
-                                !s
-                            ];
-                        }
-                    }, [
-                        Array.from(''),
-                        Array.from(segment),
-                        true
-                    ]), rest = _a[1], state = _a[2];
-                return rest.length === 0 && state;
-            }
-            exports.match = match;
         },
         {
+            '../../../lib/router': 50,
             '../../domain/data/config': 11,
             'spica': undefined
         }
@@ -399,7 +318,7 @@ require = function e(t, n, r) {
             }();
         },
         {
-            '../../../lib/url': 50,
+            '../../../lib/url': 51,
             'spica': undefined
         }
     ],
@@ -520,7 +439,7 @@ require = function e(t, n, r) {
         },
         {
             '../../../lib/dom': 46,
-            '../../../lib/url': 50,
+            '../../../lib/url': 51,
             '../../data/model/canonicalization/url': 8,
             '../../data/model/validation/url': 9,
             '../data/error': 12
@@ -1317,7 +1236,7 @@ require = function e(t, n, r) {
             exports.fetch = fetch;
         },
         {
-            '../../../../../lib/url': 50,
+            '../../../../../lib/url': 51,
             '../../../data/error': 12,
             '../../module/fetch/xhr': 18,
             'spica': undefined
@@ -1931,7 +1850,7 @@ require = function e(t, n, r) {
         {
             '../../../lib/dom': 46,
             '../../../lib/html': 48,
-            '../../../lib/url': 50,
+            '../../../lib/url': 51,
             '../../application/api': 4,
             '../../data/model/canonicalization/url': 8,
             '../../data/model/validation/url': 9,
@@ -2313,6 +2232,120 @@ require = function e(t, n, r) {
         {}
     ],
     50: [
+        function (require, module, exports) {
+            'use strict';
+            Object.defineProperty(exports, '__esModule', { value: true });
+            var url_1 = require('../layer/data/model/canonicalization/url');
+            var url_2 = require('../layer/data/model/validation/url');
+            var url_3 = require('./url');
+            var spica_1 = require('spica');
+            function router(config) {
+                return function (url) {
+                    var _a = new url_3.Url(url_1.canonicalizeUrl(url_2.validateUrl(url))), path = _a.path, pathname = _a.pathname;
+                    return void spica_1.Sequence.from(Object.keys(config).sort().reverse()).filter(spica_1.flip(compare)(pathname)).take(1).extract().forEach(function (pattern) {
+                        return void config[pattern](path);
+                    });
+                };
+            }
+            exports.router = router;
+            function compare(pattern, path) {
+                var regSegment = /\/|[^\/]+\/?/g;
+                return spica_1.Sequence.zip(spica_1.Sequence.from(expand(pattern)), spica_1.Sequence.cycle([path])).map(function (_a) {
+                    var pattern = _a[0], path = _a[1];
+                    return [
+                        pattern.match(regSegment) || [],
+                        path.match(regSegment) || []
+                    ];
+                }).filter(function (_a) {
+                    var ps = _a[0], ss = _a[1];
+                    return ps.length <= ss.length;
+                }).filter(function (_a) {
+                    var patterns = _a[0], segments = _a[1];
+                    return spica_1.Sequence.zip(spica_1.Sequence.from(patterns), spica_1.Sequence.from(segments)).takeWhile(function (_a) {
+                        var p = _a[0], s = _a[1];
+                        return match(p, s);
+                    }).extract().length === patterns.length;
+                }).take(1).extract().length > 0;
+            }
+            exports.compare = compare;
+            function expand(pattern) {
+                return spica_1.Sequence.from((pattern.match(/{.*?}|[^{]*/g) || []).map(function (p) {
+                    return p[0] === '{' ? p.slice(1, -1).split(',') : [p];
+                })).mapM(spica_1.Sequence.from).map(function (ps) {
+                    return ps.join('');
+                }).extract();
+            }
+            exports.expand = expand;
+            function match(pattern, segment) {
+                pattern = pattern.replace(/[*]+/g, '*').replace(/[*]+[?]/g, '?');
+                var _a = Array.from(pattern).map(function (p, i) {
+                        return p === '*' ? [
+                            p,
+                            pattern.slice(i + 1).match(/^[^?*\/]*/)[0]
+                        ] : [
+                            p,
+                            ''
+                        ];
+                    }).reduce(function (_a, _b) {
+                        var ls = _a[0], _c = _a[1], _d = _c[0], r = _d === void 0 ? '' : _d, rs = _c.slice(1), s = _a[2];
+                        var p = _b[0], ps = _b[1];
+                        if (!s)
+                            return [
+                                ls,
+                                [r].concat(rs),
+                                s
+                            ];
+                        switch (p) {
+                        case '?':
+                            return [
+                                ls.concat([r]),
+                                rs,
+                                s
+                            ];
+                        case '*':
+                            var seg = r.concat(rs.join(''));
+                            var ref = ps.split(/[?*]/, 1)[0];
+                            return seg.includes(ref) ? ref === '' ? [
+                                ls.concat(Array.from(seg.replace(/\/$/, ''))),
+                                Array.from(seg.replace(/.*?(?=\/?$)/, '')),
+                                s
+                            ] : [
+                                ls.concat(Array.from(seg.slice(0, seg.indexOf(ref)))),
+                                Array.from(seg.slice(seg.indexOf(ref))),
+                                s
+                            ] : [
+                                ls,
+                                [r].concat(rs),
+                                !s
+                            ];
+                        default:
+                            return r === p ? [
+                                ls.concat([r]),
+                                rs,
+                                s
+                            ] : [
+                                ls,
+                                [r].concat(rs),
+                                !s
+                            ];
+                        }
+                    }, [
+                        Array.from(''),
+                        Array.from(segment),
+                        true
+                    ]), rest = _a[1], state = _a[2];
+                return rest.length === 0 && state;
+            }
+            exports.match = match;
+        },
+        {
+            '../layer/data/model/canonicalization/url': 8,
+            '../layer/data/model/validation/url': 9,
+            './url': 51,
+            'spica': undefined
+        }
+    ],
+    51: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });

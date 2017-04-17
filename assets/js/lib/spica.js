@@ -1,4 +1,4 @@
-/*! spica v0.0.60 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.63 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
@@ -527,7 +527,7 @@ require = function e(t, n, r) {
                 } : curry_(f, [], ctx);
             };
             function curry_(f, xs, ctx) {
-                return f.length === xs.length ? f.apply(ctx, xs) : function () {
+                return f.length <= xs.length ? f.apply(ctx, xs.slice(0, f.length)) : function () {
                     var ys = [];
                     for (var _i = 0; _i < arguments.length; _i++) {
                         ys[_i] = arguments[_i];
@@ -3868,14 +3868,10 @@ require = function e(t, n, r) {
                         return void worker.terminate(reason);
                     });
                     void this.deliver();
-                    try {
-                        void this.destructor_(reason);
-                    } catch (reason) {
-                        void console.error(stringify_1.stringify(reason));
-                    }
                     this.alive = false;
                     void --this.constructor.count;
                     void Object.freeze(this);
+                    void this.destructor_(reason);
                 };
                 Supervisor.prototype.validate = function () {
                     if (!this.available)
@@ -4052,8 +4048,8 @@ require = function e(t, n, r) {
                 Worker.prototype.destructor = function (reason) {
                     this.alive = false;
                     this.available = false;
-                    void this.destructor_();
                     void Object.freeze(this);
+                    void this.destructor_();
                     try {
                         void this.process.exit(reason, this.state);
                         void this.sv.events.exit.emit([this.name], [
@@ -4062,14 +4058,14 @@ require = function e(t, n, r) {
                             this.state,
                             reason
                         ]);
-                    } catch (reason) {
+                    } catch (reason_) {
                         void this.sv.events.exit.emit([this.name], [
                             this.name,
                             this.process,
                             this.state,
                             reason
                         ]);
-                        void this.sv.terminate(void 0, reason);
+                        void this.sv.terminate(void 0, reason_);
                     }
                 };
                 return Worker;
