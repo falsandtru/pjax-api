@@ -2250,11 +2250,12 @@ require = function e(t, n, r) {
             exports.router = router;
             function compare(pattern, path) {
                 var regSegment = /\/|[^\/]+\/?/g;
+                var regTrailingSlash = /\/(?=$|[?#])/;
                 return spica_1.Sequence.zip(spica_1.Sequence.from(expand(pattern)), spica_1.Sequence.cycle([path])).map(function (_a) {
                     var pattern = _a[0], path = _a[1];
                     return [
                         pattern.match(regSegment) || [],
-                        path.match(regSegment) || []
+                        pattern.match(regTrailingSlash) ? path.match(regSegment) || [] : path.replace(regTrailingSlash, '').match(regSegment) || []
                     ];
                 }).filter(function (_a) {
                     var ps = _a[0], ss = _a[1];
