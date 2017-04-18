@@ -3,6 +3,7 @@
 ## 3.8.0
 
 - Ignore trailing slash of path in routing.
+- Enhance router function.
 
 ## 3.7.0
 

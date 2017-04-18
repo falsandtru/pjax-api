@@ -6,31 +6,29 @@ import { Sequence } from 'spica';
 
 describe('Unit: lib/router', () => {
   describe('router', () => {
-    it('router', done => {
-      let cnt = 0;
+    it('router', () => {
       const route = router({
         '/': path => {
-          assert(++cnt === 1);
           assert(path === '/a');
+          return '/';
         },
         '/b': path => {
-          assert(++cnt === 2);
           assert(path === '/b');
+          return '/b';
         },
         '/b/': path => {
-          assert(++cnt === 3);
           assert(path === '/b/');
+          return '/b/';
         },
         '/c': path => {
-          assert(++cnt === 4);
           assert(path === '/c/?q');
-          done();
+          return '/c';
         }
       });
-      route('/a');
-      route('/b');
-      route('/b/');
-      route('/c/?q');
+      assert(route('/a') === '/');
+      assert(route('/b') === '/b');
+      assert(route('/b/') === '/b/');
+      assert(route('/c/?q') === '/c');
     });
 
   });

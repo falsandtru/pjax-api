@@ -3,15 +3,16 @@ import { validateUrl } from '../layer/data/model/validation/url';
 import { Url } from './url';
 import { Sequence, flip } from 'spica';
 
-export function router(config: { [pattern: string]: (path: string) => any; }): (url: string) => void {
+export function router<T>(config: { [pattern: string]: (path: string) => T; }): (url: string) => T {
   return (url: string) => {
     const { path, pathname } = new Url(canonicalizeUrl(validateUrl(url)));
-    return void Sequence.from(Object.keys(config).sort().reverse())
+    return Sequence.from(Object.keys(config).sort().reverse())
       .filter(flip(compare)(pathname))
+      .map(pattern => config[pattern])
       .take(1)
       .extract()
-      .forEach(pattern =>
-        void config[pattern](path));
+      .pop()!
+      (path);
   };
 }
 
