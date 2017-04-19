@@ -181,9 +181,13 @@ require = function e(t, n, r) {
             var parser = document.createElement('a');
             function validateUrl(url) {
                 url = url.trim();
+                url = url.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]?|[\uDC00-\uDFFF]/g, function (str) {
+                    return str.length === 2 ? str : '';
+                });
                 url = (parser.href = url || location.href, parser.href);
-                url = encodeURI(decodeURI(url)).replace(/%25/g, '%');
-                url = url.split(/["`^|<>{}\[\]\s\\]/)[0];
+                url = url.replace(/%[0-9a-fA-F]{2}|[\uD800-\uDBFF][\uDC00-\uDFFF]|[^0-9a-zA-Z;\/?:@&=+$,\-_.!~*'()]/g, function (str) {
+                    return str.startsWith('%') && str.length === 3 ? str : encodeURI(str);
+                });
                 return url;
             }
             exports.validateUrl = validateUrl;
@@ -2198,7 +2202,7 @@ require = function e(t, n, r) {
                     var html = '\n<html lang="en" class="html">\n  <head>\n    <link href="/">\n    <title>&amp;</title>\n    <noscript><style>/**/</style></noscript>\n  </head>\n  <body>\n    <noscript>noscript</noscript>\n    <a href="/"></a>\n    <script>document.head.remove();</script>\n  </body>\n</html>\n';
                     var doc = parser(html);
                     switch (false) {
-                    case doc.URL && decodeURI(doc.URL) === decodeURI(window.location.href):
+                    case doc.URL && doc.URL.startsWith(window.location.protocol + '//' + window.location.host):
                     case doc.title === '&':
                     case !!doc.querySelector('html.html[lang="en"]'):
                     case !!doc.querySelector('head>link')['href']:
@@ -2242,9 +2246,9 @@ require = function e(t, n, r) {
             function router(config) {
                 return function (url) {
                     var _a = new url_3.Url(url_1.canonicalizeUrl(url_2.validateUrl(url))), path = _a.path, pathname = _a.pathname;
-                    return void spica_1.Sequence.from(Object.keys(config).sort().reverse()).filter(spica_1.flip(compare)(pathname)).take(1).extract().forEach(function (pattern) {
-                        return void config[pattern](path);
-                    });
+                    return spica_1.Sequence.from(Object.keys(config).sort().reverse()).filter(spica_1.flip(compare)(pathname)).map(function (pattern) {
+                        return config[pattern];
+                    }).take(1).extract().pop()(path);
                 };
             }
             exports.router = router;
