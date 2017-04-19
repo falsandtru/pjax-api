@@ -4,6 +4,7 @@
 
 - Ignore trailing slash of path in routing.
 - Enhance router function.
+- Fix invalid url processing.
 
 ## 3.7.0
 
