@@ -7,11 +7,15 @@ const parser = document.createElement('a');
 export function validateUrl(url: string): ValidUrl {
   // Trim
   url = url.trim();
+  // Remove invalid surrogate pairs
+  url = url.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]?|[\uDC00-\uDFFF]/g, str =>
+    str.length === 2 ? str : '');
   // Convert to absolute path
   url = (parser.href = url || location.href, parser.href);
   // Convert to UTF-8 encoded string
-  url = encodeURI(decodeURI(url)).replace(/%25/g, '%');
-  // Remove string of starting with an invalid character
-  url = url.split(/["`^|<>{}\[\]\s\\]/)[0];
+  url = url.replace(/%[0-9a-fA-F]{2}|[\uD800-\uDBFF][\uDC00-\uDFFF]|[^0-9a-zA-Z;/?:@&=+$,\-_.!~*'()]/g, str =>
+    str.startsWith('%') && str.length === 3
+      ? str
+      : encodeURI(str));
   return <any>url;
 }
