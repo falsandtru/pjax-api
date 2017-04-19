@@ -12,11 +12,11 @@ describe('Unit: layer/data/model/canonicalization/url', () => {
     });
 
     it('percent-encoding', () => {
-      assert(canonicalizeUrl(validateUrl('#%%3f%3d')) === `${location.href}#%25%3F%3D`);
+      assert(canonicalizeUrl(validateUrl('/%%3f%3d')).endsWith('/%25%3F%3D'));
     });
 
     it('multiple-encoding', () => {
-      assert(canonicalizeUrl(validateUrl(<any>canonicalizeUrl(validateUrl('#%%3f%3d')))) === `${location.href}#%25%3F%3D`);
+      assert(canonicalizeUrl(validateUrl(<any>canonicalizeUrl(validateUrl('/%%3f%3d')))).endsWith('/%25%3F%3D'));
     });
 
   });
