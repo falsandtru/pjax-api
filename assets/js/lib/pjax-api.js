@@ -185,7 +185,7 @@ require = function e(t, n, r) {
                     return str.length === 2 ? str : '';
                 });
                 url = (parser.href = url || location.href, parser.href);
-                url = url.replace(/%[0-9a-fA-F]{2}|[\uD800-\uDBFF][\uDC00-\uDFFF]|[^0-9a-zA-Z;\/?:@&=+$,\-_.!~*'()]/g, function (str) {
+                url = url.replace(/%[0-9a-fA-F]{2}|[\uD800-\uDBFF][\uDC00-\uDFFF]|[^0-9a-zA-Z;\/?:@&=+$,\-_.!~*'()\[\]]/g, function (str) {
                     return str.startsWith('%') && str.length === 3 ? str : encodeURI(str);
                 });
                 return url;
