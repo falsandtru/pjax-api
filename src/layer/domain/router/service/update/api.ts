@@ -105,7 +105,7 @@ export function update(
             void focus(documents.dst),
             void scroll(event.type, documents.dst,
               {
-                hash: event.location.dest.hash,
+                hash: event.location.dest.fragment,
                 top: 0,
                 left: 0
               },

@@ -8,7 +8,7 @@ export function scroll(
   type: RouterEntity.Event.Type,
   document: Document,
   target: {
-    hash: Url.Hash<CanonicalUrl>;
+    hash: Url.Fragment<CanonicalUrl>;
     top: number;
     left: number;
   },
@@ -41,7 +41,7 @@ export function scroll(
 
 export function hash(
   document: Document,
-  hash: Url.Hash<CanonicalUrl>,
+  hash: Url.Fragment<CanonicalUrl>,
   io = {
     scroll: window.scrollTo
   }

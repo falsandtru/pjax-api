@@ -13,7 +13,7 @@ describe('Unit: layer/domain/router/module/update/scroll', () => {
         parse(DOM.body([
           DOM.div({ id: 'hash' }, []),
         ]).element.outerHTML).extract(),
-        new Url(canonicalizeUrl(validateUrl('#hash'))).hash,
+        new Url(canonicalizeUrl(validateUrl('#hash'))).fragment,
         {
           scroll: (x?: number, y?: number) => {
             assert(++cnt === 1);
@@ -29,7 +29,7 @@ describe('Unit: layer/domain/router/module/update/scroll', () => {
       const result = hash(
         parse(DOM.body([
         ]).element.outerHTML).extract(),
-        new Url(canonicalizeUrl(validateUrl('#hash'))).hash,
+        new Url(canonicalizeUrl(validateUrl('#hash'))).fragment,
         {
           scroll: () => {
             throw new Error();

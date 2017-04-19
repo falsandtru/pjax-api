@@ -178,7 +178,7 @@ function isHashChange(
 ): boolean {
   return orig.domain === dest.domain
       && orig.path === dest.path
-      && orig.hash !== dest.hash;
+      && orig.fragment !== dest.fragment;
 }
 
 function click(url: string): Promise<Event> {
