@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.9.0
+
+- Support IPv6 literal url. 
+
 ## 3.8.0
 
 - Ignore trailing slash of path in routing.

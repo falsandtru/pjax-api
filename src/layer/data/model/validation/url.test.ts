@@ -17,6 +17,7 @@ describe('Unit: layer/data/model/validation/url', () => {
       assert(validateUrl('/%%FF<%3F%3D>').endsWith('/%25%FF%3C%3F%3D%3E'));
       assert(validateUrl('/\uD800\uDC00').endsWith(`/${encodeURI('\uD800\uDC00')}`));
       assert(validateUrl('/\uD800\uD800\uDC00\uDC00').endsWith(`/${encodeURI('\uD800\uDC00')}`));
+      assert(validateUrl('//[2001:db8::7]/').endsWith('//[2001:db8::7]/'));
     });
 
     it('multiple-encoding', () => {

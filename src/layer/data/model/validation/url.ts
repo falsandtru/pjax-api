@@ -13,7 +13,7 @@ export function validateUrl(url: string): ValidUrl {
   url = (parser.href = url || location.href, parser.href);
   assert(url.startsWith(`${parser.protocol}//`));
   // Encode
-  url = url.replace(/%[0-9a-fA-F]{2}|[\uD800-\uDBFF][\uDC00-\uDFFF]|[^0-9a-zA-Z;/?:@&=+$,\-_.!~*'()]/g, str =>
+  url = url.replace(/%[0-9a-fA-F]{2}|[\uD800-\uDBFF][\uDC00-\uDFFF]|[^0-9a-zA-Z;/?:@&=+$,\-_.!~*'()\[\]]/g, str =>
     str.startsWith('%') && str.length === 3
       ? str
       : encodeURI(str));
