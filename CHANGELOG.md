@@ -3,6 +3,7 @@
 ## 3.9.0
 
 - Support IPv6 literal url. 
+- Improve url normalization.
 
 ## 3.8.0
 

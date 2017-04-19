@@ -17,5 +17,5 @@ export function validateUrl(url: string): ValidUrl {
     str.startsWith('%') && str.length === 3
       ? str
       : encodeURI(str));
-  return <any>url;
+  return <ValidUrl>url;
 }
