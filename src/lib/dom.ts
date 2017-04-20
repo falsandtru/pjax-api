@@ -53,13 +53,33 @@ export function delegate(el: HTMLElement, selector: string, type: string, listen
 
 export function serialize(form: HTMLFormElement): string {
   return (<HTMLInputElement[]>Array.from(form.elements))
+    .filter(el => {
+      if (el.disabled) return false;
+      switch (el.nodeName.toLowerCase()) {
+        case 'input':
+          switch (el.type.toLowerCase()) {
+            case 'checkbox':
+            case 'radio':
+              return el.checked;
+            case 'submit':
+            case 'button':
+            case 'image':
+            case 'reset':
+            case 'file':
+              return false;
+            default:
+              return true;
+          }
+        case 'select':
+        case 'textarea':
+          return true;
+        default:
+          return false;
+      }
+    })
     .filter(el =>
       typeof el.name === 'string' &&
-      typeof el.value === 'string' &&
-      !el.disabled &&
-      (el.checked || !/^(?:checkbox|radio)$/i.test(el.type)) &&
-      /^(?:input|select|textarea)$/i.test(el.nodeName) &&
-      !/^(?:submit|button|image|reset|file)$/i.test(el.type))
+      typeof el.value === 'string')
     .map(el =>
       [
         encodeURIComponent(removeInvalidSurrogatePairs(el.name)),
