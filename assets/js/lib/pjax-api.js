@@ -2082,7 +2082,31 @@ require = function e(t, n, r) {
             exports.delegate = delegate;
             function serialize(form) {
                 return Array.from(form.elements).filter(function (el) {
-                    return typeof el.name === 'string' && typeof el.value === 'string' && !el.disabled && (el.checked || !/^(?:checkbox|radio)$/i.test(el.type)) && /^(?:input|select|textarea)$/i.test(el.nodeName) && !/^(?:submit|button|image|reset|file)$/i.test(el.type);
+                    if (el.disabled)
+                        return false;
+                    switch (el.nodeName.toLowerCase()) {
+                    case 'input':
+                        switch (el.type.toLowerCase()) {
+                        case 'checkbox':
+                        case 'radio':
+                            return el.checked;
+                        case 'submit':
+                        case 'button':
+                        case 'image':
+                        case 'reset':
+                        case 'file':
+                            return false;
+                        default:
+                            return true;
+                        }
+                    case 'select':
+                    case 'textarea':
+                        return true;
+                    default:
+                        return false;
+                    }
+                }).filter(function (el) {
+                    return typeof el.name === 'string' && typeof el.value === 'string';
                 }).map(function (el) {
                     return [
                         encodeURIComponent(removeInvalidSurrogatePairs(el.name)),
