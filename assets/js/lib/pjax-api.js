@@ -166,9 +166,11 @@ require = function e(t, n, r) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             function canonicalizeUrl(url) {
-                return url.replace(/(?:%\w{2})+/g, function (str) {
+                url = url.replace(/(?:%\w{2})+/g, function (str) {
                     return str.toUpperCase();
                 });
+                url = url.replace(/^([^:\/?#]+:\/\/[^\/?#]*?):(?:80)?(?=$|[\/?#])/, '$1');
+                return url;
             }
             exports.canonicalizeUrl = canonicalizeUrl;
         },
@@ -1316,7 +1318,7 @@ require = function e(t, n, r) {
                                     src: documents.src.body,
                                     dst: documents.dst.body
                                 }, config.update.ignore) : void 0, void focus_1.focus(documents.dst), void scroll_1.scroll(event.type, documents.dst, {
-                                    hash: event.location.dest.hash,
+                                    hash: event.location.dest.fragment,
                                     top: 0,
                                     left: 0
                                 }, {
@@ -1839,7 +1841,7 @@ require = function e(t, n, r) {
                 if (orig === void 0) {
                     orig = new url_1.Url(url_4.documentUrl.href);
                 }
-                return orig.domain === dest.domain && orig.path === dest.path && orig.hash !== dest.hash;
+                return orig.domain === dest.domain && orig.path === dest.path && orig.fragment !== dest.fragment;
             }
             function click(url) {
                 var el = document.createElement('a');
@@ -2080,13 +2082,18 @@ require = function e(t, n, r) {
             exports.delegate = delegate;
             function serialize(form) {
                 return Array.from(form.elements).filter(function (el) {
-                    return el.name && !el.disabled && (el.checked || !/^(?:checkbox|radio)$/i.test(el.type)) && /^(?:input|select|textarea|keygen)/i.test(el.nodeName) && !/^(?:submit|button|image|reset|file)$/i.test(el.type);
+                    return typeof el.name === 'string' && typeof el.value === 'string' && !el.disabled && (el.checked || !/^(?:checkbox|radio)$/i.test(el.type)) && /^(?:input|select|textarea)$/i.test(el.nodeName) && !/^(?:submit|button|image|reset|file)$/i.test(el.type);
                 }).map(function (el) {
                     return [
-                        encodeURIComponent(el.name),
-                        encodeURIComponent(el.value === null ? '' : el.value.replace(/\r?\n/g, '\r\n'))
+                        encodeURIComponent(removeInvalidSurrogatePairs(el.name)),
+                        encodeURIComponent(removeInvalidSurrogatePairs(el.value))
                     ].join('=');
                 }).join('&');
+                function removeInvalidSurrogatePairs(str) {
+                    return str.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]?|[\uDC00-\uDFFF]/g, function (str) {
+                        return str.length === 2 ? str : '';
+                    });
+                }
             }
             exports.serialize = serialize;
             var supportEventListenerOptions = false;
@@ -2359,7 +2366,8 @@ require = function e(t, n, r) {
                     this.parser = document.createElement('a');
                     this.URL;
                     this.parser.href = url || location.href;
-                    this.parser.setAttribute('href', this.parser.href);
+                    this.parser.setAttribute('href', url || location.href);
+                    Object.freeze(this);
                 }
                 Object.defineProperty(Url.prototype, 'href', {
                     get: function () {
@@ -2375,9 +2383,23 @@ require = function e(t, n, r) {
                     enumerable: true,
                     configurable: true
                 });
+                Object.defineProperty(Url.prototype, 'scheme', {
+                    get: function () {
+                        return this.parser.protocol.slice(0, -1);
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
                 Object.defineProperty(Url.prototype, 'protocol', {
                     get: function () {
                         return this.parser.protocol;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(Url.prototype, 'userinfo', {
+                    get: function () {
+                        return this.parser.href.match(/[^:\/?#]+:\/\/([^\/?#]*)@|$/).pop() || '';
                     },
                     enumerable: true,
                     configurable: true
@@ -2410,23 +2432,9 @@ require = function e(t, n, r) {
                     enumerable: true,
                     configurable: true
                 });
-                Object.defineProperty(Url.prototype, 'dir', {
-                    get: function () {
-                        return this.pathname.split('/').slice(0, -1).concat('').join('/');
-                    },
-                    enumerable: true,
-                    configurable: true
-                });
-                Object.defineProperty(Url.prototype, 'file', {
-                    get: function () {
-                        return this.pathname.split('/').pop();
-                    },
-                    enumerable: true,
-                    configurable: true
-                });
                 Object.defineProperty(Url.prototype, 'pathname', {
                     get: function () {
-                        return '' + (this.parser.pathname[0] === '/' ? '' : '/') + this.parser.pathname;
+                        return this.parser.pathname;
                     },
                     enumerable: true,
                     configurable: true
@@ -2438,7 +2446,7 @@ require = function e(t, n, r) {
                     enumerable: true,
                     configurable: true
                 });
-                Object.defineProperty(Url.prototype, 'hash', {
+                Object.defineProperty(Url.prototype, 'fragment', {
                     get: function () {
                         return this.parser.hash;
                     },
