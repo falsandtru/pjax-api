@@ -54,17 +54,22 @@ export function delegate(el: HTMLElement, selector: string, type: string, listen
 export function serialize(form: HTMLFormElement): string {
   return (<HTMLInputElement[]>Array.from(form.elements))
     .filter(el =>
-      el.name &&
+      typeof el.name === 'string' &&
+      typeof el.value === 'string' &&
       !el.disabled &&
       (el.checked || !/^(?:checkbox|radio)$/i.test(el.type)) &&
-      /^(?:input|select|textarea|keygen)/i.test(el.nodeName) &&
+      /^(?:input|select|textarea)$/i.test(el.nodeName) &&
       !/^(?:submit|button|image|reset|file)$/i.test(el.type))
     .map(el =>
       [
-        encodeURIComponent(el.name),
-        encodeURIComponent(el.value === null ? '' : el.value.replace(/\r?\n/g, '\r\n'))
+        encodeURIComponent(removeInvalidSurrogatePairs(el.name)),
+        encodeURIComponent(removeInvalidSurrogatePairs(el.value)),
       ].join('='))
     .join('&');
+
+  function removeInvalidSurrogatePairs(str: string): string {
+    return str.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]?|[\uDC00-\uDFFF]/g, str => str.length === 2 ? str : '');
+  }
 }
 
 let supportEventListenerOptions = false;

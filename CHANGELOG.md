@@ -4,6 +4,7 @@
 
 - Support IPv6 literal url. 
 - Improve url normalization.
+- Fix form data serialization.
 
 ## 3.8.0
 
