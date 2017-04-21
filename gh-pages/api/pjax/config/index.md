@@ -24,12 +24,10 @@ Set target anchor links.
 Filter target anchor links.
 
 ```ts
-import { Url } from '../../../lib/url';
-...
   // default
   public filter(el: HTMLAnchorElement): boolean {
     if (typeof el.href !== 'string') return false;
-    return /^https?:$/.test(new Url(el.href).protocol);
+    return /^https?:$/.test(new URL(el.href).protocol);
   }
 ```
 

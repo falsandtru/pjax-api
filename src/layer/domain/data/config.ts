@@ -1,6 +1,5 @@
 import { extend } from 'spica';
 import { Config as Option, Sequence as ISequence } from '../../../../';
-import { Url } from '../../../lib/url';
 
 export class Config implements Option {
   constructor(option: Option) {
@@ -11,7 +10,7 @@ export class Config implements Option {
   public readonly link = 'a:not([target])';
   public filter(el: HTMLAnchorElement): boolean {
     if (typeof el.href !== 'string') return false;
-    return /^https?:$/.test(new Url(el.href).protocol);
+    return /^https?:$/.test(new URL(el.href).protocol);
   }
   public readonly form = 'form:not([method])';
   public readonly replace = '';
