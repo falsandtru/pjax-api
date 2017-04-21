@@ -238,7 +238,6 @@ require = function e(t, n, r) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             var spica_1 = require('spica');
-            var url_1 = require('../../../lib/url');
             var Config = function () {
                 function Config(option) {
                     this.areas = ['body'];
@@ -287,7 +286,7 @@ require = function e(t, n, r) {
                 Config.prototype.filter = function (el) {
                     if (typeof el.href !== 'string')
                         return false;
-                    return /^https?:$/.test(new url_1.Url(el.href).protocol);
+                    return /^https?:$/.test(new URL(el.href).protocol);
                 };
                 Config.prototype.rewrite = function (_doc, _area, _host) {
                 };
@@ -323,10 +322,7 @@ require = function e(t, n, r) {
                 return Sequence;
             }();
         },
-        {
-            '../../../lib/url': 51,
-            'spica': undefined
-        }
+        { 'spica': undefined }
     ],
     12: [
         function (require, module, exports) {
@@ -1698,9 +1694,8 @@ require = function e(t, n, r) {
                         init: function (s) {
                             return s;
                         },
-                        call: function (_, _a) {
-                            var listeners = _a.listeners;
-                            return void listeners.add(new click_1.ClickView(_this.io.document, _this.config.link, function (event) {
+                        call: function (_, s) {
+                            return void s.listeners.add(new click_1.ClickView(_this.io.document, _this.config.link, function (event) {
                                 return void spica_1.Just(new url_1.Url(url_2.canonicalizeUrl(url_3.validateUrl(event._currentTarget.href)))).bind(function (url) {
                                     return isAccessible(url) && !isHashChange(url) && !hasModifierKey(event) && _this.config.filter(event._currentTarget) ? spica_1.Just(0) : spica_1.Nothing;
                                 }).fmap(function () {
@@ -1712,8 +1707,8 @@ require = function e(t, n, r) {
                                             cancelable: new spica_1.Cancelable()
                                         }, _this.io);
                                     });
-                                }).extract(failure, success).catch(function () {
-                                    return void window.location.assign(event._currentTarget.href);
+                                }).extract(failure, success).catch(function (e) {
+                                    return event.defaultPrevented ? void _this.config.fallback(event._currentTarget, e) : void 0;
                                 });
                             }).close).add(new submit_1.SubmitView(_this.io.document, _this.config.form, function (event) {
                                 return void spica_1.Just(new url_1.Url(url_2.canonicalizeUrl(url_3.validateUrl(event._currentTarget.action)))).bind(function (url) {
@@ -1727,8 +1722,8 @@ require = function e(t, n, r) {
                                             cancelable: new spica_1.Cancelable()
                                         }, _this.io);
                                     });
-                                }).extract(failure, success).catch(function () {
-                                    return void window.location.assign(event._currentTarget.action);
+                                }).extract(failure, success).catch(function (e) {
+                                    return event.defaultPrevented ? void _this.config.fallback(event._currentTarget, e) : void 0;
                                 });
                             }).close).add(new navigation_1.NavigationView(window, function (event) {
                                 return void spica_1.Just(new url_1.Url(url_2.canonicalizeUrl(url_3.validateUrl(window.location.href)))).bind(function (url) {
@@ -1742,15 +1737,20 @@ require = function e(t, n, r) {
                                             cancelable: new spica_1.Cancelable()
                                         }, _this.io);
                                     });
-                                }).extract(failure, success).catch(function () {
-                                    return void window.location.reload(true);
+                                }).extract(failure, success).catch(function (e) {
+                                    return void _this.config.fallback(event._currentTarget, e);
                                 });
                             }).close).add(new scroll_1.ScrollView(window, function () {
                                 return void spica_1.Just(new url_1.Url(url_2.canonicalizeUrl(url_3.validateUrl(window.location.href)))).fmap(function (url) {
                                     return url_4.documentUrl.href === url.href ? void api_2.savePosition() : void 0;
                                 }).extract();
                             }).close), new Promise(function (resolve) {
-                                return void listeners.add(resolve);
+                                return void s.listeners.add(function () {
+                                    return void resolve([
+                                        void 0,
+                                        s
+                                    ]);
+                                });
                             });
                         },
                         exit: function (_, s) {
@@ -1763,34 +1763,36 @@ require = function e(t, n, r) {
                     if (io === void 0) {
                         io = { document: window.document };
                     }
-                    return void click(url).then(function (event) {
-                        return initialization_1.init.then(function (_a) {
-                            var scripts = _a[0];
-                            return router_1.route(new api_1.Config(option), event, {
-                                router: GUI.router,
-                                scripts: scripts,
-                                cancelable: new spica_1.Cancelable()
-                            }, io);
+                    return void Promise.all([
+                        initialization_1.init,
+                        click(url)
+                    ]).then(function (_a) {
+                        var scripts = _a[0][0], event = _a[1];
+                        return success(router_1.route(new api_1.Config(option), event, {
+                            router: GUI.router,
+                            scripts: scripts,
+                            cancelable: new spica_1.Cancelable()
+                        }, io)).catch(function (e) {
+                            return void new api_1.Config(option).fallback(event._currentTarget, e);
                         });
-                    }).then(failure, success).catch(function () {
-                        return void window.location.assign(url);
                     });
                 };
                 GUI.replace = function (url, option, io) {
                     if (io === void 0) {
                         io = { document: window.document };
                     }
-                    return void click(url).then(function (event) {
-                        return initialization_1.init.then(function (_a) {
-                            var scripts = _a[0];
-                            return router_1.route(new api_1.Config(spica_1.extend({}, option, { replace: '*' })), event, {
-                                router: GUI.router,
-                                scripts: scripts,
-                                cancelable: new spica_1.Cancelable()
-                            }, io);
+                    return void Promise.all([
+                        initialization_1.init,
+                        click(url)
+                    ]).then(function (_a) {
+                        var scripts = _a[0][0], event = _a[1];
+                        return success(router_1.route(new api_1.Config(spica_1.extend({}, option, { replace: '*' })), event, {
+                            router: GUI.router,
+                            scripts: scripts,
+                            cancelable: new spica_1.Cancelable()
+                        }, io)).catch(function (e) {
+                            return void new api_1.Config(option).fallback(event._currentTarget, e);
                         });
-                    }).then(failure, success).catch(function () {
-                        return void window.location.replace(url);
                     });
                 };
                 GUI.prototype.assign = function (url) {
@@ -1819,6 +1821,8 @@ require = function e(t, n, r) {
             function success(p) {
                 window.history.scrollRestoration = 'manual';
                 void p.then(function () {
+                    return window.history.scrollRestoration = 'auto';
+                }, function () {
                     return window.history.scrollRestoration = 'auto';
                 });
                 return p;
@@ -1924,10 +1928,10 @@ require = function e(t, n, r) {
                         }), void url_3.documentUrl.sync();
                     }).extract();
                 }).catch(function (e) {
-                    return void state.router.terminate(''), void state.cancelable.maybe(void 0).extract(function () {
-                        return void 0;
-                    }, function () {
-                        return void console.error(e), void Promise.reject(config.fallback(event._currentTarget, e));
+                    return state.cancelable.maybe(e).extract(function () {
+                        return void state.router.terminate('');
+                    }, function (e) {
+                        return void state.router.terminate('', e), Promise.reject(e);
                     });
                 });
             }
