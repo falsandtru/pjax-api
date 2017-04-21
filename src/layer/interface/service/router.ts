@@ -3,6 +3,7 @@ import { Config, route as route_ } from '../../application/api';
 import { canonicalizeUrl, CanonicalUrl } from '../../data/model/canonicalization/url';
 import { validateUrl } from '../../data/model/validation/url';
 import { documentUrl } from './state/url';
+import { RouterEvent } from '../../domain/event/router';
 import { progressbar } from './progressbar';
 import { InterfaceError } from '../data/error';
 
@@ -39,5 +40,8 @@ export function route(
             void state.router.terminate(''),
           e => (
             void state.router.terminate('', e),
+            event.defaultPrevented
+              ? void config.fallback(<RouterEvent.Source>event._currentTarget, e)
+              : void 0,
             Promise.reject<undefined>(e))));
 }

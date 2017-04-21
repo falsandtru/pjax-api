@@ -23,16 +23,12 @@ export class GUI {
   public static assign(url: string, option: Option, io = { document: window.document }): undefined {
     return void Promise.all([init, click(url)])
       .then(([[scripts], event]) =>
-        success(route(new Config(option), event, { router: GUI.router, scripts, cancelable: new Cancelable<Error>() }, io))
-          .catch(e =>
-            void new Config(option).fallback(<RouterEvent.Source.Anchor>event._currentTarget, e)));
+        success(route(new Config(option), event, { router: GUI.router, scripts, cancelable: new Cancelable<Error>() }, io)));
   }
   public static replace(url: string, option: Option, io = { document: window.document }): undefined {
     return void Promise.all([init, click(url)])
       .then(([[scripts], event]) =>
-        success(route(new Config(extend<Option>({}, option, { replace: '*' })), event, { router: GUI.router, scripts, cancelable: new Cancelable<Error>() }, io))
-          .catch(e =>
-            void new Config(option).fallback(<RouterEvent.Source.Anchor>event._currentTarget, e)));
+        success(route(new Config(extend<Option>({}, option, { replace: '*' })), event, { router: GUI.router, scripts, cancelable: new Cancelable<Error>() }, io)));
   }
   constructor(
     private readonly option: Option,
@@ -67,11 +63,7 @@ export class GUI {
                         cancelable: new Cancelable<Error>()
                       },
                       this.io))))
-              .extract(failure, success)
-              .catch(e =>
-                event.defaultPrevented
-                  ? void this.config.fallback(<RouterEvent.Source.Anchor>event._currentTarget, e)
-                  : void 0))
+              .extract(failure, success))
             .close)
           .add(new SubmitView(this.io.document, this.config.form, event =>
             void Just(new Url(canonicalizeUrl(validateUrl((<RouterEvent.Source.Form>event._currentTarget).action))))
@@ -93,11 +85,7 @@ export class GUI {
                         cancelable: new Cancelable<Error>()
                       },
                       this.io))))
-              .extract(failure, success)
-              .catch(e =>
-                event.defaultPrevented
-                  ? void this.config.fallback(<RouterEvent.Source.Form>event._currentTarget, e)
-                  : void 0))
+              .extract(failure, success))
             .close)
           .add(new NavigationView(window, event =>
             void Just(new Url(canonicalizeUrl(validateUrl(window.location.href))))
