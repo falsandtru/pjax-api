@@ -21,22 +21,18 @@ export class GUI {
   private static readonly router = new class extends Supervisor<'', Error, void, void> { }();
   private static readonly view = new class extends Supervisor<'', void, void, Cancelable<undefined>>{ }();
   public static assign(url: string, option: Option, io = { document: window.document }): undefined {
-    return void click(url)
-      .then(event =>
-        init
-          .then(([scripts]) =>
-            route(new Config(option), event, { router: GUI.router, scripts, cancelable: new Cancelable<Error>() }, io)))
-      .then(failure, success)
-      .catch(() => void window.location.assign(url));
+    return void Promise.all([init, click(url)])
+      .then(([[scripts], event]) =>
+        success(route(new Config(option), event, { router: GUI.router, scripts, cancelable: new Cancelable<Error>() }, io))
+          .catch(e =>
+            void new Config(option).fallback(<RouterEvent.Source.Anchor>event._currentTarget, e)));
   }
   public static replace(url: string, option: Option, io = { document: window.document }): undefined {
-    return void click(url)
-      .then(event =>
-        init
-          .then(([scripts]) =>
-            route(new Config(extend<Option>({}, option, { replace: '*' })), event, { router: GUI.router, scripts, cancelable: new Cancelable<Error>() }, io)))
-      .then(failure, success)
-      .catch(() => void window.location.replace(url));
+    return void Promise.all([init, click(url)])
+      .then(([[scripts], event]) =>
+        success(route(new Config(extend<Option>({}, option, { replace: '*' })), event, { router: GUI.router, scripts, cancelable: new Cancelable<Error>() }, io))
+          .catch(e =>
+            void new Config(option).fallback(<RouterEvent.Source.Anchor>event._currentTarget, e)));
   }
   constructor(
     private readonly option: Option,
@@ -47,8 +43,8 @@ export class GUI {
     void GUI.view.terminate('');
     void GUI.view.register('', {
       init: s => s,
-      call: (_, { listeners }) => (
-        void listeners
+      call: (_, s) => (
+        void s.listeners
           .add(new ClickView(this.io.document, this.config.link, event =>
             void Just(new Url(canonicalizeUrl(validateUrl((<RouterEvent.Source.Anchor>event._currentTarget).href))))
               .bind(url =>
@@ -72,7 +68,10 @@ export class GUI {
                       },
                       this.io))))
               .extract(failure, success)
-              .catch(() => void window.location.assign((<RouterEvent.Source.Anchor>event._currentTarget).href)))
+              .catch(e =>
+                event.defaultPrevented
+                  ? void this.config.fallback(<RouterEvent.Source.Anchor>event._currentTarget, e)
+                  : void 0))
             .close)
           .add(new SubmitView(this.io.document, this.config.form, event =>
             void Just(new Url(canonicalizeUrl(validateUrl((<RouterEvent.Source.Form>event._currentTarget).action))))
@@ -95,7 +94,10 @@ export class GUI {
                       },
                       this.io))))
               .extract(failure, success)
-              .catch(() => void window.location.assign((<RouterEvent.Source.Form>event._currentTarget).action)))
+              .catch(e =>
+                event.defaultPrevented
+                  ? void this.config.fallback(<RouterEvent.Source.Form>event._currentTarget, e)
+                  : void 0))
             .close)
           .add(new NavigationView(window, event =>
             void Just(new Url(canonicalizeUrl(validateUrl(window.location.href))))
@@ -120,7 +122,8 @@ export class GUI {
                       },
                       this.io))))
               .extract(failure, success)
-              .catch(() => void window.location.reload(true)))
+              .catch(e =>
+                void this.config.fallback(<RouterEvent.Source.Window>event._currentTarget, e)))
             .close)
           .add(new ScrollView(window, () =>
             void Just(new Url(canonicalizeUrl(validateUrl(window.location.href))))
@@ -130,7 +133,8 @@ export class GUI {
                   : void 0)
               .extract())
             .close),
-        new Promise<never>(resolve => void listeners.add(resolve))),
+        new Promise<[void, Cancelable<undefined>]>(resolve =>
+          void s.listeners.add(() => void resolve([void 0, s])))),
       exit: (_, s) =>
         void s.cancel()
     }, new Cancelable<undefined>());
@@ -145,10 +149,12 @@ export class GUI {
   }
 }
 
-function success<T extends Promise<any>>(p: T): T {
+function success<T>(p: Promise<T>): Promise<T> {
   window.history.scrollRestoration = 'manual';
-  void p.then(() =>
-    window.history.scrollRestoration = 'auto');
+  void p
+    .then(
+      () => window.history.scrollRestoration = 'auto',
+      () => window.history.scrollRestoration = 'auto');
   return p;
 }
 function failure(): Promise<void> {

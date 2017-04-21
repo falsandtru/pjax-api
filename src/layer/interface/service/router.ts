@@ -32,12 +32,12 @@ export function route(
           void ss.forEach(s => void state.scripts.add(canonicalizeUrl(validateUrl(s.src)))),
           void documentUrl.sync()))
         .extract()))
-    .catch(e => (
-      void state.router.terminate(''),
-      void state.cancelable.maybe(void 0)
+    .catch(e =>
+      state.cancelable.maybe(e)
         .extract(
-          () => void 0,
-          () => (
-            void console.error(e),
-            void Promise.reject(config.fallback(<HTMLAnchorElement>event._currentTarget, e))))));
+          () =>
+            void state.router.terminate(''),
+          e => (
+            void state.router.terminate('', e),
+            Promise.reject<undefined>(e))));
 }

@@ -16,6 +16,17 @@ describe('Integration: Usecase', function () {
       });
     });
 
+    it('failure', function (done) {
+      const url = '404';
+      const document = parse('').extract();
+      new Pjax({
+        fallback(target) {
+          assert(target instanceof HTMLAnchorElement);
+          done();
+        }
+      }, { document }).replace(url);
+    });
+
   });
 
 });

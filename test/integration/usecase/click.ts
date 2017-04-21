@@ -20,6 +20,21 @@ describe('Integration: Usecase', function () {
       a.click();
     });
 
+    it('failure', function (done) {
+      const url = '404';
+      const document = parse('').extract();
+      new Pjax({
+        fallback(target) {
+          assert(target instanceof HTMLAnchorElement);
+          done();
+        }
+      }, { document });
+      const a = document.createElement('a');
+      a.href = url;
+      document.body.appendChild(a);
+      a.click();
+    });
+
   });
 
 });

@@ -19,6 +19,22 @@ describe('Integration: Usecase', function () {
       (<HTMLElement>form.querySelector('input[type="submit"]')).click();
     });
 
+    it('failure', function (done) {
+      const url = '404';
+      new Pjax({
+        fallback(target) {
+          assert(target instanceof HTMLFormElement);
+          done();
+        }
+      }, { document });
+      const form = DOM.form({ action: url }, [
+        DOM.input({ type: 'search', name: 'query', value: 'あアｱ亜=&' }, []),
+        DOM.input({ type: 'submit', value: 'submit' }, [])
+      ]).element;
+      document.body.appendChild(form);
+      (<HTMLElement>form.querySelector('input[type="submit"]')).click();
+    });
+
   });
 
 });
