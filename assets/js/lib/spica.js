@@ -1,4 +1,4 @@
-/*! spica v0.0.63 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.64 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
@@ -4019,6 +4019,12 @@ require = function e(t, n, r) {
                                         return void result_1.then(resolve, reject), timeout === Infinity ? void 0 : void setTimeout(function () {
                                             return void reject(new Error());
                                         }, timeout);
+                                    }).then(function (_a) {
+                                        var reply = _a[0], state = _a[1];
+                                        return [
+                                            reply,
+                                            state
+                                        ];
                                     }).then(function (_a) {
                                         var reply = _a[0], state = _a[1];
                                         void _this.sv.schedule();

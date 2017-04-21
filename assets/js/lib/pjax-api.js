@@ -1707,9 +1707,7 @@ require = function e(t, n, r) {
                                             cancelable: new spica_1.Cancelable()
                                         }, _this.io);
                                     });
-                                }).extract(failure, success).catch(function (e) {
-                                    return event.defaultPrevented ? void _this.config.fallback(event._currentTarget, e) : void 0;
-                                });
+                                }).extract(failure, success);
                             }).close).add(new submit_1.SubmitView(_this.io.document, _this.config.form, function (event) {
                                 return void spica_1.Just(new url_1.Url(url_2.canonicalizeUrl(url_3.validateUrl(event._currentTarget.action)))).bind(function (url) {
                                     return isAccessible(url) && !hasModifierKey(event) ? spica_1.Just(0) : spica_1.Nothing;
@@ -1722,9 +1720,7 @@ require = function e(t, n, r) {
                                             cancelable: new spica_1.Cancelable()
                                         }, _this.io);
                                     });
-                                }).extract(failure, success).catch(function (e) {
-                                    return event.defaultPrevented ? void _this.config.fallback(event._currentTarget, e) : void 0;
-                                });
+                                }).extract(failure, success);
                             }).close).add(new navigation_1.NavigationView(window, function (event) {
                                 return void spica_1.Just(new url_1.Url(url_2.canonicalizeUrl(url_3.validateUrl(window.location.href)))).bind(function (url) {
                                     return isAccessible(url) && !isHashChange(url) ? spica_1.Just(api_2.loadTitle()) : spica_1.Nothing;
@@ -1772,9 +1768,7 @@ require = function e(t, n, r) {
                             router: GUI.router,
                             scripts: scripts,
                             cancelable: new spica_1.Cancelable()
-                        }, io)).catch(function (e) {
-                            return void new api_1.Config(option).fallback(event._currentTarget, e);
-                        });
+                        }, io));
                     });
                 };
                 GUI.replace = function (url, option, io) {
@@ -1790,9 +1784,7 @@ require = function e(t, n, r) {
                             router: GUI.router,
                             scripts: scripts,
                             cancelable: new spica_1.Cancelable()
-                        }, io)).catch(function (e) {
-                            return void new api_1.Config(option).fallback(event._currentTarget, e);
-                        });
+                        }, io));
                     });
                 };
                 GUI.prototype.assign = function (url) {
@@ -1931,7 +1923,7 @@ require = function e(t, n, r) {
                     return state.cancelable.maybe(e).extract(function () {
                         return void state.router.terminate('');
                     }, function (e) {
-                        return void state.router.terminate('', e), Promise.reject(e);
+                        return void state.router.terminate('', e), event.defaultPrevented ? void config.fallback(event._currentTarget, e) : void 0, Promise.reject(e);
                     });
                 });
             }
