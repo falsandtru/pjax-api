@@ -15,10 +15,23 @@ describe('Integration: Package', function () {
       const document = parse('').extract();
       new Pjax({}, { document }).assign('/base/test/integration/usecase/fixture/basic/1.html');
       let cnt = 0;
-      once(window, 'pjax:fetch', () => assert(++cnt === 1));
-      once(window, 'pjax:unload', () => assert(++cnt === 2));
-      once(document, 'pjax:ready', () => assert(++cnt === 3));
-      once(window, 'pjax:load', () => assert(++cnt === 4) || done());
+      once(window, 'pjax:fetch', ev => {
+        assert(ev instanceof Event);
+        assert(++cnt === 1);
+      });
+      once(window, 'pjax:unload', ev => {
+        assert(ev instanceof Event);
+        assert(++cnt === 2);
+      });
+      once(document, 'pjax:ready', ev => {
+        assert(ev instanceof Event);
+        assert(++cnt === 3);
+      });
+      once(window, 'pjax:load', ev => {
+        assert(ev instanceof Event);
+        assert(++cnt === 4);
+        done();
+      });
     });
 
   });

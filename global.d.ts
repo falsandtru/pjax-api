@@ -5,7 +5,7 @@ declare global {
   export const assert: typeof _assert;
 
   interface Event {
-    _currentTarget: HTMLElement | Window;
+    _currentTarget: Window | Document | HTMLElement;
   }
 
 }

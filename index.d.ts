@@ -67,4 +67,17 @@ export interface Sequence<a, b, c> {
   readonly load: (result: c) => void;
 }
 
+declare global {
+  interface WindowEventMap {
+    'pjax:fetch': Event;
+    'pjax:unload': Event;
+    'pjax:load': Event;
+  }
+
+  interface DocumentEventMap {
+    'pjax:ready': Event;
+  }
+
+}
+
 export function router<T>(config: { [pattern: string]: (path: string) => T; }): (url: string) => T;

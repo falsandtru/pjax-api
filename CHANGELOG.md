@@ -3,6 +3,7 @@
 ## 3.9.0
 
 - Support IPv6 literal url. 
+- Add typings of events.
 - Improve url normalization.
 - Fix form data serialization.
 - Fix fallback processing.

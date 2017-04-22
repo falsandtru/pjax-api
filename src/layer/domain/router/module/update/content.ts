@@ -128,8 +128,10 @@ function split(area: string): string[] {
 export { split as _split }
 
 function wait(el: HTMLElement): Promise<Event> {
-  return Promise.race(
-    ['load', 'abort', 'error']
-      .map(type => new Promise<Event>(resolve => void once(el, type, resolve))));
+  return Promise.race([
+    new Promise<Event>(resolve => void once(el, 'load', resolve)),
+    new Promise<Event>(resolve => void once(el, 'abort', resolve)),
+    new Promise<Event>(resolve => void once(el, 'error', resolve)),
+  ]);
 }
 export { wait as _wait }
