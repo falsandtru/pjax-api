@@ -46,24 +46,25 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         new Cancelable<Error>(),
         {
           request: script => {
-            assert(++cnt === 1);
+            assert(cnt === 0 && ++cnt);
             assert(script.className === 'test');
             return Promise.resolve(Right<[HTMLScriptElement, string]>([script, '']));
           },
           evaluate: ([script, code]) => {
-            assert(++cnt === 3);
+            assert(cnt === 2 && ++cnt);
             assert(script.className === 'test');
             assert(script.innerHTML === code);
             return Right(script);
           },
-          log: (script) => {
-            assert(++cnt === 4);
+          log: (script, document) => {
+            assert(cnt === 3 && ++cnt);
             assert(script.className === 'test');
+            assert(document instanceof Document);
             return true;
           }
         })
         .then(m => {
-          assert(++cnt === 2);
+          assert(cnt === 1 && ++cnt);
           assert(m.extract().reduce((a, s) => a && s instanceof HTMLScriptElement, true) === true);
           done();
         });
@@ -85,7 +86,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         new Cancelable<Error>(),
         {
           request: script => {
-            assert(++cnt === 1);
+            assert(cnt === 0 && ++cnt);
             assert(script.className === 'test');
             return Promise.reject(new Error());
           },
@@ -99,7 +100,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           }
         })
         .catch(reason => {
-          assert(++cnt === 2);
+          assert(cnt === 1 && ++cnt);
           assert(reason instanceof Error);
           done();
         });
@@ -121,12 +122,12 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         new Cancelable<Error>(),
         {
           request: script => {
-            assert(++cnt === 1);
+            assert(cnt === 0 && ++cnt);
             assert(script.className === 'test');
             return Promise.resolve(Right<[HTMLScriptElement, string]>([script, '']));
           },
           evaluate: ([]) => {
-            assert(++cnt === 3);
+            assert(cnt === 2 && ++cnt);
             return Left(new Error());
           },
           log: () => {
@@ -135,7 +136,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           }
         })
         .then(m => {
-          assert(++cnt === 2);
+          assert(cnt === 1 && ++cnt);
           assert(m.extract(e => e) instanceof Error);
           done();
         });
@@ -158,7 +159,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         cancelable,
         {
           request: script => {
-            assert(++cnt === 1);
+            assert(cnt === 0 && ++cnt);
             assert(script.className === 'test');
             return Promise.resolve(Right<[HTMLScriptElement, string]>([script, '']));
           },
@@ -166,14 +167,13 @@ describe('Unit: layer/domain/router/module/update/script', () => {
             assert(++cnt === NaN);
             return Right(script);
           },
-          log: (_, document) => {
+          log: () => {
             assert(++cnt === NaN);
-            assert(document instanceof Document);
             return true;
           }
         })
         .then(m => m.extract(err => {
-          assert(++cnt === 2);
+          assert(cnt === 1 && ++cnt);
           assert(err instanceof Error);
           done();
         }));
@@ -256,7 +256,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.setAttribute('src', '');
       let cnt = 0;
       script.addEventListener('load', event => {
-        assert(++cnt === 1);
+        assert(cnt === 0 && ++cnt);
         assert(event instanceof Event);
       });
       script.addEventListener('error', () => {
@@ -265,7 +265,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       _evaluate([script, ''])
         .fmap(el => {
           assert(el === script);
-          assert(++cnt === 2);
+          assert(cnt === 1 && ++cnt);
           done();
         })
         .extract();
@@ -279,13 +279,13 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         assert(--cnt === NaN);
       });
       script.addEventListener('error', event => {
-        assert(++cnt === 1);
+        assert(cnt === 0 && ++cnt);
         assert(event instanceof Event);
       });
       _evaluate([script, 'throw new Error()'])
         .extract(e => {
           assert(e instanceof Error);
-          assert(++cnt === 2);
+          assert(cnt === 1 && ++cnt);
           done();
         });
     });
@@ -303,7 +303,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       _evaluate([script, ''])
         .fmap(el => {
           assert(el === script);
-          assert(++cnt === 1);
+          assert(cnt === 0 && ++cnt);
           done();
         })
         .extract();
@@ -322,7 +322,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       _evaluate([script, 'throw new Error()'])
         .extract(e => {
           assert(e instanceof Error);
-          assert(++cnt === 1);
+          assert(cnt === 0 && ++cnt);
           done();
         });
     });

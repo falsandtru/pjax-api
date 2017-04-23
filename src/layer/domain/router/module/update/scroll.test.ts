@@ -16,12 +16,13 @@ describe('Unit: layer/domain/router/module/update/scroll', () => {
         new Url(canonicalizeUrl(validateUrl('#hash'))).fragment,
         {
           scroll: (x?: number, y?: number) => {
-            assert(++cnt === 1);
+            assert(cnt === 0 && ++cnt);
             assert(x! >= 0);
             assert(y! >= 0);
           }
         });
-      assert(++cnt === 2 && result === true);
+      assert(result === true);
+      assert(cnt === 1 && ++cnt);
     });
 
     it('not exist', () => {
@@ -35,7 +36,8 @@ describe('Unit: layer/domain/router/module/update/scroll', () => {
             throw new Error();
           }
         });
-      assert(++cnt === 1 && result === false);
+      assert(result === false);
+      assert(cnt === 0 && ++cnt);
     });
 
   });

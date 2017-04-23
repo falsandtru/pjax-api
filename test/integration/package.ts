@@ -17,19 +17,19 @@ describe('Integration: Package', function () {
       let cnt = 0;
       once(window, 'pjax:fetch', ev => {
         assert(ev instanceof Event);
-        assert(++cnt === 1);
+        assert(cnt === 0 && ++cnt);
       });
       once(window, 'pjax:unload', ev => {
         assert(ev instanceof Event);
-        assert(++cnt === 2);
+        assert(cnt === 1 && ++cnt);
       });
       once(document, 'pjax:ready', ev => {
         assert(ev instanceof Event);
-        assert(++cnt === 3);
+        assert(cnt === 2 && ++cnt);
       });
       once(window, 'pjax:load', ev => {
         assert(ev instanceof Event);
-        assert(++cnt === 4);
+        assert(cnt === 3 && ++cnt);
         done();
       });
     });
@@ -41,7 +41,7 @@ describe('Integration: Package', function () {
       const document = parse('').extract();
       const sequence: Sequence<boolean, number, string> = {
         fetch(r, req) {
-          assert(++cnt === 2);
+          assert(cnt === 1 && ++cnt);
           assert(r === void 0);
           assert.deepStrictEqual(req, {
             host: '',
@@ -52,7 +52,7 @@ describe('Integration: Package', function () {
           return Promise.resolve(false);
         },
         unload(r, res) {
-          assert(++cnt === 4);
+          assert(cnt === 3 && ++cnt);
           assert(r === false);
           assert(res.headers['Content-Type'] === 'text/html');
           assert(res.document instanceof Document);
@@ -60,22 +60,22 @@ describe('Integration: Package', function () {
           return Promise.resolve(0);
         },
         ready(r) {
-          assert(++cnt === 6);
+          assert(cnt === 5 && ++cnt);
           assert(r === 0);
           return Promise.resolve('');
         },
         load(r) {
-          assert(++cnt === 8);
+          assert(cnt === 7 && ++cnt);
           assert(r === '');
           done();
         }
       };
       new Pjax({ sequence }, { document }).assign('/base/test/integration/usecase/fixture/basic/1.html');
       let cnt = 0;
-      once(window, 'pjax:fetch', () => assert(++cnt === 1));
-      once(window, 'pjax:unload', () => assert(++cnt === 3));
-      once(document, 'pjax:ready', () => assert(++cnt === 5));
-      once(window, 'pjax:load', () => assert(++cnt === 7));
+      once(window, 'pjax:fetch', () => assert(cnt === 0 && ++cnt));
+      once(window, 'pjax:unload', () => assert(cnt === 2 && ++cnt));
+      once(document, 'pjax:ready', () => assert(cnt === 4 && ++cnt));
+      once(window, 'pjax:load', () => assert(cnt === 6 && ++cnt));
     });
 
   });

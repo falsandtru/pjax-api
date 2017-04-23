@@ -65,8 +65,8 @@ describe('Unit: lib/dom', () => {
       let cnt = 0;
       once(a, 'click', ev => {
         assert(ev instanceof Event);
-        assert(++cnt === 1);
-        once(a, 'click', () => assert(++cnt === 2) || done());
+        assert(cnt === 0 && ++cnt);
+        once(a, 'click', () => assert(cnt === 1 && ++cnt) || done());
       });
       document.createDocumentFragment().appendChild(a);
       a.click();
