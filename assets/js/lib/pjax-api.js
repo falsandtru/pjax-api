@@ -761,14 +761,16 @@ require = function e(t, n, r) {
             exports._split = split;
             function wait(el) {
                 return Promise.race([
-                    'load',
-                    'abort',
-                    'error'
-                ].map(function (type) {
-                    return new Promise(function (resolve) {
-                        return void dom_1.once(el, type, resolve);
-                    });
-                }));
+                    new Promise(function (resolve) {
+                        return void dom_1.once(el, 'load', resolve);
+                    }),
+                    new Promise(function (resolve) {
+                        return void dom_1.once(el, 'abort', resolve);
+                    }),
+                    new Promise(function (resolve) {
+                        return void dom_1.once(el, 'error', resolve);
+                    })
+                ]);
             }
             exports._wait = wait;
         },
@@ -2022,17 +2024,17 @@ require = function e(t, n, r) {
                 return parser.firstElementChild ? parser.firstElementChild : parser;
             }
             exports.parse = parse;
-            function find(el, selector) {
-                return Array.from(el.querySelectorAll(selector || '_') || []);
+            function find(target, selector) {
+                return Array.from(target.querySelectorAll(selector || '_') || []);
             }
             exports.find = find;
-            function bind(el, type, listener, option) {
+            function bind(target, type, listener, option) {
                 if (option === void 0) {
                     option = false;
                 }
-                void el.addEventListener(type, handler, adjustEventListenerOptions(option));
+                void target.addEventListener(type, handler, adjustEventListenerOptions(option));
                 var unbind = function () {
-                    return unbind = noop_1.noop, void el.removeEventListener(type, handler, adjustEventListenerOptions(option));
+                    return unbind = noop_1.noop, void target.removeEventListener(type, handler, adjustEventListenerOptions(option));
                 };
                 return function () {
                     return void unbind();
@@ -2046,31 +2048,33 @@ require = function e(t, n, r) {
                 }
             }
             exports.bind = bind;
-            function once(el, type, listener, option) {
+            function once(target, type, listener, option) {
                 if (option === void 0) {
                     option = false;
                 }
-                var unbind = bind(el, type, function (ev) {
-                    return void unbind(), unbind = noop_1.noop, void listener(ev);
+                var unbind = bind(target, type, function (ev) {
+                    void unbind();
+                    void listener(ev);
                 }, option);
                 return function () {
                     return void unbind();
                 };
             }
             exports.once = once;
-            function delegate(el, selector, type, listener, option) {
+            function delegate(target, selector, type, listener, option) {
                 if (option === void 0) {
-                    option = { capture: true };
+                    option = {};
                 }
-                return bind(el, type, function (ev) {
+                return bind(target, type, function (ev) {
                     var cx = ev.target.closest(selector);
                     if (!cx)
                         return;
-                    void find(el, selector).filter(function (el) {
+                    void find(target, selector).filter(function (el) {
                         return el === cx;
                     }).forEach(function (el) {
                         return void once(el, type, function (ev) {
-                            return ev._currentTarget = ev.currentTarget, void listener(ev);
+                            ev._currentTarget = ev.currentTarget;
+                            void listener(ev);
                         }, option);
                     });
                 }, __assign({}, option, { capture: true }));
