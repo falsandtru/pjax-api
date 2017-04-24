@@ -5,3 +5,4 @@ export class InterfaceError extends PjaxError {
     super(`Interface: ${msg}`);
   }
 }
+assert(new InterfaceError('') instanceof Error);

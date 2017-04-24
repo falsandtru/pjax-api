@@ -5,3 +5,4 @@ export class ApplicationError extends PjaxError {
     super(`Application: ${msg}`);
   }
 }
+assert(new ApplicationError('') instanceof Error);

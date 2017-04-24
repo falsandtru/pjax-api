@@ -3,3 +3,4 @@ export class PjaxError extends Error {
     super(`Pjax: ${msg}`);
   }
 }
+assert(new PjaxError('') instanceof Error);

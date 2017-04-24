@@ -5,3 +5,4 @@ export class DomainError extends PjaxError {
     super(`Domain: ${msg}`);
   }
 }
+assert(new DomainError('') instanceof Error);
