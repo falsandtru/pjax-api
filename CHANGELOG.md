@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.9.1
+
+- Refactoring.
+
 ## 3.9.0
 
 - Support IPv6 literal url. 
