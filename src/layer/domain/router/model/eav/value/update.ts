@@ -1,4 +1,4 @@
-export class UpdateValue {
+export class UpdateSource {
   constructor(
     public readonly documents: {
       readonly src: Document;

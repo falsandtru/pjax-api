@@ -33,22 +33,22 @@ export namespace RouterEvent {
     | Type.submit
     | Type.popstate;
   export namespace Type {
-    export type click = 'click';
-    export const click: click = 'click';
-    export type submit = 'submit';
-    export const submit: submit = 'submit';
-    export type popstate = 'popstate';
-    export const popstate: popstate = 'popstate';
+    export const click = 'click';
+    export type click = typeof click;
+    export const submit = 'submit';
+    export type submit = typeof submit;
+    export const popstate = 'popstate';
+    export type popstate = typeof popstate;
   }
 
   export type Method
     = Method.GET
     | Method.POST;
   export namespace Method {
-    export type GET = 'GET';
-    export const GET: GET = 'GET';
-    export type POST = 'POST';
-    export const POST: POST = 'POST';
+    export const GET = 'GET';
+    export type GET = typeof GET;
+    export const POST = 'POST';
+    export type POST = typeof POST;
   }
 
   export class Request {

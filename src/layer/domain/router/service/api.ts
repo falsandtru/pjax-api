@@ -1,6 +1,6 @@
 import { Either, Left } from 'spica';
 import { RouterEntity } from '../model/eav/entity';
-import { FetchValue } from '../model/eav/value/fetch';
+import { FetchResult } from '../model/eav/value/fetch';
 import { fetch } from './fetch/api';
 import { update } from './update/api';
 import { match } from '../module/update/content';
@@ -22,7 +22,7 @@ export function route(
       match(io.document, entity.config.areas)
         ? entity.state.cancelable.either(void 0)
         : Left(new DomainError(`Failed to match areas.`)))
-    .then<Either<Error, [FetchValue, void]>>(m => m
+    .then<Either<Error, [FetchResult, void]>>(m => m
       .bind(entity.state.cancelable.either)
       .fmap(() =>
         fetch(entity.event.request, entity.config, entity.state.cancelable))

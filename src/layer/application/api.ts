@@ -32,8 +32,8 @@ export function route(
       config =>
         route_(
           new RouterEntity(
-            new RouterEvent(event),
             config,
+            new RouterEvent(event),
             new RouterEntity.State(state.scripts, state.cancelable)),
           io));
 }

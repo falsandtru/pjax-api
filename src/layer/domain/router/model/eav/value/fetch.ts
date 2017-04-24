@@ -2,7 +2,7 @@ import { parse } from '../../../../../../lib/html';
 import { canonicalizeUrl } from '../../../../../data/model/canonicalization/url';
 import { validateUrl } from '../../../../../data/model/validation/url';
 
-export class FetchValue {
+export class FetchResult {
   constructor(
     public readonly xhr: XMLHttpRequest
   ) {

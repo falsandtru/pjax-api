@@ -1,6 +1,6 @@
 import { Cancelable, Sequence, Either, Left, Right } from 'spica';
 import { RouterEntity } from '../../model/eav/entity';
-import { FetchValue } from '../../model/eav/value/fetch';
+import { FetchResult } from '../../model/eav/value/fetch';
 import { CanonicalUrl } from '../../../../data/model/canonicalization/url';
 import { DomainError } from '../../../data/error';
 
@@ -15,10 +15,10 @@ export function xhr(
     wait: number;
   },
   cancelable: Cancelable<Error>
-): Promise<Either<Error, FetchValue>> {
+): Promise<Either<Error, FetchResult>> {
   const xhr = new XMLHttpRequest();
   const wait = new Promise<void>(resolve => setTimeout(resolve, setting.wait));
-  return new Promise<Either<Error, FetchValue>>(resolve => (
+  return new Promise<Either<Error, FetchResult>>(resolve => (
     void xhr.open(method, url, true),
     xhr.responseType = /chrome|firefox/i.test(window.navigator.userAgent) && !/edge/i.test(window.navigator.userAgent)
       ? 'document'
@@ -52,7 +52,7 @@ export function xhr(
           void verify(xhr)
             .extract(
               err => void resolve(Left(err)),
-              xhr => void resolve(Right(new FetchValue(xhr)))),
+              xhr => void resolve(Right(new FetchResult(xhr)))),
         err => void resolve(Left(err)))),
 
     void cancelable.listeners.add(() => void xhr.abort())))

@@ -1,7 +1,7 @@
 import { Either, Left, HNil } from 'spica';
 import { RouterEntity } from '../../model/eav/entity';
-import { FetchValue } from '../../model/eav/value/fetch';
-import { UpdateValue } from '../../model/eav/value/update';
+import { FetchResult } from '../../model/eav/value/fetch';
+import { UpdateSource } from '../../model/eav/value/update';
 import { blur } from '../../module/update/blur';
 import { url } from '../../module/update/url';
 import { title } from '../../module/update/title';
@@ -24,7 +24,7 @@ export function update(
   }: RouterEntity,
   {
     response
-  }: FetchValue,
+  }: FetchResult,
   seq: Seq,
   io: {
     document: Document;
@@ -33,7 +33,7 @@ export function update(
   }
 ): Promise<Either<Error, HTMLScriptElement[]>> {
   const {cancelable} = state;
-  const {documents} = new UpdateValue({
+  const {documents} = new UpdateSource({
     src: response.document,
     dst: io.document
   });
@@ -53,8 +53,8 @@ export function update(
               void window.dispatchEvent(new Event('pjax:unload')),
               config.sequence.unload(seq, { ...response })
                 .then(
-                cancelable.either,
-                e => Left<Error>(e instanceof Error ? e : new Error(e))))))
+                  cancelable.either,
+                  e => Left<Error>(e instanceof Error ? e : new Error(e))))))
       .extract()))
     // unload -> ready
     .modify(p => p.then(m => m
@@ -81,10 +81,7 @@ export function update(
             content(documents, config.areas)
               .extract<Promise<Either<Error, [{ src: Document; dst: Document; }, Event[]]>>>(
                 () => Promise.resolve(Left(new DomainError(`Failed to update areas.`))),
-                p => p
-                  .then(
-                    cancelable.either,
-                    e => Left<Error>(e instanceof Error ? e : new Error(e))))))
+                p => p.then(cancelable.either))))
           .extend(() => (
             config.update.css
               ? void css(
@@ -121,20 +118,22 @@ export function update(
           .extend(() => (
             void io.document.dispatchEvent(new Event('pjax:ready')),
             config.sequence.ready(seq)
-              .then(cancelable.either, Left)))
+              .then(
+                cancelable.either,
+                e => Left<Error>(e instanceof Error ? e : new Error(e)))))
           .reverse()
-          .tuple())))
+          .tuple())
+      .fmap(ps => Promise.all(ps))))
     // ready -> load
     .modify(p => p.then(m => m
       .bind(cancelable.either)
-      .fmap(ps =>
-        ps[0].then(m1 => ps[1].then(m2 => ps[2].then(m3 =>
-          cancelable.either(void 0)
-            .bind(() => m1.bind(() => m2).bind(() => m3))
-            .fmap(seq => (
-              void window.dispatchEvent(new Event('pjax:load')),
-              void config.sequence.load(seq)))
-            .bind(() => m2)))))
+      .fmap(p => p.then(([m1, m2, m3]) =>
+        m1.bind(() => m2).bind(() => m3)
+          .bind(cancelable.either)
+          .fmap(seq => (
+            void window.dispatchEvent(new Event('pjax:load')),
+            void config.sequence.load(seq)))
+          .bind(() => m2)))
       .extract()))
     .head();
 }

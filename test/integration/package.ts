@@ -12,9 +12,10 @@ describe('Integration: Package', function () {
 
   describe('event', function () {
     it('sequence', function (done) {
+      const path = '/base/test/integration/usecase/fixture/basic/1.html';
       const document = parse('').extract();
       new Pjax({}, { document })
-        .assign('/base/test/integration/usecase/fixture/basic/1.html');
+        .assign(path);
       let cnt = 0;
       once(window, 'pjax:fetch', ev => {
         assert(ev instanceof Event);
@@ -24,11 +25,15 @@ describe('Integration: Package', function () {
       once(window, 'pjax:unload', ev => {
         assert(ev instanceof Event);
         assert(window.history.scrollRestoration === 'auto');
+        assert(window.location.pathname !== path);
         assert(cnt === 1 && ++cnt);
       });
       once(document, 'pjax:ready', ev => {
         assert(ev instanceof Event);
         assert(window.history.scrollRestoration === 'auto');
+        assert(window.location.pathname === path);
+        assert(document.title === 'Title 1');
+        assert(document.querySelector('header')!.innerHTML === 'Header 1');
         assert(cnt === 2 && ++cnt);
       });
       once(window, 'pjax:load', ev => {
@@ -43,6 +48,7 @@ describe('Integration: Package', function () {
 
   describe('sequence', function () {
     it('sequence', function (done) {
+      const path = '/base/test/integration/usecase/fixture/basic/2.html';
       const document = parse('').extract();
       const sequence: Sequence<boolean, number, string> = {
         fetch(r, req) {
@@ -51,7 +57,7 @@ describe('Integration: Package', function () {
           assert(window.history.scrollRestoration === 'manual');
           assert.deepStrictEqual(req, {
             host: '',
-            path: '/base/test/integration/usecase/fixture/basic/1.html',
+            path: path,
             method: 'GET',
             data: null
           });
@@ -64,12 +70,16 @@ describe('Integration: Package', function () {
           assert(res.document instanceof Document);
           assert(res.document !== window.document);
           assert(window.history.scrollRestoration === 'auto');
+          assert(window.location.pathname !== path);
           return Promise.resolve(0);
         },
         ready(r) {
           assert(cnt === 5 && ++cnt);
           assert(r === 0);
           assert(window.history.scrollRestoration === 'auto');
+          assert(window.location.pathname === path);
+          assert(document.title === 'Title 2');
+          assert(document.querySelector('header')!.innerHTML === 'Header 2');
           return Promise.resolve('');
         },
         load(r) {
@@ -80,7 +90,7 @@ describe('Integration: Package', function () {
         }
       };
       new Pjax({ sequence }, { document })
-        .assign('/base/test/integration/usecase/fixture/basic/1.html');
+        .assign(path);
       let cnt = 0;
       once(window, 'pjax:fetch', () =>
         assert(cnt === 0 && ++cnt));
