@@ -8,6 +8,8 @@ export class RouterEvent {
   constructor(
     public readonly original: Event
   ) {
+    assert([HTMLAnchorElement, HTMLFormElement, Window].some(Class => this.source instanceof Class));
+    assert(['click', 'submit', 'popstate'].some(type => this.original.type === type));
     void Object.freeze(this);
   }
   public readonly source: RouterEvent.Source = <HTMLAnchorElement>this.original._currentTarget;

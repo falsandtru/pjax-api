@@ -9,7 +9,6 @@ import { ClickView } from '../module/view/click';
 import { SubmitView } from '../module/view/submit';
 import { NavigationView } from '../module/view/navigation';
 import { ScrollView } from '../module/view/scroll';
-import { init } from '../service/state/initialization';
 import { documentUrl } from '../service/state/url';
 import '../service/state/scroll-restoration';
 import { route } from '../service/router';
@@ -18,17 +17,17 @@ import { once } from '../../../lib/dom';
 import { parse } from '../../../lib/html';
 
 export class GUI {
-  private static readonly router = new class extends Supervisor<'', Error, void, void> { }();
-  private static readonly view = new class extends Supervisor<'', void, void, Cancelable<undefined>>{ }();
+  private static readonly process = new class extends Supervisor<'', Error, void, void> { }({});
+  private static readonly view = new class extends Supervisor<'', void, void, Cancelable<undefined>>{ }({});
   public static assign(url: string, option: Option, io = { document: window.document }): undefined {
-    return void Promise.all([init, click(url)])
-      .then(([[scripts], event]) =>
-        success(route(new Config(option), event, { router: GUI.router, scripts, cancelable: new Cancelable<Error>() }, io)));
+    return void click(url)
+      .then(event =>
+        route(new Config(option), event, GUI.process, io));
   }
   public static replace(url: string, option: Option, io = { document: window.document }): undefined {
-    return void Promise.all([init, click(url)])
-      .then(([[scripts], event]) =>
-        success(route(new Config(extend<Option>({}, option, { replace: '*' })), event, { router: GUI.router, scripts, cancelable: new Cancelable<Error>() }, io)));
+    return void click(url)
+      .then(event =>
+        route(new Config(extend<Option>({}, option, { replace: '*' })), event, GUI.process, io));
   }
   constructor(
     private readonly option: Option,
@@ -50,20 +49,9 @@ export class GUI {
                   && this.config.filter(<RouterEvent.Source.Anchor>event._currentTarget)
                   ? Just(0)
                   : Nothing)
-              .fmap(() => (
-                void event.preventDefault(),
-                init
-                  .then(([scripts]) =>
-                    route(
-                      this.config,
-                      event,
-                      {
-                        router: GUI.router,
-                        scripts,
-                        cancelable: new Cancelable<Error>()
-                      },
-                      this.io))))
-              .extract(failure, success))
+              .fmap(() =>
+                route(this.config, event, GUI.process, this.io))
+              .extract(sync))
             .close)
           .add(new SubmitView(this.io.document, this.config.form, event =>
             void Just(new Url(canonicalizeUrl(validateUrl((<RouterEvent.Source.Form>event._currentTarget).action))))
@@ -72,20 +60,9 @@ export class GUI {
                 && !hasModifierKey(event)
                   ? Just(0)
                   : Nothing)
-              .fmap(() => (
-                void event.preventDefault(),
-                init
-                  .then(([scripts]) =>
-                    route(
-                      this.config,
-                      event,
-                      {
-                        router: GUI.router,
-                        scripts,
-                        cancelable: new Cancelable<Error>()
-                      },
-                      this.io))))
-              .extract(failure, success))
+              .fmap(() =>
+                route(this.config, event, GUI.process, this.io))
+              .extract(sync))
             .close)
           .add(new NavigationView(window, event =>
             void Just(new Url(canonicalizeUrl(validateUrl(window.location.href))))
@@ -98,20 +75,8 @@ export class GUI {
                 title
                   ? io.document.title = title
                   : void 0,
-                init
-                  .then(([scripts]) =>
-                    route(
-                      this.config,
-                      event,
-                      {
-                        router: GUI.router,
-                        scripts,
-                        cancelable: new Cancelable<Error>()
-                      },
-                      this.io))))
-              .extract(failure, success)
-              .catch(e =>
-                void this.config.fallback(<RouterEvent.Source.Window>event._currentTarget, e)))
+                route(this.config, event, GUI.process, this.io)))
+              .extract(sync))
             .close)
           .add(new ScrollView(window, () =>
             void Just(new Url(canonicalizeUrl(validateUrl(window.location.href))))
@@ -137,20 +102,6 @@ export class GUI {
   }
 }
 
-function success<T>(p: Promise<T>): Promise<T> {
-  window.history.scrollRestoration = 'manual';
-  void p
-    .then(
-      () => window.history.scrollRestoration = 'auto',
-      () => window.history.scrollRestoration = 'auto');
-  return p;
-}
-function failure(): Promise<void> {
-  void documentUrl.sync();
-  window.history.scrollRestoration = 'auto';
-  return Promise.resolve();
-}
-
 function hasModifierKey(event: MouseEvent): boolean {
   return event.which > 1
       || event.metaKey
@@ -173,6 +124,10 @@ function isHashChange(
   return orig.domain === dest.domain
       && orig.path === dest.path
       && orig.fragment !== dest.fragment;
+}
+
+function sync(): void {
+  void documentUrl.sync();
 }
 
 function click(url: string): Promise<Event> {

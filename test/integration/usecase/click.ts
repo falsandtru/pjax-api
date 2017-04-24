@@ -25,7 +25,8 @@ describe('Integration: Usecase', function () {
       const document = parse('').extract();
       new Pjax({
         fallback(target) {
-          assert(target instanceof HTMLAnchorElement);
+          assert(target === a);
+          assert(window.history.scrollRestoration === 'auto');
           done();
         }
       }, { document });

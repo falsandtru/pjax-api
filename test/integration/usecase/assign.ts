@@ -7,7 +7,8 @@ describe('Integration: Usecase', function () {
     it('basic', function (done) {
       const url = '/base/test/integration/usecase/fixture/basic/1.html';
       const document = parse('').extract();
-      new Pjax({}, { document }).assign(url);
+      new Pjax({}, { document })
+        .assign(url);
       once(document, 'pjax:ready', () => {
         assert(window.location.pathname === url);
         assert(document.title === 'Title 1');
@@ -22,9 +23,11 @@ describe('Integration: Usecase', function () {
       new Pjax({
         fallback(target) {
           assert(target instanceof HTMLAnchorElement);
+          assert(window.history.scrollRestoration === 'auto');
           done();
         }
-      }, { document }).assign(url);
+      }, { document })
+        .assign(url);
     });
 
   });

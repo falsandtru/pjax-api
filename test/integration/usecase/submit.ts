@@ -23,7 +23,8 @@ describe('Integration: Usecase', function () {
       const url = '404';
       new Pjax({
         fallback(target) {
-          assert(target instanceof HTMLFormElement);
+          assert(target === form);
+          assert(window.history.scrollRestoration === 'auto');
           done();
         }
       }, { document });
