@@ -1,4 +1,4 @@
-/*! spica v0.0.64 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.65 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
@@ -3992,15 +3992,15 @@ require = function e(t, n, r) {
                     this.destructor_ = destructor_;
                     this.alive = true;
                     this.available = true;
-                    this.times = 0;
+                    this.called = false;
                     this.call = function (_a) {
                         var param = _a[0], timeout = _a[1];
                         if (!_this.available)
                             return;
                         try {
                             _this.available = false;
-                            void ++_this.times;
-                            if (_this.times === 1) {
+                            if (!_this.called) {
+                                _this.called = true;
                                 void _this.sv.events.init.emit([_this.name], [
                                     _this.name,
                                     _this.process,
@@ -4056,22 +4056,24 @@ require = function e(t, n, r) {
                     this.available = false;
                     void Object.freeze(this);
                     void this.destructor_();
-                    try {
-                        void this.process.exit(reason, this.state);
-                        void this.sv.events.exit.emit([this.name], [
-                            this.name,
-                            this.process,
-                            this.state,
-                            reason
-                        ]);
-                    } catch (reason_) {
-                        void this.sv.events.exit.emit([this.name], [
-                            this.name,
-                            this.process,
-                            this.state,
-                            reason
-                        ]);
-                        void this.sv.terminate(void 0, reason_);
+                    if (this.called) {
+                        try {
+                            void this.process.exit(reason, this.state);
+                            void this.sv.events.exit.emit([this.name], [
+                                this.name,
+                                this.process,
+                                this.state,
+                                reason
+                            ]);
+                        } catch (reason_) {
+                            void this.sv.events.exit.emit([this.name], [
+                                this.name,
+                                this.process,
+                                this.state,
+                                reason
+                            ]);
+                            void this.sv.terminate(void 0, reason_);
+                        }
                     }
                 };
                 return Worker;
