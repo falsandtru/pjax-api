@@ -1,12 +1,12 @@
-import { Cancelable, Left } from 'spica';
+import { Cancelable, Just, Left } from 'spica';
 import { Config } from '../domain/data/config';
-import { scope } from './config/scope';
-import { RouterEvent } from '../domain/event/router';
-import { route as route_, RouterEntity, RouterResult } from '../domain/router/api';
 import { CanonicalUrl } from '../data/model/canonicalization/url';
+import { scope } from './config/scope';
+import { route as route_, RouterEntity, RouterResult } from '../domain/router/api';
 import { ApplicationError } from './data/error';
 
-export {Config}
+export * from './store/path';
+export { Config };
 
 export async function route(
   config: Config,
@@ -19,23 +19,19 @@ export async function route(
     document: Document;
   }
 ): Promise<RouterResult> {
-  const location = new RouterEvent(event).location;
-  return scope(
-    config,
-    {
-      orig: location.orig.pathname,
-      dest: location.dest.pathname
-    })
-    .extract(
-      () =>
-        Promise.resolve<RouterResult>(Left(new ApplicationError(`Disabled to use pjax by config.`))),
-      config =>
-        route_(
-          new RouterEntity(
-            config,
-            new RouterEvent(event),
-            new RouterEntity.State(state.scripts, state.cancelable)),
-          io));
+  return Just(new RouterEntity.Event(event).location)
+    .bind(({ orig, dest }) =>
+      scope(config, {
+        orig: orig.pathname,
+        dest: dest.pathname,
+      }))
+    .fmap(config =>
+      new RouterEntity(
+        config,
+        new RouterEntity.Event(event),
+        new RouterEntity.State(state.scripts, state.cancelable)))
+    .fmap(entity =>
+      route_(entity, io))
+    .extract(() =>
+      Left(new ApplicationError(`Disabled by config.`)));
 }
-
-export * from './store/path';

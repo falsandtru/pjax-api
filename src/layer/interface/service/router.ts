@@ -30,6 +30,7 @@ export async function route(
   const [scripts] = await init;
   window.history.scrollRestoration = 'manual';
   void progressbar(config.progressbar);
+  assert(cancelable.canceled === false);
   return route_(config, event, { scripts, cancelable }, io)
     .then(result =>
       result
