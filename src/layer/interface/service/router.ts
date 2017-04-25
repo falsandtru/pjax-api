@@ -22,11 +22,11 @@ export async function route(
 ): Promise<void> {
   void event.preventDefault();
   assert([HTMLAnchorElement, HTMLFormElement, Window].some(Class => event._currentTarget instanceof Class));
+  const cancelable = new Cancelable<Error>();
   void process.cast('', new InterfaceError(`Abort.`));
   void process.register('', e => {
     throw void cancelable.cancel(e);
   }, void 0);
-  const cancelable = new Cancelable<Error>();
   const [scripts] = await init;
   window.history.scrollRestoration = 'manual';
   void progressbar(config.progressbar);

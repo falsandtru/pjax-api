@@ -17,8 +17,8 @@ import { once } from '../../../lib/dom';
 import { parse } from '../../../lib/html';
 
 export class GUI {
-  private static readonly process = new class extends Supervisor<'', Error, void, void> { }({});
-  private static readonly view = new class extends Supervisor<'', void, void, Cancelable<undefined>>{ }({});
+  private static readonly process = new class extends Supervisor<'', Error, void, void> { }();
+  private static readonly view = new class extends Supervisor<'', void, void, Cancelable<undefined>>{ }();
   public static assign(url: string, option: Option, io = { document: window.document }): undefined {
     return void click(url)
       .then(event =>
@@ -43,10 +43,10 @@ export class GUI {
           .add(new ClickView(this.io.document, this.config.link, event =>
             void Just(new Url(canonicalizeUrl(validateUrl((<RouterEvent.Source.Anchor>event._currentTarget).href))))
               .bind(url =>
-                  isAccessible(url)
-                  && !isHashChange(url)
-                  && !hasModifierKey(event)
-                  && this.config.filter(<RouterEvent.Source.Anchor>event._currentTarget)
+                isAccessible(url)
+                && !isHashChange(url)
+                && !hasModifierKey(event)
+                && this.config.filter(<RouterEvent.Source.Anchor>event._currentTarget)
                   ? Just(0)
                   : Nothing)
               .fmap(() =>
