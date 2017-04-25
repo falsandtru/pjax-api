@@ -28,6 +28,7 @@ export async function fetch(
     data
   });
   return (await req)
+    .bind(cancelable.either)
     .bind<[FetchResult, void]>(result =>
       result.response.url === '' || new Url(result.response.url).domain === new Url(url).domain
         ? Right<[FetchResult, void]>([result, state])

@@ -2,13 +2,13 @@ import { Cancelable, Left } from 'spica';
 import { Config } from '../domain/data/config';
 import { scope } from './config/scope';
 import { RouterEvent } from '../domain/event/router';
-import { route as route_, RouterEntity, RouterResult, RouterResultData } from '../domain/router/api';
+import { route as route_, RouterEntity, RouterResult } from '../domain/router/api';
 import { CanonicalUrl } from '../data/model/canonicalization/url';
 import { ApplicationError } from './data/error';
 
 export {Config}
 
-export function route(
+export async function route(
   config: Config,
   event: Event,
   state: {
@@ -18,7 +18,7 @@ export function route(
   io: {
     document: Document;
   }
-): RouterResult {
+): Promise<RouterResult> {
   const location = new RouterEvent(event).location;
   return scope(
     config,
@@ -26,9 +26,9 @@ export function route(
       orig: location.orig.pathname,
       dest: location.dest.pathname
     })
-    .extract<RouterResult>(
+    .extract(
       () =>
-        Promise.resolve<RouterResultData>(Left(new ApplicationError(`Disabled to use pjax by config.`))),
+        Promise.resolve<RouterResult>(Left(new ApplicationError(`Disabled to use pjax by config.`))),
       config =>
         route_(
           new RouterEntity(

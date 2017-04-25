@@ -5,7 +5,7 @@ import { validateUrl } from '../../../../data/model/validation/url';
 
 type Response = [HTMLScriptElement, string];
 
-export function script(
+export async function script(
   documents: {
     src: Document;
     dst: Document;
@@ -23,25 +23,21 @@ export function script(
     log
   }
 ): Promise<Either<Error, HTMLScriptElement[]>> {
-  const scripts: HTMLScriptElement[] = find<HTMLScriptElement>(documents.src, 'script')
+  const scripts = find<HTMLScriptElement>(documents.src, 'script')
     .filter(el => !el.type || /(?:application|text)\/(?:java|ecma)script/i.test(el.type))
     .filter(el => !el.matches(selector.ignore.trim() || '_'))
     .filter(el =>
       el.hasAttribute('src')
         ? !skip.has(canonicalizeUrl(validateUrl(el.src))) || el.matches(selector.reload.trim() || '_')
         : true);
-  return new Promise<Either<Error, HTMLScriptElement[]>>((resolve, reject) => (
-    void Promise.all(
-      scripts
-        .reduce<Promise<Either<Error, Response>>[]>((rs, script) =>
-          concat(rs, [io.request(script)])
-        , []))
-      .then(rs =>
-        rs
-          .reduce<Either<Error, HTMLScriptElement[]>>((acc, m) =>
-            m.bind(res => run(acc, res))
-          , Right([])))
-      .then(resolve, reject)));
+  const requests = scripts
+    .reduce<Promise<Either<Error, Response>>[]>((rs, script) =>
+      concat(rs, [io.request(script)])
+    , []);
+  return (await Promise.all(requests))
+    .reduce<Either<Error, HTMLScriptElement[]>>((acc, m) =>
+      m.bind(res => run(acc, res))
+    , Right([]));
 
   function run(
     state: Either<Error, HTMLScriptElement[]>,

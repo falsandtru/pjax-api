@@ -16,7 +16,7 @@ import { DomainError } from '../../../data/error';
 
 type Seq = void;
 
-export function update(
+export async function update(
   {
     event,
     config,
@@ -38,27 +38,21 @@ export function update(
     dst: io.document
   });
   return new HNil()
-    .push(Promise.resolve(cancelable.either(seq)))
+    .push(cancelable.either(seq))
     // fetch -> unload
-    .modify(p => p.then(m => m
-      .bind(cancelable.either)
-      .fmap<Promise<Either<Error, Seq>>>(seq =>
+    .modify(m => m
+      .fmap(seq =>
         separate(documents, config.areas)
           .fmap(([area]) =>
             void config.rewrite(documents.src, area, ''))
-          .extract(
-            () =>
-              Promise.resolve(Left(new DomainError(`Failed to separate areas.`))),
-            () => (
+          .extract<Promise<Either<Error, Seq>>>(
+            async () =>
+              Left(new DomainError(`Failed to separate areas.`)),
+            async () => (
               void window.dispatchEvent(new Event('pjax:unload')),
-              config.sequence.unload(seq, { ...response })
-                .then(
-                  cancelable.either,
-                  e => Left<Error>(e instanceof Error ? e : new Error(e))))))
-      .extract()))
+              cancelable.either(await config.sequence.unload(seq, { ...response }))))))
     // unload -> ready
-    .modify(p => p.then(m => m
-      .bind(cancelable.either)
+    .modify(m => m.fmap(async p => (await p)
       .fmap(seq =>
         new HNil()
           .push((
@@ -114,26 +108,24 @@ export function update(
             void savePosition(),
             config.update.script
               ? script(documents, state.scripts, config.update, cancelable)
-              : Promise.resolve<Either<Error, HTMLScriptElement[]>>(cancelable.either([]))))
-          .extend(() => (
+              : Promise.resolve(cancelable.either<HTMLScriptElement[]>([]))))
+          .extend(async () => (
             void io.document.dispatchEvent(new Event('pjax:ready')),
-            config.sequence.ready(seq)
-              .then(
-                cancelable.either,
-                e => Left<Error>(e instanceof Error ? e : new Error(e)))))
+            cancelable.either(await config.sequence.ready(seq))))
           .reverse()
           .tuple())
-      .fmap(ps => Promise.all(ps))))
+      .fmap(ps =>
+        Promise.all(ps))))
     // ready -> load
-    .modify(p => p.then(m => m
-      .bind(cancelable.either)
+    .modify(m => m.fmap(async p => (await p)
       .fmap(p => p.then(([m1, m2, m3]) =>
         m1.bind(() => m2).bind(() => m3)
-          .bind(cancelable.either)
           .fmap(seq => (
             void window.dispatchEvent(new Event('pjax:load')),
             void config.sequence.load(seq)))
-          .bind(() => m2)))
-      .extract()))
+          .bind(() => m2))))
+      .fmap(async p => (await p)
+        .extract<Left<Error>>(Left))
+      .extract<Left<Error>>(Left))
     .head();
 }
