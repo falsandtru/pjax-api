@@ -54,6 +54,130 @@ require = function e(t, n, r) {
     4: [
         function (require, module, exports) {
             'use strict';
+            var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
+                return new (P || (P = Promise))(function (resolve, reject) {
+                    function fulfilled(value) {
+                        try {
+                            step(generator.next(value));
+                        } catch (e) {
+                            reject(e);
+                        }
+                    }
+                    function rejected(value) {
+                        try {
+                            step(generator['throw'](value));
+                        } catch (e) {
+                            reject(e);
+                        }
+                    }
+                    function step(result) {
+                        result.done ? resolve(result.value) : new P(function (resolve) {
+                            resolve(result.value);
+                        }).then(fulfilled, rejected);
+                    }
+                    step((generator = generator.apply(thisArg, _arguments || [])).next());
+                });
+            };
+            var __generator = this && this.__generator || function (thisArg, body) {
+                var _ = {
+                        label: 0,
+                        sent: function () {
+                            if (t[0] & 1)
+                                throw t[1];
+                            return t[1];
+                        },
+                        trys: [],
+                        ops: []
+                    }, f, y, t, g;
+                return g = {
+                    next: verb(0),
+                    'throw': verb(1),
+                    'return': verb(2)
+                }, typeof Symbol === 'function' && (g[Symbol.iterator] = function () {
+                    return this;
+                }), g;
+                function verb(n) {
+                    return function (v) {
+                        return step([
+                            n,
+                            v
+                        ]);
+                    };
+                }
+                function step(op) {
+                    if (f)
+                        throw new TypeError('Generator is already executing.');
+                    while (_)
+                        try {
+                            if (f = 1, y && (t = y[op[0] & 2 ? 'return' : op[0] ? 'throw' : 'next']) && !(t = t.call(y, op[1])).done)
+                                return t;
+                            if (y = 0, t)
+                                op = [
+                                    0,
+                                    t.value
+                                ];
+                            switch (op[0]) {
+                            case 0:
+                            case 1:
+                                t = op;
+                                break;
+                            case 4:
+                                _.label++;
+                                return {
+                                    value: op[1],
+                                    done: false
+                                };
+                            case 5:
+                                _.label++;
+                                y = op[1];
+                                op = [0];
+                                continue;
+                            case 7:
+                                op = _.ops.pop();
+                                _.trys.pop();
+                                continue;
+                            default:
+                                if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
+                                    _ = 0;
+                                    continue;
+                                }
+                                if (op[0] === 3 && (!t || op[1] > t[0] && op[1] < t[3])) {
+                                    _.label = op[1];
+                                    break;
+                                }
+                                if (op[0] === 6 && _.label < t[1]) {
+                                    _.label = t[1];
+                                    t = op;
+                                    break;
+                                }
+                                if (t && _.label < t[2]) {
+                                    _.label = t[2];
+                                    _.ops.push(op);
+                                    break;
+                                }
+                                if (t[2])
+                                    _.ops.pop();
+                                _.trys.pop();
+                                continue;
+                            }
+                            op = body.call(thisArg, _);
+                        } catch (e) {
+                            op = [
+                                6,
+                                e
+                            ];
+                            y = 0;
+                        } finally {
+                            f = t = 0;
+                        }
+                    if (op[0] & 5)
+                        throw op[1];
+                    return {
+                        value: op[0] ? op[1] : void 0,
+                        done: true
+                    };
+                }
+            };
             function __export(m) {
                 for (var p in m)
                     if (!exports.hasOwnProperty(p))
@@ -68,14 +192,22 @@ require = function e(t, n, r) {
             var api_1 = require('../domain/router/api');
             var error_1 = require('./data/error');
             function route(config, event, state, io) {
-                var location = new router_1.RouterEvent(event).location;
-                return scope_1.scope(config, {
-                    orig: location.orig.pathname,
-                    dest: location.dest.pathname
-                }).extract(function () {
-                    return Promise.resolve(spica_1.Left(new error_1.ApplicationError('Disabled to use pjax by config.')));
-                }, function (config) {
-                    return api_1.route(new api_1.RouterEntity(config, new router_1.RouterEvent(event), new api_1.RouterEntity.State(state.scripts, state.cancelable)), io);
+                return __awaiter(this, void 0, void 0, function () {
+                    var location;
+                    return __generator(this, function (_a) {
+                        location = new router_1.RouterEvent(event).location;
+                        return [
+                            2,
+                            scope_1.scope(config, {
+                                orig: location.orig.pathname,
+                                dest: location.dest.pathname
+                            }).extract(function () {
+                                return Promise.resolve(spica_1.Left(new error_1.ApplicationError('Disabled to use pjax by config.')));
+                            }, function (config) {
+                                return api_1.route(new api_1.RouterEntity(config, new router_1.RouterEvent(event), new api_1.RouterEntity.State(state.scripts, state.cancelable)), io);
+                            })
+                        ];
+                    });
                 });
             }
             exports.route = route;
@@ -855,6 +987,130 @@ require = function e(t, n, r) {
     24: [
         function (require, module, exports) {
             'use strict';
+            var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
+                return new (P || (P = Promise))(function (resolve, reject) {
+                    function fulfilled(value) {
+                        try {
+                            step(generator.next(value));
+                        } catch (e) {
+                            reject(e);
+                        }
+                    }
+                    function rejected(value) {
+                        try {
+                            step(generator['throw'](value));
+                        } catch (e) {
+                            reject(e);
+                        }
+                    }
+                    function step(result) {
+                        result.done ? resolve(result.value) : new P(function (resolve) {
+                            resolve(result.value);
+                        }).then(fulfilled, rejected);
+                    }
+                    step((generator = generator.apply(thisArg, _arguments || [])).next());
+                });
+            };
+            var __generator = this && this.__generator || function (thisArg, body) {
+                var _ = {
+                        label: 0,
+                        sent: function () {
+                            if (t[0] & 1)
+                                throw t[1];
+                            return t[1];
+                        },
+                        trys: [],
+                        ops: []
+                    }, f, y, t, g;
+                return g = {
+                    next: verb(0),
+                    'throw': verb(1),
+                    'return': verb(2)
+                }, typeof Symbol === 'function' && (g[Symbol.iterator] = function () {
+                    return this;
+                }), g;
+                function verb(n) {
+                    return function (v) {
+                        return step([
+                            n,
+                            v
+                        ]);
+                    };
+                }
+                function step(op) {
+                    if (f)
+                        throw new TypeError('Generator is already executing.');
+                    while (_)
+                        try {
+                            if (f = 1, y && (t = y[op[0] & 2 ? 'return' : op[0] ? 'throw' : 'next']) && !(t = t.call(y, op[1])).done)
+                                return t;
+                            if (y = 0, t)
+                                op = [
+                                    0,
+                                    t.value
+                                ];
+                            switch (op[0]) {
+                            case 0:
+                            case 1:
+                                t = op;
+                                break;
+                            case 4:
+                                _.label++;
+                                return {
+                                    value: op[1],
+                                    done: false
+                                };
+                            case 5:
+                                _.label++;
+                                y = op[1];
+                                op = [0];
+                                continue;
+                            case 7:
+                                op = _.ops.pop();
+                                _.trys.pop();
+                                continue;
+                            default:
+                                if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
+                                    _ = 0;
+                                    continue;
+                                }
+                                if (op[0] === 3 && (!t || op[1] > t[0] && op[1] < t[3])) {
+                                    _.label = op[1];
+                                    break;
+                                }
+                                if (op[0] === 6 && _.label < t[1]) {
+                                    _.label = t[1];
+                                    t = op;
+                                    break;
+                                }
+                                if (t && _.label < t[2]) {
+                                    _.label = t[2];
+                                    _.ops.push(op);
+                                    break;
+                                }
+                                if (t[2])
+                                    _.ops.pop();
+                                _.trys.pop();
+                                continue;
+                            }
+                            op = body.call(thisArg, _);
+                        } catch (e) {
+                            op = [
+                                6,
+                                e
+                            ];
+                            y = 0;
+                        } finally {
+                            f = t = 0;
+                        }
+                    if (op[0] & 5)
+                        throw op[1];
+                    return {
+                        value: op[0] ? op[1] : void 0,
+                        done: true
+                    };
+                }
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var spica_1 = require('spica');
             var dom_1 = require('../../../../../lib/dom');
@@ -868,31 +1124,44 @@ require = function e(t, n, r) {
                         log: log
                     };
                 }
-                var scripts = dom_1.find(documents.src, 'script').filter(function (el) {
-                    return !el.type || /(?:application|text)\/(?:java|ecma)script/i.test(el.type);
-                }).filter(function (el) {
-                    return !el.matches(selector.ignore.trim() || '_');
-                }).filter(function (el) {
-                    return el.hasAttribute('src') ? !skip.has(url_1.canonicalizeUrl(url_2.validateUrl(el.src))) || el.matches(selector.reload.trim() || '_') : true;
-                });
-                return new Promise(function (resolve, reject) {
-                    return void Promise.all(scripts.reduce(function (rs, script) {
-                        return spica_1.concat(rs, [io.request(script)]);
-                    }, [])).then(function (rs) {
-                        return rs.reduce(function (acc, m) {
-                            return m.bind(function (res) {
-                                return run(acc, res);
+                return __awaiter(this, void 0, void 0, function () {
+                    function run(state, response) {
+                        return state.bind(cancelable.either).bind(function (scripts) {
+                            return io.evaluate(response).fmap(function (script) {
+                                return script.parentElement.matches(selector.logger.trim() || '_') ? void io.log(script, documents.dst) : void 0, scripts.concat([script]);
                             });
-                        }, spica_1.Right([]));
-                    }).then(resolve, reject);
-                });
-                function run(state, response) {
-                    return state.bind(cancelable.either).bind(function (scripts) {
-                        return io.evaluate(response).fmap(function (script) {
-                            return script.parentElement.matches(selector.logger.trim() || '_') ? void io.log(script, documents.dst) : void 0, scripts.concat([script]);
                         });
+                    }
+                    var scripts, requests;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                        case 0:
+                            scripts = dom_1.find(documents.src, 'script').filter(function (el) {
+                                return !el.type || /(?:application|text)\/(?:java|ecma)script/i.test(el.type);
+                            }).filter(function (el) {
+                                return !el.matches(selector.ignore.trim() || '_');
+                            }).filter(function (el) {
+                                return el.hasAttribute('src') ? !skip.has(url_1.canonicalizeUrl(url_2.validateUrl(el.src))) || el.matches(selector.reload.trim() || '_') : true;
+                            });
+                            requests = scripts.reduce(function (rs, script) {
+                                return spica_1.concat(rs, [io.request(script)]);
+                            }, []);
+                            return [
+                                4,
+                                Promise.all(requests)
+                            ];
+                        case 1:
+                            return [
+                                2,
+                                _a.sent().reduce(function (acc, m) {
+                                    return m.bind(function (res) {
+                                        return run(acc, res);
+                                    });
+                                }, spica_1.Right([]))
+                            ];
+                        }
                     });
-                }
+                });
             }
             exports.script = script;
             function escape(script) {
@@ -1164,6 +1433,130 @@ require = function e(t, n, r) {
     29: [
         function (require, module, exports) {
             'use strict';
+            var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
+                return new (P || (P = Promise))(function (resolve, reject) {
+                    function fulfilled(value) {
+                        try {
+                            step(generator.next(value));
+                        } catch (e) {
+                            reject(e);
+                        }
+                    }
+                    function rejected(value) {
+                        try {
+                            step(generator['throw'](value));
+                        } catch (e) {
+                            reject(e);
+                        }
+                    }
+                    function step(result) {
+                        result.done ? resolve(result.value) : new P(function (resolve) {
+                            resolve(result.value);
+                        }).then(fulfilled, rejected);
+                    }
+                    step((generator = generator.apply(thisArg, _arguments || [])).next());
+                });
+            };
+            var __generator = this && this.__generator || function (thisArg, body) {
+                var _ = {
+                        label: 0,
+                        sent: function () {
+                            if (t[0] & 1)
+                                throw t[1];
+                            return t[1];
+                        },
+                        trys: [],
+                        ops: []
+                    }, f, y, t, g;
+                return g = {
+                    next: verb(0),
+                    'throw': verb(1),
+                    'return': verb(2)
+                }, typeof Symbol === 'function' && (g[Symbol.iterator] = function () {
+                    return this;
+                }), g;
+                function verb(n) {
+                    return function (v) {
+                        return step([
+                            n,
+                            v
+                        ]);
+                    };
+                }
+                function step(op) {
+                    if (f)
+                        throw new TypeError('Generator is already executing.');
+                    while (_)
+                        try {
+                            if (f = 1, y && (t = y[op[0] & 2 ? 'return' : op[0] ? 'throw' : 'next']) && !(t = t.call(y, op[1])).done)
+                                return t;
+                            if (y = 0, t)
+                                op = [
+                                    0,
+                                    t.value
+                                ];
+                            switch (op[0]) {
+                            case 0:
+                            case 1:
+                                t = op;
+                                break;
+                            case 4:
+                                _.label++;
+                                return {
+                                    value: op[1],
+                                    done: false
+                                };
+                            case 5:
+                                _.label++;
+                                y = op[1];
+                                op = [0];
+                                continue;
+                            case 7:
+                                op = _.ops.pop();
+                                _.trys.pop();
+                                continue;
+                            default:
+                                if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
+                                    _ = 0;
+                                    continue;
+                                }
+                                if (op[0] === 3 && (!t || op[1] > t[0] && op[1] < t[3])) {
+                                    _.label = op[1];
+                                    break;
+                                }
+                                if (op[0] === 6 && _.label < t[1]) {
+                                    _.label = t[1];
+                                    t = op;
+                                    break;
+                                }
+                                if (t && _.label < t[2]) {
+                                    _.label = t[2];
+                                    _.ops.push(op);
+                                    break;
+                                }
+                                if (t[2])
+                                    _.ops.pop();
+                                _.trys.pop();
+                                continue;
+                            }
+                            op = body.call(thisArg, _);
+                        } catch (e) {
+                            op = [
+                                6,
+                                e
+                            ];
+                            y = 0;
+                        } finally {
+                            f = t = 0;
+                        }
+                    if (op[0] & 5)
+                        throw op[1];
+                    return {
+                        value: op[0] ? op[1] : void 0,
+                        done: true
+                    };
+                }
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var spica_1 = require('spica');
             var entity_1 = require('../model/eav/entity');
@@ -1174,22 +1567,41 @@ require = function e(t, n, r) {
             var path_1 = require('../../store/path');
             var error_1 = require('../../data/error');
             function route(entity, io) {
-                return Promise.resolve().then(function () {
-                    return content_1.match(io.document, entity.config.areas) ? entity.state.cancelable.either(void 0) : spica_1.Left(new error_1.DomainError('Failed to match areas.'));
-                }).then(function (m) {
-                    return m.bind(entity.state.cancelable.either).fmap(function () {
-                        return api_1.fetch(entity.event.request, entity.config, entity.state.cancelable);
-                    }).extract(spica_1.Left);
-                }).then(function (m) {
-                    return m.bind(entity.state.cancelable.either).fmap(function (_a) {
-                        var res = _a[0], seq = _a[1];
-                        return api_2.update(entity, res, seq, {
-                            document: io.document,
-                            scroll: window.scrollTo,
-                            position: path_1.loadPosition
-                        });
-                    }).extract(function (e) {
-                        return Promise.resolve(spica_1.Left(e));
+                return __awaiter(this, void 0, void 0, function () {
+                    var _this = this;
+                    return __generator(this, function (_a) {
+                        return [
+                            2,
+                            entity.state.cancelable.either(void 0).bind(function () {
+                                return content_1.match(io.document, entity.config.areas) ? spica_1.Right(void 0) : spica_1.Left(new error_1.DomainError('Failed to match areas.'));
+                            }).fmap(function () {
+                                return api_1.fetch(entity.event.request, entity.config, entity.state.cancelable);
+                            }).fmap(function (p) {
+                                return __awaiter(_this, void 0, void 0, function () {
+                                    return __generator(this, function (_a) {
+                                        switch (_a.label) {
+                                        case 0:
+                                            return [
+                                                4,
+                                                p
+                                            ];
+                                        case 1:
+                                            return [
+                                                2,
+                                                _a.sent().fmap(function (_a) {
+                                                    var res = _a[0], seq = _a[1];
+                                                    return api_2.update(entity, res, seq, {
+                                                        document: io.document,
+                                                        scroll: window.scrollTo,
+                                                        position: path_1.loadPosition
+                                                    });
+                                                }).extract(spica_1.Left)
+                                            ];
+                                        }
+                                    });
+                                });
+                            }).extract(spica_1.Left)
+                        ];
                     });
                 });
             }
@@ -1365,7 +1777,7 @@ require = function e(t, n, r) {
                         case 2:
                             return [
                                 2,
-                                _a.sent().bind(function (result) {
+                                _a.sent().bind(cancelable.either).bind(function (result) {
                                     return result.response.url === '' || new url_1.Url(result.response.url).domain === new url_1.Url(url).domain ? spica_1.Right([
                                         result,
                                         state
@@ -1397,6 +1809,130 @@ require = function e(t, n, r) {
                 }
                 return t;
             };
+            var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
+                return new (P || (P = Promise))(function (resolve, reject) {
+                    function fulfilled(value) {
+                        try {
+                            step(generator.next(value));
+                        } catch (e) {
+                            reject(e);
+                        }
+                    }
+                    function rejected(value) {
+                        try {
+                            step(generator['throw'](value));
+                        } catch (e) {
+                            reject(e);
+                        }
+                    }
+                    function step(result) {
+                        result.done ? resolve(result.value) : new P(function (resolve) {
+                            resolve(result.value);
+                        }).then(fulfilled, rejected);
+                    }
+                    step((generator = generator.apply(thisArg, _arguments || [])).next());
+                });
+            };
+            var __generator = this && this.__generator || function (thisArg, body) {
+                var _ = {
+                        label: 0,
+                        sent: function () {
+                            if (t[0] & 1)
+                                throw t[1];
+                            return t[1];
+                        },
+                        trys: [],
+                        ops: []
+                    }, f, y, t, g;
+                return g = {
+                    next: verb(0),
+                    'throw': verb(1),
+                    'return': verb(2)
+                }, typeof Symbol === 'function' && (g[Symbol.iterator] = function () {
+                    return this;
+                }), g;
+                function verb(n) {
+                    return function (v) {
+                        return step([
+                            n,
+                            v
+                        ]);
+                    };
+                }
+                function step(op) {
+                    if (f)
+                        throw new TypeError('Generator is already executing.');
+                    while (_)
+                        try {
+                            if (f = 1, y && (t = y[op[0] & 2 ? 'return' : op[0] ? 'throw' : 'next']) && !(t = t.call(y, op[1])).done)
+                                return t;
+                            if (y = 0, t)
+                                op = [
+                                    0,
+                                    t.value
+                                ];
+                            switch (op[0]) {
+                            case 0:
+                            case 1:
+                                t = op;
+                                break;
+                            case 4:
+                                _.label++;
+                                return {
+                                    value: op[1],
+                                    done: false
+                                };
+                            case 5:
+                                _.label++;
+                                y = op[1];
+                                op = [0];
+                                continue;
+                            case 7:
+                                op = _.ops.pop();
+                                _.trys.pop();
+                                continue;
+                            default:
+                                if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
+                                    _ = 0;
+                                    continue;
+                                }
+                                if (op[0] === 3 && (!t || op[1] > t[0] && op[1] < t[3])) {
+                                    _.label = op[1];
+                                    break;
+                                }
+                                if (op[0] === 6 && _.label < t[1]) {
+                                    _.label = t[1];
+                                    t = op;
+                                    break;
+                                }
+                                if (t && _.label < t[2]) {
+                                    _.label = t[2];
+                                    _.ops.push(op);
+                                    break;
+                                }
+                                if (t[2])
+                                    _.ops.pop();
+                                _.trys.pop();
+                                continue;
+                            }
+                            op = body.call(thisArg, _);
+                        } catch (e) {
+                            op = [
+                                6,
+                                e
+                            ];
+                            y = 0;
+                        } finally {
+                            f = t = 0;
+                        }
+                    if (op[0] & 5)
+                        throw op[1];
+                    return {
+                        value: op[0] ? op[1] : void 0,
+                        done: true
+                    };
+                }
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var spica_1 = require('spica');
             var entity_1 = require('../../model/eav/entity');
@@ -1415,79 +1951,173 @@ require = function e(t, n, r) {
             function update(_a, _b, seq, io) {
                 var event = _a.event, config = _a.config, state = _a.state;
                 var response = _b.response;
-                var cancelable = state.cancelable;
-                var documents = new update_1.UpdateSource({
-                    src: response.document,
-                    dst: io.document
-                }).documents;
-                return new spica_1.HNil().push(Promise.resolve(cancelable.either(seq))).modify(function (p) {
-                    return p.then(function (m) {
-                        return m.bind(cancelable.either).fmap(function (seq) {
-                            return content_1.separate(documents, config.areas).fmap(function (_a) {
-                                var area = _a[0];
-                                return void config.rewrite(documents.src, area, '');
-                            }).extract(function () {
-                                return Promise.resolve(spica_1.Left(new error_1.DomainError('Failed to separate areas.')));
-                            }, function () {
-                                return void window.dispatchEvent(new Event('pjax:unload')), config.sequence.unload(seq, __assign({}, response)).then(cancelable.either, function (e) {
-                                    return spica_1.Left(e instanceof Error ? e : new Error(e));
+                return __awaiter(this, void 0, void 0, function () {
+                    var _this = this;
+                    var cancelable, documents;
+                    return __generator(this, function (_a) {
+                        cancelable = state.cancelable;
+                        documents = new update_1.UpdateSource({
+                            src: response.document,
+                            dst: io.document
+                        }).documents;
+                        return [
+                            2,
+                            new spica_1.HNil().push(cancelable.either(seq)).modify(function (m) {
+                                return m.fmap(function (seq) {
+                                    return content_1.separate(documents, config.areas).fmap(function (_a) {
+                                        var area = _a[0];
+                                        return void config.rewrite(documents.src, area, '');
+                                    }).extract(function () {
+                                        return __awaiter(_this, void 0, void 0, function () {
+                                            return __generator(this, function (_a) {
+                                                return [
+                                                    2,
+                                                    spica_1.Left(new error_1.DomainError('Failed to separate areas.'))
+                                                ];
+                                            });
+                                        });
+                                    }, function () {
+                                        return __awaiter(_this, void 0, void 0, function () {
+                                            var _a, _b;
+                                            return __generator(this, function (_c) {
+                                                switch (_c.label) {
+                                                case 0:
+                                                    void window.dispatchEvent(new Event('pjax:unload'));
+                                                    _b = (_a = cancelable).either;
+                                                    return [
+                                                        4,
+                                                        config.sequence.unload(seq, __assign({}, response))
+                                                    ];
+                                                case 1:
+                                                    return [
+                                                        2,
+                                                        _b.apply(_a, [_c.sent()])
+                                                    ];
+                                                }
+                                            });
+                                        });
+                                    });
                                 });
-                            });
-                        }).extract();
-                    });
-                }).modify(function (p) {
-                    return p.then(function (m) {
-                        return m.bind(cancelable.either).fmap(function (seq) {
-                            return new spica_1.HNil().push((void blur_1.blur(documents.dst), void url_1.url(new entity_1.RouterEntity.Event.Location(response.url || event.location.dest.href), documents.src.title, event.type, event.source, config.replace), void title_1.title(documents), void path_1.saveTitle(), void head_1.head({
-                                src: documents.src.head,
-                                dst: documents.dst.head
-                            }, config.update.head, config.update.ignore), content_1.content(documents, config.areas).extract(function () {
-                                return Promise.resolve(spica_1.Left(new error_1.DomainError('Failed to update areas.')));
-                            }, function (p) {
-                                return p.then(cancelable.either);
-                            }))).extend(function () {
-                                return config.update.css ? void css_1.css({
-                                    src: documents.src.head,
-                                    dst: documents.dst.head
-                                }, config.update.ignore) : void 0, config.update.css ? void css_1.css({
-                                    src: documents.src.body,
-                                    dst: documents.dst.body
-                                }, config.update.ignore) : void 0, void focus_1.focus(documents.dst), void scroll_1.scroll(event.type, documents.dst, {
-                                    hash: event.location.dest.fragment,
-                                    top: 0,
-                                    left: 0
-                                }, {
-                                    hash: scroll_1.hash,
-                                    scroll: io.scroll,
-                                    position: io.position
-                                }), void path_1.savePosition(), config.update.script ? script_1.script(documents, state.scripts, config.update, cancelable) : Promise.resolve(cancelable.either([]));
-                            }).extend(function () {
-                                return void io.document.dispatchEvent(new Event('pjax:ready')), config.sequence.ready(seq).then(cancelable.either, function (e) {
-                                    return spica_1.Left(e instanceof Error ? e : new Error(e));
+                            }).modify(function (m) {
+                                return m.fmap(function (p) {
+                                    return __awaiter(_this, void 0, void 0, function () {
+                                        var _this = this;
+                                        return __generator(this, function (_a) {
+                                            switch (_a.label) {
+                                            case 0:
+                                                return [
+                                                    4,
+                                                    p
+                                                ];
+                                            case 1:
+                                                return [
+                                                    2,
+                                                    _a.sent().fmap(function (seq) {
+                                                        return new spica_1.HNil().push((void blur_1.blur(documents.dst), void url_1.url(new entity_1.RouterEntity.Event.Location(response.url || event.location.dest.href), documents.src.title, event.type, event.source, config.replace), void title_1.title(documents), void path_1.saveTitle(), void head_1.head({
+                                                            src: documents.src.head,
+                                                            dst: documents.dst.head
+                                                        }, config.update.head, config.update.ignore), content_1.content(documents, config.areas).extract(function () {
+                                                            return Promise.resolve(spica_1.Left(new error_1.DomainError('Failed to update areas.')));
+                                                        }, function (p) {
+                                                            return p.then(cancelable.either);
+                                                        }))).extend(function () {
+                                                            return config.update.css ? void css_1.css({
+                                                                src: documents.src.head,
+                                                                dst: documents.dst.head
+                                                            }, config.update.ignore) : void 0, config.update.css ? void css_1.css({
+                                                                src: documents.src.body,
+                                                                dst: documents.dst.body
+                                                            }, config.update.ignore) : void 0, void focus_1.focus(documents.dst), void scroll_1.scroll(event.type, documents.dst, {
+                                                                hash: event.location.dest.fragment,
+                                                                top: 0,
+                                                                left: 0
+                                                            }, {
+                                                                hash: scroll_1.hash,
+                                                                scroll: io.scroll,
+                                                                position: io.position
+                                                            }), void path_1.savePosition(), config.update.script ? script_1.script(documents, state.scripts, config.update, cancelable) : Promise.resolve(cancelable.either([]));
+                                                        }).extend(function () {
+                                                            return __awaiter(_this, void 0, void 0, function () {
+                                                                var _a, _b;
+                                                                return __generator(this, function (_c) {
+                                                                    switch (_c.label) {
+                                                                    case 0:
+                                                                        void io.document.dispatchEvent(new Event('pjax:ready'));
+                                                                        _b = (_a = cancelable).either;
+                                                                        return [
+                                                                            4,
+                                                                            config.sequence.ready(seq)
+                                                                        ];
+                                                                    case 1:
+                                                                        return [
+                                                                            2,
+                                                                            _b.apply(_a, [_c.sent()])
+                                                                        ];
+                                                                    }
+                                                                });
+                                                            });
+                                                        }).reverse().tuple();
+                                                    }).fmap(function (ps) {
+                                                        return Promise.all(ps);
+                                                    })
+                                                ];
+                                            }
+                                        });
+                                    });
                                 });
-                            }).reverse().tuple();
-                        }).fmap(function (ps) {
-                            return Promise.all(ps);
-                        });
+                            }).modify(function (m) {
+                                return m.fmap(function (p) {
+                                    return __awaiter(_this, void 0, void 0, function () {
+                                        return __generator(this, function (_a) {
+                                            switch (_a.label) {
+                                            case 0:
+                                                return [
+                                                    4,
+                                                    p
+                                                ];
+                                            case 1:
+                                                return [
+                                                    2,
+                                                    _a.sent().fmap(function (p) {
+                                                        return p.then(function (_a) {
+                                                            var m1 = _a[0], m2 = _a[1], m3 = _a[2];
+                                                            return m1.bind(function () {
+                                                                return m2;
+                                                            }).bind(function () {
+                                                                return m3;
+                                                            }).fmap(function (seq) {
+                                                                return void window.dispatchEvent(new Event('pjax:load')), void config.sequence.load(seq);
+                                                            }).bind(function () {
+                                                                return m2;
+                                                            });
+                                                        });
+                                                    })
+                                                ];
+                                            }
+                                        });
+                                    });
+                                }).fmap(function (p) {
+                                    return __awaiter(_this, void 0, void 0, function () {
+                                        return __generator(this, function (_a) {
+                                            switch (_a.label) {
+                                            case 0:
+                                                return [
+                                                    4,
+                                                    p
+                                                ];
+                                            case 1:
+                                                return [
+                                                    2,
+                                                    _a.sent().extract(spica_1.Left)
+                                                ];
+                                            }
+                                        });
+                                    });
+                                }).extract(spica_1.Left);
+                            }).head()
+                        ];
                     });
-                }).modify(function (p) {
-                    return p.then(function (m) {
-                        return m.bind(cancelable.either).fmap(function (p) {
-                            return p.then(function (_a) {
-                                var m1 = _a[0], m2 = _a[1], m3 = _a[2];
-                                return m1.bind(function () {
-                                    return m2;
-                                }).bind(function () {
-                                    return m3;
-                                }).bind(cancelable.either).fmap(function (seq) {
-                                    return void window.dispatchEvent(new Event('pjax:load')), void config.sequence.load(seq);
-                                }).bind(function () {
-                                    return m2;
-                                });
-                            });
-                        }).extract();
-                    });
-                }).head();
+                });
             }
             exports.update = update;
         },
@@ -1584,7 +2214,7 @@ require = function e(t, n, r) {
                             return _super !== null && _super.apply(this, arguments) || this;
                         }
                         return class_1;
-                    }(spica_1.Supervisor))({});
+                    }(spica_1.Supervisor))();
                     this.close = function () {
                         return void _this.sv.terminate();
                     };
@@ -1638,7 +2268,7 @@ require = function e(t, n, r) {
                             return _super !== null && _super.apply(this, arguments) || this;
                         }
                         return class_1;
-                    }(spica_1.Supervisor))({});
+                    }(spica_1.Supervisor))();
                     this.close = function () {
                         return void _this.sv.terminate();
                     };
@@ -1696,7 +2326,7 @@ require = function e(t, n, r) {
                             return _super !== null && _super.apply(this, arguments) || this;
                         }
                         return class_1;
-                    }(spica_1.Supervisor))({});
+                    }(spica_1.Supervisor))();
                     this.close = function () {
                         return void _this.sv.terminate();
                     };
@@ -1753,7 +2383,7 @@ require = function e(t, n, r) {
                             return _super !== null && _super.apply(this, arguments) || this;
                         }
                         return class_1;
-                    }(spica_1.Supervisor))({});
+                    }(spica_1.Supervisor))();
                     this.close = function () {
                         return void _this.sv.terminate();
                     };
@@ -1899,14 +2529,14 @@ require = function e(t, n, r) {
                     return _super !== null && _super.apply(this, arguments) || this;
                 }
                 return class_1;
-            }(spica_1.Supervisor))({});
+            }(spica_1.Supervisor))();
             GUI.view = new (function (_super) {
                 __extends(class_2, _super);
                 function class_2() {
                     return _super !== null && _super.apply(this, arguments) || this;
                 }
                 return class_2;
-            }(spica_1.Supervisor))({});
+            }(spica_1.Supervisor))();
             exports.GUI = GUI;
             function hasModifierKey(event) {
                 return event.which > 1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
@@ -2130,11 +2760,11 @@ require = function e(t, n, r) {
                         switch (_a.label) {
                         case 0:
                             void event.preventDefault();
+                            cancelable = new spica_1.Cancelable();
                             void process.cast('', new error_1.InterfaceError('Abort.'));
                             void process.register('', function (e) {
                                 throw void cancelable.cancel(e);
                             }, void 0);
-                            cancelable = new spica_1.Cancelable();
                             return [
                                 4,
                                 initialization_1.init
