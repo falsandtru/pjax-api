@@ -6,7 +6,7 @@ import { match } from '../module/update/content';
 import { loadPosition } from '../../store/path';
 import { DomainError } from '../../data/error';
 
-export { RouterEntity }
+export { RouterEntity };
 export type RouterResult = Either<Error, HTMLScriptElement[]>;
 
 export async function route(
@@ -15,8 +15,9 @@ export async function route(
     document: Document;
   }
 ): Promise<RouterResult> {
-  return entity.state.cancelable.either(void 0)
-    .bind<void>(() =>
+  return Right<Error, void>(void 0)
+    .bind(entity.state.cancelable.either)
+    .bind(() =>
       match(io.document, entity.config.areas)
         ? Right(void 0)
         : Left(new DomainError(`Failed to match areas.`)))
