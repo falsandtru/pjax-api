@@ -12,7 +12,7 @@ export async function route(
   config: Config,
   event: Event,
   state: {
-    scripts: Set<CanonicalUrl>;
+    scripts: ReadonlySet<CanonicalUrl>;
     cancelable: Cancelable<Error>
   },
   io: {

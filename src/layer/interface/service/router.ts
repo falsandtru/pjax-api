@@ -5,6 +5,8 @@ import { env } from '../service/state/env';
 import { RouterEvent } from '../../domain/event/router';
 import { progressbar } from './progressbar';
 import { bind } from '../../../lib/dom';
+import { canonicalizeUrl } from '../../data/model/canonicalization/url';
+import { validateUrl } from '../../data/model/validation/url';
 import { InterfaceError } from '../data/error';
 
 void bind(window, 'pjax:unload', () =>
@@ -17,7 +19,7 @@ export async function route(
   io: {
     document: Document;
   }
-): Promise<Event[]> {
+): Promise<void> {
   void event.preventDefault();
   assert([HTMLAnchorElement, HTMLFormElement, Window].some(Class => event._currentTarget instanceof Class));
   const cancelable = new Cancelable<Error>();
@@ -32,12 +34,14 @@ export async function route(
   return route_(config, event, { scripts, cancelable }, io)
     .then(m => m
       .bind(cancelable.either)
-      .fmap(events => (
+      .fmap(ss => (
+        void ss
+          .forEach(s =>
+            void scripts.add(canonicalizeUrl(validateUrl(s.src)))),
         void process.terminate(''),
-        void documentUrl.sync(),
-        events))
+        void documentUrl.sync()))
       .extract())
-    .catch(e => (
+    .catch(e =>
       void cancelable.maybe(e instanceof Error ? e : new Error(e))
         .bind(e =>
           event.defaultPrevented
@@ -50,6 +54,5 @@ export async function route(
             void process.terminate('', e),
             window.history.scrollRestoration = 'auto',
             void documentUrl.sync(),
-            void config.fallback(<RouterEvent.Source>event._currentTarget, e))),
-      Promise.reject(e)));
+            void config.fallback(<RouterEvent.Source>event._currentTarget, e))));
 }

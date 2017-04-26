@@ -12,8 +12,6 @@ import { script } from '../../module/update/script';
 import { focus } from '../../module/update/focus';
 import { scroll, hash } from '../../module/update/scroll';
 import { saveTitle, savePosition } from '../../../store/path';
-import { canonicalizeUrl } from '../../../../data/model/canonicalization/url';
-import { validateUrl } from '../../../../data/model/validation/url';
 import { DomainError } from '../../../data/error';
 
 type Seq = void;
@@ -33,7 +31,7 @@ export async function update(
     scroll: (x?: number, y?: number) => void;
     position: () => { top: number; left: number; };
   }
-): Promise<Either<Error, Event[]>> {
+): Promise<Either<Error, HTMLScriptElement[]>> {
   const {cancelable} = state;
   const {documents} = new UpdateSource({
     src: response.document,
@@ -76,70 +74,64 @@ export async function update(
               config.update.head,
               config.update.ignore),
             content(documents, config.areas)
-              .fmap(p => p.then(v => cancelable.either(v)))
+              .fmap(p => p.then(v => cancelable.maybe(v)))
               .extract(() =>
                 Left(new DomainError(`Failed to update areas.`)))))
-          .extend(async () => (
-            config.update.css
-              ? void css(
+          .extend(async () => Promise.all(
+            new HNil()
+              .push(void 0)
+              .modify(async () => (
+                config.update.css
+                  ? void css(
+                      {
+                        src: documents.src.head,
+                        dst: documents.dst.head
+                      },
+                      config.update.ignore)
+                  : void 0,
+                config.update.css
+                  ? void css(
+                      {
+                        src: <HTMLBodyElement>documents.src.body,
+                        dst: <HTMLBodyElement>documents.dst.body
+                      },
+                      config.update.ignore)
+                  : void 0,
+                void focus(documents.dst),
+                void scroll(event.type, documents.dst,
                   {
-                    src: documents.src.head,
-                    dst: documents.dst.head
+                    hash: event.location.dest.fragment,
+                    top: 0,
+                    left: 0
                   },
-                  config.update.ignore)
-              : void 0,
-            config.update.css
-              ? void css(
                   {
-                    src: <HTMLBodyElement>documents.src.body,
-                    dst: <HTMLBodyElement>documents.dst.body
-                  },
-                  config.update.ignore)
-              : void 0,
-            void focus(documents.dst),
-            void scroll(event.type, documents.dst,
-              {
-                hash: event.location.dest.fragment,
-                top: 0,
-                left: 0
-              },
-              {
-                hash: hash,
-                scroll: io.scroll,
-                position: io.position
-              }),
-            void savePosition(),
-            config.update.script
-              ? script(documents, state.scripts, config.update, cancelable)
-              : cancelable.either<HTMLScriptElement[]>([])))
-          .extend(async p => (
-            void (await p).fmap(ss => ss
-              .forEach(s =>
-                void state.scripts.add(canonicalizeUrl(validateUrl(s.src))))),
-            void io.document.dispatchEvent(new Event('pjax:ready')),
-            cancelable.either(await config.sequence.ready(seq))))
+                    hash: hash,
+                    scroll: io.scroll,
+                    position: io.position
+                  }),
+                void savePosition(),
+                config.update.script
+                  ? script(documents, state.scripts, config.update, cancelable)
+                  : cancelable.either<HTMLScriptElement[]>([])))
+              .extend(async p => (
+                void (await p),
+                void io.document.dispatchEvent(new Event('pjax:ready')),
+                cancelable.either(await config.sequence.ready(seq))))
+              .reverse()
+              .tuple()))
           .reverse()
-          .tuple())
-      .fmap(ps =>
-        Promise.all(ps)
-          .then(async ([m1, m2, m3]) =>
-            m1.bind(v1 => m2.fmap(v2 => m3.fmap(v3 =>
-              new HNil()
-                .push(v1)
-                .push(v2)
-                .push(v3)
-                .reverse()
-                .tuple())))
-              .extract<Left<Error>>(Left)))
-      .extract<Left<Error>>(Left)))
+          .tuple())))
     // ready -> load
-    .modify(m => m.fmap(async p => (await p)
-      .fmap(([[, events], , seq]) => (
-        void window.dispatchEvent(new Event('pjax:load')),
-        void config.sequence.load(seq),
-        events
-          .filter(event =>
-            event.type.toLowerCase() !== 'load'))))
+    .modify(async m => m.fmap(async p => (await p)
+      .fmap(([p1, p2]) =>
+        p2.then(([m2, m3]) => (
+          void p1.then(() => m3
+            .fmap(seq => (
+              void window.dispatchEvent(new Event('pjax:load')),
+              void config.sequence.load(seq)))
+            .extract(() => void 0)),
+          m2)))
+      .extract<Left<Error>>(Left))
       .extract<Left<Error>>(Left))
     .head();
 }
