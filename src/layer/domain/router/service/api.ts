@@ -7,7 +7,7 @@ import { loadPosition } from '../../store/path';
 import { DomainError } from '../../data/error';
 
 export { RouterEntity };
-export type RouterResult = Either<Error, HTMLScriptElement[]>;
+export type RouterResult = Either<Error, Event[]>;
 
 export async function route(
   entity: RouterEntity,

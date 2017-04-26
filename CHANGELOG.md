@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.9.2
+
+- Fix embedded content handling.
+
 ## 3.9.1
 
 - Refactoring.

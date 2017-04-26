@@ -1,7 +1,5 @@
 import { Cancelable, Supervisor, Just, Nothing } from 'spica';
-import { Config, route as route_ } from '../../application/api';
-import { canonicalizeUrl } from '../../data/model/canonicalization/url';
-import { validateUrl } from '../../data/model/validation/url';
+import { route as route_, Config } from '../../application/api';
 import { documentUrl } from './state/url';
 import { env } from '../service/state/env';
 import { RouterEvent } from '../../domain/event/router';
@@ -19,7 +17,7 @@ export async function route(
   io: {
     document: Document;
   }
-): Promise<void> {
+): Promise<Event[]> {
   void event.preventDefault();
   assert([HTMLAnchorElement, HTMLFormElement, Window].some(Class => event._currentTarget instanceof Class));
   const cancelable = new Cancelable<Error>();
@@ -32,16 +30,14 @@ export async function route(
   void progressbar(config.progressbar);
   assert(cancelable.canceled === false);
   return route_(config, event, { scripts, cancelable }, io)
-    .then(result =>
-      result
-        .bind(cancelable.either)
-        .fmap(ss => (
-          void ss.forEach(s =>
-            void scripts.add(canonicalizeUrl(validateUrl(s.src)))),
-          void process.terminate(''),
-          void documentUrl.sync()))
-        .extract())
-    .catch(e =>
+    .then(m => m
+      .bind(cancelable.either)
+      .fmap(events => (
+        void process.terminate(''),
+        void documentUrl.sync(),
+        events))
+      .extract())
+    .catch(e => (
       void cancelable.maybe(e instanceof Error ? e : new Error(e))
         .bind(e =>
           event.defaultPrevented
@@ -54,5 +50,6 @@ export async function route(
             void process.terminate('', e),
             window.history.scrollRestoration = 'auto',
             void documentUrl.sync(),
-            void config.fallback(<RouterEvent.Source>event._currentTarget, e))))
+            void config.fallback(<RouterEvent.Source>event._currentTarget, e))),
+      Promise.reject(e)));
 }

@@ -12,6 +12,8 @@ import { script } from '../../module/update/script';
 import { focus } from '../../module/update/focus';
 import { scroll, hash } from '../../module/update/scroll';
 import { saveTitle, savePosition } from '../../../store/path';
+import { canonicalizeUrl } from '../../../../data/model/canonicalization/url';
+import { validateUrl } from '../../../../data/model/validation/url';
 import { DomainError } from '../../../data/error';
 
 type Seq = void;
@@ -31,7 +33,7 @@ export async function update(
     scroll: (x?: number, y?: number) => void;
     position: () => { top: number; left: number; };
   }
-): Promise<Either<Error, HTMLScriptElement[]>> {
+): Promise<Either<Error, Event[]>> {
   const {cancelable} = state;
   const {documents} = new UpdateSource({
     src: response.document,
@@ -55,7 +57,8 @@ export async function update(
     .modify(m => m.fmap(async p => (await p)
       .fmap(seq =>
         new HNil()
-          .push((
+          .push(void 0)
+          .modify(async () => (
             void blur(documents.dst),
             void url(
               new RouterEntity.Event.Location(response.url || event.location.dest.href),
@@ -73,10 +76,10 @@ export async function update(
               config.update.head,
               config.update.ignore),
             content(documents, config.areas)
-              .extract<Promise<Either<Error, [{ src: Document; dst: Document; }, Event[]]>>>(
-                () => Promise.resolve(Left(new DomainError(`Failed to update areas.`))),
-                p => p.then(cancelable.either))))
-          .extend(() => (
+              .fmap(p => p.then(v => cancelable.either(v)))
+              .extract(() =>
+                Left(new DomainError(`Failed to update areas.`)))))
+          .extend(async () => (
             config.update.css
               ? void css(
                   {
@@ -108,24 +111,35 @@ export async function update(
             void savePosition(),
             config.update.script
               ? script(documents, state.scripts, config.update, cancelable)
-              : Promise.resolve(cancelable.either<HTMLScriptElement[]>([]))))
-          .extend(async () => (
+              : cancelable.either<HTMLScriptElement[]>([])))
+          .extend(async p => (
+            void (await p).fmap(ss => ss
+              .forEach(s =>
+                void state.scripts.add(canonicalizeUrl(validateUrl(s.src))))),
             void io.document.dispatchEvent(new Event('pjax:ready')),
             cancelable.either(await config.sequence.ready(seq))))
           .reverse()
           .tuple())
       .fmap(ps =>
-        Promise.all(ps))))
+        Promise.all(ps)
+          .then(async ([m1, m2, m3]) =>
+            m1.bind(v1 => m2.fmap(v2 => m3.fmap(v3 =>
+              new HNil()
+                .push(v1)
+                .push(v2)
+                .push(v3)
+                .reverse()
+                .tuple())))
+              .extract<Left<Error>>(Left)))
+      .extract<Left<Error>>(Left)))
     // ready -> load
     .modify(m => m.fmap(async p => (await p)
-      .fmap(p => p.then(([m1, m2, m3]) =>
-        m1.bind(() => m2).bind(() => m3)
-          .fmap(seq => (
-            void window.dispatchEvent(new Event('pjax:load')),
-            void config.sequence.load(seq)))
-          .bind(() => m2))))
-      .fmap(async p => (await p)
-        .extract<Left<Error>>(Left))
+      .fmap(([[, events], , seq]) => (
+        void window.dispatchEvent(new Event('pjax:load')),
+        void config.sequence.load(seq),
+        events
+          .filter(event =>
+            event.type.toLowerCase() !== 'load'))))
       .extract<Left<Error>>(Left))
     .head();
 }
