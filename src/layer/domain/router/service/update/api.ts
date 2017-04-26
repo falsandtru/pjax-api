@@ -74,7 +74,7 @@ export async function update(
               config.update.head,
               config.update.ignore),
             content(documents, config.areas)
-              .fmap(p => p.then(v => cancelable.maybe(v)))
+              .fmap(p => p.then(v => cancelable.either(v)))
               .extract(() =>
                 Left(new DomainError(`Failed to update areas.`)))))
           .extend(async () => Promise.all(
@@ -111,10 +111,9 @@ export async function update(
                   }),
                 void savePosition(),
                 config.update.script
-                  ? script(documents, state.scripts, config.update, cancelable)
-                  : cancelable.either<HTMLScriptElement[]>([])))
-              .extend(async p => (
-                void (await p),
+                  ? await script(documents, state.scripts, config.update, cancelable)
+                  : await cancelable.either<HTMLScriptElement[]>([])))
+              .extend(async () => (
                 void io.document.dispatchEvent(new Event('pjax:ready')),
                 cancelable.either(await config.sequence.ready(seq))))
               .reverse()

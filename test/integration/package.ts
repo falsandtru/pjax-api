@@ -51,7 +51,7 @@ describe('Integration: Package', function () {
       const path = '/base/test/integration/usecase/fixture/basic/2.html';
       const document = parse('').extract();
       const sequence: Sequence<boolean, number, string> = {
-        fetch(r, req) {
+        async fetch(r, req) {
           assert(cnt === 1 && ++cnt);
           assert(r === void 0);
           assert(window.history.scrollRestoration === 'manual');
@@ -61,9 +61,9 @@ describe('Integration: Package', function () {
             method: 'GET',
             data: null
           });
-          return Promise.resolve(false);
+          return false;
         },
-        unload(r, res) {
+        async unload(r, res) {
           assert(cnt === 3 && ++cnt);
           assert(r === false);
           assert(res.headers['Content-Type'] === 'text/html');
@@ -71,16 +71,16 @@ describe('Integration: Package', function () {
           assert(res.document !== window.document);
           assert(window.history.scrollRestoration === 'auto');
           assert(window.location.pathname !== path);
-          return Promise.resolve(0);
+          return 0;
         },
-        ready(r) {
+        async ready(r) {
           assert(cnt === 5 && ++cnt);
           assert(r === 0);
           assert(window.history.scrollRestoration === 'auto');
           assert(window.location.pathname === path);
           assert(document.title === 'Title 2');
           assert(document.querySelector('header')!.innerHTML === 'Header 2');
-          return Promise.resolve('');
+          return '';
         },
         load(r) {
           assert(cnt === 7 && ++cnt);
