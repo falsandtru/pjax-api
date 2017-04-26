@@ -68,7 +68,7 @@ export function escape(script: HTMLScriptElement): () => undefined {
       : void 0);
 }
 
-function request(script: HTMLScriptElement): Promise<Either<Error, Response>> {
+async function request(script: HTMLScriptElement): Promise<Either<Error, Response>> {
   if (script.hasAttribute('src')) {
     const xhr = new XMLHttpRequest();
     void xhr.open('GET', script.src, true);
@@ -89,7 +89,7 @@ function request(script: HTMLScriptElement): Promise<Either<Error, Response>> {
         }));
   }
   else {
-    return Promise.resolve(Right<Response>([script, script.innerHTML]));
+    return Right<Response>([script, script.innerHTML]);
   }
 }
 export { request as _request }
