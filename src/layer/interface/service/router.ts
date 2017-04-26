@@ -3,7 +3,7 @@ import { Config, route as route_ } from '../../application/api';
 import { canonicalizeUrl } from '../../data/model/canonicalization/url';
 import { validateUrl } from '../../data/model/validation/url';
 import { documentUrl } from './state/url';
-import { init } from '../service/state/initialization';
+import { env } from '../service/state/env';
 import { RouterEvent } from '../../domain/event/router';
 import { progressbar } from './progressbar';
 import { bind } from '../../../lib/dom';
@@ -27,7 +27,7 @@ export async function route(
   void process.register('', e => {
     throw void cancelable.cancel(e);
   }, void 0);
-  const [scripts] = await init;
+  const [scripts] = await env;
   window.history.scrollRestoration = 'manual';
   void progressbar(config.progressbar);
   assert(cancelable.canceled === false);
