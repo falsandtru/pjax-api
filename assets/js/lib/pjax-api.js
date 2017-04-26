@@ -2096,8 +2096,6 @@ require = function e(t, n, r) {
             var focus_1 = require('../../module/update/focus');
             var scroll_1 = require('../../module/update/scroll');
             var path_1 = require('../../../store/path');
-            var url_2 = require('../../../../data/model/canonicalization/url');
-            var url_3 = require('../../../../data/model/validation/url');
             var error_1 = require('../../../data/error');
             function update(_a, _b, seq, io) {
                 var event = _a.event, config = _a.config, state = _a.state;
@@ -2174,7 +2172,7 @@ require = function e(t, n, r) {
                                                                             dst: documents.dst.head
                                                                         }, config.update.head, config.update.ignore), content_1.content(documents, config.areas).fmap(function (p) {
                                                                             return p.then(function (v) {
-                                                                                return cancelable.either(v);
+                                                                                return cancelable.maybe(v);
                                                                             });
                                                                         }).extract(function () {
                                                                             return spica_1.Left(new error_1.DomainError('Failed to update areas.'));
@@ -2184,105 +2182,108 @@ require = function e(t, n, r) {
                                                             });
                                                         }).extend(function () {
                                                             return __awaiter(_this, void 0, void 0, function () {
+                                                                var _this = this;
                                                                 return __generator(this, function (_a) {
                                                                     return [
                                                                         2,
-                                                                        (config.update.css ? void css_1.css({
-                                                                            src: documents.src.head,
-                                                                            dst: documents.dst.head
-                                                                        }, config.update.ignore) : void 0, config.update.css ? void css_1.css({
-                                                                            src: documents.src.body,
-                                                                            dst: documents.dst.body
-                                                                        }, config.update.ignore) : void 0, void focus_1.focus(documents.dst), void scroll_1.scroll(event.type, documents.dst, {
-                                                                            hash: event.location.dest.fragment,
-                                                                            top: 0,
-                                                                            left: 0
-                                                                        }, {
-                                                                            hash: scroll_1.hash,
-                                                                            scroll: io.scroll,
-                                                                            position: io.position
-                                                                        }), void path_1.savePosition(), config.update.script ? script_1.script(documents, state.scripts, config.update, cancelable) : cancelable.either([]))
-                                                                    ];
-                                                                });
-                                                            });
-                                                        }).extend(function (p) {
-                                                            return __awaiter(_this, void 0, void 0, function () {
-                                                                var _a, _b;
-                                                                return __generator(this, function (_c) {
-                                                                    switch (_c.label) {
-                                                                    case 0:
-                                                                        return [
-                                                                            4,
-                                                                            p
-                                                                        ];
-                                                                    case 1:
-                                                                        void _c.sent().fmap(function (ss) {
-                                                                            return ss.forEach(function (s) {
-                                                                                return void state.scripts.add(url_2.canonicalizeUrl(url_3.validateUrl(s.src)));
+                                                                        Promise.all(new spica_1.HNil().push(void 0).modify(function () {
+                                                                            return __awaiter(_this, void 0, void 0, function () {
+                                                                                return __generator(this, function (_a) {
+                                                                                    return [
+                                                                                        2,
+                                                                                        (config.update.css ? void css_1.css({
+                                                                                            src: documents.src.head,
+                                                                                            dst: documents.dst.head
+                                                                                        }, config.update.ignore) : void 0, config.update.css ? void css_1.css({
+                                                                                            src: documents.src.body,
+                                                                                            dst: documents.dst.body
+                                                                                        }, config.update.ignore) : void 0, void focus_1.focus(documents.dst), void scroll_1.scroll(event.type, documents.dst, {
+                                                                                            hash: event.location.dest.fragment,
+                                                                                            top: 0,
+                                                                                            left: 0
+                                                                                        }, {
+                                                                                            hash: scroll_1.hash,
+                                                                                            scroll: io.scroll,
+                                                                                            position: io.position
+                                                                                        }), void path_1.savePosition(), config.update.script ? script_1.script(documents, state.scripts, config.update, cancelable) : cancelable.either([]))
+                                                                                    ];
+                                                                                });
                                                                             });
-                                                                        }), void io.document.dispatchEvent(new Event('pjax:ready'));
-                                                                        _b = (_a = cancelable).either;
-                                                                        return [
-                                                                            4,
-                                                                            config.sequence.ready(seq)
-                                                                        ];
-                                                                    case 2:
-                                                                        return [
-                                                                            2,
-                                                                            _b.apply(_a, [_c.sent()])
-                                                                        ];
-                                                                    }
+                                                                        }).extend(function (p) {
+                                                                            return __awaiter(_this, void 0, void 0, function () {
+                                                                                var _a, _b;
+                                                                                return __generator(this, function (_c) {
+                                                                                    switch (_c.label) {
+                                                                                    case 0:
+                                                                                        return [
+                                                                                            4,
+                                                                                            p
+                                                                                        ];
+                                                                                    case 1:
+                                                                                        void _c.sent(), void io.document.dispatchEvent(new Event('pjax:ready'));
+                                                                                        _b = (_a = cancelable).either;
+                                                                                        return [
+                                                                                            4,
+                                                                                            config.sequence.ready(seq)
+                                                                                        ];
+                                                                                    case 2:
+                                                                                        return [
+                                                                                            2,
+                                                                                            _b.apply(_a, [_c.sent()])
+                                                                                        ];
+                                                                                    }
+                                                                                });
+                                                                            });
+                                                                        }).reverse().tuple())
+                                                                    ];
                                                                 });
                                                             });
                                                         }).reverse().tuple();
-                                                    }).fmap(function (ps) {
-                                                        return Promise.all(ps).then(function (_a) {
-                                                            var m1 = _a[0], m2 = _a[1], m3 = _a[2];
-                                                            return __awaiter(_this, void 0, void 0, function () {
-                                                                return __generator(this, function (_a) {
-                                                                    return [
-                                                                        2,
-                                                                        m1.bind(function (v1) {
-                                                                            return m2.fmap(function (v2) {
-                                                                                return m3.fmap(function (v3) {
-                                                                                    return new spica_1.HNil().push(v1).push(v2).push(v3).reverse().tuple();
-                                                                                });
-                                                                            });
-                                                                        }).extract(spica_1.Left)
-                                                                    ];
-                                                                });
-                                                            });
-                                                        });
-                                                    }).extract(spica_1.Left)
+                                                    })
                                                 ];
                                             }
                                         });
                                     });
                                 });
                             }).modify(function (m) {
-                                return m.fmap(function (p) {
-                                    return __awaiter(_this, void 0, void 0, function () {
-                                        return __generator(this, function (_a) {
-                                            switch (_a.label) {
-                                            case 0:
-                                                return [
-                                                    4,
-                                                    p
-                                                ];
-                                            case 1:
-                                                return [
-                                                    2,
-                                                    _a.sent().fmap(function (_a) {
-                                                        var _b = _a[0], events = _b[1], seq = _a[2];
-                                                        return void window.dispatchEvent(new Event('pjax:load')), void config.sequence.load(seq), events.filter(function (event) {
-                                                            return event.type.toLowerCase() !== 'load';
-                                                        });
-                                                    })
-                                                ];
-                                            }
-                                        });
+                                return __awaiter(_this, void 0, void 0, function () {
+                                    var _this = this;
+                                    return __generator(this, function (_a) {
+                                        return [
+                                            2,
+                                            m.fmap(function (p) {
+                                                return __awaiter(_this, void 0, void 0, function () {
+                                                    return __generator(this, function (_a) {
+                                                        switch (_a.label) {
+                                                        case 0:
+                                                            return [
+                                                                4,
+                                                                p
+                                                            ];
+                                                        case 1:
+                                                            return [
+                                                                2,
+                                                                _a.sent().fmap(function (_a) {
+                                                                    var p1 = _a[0], p2 = _a[1];
+                                                                    return p2.then(function (_a) {
+                                                                        var m2 = _a[0], m3 = _a[1];
+                                                                        return void p1.then(function () {
+                                                                            return m3.fmap(function (seq) {
+                                                                                return void window.dispatchEvent(new Event('pjax:load')), void config.sequence.load(seq);
+                                                                            }).extract(function () {
+                                                                                return void 0;
+                                                                            });
+                                                                        }), m2;
+                                                                    });
+                                                                }).extract(spica_1.Left)
+                                                            ];
+                                                        }
+                                                    });
+                                                });
+                                            }).extract(spica_1.Left)
+                                        ];
                                     });
-                                }).extract(spica_1.Left);
+                                });
                             }).head()
                         ];
                     });
@@ -2291,8 +2292,6 @@ require = function e(t, n, r) {
             exports.update = update;
         },
         {
-            '../../../../data/model/canonicalization/url': 8,
-            '../../../../data/model/validation/url': 9,
             '../../../data/error': 12,
             '../../../store/path': 32,
             '../../model/eav/entity': 15,
@@ -2918,6 +2917,8 @@ require = function e(t, n, r) {
             var env_1 = require('../service/state/env');
             var progressbar_1 = require('./progressbar');
             var dom_1 = require('../../../lib/dom');
+            var url_2 = require('../../data/model/canonicalization/url');
+            var url_3 = require('../../data/model/validation/url');
             var error_1 = require('../data/error');
             void dom_1.bind(window, 'pjax:unload', function () {
                 return window.history.scrollRestoration = 'auto';
@@ -2948,8 +2949,10 @@ require = function e(t, n, r) {
                                     scripts: scripts,
                                     cancelable: cancelable
                                 }, io).then(function (m) {
-                                    return m.bind(cancelable.either).fmap(function (events) {
-                                        return void process.terminate(''), void url_1.documentUrl.sync(), events;
+                                    return m.bind(cancelable.either).fmap(function (ss) {
+                                        return void ss.forEach(function (s) {
+                                            return void scripts.add(url_2.canonicalizeUrl(url_3.validateUrl(s.src)));
+                                        }), void process.terminate(''), void url_1.documentUrl.sync();
                                     }).extract();
                                 }).catch(function (e) {
                                     return void cancelable.maybe(e instanceof Error ? e : new Error(e)).bind(function (e) {
@@ -2958,7 +2961,7 @@ require = function e(t, n, r) {
                                         return void process.terminate('');
                                     }, function (e) {
                                         return void process.terminate('', e), window.history.scrollRestoration = 'auto', void url_1.documentUrl.sync(), void config.fallback(event._currentTarget, e);
-                                    }), Promise.reject(e);
+                                    });
                                 })
                             ];
                         }
@@ -2970,6 +2973,8 @@ require = function e(t, n, r) {
         {
             '../../../lib/dom': 46,
             '../../application/api': 4,
+            '../../data/model/canonicalization/url': 8,
+            '../../data/model/validation/url': 9,
             '../data/error': 33,
             '../service/state/env': 42,
             './progressbar': 40,
