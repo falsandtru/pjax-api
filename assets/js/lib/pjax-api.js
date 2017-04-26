@@ -188,34 +188,35 @@ require = function e(t, n, r) {
             var config_1 = require('../domain/data/config');
             exports.Config = config_1.Config;
             var scope_1 = require('./config/scope');
-            var router_1 = require('../domain/event/router');
             var api_1 = require('../domain/router/api');
             var error_1 = require('./data/error');
+            __export(require('./store/path'));
             function route(config, event, state, io) {
                 return __awaiter(this, void 0, void 0, function () {
-                    var location;
                     return __generator(this, function (_a) {
-                        location = new router_1.RouterEvent(event).location;
                         return [
                             2,
-                            scope_1.scope(config, {
-                                orig: location.orig.pathname,
-                                dest: location.dest.pathname
+                            spica_1.Just(new api_1.RouterEntity.Event(event).location).bind(function (_a) {
+                                var orig = _a.orig, dest = _a.dest;
+                                return scope_1.scope(config, {
+                                    orig: orig.pathname,
+                                    dest: dest.pathname
+                                });
+                            }).fmap(function (config) {
+                                return new api_1.RouterEntity(config, new api_1.RouterEntity.Event(event), new api_1.RouterEntity.State(state.scripts, state.cancelable));
+                            }).fmap(function (entity) {
+                                return api_1.route(entity, io);
                             }).extract(function () {
-                                return Promise.resolve(spica_1.Left(new error_1.ApplicationError('Disabled to use pjax by config.')));
-                            }, function (config) {
-                                return api_1.route(new api_1.RouterEntity(config, new router_1.RouterEvent(event), new api_1.RouterEntity.State(state.scripts, state.cancelable)), io);
+                                return spica_1.Left(new error_1.ApplicationError('Disabled by config.'));
                             })
                         ];
                     });
                 });
             }
             exports.route = route;
-            __export(require('./store/path'));
         },
         {
             '../domain/data/config': 11,
-            '../domain/event/router': 13,
             '../domain/router/api': 14,
             './config/scope': 5,
             './data/error': 6,
@@ -1572,7 +1573,7 @@ require = function e(t, n, r) {
                     return __generator(this, function (_a) {
                         return [
                             2,
-                            entity.state.cancelable.either(void 0).bind(function () {
+                            spica_1.Right(void 0).bind(entity.state.cancelable.either).bind(function () {
                                 return content_1.match(io.document, entity.config.areas) ? spica_1.Right(void 0) : spica_1.Left(new error_1.DomainError('Failed to match areas.'));
                             }).fmap(function () {
                                 return api_1.fetch(entity.event.request, entity.config, entity.state.cancelable);
