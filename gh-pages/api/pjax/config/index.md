@@ -117,9 +117,9 @@ It can integrate and synchronize other async processes.
 
 ### unload: `unload(result: a, response: { url: string; headers: { [field: string]: string; }; document: Document; }): Promise<b>`
 
-### ready: `ready(result: b): Promise<c>`
+### ready: `ready(result: b, areas: HTMLElement[]): Promise<c>`
 
-### load: `load(result: c): void`
+### load: `load(result: c, events: Event[]): void`
 
 ## store?: {...}
 

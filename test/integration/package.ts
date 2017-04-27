@@ -14,7 +14,9 @@ describe('Integration: Package', function () {
     it('sequence', function (done) {
       const path = '/base/test/integration/usecase/fixture/basic/1.html';
       const document = parse('').extract();
-      new Pjax({}, { document })
+      new Pjax({
+        fallback: done
+      }, { document })
         .assign(path);
       let cnt = 0;
       once(window, 'pjax:fetch', ev => {
@@ -73,23 +75,28 @@ describe('Integration: Package', function () {
           assert(window.location.pathname !== path);
           return 0;
         },
-        async ready(r) {
+        async ready(r, areas) {
           assert(cnt === 5 && ++cnt);
           assert(r === 0);
+          assert.deepStrictEqual(areas, [document.body]);
           assert(window.history.scrollRestoration === 'auto');
           assert(window.location.pathname === path);
           assert(document.title === 'Title 2');
           assert(document.querySelector('header')!.innerHTML === 'Header 2');
           return '';
         },
-        load(r) {
+        load(r, events) {
           assert(cnt === 7 && ++cnt);
           assert(r === '');
+          assert.deepStrictEqual(events, []);
           assert(window.history.scrollRestoration === 'auto');
           done();
         }
       };
-      new Pjax({ sequence }, { document })
+      new Pjax({
+        sequence,
+        fallback: done
+      }, { document })
         .assign(path);
       let cnt = 0;
       once(window, 'pjax:fetch', () =>

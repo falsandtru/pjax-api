@@ -74,12 +74,12 @@ export class Config implements Option {
 }
 
 class Sequence implements ISequence<void, void, void> {
-  public async fetch(_result: void, _request: { host: string; path: string; method: string; data: FormData | null; }): Promise<void> {
+  public async fetch(): Promise<void> {
   }
-  public async unload(_result: void, _response: { url: string; headers: { [field: string]: string; }; document: Document; }): Promise<void> {
+  public async unload(): Promise<void> {
   }
-  public async ready(_result: void): Promise<void> {
+  public async ready(): Promise<void> {
   }
-  public load(_result: void): void {
+  public load(): void {
   }
 }

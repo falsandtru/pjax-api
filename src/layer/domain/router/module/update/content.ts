@@ -11,14 +11,16 @@ export function content(
   io = {
     replace: (src: Node, dst: Node): void => void dst.parentNode!.replaceChild(src, dst)
   }
-): Maybe<Promise<[DocumentRecord, Event[]]>> {
+): Maybe<[HTMLElement[], Promise<Event>[]]> {
   return separate(documents, areas)
-    .fmap<Promise<Event>[]>(([, as]) =>
-      as.map(load).reduce<Promise<Event>[]>(concat, []))
-    .fmap<Promise<[DocumentRecord, Event[]]>>(ps =>
-      Promise.all(ps)
-        .then<[DocumentRecord, Event[]]>(es =>
-          [documents, es]));
+    .fmap<[HTMLElement[], Promise<Event>[]]>(([, areas]) => [
+      areas
+        .map(a => a.dst)
+        .reduce<HTMLElement[]>(concat, []),
+      areas
+        .map(load)
+        .reduce<Promise<Event>[]>(concat, [])
+    ]);
 
   function load(area: AreaRecord): Promise<Event>[] {
     return area.src
@@ -30,7 +32,7 @@ export function content(
         void replace(area),
         find(area.src, 'img, iframe, frame')
           .map(wait)))
-      .reduce<Promise<Event>[]>(concat, []);
+      .reduce(concat, []);
 
     function replace(area: { src: HTMLElement, dst: HTMLElement; }): void {
       const unescape = find<HTMLScriptElement>(area.src, 'script')

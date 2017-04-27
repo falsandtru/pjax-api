@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.10.0
+
+- Extend sequence feature.
+
 ## 3.9.3
 
 - Fix embedded content handling.

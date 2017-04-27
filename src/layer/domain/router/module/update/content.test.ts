@@ -4,26 +4,22 @@ import DOM from 'typed-dom';
 
 describe('Unit: layer/domain/router/module/update/content', () => {
   describe('content', () => {
-    it('body', done => {
+    it('body', () => {
       const src = parse('<body id="id" class="class"><hr></body>').extract();
       const dst = parse('<body></body>').extract();
       content({ src, dst }, ['body'])
-        .extract()
-        .then(([{dst}]) => (
-          assert(dst.body.id === 'id'),
-          assert(dst.body.className === 'class'),
-          assert(dst.body.innerHTML === '<hr>'),
-          done()));
+        .extract();
+      assert(dst.body.id === 'id');
+      assert(dst.body.className === 'class');
+      assert(dst.body.innerHTML === '<hr>');
     });
 
-    it('multiple', done => {
+    it('multiple', () => {
       const src = parse('<div class="class"></div><div id="id">a</div><div class="class">c</div>').extract();
       const dst = parse('<div id="id"></div><div class="class">b</div><div class="class"></div>').extract();
       content({ src, dst }, ['_', '#id, .class', '_'])
-        .extract()
-        .then(([{dst}]) => (
-          assert(dst.body.innerHTML === '<div id="id">a</div><div class="class"></div><div class="class">c</div>'),
-          done()));
+        .extract();
+      assert(dst.body.innerHTML === '<div id="id">a</div><div class="class"></div><div class="class">c</div>');
     });
 
     it('failure', done => {

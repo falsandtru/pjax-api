@@ -74,10 +74,14 @@ export async function update(
               config.update.head,
               config.update.ignore),
             content(documents, config.areas)
-              .fmap(p => p.then(v => cancelable.either(v)))
+              .fmap<[HTMLElement[], Promise<Event[]>]>(([as, ps]) => [
+                as,
+                Promise.all(ps),
+              ])
+              .fmap(cancelable.either)
               .extract(() =>
                 Left(new DomainError(`Failed to update areas.`)))))
-          .extend(async () => Promise.all(
+          .extend(async p => (await p).fmap(([areas]) => Promise.all(
             new HNil()
               .push(void 0)
               .modify(async () => (
@@ -115,22 +119,29 @@ export async function update(
                   : await cancelable.either<HTMLScriptElement[]>([])))
               .extend(async () => (
                 void io.document.dispatchEvent(new Event('pjax:ready')),
-                cancelable.either(await config.sequence.ready(seq))))
+                cancelable.either(await config.sequence.ready(seq, areas))))
               .reverse()
-              .tuple()))
+              .tuple())
+            .then(([m1, m2]) =>
+              m1.bind(ss => m2.fmap<[HTMLScriptElement[], Seq]>(seq => [ss, seq]))))
+            .extract<Left<Error>>(Left))
           .reverse()
           .tuple())))
     // ready -> load
-    .modify(async m => m.fmap(async p => (await p)
+    .modify(m => m.fmap(async p => (await p)
       .fmap(([p1, p2]) =>
-        p2.then(([m2, m3]) => (
-          void p1.then(() => m3
-            .fmap(seq => (
-              void window.dispatchEvent(new Event('pjax:load')),
-              void config.sequence.load(seq)))
+        p2.then(m2 => (
+          void p1.then(m1 => m1
+            .bind(([, p]) => m2
+              .fmap(async ([, seq]) =>
+                cancelable.maybe(await p)
+                  .fmap(events => (
+                    void window.dispatchEvent(new Event('pjax:load')),
+                    void config.sequence.load(seq, events)))
+                  .extract(() => void 0)))
             .extract(() => void 0)),
-          m2)))
-      .extract<Left<Error>>(Left))
-      .extract<Left<Error>>(Left))
-    .head();
+          m2.fmap(([ss]) => ss))))
+      .extract<Left<Error>>(Left)))
+    .head()
+    .extract<Left<Error>>(Left);
 }
