@@ -1,18 +1,18 @@
 import { Either, Left, HNil } from 'spica';
-import { RouterEntity } from '../../model/eav/entity';
-import { FetchResult } from '../../model/eav/value/fetch';
-import { UpdateSource } from '../../model/eav/value/update';
-import { blur } from '../../module/update/blur';
-import { url } from '../../module/update/url';
-import { title } from '../../module/update/title';
-import { head } from '../../module/update/head';
-import { content, separate } from '../../module/update/content';
-import { css } from '../../module/update/css';
-import { script } from '../../module/update/script';
-import { focus } from '../../module/update/focus';
-import { scroll, hash } from '../../module/update/scroll';
-import { saveTitle, savePosition } from '../../../store/path';
-import { DomainError } from '../../../data/error';
+import { RouterEntity } from '../model/eav/entity';
+import { FetchResult } from '../model/eav/value/fetch';
+import { UpdateSource } from '../model/eav/value/update';
+import { blur } from '../module/update/blur';
+import { url } from '../module/update/url';
+import { title } from '../module/update/title';
+import { head } from '../module/update/head';
+import { content, separate } from '../module/update/content';
+import { css } from '../module/update/css';
+import { script } from '../module/update/script';
+import { focus } from '../module/update/focus';
+import { scroll, hash } from '../module/update/scroll';
+import { saveTitle, savePosition } from '../../store/path';
+import { DomainError } from '../../data/error';
 
 type Seq = void;
 
@@ -32,8 +32,8 @@ export async function update(
     position: () => { top: number; left: number; };
   }
 ): Promise<Either<Error, HTMLScriptElement[]>> {
-  const {cancelable} = state;
-  const {documents} = new UpdateSource({
+  const { cancelable } = state;
+  const { documents } = new UpdateSource({
     src: response.document,
     dst: io.document
   });
@@ -50,7 +50,7 @@ export async function update(
               Left(new DomainError(`Failed to separate areas.`)),
             async () => (
               void window.dispatchEvent(new Event('pjax:unload')),
-              cancelable.either(await config.sequence.unload(seq, { ...response }))))))
+              cancelable.either(await config.sequence.unload(seq, response))))))
     // unload -> ready
     .modify(m => m.fmap(async p => (await p)
       .fmap(seq =>

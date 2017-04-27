@@ -1,9 +1,9 @@
 import { Cancelable, Either, Left, Right } from 'spica';
-import { RouterEntity } from '../../model/eav/entity';
-import { FetchResult } from '../../model/eav/value/fetch';
-import { xhr } from '../../module/fetch/xhr';
-import { DomainError } from '../../../data/error';
-import { Url } from '../../../../../lib/url';
+import { RouterEntity } from '../model/eav/entity';
+import { FetchResult } from '../model/eav/value/fetch';
+import { xhr } from '../module/fetch/xhr';
+import { DomainError } from '../../data/error';
+import { Url } from '../../../../lib/url';
 
 type Result = Either<Error, [FetchResult, void]>;
 
