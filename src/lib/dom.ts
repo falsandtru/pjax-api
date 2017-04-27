@@ -9,7 +9,7 @@ export function parse(html: string): HTMLElement {
 }
 
 export function find<T extends HTMLElement>(target: HTMLElement | Document, selector: string): T[] {
-  return <T[]>Array.from(target.querySelectorAll(selector || '_') || []);
+  return <T[]>Array.from(target.querySelectorAll(selector || '_'));
 }
 
 export function bind<T extends keyof WindowEventMap>(target: Window, type: T, listener: (ev: WindowEventMap[T]) => any, option?: boolean | EventListenerOption): () => undefined;

@@ -42,7 +42,7 @@
     <TypeScriptSuppressImplicitAnyIndexErrors>True</TypeScriptSuppressImplicitAnyIndexErrors>
     <TypeScriptAllowUnusedLabels>True</TypeScriptAllowUnusedLabels>
     <TypeScriptForceConsistentCasingInFileNames>True</TypeScriptForceConsistentCasingInFileNames>
-    <TypeScriptRemoveComments>false</TypeScriptRemoveComments>
+    <TypeScriptRemoveComments>False</TypeScriptRemoveComments>
     <TypeScriptOutFile />
     <TypeScriptOutDir />
     <TypeScriptGeneratesDeclarations>False</TypeScriptGeneratesDeclarations>
