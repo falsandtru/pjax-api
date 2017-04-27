@@ -19,7 +19,7 @@ Also, you can define the other candidates of targets like `['#container', 'body'
 
 Set target anchor links.
 
-## filter?: `(el: HTMLAnchorElement) => boolean`
+## filter: (el: HTMLAnchorElement) => boolean = ...
 
 Filter target anchor links.
 
@@ -39,7 +39,7 @@ Set target forms.
 
 Set target anchor links that will replace a current url.
 
-## fetch?: {...}
+## fetch: {...} = ...
 
 ### timeout: number = `3000`
 
@@ -49,7 +49,7 @@ Set timeout for request by ms.
 
 Set wait for request by ms.
 
-## rewrite?: `(doc: Document, area: string, host: string) => void`
+## rewrite: (doc: Document, area: string, host: string) => void = ...
 
 Rewrite a source document object.
 
@@ -59,7 +59,7 @@ Rewrite a source document object.
   }
 ```
 
-## update?: {...}
+## update: {...} = ...
 
 ### head: string = `'base, meta, link'`
 
@@ -88,7 +88,7 @@ Set reload targets for script.
 
 Set logging targets for script.
 
-## fallback?: `(target: HTMLAnchorElement | HTMLFormElement | Window, reason: any) => void`
+## fallback: (target: HTMLAnchorElement | HTMLFormElement | Window, reason: any) => void = ...
 
 Override a fallback processing.
 
@@ -108,20 +108,20 @@ Override a fallback processing.
   }
 ```
 
-## sequence?: `Sequence<a, b, c>`
+## sequence: Sequence<a, b, c> = ...
 
 Control the page routing sequence.
 It can integrate and synchronize other async processes.
 
-### fetch: `fetch(result: void, request: { host: string; path: string; method: string; data: FormData | null; }): Promise<a>`
+### fetch: (result: void, request: { host: string; path: string; method: string; data: FormData | null; }): Promise<a>
 
-### unload: `unload(result: a, response: { url: string; headers: { [field: string]: string; }; document: Document; }): Promise<b>`
+### unload: (result: a, response: { url: string; headers: { [field: string]: string; }; document: Document; }): Promise<b>
 
-### ready: `ready(result: b, areas: HTMLElement[]): Promise<c>`
+### ready: (result: b, areas: HTMLElement[]): Promise<c>
 
-### load: `load(result: c, events: Event[]): void`
+### load: (result: c, events: Event[]): void
 
-## store?: {...}
+## store: {...} = ...
 
 ### expiry: number = `3 * 3600 * 1e3`
 
