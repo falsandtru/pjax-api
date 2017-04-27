@@ -565,28 +565,28 @@ require = function e(t, n, r) {
             var Sequence = function () {
                 function Sequence() {
                 }
-                Sequence.prototype.fetch = function (_result, _request) {
+                Sequence.prototype.fetch = function () {
                     return __awaiter(this, void 0, void 0, function () {
                         return __generator(this, function (_a) {
                             return [2];
                         });
                     });
                 };
-                Sequence.prototype.unload = function (_result, _response) {
+                Sequence.prototype.unload = function () {
                     return __awaiter(this, void 0, void 0, function () {
                         return __generator(this, function (_a) {
                             return [2];
                         });
                     });
                 };
-                Sequence.prototype.ready = function (_result) {
+                Sequence.prototype.ready = function () {
                     return __awaiter(this, void 0, void 0, function () {
                         return __generator(this, function (_a) {
                             return [2];
                         });
                     });
                 };
-                Sequence.prototype.load = function (_result) {
+                Sequence.prototype.load = function () {
                 };
                 return Sequence;
             }();
@@ -938,15 +938,13 @@ require = function e(t, n, r) {
                     };
                 }
                 return separate(documents, areas).fmap(function (_a) {
-                    var as = _a[1];
-                    return as.map(load).reduce(spica_1.concat, []);
-                }).fmap(function (ps) {
-                    return Promise.all(ps).then(function (es) {
-                        return [
-                            documents,
-                            es
-                        ];
-                    });
+                    var areas = _a[1];
+                    return [
+                        areas.map(function (a) {
+                            return a.dst;
+                        }).reduce(spica_1.concat, []),
+                        areas.map(load).reduce(spica_1.concat, [])
+                    ];
                 });
                 function load(area) {
                     return area.src.map(function (_, i) {
@@ -2170,72 +2168,119 @@ require = function e(t, n, r) {
                                                                         (void blur_1.blur(documents.dst), void url_1.url(new entity_1.RouterEntity.Event.Location(response.url || event.location.dest.href), documents.src.title, event.type, event.source, config.replace), void title_1.title(documents), void path_1.saveTitle(), void head_1.head({
                                                                             src: documents.src.head,
                                                                             dst: documents.dst.head
-                                                                        }, config.update.head, config.update.ignore), content_1.content(documents, config.areas).fmap(function (p) {
-                                                                            return p.then(function (v) {
-                                                                                return cancelable.maybe(v);
-                                                                            });
-                                                                        }).extract(function () {
+                                                                        }, config.update.head, config.update.ignore), content_1.content(documents, config.areas).fmap(function (_a) {
+                                                                            var as = _a[0], ps = _a[1];
+                                                                            return [
+                                                                                as,
+                                                                                Promise.all(ps)
+                                                                            ];
+                                                                        }).fmap(cancelable.either).extract(function () {
                                                                             return spica_1.Left(new error_1.DomainError('Failed to update areas.'));
                                                                         }))
                                                                     ];
                                                                 });
                                                             });
-                                                        }).extend(function () {
+                                                        }).extend(function (p) {
                                                             return __awaiter(_this, void 0, void 0, function () {
                                                                 var _this = this;
                                                                 return __generator(this, function (_a) {
-                                                                    return [
-                                                                        2,
-                                                                        Promise.all(new spica_1.HNil().push(void 0).modify(function () {
-                                                                            return __awaiter(_this, void 0, void 0, function () {
-                                                                                return __generator(this, function (_a) {
-                                                                                    return [
-                                                                                        2,
-                                                                                        (config.update.css ? void css_1.css({
-                                                                                            src: documents.src.head,
-                                                                                            dst: documents.dst.head
-                                                                                        }, config.update.ignore) : void 0, config.update.css ? void css_1.css({
-                                                                                            src: documents.src.body,
-                                                                                            dst: documents.dst.body
-                                                                                        }, config.update.ignore) : void 0, void focus_1.focus(documents.dst), void scroll_1.scroll(event.type, documents.dst, {
-                                                                                            hash: event.location.dest.fragment,
-                                                                                            top: 0,
-                                                                                            left: 0
-                                                                                        }, {
-                                                                                            hash: scroll_1.hash,
-                                                                                            scroll: io.scroll,
-                                                                                            position: io.position
-                                                                                        }), void path_1.savePosition(), config.update.script ? script_1.script(documents, state.scripts, config.update, cancelable) : cancelable.either([]))
-                                                                                    ];
+                                                                    switch (_a.label) {
+                                                                    case 0:
+                                                                        return [
+                                                                            4,
+                                                                            p
+                                                                        ];
+                                                                    case 1:
+                                                                        return [
+                                                                            2,
+                                                                            _a.sent().fmap(function (_a) {
+                                                                                var areas = _a[0];
+                                                                                return Promise.all(new spica_1.HNil().push(void 0).modify(function () {
+                                                                                    return __awaiter(_this, void 0, void 0, function () {
+                                                                                        var _a;
+                                                                                        return __generator(this, function (_b) {
+                                                                                            switch (_b.label) {
+                                                                                            case 0:
+                                                                                                config.update.css ? void css_1.css({
+                                                                                                    src: documents.src.head,
+                                                                                                    dst: documents.dst.head
+                                                                                                }, config.update.ignore) : void 0, config.update.css ? void css_1.css({
+                                                                                                    src: documents.src.body,
+                                                                                                    dst: documents.dst.body
+                                                                                                }, config.update.ignore) : void 0, void focus_1.focus(documents.dst), void scroll_1.scroll(event.type, documents.dst, {
+                                                                                                    hash: event.location.dest.fragment,
+                                                                                                    top: 0,
+                                                                                                    left: 0
+                                                                                                }, {
+                                                                                                    hash: scroll_1.hash,
+                                                                                                    scroll: io.scroll,
+                                                                                                    position: io.position
+                                                                                                }), void path_1.savePosition();
+                                                                                                if (!config.update.script)
+                                                                                                    return [
+                                                                                                        3,
+                                                                                                        2
+                                                                                                    ];
+                                                                                                return [
+                                                                                                    4,
+                                                                                                    script_1.script(documents, state.scripts, config.update, cancelable)
+                                                                                                ];
+                                                                                            case 1:
+                                                                                                _a = _b.sent();
+                                                                                                return [
+                                                                                                    3,
+                                                                                                    4
+                                                                                                ];
+                                                                                            case 2:
+                                                                                                return [
+                                                                                                    4,
+                                                                                                    cancelable.either([])
+                                                                                                ];
+                                                                                            case 3:
+                                                                                                _a = _b.sent();
+                                                                                                _b.label = 4;
+                                                                                            case 4:
+                                                                                                return [
+                                                                                                    2,
+                                                                                                    _a
+                                                                                                ];
+                                                                                            }
+                                                                                        });
+                                                                                    });
+                                                                                }).extend(function () {
+                                                                                    return __awaiter(_this, void 0, void 0, function () {
+                                                                                        var _a, _b;
+                                                                                        return __generator(this, function (_c) {
+                                                                                            switch (_c.label) {
+                                                                                            case 0:
+                                                                                                void io.document.dispatchEvent(new Event('pjax:ready'));
+                                                                                                _b = (_a = cancelable).either;
+                                                                                                return [
+                                                                                                    4,
+                                                                                                    config.sequence.ready(seq, areas)
+                                                                                                ];
+                                                                                            case 1:
+                                                                                                return [
+                                                                                                    2,
+                                                                                                    _b.apply(_a, [_c.sent()])
+                                                                                                ];
+                                                                                            }
+                                                                                        });
+                                                                                    });
+                                                                                }).reverse().tuple()).then(function (_a) {
+                                                                                    var m1 = _a[0], m2 = _a[1];
+                                                                                    return m1.bind(function (ss) {
+                                                                                        return m2.fmap(function (seq) {
+                                                                                            return [
+                                                                                                ss,
+                                                                                                seq
+                                                                                            ];
+                                                                                        });
+                                                                                    });
                                                                                 });
-                                                                            });
-                                                                        }).extend(function (p) {
-                                                                            return __awaiter(_this, void 0, void 0, function () {
-                                                                                var _a, _b;
-                                                                                return __generator(this, function (_c) {
-                                                                                    switch (_c.label) {
-                                                                                    case 0:
-                                                                                        return [
-                                                                                            4,
-                                                                                            p
-                                                                                        ];
-                                                                                    case 1:
-                                                                                        void _c.sent(), void io.document.dispatchEvent(new Event('pjax:ready'));
-                                                                                        _b = (_a = cancelable).either;
-                                                                                        return [
-                                                                                            4,
-                                                                                            config.sequence.ready(seq)
-                                                                                        ];
-                                                                                    case 2:
-                                                                                        return [
-                                                                                            2,
-                                                                                            _b.apply(_a, [_c.sent()])
-                                                                                        ];
-                                                                                    }
-                                                                                });
-                                                                            });
-                                                                        }).reverse().tuple())
-                                                                    ];
+                                                                            }).extract(spica_1.Left)
+                                                                        ];
+                                                                    }
                                                                 });
                                                             });
                                                         }).reverse().tuple();
@@ -2246,45 +2291,65 @@ require = function e(t, n, r) {
                                     });
                                 });
                             }).modify(function (m) {
-                                return __awaiter(_this, void 0, void 0, function () {
-                                    var _this = this;
-                                    return __generator(this, function (_a) {
-                                        return [
-                                            2,
-                                            m.fmap(function (p) {
-                                                return __awaiter(_this, void 0, void 0, function () {
-                                                    return __generator(this, function (_a) {
-                                                        switch (_a.label) {
-                                                        case 0:
-                                                            return [
-                                                                4,
-                                                                p
-                                                            ];
-                                                        case 1:
-                                                            return [
-                                                                2,
-                                                                _a.sent().fmap(function (_a) {
-                                                                    var p1 = _a[0], p2 = _a[1];
-                                                                    return p2.then(function (_a) {
-                                                                        var m2 = _a[0], m3 = _a[1];
-                                                                        return void p1.then(function () {
-                                                                            return m3.fmap(function (seq) {
-                                                                                return void window.dispatchEvent(new Event('pjax:load')), void config.sequence.load(seq);
-                                                                            }).extract(function () {
-                                                                                return void 0;
+                                return m.fmap(function (p) {
+                                    return __awaiter(_this, void 0, void 0, function () {
+                                        var _this = this;
+                                        return __generator(this, function (_a) {
+                                            switch (_a.label) {
+                                            case 0:
+                                                return [
+                                                    4,
+                                                    p
+                                                ];
+                                            case 1:
+                                                return [
+                                                    2,
+                                                    _a.sent().fmap(function (_a) {
+                                                        var p1 = _a[0], p2 = _a[1];
+                                                        return p2.then(function (m2) {
+                                                            return void p1.then(function (m1) {
+                                                                return m1.bind(function (_a) {
+                                                                    var p = _a[1];
+                                                                    return m2.fmap(function (_a) {
+                                                                        var seq = _a[1];
+                                                                        return __awaiter(_this, void 0, void 0, function () {
+                                                                            var _a, _b;
+                                                                            return __generator(this, function (_c) {
+                                                                                switch (_c.label) {
+                                                                                case 0:
+                                                                                    _b = (_a = cancelable).maybe;
+                                                                                    return [
+                                                                                        4,
+                                                                                        p
+                                                                                    ];
+                                                                                case 1:
+                                                                                    return [
+                                                                                        2,
+                                                                                        _b.apply(_a, [_c.sent()]).fmap(function (events) {
+                                                                                            return void window.dispatchEvent(new Event('pjax:load')), void config.sequence.load(seq, events);
+                                                                                        }).extract(function () {
+                                                                                            return void 0;
+                                                                                        })
+                                                                                    ];
+                                                                                }
                                                                             });
-                                                                        }), m2;
+                                                                        });
                                                                     });
-                                                                }).extract(spica_1.Left)
-                                                            ];
-                                                        }
-                                                    });
-                                                });
-                                            }).extract(spica_1.Left)
-                                        ];
+                                                                }).extract(function () {
+                                                                    return void 0;
+                                                                });
+                                                            }), m2.fmap(function (_a) {
+                                                                var ss = _a[0];
+                                                                return ss;
+                                                            });
+                                                        });
+                                                    }).extract(spica_1.Left)
+                                                ];
+                                            }
+                                        });
                                     });
                                 });
-                            }).head()
+                            }).head().extract(spica_1.Left)
                         ];
                     });
                 });
