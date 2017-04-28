@@ -47,8 +47,8 @@ require = function e(t, n, r) {
             exports.router = router_1.router;
         },
         {
-            './layer/interface/service/api': 38,
-            './lib/router': 50
+            './layer/interface/service/api': 37,
+            './lib/router': 49
         }
     ],
     4: [
@@ -247,7 +247,7 @@ require = function e(t, n, r) {
             exports.scope = scope;
         },
         {
-            '../../../lib/router': 50,
+            '../../../lib/router': 49,
             '../../domain/data/config': 11,
             'spica': undefined
         }
@@ -282,7 +282,7 @@ require = function e(t, n, r) {
             }(error_1.PjaxError);
             exports.ApplicationError = ApplicationError;
         },
-        { '../../../lib/error': 47 }
+        { '../../../lib/error': 46 }
     ],
     7: [
         function (require, module, exports) {
@@ -292,7 +292,7 @@ require = function e(t, n, r) {
             exports.loadTitle = path_1.loadTitle;
             exports.savePosition = path_1.savePosition;
         },
-        { '../../domain/store/path': 32 }
+        { '../../domain/store/path': 31 }
     ],
     8: [
         function (require, module, exports) {
@@ -623,7 +623,7 @@ require = function e(t, n, r) {
             }(error_1.PjaxError);
             exports.DomainError = DomainError;
         },
-        { '../../../lib/error': 47 }
+        { '../../../lib/error': 46 }
     ],
     13: [
         function (require, module, exports) {
@@ -710,8 +710,8 @@ require = function e(t, n, r) {
             exports.RouterEvent = RouterEvent;
         },
         {
-            '../../../lib/dom': 46,
-            '../../../lib/url': 51,
+            '../../../lib/dom': 45,
+            '../../../lib/url': 50,
             '../../data/model/canonicalization/url': 8,
             '../../data/model/validation/url': 9,
             '../data/error': 12
@@ -720,15 +720,189 @@ require = function e(t, n, r) {
     14: [
         function (require, module, exports) {
             'use strict';
-            function __export(m) {
-                for (var p in m)
-                    if (!exports.hasOwnProperty(p))
-                        exports[p] = m[p];
-            }
+            var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
+                return new (P || (P = Promise))(function (resolve, reject) {
+                    function fulfilled(value) {
+                        try {
+                            step(generator.next(value));
+                        } catch (e) {
+                            reject(e);
+                        }
+                    }
+                    function rejected(value) {
+                        try {
+                            step(generator['throw'](value));
+                        } catch (e) {
+                            reject(e);
+                        }
+                    }
+                    function step(result) {
+                        result.done ? resolve(result.value) : new P(function (resolve) {
+                            resolve(result.value);
+                        }).then(fulfilled, rejected);
+                    }
+                    step((generator = generator.apply(thisArg, _arguments || [])).next());
+                });
+            };
+            var __generator = this && this.__generator || function (thisArg, body) {
+                var _ = {
+                        label: 0,
+                        sent: function () {
+                            if (t[0] & 1)
+                                throw t[1];
+                            return t[1];
+                        },
+                        trys: [],
+                        ops: []
+                    }, f, y, t, g;
+                return g = {
+                    next: verb(0),
+                    'throw': verb(1),
+                    'return': verb(2)
+                }, typeof Symbol === 'function' && (g[Symbol.iterator] = function () {
+                    return this;
+                }), g;
+                function verb(n) {
+                    return function (v) {
+                        return step([
+                            n,
+                            v
+                        ]);
+                    };
+                }
+                function step(op) {
+                    if (f)
+                        throw new TypeError('Generator is already executing.');
+                    while (_)
+                        try {
+                            if (f = 1, y && (t = y[op[0] & 2 ? 'return' : op[0] ? 'throw' : 'next']) && !(t = t.call(y, op[1])).done)
+                                return t;
+                            if (y = 0, t)
+                                op = [
+                                    0,
+                                    t.value
+                                ];
+                            switch (op[0]) {
+                            case 0:
+                            case 1:
+                                t = op;
+                                break;
+                            case 4:
+                                _.label++;
+                                return {
+                                    value: op[1],
+                                    done: false
+                                };
+                            case 5:
+                                _.label++;
+                                y = op[1];
+                                op = [0];
+                                continue;
+                            case 7:
+                                op = _.ops.pop();
+                                _.trys.pop();
+                                continue;
+                            default:
+                                if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
+                                    _ = 0;
+                                    continue;
+                                }
+                                if (op[0] === 3 && (!t || op[1] > t[0] && op[1] < t[3])) {
+                                    _.label = op[1];
+                                    break;
+                                }
+                                if (op[0] === 6 && _.label < t[1]) {
+                                    _.label = t[1];
+                                    t = op;
+                                    break;
+                                }
+                                if (t && _.label < t[2]) {
+                                    _.label = t[2];
+                                    _.ops.push(op);
+                                    break;
+                                }
+                                if (t[2])
+                                    _.ops.pop();
+                                _.trys.pop();
+                                continue;
+                            }
+                            op = body.call(thisArg, _);
+                        } catch (e) {
+                            op = [
+                                6,
+                                e
+                            ];
+                            y = 0;
+                        } finally {
+                            f = t = 0;
+                        }
+                    if (op[0] & 5)
+                        throw op[1];
+                    return {
+                        value: op[0] ? op[1] : void 0,
+                        done: true
+                    };
+                }
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
-            __export(require('./service/api'));
+            var spica_1 = require('spica');
+            var entity_1 = require('./model/eav/entity');
+            exports.RouterEntity = entity_1.RouterEntity;
+            var fetch_1 = require('./module/fetch');
+            var update_1 = require('./module/update');
+            var content_1 = require('./module/update/content');
+            var path_1 = require('../store/path');
+            var error_1 = require('../data/error');
+            function route(entity, io) {
+                return __awaiter(this, void 0, void 0, function () {
+                    var _this = this;
+                    return __generator(this, function (_a) {
+                        return [
+                            2,
+                            spica_1.Right(void 0).bind(entity.state.cancelable.either).bind(function () {
+                                return content_1.match(io.document, entity.config.areas) ? spica_1.Right(void 0) : spica_1.Left(new error_1.DomainError('Failed to match areas.'));
+                            }).fmap(function () {
+                                return fetch_1.fetch(entity.event.request, entity.config, entity.state.cancelable);
+                            }).fmap(function (p) {
+                                return __awaiter(_this, void 0, void 0, function () {
+                                    return __generator(this, function (_a) {
+                                        switch (_a.label) {
+                                        case 0:
+                                            return [
+                                                4,
+                                                p
+                                            ];
+                                        case 1:
+                                            return [
+                                                2,
+                                                _a.sent().fmap(function (_a) {
+                                                    var res = _a[0], seq = _a[1];
+                                                    return update_1.update(entity, res, seq, {
+                                                        document: io.document,
+                                                        scroll: window.scrollTo,
+                                                        position: path_1.loadPosition
+                                                    });
+                                                }).extract(spica_1.Left)
+                                            ];
+                                        }
+                                    });
+                                });
+                            }).extract(spica_1.Left)
+                        ];
+                    });
+                });
+            }
+            exports.route = route;
         },
-        { './service/api': 29 }
+        {
+            '../data/error': 12,
+            '../store/path': 31,
+            './model/eav/entity': 15,
+            './module/fetch': 18,
+            './module/update': 20,
+            './module/update/content': 22,
+            'spica': undefined
+        }
     ],
     15: [
         function (require, module, exports) {
@@ -805,7 +979,7 @@ require = function e(t, n, r) {
             exports.FetchResult = FetchResult;
         },
         {
-            '../../../../../../lib/html': 48,
+            '../../../../../../lib/html': 47,
             '../../../../../data/model/canonicalization/url': 8,
             '../../../../../data/model/validation/url': 9
         }
@@ -827,6 +1001,186 @@ require = function e(t, n, r) {
         {}
     ],
     18: [
+        function (require, module, exports) {
+            'use strict';
+            var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
+                return new (P || (P = Promise))(function (resolve, reject) {
+                    function fulfilled(value) {
+                        try {
+                            step(generator.next(value));
+                        } catch (e) {
+                            reject(e);
+                        }
+                    }
+                    function rejected(value) {
+                        try {
+                            step(generator['throw'](value));
+                        } catch (e) {
+                            reject(e);
+                        }
+                    }
+                    function step(result) {
+                        result.done ? resolve(result.value) : new P(function (resolve) {
+                            resolve(result.value);
+                        }).then(fulfilled, rejected);
+                    }
+                    step((generator = generator.apply(thisArg, _arguments || [])).next());
+                });
+            };
+            var __generator = this && this.__generator || function (thisArg, body) {
+                var _ = {
+                        label: 0,
+                        sent: function () {
+                            if (t[0] & 1)
+                                throw t[1];
+                            return t[1];
+                        },
+                        trys: [],
+                        ops: []
+                    }, f, y, t, g;
+                return g = {
+                    next: verb(0),
+                    'throw': verb(1),
+                    'return': verb(2)
+                }, typeof Symbol === 'function' && (g[Symbol.iterator] = function () {
+                    return this;
+                }), g;
+                function verb(n) {
+                    return function (v) {
+                        return step([
+                            n,
+                            v
+                        ]);
+                    };
+                }
+                function step(op) {
+                    if (f)
+                        throw new TypeError('Generator is already executing.');
+                    while (_)
+                        try {
+                            if (f = 1, y && (t = y[op[0] & 2 ? 'return' : op[0] ? 'throw' : 'next']) && !(t = t.call(y, op[1])).done)
+                                return t;
+                            if (y = 0, t)
+                                op = [
+                                    0,
+                                    t.value
+                                ];
+                            switch (op[0]) {
+                            case 0:
+                            case 1:
+                                t = op;
+                                break;
+                            case 4:
+                                _.label++;
+                                return {
+                                    value: op[1],
+                                    done: false
+                                };
+                            case 5:
+                                _.label++;
+                                y = op[1];
+                                op = [0];
+                                continue;
+                            case 7:
+                                op = _.ops.pop();
+                                _.trys.pop();
+                                continue;
+                            default:
+                                if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
+                                    _ = 0;
+                                    continue;
+                                }
+                                if (op[0] === 3 && (!t || op[1] > t[0] && op[1] < t[3])) {
+                                    _.label = op[1];
+                                    break;
+                                }
+                                if (op[0] === 6 && _.label < t[1]) {
+                                    _.label = t[1];
+                                    t = op;
+                                    break;
+                                }
+                                if (t && _.label < t[2]) {
+                                    _.label = t[2];
+                                    _.ops.push(op);
+                                    break;
+                                }
+                                if (t[2])
+                                    _.ops.pop();
+                                _.trys.pop();
+                                continue;
+                            }
+                            op = body.call(thisArg, _);
+                        } catch (e) {
+                            op = [
+                                6,
+                                e
+                            ];
+                            y = 0;
+                        } finally {
+                            f = t = 0;
+                        }
+                    if (op[0] & 5)
+                        throw op[1];
+                    return {
+                        value: op[0] ? op[1] : void 0,
+                        done: true
+                    };
+                }
+            };
+            Object.defineProperty(exports, '__esModule', { value: true });
+            var spica_1 = require('spica');
+            var xhr_1 = require('../module/fetch/xhr');
+            var error_1 = require('../../data/error');
+            var url_1 = require('../../../../lib/url');
+            function fetch(_a, _b, cancelable) {
+                var method = _a.method, url = _a.url, data = _a.data;
+                var setting = _b.fetch, sequence = _b.sequence;
+                return __awaiter(this, void 0, void 0, function () {
+                    var req, state;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                        case 0:
+                            req = xhr_1.xhr(method, url, data, setting, cancelable);
+                            void window.dispatchEvent(new Event('pjax:fetch'));
+                            return [
+                                4,
+                                sequence.fetch(void 0, {
+                                    host: '',
+                                    path: new url_1.Url(url).path,
+                                    method: method,
+                                    data: data
+                                })
+                            ];
+                        case 1:
+                            state = _a.sent();
+                            return [
+                                4,
+                                req
+                            ];
+                        case 2:
+                            return [
+                                2,
+                                _a.sent().bind(cancelable.either).bind(function (result) {
+                                    return result.response.url === '' || new url_1.Url(result.response.url).domain === new url_1.Url(url).domain ? spica_1.Right([
+                                        result,
+                                        state
+                                    ]) : spica_1.Left(new error_1.DomainError('Request is redirected to the different domain url ' + new url_1.Url(result.response.url).href));
+                                })
+                            ];
+                        }
+                    });
+                });
+            }
+            exports.fetch = fetch;
+        },
+        {
+            '../../../../lib/url': 50,
+            '../../data/error': 12,
+            '../module/fetch/xhr': 19,
+            'spica': undefined
+        }
+    ],
+    19: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -908,7 +1262,427 @@ require = function e(t, n, r) {
             'spica': undefined
         }
     ],
-    19: [
+    20: [
+        function (require, module, exports) {
+            'use strict';
+            var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
+                return new (P || (P = Promise))(function (resolve, reject) {
+                    function fulfilled(value) {
+                        try {
+                            step(generator.next(value));
+                        } catch (e) {
+                            reject(e);
+                        }
+                    }
+                    function rejected(value) {
+                        try {
+                            step(generator['throw'](value));
+                        } catch (e) {
+                            reject(e);
+                        }
+                    }
+                    function step(result) {
+                        result.done ? resolve(result.value) : new P(function (resolve) {
+                            resolve(result.value);
+                        }).then(fulfilled, rejected);
+                    }
+                    step((generator = generator.apply(thisArg, _arguments || [])).next());
+                });
+            };
+            var __generator = this && this.__generator || function (thisArg, body) {
+                var _ = {
+                        label: 0,
+                        sent: function () {
+                            if (t[0] & 1)
+                                throw t[1];
+                            return t[1];
+                        },
+                        trys: [],
+                        ops: []
+                    }, f, y, t, g;
+                return g = {
+                    next: verb(0),
+                    'throw': verb(1),
+                    'return': verb(2)
+                }, typeof Symbol === 'function' && (g[Symbol.iterator] = function () {
+                    return this;
+                }), g;
+                function verb(n) {
+                    return function (v) {
+                        return step([
+                            n,
+                            v
+                        ]);
+                    };
+                }
+                function step(op) {
+                    if (f)
+                        throw new TypeError('Generator is already executing.');
+                    while (_)
+                        try {
+                            if (f = 1, y && (t = y[op[0] & 2 ? 'return' : op[0] ? 'throw' : 'next']) && !(t = t.call(y, op[1])).done)
+                                return t;
+                            if (y = 0, t)
+                                op = [
+                                    0,
+                                    t.value
+                                ];
+                            switch (op[0]) {
+                            case 0:
+                            case 1:
+                                t = op;
+                                break;
+                            case 4:
+                                _.label++;
+                                return {
+                                    value: op[1],
+                                    done: false
+                                };
+                            case 5:
+                                _.label++;
+                                y = op[1];
+                                op = [0];
+                                continue;
+                            case 7:
+                                op = _.ops.pop();
+                                _.trys.pop();
+                                continue;
+                            default:
+                                if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
+                                    _ = 0;
+                                    continue;
+                                }
+                                if (op[0] === 3 && (!t || op[1] > t[0] && op[1] < t[3])) {
+                                    _.label = op[1];
+                                    break;
+                                }
+                                if (op[0] === 6 && _.label < t[1]) {
+                                    _.label = t[1];
+                                    t = op;
+                                    break;
+                                }
+                                if (t && _.label < t[2]) {
+                                    _.label = t[2];
+                                    _.ops.push(op);
+                                    break;
+                                }
+                                if (t[2])
+                                    _.ops.pop();
+                                _.trys.pop();
+                                continue;
+                            }
+                            op = body.call(thisArg, _);
+                        } catch (e) {
+                            op = [
+                                6,
+                                e
+                            ];
+                            y = 0;
+                        } finally {
+                            f = t = 0;
+                        }
+                    if (op[0] & 5)
+                        throw op[1];
+                    return {
+                        value: op[0] ? op[1] : void 0,
+                        done: true
+                    };
+                }
+            };
+            Object.defineProperty(exports, '__esModule', { value: true });
+            var spica_1 = require('spica');
+            var entity_1 = require('../model/eav/entity');
+            var update_1 = require('../model/eav/value/update');
+            var blur_1 = require('../module/update/blur');
+            var url_1 = require('../module/update/url');
+            var title_1 = require('../module/update/title');
+            var head_1 = require('../module/update/head');
+            var content_1 = require('../module/update/content');
+            var css_1 = require('../module/update/css');
+            var script_1 = require('../module/update/script');
+            var focus_1 = require('../module/update/focus');
+            var scroll_1 = require('../module/update/scroll');
+            var path_1 = require('../../store/path');
+            var error_1 = require('../../data/error');
+            function update(_a, _b, seq, io) {
+                var event = _a.event, config = _a.config, state = _a.state;
+                var response = _b.response;
+                return __awaiter(this, void 0, void 0, function () {
+                    var _this = this;
+                    var cancelable, documents;
+                    return __generator(this, function (_a) {
+                        cancelable = state.cancelable;
+                        documents = new update_1.UpdateSource({
+                            src: response.document,
+                            dst: io.document
+                        }).documents;
+                        return [
+                            2,
+                            new spica_1.HNil().push(cancelable.either(seq)).modify(function (m) {
+                                return m.fmap(function (seq) {
+                                    return content_1.separate(documents, config.areas).fmap(function (_a) {
+                                        var area = _a[0];
+                                        return void config.rewrite(documents.src, area, '');
+                                    }).extract(function () {
+                                        return __awaiter(_this, void 0, void 0, function () {
+                                            return __generator(this, function (_a) {
+                                                return [
+                                                    2,
+                                                    spica_1.Left(new error_1.DomainError('Failed to separate areas.'))
+                                                ];
+                                            });
+                                        });
+                                    }, function () {
+                                        return __awaiter(_this, void 0, void 0, function () {
+                                            var _a, _b;
+                                            return __generator(this, function (_c) {
+                                                switch (_c.label) {
+                                                case 0:
+                                                    void window.dispatchEvent(new Event('pjax:unload'));
+                                                    _b = (_a = cancelable).either;
+                                                    return [
+                                                        4,
+                                                        config.sequence.unload(seq, response)
+                                                    ];
+                                                case 1:
+                                                    return [
+                                                        2,
+                                                        _b.apply(_a, [_c.sent()])
+                                                    ];
+                                                }
+                                            });
+                                        });
+                                    });
+                                });
+                            }).modify(function (m) {
+                                return m.fmap(function (p) {
+                                    return __awaiter(_this, void 0, void 0, function () {
+                                        var _this = this;
+                                        return __generator(this, function (_a) {
+                                            switch (_a.label) {
+                                            case 0:
+                                                return [
+                                                    4,
+                                                    p
+                                                ];
+                                            case 1:
+                                                return [
+                                                    2,
+                                                    _a.sent().fmap(function (seq) {
+                                                        return new spica_1.HNil().push(void 0).modify(function () {
+                                                            return __awaiter(_this, void 0, void 0, function () {
+                                                                return __generator(this, function (_a) {
+                                                                    return [
+                                                                        2,
+                                                                        (void blur_1.blur(documents.dst), void url_1.url(new entity_1.RouterEntity.Event.Location(response.url || event.location.dest.href), documents.src.title, event.type, event.source, config.replace), void title_1.title(documents), void path_1.saveTitle(), void head_1.head({
+                                                                            src: documents.src.head,
+                                                                            dst: documents.dst.head
+                                                                        }, config.update.head, config.update.ignore), content_1.content(documents, config.areas).fmap(function (_a) {
+                                                                            var as = _a[0], ps = _a[1];
+                                                                            return [
+                                                                                as,
+                                                                                Promise.all(ps)
+                                                                            ];
+                                                                        }).fmap(cancelable.either).extract(function () {
+                                                                            return spica_1.Left(new error_1.DomainError('Failed to update areas.'));
+                                                                        }))
+                                                                    ];
+                                                                });
+                                                            });
+                                                        }).extend(function (p) {
+                                                            return __awaiter(_this, void 0, void 0, function () {
+                                                                var _this = this;
+                                                                return __generator(this, function (_a) {
+                                                                    switch (_a.label) {
+                                                                    case 0:
+                                                                        return [
+                                                                            4,
+                                                                            p
+                                                                        ];
+                                                                    case 1:
+                                                                        return [
+                                                                            2,
+                                                                            _a.sent().fmap(function (_a) {
+                                                                                var areas = _a[0];
+                                                                                return Promise.all(new spica_1.HNil().push(void 0).modify(function () {
+                                                                                    return __awaiter(_this, void 0, void 0, function () {
+                                                                                        var _a;
+                                                                                        return __generator(this, function (_b) {
+                                                                                            switch (_b.label) {
+                                                                                            case 0:
+                                                                                                config.update.css ? void css_1.css({
+                                                                                                    src: documents.src.head,
+                                                                                                    dst: documents.dst.head
+                                                                                                }, config.update.ignore) : void 0, config.update.css ? void css_1.css({
+                                                                                                    src: documents.src.body,
+                                                                                                    dst: documents.dst.body
+                                                                                                }, config.update.ignore) : void 0, void focus_1.focus(documents.dst), void scroll_1.scroll(event.type, documents.dst, {
+                                                                                                    hash: event.location.dest.fragment,
+                                                                                                    top: 0,
+                                                                                                    left: 0
+                                                                                                }, {
+                                                                                                    hash: scroll_1.hash,
+                                                                                                    scroll: io.scroll,
+                                                                                                    position: io.position
+                                                                                                }), void path_1.savePosition();
+                                                                                                if (!config.update.script)
+                                                                                                    return [
+                                                                                                        3,
+                                                                                                        2
+                                                                                                    ];
+                                                                                                return [
+                                                                                                    4,
+                                                                                                    script_1.script(documents, state.scripts, config.update, cancelable)
+                                                                                                ];
+                                                                                            case 1:
+                                                                                                _a = _b.sent();
+                                                                                                return [
+                                                                                                    3,
+                                                                                                    4
+                                                                                                ];
+                                                                                            case 2:
+                                                                                                return [
+                                                                                                    4,
+                                                                                                    cancelable.either([])
+                                                                                                ];
+                                                                                            case 3:
+                                                                                                _a = _b.sent();
+                                                                                                _b.label = 4;
+                                                                                            case 4:
+                                                                                                return [
+                                                                                                    2,
+                                                                                                    _a
+                                                                                                ];
+                                                                                            }
+                                                                                        });
+                                                                                    });
+                                                                                }).extend(function () {
+                                                                                    return __awaiter(_this, void 0, void 0, function () {
+                                                                                        var _a, _b;
+                                                                                        return __generator(this, function (_c) {
+                                                                                            switch (_c.label) {
+                                                                                            case 0:
+                                                                                                void io.document.dispatchEvent(new Event('pjax:ready'));
+                                                                                                _b = (_a = cancelable).either;
+                                                                                                return [
+                                                                                                    4,
+                                                                                                    config.sequence.ready(seq, areas)
+                                                                                                ];
+                                                                                            case 1:
+                                                                                                return [
+                                                                                                    2,
+                                                                                                    _b.apply(_a, [_c.sent()])
+                                                                                                ];
+                                                                                            }
+                                                                                        });
+                                                                                    });
+                                                                                }).reverse().tuple()).then(function (_a) {
+                                                                                    var m1 = _a[0], m2 = _a[1];
+                                                                                    return m1.bind(function (ss) {
+                                                                                        return m2.fmap(function (seq) {
+                                                                                            return [
+                                                                                                ss,
+                                                                                                seq
+                                                                                            ];
+                                                                                        });
+                                                                                    });
+                                                                                });
+                                                                            }).extract(spica_1.Left)
+                                                                        ];
+                                                                    }
+                                                                });
+                                                            });
+                                                        }).reverse().tuple();
+                                                    })
+                                                ];
+                                            }
+                                        });
+                                    });
+                                });
+                            }).modify(function (m) {
+                                return m.fmap(function (p) {
+                                    return __awaiter(_this, void 0, void 0, function () {
+                                        var _this = this;
+                                        return __generator(this, function (_a) {
+                                            switch (_a.label) {
+                                            case 0:
+                                                return [
+                                                    4,
+                                                    p
+                                                ];
+                                            case 1:
+                                                return [
+                                                    2,
+                                                    _a.sent().fmap(function (_a) {
+                                                        var p1 = _a[0], p2 = _a[1];
+                                                        return p2.then(function (m2) {
+                                                            return void p1.then(function (m1) {
+                                                                return m1.bind(function (_a) {
+                                                                    var p = _a[1];
+                                                                    return m2.fmap(function (_a) {
+                                                                        var seq = _a[1];
+                                                                        return __awaiter(_this, void 0, void 0, function () {
+                                                                            var _a, _b;
+                                                                            return __generator(this, function (_c) {
+                                                                                switch (_c.label) {
+                                                                                case 0:
+                                                                                    _b = (_a = cancelable).maybe;
+                                                                                    return [
+                                                                                        4,
+                                                                                        p
+                                                                                    ];
+                                                                                case 1:
+                                                                                    return [
+                                                                                        2,
+                                                                                        _b.apply(_a, [_c.sent()]).fmap(function (events) {
+                                                                                            return void window.dispatchEvent(new Event('pjax:load')), void config.sequence.load(seq, events);
+                                                                                        }).extract(function () {
+                                                                                            return void 0;
+                                                                                        })
+                                                                                    ];
+                                                                                }
+                                                                            });
+                                                                        });
+                                                                    });
+                                                                }).extract(function () {
+                                                                    return void 0;
+                                                                });
+                                                            }), m2.fmap(function (_a) {
+                                                                var ss = _a[0];
+                                                                return ss;
+                                                            });
+                                                        });
+                                                    }).extract(spica_1.Left)
+                                                ];
+                                            }
+                                        });
+                                    });
+                                });
+                            }).head().extract(spica_1.Left)
+                        ];
+                    });
+                });
+            }
+            exports.update = update;
+        },
+        {
+            '../../data/error': 12,
+            '../../store/path': 31,
+            '../model/eav/entity': 15,
+            '../model/eav/value/update': 17,
+            '../module/update/blur': 21,
+            '../module/update/content': 22,
+            '../module/update/css': 23,
+            '../module/update/focus': 24,
+            '../module/update/head': 25,
+            '../module/update/script': 26,
+            '../module/update/scroll': 27,
+            '../module/update/title': 29,
+            '../module/update/url': 30,
+            'spica': undefined
+        }
+    ],
+    21: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -922,7 +1696,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    20: [
+    22: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1043,12 +1817,12 @@ require = function e(t, n, r) {
             exports._wait = wait;
         },
         {
-            '../../../../../lib/dom': 46,
-            './script': 24,
+            '../../../../../lib/dom': 45,
+            './script': 26,
             'spica': undefined
         }
     ],
-    21: [
+    23: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1075,11 +1849,11 @@ require = function e(t, n, r) {
             }
         },
         {
-            '../../../../../lib/dom': 46,
-            './sync': 26
+            '../../../../../lib/dom': 45,
+            './sync': 28
         }
     ],
-    22: [
+    24: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1093,9 +1867,9 @@ require = function e(t, n, r) {
             }
             exports.focus = focus;
         },
-        { '../../../../../lib/dom': 46 }
+        { '../../../../../lib/dom': 45 }
     ],
-    23: [
+    25: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1115,11 +1889,11 @@ require = function e(t, n, r) {
             }
         },
         {
-            '../../../../../lib/dom': 46,
-            './sync': 26
+            '../../../../../lib/dom': 45,
+            './sync': 28
         }
     ],
-    24: [
+    26: [
         function (require, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -1384,13 +2158,13 @@ require = function e(t, n, r) {
             exports._log = log;
         },
         {
-            '../../../../../lib/dom': 46,
+            '../../../../../lib/dom': 45,
             '../../../../data/model/canonicalization/url': 8,
             '../../../../data/model/validation/url': 9,
             'spica': undefined
         }
     ],
-    25: [
+    27: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1451,12 +2225,12 @@ require = function e(t, n, r) {
             exports.hash = hash;
         },
         {
-            '../../../../../lib/dom': 46,
+            '../../../../../lib/dom': 45,
             '../../model/eav/entity': 15,
             'spica': undefined
         }
     ],
-    26: [
+    28: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1521,7 +2295,7 @@ require = function e(t, n, r) {
         },
         { 'spica': undefined }
     ],
-    27: [
+    29: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1532,7 +2306,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    28: [
+    30: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1577,803 +2351,7 @@ require = function e(t, n, r) {
         },
         { '../../model/eav/entity': 15 }
     ],
-    29: [
-        function (require, module, exports) {
-            'use strict';
-            var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
-                return new (P || (P = Promise))(function (resolve, reject) {
-                    function fulfilled(value) {
-                        try {
-                            step(generator.next(value));
-                        } catch (e) {
-                            reject(e);
-                        }
-                    }
-                    function rejected(value) {
-                        try {
-                            step(generator['throw'](value));
-                        } catch (e) {
-                            reject(e);
-                        }
-                    }
-                    function step(result) {
-                        result.done ? resolve(result.value) : new P(function (resolve) {
-                            resolve(result.value);
-                        }).then(fulfilled, rejected);
-                    }
-                    step((generator = generator.apply(thisArg, _arguments || [])).next());
-                });
-            };
-            var __generator = this && this.__generator || function (thisArg, body) {
-                var _ = {
-                        label: 0,
-                        sent: function () {
-                            if (t[0] & 1)
-                                throw t[1];
-                            return t[1];
-                        },
-                        trys: [],
-                        ops: []
-                    }, f, y, t, g;
-                return g = {
-                    next: verb(0),
-                    'throw': verb(1),
-                    'return': verb(2)
-                }, typeof Symbol === 'function' && (g[Symbol.iterator] = function () {
-                    return this;
-                }), g;
-                function verb(n) {
-                    return function (v) {
-                        return step([
-                            n,
-                            v
-                        ]);
-                    };
-                }
-                function step(op) {
-                    if (f)
-                        throw new TypeError('Generator is already executing.');
-                    while (_)
-                        try {
-                            if (f = 1, y && (t = y[op[0] & 2 ? 'return' : op[0] ? 'throw' : 'next']) && !(t = t.call(y, op[1])).done)
-                                return t;
-                            if (y = 0, t)
-                                op = [
-                                    0,
-                                    t.value
-                                ];
-                            switch (op[0]) {
-                            case 0:
-                            case 1:
-                                t = op;
-                                break;
-                            case 4:
-                                _.label++;
-                                return {
-                                    value: op[1],
-                                    done: false
-                                };
-                            case 5:
-                                _.label++;
-                                y = op[1];
-                                op = [0];
-                                continue;
-                            case 7:
-                                op = _.ops.pop();
-                                _.trys.pop();
-                                continue;
-                            default:
-                                if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
-                                    _ = 0;
-                                    continue;
-                                }
-                                if (op[0] === 3 && (!t || op[1] > t[0] && op[1] < t[3])) {
-                                    _.label = op[1];
-                                    break;
-                                }
-                                if (op[0] === 6 && _.label < t[1]) {
-                                    _.label = t[1];
-                                    t = op;
-                                    break;
-                                }
-                                if (t && _.label < t[2]) {
-                                    _.label = t[2];
-                                    _.ops.push(op);
-                                    break;
-                                }
-                                if (t[2])
-                                    _.ops.pop();
-                                _.trys.pop();
-                                continue;
-                            }
-                            op = body.call(thisArg, _);
-                        } catch (e) {
-                            op = [
-                                6,
-                                e
-                            ];
-                            y = 0;
-                        } finally {
-                            f = t = 0;
-                        }
-                    if (op[0] & 5)
-                        throw op[1];
-                    return {
-                        value: op[0] ? op[1] : void 0,
-                        done: true
-                    };
-                }
-            };
-            Object.defineProperty(exports, '__esModule', { value: true });
-            var spica_1 = require('spica');
-            var entity_1 = require('../model/eav/entity');
-            exports.RouterEntity = entity_1.RouterEntity;
-            var api_1 = require('./fetch/api');
-            var api_2 = require('./update/api');
-            var content_1 = require('../module/update/content');
-            var path_1 = require('../../store/path');
-            var error_1 = require('../../data/error');
-            function route(entity, io) {
-                return __awaiter(this, void 0, void 0, function () {
-                    var _this = this;
-                    return __generator(this, function (_a) {
-                        return [
-                            2,
-                            spica_1.Right(void 0).bind(entity.state.cancelable.either).bind(function () {
-                                return content_1.match(io.document, entity.config.areas) ? spica_1.Right(void 0) : spica_1.Left(new error_1.DomainError('Failed to match areas.'));
-                            }).fmap(function () {
-                                return api_1.fetch(entity.event.request, entity.config, entity.state.cancelable);
-                            }).fmap(function (p) {
-                                return __awaiter(_this, void 0, void 0, function () {
-                                    return __generator(this, function (_a) {
-                                        switch (_a.label) {
-                                        case 0:
-                                            return [
-                                                4,
-                                                p
-                                            ];
-                                        case 1:
-                                            return [
-                                                2,
-                                                _a.sent().fmap(function (_a) {
-                                                    var res = _a[0], seq = _a[1];
-                                                    return api_2.update(entity, res, seq, {
-                                                        document: io.document,
-                                                        scroll: window.scrollTo,
-                                                        position: path_1.loadPosition
-                                                    });
-                                                }).extract(spica_1.Left)
-                                            ];
-                                        }
-                                    });
-                                });
-                            }).extract(spica_1.Left)
-                        ];
-                    });
-                });
-            }
-            exports.route = route;
-        },
-        {
-            '../../data/error': 12,
-            '../../store/path': 32,
-            '../model/eav/entity': 15,
-            '../module/update/content': 20,
-            './fetch/api': 30,
-            './update/api': 31,
-            'spica': undefined
-        }
-    ],
-    30: [
-        function (require, module, exports) {
-            'use strict';
-            var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
-                return new (P || (P = Promise))(function (resolve, reject) {
-                    function fulfilled(value) {
-                        try {
-                            step(generator.next(value));
-                        } catch (e) {
-                            reject(e);
-                        }
-                    }
-                    function rejected(value) {
-                        try {
-                            step(generator['throw'](value));
-                        } catch (e) {
-                            reject(e);
-                        }
-                    }
-                    function step(result) {
-                        result.done ? resolve(result.value) : new P(function (resolve) {
-                            resolve(result.value);
-                        }).then(fulfilled, rejected);
-                    }
-                    step((generator = generator.apply(thisArg, _arguments || [])).next());
-                });
-            };
-            var __generator = this && this.__generator || function (thisArg, body) {
-                var _ = {
-                        label: 0,
-                        sent: function () {
-                            if (t[0] & 1)
-                                throw t[1];
-                            return t[1];
-                        },
-                        trys: [],
-                        ops: []
-                    }, f, y, t, g;
-                return g = {
-                    next: verb(0),
-                    'throw': verb(1),
-                    'return': verb(2)
-                }, typeof Symbol === 'function' && (g[Symbol.iterator] = function () {
-                    return this;
-                }), g;
-                function verb(n) {
-                    return function (v) {
-                        return step([
-                            n,
-                            v
-                        ]);
-                    };
-                }
-                function step(op) {
-                    if (f)
-                        throw new TypeError('Generator is already executing.');
-                    while (_)
-                        try {
-                            if (f = 1, y && (t = y[op[0] & 2 ? 'return' : op[0] ? 'throw' : 'next']) && !(t = t.call(y, op[1])).done)
-                                return t;
-                            if (y = 0, t)
-                                op = [
-                                    0,
-                                    t.value
-                                ];
-                            switch (op[0]) {
-                            case 0:
-                            case 1:
-                                t = op;
-                                break;
-                            case 4:
-                                _.label++;
-                                return {
-                                    value: op[1],
-                                    done: false
-                                };
-                            case 5:
-                                _.label++;
-                                y = op[1];
-                                op = [0];
-                                continue;
-                            case 7:
-                                op = _.ops.pop();
-                                _.trys.pop();
-                                continue;
-                            default:
-                                if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
-                                    _ = 0;
-                                    continue;
-                                }
-                                if (op[0] === 3 && (!t || op[1] > t[0] && op[1] < t[3])) {
-                                    _.label = op[1];
-                                    break;
-                                }
-                                if (op[0] === 6 && _.label < t[1]) {
-                                    _.label = t[1];
-                                    t = op;
-                                    break;
-                                }
-                                if (t && _.label < t[2]) {
-                                    _.label = t[2];
-                                    _.ops.push(op);
-                                    break;
-                                }
-                                if (t[2])
-                                    _.ops.pop();
-                                _.trys.pop();
-                                continue;
-                            }
-                            op = body.call(thisArg, _);
-                        } catch (e) {
-                            op = [
-                                6,
-                                e
-                            ];
-                            y = 0;
-                        } finally {
-                            f = t = 0;
-                        }
-                    if (op[0] & 5)
-                        throw op[1];
-                    return {
-                        value: op[0] ? op[1] : void 0,
-                        done: true
-                    };
-                }
-            };
-            Object.defineProperty(exports, '__esModule', { value: true });
-            var spica_1 = require('spica');
-            var xhr_1 = require('../../module/fetch/xhr');
-            var error_1 = require('../../../data/error');
-            var url_1 = require('../../../../../lib/url');
-            function fetch(_a, _b, cancelable) {
-                var method = _a.method, url = _a.url, data = _a.data;
-                var setting = _b.fetch, sequence = _b.sequence;
-                return __awaiter(this, void 0, void 0, function () {
-                    var req, state;
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
-                        case 0:
-                            req = xhr_1.xhr(method, url, data, setting, cancelable);
-                            void window.dispatchEvent(new Event('pjax:fetch'));
-                            return [
-                                4,
-                                sequence.fetch(void 0, {
-                                    host: '',
-                                    path: new url_1.Url(url).path,
-                                    method: method,
-                                    data: data
-                                })
-                            ];
-                        case 1:
-                            state = _a.sent();
-                            return [
-                                4,
-                                req
-                            ];
-                        case 2:
-                            return [
-                                2,
-                                _a.sent().bind(cancelable.either).bind(function (result) {
-                                    return result.response.url === '' || new url_1.Url(result.response.url).domain === new url_1.Url(url).domain ? spica_1.Right([
-                                        result,
-                                        state
-                                    ]) : spica_1.Left(new error_1.DomainError('Request is redirected to the different domain url ' + new url_1.Url(result.response.url).href));
-                                })
-                            ];
-                        }
-                    });
-                });
-            }
-            exports.fetch = fetch;
-        },
-        {
-            '../../../../../lib/url': 51,
-            '../../../data/error': 12,
-            '../../module/fetch/xhr': 18,
-            'spica': undefined
-        }
-    ],
     31: [
-        function (require, module, exports) {
-            'use strict';
-            var __assign = this && this.__assign || Object.assign || function (t) {
-                for (var s, i = 1, n = arguments.length; i < n; i++) {
-                    s = arguments[i];
-                    for (var p in s)
-                        if (Object.prototype.hasOwnProperty.call(s, p))
-                            t[p] = s[p];
-                }
-                return t;
-            };
-            var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
-                return new (P || (P = Promise))(function (resolve, reject) {
-                    function fulfilled(value) {
-                        try {
-                            step(generator.next(value));
-                        } catch (e) {
-                            reject(e);
-                        }
-                    }
-                    function rejected(value) {
-                        try {
-                            step(generator['throw'](value));
-                        } catch (e) {
-                            reject(e);
-                        }
-                    }
-                    function step(result) {
-                        result.done ? resolve(result.value) : new P(function (resolve) {
-                            resolve(result.value);
-                        }).then(fulfilled, rejected);
-                    }
-                    step((generator = generator.apply(thisArg, _arguments || [])).next());
-                });
-            };
-            var __generator = this && this.__generator || function (thisArg, body) {
-                var _ = {
-                        label: 0,
-                        sent: function () {
-                            if (t[0] & 1)
-                                throw t[1];
-                            return t[1];
-                        },
-                        trys: [],
-                        ops: []
-                    }, f, y, t, g;
-                return g = {
-                    next: verb(0),
-                    'throw': verb(1),
-                    'return': verb(2)
-                }, typeof Symbol === 'function' && (g[Symbol.iterator] = function () {
-                    return this;
-                }), g;
-                function verb(n) {
-                    return function (v) {
-                        return step([
-                            n,
-                            v
-                        ]);
-                    };
-                }
-                function step(op) {
-                    if (f)
-                        throw new TypeError('Generator is already executing.');
-                    while (_)
-                        try {
-                            if (f = 1, y && (t = y[op[0] & 2 ? 'return' : op[0] ? 'throw' : 'next']) && !(t = t.call(y, op[1])).done)
-                                return t;
-                            if (y = 0, t)
-                                op = [
-                                    0,
-                                    t.value
-                                ];
-                            switch (op[0]) {
-                            case 0:
-                            case 1:
-                                t = op;
-                                break;
-                            case 4:
-                                _.label++;
-                                return {
-                                    value: op[1],
-                                    done: false
-                                };
-                            case 5:
-                                _.label++;
-                                y = op[1];
-                                op = [0];
-                                continue;
-                            case 7:
-                                op = _.ops.pop();
-                                _.trys.pop();
-                                continue;
-                            default:
-                                if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
-                                    _ = 0;
-                                    continue;
-                                }
-                                if (op[0] === 3 && (!t || op[1] > t[0] && op[1] < t[3])) {
-                                    _.label = op[1];
-                                    break;
-                                }
-                                if (op[0] === 6 && _.label < t[1]) {
-                                    _.label = t[1];
-                                    t = op;
-                                    break;
-                                }
-                                if (t && _.label < t[2]) {
-                                    _.label = t[2];
-                                    _.ops.push(op);
-                                    break;
-                                }
-                                if (t[2])
-                                    _.ops.pop();
-                                _.trys.pop();
-                                continue;
-                            }
-                            op = body.call(thisArg, _);
-                        } catch (e) {
-                            op = [
-                                6,
-                                e
-                            ];
-                            y = 0;
-                        } finally {
-                            f = t = 0;
-                        }
-                    if (op[0] & 5)
-                        throw op[1];
-                    return {
-                        value: op[0] ? op[1] : void 0,
-                        done: true
-                    };
-                }
-            };
-            Object.defineProperty(exports, '__esModule', { value: true });
-            var spica_1 = require('spica');
-            var entity_1 = require('../../model/eav/entity');
-            var update_1 = require('../../model/eav/value/update');
-            var blur_1 = require('../../module/update/blur');
-            var url_1 = require('../../module/update/url');
-            var title_1 = require('../../module/update/title');
-            var head_1 = require('../../module/update/head');
-            var content_1 = require('../../module/update/content');
-            var css_1 = require('../../module/update/css');
-            var script_1 = require('../../module/update/script');
-            var focus_1 = require('../../module/update/focus');
-            var scroll_1 = require('../../module/update/scroll');
-            var path_1 = require('../../../store/path');
-            var error_1 = require('../../../data/error');
-            function update(_a, _b, seq, io) {
-                var event = _a.event, config = _a.config, state = _a.state;
-                var response = _b.response;
-                return __awaiter(this, void 0, void 0, function () {
-                    var _this = this;
-                    var cancelable, documents;
-                    return __generator(this, function (_a) {
-                        cancelable = state.cancelable;
-                        documents = new update_1.UpdateSource({
-                            src: response.document,
-                            dst: io.document
-                        }).documents;
-                        return [
-                            2,
-                            new spica_1.HNil().push(cancelable.either(seq)).modify(function (m) {
-                                return m.fmap(function (seq) {
-                                    return content_1.separate(documents, config.areas).fmap(function (_a) {
-                                        var area = _a[0];
-                                        return void config.rewrite(documents.src, area, '');
-                                    }).extract(function () {
-                                        return __awaiter(_this, void 0, void 0, function () {
-                                            return __generator(this, function (_a) {
-                                                return [
-                                                    2,
-                                                    spica_1.Left(new error_1.DomainError('Failed to separate areas.'))
-                                                ];
-                                            });
-                                        });
-                                    }, function () {
-                                        return __awaiter(_this, void 0, void 0, function () {
-                                            var _a, _b;
-                                            return __generator(this, function (_c) {
-                                                switch (_c.label) {
-                                                case 0:
-                                                    void window.dispatchEvent(new Event('pjax:unload'));
-                                                    _b = (_a = cancelable).either;
-                                                    return [
-                                                        4,
-                                                        config.sequence.unload(seq, __assign({}, response))
-                                                    ];
-                                                case 1:
-                                                    return [
-                                                        2,
-                                                        _b.apply(_a, [_c.sent()])
-                                                    ];
-                                                }
-                                            });
-                                        });
-                                    });
-                                });
-                            }).modify(function (m) {
-                                return m.fmap(function (p) {
-                                    return __awaiter(_this, void 0, void 0, function () {
-                                        var _this = this;
-                                        return __generator(this, function (_a) {
-                                            switch (_a.label) {
-                                            case 0:
-                                                return [
-                                                    4,
-                                                    p
-                                                ];
-                                            case 1:
-                                                return [
-                                                    2,
-                                                    _a.sent().fmap(function (seq) {
-                                                        return new spica_1.HNil().push(void 0).modify(function () {
-                                                            return __awaiter(_this, void 0, void 0, function () {
-                                                                return __generator(this, function (_a) {
-                                                                    return [
-                                                                        2,
-                                                                        (void blur_1.blur(documents.dst), void url_1.url(new entity_1.RouterEntity.Event.Location(response.url || event.location.dest.href), documents.src.title, event.type, event.source, config.replace), void title_1.title(documents), void path_1.saveTitle(), void head_1.head({
-                                                                            src: documents.src.head,
-                                                                            dst: documents.dst.head
-                                                                        }, config.update.head, config.update.ignore), content_1.content(documents, config.areas).fmap(function (_a) {
-                                                                            var as = _a[0], ps = _a[1];
-                                                                            return [
-                                                                                as,
-                                                                                Promise.all(ps)
-                                                                            ];
-                                                                        }).fmap(cancelable.either).extract(function () {
-                                                                            return spica_1.Left(new error_1.DomainError('Failed to update areas.'));
-                                                                        }))
-                                                                    ];
-                                                                });
-                                                            });
-                                                        }).extend(function (p) {
-                                                            return __awaiter(_this, void 0, void 0, function () {
-                                                                var _this = this;
-                                                                return __generator(this, function (_a) {
-                                                                    switch (_a.label) {
-                                                                    case 0:
-                                                                        return [
-                                                                            4,
-                                                                            p
-                                                                        ];
-                                                                    case 1:
-                                                                        return [
-                                                                            2,
-                                                                            _a.sent().fmap(function (_a) {
-                                                                                var areas = _a[0];
-                                                                                return Promise.all(new spica_1.HNil().push(void 0).modify(function () {
-                                                                                    return __awaiter(_this, void 0, void 0, function () {
-                                                                                        var _a;
-                                                                                        return __generator(this, function (_b) {
-                                                                                            switch (_b.label) {
-                                                                                            case 0:
-                                                                                                config.update.css ? void css_1.css({
-                                                                                                    src: documents.src.head,
-                                                                                                    dst: documents.dst.head
-                                                                                                }, config.update.ignore) : void 0, config.update.css ? void css_1.css({
-                                                                                                    src: documents.src.body,
-                                                                                                    dst: documents.dst.body
-                                                                                                }, config.update.ignore) : void 0, void focus_1.focus(documents.dst), void scroll_1.scroll(event.type, documents.dst, {
-                                                                                                    hash: event.location.dest.fragment,
-                                                                                                    top: 0,
-                                                                                                    left: 0
-                                                                                                }, {
-                                                                                                    hash: scroll_1.hash,
-                                                                                                    scroll: io.scroll,
-                                                                                                    position: io.position
-                                                                                                }), void path_1.savePosition();
-                                                                                                if (!config.update.script)
-                                                                                                    return [
-                                                                                                        3,
-                                                                                                        2
-                                                                                                    ];
-                                                                                                return [
-                                                                                                    4,
-                                                                                                    script_1.script(documents, state.scripts, config.update, cancelable)
-                                                                                                ];
-                                                                                            case 1:
-                                                                                                _a = _b.sent();
-                                                                                                return [
-                                                                                                    3,
-                                                                                                    4
-                                                                                                ];
-                                                                                            case 2:
-                                                                                                return [
-                                                                                                    4,
-                                                                                                    cancelable.either([])
-                                                                                                ];
-                                                                                            case 3:
-                                                                                                _a = _b.sent();
-                                                                                                _b.label = 4;
-                                                                                            case 4:
-                                                                                                return [
-                                                                                                    2,
-                                                                                                    _a
-                                                                                                ];
-                                                                                            }
-                                                                                        });
-                                                                                    });
-                                                                                }).extend(function () {
-                                                                                    return __awaiter(_this, void 0, void 0, function () {
-                                                                                        var _a, _b;
-                                                                                        return __generator(this, function (_c) {
-                                                                                            switch (_c.label) {
-                                                                                            case 0:
-                                                                                                void io.document.dispatchEvent(new Event('pjax:ready'));
-                                                                                                _b = (_a = cancelable).either;
-                                                                                                return [
-                                                                                                    4,
-                                                                                                    config.sequence.ready(seq, areas)
-                                                                                                ];
-                                                                                            case 1:
-                                                                                                return [
-                                                                                                    2,
-                                                                                                    _b.apply(_a, [_c.sent()])
-                                                                                                ];
-                                                                                            }
-                                                                                        });
-                                                                                    });
-                                                                                }).reverse().tuple()).then(function (_a) {
-                                                                                    var m1 = _a[0], m2 = _a[1];
-                                                                                    return m1.bind(function (ss) {
-                                                                                        return m2.fmap(function (seq) {
-                                                                                            return [
-                                                                                                ss,
-                                                                                                seq
-                                                                                            ];
-                                                                                        });
-                                                                                    });
-                                                                                });
-                                                                            }).extract(spica_1.Left)
-                                                                        ];
-                                                                    }
-                                                                });
-                                                            });
-                                                        }).reverse().tuple();
-                                                    })
-                                                ];
-                                            }
-                                        });
-                                    });
-                                });
-                            }).modify(function (m) {
-                                return m.fmap(function (p) {
-                                    return __awaiter(_this, void 0, void 0, function () {
-                                        var _this = this;
-                                        return __generator(this, function (_a) {
-                                            switch (_a.label) {
-                                            case 0:
-                                                return [
-                                                    4,
-                                                    p
-                                                ];
-                                            case 1:
-                                                return [
-                                                    2,
-                                                    _a.sent().fmap(function (_a) {
-                                                        var p1 = _a[0], p2 = _a[1];
-                                                        return p2.then(function (m2) {
-                                                            return void p1.then(function (m1) {
-                                                                return m1.bind(function (_a) {
-                                                                    var p = _a[1];
-                                                                    return m2.fmap(function (_a) {
-                                                                        var seq = _a[1];
-                                                                        return __awaiter(_this, void 0, void 0, function () {
-                                                                            var _a, _b;
-                                                                            return __generator(this, function (_c) {
-                                                                                switch (_c.label) {
-                                                                                case 0:
-                                                                                    _b = (_a = cancelable).maybe;
-                                                                                    return [
-                                                                                        4,
-                                                                                        p
-                                                                                    ];
-                                                                                case 1:
-                                                                                    return [
-                                                                                        2,
-                                                                                        _b.apply(_a, [_c.sent()]).fmap(function (events) {
-                                                                                            return void window.dispatchEvent(new Event('pjax:load')), void config.sequence.load(seq, events);
-                                                                                        }).extract(function () {
-                                                                                            return void 0;
-                                                                                        })
-                                                                                    ];
-                                                                                }
-                                                                            });
-                                                                        });
-                                                                    });
-                                                                }).extract(function () {
-                                                                    return void 0;
-                                                                });
-                                                            }), m2.fmap(function (_a) {
-                                                                var ss = _a[0];
-                                                                return ss;
-                                                            });
-                                                        });
-                                                    }).extract(spica_1.Left)
-                                                ];
-                                            }
-                                        });
-                                    });
-                                });
-                            }).head().extract(spica_1.Left)
-                        ];
-                    });
-                });
-            }
-            exports.update = update;
-        },
-        {
-            '../../../data/error': 12,
-            '../../../store/path': 32,
-            '../../model/eav/entity': 15,
-            '../../model/eav/value/update': 17,
-            '../../module/update/blur': 19,
-            '../../module/update/content': 20,
-            '../../module/update/css': 21,
-            '../../module/update/focus': 22,
-            '../../module/update/head': 23,
-            '../../module/update/script': 24,
-            '../../module/update/scroll': 25,
-            '../../module/update/title': 27,
-            '../../module/update/url': 28,
-            'spica': undefined
-        }
-    ],
-    32: [
         function (require, module, exports) {
             'use strict';
             function __export(m) {
@@ -2386,7 +2364,7 @@ require = function e(t, n, r) {
         },
         { '../../data/store/state': 10 }
     ],
-    33: [
+    32: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -2416,9 +2394,9 @@ require = function e(t, n, r) {
             }(error_1.PjaxError);
             exports.InterfaceError = InterfaceError;
         },
-        { '../../../lib/error': 47 }
+        { '../../../lib/error': 46 }
     ],
-    34: [
+    33: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -2465,11 +2443,11 @@ require = function e(t, n, r) {
             exports.ClickView = ClickView;
         },
         {
-            '../../../../lib/dom': 46,
+            '../../../../lib/dom': 45,
             'spica': undefined
         }
     ],
-    35: [
+    34: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -2523,14 +2501,14 @@ require = function e(t, n, r) {
             exports.NavigationView = NavigationView;
         },
         {
-            '../../../../lib/dom': 46,
+            '../../../../lib/dom': 45,
             '../../../data/model/canonicalization/url': 8,
             '../../../data/model/validation/url': 9,
-            '../../service/state/url': 45,
+            '../../service/state/url': 44,
             'spica': undefined
         }
     ],
-    36: [
+    35: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -2583,11 +2561,11 @@ require = function e(t, n, r) {
             exports.ScrollView = ScrollView;
         },
         {
-            '../../../../lib/dom': 46,
+            '../../../../lib/dom': 45,
             'spica': undefined
         }
     ],
-    37: [
+    36: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -2634,20 +2612,20 @@ require = function e(t, n, r) {
             exports.SubmitView = SubmitView;
         },
         {
-            '../../../../lib/dom': 46,
+            '../../../../lib/dom': 45,
             'spica': undefined
         }
     ],
-    38: [
+    37: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             var gui_1 = require('./gui');
             exports.API = gui_1.GUI;
         },
-        { './gui': 39 }
+        { './gui': 38 }
     ],
-    39: [
+    38: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -2802,23 +2780,23 @@ require = function e(t, n, r) {
             }
         },
         {
-            '../../../lib/dom': 46,
-            '../../../lib/html': 48,
-            '../../../lib/url': 51,
+            '../../../lib/dom': 45,
+            '../../../lib/html': 47,
+            '../../../lib/url': 50,
             '../../application/api': 4,
             '../../data/model/canonicalization/url': 8,
             '../../data/model/validation/url': 9,
-            '../module/view/click': 34,
-            '../module/view/navigation': 35,
-            '../module/view/scroll': 36,
-            '../module/view/submit': 37,
-            '../service/router': 41,
-            '../service/state/scroll-restoration': 44,
-            '../service/state/url': 45,
+            '../module/view/click': 33,
+            '../module/view/navigation': 34,
+            '../module/view/scroll': 35,
+            '../module/view/submit': 36,
+            '../service/router': 40,
+            '../service/state/scroll-restoration': 43,
+            '../service/state/url': 44,
             'spica': undefined
         }
     ],
-    40: [
+    39: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2848,7 +2826,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    41: [
+    40: [
         function (require, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -3036,27 +3014,27 @@ require = function e(t, n, r) {
             exports.route = route;
         },
         {
-            '../../../lib/dom': 46,
+            '../../../lib/dom': 45,
             '../../application/api': 4,
             '../../data/model/canonicalization/url': 8,
             '../../data/model/validation/url': 9,
-            '../data/error': 33,
-            '../service/state/env': 42,
-            './progressbar': 40,
-            './state/url': 45,
+            '../data/error': 32,
+            '../service/state/env': 41,
+            './progressbar': 39,
+            './state/url': 44,
             'spica': undefined
         }
     ],
-    42: [
+    41: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             var script_1 = require('./script');
             exports.env = Promise.all([script_1.scripts]);
         },
-        { './script': 43 }
+        { './script': 42 }
     ],
-    43: [
+    42: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3072,12 +3050,12 @@ require = function e(t, n, r) {
             });
         },
         {
-            '../../../../lib/dom': 46,
+            '../../../../lib/dom': 45,
             '../../../data/model/canonicalization/url': 8,
             '../../../data/model/validation/url': 9
         }
     ],
-    44: [
+    43: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3086,9 +3064,9 @@ require = function e(t, n, r) {
                 return window.history.scrollRestoration = 'auto';
             }, false);
         },
-        { '../../../../lib/dom': 46 }
+        { '../../../../lib/dom': 45 }
     ],
-    45: [
+    44: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3109,7 +3087,7 @@ require = function e(t, n, r) {
             '../../../data/model/validation/url': 9
         }
     ],
-    46: [
+    45: [
         function (require, module, exports) {
             'use strict';
             var __assign = this && this.__assign || Object.assign || function (t) {
@@ -3130,7 +3108,7 @@ require = function e(t, n, r) {
             }
             exports.parse = parse;
             function find(target, selector) {
-                return Array.from(target.querySelectorAll(selector || '_') || []);
+                return Array.from(target.querySelectorAll(selector || '_'));
             }
             exports.find = find;
             function bind(target, type, listener, option) {
@@ -3239,9 +3217,9 @@ require = function e(t, n, r) {
                 return supportEventListenerOptions ? option : typeof option === 'boolean' ? option : option.capture;
             }
         },
-        { './noop': 49 }
+        { './noop': 48 }
     ],
-    47: [
+    46: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -3272,7 +3250,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    48: [
+    47: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3356,11 +3334,11 @@ require = function e(t, n, r) {
             }
         },
         {
-            './dom': 46,
+            './dom': 45,
             'spica': undefined
         }
     ],
-    49: [
+    48: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3371,7 +3349,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    50: [
+    49: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3482,11 +3460,11 @@ require = function e(t, n, r) {
         {
             '../layer/data/model/canonicalization/url': 8,
             '../layer/data/model/validation/url': 9,
-            './url': 51,
+            './url': 50,
             'spica': undefined
         }
     ],
-    51: [
+    50: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
