@@ -2,6 +2,7 @@ import { Either, Left, HNil } from 'spica';
 import { RouterEntity } from '../model/eav/entity';
 import { FetchResult } from '../model/eav/value/fetch';
 import { UpdateSource } from '../model/eav/value/update';
+import { Sequence } from '../../data/config';
 import { blur } from '../module/update/blur';
 import { url } from '../module/update/url';
 import { title } from '../module/update/title';
@@ -14,8 +15,6 @@ import { scroll, hash } from '../module/update/scroll';
 import { saveTitle, savePosition } from '../../store/path';
 import { DomainError } from '../../data/error';
 
-type Seq = void;
-
 export async function update(
   {
     event,
@@ -25,7 +24,7 @@ export async function update(
   {
     response
   }: FetchResult,
-  seq: Seq,
+  seq: Sequence.Data.Fetch,
   io: {
     document: Document;
     scroll: (x?: number, y?: number) => void;
@@ -45,7 +44,7 @@ export async function update(
         separate(documents, config.areas)
           .fmap(([area]) =>
             void config.rewrite(documents.src, area, ''))
-          .extract<Promise<Either<Error, Seq>>>(
+          .extract<Promise<Either<Error, Sequence.Data.Unload>>>(
             async () =>
               Left(new DomainError(`Failed to separate areas.`)),
             async () => (
@@ -123,7 +122,7 @@ export async function update(
               .reverse()
               .tuple())
             .then(([m1, m2]) =>
-              m1.bind(ss => m2.fmap<[HTMLScriptElement[], Seq]>(seq => [ss, seq]))))
+              m1.bind(ss => m2.fmap<[HTMLScriptElement[], Sequence.Data.Ready]>(seq => [ss, seq]))))
             .extract<Left<Error>>(Left))
           .reverse()
           .tuple())))

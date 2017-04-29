@@ -40,7 +40,7 @@ export class Config implements Option {
     }
     throw reason;
   }
-  public readonly sequence: ISequence<void, void, void> = new Sequence();
+  public readonly sequence: ISequence<Sequence.Data.Fetch, Sequence.Data.Unload, Sequence.Data.Ready> = new Sequence();
   public readonly balance = {
     bounds: [
       ''
@@ -73,13 +73,29 @@ export class Config implements Option {
   };
 }
 
-class Sequence implements ISequence<void, void, void> {
-  public async fetch(): Promise<void> {
+export class Sequence implements ISequence<Sequence.Data.Fetch, Sequence.Data.Unload, Sequence.Data.Ready> {
+  public async fetch(): Promise<Sequence.Data.Fetch> {
+    return <any>void 0;
   }
-  public async unload(): Promise<void> {
+  public async unload(): Promise<Sequence.Data.Unload> {
+    return <any>void 0;
   }
-  public async ready(): Promise<void> {
+  public async ready(): Promise<Sequence.Data.Ready> {
+    return <any>void 0;
   }
   public load(): void {
+  }
+}
+export namespace Sequence {
+  abstract class Sequence<T> {
+    protected DATA: T;
+  }
+  export namespace Data {
+    export interface Fetch extends Sequence<'fetch'> {
+    }
+    export interface Unload extends Sequence<'unload'> {
+    }
+    export interface Ready extends Sequence<'ready'> {
+    }
   }
 }
