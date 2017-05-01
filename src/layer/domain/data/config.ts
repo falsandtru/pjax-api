@@ -87,8 +87,8 @@ class Sequence implements ISequence<SequenceData.Fetch, SequenceData.Unload, Seq
   }
 }
 export namespace SequenceData {
-  abstract class SequenceData<T> {
-    protected DATA: T;
+  declare class SequenceData<T> {
+    private DATA: T;
   }
   export interface Fetch extends SequenceData<'fetch'> {
   }
