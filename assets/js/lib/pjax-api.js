@@ -189,6 +189,7 @@ require = function e(t, n, r) {
             exports.Config = config_1.Config;
             var scope_1 = require('./config/scope');
             var api_1 = require('../domain/router/api');
+            var router_1 = require('../domain/event/router');
             var error_1 = require('./data/error');
             __export(require('./store/path'));
             function route(config, event, state, io) {
@@ -196,14 +197,14 @@ require = function e(t, n, r) {
                     return __generator(this, function (_a) {
                         return [
                             2,
-                            spica_1.Just(new api_1.RouterEntity.Event(event).location).bind(function (_a) {
+                            spica_1.Just(new router_1.RouterEvent(event).location).bind(function (_a) {
                                 var orig = _a.orig, dest = _a.dest;
                                 return scope_1.scope(config, {
                                     orig: orig.pathname,
                                     dest: dest.pathname
                                 });
                             }).fmap(function (config) {
-                                return new api_1.RouterEntity(config, new api_1.RouterEntity.Event(event), new api_1.RouterEntity.State(state.scripts, state.cancelable));
+                                return new api_1.RouterEntity(config, new router_1.RouterEvent(event), new api_1.RouterEntityState(state.scripts, state.cancelable));
                             }).fmap(function (entity) {
                                 return api_1.route(entity, io);
                             }).extract(function () {
@@ -217,6 +218,7 @@ require = function e(t, n, r) {
         },
         {
             '../domain/data/config': 11,
+            '../domain/event/router': 13,
             '../domain/router/api': 14,
             './config/scope': 5,
             './data/error': 6,
@@ -568,21 +570,30 @@ require = function e(t, n, r) {
                 Sequence.prototype.fetch = function () {
                     return __awaiter(this, void 0, void 0, function () {
                         return __generator(this, function (_a) {
-                            return [2];
+                            return [
+                                2,
+                                void 0
+                            ];
                         });
                     });
                 };
                 Sequence.prototype.unload = function () {
                     return __awaiter(this, void 0, void 0, function () {
                         return __generator(this, function (_a) {
-                            return [2];
+                            return [
+                                2,
+                                void 0
+                            ];
                         });
                     });
                 };
                 Sequence.prototype.ready = function () {
                     return __awaiter(this, void 0, void 0, function () {
                         return __generator(this, function (_a) {
-                            return [2];
+                            return [
+                                2,
+                                void 0
+                            ];
                         });
                     });
                 };
@@ -590,6 +601,14 @@ require = function e(t, n, r) {
                 };
                 return Sequence;
             }();
+            var SequenceData;
+            (function (SequenceData_1) {
+                var SequenceData = function () {
+                    function SequenceData() {
+                    }
+                    return SequenceData;
+                }();
+            }(SequenceData = exports.SequenceData || (exports.SequenceData = {})));
         },
         { 'spica': undefined }
     ],
@@ -640,74 +659,71 @@ require = function e(t, n, r) {
                     this.original = original;
                     this.source = this.original._currentTarget;
                     this.type = this.original.type.toLowerCase();
-                    this.request = new RouterEvent.Request(this.source, this.type);
-                    this.location = new RouterEvent.Location(this.request.url);
+                    this.request = new RouterEventRequest(this.source, this.type);
+                    this.location = new RouterEventLocation(this.request.url);
                     void Object.freeze(this);
                 }
                 return RouterEvent;
             }();
             exports.RouterEvent = RouterEvent;
-            (function (RouterEvent) {
-                var Type;
-                (function (Type) {
-                    Type.click = 'click';
-                    Type.submit = 'submit';
-                    Type.popstate = 'popstate';
-                }(Type = RouterEvent.Type || (RouterEvent.Type = {})));
-                var Method;
-                (function (Method) {
-                    Method.GET = 'GET';
-                    Method.POST = 'POST';
-                }(Method = RouterEvent.Method || (RouterEvent.Method = {})));
-                var Request = function () {
-                    function Request(source, eventType) {
-                        var _this = this;
-                        this.source = source;
-                        this.eventType = eventType;
-                        this.method = function () {
-                            switch (_this.eventType) {
-                            case Type.click:
-                                return Method.GET;
-                            case Type.submit:
-                                return _this.source.method.toUpperCase() === Method.POST ? Method.POST : Method.GET;
-                            case Type.popstate:
-                                return Method.GET;
-                            default:
-                                throw new TypeError();
-                            }
-                        }();
-                        this.url = function () {
-                            switch (_this.eventType) {
-                            case Type.click:
-                                return url_2.canonicalizeUrl(url_3.validateUrl(_this.source.href));
-                            case Type.submit:
-                                return url_2.canonicalizeUrl(url_3.validateUrl(_this.source.method.toUpperCase() === Method.POST ? _this.source.action.split(/[?#]/).shift() : _this.source.action.split(/[?#]/).shift().concat('?' + dom_1.serialize(_this.source))));
-                            case Type.popstate:
-                                return url_2.canonicalizeUrl(url_3.validateUrl(window.location.href));
-                            default:
-                                throw new TypeError();
-                            }
-                        }();
-                        this.data = this.method === Method.POST ? new FormData(this.source) : null;
-                        void Object.freeze(this);
-                    }
-                    return Request;
-                }();
-                RouterEvent.Request = Request;
-                var Location = function () {
-                    function Location(target) {
-                        this.target = target;
-                        this.orig = new url_1.Url(url_2.canonicalizeUrl(url_3.validateUrl(window.location.href)));
-                        this.dest = new url_1.Url(this.target);
-                        if (this.orig.domain !== this.dest.domain)
-                            throw new error_1.DomainError('Cannot go to the different domain url ' + this.dest.href);
-                        void Object.freeze(this);
-                    }
-                    return Location;
-                }();
-                RouterEvent.Location = Location;
-            }(RouterEvent = exports.RouterEvent || (exports.RouterEvent = {})));
-            exports.RouterEvent = RouterEvent;
+            var RouterEventType;
+            (function (RouterEventType) {
+                RouterEventType.click = 'click';
+                RouterEventType.submit = 'submit';
+                RouterEventType.popstate = 'popstate';
+            }(RouterEventType = exports.RouterEventType || (exports.RouterEventType = {})));
+            var RouterEventMethod;
+            (function (RouterEventMethod) {
+                RouterEventMethod.GET = 'GET';
+                RouterEventMethod.POST = 'POST';
+            }(RouterEventMethod = exports.RouterEventMethod || (exports.RouterEventMethod = {})));
+            var RouterEventRequest = function () {
+                function RouterEventRequest(source, eventType) {
+                    var _this = this;
+                    this.source = source;
+                    this.eventType = eventType;
+                    this.method = function () {
+                        switch (_this.eventType) {
+                        case RouterEventType.click:
+                            return RouterEventMethod.GET;
+                        case RouterEventType.submit:
+                            return _this.source.method.toUpperCase() === RouterEventMethod.POST ? RouterEventMethod.POST : RouterEventMethod.GET;
+                        case RouterEventType.popstate:
+                            return RouterEventMethod.GET;
+                        default:
+                            throw new TypeError();
+                        }
+                    }();
+                    this.url = function () {
+                        switch (_this.eventType) {
+                        case RouterEventType.click:
+                            return url_2.canonicalizeUrl(url_3.validateUrl(_this.source.href));
+                        case RouterEventType.submit:
+                            return url_2.canonicalizeUrl(url_3.validateUrl(_this.source.method.toUpperCase() === RouterEventMethod.POST ? _this.source.action.split(/[?#]/).shift() : _this.source.action.split(/[?#]/).shift().concat('?' + dom_1.serialize(_this.source))));
+                        case RouterEventType.popstate:
+                            return url_2.canonicalizeUrl(url_3.validateUrl(window.location.href));
+                        default:
+                            throw new TypeError();
+                        }
+                    }();
+                    this.data = this.method === RouterEventMethod.POST ? new FormData(this.source) : null;
+                    void Object.freeze(this);
+                }
+                return RouterEventRequest;
+            }();
+            exports.RouterEventRequest = RouterEventRequest;
+            var RouterEventLocation = function () {
+                function RouterEventLocation(target) {
+                    this.target = target;
+                    this.orig = new url_1.Url(url_2.canonicalizeUrl(url_3.validateUrl(window.location.href)));
+                    this.dest = new url_1.Url(this.target);
+                    if (this.orig.domain !== this.dest.domain)
+                        throw new error_1.DomainError('Cannot go to the different domain url ' + this.dest.href);
+                    void Object.freeze(this);
+                }
+                return RouterEventLocation;
+            }();
+            exports.RouterEventLocation = RouterEventLocation;
         },
         {
             '../../../lib/dom': 45,
@@ -846,13 +862,14 @@ require = function e(t, n, r) {
             };
             Object.defineProperty(exports, '__esModule', { value: true });
             var spica_1 = require('spica');
-            var entity_1 = require('./model/eav/entity');
-            exports.RouterEntity = entity_1.RouterEntity;
             var fetch_1 = require('./module/fetch');
             var update_1 = require('./module/update');
             var content_1 = require('./module/update/content');
             var path_1 = require('../store/path');
             var error_1 = require('../data/error');
+            var entity_1 = require('./model/eav/entity');
+            exports.RouterEntity = entity_1.RouterEntity;
+            exports.RouterEntityState = entity_1.RouterEntityState;
             function route(entity, io) {
                 return __awaiter(this, void 0, void 0, function () {
                     var _this = this;
@@ -908,7 +925,6 @@ require = function e(t, n, r) {
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            var router_1 = require('../../../event/router');
             var RouterEntity = function () {
                 function RouterEntity(config, event, state) {
                     this.config = config;
@@ -919,21 +935,17 @@ require = function e(t, n, r) {
                 return RouterEntity;
             }();
             exports.RouterEntity = RouterEntity;
-            (function (RouterEntity) {
-                RouterEntity.Event = router_1.RouterEvent;
-                var State = function () {
-                    function State(scripts, cancelable) {
-                        this.scripts = scripts;
-                        this.cancelable = cancelable;
-                        void Object.freeze(this);
-                    }
-                    return State;
-                }();
-                RouterEntity.State = State;
-            }(RouterEntity = exports.RouterEntity || (exports.RouterEntity = {})));
-            exports.RouterEntity = RouterEntity;
+            var RouterEntityState = function () {
+                function RouterEntityState(scripts, cancelable) {
+                    this.scripts = scripts;
+                    this.cancelable = cancelable;
+                    void Object.freeze(this);
+                }
+                return RouterEntityState;
+            }();
+            exports.RouterEntityState = RouterEntityState;
         },
-        { '../../../event/router': 13 }
+        {}
     ],
     16: [
         function (require, module, exports) {
@@ -1136,7 +1148,7 @@ require = function e(t, n, r) {
                 var method = _a.method, url = _a.url, data = _a.data;
                 var setting = _b.fetch, sequence = _b.sequence;
                 return __awaiter(this, void 0, void 0, function () {
-                    var req, state;
+                    var req, seq;
                     return __generator(this, function (_a) {
                         switch (_a.label) {
                         case 0:
@@ -1152,7 +1164,7 @@ require = function e(t, n, r) {
                                 })
                             ];
                         case 1:
-                            state = _a.sent();
+                            seq = _a.sent();
                             return [
                                 4,
                                 req
@@ -1163,7 +1175,7 @@ require = function e(t, n, r) {
                                 _a.sent().bind(cancelable.either).bind(function (result) {
                                     return result.response.url === '' || new url_1.Url(result.response.url).domain === new url_1.Url(url).domain ? spica_1.Right([
                                         result,
-                                        state
+                                        seq
                                     ]) : spica_1.Left(new error_1.DomainError('Request is redirected to the different domain url ' + new url_1.Url(result.response.url).href));
                                 })
                             ];
@@ -1391,7 +1403,7 @@ require = function e(t, n, r) {
             };
             Object.defineProperty(exports, '__esModule', { value: true });
             var spica_1 = require('spica');
-            var entity_1 = require('../model/eav/entity');
+            var router_1 = require('../../event/router');
             var update_1 = require('../model/eav/value/update');
             var blur_1 = require('../module/update/blur');
             var url_1 = require('../module/update/url');
@@ -1474,7 +1486,7 @@ require = function e(t, n, r) {
                                                                 return __generator(this, function (_a) {
                                                                     return [
                                                                         2,
-                                                                        (void blur_1.blur(documents.dst), void url_1.url(new entity_1.RouterEntity.Event.Location(response.url || event.location.dest.href), documents.src.title, event.type, event.source, config.replace), void title_1.title(documents), void path_1.saveTitle(), void head_1.head({
+                                                                        (void blur_1.blur(documents.dst), void url_1.url(new router_1.RouterEventLocation(response.url || event.location.dest.href), documents.src.title, event.type, event.source, config.replace), void title_1.title(documents), void path_1.saveTitle(), void head_1.head({
                                                                             src: documents.src.head,
                                                                             dst: documents.dst.head
                                                                         }, config.update.head, config.update.ignore), content_1.content(documents, config.areas).fmap(function (_a) {
@@ -1667,8 +1679,8 @@ require = function e(t, n, r) {
         },
         {
             '../../data/error': 12,
+            '../../event/router': 13,
             '../../store/path': 31,
-            '../model/eav/entity': 15,
             '../model/eav/value/update': 17,
             '../module/update/blur': 21,
             '../module/update/content': 22,
@@ -2169,7 +2181,7 @@ require = function e(t, n, r) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             var spica_1 = require('spica');
-            var entity_1 = require('../../model/eav/entity');
+            var router_1 = require('../../../event/router');
             var dom_1 = require('../../../../../lib/dom');
             function scroll(type, document, target, io) {
                 if (io === void 0) {
@@ -2185,11 +2197,11 @@ require = function e(t, n, r) {
                     };
                 }
                 switch (type) {
-                case entity_1.RouterEntity.Event.Type.click:
+                case router_1.RouterEventType.click:
                     return void (io.hash(document, target.hash, io) || scroll(target));
-                case entity_1.RouterEntity.Event.Type.submit:
+                case router_1.RouterEventType.submit:
                     return void scroll(target);
-                case entity_1.RouterEntity.Event.Type.popstate:
+                case router_1.RouterEventType.popstate:
                     return void scroll(io.position());
                 default:
                     throw new TypeError(type);
@@ -2226,7 +2238,7 @@ require = function e(t, n, r) {
         },
         {
             '../../../../../lib/dom': 45,
-            '../../model/eav/entity': 15,
+            '../../../event/router': 13,
             'spica': undefined
         }
     ],
@@ -2310,7 +2322,7 @@ require = function e(t, n, r) {
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            var entity_1 = require('../../model/eav/entity');
+            var router_1 = require('../../../event/router');
             function url(location, title, type, source, replaceable) {
                 switch (true) {
                 case isReplaceable(type, source, replaceable):
@@ -2326,10 +2338,10 @@ require = function e(t, n, r) {
                 if (location.orig.href === location.dest.href)
                     return false;
                 switch (type) {
-                case entity_1.RouterEntity.Event.Type.click:
-                case entity_1.RouterEntity.Event.Type.submit:
+                case router_1.RouterEventType.click:
+                case router_1.RouterEventType.submit:
                     return true;
-                case entity_1.RouterEntity.Event.Type.popstate:
+                case router_1.RouterEventType.popstate:
                     return false;
                 default:
                     throw new TypeError(type);
@@ -2338,10 +2350,10 @@ require = function e(t, n, r) {
             exports._isRegisterable = isRegisterable;
             function isReplaceable(type, source, selector) {
                 switch (type) {
-                case entity_1.RouterEntity.Event.Type.click:
-                case entity_1.RouterEntity.Event.Type.submit:
+                case router_1.RouterEventType.click:
+                case router_1.RouterEventType.submit:
                     return source.matches(selector.trim() || '_');
-                case entity_1.RouterEntity.Event.Type.popstate:
+                case router_1.RouterEventType.popstate:
                     return false;
                 default:
                     throw new TypeError(type);
@@ -2349,7 +2361,7 @@ require = function e(t, n, r) {
             }
             exports._isReplaceable = isReplaceable;
         },
-        { '../../model/eav/entity': 15 }
+        { '../../../event/router': 13 }
     ],
     31: [
         function (require, module, exports) {
