@@ -1,8 +1,8 @@
-export interface StateSchema {
-  title: StateSchema.Title;
-  position: StateSchema.Position;
+export interface State {
+  title: State.Title;
+  position: State.Position;
 }
-export namespace StateSchema {
+export namespace State {
   export type title = 'title';
   export type Title = string;
   export type position = 'position';

@@ -1,5 +1,5 @@
 import { extend } from 'spica';
-import { StateSchema } from '../schema/state';
+import { State } from '../schema/state';
 
 if (window.history.state instanceof Object === false) {
   void window.history.replaceState({}, document.title);
@@ -9,14 +9,14 @@ assert(window.history.state instanceof Object);
 void saveTitle();
 void savePosition();
 
-export function loadTitle(): StateSchema.Title {
+export function loadTitle(): State.Title {
   return window.history.state.title
       || document.title;
 }
 
 export function saveTitle(): void {
   void window.history.replaceState(
-    extend<Pick<StateSchema, StateSchema.title>>(
+    extend<Pick<State, State.title>>(
       window.history.state || {},
       {
         title: document.title
@@ -24,7 +24,7 @@ export function saveTitle(): void {
     document.title);
 }
 
-export function loadPosition(): StateSchema.Position {
+export function loadPosition(): State.Position {
   return window.history.state.position
       || {
            top: window.pageYOffset,
@@ -34,7 +34,7 @@ export function loadPosition(): StateSchema.Position {
 
 export function savePosition(): void {
   void window.history.replaceState(
-    extend<Pick<StateSchema, StateSchema.position>>(
+    extend<Pick<State, State.position>>(
       window.history.state || {},
       {
         position: {
