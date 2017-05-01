@@ -12,96 +12,94 @@ export class RouterEvent {
     assert(['click', 'submit', 'popstate'].some(type => this.original.type === type));
     void Object.freeze(this);
   }
-  public readonly source: RouterEvent.Source = <HTMLAnchorElement>this.original._currentTarget;
-  public readonly type: RouterEvent.Type = <RouterEvent.Type>this.original.type.toLowerCase();
-  public readonly request: RouterEvent.Request = new RouterEvent.Request(this.source, this.type);
-  public readonly location: RouterEvent.Location = new RouterEvent.Location(this.request.url);
+  public readonly source: RouterEventSource = <HTMLAnchorElement>this.original._currentTarget;
+  public readonly type: RouterEventType = <RouterEventType>this.original.type.toLowerCase();
+  public readonly request: RouterEventRequest = new RouterEventRequest(this.source, this.type);
+  public readonly location: RouterEventLocation = new RouterEventLocation(this.request.url);
 }
-export namespace RouterEvent {
-  export type Source
-    = Source.Anchor
-    | Source.Form
-    | Source.Window;
-  export namespace Source {
-    export type Anchor = HTMLAnchorElement;
-    export type Form = HTMLFormElement;
-    export type Window = typeof window;
-  }
 
-  export type Type
-    = Type.click
-    | Type.submit
-    | Type.popstate;
-  export namespace Type {
-    export const click = 'click';
-    export type click = typeof click;
-    export const submit = 'submit';
-    export type submit = typeof submit;
-    export const popstate = 'popstate';
-    export type popstate = typeof popstate;
-  }
+export type RouterEventSource
+  = RouterEventSource.Anchor
+  | RouterEventSource.Form
+  | RouterEventSource.Window;
+export namespace RouterEventSource {
+  export type Anchor = HTMLAnchorElement;
+  export type Form = HTMLFormElement;
+  export type Window = typeof window;
+}
 
-  export type Method
-    = Method.GET
-    | Method.POST;
-  export namespace Method {
-    export const GET = 'GET';
-    export type GET = typeof GET;
-    export const POST = 'POST';
-    export type POST = typeof POST;
-  }
+export type RouterEventType
+  = RouterEventType.click
+  | RouterEventType.submit
+  | RouterEventType.popstate;
+export namespace RouterEventType {
+  export const click = 'click';
+  export type click = typeof click;
+  export const submit = 'submit';
+  export type submit = typeof submit;
+  export const popstate = 'popstate';
+  export type popstate = typeof popstate;
+}
 
-  export class Request {
-    constructor(
-      private readonly source: Source,
-      private readonly eventType: Type
-    ) {
-      void Object.freeze(this);
+export type RouterEventMethod
+  = RouterEventMethod.GET
+  | RouterEventMethod.POST;
+export namespace RouterEventMethod {
+  export const GET = 'GET';
+  export type GET = typeof GET;
+  export const POST = 'POST';
+  export type POST = typeof POST;
+}
+
+export class RouterEventRequest {
+  constructor(
+    private readonly source: RouterEventSource,
+    private readonly eventType: RouterEventType
+  ) {
+    void Object.freeze(this);
+  }
+  public method: RouterEventMethod = (() => {
+    switch (this.eventType) {
+      case RouterEventType.click:
+        return RouterEventMethod.GET;
+      case RouterEventType.submit:
+        return (<RouterEventSource.Form>this.source).method.toUpperCase() === RouterEventMethod.POST
+          ? RouterEventMethod.POST
+          : RouterEventMethod.GET;
+      case RouterEventType.popstate:
+        return RouterEventMethod.GET;
+      default:
+        throw new TypeError();
     }
-    public method: Method = (() => {
-      switch (this.eventType) {
-        case Type.click:
-          return Method.GET;
-        case Type.submit:
-          return (<Source.Form>this.source).method.toUpperCase() === Method.POST
-            ? Method.POST
-            : Method.GET;
-        case Type.popstate:
-          return Method.GET;
-        default:
-          throw new TypeError();
-      }
-    })();
-    public url: CanonicalUrl = (() => {
-      switch (this.eventType) {
-        case Type.click:
-          return canonicalizeUrl(validateUrl((<Source.Anchor>this.source).href));
-        case Type.submit:
-          return canonicalizeUrl(validateUrl(
-            (<Source.Form>this.source).method.toUpperCase() === Method.POST
-              ? (<Source.Form>this.source).action.split(/[?#]/).shift() !
-              : (<Source.Form>this.source).action.split(/[?#]/).shift() !
-                .concat(`?${serialize(<Source.Form>this.source)}`)));
-        case Type.popstate:
-          return canonicalizeUrl(validateUrl(window.location.href));
-        default:
-          throw new TypeError();
-      }
-    })();
-    public readonly data: FormData | null = this.method === Method.POST
-      ? new FormData(<Source.Form>this.source)
-      : null;
-  }
-
-  export class Location {
-    constructor(
-      private readonly target: CanonicalUrl
-    ) {
-      if (this.orig.domain !== this.dest.domain) throw new DomainError(`Cannot go to the different domain url ${this.dest.href}`);
-      void Object.freeze(this);
+  })();
+  public url: CanonicalUrl = (() => {
+    switch (this.eventType) {
+      case RouterEventType.click:
+        return canonicalizeUrl(validateUrl((<RouterEventSource.Anchor>this.source).href));
+      case RouterEventType.submit:
+        return canonicalizeUrl(validateUrl(
+          (<RouterEventSource.Form>this.source).method.toUpperCase() === RouterEventMethod.POST
+            ? (<RouterEventSource.Form>this.source).action.split(/[?#]/).shift() !
+            : (<RouterEventSource.Form>this.source).action.split(/[?#]/).shift() !
+              .concat(`?${serialize(<RouterEventSource.Form>this.source)}`)));
+      case RouterEventType.popstate:
+        return canonicalizeUrl(validateUrl(window.location.href));
+      default:
+        throw new TypeError();
     }
-    public readonly orig: Url<CanonicalUrl> = new Url(canonicalizeUrl(validateUrl(window.location.href)));
-    public readonly dest: Url<CanonicalUrl> = new Url(this.target);
-  }
+  })();
+  public readonly data: FormData | null = this.method === RouterEventMethod.POST
+    ? new FormData(<RouterEventSource.Form>this.source)
+    : null;
+}
 
+export class RouterEventLocation {
+  constructor(
+    private readonly target: CanonicalUrl
+  ) {
+    if (this.orig.domain !== this.dest.domain) throw new DomainError(`Cannot go to the different domain url ${this.dest.href}`);
+    void Object.freeze(this);
+  }
+  public readonly orig: Url<CanonicalUrl> = new Url(canonicalizeUrl(validateUrl(window.location.href)));
+  public readonly dest: Url<CanonicalUrl> = new Url(this.target);
 }

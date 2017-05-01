@@ -1,10 +1,10 @@
-import { RouterEntity } from '../../model/eav/entity';
+import { RouterEventSource, RouterEventType, RouterEventLocation } from '../../../event/router';
 
 export function url(
-  location: RouterEntity.Event.Location,
+  location: RouterEventLocation,
   title: string,
-  type: RouterEntity.Event.Type,
-  source: RouterEntity.Event.Source,
+  type: RouterEventType,
+  source: RouterEventSource,
   replaceable: string
 ): undefined {
   switch (true) {
@@ -24,15 +24,15 @@ export function url(
 }
 
 function isRegisterable(
-  type: RouterEntity.Event.Type,
-  location: RouterEntity.Event.Location
+  type: RouterEventType,
+  location: RouterEventLocation
 ): boolean {
   if (location.orig.href === location.dest.href) return false;
   switch (type) {
-    case RouterEntity.Event.Type.click:
-    case RouterEntity.Event.Type.submit:
+    case RouterEventType.click:
+    case RouterEventType.submit:
       return true;
-    case RouterEntity.Event.Type.popstate:
+    case RouterEventType.popstate:
       return false;
     default:
       throw new TypeError(type);
@@ -41,15 +41,15 @@ function isRegisterable(
 export { isRegisterable as _isRegisterable }
 
 function isReplaceable(
-  type: RouterEntity.Event.Type,
-  source: RouterEntity.Event.Source,
+  type: RouterEventType,
+  source: RouterEventSource,
   selector: string
 ): boolean {
   switch (type) {
-    case RouterEntity.Event.Type.click:
-    case RouterEntity.Event.Type.submit:
-      return (<RouterEntity.Event.Source.Form>source).matches(selector.trim() || '_');
-    case RouterEntity.Event.Type.popstate:
+    case RouterEventType.click:
+    case RouterEventType.submit:
+      return (<RouterEventSource.Form>source).matches(selector.trim() || '_');
+    case RouterEventType.popstate:
       return false;
     default:
       throw new TypeError(type);

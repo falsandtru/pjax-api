@@ -1,27 +1,23 @@
 import { Cancelable } from 'spica';
 import { RouterEvent } from '../../../event/router';
-import { Config as RouterConfig } from '../../../data/config';
+import { Config } from '../../../data/config';
 import { CanonicalUrl } from '../../../../data/model/canonicalization/url';
 
 export class RouterEntity {
   constructor(
-    public readonly config: RouterEntity.Config,
-    public readonly event: RouterEntity.Event,
-    public readonly state: RouterEntity.State
+    public readonly config: Config,
+    public readonly event: RouterEvent,
+    public readonly state: RouterEntityState
   ) {
     void Object.freeze(this);
   }
 }
 
-export namespace RouterEntity {
-  export import Event = RouterEvent;
-  export type Config = RouterConfig;
-  export class State {
-    constructor(
-      public readonly scripts: ReadonlySet<CanonicalUrl>,
-      public readonly cancelable: Cancelable<Error>
-    ) {
-      void Object.freeze(this);
-    }
+export class RouterEntityState {
+  constructor(
+    public readonly scripts: ReadonlySet<CanonicalUrl>,
+    public readonly cancelable: Cancelable<Error>
+  ) {
+    void Object.freeze(this);
   }
 }

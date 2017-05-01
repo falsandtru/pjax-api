@@ -2,7 +2,7 @@ import { Config as Option } from '../../../../';
 import { Cancelable, Supervisor, Just, Nothing, extend } from 'spica';
 import { Config } from '../../application/api';
 import { Url } from '../../../lib/url';
-import { RouterEvent } from '../../domain/event/router';
+import { RouterEventSource } from '../../domain/event/router';
 import { canonicalizeUrl, CanonicalUrl } from '../../data/model/canonicalization/url';
 import { validateUrl } from '../../data/model/validation/url';
 import { ClickView } from '../module/view/click';
@@ -41,12 +41,12 @@ export class GUI {
       call: (_, s) => (
         void s.listeners
           .add(new ClickView(this.io.document, this.config.link, event =>
-            void Just(new Url(canonicalizeUrl(validateUrl((<RouterEvent.Source.Anchor>event._currentTarget).href))))
+            void Just(new Url(canonicalizeUrl(validateUrl((<RouterEventSource.Anchor>event._currentTarget).href))))
               .bind(url =>
                 isAccessible(url)
                 && !isHashChange(url)
                 && !hasModifierKey(event)
-                && this.config.filter(<RouterEvent.Source.Anchor>event._currentTarget)
+                && this.config.filter(<RouterEventSource.Anchor>event._currentTarget)
                   ? Just(0)
                   : Nothing)
               .fmap(() =>
@@ -54,7 +54,7 @@ export class GUI {
               .extract(sync))
             .close)
           .add(new SubmitView(this.io.document, this.config.form, event =>
-            void Just(new Url(canonicalizeUrl(validateUrl((<RouterEvent.Source.Form>event._currentTarget).action))))
+            void Just(new Url(canonicalizeUrl(validateUrl((<RouterEventSource.Form>event._currentTarget).action))))
               .bind(url =>
                 isAccessible(url)
                 && !hasModifierKey(event)
@@ -131,7 +131,7 @@ function sync(): void {
 }
 
 function click(url: string): Promise<Event> {
-  const el: RouterEvent.Source.Anchor = document.createElement('a');
+  const el: RouterEventSource.Anchor = document.createElement('a');
   el.href = url;
   return new Promise<Event>(resolve => (
     void once(el, 'click', event => (

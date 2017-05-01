@@ -6,7 +6,7 @@ import { match } from './module/update/content';
 import { loadPosition } from '../store/path';
 import { DomainError } from '../data/error';
 
-export { RouterEntity };
+export { RouterEntity, RouterEntityState } from './model/eav/entity';
 export type RouterResult = Either<Error, HTMLScriptElement[]>;
 
 export async function route(

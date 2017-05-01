@@ -1,8 +1,9 @@
 import { Either, Left, HNil } from 'spica';
 import { RouterEntity } from '../model/eav/entity';
+import { RouterEventLocation } from '../../event/router';
 import { FetchResult } from '../model/eav/value/fetch';
 import { UpdateSource } from '../model/eav/value/update';
-import { Sequence } from '../../data/config';
+import { SequenceData } from '../../data/config';
 import { blur } from '../module/update/blur';
 import { url } from '../module/update/url';
 import { title } from '../module/update/title';
@@ -24,7 +25,7 @@ export async function update(
   {
     response
   }: FetchResult,
-  seq: Sequence.Data.Fetch,
+  seq: SequenceData.Fetch,
   io: {
     document: Document;
     scroll: (x?: number, y?: number) => void;
@@ -44,7 +45,7 @@ export async function update(
         separate(documents, config.areas)
           .fmap(([area]) =>
             void config.rewrite(documents.src, area, ''))
-          .extract<Promise<Either<Error, Sequence.Data.Unload>>>(
+          .extract<Promise<Either<Error, SequenceData.Unload>>>(
             async () =>
               Left(new DomainError(`Failed to separate areas.`)),
             async () => (
@@ -58,7 +59,7 @@ export async function update(
           .modify(async () => (
             void blur(documents.dst),
             void url(
-              new RouterEntity.Event.Location(response.url || event.location.dest.href),
+              new RouterEventLocation(response.url || event.location.dest.href),
               documents.src.title,
               event.type,
               event.source,
@@ -122,7 +123,7 @@ export async function update(
               .reverse()
               .tuple())
             .then(([m1, m2]) =>
-              m1.bind(ss => m2.fmap<[HTMLScriptElement[], Sequence.Data.Ready]>(seq => [ss, seq]))))
+              m1.bind(ss => m2.fmap<[HTMLScriptElement[], SequenceData.Ready]>(seq => [ss, seq]))))
             .extract<Left<Error>>(Left))
           .reverse()
           .tuple())))

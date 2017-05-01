@@ -1,5 +1,5 @@
 import { xhr, match } from './xhr';
-import { RouterEvent } from '../../../event/router';
+import { RouterEventMethod } from '../../../event/router';
 import { canonicalizeUrl } from '../../../../data/model/canonicalization/url';
 import { validateUrl } from '../../../../data/model/validation/url';
 import { Sequence, Cancelable } from 'spica';
@@ -8,7 +8,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
   describe('xhr', () => {
     it('success', done => {
       xhr(
-        RouterEvent.Method.GET,
+        RouterEventMethod.GET,
         canonicalizeUrl(validateUrl('')),
         null,
         {
@@ -27,7 +27,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
 
     it.skip('timeout', done => {
       xhr(
-        RouterEvent.Method.GET,
+        RouterEventMethod.GET,
         canonicalizeUrl(validateUrl('?timeout')),
         null,
         {
@@ -44,7 +44,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
     it('wait', done => {
       const time = Date.now();
       xhr(
-        RouterEvent.Method.GET,
+        RouterEventMethod.GET,
         canonicalizeUrl(validateUrl('')),
         null,
         {
@@ -61,7 +61,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
     it('cancel', done => {
       const cancelable = new Cancelable<Error>();
       xhr(
-        RouterEvent.Method.GET,
+        RouterEventMethod.GET,
         canonicalizeUrl(validateUrl('')),
         null,
         {

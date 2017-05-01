@@ -1,5 +1,5 @@
 import { Cancelable, Sequence, Either, Left, Right } from 'spica';
-import { RouterEntity } from '../../model/eav/entity';
+import { RouterEventMethod } from '../../../event/router';
 import { FetchResult } from '../../model/eav/value/fetch';
 import { CanonicalUrl } from '../../../../data/model/canonicalization/url';
 import { DomainError } from '../../../data/error';
@@ -7,7 +7,7 @@ import { DomainError } from '../../../data/error';
 const ContentType = 'text/html';
 
 export function xhr(
-  method: RouterEntity.Event.Method,
+  method: RouterEventMethod,
   url: CanonicalUrl,
   data: FormData | null,
   setting: {

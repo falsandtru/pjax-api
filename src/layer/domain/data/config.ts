@@ -40,7 +40,7 @@ export class Config implements Option {
     }
     throw reason;
   }
-  public readonly sequence: ISequence<Sequence.Data.Fetch, Sequence.Data.Unload, Sequence.Data.Ready> = new Sequence();
+  public readonly sequence: ISequence<SequenceData.Fetch, SequenceData.Unload, SequenceData.Ready> = new Sequence();
   public readonly balance = {
     bounds: [
       ''
@@ -73,29 +73,27 @@ export class Config implements Option {
   };
 }
 
-export class Sequence implements ISequence<Sequence.Data.Fetch, Sequence.Data.Unload, Sequence.Data.Ready> {
-  public async fetch(): Promise<Sequence.Data.Fetch> {
+class Sequence implements ISequence<SequenceData.Fetch, SequenceData.Unload, SequenceData.Ready> {
+  public async fetch(): Promise<SequenceData.Fetch> {
     return <any>void 0;
   }
-  public async unload(): Promise<Sequence.Data.Unload> {
+  public async unload(): Promise<SequenceData.Unload> {
     return <any>void 0;
   }
-  public async ready(): Promise<Sequence.Data.Ready> {
+  public async ready(): Promise<SequenceData.Ready> {
     return <any>void 0;
   }
   public load(): void {
   }
 }
-export namespace Sequence {
-  abstract class Sequence<T> {
+export namespace SequenceData {
+  abstract class SequenceData<T> {
     protected DATA: T;
   }
-  export namespace Data {
-    export interface Fetch extends Sequence<'fetch'> {
-    }
-    export interface Unload extends Sequence<'unload'> {
-    }
-    export interface Ready extends Sequence<'ready'> {
-    }
+  export interface Fetch extends SequenceData<'fetch'> {
+  }
+  export interface Unload extends SequenceData<'unload'> {
+  }
+  export interface Ready extends SequenceData<'ready'> {
   }
 }

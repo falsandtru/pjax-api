@@ -1,24 +1,25 @@
 import { Cancelable, Either, Left, Right } from 'spica';
-import { RouterEntity } from '../model/eav/entity';
+import { Config } from '../../data/config';
+import { RouterEventRequest } from '../../event/router';
 import { FetchResult } from '../model/eav/value/fetch';
-import { Sequence } from '../../data/config';
+import { SequenceData } from '../../data/config';
 import { xhr } from '../module/fetch/xhr';
 import { DomainError } from '../../data/error';
 import { Url } from '../../../../lib/url';
 
 type Result = Either<Error, ResultData>;
-type ResultData = [FetchResult, Sequence.Data.Fetch];
+type ResultData = [FetchResult, SequenceData.Fetch];
 
 export async function fetch(
   {
     method,
     url,
     data,
-  }: RouterEntity.Event.Request,
+  }: RouterEventRequest,
   {
     fetch: setting,
     sequence
-  }: RouterEntity.Config,
+  }: Config,
   cancelable: Cancelable<Error>
 ): Promise<Result> {
   const req = xhr(method, url, data, setting, cancelable);

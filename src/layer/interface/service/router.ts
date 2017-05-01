@@ -2,7 +2,7 @@ import { Cancelable, Supervisor, Just, Nothing } from 'spica';
 import { route as route_, Config } from '../../application/api';
 import { documentUrl } from './state/url';
 import { env } from '../service/state/env';
-import { RouterEvent } from '../../domain/event/router';
+import { RouterEventSource } from '../../domain/event/router';
 import { progressbar } from './progressbar';
 import { bind } from '../../../lib/dom';
 import { canonicalizeUrl } from '../../data/model/canonicalization/url';
@@ -54,5 +54,5 @@ export async function route(
             void process.terminate('', e),
             window.history.scrollRestoration = 'auto',
             void documentUrl.sync(),
-            void config.fallback(<RouterEvent.Source>event._currentTarget, e))));
+            void config.fallback(<RouterEventSource>event._currentTarget, e))));
 }

@@ -1,11 +1,11 @@
 import { Maybe, Just, Nothing } from 'spica';
-import { RouterEntity } from '../../model/eav/entity';
+import { RouterEventType } from '../../../event/router';
 import { Url } from '../../../../../lib/url';
 import { CanonicalUrl } from '../../../../data/model/canonicalization/url';
 import { find } from '../../../../../lib/dom';
 
 export function scroll(
-  type: RouterEntity.Event.Type,
+  type: RouterEventType,
   document: Document,
   target: {
     hash: Url.Fragment<CanonicalUrl>;
@@ -22,11 +22,11 @@ export function scroll(
   }
 ): void {
   switch (type) {
-    case RouterEntity.Event.Type.click:
+    case RouterEventType.click:
       return void (io.hash(document, target.hash, io) || scroll(target));
-    case RouterEntity.Event.Type.submit:
+    case RouterEventType.submit:
       return void scroll(target);
-    case RouterEntity.Event.Type.popstate:
+    case RouterEventType.popstate:
       return void scroll(io.position());
     default:
       throw new TypeError(type);

@@ -2,7 +2,8 @@ import { Cancelable, Just, Left } from 'spica';
 import { Config } from '../domain/data/config';
 import { CanonicalUrl } from '../data/model/canonicalization/url';
 import { scope } from './config/scope';
-import { route as route_, RouterEntity, RouterResult } from '../domain/router/api';
+import { route as route_, RouterEntity, RouterEntityState, RouterResult } from '../domain/router/api';
+import { RouterEvent } from '../domain/event/router';
 import { ApplicationError } from './data/error';
 
 export * from './store/path';
@@ -19,7 +20,7 @@ export async function route(
     document: Document;
   }
 ): Promise<RouterResult> {
-  return Just(new RouterEntity.Event(event).location)
+  return Just(new RouterEvent(event).location)
     .bind(({ orig, dest }) =>
       scope(config, {
         orig: orig.pathname,
@@ -28,8 +29,8 @@ export async function route(
     .fmap(config =>
       new RouterEntity(
         config,
-        new RouterEntity.Event(event),
-        new RouterEntity.State(state.scripts, state.cancelable)))
+        new RouterEvent(event),
+        new RouterEntityState(state.scripts, state.cancelable)))
     .fmap(entity =>
       route_(entity, io))
     .extract(() =>
