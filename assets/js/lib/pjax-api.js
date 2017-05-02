@@ -603,11 +603,6 @@ require = function e(t, n, r) {
             }();
             var SequenceData;
             (function (SequenceData_1) {
-                var SequenceData = function () {
-                    function SequenceData() {
-                    }
-                    return SequenceData;
-                }();
             }(SequenceData = exports.SequenceData || (exports.SequenceData = {})));
         },
         { 'spica': undefined }
