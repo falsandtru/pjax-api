@@ -17,20 +17,27 @@ export async function fetch(
     data,
   }: RouterEventRequest,
   {
-    fetch: setting,
+    fetch: {
+      timeout,
+      wait
+    },
     sequence
   }: Config,
   cancelable: Cancelable<Error>
 ): Promise<Result> {
-  const req = xhr(method, url, data, setting, cancelable);
+  const req = xhr(method, url, data, timeout, cancelable);
   void window.dispatchEvent(new Event('pjax:fetch'));
-  const seq = await sequence.fetch(void 0, {
-    host: '',
-    path: new Url(url).path,
-    method,
-    data
-  });
-  return (await req)
+  const [res, seq] = await Promise.all([
+    req,
+    sequence.fetch(void 0, {
+      host: '',
+      path: new Url(url).path,
+      method,
+      data
+    }),
+    new Promise<void>(resolve => void setTimeout(resolve, wait))
+  ]);
+  return res
     .bind(cancelable.either)
     .bind<ResultData>(result =>
       result.response.url === '' || new Url(result.response.url).domain === new Url(url).domain

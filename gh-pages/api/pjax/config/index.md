@@ -47,7 +47,7 @@ Set timeout for request by ms.
 
 ### wait: number = `0`
 
-Set wait for request by ms.
+Wait specified milliseconds after sending a request.
 
 ## rewrite: (doc: Document, area: string, host: string) => void = ...
 

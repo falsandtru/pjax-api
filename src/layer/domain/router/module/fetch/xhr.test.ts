@@ -11,10 +11,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
         RouterEventMethod.GET,
         canonicalizeUrl(validateUrl('')),
         null,
-        {
-          timeout: 0,
-          wait: 0
-        },
+        0,
         new Cancelable<Error>())
         .then(m => m.fmap(res => {
           assert(res.xhr instanceof XMLHttpRequest);
@@ -30,10 +27,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
         RouterEventMethod.GET,
         canonicalizeUrl(validateUrl('?timeout')),
         null,
-        {
-          timeout: 1,
-          wait: 0
-        },
+        1,
         new Cancelable<Error>())
         .then(m => m.extract(err => {
           assert(err instanceof Error);
@@ -41,16 +35,13 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
         }));
     });
 
-    it('wait', done => {
+    it.skip('wait', done => {
       const time = Date.now();
       xhr(
         RouterEventMethod.GET,
         canonicalizeUrl(validateUrl('')),
         null,
-        {
-          timeout: 0,
-          wait: 1000
-        },
+        0,
         new Cancelable<Error>())
         .then(m => m.fmap(() => {
           assert(Date.now() - time > 1000 - 10);
@@ -64,10 +55,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
         RouterEventMethod.GET,
         canonicalizeUrl(validateUrl('')),
         null,
-        {
-          timeout: 0,
-          wait: 0
-        },
+        0,
         cancelable)
         .then(m => m.extract(err => {
           assert(err instanceof Error);
