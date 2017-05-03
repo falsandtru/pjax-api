@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.10.1
+
+- Refactor Config.filter option's default value.
+
 ## 3.10.0
 
 - Extend sequence feature.

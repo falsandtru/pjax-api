@@ -26,8 +26,7 @@ Filter target anchor links.
 ```ts
   // default
   public filter(el: HTMLAnchorElement): boolean {
-    if (typeof el.href !== 'string') return false;
-    return /^https?:$/.test(new URL(el.href).protocol);
+    return typeof el.href === 'string';
   }
 ```
 

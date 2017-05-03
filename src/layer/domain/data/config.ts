@@ -9,8 +9,7 @@ export class Config implements Option {
   public readonly areas = ['body'];
   public readonly link = 'a:not([target])';
   public filter(el: HTMLAnchorElement): boolean {
-    if (typeof el.href !== 'string') return false;
-    return /^https?:$/.test(new URL(el.href).protocol);
+    return typeof el.href === 'string';
   }
   public readonly form = 'form:not([method])';
   public readonly replace = '';
