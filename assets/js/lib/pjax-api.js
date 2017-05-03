@@ -1141,33 +1141,34 @@ require = function e(t, n, r) {
             var url_1 = require('../../../../lib/url');
             function fetch(_a, _b, cancelable) {
                 var method = _a.method, url = _a.url, data = _a.data;
-                var setting = _b.fetch, sequence = _b.sequence;
+                var _c = _b.fetch, timeout = _c.timeout, wait = _c.wait, sequence = _b.sequence;
                 return __awaiter(this, void 0, void 0, function () {
-                    var req, seq;
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
+                    var req, _a, res, seq;
+                    return __generator(this, function (_b) {
+                        switch (_b.label) {
                         case 0:
-                            req = xhr_1.xhr(method, url, data, setting, cancelable);
+                            req = xhr_1.xhr(method, url, data, timeout, cancelable);
                             void window.dispatchEvent(new Event('pjax:fetch'));
                             return [
                                 4,
-                                sequence.fetch(void 0, {
-                                    host: '',
-                                    path: new url_1.Url(url).path,
-                                    method: method,
-                                    data: data
-                                })
+                                Promise.all([
+                                    req,
+                                    sequence.fetch(void 0, {
+                                        host: '',
+                                        path: new url_1.Url(url).path,
+                                        method: method,
+                                        data: data
+                                    }),
+                                    new Promise(function (resolve) {
+                                        return void setTimeout(resolve, wait);
+                                    })
+                                ])
                             ];
                         case 1:
-                            seq = _a.sent();
-                            return [
-                                4,
-                                req
-                            ];
-                        case 2:
+                            _a = _b.sent(), res = _a[0], seq = _a[1];
                             return [
                                 2,
-                                _a.sent().bind(cancelable.either).bind(function (result) {
+                                res.bind(cancelable.either).bind(function (result) {
                                     return result.response.url === '' || new url_1.Url(result.response.url).domain === new url_1.Url(url).domain ? spica_1.Right([
                                         result,
                                         seq
@@ -1195,51 +1196,25 @@ require = function e(t, n, r) {
             var fetch_1 = require('../../model/eav/value/fetch');
             var error_1 = require('../../../data/error');
             var ContentType = 'text/html';
-            function xhr(method, url, data, setting, cancelable) {
+            function xhr(method, url, data, timeout, cancelable) {
                 var xhr = new XMLHttpRequest();
-                var wait = new Promise(function (resolve) {
-                    return setTimeout(resolve, setting.wait);
-                });
                 return new Promise(function (resolve) {
-                    return void xhr.open(method, url, true), xhr.responseType = /chrome|firefox/i.test(window.navigator.userAgent) && !/edge/i.test(window.navigator.userAgent) ? 'document' : 'text', xhr.timeout = setting.timeout, void xhr.setRequestHeader('X-Pjax', '1'), void xhr.send(data), void xhr.addEventListener('abort', function () {
-                        return void handle(cancelable, function () {
-                            return void resolve(spica_1.Left(new error_1.DomainError('Failed to request by abort.')));
-                        }, function (err) {
-                            return void resolve(spica_1.Left(err));
-                        });
+                    return void xhr.open(method, url, true), xhr.responseType = /chrome|firefox/i.test(window.navigator.userAgent) && !/edge/i.test(window.navigator.userAgent) ? 'document' : 'text', xhr.timeout = timeout, void xhr.setRequestHeader('X-Pjax', '1'), void xhr.send(data), void xhr.addEventListener('abort', function () {
+                        return void resolve(spica_1.Left(new error_1.DomainError('Failed to request by abort.')));
                     }), void xhr.addEventListener('error', function () {
-                        return void handle(cancelable, function () {
-                            return void resolve(spica_1.Left(new error_1.DomainError('Failed to request by error.')));
-                        }, function (err) {
-                            return void resolve(spica_1.Left(err));
-                        });
+                        return void resolve(spica_1.Left(new error_1.DomainError('Failed to request by error.')));
                     }), void xhr.addEventListener('timeout', function () {
-                        return void handle(cancelable, function () {
-                            return void resolve(spica_1.Left(new error_1.DomainError('Failed to request by timeout.')));
-                        }, function (err) {
-                            return void resolve(spica_1.Left(err));
-                        });
+                        return void resolve(spica_1.Left(new error_1.DomainError('Failed to request by timeout.')));
                     }), void xhr.addEventListener('load', function () {
-                        return void handle(cancelable, function () {
-                            return void verify(xhr).extract(function (err) {
-                                return void resolve(spica_1.Left(err));
-                            }, function (xhr) {
-                                return void resolve(spica_1.Right(new fetch_1.FetchResult(xhr)));
-                            });
-                        }, function (err) {
+                        return void verify(xhr).extract(function (err) {
                             return void resolve(spica_1.Left(err));
+                        }, function (xhr) {
+                            return void resolve(spica_1.Right(new fetch_1.FetchResult(xhr)));
                         });
                     }), void cancelable.listeners.add(function () {
                         return void xhr.abort();
                     });
-                }).then(function (v) {
-                    return wait.then(function () {
-                        return v;
-                    });
                 });
-                function handle(state, done, fail) {
-                    return void state.either(0).extract(fail, done);
-                }
             }
             exports.xhr = xhr;
             function verify(xhr) {
