@@ -543,9 +543,7 @@ require = function e(t, n, r) {
                     void Object.freeze(this);
                 }
                 Config.prototype.filter = function (el) {
-                    if (typeof el.href !== 'string')
-                        return false;
-                    return /^https?:$/.test(new URL(el.href).protocol);
+                    return typeof el.href === 'string';
                 };
                 Config.prototype.rewrite = function (_doc, _area, _host) {
                 };
