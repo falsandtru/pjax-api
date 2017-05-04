@@ -1,5 +1,4 @@
 import {
-  parse,
   find,
   serialize,
   bind,
@@ -9,18 +8,6 @@ import {
 import DOM from 'typed-dom';
 
 describe('Unit: lib/dom', () => {
-  describe('parse', () => {
-    it('text', () => {
-      assert(parse('&amp;').innerHTML === '&amp;');
-      assert(parse('&amp;').textContent === '&');
-    });
-
-    it('element', () => {
-      assert(parse('<hr>').outerHTML === '<hr>');
-    });
-
-  });
-
   describe('find', () => {
     it('children', () => {
       assert(find(DOM.div([DOM.p()]).element, 'p').length === 1);

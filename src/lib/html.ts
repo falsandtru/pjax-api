@@ -1,5 +1,5 @@
 import { Maybe, Just, Nothing, Either, Left, Right } from 'spica';
-import { parse as parseHTML, find } from './dom';
+import { find } from './dom';
 
 type Parser = (html: string) => Maybe<Document>;
 export const parse: Parser = [parseByDoc, parseByDOM]
@@ -29,6 +29,14 @@ function parseByDoc(html: string): Document {
   }
   void fix(document);
   return document;
+
+  function parseHTML(html: string): HTMLElement {
+    const parser = document.createElement('div');
+    parser.innerHTML = html;
+    return parser.firstElementChild
+      ? <HTMLElement>parser.firstElementChild
+      : parser;
+  }
 }
 
 function fix(doc: Document): undefined {

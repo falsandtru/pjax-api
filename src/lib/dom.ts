@@ -1,13 +1,5 @@
 import { noop } from './noop';
 
-export function parse(html: string): HTMLElement {
-  const parser = document.createElement('div');
-  parser.innerHTML = html;
-  return parser.firstElementChild
-    ? <HTMLElement>parser.firstElementChild
-    : parser;
-}
-
 export function find<T extends HTMLElement>(target: HTMLElement | Document, selector: string): T[] {
   return <T[]>Array.from(target.querySelectorAll(selector || '_'));
 }
