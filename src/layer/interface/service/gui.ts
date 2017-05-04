@@ -57,7 +57,6 @@ export class GUI {
             void Just(new Url(canonicalizeUrl(validateUrl((<RouterEventSource.Form>event._currentTarget).action))))
               .bind(url =>
                 isAccessible(url)
-                && !hasModifierKey(event)
                   ? Just(0)
                   : Nothing)
               .fmap(() =>

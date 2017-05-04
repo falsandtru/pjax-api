@@ -5,12 +5,15 @@ export class SubmitView {
   constructor(
     document: Document,
     selector: string,
-    listener: (event: MouseEvent) => any
+    listener: (event: Event) => any
   ) {
     void this.sv.register('', () => (
       void this.sv.events.exit.once(
         [],
-        delegate(document.documentElement, selector, 'submit', listener)),
+        delegate(document.documentElement, selector, 'submit', ev => {
+          if (!(ev.currentTarget instanceof HTMLFormElement)) return;
+          void listener(ev);
+        })),
       new Promise<never>(() => void 0)
     ), void 0);
     void this.sv.cast('', void 0);
