@@ -8,8 +8,8 @@ export class Config implements Option {
   }
   public readonly areas = ['body'];
   public readonly link = 'a:not([target])';
-  public filter(el: HTMLAnchorElement): boolean {
-    return typeof el.href === 'string';
+  public filter(_el: HTMLAnchorElement): boolean {
+    return true;
   }
   public readonly form = 'form:not([method])';
   public readonly replace = '';
