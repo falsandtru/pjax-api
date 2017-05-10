@@ -542,8 +542,8 @@ require = function e(t, n, r) {
                     void spica_1.extend(this, option);
                     void Object.freeze(this);
                 }
-                Config.prototype.filter = function (el) {
-                    return typeof el.href === 'string';
+                Config.prototype.filter = function (_el) {
+                    return true;
                 };
                 Config.prototype.rewrite = function (_doc, _area, _host) {
                 };
@@ -2412,7 +2412,13 @@ require = function e(t, n, r) {
                         return void _this.sv.terminate();
                     };
                     void this.sv.register('', function () {
-                        return void _this.sv.events.exit.once([], dom_1.delegate(document.documentElement, selector, 'click', listener)), new Promise(function () {
+                        return void _this.sv.events.exit.once([], dom_1.delegate(document.documentElement, selector, 'click', function (ev) {
+                            if (!(ev.currentTarget instanceof HTMLAnchorElement))
+                                return;
+                            if (typeof ev.currentTarget.href !== 'string')
+                                return;
+                            void listener(ev);
+                        })), new Promise(function () {
                             return void 0;
                         });
                     }, void 0);
@@ -2581,7 +2587,11 @@ require = function e(t, n, r) {
                         return void _this.sv.terminate();
                     };
                     void this.sv.register('', function () {
-                        return void _this.sv.events.exit.once([], dom_1.delegate(document.documentElement, selector, 'submit', listener)), new Promise(function () {
+                        return void _this.sv.events.exit.once([], dom_1.delegate(document.documentElement, selector, 'submit', function (ev) {
+                            if (!(ev.currentTarget instanceof HTMLFormElement))
+                                return;
+                            void listener(ev);
+                        })), new Promise(function () {
                             return void 0;
                         });
                     }, void 0);
@@ -2663,7 +2673,7 @@ require = function e(t, n, r) {
                                 }).extract(sync);
                             }).close).add(new submit_1.SubmitView(_this.io.document, _this.config.form, function (event) {
                                 return void spica_1.Just(new url_1.Url(url_2.canonicalizeUrl(url_3.validateUrl(event._currentTarget.action)))).bind(function (url) {
-                                    return isAccessible(url) && !hasModifierKey(event) ? spica_1.Just(0) : spica_1.Nothing;
+                                    return isAccessible(url) ? spica_1.Just(0) : spica_1.Nothing;
                                 }).fmap(function () {
                                     return router_1.route(_this.config, event, GUI.process, _this.io);
                                 }).extract(sync);
@@ -3081,12 +3091,6 @@ require = function e(t, n, r) {
             };
             Object.defineProperty(exports, '__esModule', { value: true });
             var noop_1 = require('./noop');
-            function parse(html) {
-                var parser = document.createElement('div');
-                parser.innerHTML = html;
-                return parser.firstElementChild ? parser.firstElementChild : parser;
-            }
-            exports.parse = parse;
             function find(target, selector) {
                 return Array.from(target.querySelectorAll(selector || '_'));
             }
@@ -3257,7 +3261,7 @@ require = function e(t, n, r) {
             }
             function parseByDoc(html) {
                 var document = window.document.implementation.createHTMLDocument('');
-                var title = dom_1.find(dom_1.parse(html.slice(0, html.search(/<\/title>/i) + 8)), 'title').reduce(function (title, el) {
+                var title = dom_1.find(parseHTML(html.slice(0, html.search(/<\/title>/i) + 8)), 'title').reduce(function (title, el) {
                     return el.textContent || title;
                 }, '');
                 if ('function' === typeof DOMParser) {
@@ -3271,6 +3275,11 @@ require = function e(t, n, r) {
                 }
                 void fix(document);
                 return document;
+                function parseHTML(html) {
+                    var parser = document.createElement('div');
+                    parser.innerHTML = html;
+                    return parser.firstElementChild ? parser.firstElementChild : parser;
+                }
             }
             function fix(doc) {
                 return void fixNoscript(doc).forEach(function (_a) {
