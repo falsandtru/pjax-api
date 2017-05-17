@@ -201,7 +201,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
 
     it('inline', () => {
       const script = DOM.script().element;
-      const code = 'alert()';
+      const code = 'assert(document.currentScript.outerHTML === "<script></script>")';
       script.innerHTML = code;
       assert(!script.hasAttribute('src'));
       assert(script.innerHTML === code);
