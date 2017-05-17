@@ -1,4 +1,4 @@
-/*! spica v0.0.66 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.67 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
@@ -3864,7 +3864,7 @@ require = function e(t, n, r) {
                 }
                 Supervisor.prototype.destructor = function (reason) {
                     this.available = false;
-                    void Array.from(this.workers.values()).forEach(function (worker) {
+                    void this.workers.forEach(function (worker) {
                         return void worker.terminate(reason);
                     });
                     void this.deliver();
@@ -3948,6 +3948,12 @@ require = function e(t, n, r) {
                     }
                     if (result === void 0 || result instanceof Error)
                         return false;
+                    var reply = result[0];
+                    if (thenable_1.isThenable(reply)) {
+                        void reply.catch(function () {
+                            return void 0;
+                        });
+                    }
                     return true;
                 };
                 Supervisor.prototype.refs = function (name) {
