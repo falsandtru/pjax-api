@@ -2009,15 +2009,14 @@ require = function e(t, n, r) {
                 if (io === void 0) {
                     io = {
                         request: request,
-                        evaluate: evaluate,
-                        log: log
+                        evaluate: evaluate
                     };
                 }
                 return __awaiter(this, void 0, void 0, function () {
                     function run(state, response) {
                         return state.bind(cancelable.either).bind(function (scripts) {
-                            return io.evaluate(response).fmap(function (script) {
-                                return script.parentElement.matches(selector.logger.trim() || '_') ? void io.log(script, documents.dst) : void 0, scripts.concat([script]);
+                            return io.evaluate(response, selector.logger).fmap(function (script) {
+                                return scripts.concat([script]);
                             });
                         });
                     }
@@ -2110,32 +2109,33 @@ require = function e(t, n, r) {
                 });
             }
             exports._request = request;
-            function evaluate(_a) {
+            function evaluate(_a, logger) {
                 var script = _a[0], code = _a[1];
-                try {
-                    void eval(code);
-                    if (script.hasAttribute('src')) {
-                        void script.dispatchEvent(new Event('load'));
-                    }
-                    return spica_1.Right(script);
-                } catch (err) {
-                    if (script.hasAttribute('src')) {
-                        void script.dispatchEvent(new Event('error'));
-                    }
-                    return spica_1.Left(err);
+                var logging = script.parentElement && script.parentElement.matches(logger.trim() || '_');
+                var container = document.querySelector(logging ? script.parentElement.id ? '#' + script.parentElement.id : script.parentElement.tagName : '_') || document.body;
+                script = script.ownerDocument === document ? script : document.importNode(script.cloneNode(true), true);
+                var error = void 0;
+                var unbind = dom_1.once(window, 'error', function (ev) {
+                    error = ev.error;
+                });
+                if (script.hasAttribute('src')) {
+                    var src = script.getAttribute('src');
+                    void script.removeAttribute('src');
+                    script.innerHTML = '\ndocument.currentScript.innerHTML = \'\';\ndocument.currentScript.setAttribute(\'src\', "' + src.replace(/"/g, encodeURI) + '");\n' + code;
+                } else {
+                    script.innerHTML = '\ndocument.currentScript.innerHTML = document.currentScript.innerHTML.slice(-' + code.length + ');\n' + code;
                 }
+                void container.appendChild(script);
+                void unbind();
+                if (script.hasAttribute('src')) {
+                    void script.dispatchEvent(new Event(error ? 'error' : 'load'));
+                }
+                if (!logging) {
+                    void script.remove();
+                }
+                return error ? spica_1.Left(error) : spica_1.Right(script);
             }
             exports._evaluate = evaluate;
-            function log(script, document) {
-                return dom_1.find(document, script.parentElement.id ? '#' + script.parentElement.id : script.parentElement.tagName).slice(-1).reduce(function (_, parent) {
-                    script = document.importNode(script.cloneNode(true), true);
-                    var unescape = escape(script);
-                    void parent.appendChild(script);
-                    void unescape();
-                    return true;
-                }, false);
-            }
-            exports._log = log;
         },
         {
             '../../../../../lib/dom': 45,
