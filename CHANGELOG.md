@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.10.2
+
+- Work document.currentScript with script loading.
+
 ## 3.10.1
 
 - Refactor Config.filter option's default value.

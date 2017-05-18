@@ -1,7 +1,6 @@
-import { script, escape, _log, _request, _evaluate } from './script';
+import { script, escape, _request, _evaluate } from './script';
 import { Cancelable, Left, Right } from 'spica';
 import { parse } from '../../../../../lib/html';
-import { find } from '../../../../../lib/dom';
 import DOM from 'typed-dom';
 
 describe('Unit: layer/domain/router/module/update/script', () => {
@@ -22,7 +21,6 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         {
           request: script => Promise.resolve(Right<[HTMLScriptElement, string]>([script, ''])),
           evaluate: ([script]) => Right(script),
-          log: () => true
         })
         .then(m => {
           assert.deepStrictEqual(m.extract(), []);
@@ -56,12 +54,6 @@ describe('Unit: layer/domain/router/module/update/script', () => {
             assert(script.innerHTML === code);
             return Right(script);
           },
-          log: (script, document) => {
-            assert(cnt === 3 && ++cnt);
-            assert(script.className === 'test');
-            assert(document instanceof Document);
-            return true;
-          }
         })
         .then(m => {
           assert(cnt === 1 && ++cnt);
@@ -94,10 +86,6 @@ describe('Unit: layer/domain/router/module/update/script', () => {
             assert(++cnt === NaN);
             return Right(script);
           },
-          log: () => {
-            assert(++cnt === NaN);
-            return true;
-          }
         })
         .catch(reason => {
           assert(cnt === 1 && ++cnt);
@@ -130,10 +118,6 @@ describe('Unit: layer/domain/router/module/update/script', () => {
             assert(cnt === 2 && ++cnt);
             return Left(new Error());
           },
-          log: () => {
-            assert(++cnt === NaN);
-            return true;
-          }
         })
         .then(m => {
           assert(cnt === 1 && ++cnt);
@@ -167,10 +151,6 @@ describe('Unit: layer/domain/router/module/update/script', () => {
             assert(++cnt === NaN);
             return Right(script);
           },
-          log: () => {
-            assert(++cnt === NaN);
-            return true;
-          }
         })
         .then(m => m.extract(err => {
           assert(cnt === 1 && ++cnt);
@@ -253,7 +233,6 @@ describe('Unit: layer/domain/router/module/update/script', () => {
   describe('_evaluate', () => {
     it('external load', done => {
       const script = DOM.script().element;
-      script.setAttribute('src', '');
       let cnt = 0;
       script.addEventListener('load', event => {
         assert(cnt === 0 && ++cnt);
@@ -262,18 +241,20 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      _evaluate([script, ''])
+      script.setAttribute('src', '/"%"');
+      _evaluate([script, `assert(document.currentScript.outerHTML === '<script src="/%22%%22"></script>')`], '')
         .fmap(el => {
-          assert(el === script);
+          assert(el.outerHTML === `<script src="/%22%%22"></script>`);
+          assert(el.parentElement === null);
+          assert(document.currentScript === null);
           assert(cnt === 1 && ++cnt);
           done();
         })
         .extract();
     });
 
-    it('external error', done => {
+    it.skip('external error', done => {
       const script = DOM.script().element;
-      script.setAttribute('src', '');
       let cnt = 0;
       script.addEventListener('load', () => {
         assert(--cnt === NaN);
@@ -282,9 +263,12 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         assert(cnt === 0 && ++cnt);
         assert(event instanceof Event);
       });
-      _evaluate([script, 'throw new Error()'])
+      script.setAttribute('src', '/');
+      _evaluate([script, 'throw new Error()'], '')
         .extract(e => {
           assert(e instanceof Error);
+          assert(script.parentElement === null);
+          assert(document.currentScript === null);
           assert(cnt === 1 && ++cnt);
           done();
         });
@@ -300,16 +284,19 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      _evaluate([script, ''])
+      _evaluate([script, 'assert(document.currentScript.innerHTML.startsWith("assert"))'], '')
         .fmap(el => {
-          assert(el === script);
+          assert(el.hasAttribute('src') === false);
+          assert(el.innerHTML.startsWith('assert'));
+          assert(el.parentElement === null);
+          assert(document.currentScript === null);
           assert(cnt === 0 && ++cnt);
           done();
         })
         .extract();
     });
 
-    it('inline error', done => {
+    it.skip('inline error', done => {
       const script = DOM.script().element;
       assert(!script.hasAttribute('src'));
       let cnt = 0;
@@ -319,23 +306,14 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      _evaluate([script, 'throw new Error()'])
+      _evaluate([script, 'throw new Error()'], '')
         .extract(e => {
           assert(e instanceof Error);
+          assert(script.parentElement === null);
+          assert(document.currentScript === null);
           assert(cnt === 0 && ++cnt);
           done();
         });
-    });
-
-  });
-
-  describe('_log', () => {
-    it('head', () => {
-      const script = find<HTMLScriptElement>(parse(DOM.head([DOM.script()]).element.outerHTML).extract(), 'script')[0];
-      const document = parse('').extract();
-      assert(_log(script, document));
-      assert(document.head.children.length === 1);
-      assert(document.head.firstElementChild instanceof HTMLScriptElement);
     });
 
   });

@@ -1,5 +1,5 @@
 import { Cancelable, Either, Left, Right, concat } from 'spica';
-import { find } from '../../../../../lib/dom';
+import { find, once } from '../../../../../lib/dom';
 import { canonicalizeUrl, CanonicalUrl } from '../../../../data/model/canonicalization/url';
 import { validateUrl } from '../../../../data/model/validation/url';
 
@@ -20,7 +20,6 @@ export async function script(
   io = {
     request,
     evaluate,
-    log
   }
 ): Promise<Either<Error, HTMLScriptElement[]>> {
   const scripts = find<HTMLScriptElement>(documents.src, 'script')
@@ -46,12 +45,9 @@ export async function script(
     return state
       .bind(cancelable.either)
       .bind<HTMLScriptElement[]>(scripts =>
-        io.evaluate(response)
-          .fmap(script => (
-            script.parentElement!.matches(selector.logger.trim() || '_')
-              ? void io.log(script, documents.dst)
-              : void 0,
-            scripts.concat([script]))));
+        io.evaluate(response, selector.logger)
+          .fmap(script =>
+            scripts.concat([script])));
   }
 }
 
@@ -94,33 +90,46 @@ async function request(script: HTMLScriptElement): Promise<Either<Error, Respons
 }
 export { request as _request }
 
-function evaluate([script, code]: Response): Either<Error, HTMLScriptElement> {
-  try {
-    void eval(code);
-
-    if (script.hasAttribute('src')) {
-      void script.dispatchEvent(new Event('load'));
-    }
-    return Right(script);
+function evaluate([script, code]: Response, logger: string): Either<Error, HTMLScriptElement> {
+  const logging = script.parentElement && script.parentElement.matches(logger.trim() || '_');
+  const container = document.querySelector(
+    logging
+      ? script.parentElement!.id
+        ? `#${script.parentElement!.id}`
+        : script.parentElement!.tagName
+      : '_') || document.body;
+  script = script.ownerDocument === document
+    ? script // only for testing
+    : <HTMLScriptElement>document.importNode(script.cloneNode(true), true);
+  let error: Error | void = void 0;
+  const unbind = once(window, 'error', ev => {
+    error = ev.error;
+  });
+  if (script.hasAttribute('src')) {
+    const src = script.getAttribute('src')!;
+    void script.removeAttribute('src');
+    script.innerHTML = `
+document.currentScript.innerHTML = '';
+document.currentScript.setAttribute('src', "${src.replace(/"/g, encodeURI)}");
+${code}`;
   }
-  catch (err) {
-    if (script.hasAttribute('src')) {
-      void script.dispatchEvent(new Event('error'));
-    }
-    return Left(err);
+  else {
+    script.innerHTML = `
+document.currentScript.innerHTML = document.currentScript.innerHTML.slice(-${code.length});
+${code}`;
   }
+  assert(container.closest('html') === document.documentElement);
+  void container.appendChild(script);
+  assert(error === void 0 || error instanceof Error);
+  void unbind();
+  if (script.hasAttribute('src')) {
+    void script.dispatchEvent(new Event(error ? 'error' : 'load'));
+  }
+  if (!logging) {
+    void script.remove();
+  }
+  return error
+    ? Left(error)
+    : Right(script);
 }
 export { evaluate as _evaluate }
-
-function log(script: HTMLScriptElement, document: Document): boolean {
-  return find(document, script.parentElement!.id ? `#${script.parentElement!.id}` : script.parentElement!.tagName)
-    .slice(-1)
-    .reduce((_, parent) => {
-      script = <HTMLScriptElement>document.importNode(script.cloneNode(true), true);
-      const unescape = escape(script);
-      void parent.appendChild(script);
-      void unescape();
-      return true;
-    }, false);
-}
-export { log as _log }
