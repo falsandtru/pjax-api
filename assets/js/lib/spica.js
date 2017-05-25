@@ -1,4 +1,4 @@
-/*! spica v0.0.67 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.69 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
@@ -3854,14 +3854,33 @@ require = function e(t, n, r) {
                             return;
                         void _this.schedule();
                     };
+                    if (!this.constructor.hasOwnProperty('instances')) {
+                        this.constructor.instances = new Set();
+                    }
                     if (this.constructor === Supervisor)
                         throw new Error('Spica: Supervisor: <' + this.id + '/' + this.name + '>: Cannot instantiate abstract classes.');
+                    void this.constructor.instances.add(this);
                     this.name = name;
                     this.size = size;
                     this.timeout = timeout;
                     this.destructor_ = destructor;
-                    void ++this.constructor.count;
                 }
+                Object.defineProperty(Supervisor, 'count', {
+                    get: function () {
+                        return this.instances ? this.instances.size : 0;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(Supervisor, 'procs', {
+                    get: function () {
+                        return this.instances ? Array.from(this.instances).reduce(function (cnt, sv) {
+                            return cnt + sv.workers.size;
+                        }, 0) : 0;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
                 Supervisor.prototype.destructor = function (reason) {
                     this.available = false;
                     void this.workers.forEach(function (worker) {
@@ -3869,7 +3888,7 @@ require = function e(t, n, r) {
                     });
                     void this.deliver();
                     this.alive = false;
-                    void --this.constructor.count;
+                    void this.constructor.instances.delete(this);
                     void Object.freeze(this);
                     void this.destructor_(reason);
                 };
@@ -3892,9 +3911,8 @@ require = function e(t, n, r) {
                             return void 0;
                         }
                     } : process;
-                    void ++this.constructor.procs;
                     return this.workers.set(name, new Worker(this, name, process, state, function () {
-                        return void _this.workers.delete(name), void --_this.constructor.procs;
+                        return void _this.workers.delete(name);
                     })).get(name).terminate;
                 };
                 Supervisor.prototype.call = function (name, param, callback, timeout) {
@@ -3982,8 +4000,6 @@ require = function e(t, n, r) {
                 };
                 return Supervisor;
             }();
-            Supervisor.count = 0;
-            Supervisor.procs = 0;
             exports.Supervisor = Supervisor;
             (function (Supervisor) {
             }(Supervisor = exports.Supervisor || (exports.Supervisor = {})));
