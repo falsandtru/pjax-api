@@ -9,6 +9,7 @@ const $ = require('gulp-load-plugins')();
 const seq = require('run-sequence');
 const browserify = require('browserify');
 const tsify = require('tsify');
+const pump = require('pump');
 const Server = require('karma').Server;
 
 const pkg = require('./package.json');
@@ -74,14 +75,16 @@ gulp.task('ts:test', function () {
     .pipe(gulp.dest(config.ts.test.dest));
 });
 
-gulp.task('ts:dist', function () {
-  return compile(config.ts.dist.src)
-    .pipe($.unassert())
-    .pipe($.header(config.banner))
-    .pipe(gulp.dest(config.ts.dist.dest))
-    .pipe($.uglify({ preserveComments: 'license' }))
-    .pipe($.rename({ extname: '.min.js' }))
-    .pipe(gulp.dest(config.ts.dist.dest));
+gulp.task('ts:dist', function (done) {
+  pump([
+    compile(config.ts.dist.src),
+    $.unassert(),
+    $.header(config.banner),
+    gulp.dest(config.ts.dist.dest),
+    $.rename({ extname: '.min.js' }),
+    $.uglify({ output: { comments: 'all' } }),
+    gulp.dest(config.ts.dist.dest)
+  ], done);
 });
 
 gulp.task('karma:watch', function (done) {
