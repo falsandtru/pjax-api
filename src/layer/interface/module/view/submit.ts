@@ -9,7 +9,7 @@ export class SubmitView {
   ) {
     void this.sv.register('', () => (
       void this.sv.events.exit.once(
-        [],
+        [''],
         delegate(document.documentElement, selector, 'submit', ev => {
           if (!(ev.currentTarget instanceof HTMLFormElement)) return;
           void listener(ev);

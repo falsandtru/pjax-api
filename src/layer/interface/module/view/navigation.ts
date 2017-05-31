@@ -11,7 +11,7 @@ export class NavigationView {
   ) {
     void this.sv.register('', () => (
       void this.sv.events.exit.once(
-        [],
+        [''],
         bind(window, 'popstate', ev => {
           if (canonicalizeUrl(validateUrl(location.href)) === documentUrl.href) return;
           void listener(ev);

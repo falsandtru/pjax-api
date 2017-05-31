@@ -9,7 +9,7 @@ export class ClickView {
   ) {
     void this.sv.register('', () => (
       void this.sv.events.exit.once(
-        [],
+        [''],
         delegate(document.documentElement, selector, 'click', ev => {
           if (!(ev.currentTarget instanceof HTMLAnchorElement)) return;
           if (typeof ev.currentTarget.href !== 'string') return;

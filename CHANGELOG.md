@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.10.3
+
+- Fix leaks of event listening.
+
 ## 3.10.2
 
 - Work document.currentScript with script loading.
