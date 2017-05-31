@@ -2412,7 +2412,7 @@ require = function e(t, n, r) {
                         return void _this.sv.terminate();
                     };
                     void this.sv.register('', function () {
-                        return void _this.sv.events.exit.once([], dom_1.delegate(document.documentElement, selector, 'click', function (ev) {
+                        return void _this.sv.events.exit.once([''], dom_1.delegate(document.documentElement, selector, 'click', function (ev) {
                             if (!(ev.currentTarget instanceof HTMLAnchorElement))
                                 return;
                             if (typeof ev.currentTarget.href !== 'string')
@@ -2472,7 +2472,7 @@ require = function e(t, n, r) {
                         return void _this.sv.terminate();
                     };
                     void this.sv.register('', function () {
-                        return void _this.sv.events.exit.once([], dom_1.bind(window, 'popstate', function (ev) {
+                        return void _this.sv.events.exit.once([''], dom_1.bind(window, 'popstate', function (ev) {
                             if (url_1.canonicalizeUrl(url_2.validateUrl(location.href)) === url_3.documentUrl.href)
                                 return;
                             void listener(ev);
@@ -2531,7 +2531,7 @@ require = function e(t, n, r) {
                     };
                     var timer = 0;
                     void this.sv.register('', function () {
-                        return void _this.sv.events.exit.once([], dom_1.bind(window, 'scroll', function (ev) {
+                        return void _this.sv.events.exit.once([''], dom_1.bind(window, 'scroll', function (ev) {
                             return timer = timer > 0 ? timer : setTimeout(function () {
                                 timer = 0;
                                 void listener(ev);
@@ -2587,7 +2587,7 @@ require = function e(t, n, r) {
                         return void _this.sv.terminate();
                     };
                     void this.sv.register('', function () {
-                        return void _this.sv.events.exit.once([], dom_1.delegate(document.documentElement, selector, 'submit', function (ev) {
+                        return void _this.sv.events.exit.once([''], dom_1.delegate(document.documentElement, selector, 'submit', function (ev) {
                             if (!(ev.currentTarget instanceof HTMLFormElement))
                                 return;
                             void listener(ev);
