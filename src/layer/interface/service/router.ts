@@ -20,8 +20,8 @@ export async function route(
     document: Document;
   }
 ): Promise<void> {
-  void event.preventDefault();
   assert([HTMLAnchorElement, HTMLFormElement, Window].some(Class => event._currentTarget instanceof Class));
+  void event.preventDefault();
   const cancelable = new Cancelable<Error>();
   void process.cast('', new InterfaceError(`Abort.`));
   void process.register('', e => {
