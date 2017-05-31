@@ -24,12 +24,12 @@
     "LICENSE"
   ],
   "dependencies": {
-    "spica": "0.0.69"
+    "spica": "0.0.77"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.41",
     "@types/power-assert": "1.4.29",
-    "browserify": "^14.3.0",
+    "browserify": "^14.4.0",
     "del": "^2.2.2",
     "extend": "^3.0.1",
     "gulp": "^3.9.1",

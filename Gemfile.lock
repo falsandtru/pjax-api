@@ -21,7 +21,7 @@ GEM
     ffi (1.9.18-x64-mingw32)
     forwardable-extended (2.6.0)
     gemoji (3.0.0)
-    github-pages (138)
+    github-pages (139)
       activesupport (= 4.2.8)
       github-pages-health-check (= 1.3.3)
       jekyll (= 3.4.3)
@@ -50,7 +50,7 @@ GEM
       jekyll-theme-midnight (= 0.0.4)
       jekyll-theme-minimal (= 0.0.4)
       jekyll-theme-modernist (= 0.0.4)
-      jekyll-theme-primer (= 0.1.8)
+      jekyll-theme-primer (= 0.2.1)
       jekyll-theme-slate (= 0.0.4)
       jekyll-theme-tactile (= 0.0.4)
       jekyll-theme-time-machine (= 0.0.4)
@@ -72,7 +72,7 @@ GEM
     html-pipeline (2.6.0)
       activesupport (>= 2)
       nokogiri (>= 1.4)
-    i18n (0.8.1)
+    i18n (0.8.4)
     jekyll (3.4.3)
       addressable (~> 2.4)
       colorator (~> 1.0)
@@ -135,7 +135,7 @@ GEM
       jekyll (~> 3.3)
     jekyll-theme-modernist (0.0.4)
       jekyll (~> 3.3)
-    jekyll-theme-primer (0.1.8)
+    jekyll-theme-primer (0.2.1)
       jekyll (~> 3.3)
     jekyll-theme-slate (0.0.4)
       jekyll (~> 3.3)
@@ -196,4 +196,4 @@ DEPENDENCIES
   github-pages
 
 BUNDLED WITH
-   1.13.7
+   1.15.0
