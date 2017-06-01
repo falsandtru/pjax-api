@@ -7,7 +7,7 @@ import { documentUrl } from '../../service/state/url';
 export class NavigationView {
   constructor(
     window: Window,
-    listener: (event: Event) => any
+    listener: (event: Event) => void,
   ) {
     void this.sv.register('', () => (
       void this.sv.events.exit.once(

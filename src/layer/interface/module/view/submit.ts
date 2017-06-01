@@ -5,7 +5,7 @@ export class SubmitView {
   constructor(
     document: Document,
     selector: string,
-    listener: (event: Event) => any
+    listener: (event: Event) => void,
   ) {
     void this.sv.register('', () => (
       void this.sv.events.exit.once(

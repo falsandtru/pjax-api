@@ -4,7 +4,7 @@ import { bind } from '../../../../lib/dom';
 export class ScrollView {
   constructor(
     window: Window,
-    listener: (event: Event) => any
+    listener: (event: Event) => void,
   ) {
     let timer = 0;
     void this.sv.register('', () => (

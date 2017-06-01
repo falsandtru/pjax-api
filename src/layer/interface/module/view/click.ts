@@ -5,7 +5,7 @@ export class ClickView {
   constructor(
     document: Document,
     selector: string,
-    listener: (event: MouseEvent) => any
+    listener: (event: MouseEvent) => void,
   ) {
     void this.sv.register('', () => (
       void this.sv.events.exit.once(
