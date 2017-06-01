@@ -1,4 +1,4 @@
-import { Cancelable, Either, Left, Right, concat } from 'spica';
+import { Cancellatee, Either, Left, Right, concat } from 'spica';
 import { find, once } from '../../../../../lib/dom';
 import { canonicalizeUrl, CanonicalUrl } from '../../../../data/model/canonicalization/url';
 import { validateUrl } from '../../../../data/model/validation/url';
@@ -16,7 +16,7 @@ export async function script(
     reload: string;
     logger: string;
   },
-  cancelable: Cancelable<Error>,
+  cancellation: Cancellatee<Error>,
   io = {
     request,
     evaluate,
@@ -43,7 +43,7 @@ export async function script(
     response: Response
   ): Either<Error, HTMLScriptElement[]> {
     return state
-      .bind(cancelable.either)
+      .bind(cancellation.either)
       .bind<HTMLScriptElement[]>(scripts =>
         io.evaluate(response, selector.logger)
           .fmap(script =>

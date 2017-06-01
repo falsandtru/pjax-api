@@ -1,4 +1,4 @@
-import { Cancelable, Supervisor, Just, Nothing } from 'spica';
+import { Cancellation, Supervisor, Just, Nothing } from 'spica';
 import { route as route_, Config } from '../../application/api';
 import { documentUrl } from './state/url';
 import { env } from '../service/state/env';
@@ -22,17 +22,17 @@ export async function route(
 ): Promise<void> {
   assert([HTMLAnchorElement, HTMLFormElement, Window].some(Class => event._currentTarget instanceof Class));
   void event.preventDefault();
-  const cancelable = new Cancelable<Error>();
+  const cancellation = new Cancellation<Error>();
   void process.cast('', new InterfaceError(`Abort.`));
   void process.register('', e => {
-    throw void cancelable.cancel(e);
+    throw void cancellation.cancel(e);
   }, void 0);
   const [scripts] = await env;
   window.history.scrollRestoration = 'manual';
   void progressbar(config.progressbar);
-  return route_(config, event, { scripts, cancelable }, io)
+  return route_(config, event, { scripts, cancellation }, io)
     .then(m => m
-      .bind(cancelable.either)
+      .bind(cancellation.either)
       .fmap(ss => (
         void ss
           .forEach(s =>
@@ -41,7 +41,7 @@ export async function route(
         void documentUrl.sync()))
       .extract())
     .catch(e =>
-      void cancelable.maybe(e instanceof Error ? e : new Error(e))
+      void cancellation.maybe(e instanceof Error ? e : new Error(e))
         .bind(e =>
           event.defaultPrevented
             ? Just(e)

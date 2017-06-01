@@ -1,4 +1,4 @@
-import { Cancelable, Just, Left } from 'spica';
+import { Cancellatee, Just, Left } from 'spica';
 import { Config } from '../domain/data/config';
 import { CanonicalUrl } from '../data/model/canonicalization/url';
 import { scope } from './config/scope';
@@ -14,7 +14,7 @@ export async function route(
   event: Event,
   state: {
     scripts: ReadonlySet<CanonicalUrl>;
-    cancelable: Cancelable<Error>
+    cancellation: Cancellatee<Error>
   },
   io: {
     document: Document;
@@ -30,7 +30,7 @@ export async function route(
       new RouterEntity(
         config,
         new RouterEvent(event),
-        new RouterEntityState(state.scripts, state.cancelable)))
+        new RouterEntityState(state.scripts, state.cancellation)))
     .fmap(entity =>
       route_(entity, io))
     .extract(() =>

@@ -2,7 +2,7 @@ import { xhr, match } from './xhr';
 import { RouterEventMethod } from '../../../event/router';
 import { canonicalizeUrl } from '../../../../data/model/canonicalization/url';
 import { validateUrl } from '../../../../data/model/validation/url';
-import { Sequence, Cancelable } from 'spica';
+import { Sequence, Cancellation } from 'spica';
 
 describe('Unit: layer/domain/router/module/fetch/xhr', () => {
   describe('xhr', () => {
@@ -12,7 +12,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
         canonicalizeUrl(validateUrl('')),
         null,
         0,
-        new Cancelable<Error>())
+        new Cancellation<Error>())
         .then(m => m.fmap(res => {
           assert(res.xhr instanceof XMLHttpRequest);
           assert(res.response.url === canonicalizeUrl(validateUrl('')));
@@ -28,7 +28,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
         canonicalizeUrl(validateUrl('?timeout')),
         null,
         1,
-        new Cancelable<Error>())
+        new Cancellation<Error>())
         .then(m => m.extract(err => {
           assert(err instanceof Error);
           done();
@@ -42,7 +42,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
         canonicalizeUrl(validateUrl('')),
         null,
         0,
-        new Cancelable<Error>())
+        new Cancellation<Error>())
         .then(m => m.fmap(() => {
           assert(Date.now() - time > 1000 - 10);
           done();
@@ -50,18 +50,18 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
     });
 
     it('cancel', done => {
-      const cancelable = new Cancelable<Error>();
+      const cancellation = new Cancellation<Error>();
       xhr(
         RouterEventMethod.GET,
         canonicalizeUrl(validateUrl('')),
         null,
         0,
-        cancelable)
+        cancellation)
         .then(m => m.extract(err => {
           assert(err instanceof Error);
           done();
         }));
-      cancelable.cancel(new Error());
+      cancellation.cancel(new Error());
     });
 
   });

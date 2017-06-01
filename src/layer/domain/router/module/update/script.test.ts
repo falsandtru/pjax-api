@@ -1,5 +1,5 @@
 import { script, escape, _request, _evaluate } from './script';
-import { Cancelable, Left, Right } from 'spica';
+import { Cancellation, Left, Right } from 'spica';
 import { parse } from '../../../../../lib/html';
 import DOM from 'typed-dom';
 
@@ -17,7 +17,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           reload: '',
           logger: ''
         },
-        new Cancelable<Error>(),
+        new Cancellation<Error>(),
         {
           request: script => Promise.resolve(Right<[HTMLScriptElement, string]>([script, ''])),
           evaluate: ([script]) => Right(script),
@@ -41,7 +41,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           reload: '',
           logger: 'head'
         },
-        new Cancelable<Error>(),
+        new Cancellation<Error>(),
         {
           request: script => {
             assert(cnt === 0 && ++cnt);
@@ -75,7 +75,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           reload: '',
           logger: 'head'
         },
-        new Cancelable<Error>(),
+        new Cancellation<Error>(),
         {
           request: script => {
             assert(cnt === 0 && ++cnt);
@@ -107,7 +107,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           reload: '',
           logger: 'head'
         },
-        new Cancelable<Error>(),
+        new Cancellation<Error>(),
         {
           request: script => {
             assert(cnt === 0 && ++cnt);
@@ -128,7 +128,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
 
     it('failure cancel', done => {
       let cnt = 0;
-      const cancelable = new Cancelable<Error>();
+      const cancellation = new Cancellation<Error>();
       script(
         {
           src: parse(DOM.head([DOM.script({ class: 'test' }, [])]).element.outerHTML).extract(),
@@ -140,7 +140,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           reload: '',
           logger: 'head'
         },
-        cancelable,
+        cancellation,
         {
           request: script => {
             assert(cnt === 0 && ++cnt);
@@ -157,7 +157,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           assert(err instanceof Error);
           done();
         }));
-      cancelable.cancel(new Error());
+      cancellation.cancel(new Error());
     });
 
   });

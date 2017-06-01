@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.10.4
+
+- Update dependencies.
+
 ## 3.10.3
 
 - Fix leaks of event listening.

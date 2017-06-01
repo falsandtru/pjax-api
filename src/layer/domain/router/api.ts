@@ -16,13 +16,13 @@ export async function route(
   }
 ): Promise<RouterResult> {
   return Right<Error, void>(void 0)
-    .bind(entity.state.cancelable.either)
+    .bind(entity.state.cancellation.either)
     .bind(() =>
       match(io.document, entity.config.areas)
         ? Right(void 0)
         : Left(new DomainError(`Failed to match areas.`)))
     .fmap(() =>
-      fetch(entity.event.request, entity.config, entity.state.cancelable))
+      fetch(entity.event.request, entity.config, entity.state.cancellation))
     .fmap(async p => (await p)
       .fmap(([res, seq]) =>
         update(entity, res, seq, {
