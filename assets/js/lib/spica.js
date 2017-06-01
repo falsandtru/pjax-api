@@ -1,4 +1,4 @@
-/*! spica v0.0.77 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.79 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
@@ -41,10 +41,12 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             var supervisor_1 = require('./lib/supervisor');
             exports.Supervisor = supervisor_1.Supervisor;
-            var observable_1 = require('./lib/observable');
-            exports.Observable = observable_1.Observable;
-            var cancelable_1 = require('./lib/cancelable');
-            exports.Cancelable = cancelable_1.Cancelable;
+            var observation_1 = require('./lib/observation');
+            exports.Observation = observation_1.Observation;
+            exports.Observable = observation_1.Observation;
+            var cancellation_1 = require('./lib/cancellation');
+            exports.Cancellation = cancellation_1.Cancellation;
+            exports.Cancelable = cancellation_1.Cancellation;
             var sequence_1 = require('./lib/monad/sequence');
             exports.Sequence = sequence_1.Sequence;
             var maybe_1 = require('./lib/monad/maybe');
@@ -90,7 +92,7 @@ require = function e(t, n, r) {
         {
             './lib/assign': 4,
             './lib/cache': 5,
-            './lib/cancelable': 6,
+            './lib/cancellation': 6,
             './lib/collection/attrmap': 7,
             './lib/collection/datamap': 8,
             './lib/concat': 10,
@@ -102,7 +104,7 @@ require = function e(t, n, r) {
             './lib/monad/either': 19,
             './lib/monad/maybe': 23,
             './lib/monad/sequence': 26,
-            './lib/observable': 71,
+            './lib/observation': 71,
             './lib/sort': 72,
             './lib/sqid': 73,
             './lib/supervisor': 74,
@@ -313,28 +315,52 @@ require = function e(t, n, r) {
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            var noop_1 = require('./noop');
             var maybe_1 = require('./monad/maybe');
             var either_1 = require('./monad/either');
-            var Cancelable = function () {
-                function Cancelable() {
+            var Cancellation = function () {
+                function Cancellation() {
                     var _this = this;
+                    this.done = false;
                     this.listeners = new Set();
-                    this.canceled = false;
+                    this.register = function (listener) {
+                        if (_this.canceled)
+                            return void listener(_this.reason), function () {
+                                return void 0;
+                            };
+                        if (_this.done)
+                            return function () {
+                                return void 0;
+                            };
+                        void _this.listeners.add(handler);
+                        return function () {
+                            return _this.done ? void 0 : void _this.listeners.delete(handler);
+                        };
+                        function handler(reason) {
+                            void listener(reason);
+                        }
+                    };
                     this.cancel = function (reason) {
-                        _this.cancel = noop_1.noop;
+                        if (_this.done)
+                            return;
+                        _this.done = true;
                         _this.canceled = true;
                         _this.reason = reason;
+                        var listeners = Array.from(_this.listeners);
                         void Object.freeze(_this);
-                        while (_this.listeners.size > 0) {
-                            void _this.listeners.forEach(function (cb) {
-                                return void _this.listeners.delete(cb), void cb(reason);
-                            });
-                        }
-                        _this.listeners.add = function (cb) {
-                            return void cb(_this.reason), _this.listeners;
-                        };
+                        void Object.freeze(_this.listeners);
+                        void listeners.forEach(function (cb) {
+                            return void cb(reason);
+                        });
                     };
+                    this.close = function () {
+                        if (_this.done)
+                            return;
+                        _this.done = true;
+                        void _this.listeners.clear();
+                        void Object.freeze(_this);
+                        void Object.freeze(_this.listeners);
+                    };
+                    this.canceled = false;
                     this.promise = function (val) {
                         return _this.canceled ? new Promise(function (_, reject) {
                             return void reject(_this.reason);
@@ -347,14 +373,13 @@ require = function e(t, n, r) {
                         return _this.canceled ? either_1.Left(_this.reason) : either_1.Right(val);
                     };
                 }
-                return Cancelable;
+                return Cancellation;
             }();
-            exports.Cancelable = Cancelable;
+            exports.Cancellation = Cancellation;
         },
         {
             './monad/either': 19,
-            './monad/maybe': 23,
-            './noop': 70
+            './monad/maybe': 23
         }
     ],
     7: [
@@ -3528,7 +3553,6 @@ require = function e(t, n, r) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             function noop() {
-                ;
             }
             exports.noop = noop;
         },
@@ -3540,8 +3564,8 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             var concat_1 = require('./concat');
             var exception_1 = require('./exception');
-            var Observable = function () {
-                function Observable() {
+            var Observation = function () {
+                function Observation() {
                     this.node_ = {
                         parent: void 0,
                         children: new Map(),
@@ -3549,7 +3573,7 @@ require = function e(t, n, r) {
                         registers: []
                     };
                 }
-                Observable.prototype.monitor = function (namespace, subscriber, identifier) {
+                Observation.prototype.monitor = function (namespace, subscriber, identifier) {
                     var _this = this;
                     if (identifier === void 0) {
                         identifier = subscriber;
@@ -3565,7 +3589,7 @@ require = function e(t, n, r) {
                         return _this.off(namespace, identifier, true);
                     };
                 };
-                Observable.prototype.on = function (namespace, subscriber, identifier) {
+                Observation.prototype.on = function (namespace, subscriber, identifier) {
                     var _this = this;
                     if (identifier === void 0) {
                         identifier = subscriber;
@@ -3583,7 +3607,7 @@ require = function e(t, n, r) {
                         return _this.off(namespace, identifier);
                     };
                 };
-                Observable.prototype.off = function (namespace, subscriber, monitor) {
+                Observation.prototype.off = function (namespace, subscriber, monitor) {
                     var _this = this;
                     if (monitor === void 0) {
                         monitor = false;
@@ -3629,30 +3653,30 @@ require = function e(t, n, r) {
                         throw this.throwTypeErrorIfInvalidSubscriber_(subscriber, namespace);
                     }
                 };
-                Observable.prototype.once = function (namespace, subscriber) {
+                Observation.prototype.once = function (namespace, subscriber) {
                     var _this = this;
                     void this.throwTypeErrorIfInvalidSubscriber_(subscriber, namespace);
                     return this.on(namespace, function (data) {
                         return void _this.off(namespace, subscriber), subscriber(data, namespace);
                     }, subscriber);
                 };
-                Observable.prototype.emit = function (namespace, data, tracker) {
+                Observation.prototype.emit = function (namespace, data, tracker) {
                     void this.drain_(namespace, data, tracker);
                 };
-                Observable.prototype.reflect = function (namespace, data) {
+                Observation.prototype.reflect = function (namespace, data) {
                     var results = [];
                     void this.emit(namespace, data, function (_, r) {
                         return results = r;
                     });
                     return results;
                 };
-                Observable.prototype.relay = function (source) {
+                Observation.prototype.relay = function (source) {
                     var _this = this;
                     return source.monitor([], function (data, namespace) {
                         return void _this.emit(namespace, data);
                     });
                 };
-                Observable.prototype.drain_ = function (namespace, data, tracker) {
+                Observation.prototype.drain_ = function (namespace, data, tracker) {
                     var results = [];
                     void this.refsBelow_(this.seekNode_(namespace)).reduce(function (_, sub) {
                         var monitor = sub[2], subscriber = sub[3];
@@ -3689,10 +3713,10 @@ require = function e(t, n, r) {
                         }
                     }
                 };
-                Observable.prototype.refs = function (namespace) {
+                Observation.prototype.refs = function (namespace) {
                     return this.refsBelow_(this.seekNode_(namespace));
                 };
-                Observable.prototype.refsAbove_ = function (_a) {
+                Observation.prototype.refsAbove_ = function (_a) {
                     var parent = _a.parent, registers = _a.registers;
                     registers = concat_1.concat([], registers);
                     while (parent) {
@@ -3701,7 +3725,7 @@ require = function e(t, n, r) {
                     }
                     return registers;
                 };
-                Observable.prototype.refsBelow_ = function (_a) {
+                Observation.prototype.refsBelow_ = function (_a) {
                     var childrenNames = _a.childrenNames, children = _a.children, registers = _a.registers;
                     registers = concat_1.concat([], registers);
                     var _loop_1 = function (i) {
@@ -3724,7 +3748,7 @@ require = function e(t, n, r) {
                     }
                     return registers;
                 };
-                Observable.prototype.seekNode_ = function (types) {
+                Observation.prototype.seekNode_ = function (types) {
                     var node = this.node_;
                     for (var _i = 0, types_1 = types; _i < types_1.length; _i++) {
                         var type = types_1[_i];
@@ -3742,17 +3766,17 @@ require = function e(t, n, r) {
                     }
                     return node;
                 };
-                Observable.prototype.throwTypeErrorIfInvalidSubscriber_ = function (subscriber, types) {
+                Observation.prototype.throwTypeErrorIfInvalidSubscriber_ = function (subscriber, types) {
                     switch (typeof subscriber) {
                     case 'function':
                         return;
                     default:
-                        throw new TypeError('Spica: Observable: Invalid subscriber.\n\t' + types + ' ' + subscriber);
+                        throw new TypeError('Spica: Observation: Invalid subscriber.\n\t' + types + ' ' + subscriber);
                     }
                 };
-                return Observable;
+                return Observation;
             }();
-            exports.Observable = Observable;
+            exports.Observation = Observation;
         },
         {
             './concat': 10,
@@ -3809,7 +3833,7 @@ require = function e(t, n, r) {
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            var observable_1 = require('./observable');
+            var observation_1 = require('./observation');
             var tick_1 = require('./tick');
             var thenable_1 = require('./thenable');
             var sqid_1 = require('./sqid');
@@ -3821,9 +3845,9 @@ require = function e(t, n, r) {
                     var _this = this;
                     this.id = sqid_1.sqid();
                     this.events = {
-                        init: new observable_1.Observable(),
-                        loss: new observable_1.Observable(),
-                        exit: new observable_1.Observable()
+                        init: new observation_1.Observation(),
+                        loss: new observation_1.Observation(),
+                        exit: new observation_1.Observation()
                     };
                     this.workers = new Map();
                     this.alive = true;
@@ -4152,7 +4176,7 @@ require = function e(t, n, r) {
         {
             './exception': 12,
             './noop': 70,
-            './observable': 71,
+            './observation': 71,
             './sqid': 73,
             './thenable': 75,
             './tick': 76
@@ -4211,7 +4235,7 @@ require = function e(t, n, r) {
                         void exception_1.causeAsyncException(reason);
                         continue;
                     }
-                    break;
+                    return;
                 }
             }
         },

@@ -204,7 +204,7 @@ require = function e(t, n, r) {
                                     dest: dest.pathname
                                 });
                             }).fmap(function (config) {
-                                return new api_1.RouterEntity(config, new router_1.RouterEvent(event), new api_1.RouterEntityState(state.scripts, state.cancelable));
+                                return new api_1.RouterEntity(config, new router_1.RouterEvent(event), new api_1.RouterEntityState(state.scripts, state.cancellation));
                             }).fmap(function (entity) {
                                 return api_1.route(entity, io);
                             }).extract(function () {
@@ -869,10 +869,10 @@ require = function e(t, n, r) {
                     return __generator(this, function (_a) {
                         return [
                             2,
-                            spica_1.Right(void 0).bind(entity.state.cancelable.either).bind(function () {
+                            spica_1.Right(void 0).bind(entity.state.cancellation.either).bind(function () {
                                 return content_1.match(io.document, entity.config.areas) ? spica_1.Right(void 0) : spica_1.Left(new error_1.DomainError('Failed to match areas.'));
                             }).fmap(function () {
-                                return fetch_1.fetch(entity.event.request, entity.config, entity.state.cancelable);
+                                return fetch_1.fetch(entity.event.request, entity.config, entity.state.cancellation);
                             }).fmap(function (p) {
                                 return __awaiter(_this, void 0, void 0, function () {
                                     return __generator(this, function (_a) {
@@ -929,9 +929,9 @@ require = function e(t, n, r) {
             }();
             exports.RouterEntity = RouterEntity;
             var RouterEntityState = function () {
-                function RouterEntityState(scripts, cancelable) {
+                function RouterEntityState(scripts, cancellation) {
                     this.scripts = scripts;
-                    this.cancelable = cancelable;
+                    this.cancellation = cancellation;
                     void Object.freeze(this);
                 }
                 return RouterEntityState;
@@ -1137,7 +1137,7 @@ require = function e(t, n, r) {
             var xhr_1 = require('../module/fetch/xhr');
             var error_1 = require('../../data/error');
             var url_1 = require('../../../../lib/url');
-            function fetch(_a, _b, cancelable) {
+            function fetch(_a, _b, cancellation) {
                 var method = _a.method, url = _a.url, data = _a.data;
                 var _c = _b.fetch, timeout = _c.timeout, wait = _c.wait, sequence = _b.sequence;
                 return __awaiter(this, void 0, void 0, function () {
@@ -1145,7 +1145,7 @@ require = function e(t, n, r) {
                     return __generator(this, function (_b) {
                         switch (_b.label) {
                         case 0:
-                            req = xhr_1.xhr(method, url, data, timeout, cancelable);
+                            req = xhr_1.xhr(method, url, data, timeout, cancellation);
                             void window.dispatchEvent(new Event('pjax:fetch'));
                             return [
                                 4,
@@ -1166,7 +1166,7 @@ require = function e(t, n, r) {
                             _a = _b.sent(), res = _a[0], seq = _a[1];
                             return [
                                 2,
-                                res.bind(cancelable.either).bind(function (result) {
+                                res.bind(cancellation.either).bind(function (result) {
                                     return result.response.url === '' || new url_1.Url(result.response.url).domain === new url_1.Url(url).domain ? spica_1.Right([
                                         result,
                                         seq
@@ -1194,7 +1194,7 @@ require = function e(t, n, r) {
             var fetch_1 = require('../../model/eav/value/fetch');
             var error_1 = require('../../../data/error');
             var ContentType = 'text/html';
-            function xhr(method, url, data, timeout, cancelable) {
+            function xhr(method, url, data, timeout, cancellation) {
                 var xhr = new XMLHttpRequest();
                 return new Promise(function (resolve) {
                     return void xhr.open(method, url, true), xhr.responseType = /chrome|firefox/i.test(window.navigator.userAgent) && !/edge/i.test(window.navigator.userAgent) ? 'document' : 'text', xhr.timeout = timeout, void xhr.setRequestHeader('X-Pjax', '1'), void xhr.send(data), void xhr.addEventListener('abort', function () {
@@ -1209,7 +1209,7 @@ require = function e(t, n, r) {
                         }, function (xhr) {
                             return void resolve(spica_1.Right(new fetch_1.FetchResult(xhr)));
                         });
-                    }), void cancelable.listeners.add(function () {
+                    }), void cancellation.register(function () {
                         return void xhr.abort();
                     });
                 });
@@ -1389,16 +1389,16 @@ require = function e(t, n, r) {
                 var response = _b.response;
                 return __awaiter(this, void 0, void 0, function () {
                     var _this = this;
-                    var cancelable, documents;
+                    var cancellation, documents;
                     return __generator(this, function (_a) {
-                        cancelable = state.cancelable;
+                        cancellation = state.cancellation;
                         documents = new update_1.UpdateSource({
                             src: response.document,
                             dst: io.document
                         }).documents;
                         return [
                             2,
-                            new spica_1.HNil().push(cancelable.either(seq)).modify(function (m) {
+                            new spica_1.HNil().push(cancellation.either(seq)).modify(function (m) {
                                 return m.fmap(function (seq) {
                                     return content_1.separate(documents, config.areas).fmap(function (_a) {
                                         var area = _a[0];
@@ -1419,7 +1419,7 @@ require = function e(t, n, r) {
                                                 switch (_c.label) {
                                                 case 0:
                                                     void window.dispatchEvent(new Event('pjax:unload'));
-                                                    _b = (_a = cancelable).either;
+                                                    _b = (_a = cancellation).either;
                                                     return [
                                                         4,
                                                         config.sequence.unload(seq, response)
@@ -1463,7 +1463,7 @@ require = function e(t, n, r) {
                                                                                 as,
                                                                                 Promise.all(ps)
                                                                             ];
-                                                                        }).fmap(cancelable.either).extract(function () {
+                                                                        }).fmap(cancellation.either).extract(function () {
                                                                             return spica_1.Left(new error_1.DomainError('Failed to update areas.'));
                                                                         }))
                                                                     ];
@@ -1512,7 +1512,7 @@ require = function e(t, n, r) {
                                                                                                     ];
                                                                                                 return [
                                                                                                     4,
-                                                                                                    script_1.script(documents, state.scripts, config.update, cancelable)
+                                                                                                    script_1.script(documents, state.scripts, config.update, cancellation)
                                                                                                 ];
                                                                                             case 1:
                                                                                                 _a = _b.sent();
@@ -1523,7 +1523,7 @@ require = function e(t, n, r) {
                                                                                             case 2:
                                                                                                 return [
                                                                                                     4,
-                                                                                                    cancelable.either([])
+                                                                                                    cancellation.either([])
                                                                                                 ];
                                                                                             case 3:
                                                                                                 _a = _b.sent();
@@ -1543,7 +1543,7 @@ require = function e(t, n, r) {
                                                                                             switch (_c.label) {
                                                                                             case 0:
                                                                                                 void io.document.dispatchEvent(new Event('pjax:ready'));
-                                                                                                _b = (_a = cancelable).either;
+                                                                                                _b = (_a = cancellation).either;
                                                                                                 return [
                                                                                                     4,
                                                                                                     config.sequence.ready(seq, areas)
@@ -1606,7 +1606,7 @@ require = function e(t, n, r) {
                                                                             return __generator(this, function (_c) {
                                                                                 switch (_c.label) {
                                                                                 case 0:
-                                                                                    _b = (_a = cancelable).maybe;
+                                                                                    _b = (_a = cancellation).maybe;
                                                                                     return [
                                                                                         4,
                                                                                         p
@@ -2005,7 +2005,7 @@ require = function e(t, n, r) {
             var dom_1 = require('../../../../../lib/dom');
             var url_1 = require('../../../../data/model/canonicalization/url');
             var url_2 = require('../../../../data/model/validation/url');
-            function script(documents, skip, selector, cancelable, io) {
+            function script(documents, skip, selector, cancellation, io) {
                 if (io === void 0) {
                     io = {
                         request: request,
@@ -2014,7 +2014,7 @@ require = function e(t, n, r) {
                 }
                 return __awaiter(this, void 0, void 0, function () {
                     function run(state, response) {
-                        return state.bind(cancelable.either).bind(function (scripts) {
+                        return state.bind(cancellation.either).bind(function (scripts) {
                             return io.evaluate(response, selector.logger).fmap(function (script) {
                                 return scripts.concat([script]);
                             });
@@ -2665,30 +2665,30 @@ require = function e(t, n, r) {
                             return s;
                         },
                         call: function (_, s) {
-                            return void s.listeners.add(new click_1.ClickView(_this.io.document, _this.config.link, function (event) {
+                            return void s.register(new click_1.ClickView(_this.io.document, _this.config.link, function (event) {
                                 return void spica_1.Just(new url_1.Url(url_2.canonicalizeUrl(url_3.validateUrl(event._currentTarget.href)))).bind(function (url) {
                                     return isAccessible(url) && !isHashChange(url) && !hasModifierKey(event) && _this.config.filter(event._currentTarget) ? spica_1.Just(0) : spica_1.Nothing;
                                 }).fmap(function () {
                                     return router_1.route(_this.config, event, GUI.process, _this.io);
                                 }).extract(sync);
-                            }).close).add(new submit_1.SubmitView(_this.io.document, _this.config.form, function (event) {
+                            }).close), void s.register(new submit_1.SubmitView(_this.io.document, _this.config.form, function (event) {
                                 return void spica_1.Just(new url_1.Url(url_2.canonicalizeUrl(url_3.validateUrl(event._currentTarget.action)))).bind(function (url) {
                                     return isAccessible(url) ? spica_1.Just(0) : spica_1.Nothing;
                                 }).fmap(function () {
                                     return router_1.route(_this.config, event, GUI.process, _this.io);
                                 }).extract(sync);
-                            }).close).add(new navigation_1.NavigationView(window, function (event) {
+                            }).close), void s.register(new navigation_1.NavigationView(window, function (event) {
                                 return void spica_1.Just(new url_1.Url(url_2.canonicalizeUrl(url_3.validateUrl(window.location.href)))).bind(function (url) {
                                     return isAccessible(url) && !isHashChange(url) ? spica_1.Just(api_2.loadTitle()) : spica_1.Nothing;
                                 }).fmap(function (title) {
                                     return title ? io.document.title = title : void 0, router_1.route(_this.config, event, GUI.process, _this.io);
                                 }).extract(sync);
-                            }).close).add(new scroll_1.ScrollView(window, function () {
+                            }).close), void s.register(new scroll_1.ScrollView(window, function () {
                                 return void spica_1.Just(new url_1.Url(url_2.canonicalizeUrl(url_3.validateUrl(window.location.href)))).fmap(function (url) {
                                     return url_4.documentUrl.href === url.href ? void api_2.savePosition() : void 0;
                                 }).extract();
                             }).close), new Promise(function (resolve) {
-                                return void s.listeners.add(function () {
+                                return void s.register(function () {
                                     return void resolve([
                                         void 0,
                                         s
@@ -2699,7 +2699,7 @@ require = function e(t, n, r) {
                         exit: function (_, s) {
                             return void s.cancel();
                         }
-                    }, new spica_1.Cancelable());
+                    }, new spica_1.Cancellation());
                     void GUI.view.cast('', void 0);
                 }
                 GUI.assign = function (url, option, io) {
@@ -2958,15 +2958,15 @@ require = function e(t, n, r) {
             }, true);
             function route(config, event, process, io) {
                 return __awaiter(this, void 0, void 0, function () {
-                    var cancelable, scripts;
+                    var cancellation, scripts;
                     return __generator(this, function (_a) {
                         switch (_a.label) {
                         case 0:
                             void event.preventDefault();
-                            cancelable = new spica_1.Cancelable();
+                            cancellation = new spica_1.Cancellation();
                             void process.cast('', new error_1.InterfaceError('Abort.'));
                             void process.register('', function (e) {
-                                throw void cancelable.cancel(e);
+                                throw void cancellation.cancel(e);
                             }, void 0);
                             return [
                                 4,
@@ -2980,15 +2980,15 @@ require = function e(t, n, r) {
                                 2,
                                 api_1.route(config, event, {
                                     scripts: scripts,
-                                    cancelable: cancelable
+                                    cancellation: cancellation
                                 }, io).then(function (m) {
-                                    return m.bind(cancelable.either).fmap(function (ss) {
+                                    return m.bind(cancellation.either).fmap(function (ss) {
                                         return void ss.forEach(function (s) {
                                             return void scripts.add(url_2.canonicalizeUrl(url_3.validateUrl(s.src)));
                                         }), void process.terminate(''), void url_1.documentUrl.sync();
                                     }).extract();
                                 }).catch(function (e) {
-                                    return void cancelable.maybe(e instanceof Error ? e : new Error(e)).bind(function (e) {
+                                    return void cancellation.maybe(e instanceof Error ? e : new Error(e)).bind(function (e) {
                                         return event.defaultPrevented ? spica_1.Just(e) : spica_1.Nothing;
                                     }).extract(function () {
                                         return void process.terminate('');
