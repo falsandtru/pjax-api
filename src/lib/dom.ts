@@ -4,10 +4,10 @@ export function find<T extends HTMLElement>(target: HTMLElement | Document, sele
   return <T[]>Array.from(target.querySelectorAll(selector || '_'));
 }
 
-export function bind<T extends keyof WindowEventMap>(target: Window, type: T, listener: (ev: WindowEventMap[T]) => any, option?: boolean | EventListenerOption): () => undefined;
-export function bind<T extends keyof DocumentEventMap>(target: Document, type: T, listener: (ev: DocumentEventMap[T]) => any, option?: boolean | EventListenerOption): () => undefined;
-export function bind<T extends keyof HTMLElementEventMap>(target: HTMLElement, type: T, listener: (ev: HTMLElementEventMap[T]) => any, option?: boolean | EventListenerOption): () => undefined;
-export function bind<T extends keyof WindowEventMap | keyof DocumentEventMap | keyof HTMLElementEventMap>(target: Window | Document | HTMLElement, type: T, listener: (ev: Event) => any, option: boolean | EventListenerOption = false): () => undefined {
+export function bind<T extends keyof WindowEventMap>(target: Window, type: T, listener: (ev: WindowEventMap[T]) => void, option?: boolean | EventListenerOption): () => undefined;
+export function bind<T extends keyof DocumentEventMap>(target: Document, type: T, listener: (ev: DocumentEventMap[T]) => void, option?: boolean | EventListenerOption): () => undefined;
+export function bind<T extends keyof HTMLElementEventMap>(target: HTMLElement, type: T, listener: (ev: HTMLElementEventMap[T]) => void, option?: boolean | EventListenerOption): () => undefined;
+export function bind<T extends keyof WindowEventMap | keyof DocumentEventMap | keyof HTMLElementEventMap>(target: Window | Document | HTMLElement, type: T, listener: (ev: Event) => void, option: boolean | EventListenerOption = false): () => undefined {
   void target.addEventListener(type, handler, adjustEventListenerOptions(option));
   let unbind: () => undefined = () => (
     unbind = noop,
@@ -23,10 +23,10 @@ export function bind<T extends keyof WindowEventMap | keyof DocumentEventMap | k
   }
 }
 
-export function once<T extends keyof WindowEventMap>(target: Window, type: T, listener: (ev: WindowEventMap[T]) => any, option?: boolean | EventListenerOption): () => undefined;
-export function once<T extends keyof DocumentEventMap>(target: Document, type: T, listener: (ev: DocumentEventMap[T]) => any, option?: boolean | EventListenerOption): () => undefined;
-export function once<T extends keyof HTMLElementEventMap>(target: HTMLElement, type: T, listener: (ev: HTMLElementEventMap[T]) => any, option?: boolean | EventListenerOption): () => undefined;
-export function once<T extends keyof WindowEventMap | keyof DocumentEventMap | keyof HTMLElementEventMap>(target: Window | Document | HTMLElement, type: T, listener: (ev: Event) => any, option: boolean | EventListenerOption = false): () => undefined {
+export function once<T extends keyof WindowEventMap>(target: Window, type: T, listener: (ev: WindowEventMap[T]) => void, option?: boolean | EventListenerOption): () => undefined;
+export function once<T extends keyof DocumentEventMap>(target: Document, type: T, listener: (ev: DocumentEventMap[T]) => void, option?: boolean | EventListenerOption): () => undefined;
+export function once<T extends keyof HTMLElementEventMap>(target: HTMLElement, type: T, listener: (ev: HTMLElementEventMap[T]) => void, option?: boolean | EventListenerOption): () => undefined;
+export function once<T extends keyof WindowEventMap | keyof DocumentEventMap | keyof HTMLElementEventMap>(target: Window | Document | HTMLElement, type: T, listener: (ev: Event) => void, option: boolean | EventListenerOption = false): () => undefined {
   const unbind: () => undefined = bind(<Window>target, <keyof WindowEventMap>type, ev => {
     void unbind();
     void listener(ev);
@@ -34,7 +34,7 @@ export function once<T extends keyof WindowEventMap | keyof DocumentEventMap | k
   return () => void unbind();
 }
 
-export function delegate<T extends keyof HTMLElementEventMap>(target: HTMLElement, selector: string, type: T, listener: (ev: HTMLElementEventMap[T]) => any, option: EventListenerOption = {}): () => undefined {
+export function delegate<T extends keyof HTMLElementEventMap>(target: HTMLElement, selector: string, type: T, listener: (ev: HTMLElementEventMap[T]) => void, option: EventListenerOption = {}): () => undefined {
   return bind(target, type, ev => {
     const cx = (<HTMLElement>ev.target).closest(selector);
     if (!cx) return;
