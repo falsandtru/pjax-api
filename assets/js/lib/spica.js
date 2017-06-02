@@ -1,4 +1,4 @@
-/*! spica v0.0.79 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.80 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
