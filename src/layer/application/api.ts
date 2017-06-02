@@ -1,4 +1,4 @@
-import { Cancellatee, Just, Left } from 'spica';
+import { Cancellee, Just, Left } from 'spica';
 import { Config } from '../domain/data/config';
 import { CanonicalUrl } from '../data/model/canonicalization/url';
 import { scope } from './config/scope';
@@ -14,7 +14,7 @@ export async function route(
   event: Event,
   state: {
     scripts: ReadonlySet<CanonicalUrl>;
-    cancellation: Cancellatee<Error>
+    cancellation: Cancellee<Error>
   },
   io: {
     document: Document;

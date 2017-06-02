@@ -1,4 +1,4 @@
-import { Cancellatee, Either, Left, Right } from 'spica';
+import { Cancellee, Either, Left, Right } from 'spica';
 import { Config } from '../../data/config';
 import { RouterEventRequest } from '../../event/router';
 import { FetchResult } from '../model/eav/value/fetch';
@@ -23,7 +23,7 @@ export async function fetch(
     },
     sequence
   }: Config,
-  cancellation: Cancellatee<Error>
+  cancellation: Cancellee<Error>
 ): Promise<Result> {
   const req = xhr(method, url, data, timeout, cancellation);
   void window.dispatchEvent(new Event('pjax:fetch'));

@@ -1,4 +1,4 @@
-import { Cancellatee, Either, Left, Right, concat } from 'spica';
+import { Cancellee, Either, Left, Right, concat } from 'spica';
 import { find, once } from '../../../../../lib/dom';
 import { canonicalizeUrl, CanonicalUrl } from '../../../../data/model/canonicalization/url';
 import { validateUrl } from '../../../../data/model/validation/url';
@@ -16,7 +16,7 @@ export async function script(
     reload: string;
     logger: string;
   },
-  cancellation: Cancellatee<Error>,
+  cancellation: Cancellee<Error>,
   io = {
     request,
     evaluate,

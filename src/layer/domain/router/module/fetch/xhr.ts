@@ -1,4 +1,4 @@
-import { Cancellatee, Sequence, Either, Left, Right } from 'spica';
+import { Cancellee, Sequence, Either, Left, Right } from 'spica';
 import { RouterEventMethod } from '../../../event/router';
 import { FetchResult } from '../../model/eav/value/fetch';
 import { CanonicalUrl } from '../../../../data/model/canonicalization/url';
@@ -11,7 +11,7 @@ export function xhr(
   url: CanonicalUrl,
   data: FormData | null,
   timeout: number,
-  cancellation: Cancellatee<Error>
+  cancellation: Cancellee<Error>
 ): Promise<Either<Error, FetchResult>> {
   const xhr = new XMLHttpRequest();
   return new Promise<Either<Error, FetchResult>>(resolve => (
