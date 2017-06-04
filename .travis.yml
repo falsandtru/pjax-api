@@ -4,10 +4,10 @@ matrix:
   - os: linux
     dist: trusty
     sudo: required
-    node_js: 7
+    node_js: 8
   - os: osx
     osx_image: xcode8
-    node_js: 7
+    node_js: 8
 env:
   global:
   - secure: byBYsMBLNyb+DGul6ET+jHuIp2TW1V18zPYZqqAi8HH3jeHErKlN+o3b9jSzz+314hfqVNlvu15ZRjCAF36gQ3BtATjULYmVjdkQxaXY+4zFWdfhEvWmGZ8MWYiUmerizKcPoGbc8FoBlBRBgWMOZO1GhGJF6mzP2F3v2l/dC7o=
@@ -42,7 +42,7 @@ deploy:
     secure: k9k/ScWG5ig5AnzTgYe43i6I+PgftS100qsF8kAvFPX7GYQEsugK5SCpO5rKFamNFul+dK8yDpGE3rEI87Ec/t3oTeneq51jTTxaTTwgC3X6GgzmaN80DMpqfXBIaksMzFjxjSifsO6NqCE2p6JWP4hLfJeXTX7CdlcZh8T0ois=
   on:
     branch: master
-    node: 7
+    node: 8
     condition: $TRAVIS_OS_NAME = linux
   skip_cleanup: true
 notifications:

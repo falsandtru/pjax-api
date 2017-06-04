@@ -150,6 +150,7 @@ gulp.task('test', ['clean'], function (done) {
   seq(
     'ts:test',
     'karma:test',
+    'ts:dist',
     function () {
       done();
     }
