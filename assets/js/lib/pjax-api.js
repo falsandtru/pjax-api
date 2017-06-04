@@ -2724,22 +2724,22 @@ require = function e(t, n, r) {
                 GUI.prototype.replace = function (url) {
                     return void GUI.replace(url, this.option, this.io);
                 };
+                GUI.process = new (function (_super) {
+                    __extends(class_1, _super);
+                    function class_1() {
+                        return _super !== null && _super.apply(this, arguments) || this;
+                    }
+                    return class_1;
+                }(spica_1.Supervisor))();
+                GUI.view = new (function (_super) {
+                    __extends(class_2, _super);
+                    function class_2() {
+                        return _super !== null && _super.apply(this, arguments) || this;
+                    }
+                    return class_2;
+                }(spica_1.Supervisor))();
                 return GUI;
             }();
-            GUI.process = new (function (_super) {
-                __extends(class_1, _super);
-                function class_1() {
-                    return _super !== null && _super.apply(this, arguments) || this;
-                }
-                return class_1;
-            }(spica_1.Supervisor))();
-            GUI.view = new (function (_super) {
-                __extends(class_2, _super);
-                function class_2() {
-                    return _super !== null && _super.apply(this, arguments) || this;
-                }
-                return class_2;
-            }(spica_1.Supervisor))();
             exports.GUI = GUI;
             function hasModifierKey(event) {
                 return event.which > 1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
