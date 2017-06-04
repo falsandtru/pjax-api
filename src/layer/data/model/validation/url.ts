@@ -4,6 +4,8 @@ export type ValidUrl = Valid & string;
 
 const parser = document.createElement('a');
 
+export function validateUrl(url: ValidUrl): void
+export function validateUrl(url: string): ValidUrl
 export function validateUrl(url: string): ValidUrl {
   // Trim
   url = url.trim();

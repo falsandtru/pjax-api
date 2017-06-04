@@ -35,7 +35,7 @@ describe('Unit: layer/data/model/canonicalization/url', () => {
     });
 
     it('multiple-encoding', () => {
-      assert(canonicalizeUrl(validateUrl(<any>canonicalizeUrl(validateUrl('/%%3f%3d')))).endsWith('/%25%3F%3D'));
+      assert(canonicalizeUrl(validateUrl(<string>canonicalizeUrl(validateUrl('/%%3f%3d')))).endsWith('/%25%3F%3D'));
     });
 
   });

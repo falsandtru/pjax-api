@@ -21,7 +21,7 @@ describe('Unit: layer/data/model/validation/url', () => {
     });
 
     it('multiple-encoding', () => {
-      assert(validateUrl(<any>validateUrl('/<%3F%3D>')).endsWith('/%3C%3F%3D%3E'));
+      assert(validateUrl(<string>validateUrl('/<%3F%3D>')).endsWith('/%3C%3F%3D%3E'));
     });
 
   });
