@@ -1,4 +1,4 @@
-/*! spica v0.0.80 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.82 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
@@ -315,16 +315,23 @@ require = function e(t, n, r) {
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
+            var tick_1 = require('./tick');
+            var exception_1 = require('./exception');
             var maybe_1 = require('./monad/maybe');
             var either_1 = require('./monad/either');
             var Cancellation = function () {
-                function Cancellation() {
+                function Cancellation(cancelees) {
+                    if (cancelees === void 0) {
+                        cancelees = [];
+                    }
                     var _this = this;
                     this.done = false;
                     this.listeners = new Set();
                     this.register = function (listener) {
                         if (_this.canceled)
-                            return void listener(_this.reason), function () {
+                            return void tick_1.tick(function () {
+                                return void handler(_this.reason);
+                            }), function () {
                                 return void 0;
                             };
                         if (_this.done)
@@ -336,7 +343,11 @@ require = function e(t, n, r) {
                             return _this.done ? void 0 : void _this.listeners.delete(handler);
                         };
                         function handler(reason) {
-                            void listener(reason);
+                            try {
+                                void listener(reason);
+                            } catch (reason) {
+                                void exception_1.causeAsyncException(reason);
+                            }
                         }
                     };
                     this.cancel = function (reason) {
@@ -372,14 +383,19 @@ require = function e(t, n, r) {
                     this.either = function (val) {
                         return _this.canceled ? either_1.Left(_this.reason) : either_1.Right(val);
                     };
+                    void Array.from(cancelees).forEach(function (cancellee) {
+                        return void cancellee.register(_this.cancel);
+                    });
                 }
                 return Cancellation;
             }();
             exports.Cancellation = Cancellation;
         },
         {
+            './exception': 12,
             './monad/either': 19,
-            './monad/maybe': 23
+            './monad/maybe': 23,
+            './tick': 76
         }
     ],
     7: [
@@ -854,9 +870,7 @@ require = function e(t, n, r) {
             var Either = function (_super) {
                 __extends(Either, _super);
                 function Either(thunk) {
-                    var _this = _super.call(this, thunk) || this;
-                    void _this.EITHER;
-                    return _this;
+                    return _super.call(this, thunk) || this;
                 }
                 Either.prototype.fmap = function (f) {
                     return this.bind(function (b) {
@@ -1047,9 +1061,7 @@ require = function e(t, n, r) {
             var Maybe = function (_super) {
                 __extends(Maybe, _super);
                 function Maybe(thunk) {
-                    var _this = _super.call(this, thunk) || this;
-                    void _this.MAYBE;
-                    return _this;
+                    return _super.call(this, thunk) || this;
                 }
                 Maybe.prototype.fmap = function (f) {
                     return this.bind(function (a) {
@@ -3171,11 +3183,11 @@ require = function e(t, n, r) {
                 function default_1() {
                     return _super !== null && _super.apply(this, arguments) || this;
                 }
+                default_1.mempty = new core_1.Sequence(function (_, cons) {
+                    return cons();
+                });
                 return default_1;
             }(core_1.Sequence);
-            default_1.mempty = new core_1.Sequence(function (_, cons) {
-                return cons();
-            });
             exports.default = default_1;
         },
         { '../../core': 27 }
@@ -3206,9 +3218,9 @@ require = function e(t, n, r) {
                 function default_1() {
                     return _super !== null && _super.apply(this, arguments) || this;
                 }
+                default_1.mplus = core_1.Sequence.mappend;
                 return default_1;
             }(core_1.Sequence);
-            default_1.mplus = core_1.Sequence.mappend;
             exports.default = default_1;
         },
         { '../../core': 27 }
@@ -3239,9 +3251,9 @@ require = function e(t, n, r) {
                 function default_1() {
                     return _super !== null && _super.apply(this, arguments) || this;
                 }
+                default_1.mzero = core_1.Sequence.mempty;
                 return default_1;
             }(core_1.Sequence);
-            default_1.mzero = core_1.Sequence.mempty;
             exports.default = default_1;
         },
         { '../../core': 27 }
