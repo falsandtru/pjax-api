@@ -126,14 +126,13 @@ gulp.task('clean', function () {
 });
 
 gulp.task('install', function () {
-  shell('npm i');
+  shell('npm i --no-shrinkwrap');
 });
 
 gulp.task('update', function () {
   shell('bundle update');
-  shell('rm package-lock.json');
   shell('ncu -ua');
-  shell('npm i');
+  shell('npm i --no-shrinkwrap');
 });
 
 gulp.task('watch', ['clean'], function () {
