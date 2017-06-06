@@ -1,4 +1,4 @@
-/*! spica v0.0.82 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.85 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
@@ -227,6 +227,10 @@ require = function e(t, n, r) {
                     }
                     return false;
                 };
+                Cache.prototype.set = function (key, value) {
+                    void this.put(key, value);
+                    return value;
+                };
                 Cache.prototype.get = function (key) {
                     void this.access(key);
                     return this.store.get(key);
@@ -315,7 +319,6 @@ require = function e(t, n, r) {
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            var tick_1 = require('./tick');
             var exception_1 = require('./exception');
             var maybe_1 = require('./monad/maybe');
             var either_1 = require('./monad/either');
@@ -329,9 +332,7 @@ require = function e(t, n, r) {
                     this.listeners = new Set();
                     this.register = function (listener) {
                         if (_this.canceled)
-                            return void tick_1.tick(function () {
-                                return void handler(_this.reason);
-                            }), function () {
+                            return void handler(_this.reason), function () {
                                 return void 0;
                             };
                         if (_this.done)
@@ -394,8 +395,7 @@ require = function e(t, n, r) {
         {
             './exception': 12,
             './monad/either': 19,
-            './monad/maybe': 23,
-            './tick': 76
+            './monad/maybe': 23
         }
     ],
     7: [
