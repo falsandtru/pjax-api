@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.11.0
+
+- Improve url encoding.
+
 ## 3.10.4
 
 - Update dependencies.

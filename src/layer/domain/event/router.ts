@@ -1,6 +1,5 @@
 import { Url } from '../../../lib/url';
-import { canonicalizeUrl, CanonicalUrl } from '../../data/model/canonicalization/url';
-import { validateUrl } from '../../data/model/validation/url';
+import { StandardUrl, standardizeUrl } from '../../data/model/domain/url';
 import { serialize } from '../../../lib/dom';
 import { DomainError } from '../data/error';
 
@@ -72,18 +71,18 @@ export class RouterEventRequest {
         throw new TypeError();
     }
   })();
-  public url: CanonicalUrl = (() => {
+  public url: StandardUrl = (() => {
     switch (this.eventType) {
       case RouterEventType.click:
-        return canonicalizeUrl(validateUrl((<RouterEventSource.Anchor>this.source).href));
+        return standardizeUrl((<RouterEventSource.Anchor>this.source).href);
       case RouterEventType.submit:
-        return canonicalizeUrl(validateUrl(
+        return standardizeUrl(
           (<RouterEventSource.Form>this.source).method.toUpperCase() === RouterEventMethod.POST
             ? (<RouterEventSource.Form>this.source).action.split(/[?#]/).shift() !
             : (<RouterEventSource.Form>this.source).action.split(/[?#]/).shift() !
-              .concat(`?${serialize(<RouterEventSource.Form>this.source)}`)));
+              .concat(`?${serialize(<RouterEventSource.Form>this.source)}`));
       case RouterEventType.popstate:
-        return canonicalizeUrl(validateUrl(window.location.href));
+        return standardizeUrl(window.location.href);
       default:
         throw new TypeError();
     }
@@ -95,11 +94,11 @@ export class RouterEventRequest {
 
 export class RouterEventLocation {
   constructor(
-    private readonly target: CanonicalUrl
+    private readonly target: StandardUrl
   ) {
     if (this.orig.domain !== this.dest.domain) throw new DomainError(`Cannot go to the different domain url ${this.dest.href}`);
     void Object.freeze(this);
   }
-  public readonly orig: Url<CanonicalUrl> = new Url(canonicalizeUrl(validateUrl(window.location.href)));
-  public readonly dest: Url<CanonicalUrl> = new Url(this.target);
+  public readonly orig: Url<StandardUrl> = new Url(standardizeUrl(window.location.href));
+  public readonly dest: Url<StandardUrl> = new Url(this.target);
 }

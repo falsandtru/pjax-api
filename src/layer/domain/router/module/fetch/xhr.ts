@@ -1,14 +1,14 @@
 import { Cancellee, Sequence, Either, Left, Right } from 'spica';
 import { RouterEventMethod } from '../../../event/router';
 import { FetchResult } from '../../model/eav/value/fetch';
-import { CanonicalUrl } from '../../../../data/model/canonicalization/url';
+import { StandardUrl } from '../../../../data/model/domain/url';
 import { DomainError } from '../../../data/error';
 
 const ContentType = 'text/html';
 
 export function xhr(
   method: RouterEventMethod,
-  url: CanonicalUrl,
+  url: StandardUrl,
   data: FormData | null,
   timeout: number,
   cancellation: Cancellee<Error>

@@ -1,7 +1,6 @@
 import { router, compare, expand, match } from './router';
 import { Url } from './url';
-import { canonicalizeUrl } from '../layer/data/model/canonicalization/url';
-import { validateUrl } from '../layer/data/model/validation/url';
+import { standardizeUrl } from '../layer/data/model/domain/url';
 import { Sequence } from 'spica';
 
 describe('Unit: lib/router', () => {
@@ -35,39 +34,39 @@ describe('Unit: lib/router', () => {
 
   describe('compare', () => {
     it('root', () => {
-      assert(compare('/', new Url(canonicalizeUrl(validateUrl('/'))).pathname));
-      assert(compare('/', new Url(canonicalizeUrl(validateUrl('/a'))).pathname));
-      assert(compare('/', new Url(canonicalizeUrl(validateUrl('/abc'))).pathname));
-      assert(compare('/', new Url(canonicalizeUrl(validateUrl('/a/'))).pathname));
-      assert(compare('/', new Url(canonicalizeUrl(validateUrl('/abc/'))).pathname));
-      assert(compare('/', new Url(canonicalizeUrl(validateUrl('/a/b'))).pathname));
-      assert(compare('/', new Url(canonicalizeUrl(validateUrl('/abc/bcd'))).pathname));
+      assert(compare('/', new Url(standardizeUrl('/')).pathname));
+      assert(compare('/', new Url(standardizeUrl('/a')).pathname));
+      assert(compare('/', new Url(standardizeUrl('/abc')).pathname));
+      assert(compare('/', new Url(standardizeUrl('/a/')).pathname));
+      assert(compare('/', new Url(standardizeUrl('/abc/')).pathname));
+      assert(compare('/', new Url(standardizeUrl('/a/b')).pathname));
+      assert(compare('/', new Url(standardizeUrl('/abc/bcd')).pathname));
     });
 
     it('dir', () => {
-      assert(!compare('/abc', new Url(canonicalizeUrl(validateUrl('/'))).pathname));
-      assert(compare('/abc', new Url(canonicalizeUrl(validateUrl('/abc'))).pathname));
-      assert(compare('/abc', new Url(canonicalizeUrl(validateUrl('/abc/'))).pathname));
-      assert(!compare('/abc/', new Url(canonicalizeUrl(validateUrl('/abc'))).pathname));
-      assert(compare('/abc/', new Url(canonicalizeUrl(validateUrl('/abc/'))).pathname));
-      assert(!compare('/abc', new Url(canonicalizeUrl(validateUrl('/ab'))).pathname));
-      assert(!compare('/ab', new Url(canonicalizeUrl(validateUrl('/abc'))).pathname));
+      assert(!compare('/abc', new Url(standardizeUrl('/')).pathname));
+      assert(compare('/abc', new Url(standardizeUrl('/abc')).pathname));
+      assert(compare('/abc', new Url(standardizeUrl('/abc/')).pathname));
+      assert(!compare('/abc/', new Url(standardizeUrl('/abc')).pathname));
+      assert(compare('/abc/', new Url(standardizeUrl('/abc/')).pathname));
+      assert(!compare('/abc', new Url(standardizeUrl('/ab')).pathname));
+      assert(!compare('/ab', new Url(standardizeUrl('/abc')).pathname));
     });
 
     it('file', () => {
-      assert(compare('/a/b/c.d', new Url(canonicalizeUrl(validateUrl('/a/b/c.d'))).pathname));
-      assert(!compare('/a/b/c', new Url(canonicalizeUrl(validateUrl('/a/b/c.d'))).pathname));
-      assert(!compare('/a/b/c.d', new Url(canonicalizeUrl(validateUrl('/a/b/c'))).pathname));
+      assert(compare('/a/b/c.d', new Url(standardizeUrl('/a/b/c.d')).pathname));
+      assert(!compare('/a/b/c', new Url(standardizeUrl('/a/b/c.d')).pathname));
+      assert(!compare('/a/b/c.d', new Url(standardizeUrl('/a/b/c')).pathname));
     });
 
     it('expand', () => {
-      assert(compare('/{a,b}', new Url(canonicalizeUrl(validateUrl('/a'))).pathname));
-      assert(compare('/{a,b}', new Url(canonicalizeUrl(validateUrl('/b'))).pathname));
+      assert(compare('/{a,b}', new Url(standardizeUrl('/a')).pathname));
+      assert(compare('/{a,b}', new Url(standardizeUrl('/b')).pathname));
     });
 
     it('match', () => {
-      assert(compare('/*/{a,b}?/*/{1?3}', new Url(canonicalizeUrl(validateUrl('/---/ac/-/103'))).pathname));
-      assert(compare('/*/{a,b}?/*/{1?3}', new Url(canonicalizeUrl(validateUrl('/---/bc/-/103'))).pathname));
+      assert(compare('/*/{a,b}?/*/{1?3}', new Url(standardizeUrl('/---/ac/-/103')).pathname));
+      assert(compare('/*/{a,b}?/*/{1?3}', new Url(standardizeUrl('/---/bc/-/103')).pathname));
     });
 
   });

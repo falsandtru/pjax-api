@@ -1,7 +1,6 @@
 import { xhr, match } from './xhr';
 import { RouterEventMethod } from '../../../event/router';
-import { canonicalizeUrl } from '../../../../data/model/canonicalization/url';
-import { validateUrl } from '../../../../data/model/validation/url';
+import { standardizeUrl } from '../../../../data/model/domain/url';
 import { Sequence, Cancellation } from 'spica';
 
 describe('Unit: layer/domain/router/module/fetch/xhr', () => {
@@ -9,13 +8,13 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
     it('success', done => {
       xhr(
         RouterEventMethod.GET,
-        canonicalizeUrl(validateUrl('')),
+        standardizeUrl(''),
         null,
         0,
         new Cancellation<Error>())
         .then(m => m.fmap(res => {
           assert(res.xhr instanceof XMLHttpRequest);
-          assert(res.response.url === canonicalizeUrl(validateUrl('')));
+          assert(res.response.url === standardizeUrl(''));
           assert(res.response.headers['Content-Type'] === 'text/html');
           assert(res.response.document instanceof Document);
           done();
@@ -25,7 +24,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
     it.skip('timeout', done => {
       xhr(
         RouterEventMethod.GET,
-        canonicalizeUrl(validateUrl('?timeout')),
+        standardizeUrl('?timeout'),
         null,
         1,
         new Cancellation<Error>())
@@ -39,7 +38,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
       const time = Date.now();
       xhr(
         RouterEventMethod.GET,
-        canonicalizeUrl(validateUrl('')),
+        standardizeUrl(''),
         null,
         0,
         new Cancellation<Error>())
@@ -53,7 +52,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
       const cancellation = new Cancellation<Error>();
       xhr(
         RouterEventMethod.GET,
-        canonicalizeUrl(validateUrl('')),
+        standardizeUrl(''),
         null,
         0,
         cancellation)

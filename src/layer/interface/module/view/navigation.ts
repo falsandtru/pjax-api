@@ -1,6 +1,5 @@
 import { Supervisor } from 'spica';
-import { canonicalizeUrl } from '../../../data/model/canonicalization/url';
-import { validateUrl } from '../../../data/model/validation/url';
+import { standardizeUrl } from '../../../data/model/domain/url';
 import { bind } from '../../../../lib/dom';
 import { documentUrl } from '../../service/state/url';
 
@@ -13,7 +12,7 @@ export class NavigationView {
       void this.sv.events.exit.once(
         [''],
         bind(window, 'popstate', ev => {
-          if (canonicalizeUrl(validateUrl(location.href)) === documentUrl.href) return;
+          if (standardizeUrl(location.href) === documentUrl.href) return;
           void listener(ev);
         })),
       new Promise<never>(() => void 0)

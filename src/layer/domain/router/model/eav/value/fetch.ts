@@ -1,6 +1,5 @@
 import { parse } from '../../../../../../lib/html';
-import { canonicalizeUrl } from '../../../../../data/model/canonicalization/url';
-import { validateUrl } from '../../../../../data/model/validation/url';
+import { standardizeUrl } from '../../../../../data/model/domain/url';
 
 export class FetchResult {
   constructor(
@@ -26,7 +25,7 @@ export class FetchResult {
       void Object.freeze(this);
     }
     public readonly url = this.xhr.responseURL
-      ? canonicalizeUrl(validateUrl(this.xhr.responseURL))
+      ? standardizeUrl(this.xhr.responseURL)
       : '';
     public readonly headers: { [field: string]: string; } = {};
     public readonly document: Document = this.xhr.responseType === 'document'

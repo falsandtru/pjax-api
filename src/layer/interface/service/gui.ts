@@ -3,8 +3,7 @@ import { Supervisor, Cancellation, Just, Nothing, extend } from 'spica';
 import { Config } from '../../application/api';
 import { Url } from '../../../lib/url';
 import { RouterEventSource } from '../../domain/event/router';
-import { canonicalizeUrl, CanonicalUrl } from '../../data/model/canonicalization/url';
-import { validateUrl } from '../../data/model/validation/url';
+import { StandardUrl, standardizeUrl } from '../../data/model/domain/url';
 import { ClickView } from '../module/view/click';
 import { SubmitView } from '../module/view/submit';
 import { NavigationView } from '../module/view/navigation';
@@ -40,7 +39,7 @@ export class GUI {
       init: s => s,
       call: (_, s) => (
         void s.register(new ClickView(this.io.document, this.config.link, event =>
-          void Just(new Url(canonicalizeUrl(validateUrl((<RouterEventSource.Anchor>event._currentTarget).href))))
+          void Just(new Url(standardizeUrl((<RouterEventSource.Anchor>event._currentTarget).href)))
             .bind(url =>
               isAccessible(url)
               && !isHashChange(url)
@@ -53,7 +52,7 @@ export class GUI {
             .extract(sync))
           .close),
         void s.register(new SubmitView(this.io.document, this.config.form, event =>
-          void Just(new Url(canonicalizeUrl(validateUrl((<RouterEventSource.Form>event._currentTarget).action))))
+          void Just(new Url(standardizeUrl((<RouterEventSource.Form>event._currentTarget).action)))
             .bind(url =>
               isAccessible(url)
                 ? Just(0)
@@ -63,7 +62,7 @@ export class GUI {
             .extract(sync))
           .close),
         void s.register(new NavigationView(window, event =>
-          void Just(new Url(canonicalizeUrl(validateUrl(window.location.href))))
+          void Just(new Url(standardizeUrl(window.location.href)))
             .bind(url =>
               isAccessible(url)
               && !isHashChange(url)
@@ -77,7 +76,7 @@ export class GUI {
             .extract(sync))
           .close),
         void s.register(new ScrollView(window, () =>
-          void Just(new Url(canonicalizeUrl(validateUrl(window.location.href))))
+          void Just(new Url(standardizeUrl(window.location.href)))
             .fmap(url =>
               documentUrl.href === url.href
                 ? void savePosition()
@@ -109,15 +108,15 @@ function hasModifierKey(event: MouseEvent): boolean {
 }
 
 function isAccessible(
-  dest: Url<CanonicalUrl>,
-  orig: Url<CanonicalUrl> = new Url(documentUrl.href)
+  dest: Url<StandardUrl>,
+  orig: Url<StandardUrl> = new Url(documentUrl.href)
 ): boolean {
   return orig.domain === dest.domain;
 }
 
 function isHashChange(
-  dest: Url<CanonicalUrl>,
-  orig: Url<CanonicalUrl> = new Url(documentUrl.href)
+  dest: Url<StandardUrl>,
+  orig: Url<StandardUrl> = new Url(documentUrl.href)
 ): boolean {
   return orig.domain === dest.domain
       && orig.path === dest.path

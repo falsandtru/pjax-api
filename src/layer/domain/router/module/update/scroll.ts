@@ -1,14 +1,14 @@
 import { Maybe, Just, Nothing } from 'spica';
 import { RouterEventType } from '../../../event/router';
 import { Url } from '../../../../../lib/url';
-import { CanonicalUrl } from '../../../../data/model/canonicalization/url';
+import { StandardUrl } from '../../../../data/model/domain/url';
 import { find } from '../../../../../lib/dom';
 
 export function scroll(
   type: RouterEventType,
   document: Document,
   target: {
-    hash: Url.Fragment<CanonicalUrl>;
+    hash: Url.Fragment<StandardUrl>;
     top: number;
     left: number;
   },
@@ -41,7 +41,7 @@ export function scroll(
 
 export function hash(
   document: Document,
-  hash: Url.Fragment<CanonicalUrl>,
+  hash: Url.Fragment<StandardUrl>,
   io = {
     scroll: window.scrollTo
   }

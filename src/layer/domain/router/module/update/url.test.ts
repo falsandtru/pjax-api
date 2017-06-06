@@ -1,27 +1,26 @@
 import { _isRegisterable, _isReplaceable } from './url';
 import { RouterEventLocation, RouterEventType } from '../../../event/router';
-import { canonicalizeUrl } from '../../../../data/model/canonicalization/url';
-import { validateUrl } from '../../../../data/model/validation/url';
+import { standardizeUrl } from '../../../../data/model/domain/url';
 import DOM from 'typed-dom';
 
 describe('Unit: layer/domain/router/module/update/url', () => {
   describe('_isRegisterable', () => {
     it('same location', () => {
-      assert(!_isRegisterable(RouterEventType.click, new RouterEventLocation(canonicalizeUrl(validateUrl(location.href)))));
-      assert(!_isRegisterable(RouterEventType.submit, new RouterEventLocation(canonicalizeUrl(validateUrl(location.href)))));
-      assert(!_isRegisterable(RouterEventType.popstate, new RouterEventLocation(canonicalizeUrl(validateUrl(location.href)))));
+      assert(!_isRegisterable(RouterEventType.click, new RouterEventLocation(standardizeUrl(location.href))));
+      assert(!_isRegisterable(RouterEventType.submit, new RouterEventLocation(standardizeUrl(location.href))));
+      assert(!_isRegisterable(RouterEventType.popstate, new RouterEventLocation(standardizeUrl(location.href))));
     });
 
     it('click', () => {
-      assert(_isRegisterable(RouterEventType.click, new RouterEventLocation(canonicalizeUrl(validateUrl(`#${Math.random()}`)))));
+      assert(_isRegisterable(RouterEventType.click, new RouterEventLocation(standardizeUrl(`#${Math.random()}`))));
     });
 
     it('submit', () => {
-      assert(_isRegisterable(RouterEventType.submit, new RouterEventLocation(canonicalizeUrl(validateUrl(`#${Math.random()}`)))));
+      assert(_isRegisterable(RouterEventType.submit, new RouterEventLocation(standardizeUrl(`#${Math.random()}`))));
     });
 
     it('popstate', () => {
-      assert(!_isRegisterable(RouterEventType.popstate, new RouterEventLocation(canonicalizeUrl(validateUrl(`#${Math.random()}`)))));
+      assert(!_isRegisterable(RouterEventType.popstate, new RouterEventLocation(standardizeUrl(`#${Math.random()}`))));
     });
 
   });

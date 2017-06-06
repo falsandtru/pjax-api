@@ -1,6 +1,6 @@
 import { Cancellee, Just, Left } from 'spica';
 import { Config } from '../domain/data/config';
-import { CanonicalUrl } from '../data/model/canonicalization/url';
+import { StandardUrl } from '../data/model/domain/url';
 import { scope } from './config/scope';
 import { route as route_, RouterEntity, RouterEntityState, RouterResult } from '../domain/router/api';
 import { RouterEvent } from '../domain/event/router';
@@ -13,7 +13,7 @@ export async function route(
   config: Config,
   event: Event,
   state: {
-    scripts: ReadonlySet<CanonicalUrl>;
+    scripts: ReadonlySet<StandardUrl>;
     cancellation: Cancellee<Error>
   },
   io: {

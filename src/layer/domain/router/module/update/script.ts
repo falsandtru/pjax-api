@@ -1,7 +1,6 @@
 import { Cancellee, Either, Left, Right, concat } from 'spica';
 import { find, once } from '../../../../../lib/dom';
-import { canonicalizeUrl, CanonicalUrl } from '../../../../data/model/canonicalization/url';
-import { validateUrl } from '../../../../data/model/validation/url';
+import { StandardUrl, standardizeUrl } from '../../../../data/model/domain/url';
 
 type Response = [HTMLScriptElement, string];
 
@@ -10,7 +9,7 @@ export async function script(
     src: Document;
     dst: Document;
   },
-  skip: ReadonlySet<CanonicalUrl>,
+  skip: ReadonlySet<StandardUrl>,
   selector: {
     ignore: string;
     reload: string;
@@ -27,7 +26,7 @@ export async function script(
     .filter(el => !el.matches(selector.ignore.trim() || '_'))
     .filter(el =>
       el.hasAttribute('src')
-        ? !skip.has(canonicalizeUrl(validateUrl(el.src))) || el.matches(selector.reload.trim() || '_')
+        ? !skip.has(standardizeUrl(el.src)) || el.matches(selector.reload.trim() || '_')
         : true);
   const requests = scripts
     .reduce<Promise<Either<Error, Response>>[]>((rs, script) =>

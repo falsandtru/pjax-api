@@ -5,8 +5,7 @@ import { env } from '../service/state/env';
 import { RouterEventSource } from '../../domain/event/router';
 import { progressbar } from './progressbar';
 import { bind } from '../../../lib/dom';
-import { canonicalizeUrl } from '../../data/model/canonicalization/url';
-import { validateUrl } from '../../data/model/validation/url';
+import { standardizeUrl } from '../../data/model/domain/url';
 import { InterfaceError } from '../data/error';
 
 void bind(window, 'pjax:unload', () =>
@@ -36,7 +35,7 @@ export async function route(
       .fmap(ss => (
         void ss
           .forEach(s =>
-            void scripts.add(canonicalizeUrl(validateUrl(s.src)))),
+            void scripts.add(standardizeUrl(s.src))),
         void process.terminate(''),
         void documentUrl.sync()))
       .extract())

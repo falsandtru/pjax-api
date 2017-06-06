@@ -1,11 +1,10 @@
-import { canonicalizeUrl, CanonicalUrl } from '../layer/data/model/canonicalization/url';
-import { validateUrl } from '../layer/data/model/validation/url';
+import { StandardUrl, standardizeUrl } from '../layer/data/model/domain/url';
 import { Url } from './url';
 import { Sequence, flip } from 'spica';
 
 export function router<T>(config: { [pattern: string]: (path: string) => T; }): (url: string) => T {
   return (url: string) => {
-    const { path, pathname } = new Url(canonicalizeUrl(validateUrl(url)));
+    const { path, pathname } = new Url(standardizeUrl(url));
     return Sequence.from(Object.keys(config).sort().reverse())
       .filter(flip(compare)(pathname))
       .map(pattern => config[pattern])
@@ -16,7 +15,7 @@ export function router<T>(config: { [pattern: string]: (path: string) => T; }): 
   };
 }
 
-export function compare(pattern: string, path: Url.Pathname<CanonicalUrl>): boolean {
+export function compare(pattern: string, path: Url.Pathname<StandardUrl>): boolean {
   const regSegment = /\/|[^/]+\/?/g;
   const regTrailingSlash = /\/(?=$|[?#])/;
   return Sequence
