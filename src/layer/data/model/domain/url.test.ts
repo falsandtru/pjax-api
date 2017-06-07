@@ -52,11 +52,11 @@ describe('Unit: layer/data/model/url', () => {
       assert(encode_('/\uD800\uDC00') === `/${encodeURI('\uD800\uDC00')}`);
       assert(encode_('/\uD800\uD800\uDC00\uDC00') === `/${encodeURI('\uD800\uDC00')}`);
       assert(encode_('//[2001:db8::7]/') === `//[2001:db8::7]/`);
-      assert(encode_('?a=b+c&%%3f#=%%3f') === `?a=b%2Bc&%25%3f#%3D%25%3f`);
+      assert(encode_('?a=b+c&%%3f#=%%3f') === `?a=b%2Bc&%25%3F#%3D%25%3F`);
     });
 
     it('multiple-encoding', () => {
-      assert(encode_(<string>encode_('/%%3f%3d')) === `/%25%3f%3d`);
+      assert(encode_(<string>encode_('/%%3f%3d')) === `/%25%3F%3D`);
     });
 
   });

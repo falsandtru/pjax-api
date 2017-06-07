@@ -42,24 +42,22 @@ function encode(url: string): EncodedUrl {
       str.length === 2
         ? str
         : '')
-    .replace(/%[0-9a-fA-F]{2}|[\uD800-\uDBFF][\uDC00-\uDFFF]|[^0-9a-zA-Z;/?:@&=+$,\-_.!~*'()\[\]]/g, str =>
-      str.length < 3
-        ? encodeURI(str)
-        : str)
+    .replace(/%(?![0-9A-F]{2})|[^%\[\]]+/ig, encodeURI)
     .replace(/\?[^#]+/, query =>
-      query[0] +
+      '?' +
       query.slice(1)
-        .replace(/%[0-9a-fA-F]{2}|[^=&]/g, str =>
+        .replace(/%[0-9A-F]{2}|[^=&]/ig, str =>
           str.length < 3
             ? encodeURIComponent(str)
             : str))
     .replace(/#.+/, fragment =>
-      fragment[0] +
+      '#' +
       fragment.slice(1)
-        .replace(/%[0-9a-fA-F]{2}|./g, str =>
+        .replace(/%[0-9A-F]{2}|./ig, str =>
           str.length < 3
             ? encodeURIComponent(str)
-            : str));
+            : str))
+    .replace(/%[0-9A-F]{2}/ig, str => str.toUpperCase());
 }
 export { encode as encode_ };
 
@@ -77,5 +75,5 @@ function normalize(url: string): NormalizedUrl {
     // Fill the root path
     .replace(/^([^:/?#]+:\/\/[^/?#]*)\/?/, '$1/')
     // Use uppercase letters within percent-encoding triplets
-    .replace(/(?:%\w{2})+/g, str => str.toUpperCase());
+    .replace(/%[0-9A-F]{2}/ig, str => str.toUpperCase());
 }
