@@ -12,8 +12,8 @@ export class RouterEvent {
     void Object.freeze(this);
   }
   public readonly source: RouterEventSource = <HTMLAnchorElement>this.original._currentTarget;
-  public readonly type: RouterEventType = <RouterEventType>this.original.type.toLowerCase();
-  public readonly request: RouterEventRequest = new RouterEventRequest(this.source, this.type);
+  public readonly type: RouterEventType = <'click'>this.original.type.toLowerCase();
+  public readonly request: RouterEventRequest = new RouterEventRequest(this.source);
   public readonly location: RouterEventLocation = new RouterEventLocation(this.request.url);
 }
 
@@ -23,8 +23,11 @@ export type RouterEventSource
   | RouterEventSource.Window;
 export namespace RouterEventSource {
   export type Anchor = HTMLAnchorElement;
+  export const Anchor = HTMLAnchorElement;
   export type Form = HTMLFormElement;
+  export const Form = HTMLFormElement;
   export type Window = typeof window;
+  export const Window = window.Window;
 }
 
 export type RouterEventType
@@ -32,64 +35,62 @@ export type RouterEventType
   | RouterEventType.submit
   | RouterEventType.popstate;
 export namespace RouterEventType {
-  export const click = 'click';
   export type click = typeof click;
-  export const submit = 'submit';
+  export const click = 'click';
   export type submit = typeof submit;
-  export const popstate = 'popstate';
+  export const submit = 'submit';
   export type popstate = typeof popstate;
+  export const popstate = 'popstate';
 }
 
 export type RouterEventMethod
   = RouterEventMethod.GET
   | RouterEventMethod.POST;
 export namespace RouterEventMethod {
-  export const GET = 'GET';
   export type GET = typeof GET;
-  export const POST = 'POST';
+  export const GET = 'GET';
   export type POST = typeof POST;
+  export const POST = 'POST';
 }
 
 export class RouterEventRequest {
   constructor(
-    private readonly source: RouterEventSource,
-    private readonly eventType: RouterEventType
+    private readonly source: RouterEventSource
   ) {
     void Object.freeze(this);
   }
   public method: RouterEventMethod = (() => {
-    switch (this.eventType) {
-      case RouterEventType.click:
-        return RouterEventMethod.GET;
-      case RouterEventType.submit:
-        return (<RouterEventSource.Form>this.source).method.toUpperCase() === RouterEventMethod.POST
-          ? RouterEventMethod.POST
-          : RouterEventMethod.GET;
-      case RouterEventType.popstate:
-        return RouterEventMethod.GET;
-      default:
-        throw new TypeError();
+    if (this.source instanceof RouterEventSource.Anchor) {
+      return RouterEventMethod.GET;
     }
+    if (this.source instanceof RouterEventSource.Form) {
+      return this.source.method.toUpperCase() === RouterEventMethod.POST
+        ? RouterEventMethod.POST
+        : RouterEventMethod.GET;
+    }
+    if (this.source instanceof RouterEventSource.Window) {
+      return RouterEventMethod.GET;
+    }
+    throw new TypeError();
   })();
   public url: StandardUrl = (() => {
-    switch (this.eventType) {
-      case RouterEventType.click:
-        return standardizeUrl((<RouterEventSource.Anchor>this.source).href);
-      case RouterEventType.submit:
-        return standardizeUrl(
-          (<RouterEventSource.Form>this.source).method.toUpperCase() === RouterEventMethod.POST
-            ? (<RouterEventSource.Form>this.source).action.split(/[?#]/).shift() !
-            : (<RouterEventSource.Form>this.source).action.split(/[?#]/).shift() !
-              .concat(`?${serialize(<RouterEventSource.Form>this.source)}`));
-      case RouterEventType.popstate:
-        return standardizeUrl(window.location.href);
-      default:
-        throw new TypeError();
+    if (this.source instanceof RouterEventSource.Anchor) {
+      return standardizeUrl(this.source.href);
     }
+    if (this.source instanceof RouterEventSource.Form) {
+      return this.source.method.toUpperCase() === RouterEventMethod.GET
+        ? standardizeUrl(this.source.action.split(/[?#]/).shift()!.concat(`?${serialize(this.source)}`))
+        : standardizeUrl(this.source.action.split(/[?#]/).shift()!);
+    }
+    if (this.source instanceof RouterEventSource.Window) {
+      return standardizeUrl(window.location.href);
+    }
+    throw new TypeError();
   })();
-  public readonly data: FormData | null = this.method === RouterEventMethod.POST
-    ? new FormData(<RouterEventSource.Form>this.source)
-    : null;
+  public readonly data: FormData | null = (() =>
+    this.source instanceof RouterEventSource.Form && this.method === RouterEventMethod.POST
+      ? new FormData(this.source)
+      : null)();
 }
 
 export class RouterEventLocation {

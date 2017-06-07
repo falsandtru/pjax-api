@@ -5,7 +5,7 @@ import DOM from 'typed-dom';
 describe('Unit: layer/domain/event/router', () => {
   describe('RouterEventRequest', () => {
     it('click', () => {
-      const req = new RouterEventRequest(DOM.a({ href: location.href }, []).element, 'click');
+      const req = new RouterEventRequest(DOM.a({ href: location.href }, []).element);
       assert(req.url === standardizeUrl(''));
       assert(req.method === RouterEventMethod.GET);
       assert(req.data === null);
@@ -14,7 +14,7 @@ describe('Unit: layer/domain/event/router', () => {
     it('submit get', () => {
       const req = new RouterEventRequest(DOM.form({ method: 'GET', action: './search' }, [
         DOM.input({ name: 'test', type: 'text', value: 'abc' }, [])
-      ]).element, 'submit');
+      ]).element);
       assert(req.url === standardizeUrl('./search?test=abc'));
       assert(req.method === RouterEventMethod.GET);
       assert(req.data === null);
@@ -23,14 +23,14 @@ describe('Unit: layer/domain/event/router', () => {
     it('submit post', () => {
       const req = new RouterEventRequest(DOM.form({ method: 'POST', action: './send' }, [
         DOM.input({ name: 'test', type: 'text', value: 'abc' }, [])
-      ]).element, 'submit');
+      ]).element);
       assert(req.url === standardizeUrl('./send'));
       assert(req.method === RouterEventMethod.POST);
       assert(req.data instanceof FormData);
     });
 
     it('popstate', () => {
-      const req = new RouterEventRequest(window, 'popstate');
+      const req = new RouterEventRequest(window);
       assert(req.url === standardizeUrl(''));
       assert(req.method === RouterEventMethod.GET);
       assert(req.data === null);
