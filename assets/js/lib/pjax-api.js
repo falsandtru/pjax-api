@@ -312,23 +312,23 @@ require = function e(t, n, r) {
             function encode(url) {
                 return url.trim().replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]?|[\uDC00-\uDFFF]/g, function (str) {
                     return str.length === 2 ? str : '';
-                }).replace(/%[0-9a-fA-F]{2}|[\uD800-\uDBFF][\uDC00-\uDFFF]|[^0-9a-zA-Z;\/?:@&=+$,\-_.!~*'()\[\]]/g, function (str) {
-                    return str.length < 3 ? encodeURI(str) : str;
-                }).replace(/\?[^#]+/, function (query) {
-                    return query[0] + query.slice(1).replace(/%[0-9a-fA-F]{2}|[^=&]/g, function (str) {
+                }).replace(/%(?![0-9A-F]{2})|[^%\[\]]+/gi, encodeURI).replace(/\?[^#]+/, function (query) {
+                    return '?' + query.slice(1).replace(/%[0-9A-F]{2}|[^=&]/gi, function (str) {
                         return str.length < 3 ? encodeURIComponent(str) : str;
                     });
                 }).replace(/#.+/, function (fragment) {
-                    return fragment[0] + fragment.slice(1).replace(/%[0-9a-fA-F]{2}|./g, function (str) {
+                    return '#' + fragment.slice(1).replace(/%[0-9A-F]{2}|./gi, function (str) {
                         return str.length < 3 ? encodeURIComponent(str) : str;
                     });
+                }).replace(/%[0-9A-F]{2}/gi, function (str) {
+                    return str.toUpperCase();
                 });
             }
             exports.encode_ = encode;
             function normalize(url) {
                 var parser = document.createElement('a');
                 parser.href = url || location.href;
-                return parser.href.replace(/^([^:\/?#]+:\/\/[^\/?#]*?):(?:80)?(?=$|[\/?#])/, '$1').replace(/^([^:\/?#]+:\/\/[^\/?#]*)\/?/, '$1/').replace(/(?:%\w{2})+/g, function (str) {
+                return parser.href.replace(/^([^:\/?#]+:\/\/[^\/?#]*?):(?:80)?(?=$|[\/?#])/, '$1').replace(/^([^:\/?#]+:\/\/[^\/?#]*)\/?/, '$1/').replace(/%[0-9A-F]{2}/gi, function (str) {
                     return str.toUpperCase();
                 });
             }
