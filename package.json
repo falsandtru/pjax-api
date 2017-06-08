@@ -63,7 +63,7 @@
     "vinyl-source-stream": "^1.1.0"
   },
   "scripts": {
-    "test": "npm i && gulp test",
+    "test": "gulp test",
     "ci": "gulp ci"
   },
   "author": "falsandtru",
