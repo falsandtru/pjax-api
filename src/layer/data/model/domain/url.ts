@@ -1,6 +1,5 @@
 import { Encoded } from '../attribute/encode';
 import { Normalized } from '../attribute/normalize';
-import { Cache } from 'spica';
 
 namespace Identifier {
   declare class Url<T> {
@@ -17,14 +16,10 @@ type Url<T> = Identifier.URL<T>;
 
 export type StandardUrl = Url<Normalized & Encoded>;
 
-const cache = new Cache<string, StandardUrl>(32);
-
 export function standardizeUrl(url: Url<any>): void
 export function standardizeUrl(url: string): StandardUrl
 export function standardizeUrl(url: string): StandardUrl {
-  return cache.has(url)
-    ? cache.get(url)!
-    : cache.set(url, encode(normalize(url)));
+  return encode(normalize(url));
 }
 
 

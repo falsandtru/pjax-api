@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.11.1
+
+- Fix wrong relative path resolving by cache.
+
 ## 3.11.0
 
 - Improve url encoding.
