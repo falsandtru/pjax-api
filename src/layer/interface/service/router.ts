@@ -34,6 +34,7 @@ export async function route(
       .bind(cancellation.either)
       .fmap(ss => (
         void ss
+          .filter(s => s.hasAttribute('src'))
           .forEach(s =>
             void scripts.add(standardizeUrl(s.src))),
         void process.terminate(''),
