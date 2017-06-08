@@ -1,4 +1,4 @@
-/*! pjax-api v3.11.0 https://github.com/falsandtru/pjax-api | (c) 2016, falsandtru | GPL-2.0 License */
+/*! pjax-api v3.11.1 https://github.com/falsandtru/pjax-api | (c) 2016, falsandtru | GPL-2.0 License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
