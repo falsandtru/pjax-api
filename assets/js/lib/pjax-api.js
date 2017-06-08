@@ -300,13 +300,11 @@ require = function e(t, n, r) {
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            var spica_1 = require('spica');
             var Identifier;
             (function (Identifier) {
             }(Identifier || (Identifier = {})));
-            var cache = new spica_1.Cache(32);
             function standardizeUrl(url) {
-                return cache.has(url) ? cache.get(url) : cache.set(url, encode(normalize(url)));
+                return encode(normalize(url));
             }
             exports.standardizeUrl = standardizeUrl;
             function encode(url) {
@@ -333,7 +331,7 @@ require = function e(t, n, r) {
                 });
             }
         },
-        { 'spica': undefined }
+        {}
     ],
     9: [
         function (require, module, exports) {
@@ -655,13 +653,19 @@ require = function e(t, n, r) {
                     this.original = original;
                     this.source = this.original._currentTarget;
                     this.type = this.original.type.toLowerCase();
-                    this.request = new RouterEventRequest(this.source, this.type);
+                    this.request = new RouterEventRequest(this.source);
                     this.location = new RouterEventLocation(this.request.url);
                     void Object.freeze(this);
                 }
                 return RouterEvent;
             }();
             exports.RouterEvent = RouterEvent;
+            var RouterEventSource;
+            (function (RouterEventSource) {
+                RouterEventSource.Anchor = HTMLAnchorElement;
+                RouterEventSource.Form = HTMLFormElement;
+                RouterEventSource.Window = window.Window;
+            }(RouterEventSource = exports.RouterEventSource || (exports.RouterEventSource = {})));
             var RouterEventType;
             (function (RouterEventType) {
                 RouterEventType.click = 'click';
@@ -674,35 +678,36 @@ require = function e(t, n, r) {
                 RouterEventMethod.POST = 'POST';
             }(RouterEventMethod = exports.RouterEventMethod || (exports.RouterEventMethod = {})));
             var RouterEventRequest = function () {
-                function RouterEventRequest(source, eventType) {
+                function RouterEventRequest(source) {
                     var _this = this;
                     this.source = source;
-                    this.eventType = eventType;
                     this.method = function () {
-                        switch (_this.eventType) {
-                        case RouterEventType.click:
+                        if (_this.source instanceof RouterEventSource.Anchor) {
                             return RouterEventMethod.GET;
-                        case RouterEventType.submit:
-                            return _this.source.method.toUpperCase() === RouterEventMethod.POST ? RouterEventMethod.POST : RouterEventMethod.GET;
-                        case RouterEventType.popstate:
-                            return RouterEventMethod.GET;
-                        default:
-                            throw new TypeError();
                         }
+                        if (_this.source instanceof RouterEventSource.Form) {
+                            return _this.source.method.toUpperCase() === RouterEventMethod.POST ? RouterEventMethod.POST : RouterEventMethod.GET;
+                        }
+                        if (_this.source instanceof RouterEventSource.Window) {
+                            return RouterEventMethod.GET;
+                        }
+                        throw new TypeError();
                     }();
                     this.url = function () {
-                        switch (_this.eventType) {
-                        case RouterEventType.click:
+                        if (_this.source instanceof RouterEventSource.Anchor) {
                             return url_2.standardizeUrl(_this.source.href);
-                        case RouterEventType.submit:
-                            return url_2.standardizeUrl(_this.source.method.toUpperCase() === RouterEventMethod.POST ? _this.source.action.split(/[?#]/).shift() : _this.source.action.split(/[?#]/).shift().concat('?' + dom_1.serialize(_this.source)));
-                        case RouterEventType.popstate:
-                            return url_2.standardizeUrl(window.location.href);
-                        default:
-                            throw new TypeError();
                         }
+                        if (_this.source instanceof RouterEventSource.Form) {
+                            return _this.source.method.toUpperCase() === RouterEventMethod.GET ? url_2.standardizeUrl(_this.source.action.split(/[?#]/).shift().concat('?' + dom_1.serialize(_this.source))) : url_2.standardizeUrl(_this.source.action.split(/[?#]/).shift());
+                        }
+                        if (_this.source instanceof RouterEventSource.Window) {
+                            return url_2.standardizeUrl(window.location.href);
+                        }
+                        throw new TypeError();
                     }();
-                    this.data = this.method === RouterEventMethod.POST ? new FormData(this.source) : null;
+                    this.data = function () {
+                        return _this.source instanceof RouterEventSource.Form && _this.method === RouterEventMethod.POST ? new FormData(_this.source) : null;
+                    }();
                     void Object.freeze(this);
                 }
                 return RouterEventRequest;
