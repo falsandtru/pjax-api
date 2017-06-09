@@ -59,10 +59,11 @@ export { encode as encode_ };
 
 type NormalizedUrl = Url<Normalized>;
 
+const parser = document.createElement('a');
+
 function normalize(url: string): NormalizedUrl
 function normalize(url: string): NormalizedUrl {
   // Absolute path
-  const parser = document.createElement('a');
   parser.href = url || location.href;
   return <NormalizedUrl>parser.href
     // Remove the default port
