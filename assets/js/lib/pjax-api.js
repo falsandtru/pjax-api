@@ -323,8 +323,8 @@ require = function e(t, n, r) {
                 });
             }
             exports.encode_ = encode;
+            var parser = document.createElement('a');
             function normalize(url) {
-                var parser = document.createElement('a');
                 parser.href = url || location.href;
                 return parser.href.replace(/^([^:\/?#]+:\/\/[^\/?#]*?):(?:80)?(?=$|[\/?#])/, '$1').replace(/^([^:\/?#]+:\/\/[^\/?#]*)\/?/, '$1/').replace(/%[0-9A-F]{2}/gi, function (str) {
                     return str.toUpperCase();
