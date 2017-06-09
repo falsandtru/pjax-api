@@ -2981,7 +2981,9 @@ require = function e(t, n, r) {
                                     cancellation: cancellation
                                 }, io).then(function (m) {
                                     return m.bind(cancellation.either).fmap(function (ss) {
-                                        return void ss.forEach(function (s) {
+                                        return void ss.filter(function (s) {
+                                            return s.hasAttribute('src');
+                                        }).forEach(function (s) {
                                             return void scripts.add(url_2.standardizeUrl(s.src));
                                         }), void process.terminate(''), void url_1.documentUrl.sync();
                                     }).extract();

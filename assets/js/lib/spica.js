@@ -1,4 +1,4 @@
-/*! spica v0.0.85 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.87 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
@@ -43,10 +43,8 @@ require = function e(t, n, r) {
             exports.Supervisor = supervisor_1.Supervisor;
             var observation_1 = require('./lib/observation');
             exports.Observation = observation_1.Observation;
-            exports.Observable = observation_1.Observation;
             var cancellation_1 = require('./lib/cancellation');
             exports.Cancellation = cancellation_1.Cancellation;
-            exports.Cancelable = cancellation_1.Cancellation;
             var sequence_1 = require('./lib/monad/sequence');
             exports.Sequence = sequence_1.Sequence;
             var maybe_1 = require('./lib/monad/maybe');
@@ -75,7 +73,6 @@ require = function e(t, n, r) {
             exports.Mixin = mixin_1.Mixin;
             var tick_1 = require('./lib/tick');
             exports.tick = tick_1.tick;
-            exports.Tick = tick_1.tick;
             var uuid_1 = require('./lib/uuid');
             exports.uuid = uuid_1.v4;
             var sqid_1 = require('./lib/sqid');
@@ -3576,69 +3573,83 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             var concat_1 = require('./concat');
             var exception_1 = require('./exception');
+            var RegisterItemType;
+            (function (RegisterItemType) {
+                RegisterItemType.monitor = 'monitor';
+                RegisterItemType.subscriber = 'subscriber';
+            }(RegisterItemType = exports.RegisterItemType || (exports.RegisterItemType = {})));
             var Observation = function () {
                 function Observation() {
+                    this.relaySources = new WeakSet();
                     this.node_ = {
                         parent: void 0,
                         children: new Map(),
                         childrenNames: [],
-                        registers: []
+                        items: []
                     };
                 }
-                Observation.prototype.monitor = function (namespace, subscriber, identifier) {
+                Observation.prototype.monitor = function (namespace, listener, _a) {
                     var _this = this;
-                    if (identifier === void 0) {
-                        identifier = subscriber;
-                    }
-                    void this.throwTypeErrorIfInvalidSubscriber_(subscriber, namespace);
-                    void this.seekNode_(namespace).registers.push([
-                        namespace,
-                        identifier,
-                        true,
-                        subscriber
-                    ]);
+                    var _b = (_a === void 0 ? {} : _a).once, once = _b === void 0 ? false : _b;
+                    void throwTypeErrorIfInvalidListener(listener, namespace);
+                    var items = this.seekNode_(namespace).items;
+                    if (isRegistered(items, RegisterItemType.monitor, namespace, listener))
+                        return function () {
+                            return void 0;
+                        };
+                    void items.push({
+                        type: RegisterItemType.monitor,
+                        namespace: namespace,
+                        listener: listener,
+                        options: { once: once }
+                    });
                     return function () {
-                        return _this.off(namespace, identifier, true);
+                        return _this.off(namespace, listener, RegisterItemType.monitor);
                     };
                 };
-                Observation.prototype.on = function (namespace, subscriber, identifier) {
+                Observation.prototype.on = function (namespace, listener, _a) {
                     var _this = this;
-                    if (identifier === void 0) {
-                        identifier = subscriber;
-                    }
-                    void this.throwTypeErrorIfInvalidSubscriber_(subscriber, namespace);
-                    void this.seekNode_(namespace).registers.push([
-                        namespace,
-                        identifier,
-                        false,
-                        function (data) {
-                            return subscriber(data, namespace);
-                        }
-                    ]);
+                    var _b = (_a === void 0 ? {} : _a).once, once = _b === void 0 ? false : _b;
+                    void throwTypeErrorIfInvalidListener(listener, namespace);
+                    var items = this.seekNode_(namespace).items;
+                    if (isRegistered(items, RegisterItemType.subscriber, namespace, listener))
+                        return function () {
+                            return void 0;
+                        };
+                    void items.push({
+                        type: RegisterItemType.subscriber,
+                        namespace: namespace,
+                        listener: listener,
+                        options: { once: once }
+                    });
                     return function () {
-                        return _this.off(namespace, identifier);
+                        return _this.off(namespace, listener);
                     };
                 };
-                Observation.prototype.off = function (namespace, subscriber, monitor) {
+                Observation.prototype.once = function (namespace, listener) {
+                    void throwTypeErrorIfInvalidListener(listener, namespace);
+                    return this.on(namespace, listener, { once: true });
+                };
+                Observation.prototype.off = function (namespace, listener, type) {
                     var _this = this;
-                    if (monitor === void 0) {
-                        monitor = false;
+                    if (type === void 0) {
+                        type = RegisterItemType.subscriber;
                     }
-                    switch (typeof subscriber) {
+                    switch (typeof listener) {
                     case 'function':
-                        return void this.seekNode_(namespace).registers.some(function (_a, i, registers) {
-                            var identifier = _a[1], monitor_ = _a[2];
-                            if (subscriber !== identifier)
+                        return void this.seekNode_(namespace).items.some(function (_a, i, items) {
+                            var type_ = _a.type, listener_ = _a.listener;
+                            if (listener_ !== listener)
                                 return false;
-                            if (monitor_ !== monitor)
+                            if (type_ !== type)
                                 return false;
                             switch (i) {
                             case 0:
-                                return !void registers.shift();
-                            case registers.length - 1:
-                                return !void registers.pop();
+                                return !void items.shift();
+                            case items.length - 1:
+                                return !void items.pop();
                             default:
-                                return !void registers.splice(i, 1);
+                                return !void items.splice(i, 1);
                             }
                         });
                     case 'undefined': {
@@ -3648,29 +3659,22 @@ require = function e(t, n, r) {
                                 var child = node_1.children.get(name);
                                 if (!child)
                                     return;
-                                if (child.registers.length + child.childrenNames.length > 0)
+                                if (child.items.length + child.childrenNames.length > 0)
                                     return;
                                 void node_1.children.delete(name);
                                 void node_1.childrenNames.splice(node_1.childrenNames.findIndex(function (value) {
                                     return value === name || name !== name && value !== value;
                                 }), 1);
                             });
-                            node_1.registers = node_1.registers.filter(function (_a) {
-                                var monitor = _a[2];
-                                return monitor;
+                            node_1.items = node_1.items.filter(function (_a) {
+                                var type = _a.type;
+                                return type === RegisterItemType.monitor;
                             });
                             return;
                         }
                     default:
-                        throw this.throwTypeErrorIfInvalidSubscriber_(subscriber, namespace);
+                        throw throwTypeErrorIfInvalidListener(listener, namespace);
                     }
-                };
-                Observation.prototype.once = function (namespace, subscriber) {
-                    var _this = this;
-                    void this.throwTypeErrorIfInvalidSubscriber_(subscriber, namespace);
-                    return this.on(namespace, function (data) {
-                        return void _this.off(namespace, subscriber), subscriber(data, namespace);
-                    }, subscriber);
                 };
                 Observation.prototype.emit = function (namespace, data, tracker) {
                     void this.drain_(namespace, data, tracker);
@@ -3684,18 +3688,27 @@ require = function e(t, n, r) {
                 };
                 Observation.prototype.relay = function (source) {
                     var _this = this;
+                    if (this.relaySources.has(source))
+                        return function () {
+                            return void 0;
+                        };
+                    void this.relaySources.add(source);
                     return source.monitor([], function (data, namespace) {
-                        return void _this.emit(namespace, data);
+                        return void _this.relaySources.delete(source), void _this.emit(namespace, data);
                     });
                 };
                 Observation.prototype.drain_ = function (namespace, data, tracker) {
+                    var _this = this;
                     var results = [];
-                    void this.refsBelow_(this.seekNode_(namespace)).reduce(function (_, sub) {
-                        var monitor = sub[2], subscriber = sub[3];
-                        if (monitor)
+                    void this.refsBelow_(this.seekNode_(namespace)).reduce(function (_, _a) {
+                        var type = _a.type, listener = _a.listener, once = _a.options.once;
+                        if (type !== RegisterItemType.subscriber)
                             return;
+                        if (once) {
+                            void _this.off(namespace, listener);
+                        }
                         try {
-                            var result = subscriber(data, namespace);
+                            var result = listener(data, namespace);
                             if (tracker) {
                                 results[results.length] = result;
                             }
@@ -3705,12 +3718,15 @@ require = function e(t, n, r) {
                             }
                         }
                     }, void 0);
-                    void this.refsAbove_(this.seekNode_(namespace)).reduce(function (_, sub) {
-                        var monitor = sub[2], subscriber = sub[3];
-                        if (!monitor)
+                    void this.refsAbove_(this.seekNode_(namespace)).reduce(function (_, _a) {
+                        var type = _a.type, listener = _a.listener, once = _a.options.once;
+                        if (type !== RegisterItemType.monitor)
                             return;
+                        if (once) {
+                            void _this.off(namespace, listener, RegisterItemType.monitor);
+                        }
                         try {
-                            void subscriber(data, namespace);
+                            void listener(data, namespace);
                         } catch (reason) {
                             if (reason !== void 0 && reason !== null) {
                                 void exception_1.causeAsyncException(reason);
@@ -3729,21 +3745,21 @@ require = function e(t, n, r) {
                     return this.refsBelow_(this.seekNode_(namespace));
                 };
                 Observation.prototype.refsAbove_ = function (_a) {
-                    var parent = _a.parent, registers = _a.registers;
-                    registers = concat_1.concat([], registers);
+                    var parent = _a.parent, items = _a.items;
+                    items = concat_1.concat([], items);
                     while (parent) {
-                        registers = concat_1.concat(registers, parent.registers);
+                        items = concat_1.concat(items, parent.items);
                         parent = parent.parent;
                     }
-                    return registers;
+                    return items;
                 };
                 Observation.prototype.refsBelow_ = function (_a) {
-                    var childrenNames = _a.childrenNames, children = _a.children, registers = _a.registers;
-                    registers = concat_1.concat([], registers);
+                    var childrenNames = _a.childrenNames, children = _a.children, items = _a.items;
+                    items = concat_1.concat([], items);
                     var _loop_1 = function (i) {
                         var name = childrenNames[i];
                         var below = this_1.refsBelow_(children.get(name));
-                        registers = concat_1.concat(registers, below);
+                        items = concat_1.concat(items, below);
                         if (below.length === 0) {
                             void children.delete(name);
                             void childrenNames.splice(childrenNames.findIndex(function (value) {
@@ -3758,37 +3774,45 @@ require = function e(t, n, r) {
                         _loop_1(i);
                         i = out_i_1;
                     }
-                    return registers;
+                    return items;
                 };
-                Observation.prototype.seekNode_ = function (types) {
+                Observation.prototype.seekNode_ = function (namespace) {
                     var node = this.node_;
-                    for (var _i = 0, types_1 = types; _i < types_1.length; _i++) {
-                        var type = types_1[_i];
+                    for (var _i = 0, namespace_1 = namespace; _i < namespace_1.length; _i++) {
+                        var name = namespace_1[_i];
                         var children = node.children;
-                        if (!children.has(type)) {
-                            void node.childrenNames.push(type);
-                            children.set(type, {
+                        if (!children.has(name)) {
+                            void node.childrenNames.push(name);
+                            children.set(name, {
                                 parent: node,
                                 children: new Map(),
                                 childrenNames: [],
-                                registers: []
+                                items: []
                             });
                         }
-                        node = children.get(type);
+                        node = children.get(name);
                     }
                     return node;
-                };
-                Observation.prototype.throwTypeErrorIfInvalidSubscriber_ = function (subscriber, types) {
-                    switch (typeof subscriber) {
-                    case 'function':
-                        return;
-                    default:
-                        throw new TypeError('Spica: Observation: Invalid subscriber.\n\t' + types + ' ' + subscriber);
-                    }
                 };
                 return Observation;
             }();
             exports.Observation = Observation;
+            function isRegistered(items, type, namespace, listener) {
+                return items.some(function (_a) {
+                    var t = _a.type, n = _a.namespace, l = _a.listener;
+                    return t === type && n.length === namespace.length && n.every(function (_, i) {
+                        return n[i] === namespace[i];
+                    }) && l === listener;
+                });
+            }
+            function throwTypeErrorIfInvalidListener(listener, types) {
+                switch (typeof listener) {
+                case 'function':
+                    return;
+                default:
+                    throw new TypeError('Spica: Observation: Invalid listener.\n\t' + types + ' ' + listener);
+                }
+            }
         },
         {
             './concat': 10,
