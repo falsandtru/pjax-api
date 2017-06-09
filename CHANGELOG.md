@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.11.2
+
+- Optimization.
+
 ## 3.11.1
 
 - Fix wrong relative path resolving by cache.
