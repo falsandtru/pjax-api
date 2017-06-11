@@ -1,4 +1,4 @@
-/*! spica v0.0.87 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.89 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
@@ -3693,9 +3693,12 @@ require = function e(t, n, r) {
                             return void 0;
                         };
                     void this.relaySources.add(source);
-                    return source.monitor([], function (data, namespace) {
-                        return void _this.relaySources.delete(source), void _this.emit(namespace, data);
+                    var unbind = source.monitor([], function (data, namespace) {
+                        return void _this.emit(namespace, data);
                     });
+                    return function () {
+                        return void _this.relaySources.delete(source), unbind();
+                    };
                 };
                 Observation.prototype.drain_ = function (namespace, data, tracker) {
                     var _this = this;
@@ -3713,9 +3716,7 @@ require = function e(t, n, r) {
                                 results[results.length] = result;
                             }
                         } catch (reason) {
-                            if (reason !== void 0 && reason !== null) {
-                                void exception_1.causeAsyncException(reason);
-                            }
+                            void exception_1.causeAsyncException(reason);
                         }
                     }, void 0);
                     void this.refsAbove_(this.seekNode_(namespace)).reduce(function (_, _a) {
@@ -3728,9 +3729,7 @@ require = function e(t, n, r) {
                         try {
                             void listener(data, namespace);
                         } catch (reason) {
-                            if (reason !== void 0 && reason !== null) {
-                                void exception_1.causeAsyncException(reason);
-                            }
+                            void exception_1.causeAsyncException(reason);
                         }
                     }, void 0);
                     if (tracker) {
@@ -3763,7 +3762,7 @@ require = function e(t, n, r) {
                         if (below.length === 0) {
                             void children.delete(name);
                             void childrenNames.splice(childrenNames.findIndex(function (value) {
-                                return value === name || name !== name && value !== value;
+                                return value === name || Number.isNaN(value) && Number.isNaN(name);
                             }), 1);
                             void --i;
                         }
