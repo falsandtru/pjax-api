@@ -132,6 +132,7 @@ gulp.task('install', function () {
 gulp.task('update', function () {
   shell('bundle update');
   shell('ncu -ua');
+  shell('npm i -DE typescript@next --no-shrinkwrap');
   shell('npm i --no-shrinkwrap');
 });
 

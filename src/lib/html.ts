@@ -6,7 +6,7 @@ export const parse: Parser = [parseByDoc, parseByDOM]
   .reduce<Either<(html: string) => Document, Parser>>((m, parser) =>
     m.bind<Parser>(() => test(parser) ? Left(parser) : m)
   , Right(() => Nothing))
-  .extract(parser => (html: string) => Just(parser(html)));
+  .extract(parser => (html: string): Maybe<Document> => Just(parser(html)));
 
 function parseByDOM(html: string): Document {
   const doc = new DOMParser().parseFromString(html, 'text/html');

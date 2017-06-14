@@ -14,7 +14,7 @@ export function scroll(
   },
   io = {
     hash,
-    scroll: window.scrollTo,
+    scroll: <(x?: number, y?: number) => void>window.scrollTo,
     position: () => ({
       top: 0,
       left: 0
@@ -43,7 +43,7 @@ export function hash(
   document: Document,
   hash: Url.Fragment<StandardUrl>,
   io = {
-    scroll: window.scrollTo
+    scroll: <(x?: number, y?: number) => void>window.scrollTo,
   }
 ): boolean {
   return Just(hash.split('#').pop() || '')
