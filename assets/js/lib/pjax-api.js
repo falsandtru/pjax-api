@@ -513,7 +513,11 @@ require = function e(t, n, r) {
                         head: 'base, meta, link',
                         css: true,
                         script: true,
-                        ignore: '[href^="chrome-extension://"], [src*=".scr.kaspersky-labs.com/"]',
+                        ignore: '',
+                        ignores: {
+                            extension: '[href^="chrome-extension://"]',
+                            security: '[src*=".scr.kaspersky-labs.com/"]'
+                        },
                         reload: '',
                         logger: ''
                     };
@@ -541,6 +545,22 @@ require = function e(t, n, r) {
                     this.store = { expiry: 3 * 3600 * 1000 };
                     this.progressbar = 'display:none;position:absolute;bottom:0;left:0;width:0;height:2px;background:rgb(40, 105, 255);';
                     this.scope = { '/': {} };
+                    void Object.defineProperties(this.update, {
+                        ignore: {
+                            enumerable: false,
+                            set: function (value) {
+                                this.ignores['_'] = value;
+                            },
+                            get: function () {
+                                var _this = this;
+                                return Object.keys(this.ignores).map(function (i) {
+                                    return _this.ignores[i];
+                                }).filter(function (s) {
+                                    return s.trim().length > 0;
+                                }).join(',');
+                            }
+                        }
+                    });
                     void spica_1.extend(this, option);
                     void Object.freeze(this);
                 }
