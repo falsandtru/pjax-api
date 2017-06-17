@@ -14,6 +14,12 @@ describe('Unit: layer/domain/data/config', () => {
       assert(filter(DOM.a({ href: '#' }, []).element));
     });
 
+    it('ignore', () => {
+      assert(new Config({}).update.ignore === '[href^="chrome-extension://"],[src*=".scr.kaspersky-labs.com/"]');
+      assert(new Config(new Config({})).update.ignore === '[href^="chrome-extension://"],[src*=".scr.kaspersky-labs.com/"]');
+      assert(new Config({ update: { ignore: 'style' } }).update.ignore === '[href^="chrome-extension://"],[src*=".scr.kaspersky-labs.com/"],style');
+    });
+
   });
 
 });

@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.12.0
+
+- Improve Config.update.ignore option.
+
 ## 3.11.2
 
 - Optimization.
