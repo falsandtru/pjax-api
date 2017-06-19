@@ -15,8 +15,8 @@ export class RouterEntity {
 
 export class RouterEntityState {
   constructor(
+    public readonly process: Cancellee<Error>,
     public readonly scripts: ReadonlySet<StandardUrl>,
-    public readonly cancellation: Cancellee<Error>
   ) {
     void Object.freeze(this);
   }

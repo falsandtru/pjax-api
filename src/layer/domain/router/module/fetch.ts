@@ -23,9 +23,9 @@ export async function fetch(
     },
     sequence
   }: Config,
-  cancellation: Cancellee<Error>
+  process: Cancellee<Error>
 ): Promise<Result> {
-  const req = xhr(method, url, data, timeout, cancellation);
+  const req = xhr(method, url, data, timeout, process);
   void window.dispatchEvent(new Event('pjax:fetch'));
   const [res, seq] = await Promise.all([
     req,
@@ -38,7 +38,7 @@ export async function fetch(
     new Promise<void>(resolve => void setTimeout(resolve, wait))
   ]);
   return res
-    .bind(cancellation.either)
+    .bind(process.either)
     .bind<ResultData>(result =>
       result.response.url === '' || new Url(result.response.url).domain === new Url(url).domain
         ? Right<ResultData>([result, seq])

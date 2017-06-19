@@ -9,8 +9,8 @@ export class NavigationView {
     listener: (event: Event) => void,
   ) {
     void this.sv.register('', () => (
-      void this.sv.events.exit.once(
-        [''],
+      void this.sv.events.exit.monitor(
+        [],
         bind(window, 'popstate', ev => {
           if (standardizeUrl(location.href) === documentUrl.href) return;
           void listener(ev);

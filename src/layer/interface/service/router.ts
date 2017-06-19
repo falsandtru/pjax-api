@@ -1,4 +1,4 @@
-import { Cancellation, Supervisor, Just, Nothing } from 'spica';
+import { Supervisor, Cancellation } from 'spica';
 import { route as route_, Config } from '../../application/api';
 import { documentUrl } from './state/url';
 import { env } from '../service/state/env';
@@ -21,37 +21,30 @@ export async function route(
 ): Promise<void> {
   assert([HTMLAnchorElement, HTMLFormElement, Window].some(Class => event._currentTarget instanceof Class));
   void event.preventDefault();
-  const cancellation = new Cancellation<Error>();
   void process.cast('', new InterfaceError(`Abort.`));
-  void process.register('', e => {
+  const cancellation = new Cancellation<Error>();
+  const terminate = process.register('', e => {
     throw void cancellation.cancel(e);
   }, void 0);
   const [scripts] = await env;
   window.history.scrollRestoration = 'manual';
   void progressbar(config.progressbar);
-  return route_(config, event, { scripts, cancellation }, io)
+  return route_(config, event, { process: cancellation, scripts }, io)
     .then(m => m
-      .bind(cancellation.either)
       .fmap(ss => (
+        void terminate(),
         void ss
           .filter(s => s.hasAttribute('src'))
           .forEach(s =>
             void scripts.add(standardizeUrl(s.src))),
-        void process.terminate(''),
         void documentUrl.sync()))
       .extract())
     .catch(e =>
-      void cancellation.maybe(e instanceof Error ? e : new Error(e))
-        .bind(e =>
-          event.defaultPrevented
-            ? Just(e)
-            : Nothing)
-        .extract(
-          () =>
-            void process.terminate(''),
-          e => (
-            void process.terminate('', e),
-            window.history.scrollRestoration = 'auto',
-            void documentUrl.sync(),
-            void config.fallback(<RouterEventSource>event._currentTarget, e))));
+      cancellation.maybe(e instanceof Error ? e : new Error(e))
+        .fmap(e => (
+          void terminate(),
+          window.history.scrollRestoration = 'auto',
+          void documentUrl.sync(),
+          void config.fallback(<RouterEventSource>event._currentTarget, e)))
+        .extract(() => void 0));
 }

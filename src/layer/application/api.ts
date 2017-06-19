@@ -13,8 +13,8 @@ export async function route(
   config: Config,
   event: Event,
   state: {
+    process: Cancellee<Error>;
     scripts: ReadonlySet<StandardUrl>;
-    cancellation: Cancellee<Error>
   },
   io: {
     document: Document;
@@ -30,7 +30,7 @@ export async function route(
       new RouterEntity(
         config,
         new RouterEvent(event),
-        new RouterEntityState(state.scripts, state.cancellation)))
+        new RouterEntityState(state.process, state.scripts)))
     .fmap(entity =>
       route_(entity, io))
     .extract(() =>

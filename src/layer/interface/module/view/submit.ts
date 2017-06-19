@@ -8,8 +8,8 @@ export class SubmitView {
     listener: (event: Event) => void,
   ) {
     void this.sv.register('', () => (
-      void this.sv.events.exit.once(
-        [''],
+      void this.sv.events.exit.monitor(
+        [],
         delegate(document.documentElement, selector, 'submit', ev => {
           if (!(ev.currentTarget instanceof HTMLFormElement)) return;
           void listener(ev);

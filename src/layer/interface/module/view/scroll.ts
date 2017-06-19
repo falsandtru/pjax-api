@@ -8,8 +8,8 @@ export class ScrollView {
   ) {
     let timer = 0;
     void this.sv.register('', () => (
-      void this.sv.events.exit.once(
-        [''],
+      void this.sv.events.exit.monitor(
+        [],
         bind(window, 'scroll', ev => (
           timer = timer > 0
             ? timer
