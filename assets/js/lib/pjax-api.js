@@ -204,7 +204,7 @@ require = function e(t, n, r) {
                                     dest: dest.pathname
                                 });
                             }).fmap(function (config) {
-                                return new api_1.RouterEntity(config, new router_1.RouterEvent(event), new api_1.RouterEntityState(state.scripts, state.cancellation));
+                                return new api_1.RouterEntity(config, new router_1.RouterEvent(event), new api_1.RouterEntityState(state.process, state.scripts));
                             }).fmap(function (entity) {
                                 return api_1.route(entity, io);
                             }).extract(function () {
@@ -896,10 +896,10 @@ require = function e(t, n, r) {
                     return __generator(this, function (_a) {
                         return [
                             2,
-                            spica_1.Right(void 0).bind(entity.state.cancellation.either).bind(function () {
+                            spica_1.Right(void 0).bind(entity.state.process.either).bind(function () {
                                 return content_1.match(io.document, entity.config.areas) ? spica_1.Right(void 0) : spica_1.Left(new error_1.DomainError('Failed to match areas.'));
                             }).fmap(function () {
-                                return fetch_1.fetch(entity.event.request, entity.config, entity.state.cancellation);
+                                return fetch_1.fetch(entity.event.request, entity.config, entity.state.process);
                             }).fmap(function (p) {
                                 return __awaiter(_this, void 0, void 0, function () {
                                     return __generator(this, function (_a) {
@@ -956,9 +956,9 @@ require = function e(t, n, r) {
             }();
             exports.RouterEntity = RouterEntity;
             var RouterEntityState = function () {
-                function RouterEntityState(scripts, cancellation) {
+                function RouterEntityState(process, scripts) {
+                    this.process = process;
                     this.scripts = scripts;
-                    this.cancellation = cancellation;
                     void Object.freeze(this);
                 }
                 return RouterEntityState;
@@ -1162,7 +1162,7 @@ require = function e(t, n, r) {
             var xhr_1 = require('../module/fetch/xhr');
             var error_1 = require('../../data/error');
             var url_1 = require('../../../../lib/url');
-            function fetch(_a, _b, cancellation) {
+            function fetch(_a, _b, process) {
                 var method = _a.method, url = _a.url, data = _a.data;
                 var _c = _b.fetch, timeout = _c.timeout, wait = _c.wait, sequence = _b.sequence;
                 return __awaiter(this, void 0, void 0, function () {
@@ -1170,7 +1170,7 @@ require = function e(t, n, r) {
                     return __generator(this, function (_b) {
                         switch (_b.label) {
                         case 0:
-                            req = xhr_1.xhr(method, url, data, timeout, cancellation);
+                            req = xhr_1.xhr(method, url, data, timeout, process);
                             void window.dispatchEvent(new Event('pjax:fetch'));
                             return [
                                 4,
@@ -1191,7 +1191,7 @@ require = function e(t, n, r) {
                             _a = _b.sent(), res = _a[0], seq = _a[1];
                             return [
                                 2,
-                                res.bind(cancellation.either).bind(function (result) {
+                                res.bind(process.either).bind(function (result) {
                                     return result.response.url === '' || new url_1.Url(result.response.url).domain === new url_1.Url(url).domain ? spica_1.Right([
                                         result,
                                         seq
@@ -1414,16 +1414,16 @@ require = function e(t, n, r) {
                 var response = _b.response;
                 return __awaiter(this, void 0, void 0, function () {
                     var _this = this;
-                    var cancellation, documents;
+                    var process, documents;
                     return __generator(this, function (_a) {
-                        cancellation = state.cancellation;
+                        process = state.process;
                         documents = new update_1.UpdateSource({
                             src: response.document,
                             dst: io.document
                         }).documents;
                         return [
                             2,
-                            new spica_1.HNil().push(cancellation.either(seq)).modify(function (m) {
+                            new spica_1.HNil().push(process.either(seq)).modify(function (m) {
                                 return m.fmap(function (seq) {
                                     return content_1.separate(documents, config.areas).fmap(function (_a) {
                                         var area = _a[0];
@@ -1444,7 +1444,7 @@ require = function e(t, n, r) {
                                                 switch (_c.label) {
                                                 case 0:
                                                     void window.dispatchEvent(new Event('pjax:unload'));
-                                                    _b = (_a = cancellation).either;
+                                                    _b = (_a = process).either;
                                                     return [
                                                         4,
                                                         config.sequence.unload(seq, response)
@@ -1488,7 +1488,7 @@ require = function e(t, n, r) {
                                                                                 as,
                                                                                 Promise.all(ps)
                                                                             ];
-                                                                        }).fmap(cancellation.either).extract(function () {
+                                                                        }).fmap(process.either).extract(function () {
                                                                             return spica_1.Left(new error_1.DomainError('Failed to update areas.'));
                                                                         }))
                                                                     ];
@@ -1537,7 +1537,7 @@ require = function e(t, n, r) {
                                                                                                     ];
                                                                                                 return [
                                                                                                     4,
-                                                                                                    script_1.script(documents, state.scripts, config.update, cancellation)
+                                                                                                    script_1.script(documents, state.scripts, config.update, process)
                                                                                                 ];
                                                                                             case 1:
                                                                                                 _a = _b.sent();
@@ -1548,7 +1548,7 @@ require = function e(t, n, r) {
                                                                                             case 2:
                                                                                                 return [
                                                                                                     4,
-                                                                                                    cancellation.either([])
+                                                                                                    process.either([])
                                                                                                 ];
                                                                                             case 3:
                                                                                                 _a = _b.sent();
@@ -1568,7 +1568,7 @@ require = function e(t, n, r) {
                                                                                             switch (_c.label) {
                                                                                             case 0:
                                                                                                 void io.document.dispatchEvent(new Event('pjax:ready'));
-                                                                                                _b = (_a = cancellation).either;
+                                                                                                _b = (_a = process).either;
                                                                                                 return [
                                                                                                     4,
                                                                                                     config.sequence.ready(seq, areas)
@@ -1631,7 +1631,7 @@ require = function e(t, n, r) {
                                                                             return __generator(this, function (_c) {
                                                                                 switch (_c.label) {
                                                                                 case 0:
-                                                                                    _b = (_a = cancellation).maybe;
+                                                                                    _b = (_a = process).maybe;
                                                                                     return [
                                                                                         4,
                                                                                         p
@@ -2435,7 +2435,7 @@ require = function e(t, n, r) {
                         return void _this.sv.terminate();
                     };
                     void this.sv.register('', function () {
-                        return void _this.sv.events.exit.once([''], dom_1.delegate(document.documentElement, selector, 'click', function (ev) {
+                        return void _this.sv.events.exit.monitor([], dom_1.delegate(document.documentElement, selector, 'click', function (ev) {
                             if (!(ev.currentTarget instanceof HTMLAnchorElement))
                                 return;
                             if (typeof ev.currentTarget.href !== 'string')
@@ -2494,7 +2494,7 @@ require = function e(t, n, r) {
                         return void _this.sv.terminate();
                     };
                     void this.sv.register('', function () {
-                        return void _this.sv.events.exit.once([''], dom_1.bind(window, 'popstate', function (ev) {
+                        return void _this.sv.events.exit.monitor([], dom_1.bind(window, 'popstate', function (ev) {
                             if (url_1.standardizeUrl(location.href) === url_2.documentUrl.href)
                                 return;
                             void listener(ev);
@@ -2552,7 +2552,7 @@ require = function e(t, n, r) {
                     };
                     var timer = 0;
                     void this.sv.register('', function () {
-                        return void _this.sv.events.exit.once([''], dom_1.bind(window, 'scroll', function (ev) {
+                        return void _this.sv.events.exit.monitor([], dom_1.bind(window, 'scroll', function (ev) {
                             return timer = timer > 0 ? timer : setTimeout(function () {
                                 timer = 0;
                                 void listener(ev);
@@ -2608,7 +2608,7 @@ require = function e(t, n, r) {
                         return void _this.sv.terminate();
                     };
                     void this.sv.register('', function () {
-                        return void _this.sv.events.exit.once([''], dom_1.delegate(document.documentElement, selector, 'submit', function (ev) {
+                        return void _this.sv.events.exit.monitor([], dom_1.delegate(document.documentElement, selector, 'submit', function (ev) {
                             if (!(ev.currentTarget instanceof HTMLFormElement))
                                 return;
                             void listener(ev);
@@ -2664,9 +2664,9 @@ require = function e(t, n, r) {
             var submit_1 = require('../module/view/submit');
             var navigation_1 = require('../module/view/navigation');
             var scroll_1 = require('../module/view/scroll');
-            var url_3 = require('../service/state/url');
-            require('../service/state/scroll-restoration');
-            var router_1 = require('../service/router');
+            var url_3 = require('./state/url');
+            require('./state/scroll-restoration');
+            var router_1 = require('./router');
             var api_2 = require('../../application/api');
             var dom_1 = require('../../../lib/dom');
             var html_1 = require('../../../lib/html');
@@ -2799,9 +2799,9 @@ require = function e(t, n, r) {
             '../module/view/navigation': 33,
             '../module/view/scroll': 34,
             '../module/view/submit': 35,
-            '../service/router': 39,
-            '../service/state/scroll-restoration': 42,
-            '../service/state/url': 43,
+            './router': 39,
+            './state/scroll-restoration': 42,
+            './state/url': 43,
             'spica': undefined
         }
     ],
@@ -2976,14 +2976,14 @@ require = function e(t, n, r) {
             }, true);
             function route(config, event, process, io) {
                 return __awaiter(this, void 0, void 0, function () {
-                    var cancellation, scripts;
+                    var cancellation, terminate, scripts;
                     return __generator(this, function (_a) {
                         switch (_a.label) {
                         case 0:
                             void event.preventDefault();
-                            cancellation = new spica_1.Cancellation();
                             void process.cast('', new error_1.InterfaceError('Abort.'));
-                            void process.register('', function (e) {
+                            cancellation = new spica_1.Cancellation();
+                            terminate = process.register('', function (e) {
                                 throw void cancellation.cancel(e);
                             }, void 0);
                             return [
@@ -2997,23 +2997,21 @@ require = function e(t, n, r) {
                             return [
                                 2,
                                 api_1.route(config, event, {
-                                    scripts: scripts,
-                                    cancellation: cancellation
+                                    process: cancellation,
+                                    scripts: scripts
                                 }, io).then(function (m) {
-                                    return m.bind(cancellation.either).fmap(function (ss) {
-                                        return void ss.filter(function (s) {
+                                    return m.fmap(function (ss) {
+                                        return void terminate(), void ss.filter(function (s) {
                                             return s.hasAttribute('src');
                                         }).forEach(function (s) {
                                             return void scripts.add(url_2.standardizeUrl(s.src));
-                                        }), void process.terminate(''), void url_1.documentUrl.sync();
+                                        }), void url_1.documentUrl.sync();
                                     }).extract();
                                 }).catch(function (e) {
-                                    return void cancellation.maybe(e instanceof Error ? e : new Error(e)).bind(function (e) {
-                                        return event.defaultPrevented ? spica_1.Just(e) : spica_1.Nothing;
+                                    return cancellation.maybe(e instanceof Error ? e : new Error(e)).fmap(function (e) {
+                                        return void terminate(), window.history.scrollRestoration = 'auto', void url_1.documentUrl.sync(), void config.fallback(event._currentTarget, e);
                                     }).extract(function () {
-                                        return void process.terminate('');
-                                    }, function (e) {
-                                        return void process.terminate('', e), window.history.scrollRestoration = 'auto', void url_1.documentUrl.sync(), void config.fallback(event._currentTarget, e);
+                                        return void 0;
                                     });
                                 })
                             ];
