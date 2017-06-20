@@ -8,3 +8,6 @@ obj
 
 # node
 node_modules
+
+# jekyll
+Gemfile.lock
