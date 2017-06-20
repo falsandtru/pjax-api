@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.12.1
+
+- Refactoring.
+
 ## 3.12.0
 
 - Improve Config.update.ignore option.
