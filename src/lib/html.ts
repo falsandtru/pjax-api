@@ -2,6 +2,7 @@ import { Maybe, Just, Nothing, Either, Left, Right } from 'spica';
 import { find } from './dom';
 
 type Parser = (html: string) => Maybe<Document>;
+
 export const parse: Parser = [parseByDoc, parseByDOM]
   .reduce<Either<(html: string) => Document, Parser>>((m, parser) =>
     m.bind<Parser>(() => test(parser) ? Left(parser) : m)
