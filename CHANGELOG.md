@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.12.2
+
+- Fix error handling.
+
 ## 3.12.1
 
 - Refactoring.

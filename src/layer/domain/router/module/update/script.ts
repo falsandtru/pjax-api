@@ -1,5 +1,6 @@
 import { Cancellee, Either, Left, Right, concat } from 'spica';
 import { find, once } from '../../../../../lib/dom';
+import { FatalError } from '../../../../../lib/error';
 import { StandardUrl, standardizeUrl } from '../../../../data/model/domain/url';
 
 type Response = [HTMLScriptElement, string];
@@ -128,7 +129,7 @@ ${code}`;
     void script.remove();
   }
   return error
-    ? Left(error)
+    ? Left(new FatalError((<Error>error).message))
     : Right(script);
 }
 export { evaluate as _evaluate }

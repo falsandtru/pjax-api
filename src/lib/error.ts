@@ -4,3 +4,12 @@ export class PjaxError extends Error {
   }
 }
 assert(new PjaxError('') instanceof Error);
+
+export class FatalError extends PjaxError {
+  constructor(msg: string) {
+    super(`Pjax: Fatal: ${msg}`);
+    this.name = 'FatalError';
+  }
+}
+assert(new FatalError('') instanceof Error);
+assert(new FatalError('').name === 'FatalError');

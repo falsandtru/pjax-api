@@ -39,12 +39,11 @@ export async function route(
             void scripts.add(standardizeUrl(s.src))),
         void documentUrl.sync()))
       .extract())
-    .catch(e =>
-      cancellation.maybe(e instanceof Error ? e : new Error(e))
-        .fmap(e => (
-          void terminate(),
-          window.history.scrollRestoration = 'auto',
-          void documentUrl.sync(),
-          void config.fallback(<RouterEventSource>event._currentTarget, e)))
-        .extract(() => void 0));
+    .catch(e => (
+      void terminate(),
+      window.history.scrollRestoration = 'auto',
+      void documentUrl.sync(),
+      !cancellation.canceled || e instanceof Error && e.name === 'FatalError'
+        ? void config.fallback(<RouterEventSource>event._currentTarget, e instanceof Error ? e : new Error(e))
+        : void 0));
 }
