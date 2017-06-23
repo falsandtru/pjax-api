@@ -83,8 +83,7 @@ export class GUI {
                 : void 0)
             .extract())
           .close),
-        new Promise<[void, Cancellation<void>]>(resolve =>
-          void s.register(() => void resolve([void 0, s])))),
+        new Promise<never>(() => void 0)),
       exit: (_, s) =>
         void s.cancel()
     }, new Cancellation());
