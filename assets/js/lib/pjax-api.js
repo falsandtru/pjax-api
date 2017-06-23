@@ -2028,6 +2028,7 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             var spica_1 = require('spica');
             var dom_1 = require('../../../../../lib/dom');
+            var error_1 = require('../../../../../lib/error');
             var url_1 = require('../../../../data/model/domain/url');
             function script(documents, skip, selector, cancellation, io) {
                 if (io === void 0) {
@@ -2157,12 +2158,13 @@ require = function e(t, n, r) {
                 if (!logging) {
                     void script.remove();
                 }
-                return error ? spica_1.Left(error) : spica_1.Right(script);
+                return error ? spica_1.Left(new error_1.FatalError(error.message)) : spica_1.Right(script);
             }
             exports._evaluate = evaluate;
         },
         {
             '../../../../../lib/dom': 44,
+            '../../../../../lib/error': 45,
             '../../../../data/model/domain/url': 8,
             'spica': undefined
         }
@@ -2707,13 +2709,8 @@ require = function e(t, n, r) {
                                 return void spica_1.Just(new url_1.Url(url_2.standardizeUrl(window.location.href))).fmap(function (url) {
                                     return url_3.documentUrl.href === url.href ? void api_2.savePosition() : void 0;
                                 }).extract();
-                            }).close), new Promise(function (resolve) {
-                                return void s.register(function () {
-                                    return void resolve([
-                                        void 0,
-                                        s
-                                    ]);
-                                });
+                            }).close), new Promise(function () {
+                                return void 0;
                             });
                         },
                         exit: function (_, s) {
@@ -3008,11 +3005,7 @@ require = function e(t, n, r) {
                                         }), void url_1.documentUrl.sync();
                                     }).extract();
                                 }).catch(function (e) {
-                                    return cancellation.maybe(e instanceof Error ? e : new Error(e)).fmap(function (e) {
-                                        return void terminate(), window.history.scrollRestoration = 'auto', void url_1.documentUrl.sync(), void config.fallback(event._currentTarget, e);
-                                    }).extract(function () {
-                                        return void 0;
-                                    });
+                                    return void terminate(), window.history.scrollRestoration = 'auto', void url_1.documentUrl.sync(), !cancellation.canceled || e instanceof Error && e.name === 'FatalError' ? void config.fallback(event._currentTarget, e instanceof Error ? e : new Error(e)) : void 0;
                                 })
                             ];
                         }
@@ -3242,6 +3235,16 @@ require = function e(t, n, r) {
                 return PjaxError;
             }(Error);
             exports.PjaxError = PjaxError;
+            var FatalError = function (_super) {
+                __extends(FatalError, _super);
+                function FatalError(msg) {
+                    var _this = _super.call(this, 'Pjax: Fatal: ' + msg) || this;
+                    _this.name = 'FatalError';
+                    return _this;
+                }
+                return FatalError;
+            }(PjaxError);
+            exports.FatalError = FatalError;
         },
         {}
     ],
