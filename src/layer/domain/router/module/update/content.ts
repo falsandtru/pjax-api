@@ -80,7 +80,7 @@ export function separate(
 
         function validate(area: AreaRecord): boolean {
           return area.src.length > 0
-            && area.src.length === area.dst.length;
+              && area.src.length === area.dst.length;
         }
       }
 
