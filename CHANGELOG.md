@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.13.0
+
+- Change a license to Apache-2.0 AND MPL-2.0.
+
 ## 3.12.2
 
 - Fix error handling.

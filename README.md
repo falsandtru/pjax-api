@@ -70,7 +70,3 @@ Requires es6 support.
 - Firefox
 - Safari
 - Edge
-
-## License
-
-GPL-2.0
