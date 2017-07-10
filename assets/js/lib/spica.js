@@ -1,4 +1,4 @@
-/*! spica v0.0.89 https://github.com/falsandtru/spica | (c) 2016, falsandtru | MIT License */
+/*! spica v0.0.90 https://github.com/falsandtru/spica | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
@@ -131,22 +131,19 @@ require = function e(t, n, r) {
                 switch (type_1.type(source[key])) {
                 case 'Array':
                     return target[key] = exports.extend([], source[key]);
-                case 'Object': {
-                        switch (type_1.type(target[key])) {
-                        case 'Function':
-                        case 'Object': {
-                                return target[key] = exports.extend(target[key], source[key]);
-                            }
-                        default: {
-                                return target[key] = exports.extend({}, source[key]);
-                            }
-                        }
+                case 'Object':
+                    switch (type_1.type(target[key])) {
+                    case 'Function':
+                    case 'Object':
+                        return target[key] = exports.extend(target[key], source[key]);
+                    default:
+                        return target[key] = exports.extend({}, source[key]);
                     }
                 default:
                     return target[key] = source[key];
                 }
             });
-            function template(cb) {
+            function template(strategy) {
                 return walk;
                 function walk(target) {
                     var sources = [];
@@ -165,7 +162,7 @@ require = function e(t, n, r) {
                             var key = _c[_b];
                             var desc = Object.getOwnPropertyDescriptor(Object(source), key);
                             if (desc !== undefined && desc.enumerable) {
-                                void cb(key, Object(target), Object(source));
+                                void strategy(key, Object(target), Object(source));
                             }
                         }
                     }
@@ -354,10 +351,9 @@ require = function e(t, n, r) {
                         _this.done = true;
                         _this.canceled = true;
                         _this.reason = reason;
-                        var listeners = Array.from(_this.listeners);
-                        void Object.freeze(_this);
                         void Object.freeze(_this.listeners);
-                        void listeners.forEach(function (cb) {
+                        void Object.freeze(_this);
+                        void _this.listeners.forEach(function (cb) {
                             return void cb(reason);
                         });
                     };
@@ -365,9 +361,8 @@ require = function e(t, n, r) {
                         if (_this.done)
                             return;
                         _this.done = true;
-                        void _this.listeners.clear();
-                        void Object.freeze(_this);
                         void Object.freeze(_this.listeners);
+                        void Object.freeze(_this);
                     };
                     this.canceled = false;
                     this.promise = function (val) {
