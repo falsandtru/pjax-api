@@ -39,16 +39,16 @@ require = function e(t, n, r) {
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            var api_1 = require('./layer/interface/service/api');
-            exports.default = api_1.API;
-            var api_2 = require('./layer/interface/service/api');
-            exports.Pjax = api_2.API;
+            var gui_1 = require('./layer/interface/service/gui');
+            exports.default = gui_1.GUI;
+            var gui_2 = require('./layer/interface/service/gui');
+            exports.Pjax = gui_2.GUI;
             var router_1 = require('./lib/router');
             exports.router = router_1.router;
         },
         {
-            './layer/interface/service/api': 36,
-            './lib/router': 48
+            './layer/interface/service/gui': 37,
+            './lib/router': 49
         }
     ],
     4: [
@@ -249,7 +249,7 @@ require = function e(t, n, r) {
             exports.scope = scope;
         },
         {
-            '../../../lib/router': 48,
+            '../../../lib/router': 49,
             '../../domain/data/config': 10,
             'spica': undefined
         }
@@ -284,7 +284,7 @@ require = function e(t, n, r) {
             }(error_1.PjaxError);
             exports.ApplicationError = ApplicationError;
         },
-        { '../../../lib/error': 45 }
+        { '../../../lib/error': 46 }
     ],
     7: [
         function (require, module, exports) {
@@ -657,7 +657,7 @@ require = function e(t, n, r) {
             }(error_1.PjaxError);
             exports.DomainError = DomainError;
         },
-        { '../../../lib/error': 45 }
+        { '../../../lib/error': 46 }
     ],
     12: [
         function (require, module, exports) {
@@ -747,8 +747,8 @@ require = function e(t, n, r) {
             exports.RouterEventLocation = RouterEventLocation;
         },
         {
-            '../../../lib/dom': 44,
-            '../../../lib/url': 49,
+            '../../../lib/dom': 45,
+            '../../../lib/url': 50,
             '../../data/model/domain/url': 8,
             '../data/error': 11
         }
@@ -1010,7 +1010,7 @@ require = function e(t, n, r) {
             exports.FetchResult = FetchResult;
         },
         {
-            '../../../../../../lib/html': 46,
+            '../../../../../../lib/html': 47,
             '../../../../../data/model/domain/url': 8
         }
     ],
@@ -1205,7 +1205,7 @@ require = function e(t, n, r) {
             exports.fetch = fetch;
         },
         {
-            '../../../../lib/url': 49,
+            '../../../../lib/url': 50,
             '../../data/error': 11,
             '../module/fetch/xhr': 18,
             'spica': undefined
@@ -1822,7 +1822,7 @@ require = function e(t, n, r) {
             exports._wait = wait;
         },
         {
-            '../../../../../lib/dom': 44,
+            '../../../../../lib/dom': 45,
             './script': 25,
             'spica': undefined
         }
@@ -1854,7 +1854,7 @@ require = function e(t, n, r) {
             }
         },
         {
-            '../../../../../lib/dom': 44,
+            '../../../../../lib/dom': 45,
             './sync': 27
         }
     ],
@@ -1872,7 +1872,7 @@ require = function e(t, n, r) {
             }
             exports.focus = focus;
         },
-        { '../../../../../lib/dom': 44 }
+        { '../../../../../lib/dom': 45 }
     ],
     24: [
         function (require, module, exports) {
@@ -1894,7 +1894,7 @@ require = function e(t, n, r) {
             }
         },
         {
-            '../../../../../lib/dom': 44,
+            '../../../../../lib/dom': 45,
             './sync': 27
         }
     ],
@@ -2163,8 +2163,8 @@ require = function e(t, n, r) {
             exports._evaluate = evaluate;
         },
         {
-            '../../../../../lib/dom': 44,
-            '../../../../../lib/error': 45,
+            '../../../../../lib/dom': 45,
+            '../../../../../lib/error': 46,
             '../../../../data/model/domain/url': 8,
             'spica': undefined
         }
@@ -2230,7 +2230,7 @@ require = function e(t, n, r) {
             exports.hash = hash;
         },
         {
-            '../../../../../lib/dom': 44,
+            '../../../../../lib/dom': 45,
             '../../../event/router': 12,
             'spica': undefined
         }
@@ -2399,7 +2399,7 @@ require = function e(t, n, r) {
             }(error_1.PjaxError);
             exports.InterfaceError = InterfaceError;
         },
-        { '../../../lib/error': 45 }
+        { '../../../lib/error': 46 }
     ],
     32: [
         function (require, module, exports) {
@@ -2454,7 +2454,7 @@ require = function e(t, n, r) {
             exports.ClickView = ClickView;
         },
         {
-            '../../../../lib/dom': 44,
+            '../../../../lib/dom': 45,
             'spica': undefined
         }
     ],
@@ -2511,9 +2511,9 @@ require = function e(t, n, r) {
             exports.NavigationView = NavigationView;
         },
         {
-            '../../../../lib/dom': 44,
+            '../../../../lib/dom': 45,
             '../../../data/model/domain/url': 8,
-            '../../service/state/url': 43,
+            '../../service/state/url': 44,
             'spica': undefined
         }
     ],
@@ -2570,7 +2570,7 @@ require = function e(t, n, r) {
             exports.ScrollView = ScrollView;
         },
         {
-            '../../../../lib/dom': 44,
+            '../../../../lib/dom': 45,
             'spica': undefined
         }
     ],
@@ -2625,7 +2625,7 @@ require = function e(t, n, r) {
             exports.SubmitView = SubmitView;
         },
         {
-            '../../../../lib/dom': 44,
+            '../../../../lib/dom': 45,
             'spica': undefined
         }
     ],
@@ -2633,10 +2633,52 @@ require = function e(t, n, r) {
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            var gui_1 = require('./gui');
-            exports.API = gui_1.GUI;
+            var spica_1 = require('spica');
+            var api_1 = require('../../application/api');
+            var process_1 = require('./state/process');
+            var router_1 = require('./router');
+            var dom_1 = require('../../../lib/dom');
+            var html_1 = require('../../../lib/html');
+            var API = function () {
+                function API() {
+                }
+                API.assign = function (url, option, io) {
+                    if (io === void 0) {
+                        io = { document: window.document };
+                    }
+                    return void click(url).then(function (event) {
+                        return router_1.route(new api_1.Config(option), event, process_1.process, io);
+                    });
+                };
+                API.replace = function (url, option, io) {
+                    if (io === void 0) {
+                        io = { document: window.document };
+                    }
+                    return void click(url).then(function (event) {
+                        return router_1.route(new api_1.Config(spica_1.extend({}, option, { replace: '*' })), event, process_1.process, io);
+                    });
+                };
+                return API;
+            }();
+            exports.API = API;
+            function click(url) {
+                var el = document.createElement('a');
+                el.href = url;
+                return new Promise(function (resolve) {
+                    return void dom_1.once(el, 'click', function (event) {
+                        return void event.preventDefault(), void resolve(event);
+                    }), void html_1.parse('').extract().body.appendChild(el), void el.click(), void el.remove();
+                });
+            }
         },
-        { './gui': 37 }
+        {
+            '../../../lib/dom': 45,
+            '../../../lib/html': 47,
+            '../../application/api': 4,
+            './router': 39,
+            './state/process': 41,
+            'spica': undefined
+        }
     ],
     37: [
         function (require, module, exports) {
@@ -2658,8 +2700,9 @@ require = function e(t, n, r) {
                 };
             }();
             Object.defineProperty(exports, '__esModule', { value: true });
+            var api_1 = require('./api');
             var spica_1 = require('spica');
-            var api_1 = require('../../application/api');
+            var api_2 = require('../../application/api');
             var url_1 = require('../../../lib/url');
             var url_2 = require('../../data/model/domain/url');
             var click_1 = require('../module/view/click');
@@ -2668,46 +2711,53 @@ require = function e(t, n, r) {
             var scroll_1 = require('../module/view/scroll');
             var url_3 = require('./state/url');
             require('./state/scroll-restoration');
+            var process_1 = require('./state/process');
             var router_1 = require('./router');
-            var api_2 = require('../../application/api');
-            var dom_1 = require('../../../lib/dom');
-            var html_1 = require('../../../lib/html');
-            var GUI = function () {
+            var api_3 = require('../../application/api');
+            var view = new (function (_super) {
+                __extends(class_1, _super);
+                function class_1() {
+                    return _super !== null && _super.apply(this, arguments) || this;
+                }
+                return class_1;
+            }(spica_1.Supervisor))();
+            var GUI = function (_super) {
+                __extends(GUI, _super);
                 function GUI(option, io) {
                     if (io === void 0) {
                         io = { document: window.document };
                     }
-                    var _this = this;
-                    this.option = option;
-                    this.io = io;
-                    this.config = new api_1.Config(this.option);
-                    void GUI.view.terminate('');
-                    void GUI.view.register('', {
+                    var _this = _super.call(this) || this;
+                    _this.option = option;
+                    _this.io = io;
+                    var config = new api_2.Config(_this.option);
+                    void view.terminate('');
+                    void view.register('', {
                         init: function (s) {
                             return s;
                         },
                         call: function (_, s) {
-                            return void s.register(new click_1.ClickView(_this.io.document, _this.config.link, function (event) {
+                            return void s.register(new click_1.ClickView(_this.io.document, config.link, function (event) {
                                 return void spica_1.Just(new url_1.Url(url_2.standardizeUrl(event._currentTarget.href))).bind(function (url) {
-                                    return isAccessible(url) && !isHashChange(url) && !hasModifierKey(event) && _this.config.filter(event._currentTarget) ? spica_1.Just(0) : spica_1.Nothing;
+                                    return isAccessible(url) && !isHashChange(url) && !hasModifierKey(event) && config.filter(event._currentTarget) ? spica_1.Just(0) : spica_1.Nothing;
                                 }).fmap(function () {
-                                    return router_1.route(_this.config, event, GUI.process, _this.io);
+                                    return router_1.route(config, event, process_1.process, _this.io);
                                 }).extract(sync);
-                            }).close), void s.register(new submit_1.SubmitView(_this.io.document, _this.config.form, function (event) {
+                            }).close), void s.register(new submit_1.SubmitView(_this.io.document, config.form, function (event) {
                                 return void spica_1.Just(new url_1.Url(url_2.standardizeUrl(event._currentTarget.action))).bind(function (url) {
                                     return isAccessible(url) ? spica_1.Just(0) : spica_1.Nothing;
                                 }).fmap(function () {
-                                    return router_1.route(_this.config, event, GUI.process, _this.io);
+                                    return router_1.route(config, event, process_1.process, _this.io);
                                 }).extract(sync);
                             }).close), void s.register(new navigation_1.NavigationView(window, function (event) {
                                 return void spica_1.Just(new url_1.Url(url_2.standardizeUrl(window.location.href))).bind(function (url) {
-                                    return isAccessible(url) && !isHashChange(url) ? spica_1.Just(api_2.loadTitle()) : spica_1.Nothing;
+                                    return isAccessible(url) && !isHashChange(url) ? spica_1.Just(api_3.loadTitle()) : spica_1.Nothing;
                                 }).fmap(function (title) {
-                                    return title ? io.document.title = title : void 0, router_1.route(_this.config, event, GUI.process, _this.io);
+                                    return title ? io.document.title = title : void 0, router_1.route(config, event, process_1.process, _this.io);
                                 }).extract(sync);
                             }).close), void s.register(new scroll_1.ScrollView(window, function () {
                                 return void spica_1.Just(new url_1.Url(url_2.standardizeUrl(window.location.href))).fmap(function (url) {
-                                    return url_3.documentUrl.href === url.href ? void api_2.savePosition() : void 0;
+                                    return url_3.documentUrl.href === url.href ? void api_3.savePosition() : void 0;
                                 }).extract();
                             }).close), new Promise(function () {
                                 return void 0;
@@ -2717,46 +2767,17 @@ require = function e(t, n, r) {
                             return void s.cancel();
                         }
                     }, new spica_1.Cancellation());
-                    void GUI.view.cast('', void 0);
+                    void view.cast('', void 0);
+                    return _this;
                 }
-                GUI.assign = function (url, option, io) {
-                    if (io === void 0) {
-                        io = { document: window.document };
-                    }
-                    return void click(url).then(function (event) {
-                        return router_1.route(new api_1.Config(option), event, GUI.process, io);
-                    });
-                };
-                GUI.replace = function (url, option, io) {
-                    if (io === void 0) {
-                        io = { document: window.document };
-                    }
-                    return void click(url).then(function (event) {
-                        return router_1.route(new api_1.Config(spica_1.extend({}, option, { replace: '*' })), event, GUI.process, io);
-                    });
-                };
                 GUI.prototype.assign = function (url) {
-                    return void GUI.assign(url, this.option, this.io);
+                    return void api_1.API.assign(url, this.option, this.io);
                 };
                 GUI.prototype.replace = function (url) {
-                    return void GUI.replace(url, this.option, this.io);
+                    return void api_1.API.replace(url, this.option, this.io);
                 };
-                GUI.process = new (function (_super) {
-                    __extends(class_1, _super);
-                    function class_1() {
-                        return _super !== null && _super.apply(this, arguments) || this;
-                    }
-                    return class_1;
-                }(spica_1.Supervisor))();
-                GUI.view = new (function (_super) {
-                    __extends(class_2, _super);
-                    function class_2() {
-                        return _super !== null && _super.apply(this, arguments) || this;
-                    }
-                    return class_2;
-                }(spica_1.Supervisor))();
                 return GUI;
-            }();
+            }(api_1.API);
             exports.GUI = GUI;
             function hasModifierKey(event) {
                 return event.which > 1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
@@ -2776,29 +2797,20 @@ require = function e(t, n, r) {
             function sync() {
                 void url_3.documentUrl.sync();
             }
-            function click(url) {
-                var el = document.createElement('a');
-                el.href = url;
-                return new Promise(function (resolve) {
-                    return void dom_1.once(el, 'click', function (event) {
-                        return void event.preventDefault(), void resolve(event);
-                    }), void html_1.parse('').extract().body.appendChild(el), void el.click(), void el.remove();
-                });
-            }
         },
         {
-            '../../../lib/dom': 44,
-            '../../../lib/html': 46,
-            '../../../lib/url': 49,
+            '../../../lib/url': 50,
             '../../application/api': 4,
             '../../data/model/domain/url': 8,
             '../module/view/click': 32,
             '../module/view/navigation': 33,
             '../module/view/scroll': 34,
             '../module/view/submit': 35,
+            './api': 36,
             './router': 39,
-            './state/scroll-restoration': 42,
-            './state/url': 43,
+            './state/process': 41,
+            './state/scroll-restoration': 43,
+            './state/url': 44,
             'spica': undefined
         }
     ],
@@ -3015,13 +3027,13 @@ require = function e(t, n, r) {
             exports.route = route;
         },
         {
-            '../../../lib/dom': 44,
+            '../../../lib/dom': 45,
             '../../application/api': 4,
             '../../data/model/domain/url': 8,
             '../data/error': 31,
             '../service/state/env': 40,
             './progressbar': 38,
-            './state/url': 43,
+            './state/url': 44,
             'spica': undefined
         }
     ],
@@ -3032,9 +3044,40 @@ require = function e(t, n, r) {
             var script_1 = require('./script');
             exports.env = Promise.all([script_1.scripts]);
         },
-        { './script': 41 }
+        { './script': 42 }
     ],
     41: [
+        function (require, module, exports) {
+            'use strict';
+            var __extends = this && this.__extends || function () {
+                var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+                    d.__proto__ = b;
+                } || function (d, b) {
+                    for (var p in b)
+                        if (b.hasOwnProperty(p))
+                            d[p] = b[p];
+                };
+                return function (d, b) {
+                    extendStatics(d, b);
+                    function __() {
+                        this.constructor = d;
+                    }
+                    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+                };
+            }();
+            Object.defineProperty(exports, '__esModule', { value: true });
+            var spica_1 = require('spica');
+            exports.process = new (function (_super) {
+                __extends(class_1, _super);
+                function class_1() {
+                    return _super !== null && _super.apply(this, arguments) || this;
+                }
+                return class_1;
+            }(spica_1.Supervisor))();
+        },
+        { 'spica': undefined }
+    ],
+    42: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3049,11 +3092,11 @@ require = function e(t, n, r) {
             });
         },
         {
-            '../../../../lib/dom': 44,
+            '../../../../lib/dom': 45,
             '../../../data/model/domain/url': 8
         }
     ],
-    42: [
+    43: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3062,9 +3105,9 @@ require = function e(t, n, r) {
                 return window.history.scrollRestoration = 'auto';
             }, false);
         },
-        { '../../../../lib/dom': 44 }
+        { '../../../../lib/dom': 45 }
     ],
-    43: [
+    44: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3081,7 +3124,7 @@ require = function e(t, n, r) {
         },
         { '../../../data/model/domain/url': 8 }
     ],
-    44: [
+    45: [
         function (require, module, exports) {
             'use strict';
             var __assign = this && this.__assign || Object.assign || function (t) {
@@ -3205,9 +3248,9 @@ require = function e(t, n, r) {
                 return supportEventListenerOptions ? option : typeof option === 'boolean' ? option : option.capture;
             }
         },
-        { './noop': 47 }
+        { './noop': 48 }
     ],
-    45: [
+    46: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -3248,7 +3291,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    46: [
+    47: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3337,11 +3380,11 @@ require = function e(t, n, r) {
             }
         },
         {
-            './dom': 44,
+            './dom': 45,
             'spica': undefined
         }
     ],
-    47: [
+    48: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3352,7 +3395,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    48: [
+    49: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3461,11 +3504,11 @@ require = function e(t, n, r) {
         },
         {
             '../layer/data/model/domain/url': 8,
-            './url': 49,
+            './url': 50,
             'spica': undefined
         }
     ],
-    49: [
+    50: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
