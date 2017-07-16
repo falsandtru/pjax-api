@@ -2646,29 +2646,27 @@ require = function e(t, n, r) {
                     if (io === void 0) {
                         io = { document: window.document };
                     }
-                    return void click(url).then(function (event) {
-                        return router_1.route(new api_1.Config(option), event, process_1.process, io);
+                    return void click(url, function (event) {
+                        return void router_1.route(new api_1.Config(option), event, process_1.process, io);
                     });
                 };
                 API.replace = function (url, option, io) {
                     if (io === void 0) {
                         io = { document: window.document };
                     }
-                    return void click(url).then(function (event) {
-                        return router_1.route(new api_1.Config(spica_1.extend({}, option, { replace: '*' })), event, process_1.process, io);
+                    return void click(url, function (event) {
+                        return void router_1.route(new api_1.Config(spica_1.extend({}, option, { replace: '*' })), event, process_1.process, io);
                     });
                 };
                 return API;
             }();
             exports.API = API;
-            function click(url) {
+            function click(url, callback) {
                 var el = document.createElement('a');
                 el.href = url;
-                return new Promise(function (resolve) {
-                    return void dom_1.once(el, 'click', function (event) {
-                        return void event.preventDefault(), void resolve(event);
-                    }), void html_1.parse('').extract().body.appendChild(el), void el.click(), void el.remove();
-                });
+                void html_1.parse('').extract().body.appendChild(el);
+                void dom_1.once(el, 'click', callback);
+                void el.click();
             }
         },
         {
