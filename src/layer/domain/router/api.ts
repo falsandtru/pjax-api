@@ -1,4 +1,4 @@
-import { Either, Left, Right } from 'spica';
+import { Either, Left, Right } from 'spica/either';
 import { RouterEntity } from './model/eav/entity';
 import { fetch } from './module/fetch';
 import { update } from './module/update';

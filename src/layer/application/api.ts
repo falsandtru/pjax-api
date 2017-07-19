@@ -1,4 +1,6 @@
-import { Cancellee, Just, Left } from 'spica';
+import { Cancellee } from 'spica/cancellation';
+import { Just } from 'spica/maybe';
+import { Left } from 'spica/either';
 import { Config } from '../domain/data/config';
 import { StandardUrl } from '../data/model/domain/url';
 import { scope } from './config/scope';

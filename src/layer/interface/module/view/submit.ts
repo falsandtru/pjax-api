@@ -1,4 +1,4 @@
-import { Supervisor } from 'spica';
+import { Supervisor } from 'spica/supervisor';
 import { delegate } from '../../../../lib/dom';
 
 export class SubmitView {

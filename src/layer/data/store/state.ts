@@ -1,4 +1,4 @@
-import { extend } from 'spica';
+import { extend } from 'spica/assign';
 import { State } from '../schema/state';
 
 if (window.history.state instanceof Object === false) {

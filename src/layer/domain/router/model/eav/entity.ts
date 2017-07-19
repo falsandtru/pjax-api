@@ -1,4 +1,4 @@
-import { Cancellee } from 'spica';
+import { Cancellee } from 'spica/cancellation';
 import { RouterEvent } from '../../../event/router';
 import { Config } from '../../../data/config';
 import { StandardUrl } from '../../../../data/model/domain/url';

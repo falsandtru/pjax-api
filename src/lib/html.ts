@@ -1,4 +1,5 @@
-import { Maybe, Just, Nothing, Either, Left, Right } from 'spica';
+import { Maybe, Just, Nothing } from 'spica/maybe';
+import { Either, Left, Right } from 'spica/either';
 import { find } from './dom';
 
 type Parser = (html: string) => Maybe<Document>;

@@ -1,4 +1,5 @@
-import { Supervisor, Cancellation } from 'spica';
+import { Supervisor } from 'spica/supervisor';
+import { Cancellation } from 'spica/cancellation';
 import { route as route_, Config } from '../../application/api';
 import { documentUrl } from './state/url';
 import { env } from '../service/state/env';

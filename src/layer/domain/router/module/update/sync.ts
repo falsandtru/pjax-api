@@ -1,4 +1,5 @@
-import { Either, Left, Right, concat } from 'spica';
+import { Either, Left, Right } from 'spica/either';
+import { concat } from 'spica/concat';
 
 export function sync<T extends HTMLElement>(
   pairs: [T[], T | null][],

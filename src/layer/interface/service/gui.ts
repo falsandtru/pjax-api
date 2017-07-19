@@ -1,6 +1,8 @@
 import { API } from './api';
 import { Config as Option } from '../../../../';
-import { Supervisor, Cancellation, Just, Nothing } from 'spica';
+import { Supervisor } from 'spica/supervisor';
+import { Cancellation } from 'spica/cancellation';
+import { Just, Nothing } from 'spica/maybe';
 import { Config } from '../../application/api';
 import { Url } from '../../../lib/url';
 import { RouterEventSource } from '../../domain/event/router';

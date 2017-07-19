@@ -37,7 +37,6 @@ The second generation PJAX for the advanced web frameworks.
 ## Usage
 
 ```html
-<script src="/js/spica.js"></script>
 <script src="/js/pjax-api.js"></script>
 ```
 
@@ -55,8 +54,6 @@ new Pjax({
   ]
 });
 ```
-
-- [spica](https://github.com/falsandtru/spica)
 
 ## Document
 

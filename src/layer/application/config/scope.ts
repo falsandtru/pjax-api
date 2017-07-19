@@ -3,7 +3,9 @@ import { compare } from '../../../lib/router';
 import { Config } from '../../domain/data/config';
 import { Url } from '../../../lib/url';
 import { StandardUrl } from '../../data/model/domain/url';
-import { Sequence, Maybe, Just, Nothing, extend } from 'spica';
+import { Sequence } from 'spica/sequence';
+import { Maybe, Just, Nothing } from 'spica/maybe';
+import { extend } from 'spica/assign';
 
 export function scope(
   config: Config,

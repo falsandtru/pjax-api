@@ -1,4 +1,6 @@
-import { Cancellee, Either, Left, Right, concat } from 'spica';
+import { Cancellee } from 'spica/cancellation';
+import { Either, Left, Right } from 'spica/either';
+import { concat } from 'spica/concat';
 import { find, once } from '../../../../../lib/dom';
 import { FatalError } from '../../../../../lib/error';
 import { StandardUrl, standardizeUrl } from '../../../../data/model/domain/url';

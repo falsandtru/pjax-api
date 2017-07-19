@@ -20,7 +20,7 @@
     "suppressImplicitAnyIndexErrors": true,
     "allowUnusedLabels": true,
     "rootDir": "./",
-    "forceConsistentCasingInFileNames": true,
+    "forceConsistentCasingInFileNames": false,
     "removeComments": false
   },
   "include": [

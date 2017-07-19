@@ -1,4 +1,4 @@
-import { extend } from 'spica';
+import { extend } from 'spica/assign';
 import { Config as Option, Sequence as ISequence } from '../../../../';
 
 export class Config implements Option {

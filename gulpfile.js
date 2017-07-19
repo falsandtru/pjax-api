@@ -51,11 +51,9 @@ const config = {
 
 function compile(paths, force) {
   let done = true;
-    return browserify(Object.values(paths).map(p => glob.sync(p)), {
-      bundleExternal: false,
-    })
+    return browserify(Object.values(paths).map(p => glob.sync(p)))
     .require(`./index.ts`, { expose: pkg.name })
-    .plugin(tsify, require('./tsconfig.json').compilerOptions)
+    .plugin(tsify, Object.assign({ global: true }, require('./tsconfig.json').compilerOptions))
     .bundle()
     .on("error", err => done = console.log(err + ''))
     .pipe(source(`${pkg.name}.js`))
@@ -170,7 +168,6 @@ gulp.task('dist', ['clean'], function (done) {
 
 gulp.task('site', ['dist'], function () {
   return gulp.src([
-    'node_modules/spica/dist/spica.js',
     'dist/pjax-api.js'
   ])
     .pipe(gulp.dest('./gh-pages/assets/js/lib'));

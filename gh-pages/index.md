@@ -26,11 +26,10 @@ class: style-top
 ## Installation
 
 ```
-$ npm i pjax-api spica
+$ npm i pjax-api
 ```
 
 ```html
-<script src="/js/spica.js"></script>
 <script src="/js/pjax-api.js"></script>
 <script>
 var Pjax = require('pjax-api').Pjax;

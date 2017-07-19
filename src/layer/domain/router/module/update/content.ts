@@ -1,4 +1,6 @@
-import { Maybe, Just, Nothing, concat, Sequence } from 'spica';
+import { Maybe, Just, Nothing} from 'spica/maybe';
+import { Sequence } from 'spica/sequence';
+import { concat} from 'spica/concat';
 import { find, once } from '../../../../../lib/dom';
 import { escape } from './script';
 

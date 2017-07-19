@@ -1,6 +1,7 @@
 import { StandardUrl, standardizeUrl } from '../layer/data/model/domain/url';
 import { Url } from './url';
-import { Sequence, flip } from 'spica';
+import { Sequence } from 'spica/sequence';
+import { flip } from 'spica/flip';
 
 export function router<T>(config: { [pattern: string]: (path: string) => T; }): (url: string) => T {
   return (url: string) => {

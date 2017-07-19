@@ -1,7 +1,7 @@
 import { router, compare, expand, match } from './router';
 import { Url } from './url';
 import { standardizeUrl } from '../layer/data/model/domain/url';
-import { Sequence } from 'spica';
+import { Sequence } from 'spica/sequence';
 
 describe('Unit: lib/router', () => {
   describe('router', () => {

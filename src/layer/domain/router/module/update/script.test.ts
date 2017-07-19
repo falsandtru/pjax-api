@@ -1,5 +1,6 @@
 import { script, escape, _request, _evaluate } from './script';
-import { Cancellation, Left, Right } from 'spica';
+import { Cancellation } from 'spica/cancellation';
+import { Left, Right } from 'spica/either';
 import { parse } from '../../../../../lib/html';
 import DOM from 'typed-dom';
 

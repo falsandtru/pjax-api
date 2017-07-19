@@ -1,4 +1,5 @@
-import { Either, Left, HNil } from 'spica';
+import { Either, Left } from 'spica/either';
+import { HNil } from 'spica/hlist';
 import { RouterEntity } from '../model/eav/entity';
 import { RouterEventLocation } from '../../event/router';
 import { FetchResult } from '../model/eav/value/fetch';

@@ -1,4 +1,4 @@
-import { Supervisor } from 'spica';
+import { Supervisor } from 'spica/supervisor';
 import { bind } from '../../../../lib/dom';
 
 export class ScrollView {

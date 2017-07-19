@@ -1,4 +1,4 @@
-import { Maybe, Just, Nothing } from 'spica';
+import { Maybe, Just, Nothing } from 'spica/maybe';
 import { RouterEventType } from '../../../event/router';
 import { Url } from '../../../../../lib/url';
 import { StandardUrl } from '../../../../data/model/domain/url';

@@ -1,4 +1,5 @@
-import { Cancellee, Either, Left, Right } from 'spica';
+import { Cancellee } from 'spica/cancellation';
+import { Either, Left, Right } from 'spica/either';
 import { Config } from '../../data/config';
 import { RouterEventRequest } from '../../event/router';
 import { FetchResult } from '../model/eav/value/fetch';
