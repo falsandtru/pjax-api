@@ -4706,11 +4706,21 @@ require = function e(t, n, r) {
             function route(entity, io) {
                 return __awaiter(this, void 0, void 0, function () {
                     var _this = this;
+                    function match(document, areas) {
+                        return content_1.separate({
+                            src: document,
+                            dst: document
+                        }, areas).extract(function () {
+                            return false;
+                        }, function () {
+                            return true;
+                        });
+                    }
                     return __generator(this, function (_a) {
                         return [
                             2,
                             either_1.Right(void 0).bind(entity.state.process.either).bind(function () {
-                                return content_1.match(io.document, entity.config.areas) ? either_1.Right(void 0) : either_1.Left(new error_1.DomainError('Failed to match areas.'));
+                                return match(io.document, entity.config.areas) ? either_1.Right(void 0) : either_1.Left(new error_1.DomainError('Failed to match areas.'));
                             }).fmap(function () {
                                 return fetch_1.fetch(entity.event.request, entity.config, entity.state.process);
                             }).fmap(function (p) {
@@ -5523,7 +5533,6 @@ require = function e(t, n, r) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             var maybe_1 = require('spica/maybe');
-            var sequence_1 = require('spica/sequence');
             var concat_1 = require('spica/concat');
             var dom_1 = require('../../../../../lib/dom');
             var script_1 = require('./script');
@@ -5602,23 +5611,6 @@ require = function e(t, n, r) {
                 }
             }
             exports.separate = separate;
-            function match(document, areas) {
-                return sequence_1.Sequence.from(areas).bind(function (area) {
-                    return sequence_1.Sequence.from(validate(document, area).extract(function () {
-                        return [];
-                    }, function (area) {
-                        return [area];
-                    }));
-                }).take(1).extract().length > 0;
-                function validate(document, area) {
-                    return split(area).reduce(function (m, area) {
-                        return m.bind(function () {
-                            return dom_1.find(document, area).length > 0 ? m : maybe_1.Nothing;
-                        });
-                    }, maybe_1.Just(area));
-                }
-            }
-            exports.match = match;
             function split(area) {
                 return (area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g) || []).map(function (a) {
                     return a.trim();
@@ -5644,8 +5636,7 @@ require = function e(t, n, r) {
             '../../../../../lib/dom': 116,
             './script': 96,
             'spica/concat': 6,
-            'spica/maybe': 12,
-            'spica/sequence': 68
+            'spica/maybe': 12
         }
     ],
     93: [
