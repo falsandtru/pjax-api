@@ -2,7 +2,7 @@ import { Either, Left, Right } from 'spica/either';
 import { RouterEntity } from './model/eav/entity';
 import { fetch } from './module/fetch';
 import { update } from './module/update';
-import { match } from './module/update/content';
+import { separate } from './module/update/content';
 import { loadPosition } from '../store/path';
 import { DomainError } from '../data/error';
 
@@ -32,4 +32,14 @@ export async function route(
         }))
       .extract<Left<Error>>(Left))
     .extract<Left<Error>>(Left);
+
+  function match(
+    document: Document,
+    areas: string[]
+  ): boolean {
+    return separate({ src: document, dst: document }, areas)
+      .extract(
+        () => false,
+        () => true);
+  }
 }

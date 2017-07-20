@@ -17,7 +17,7 @@ describe('Unit: layer/domain/router/module/update/content', () => {
     it('multiple', () => {
       const src = parse('<div class="class"></div><div id="id">a</div><div class="class">c</div>').extract();
       const dst = parse('<div id="id"></div><div class="class">b</div><div class="class"></div>').extract();
-      content({ src, dst }, ['_', '#id, .class', '_'])
+      content({ src, dst }, ['_', '#id, .class', '.class', '_'])
         .extract();
       assert(dst.body.innerHTML === '<div id="id">a</div><div class="class"></div><div class="class">c</div>');
     });
@@ -25,7 +25,7 @@ describe('Unit: layer/domain/router/module/update/content', () => {
     it('failure', done => {
       const src = parse('<div id="id">a</div><div class="class">c</div>').extract();
       const dst = parse('<div id="id"></div><div class="class">b</div><div class="class"></div>').extract();
-      content({ src, dst }, ['_', '#id, .class', '_'])
+      content({ src, dst }, ['_', '#id, .class', '.class', '_'])
         .extract(done);
     });
 

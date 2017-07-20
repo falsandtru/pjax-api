@@ -1,5 +1,4 @@
 import { Maybe, Just, Nothing} from 'spica/maybe';
-import { Sequence } from 'spica/sequence';
 import { concat} from 'spica/concat';
 import { find, once } from '../../../../../lib/dom';
 import { escape } from './script';
@@ -93,35 +92,6 @@ export function separate(
         };
       }
     }
-  }
-}
-
-export function match(
-  document: Document,
-  areas: string[]
-): boolean {
-  return Sequence.from(areas)
-    .bind(area =>
-      Sequence.from(
-        validate(document, area)
-          .extract<string[]>(
-            () => [],
-            area => [area])))
-    .take(1)
-    .extract()
-    .length > 0;
-
-  function validate(
-    document: Document,
-    area: string
-  ): Maybe<string> {
-    return split(area)
-      .reduce<Maybe<string>>((m, area) =>
-        m.bind(() =>
-          find(document, area).length > 0
-            ? m
-            : Nothing)
-      , Just(area));
   }
 }
 
