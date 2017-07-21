@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.14.1
+
+- Refactoring.
+
 ## 3.14.0
 
 - Remove dependencies.
