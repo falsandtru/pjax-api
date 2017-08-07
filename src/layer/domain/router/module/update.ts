@@ -56,8 +56,7 @@ export async function update(
     .modify(m => m.fmap(async p => (await p)
       .fmap(seq =>
         new HNil()
-          .push(void 0)
-          .modify(async () => (
+          .extend(async () => (
             void blur(documents.dst),
             void url(
               new RouterEventLocation(response.url || event.location.dest.href),
@@ -84,8 +83,7 @@ export async function update(
                 Left(new DomainError(`Failed to update areas.`)))))
           .extend(async p => (await p).fmap(([areas]) => Promise.all(
             new HNil()
-              .push(void 0)
-              .modify(async () => (
+              .extend(async () => (
                 config.update.css
                   ? void css(
                       {
@@ -143,6 +141,6 @@ export async function update(
             .extract(() => void 0)),
           m2.fmap(([ss]) => ss))))
       .extract<Left<Error>>(Left)))
-    .head()
+    .head
     .extract<Left<Error>>(Left);
 }
