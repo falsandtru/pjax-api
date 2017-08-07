@@ -68,7 +68,7 @@ describe('Integration: Package', function () {
         async unload(r, res) {
           assert(cnt === 3 && ++cnt);
           assert(r === false);
-          assert(res.headers['Content-Type'] === 'text/html');
+          assert(res.header('Content-Type') === 'text/html');
           assert(res.document instanceof Document);
           assert(res.document !== window.document);
           assert(window.history.scrollRestoration === 'auto');

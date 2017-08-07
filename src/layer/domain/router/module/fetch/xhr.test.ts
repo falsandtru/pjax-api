@@ -16,7 +16,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
         .then(m => m.fmap(res => {
           assert(res.xhr instanceof XMLHttpRequest);
           assert(res.response.url === standardizeUrl(''));
-          assert(res.response.headers['Content-Type'] === 'text/html');
+          assert(res.response.header('Content-Type') === 'text/html');
           assert(res.response.document instanceof Document);
           done();
         }).extract());

@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.15.0
+
+- Change response data structure of Sequence.unload function's parameter.
+
 ## 3.14.1
 
 - Refactoring.
