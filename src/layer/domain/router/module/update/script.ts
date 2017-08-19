@@ -122,7 +122,7 @@ ${code}`;
   }
   assert(container.closest('html') === document.documentElement);
   void container.appendChild(script);
-  assert(error === void 0 || error instanceof Error);
+  assert(error === void 0 || error as Error instanceof Error);
   void unbind();
   if (script.hasAttribute('src')) {
     void script.dispatchEvent(new Event(error ? 'error' : 'load'));
