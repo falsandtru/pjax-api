@@ -1,9 +1,4 @@
-import 'mocha';
-import _assert from 'power-assert';
-
 declare global {
-  const assert: typeof _assert;
-
   interface Window {
     Window: typeof Window;
   }
@@ -14,4 +9,12 @@ declare global {
     _currentTarget: Window | Document | HTMLElement;
   }
 
+}
+
+import assert from 'power-assert';
+
+type Assert = typeof assert;
+
+declare global {
+  const assert: Assert;
 }
