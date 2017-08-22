@@ -1,10 +1,4 @@
-import {
-  find,
-  serialize,
-  bind,
-  delegate,
-  once
-} from './dom';
+import { find, serialize } from './dom';
 import DOM from 'typed-dom';
 
 describe('Unit: lib/dom', () => {
@@ -12,52 +6,6 @@ describe('Unit: lib/dom', () => {
     it('children', () => {
       assert(find(DOM.div([DOM.p()]).element, 'p').length === 1);
       assert(find(DOM.div([DOM.p()]).element, 'p')[0].matches('p'));
-    });
-
-  });
-
-  describe('bind', () => {
-    it('click', done => {
-      const a = DOM.a().element;
-      bind(a, 'click', ev => {
-        assert(ev instanceof Event);
-        bind(a, 'click', () => done());
-      });
-      document.createDocumentFragment().appendChild(a);
-      a.click();
-      a.click();
-    });
-
-  });
-
-  describe('delegate', () => {
-    it('click', done => {
-      const dom = DOM.div([DOM.a()]);
-      delegate(dom.element, 'a', 'click', ev => {
-        assert(ev instanceof Event);
-        delegate(dom.element, 'a', 'click', () => done());
-      });
-      document.createDocumentFragment().appendChild(dom.element);
-      dom.children = [DOM.a()];
-      dom.children[0].element.click();
-      dom.children = [DOM.a()];
-      dom.children[0].element.click();
-    });
-
-  });
-
-  describe('once', () => {
-    it('click', done => {
-      const a = DOM.a().element;
-      let cnt = 0;
-      once(a, 'click', ev => {
-        assert(ev instanceof Event);
-        assert(cnt === 0 && ++cnt);
-        once(a, 'click', () => assert(cnt === 1 && ++cnt) || done());
-      });
-      document.createDocumentFragment().appendChild(a);
-      a.click();
-      a.click();
     });
 
   });

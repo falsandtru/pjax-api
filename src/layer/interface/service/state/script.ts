@@ -1,5 +1,6 @@
 import { StandardUrl, standardizeUrl } from '../../../data/model/domain/url';
-import { find, bind } from '../../../../lib/dom';
+import { find } from '../../../../lib/dom';
+import { bind } from 'typed-dom';
 
 export const scripts = new Set<StandardUrl>();
 

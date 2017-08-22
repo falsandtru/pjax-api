@@ -1,5 +1,5 @@
 import { Supervisor } from 'spica/supervisor';
-import { bind } from '../../../../lib/dom';
+import { bind } from 'typed-dom';
 
 export class ScrollView {
   constructor(

@@ -1,11 +1,11 @@
 import { Supervisor } from 'spica/supervisor';
 import { Cancellation } from 'spica/cancellation';
+import { bind, currentTargets } from 'typed-dom';
 import { route as route_, Config } from '../../application/api';
 import { documentUrl } from './state/url';
 import { env } from '../service/state/env';
 import { RouterEventSource } from '../../domain/event/router';
 import { progressbar } from './progressbar';
-import { bind } from '../../../lib/dom';
 import { standardizeUrl } from '../../data/model/domain/url';
 import { InterfaceError } from '../data/error';
 
@@ -20,7 +20,7 @@ export async function route(
     document: Document;
   }
 ): Promise<void> {
-  assert([HTMLAnchorElement, HTMLFormElement, Window].some(Class => event._currentTarget instanceof Class));
+  assert([HTMLAnchorElement, HTMLFormElement, Window].some(Class => event.currentTarget instanceof Class));
   void event.preventDefault();
   void process.cast('', new InterfaceError(`Abort.`));
   const cancellation = new Cancellation<Error>();
@@ -45,6 +45,6 @@ export async function route(
       window.history.scrollRestoration = 'auto',
       void documentUrl.sync(),
       !cancellation.canceled || e instanceof Error && e.name === 'FatalError'
-        ? void config.fallback(<RouterEventSource>event._currentTarget, e instanceof Error ? e : new Error(e))
+        ? void config.fallback(<RouterEventSource>currentTargets.get(event), e instanceof Error ? e : new Error(e))
         : void 0));
 }

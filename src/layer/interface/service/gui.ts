@@ -33,12 +33,12 @@ export class GUI extends API {
       init: s => s,
       call: (_, s) => (
         void s.register(new ClickView(this.io.document, config.link, event =>
-          void Just(new Url(standardizeUrl((<RouterEventSource.Anchor>event._currentTarget).href)))
+          void Just(new Url(standardizeUrl((<RouterEventSource.Anchor>event.currentTarget).href)))
             .bind(url =>
               isAccessible(url)
               && !isHashChange(url)
               && !hasModifierKey(event)
-              && config.filter(<RouterEventSource.Anchor>event._currentTarget)
+              && config.filter(<RouterEventSource.Anchor>event.currentTarget)
                 ? Just(0)
                 : Nothing)
             .fmap(() =>
@@ -46,7 +46,7 @@ export class GUI extends API {
             .extract(sync))
           .close),
         void s.register(new SubmitView(this.io.document, config.form, event =>
-          void Just(new Url(standardizeUrl((<RouterEventSource.Form>event._currentTarget).action)))
+          void Just(new Url(standardizeUrl((<RouterEventSource.Form>event.currentTarget).action)))
             .bind(url =>
               isAccessible(url)
                 ? Just(0)

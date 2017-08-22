@@ -1,6 +1,6 @@
 import { Pjax, Sequence } from '../../index';
 import { parse } from '../../src/lib/html';
-import { once } from '../../src/lib/dom';
+import { once } from 'typed-dom';
 
 describe('Integration: Package', function () {
   describe('state', function () {

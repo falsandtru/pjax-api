@@ -1,6 +1,6 @@
 import { Pjax } from '../../../index';
 import { parse } from '../../../src/lib/html';
-import { once } from '../../../src/lib/dom';
+import { once } from 'typed-dom';
 
 describe('Integration: Usecase', function () {
   describe('multibyte', function () {

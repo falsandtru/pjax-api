@@ -1,6 +1,7 @@
 import { Maybe, Just, Nothing} from 'spica/maybe';
 import { concat} from 'spica/concat';
-import { find, once } from '../../../../../lib/dom';
+import { once } from 'typed-dom';
+import { find } from '../../../../../lib/dom';
 import { escape } from './script';
 
 type DocumentRecord = { src: Document; dst: Document; };

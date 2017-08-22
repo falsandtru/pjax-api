@@ -1,6 +1,6 @@
 import { Supervisor } from 'spica/supervisor';
+import { bind } from 'typed-dom';
 import { standardizeUrl } from '../../../data/model/domain/url';
-import { bind } from '../../../../lib/dom';
 import { documentUrl } from '../../service/state/url';
 
 export class NavigationView {

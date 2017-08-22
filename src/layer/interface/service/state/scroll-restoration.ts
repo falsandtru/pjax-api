@@ -1,4 +1,4 @@
-import { bind } from '../../../../lib/dom';
+import { bind } from 'typed-dom';
 
 void bind(window, 'unload', () =>
   window.history.scrollRestoration = 'auto', false);

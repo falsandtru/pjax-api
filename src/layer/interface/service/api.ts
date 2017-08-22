@@ -1,10 +1,10 @@
 import { Config as Option } from '../../../../';
 import { extend } from 'spica/assign';
+import { once } from 'typed-dom';
 import { Config } from '../../application/api';
 import { RouterEventSource } from '../../domain/event/router';
 import { process } from './state/process';
 import { route } from './router';
-import { once } from '../../../lib/dom';
 import { parse } from '../../../lib/html';
 
 export class API {

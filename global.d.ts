@@ -5,10 +5,6 @@ declare global {
   interface WindowEventMap {
     'error': ErrorEvent;
   }
-  interface Event {
-    _currentTarget: Window | Document | HTMLElement;
-  }
-
 }
 
 import assert from 'power-assert';

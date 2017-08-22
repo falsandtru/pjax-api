@@ -2,6 +2,7 @@ import { Url } from '../../../lib/url';
 import { StandardUrl, standardizeUrl } from '../../data/model/domain/url';
 import { serialize } from '../../../lib/dom';
 import { DomainError } from '../data/error';
+import { currentTargets } from 'typed-dom';
 
 export class RouterEvent {
   constructor(
@@ -11,8 +12,8 @@ export class RouterEvent {
     assert(['click', 'submit', 'popstate'].some(type => this.original.type === type));
     void Object.freeze(this);
   }
-  public readonly source: RouterEventSource = <HTMLAnchorElement>this.original._currentTarget;
-  public readonly type: RouterEventType = <'click'>this.original.type.toLowerCase();
+  public readonly source: RouterEventSource = <RouterEventSource>currentTargets.get(this.original);
+  public readonly type: RouterEventType = <RouterEventType>this.original.type.toLowerCase();
   public readonly request: RouterEventRequest = new RouterEventRequest(this.source);
   public readonly location: RouterEventLocation = new RouterEventLocation(this.request.url);
 }

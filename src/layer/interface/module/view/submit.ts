@@ -1,5 +1,5 @@
 import { Supervisor } from 'spica/supervisor';
-import { delegate } from '../../../../lib/dom';
+import { delegate } from 'typed-dom';
 
 export class SubmitView {
   constructor(

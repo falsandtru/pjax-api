@@ -1,6 +1,5 @@
 import { Pjax } from '../../../index';
-import DOM from 'typed-dom';
-import { once } from '../../../src/lib/dom';
+import DOM, { once } from 'typed-dom';
 
 describe('Integration: Usecase', function () {
   describe('submit', function () {
