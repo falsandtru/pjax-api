@@ -69,6 +69,7 @@ function test(parser: (html: string) => Document): boolean {
     <noscript>noscript</noscript>
     <a href="/"></a>
     <script>document.head.remove();</script>
+    <img src="abc">
   </body>
 </html>
 `;
@@ -81,6 +82,7 @@ function test(parser: (html: string) => Document): boolean {
       case !!doc.querySelector('body>a')!['href']:
       case !doc.querySelector('head>noscript>*'):
       case doc.querySelector('script')!['innerHTML'] === 'document.head.remove();':
+      case doc.querySelector('img')!.src.endsWith('abc'):
       case doc.querySelector('head>noscript')!['textContent'] === '<style>/**/</style>':
       case doc.querySelector('body>noscript')!['textContent'] === 'noscript':
         throw void 0;

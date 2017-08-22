@@ -2,7 +2,7 @@ import { parse, _fixNoscript } from './html';
 import { find } from './dom';
 import DOM from 'typed-dom';
 
-describe('Unit: layer/domain/router/module/fetch/html', () => {
+describe('Unit: lib/html', () => {
   describe('parse', () => {
     it('html', () => {
       assert(parse('<title>').extract() instanceof Document);
