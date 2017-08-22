@@ -1,5 +1,6 @@
 import { scripts } from './script';
 
 export const env = Promise.all([
-  scripts
+  scripts,
+  new Promise(setTimeout),
 ]);
