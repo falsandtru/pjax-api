@@ -1,5 +1,7 @@
 import { noop } from './noop';
 
+export function find<T extends keyof HTMLElementTagNameMap>(target: HTMLElement | Document, selector: T): HTMLElementTagNameMap[T][];
+export function find<T extends HTMLElement>(target: HTMLElement | Document, selector: string): T[];
 export function find<T extends HTMLElement>(target: HTMLElement | Document, selector: string): T[] {
   return <T[]>Array.from(target.querySelectorAll(selector || '_'));
 }

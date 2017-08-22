@@ -36,7 +36,7 @@ export function content(
       .reduce(concat, []);
 
     function replace(area: { src: HTMLElement, dst: HTMLElement; }): void {
-      const unescape = find<HTMLScriptElement>(area.src, 'script')
+      const unescape = find(area.src, 'script')
         .map(escape)
         .reduce((f, g) => () => (
           void f(),

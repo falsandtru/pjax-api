@@ -24,7 +24,7 @@ export async function script(
     evaluate,
   }
 ): Promise<Either<Error, HTMLScriptElement[]>> {
-  const scripts = find<HTMLScriptElement>(documents.src, 'script')
+  const scripts = find(documents.src, 'script')
     .filter(el => !el.type || /(?:application|text)\/(?:java|ecma)script/i.test(el.type))
     .filter(el => !el.matches(selector.ignore.trim() || '_'))
     .filter(el =>
