@@ -6855,7 +6855,10 @@ require = function e(t, n, r) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             var script_1 = require('./script');
-            exports.env = Promise.all([script_1.scripts]);
+            exports.env = Promise.all([
+                script_1.scripts,
+                new Promise(setTimeout)
+            ]);
         },
         { './script': 114 }
     ],
@@ -6896,12 +6899,13 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             var url_1 = require('../../../data/model/domain/url');
             var dom_1 = require('../../../../lib/dom');
-            exports.scripts = new Promise(setTimeout).then(function () {
-                return dom_1.find(document, 'script').filter(function (script) {
+            exports.scripts = new Set();
+            void dom_1.bind(window, 'pjax:unload', function () {
+                return void dom_1.find(document, 'script').filter(function (script) {
                     return script.hasAttribute('src');
-                }).reduce(function (scripts, script) {
-                    return scripts.add(url_1.standardizeUrl(script.src));
-                }, new Set());
+                }).forEach(function (script) {
+                    return void exports.scripts.add(url_1.standardizeUrl(script.src));
+                });
             });
         },
         {
