@@ -1,11 +1,11 @@
 export function find<T extends keyof HTMLElementTagNameMap>(target: HTMLElement | Document, selector: T): HTMLElementTagNameMap[T][];
 export function find<T extends HTMLElement>(target: HTMLElement | Document, selector: string): T[];
 export function find<T extends HTMLElement>(target: HTMLElement | Document, selector: string): T[] {
-  return <T[]>Array.from(target.querySelectorAll(selector || '_'));
+  return Array.from(target.querySelectorAll(selector || '_')) as T[];
 }
 
 export function serialize(form: HTMLFormElement): string {
-  return (<HTMLInputElement[]>Array.from(form.elements))
+  return (Array.from(form.elements) as HTMLInputElement[])
     .filter(el => {
       if (el.disabled) return false;
       switch (el.nodeName.toLowerCase()) {

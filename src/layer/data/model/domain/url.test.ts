@@ -38,7 +38,7 @@ describe('Unit: layer/data/model/url', () => {
     });
 
     it('multiple-encoding', () => {
-      assert(standardizeUrl(<string>standardizeUrl('/%%3f%3d')).endsWith('/%25%3F%3D'));
+      assert(standardizeUrl(standardizeUrl('/%%3f%3d') as string).endsWith('/%25%3F%3D'));
     });
 
   });
@@ -56,7 +56,7 @@ describe('Unit: layer/data/model/url', () => {
     });
 
     it('multiple-encoding', () => {
-      assert(encode_(<string>encode_('/%%3f%3d')) === `/%25%3F%3D`);
+      assert(encode_(encode_('/%%3f%3d') as string) === `/%25%3F%3D`);
     });
 
   });

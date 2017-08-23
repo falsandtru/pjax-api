@@ -36,7 +36,7 @@ function parseByDoc(html: string): Document {
     const parser = document.createElement('div');
     parser.innerHTML = html;
     return parser.firstElementChild
-      ? <HTMLElement>parser.firstElementChild
+      ? parser.firstElementChild as HTMLElement
       : parser;
   }
 }
@@ -50,7 +50,7 @@ function fixNoscript(doc: Document): [HTMLElement, HTMLElement][] {
   return find(doc, 'noscript')
     .filter(el => el.children.length > 0)
     .map<[HTMLElement, HTMLElement]>(el => {
-      const clone: HTMLElement = <HTMLElement>el.cloneNode(true);
+      const clone = el.cloneNode(true) as HTMLElement;
       clone.textContent = el.innerHTML;
       return [el, clone];
     });

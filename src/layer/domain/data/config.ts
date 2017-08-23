@@ -65,8 +65,8 @@ export class Config implements Option {
     weight: 1,
     random: 0,
     client: {
-      hosts: <string[]>[
-      ],
+      hosts: [
+      ] as string[],
       support: {
         balance: /msie|trident.+ rv:|chrome|firefox|safari/i,
         redirect: /msie|trident.+ rv:|chrome|firefox|safari/i
@@ -92,13 +92,13 @@ export class Config implements Option {
 
 class Sequence implements ISequence<SequenceData.Fetch, SequenceData.Unload, SequenceData.Ready> {
   public async fetch(): Promise<SequenceData.Fetch> {
-    return <any>void 0;
+    return void 0 as any;
   }
   public async unload(): Promise<SequenceData.Unload> {
-    return <any>void 0;
+    return void 0 as any;
   }
   public async ready(): Promise<SequenceData.Ready> {
-    return <any>void 0;
+    return void 0 as any;
   }
   public load(): void {
   }

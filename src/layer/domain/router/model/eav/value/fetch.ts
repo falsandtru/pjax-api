@@ -21,7 +21,7 @@ export class FetchResult {
     public header = (name: string): string | null =>
       this.xhr.getResponseHeader(name);
     public readonly document: Document = this.xhr.responseType === 'document'
-      ? <Document>this.xhr.responseXML
+      ? this.xhr.responseXML as Document
       : parse(this.xhr.responseText).extract();
   }(this.xhr);
 }

@@ -21,9 +21,10 @@ export function css<T extends HTMLHeadElement | HTMLBodyElement>(
 }
 
 function compare<T extends HTMLLinkElement | HTMLStyleElement>(a: T, b: T): boolean {
+  assert(a.tagName.toLowerCase() === b.tagName.toLowerCase());
   switch (a.tagName.toLowerCase()) {
     case 'link':
-      return (<HTMLLinkElement><HTMLElement>a).href === (<HTMLLinkElement><HTMLElement>b).href;
+      return (a as HTMLLinkElement).href === (b as HTMLLinkElement).href;
     case 'style':
       return a.innerHTML.trim() === b.innerHTML.trim();
     default:

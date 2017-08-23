@@ -15,7 +15,7 @@ describe('Integration: Usecase', function () {
         DOM.input({ type: 'submit', value: 'submit' }, [])
       ]).element;
       document.body.appendChild(form);
-      (<HTMLElement>form.querySelector('input[type="submit"]')).click();
+      (form.querySelector('input[type="submit"]') as HTMLElement).click();
     });
 
     it('failure', function (done) {
@@ -32,7 +32,7 @@ describe('Integration: Usecase', function () {
         DOM.input({ type: 'submit', value: 'submit' }, [])
       ]).element;
       document.body.appendChild(form);
-      (<HTMLElement>form.querySelector('input[type="submit"]')).click();
+      (form.querySelector('input[type="submit"]') as HTMLElement).click();
     });
 
   });

@@ -12,8 +12,8 @@ export class RouterEvent {
     assert(['click', 'submit', 'popstate'].some(type => this.original.type === type));
     void Object.freeze(this);
   }
-  public readonly source: RouterEventSource = <RouterEventSource>currentTargets.get(this.original);
-  public readonly type: RouterEventType = <RouterEventType>this.original.type.toLowerCase();
+  public readonly source: RouterEventSource = currentTargets.get(this.original) as RouterEventSource;
+  public readonly type: RouterEventType = this.original.type.toLowerCase() as RouterEventType;
   public readonly request: RouterEventRequest = new RouterEventRequest(this.source);
   public readonly location: RouterEventLocation = new RouterEventLocation(this.request.url);
 }

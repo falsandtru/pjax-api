@@ -10,40 +10,40 @@ export class Url<T extends string> {
   }
   private readonly parser = document.createElement('a');
   public get href(): T {
-    return <any>this.parser.href;
+    return this.parser.href as any;
   }
   public get domain(): Url.Domain<T> {
-    return <any>`${this.protocol}//${this.host}`;
+    return `${this.protocol}//${this.host}` as any;
   }
   public get scheme(): Url.Scheme<T> {
-    return <any>this.parser.protocol.slice(0, -1);
+    return this.parser.protocol.slice(0, -1) as any;
   }
   public get protocol(): Url.Protocol<T> {
-    return <any>this.parser.protocol;
+    return this.parser.protocol as any;
   }
   public get userinfo(): Url.Userinfo<T> {
-    return <any>this.parser.href.match(/[^:/?#]+:\/\/([^/?#]*)@|$/)!.pop() || '';
+    return this.parser.href.match(/[^:/?#]+:\/\/([^/?#]*)@|$/)!.pop() || '' as any;
   }
   public get host(): Url.Host<T> {
-    return <any>this.parser.host;
+    return this.parser.host as any;
   }
   public get hostname(): Url.Hostname<T> {
-    return <any>this.parser.hostname;
+    return this.parser.hostname as any;
   }
   public get port(): Url.Port<T> {
-    return <any>this.parser.port;
+    return this.parser.port as any;
   }
   public get path(): Url.Path<T> {
-    return <any>`${this.pathname}${this.query}`;
+    return `${this.pathname}${this.query}` as any;
   }
   public get pathname(): Url.Pathname<T> {
-    return <any>this.parser.pathname;
+    return this.parser.pathname as any;
   }
   public get query(): Url.Query<T> {
-    return <any>this.parser.search;
+    return this.parser.search as any;
   }
   public get fragment(): Url.Fragment<T> {
-    return <any>this.parser.hash;
+    return this.parser.hash as any;
   }
 }
 export namespace Url {

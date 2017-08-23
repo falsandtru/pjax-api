@@ -79,7 +79,7 @@ async function request(script: HTMLScriptElement): Promise<Either<Error, Respons
             case 'load':
               return void xhr.addEventListener(
                 type,
-                () => void resolve(Right<Response>([script, <string>xhr.response])));
+                () => void resolve(Right<Response>([script, xhr.response as string])));
             default:
               return void xhr.addEventListener(
                 type,
@@ -103,7 +103,7 @@ function evaluate([script, code]: Response, logger: string): Either<Error, HTMLS
       : '_') || document.body;
   script = script.ownerDocument === document
     ? script // only for testing
-    : <HTMLScriptElement>document.importNode(script.cloneNode(true), true);
+    : document.importNode(script.cloneNode(true), true) as HTMLScriptElement;
   let error: Error | void = void 0;
   const unbind = once(window, 'error', ev => {
     error = ev.error;
@@ -132,7 +132,7 @@ ${code}`;
     void script.remove();
   }
   return error
-    ? Left(new FatalError((<Error>error).message))
+    ? Left(new FatalError((error as Error).message))
     : Right(script);
 }
 export { evaluate as _evaluate }

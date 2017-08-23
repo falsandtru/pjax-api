@@ -45,6 +45,6 @@ export async function route(
       window.history.scrollRestoration = 'auto',
       void documentUrl.sync(),
       !cancellation.canceled || e instanceof Error && e.name === 'FatalError'
-        ? void config.fallback(<RouterEventSource>currentTargets.get(event), e instanceof Error ? e : new Error(e))
+        ? void config.fallback(currentTargets.get(event) as RouterEventSource, e instanceof Error ? e : new Error(e))
         : void 0));
 }

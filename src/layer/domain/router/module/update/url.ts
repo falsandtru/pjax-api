@@ -48,7 +48,7 @@ function isReplaceable(
   switch (type) {
     case RouterEventType.click:
     case RouterEventType.submit:
-      return (<RouterEventSource.Form>source).matches(selector.trim() || '_');
+      return (source as RouterEventSource.Form).matches(selector.trim() || '_');
     case RouterEventType.popstate:
       return false;
     default:

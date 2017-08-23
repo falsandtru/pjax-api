@@ -95,8 +95,8 @@ export async function update(
                 config.update.css
                   ? void css(
                       {
-                        src: <HTMLBodyElement>documents.src.body,
-                        dst: <HTMLBodyElement>documents.dst.body
+                        src: documents.src.body as HTMLBodyElement,
+                        dst: documents.dst.body as HTMLBodyElement
                       },
                       config.update.ignore)
                   : void 0,

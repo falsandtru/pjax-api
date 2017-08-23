@@ -29,7 +29,7 @@ function encode(url: EncodedUrl): void
 function encode<T>(url: Url<T>): Url<T & Encoded>
 function encode(url: string): EncodedUrl
 function encode(url: string): EncodedUrl {
-  return <EncodedUrl>url
+  return url
     // Trim
     .trim()
     // Percent-encoding
@@ -52,7 +52,7 @@ function encode(url: string): EncodedUrl {
           str.length < 3
             ? encodeURIComponent(str)
             : str))
-    .replace(/%[0-9A-F]{2}/ig, str => str.toUpperCase());
+    .replace(/%[0-9A-F]{2}/ig, str => str.toUpperCase()) as EncodedUrl;
 }
 export { encode as encode_ };
 
@@ -65,11 +65,11 @@ function normalize(url: string): NormalizedUrl
 function normalize(url: string): NormalizedUrl {
   // Absolute path
   parser.href = url || location.href;
-  return <NormalizedUrl>parser.href
+  return parser.href
     // Remove the default port
     .replace(/^([^:/?#]+:\/\/[^/?#]*?):(?:80)?(?=$|[/?#])/, '$1')
     // Fill the root path
     .replace(/^([^:/?#]+:\/\/[^/?#]*)\/?/, '$1/')
     // Use uppercase letters within percent-encoding triplets
-    .replace(/%[0-9A-F]{2}/ig, str => str.toUpperCase());
+    .replace(/%[0-9A-F]{2}/ig, str => str.toUpperCase()) as NormalizedUrl;
 }

@@ -27,7 +27,7 @@ export function content(
   function load(area: AreaRecord): Promise<Event>[] {
     return area.src
       .map((_, i) => ({
-        src: <HTMLElement>documents.dst.importNode(area.src[i].cloneNode(true), true),
+        src: documents.dst.importNode(area.src[i].cloneNode(true), true) as HTMLElement,
         dst: area.dst[i]
       }))
       .map(area => (
