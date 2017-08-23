@@ -3852,6 +3852,482 @@ require = function e(t, n, r) {
     75: [
         function (require, module, exports) {
             'use strict';
+            function __export(m) {
+                for (var p in m)
+                    if (!exports.hasOwnProperty(p))
+                        exports[p] = m[p];
+            }
+            Object.defineProperty(exports, '__esModule', { value: true });
+            __export(require('./src/export'));
+            var export_1 = require('./src/export');
+            exports.default = export_1.default;
+        },
+        { './src/export': 78 }
+    ],
+    76: [
+        function (require, module, exports) {
+            'use strict';
+            var __assign = this && this.__assign || Object.assign || function (t) {
+                for (var s, i = 1, n = arguments.length; i < n; i++) {
+                    s = arguments[i];
+                    for (var p in s)
+                        if (Object.prototype.hasOwnProperty.call(s, p))
+                            t[p] = s[p];
+                }
+                return t;
+            };
+            Object.defineProperty(exports, '__esModule', { value: true });
+            var El = function () {
+                function El(element_, children_) {
+                    var _this = this;
+                    this.element_ = element_;
+                    this.children_ = children_;
+                    this.mode = this.children_ === void 0 ? 'void' : typeof this.children_ === 'string' ? 'text' : Array.isArray(this.children_) ? 'collection' : 'struct';
+                    this.structkeys = this.mode === 'struct' ? Object.keys(this.children_) : [];
+                    this.tag;
+                    switch (this.mode) {
+                    case 'void':
+                        return;
+                    case 'text':
+                        void clear();
+                        this.children_ = document.createTextNode('');
+                        void this.element_.appendChild(this.children_);
+                        this.children = children_;
+                        return;
+                    case 'collection':
+                        void clear();
+                        if (element_.id) {
+                            void children_.forEach(function (_a) {
+                                var element = _a.element;
+                                return element instanceof HTMLStyleElement && void scope(element);
+                            });
+                        }
+                        this.children_ = Object.freeze([]);
+                        this.children = children_;
+                        return;
+                    case 'struct':
+                        void clear();
+                        if (element_.id) {
+                            void Object.keys(children_).map(function (k) {
+                                return children_[k];
+                            }).forEach(function (_a) {
+                                var element = _a.element;
+                                return element instanceof HTMLStyleElement && void scope(element);
+                            });
+                        }
+                        this.children_ = this.observe(__assign({}, children_));
+                        void this.structkeys.forEach(function (k) {
+                            return void _this.element_.appendChild(children_[k].element);
+                        });
+                        return;
+                    }
+                    function clear() {
+                        while (element_.childNodes.length > 0) {
+                            void element_.removeChild(element_.firstChild);
+                        }
+                    }
+                    function scope(style) {
+                        if (!element_.id.match(/^[\w\-]+$/))
+                            return;
+                        style.innerHTML = style.innerHTML.replace(/^\s*\$scope(?!\w)/gm, '#' + element_.id);
+                        void Array.from(style.querySelectorAll('*')).forEach(function (el) {
+                            return void el.remove();
+                        });
+                    }
+                }
+                Object.defineProperty(El.prototype, 'element', {
+                    get: function () {
+                        return this.element_;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(El.prototype, 'children', {
+                    get: function () {
+                        switch (this.mode) {
+                        case 'text':
+                            return this.children_.data;
+                        default:
+                            return this.children_;
+                        }
+                    },
+                    set: function (children) {
+                        var _this = this;
+                        switch (this.mode) {
+                        case 'void':
+                            return;
+                        case 'text':
+                            if (children === this.children_.data)
+                                return;
+                            this.children_.data = children;
+                            return;
+                        case 'collection':
+                            if (children === this.children_)
+                                return;
+                            if (!Object.isFrozen(this.children_))
+                                throw new Error('TypedHTMLElement collections cannot be updated recursively.');
+                            void children.reduce(function (cs, c) {
+                                var i = cs.indexOf(c);
+                                if (i === -1)
+                                    return cs;
+                                void cs.splice(i, 1);
+                                return cs;
+                            }, this.children_.slice()).forEach(function (child) {
+                                return void child.element.remove();
+                            });
+                            this.children_ = [];
+                            void children.forEach(function (child, i) {
+                                return _this.children_[i] = child, void _this.element_.appendChild(child.element);
+                            });
+                            void Object.freeze(this.children_);
+                            return;
+                        case 'struct':
+                            if (children === this.children_)
+                                return;
+                            void this.structkeys.forEach(function (k) {
+                                return _this.children_[k] = children[k];
+                            });
+                            return;
+                        }
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                El.prototype.observe = function (children) {
+                    var _this = this;
+                    return Object.defineProperties(children, this.structkeys.reduce(function (descs, key) {
+                        var current = children[key];
+                        descs[key] = {
+                            configurable: true,
+                            enumerable: true,
+                            get: function () {
+                                return current;
+                            },
+                            set: function (newChild) {
+                                var oldChild = current;
+                                if (newChild === oldChild)
+                                    return;
+                                current = newChild;
+                                void _this.element_.replaceChild(newChild.element, oldChild.element);
+                            }
+                        };
+                        return descs;
+                    }, {}));
+                };
+                return El;
+            }();
+            exports.El = El;
+        },
+        {}
+    ],
+    77: [
+        function (require, module, exports) {
+            'use strict';
+            Object.defineProperty(exports, '__esModule', { value: true });
+            var builder_1 = require('./builder');
+            exports.TypedHTML = [
+                'a',
+                'applet',
+                'area',
+                'audio',
+                'base',
+                'basefont',
+                'blockquote',
+                'body',
+                'br',
+                'button',
+                'canvas',
+                'caption',
+                'col',
+                'colgroup',
+                'data',
+                'datalist',
+                'del',
+                'dir',
+                'div',
+                'dl',
+                'embed',
+                'fieldset',
+                'font',
+                'form',
+                'frame',
+                'frameset',
+                'h1',
+                'h2',
+                'h3',
+                'h4',
+                'h5',
+                'h6',
+                'head',
+                'hr',
+                'html',
+                'iframe',
+                'img',
+                'input',
+                'ins',
+                'isindex',
+                'label',
+                'legend',
+                'li',
+                'link',
+                'listing',
+                'map',
+                'marquee',
+                'menu',
+                'meta',
+                'meter',
+                'nextid',
+                'object',
+                'ol',
+                'optgroup',
+                'option',
+                'output',
+                'p',
+                'param',
+                'picture',
+                'pre',
+                'progress',
+                'q',
+                'script',
+                'select',
+                'source',
+                'span',
+                'style',
+                'table',
+                'tbody',
+                'td',
+                'template',
+                'textarea',
+                'tfoot',
+                'th',
+                'thead',
+                'time',
+                'title',
+                'tr',
+                'track',
+                'ul',
+                'video',
+                'x-ms-webview',
+                'xmp',
+                'abbr',
+                'acronym',
+                'address',
+                'article',
+                'aside',
+                'b',
+                'bdo',
+                'big',
+                'center',
+                'cite',
+                'code',
+                'dd',
+                'dfn',
+                'dt',
+                'em',
+                'figcaption',
+                'figure',
+                'footer',
+                'header',
+                'hgroup',
+                'i',
+                'kbd',
+                'keygen',
+                'mark',
+                'nav',
+                'nobr',
+                'noframes',
+                'noscript',
+                'plaintext',
+                'rt',
+                'ruby',
+                's',
+                'samp',
+                'section',
+                'small',
+                'strike',
+                'strong',
+                'sub',
+                'sup',
+                'tt',
+                'u',
+                'var',
+                'wbr',
+                'create',
+                'any'
+            ].reduce(function (obj, prop) {
+                return obj[prop] = prop === 'create' ? function (tag, b, c, d) {
+                    if (b === void 0) {
+                        b = function () {
+                            return document.createElement(tag);
+                        };
+                    }
+                    if (c === void 0) {
+                        c = function () {
+                            return document.createElement(tag);
+                        };
+                    }
+                    if (d === void 0) {
+                        d = function () {
+                            return document.createElement(tag);
+                        };
+                    }
+                    return exports.TypedHTML['any'](b, c, d, tag);
+                } : function (attrs, children, factory, tag) {
+                    if (tag === void 0) {
+                        tag = prop;
+                    }
+                    tag = prop === 'any' ? tag : prop;
+                    switch (typeof attrs) {
+                    case 'undefined':
+                        return new builder_1.El(define(tag, function () {
+                            return document.createElement(tag);
+                        }), void 0);
+                    case 'function':
+                        return new builder_1.El(define(tag, attrs), void 0);
+                    case 'string':
+                        return new builder_1.El(define(tag, children || function () {
+                            return document.createElement(tag);
+                        }), attrs);
+                    case 'object':
+                        factory = typeof children === 'function' ? children : factory || function () {
+                            return document.createElement(tag);
+                        };
+                        return Object.keys(attrs).slice(-1).every(function (key) {
+                            return key === void 0 || typeof attrs[key] === 'object';
+                        }) ? new builder_1.El(define(tag, factory), attrs) : new builder_1.El(define(tag, factory, attrs), children === factory ? void 0 : children);
+                    default:
+                        throw new TypeError('Invalid arguments: [' + attrs + ', ' + children + ', ' + factory + ']');
+                    }
+                }, obj;
+            }, {});
+            function define(tag, factory, attrs) {
+                var el = factory();
+                if (tag !== el.tagName && tag !== el.tagName.toLowerCase())
+                    throw new Error('Tag name must be "' + tag + '" but "' + el.tagName.toLowerCase() + '".');
+                if (!attrs)
+                    return el;
+                return Object.keys(attrs).reduce(function (el, name) {
+                    return void el.setAttribute(name, attrs[name] || ''), el;
+                }, el);
+            }
+        },
+        { './builder': 76 }
+    ],
+    78: [
+        function (require, module, exports) {
+            'use strict';
+            function __export(m) {
+                for (var p in m)
+                    if (!exports.hasOwnProperty(p))
+                        exports[p] = m[p];
+            }
+            Object.defineProperty(exports, '__esModule', { value: true });
+            var html_1 = require('./dom/html');
+            exports.default = html_1.TypedHTML;
+            exports.TypedHTML = html_1.TypedHTML;
+            __export(require('./util/dom'));
+        },
+        {
+            './dom/html': 77,
+            './util/dom': 79
+        }
+    ],
+    79: [
+        function (require, module, exports) {
+            'use strict';
+            var __assign = this && this.__assign || Object.assign || function (t) {
+                for (var s, i = 1, n = arguments.length; i < n; i++) {
+                    s = arguments[i];
+                    for (var p in s)
+                        if (Object.prototype.hasOwnProperty.call(s, p))
+                            t[p] = s[p];
+                }
+                return t;
+            };
+            Object.defineProperty(exports, '__esModule', { value: true });
+            var noop_1 = require('./noop');
+            exports.currentTargets = new WeakMap();
+            function bind(target, type, listener, option) {
+                if (option === void 0) {
+                    option = false;
+                }
+                void target.addEventListener(type, handler, adjustEventListenerOptions(option));
+                var unbind = function () {
+                    return unbind = noop_1.noop, void target.removeEventListener(type, handler, adjustEventListenerOptions(option));
+                };
+                return function () {
+                    return void unbind();
+                };
+                function handler(ev) {
+                    if (typeof option === 'object' && option.passive) {
+                        ev.preventDefault = noop_1.noop;
+                    }
+                    void exports.currentTargets.set(ev, ev.currentTarget);
+                    void listener(ev);
+                }
+            }
+            exports.bind = bind;
+            function once(target, type, listener, option) {
+                if (option === void 0) {
+                    option = false;
+                }
+                var unbind = bind(target, type, function (ev) {
+                    void unbind();
+                    void listener(ev);
+                }, option);
+                return function () {
+                    return void unbind();
+                };
+            }
+            exports.once = once;
+            function delegate(target, selector, type, listener, option) {
+                if (option === void 0) {
+                    option = {};
+                }
+                return bind(target, type, function (ev) {
+                    var cx = ev.target.closest(selector);
+                    if (!cx)
+                        return;
+                    void Array.from(target.querySelectorAll(selector)).filter(function (el) {
+                        return el === cx;
+                    }).forEach(function (el) {
+                        return void once(el, type, function (ev) {
+                            void listener(ev);
+                        }, option);
+                    });
+                }, __assign({}, option, { capture: true }));
+            }
+            exports.delegate = delegate;
+            var supportEventListenerOptions = false;
+            try {
+                document.createElement('div').addEventListener('test', function () {
+                }, {
+                    get capture() {
+                        return supportEventListenerOptions = true;
+                    }
+                });
+            } catch (e) {
+            }
+            function adjustEventListenerOptions(option) {
+                return supportEventListenerOptions ? option : typeof option === 'boolean' ? option : option.capture;
+            }
+        },
+        { './noop': 80 }
+    ],
+    80: [
+        function (require, module, exports) {
+            'use strict';
+            Object.defineProperty(exports, '__esModule', { value: true });
+            function noop() {
+                return;
+            }
+            exports.noop = noop;
+        },
+        {}
+    ],
+    81: [
+        function (require, module, exports) {
+            'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             var gui_1 = require('./layer/interface/service/gui');
             exports.default = gui_1.GUI;
@@ -3861,11 +4337,11 @@ require = function e(t, n, r) {
             exports.router = router_1.router;
         },
         {
-            './layer/interface/service/gui': 109,
-            './lib/router': 121
+            './layer/interface/service/gui': 115,
+            './lib/router': 126
         }
     ],
-    76: [
+    82: [
         function (require, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -4032,17 +4508,17 @@ require = function e(t, n, r) {
             exports.route = route;
         },
         {
-            '../domain/data/config': 82,
-            '../domain/event/router': 84,
-            '../domain/router/api': 85,
-            './config/scope': 77,
-            './data/error': 78,
-            './store/path': 79,
+            '../domain/data/config': 88,
+            '../domain/event/router': 90,
+            '../domain/router/api': 91,
+            './config/scope': 83,
+            './data/error': 84,
+            './store/path': 85,
             'spica/either': 8,
             'spica/maybe': 13
         }
     ],
-    77: [
+    83: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4067,14 +4543,14 @@ require = function e(t, n, r) {
             exports.scope = scope;
         },
         {
-            '../../../lib/router': 121,
-            '../../domain/data/config': 82,
+            '../../../lib/router': 126,
+            '../../domain/data/config': 88,
             'spica/assign': 3,
             'spica/maybe': 13,
             'spica/sequence': 69
         }
     ],
-    78: [
+    84: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -4104,9 +4580,9 @@ require = function e(t, n, r) {
             }(error_1.PjaxError);
             exports.ApplicationError = ApplicationError;
         },
-        { '../../../lib/error': 118 }
+        { '../../../lib/error': 124 }
     ],
-    79: [
+    85: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4114,9 +4590,9 @@ require = function e(t, n, r) {
             exports.loadTitle = path_1.loadTitle;
             exports.savePosition = path_1.savePosition;
         },
-        { '../../domain/store/path': 102 }
+        { '../../domain/store/path': 108 }
     ],
-    80: [
+    86: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4153,7 +4629,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    81: [
+    87: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4190,7 +4666,7 @@ require = function e(t, n, r) {
         },
         { 'spica/assign': 3 }
     ],
-    82: [
+    88: [
         function (require, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -4447,7 +4923,7 @@ require = function e(t, n, r) {
         },
         { 'spica/assign': 3 }
     ],
-    83: [
+    89: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -4477,9 +4953,9 @@ require = function e(t, n, r) {
             }(error_1.PjaxError);
             exports.DomainError = DomainError;
         },
-        { '../../../lib/error': 118 }
+        { '../../../lib/error': 124 }
     ],
-    84: [
+    90: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4487,11 +4963,12 @@ require = function e(t, n, r) {
             var url_2 = require('../../data/model/domain/url');
             var dom_1 = require('../../../lib/dom');
             var error_1 = require('../data/error');
+            var typed_dom_1 = require('typed-dom');
             var RouterEvent = function () {
                 function RouterEvent(original) {
                     var _this = this;
                     this.original = original;
-                    this.source = this.original._currentTarget;
+                    this.source = typed_dom_1.currentTargets.get(this.original);
                     this.type = this.original.type.toLowerCase();
                     this.request = new RouterEventRequest(this.source);
                     this.location = new RouterEventLocation(this.request.url);
@@ -4567,13 +5044,14 @@ require = function e(t, n, r) {
             exports.RouterEventLocation = RouterEventLocation;
         },
         {
-            '../../../lib/dom': 117,
-            '../../../lib/url': 122,
-            '../../data/model/domain/url': 80,
-            '../data/error': 83
+            '../../../lib/dom': 123,
+            '../../../lib/url': 127,
+            '../../data/model/domain/url': 86,
+            '../data/error': 89,
+            'typed-dom': 75
         }
     ],
-    85: [
+    91: [
         function (require, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -4762,16 +5240,16 @@ require = function e(t, n, r) {
             exports.route = route;
         },
         {
-            '../data/error': 83,
-            '../store/path': 102,
-            './model/eav/entity': 86,
-            './module/fetch': 89,
-            './module/update': 91,
-            './module/update/content': 93,
+            '../data/error': 89,
+            '../store/path': 108,
+            './model/eav/entity': 92,
+            './module/fetch': 95,
+            './module/update': 97,
+            './module/update/content': 99,
             'spica/either': 8
         }
     ],
-    86: [
+    92: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4797,7 +5275,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    87: [
+    93: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4826,11 +5304,11 @@ require = function e(t, n, r) {
             exports.FetchResult = FetchResult;
         },
         {
-            '../../../../../../lib/html': 119,
-            '../../../../../data/model/domain/url': 80
+            '../../../../../../lib/html': 125,
+            '../../../../../data/model/domain/url': 86
         }
     ],
-    88: [
+    94: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4846,7 +5324,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    89: [
+    95: [
         function (require, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -5021,13 +5499,13 @@ require = function e(t, n, r) {
             exports.fetch = fetch;
         },
         {
-            '../../../../lib/url': 122,
-            '../../data/error': 83,
-            '../module/fetch/xhr': 90,
+            '../../../../lib/url': 127,
+            '../../data/error': 89,
+            '../module/fetch/xhr': 96,
             'spica/either': 8
         }
     ],
-    90: [
+    96: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5079,13 +5557,13 @@ require = function e(t, n, r) {
             exports.match = match;
         },
         {
-            '../../../data/error': 83,
-            '../../model/eav/value/fetch': 87,
+            '../../../data/error': 89,
+            '../../model/eav/value/fetch': 93,
             'spica/either': 8,
             'spica/sequence': 69
         }
     ],
-    91: [
+    97: [
         function (require, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -5490,24 +5968,24 @@ require = function e(t, n, r) {
             exports.update = update;
         },
         {
-            '../../data/error': 83,
-            '../../event/router': 84,
-            '../../store/path': 102,
-            '../model/eav/value/update': 88,
-            '../module/update/blur': 92,
-            '../module/update/content': 93,
-            '../module/update/css': 94,
-            '../module/update/focus': 95,
-            '../module/update/head': 96,
-            '../module/update/script': 97,
-            '../module/update/scroll': 98,
-            '../module/update/title': 100,
-            '../module/update/url': 101,
+            '../../data/error': 89,
+            '../../event/router': 90,
+            '../../store/path': 108,
+            '../model/eav/value/update': 94,
+            '../module/update/blur': 98,
+            '../module/update/content': 99,
+            '../module/update/css': 100,
+            '../module/update/focus': 101,
+            '../module/update/head': 102,
+            '../module/update/script': 103,
+            '../module/update/scroll': 104,
+            '../module/update/title': 106,
+            '../module/update/url': 107,
             'spica/either': 8,
             'spica/hlist': 12
         }
     ],
-    92: [
+    98: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5521,12 +5999,13 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    93: [
+    99: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             var maybe_1 = require('spica/maybe');
             var concat_1 = require('spica/concat');
+            var typed_dom_1 = require('typed-dom');
             var dom_1 = require('../../../../../lib/dom');
             var script_1 = require('./script');
             function content(documents, areas, io) {
@@ -5613,26 +6092,27 @@ require = function e(t, n, r) {
             function wait(el) {
                 return Promise.race([
                     new Promise(function (resolve) {
-                        return void dom_1.once(el, 'load', resolve);
+                        return void typed_dom_1.once(el, 'load', resolve);
                     }),
                     new Promise(function (resolve) {
-                        return void dom_1.once(el, 'abort', resolve);
+                        return void typed_dom_1.once(el, 'abort', resolve);
                     }),
                     new Promise(function (resolve) {
-                        return void dom_1.once(el, 'error', resolve);
+                        return void typed_dom_1.once(el, 'error', resolve);
                     })
                 ]);
             }
             exports._wait = wait;
         },
         {
-            '../../../../../lib/dom': 117,
-            './script': 97,
+            '../../../../../lib/dom': 123,
+            './script': 103,
             'spica/concat': 6,
-            'spica/maybe': 13
+            'spica/maybe': 13,
+            'typed-dom': 75
         }
     ],
-    94: [
+    100: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5659,11 +6139,11 @@ require = function e(t, n, r) {
             }
         },
         {
-            '../../../../../lib/dom': 117,
-            './sync': 99
+            '../../../../../lib/dom': 123,
+            './sync': 105
         }
     ],
-    95: [
+    101: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5677,9 +6157,9 @@ require = function e(t, n, r) {
             }
             exports.focus = focus;
         },
-        { '../../../../../lib/dom': 117 }
+        { '../../../../../lib/dom': 123 }
     ],
-    96: [
+    102: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5699,11 +6179,11 @@ require = function e(t, n, r) {
             }
         },
         {
-            '../../../../../lib/dom': 117,
-            './sync': 99
+            '../../../../../lib/dom': 123,
+            './sync': 105
         }
     ],
-    97: [
+    103: [
         function (require, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -5833,6 +6313,7 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             var either_1 = require('spica/either');
             var concat_1 = require('spica/concat');
+            var typed_dom_1 = require('typed-dom');
             var dom_1 = require('../../../../../lib/dom');
             var error_1 = require('../../../../../lib/error');
             var url_1 = require('../../../../data/model/domain/url');
@@ -5946,7 +6427,7 @@ require = function e(t, n, r) {
                 var container = document.querySelector(logging ? script.parentElement.id ? '#' + script.parentElement.id : script.parentElement.tagName : '_') || document.body;
                 script = script.ownerDocument === document ? script : document.importNode(script.cloneNode(true), true);
                 var error = void 0;
-                var unbind = dom_1.once(window, 'error', function (ev) {
+                var unbind = typed_dom_1.once(window, 'error', function (ev) {
                     error = ev.error;
                 });
                 if (script.hasAttribute('src')) {
@@ -5969,14 +6450,15 @@ require = function e(t, n, r) {
             exports._evaluate = evaluate;
         },
         {
-            '../../../../../lib/dom': 117,
-            '../../../../../lib/error': 118,
-            '../../../../data/model/domain/url': 80,
+            '../../../../../lib/dom': 123,
+            '../../../../../lib/error': 124,
+            '../../../../data/model/domain/url': 86,
             'spica/concat': 6,
-            'spica/either': 8
+            'spica/either': 8,
+            'typed-dom': 75
         }
     ],
-    98: [
+    104: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6037,12 +6519,12 @@ require = function e(t, n, r) {
             exports.hash = hash;
         },
         {
-            '../../../../../lib/dom': 117,
-            '../../../event/router': 84,
+            '../../../../../lib/dom': 123,
+            '../../../event/router': 90,
             'spica/maybe': 13
         }
     ],
-    99: [
+    105: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6111,7 +6593,7 @@ require = function e(t, n, r) {
             'spica/either': 8
         }
     ],
-    100: [
+    106: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6122,7 +6604,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    101: [
+    107: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6165,9 +6647,9 @@ require = function e(t, n, r) {
             }
             exports._isReplaceable = isReplaceable;
         },
-        { '../../../event/router': 84 }
+        { '../../../event/router': 90 }
     ],
-    102: [
+    108: [
         function (require, module, exports) {
             'use strict';
             function __export(m) {
@@ -6178,9 +6660,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             __export(require('../../data/store/state'));
         },
-        { '../../data/store/state': 81 }
+        { '../../data/store/state': 87 }
     ],
-    103: [
+    109: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -6210,9 +6692,9 @@ require = function e(t, n, r) {
             }(error_1.PjaxError);
             exports.InterfaceError = InterfaceError;
         },
-        { '../../../lib/error': 118 }
+        { '../../../lib/error': 124 }
     ],
-    104: [
+    110: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -6233,7 +6715,7 @@ require = function e(t, n, r) {
             }();
             Object.defineProperty(exports, '__esModule', { value: true });
             var supervisor_1 = require('spica/supervisor');
-            var dom_1 = require('../../../../lib/dom');
+            var typed_dom_1 = require('typed-dom');
             var ClickView = function () {
                 function ClickView(document, selector, listener) {
                     var _this = this;
@@ -6248,7 +6730,7 @@ require = function e(t, n, r) {
                         return void _this.sv.terminate();
                     };
                     void this.sv.register('', function () {
-                        return void _this.sv.events.exit.monitor([], dom_1.delegate(document.documentElement, selector, 'click', function (ev) {
+                        return void _this.sv.events.exit.monitor([], typed_dom_1.delegate(document.documentElement, selector, 'click', function (ev) {
                             if (!(ev.currentTarget instanceof HTMLAnchorElement))
                                 return;
                             if (typeof ev.currentTarget.href !== 'string')
@@ -6265,11 +6747,11 @@ require = function e(t, n, r) {
             exports.ClickView = ClickView;
         },
         {
-            '../../../../lib/dom': 117,
-            'spica/supervisor': 71
+            'spica/supervisor': 71,
+            'typed-dom': 75
         }
     ],
-    105: [
+    111: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -6290,8 +6772,8 @@ require = function e(t, n, r) {
             }();
             Object.defineProperty(exports, '__esModule', { value: true });
             var supervisor_1 = require('spica/supervisor');
+            var typed_dom_1 = require('typed-dom');
             var url_1 = require('../../../data/model/domain/url');
-            var dom_1 = require('../../../../lib/dom');
             var url_2 = require('../../service/state/url');
             var NavigationView = function () {
                 function NavigationView(window, listener) {
@@ -6307,7 +6789,7 @@ require = function e(t, n, r) {
                         return void _this.sv.terminate();
                     };
                     void this.sv.register('', function () {
-                        return void _this.sv.events.exit.monitor([], dom_1.bind(window, 'popstate', function (ev) {
+                        return void _this.sv.events.exit.monitor([], typed_dom_1.bind(window, 'popstate', function (ev) {
                             if (url_1.standardizeUrl(location.href) === url_2.documentUrl.href)
                                 return;
                             void listener(ev);
@@ -6322,13 +6804,13 @@ require = function e(t, n, r) {
             exports.NavigationView = NavigationView;
         },
         {
-            '../../../../lib/dom': 117,
-            '../../../data/model/domain/url': 80,
-            '../../service/state/url': 116,
-            'spica/supervisor': 71
+            '../../../data/model/domain/url': 86,
+            '../../service/state/url': 122,
+            'spica/supervisor': 71,
+            'typed-dom': 75
         }
     ],
-    106: [
+    112: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -6349,7 +6831,7 @@ require = function e(t, n, r) {
             }();
             Object.defineProperty(exports, '__esModule', { value: true });
             var supervisor_1 = require('spica/supervisor');
-            var dom_1 = require('../../../../lib/dom');
+            var typed_dom_1 = require('typed-dom');
             var ScrollView = function () {
                 function ScrollView(window, listener) {
                     var _this = this;
@@ -6365,7 +6847,7 @@ require = function e(t, n, r) {
                     };
                     var timer = 0;
                     void this.sv.register('', function () {
-                        return void _this.sv.events.exit.monitor([], dom_1.bind(window, 'scroll', function (ev) {
+                        return void _this.sv.events.exit.monitor([], typed_dom_1.bind(window, 'scroll', function (ev) {
                             return timer = timer > 0 ? timer : setTimeout(function () {
                                 timer = 0;
                                 void listener(ev);
@@ -6381,11 +6863,11 @@ require = function e(t, n, r) {
             exports.ScrollView = ScrollView;
         },
         {
-            '../../../../lib/dom': 117,
-            'spica/supervisor': 71
+            'spica/supervisor': 71,
+            'typed-dom': 75
         }
     ],
-    107: [
+    113: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -6406,7 +6888,7 @@ require = function e(t, n, r) {
             }();
             Object.defineProperty(exports, '__esModule', { value: true });
             var supervisor_1 = require('spica/supervisor');
-            var dom_1 = require('../../../../lib/dom');
+            var typed_dom_1 = require('typed-dom');
             var SubmitView = function () {
                 function SubmitView(document, selector, listener) {
                     var _this = this;
@@ -6421,7 +6903,7 @@ require = function e(t, n, r) {
                         return void _this.sv.terminate();
                     };
                     void this.sv.register('', function () {
-                        return void _this.sv.events.exit.monitor([], dom_1.delegate(document.documentElement, selector, 'submit', function (ev) {
+                        return void _this.sv.events.exit.monitor([], typed_dom_1.delegate(document.documentElement, selector, 'submit', function (ev) {
                             if (!(ev.currentTarget instanceof HTMLFormElement))
                                 return;
                             void listener(ev);
@@ -6436,19 +6918,19 @@ require = function e(t, n, r) {
             exports.SubmitView = SubmitView;
         },
         {
-            '../../../../lib/dom': 117,
-            'spica/supervisor': 71
+            'spica/supervisor': 71,
+            'typed-dom': 75
         }
     ],
-    108: [
+    114: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             var assign_1 = require('spica/assign');
+            var typed_dom_1 = require('typed-dom');
             var api_1 = require('../../application/api');
             var process_1 = require('./state/process');
             var router_1 = require('./router');
-            var dom_1 = require('../../../lib/dom');
             var html_1 = require('../../../lib/html');
             var API = function () {
                 function API() {
@@ -6476,20 +6958,20 @@ require = function e(t, n, r) {
                 var el = document.createElement('a');
                 el.href = url;
                 void html_1.parse('').extract().body.appendChild(el);
-                void dom_1.once(el, 'click', callback);
+                void typed_dom_1.once(el, 'click', callback);
                 void el.click();
             }
         },
         {
-            '../../../lib/dom': 117,
-            '../../../lib/html': 119,
-            '../../application/api': 76,
-            './router': 111,
-            './state/process': 113,
-            'spica/assign': 3
+            '../../../lib/html': 125,
+            '../../application/api': 82,
+            './router': 117,
+            './state/process': 119,
+            'spica/assign': 3,
+            'typed-dom': 75
         }
     ],
-    109: [
+    115: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -6549,13 +7031,13 @@ require = function e(t, n, r) {
                         },
                         call: function (_, s) {
                             return void s.register(new click_1.ClickView(_this.io.document, config.link, function (event) {
-                                return void maybe_1.Just(new url_1.Url(url_2.standardizeUrl(event._currentTarget.href))).bind(function (url) {
-                                    return isAccessible(url) && !isHashChange(url) && !hasModifierKey(event) && config.filter(event._currentTarget) ? maybe_1.Just(0) : maybe_1.Nothing;
+                                return void maybe_1.Just(new url_1.Url(url_2.standardizeUrl(event.currentTarget.href))).bind(function (url) {
+                                    return isAccessible(url) && !isHashChange(url) && !hasModifierKey(event) && config.filter(event.currentTarget) ? maybe_1.Just(0) : maybe_1.Nothing;
                                 }).fmap(function () {
                                     return router_1.route(config, event, process_1.process, _this.io);
                                 }).extract(sync);
                             }).close), void s.register(new submit_1.SubmitView(_this.io.document, config.form, function (event) {
-                                return void maybe_1.Just(new url_1.Url(url_2.standardizeUrl(event._currentTarget.action))).bind(function (url) {
+                                return void maybe_1.Just(new url_1.Url(url_2.standardizeUrl(event.currentTarget.action))).bind(function (url) {
                                     return isAccessible(url) ? maybe_1.Just(0) : maybe_1.Nothing;
                                 }).fmap(function () {
                                     return router_1.route(config, event, process_1.process, _this.io);
@@ -6610,24 +7092,24 @@ require = function e(t, n, r) {
             }
         },
         {
-            '../../../lib/url': 122,
-            '../../application/api': 76,
-            '../../data/model/domain/url': 80,
-            '../module/view/click': 104,
-            '../module/view/navigation': 105,
-            '../module/view/scroll': 106,
-            '../module/view/submit': 107,
-            './api': 108,
-            './router': 111,
-            './state/process': 113,
-            './state/scroll-restoration': 115,
-            './state/url': 116,
+            '../../../lib/url': 127,
+            '../../application/api': 82,
+            '../../data/model/domain/url': 86,
+            '../module/view/click': 110,
+            '../module/view/navigation': 111,
+            '../module/view/scroll': 112,
+            '../module/view/submit': 113,
+            './api': 114,
+            './router': 117,
+            './state/process': 119,
+            './state/scroll-restoration': 121,
+            './state/url': 122,
             'spica/cancellation': 4,
             'spica/maybe': 13,
             'spica/supervisor': 71
         }
     ],
-    110: [
+    116: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6657,7 +7139,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    111: [
+    117: [
         function (require, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -6786,14 +7268,14 @@ require = function e(t, n, r) {
             };
             Object.defineProperty(exports, '__esModule', { value: true });
             var cancellation_1 = require('spica/cancellation');
+            var typed_dom_1 = require('typed-dom');
             var api_1 = require('../../application/api');
             var url_1 = require('./state/url');
             var env_1 = require('../service/state/env');
             var progressbar_1 = require('./progressbar');
-            var dom_1 = require('../../../lib/dom');
             var url_2 = require('../../data/model/domain/url');
             var error_1 = require('../data/error');
-            void dom_1.bind(window, 'pjax:unload', function () {
+            void typed_dom_1.bind(window, 'pjax:unload', function () {
                 return window.history.scrollRestoration = 'auto';
             }, true);
             function route(config, event, process, io) {
@@ -6830,7 +7312,7 @@ require = function e(t, n, r) {
                                         }), void url_1.documentUrl.sync();
                                     }).extract();
                                 }).catch(function (e) {
-                                    return void terminate(), window.history.scrollRestoration = 'auto', void url_1.documentUrl.sync(), !cancellation.canceled || e instanceof Error && e.name === 'FatalError' ? void config.fallback(event._currentTarget, e instanceof Error ? e : new Error(e)) : void 0;
+                                    return void terminate(), window.history.scrollRestoration = 'auto', void url_1.documentUrl.sync(), !cancellation.canceled || e instanceof Error && e.name === 'FatalError' ? void config.fallback(typed_dom_1.currentTargets.get(event), e instanceof Error ? e : new Error(e)) : void 0;
                                 })
                             ];
                         }
@@ -6840,17 +7322,17 @@ require = function e(t, n, r) {
             exports.route = route;
         },
         {
-            '../../../lib/dom': 117,
-            '../../application/api': 76,
-            '../../data/model/domain/url': 80,
-            '../data/error': 103,
-            '../service/state/env': 112,
-            './progressbar': 110,
-            './state/url': 116,
-            'spica/cancellation': 4
+            '../../application/api': 82,
+            '../../data/model/domain/url': 86,
+            '../data/error': 109,
+            '../service/state/env': 118,
+            './progressbar': 116,
+            './state/url': 122,
+            'spica/cancellation': 4,
+            'typed-dom': 75
         }
     ],
-    112: [
+    118: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6860,9 +7342,9 @@ require = function e(t, n, r) {
                 new Promise(setTimeout)
             ]);
         },
-        { './script': 114 }
+        { './script': 120 }
     ],
-    113: [
+    119: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -6893,14 +7375,15 @@ require = function e(t, n, r) {
         },
         { 'spica/supervisor': 71 }
     ],
-    114: [
+    120: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             var url_1 = require('../../../data/model/domain/url');
             var dom_1 = require('../../../../lib/dom');
+            var typed_dom_1 = require('typed-dom');
             exports.scripts = new Set();
-            void dom_1.bind(window, 'pjax:unload', function () {
+            void typed_dom_1.bind(window, 'pjax:unload', function () {
                 return void dom_1.find(document, 'script').filter(function (script) {
                     return script.hasAttribute('src');
                 }).forEach(function (script) {
@@ -6909,22 +7392,23 @@ require = function e(t, n, r) {
             });
         },
         {
-            '../../../../lib/dom': 117,
-            '../../../data/model/domain/url': 80
+            '../../../../lib/dom': 123,
+            '../../../data/model/domain/url': 86,
+            'typed-dom': 75
         }
     ],
-    115: [
+    121: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            var dom_1 = require('../../../../lib/dom');
-            void dom_1.bind(window, 'unload', function () {
+            var typed_dom_1 = require('typed-dom');
+            void typed_dom_1.bind(window, 'unload', function () {
                 return window.history.scrollRestoration = 'auto';
             }, false);
         },
-        { '../../../../lib/dom': 117 }
+        { 'typed-dom': 75 }
     ],
-    116: [
+    122: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6939,78 +7423,16 @@ require = function e(t, n, r) {
                 return class_1;
             }())();
         },
-        { '../../../data/model/domain/url': 80 }
+        { '../../../data/model/domain/url': 86 }
     ],
-    117: [
+    123: [
         function (require, module, exports) {
             'use strict';
-            var __assign = this && this.__assign || Object.assign || function (t) {
-                for (var s, i = 1, n = arguments.length; i < n; i++) {
-                    s = arguments[i];
-                    for (var p in s)
-                        if (Object.prototype.hasOwnProperty.call(s, p))
-                            t[p] = s[p];
-                }
-                return t;
-            };
             Object.defineProperty(exports, '__esModule', { value: true });
-            var noop_1 = require('./noop');
             function find(target, selector) {
                 return Array.from(target.querySelectorAll(selector || '_'));
             }
             exports.find = find;
-            function bind(target, type, listener, option) {
-                if (option === void 0) {
-                    option = false;
-                }
-                void target.addEventListener(type, handler, adjustEventListenerOptions(option));
-                var unbind = function () {
-                    return unbind = noop_1.noop, void target.removeEventListener(type, handler, adjustEventListenerOptions(option));
-                };
-                return function () {
-                    return void unbind();
-                };
-                function handler(ev) {
-                    ev._currentTarget = ev.currentTarget;
-                    if (typeof option === 'object' && option.passive) {
-                        ev.preventDefault = noop_1.noop;
-                    }
-                    void listener(ev);
-                }
-            }
-            exports.bind = bind;
-            function once(target, type, listener, option) {
-                if (option === void 0) {
-                    option = false;
-                }
-                var unbind = bind(target, type, function (ev) {
-                    void unbind();
-                    void listener(ev);
-                }, option);
-                return function () {
-                    return void unbind();
-                };
-            }
-            exports.once = once;
-            function delegate(target, selector, type, listener, option) {
-                if (option === void 0) {
-                    option = {};
-                }
-                return bind(target, type, function (ev) {
-                    var cx = ev.target.closest(selector);
-                    if (!cx)
-                        return;
-                    void find(target, selector).filter(function (el) {
-                        return el === cx;
-                    }).forEach(function (el) {
-                        return void once(el, type, function (ev) {
-                            ev._currentTarget = ev.currentTarget;
-                            void listener(ev);
-                        }, option);
-                    });
-                }, __assign({}, option, { capture: true }));
-            }
-            exports.delegate = delegate;
             function serialize(form) {
                 return Array.from(form.elements).filter(function (el) {
                     if (el.disabled)
@@ -7051,23 +7473,10 @@ require = function e(t, n, r) {
                 }
             }
             exports.serialize = serialize;
-            var supportEventListenerOptions = false;
-            try {
-                document.createElement('div').addEventListener('test', function () {
-                }, {
-                    get capture() {
-                        return supportEventListenerOptions = true;
-                    }
-                });
-            } catch (e) {
-            }
-            function adjustEventListenerOptions(option) {
-                return supportEventListenerOptions ? option : typeof option === 'boolean' ? option : option.capture;
-            }
         },
-        { './noop': 120 }
+        {}
     ],
-    118: [
+    124: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -7108,7 +7517,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    119: [
+    125: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7177,7 +7586,7 @@ require = function e(t, n, r) {
             exports._fixNoscript = fixNoscript;
             function test(parser) {
                 try {
-                    var html = '\n<html lang="en" class="html">\n  <head>\n    <link href="/">\n    <title>&amp;</title>\n    <noscript><style>/**/</style></noscript>\n  </head>\n  <body>\n    <noscript>noscript</noscript>\n    <a href="/"></a>\n    <script>document.head.remove();</script>\n  </body>\n</html>\n';
+                    var html = '\n<html lang="en" class="html">\n  <head>\n    <link href="/">\n    <title>&amp;</title>\n    <noscript><style>/**/</style></noscript>\n  </head>\n  <body>\n    <noscript>noscript</noscript>\n    <a href="/"></a>\n    <script>document.head.remove();</script>\n    <img src="abc">\n  </body>\n</html>\n';
                     var doc = parser(html);
                     switch (false) {
                     case doc.URL && doc.URL.startsWith(window.location.protocol + '//' + window.location.host):
@@ -7187,6 +7596,7 @@ require = function e(t, n, r) {
                     case !!doc.querySelector('body>a')['href']:
                     case !doc.querySelector('head>noscript>*'):
                     case doc.querySelector('script')['innerHTML'] === 'document.head.remove();':
+                    case doc.querySelector('img').src.endsWith('abc'):
                     case doc.querySelector('head>noscript')['textContent'] === '<style>/**/</style>':
                     case doc.querySelector('body>noscript')['textContent'] === 'noscript':
                         throw void 0;
@@ -7198,23 +7608,12 @@ require = function e(t, n, r) {
             }
         },
         {
-            './dom': 117,
+            './dom': 123,
             'spica/either': 8,
             'spica/maybe': 13
         }
     ],
-    120: [
-        function (require, module, exports) {
-            'use strict';
-            Object.defineProperty(exports, '__esModule', { value: true });
-            function noop() {
-                return;
-            }
-            exports.noop = noop;
-        },
-        {}
-    ],
-    121: [
+    126: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7323,13 +7722,13 @@ require = function e(t, n, r) {
             exports.match = match;
         },
         {
-            '../layer/data/model/domain/url': 80,
-            './url': 122,
+            '../layer/data/model/domain/url': 86,
+            './url': 127,
             'spica/flip': 11,
             'spica/sequence': 69
         }
     ],
-    122: [
+    127: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7433,18 +7832,12 @@ require = function e(t, n, r) {
     ],
     'pjax-api': [
         function (require, module, exports) {
-            'use strict';
-            function __export(m) {
-                for (var p in m)
-                    if (!exports.hasOwnProperty(p))
-                        exports[p] = m[p];
-            }
-            Object.defineProperty(exports, '__esModule', { value: true });
-            __export(require('./src/export'));
-            var export_1 = require('./src/export');
-            exports.default = export_1.default;
+            arguments[4][75][0].apply(exports, arguments);
         },
-        { './src/export': 75 }
+        {
+            './src/export': 81,
+            'dup': 75
+        }
     ]
 }, {}, [
     1,
