@@ -2,9 +2,6 @@ declare global {
   interface Window {
     Window: typeof Window;
   }
-  interface WindowEventMap {
-    'error': ErrorEvent;
-  }
 }
 
 import assert from 'power-assert';

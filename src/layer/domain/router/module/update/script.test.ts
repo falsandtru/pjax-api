@@ -52,7 +52,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           evaluate: ([script, code]) => {
             assert(cnt === 2 && ++cnt);
             assert(script.className === 'test');
-            assert(script.innerHTML === code);
+            assert(script.text === code);
             return Right(script);
           },
         })
@@ -165,34 +165,32 @@ describe('Unit: layer/domain/router/module/update/script', () => {
 
   describe('escape', () => {
     it('external', () => {
-      const script = DOM.script().element;
       const src = '/';
-      script.setAttribute('src', src);
+      const script = DOM.script({ src }).element;
       assert(script.getAttribute('src') === src);
-      assert(script.innerHTML === '');
+      assert(script.text === '');
       const unescape = escape(script);
       assert(!script.hasAttribute('src'));
-      assert(script.innerHTML === '');
+      assert(script.text === '');
       document.body.appendChild(script);
       unescape();
       assert(script.getAttribute('src') === src);
-      assert(script.innerHTML === '');
+      assert(script.text === '');
       script.remove();
     });
 
     it('inline', () => {
-      const script = DOM.script().element;
-      const code = 'assert(document.currentScript.outerHTML === "<script></script>")';
-      script.innerHTML = code;
+      const code = 'assert(this === window)';
+      const script = DOM.script(code).element;
       assert(!script.hasAttribute('src'));
-      assert(script.innerHTML === code);
+      assert(script.text === code);
       const unescape = escape(script);
       assert(!script.hasAttribute('src'));
-      assert(script.innerHTML === '');
+      assert(script.text === '');
       document.body.appendChild(script);
       unescape();
       assert(!script.hasAttribute('src'));
-      assert(script.innerHTML === code);
+      assert(script.text === code);
       script.remove();
     });
 
@@ -200,9 +198,8 @@ describe('Unit: layer/domain/router/module/update/script', () => {
 
   describe('_request', () => {
     it('external', done => {
-      const script = DOM.script([]).element;
       const src = '/base/test/unit/fixture/throw.js';
-      script.setAttribute('src', src);
+      const script = DOM.script({ src }).element;
       _request(script)
         .then(m => m
           .fmap(([el, html]) => {
@@ -215,14 +212,13 @@ describe('Unit: layer/domain/router/module/update/script', () => {
     });
 
     it('inline', done => {
-      const script = DOM.script([]).element;
       const code = 'alert';
-      script.innerHTML = code;
+      const script = DOM.script(code).element;
       _request(script)
         .then(m => m
           .fmap(([el, html]) => {
             assert(el === script);
-            assert(el.innerHTML === html);
+            assert(el.text === html);
             assert(html === code);
             done();
           })
@@ -233,7 +229,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
 
   describe('_evaluate', () => {
     it('external load', done => {
-      const script = DOM.script().element;
+      const script = DOM.script({ src: '404' }).element;
       let cnt = 0;
       script.addEventListener('load', event => {
         assert(cnt === 0 && ++cnt);
@@ -242,20 +238,18 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      script.setAttribute('src', '/"%"');
-      _evaluate([script, `assert(document.currentScript.outerHTML === '<script src="/%22%%22"></script>')`], '')
+      _evaluate([script, `assert(this === window)`], '')
         .fmap(el => {
-          assert(el.outerHTML === `<script src="/%22%%22"></script>`);
+          assert(el.outerHTML === `<script src="404"></script>`);
           assert(el.parentElement === null);
-          assert(document.currentScript === null);
           assert(cnt === 1 && ++cnt);
           done();
         })
         .extract();
     });
 
-    it.skip('external error', done => {
-      const script = DOM.script().element;
+    it('external error', done => {
+      const script = DOM.script({ src: '/' }).element;
       let cnt = 0;
       script.addEventListener('load', () => {
         assert(--cnt === NaN);
@@ -264,19 +258,17 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         assert(cnt === 0 && ++cnt);
         assert(event instanceof Event);
       });
-      script.setAttribute('src', '/');
       _evaluate([script, 'throw new Error()'], '')
         .extract(e => {
           assert(e instanceof Error);
           assert(script.parentElement === null);
-          assert(document.currentScript === null);
           assert(cnt === 1 && ++cnt);
           done();
         });
     });
 
     it('inline load', done => {
-      const script = DOM.script().element;
+      const script = DOM.script(`assert(this === window)`).element;
       assert(!script.hasAttribute('src'));
       let cnt = 0;
       script.addEventListener('load', () => {
@@ -285,20 +277,19 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      _evaluate([script, 'assert(document.currentScript.innerHTML.startsWith("assert"))'], '')
+      _evaluate([script, script.text], '')
         .fmap(el => {
           assert(el.hasAttribute('src') === false);
-          assert(el.innerHTML.startsWith('assert'));
+          assert(el.text.startsWith('assert'));
           assert(el.parentElement === null);
-          assert(document.currentScript === null);
           assert(cnt === 0 && ++cnt);
           done();
         })
         .extract();
     });
 
-    it.skip('inline error', done => {
-      const script = DOM.script().element;
+    it('inline error', done => {
+      const script = DOM.script('throw new Error()').element;
       assert(!script.hasAttribute('src'));
       let cnt = 0;
       script.addEventListener('load', () => {
@@ -307,11 +298,10 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      _evaluate([script, 'throw new Error()'], '')
+      _evaluate([script, script.text], '')
         .extract(e => {
           assert(e instanceof Error);
           assert(script.parentElement === null);
-          assert(document.currentScript === null);
           assert(cnt === 0 && ++cnt);
           done();
         });

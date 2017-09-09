@@ -1,7 +1,6 @@
 import { Cancellee } from 'spica/cancellation';
 import { Either, Left, Right } from 'spica/either';
 import { concat } from 'spica/concat';
-import { once } from 'typed-dom';
 import { find } from '../../../../../lib/dom';
 import { FatalError } from '../../../../../lib/error';
 import { StandardUrl, standardizeUrl } from '../../../../data/model/domain/url';
@@ -56,12 +55,12 @@ export async function script(
 
 export function escape(script: HTMLScriptElement): () => undefined {
   const src: string | null = script.hasAttribute('src') ? script.getAttribute('src') : null;
-  const code = script.innerHTML;
+  const code = script.text;
   void script.removeAttribute('src');
-  script.innerHTML = '';
+  script.text = '';
   return () => (
-    script.innerHTML = ' ',
-    script.innerHTML = code,
+    script.text = ' ',
+    script.text = code,
     typeof src === 'string'
       ? void script.setAttribute('src', src)
       : void 0);
@@ -88,51 +87,37 @@ async function request(script: HTMLScriptElement): Promise<Either<Error, Respons
         }));
   }
   else {
-    return Right<Response>([script, script.innerHTML]);
+    return Right<Response>([script, script.text]);
   }
 }
 export { request as _request }
 
 function evaluate([script, code]: Response, logger: string): Either<Error, HTMLScriptElement> {
-  const logging = script.parentElement && script.parentElement.matches(logger.trim() || '_');
+  assert(script.hasAttribute('src') ? script.childNodes.length === 0 : script.text === code);
+  assert(script.textContent === script.text);
+  script = script.ownerDocument === document
+    ? script // only for testing
+    : document.importNode(script.cloneNode(true), true) as HTMLScriptElement;
+  const logging = !!script.parentElement && script.parentElement.matches(logger.trim() || '_');
   const container = document.querySelector(
     logging
       ? script.parentElement!.id
         ? `#${script.parentElement!.id}`
         : script.parentElement!.tagName
       : '_') || document.body;
-  script = script.ownerDocument === document
-    ? script // only for testing
-    : document.importNode(script.cloneNode(true), true) as HTMLScriptElement;
-  let error: Error | void = void 0;
-  const unbind = once(window, 'error', ev => {
-    error = ev.error;
-  });
-  if (script.hasAttribute('src')) {
-    const src = script.getAttribute('src')!;
-    void script.removeAttribute('src');
-    script.innerHTML = `
-document.currentScript.innerHTML = '';
-document.currentScript.setAttribute('src', "${src.replace(/"/g, encodeURI)}");
-${code}`;
-  }
-  else {
-    script.innerHTML = `
-document.currentScript.innerHTML = document.currentScript.innerHTML.slice(-${code.length});
-${code}`;
-  }
   assert(container.closest('html') === document.documentElement);
+  const unescape = escape(script);
   void container.appendChild(script);
-  assert(error === void 0 || error as Error instanceof Error);
-  void unbind();
-  if (script.hasAttribute('src')) {
-    void script.dispatchEvent(new Event(error ? 'error' : 'load'));
+  void unescape();
+  !logging && void script.remove();
+  try {
+    void (0, eval)(code);
+    script.hasAttribute('src') && void script.dispatchEvent(new Event('load'));
+    return Right(script);
   }
-  if (!logging) {
-    void script.remove();
+  catch (reason) {
+    script.hasAttribute('src') && void script.dispatchEvent(new Event('error'));
+    return Left(new FatalError(reason instanceof Error ? reason.message : reason + ''));
   }
-  return error
-    ? Left(new FatalError((error as Error).message))
-    : Right(script);
 }
 export { evaluate as _evaluate }

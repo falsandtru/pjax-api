@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.15.2
+
+- Fix script loading.
+- Remove cooperation with document.currentScript.
+
 ## 3.15.1
 
 - Improve loaded script checks.
