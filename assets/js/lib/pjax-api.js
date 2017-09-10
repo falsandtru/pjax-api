@@ -4606,15 +4606,15 @@ require = function e(t, n, r) {
             function encode(url) {
                 return url.trim().replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]?|[\uDC00-\uDFFF]/g, function (str) {
                     return str.length === 2 ? str : '';
-                }).replace(/%(?![0-9A-F]{2})|[^%\[\]]+/gi, encodeURI).replace(/\?[^#]+/, function (query) {
-                    return '?' + query.slice(1).replace(/%[0-9A-F]{2}|[^=&]/gi, function (str) {
+                }).replace(/%(?![0-9A-F]{2})|[^%\[\]]+/ig, encodeURI).replace(/\?[^#]+/, function (query) {
+                    return '?' + query.slice(1).replace(/%[0-9A-F]{2}|[^=&]/ig, function (str) {
                         return str.length < 3 ? encodeURIComponent(str) : str;
                     });
                 }).replace(/#.+/, function (fragment) {
-                    return '#' + fragment.slice(1).replace(/%[0-9A-F]{2}|./gi, function (str) {
+                    return '#' + fragment.slice(1).replace(/%[0-9A-F]{2}|./ig, function (str) {
                         return str.length < 3 ? encodeURIComponent(str) : str;
                     });
-                }).replace(/%[0-9A-F]{2}/gi, function (str) {
+                }).replace(/%[0-9A-F]{2}/ig, function (str) {
                     return str.toUpperCase();
                 });
             }
@@ -4622,7 +4622,7 @@ require = function e(t, n, r) {
             var parser = document.createElement('a');
             function normalize(url) {
                 parser.href = url || location.href;
-                return parser.href.replace(/^([^:\/?#]+:\/\/[^\/?#]*?):(?:80)?(?=$|[\/?#])/, '$1').replace(/^([^:\/?#]+:\/\/[^\/?#]*)\/?/, '$1/').replace(/%[0-9A-F]{2}/gi, function (str) {
+                return parser.href.replace(/^([^:/?#]+:\/\/[^/?#]*?):(?:80)?(?=$|[/?#])/, '$1').replace(/^([^:/?#]+:\/\/[^/?#]*)\/?/, '$1/').replace(/%[0-9A-F]{2}/ig, function (str) {
                     return str.toUpperCase();
                 });
             }
@@ -6313,7 +6313,6 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             var either_1 = require('spica/either');
             var concat_1 = require('spica/concat');
-            var typed_dom_1 = require('typed-dom');
             var dom_1 = require('../../../../../lib/dom');
             var error_1 = require('../../../../../lib/error');
             var url_1 = require('../../../../data/model/domain/url');
@@ -6366,11 +6365,11 @@ require = function e(t, n, r) {
             exports.script = script;
             function escape(script) {
                 var src = script.hasAttribute('src') ? script.getAttribute('src') : null;
-                var code = script.innerHTML;
+                var code = script.text;
                 void script.removeAttribute('src');
-                script.innerHTML = '';
+                script.text = '';
                 return function () {
-                    return script.innerHTML = ' ', script.innerHTML = code, typeof src === 'string' ? void script.setAttribute('src', src) : void 0;
+                    return script.text = ' ', script.text = code, typeof src === 'string' ? void script.setAttribute('src', src) : void 0;
                 };
             }
             exports.escape = escape;
@@ -6412,7 +6411,7 @@ require = function e(t, n, r) {
                                 2,
                                 either_1.Right([
                                     script,
-                                    script.innerHTML
+                                    script.text
                                 ])
                             ];
                         }
@@ -6423,29 +6422,21 @@ require = function e(t, n, r) {
             exports._request = request;
             function evaluate(_a, logger) {
                 var script = _a[0], code = _a[1];
-                var logging = script.parentElement && script.parentElement.matches(logger.trim() || '_');
-                var container = document.querySelector(logging ? script.parentElement.id ? '#' + script.parentElement.id : script.parentElement.tagName : '_') || document.body;
                 script = script.ownerDocument === document ? script : document.importNode(script.cloneNode(true), true);
-                var error = void 0;
-                var unbind = typed_dom_1.once(window, 'error', function (ev) {
-                    error = ev.error;
-                });
-                if (script.hasAttribute('src')) {
-                    var src = script.getAttribute('src');
-                    void script.removeAttribute('src');
-                    script.innerHTML = '\ndocument.currentScript.innerHTML = \'\';\ndocument.currentScript.setAttribute(\'src\', "' + src.replace(/"/g, encodeURI) + '");\n' + code;
-                } else {
-                    script.innerHTML = '\ndocument.currentScript.innerHTML = document.currentScript.innerHTML.slice(-' + code.length + ');\n' + code;
-                }
+                var logging = !!script.parentElement && script.parentElement.matches(logger.trim() || '_');
+                var container = document.querySelector(logging ? script.parentElement.id ? '#' + script.parentElement.id : script.parentElement.tagName : '_') || document.body;
+                var unescape = escape(script);
                 void container.appendChild(script);
-                void unbind();
-                if (script.hasAttribute('src')) {
-                    void script.dispatchEvent(new Event(error ? 'error' : 'load'));
+                void unescape();
+                !logging && void script.remove();
+                try {
+                    void (0, eval)(code);
+                    script.hasAttribute('src') && void script.dispatchEvent(new Event('load'));
+                    return either_1.Right(script);
+                } catch (reason) {
+                    script.hasAttribute('src') && void script.dispatchEvent(new Event('error'));
+                    return either_1.Left(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''));
                 }
-                if (!logging) {
-                    void script.remove();
-                }
-                return error ? either_1.Left(new error_1.FatalError(error.message)) : either_1.Right(script);
             }
             exports._evaluate = evaluate;
         },
@@ -6454,8 +6445,7 @@ require = function e(t, n, r) {
             '../../../../../lib/error': 124,
             '../../../../data/model/domain/url': 86,
             'spica/concat': 6,
-            'spica/either': 8,
-            'typed-dom': 75
+            'spica/either': 8
         }
     ],
     104: [
@@ -7631,7 +7621,7 @@ require = function e(t, n, r) {
             }
             exports.router = router;
             function compare(pattern, path) {
-                var regSegment = /\/|[^\/]+\/?/g;
+                var regSegment = /\/|[^/]+\/?/g;
                 var regTrailingSlash = /\/(?=$|[?#])/;
                 return sequence_1.Sequence.zip(sequence_1.Sequence.from(expand(pattern)), sequence_1.Sequence.cycle([path])).map(function (_a) {
                     var pattern = _a[0], path = _a[1];
@@ -7664,7 +7654,7 @@ require = function e(t, n, r) {
                 var _a = Array.from(pattern).map(function (p, i) {
                         return p === '*' ? [
                             p,
-                            pattern.slice(i + 1).match(/^[^?*\/]*/)[0]
+                            pattern.slice(i + 1).match(/^[^?*/]*/)[0]
                         ] : [
                             p,
                             ''
@@ -7770,7 +7760,7 @@ require = function e(t, n, r) {
                 });
                 Object.defineProperty(Url.prototype, 'userinfo', {
                     get: function () {
-                        return this.parser.href.match(/[^:\/?#]+:\/\/([^\/?#]*)@|$/).pop() || '';
+                        return this.parser.href.match(/[^:/?#]+:\/\/([^/?#]*)@|$/).pop() || '';
                     },
                     enumerable: true,
                     configurable: true
