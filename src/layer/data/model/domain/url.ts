@@ -54,7 +54,7 @@ function encode(url: string): EncodedUrl {
             : str))
     .replace(/%[0-9A-F]{2}/ig, str => str.toUpperCase()) as EncodedUrl;
 }
-export { encode as encode_ };
+export { encode as _encode }
 
 
 type NormalizedUrl = Url<Normalized>;

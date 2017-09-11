@@ -19,6 +19,6 @@ export class SubmitView {
     void this.sv.cast('', void 0);
   }
   private readonly sv = new class extends Supervisor<'', void, void, void>{ }();
-  public readonly close = (): void =>
+  public readonly close = () =>
     void this.sv.terminate();
 }
