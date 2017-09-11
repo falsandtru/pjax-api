@@ -20,7 +20,7 @@ export async function script(
   },
   cancellation: Cancellee<Error>,
   io = {
-    request,
+    fetch,
     evaluate,
   }
 ): Promise<Either<Error, HTMLScriptElement[]>> {
@@ -31,29 +31,31 @@ export async function script(
       el.hasAttribute('src')
         ? !skip.has(standardizeUrl(el.src)) || el.matches(selector.reload.trim() || '_')
         : true);
-  const requests = scripts
-    .reduce<Promise<Either<Error, Response>>[]>((rs, script) =>
-      concat(rs, [io.request(script)])
-    , []);
-  return (await Promise.all(requests))
-    .reduce<Either<Error, HTMLScriptElement[]>>((acc, m) =>
-      m.bind(res => run(acc, res))
-    , Right([]));
+  return run(await Promise.all(request(scripts)));
 
-  function run(
-    state: Either<Error, HTMLScriptElement[]>,
-    response: Response
-  ): Either<Error, HTMLScriptElement[]> {
-    return state
-      .bind(cancellation.either)
-      .bind<HTMLScriptElement[]>(scripts =>
-        io.evaluate(response, selector.logger)
-          .fmap(script =>
-            scripts.concat([script])));
+  function request(scripts: HTMLScriptElement[]): Promise<Either<Error, Response>>[] {
+    return scripts
+      .reduce<Promise<Either<Error, Response>>[]>((rs, script) =>
+        concat(rs, [io.fetch(script)])
+      , []);
+  }
+
+  function run(responses: Either<Error, Response>[]): Either<Error, HTMLScriptElement[]> {
+    return responses
+      .reduce<Either<Error, HTMLScriptElement[]>>((acc, m) =>
+        acc
+          .bind(cancellation.either)
+          .bind(scripts =>
+            m
+              .bind(res =>
+                io.evaluate(res, selector.logger))
+              .fmap(script =>
+                concat(scripts, [script])))
+      , Right([]));
   }
 }
 
-async function request(script: HTMLScriptElement): Promise<Either<Error, Response>> {
+async function fetch(script: HTMLScriptElement): Promise<Either<Error, Response>> {
   if (script.hasAttribute('src')) {
     const xhr = new XMLHttpRequest();
     void xhr.open('GET', script.src, true);
@@ -77,7 +79,7 @@ async function request(script: HTMLScriptElement): Promise<Either<Error, Respons
     return Right<Response>([script, script.text]);
   }
 }
-export { request as _request }
+export { fetch as _fetch }
 
 function evaluate([script, code]: Response, logger: string): Either<Error, HTMLScriptElement> {
   assert(script.hasAttribute('src') ? script.childNodes.length === 0 : script.text === code);

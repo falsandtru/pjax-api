@@ -1,4 +1,4 @@
-import { script, _request, _evaluate, escape } from './script';
+import { script, _fetch, _evaluate, escape } from './script';
 import { Cancellation } from 'spica/cancellation';
 import { Left, Right } from 'spica/either';
 import { parse } from '../../../../../lib/html';
@@ -20,7 +20,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         },
         new Cancellation<Error>(),
         {
-          request: script => Promise.resolve(Right<[HTMLScriptElement, string]>([script, ''])),
+          fetch: script => Promise.resolve(Right<[HTMLScriptElement, string]>([script, ''])),
           evaluate: ([script]) => Right(script),
         })
         .then(m => {
@@ -44,7 +44,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         },
         new Cancellation<Error>(),
         {
-          request: script => {
+          fetch: script => {
             assert(cnt === 0 && ++cnt);
             assert(script.className === 'test');
             return Promise.resolve(Right<[HTMLScriptElement, string]>([script, '']));
@@ -63,7 +63,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         });
     });
 
-    it('failure request', done => {
+    it('failure fetch', done => {
       let cnt = 0;
       script(
         {
@@ -78,7 +78,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         },
         new Cancellation<Error>(),
         {
-          request: script => {
+          fetch: script => {
             assert(cnt === 0 && ++cnt);
             assert(script.className === 'test');
             return Promise.reject(new Error());
@@ -110,7 +110,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         },
         new Cancellation<Error>(),
         {
-          request: script => {
+          fetch: script => {
             assert(cnt === 0 && ++cnt);
             assert(script.className === 'test');
             return Promise.resolve(Right<[HTMLScriptElement, string]>([script, '']));
@@ -127,7 +127,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         });
     });
 
-    it('failure cancel', done => {
+    it('cancel', done => {
       let cnt = 0;
       const cancellation = new Cancellation<Error>();
       script(
@@ -143,7 +143,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         },
         cancellation,
         {
-          request: script => {
+          fetch: script => {
             assert(cnt === 0 && ++cnt);
             assert(script.className === 'test');
             return Promise.resolve(Right<[HTMLScriptElement, string]>([script, '']));
@@ -167,7 +167,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
     it('external', done => {
       const src = '/base/test/unit/fixture/throw.js';
       const script = DOM.script({ src }).element;
-      _request(script)
+      _fetch(script)
         .then(m => m
           .fmap(([el, html]) => {
             assert(el === script);
@@ -181,7 +181,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
     it('inline', done => {
       const code = 'alert';
       const script = DOM.script(code).element;
-      _request(script)
+      _fetch(script)
         .then(m => m
           .fmap(([el, html]) => {
             assert(el === script);
