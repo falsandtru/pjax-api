@@ -4618,7 +4618,7 @@ require = function e(t, n, r) {
                     return str.toUpperCase();
                 });
             }
-            exports.encode_ = encode;
+            exports._encode = encode;
             var parser = document.createElement('a');
             function normalize(url) {
                 parser.href = url || location.href;
@@ -6319,21 +6319,30 @@ require = function e(t, n, r) {
             function script(documents, skip, selector, cancellation, io) {
                 if (io === void 0) {
                     io = {
-                        request: request,
+                        fetch: fetch,
                         evaluate: evaluate
                     };
                 }
                 return __awaiter(this, void 0, void 0, function () {
-                    function run(state, response) {
-                        return state.bind(cancellation.either).bind(function (scripts) {
-                            return io.evaluate(response, selector.logger).fmap(function (script) {
-                                return scripts.concat([script]);
-                            });
-                        });
+                    function request(scripts) {
+                        return scripts.reduce(function (rs, script) {
+                            return concat_1.concat(rs, [io.fetch(script)]);
+                        }, []);
                     }
-                    var scripts, requests;
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
+                    function run(responses) {
+                        return responses.reduce(function (acc, m) {
+                            return acc.bind(cancellation.either).bind(function (scripts) {
+                                return m.bind(function (res) {
+                                    return io.evaluate(res, selector.logger);
+                                }).fmap(function (script) {
+                                    return concat_1.concat(scripts, [script]);
+                                });
+                            });
+                        }, either_1.Right([]));
+                    }
+                    var scripts, _a;
+                    return __generator(this, function (_b) {
+                        switch (_b.label) {
                         case 0:
                             scripts = dom_1.find(documents.src, 'script').filter(function (el) {
                                 return !el.type || /(?:application|text)\/(?:java|ecma)script/i.test(el.type);
@@ -6342,38 +6351,22 @@ require = function e(t, n, r) {
                             }).filter(function (el) {
                                 return el.hasAttribute('src') ? !skip.has(url_1.standardizeUrl(el.src)) || el.matches(selector.reload.trim() || '_') : true;
                             });
-                            requests = scripts.reduce(function (rs, script) {
-                                return concat_1.concat(rs, [io.request(script)]);
-                            }, []);
+                            _a = run;
                             return [
                                 4,
-                                Promise.all(requests)
+                                Promise.all(request(scripts))
                             ];
                         case 1:
                             return [
                                 2,
-                                _a.sent().reduce(function (acc, m) {
-                                    return m.bind(function (res) {
-                                        return run(acc, res);
-                                    });
-                                }, either_1.Right([]))
+                                _a.apply(void 0, [_b.sent()])
                             ];
                         }
                     });
                 });
             }
             exports.script = script;
-            function escape(script) {
-                var src = script.hasAttribute('src') ? script.getAttribute('src') : null;
-                var code = script.text;
-                void script.removeAttribute('src');
-                script.text = '';
-                return function () {
-                    return script.text = ' ', script.text = code, typeof src === 'string' ? void script.setAttribute('src', src) : void 0;
-                };
-            }
-            exports.escape = escape;
-            function request(script) {
+            function fetch(script) {
                 return __awaiter(this, void 0, void 0, function () {
                     var xhr_1;
                     return __generator(this, function (_a) {
@@ -6419,7 +6412,7 @@ require = function e(t, n, r) {
                     });
                 });
             }
-            exports._request = request;
+            exports._fetch = fetch;
             function evaluate(_a, logger) {
                 var script = _a[0], code = _a[1];
                 script = script.ownerDocument === document ? script : document.importNode(script.cloneNode(true), true);
@@ -6439,6 +6432,16 @@ require = function e(t, n, r) {
                 }
             }
             exports._evaluate = evaluate;
+            function escape(script) {
+                var src = script.hasAttribute('src') ? script.getAttribute('src') : null;
+                var code = script.text;
+                void script.removeAttribute('src');
+                script.text = '';
+                return function () {
+                    return script.text = ' ', script.text = code, typeof src === 'string' ? void script.setAttribute('src', src) : void 0;
+                };
+            }
+            exports.escape = escape;
         },
         {
             '../../../../../lib/dom': 123,
@@ -7582,17 +7585,17 @@ require = function e(t, n, r) {
                     case doc.URL && doc.URL.startsWith(window.location.protocol + '//' + window.location.host):
                     case doc.title === '&':
                     case !!doc.querySelector('html.html[lang="en"]'):
-                    case !!doc.querySelector('head>link')['href']:
-                    case !!doc.querySelector('body>a')['href']:
-                    case !doc.querySelector('head>noscript>*'):
-                    case doc.querySelector('script')['innerHTML'] === 'document.head.remove();':
+                    case !!doc.querySelector('head > link').href:
+                    case !!doc.querySelector('body > a').href:
+                    case !doc.querySelector('head > noscript > *'):
+                    case doc.querySelector('script').innerHTML === 'document.head.remove();':
                     case doc.querySelector('img').src.endsWith('abc'):
-                    case doc.querySelector('head>noscript')['textContent'] === '<style>/**/</style>':
-                    case doc.querySelector('body>noscript')['textContent'] === 'noscript':
+                    case doc.querySelector('head > noscript').textContent === '<style>/**/</style>':
+                    case doc.querySelector('body > noscript').textContent === 'noscript':
                         throw void 0;
                     }
                     return true;
-                } catch (err) {
+                } catch (_a) {
                     return false;
                 }
             }
@@ -7616,7 +7619,7 @@ require = function e(t, n, r) {
                     var _a = new url_2.Url(url_1.standardizeUrl(url)), path = _a.path, pathname = _a.pathname;
                     return sequence_1.Sequence.from(Object.keys(config).sort().reverse()).filter(flip_1.flip(compare)(pathname)).map(function (pattern) {
                         return config[pattern];
-                    }).take(1).extract().pop()(path);
+                    }).take(1).extract().pop().call(config, path);
                 };
             }
             exports.router = router;
