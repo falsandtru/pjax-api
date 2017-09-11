@@ -12,7 +12,7 @@ export function router<T>(config: { [pattern: string]: (path: string) => T; }): 
       .take(1)
       .extract()
       .pop()!
-      (path);
+      .call(config, path);
   };
 }
 

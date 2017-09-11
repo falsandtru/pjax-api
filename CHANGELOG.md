@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.16.0
+
+- Make this usable in router config object.
+
 ## 3.15.2
 
 - Fix script loading.

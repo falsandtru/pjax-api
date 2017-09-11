@@ -7,19 +7,23 @@ describe('Unit: lib/router', () => {
   describe('router', () => {
     it('router', () => {
       const route = router({
-        '/': path => {
+        '/'(path) {
+          assert(this instanceof Object);
           assert(path === '/a');
           return '/';
         },
-        '/b': path => {
+        '/b'(path) {
+          assert(this instanceof Object);
           assert(path === '/b');
           return '/b';
         },
-        '/b/': path => {
+        '/b/'(path) {
+          assert(this instanceof Object);
           assert(path === '/b/');
           return '/b/';
         },
-        '/c': path => {
+        '/c'(path) {
+          assert(this instanceof Object);
           assert(path === '/c/?q');
           return '/c';
         }
