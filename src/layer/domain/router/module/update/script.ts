@@ -53,19 +53,6 @@ export async function script(
   }
 }
 
-export function escape(script: HTMLScriptElement): () => undefined {
-  const src: string | null = script.hasAttribute('src') ? script.getAttribute('src') : null;
-  const code = script.text;
-  void script.removeAttribute('src');
-  script.text = '';
-  return () => (
-    script.text = ' ',
-    script.text = code,
-    typeof src === 'string'
-      ? void script.setAttribute('src', src)
-      : void 0);
-}
-
 async function request(script: HTMLScriptElement): Promise<Either<Error, Response>> {
   if (script.hasAttribute('src')) {
     const xhr = new XMLHttpRequest();
@@ -121,3 +108,16 @@ function evaluate([script, code]: Response, logger: string): Either<Error, HTMLS
   }
 }
 export { evaluate as _evaluate }
+
+export function escape(script: HTMLScriptElement): () => undefined {
+  const src: string | null = script.hasAttribute('src') ? script.getAttribute('src') : null;
+  const code = script.text;
+  void script.removeAttribute('src');
+  script.text = '';
+  return () => (
+    script.text = ' ',
+    script.text = code,
+    typeof src === 'string'
+      ? void script.setAttribute('src', src)
+      : void 0);
+}

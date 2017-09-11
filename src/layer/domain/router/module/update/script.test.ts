@@ -1,4 +1,4 @@
-import { script, escape, _request, _evaluate } from './script';
+import { script, _request, _evaluate, escape } from './script';
 import { Cancellation } from 'spica/cancellation';
 import { Left, Right } from 'spica/either';
 import { parse } from '../../../../../lib/html';
@@ -163,39 +163,6 @@ describe('Unit: layer/domain/router/module/update/script', () => {
 
   });
 
-  describe('escape', () => {
-    it('external', () => {
-      const src = '/';
-      const script = DOM.script({ src }).element;
-      assert(script.getAttribute('src') === src);
-      assert(script.text === '');
-      const unescape = escape(script);
-      assert(!script.hasAttribute('src'));
-      assert(script.text === '');
-      document.body.appendChild(script);
-      unescape();
-      assert(script.getAttribute('src') === src);
-      assert(script.text === '');
-      script.remove();
-    });
-
-    it('inline', () => {
-      const code = 'assert(this === window)';
-      const script = DOM.script(code).element;
-      assert(!script.hasAttribute('src'));
-      assert(script.text === code);
-      const unescape = escape(script);
-      assert(!script.hasAttribute('src'));
-      assert(script.text === '');
-      document.body.appendChild(script);
-      unescape();
-      assert(!script.hasAttribute('src'));
-      assert(script.text === code);
-      script.remove();
-    });
-
-  });
-
   describe('_request', () => {
     it('external', done => {
       const src = '/base/test/unit/fixture/throw.js';
@@ -305,6 +272,39 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           assert(cnt === 0 && ++cnt);
           done();
         });
+    });
+
+  });
+
+  describe('escape', () => {
+    it('external', () => {
+      const src = '/';
+      const script = DOM.script({ src }).element;
+      assert(script.getAttribute('src') === src);
+      assert(script.text === '');
+      const unescape = escape(script);
+      assert(!script.hasAttribute('src'));
+      assert(script.text === '');
+      document.body.appendChild(script);
+      unescape();
+      assert(script.getAttribute('src') === src);
+      assert(script.text === '');
+      script.remove();
+    });
+
+    it('inline', () => {
+      const code = 'assert(this === window)';
+      const script = DOM.script(code).element;
+      assert(!script.hasAttribute('src'));
+      assert(script.text === code);
+      const unescape = escape(script);
+      assert(!script.hasAttribute('src'));
+      assert(script.text === '');
+      document.body.appendChild(script);
+      unescape();
+      assert(!script.hasAttribute('src'));
+      assert(script.text === code);
+      script.remove();
     });
 
   });
