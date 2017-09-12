@@ -6327,12 +6327,12 @@ require = function e(t, n, r) {
                         return scripts.map(io.fetch);
                     }
                     function run(responses) {
-                        return responses.reduce(function (acc, m) {
+                        return responses.reduce(function (results, m) {
                             return m.bind(function () {
-                                return acc;
+                                return results;
                             });
-                        }, responses.reduce(function (acc, m) {
-                            return acc.bind(cancellation.either).bind(function (scripts) {
+                        }, responses.reduce(function (results, m) {
+                            return results.bind(cancellation.either).bind(function (scripts) {
                                 return m.bind(function (_a) {
                                     var script = _a[0], code = _a[1];
                                     return io.evaluate(script, code, selector.logger);
