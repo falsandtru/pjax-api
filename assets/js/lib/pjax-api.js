@@ -6328,6 +6328,10 @@ require = function e(t, n, r) {
                     }
                     function run(responses) {
                         return responses.reduce(function (acc, m) {
+                            return m.bind(function () {
+                                return acc;
+                            });
+                        }, responses.reduce(function (acc, m) {
                             return acc.bind(cancellation.either).bind(function (scripts) {
                                 return m.bind(function (_a) {
                                     var script = _a[0], code = _a[1];
@@ -6336,7 +6340,7 @@ require = function e(t, n, r) {
                                     return scripts.concat([script]);
                                 });
                             });
-                        }, either_1.Right([]));
+                        }, either_1.Right([])));
                     }
                     var scripts, _a;
                     return __generator(this, function (_b) {
