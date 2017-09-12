@@ -39,16 +39,19 @@ export async function script(
 
   function run(responses: Either<Error, Response>[]): Either<Error, HTMLScriptElement[]> {
     return responses
-      .reduce<Either<Error, HTMLScriptElement[]>>((acc, m) =>
-        acc
-          .bind(cancellation.either)
-          .bind(scripts =>
-            m
-              .bind(([script, code]) =>
-                io.evaluate(script, code, selector.logger))
-              .fmap(script =>
-                scripts.concat([script])))
-      , Right([]));
+      .reduce(
+        (acc, m) => m.bind(() => acc),
+        responses
+          .reduce((acc, m) =>
+            acc
+              .bind(cancellation.either)
+              .bind(scripts =>
+                m
+                  .bind(([script, code]) =>
+                    io.evaluate(script, code, selector.logger))
+                  .fmap(script =>
+                    scripts.concat([script])))
+          , Right([]) as Either<Error, HTMLScriptElement[]>));
   }
 }
 

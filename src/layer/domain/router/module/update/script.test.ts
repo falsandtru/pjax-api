@@ -20,7 +20,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         },
         new Cancellation<Error>(),
         {
-          fetch: script => Promise.resolve(Right<[HTMLScriptElement, string]>([script, ''])),
+          fetch: script => Promise.resolve(Right<[HTMLScriptElement, string]>([script, script.text])),
           evaluate: script => Right(script),
         })
         .then(m => {
@@ -47,7 +47,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           fetch: script => {
             assert(cnt === 0 && ++cnt);
             assert(script.className === 'test');
-            return Promise.resolve(Right<[HTMLScriptElement, string]>([script, '']));
+            return Promise.resolve(Right<[HTMLScriptElement, string]>([script, script.text]));
           },
           evaluate: (script, code) => {
             assert(cnt === 2 && ++cnt);
@@ -67,7 +67,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       let cnt = 0;
       script(
         {
-          src: parse(DOM.head([DOM.script({ class: 'test' }, [])]).element.outerHTML).extract(),
+          src: parse(DOM.head([DOM.script(), DOM.script()]).element.outerHTML).extract(),
           dst: parse('').extract()
         },
         new Set([]),
@@ -79,18 +79,19 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         new Cancellation<Error>(),
         {
           fetch: script => {
-            assert(cnt === 0 && ++cnt);
-            assert(script.className === 'test');
-            return Promise.reject(new Error());
+            assert(++cnt);
+            return cnt === 1
+              ? Promise.resolve(Right<[HTMLScriptElement, string]>([script, script.text]))
+              : Promise.resolve(Left(new Error()));
           },
           evaluate: script => {
             assert(++cnt === NaN);
             return Right(script);
           },
         })
-        .catch(reason => {
-          assert(cnt === 1 && ++cnt);
-          assert(reason instanceof Error);
+        .then(m => {
+          assert(cnt === 2 && ++cnt);
+          assert(m.extract(e => e) instanceof Error);
           done();
         });
     });
