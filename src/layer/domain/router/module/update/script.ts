@@ -40,10 +40,10 @@ export async function script(
   function run(responses: Either<Error, Response>[]): Either<Error, HTMLScriptElement[]> {
     return responses
       .reduce(
-        (acc, m) => m.bind(() => acc),
+        (results, m) => m.bind(() => results),
         responses
-          .reduce((acc, m) =>
-            acc
+          .reduce((results, m) =>
+            results
               .bind(cancellation.either)
               .bind(scripts =>
                 m
