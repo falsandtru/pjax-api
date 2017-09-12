@@ -21,7 +21,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         new Cancellation<Error>(),
         {
           fetch: script => Promise.resolve(Right<[HTMLScriptElement, string]>([script, ''])),
-          evaluate: ([script]) => Right(script),
+          evaluate: script => Right(script),
         })
         .then(m => {
           assert.deepStrictEqual(m.extract(), []);
@@ -49,7 +49,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
             assert(script.className === 'test');
             return Promise.resolve(Right<[HTMLScriptElement, string]>([script, '']));
           },
-          evaluate: ([script, code]) => {
+          evaluate: (script, code) => {
             assert(cnt === 2 && ++cnt);
             assert(script.className === 'test');
             assert(script.text === code);
@@ -83,7 +83,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
             assert(script.className === 'test');
             return Promise.reject(new Error());
           },
-          evaluate: ([script]) => {
+          evaluate: script => {
             assert(++cnt === NaN);
             return Right(script);
           },
@@ -148,7 +148,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
             assert(script.className === 'test');
             return Promise.resolve(Right<[HTMLScriptElement, string]>([script, '']));
           },
-          evaluate: ([script]) => {
+          evaluate: script => {
             assert(++cnt === NaN);
             return Right(script);
           },
@@ -205,7 +205,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      _evaluate([script, `assert(this === window)`], '')
+      _evaluate(script, `assert(this === window)`, '')
         .fmap(el => {
           assert(el.outerHTML === `<script src="404"></script>`);
           assert(el.parentElement === null);
@@ -225,7 +225,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         assert(cnt === 0 && ++cnt);
         assert(event instanceof Event);
       });
-      _evaluate([script, 'throw new Error()'], '')
+      _evaluate(script, 'throw new Error()', '')
         .extract(e => {
           assert(e instanceof Error);
           assert(script.parentElement === null);
@@ -244,7 +244,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      _evaluate([script, script.text], '')
+      _evaluate(script, script.text, '')
         .fmap(el => {
           assert(el.hasAttribute('src') === false);
           assert(el.text.startsWith('assert'));
@@ -265,7 +265,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      _evaluate([script, script.text], '')
+      _evaluate(script, script.text, '')
         .extract(e => {
           assert(e instanceof Error);
           assert(script.parentElement === null);

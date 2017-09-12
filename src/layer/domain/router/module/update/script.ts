@@ -1,6 +1,5 @@
 import { Cancellee } from 'spica/cancellation';
 import { Either, Left, Right } from 'spica/either';
-import { concat } from 'spica/concat';
 import { find } from '../../../../../lib/dom';
 import { FatalError } from '../../../../../lib/error';
 import { StandardUrl, standardizeUrl } from '../../../../data/model/domain/url';
@@ -35,9 +34,7 @@ export async function script(
 
   function request(scripts: HTMLScriptElement[]): Promise<Either<Error, Response>>[] {
     return scripts
-      .reduce<Promise<Either<Error, Response>>[]>((rs, script) =>
-        concat(rs, [io.fetch(script)])
-      , []);
+      .map(io.fetch);
   }
 
   function run(responses: Either<Error, Response>[]): Either<Error, HTMLScriptElement[]> {
@@ -47,10 +44,10 @@ export async function script(
           .bind(cancellation.either)
           .bind(scripts =>
             m
-              .bind(res =>
-                io.evaluate(res, selector.logger))
+              .bind(([script, code]) =>
+                io.evaluate(script, code, selector.logger))
               .fmap(script =>
-                concat(scripts, [script])))
+                scripts.concat([script])))
       , Right([]));
   }
 }
@@ -81,7 +78,7 @@ async function fetch(script: HTMLScriptElement): Promise<Either<Error, Response>
 }
 export { fetch as _fetch }
 
-function evaluate([script, code]: Response, logger: string): Either<Error, HTMLScriptElement> {
+function evaluate(script: HTMLScriptElement, code: string, logger: string): Either<Error, HTMLScriptElement> {
   assert(script.hasAttribute('src') ? script.childNodes.length === 0 : script.text === code);
   assert(script.textContent === script.text);
   script = script.ownerDocument === document
