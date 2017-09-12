@@ -6312,7 +6312,6 @@ require = function e(t, n, r) {
             };
             Object.defineProperty(exports, '__esModule', { value: true });
             var either_1 = require('spica/either');
-            var concat_1 = require('spica/concat');
             var dom_1 = require('../../../../../lib/dom');
             var error_1 = require('../../../../../lib/error');
             var url_1 = require('../../../../data/model/domain/url');
@@ -6325,17 +6324,16 @@ require = function e(t, n, r) {
                 }
                 return __awaiter(this, void 0, void 0, function () {
                     function request(scripts) {
-                        return scripts.reduce(function (rs, script) {
-                            return concat_1.concat(rs, [io.fetch(script)]);
-                        }, []);
+                        return scripts.map(io.fetch);
                     }
                     function run(responses) {
                         return responses.reduce(function (acc, m) {
                             return acc.bind(cancellation.either).bind(function (scripts) {
-                                return m.bind(function (res) {
-                                    return io.evaluate(res, selector.logger);
+                                return m.bind(function (_a) {
+                                    var script = _a[0], code = _a[1];
+                                    return io.evaluate(script, code, selector.logger);
                                 }).fmap(function (script) {
-                                    return concat_1.concat(scripts, [script]);
+                                    return scripts.concat([script]);
                                 });
                             });
                         }, either_1.Right([]));
@@ -6413,8 +6411,7 @@ require = function e(t, n, r) {
                 });
             }
             exports._fetch = fetch;
-            function evaluate(_a, logger) {
-                var script = _a[0], code = _a[1];
+            function evaluate(script, code, logger) {
                 script = script.ownerDocument === document ? script : document.importNode(script.cloneNode(true), true);
                 var logging = !!script.parentElement && script.parentElement.matches(logger.trim() || '_');
                 var container = document.querySelector(logging ? script.parentElement.id ? '#' + script.parentElement.id : script.parentElement.tagName : '_') || document.body;
@@ -6447,7 +6444,6 @@ require = function e(t, n, r) {
             '../../../../../lib/dom': 123,
             '../../../../../lib/error': 124,
             '../../../../data/model/domain/url': 86,
-            'spica/concat': 6,
             'spica/either': 8
         }
     ],
