@@ -23,10 +23,10 @@ export function standardizeUrl(url: string): StandardUrl {
 }
 
 
-type EncodedUrl = Url<Encoded>;
+type EncodedUrl<T = Encoded> = Url<T & Encoded>;
 
 function encode(url: EncodedUrl): void
-function encode<T>(url: Url<T>): Url<T & Encoded>
+function encode<T>(url: Url<T>): EncodedUrl<T>
 function encode(url: string): EncodedUrl
 function encode(url: string): EncodedUrl {
   return url
@@ -38,17 +38,17 @@ function encode(url: string): EncodedUrl {
         ? str
         : '')
     .replace(/%(?![0-9A-F]{2})|[^%\[\]]+/ig, encodeURI)
-    .replace(/\?[^#]+/, query =>
-      '?' +
-      query.slice(1)
-        .replace(/%[0-9A-F]{2}|[^=&]/ig, str =>
-          str.length < 3
-            ? encodeURIComponent(str)
-            : str))
     .replace(/#.+/, fragment =>
       '#' +
       fragment.slice(1)
         .replace(/%[0-9A-F]{2}|./ig, str =>
+          str.length < 3
+            ? encodeURIComponent(str)
+            : str))
+    .replace(/\?[^#]+/, query =>
+      '?' +
+      query.slice(1)
+        .replace(/%[0-9A-F]{2}|[^=&]/ig, str =>
           str.length < 3
             ? encodeURIComponent(str)
             : str))
@@ -61,6 +61,7 @@ type NormalizedUrl = Url<Normalized>;
 
 const parser = document.createElement('a');
 
+function normalize(url: Url<any>): void
 function normalize(url: string): NormalizedUrl
 function normalize(url: string): NormalizedUrl {
   // Absolute path
