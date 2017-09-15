@@ -4606,12 +4606,12 @@ require = function e(t, n, r) {
             function encode(url) {
                 return url.trim().replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]?|[\uDC00-\uDFFF]/g, function (str) {
                     return str.length === 2 ? str : '';
-                }).replace(/%(?![0-9A-F]{2})|[^%\[\]]+/ig, encodeURI).replace(/\?[^#]+/, function (query) {
-                    return '?' + query.slice(1).replace(/%[0-9A-F]{2}|[^=&]/ig, function (str) {
+                }).replace(/%(?![0-9A-F]{2})|[^%\[\]]+/ig, encodeURI).replace(/#.+/, function (fragment) {
+                    return '#' + fragment.slice(1).replace(/%[0-9A-F]{2}|./ig, function (str) {
                         return str.length < 3 ? encodeURIComponent(str) : str;
                     });
-                }).replace(/#.+/, function (fragment) {
-                    return '#' + fragment.slice(1).replace(/%[0-9A-F]{2}|./ig, function (str) {
+                }).replace(/\?[^#]+/, function (query) {
+                    return '?' + query.slice(1).replace(/%[0-9A-F]{2}|[^=&]/ig, function (str) {
                         return str.length < 3 ? encodeURIComponent(str) : str;
                     });
                 }).replace(/%[0-9A-F]{2}/ig, function (str) {
