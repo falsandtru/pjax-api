@@ -14,7 +14,7 @@ type Url<T> = Identifier.URL<T>;
 
 // https://www.ietf.org/rfc/rfc3986.txt
 
-export type StandardUrl = Url<Normalized & Encoded>;
+export type StandardUrl = Url<Encoded & Normalized>;
 
 export function standardizeUrl(url: Url<any>): void
 export function standardizeUrl(url: string): StandardUrl
@@ -23,7 +23,7 @@ export function standardizeUrl(url: string): StandardUrl {
 }
 
 
-type EncodedUrl<T = Encoded> = Url<T & Encoded>;
+type EncodedUrl<T = Encoded> = Url<Encoded & T>;
 
 function encode(url: EncodedUrl): void
 function encode<T>(url: Url<T>): EncodedUrl<T>
@@ -66,6 +66,7 @@ function normalize(url: string): NormalizedUrl
 function normalize(url: string): NormalizedUrl {
   // Absolute path
   parser.href = url || location.href;
+  assert(parser.href.startsWith(parser.protocol));
   return parser.href
     // Remove the default port
     .replace(/^([^:/?#]+:\/\/[^/?#]*?):(?:80)?(?=$|[/?#])/, '$1')
