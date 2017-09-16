@@ -5033,8 +5033,8 @@ require = function e(t, n, r) {
             var RouterEventLocation = function () {
                 function RouterEventLocation(target) {
                     this.target = target;
-                    this.orig = new url_1.Url(url_2.standardizeUrl(window.location.href));
-                    this.dest = new url_1.Url(this.target);
+                    this.orig = new url_1.URL(url_2.standardizeUrl(window.location.href));
+                    this.dest = new url_1.URL(this.target);
                     if (this.orig.domain !== this.dest.domain)
                         throw new error_1.DomainError('Cannot go to the different domain url ' + this.dest.href);
                     void Object.freeze(this);
@@ -5224,7 +5224,6 @@ require = function e(t, n, r) {
                                                     var res = _a[0], seq = _a[1];
                                                     return update_1.update(entity, res, seq, {
                                                         document: io.document,
-                                                        scroll: window.scrollTo,
                                                         position: path_1.loadPosition
                                                     });
                                                 }).extract(either_1.Left)
@@ -5472,7 +5471,7 @@ require = function e(t, n, r) {
                                     req,
                                     sequence.fetch(void 0, {
                                         host: '',
-                                        path: new url_1.Url(url).path,
+                                        path: new url_1.URL(url).path,
                                         method: method,
                                         data: data
                                     }),
@@ -5486,10 +5485,10 @@ require = function e(t, n, r) {
                             return [
                                 2,
                                 res.bind(process.either).bind(function (result) {
-                                    return result.response.url === '' || new url_1.Url(result.response.url).domain === new url_1.Url(url).domain ? either_1.Right([
+                                    return result.response.url === '' || new url_1.URL(result.response.url).domain === new url_1.URL(url).domain ? either_1.Right([
                                         result,
                                         seq
-                                    ]) : either_1.Left(new error_1.DomainError('Request is redirected to the different domain url ' + new url_1.Url(result.response.url).href));
+                                    ]) : either_1.Left(new error_1.DomainError('Request is redirected to the different domain url ' + new url_1.URL(result.response.url).href));
                                 })
                             ];
                         }
@@ -5820,11 +5819,6 @@ require = function e(t, n, r) {
                                                                                                     dst: documents.dst.body
                                                                                                 }, config.update.ignore) : void 0, void focus_1.focus(documents.dst), void scroll_1.scroll(event.type, documents.dst, {
                                                                                                     hash: event.location.dest.fragment,
-                                                                                                    top: 0,
-                                                                                                    left: 0
-                                                                                                }, {
-                                                                                                    hash: scroll_1.hash,
-                                                                                                    scroll: io.scroll,
                                                                                                     position: io.position
                                                                                                 }), void path_1.savePosition();
                                                                                                 if (!config.update.script)
@@ -6458,26 +6452,28 @@ require = function e(t, n, r) {
             var maybe_1 = require('spica/maybe');
             var router_1 = require('../../../event/router');
             var dom_1 = require('../../../../../lib/dom');
-            function scroll(type, document, target, io) {
+            function scroll(type, document, env, io) {
                 if (io === void 0) {
                     io = {
-                        hash: hash,
                         scroll: window.scrollTo,
-                        position: function () {
-                            return {
-                                top: 0,
-                                left: 0
-                            };
-                        }
+                        hash: hash
                     };
                 }
                 switch (type) {
                 case router_1.RouterEventType.click:
-                    return void (io.hash(document, target.hash, io) || scroll(target));
+                    if (io.hash(document, env.hash, io))
+                        return;
+                    return void scroll({
+                        top: 0,
+                        left: 0
+                    });
                 case router_1.RouterEventType.submit:
-                    return void scroll(target);
+                    return void scroll({
+                        top: 0,
+                        left: 0
+                    });
                 case router_1.RouterEventType.popstate:
-                    return void scroll(io.position());
+                    return void scroll(env.position());
                 default:
                     throw new TypeError(type);
                 }
@@ -6509,7 +6505,7 @@ require = function e(t, n, r) {
                     return true;
                 });
             }
-            exports.hash = hash;
+            exports._hash = hash;
         },
         {
             '../../../../../lib/dom': 123,
@@ -7024,25 +7020,25 @@ require = function e(t, n, r) {
                         },
                         call: function (_, s) {
                             return void s.register(new click_1.ClickView(_this.io.document, config.link, function (event) {
-                                return void maybe_1.Just(new url_1.Url(url_2.standardizeUrl(event.currentTarget.href))).bind(function (url) {
+                                return void maybe_1.Just(new url_1.URL(url_2.standardizeUrl(event.currentTarget.href))).bind(function (url) {
                                     return isAccessible(url) && !isHashChange(url) && !hasModifierKey(event) && config.filter(event.currentTarget) ? maybe_1.Just(0) : maybe_1.Nothing;
                                 }).fmap(function () {
                                     return router_1.route(config, event, process_1.process, _this.io);
                                 }).extract(sync);
                             }).close), void s.register(new submit_1.SubmitView(_this.io.document, config.form, function (event) {
-                                return void maybe_1.Just(new url_1.Url(url_2.standardizeUrl(event.currentTarget.action))).bind(function (url) {
+                                return void maybe_1.Just(new url_1.URL(url_2.standardizeUrl(event.currentTarget.action))).bind(function (url) {
                                     return isAccessible(url) ? maybe_1.Just(0) : maybe_1.Nothing;
                                 }).fmap(function () {
                                     return router_1.route(config, event, process_1.process, _this.io);
                                 }).extract(sync);
                             }).close), void s.register(new navigation_1.NavigationView(window, function (event) {
-                                return void maybe_1.Just(new url_1.Url(url_2.standardizeUrl(window.location.href))).bind(function (url) {
+                                return void maybe_1.Just(new url_1.URL(url_2.standardizeUrl(window.location.href))).bind(function (url) {
                                     return isAccessible(url) && !isHashChange(url) ? maybe_1.Just(api_3.loadTitle()) : maybe_1.Nothing;
                                 }).fmap(function (title) {
                                     return title ? io.document.title = title : void 0, router_1.route(config, event, process_1.process, _this.io);
                                 }).extract(sync);
                             }).close), void s.register(new scroll_1.ScrollView(window, function () {
-                                return void maybe_1.Just(new url_1.Url(url_2.standardizeUrl(window.location.href))).fmap(function (url) {
+                                return void maybe_1.Just(new url_1.URL(url_2.standardizeUrl(window.location.href))).fmap(function (url) {
                                     return url_3.documentUrl.href === url.href ? void api_3.savePosition() : void 0;
                                 }).extract();
                             }).close), new Promise(function () {
@@ -7070,13 +7066,13 @@ require = function e(t, n, r) {
             }
             function isAccessible(dest, orig) {
                 if (orig === void 0) {
-                    orig = new url_1.Url(url_3.documentUrl.href);
+                    orig = new url_1.URL(url_3.documentUrl.href);
                 }
                 return orig.domain === dest.domain;
             }
             function isHashChange(dest, orig) {
                 if (orig === void 0) {
-                    orig = new url_1.Url(url_3.documentUrl.href);
+                    orig = new url_1.URL(url_3.documentUrl.href);
                 }
                 return orig.domain === dest.domain && orig.path === dest.path && orig.fragment !== dest.fragment;
             }
@@ -7616,7 +7612,7 @@ require = function e(t, n, r) {
             var flip_1 = require('spica/flip');
             function router(config) {
                 return function (url) {
-                    var _a = new url_2.Url(url_1.standardizeUrl(url)), path = _a.path, pathname = _a.pathname;
+                    var _a = new url_2.URL(url_1.standardizeUrl(url)), path = _a.path, pathname = _a.pathname;
                     return sequence_1.Sequence.from(Object.keys(config).sort().reverse()).filter(flip_1.flip(compare)(pathname)).map(function (pattern) {
                         return config[pattern];
                     }).take(1).extract().pop().call(config, path);
@@ -7725,101 +7721,100 @@ require = function e(t, n, r) {
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            var Url = function () {
-                function Url(url) {
+            var URL = function () {
+                function URL(url) {
                     this.parser = document.createElement('a');
                     this.URL;
                     this.parser.href = url || location.href;
-                    this.parser.setAttribute('href', url || location.href);
                     Object.freeze(this);
                 }
-                Object.defineProperty(Url.prototype, 'href', {
+                Object.defineProperty(URL.prototype, 'href', {
                     get: function () {
                         return this.parser.href;
                     },
                     enumerable: true,
                     configurable: true
                 });
-                Object.defineProperty(Url.prototype, 'domain', {
+                Object.defineProperty(URL.prototype, 'domain', {
                     get: function () {
                         return this.protocol + '//' + this.host;
                     },
                     enumerable: true,
                     configurable: true
                 });
-                Object.defineProperty(Url.prototype, 'scheme', {
+                Object.defineProperty(URL.prototype, 'scheme', {
                     get: function () {
                         return this.parser.protocol.slice(0, -1);
                     },
                     enumerable: true,
                     configurable: true
                 });
-                Object.defineProperty(Url.prototype, 'protocol', {
+                Object.defineProperty(URL.prototype, 'protocol', {
                     get: function () {
                         return this.parser.protocol;
                     },
                     enumerable: true,
                     configurable: true
                 });
-                Object.defineProperty(Url.prototype, 'userinfo', {
+                Object.defineProperty(URL.prototype, 'userinfo', {
                     get: function () {
                         return this.parser.href.match(/[^:/?#]+:\/\/([^/?#]*)@|$/).pop() || '';
                     },
                     enumerable: true,
                     configurable: true
                 });
-                Object.defineProperty(Url.prototype, 'host', {
+                Object.defineProperty(URL.prototype, 'host', {
                     get: function () {
                         return this.parser.host;
                     },
                     enumerable: true,
                     configurable: true
                 });
-                Object.defineProperty(Url.prototype, 'hostname', {
+                Object.defineProperty(URL.prototype, 'hostname', {
                     get: function () {
                         return this.parser.hostname;
                     },
                     enumerable: true,
                     configurable: true
                 });
-                Object.defineProperty(Url.prototype, 'port', {
+                Object.defineProperty(URL.prototype, 'port', {
                     get: function () {
                         return this.parser.port;
                     },
                     enumerable: true,
                     configurable: true
                 });
-                Object.defineProperty(Url.prototype, 'path', {
+                Object.defineProperty(URL.prototype, 'path', {
                     get: function () {
                         return '' + this.pathname + this.query;
                     },
                     enumerable: true,
                     configurable: true
                 });
-                Object.defineProperty(Url.prototype, 'pathname', {
+                Object.defineProperty(URL.prototype, 'pathname', {
                     get: function () {
                         return this.parser.pathname;
                     },
                     enumerable: true,
                     configurable: true
                 });
-                Object.defineProperty(Url.prototype, 'query', {
+                Object.defineProperty(URL.prototype, 'query', {
                     get: function () {
                         return this.parser.search;
                     },
                     enumerable: true,
                     configurable: true
                 });
-                Object.defineProperty(Url.prototype, 'fragment', {
+                Object.defineProperty(URL.prototype, 'fragment', {
                     get: function () {
                         return this.parser.hash;
                     },
                     enumerable: true,
                     configurable: true
                 });
-                return Url;
+                return URL;
             }();
-            exports.Url = Url;
+            exports.URL = URL;
         },
         {}
     ],
