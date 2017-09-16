@@ -28,7 +28,7 @@ export class GUI extends API {
   ) {
     super();
     const config = new Config(this.option);
-    void view.terminate('');
+    void view.kill('');
     void view.register('', {
       init: s => s,
       call: (_, s) => (
