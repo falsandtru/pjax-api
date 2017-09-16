@@ -1,7 +1,7 @@
 import { Supervisor } from 'spica/supervisor';
 import { bind } from 'typed-dom';
 import { standardizeUrl } from '../../../data/model/domain/url';
-import { documentUrl } from '../../service/state/url';
+import { currentUrl } from '../../service/state/url';
 
 export class NavigationView {
   constructor(
@@ -12,7 +12,7 @@ export class NavigationView {
       void this.sv.events.exit.monitor(
         [],
         bind(window, 'popstate', ev => {
-          if (standardizeUrl(location.href) === documentUrl.href) return;
+          if (standardizeUrl(window.location.href) === currentUrl.href) return;
           void listener(ev);
         })),
       new Promise<never>(() => void 0)

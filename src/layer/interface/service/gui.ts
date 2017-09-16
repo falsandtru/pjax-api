@@ -11,7 +11,7 @@ import { ClickView } from '../module/view/click';
 import { SubmitView } from '../module/view/submit';
 import { NavigationView } from '../module/view/navigation';
 import { ScrollView } from '../module/view/scroll';
-import { documentUrl } from './state/url';
+import { currentUrl } from './state/url';
 import './state/scroll-restoration';
 import { process } from './state/process';
 import { route } from './router';
@@ -43,7 +43,7 @@ export class GUI extends API {
                 : Nothing)
             .fmap(() =>
               route(config, event, process, this.io))
-            .extract(sync))
+            .extract(currentUrl.sync))
           .close),
         void s.register(new SubmitView(this.io.document, config.form, event =>
           void Just(new URL(standardizeUrl((event.currentTarget as RouterEventSource.Form).action)))
@@ -53,7 +53,7 @@ export class GUI extends API {
                 : Nothing)
             .fmap(() =>
               route(config, event, process, this.io))
-            .extract(sync))
+            .extract(currentUrl.sync))
           .close),
         void s.register(new NavigationView(window, event =>
           void Just(new URL(standardizeUrl(window.location.href)))
@@ -67,12 +67,12 @@ export class GUI extends API {
                 ? io.document.title = title
                 : void 0,
               route(config, event, process, this.io)))
-            .extract(sync))
+            .extract(currentUrl.sync))
           .close),
         void s.register(new ScrollView(window, () =>
           void Just(new URL(standardizeUrl(window.location.href)))
             .fmap(url =>
-              documentUrl.href === url.href
+              url.href === currentUrl.href
                 ? void savePosition()
                 : void 0)
             .extract())
@@ -101,20 +101,16 @@ function hasModifierKey(event: MouseEvent): boolean {
 
 function isAccessible(
   dest: URL<StandardUrl>,
-  orig: URL<StandardUrl> = new URL(documentUrl.href),
+  orig: URL<StandardUrl> = new URL(currentUrl.href),
 ): boolean {
   return orig.domain === dest.domain;
 }
 
 function isHashChange(
   dest: URL<StandardUrl>,
-  orig: URL<StandardUrl> = new URL(documentUrl.href),
+  orig: URL<StandardUrl> = new URL(currentUrl.href),
 ): boolean {
   return orig.domain === dest.domain
       && orig.path === dest.path
       && orig.fragment !== dest.fragment;
-}
-
-function sync(): void {
-  void documentUrl.sync();
 }

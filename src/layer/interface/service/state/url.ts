@@ -1,8 +1,12 @@
 import { StandardUrl, standardizeUrl } from '../../../data/model/domain/url';
 
-export const documentUrl = new class {
-  href = standardizeUrl(location.href);
-  sync(): StandardUrl {
-    return this.href = standardizeUrl(location.href);
+let url = standardizeUrl(location.href);
+
+export const currentUrl = new class {
+  public get href(): StandardUrl {
+    return url;
   }
-};
+  public sync = (): void => {
+    url = standardizeUrl(location.href);
+  }
+}();
