@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.16.2
+
+- Fix url management about hash changes.
+
 ## 3.16.1
 
 - Improve script loading.
