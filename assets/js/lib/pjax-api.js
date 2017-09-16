@@ -4286,7 +4286,7 @@ require = function e(t, n, r) {
                 if (option === void 0) {
                     option = {};
                 }
-                return bind(target, type, function (ev) {
+                return bind(target instanceof Document ? target.documentElement : target, type, function (ev) {
                     var cx = ev.target.closest(selector);
                     if (!cx)
                         return;
@@ -6719,7 +6719,7 @@ require = function e(t, n, r) {
                         return void _this.sv.terminate();
                     };
                     void this.sv.register('', function () {
-                        return void _this.sv.events.exit.monitor([], typed_dom_1.delegate(document.documentElement, selector, 'click', function (ev) {
+                        return void _this.sv.events.exit.monitor([], typed_dom_1.delegate(document, selector, 'click', function (ev) {
                             if (!(ev.currentTarget instanceof HTMLAnchorElement))
                                 return;
                             if (typeof ev.currentTarget.href !== 'string')
@@ -6779,7 +6779,7 @@ require = function e(t, n, r) {
                     };
                     void this.sv.register('', function () {
                         return void _this.sv.events.exit.monitor([], typed_dom_1.bind(window, 'popstate', function (ev) {
-                            if (url_1.standardizeUrl(location.href) === url_2.documentUrl.href)
+                            if (url_1.standardizeUrl(window.location.href) === url_2.currentUrl.href)
                                 return;
                             void listener(ev);
                         })), new Promise(function () {
@@ -6892,7 +6892,7 @@ require = function e(t, n, r) {
                         return void _this.sv.terminate();
                     };
                     void this.sv.register('', function () {
-                        return void _this.sv.events.exit.monitor([], typed_dom_1.delegate(document.documentElement, selector, 'submit', function (ev) {
+                        return void _this.sv.events.exit.monitor([], typed_dom_1.delegate(document, selector, 'submit', function (ev) {
                             if (!(ev.currentTarget instanceof HTMLFormElement))
                                 return;
                             void listener(ev);
@@ -7024,22 +7024,22 @@ require = function e(t, n, r) {
                                     return isAccessible(url) && !isHashChange(url) && !hasModifierKey(event) && config.filter(event.currentTarget) ? maybe_1.Just(0) : maybe_1.Nothing;
                                 }).fmap(function () {
                                     return router_1.route(config, event, process_1.process, _this.io);
-                                }).extract(sync);
+                                }).extract(url_3.currentUrl.sync);
                             }).close), void s.register(new submit_1.SubmitView(_this.io.document, config.form, function (event) {
                                 return void maybe_1.Just(new url_1.URL(url_2.standardizeUrl(event.currentTarget.action))).bind(function (url) {
                                     return isAccessible(url) ? maybe_1.Just(0) : maybe_1.Nothing;
                                 }).fmap(function () {
                                     return router_1.route(config, event, process_1.process, _this.io);
-                                }).extract(sync);
+                                }).extract(url_3.currentUrl.sync);
                             }).close), void s.register(new navigation_1.NavigationView(window, function (event) {
                                 return void maybe_1.Just(new url_1.URL(url_2.standardizeUrl(window.location.href))).bind(function (url) {
                                     return isAccessible(url) && !isHashChange(url) ? maybe_1.Just(api_3.loadTitle()) : maybe_1.Nothing;
                                 }).fmap(function (title) {
                                     return title ? io.document.title = title : void 0, router_1.route(config, event, process_1.process, _this.io);
-                                }).extract(sync);
+                                }).extract(url_3.currentUrl.sync);
                             }).close), void s.register(new scroll_1.ScrollView(window, function () {
                                 return void maybe_1.Just(new url_1.URL(url_2.standardizeUrl(window.location.href))).fmap(function (url) {
-                                    return url_3.documentUrl.href === url.href ? void api_3.savePosition() : void 0;
+                                    return url.href === url_3.currentUrl.href ? void api_3.savePosition() : void 0;
                                 }).extract();
                             }).close), new Promise(function () {
                                 return void 0;
@@ -7066,18 +7066,15 @@ require = function e(t, n, r) {
             }
             function isAccessible(dest, orig) {
                 if (orig === void 0) {
-                    orig = new url_1.URL(url_3.documentUrl.href);
+                    orig = new url_1.URL(url_3.currentUrl.href);
                 }
                 return orig.domain === dest.domain;
             }
             function isHashChange(dest, orig) {
                 if (orig === void 0) {
-                    orig = new url_1.URL(url_3.documentUrl.href);
+                    orig = new url_1.URL(url_3.currentUrl.href);
                 }
                 return orig.domain === dest.domain && orig.path === dest.path && orig.fragment !== dest.fragment;
-            }
-            function sync() {
-                void url_3.documentUrl.sync();
             }
         },
         {
@@ -7298,10 +7295,10 @@ require = function e(t, n, r) {
                                             return s.hasAttribute('src');
                                         }).forEach(function (s) {
                                             return void scripts.add(url_2.standardizeUrl(s.src));
-                                        }), void url_1.documentUrl.sync();
+                                        }), void url_1.currentUrl.sync();
                                     }).extract();
                                 }).catch(function (e) {
-                                    return void terminate(), window.history.scrollRestoration = 'auto', void url_1.documentUrl.sync(), !cancellation.canceled || e instanceof Error && e.name === 'FatalError' ? void config.fallback(typed_dom_1.currentTargets.get(event), e instanceof Error ? e : new Error(e)) : void 0;
+                                    return void terminate(), window.history.scrollRestoration = 'auto', void url_1.currentUrl.sync(), !cancellation.canceled || e instanceof Error && e.name === 'FatalError' ? void config.fallback(typed_dom_1.currentTargets.get(event), e instanceof Error ? e : new Error(e)) : void 0;
                                 })
                             ];
                         }
@@ -7402,17 +7399,31 @@ require = function e(t, n, r) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             var url_1 = require('../../../data/model/domain/url');
-            exports.documentUrl = new (function () {
+            var typed_dom_1 = require('typed-dom');
+            var url = url_1.standardizeUrl(location.href);
+            void typed_dom_1.bind(window, 'hashchange', function () {
+                return void exports.currentUrl.sync();
+            });
+            exports.currentUrl = new (function () {
                 function class_1() {
-                    this.href = url_1.standardizeUrl(location.href);
+                    this.sync = function () {
+                        url = url_1.standardizeUrl(location.href);
+                    };
                 }
-                class_1.prototype.sync = function () {
-                    return this.href = url_1.standardizeUrl(location.href);
-                };
+                Object.defineProperty(class_1.prototype, 'href', {
+                    get: function () {
+                        return url;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
                 return class_1;
             }())();
         },
-        { '../../../data/model/domain/url': 86 }
+        {
+            '../../../data/model/domain/url': 86,
+            'typed-dom': 75
+        }
     ],
     123: [
         function (require, module, exports) {
