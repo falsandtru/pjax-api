@@ -6,7 +6,7 @@ import { FetchResult } from '../model/eav/value/fetch';
 import { SequenceData } from '../../data/config';
 import { xhr } from '../module/fetch/xhr';
 import { DomainError } from '../../data/error';
-import { Url } from '../../../../lib/url';
+import { URL } from '../../../../lib/url';
 
 type Result = Either<Error, ResultData>;
 type ResultData = [FetchResult, SequenceData.Fetch];
@@ -32,7 +32,7 @@ export async function fetch(
     req,
     sequence.fetch(void 0, {
       host: '',
-      path: new Url(url).path,
+      path: new URL(url).path,
       method,
       data
     }),
@@ -41,7 +41,7 @@ export async function fetch(
   return res
     .bind(process.either)
     .bind<ResultData>(result =>
-      result.response.url === '' || new Url(result.response.url).domain === new Url(url).domain
+      result.response.url === '' || new URL(result.response.url).domain === new URL(url).domain
         ? Right<ResultData>([result, seq])
-        : Left(new DomainError(`Request is redirected to the different domain url ${new Url(result.response.url).href}`)));
+        : Left(new DomainError(`Request is redirected to the different domain url ${new URL(result.response.url).href}`)));
 }

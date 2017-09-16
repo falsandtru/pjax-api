@@ -1,4 +1,4 @@
-import { Url } from '../../../lib/url';
+import { URL } from '../../../lib/url';
 import { StandardUrl, standardizeUrl } from '../../data/model/domain/url';
 import { serialize } from '../../../lib/dom';
 import { DomainError } from '../data/error';
@@ -101,6 +101,6 @@ export class RouterEventLocation {
     if (this.orig.domain !== this.dest.domain) throw new DomainError(`Cannot go to the different domain url ${this.dest.href}`);
     void Object.freeze(this);
   }
-  public readonly orig: Url<StandardUrl> = new Url(standardizeUrl(window.location.href));
-  public readonly dest: Url<StandardUrl> = new Url(this.target);
+  public readonly orig: URL<StandardUrl> = new URL(standardizeUrl(window.location.href));
+  public readonly dest: URL<StandardUrl> = new URL(this.target);
 }

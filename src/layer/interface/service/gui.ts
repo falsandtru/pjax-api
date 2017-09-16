@@ -4,7 +4,7 @@ import { Supervisor } from 'spica/supervisor';
 import { Cancellation } from 'spica/cancellation';
 import { Just, Nothing } from 'spica/maybe';
 import { Config } from '../../application/api';
-import { Url } from '../../../lib/url';
+import { URL } from '../../../lib/url';
 import { RouterEventSource } from '../../domain/event/router';
 import { StandardUrl, standardizeUrl } from '../../data/model/domain/url';
 import { ClickView } from '../module/view/click';
@@ -33,7 +33,7 @@ export class GUI extends API {
       init: s => s,
       call: (_, s) => (
         void s.register(new ClickView(this.io.document, config.link, event =>
-          void Just(new Url(standardizeUrl((event.currentTarget as RouterEventSource.Anchor).href)))
+          void Just(new URL(standardizeUrl((event.currentTarget as RouterEventSource.Anchor).href)))
             .bind(url =>
               isAccessible(url)
               && !isHashChange(url)
@@ -46,7 +46,7 @@ export class GUI extends API {
             .extract(sync))
           .close),
         void s.register(new SubmitView(this.io.document, config.form, event =>
-          void Just(new Url(standardizeUrl((event.currentTarget as RouterEventSource.Form).action)))
+          void Just(new URL(standardizeUrl((event.currentTarget as RouterEventSource.Form).action)))
             .bind(url =>
               isAccessible(url)
                 ? Just(0)
@@ -56,7 +56,7 @@ export class GUI extends API {
             .extract(sync))
           .close),
         void s.register(new NavigationView(window, event =>
-          void Just(new Url(standardizeUrl(window.location.href)))
+          void Just(new URL(standardizeUrl(window.location.href)))
             .bind(url =>
               isAccessible(url)
               && !isHashChange(url)
@@ -70,7 +70,7 @@ export class GUI extends API {
             .extract(sync))
           .close),
         void s.register(new ScrollView(window, () =>
-          void Just(new Url(standardizeUrl(window.location.href)))
+          void Just(new URL(standardizeUrl(window.location.href)))
             .fmap(url =>
               documentUrl.href === url.href
                 ? void savePosition()
@@ -100,15 +100,15 @@ function hasModifierKey(event: MouseEvent): boolean {
 }
 
 function isAccessible(
-  dest: Url<StandardUrl>,
-  orig: Url<StandardUrl> = new Url(documentUrl.href),
+  dest: URL<StandardUrl>,
+  orig: URL<StandardUrl> = new URL(documentUrl.href),
 ): boolean {
   return orig.domain === dest.domain;
 }
 
 function isHashChange(
-  dest: Url<StandardUrl>,
-  orig: Url<StandardUrl> = new Url(documentUrl.href),
+  dest: URL<StandardUrl>,
+  orig: URL<StandardUrl> = new URL(documentUrl.href),
 ): boolean {
   return orig.domain === dest.domain
       && orig.path === dest.path

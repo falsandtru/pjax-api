@@ -1,52 +1,52 @@
-export class Url<T extends string> {
+export class URL<T extends string> {
   private readonly URL: T;
   constructor(url: PartialUrl<string> & T)
   constructor(url: T)
   constructor(url: T) {
     this.URL;
     this.parser.href = url || location.href;
-    this.parser.setAttribute('href', url || location.href);
+    assert(this.parser.href.startsWith(this.parser.protocol));
     Object.freeze(this);
   }
   private readonly parser = document.createElement('a');
   public get href(): T {
     return this.parser.href as any;
   }
-  public get domain(): Url.Domain<T> {
+  public get domain(): URL.Domain<T> {
     return `${this.protocol}//${this.host}` as any;
   }
-  public get scheme(): Url.Scheme<T> {
+  public get scheme(): URL.Scheme<T> {
     return this.parser.protocol.slice(0, -1) as any;
   }
-  public get protocol(): Url.Protocol<T> {
+  public get protocol(): URL.Protocol<T> {
     return this.parser.protocol as any;
   }
-  public get userinfo(): Url.Userinfo<T> {
+  public get userinfo(): URL.Userinfo<T> {
     return this.parser.href.match(/[^:/?#]+:\/\/([^/?#]*)@|$/)!.pop() || '' as any;
   }
-  public get host(): Url.Host<T> {
+  public get host(): URL.Host<T> {
     return this.parser.host as any;
   }
-  public get hostname(): Url.Hostname<T> {
+  public get hostname(): URL.Hostname<T> {
     return this.parser.hostname as any;
   }
-  public get port(): Url.Port<T> {
+  public get port(): URL.Port<T> {
     return this.parser.port as any;
   }
-  public get path(): Url.Path<T> {
+  public get path(): URL.Path<T> {
     return `${this.pathname}${this.query}` as any;
   }
-  public get pathname(): Url.Pathname<T> {
+  public get pathname(): URL.Pathname<T> {
     return this.parser.pathname as any;
   }
-  public get query(): Url.Query<T> {
+  public get query(): URL.Query<T> {
     return this.parser.search as any;
   }
-  public get fragment(): Url.Fragment<T> {
+  public get fragment(): URL.Fragment<T> {
     return this.parser.hash as any;
   }
 }
-export namespace Url {
+export namespace URL {
   export type Domain<T extends string> = PartialUrl<'domain'> & T;
   export type Scheme<T extends string> = PartialUrl<'scheme'> & T;
   export type Protocol<T extends string> = PartialUrl<'protocol'> & T;

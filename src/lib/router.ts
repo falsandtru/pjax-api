@@ -1,11 +1,11 @@
 import { StandardUrl, standardizeUrl } from '../layer/data/model/domain/url';
-import { Url } from './url';
+import { URL } from './url';
 import { Sequence } from 'spica/sequence';
 import { flip } from 'spica/flip';
 
 export function router<T>(config: { [pattern: string]: (path: string) => T; }): (url: string) => T {
   return (url: string) => {
-    const { path, pathname } = new Url(standardizeUrl(url));
+    const { path, pathname } = new URL(standardizeUrl(url));
     return Sequence.from(Object.keys(config).sort().reverse())
       .filter(flip(compare)(pathname))
       .map(pattern => config[pattern])
@@ -16,7 +16,7 @@ export function router<T>(config: { [pattern: string]: (path: string) => T; }): 
   };
 }
 
-export function compare(pattern: string, path: Url.Pathname<StandardUrl>): boolean {
+export function compare(pattern: string, path: URL.Pathname<StandardUrl>): boolean {
   const regSegment = /\/|[^/]+\/?/g;
   const regTrailingSlash = /\/(?=$|[?#])/;
   return Sequence

@@ -1,7 +1,7 @@
 import { Config as Option } from '../../../../';
 import { compare } from '../../../lib/router';
 import { Config } from '../../domain/data/config';
-import { Url } from '../../../lib/url';
+import { URL } from '../../../lib/url';
 import { StandardUrl } from '../../data/model/domain/url';
 import { Sequence } from 'spica/sequence';
 import { Maybe, Just, Nothing } from 'spica/maybe';
@@ -10,8 +10,8 @@ import { extend } from 'spica/assign';
 export function scope(
   config: Config,
   path: {
-    orig: Url.Pathname<StandardUrl>;
-    dest: Url.Pathname<StandardUrl>;
+    orig: URL.Pathname<StandardUrl>;
+    dest: URL.Pathname<StandardUrl>;
   }
 ): Maybe<Config> {
   return Sequence.from(Object.keys(config.scope).sort().reverse())
