@@ -31,9 +31,7 @@ export function scroll(
       throw new TypeError(type);
   }
 
-  function scroll({ top, left }: { top: number | undefined; left: number | undefined; }): void {
-    left = left === void 0 || left >= 0 ? left : window.pageXOffset;
-    top = top === void 0 || top >= 0 ? top : window.pageYOffset;
+  function scroll({ top, left }: { top: number; left: number; }): void {
     void io.scroll.call(window, left, top);
   }
 }
