@@ -27,7 +27,6 @@ export async function route(
       .fmap(([res, seq]) =>
         update(entity, res, seq, {
           document: io.document,
-          scroll: window.scrollTo,
           position: loadPosition
         }))
       .extract<Left<Error>>(Left))

@@ -13,7 +13,7 @@ import { content, separate } from '../module/update/content';
 import { css } from '../module/update/css';
 import { script } from '../module/update/script';
 import { focus } from '../module/update/focus';
-import { scroll, hash } from '../module/update/scroll';
+import { scroll } from '../module/update/scroll';
 import { saveTitle, savePosition } from '../../store/path';
 import { DomainError } from '../../data/error';
 
@@ -29,7 +29,6 @@ export async function update(
   seq: SequenceData.Fetch,
   io: {
     document: Document;
-    scroll: (x?: number, y?: number) => void;
     position: () => { top: number; left: number; };
   }
 ): Promise<Either<Error, HTMLScriptElement[]>> {
@@ -101,17 +100,10 @@ export async function update(
                       config.update.ignore)
                   : void 0,
                 void focus(documents.dst),
-                void scroll(event.type, documents.dst,
-                  {
-                    hash: event.location.dest.fragment,
-                    top: 0,
-                    left: 0
-                  },
-                  {
-                    hash: hash,
-                    scroll: io.scroll,
-                    position: io.position
-                  }),
+                void scroll(event.type, documents.dst, {
+                  hash: event.location.dest.fragment,
+                  position: io.position,
+                }),
                 void savePosition(),
                 config.update.script
                   ? await script(documents, state.scripts, config.update, process)

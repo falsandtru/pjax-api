@@ -1,4 +1,4 @@
-import { hash } from './scroll';
+import { _hash } from './scroll';
 import { parse } from '../../../../../lib/html';
 import { URL } from '../../../../../lib/url';
 import { standardizeUrl } from '../../../../data/model/domain/url';
@@ -8,7 +8,7 @@ describe('Unit: layer/domain/router/module/update/scroll', () => {
   describe('hash', () => {
     it('exist', () => {
       let cnt = 0;
-      const result = hash(
+      const result = _hash(
         parse(DOM.body([
           DOM.div({ id: 'hash' }, []),
         ]).element.outerHTML).extract(),
@@ -26,7 +26,7 @@ describe('Unit: layer/domain/router/module/update/scroll', () => {
 
     it('not exist', () => {
       let cnt = 0;
-      const result = hash(
+      const result = _hash(
         parse(DOM.body([
         ]).element.outerHTML).extract(),
         new URL(standardizeUrl('#hash')).fragment,
