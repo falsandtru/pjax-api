@@ -3658,14 +3658,16 @@ require = function e(t, n, r) {
                         ];
                     }
                 };
-                Supervisor.prototype.terminate = function (name, reason) {
+                Supervisor.prototype.kill = function (name, reason) {
                     if (!this.available)
                         return false;
-                    return name === void 0 ? void this.destructor(reason) === void 0 : Array.from(this.workers.values()).filter(function (worker) {
-                        return worker.name === name;
-                    }).filter(function (worker) {
-                        return worker.terminate(reason);
-                    }).length > 0;
+                    return this.workers.has(name) ? this.workers.get(name).terminate(reason) : false;
+                };
+                Supervisor.prototype.terminate = function (reason) {
+                    if (!this.available)
+                        return false;
+                    void this.destructor(reason);
+                    return true;
                 };
                 Supervisor.prototype.schedule = function () {
                     void tick_1.tick(this.scheduler, true);
@@ -3763,7 +3765,7 @@ require = function e(t, n, r) {
                                 this.state,
                                 reason
                             ]);
-                            void this.sv.terminate(void 0, reason_);
+                            void this.sv.terminate(reason_);
                         }
                     }
                 };
@@ -7011,7 +7013,7 @@ require = function e(t, n, r) {
                     _this.option = option;
                     _this.io = io;
                     var config = new api_2.Config(_this.option);
-                    void view.terminate('');
+                    void view.kill('');
                     void view.register('', {
                         init: function (s) {
                             return s;
