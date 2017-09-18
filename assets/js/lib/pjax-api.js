@@ -7021,7 +7021,7 @@ require = function e(t, n, r) {
                         call: function (_, s) {
                             return void s.register(new click_1.ClickView(_this.io.document, config.link, function (event) {
                                 return void maybe_1.Just(new url_1.URL(url_2.standardizeUrl(event.currentTarget.href))).bind(function (url) {
-                                    return isAccessible(url) && !isHashChange(url) && !hasModifierKey(event) && config.filter(event.currentTarget) ? maybe_1.Just(0) : maybe_1.Nothing;
+                                    return isAccessible(url) && !isHashClick(url) && !isHashChange(url) && !hasModifierKey(event) && config.filter(event.currentTarget) ? maybe_1.Just(0) : maybe_1.Nothing;
                                 }).fmap(function () {
                                     return router_1.route(config, event, process_1.process, _this.io);
                                 }).extract(url_3.currentUrl.sync);
@@ -7064,16 +7064,16 @@ require = function e(t, n, r) {
             function hasModifierKey(event) {
                 return event.which > 1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
             }
-            function isAccessible(dest, orig) {
-                if (orig === void 0) {
-                    orig = new url_1.URL(url_3.currentUrl.href);
-                }
+            function isAccessible(dest) {
+                var orig = new url_1.URL(url_3.currentUrl.href);
                 return orig.domain === dest.domain;
             }
-            function isHashChange(dest, orig) {
-                if (orig === void 0) {
-                    orig = new url_1.URL(url_3.currentUrl.href);
-                }
+            function isHashClick(dest) {
+                var orig = new url_1.URL(url_3.currentUrl.href);
+                return orig.domain === dest.domain && orig.path === dest.path && dest.fragment !== '';
+            }
+            function isHashChange(dest) {
+                var orig = new url_1.URL(url_3.currentUrl.href);
                 return orig.domain === dest.domain && orig.path === dest.path && orig.fragment !== dest.fragment;
             }
         },
