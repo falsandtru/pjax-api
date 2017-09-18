@@ -61,12 +61,10 @@ export class GUI extends API {
             .bind(url =>
               isAccessible(url)
               && !isHashChange(url)
-                ? Just(loadTitle())
+                ? Just(0)
                 : Nothing)
-            .fmap(title => (
-              title
-                ? io.document.title = title
-                : void 0,
+            .fmap(() => (
+              io.document.title = loadTitle(),
               route(config, event, process, this.io)))
             .extract(currentUrl.sync))
           .close),
