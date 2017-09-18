@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.16.3
+
+- Fix hash click behavior.
+
 ## 3.16.2
 
 - Fix url management about hash changes.

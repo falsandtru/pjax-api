@@ -36,6 +36,7 @@ export class GUI extends API {
           void Just(new URL(standardizeUrl((event.currentTarget as RouterEventSource.Anchor).href)))
             .bind(url =>
               isAccessible(url)
+              && !isHashClick(url)
               && !isHashChange(url)
               && !hasModifierKey(event)
               && config.filter(event.currentTarget as RouterEventSource.Anchor)
@@ -102,6 +103,13 @@ function hasModifierKey(event: MouseEvent): boolean {
 function isAccessible(dest: URL<StandardUrl>): boolean {
   const orig: URL<StandardUrl> = new URL(currentUrl.href);
   return orig.domain === dest.domain;
+}
+
+function isHashClick(dest: URL<StandardUrl>): boolean {
+  const orig: URL<StandardUrl> = new URL(currentUrl.href);
+  return orig.domain === dest.domain
+      && orig.path === dest.path
+      && dest.fragment !== '';
 }
 
 function isHashChange(dest: URL<StandardUrl>): boolean {
