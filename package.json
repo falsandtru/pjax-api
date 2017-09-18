@@ -1,6 +1,6 @@
 {
   "name": "pjax-api",
-  "version": "3.16.2",
+  "version": "3.16.3",
   "description": "The second generation PJAX for the advanced web frameworks.",
   "private": true,
   "homepage": "https://github.com/falsandtru/pjax-api",
