@@ -7033,9 +7033,9 @@ require = function e(t, n, r) {
                                 }).extract(url_3.currentUrl.sync);
                             }).close), void s.register(new navigation_1.NavigationView(window, function (event) {
                                 return void maybe_1.Just(new url_1.URL(url_2.standardizeUrl(window.location.href))).bind(function (url) {
-                                    return isAccessible(url) && !isHashChange(url) ? maybe_1.Just(api_3.loadTitle()) : maybe_1.Nothing;
-                                }).fmap(function (title) {
-                                    return title ? io.document.title = title : void 0, router_1.route(config, event, process_1.process, _this.io);
+                                    return isAccessible(url) && !isHashChange(url) ? maybe_1.Just(0) : maybe_1.Nothing;
+                                }).fmap(function () {
+                                    return io.document.title = api_3.loadTitle(), router_1.route(config, event, process_1.process, _this.io);
                                 }).extract(url_3.currentUrl.sync);
                             }).close), void s.register(new scroll_1.ScrollView(window, function () {
                                 return void maybe_1.Just(new url_1.URL(url_2.standardizeUrl(window.location.href))).fmap(function (url) {
