@@ -14,6 +14,7 @@ export function url(
         title,
         location.dest.href);
     case isRegisterable(type, location):
+      assert(location.dest.href !== location.orig.href);
       return void window.history.pushState(
         null,
         title,
@@ -27,7 +28,7 @@ function isRegisterable(
   type: RouterEventType,
   location: RouterEventLocation
 ): boolean {
-  if (location.orig.href === location.dest.href) return false;
+  if (location.dest.href === location.orig.href) return false;
   switch (type) {
     case RouterEventType.click:
     case RouterEventType.submit:
