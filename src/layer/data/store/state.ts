@@ -1,11 +1,6 @@
 import { extend } from 'spica/assign';
 import { State } from '../schema/state';
 
-if (window.history.state instanceof Object === false) {
-  void window.history.replaceState({}, document.title);
-}
-assert(window.history.state instanceof Object);
-
 void saveTitle();
 void savePosition();
 
