@@ -4636,9 +4636,6 @@ require = function e(t, n, r) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             var assign_1 = require('spica/assign');
-            if (window.history.state instanceof Object === false) {
-                void window.history.replaceState({}, document.title);
-            }
             void saveTitle();
             void savePosition();
             function loadTitle() {
@@ -6598,19 +6595,23 @@ require = function e(t, n, r) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             var router_1 = require('../../../event/router');
+            var typed_dom_1 = require('typed-dom');
+            void typed_dom_1.bind(document, 'pjax:ready', function () {
+                return void window.history.replaceState(window.history.state, window.document.title);
+            });
             function url(location, title, type, source, replaceable) {
                 switch (true) {
                 case isReplaceable(type, source, replaceable):
-                    return void window.history.replaceState(null, title, location.dest.href);
+                    return void window.history.replaceState({}, title, location.dest.href);
                 case isRegisterable(type, location):
-                    return void window.history.pushState(null, title, location.dest.href);
+                    return void window.history.pushState({}, title, location.dest.href);
                 default:
-                    return;
+                    return void window.history.replaceState(window.history.state, window.document.title);
                 }
             }
             exports.url = url;
             function isRegisterable(type, location) {
-                if (location.orig.href === location.dest.href)
+                if (location.dest.href === location.orig.href)
                     return false;
                 switch (type) {
                 case router_1.RouterEventType.click:
@@ -6636,7 +6637,10 @@ require = function e(t, n, r) {
             }
             exports._isReplaceable = isReplaceable;
         },
-        { '../../../event/router': 90 }
+        {
+            '../../../event/router': 90,
+            'typed-dom': 75
+        }
     ],
     108: [
         function (require, module, exports) {
@@ -6779,7 +6783,7 @@ require = function e(t, n, r) {
                     };
                     void this.sv.register('', function () {
                         return void _this.sv.events.exit.monitor([], typed_dom_1.bind(window, 'popstate', function (ev) {
-                            if (url_1.standardizeUrl(window.location.href) === url_2.currentUrl.href)
+                            if (url_1.standardizeUrl(window.location.href) === url_2.docurl.href)
                                 return;
                             void listener(ev);
                         })), new Promise(function () {
@@ -7024,22 +7028,22 @@ require = function e(t, n, r) {
                                     return isAccessible(url) && !isHashClick(url) && !isHashChange(url) && !hasModifierKey(event) && config.filter(event.currentTarget) ? maybe_1.Just(0) : maybe_1.Nothing;
                                 }).fmap(function () {
                                     return router_1.route(config, event, process_1.process, _this.io);
-                                }).extract(url_3.currentUrl.sync);
+                                }).extract(url_3.docurl.sync);
                             }).close), void s.register(new submit_1.SubmitView(_this.io.document, config.form, function (event) {
                                 return void maybe_1.Just(new url_1.URL(url_2.standardizeUrl(event.currentTarget.action))).bind(function (url) {
                                     return isAccessible(url) ? maybe_1.Just(0) : maybe_1.Nothing;
                                 }).fmap(function () {
                                     return router_1.route(config, event, process_1.process, _this.io);
-                                }).extract(url_3.currentUrl.sync);
+                                }).extract(url_3.docurl.sync);
                             }).close), void s.register(new navigation_1.NavigationView(window, function (event) {
                                 return void maybe_1.Just(new url_1.URL(url_2.standardizeUrl(window.location.href))).bind(function (url) {
                                     return isAccessible(url) && !isHashChange(url) ? maybe_1.Just(0) : maybe_1.Nothing;
                                 }).fmap(function () {
-                                    return io.document.title = api_3.loadTitle(), router_1.route(config, event, process_1.process, _this.io);
-                                }).extract(url_3.currentUrl.sync);
+                                    return router_1.route(config, event, process_1.process, _this.io);
+                                }).extract(url_3.docurl.sync);
                             }).close), void s.register(new scroll_1.ScrollView(window, function () {
                                 return void maybe_1.Just(new url_1.URL(url_2.standardizeUrl(window.location.href))).fmap(function (url) {
-                                    return url.href === url_3.currentUrl.href ? void api_3.savePosition() : void 0;
+                                    return url.href === url_3.docurl.href ? void api_3.savePosition() : void 0;
                                 }).extract();
                             }).close), new Promise(function () {
                                 return void 0;
@@ -7065,15 +7069,15 @@ require = function e(t, n, r) {
                 return event.which > 1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
             }
             function isAccessible(dest) {
-                var orig = new url_1.URL(url_3.currentUrl.href);
+                var orig = new url_1.URL(url_3.docurl.href);
                 return orig.domain === dest.domain;
             }
             function isHashClick(dest) {
-                var orig = new url_1.URL(url_3.currentUrl.href);
+                var orig = new url_1.URL(url_3.docurl.href);
                 return orig.domain === dest.domain && orig.path === dest.path && dest.fragment !== '';
             }
             function isHashChange(dest) {
-                var orig = new url_1.URL(url_3.currentUrl.href);
+                var orig = new url_1.URL(url_3.docurl.href);
                 return orig.domain === dest.domain && orig.path === dest.path && orig.fragment !== dest.fragment;
             }
         },
@@ -7261,19 +7265,21 @@ require = function e(t, n, r) {
             var progressbar_1 = require('./progressbar');
             var url_2 = require('../../data/model/domain/url');
             var error_1 = require('../data/error');
+            var api_2 = require('../../application/api');
             void typed_dom_1.bind(window, 'pjax:unload', function () {
                 return window.history.scrollRestoration = 'auto';
             }, true);
             function route(config, event, process, io) {
                 return __awaiter(this, void 0, void 0, function () {
-                    var cancellation, terminate, scripts;
+                    var cancellation, kill, scripts;
                     return __generator(this, function (_a) {
                         switch (_a.label) {
                         case 0:
                             void event.preventDefault();
                             void process.cast('', new error_1.InterfaceError('Abort.'));
                             cancellation = new cancellation_1.Cancellation();
-                            terminate = process.register('', function (e) {
+                            kill = process.register('', function (e) {
+                                io.document.title = api_2.loadTitle();
                                 throw void cancellation.cancel(e);
                             }, void 0);
                             return [
@@ -7291,14 +7297,14 @@ require = function e(t, n, r) {
                                     scripts: scripts
                                 }, io).then(function (m) {
                                     return m.fmap(function (ss) {
-                                        return void terminate(), void ss.filter(function (s) {
+                                        return void kill(), void ss.filter(function (s) {
                                             return s.hasAttribute('src');
                                         }).forEach(function (s) {
                                             return void scripts.add(url_2.standardizeUrl(s.src));
-                                        }), void url_1.currentUrl.sync();
+                                        }), void url_1.docurl.sync();
                                     }).extract();
                                 }).catch(function (e) {
-                                    return void terminate(), window.history.scrollRestoration = 'auto', void url_1.currentUrl.sync(), !cancellation.canceled || e instanceof Error && e.name === 'FatalError' ? void config.fallback(typed_dom_1.currentTargets.get(event), e instanceof Error ? e : new Error(e)) : void 0;
+                                    return void kill(), window.history.scrollRestoration = 'auto', void url_1.docurl.sync(), !cancellation.canceled || e instanceof Error && e.name === 'FatalError' ? void config.fallback(typed_dom_1.currentTargets.get(event), e instanceof Error ? e : new Error(e)) : void 0;
                                 })
                             ];
                         }
@@ -7402,9 +7408,9 @@ require = function e(t, n, r) {
             var typed_dom_1 = require('typed-dom');
             var url = url_1.standardizeUrl(location.href);
             void typed_dom_1.bind(window, 'hashchange', function () {
-                return void exports.currentUrl.sync();
+                return void exports.docurl.sync();
             });
-            exports.currentUrl = new (function () {
+            exports.docurl = new (function () {
                 function class_1() {
                     this.sync = function () {
                         url = url_1.standardizeUrl(location.href);
