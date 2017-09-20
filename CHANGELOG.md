@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.16.4
+
+- Fix browser history logging.
+
 ## 3.16.3
 
 - Fix hash click behavior.

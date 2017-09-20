@@ -1,4 +1,11 @@
 import { RouterEventSource, RouterEventType, RouterEventLocation } from '../../../event/router';
+import { bind } from 'typed-dom';
+
+// A part of the workaround to record the correct browser history.
+void bind(document, 'pjax:ready', () =>
+  void window.history.replaceState(
+    window.history.state,
+    window.document.title));
 
 export function url(
   location: RouterEventLocation,
@@ -10,17 +17,20 @@ export function url(
   switch (true) {
     case isReplaceable(type, source, replaceable):
       return void window.history.replaceState(
-        null,
+        {},
         title,
         location.dest.href);
     case isRegisterable(type, location):
       assert(location.dest.href !== location.orig.href);
       return void window.history.pushState(
-        null,
+        {},
         title,
         location.dest.href);
     default:
-      return;
+      // A part of the workaround to record the correct browser history.
+      return void window.history.replaceState(
+        window.history.state,
+        window.document.title);
   }
 }
 

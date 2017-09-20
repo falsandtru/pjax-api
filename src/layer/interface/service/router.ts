@@ -8,6 +8,7 @@ import { RouterEventSource } from '../../domain/event/router';
 import { progressbar } from './progressbar';
 import { standardizeUrl } from '../../data/model/domain/url';
 import { InterfaceError } from '../data/error';
+import { loadTitle } from '../../application/api';
 
 void bind(window, 'pjax:unload', () =>
   window.history.scrollRestoration = 'auto', true);
@@ -25,6 +26,8 @@ export async function route(
   void process.cast('', new InterfaceError(`Abort.`));
   const cancellation = new Cancellation<Error>();
   const kill = process.register('', e => {
+    // A part of the workaround to record the correct browser history.
+    io.document.title = loadTitle();
     throw void cancellation.cancel(e);
   }, void 0);
   const [scripts] = await env;

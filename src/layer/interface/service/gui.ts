@@ -15,7 +15,7 @@ import { docurl } from './state/url';
 import './state/scroll-restoration';
 import { process } from './state/process';
 import { route } from './router';
-import { loadTitle, savePosition } from '../../application/api';
+import { savePosition } from '../../application/api';
 
 const view = new class extends Supervisor<'', void, void, Cancellation<void>>{ }();
 
@@ -63,9 +63,8 @@ export class GUI extends API {
               && !isHashChange(url)
                 ? Just(0)
                 : Nothing)
-            .fmap(() => (
-              io.document.title = loadTitle(),
-              route(config, event, process, this.io)))
+            .fmap(() =>
+              route(config, event, process, this.io))
             .extract(docurl.sync))
           .close),
         void s.register(new ScrollView(window, () =>
