@@ -4,9 +4,9 @@ import { bind } from 'typed-dom';
 let url = standardizeUrl(location.href);
 
 void bind(window, 'hashchange', () =>
-  void currentUrl.sync());
+  void docurl.sync());
 
-export const currentUrl = new class {
+export const docurl = new class {
   public get href(): StandardUrl {
     return url;
   }
