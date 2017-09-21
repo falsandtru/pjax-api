@@ -5034,8 +5034,8 @@ require = function e(t, n, r) {
                     this.target = target;
                     this.orig = new url_1.URL(url_2.standardizeUrl(window.location.href));
                     this.dest = new url_1.URL(this.target);
-                    if (this.orig.domain !== this.dest.domain)
-                        throw new error_1.DomainError('Cannot go to the different domain url ' + this.dest.href);
+                    if (this.orig.origin !== this.dest.origin)
+                        throw new error_1.DomainError('Cannot go to the different origin: ' + this.dest.href);
                     void Object.freeze(this);
                 }
                 return RouterEventLocation;
@@ -5484,7 +5484,7 @@ require = function e(t, n, r) {
                             return [
                                 2,
                                 res.bind(process.either).bind(function (result) {
-                                    return result.response.url === '' || new url_1.URL(result.response.url).domain === new url_1.URL(url).domain ? either_1.Right([
+                                    return result.response.url === '' || new url_1.URL(result.response.url).origin === new url_1.URL(url).origin ? either_1.Right([
                                         result,
                                         seq
                                     ]) : either_1.Left(new error_1.DomainError('Request is redirected to the different domain url ' + new url_1.URL(result.response.url).href));
@@ -7070,15 +7070,15 @@ require = function e(t, n, r) {
             }
             function isAccessible(dest) {
                 var orig = new url_1.URL(url_3.docurl.href);
-                return orig.domain === dest.domain;
+                return orig.origin === dest.origin;
             }
             function isHashClick(dest) {
                 var orig = new url_1.URL(url_3.docurl.href);
-                return orig.domain === dest.domain && orig.path === dest.path && dest.fragment !== '';
+                return orig.origin === dest.origin && orig.path === dest.path && dest.fragment !== '';
             }
             function isHashChange(dest) {
                 var orig = new url_1.URL(url_3.docurl.href);
-                return orig.domain === dest.domain && orig.path === dest.path && orig.fragment !== dest.fragment;
+                return orig.origin === dest.origin && orig.path === dest.path && orig.fragment !== dest.fragment;
             }
         },
         {
@@ -7752,9 +7752,16 @@ require = function e(t, n, r) {
                     enumerable: true,
                     configurable: true
                 });
-                Object.defineProperty(URL.prototype, 'domain', {
+                Object.defineProperty(URL.prototype, 'origin', {
                     get: function () {
                         return this.protocol + '//' + this.host;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(URL.prototype, 'domain', {
+                    get: function () {
+                        return this.protocol + '//' + this.hostname;
                     },
                     enumerable: true,
                     configurable: true
