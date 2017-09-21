@@ -98,7 +98,7 @@ export class RouterEventLocation {
   constructor(
     private readonly target: StandardUrl
   ) {
-    if (this.orig.domain !== this.dest.domain) throw new DomainError(`Cannot go to the different domain url ${this.dest.href}`);
+    if (this.orig.origin !== this.dest.origin) throw new DomainError(`Cannot go to the different origin: ${this.dest.href}`);
     void Object.freeze(this);
   }
   public readonly orig: URL<StandardUrl> = new URL(standardizeUrl(window.location.href));

@@ -11,42 +11,47 @@ describe('Unit: lib/url', () => {
     const query = '?a=1&b=2';
     const fragment = '#hash';
 
-    const domain = protocol + '//' + hostname + ':' + port;
-    assert(domain === 'https://example.com:80');
+    const origin = protocol + '//' + hostname + ':' + port;
+    const domain = protocol + '//' + hostname;
+    assert(origin === 'https://example.com:80');
+
+    it('origin', () => {
+      assert(new URL(origin).origin === origin);
+    });
 
     it('domain', () => {
-      assert(new URL(domain).domain === domain);
+      assert(new URL(origin).domain === domain);
     });
 
     it('scheme', () => {
-      assert(new URL(domain).scheme === protocol.split(':')[0]);
+      assert(new URL(origin).scheme === protocol.split(':')[0]);
     });
 
     it('protocol', () => {
-      assert(new URL(domain).protocol === protocol);
+      assert(new URL(origin).protocol === protocol);
     });
 
     it('userinfo', () => {
-      assert(new URL(domain).userinfo === '');
+      assert(new URL(origin).userinfo === '');
       //assert(new URL(protocol + '//' + userinfo + '@' + hostname + ':' + port).userinfo === userinfo);
     });
 
     it('host', () => {
-      assert(new URL(domain).host === hostname + ':' + port);
+      assert(new URL(origin).host === hostname + ':' + port);
       //assert(new URL(protocol + '//' + userinfo + '@' + hostname + ':' + port).host === hostname + ':' + port);
     });
 
     it('hostname', () => {
-      assert(new URL(domain).hostname === hostname);
+      assert(new URL(origin).hostname === hostname);
     });
 
     it('port', () => {
-      assert(new URL(domain).port === port);
+      assert(new URL(origin).port === port);
     });
 
     it('href', () => {
-      assert(new URL(domain + dir + file).href === domain + dir + file);
-      assert(new URL(domain + dir + file + query + fragment).href === domain + dir + file + query + fragment);
+      assert(new URL(origin + dir + file).href === origin + dir + file);
+      assert(new URL(origin + dir + file + query + fragment).href === origin + dir + file + query + fragment);
     });
 
     it('path', () => {

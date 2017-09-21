@@ -99,19 +99,19 @@ function hasModifierKey(event: MouseEvent): boolean {
 
 function isAccessible(dest: URL<StandardUrl>): boolean {
   const orig: URL<StandardUrl> = new URL(docurl.href);
-  return orig.domain === dest.domain;
+  return orig.origin === dest.origin;
 }
 
 function isHashClick(dest: URL<StandardUrl>): boolean {
   const orig: URL<StandardUrl> = new URL(docurl.href);
-  return orig.domain === dest.domain
+  return orig.origin === dest.origin
       && orig.path === dest.path
       && dest.fragment !== '';
 }
 
 function isHashChange(dest: URL<StandardUrl>): boolean {
   const orig: URL<StandardUrl> = new URL(docurl.href);
-  return orig.domain === dest.domain
+  return orig.origin === dest.origin
       && orig.path === dest.path
       && orig.fragment !== dest.fragment;
 }

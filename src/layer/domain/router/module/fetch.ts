@@ -41,7 +41,7 @@ export async function fetch(
   return res
     .bind(process.either)
     .bind<ResultData>(result =>
-      result.response.url === '' || new URL(result.response.url).domain === new URL(url).domain
+      result.response.url === '' || new URL(result.response.url).origin === new URL(url).origin
         ? Right<ResultData>([result, seq])
         : Left(new DomainError(`Request is redirected to the different domain url ${new URL(result.response.url).href}`)));
 }

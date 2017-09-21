@@ -12,8 +12,11 @@ export class URL<T extends string> {
   public get href(): T {
     return this.parser.href as any;
   }
-  public get domain(): URL.Domain<T> {
+  public get origin(): URL.Origin<T> {
     return `${this.protocol}//${this.host}` as any;
+  }
+  public get domain(): URL.Domain<T> {
+    return `${this.protocol}//${this.hostname}` as any;
   }
   public get scheme(): URL.Scheme<T> {
     return this.parser.protocol.slice(0, -1) as any;
@@ -47,6 +50,7 @@ export class URL<T extends string> {
   }
 }
 export namespace URL {
+  export type Origin<T extends string> = PartialUrl<'origin'> & T;
   export type Domain<T extends string> = PartialUrl<'domain'> & T;
   export type Scheme<T extends string> = PartialUrl<'scheme'> & T;
   export type Protocol<T extends string> = PartialUrl<'protocol'> & T;
