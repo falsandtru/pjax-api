@@ -38,13 +38,6 @@ function encode(url: string): EncodedUrl {
         ? str
         : '')
     .replace(/%(?![0-9A-F]{2})|[^%\[\]]+/ig, encodeURI)
-    .replace(/#.+/, fragment =>
-      '#' +
-      fragment.slice(1)
-        .replace(/%[0-9A-F]{2}|./ig, str =>
-          str.length < 3
-            ? encodeURIComponent(str)
-            : str))
     .replace(/\?[^#]+/, query =>
       '?' +
       query.slice(1)
@@ -52,7 +45,8 @@ function encode(url: string): EncodedUrl {
           str.length < 3
             ? encodeURIComponent(str)
             : str))
-    .replace(/%[0-9A-F]{2}/ig, str => str.toUpperCase()) as EncodedUrl;
+    .replace(/%[0-9A-F]{2}/ig, str => str.toUpperCase())
+    .replace(/#.+/, url.slice(url.indexOf('#'))) as EncodedUrl;
 }
 export { encode as _encode }
 
@@ -73,5 +67,6 @@ function normalize(url: string): NormalizedUrl {
     // Fill the root path
     .replace(/^([^:/?#]+:\/\/[^/?#]*)\/?/, '$1/')
     // Use uppercase letters within percent-encoding triplets
-    .replace(/%[0-9A-F]{2}/ig, str => str.toUpperCase()) as NormalizedUrl;
+    .replace(/%[0-9A-F]{2}/ig, str => str.toUpperCase())
+    .replace(/#.+/, url.slice(url.indexOf('#'))) as NormalizedUrl;
 }

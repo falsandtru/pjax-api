@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.16.5
+
+- Don't encode url hash.
+
 ## 3.16.4
 
 - Fix browser history logging.

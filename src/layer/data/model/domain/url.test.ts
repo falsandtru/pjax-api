@@ -34,7 +34,7 @@ describe('Unit: layer/data/model/url', () => {
     });
 
     it('percent-encoding', () => {
-      assert(standardizeUrl('?a=b+c&%%3f#=%%3f').endsWith('?a=b%2Bc&%25%3F#%3D%25%3F'));
+      assert(standardizeUrl('?a=b+c&%%3f#/?=+&%%3f#').endsWith(`?a=b%2Bc&%25%3F#/?=+&%%3f#`));
     });
 
     it('multiple-encoding', () => {
@@ -52,8 +52,7 @@ describe('Unit: layer/data/model/url', () => {
       assert(_encode('/\uD800\uDC00') === `/${encodeURI('\uD800\uDC00')}`);
       assert(_encode('/\uD800\uD800\uDC00\uDC00') === `/${encodeURI('\uD800\uDC00')}`);
       assert(_encode('//[2001:db8::7]/') === `//[2001:db8::7]/`);
-      assert(_encode('?a=b+c&%%3f#=&%%3f') === `?a=b%2Bc&%25%3F#%3D%26%25%3F`);
-      assert(_encode('#?=&#') === `#%3F%3D%26%23`);
+      assert(_encode('?a=b+c&%%3f#/?=+&%%3f#') === `?a=b%2Bc&%25%3F#/?=+&%%3f#`);
     });
 
     it('multiple-encoding', () => {
