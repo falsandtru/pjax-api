@@ -62,13 +62,13 @@ export function match(pattern: string, segment: string): boolean {
   pattern = pattern
     .replace(/[*]+/g, '*')
     .replace(/[*]+[?]/g, '?');
-  const [, rest, state] = Array.from(pattern)
+  const [, rest, state] = [...pattern]
     .map<[string, string]>((p, i) =>
       p === '*'
         ? [p, pattern.slice(i + 1).match(/^[^?*/]*/)![0]]
         : [p, ''])
     .reduce<[string[], string[], boolean]>(([ls, [r = '', ...rs], s], [p, ps]) => {
-      if (!s) return [ls, [r].concat(rs), s];
+      if (!s) return [ls, [r, ...rs], s];
       switch (p) {
         case '?':
           return [ls.concat([r]), rs, s];
@@ -77,15 +77,15 @@ export function match(pattern: string, segment: string): boolean {
           const ref = ps.split(/[?*]/, 1)[0];
           return seg.includes(ref)
             ? ref === ''
-              ? [ls.concat(Array.from(seg.replace(/\/$/, ''))), Array.from(seg.replace(/.*?(?=\/?$)/, '')), s]
-              : [ls.concat(Array.from(seg.slice(0, seg.indexOf(ref)))), Array.from(seg.slice(seg.indexOf(ref))), s]
-            : [ls, [r].concat(rs), !s];
+              ? [ls.concat([...seg.replace(/\/$/, '')]), [...seg.replace(/.*?(?=\/?$)/, '')], s]
+              : [ls.concat([...seg.slice(0, seg.indexOf(ref))]), [...seg.slice(seg.indexOf(ref))], s]
+            : [ls, [r, ...rs], !s];
         default:
           return r === p
             ? [ls.concat([r]), rs, s]
-            : [ls, [r].concat(rs), !s];
+            : [ls, [r, ...rs], !s];
       }
-    }, [Array.from(''), Array.from(segment), true]);
+    }, [[''], [...segment], true]);
   return rest.length === 0
       && state;
 }

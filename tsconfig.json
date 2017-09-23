@@ -3,8 +3,10 @@
     "target": "es5",
     "lib": [
       "dom",
-      "es6"
+      "dom.iterable",
+      "es7"
     ],
+    "downlevelIteration": true,
     "module": "commonjs",
     "moduleResolution": "node",
     "alwaysStrict": true,

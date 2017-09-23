@@ -25,12 +25,13 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <TypeScriptCompileOnSaveEnabled>False</TypeScriptCompileOnSaveEnabled>
-    <TypeScriptSourceMap>true</TypeScriptSourceMap>
+    <TypeScriptSourceMap>True</TypeScriptSourceMap>
     <TypeScriptModuleKind>CommonJs</TypeScriptModuleKind>
     <TypeScriptModuleResolution>Node</TypeScriptModuleResolution>
     <TypeScriptAllowSyntheticDefaultImports>True</TypeScriptAllowSyntheticDefaultImports>
     <TypeScriptTarget>ES5</TypeScriptTarget>
-    <TypeScriptLib>dom,es6</TypeScriptLib>
+    <TypeScriptLib>dom,dom.iterable,es7</TypeScriptLib>
+    <TypeScriptDownlevelIteration>True</TypeScriptDownlevelIteration>
     <TypeScriptJSXEmit>None</TypeScriptJSXEmit>
     <TypeScriptStrictNullChecks>True</TypeScriptStrictNullChecks>
     <TypeScriptNoImplicitAny>True</TypeScriptNoImplicitAny>

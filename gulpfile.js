@@ -8,6 +8,7 @@ const buffer = require('vinyl-buffer');
 const $ = require('gulp-load-plugins')();
 const seq = require('run-sequence');
 const browserify = require('browserify');
+const watchify = require('watchify');
 const tsify = require('tsify');
 const pump = require('pump');
 const Server = require('karma').Server;
@@ -41,48 +42,58 @@ const config = {
     }
   },
   banner: [
-    `/*! ${pkg.name} v${pkg.version} ${pkg.repository.url} | (c) 2016, ${pkg.author} | ${pkg.license} License */`,
+    `/*! ${pkg.name} v${pkg.version} ${pkg.repository.url} | (c) ${new Date().getUTCFullYear()}, ${pkg.author} | ${pkg.license} License */`,
     ''
   ].join('\n'),
-  clean: {
-    dist: 'dist'
-  }
 };
 
-function compile(paths, force) {
+function compile({ src, dest }, opts = {}, cb = b => b) {
   let done = true;
-    return browserify(Object.values(paths).map(p => glob.sync(p)))
+  const force = !!opts.plugin && opts.plugin.includes(watchify);
+  const b = browserify(Object.values(src).map(p => glob.sync(p)), {
+    cache: {},
+    packageCache: {},
+    ...opts,
+  })
     .require(`./index.ts`, { expose: pkg.name })
-    .plugin(tsify, Object.assign({ global: true }, require('./tsconfig.json').compilerOptions))
-    .bundle()
-    .on("error", err => done = console.log(err + ''))
-    .pipe(source(`${pkg.name}.js`))
-    .pipe(buffer())
-    .once("finish", () => done || force || process.exit(1));
+    .plugin(tsify, { global: true, ...require('./tsconfig.json').compilerOptions })
+    .on('update', () => void cb(bundle()));
+  return cb(bundle());
+
+  function bundle() {
+    console.time('bundle');
+    return b
+      .bundle()
+      .on("error", err => done = console.log(err + ''))
+      .pipe(source(`${pkg.name}.js`))
+      .pipe(buffer())
+      .once('finish', () => console.timeEnd('bundle'))
+      .once("finish", () => done || force || process.exit(1))
+      .pipe(gulp.dest(dest));
+  }
 }
 
 gulp.task('ts:watch', function () {
-  gulp.watch(config.ts.test.src, () => {
-    return compile(config.ts.test.src, true)
-      .pipe(gulp.dest(config.ts.test.dest));
+  return compile(config.ts.test, {
+    plugin: [watchify],
   });
 });
 
 gulp.task('ts:test', function () {
-  return compile(config.ts.test.src)
-    .pipe(gulp.dest(config.ts.test.dest));
+  return compile(config.ts.test);
 });
 
-gulp.task('ts:dist', function (done) {
-  pump([
-    compile(config.ts.dist.src),
-    $.unassert(),
-    $.header(config.banner),
-    gulp.dest(config.ts.dist.dest),
-    $.rename({ extname: '.min.js' }),
-    $.uglify({ output: { comments: 'all' } }),
-    gulp.dest(config.ts.dist.dest)
-  ], done);
+gulp.task('ts:dist', function () {
+  return compile(config.ts.dist, {}, b =>
+    pump([
+      b,
+      $.unassert(),
+      $.header(config.banner),
+      gulp.dest(config.ts.dist.dest),
+      $.rename({ extname: '.min.js' }),
+      $.uglify({ output: { comments: 'all' } }),
+      gulp.dest(config.ts.dist.dest)
+    ]));
 });
 
 gulp.task('karma:watch', function (done) {
@@ -99,10 +110,10 @@ gulp.task('karma:test', function (done) {
   new Server({
     configFile: __dirname + '/karma.conf.js',
     browsers: config.browsers,
-    reporters: ['dots', 'coverage'],
     preprocessors: {
       'dist/*.js': ['coverage', 'espower']
     },
+    reporters: ['dots', 'coverage'],
     singleRun: true
   }, done).start();
 });
@@ -111,16 +122,16 @@ gulp.task('karma:ci', function (done) {
   new Server({
     configFile: __dirname + '/karma.conf.js',
     browsers: config.browsers,
-    reporters: ['dots', 'coverage', 'coveralls'],
     preprocessors: {
       'dist/*.js': ['coverage', 'espower']
     },
+    reporters: ['dots', 'coverage', 'coveralls'],
     singleRun: true
   }, done).start();
 });
 
 gulp.task('clean', function () {
-  return del([config.clean.dist]);
+  return del([config.ts.dist.dest, './gh-pages/assets/**/lib']);
 });
 
 gulp.task('install', function () {
@@ -134,13 +145,14 @@ gulp.task('update', function () {
   shell('npm i --no-shrinkwrap');
 });
 
-gulp.task('watch', ['clean'], function () {
+gulp.task('watch', ['clean'], function (done) {
   seq(
     'ts:test',
     [
       'ts:watch',
       'karma:watch'
-    ]
+    ],
+    done
   );
 });
 
@@ -149,10 +161,15 @@ gulp.task('test', ['clean'], function (done) {
     'ts:test',
     'karma:test',
     'ts:dist',
-    function () {
-      done();
-    }
+    done
   );
+});
+
+gulp.task('site', ['dist'], function () {
+  return gulp.src([
+    `dist/${pkg.name}.js`,
+  ])
+    .pipe(gulp.dest('./gh-pages/assets/js/lib'));
 });
 
 gulp.task('view', ['site'], function () {
@@ -166,21 +183,12 @@ gulp.task('dist', ['clean'], function (done) {
   );
 });
 
-gulp.task('site', ['dist'], function () {
-  return gulp.src([
-    'dist/pjax-api.js'
-  ])
-    .pipe(gulp.dest('./gh-pages/assets/js/lib'));
-});
-
 gulp.task('ci', ['clean'], function (done) {
   seq(
     'ts:test',
     'karma:ci',
     'dist',
     'site',
-    function () {
-      done();
-    }
+    done
   );
 });

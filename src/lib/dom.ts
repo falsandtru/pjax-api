@@ -1,7 +1,7 @@
 export function find<T extends keyof HTMLElementTagNameMap>(target: HTMLElement | Document, selector: T): HTMLElementTagNameMap[T][];
 export function find<T extends HTMLElement>(target: HTMLElement | Document, selector: string): T[];
 export function find<T extends HTMLElement>(target: HTMLElement | Document, selector: string): T[] {
-  return Array.from(target.querySelectorAll(selector || '_')) as T[];
+  return [...target.querySelectorAll<T>(selector || '_')];
 }
 
 export function serialize(form: HTMLFormElement): string {

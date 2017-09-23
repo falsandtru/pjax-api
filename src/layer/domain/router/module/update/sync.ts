@@ -35,7 +35,7 @@ export function pair<T>(srcs: T[], dsts: T[], compare: (a: T, b: T) => boolean):
       !link.has(dst))
     .forEach(dst =>
       void link.set(dst, []));
-  return Array.from(link.entries())
+  return [...link]
     .map<[T[], T | null]>(([dst, srcs]) => [srcs, dst]);
 
   function bind<T>(srcs: T[], dsts: T[], compare: (a: T, b: T) => boolean): Map<T | null, T[]> {
