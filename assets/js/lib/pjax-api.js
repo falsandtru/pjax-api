@@ -1,4 +1,4 @@
-/*! pjax-api v3.16.4 https://github.com/falsandtru/pjax-api | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! pjax-api v3.16.4 https://github.com/falsandtru/pjax-api | (c) 2017, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 require = function e(t, n, r) {
     function s(o, u) {
         if (!n[o]) {
@@ -38,6 +38,21 @@ require = function e(t, n, r) {
     3: [
         function (require, module, exports) {
             'use strict';
+            var __values = this && this.__values || function (o) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator], i = 0;
+                if (m)
+                    return m.call(o);
+                return {
+                    next: function () {
+                        if (o && i >= o.length)
+                            o = void 0;
+                        return {
+                            value: o && o[i++],
+                            done: !o
+                        };
+                    }
+                };
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var type_1 = require('./type');
             exports.assign = template(function (key, target, source) {
@@ -79,20 +94,45 @@ require = function e(t, n, r) {
                     if (target === undefined || target === null) {
                         throw new TypeError('Spica: assign: Cannot walk on ' + target + '.');
                     }
-                    for (var _a = 0, sources_1 = sources; _a < sources_1.length; _a++) {
-                        var source = sources_1[_a];
-                        if (source === undefined || source === null) {
-                            continue;
-                        }
-                        for (var _b = 0, _c = Object.keys(Object(source)); _b < _c.length; _b++) {
-                            var key = _c[_b];
-                            var desc = Object.getOwnPropertyDescriptor(Object(source), key);
-                            if (desc !== undefined && desc.enumerable) {
-                                void strategy(key, Object(target), Object(source));
+                    try {
+                        for (var sources_1 = __values(sources), sources_1_1 = sources_1.next(); !sources_1_1.done; sources_1_1 = sources_1.next()) {
+                            var source = sources_1_1.value;
+                            if (source === undefined || source === null) {
+                                continue;
                             }
+                            try {
+                                for (var _a = __values(Object.keys(Object(source))), _b = _a.next(); !_b.done; _b = _a.next()) {
+                                    var key = _b.value;
+                                    var desc = Object.getOwnPropertyDescriptor(Object(source), key);
+                                    if (desc !== undefined && desc.enumerable) {
+                                        void strategy(key, Object(target), Object(source));
+                                    }
+                                }
+                            } catch (e_1_1) {
+                                e_1 = { error: e_1_1 };
+                            } finally {
+                                try {
+                                    if (_b && !_b.done && (_c = _a.return))
+                                        _c.call(_a);
+                                } finally {
+                                    if (e_1)
+                                        throw e_1.error;
+                                }
+                            }
+                        }
+                    } catch (e_2_1) {
+                        e_2 = { error: e_2_1 };
+                    } finally {
+                        try {
+                            if (sources_1_1 && !sources_1_1.done && (_d = sources_1.return))
+                                _d.call(sources_1);
+                        } finally {
+                            if (e_2)
+                                throw e_2.error;
                         }
                     }
                     return Object(target);
+                    var e_2, _d, e_1, _c;
                 }
             }
         },
@@ -101,6 +141,32 @@ require = function e(t, n, r) {
     4: [
         function (require, module, exports) {
             'use strict';
+            var __read = this && this.__read || function (o, n) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator];
+                if (!m)
+                    return o;
+                var i = m.call(o), r, ar = [], e;
+                try {
+                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+                        ar.push(r.value);
+                } catch (error) {
+                    e = { error: error };
+                } finally {
+                    try {
+                        if (r && !r.done && (m = i['return']))
+                            m.call(i);
+                    } finally {
+                        if (e)
+                            throw e.error;
+                    }
+                }
+                return ar;
+            };
+            var __spread = this && this.__spread || function () {
+                for (var ar = [], i = 0; i < arguments.length; i++)
+                    ar = ar.concat(__read(arguments[i]));
+                return ar;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var exception_1 = require('./exception');
             var maybe_1 = require('./monad/maybe');
@@ -165,7 +231,7 @@ require = function e(t, n, r) {
                     this.either = function (val) {
                         return _this.canceled ? either_1.Left(_this.reason) : either_1.Right(val);
                     };
-                    void Array.from(cancelees).forEach(function (cancellee) {
+                    void __spread(cancelees).forEach(function (cancellee) {
                         return void cancellee.register(_this.cancel);
                     });
                 }
@@ -183,23 +249,28 @@ require = function e(t, n, r) {
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            var assign_1 = require('./assign');
             function compose(target) {
                 var sources = [];
                 for (var _i = 1; _i < arguments.length; _i++) {
                     sources[_i - 1] = arguments[_i];
                 }
                 return sources.reduce(function (b, d) {
-                    void assign_1.assign(b.prototype, d.prototype);
-                    for (var p in d)
-                        if (d.hasOwnProperty(p))
-                            b[p] = d[p];
+                    void Object.getOwnPropertyNames(d.prototype).filter(function (p) {
+                        return !(p in b.prototype);
+                    }).forEach(function (p) {
+                        return b.prototype[p] = d.prototype[p];
+                    });
+                    void Object.getOwnPropertyNames(d).filter(function (p) {
+                        return !(p in b);
+                    }).forEach(function (p) {
+                        return b[p] = d[p];
+                    });
                     return b;
                 }, target);
             }
             exports.compose = compose;
         },
-        { './assign': 3 }
+        {}
     ],
     6: [
         function (require, module, exports) {
@@ -1546,6 +1617,27 @@ require = function e(t, n, r) {
                     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
                 };
             }();
+            var __read = this && this.__read || function (o, n) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator];
+                if (!m)
+                    return o;
+                var i = m.call(o), r, ar = [], e;
+                try {
+                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+                        ar.push(r.value);
+                } catch (error) {
+                    e = { error: error };
+                } finally {
+                    try {
+                        if (r && !r.done && (m = i['return']))
+                            m.call(i);
+                    } finally {
+                        if (e)
+                            throw e.error;
+                    }
+                }
+                return ar;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var core_1 = require('../../core');
             var concat_1 = require('../../../../concat');
@@ -1557,12 +1649,12 @@ require = function e(t, n, r) {
                 default_1.prototype.group = function (f) {
                     var _this = this;
                     return new core_1.Sequence(function (_a, cons) {
-                        var _b = _a === void 0 ? [
+                        var _b = __read(_a === void 0 ? [
                                 function () {
                                     return _this.iterate();
                                 },
                                 []
-                            ] : _a, iter = _b[0], acc = _b[1];
+                            ] : _a, 2), iter = _b[0], acc = _b[1];
                         return core_1.Sequence.Iterator.when(iter(), function () {
                             return acc.length === 0 ? cons() : cons(acc);
                         }, function (thunk, recur) {
@@ -1809,6 +1901,27 @@ require = function e(t, n, r) {
                     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
                 };
             }();
+            var __read = this && this.__read || function (o, n) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator];
+                if (!m)
+                    return o;
+                var i = m.call(o), r, ar = [], e;
+                try {
+                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+                        ar.push(r.value);
+                } catch (error) {
+                    e = { error: error };
+                } finally {
+                    try {
+                        if (r && !r.done && (m = i['return']))
+                            m.call(i);
+                    } finally {
+                        if (e)
+                            throw e.error;
+                    }
+                }
+                return ar;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var core_1 = require('../../core');
             var memories = new WeakMap();
@@ -1820,10 +1933,10 @@ require = function e(t, n, r) {
                 default_1.prototype.memoize = function () {
                     var _this = this;
                     return new core_1.Sequence(function (_a, cons) {
-                        var _b = _a === void 0 ? [
+                        var _b = __read(_a === void 0 ? [
                                 0,
                                 memories.get(_this) || memories.set(_this, new Map()).get(_this)
-                            ] : _a, i = _b[0], memo = _b[1];
+                            ] : _a, 2), i = _b[0], memo = _b[1];
                         return core_1.Sequence.Iterator.when(memo.get(i) || memo.set(i, i > 0 && memo.has(i - 1) ? core_1.Sequence.Thunk.iterator(memo.get(i - 1))() : _this.iterate()).get(i), function () {
                             return cons();
                         }, function (thunk) {
@@ -1859,6 +1972,27 @@ require = function e(t, n, r) {
                     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
                 };
             }();
+            var __read = this && this.__read || function (o, n) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator];
+                if (!m)
+                    return o;
+                var i = m.call(o), r, ar = [], e;
+                try {
+                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+                        ar.push(r.value);
+                } catch (error) {
+                    e = { error: error };
+                } finally {
+                    try {
+                        if (r && !r.done && (m = i['return']))
+                            m.call(i);
+                    } finally {
+                        if (e)
+                            throw e.error;
+                    }
+                }
+                return ar;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var core_1 = require('../../core');
             var default_1 = function (_super) {
@@ -1904,9 +2038,9 @@ require = function e(t, n, r) {
                                     ];
                                 }, function (yt) {
                                     var y = core_1.Sequence.Thunk.value(yt);
-                                    var _a = interleave_(function (as) {
+                                    var _a = __read(interleave_(function (as) {
                                             return f(core_1.Sequence.mappend(core_1.Sequence.from([y]), as));
-                                        }, core_1.Sequence.resume(core_1.Sequence.Thunk.iterator(yt)), r), us = _a[0], zs = _a[1];
+                                        }, core_1.Sequence.resume(core_1.Sequence.Thunk.iterator(yt)), r), 2), us = _a[0], zs = _a[1];
                                     return [
                                         core_1.Sequence.mappend(core_1.Sequence.from([y]), us),
                                         core_1.Sequence.mappend(core_1.Sequence.from([f(core_1.Sequence.mappend(core_1.Sequence.from([t]), core_1.Sequence.mappend(core_1.Sequence.from([y]), us))).extract()]), zs)
@@ -1941,6 +2075,27 @@ require = function e(t, n, r) {
                     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
                 };
             }();
+            var __read = this && this.__read || function (o, n) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator];
+                if (!m)
+                    return o;
+                var i = m.call(o), r, ar = [], e;
+                try {
+                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+                        ar.push(r.value);
+                } catch (error) {
+                    e = { error: error };
+                } finally {
+                    try {
+                        if (r && !r.done && (m = i['return']))
+                            m.call(i);
+                    } finally {
+                        if (e)
+                            throw e.error;
+                    }
+                }
+                return ar;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var core_1 = require('../../core');
             var default_1 = function (_super) {
@@ -1951,10 +2106,10 @@ require = function e(t, n, r) {
                 default_1.prototype.reduce = function () {
                     var _this = this;
                     return new core_1.Sequence(function (_a, cons) {
-                        var _b = _a === void 0 ? [
+                        var _b = __read(_a === void 0 ? [
                                 0,
                                 new Map()
-                            ] : _a, i = _b[0], memo = _b[1];
+                            ] : _a, 2), i = _b[0], memo = _b[1];
                         return core_1.Sequence.Iterator.when(memo.get(i) || memo.set(i, i > 0 && memo.has(i - 1) ? core_1.Sequence.Thunk.iterator(memo.get(i - 1))() : _this.iterate()).get(i), function () {
                             return cons();
                         }, function (thunk) {
@@ -1990,6 +2145,27 @@ require = function e(t, n, r) {
                     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
                 };
             }();
+            var __read = this && this.__read || function (o, n) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator];
+                if (!m)
+                    return o;
+                var i = m.call(o), r, ar = [], e;
+                try {
+                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+                        ar.push(r.value);
+                } catch (error) {
+                    e = { error: error };
+                } finally {
+                    try {
+                        if (r && !r.done && (m = i['return']))
+                            m.call(i);
+                    } finally {
+                        if (e)
+                            throw e.error;
+                    }
+                }
+                return ar;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var core_1 = require('../../core');
             var default_1 = function (_super) {
@@ -2000,13 +2176,13 @@ require = function e(t, n, r) {
                 default_1.prototype.scan = function (f, z) {
                     var _this = this;
                     return new core_1.Sequence(function (_a) {
-                        var _b = _a === void 0 ? [
+                        var _b = __read(_a === void 0 ? [
                                 z,
                                 function () {
                                     return _this.iterate();
                                 },
                                 0
-                            ] : _a, prev = _b[0], iter = _b[1], i = _b[2];
+                            ] : _a, 3), prev = _b[0], iter = _b[1], i = _b[2];
                         return core_1.Sequence.Iterator.when(iter(), function () {
                             return i === 0 ? core_1.Sequence.Data.cons(z) : core_1.Sequence.Data.cons();
                         }, function (thunk) {
@@ -2362,6 +2538,27 @@ require = function e(t, n, r) {
                     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
                 };
             }();
+            var __read = this && this.__read || function (o, n) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator];
+                if (!m)
+                    return o;
+                var i = m.call(o), r, ar = [], e;
+                try {
+                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+                        ar.push(r.value);
+                } catch (error) {
+                    e = { error: error };
+                } finally {
+                    try {
+                        if (r && !r.done && (m = i['return']))
+                            m.call(i);
+                    } finally {
+                        if (e)
+                            throw e.error;
+                    }
+                }
+                return ar;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var core_1 = require('../../core');
             var default_1 = function (_super) {
@@ -2371,12 +2568,12 @@ require = function e(t, n, r) {
                 }
                 default_1.concat = function (as) {
                     return new core_1.Sequence(function (_a, cons) {
-                        var _b = _a === void 0 ? [
+                        var _b = __read(_a === void 0 ? [
                                 function () {
                                     return as.iterate();
                                 },
                                 core_1.Sequence.Iterator.done
-                            ] : _a, ai = _b[0], bi = _b[1];
+                            ] : _a, 2), ai = _b[0], bi = _b[1];
                         return core_1.Sequence.Iterator.when(ai(), function () {
                             return cons();
                         }, function (at, ar) {
@@ -2420,6 +2617,27 @@ require = function e(t, n, r) {
                     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
                 };
             }();
+            var __read = this && this.__read || function (o, n) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator];
+                if (!m)
+                    return o;
+                var i = m.call(o), r, ar = [], e;
+                try {
+                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+                        ar.push(r.value);
+                } catch (error) {
+                    e = { error: error };
+                } finally {
+                    try {
+                        if (r && !r.done && (m = i['return']))
+                            m.call(i);
+                    } finally {
+                        if (e)
+                            throw e.error;
+                    }
+                }
+                return ar;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var core_1 = require('../../core');
             var default_1 = function (_super) {
@@ -2429,10 +2647,10 @@ require = function e(t, n, r) {
                 }
                 default_1.cycle = function (as) {
                     return new core_1.Sequence(function cycle(_a, cons) {
-                        var _b = _a === void 0 ? [
+                        var _b = __read(_a === void 0 ? [
                                 as[Symbol.iterator](),
                                 0
-                            ] : _a, iter = _b[0], i = _b[1];
+                            ] : _a, 2), iter = _b[0], i = _b[1];
                         var result = iter.next();
                         return result.done ? cycle([
                             as[Symbol.iterator](),
@@ -2468,6 +2686,27 @@ require = function e(t, n, r) {
                     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
                 };
             }();
+            var __read = this && this.__read || function (o, n) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator];
+                if (!m)
+                    return o;
+                var i = m.call(o), r, ar = [], e;
+                try {
+                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+                        ar.push(r.value);
+                } catch (error) {
+                    e = { error: error };
+                } finally {
+                    try {
+                        if (r && !r.done && (m = i['return']))
+                            m.call(i);
+                    } finally {
+                        if (e)
+                            throw e.error;
+                    }
+                }
+                return ar;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var core_1 = require('../../core');
             var default_1 = function (_super) {
@@ -2477,14 +2716,14 @@ require = function e(t, n, r) {
                 }
                 default_1.difference = function (a, b, cmp) {
                     return new core_1.Sequence(function (_a, cons) {
-                        var _b = _a === void 0 ? [
+                        var _b = __read(_a === void 0 ? [
                                 function () {
                                     return a.iterate();
                                 },
                                 function () {
                                     return b.iterate();
                                 }
-                            ] : _a, ai = _b[0], bi = _b[1];
+                            ] : _a, 2), ai = _b[0], bi = _b[1];
                         return core_1.Sequence.Iterator.when(ai(), function () {
                             return core_1.Sequence.Iterator.when(bi(), function () {
                                 return cons();
@@ -2548,6 +2787,27 @@ require = function e(t, n, r) {
                     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
                 };
             }();
+            var __read = this && this.__read || function (o, n) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator];
+                if (!m)
+                    return o;
+                var i = m.call(o), r, ar = [], e;
+                try {
+                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+                        ar.push(r.value);
+                } catch (error) {
+                    e = { error: error };
+                } finally {
+                    try {
+                        if (r && !r.done && (m = i['return']))
+                            m.call(i);
+                    } finally {
+                        if (e)
+                            throw e.error;
+                    }
+                }
+                return ar;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var core_1 = require('../../core');
             var default_1 = function (_super) {
@@ -2557,10 +2817,10 @@ require = function e(t, n, r) {
                 }
                 default_1.from = function (as) {
                     return new core_1.Sequence(function (_a, cons) {
-                        var _b = _a === void 0 ? [
+                        var _b = __read(_a === void 0 ? [
                                 as[Symbol.iterator](),
                                 0
-                            ] : _a, iter = _b[0], i = _b[1];
+                            ] : _a, 2), iter = _b[0], i = _b[1];
                         var result = iter.next();
                         return result.done ? cons() : cons(result.value, [
                             iter,
@@ -2593,6 +2853,27 @@ require = function e(t, n, r) {
                     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
                 };
             }();
+            var __read = this && this.__read || function (o, n) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator];
+                if (!m)
+                    return o;
+                var i = m.call(o), r, ar = [], e;
+                try {
+                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+                        ar.push(r.value);
+                } catch (error) {
+                    e = { error: error };
+                } finally {
+                    try {
+                        if (r && !r.done && (m = i['return']))
+                            m.call(i);
+                    } finally {
+                        if (e)
+                            throw e.error;
+                    }
+                }
+                return ar;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var core_1 = require('../../core');
             var default_1 = function (_super) {
@@ -2602,14 +2883,14 @@ require = function e(t, n, r) {
                 }
                 default_1.intersect = function (a, b, cmp) {
                     return new core_1.Sequence(function (_a, cons) {
-                        var _b = _a === void 0 ? [
+                        var _b = __read(_a === void 0 ? [
                                 function () {
                                     return a.iterate();
                                 },
                                 function () {
                                     return b.iterate();
                                 }
-                            ] : _a, ai = _b[0], bi = _b[1];
+                            ] : _a, 2), ai = _b[0], bi = _b[1];
                         return core_1.Sequence.Iterator.when(ai(), function () {
                             return cons();
                         }, function (at, ar) {
@@ -2694,6 +2975,32 @@ require = function e(t, n, r) {
                     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
                 };
             }();
+            var __read = this && this.__read || function (o, n) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator];
+                if (!m)
+                    return o;
+                var i = m.call(o), r, ar = [], e;
+                try {
+                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+                        ar.push(r.value);
+                } catch (error) {
+                    e = { error: error };
+                } finally {
+                    try {
+                        if (r && !r.done && (m = i['return']))
+                            m.call(i);
+                    } finally {
+                        if (e)
+                            throw e.error;
+                    }
+                }
+                return ar;
+            };
+            var __spread = this && this.__spread || function () {
+                for (var ar = [], i = 0; i < arguments.length; i++)
+                    ar = ar.concat(__read(arguments[i]));
+                return ar;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var core_1 = require('../../core');
             var default_1 = function (_super) {
@@ -2702,7 +3009,7 @@ require = function e(t, n, r) {
                     return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.mconcat = function (as) {
-                    return Array.from(as).reduce(function (a, b) {
+                    return __spread(as).reduce(function (a, b) {
                         return mconcat(a, b);
                     }, core_1.Sequence.mempty);
                 };
@@ -2711,14 +3018,14 @@ require = function e(t, n, r) {
             exports.default = default_1;
             function mconcat(a, b) {
                 return new core_1.Sequence(function (_a, cons) {
-                    var _b = _a === void 0 ? [
+                    var _b = __read(_a === void 0 ? [
                             function () {
                                 return a.iterate();
                             },
                             function () {
                                 return b.iterate();
                             }
-                        ] : _a, ai = _b[0], bi = _b[1];
+                        ] : _a, 2), ai = _b[0], bi = _b[1];
                     return core_1.Sequence.Iterator.when(ai(), function () {
                         return core_1.Sequence.Iterator.when(bi(), function () {
                             return cons();
@@ -3021,6 +3328,27 @@ require = function e(t, n, r) {
                     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
                 };
             }();
+            var __read = this && this.__read || function (o, n) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator];
+                if (!m)
+                    return o;
+                var i = m.call(o), r, ar = [], e;
+                try {
+                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+                        ar.push(r.value);
+                } catch (error) {
+                    e = { error: error };
+                } finally {
+                    try {
+                        if (r && !r.done && (m = i['return']))
+                            m.call(i);
+                    } finally {
+                        if (e)
+                            throw e.error;
+                    }
+                }
+                return ar;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var core_1 = require('../../core');
             var default_1 = function (_super) {
@@ -3030,14 +3358,14 @@ require = function e(t, n, r) {
                 }
                 default_1.union = function (a, b, cmp) {
                     return new core_1.Sequence(function (_a, cons) {
-                        var _b = _a === void 0 ? [
+                        var _b = __read(_a === void 0 ? [
                                 function () {
                                     return a.iterate();
                                 },
                                 function () {
                                     return b.iterate();
                                 }
-                            ] : _a, ai = _b[0], bi = _b[1];
+                            ] : _a, 2), ai = _b[0], bi = _b[1];
                         return core_1.Sequence.Iterator.when(ai(), function () {
                             return core_1.Sequence.Iterator.when(bi(), function () {
                                 return cons();
@@ -3102,6 +3430,27 @@ require = function e(t, n, r) {
                     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
                 };
             }();
+            var __read = this && this.__read || function (o, n) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator];
+                if (!m)
+                    return o;
+                var i = m.call(o), r, ar = [], e;
+                try {
+                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+                        ar.push(r.value);
+                } catch (error) {
+                    e = { error: error };
+                } finally {
+                    try {
+                        if (r && !r.done && (m = i['return']))
+                            m.call(i);
+                    } finally {
+                        if (e)
+                            throw e.error;
+                    }
+                }
+                return ar;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var core_1 = require('../../core');
             var default_1 = function (_super) {
@@ -3111,14 +3460,14 @@ require = function e(t, n, r) {
                 }
                 default_1.zip = function (a, b) {
                     return new core_1.Sequence(function (_a, cons) {
-                        var _b = _a === void 0 ? [
+                        var _b = __read(_a === void 0 ? [
                                 function () {
                                     return a.iterate();
                                 },
                                 function () {
                                     return b.iterate();
                                 }
-                            ] : _a, ai = _b[0], bi = _b[1];
+                            ] : _a, 2), ai = _b[0], bi = _b[1];
                         return core_1.Sequence.Iterator.when(ai(), function () {
                             return cons();
                         }, function (at) {
@@ -3155,6 +3504,21 @@ require = function e(t, n, r) {
     68: [
         function (require, module, exports) {
             'use strict';
+            var __values = this && this.__values || function (o) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator], i = 0;
+                if (m)
+                    return m.call(o);
+                return {
+                    next: function () {
+                        if (o && i >= o.length)
+                            o = void 0;
+                        return {
+                            value: o && o[i++],
+                            done: !o
+                        };
+                    }
+                };
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var concat_1 = require('./concat');
             var equal_1 = require('./equal');
@@ -3353,21 +3717,34 @@ require = function e(t, n, r) {
                 };
                 Observation.prototype.seekNode_ = function (namespace) {
                     var node = this.node_;
-                    for (var _i = 0, namespace_1 = namespace; _i < namespace_1.length; _i++) {
-                        var name_2 = namespace_1[_i];
-                        var children = node.children;
-                        if (!children.has(name_2)) {
-                            void node.childrenNames.push(name_2);
-                            children.set(name_2, {
-                                parent: node,
-                                children: new Map(),
-                                childrenNames: [],
-                                items: []
-                            });
+                    try {
+                        for (var namespace_1 = __values(namespace), namespace_1_1 = namespace_1.next(); !namespace_1_1.done; namespace_1_1 = namespace_1.next()) {
+                            var name_2 = namespace_1_1.value;
+                            var children = node.children;
+                            if (!children.has(name_2)) {
+                                void node.childrenNames.push(name_2);
+                                children.set(name_2, {
+                                    parent: node,
+                                    children: new Map(),
+                                    childrenNames: [],
+                                    items: []
+                                });
+                            }
+                            node = children.get(name_2);
                         }
-                        node = children.get(name_2);
+                    } catch (e_1_1) {
+                        e_1 = { error: e_1_1 };
+                    } finally {
+                        try {
+                            if (namespace_1_1 && !namespace_1_1.done && (_a = namespace_1.return))
+                                _a.call(namespace_1);
+                        } finally {
+                            if (e_1)
+                                throw e_1.error;
+                        }
                     }
                     return node;
+                    var e_1, _a;
                 };
                 return Observation;
             }();
@@ -3432,6 +3809,32 @@ require = function e(t, n, r) {
     71: [
         function (require, module, exports) {
             'use strict';
+            var __read = this && this.__read || function (o, n) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator];
+                if (!m)
+                    return o;
+                var i = m.call(o), r, ar = [], e;
+                try {
+                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+                        ar.push(r.value);
+                } catch (error) {
+                    e = { error: error };
+                } finally {
+                    try {
+                        if (r && !r.done && (m = i['return']))
+                            m.call(i);
+                    } finally {
+                        if (e)
+                            throw e.error;
+                    }
+                }
+                return ar;
+            };
+            var __spread = this && this.__spread || function () {
+                for (var ar = [], i = 0; i < arguments.length; i++)
+                    ar = ar.concat(__read(arguments[i]));
+                return ar;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var observation_1 = require('./observation');
             var tick_1 = require('./tick');
@@ -3458,7 +3861,7 @@ require = function e(t, n, r) {
                         var resource = _this.resource;
                         var _loop_1 = function (i, len) {
                             var now = Date.now();
-                            var _a = _this.messages[i], name_1 = _a[0], param = _a[1], callback = _a[2], timeout = _a[3], registered = _a[4];
+                            var _a = __read(_this.messages[i], 5), name_1 = _a[0], param = _a[1], callback = _a[2], timeout = _a[3], registered = _a[4];
                             var result = _this.workers.has(name_1) ? _this.workers.get(name_1).call([
                                 param,
                                 registered + timeout - now
@@ -3484,7 +3887,7 @@ require = function e(t, n, r) {
                                 }
                                 return out_i_1 = i, out_len_1 = len, 'continue';
                             }
-                            var reply = result[0];
+                            var _b = __read(result, 1), reply = _b[0];
                             if (!thenable_1.isThenable(reply)) {
                                 try {
                                     void callback(reply);
@@ -3509,7 +3912,7 @@ require = function e(t, n, r) {
                         }
                         if (!_this.available) {
                             while (_this.messages.length > 0) {
-                                var _a = _this.messages.shift(), name_2 = _a[0], param = _a[1];
+                                var _a = __read(_this.messages.shift(), 2), name_2 = _a[0], param = _a[1];
                                 void _this.events.loss.emit([name_2], [
                                     name_2,
                                     param
@@ -3546,7 +3949,7 @@ require = function e(t, n, r) {
                 });
                 Object.defineProperty(Supervisor, 'procs', {
                     get: function () {
-                        return this.instances ? Array.from(this.instances).reduce(function (cnt, sv) {
+                        return this.instances ? __spread(this.instances).reduce(function (cnt, sv) {
                             return cnt + sv.workers.size;
                         }, 0) : 0;
                     },
@@ -3594,7 +3997,7 @@ require = function e(t, n, r) {
                     }
                     void this.validate();
                     while (this.messages.length + 1 > this.size) {
-                        var _a = this.messages.shift(), name_3 = _a[0], param_1 = _a[1], callback_1 = _a[2];
+                        var _a = __read(this.messages.shift(), 3), name_3 = _a[0], param_1 = _a[1], callback_1 = _a[2];
                         void this.events.loss.emit([name_3], [
                             name_3,
                             param_1
@@ -3638,7 +4041,7 @@ require = function e(t, n, r) {
                     }
                     if (result === void 0 || result instanceof Error)
                         return false;
-                    var reply = result[0];
+                    var _a = __read(result, 1), reply = _a[0];
                     if (thenable_1.isThenable(reply)) {
                         void reply.catch(function () {
                             return void 0;
@@ -3648,7 +4051,7 @@ require = function e(t, n, r) {
                 };
                 Supervisor.prototype.refs = function (name) {
                     void this.validate();
-                    return name === void 0 ? Array.from(this.workers.values()).map(convert) : this.workers.has(name) ? [convert(this.workers.get(name))] : [];
+                    return name === void 0 ? __spread(this.workers.values()).map(convert) : this.workers.has(name) ? [convert(this.workers.get(name))] : [];
                     function convert(worker) {
                         return [
                             worker.name,
@@ -3687,7 +4090,7 @@ require = function e(t, n, r) {
                     this.available = true;
                     this.called = false;
                     this.call = function (_a) {
-                        var param = _a[0], timeout = _a[1];
+                        var _b = __read(_a, 2), param = _b[0], timeout = _b[1];
                         if (!_this.available)
                             return;
                         try {
@@ -3703,7 +4106,7 @@ require = function e(t, n, r) {
                             }
                             var result_1 = _this.process.call(param, _this.state);
                             if (!thenable_1.isThenable(result_1)) {
-                                var reply = result_1[0], state = result_1[1];
+                                var _c = __read(result_1, 2), reply = _c[0], state = _c[1];
                                 _this.state = state;
                                 _this.available = true;
                                 return [reply];
@@ -3713,13 +4116,13 @@ require = function e(t, n, r) {
                                             return void reject(new Error());
                                         }, timeout);
                                     }).then(function (_a) {
-                                        var reply = _a[0], state = _a[1];
+                                        var _b = __read(_a, 2), reply = _b[0], state = _b[1];
                                         return [
                                             reply,
                                             state
                                         ];
                                     }).then(function (_a) {
-                                        var reply = _a[0], state = _a[1];
+                                        var _b = __read(_a, 2), reply = _b[0], state = _b[1];
                                         void _this.sv.schedule();
                                         if (!_this.alive)
                                             return Promise.reject(new Error());
@@ -3878,6 +4281,32 @@ require = function e(t, n, r) {
                 }
                 return t;
             };
+            var __read = this && this.__read || function (o, n) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator];
+                if (!m)
+                    return o;
+                var i = m.call(o), r, ar = [], e;
+                try {
+                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+                        ar.push(r.value);
+                } catch (error) {
+                    e = { error: error };
+                } finally {
+                    try {
+                        if (r && !r.done && (m = i['return']))
+                            m.call(i);
+                    } finally {
+                        if (e)
+                            throw e.error;
+                    }
+                }
+                return ar;
+            };
+            var __spread = this && this.__spread || function () {
+                for (var ar = [], i = 0; i < arguments.length; i++)
+                    ar = ar.concat(__read(arguments[i]));
+                return ar;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var El = function () {
                 function El(element_, children_) {
@@ -3932,7 +4361,7 @@ require = function e(t, n, r) {
                         if (!element_.id.match(/^[\w\-]+$/))
                             return;
                         style.innerHTML = style.innerHTML.replace(/^\s*\$scope(?!\w)/gm, '#' + element_.id);
-                        void Array.from(style.querySelectorAll('*')).forEach(function (el) {
+                        void __spread(style.querySelectorAll('*')).forEach(function (el) {
                             return void el.remove();
                         });
                     }
@@ -4246,6 +4675,32 @@ require = function e(t, n, r) {
                 }
                 return t;
             };
+            var __read = this && this.__read || function (o, n) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator];
+                if (!m)
+                    return o;
+                var i = m.call(o), r, ar = [], e;
+                try {
+                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+                        ar.push(r.value);
+                } catch (error) {
+                    e = { error: error };
+                } finally {
+                    try {
+                        if (r && !r.done && (m = i['return']))
+                            m.call(i);
+                    } finally {
+                        if (e)
+                            throw e.error;
+                    }
+                }
+                return ar;
+            };
+            var __spread = this && this.__spread || function () {
+                for (var ar = [], i = 0; i < arguments.length; i++)
+                    ar = ar.concat(__read(arguments[i]));
+                return ar;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var noop_1 = require('./noop');
             exports.currentTargets = new WeakMap();
@@ -4290,7 +4745,7 @@ require = function e(t, n, r) {
                     var cx = ev.target.closest(selector);
                     if (!cx)
                         return;
-                    void Array.from(target.querySelectorAll(selector)).filter(function (el) {
+                    void __spread(target.querySelectorAll(selector)).filter(function (el) {
                         return el === cx;
                     }).forEach(function (el) {
                         return void once(el, type, function (ev) {
@@ -4608,17 +5063,13 @@ require = function e(t, n, r) {
             function encode(url) {
                 return url.trim().replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]?|[\uDC00-\uDFFF]/g, function (str) {
                     return str.length === 2 ? str : '';
-                }).replace(/%(?![0-9A-F]{2})|[^%\[\]]+/ig, encodeURI).replace(/#.+/, function (fragment) {
-                    return '#' + fragment.slice(1).replace(/%[0-9A-F]{2}|./ig, function (str) {
-                        return str.length < 3 ? encodeURIComponent(str) : str;
-                    });
-                }).replace(/\?[^#]+/, function (query) {
+                }).replace(/%(?![0-9A-F]{2})|[^%\[\]]+/ig, encodeURI).replace(/\?[^#]+/, function (query) {
                     return '?' + query.slice(1).replace(/%[0-9A-F]{2}|[^=&]/ig, function (str) {
                         return str.length < 3 ? encodeURIComponent(str) : str;
                     });
                 }).replace(/%[0-9A-F]{2}/ig, function (str) {
                     return str.toUpperCase();
-                });
+                }).replace(/#.+/, url.slice(url.indexOf('#')));
             }
             exports._encode = encode;
             var parser = document.createElement('a');
@@ -4626,7 +5077,7 @@ require = function e(t, n, r) {
                 parser.href = url || location.href;
                 return parser.href.replace(/^([^:/?#]+:\/\/[^/?#]*?):(?:80)?(?=$|[/?#])/, '$1').replace(/^([^:/?#]+:\/\/[^/?#]*)\/?/, '$1/').replace(/%[0-9A-F]{2}/ig, function (str) {
                     return str.toUpperCase();
-                });
+                }).replace(/#.+/, url.slice(url.indexOf('#')));
             }
         },
         {}
@@ -5177,6 +5628,27 @@ require = function e(t, n, r) {
                     };
                 }
             };
+            var __read = this && this.__read || function (o, n) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator];
+                if (!m)
+                    return o;
+                var i = m.call(o), r, ar = [], e;
+                try {
+                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+                        ar.push(r.value);
+                } catch (error) {
+                    e = { error: error };
+                } finally {
+                    try {
+                        if (r && !r.done && (m = i['return']))
+                            m.call(i);
+                    } finally {
+                        if (e)
+                            throw e.error;
+                    }
+                }
+                return ar;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var either_1 = require('spica/either');
             var fetch_1 = require('./module/fetch');
@@ -5220,7 +5692,7 @@ require = function e(t, n, r) {
                                             return [
                                                 2,
                                                 _a.sent().fmap(function (_a) {
-                                                    var res = _a[0], seq = _a[1];
+                                                    var _b = __read(_a, 2), res = _b[0], seq = _b[1];
                                                     return update_1.update(entity, res, seq, {
                                                         document: io.document,
                                                         position: path_1.loadPosition
@@ -5449,6 +5921,27 @@ require = function e(t, n, r) {
                     };
                 }
             };
+            var __read = this && this.__read || function (o, n) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator];
+                if (!m)
+                    return o;
+                var i = m.call(o), r, ar = [], e;
+                try {
+                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+                        ar.push(r.value);
+                } catch (error) {
+                    e = { error: error };
+                } finally {
+                    try {
+                        if (r && !r.done && (m = i['return']))
+                            m.call(i);
+                    } finally {
+                        if (e)
+                            throw e.error;
+                    }
+                }
+                return ar;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var either_1 = require('spica/either');
             var xhr_1 = require('../module/fetch/xhr');
@@ -5480,7 +5973,10 @@ require = function e(t, n, r) {
                                 ])
                             ];
                         case 1:
-                            _a = _b.sent(), res = _a[0], seq = _a[1];
+                            _a = __read.apply(void 0, [
+                                _b.sent(),
+                                2
+                            ]), res = _a[0], seq = _a[1];
                             return [
                                 2,
                                 res.bind(process.either).bind(function (result) {
@@ -5688,6 +6184,27 @@ require = function e(t, n, r) {
                     };
                 }
             };
+            var __read = this && this.__read || function (o, n) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator];
+                if (!m)
+                    return o;
+                var i = m.call(o), r, ar = [], e;
+                try {
+                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+                        ar.push(r.value);
+                } catch (error) {
+                    e = { error: error };
+                } finally {
+                    try {
+                        if (r && !r.done && (m = i['return']))
+                            m.call(i);
+                    } finally {
+                        if (e)
+                            throw e.error;
+                    }
+                }
+                return ar;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var either_1 = require('spica/either');
             var hlist_1 = require('spica/hlist');
@@ -5721,7 +6238,7 @@ require = function e(t, n, r) {
                             new hlist_1.HNil().push(process.either(seq)).modify(function (m) {
                                 return m.fmap(function (seq) {
                                     return content_1.separate(documents, config.areas).fmap(function (_a) {
-                                        var area = _a[0];
+                                        var _b = __read(_a, 1), area = _b[0];
                                         return void config.rewrite(documents.src, area, '');
                                     }).extract(function () {
                                         return __awaiter(_this, void 0, void 0, function () {
@@ -5778,7 +6295,7 @@ require = function e(t, n, r) {
                                                                             src: documents.src.head,
                                                                             dst: documents.dst.head
                                                                         }, config.update.head, config.update.ignore), content_1.content(documents, config.areas).fmap(function (_a) {
-                                                                            var as = _a[0], ps = _a[1];
+                                                                            var _b = __read(_a, 2), as = _b[0], ps = _b[1];
                                                                             return [
                                                                                 as,
                                                                                 Promise.all(ps)
@@ -5803,7 +6320,7 @@ require = function e(t, n, r) {
                                                                         return [
                                                                             2,
                                                                             _a.sent().fmap(function (_a) {
-                                                                                var areas = _a[0];
+                                                                                var _b = __read(_a, 1), areas = _b[0];
                                                                                 return Promise.all(new hlist_1.HNil().extend(function () {
                                                                                     return __awaiter(_this, void 0, void 0, function () {
                                                                                         var _a;
@@ -5872,7 +6389,7 @@ require = function e(t, n, r) {
                                                                                         });
                                                                                     });
                                                                                 }).reverse().tuple()).then(function (_a) {
-                                                                                    var m1 = _a[0], m2 = _a[1];
+                                                                                    var _b = __read(_a, 2), m1 = _b[0], m2 = _b[1];
                                                                                     return m1.bind(function (ss) {
                                                                                         return m2.fmap(function (seq) {
                                                                                             return [
@@ -5909,13 +6426,13 @@ require = function e(t, n, r) {
                                                 return [
                                                     2,
                                                     _a.sent().fmap(function (_a) {
-                                                        var p1 = _a[0], p2 = _a[1];
+                                                        var _b = __read(_a, 2), p1 = _b[0], p2 = _b[1];
                                                         return p2.then(function (m2) {
                                                             return void p1.then(function (m1) {
                                                                 return m1.bind(function (_a) {
-                                                                    var p = _a[1];
+                                                                    var _b = __read(_a, 2), p = _b[1];
                                                                     return m2.fmap(function (_a) {
-                                                                        var seq = _a[1];
+                                                                        var _b = __read(_a, 2), seq = _b[1];
                                                                         return __awaiter(_this, void 0, void 0, function () {
                                                                             var _a, _b;
                                                                             return __generator(this, function (_c) {
@@ -5943,7 +6460,7 @@ require = function e(t, n, r) {
                                                                     return void 0;
                                                                 });
                                                             }), m2.fmap(function (_a) {
-                                                                var ss = _a[0];
+                                                                var _b = __read(_a, 1), ss = _b[0];
                                                                 return ss;
                                                             });
                                                         });
@@ -5995,6 +6512,27 @@ require = function e(t, n, r) {
     99: [
         function (require, module, exports) {
             'use strict';
+            var __read = this && this.__read || function (o, n) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator];
+                if (!m)
+                    return o;
+                var i = m.call(o), r, ar = [], e;
+                try {
+                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+                        ar.push(r.value);
+                } catch (error) {
+                    e = { error: error };
+                } finally {
+                    try {
+                        if (r && !r.done && (m = i['return']))
+                            m.call(i);
+                    } finally {
+                        if (e)
+                            throw e.error;
+                    }
+                }
+                return ar;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var maybe_1 = require('spica/maybe');
             var concat_1 = require('spica/concat');
@@ -6010,7 +6548,7 @@ require = function e(t, n, r) {
                     };
                 }
                 return separate(documents, areas).fmap(function (_a) {
-                    var areas = _a[1];
+                    var _b = __read(_a, 2), areas = _b[1];
                     return [
                         areas.map(function (a) {
                             return a.dst;
@@ -6303,6 +6841,27 @@ require = function e(t, n, r) {
                     };
                 }
             };
+            var __read = this && this.__read || function (o, n) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator];
+                if (!m)
+                    return o;
+                var i = m.call(o), r, ar = [], e;
+                try {
+                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+                        ar.push(r.value);
+                } catch (error) {
+                    e = { error: error };
+                } finally {
+                    try {
+                        if (r && !r.done && (m = i['return']))
+                            m.call(i);
+                    } finally {
+                        if (e)
+                            throw e.error;
+                    }
+                }
+                return ar;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var either_1 = require('spica/either');
             var dom_1 = require('../../../../../lib/dom');
@@ -6327,7 +6886,7 @@ require = function e(t, n, r) {
                         }, responses.reduce(function (results, m) {
                             return results.bind(cancellation.either).bind(function (scripts) {
                                 return m.bind(function (_a) {
-                                    var script = _a[0], code = _a[1];
+                                    var _b = __read(_a, 2), script = _b[0], code = _b[1];
                                     return io.evaluate(script, code, selector.logger);
                                 }).fmap(function (script) {
                                     return scripts.concat([script]);
@@ -6513,6 +7072,32 @@ require = function e(t, n, r) {
     105: [
         function (require, module, exports) {
             'use strict';
+            var __read = this && this.__read || function (o, n) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator];
+                if (!m)
+                    return o;
+                var i = m.call(o), r, ar = [], e;
+                try {
+                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+                        ar.push(r.value);
+                } catch (error) {
+                    e = { error: error };
+                } finally {
+                    try {
+                        if (r && !r.done && (m = i['return']))
+                            m.call(i);
+                    } finally {
+                        if (e)
+                            throw e.error;
+                    }
+                }
+                return ar;
+            };
+            var __spread = this && this.__spread || function () {
+                for (var ar = [], i = 0; i < arguments.length; i++)
+                    ar = ar.concat(__read(arguments[i]));
+                return ar;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var either_1 = require('spica/either');
             var concat_1 = require('spica/concat');
@@ -6524,7 +7109,7 @@ require = function e(t, n, r) {
                     };
                 }
                 return void pairs.forEach(function (_a) {
-                    var srcs = _a[0], dst = _a[1];
+                    var _b = __read(_a, 2), srcs = _b[0], dst = _b[1];
                     return void io.before(parent(dst), srcs.slice(-1).some(function (src) {
                         return !!dst && src.outerHTML === dst.outerHTML;
                     }) ? srcs.slice(0, -1) : srcs, dst), dst && srcs.length === 0 ? void io.remove(dst) : void 0;
@@ -6541,8 +7126,8 @@ require = function e(t, n, r) {
                 }).forEach(function (dst) {
                     return void link.set(dst, []);
                 });
-                return Array.from(link.entries()).map(function (_a) {
-                    var dst = _a[0], srcs = _a[1];
+                return __spread(link).map(function (_a) {
+                    var _b = __read(_a, 2), dst = _b[0], srcs = _b[1];
                     return [
                         srcs,
                         dst
@@ -7256,6 +7841,27 @@ require = function e(t, n, r) {
                     };
                 }
             };
+            var __read = this && this.__read || function (o, n) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator];
+                if (!m)
+                    return o;
+                var i = m.call(o), r, ar = [], e;
+                try {
+                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+                        ar.push(r.value);
+                } catch (error) {
+                    e = { error: error };
+                } finally {
+                    try {
+                        if (r && !r.done && (m = i['return']))
+                            m.call(i);
+                    } finally {
+                        if (e)
+                            throw e.error;
+                    }
+                }
+                return ar;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var cancellation_1 = require('spica/cancellation');
             var typed_dom_1 = require('typed-dom');
@@ -7271,9 +7877,9 @@ require = function e(t, n, r) {
             }, true);
             function route(config, event, process, io) {
                 return __awaiter(this, void 0, void 0, function () {
-                    var cancellation, kill, scripts;
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
+                    var cancellation, kill, _a, scripts;
+                    return __generator(this, function (_b) {
+                        switch (_b.label) {
                         case 0:
                             void event.preventDefault();
                             void process.cast('', new error_1.InterfaceError('Abort.'));
@@ -7287,7 +7893,10 @@ require = function e(t, n, r) {
                                 env_1.env
                             ];
                         case 1:
-                            scripts = _a.sent()[0];
+                            _a = __read.apply(void 0, [
+                                _b.sent(),
+                                1
+                            ]), scripts = _a[0];
                             window.history.scrollRestoration = 'manual';
                             void progressbar_1.progressbar(config.progressbar);
                             return [
@@ -7434,9 +8043,35 @@ require = function e(t, n, r) {
     123: [
         function (require, module, exports) {
             'use strict';
+            var __read = this && this.__read || function (o, n) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator];
+                if (!m)
+                    return o;
+                var i = m.call(o), r, ar = [], e;
+                try {
+                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+                        ar.push(r.value);
+                } catch (error) {
+                    e = { error: error };
+                } finally {
+                    try {
+                        if (r && !r.done && (m = i['return']))
+                            m.call(i);
+                    } finally {
+                        if (e)
+                            throw e.error;
+                    }
+                }
+                return ar;
+            };
+            var __spread = this && this.__spread || function () {
+                for (var ar = [], i = 0; i < arguments.length; i++)
+                    ar = ar.concat(__read(arguments[i]));
+                return ar;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             function find(target, selector) {
-                return Array.from(target.querySelectorAll(selector || '_'));
+                return __spread(target.querySelectorAll(selector || '_'));
             }
             exports.find = find;
             function serialize(form) {
@@ -7526,6 +8161,27 @@ require = function e(t, n, r) {
     125: [
         function (require, module, exports) {
             'use strict';
+            var __read = this && this.__read || function (o, n) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator];
+                if (!m)
+                    return o;
+                var i = m.call(o), r, ar = [], e;
+                try {
+                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+                        ar.push(r.value);
+                } catch (error) {
+                    e = { error: error };
+                } finally {
+                    try {
+                        if (r && !r.done && (m = i['return']))
+                            m.call(i);
+                    } finally {
+                        if (e)
+                            throw e.error;
+                    }
+                }
+                return ar;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var maybe_1 = require('spica/maybe');
             var either_1 = require('spica/either');
@@ -7573,7 +8229,7 @@ require = function e(t, n, r) {
             }
             function fix(doc) {
                 return void fixNoscript(doc).forEach(function (_a) {
-                    var src = _a[0], fixed = _a[1];
+                    var _b = __read(_a, 2), src = _b[0], fixed = _b[1];
                     return src.textContent = fixed.textContent;
                 });
             }
@@ -7622,6 +8278,32 @@ require = function e(t, n, r) {
     126: [
         function (require, module, exports) {
             'use strict';
+            var __read = this && this.__read || function (o, n) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator];
+                if (!m)
+                    return o;
+                var i = m.call(o), r, ar = [], e;
+                try {
+                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+                        ar.push(r.value);
+                } catch (error) {
+                    e = { error: error };
+                } finally {
+                    try {
+                        if (r && !r.done && (m = i['return']))
+                            m.call(i);
+                    } finally {
+                        if (e)
+                            throw e.error;
+                    }
+                }
+                return ar;
+            };
+            var __spread = this && this.__spread || function () {
+                for (var ar = [], i = 0; i < arguments.length; i++)
+                    ar = ar.concat(__read(arguments[i]));
+                return ar;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var url_1 = require('../layer/data/model/domain/url');
             var url_2 = require('./url');
@@ -7640,18 +8322,18 @@ require = function e(t, n, r) {
                 var regSegment = /\/|[^/]+\/?/g;
                 var regTrailingSlash = /\/(?=$|[?#])/;
                 return sequence_1.Sequence.zip(sequence_1.Sequence.from(expand(pattern)), sequence_1.Sequence.cycle([path])).map(function (_a) {
-                    var pattern = _a[0], path = _a[1];
+                    var _b = __read(_a, 2), pattern = _b[0], path = _b[1];
                     return [
                         pattern.match(regSegment) || [],
                         pattern.match(regTrailingSlash) ? path.match(regSegment) || [] : path.replace(regTrailingSlash, '').match(regSegment) || []
                     ];
                 }).filter(function (_a) {
-                    var ps = _a[0], ss = _a[1];
+                    var _b = __read(_a, 2), ps = _b[0], ss = _b[1];
                     return ps.length <= ss.length;
                 }).filter(function (_a) {
-                    var patterns = _a[0], segments = _a[1];
+                    var _b = __read(_a, 2), patterns = _b[0], segments = _b[1];
                     return sequence_1.Sequence.zip(sequence_1.Sequence.from(patterns), sequence_1.Sequence.from(segments)).takeWhile(function (_a) {
-                        var p = _a[0], s = _a[1];
+                        var _b = __read(_a, 2), p = _b[0], s = _b[1];
                         return match(p, s);
                     }).extract().length === patterns.length;
                 }).take(1).extract().length > 0;
@@ -7667,7 +8349,7 @@ require = function e(t, n, r) {
             exports.expand = expand;
             function match(pattern, segment) {
                 pattern = pattern.replace(/[*]+/g, '*').replace(/[*]+[?]/g, '?');
-                var _a = Array.from(pattern).map(function (p, i) {
+                var _a = __read(__spread(pattern).map(function (p, i) {
                         return p === '*' ? [
                             p,
                             pattern.slice(i + 1).match(/^[^?*/]*/)[0]
@@ -7676,12 +8358,12 @@ require = function e(t, n, r) {
                             ''
                         ];
                     }).reduce(function (_a, _b) {
-                        var ls = _a[0], _c = _a[1], _d = _c[0], r = _d === void 0 ? '' : _d, rs = _c.slice(1), s = _a[2];
-                        var p = _b[0], ps = _b[1];
+                        var _c = __read(_a, 3), ls = _c[0], _d = __read(_c[1]), _e = _d[0], r = _e === void 0 ? '' : _e, rs = _d.slice(1), s = _c[2];
+                        var _f = __read(_b, 2), p = _f[0], ps = _f[1];
                         if (!s)
                             return [
                                 ls,
-                                [r].concat(rs),
+                                __spread([r], rs),
                                 s
                             ];
                         switch (p) {
@@ -7695,16 +8377,16 @@ require = function e(t, n, r) {
                             var seg = r.concat(rs.join(''));
                             var ref = ps.split(/[?*]/, 1)[0];
                             return seg.includes(ref) ? ref === '' ? [
-                                ls.concat(Array.from(seg.replace(/\/$/, ''))),
-                                Array.from(seg.replace(/.*?(?=\/?$)/, '')),
+                                ls.concat(__spread(seg.replace(/\/$/, ''))),
+                                __spread(seg.replace(/.*?(?=\/?$)/, '')),
                                 s
                             ] : [
-                                ls.concat(Array.from(seg.slice(0, seg.indexOf(ref)))),
-                                Array.from(seg.slice(seg.indexOf(ref))),
+                                ls.concat(__spread(seg.slice(0, seg.indexOf(ref)))),
+                                __spread(seg.slice(seg.indexOf(ref))),
                                 s
                             ] : [
                                 ls,
-                                [r].concat(rs),
+                                __spread([r], rs),
                                 !s
                             ];
                         default:
@@ -7714,15 +8396,15 @@ require = function e(t, n, r) {
                                 s
                             ] : [
                                 ls,
-                                [r].concat(rs),
+                                __spread([r], rs),
                                 !s
                             ];
                         }
                     }, [
-                        Array.from(''),
-                        Array.from(segment),
+                        [''],
+                        __spread(segment),
                         true
-                    ]), rest = _a[1], state = _a[2];
+                    ]), 3), rest = _a[1], state = _a[2];
                 return rest.length === 0 && state;
             }
             exports.match = match;
