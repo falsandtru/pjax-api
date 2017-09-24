@@ -6,9 +6,10 @@ import { docurl } from './state/url';
 import { env } from '../service/state/env';
 import { RouterEventSource } from '../../domain/event/router';
 import { progressbar } from './progressbar';
-import { standardizeUrl } from '../../data/model/domain/url';
 import { InterfaceError } from '../data/error';
 import { loadTitle } from '../../application/api';
+import { standardizeUrl } from '../../data/model/domain/url';
+import { URL } from '../../../lib/url';
 
 void bind(window, 'pjax:unload', () =>
   window.history.scrollRestoration = 'auto', true);
@@ -41,11 +42,11 @@ export async function route(
         void ss
           .filter(s => s.hasAttribute('src'))
           .forEach(s =>
-            void scripts.add(standardizeUrl(s.src))),
+            void scripts.add(new URL(standardizeUrl(s.src)).href)),
         void (await p)
           .filter(s => s.hasAttribute('src'))
           .forEach(s =>
-            void scripts.add(standardizeUrl(s.src)))))
+            void scripts.add(new URL(standardizeUrl(s.src)).href))))
       .extract())
     .catch(e => (
       void kill(),

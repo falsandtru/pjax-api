@@ -3,20 +3,21 @@ import { Just } from 'spica/maybe';
 import { Left } from 'spica/either';
 import { Config } from '../domain/data/config';
 import { StandardUrl } from '../data/model/domain/url';
+import { URL } from '../../lib/url';
 import { scope } from './config/scope';
 import { route as route_, RouterEntity, RouterEntityState, RouterResult } from '../domain/router/api';
 import { RouterEvent } from '../domain/event/router';
 import { ApplicationError } from './data/error';
 
 export * from './store/path';
-export { Config };
+export { Config }
 
 export async function route(
   config: Config,
   event: Event,
   state: {
     process: Cancellee<Error>;
-    scripts: ReadonlySet<StandardUrl>;
+    scripts: ReadonlySet<URL.Absolute<StandardUrl>>;
   },
   io: {
     document: Document;

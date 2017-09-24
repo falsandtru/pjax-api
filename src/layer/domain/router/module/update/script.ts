@@ -12,7 +12,7 @@ export async function script(
     src: Document;
     dst: Document;
   },
-  skip: ReadonlySet<StandardUrl>,
+  skip: ReadonlySet<URL.Absolute<StandardUrl>>,
   selector: {
     ignore: string;
     reload: string;
@@ -30,7 +30,7 @@ export async function script(
     .filter(el => !el.matches(selector.ignore.trim() || '_'))
     .filter(el =>
       el.hasAttribute('src')
-        ? !skip.has(standardizeUrl(el.src)) || el.matches(selector.reload.trim() || '_')
+        ? !skip.has(new URL(standardizeUrl(el.src)).href) || el.matches(selector.reload.trim() || '_')
         : true);
   return run(await Promise.all(request(scripts)));
 
@@ -102,7 +102,7 @@ async function fetch(script: HTMLScriptElement, timeout: number): Promise<Either
 }
 export { fetch as _fetch }
 
-function evaluate(script: HTMLScriptElement, code: string, logger: string, skip: ReadonlySet<StandardUrl>, wait: Promise<any> = Promise.resolve()): Either<Error, HTMLScriptElement> | Promise<Either<Error, HTMLScriptElement>> {
+function evaluate(script: HTMLScriptElement, code: string, logger: string, skip: ReadonlySet<URL.Absolute<StandardUrl>>, wait: Promise<any> = Promise.resolve()): Either<Error, HTMLScriptElement> | Promise<Either<Error, HTMLScriptElement>> {
   assert(script.hasAttribute('src') ? script.childNodes.length === 0 : script.text === code);
   assert(script.textContent === script.text);
   script = script.ownerDocument === document
@@ -140,7 +140,7 @@ function evaluate(script: HTMLScriptElement, code: string, logger: string, skip:
   function evaluate() {
     try {
       if (new URL(standardizeUrl(window.location.href)).path !== url.path) throw new FatalError('Expired.');
-      if (skip.has(standardizeUrl(window.location.href))) throw new FatalError('Expired.');
+      if (skip.has(new URL(standardizeUrl(window.location.href)).href)) throw new FatalError('Expired.');
       void (0, eval)(code);
       script.hasAttribute('src') && void script.dispatchEvent(new Event('load'));
       return Right(script);

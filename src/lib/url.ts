@@ -9,7 +9,7 @@ export class URL<T extends string> {
     Object.freeze(this);
   }
   private readonly parser = document.createElement('a');
-  public get href(): T {
+  public get href(): URL.Absolute<T> {
     return this.parser.href as any;
   }
   public get origin(): URL.Origin<T> {
@@ -50,6 +50,7 @@ export class URL<T extends string> {
   }
 }
 export namespace URL {
+  export type Absolute<T extends string> = PartialUrl<'absolute'> & T;
   export type Origin<T extends string> = PartialUrl<'origin'> & T;
   export type Domain<T extends string> = PartialUrl<'domain'> & T;
   export type Scheme<T extends string> = PartialUrl<'scheme'> & T;
