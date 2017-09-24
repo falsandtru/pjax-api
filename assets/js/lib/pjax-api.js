@@ -6344,7 +6344,7 @@ require = function e(t, n, r) {
                                                                                                     ];
                                                                                                 return [
                                                                                                     4,
-                                                                                                    script_1.script(documents, state.scripts, config.update, process)
+                                                                                                    script_1.script(documents, state.scripts, config.update, Math.max(config.fetch.timeout * 10, 10 * 1000), process)
                                                                                                 ];
                                                                                             case 1:
                                                                                                 _a = _b.sent();
@@ -6355,7 +6355,10 @@ require = function e(t, n, r) {
                                                                                             case 2:
                                                                                                 return [
                                                                                                     4,
-                                                                                                    process.either([])
+                                                                                                    process.either([
+                                                                                                        [],
+                                                                                                        Promise.resolve([])
+                                                                                                    ])
                                                                                                 ];
                                                                                             case 3:
                                                                                                 _a = _b.sent();
@@ -6430,28 +6433,31 @@ require = function e(t, n, r) {
                                                         return p2.then(function (m2) {
                                                             return void p1.then(function (m1) {
                                                                 return m1.bind(function (_a) {
-                                                                    var _b = __read(_a, 2), p = _b[1];
+                                                                    var _b = __read(_a, 2), cp = _b[1];
                                                                     return m2.fmap(function (_a) {
-                                                                        var _b = __read(_a, 2), seq = _b[1];
+                                                                        var _b = __read(_a, 2), _c = __read(_b[0], 2), sp = _c[1], seq = _b[1];
                                                                         return __awaiter(_this, void 0, void 0, function () {
-                                                                            var _a, _b;
-                                                                            return __generator(this, function (_c) {
-                                                                                switch (_c.label) {
+                                                                            var events;
+                                                                            return __generator(this, function (_a) {
+                                                                                switch (_a.label) {
                                                                                 case 0:
-                                                                                    _b = (_a = process).maybe;
                                                                                     return [
                                                                                         4,
-                                                                                        p
+                                                                                        sp
                                                                                     ];
                                                                                 case 1:
+                                                                                    _a.sent();
                                                                                     return [
-                                                                                        2,
-                                                                                        _b.apply(_a, [_c.sent()]).fmap(function (events) {
-                                                                                            return void window.dispatchEvent(new Event('pjax:load')), void config.sequence.load(seq, events);
-                                                                                        }).extract(function () {
-                                                                                            return void 0;
-                                                                                        })
+                                                                                        4,
+                                                                                        cp
                                                                                     ];
+                                                                                case 2:
+                                                                                    events = _a.sent();
+                                                                                    if (process.canceled)
+                                                                                        return [2];
+                                                                                    void window.dispatchEvent(new Event('pjax:load'));
+                                                                                    void config.sequence.load(seq, events);
+                                                                                    return [2];
                                                                                 }
                                                                             });
                                                                         });
@@ -6460,8 +6466,11 @@ require = function e(t, n, r) {
                                                                     return void 0;
                                                                 });
                                                             }), m2.fmap(function (_a) {
-                                                                var _b = __read(_a, 1), ss = _b[0];
-                                                                return ss;
+                                                                var _b = __read(_a, 1), _c = __read(_b[0], 2), ss = _c[0], p = _c[1];
+                                                                return [
+                                                                    ss,
+                                                                    p
+                                                                ];
                                                             });
                                                         });
                                                     }).extract(either_1.Left)
@@ -6866,8 +6875,9 @@ require = function e(t, n, r) {
             var either_1 = require('spica/either');
             var dom_1 = require('../../../../../lib/dom');
             var error_1 = require('../../../../../lib/error');
-            var url_1 = require('../../../../data/model/domain/url');
-            function script(documents, skip, selector, cancellation, io) {
+            var url_1 = require('../../../../../lib/url');
+            var url_2 = require('../../../../data/model/domain/url');
+            function script(documents, skip, selector, timeout, cancellation, io) {
                 if (io === void 0) {
                     io = {
                         fetch: fetch,
@@ -6876,7 +6886,9 @@ require = function e(t, n, r) {
                 }
                 return __awaiter(this, void 0, void 0, function () {
                     function request(scripts) {
-                        return scripts.map(io.fetch);
+                        return scripts.map(function (script) {
+                            return io.fetch(script, timeout);
+                        });
                     }
                     function run(responses) {
                         return responses.reduce(function (results, m) {
@@ -6884,26 +6896,52 @@ require = function e(t, n, r) {
                                 return results;
                             });
                         }, responses.reduce(function (results, m) {
-                            return results.bind(cancellation.either).bind(function (scripts) {
-                                return m.bind(function (_a) {
+                            return results.bind(cancellation.either).bind(function (_a) {
+                                var _b = __read(_a, 2), ss = _b[0], ps = _b[1];
+                                return m.fmap(function (_a) {
                                     var _b = __read(_a, 2), script = _b[0], code = _b[1];
-                                    return io.evaluate(script, code, selector.logger);
-                                }).fmap(function (script) {
-                                    return scripts.concat([script]);
+                                    return io.evaluate(script, code, selector.logger, skip, Promise.all(ps));
+                                }).bind(function (result) {
+                                    return result instanceof Promise ? either_1.Right(result) : result;
+                                }).fmap(function (result) {
+                                    return result instanceof Promise ? [
+                                        ss,
+                                        ps.concat([result])
+                                    ] : [
+                                        ss.concat([result]),
+                                        ps
+                                    ];
                                 });
                             });
-                        }, either_1.Right([])));
+                        }, either_1.Right([
+                            [],
+                            []
+                        ]))).fmap(function (_a) {
+                            var _b = __read(_a, 2), ss = _b[0], ps = _b[1];
+                            return [
+                                ss,
+                                Promise.all(ps).then(function (ms) {
+                                    return ms.reduce(function (acc, m) {
+                                        return acc.bind(function (scripts) {
+                                            return m.fmap(function (script) {
+                                                return scripts.concat([script]);
+                                            });
+                                        });
+                                    }, either_1.Right([])).extract();
+                                })
+                            ];
+                        });
                     }
                     var scripts, _a;
                     return __generator(this, function (_b) {
                         switch (_b.label) {
                         case 0:
                             scripts = dom_1.find(documents.src, 'script').filter(function (el) {
-                                return !el.type || /(?:application|text)\/(?:java|ecma)script/i.test(el.type);
+                                return !el.type || /(?:application|text)\/(?:java|ecma)script|module/i.test(el.type);
                             }).filter(function (el) {
                                 return !el.matches(selector.ignore.trim() || '_');
                             }).filter(function (el) {
-                                return el.hasAttribute('src') ? !skip.has(url_1.standardizeUrl(el.src)) || el.matches(selector.reload.trim() || '_') : true;
+                                return el.hasAttribute('src') ? !skip.has(url_2.standardizeUrl(el.src)) || el.matches(selector.reload.trim() || '_') : true;
                             });
                             _a = run;
                             return [
@@ -6920,13 +6958,22 @@ require = function e(t, n, r) {
                 });
             }
             exports.script = script;
-            function fetch(script) {
+            function fetch(script, timeout) {
                 return __awaiter(this, void 0, void 0, function () {
                     var xhr_1;
                     return __generator(this, function (_a) {
                         if (script.hasAttribute('src')) {
+                            if (script.type.toLowerCase() === 'module')
+                                return [
+                                    2,
+                                    either_1.Right([
+                                        script,
+                                        ''
+                                    ])
+                                ];
                             xhr_1 = new XMLHttpRequest();
                             void xhr_1.open('GET', script.src, true);
+                            xhr_1.timeout = timeout;
                             void xhr_1.send();
                             return [
                                 2,
@@ -6967,7 +7014,10 @@ require = function e(t, n, r) {
                 });
             }
             exports._fetch = fetch;
-            function evaluate(script, code, logger) {
+            function evaluate(script, code, logger, skip, wait) {
+                if (wait === void 0) {
+                    wait = Promise.resolve();
+                }
                 script = script.ownerDocument === document ? script : document.importNode(script.cloneNode(true), true);
                 var logging = !!script.parentElement && script.parentElement.matches(logger.trim() || '_');
                 var container = document.querySelector(logging ? script.parentElement.id ? '#' + script.parentElement.id : script.parentElement.tagName : '_') || document.body;
@@ -6975,13 +7025,33 @@ require = function e(t, n, r) {
                 void container.appendChild(script);
                 void unescape();
                 !logging && void script.remove();
-                try {
-                    void (0, eval)(code);
-                    script.hasAttribute('src') && void script.dispatchEvent(new Event('load'));
-                    return either_1.Right(script);
-                } catch (reason) {
-                    script.hasAttribute('src') && void script.dispatchEvent(new Event('error'));
-                    return either_1.Left(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''));
+                var url = new url_1.URL(url_2.standardizeUrl(location.href));
+                if (script.type.toLowerCase() === 'module') {
+                    return wait.then(function () {
+                        return Promise.resolve().then(function () {
+                            return require(script.src);
+                        });
+                    }).then(function () {
+                        return void script.dispatchEvent(new Event('load')), either_1.Right(script);
+                    }, function (reason) {
+                        return void script.dispatchEvent(new Event('error')), either_1.Left(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''));
+                    });
+                } else {
+                    return script.hasAttribute('defer') ? wait.then(evaluate) : evaluate();
+                }
+                function evaluate() {
+                    try {
+                        if (new url_1.URL(url_2.standardizeUrl(location.href)).path !== url.path)
+                            throw new error_1.FatalError('Expired.');
+                        if (skip.has(url_2.standardizeUrl(location.href)))
+                            throw new error_1.FatalError('Expired.');
+                        void (0, eval)(code);
+                        script.hasAttribute('src') && void script.dispatchEvent(new Event('load'));
+                        return either_1.Right(script);
+                    } catch (reason) {
+                        script.hasAttribute('src') && void script.dispatchEvent(new Event('error'));
+                        return either_1.Left(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''));
+                    }
                 }
             }
             exports._evaluate = evaluate;
@@ -6999,6 +7069,7 @@ require = function e(t, n, r) {
         {
             '../../../../../lib/dom': 123,
             '../../../../../lib/error': 124,
+            '../../../../../lib/url': 127,
             '../../../../data/model/domain/url': 86,
             'spica/either': 8
         }
@@ -7864,6 +7935,7 @@ require = function e(t, n, r) {
             }, true);
             function route(config, event, process, io) {
                 return __awaiter(this, void 0, void 0, function () {
+                    var _this = this;
                     var cancellation, kill, _a, scripts;
                     return __generator(this, function (_b) {
                         switch (_b.label) {
@@ -7892,12 +7964,33 @@ require = function e(t, n, r) {
                                     process: cancellation,
                                     scripts: scripts
                                 }, io).then(function (m) {
-                                    return m.fmap(function (ss) {
-                                        return void kill(), void ss.filter(function (s) {
-                                            return s.hasAttribute('src');
-                                        }).forEach(function (s) {
-                                            return void scripts.add(url_2.standardizeUrl(s.src));
-                                        }), void url_1.docurl.sync();
+                                    return m.fmap(function (_a) {
+                                        var _b = __read(_a, 2), ss = _b[0], p = _b[1];
+                                        return __awaiter(_this, void 0, void 0, function () {
+                                            return __generator(this, function (_a) {
+                                                switch (_a.label) {
+                                                case 0:
+                                                    void kill(), void url_1.docurl.sync(), void ss.filter(function (s) {
+                                                        return s.hasAttribute('src');
+                                                    }).forEach(function (s) {
+                                                        return void scripts.add(url_2.standardizeUrl(s.src));
+                                                    });
+                                                    return [
+                                                        4,
+                                                        p
+                                                    ];
+                                                case 1:
+                                                    return [
+                                                        2,
+                                                        void _a.sent().filter(function (s) {
+                                                            return s.hasAttribute('src');
+                                                        }).forEach(function (s) {
+                                                            return void scripts.add(url_2.standardizeUrl(s.src));
+                                                        })
+                                                    ];
+                                                }
+                                            });
+                                        });
                                     }).extract();
                                 }).catch(function (e) {
                                     return void kill(), window.history.scrollRestoration = 'auto', void url_1.docurl.sync(), !cancellation.canceled || e instanceof Error && e.name === 'FatalError' ? void config.fallback(typed_dom_1.currentTargets.get(event), e instanceof Error ? e : new Error(e)) : void 0;
