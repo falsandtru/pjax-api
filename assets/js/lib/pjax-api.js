@@ -6900,7 +6900,7 @@ require = function e(t, n, r) {
                                 var _b = __read(_a, 2), ss = _b[0], ps = _b[1];
                                 return m.fmap(function (_a) {
                                     var _b = __read(_a, 2), script = _b[0], code = _b[1];
-                                    return io.evaluate(script, code, selector.logger, skip, Promise.all(ps));
+                                    return io.evaluate(script, code, selector.logger, skip, Promise.all(ps), cancellation);
                                 }).bind(function (result) {
                                     return result instanceof Promise ? either_1.Right(result) : result;
                                 }).fmap(function (result) {
@@ -7014,10 +7014,7 @@ require = function e(t, n, r) {
                 });
             }
             exports._fetch = fetch;
-            function evaluate(script, code, logger, skip, wait) {
-                if (wait === void 0) {
-                    wait = Promise.resolve();
-                }
+            function evaluate(script, code, logger, skip, wait, cancellation) {
                 script = script.ownerDocument === document ? script : document.importNode(script.cloneNode(true), true);
                 var logging = !!script.parentElement && script.parentElement.matches(logger.trim() || '_');
                 var container = document.querySelector(logging ? script.parentElement.id ? '#' + script.parentElement.id : script.parentElement.tagName : '_') || document.body;
@@ -7044,6 +7041,8 @@ require = function e(t, n, r) {
                     return evaluate();
                 }
                 function evaluate() {
+                    if (cancellation.canceled)
+                        return cancellation.either(script);
                     try {
                         if (new url_1.URL(url_2.standardizeUrl(window.location.href)).path !== url.path)
                             throw new error_1.FatalError('Expired.');
