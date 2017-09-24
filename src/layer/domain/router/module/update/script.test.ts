@@ -20,7 +20,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         },
         new Cancellation<Error>(),
         {
-          fetch: script => Promise.resolve(Right<[HTMLScriptElement, string]>([script, script.text])),
+          fetch: async script => Right<[HTMLScriptElement, string]>([script, script.text]),
           evaluate: script => Right(script),
         })
         .then(m => {
@@ -33,7 +33,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       let cnt = 0;
       script(
         {
-          src: parse(DOM.head([DOM.script({ class: 'test' }, [])]).element.outerHTML).extract(),
+          src: parse(DOM.head([DOM.script({ class: 'test' })]).element.outerHTML).extract(),
           dst: parse('').extract()
         },
         new Set([]),
@@ -44,10 +44,10 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         },
         new Cancellation<Error>(),
         {
-          fetch: script => {
+          fetch: async script => {
             assert(cnt === 0 && ++cnt);
             assert(script.className === 'test');
-            return Promise.resolve(Right<[HTMLScriptElement, string]>([script, script.text]));
+            return Right<[HTMLScriptElement, string]>([script, script.text]);
           },
           evaluate: (script, code) => {
             assert(cnt === 2 && ++cnt);
@@ -78,11 +78,11 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         },
         new Cancellation<Error>(),
         {
-          fetch: script => {
+          fetch: async script => {
             assert(++cnt);
             return cnt === 1
-              ? Promise.resolve(Right<[HTMLScriptElement, string]>([script, script.text]))
-              : Promise.resolve(Left(new Error()));
+              ? Right<[HTMLScriptElement, string]>([script, script.text])
+              : Left(new Error());
           },
           evaluate: script => {
             assert(++cnt === NaN);
@@ -100,7 +100,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       let cnt = 0;
       script(
         {
-          src: parse(DOM.head([DOM.script({ class: 'test' }, [])]).element.outerHTML).extract(),
+          src: parse(DOM.head([DOM.script({ class: 'test' })]).element.outerHTML).extract(),
           dst: parse('').extract()
         },
         new Set([]),
@@ -111,12 +111,12 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         },
         new Cancellation<Error>(),
         {
-          fetch: script => {
+          fetch: async script => {
             assert(cnt === 0 && ++cnt);
             assert(script.className === 'test');
-            return Promise.resolve(Right<[HTMLScriptElement, string]>([script, '']));
+            return Right<[HTMLScriptElement, string]>([script, '']);
           },
-          evaluate: ([]) => {
+          evaluate: () => {
             assert(cnt === 2 && ++cnt);
             return Left(new Error());
           },
@@ -133,7 +133,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       const cancellation = new Cancellation<Error>();
       script(
         {
-          src: parse(DOM.head([DOM.script({ class: 'test' }, [])]).element.outerHTML).extract(),
+          src: parse(DOM.head([DOM.script({ class: 'test' })]).element.outerHTML).extract(),
           dst: parse('').extract()
         },
         new Set([]),
@@ -144,10 +144,10 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         },
         cancellation,
         {
-          fetch: script => {
+          fetch: async script => {
             assert(cnt === 0 && ++cnt);
             assert(script.className === 'test');
-            return Promise.resolve(Right<[HTMLScriptElement, string]>([script, '']));
+            return Right<[HTMLScriptElement, string]>([script, '']);
           },
           evaluate: script => {
             assert(++cnt === NaN);
@@ -170,24 +170,23 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       const script = DOM.script({ src }).element;
       _fetch(script)
         .then(m => m
-          .fmap(([el, html]) => {
+          .fmap(([el, code]) => {
             assert(el === script);
             assert(el.getAttribute('src') === src);
-            assert(html === 'throw 0');
+            assert(code === 'throw 0');
             done();
           })
           .extract());
     });
 
     it('inline', done => {
-      const code = 'alert';
-      const script = DOM.script(code).element;
+      const script = DOM.script('throw 0').element;
       _fetch(script)
         .then(m => m
-          .fmap(([el, html]) => {
+          .fmap(([el, code]) => {
             assert(el === script);
-            assert(el.text === html);
-            assert(html === code);
+            assert(el.text === code);
+            assert(code === 'throw 0');
             done();
           })
           .extract());
