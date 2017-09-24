@@ -7037,7 +7037,11 @@ require = function e(t, n, r) {
                         return void script.dispatchEvent(new Event('error')), either_1.Left(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''));
                     });
                 } else {
-                    return script.hasAttribute('defer') ? wait.then(evaluate) : evaluate();
+                    if (script.hasAttribute('defer'))
+                        return wait.then(evaluate);
+                    if (script.hasAttribute('async'))
+                        return Promise.resolve().then(evaluate);
+                    return evaluate();
                 }
                 function evaluate() {
                     try {
