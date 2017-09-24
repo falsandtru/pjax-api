@@ -1,8 +1,6 @@
-import { Maybe, Just, Nothing } from 'spica/maybe';
 import { RouterEventType } from '../../../event/router';
 import { URL } from '../../../../../lib/url';
 import { StandardUrl } from '../../../../data/model/domain/url';
-import { find } from '../../../../../lib/dom';
 
 export function scroll(
   type: RouterEventType,
@@ -43,20 +41,14 @@ function hash(
     scroll: window.scrollTo as (x?: number, y?: number) => void,
   }
 ): boolean {
-  return Just(hash.split('#').pop() || '')
-    .bind(hash => hash.length > 0 ? Just(hash) : Nothing)
-    .bind(hash =>
-      find(document, `#${hash}, [name="${hash}"]`)
-        .reduce<Maybe<HTMLElement>>((m, el) =>
-          m.extract(() => Just(el), Just)
-        , Nothing))
-    .fmap(el =>
-      void io.scroll.call(
-        window,
-        window.pageXOffset,
-        window.pageYOffset + el.getBoundingClientRect().top | 0))
-    .extract(
-      () => false,
-      () => true);
+  const index = hash.slice(1);
+  if (index.length === 0) return false;
+  const el = document.getElementById(index) || document.getElementsByName(index)[0];
+  if (!el) return false;
+  void io.scroll.call(
+    window,
+    window.pageXOffset,
+    window.pageYOffset + el.getBoundingClientRect().top | 0);
+  return true;
 }
 export { hash as _hash }

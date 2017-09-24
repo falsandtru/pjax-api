@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.16.6
+
+- Fix scroll by url hash.
+
 ## 3.16.5
 
 - Don't encode url hash.
