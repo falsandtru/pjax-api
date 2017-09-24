@@ -120,7 +120,7 @@ function evaluate(script: HTMLScriptElement, code: string, logger: string, skip:
   void container.appendChild(script);
   void unescape();
   !logging && void script.remove();
-  const url = new URL(standardizeUrl(location.href));
+  const url = new URL(standardizeUrl(window.location.href));
   if (script.type.toLowerCase() === 'module') {
     return wait.then(() => import(script.src))
       .then(
@@ -139,8 +139,8 @@ function evaluate(script: HTMLScriptElement, code: string, logger: string, skip:
 
   function evaluate() {
     try {
-      if (new URL(standardizeUrl(location.href)).path !== url.path) throw new FatalError('Expired.');
-      if (skip.has(standardizeUrl(location.href))) throw new FatalError('Expired.');
+      if (new URL(standardizeUrl(window.location.href)).path !== url.path) throw new FatalError('Expired.');
+      if (skip.has(standardizeUrl(window.location.href))) throw new FatalError('Expired.');
       void (0, eval)(code);
       script.hasAttribute('src') && void script.dispatchEvent(new Event('load'));
       return Right(script);
