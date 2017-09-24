@@ -7025,7 +7025,7 @@ require = function e(t, n, r) {
                 void container.appendChild(script);
                 void unescape();
                 !logging && void script.remove();
-                var url = new url_1.URL(url_2.standardizeUrl(location.href));
+                var url = new url_1.URL(url_2.standardizeUrl(window.location.href));
                 if (script.type.toLowerCase() === 'module') {
                     return wait.then(function () {
                         return Promise.resolve().then(function () {
@@ -7045,9 +7045,9 @@ require = function e(t, n, r) {
                 }
                 function evaluate() {
                     try {
-                        if (new url_1.URL(url_2.standardizeUrl(location.href)).path !== url.path)
+                        if (new url_1.URL(url_2.standardizeUrl(window.location.href)).path !== url.path)
                             throw new error_1.FatalError('Expired.');
-                        if (skip.has(url_2.standardizeUrl(location.href)))
+                        if (skip.has(url_2.standardizeUrl(window.location.href)))
                             throw new error_1.FatalError('Expired.');
                         void (0, eval)(code);
                         script.hasAttribute('src') && void script.dispatchEvent(new Event('load'));
