@@ -7007,9 +7007,7 @@ require = function e(t, n, r) {
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            var maybe_1 = require('spica/maybe');
             var router_1 = require('../../../event/router');
-            var dom_1 = require('../../../../../lib/dom');
             function scroll(type, document, env, io) {
                 if (io === void 0) {
                     io = {
@@ -7045,29 +7043,18 @@ require = function e(t, n, r) {
                 if (io === void 0) {
                     io = { scroll: window.scrollTo };
                 }
-                return maybe_1.Just(hash.split('#').pop() || '').bind(function (hash) {
-                    return hash.length > 0 ? maybe_1.Just(hash) : maybe_1.Nothing;
-                }).bind(function (hash) {
-                    return dom_1.find(document, '#' + hash + ', [name="' + hash + '"]').reduce(function (m, el) {
-                        return m.extract(function () {
-                            return maybe_1.Just(el);
-                        }, maybe_1.Just);
-                    }, maybe_1.Nothing);
-                }).fmap(function (el) {
-                    return void io.scroll.call(window, window.pageXOffset, window.pageYOffset + el.getBoundingClientRect().top | 0);
-                }).extract(function () {
+                var index = hash.slice(1);
+                if (index.length === 0)
                     return false;
-                }, function () {
-                    return true;
-                });
+                var el = document.getElementById(index) || document.getElementsByName(index)[0];
+                if (!el)
+                    return false;
+                void io.scroll.call(window, window.pageXOffset, window.pageYOffset + el.getBoundingClientRect().top | 0);
+                return true;
             }
             exports._hash = hash;
         },
-        {
-            '../../../../../lib/dom': 123,
-            '../../../event/router': 90,
-            'spica/maybe': 13
-        }
+        { '../../../event/router': 90 }
     ],
     105: [
         function (require, module, exports) {
