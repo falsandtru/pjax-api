@@ -132,9 +132,9 @@ function evaluate(script: HTMLScriptElement, code: string, logger: string, skip:
           Left(new FatalError(reason instanceof Error ? reason.message : reason + ''))));
   }
   else {
-    return script.hasAttribute('defer')
-      ? wait.then(evaluate)
-      : evaluate();
+    if (script.hasAttribute('defer')) return wait.then(evaluate);
+    if (script.hasAttribute('async')) return Promise.resolve().then(evaluate);
+    return evaluate();
   }
 
   function evaluate() {
