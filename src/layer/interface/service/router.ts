@@ -35,13 +35,17 @@ export async function route(
   void progressbar(config.progressbar);
   return route_(config, event, { process: cancellation, scripts }, io)
     .then(m => m
-      .fmap(ss => (
+      .fmap(async ([ss, p]) => (
         void kill(),
+        void docurl.sync(),
         void ss
           .filter(s => s.hasAttribute('src'))
           .forEach(s =>
             void scripts.add(standardizeUrl(s.src))),
-        void docurl.sync()))
+        void (await p)
+          .filter(s => s.hasAttribute('src'))
+          .forEach(s =>
+            void scripts.add(standardizeUrl(s.src)))))
       .extract())
     .catch(e => (
       void kill(),

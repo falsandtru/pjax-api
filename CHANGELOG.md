@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.16.7
+
+- Improve script deferred loading.
+
 ## 3.16.6
 
 - Fix scroll by url hash.

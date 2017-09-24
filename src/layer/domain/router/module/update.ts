@@ -31,7 +31,7 @@ export async function update(
     document: Document;
     position: () => { top: number; left: number; };
   }
-): Promise<Either<Error, HTMLScriptElement[]>> {
+): Promise<Either<Error, [HTMLScriptElement[], Promise<HTMLScriptElement[]>]>> {
   const { process } = state;
   const { documents } = new UpdateSource({
     src: response.document,
@@ -106,15 +106,17 @@ export async function update(
                 }),
                 void savePosition(),
                 config.update.script
-                  ? await script(documents, state.scripts, config.update, process)
-                  : await process.either<HTMLScriptElement[]>([])))
+                  ? await script(documents, state.scripts, config.update, Math.max(config.fetch.timeout * 10, 10 * 1e3), process)
+                  : await process.either<[HTMLScriptElement[], Promise<HTMLScriptElement[]>]>([[], Promise.resolve([])])))
               .extend(async () => (
                 void io.document.dispatchEvent(new Event('pjax:ready')),
                 process.either(await config.sequence.ready(seq, areas))))
               .reverse()
               .tuple())
             .then(([m1, m2]) =>
-              m1.bind(ss => m2.fmap<[HTMLScriptElement[], SequenceData.Ready]>(seq => [ss, seq]))))
+              m1.bind(ss =>
+                m2.fmap<[[HTMLScriptElement[], Promise<HTMLScriptElement[]>], SequenceData.Ready]>(seq =>
+                  [ss, seq]))))
             .extract<Left<Error>>(Left))
           .reverse()
           .tuple())))
@@ -123,15 +125,16 @@ export async function update(
       .fmap(([p1, p2]) =>
         p2.then(m2 => (
           void p1.then(m1 => m1
-            .bind(([, p]) => m2
-              .fmap(async ([, seq]) =>
-                process.maybe(await p)
-                  .fmap(events => (
-                    void window.dispatchEvent(new Event('pjax:load')),
-                    void config.sequence.load(seq, events)))
-                  .extract(() => void 0)))
+            .bind(([, cp]) => m2
+              .fmap(async ([[, sp], seq]) => {
+                await sp;
+                const events = await cp;
+                if (process.canceled) return;
+                void window.dispatchEvent(new Event('pjax:load'));
+                void config.sequence.load(seq, events);
+              }))
             .extract(() => void 0)),
-          m2.fmap(([ss]) => ss))))
+          m2.fmap(([[ss, p]]) => [ss, p] as [typeof ss, typeof p]))))
       .extract<Left<Error>>(Left)))
     .head
     .extract<Left<Error>>(Left);
