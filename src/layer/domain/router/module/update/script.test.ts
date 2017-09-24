@@ -348,7 +348,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      (_evaluate(script, `assert(this === window)`, '', new Set()) as Either<Error, HTMLScriptElement>)
+      (_evaluate(script, `assert(this === window)`, '', new Set(), Promise.resolve(), new Cancellation()) as Either<Error, HTMLScriptElement>)
         .fmap(el => {
           assert(el.outerHTML === `<script src="404"></script>`);
           assert(el.parentElement === null);
@@ -368,7 +368,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         assert(cnt === 0 && ++cnt);
         assert(event instanceof Event);
       });
-      (_evaluate(script, `throw new Error()`, '', new Set()) as Either<Error, HTMLScriptElement>)
+      (_evaluate(script, `throw new Error()`, '', new Set(), Promise.resolve(), new Cancellation()) as Either<Error, HTMLScriptElement>)
         .extract(e => {
           assert(e instanceof Error);
           assert(script.parentElement === null);
@@ -387,7 +387,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      (_evaluate(script, `assert(this === window)`, '', new Set()) as Promise<Either<Error, HTMLScriptElement>>)
+      (_evaluate(script, `assert(this === window)`, '', new Set(), Promise.resolve(), new Cancellation()) as Promise<Either<Error, HTMLScriptElement>>)
         .then(m => m
           .fmap(el => {
             assert(el.parentElement === null);
@@ -407,7 +407,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         assert(cnt === 0 && ++cnt);
         assert(event instanceof Event);
       });
-      (_evaluate(script, `throw new Error()`, '', new Set()) as Promise<Either<Error, HTMLScriptElement>>)
+      (_evaluate(script, `throw new Error()`, '', new Set(), Promise.resolve(), new Cancellation()) as Promise<Either<Error, HTMLScriptElement>>)
         .then(m => m
           .extract(e => {
             assert(e instanceof Error);
@@ -428,7 +428,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      (_evaluate(script, `assert(this === window)`, '', new Set()) as Promise<Either<Error, HTMLScriptElement>>)
+      (_evaluate(script, `assert(this === window)`, '', new Set(), Promise.resolve(), new Cancellation()) as Promise<Either<Error, HTMLScriptElement>>)
         .then(m => m
           .fmap(el => {
             assert(el.outerHTML === `<script type="module" src="404"></script>`);
@@ -450,7 +450,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         assert(cnt === 0 && ++cnt);
         assert(event instanceof Event);
       });
-      (_evaluate(script, `throw new Error()`, '', new Set()) as Promise<Either<Error, HTMLScriptElement>>)
+      (_evaluate(script, `throw new Error()`, '', new Set(), Promise.resolve(), new Cancellation()) as Promise<Either<Error, HTMLScriptElement>>)
         .then(m => m
           .extract(e => {
             assert(e instanceof Error);
@@ -470,7 +470,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      (_evaluate(script, script.text, '', new Set()) as Either<Error, HTMLScriptElement>)
+      (_evaluate(script, script.text, '', new Set(), Promise.resolve(), new Cancellation()) as Either<Error, HTMLScriptElement>)
         .fmap(el => {
           assert(el.hasAttribute('src') === false);
           assert(el.text.startsWith('assert'));
@@ -491,7 +491,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      (_evaluate(script, script.text, '', new Set()) as Either<Error, HTMLScriptElement>)
+      (_evaluate(script, script.text, '', new Set(), Promise.resolve(), new Cancellation()) as Either<Error, HTMLScriptElement>)
         .extract(e => {
           assert(e instanceof Error);
           assert(script.parentElement === null);

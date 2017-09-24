@@ -50,7 +50,7 @@ export async function script(
               .bind(cancellation.either)
               .bind(([ss, ps]) => m
                 .fmap(([script, code]) =>
-                  io.evaluate(script, code, selector.logger, skip, Promise.all(ps)))
+                  io.evaluate(script, code, selector.logger, skip, Promise.all(ps), cancellation))
                 .bind<HTMLScriptElement | Promise<Either<Error, HTMLScriptElement>>>(result =>
                   result instanceof Promise
                     ? Right(result)
@@ -102,9 +102,17 @@ async function fetch(script: HTMLScriptElement, timeout: number): Promise<Either
 }
 export { fetch as _fetch }
 
-function evaluate(script: HTMLScriptElement, code: string, logger: string, skip: ReadonlySet<URL.Absolute<StandardUrl>>, wait: Promise<any> = Promise.resolve()): Either<Error, HTMLScriptElement> | Promise<Either<Error, HTMLScriptElement>> {
+function evaluate(
+  script: HTMLScriptElement,
+  code: string,
+  logger: string,
+  skip: ReadonlySet<URL.Absolute<StandardUrl>>,
+  wait: Promise<any>,
+  cancellation: Cancellee<Error>,
+): Either<Error, HTMLScriptElement> | Promise<Either<Error, HTMLScriptElement>> {
   assert(script.hasAttribute('src') ? script.childNodes.length === 0 : script.text === code);
   assert(script.textContent === script.text);
+  assert(!cancellation.canceled);
   script = script.ownerDocument === document
     ? script // only for testing
     : document.importNode(script.cloneNode(true), true) as HTMLScriptElement;
@@ -138,6 +146,7 @@ function evaluate(script: HTMLScriptElement, code: string, logger: string, skip:
   }
 
   function evaluate() {
+    if (cancellation.canceled) return cancellation.either(script);
     try {
       if (new URL(standardizeUrl(window.location.href)).path !== url.path) throw new FatalError('Expired.');
       if (skip.has(new URL(standardizeUrl(window.location.href)).href)) throw new FatalError('Expired.');
