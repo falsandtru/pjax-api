@@ -6941,7 +6941,7 @@ require = function e(t, n, r) {
                             }).filter(function (el) {
                                 return !el.matches(selector.ignore.trim() || '_');
                             }).filter(function (el) {
-                                return el.hasAttribute('src') ? !skip.has(url_2.standardizeUrl(el.src)) || el.matches(selector.reload.trim() || '_') : true;
+                                return el.hasAttribute('src') ? !skip.has(new url_1.URL(url_2.standardizeUrl(el.src)).href) || el.matches(selector.reload.trim() || '_') : true;
                             });
                             _a = run;
                             return [
@@ -7047,7 +7047,7 @@ require = function e(t, n, r) {
                     try {
                         if (new url_1.URL(url_2.standardizeUrl(window.location.href)).path !== url.path)
                             throw new error_1.FatalError('Expired.');
-                        if (skip.has(url_2.standardizeUrl(window.location.href)))
+                        if (skip.has(new url_1.URL(url_2.standardizeUrl(window.location.href)).href))
                             throw new error_1.FatalError('Expired.');
                         void (0, eval)(code);
                         script.hasAttribute('src') && void script.dispatchEvent(new Event('load'));
@@ -7931,9 +7931,10 @@ require = function e(t, n, r) {
             var url_1 = require('./state/url');
             var env_1 = require('../service/state/env');
             var progressbar_1 = require('./progressbar');
-            var url_2 = require('../../data/model/domain/url');
             var error_1 = require('../data/error');
             var api_2 = require('../../application/api');
+            var url_2 = require('../../data/model/domain/url');
+            var url_3 = require('../../../lib/url');
             void typed_dom_1.bind(window, 'pjax:unload', function () {
                 return window.history.scrollRestoration = 'auto';
             }, true);
@@ -7977,7 +7978,7 @@ require = function e(t, n, r) {
                                                     void kill(), void url_1.docurl.sync(), void ss.filter(function (s) {
                                                         return s.hasAttribute('src');
                                                     }).forEach(function (s) {
-                                                        return void scripts.add(url_2.standardizeUrl(s.src));
+                                                        return void scripts.add(new url_3.URL(url_2.standardizeUrl(s.src)).href);
                                                     });
                                                     return [
                                                         4,
@@ -7989,7 +7990,7 @@ require = function e(t, n, r) {
                                                         void _a.sent().filter(function (s) {
                                                             return s.hasAttribute('src');
                                                         }).forEach(function (s) {
-                                                            return void scripts.add(url_2.standardizeUrl(s.src));
+                                                            return void scripts.add(new url_3.URL(url_2.standardizeUrl(s.src)).href);
                                                         })
                                                     ];
                                                 }
@@ -8007,6 +8008,7 @@ require = function e(t, n, r) {
             exports.route = route;
         },
         {
+            '../../../lib/url': 127,
             '../../application/api': 82,
             '../../data/model/domain/url': 86,
             '../data/error': 109,
@@ -8065,6 +8067,7 @@ require = function e(t, n, r) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             var url_1 = require('../../../data/model/domain/url');
+            var url_2 = require('../../../../lib/url');
             var dom_1 = require('../../../../lib/dom');
             var typed_dom_1 = require('typed-dom');
             exports.scripts = new Set();
@@ -8072,12 +8075,13 @@ require = function e(t, n, r) {
                 return void dom_1.find(document, 'script').filter(function (script) {
                     return script.hasAttribute('src');
                 }).forEach(function (script) {
-                    return void exports.scripts.add(url_1.standardizeUrl(script.src));
+                    return void exports.scripts.add(new url_2.URL(url_1.standardizeUrl(script.src)).href);
                 });
             });
         },
         {
             '../../../../lib/dom': 123,
+            '../../../../lib/url': 127,
             '../../../data/model/domain/url': 86,
             'typed-dom': 75
         }
