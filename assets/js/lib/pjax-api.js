@@ -6901,16 +6901,20 @@ require = function e(t, n, r) {
                                 return m.fmap(function (_a) {
                                     var _b = __read(_a, 2), script = _b[0], code = _b[1];
                                     return io.evaluate(script, code, selector.logger, skip, Promise.all(ps), cancellation);
-                                }).bind(function (result) {
-                                    return result instanceof Promise ? either_1.Right(result) : result;
-                                }).fmap(function (result) {
-                                    return result instanceof Promise ? [
-                                        ss,
-                                        ps.concat([result])
-                                    ] : [
-                                        ss.concat([result]),
-                                        ps
-                                    ];
+                                }).bind(function (m) {
+                                    return m.extract(function (m) {
+                                        return m.fmap(function (s) {
+                                            return [
+                                                ss.concat([s]),
+                                                ps
+                                            ];
+                                        });
+                                    }, function (p) {
+                                        return either_1.Right([
+                                            ss,
+                                            ps.concat([p])
+                                        ]);
+                                    });
                                 });
                             });
                         }, either_1.Right([
@@ -7024,7 +7028,7 @@ require = function e(t, n, r) {
                 !logging && void script.remove();
                 var url = new url_1.URL(url_2.standardizeUrl(window.location.href));
                 if (script.type.toLowerCase() === 'module') {
-                    return wait.then(function () {
+                    return either_1.Right(wait.then(function () {
                         return Promise.resolve().then(function () {
                             return require(script.src);
                         });
@@ -7032,13 +7036,13 @@ require = function e(t, n, r) {
                         return void script.dispatchEvent(new Event('load')), either_1.Right(script);
                     }, function (reason) {
                         return void script.dispatchEvent(new Event('error')), either_1.Left(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''));
-                    });
+                    }));
                 } else {
                     if (script.hasAttribute('defer'))
-                        return wait.then(evaluate);
+                        return either_1.Right(wait.then(evaluate));
                     if (script.hasAttribute('async'))
-                        return Promise.resolve().then(evaluate);
-                    return evaluate();
+                        return either_1.Right(Promise.resolve().then(evaluate));
+                    return either_1.Left(evaluate());
                 }
                 function evaluate() {
                     if (cancellation.canceled)
