@@ -1,6 +1,6 @@
 import { script, _fetch, _evaluate, escape } from './script';
 import { Cancellation } from 'spica/cancellation';
-import { Either, Left, Right } from 'spica/either';
+import { Left, Right } from 'spica/either';
 import { parse } from '../../../../../lib/html';
 import DOM from 'typed-dom';
 
@@ -22,7 +22,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         new Cancellation<Error>(),
         {
           fetch: async script => Right<[HTMLScriptElement, string]>([script, script.text]),
-          evaluate: script => Right(script),
+          evaluate: script => Left(Right(script)),
         })
         .then(m => {
           return m.extract();
@@ -62,7 +62,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
             assert(cnt === 2 && ++cnt);
             assert(script.className === 'test');
             assert(script.text === code);
-            return Right(script);
+            return Left(Right(script));
           },
         })
         .then(m => {
@@ -103,7 +103,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           },
           evaluate: script => {
             assert(++cnt === NaN);
-            return Right(script);
+            return Left(Right(script));
           },
         })
         .then(m => {
@@ -136,7 +136,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           },
           evaluate: () => {
             assert(cnt === 2 && ++cnt);
-            return Left(new Error());
+            return Left(Left(new Error()));
           },
         })
         .then(m => {
@@ -170,7 +170,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           },
           evaluate: script => {
             assert(++cnt === NaN);
-            return Right(script);
+            return Left(Right(script));
           },
         })
         .then(m => m.extract(err => {
@@ -200,9 +200,9 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           fetch: async script => {
             return Right<[HTMLScriptElement, string]>([script, script.text]);
           },
-          evaluate: async (script) => {
+          evaluate: script => {
             assert(cnt > 0 && ++cnt);
-            return Right(script);
+            return Right(Promise.resolve(Right(script)));
           },
         })
         .then(m => {
@@ -238,9 +238,9 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           fetch: async script => {
             return Right<[HTMLScriptElement, string]>([script, '']);
           },
-          evaluate: async () => {
+          evaluate: () => {
             assert(cnt > 0 && ++cnt);
-            return Left(new Error());
+            return Right(Promise.resolve(Left(new Error())));
           },
         })
         .then(m => {
@@ -278,9 +278,9 @@ describe('Unit: layer/domain/router/module/update/script', () => {
             assert(cnt === 0 && ++cnt);
             return Right<[HTMLScriptElement, string]>([script, '']);
           },
-          evaluate: async script => {
+          evaluate: script => {
             assert(++cnt === NaN);
-            return Right(script);
+            return Right(Promise.resolve(Right(script)));
           },
         })
         .then(m => m.extract(err => {
@@ -348,14 +348,15 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      (_evaluate(script, `assert(this === window)`, '', new Set(), Promise.resolve(), new Cancellation()) as Either<Error, HTMLScriptElement>)
-        .fmap(el => {
-          assert(el.outerHTML === `<script src="404"></script>`);
-          assert(el.parentElement === null);
-          assert(cnt === 1 && ++cnt);
-          done();
-        })
-        .extract();
+      _evaluate(script, `assert(this === window)`, '', new Set(), Promise.resolve(), new Cancellation())
+        .extract(m => m
+          .fmap(el => {
+            assert(el.outerHTML === `<script src="404"></script>`);
+            assert(el.parentElement === null);
+            assert(cnt === 1 && ++cnt);
+            done();
+          })
+          .extract());
     });
 
     it('external error', done => {
@@ -368,13 +369,14 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         assert(cnt === 0 && ++cnt);
         assert(event instanceof Event);
       });
-      (_evaluate(script, `throw new Error()`, '', new Set(), Promise.resolve(), new Cancellation()) as Either<Error, HTMLScriptElement>)
-        .extract(e => {
-          assert(e instanceof Error);
-          assert(script.parentElement === null);
-          assert(cnt === 1 && ++cnt);
-          done();
-        });
+      _evaluate(script, `throw new Error()`, '', new Set(), Promise.resolve(), new Cancellation())
+        .extract(m => m
+          .extract(e => {
+            assert(e instanceof Error);
+            assert(script.parentElement === null);
+            assert(cnt === 1 && ++cnt);
+            done();
+          }));
     });
 
     it('external defer load', done => {
@@ -387,14 +389,16 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      (_evaluate(script, `assert(this === window)`, '', new Set(), Promise.resolve(), new Cancellation()) as Promise<Either<Error, HTMLScriptElement>>)
-        .then(m => m
-          .fmap(el => {
-            assert(el.parentElement === null);
-            assert(cnt === 1 && ++cnt);
-            done();
-          })
-          .extract());
+      _evaluate(script, `assert(this === window)`, '', new Set(), Promise.resolve(), new Cancellation())
+        .fmap(p => p
+          .then(m => m
+            .fmap(el => {
+              assert(el.parentElement === null);
+              assert(cnt === 1 && ++cnt);
+              done();
+            })
+            .extract()))
+        .extract();
     });
 
     it('external defer error', done => {
@@ -407,14 +411,16 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         assert(cnt === 0 && ++cnt);
         assert(event instanceof Event);
       });
-      (_evaluate(script, `throw new Error()`, '', new Set(), Promise.resolve(), new Cancellation()) as Promise<Either<Error, HTMLScriptElement>>)
-        .then(m => m
-          .extract(e => {
-            assert(e instanceof Error);
-            assert(script.parentElement === null);
-            assert(cnt === 1 && ++cnt);
-            done();
-          }));
+      _evaluate(script, `throw new Error()`, '', new Set(), Promise.resolve(), new Cancellation())
+        .fmap(p => p
+          .then(m => m
+            .extract(e => {
+              assert(e instanceof Error);
+              assert(script.parentElement === null);
+              assert(cnt === 1 && ++cnt);
+              done();
+            })))
+        .extract();
     });
 
     it.skip('external module load', done => {
@@ -428,15 +434,17 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      (_evaluate(script, `assert(this === window)`, '', new Set(), Promise.resolve(), new Cancellation()) as Promise<Either<Error, HTMLScriptElement>>)
-        .then(m => m
-          .fmap(el => {
-            assert(el.outerHTML === `<script type="module" src="404"></script>`);
-            assert(el.parentElement === null);
-            assert(cnt === 1 && ++cnt);
-            done();
-          })
-          .extract());
+      _evaluate(script, `assert(this === window)`, '', new Set(), Promise.resolve(), new Cancellation())
+        .fmap(p => p
+          .then(m => m
+            .fmap(el => {
+              assert(el.outerHTML === `<script type="module" src="404"></script>`);
+              assert(el.parentElement === null);
+              assert(cnt === 1 && ++cnt);
+              done();
+            })
+            .extract()))
+        .extract();
     });
 
     it.skip('external module error', done => {
@@ -450,14 +458,16 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         assert(cnt === 0 && ++cnt);
         assert(event instanceof Event);
       });
-      (_evaluate(script, `throw new Error()`, '', new Set(), Promise.resolve(), new Cancellation()) as Promise<Either<Error, HTMLScriptElement>>)
-        .then(m => m
-          .extract(e => {
-            assert(e instanceof Error);
-            assert(script.parentElement === null);
-            assert(cnt === 1 && ++cnt);
-            done();
-          }));
+      _evaluate(script, `throw new Error()`, '', new Set(), Promise.resolve(), new Cancellation())
+        .fmap(p => p
+          .then(m => m
+            .extract(e => {
+              assert(e instanceof Error);
+              assert(script.parentElement === null);
+              assert(cnt === 1 && ++cnt);
+              done();
+            })))
+        .extract();
     });
 
     it('inline load', done => {
@@ -470,15 +480,16 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      (_evaluate(script, script.text, '', new Set(), Promise.resolve(), new Cancellation()) as Either<Error, HTMLScriptElement>)
-        .fmap(el => {
-          assert(el.hasAttribute('src') === false);
-          assert(el.text.startsWith('assert'));
-          assert(el.parentElement === null);
-          assert(cnt === 0 && ++cnt);
-          done();
-        })
-        .extract();
+      _evaluate(script, script.text, '', new Set(), Promise.resolve(), new Cancellation())
+        .extract(m => m
+          .fmap(el => {
+            assert(el.hasAttribute('src') === false);
+            assert(el.text.startsWith('assert'));
+            assert(el.parentElement === null);
+            assert(cnt === 0 && ++cnt);
+            done();
+          })
+          .extract());
     });
 
     it('inline error', done => {
@@ -491,13 +502,14 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      (_evaluate(script, script.text, '', new Set(), Promise.resolve(), new Cancellation()) as Either<Error, HTMLScriptElement>)
-        .extract(e => {
-          assert(e instanceof Error);
-          assert(script.parentElement === null);
-          assert(cnt === 0 && ++cnt);
-          done();
-        });
+      _evaluate(script, script.text, '', new Set(), Promise.resolve(), new Cancellation())
+        .extract(m => m
+          .extract(e => {
+            assert(e instanceof Error);
+            assert(script.parentElement === null);
+            assert(cnt === 0 && ++cnt);
+            done();
+          }));
     });
 
   });

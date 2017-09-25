@@ -51,14 +51,10 @@ export async function script(
               .bind(([ss, ps]) => m
                 .fmap(([script, code]) =>
                   io.evaluate(script, code, selector.logger, skip, Promise.all(ps), cancellation))
-                .bind<HTMLScriptElement | Promise<Either<Error, HTMLScriptElement>>>(result =>
-                  result instanceof Promise
-                    ? Right(result)
-                    : result)
-                .fmap<[HTMLScriptElement[], Promise<Either<Error, HTMLScriptElement>>[]]>(result =>
-                  result instanceof Promise
-                    ? [ss, ps.concat([result])]
-                    : [ss.concat([result]), ps]))
+                .bind<[HTMLScriptElement[], Promise<Either<Error, HTMLScriptElement>>[]]>(m =>
+                  m.extract(
+                    m => m.fmap<[typeof ss, typeof ps]>(s => [ss.concat([s]), ps]),
+                    p => Right<[typeof ss, typeof ps]>([ss, ps.concat([p])]))))
           , Right<Error, [HTMLScriptElement[], Promise<Either<Error, HTMLScriptElement>>[]]>([[], []])))
       .fmap<[HTMLScriptElement[], Promise<HTMLScriptElement[]>]>(([ss, ps]) => [
         ss,
@@ -109,7 +105,7 @@ function evaluate(
   skip: ReadonlySet<URL.Absolute<StandardUrl>>,
   wait: Promise<any>,
   cancellation: Cancellee<Error>,
-): Either<Error, HTMLScriptElement> | Promise<Either<Error, HTMLScriptElement>> {
+): Either<Either<Error, HTMLScriptElement>, Promise<Either<Error, HTMLScriptElement>>> {
   assert(script.hasAttribute('src') ? script.childNodes.length === 0 : script.text === code);
   assert(script.textContent === script.text);
   assert(!cancellation.canceled);
@@ -130,19 +126,19 @@ function evaluate(
   !logging && void script.remove();
   const url = new URL(standardizeUrl(window.location.href));
   if (script.type.toLowerCase() === 'module') {
-    return wait.then(() => import(script.src))
+    return Right(wait.then(() => import(script.src))
       .then(
         () => (
           void script.dispatchEvent(new Event('load')),
           Right(script)),
         reason => (
           void script.dispatchEvent(new Event('error')),
-          Left(new FatalError(reason instanceof Error ? reason.message : reason + ''))));
+          Left(new FatalError(reason instanceof Error ? reason.message : reason + '')))));
   }
   else {
-    if (script.hasAttribute('defer')) return wait.then(evaluate);
-    if (script.hasAttribute('async')) return Promise.resolve().then(evaluate);
-    return evaluate();
+    if (script.hasAttribute('defer')) return Right(wait.then(evaluate));
+    if (script.hasAttribute('async')) return Right(Promise.resolve().then(evaluate));
+    return Left(evaluate());
   }
 
   function evaluate() {
