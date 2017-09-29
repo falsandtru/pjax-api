@@ -71,14 +71,18 @@ require = function e(t, n, r) {
             exports.extend = template(function (key, target, source) {
                 switch (type_1.type(source[key])) {
                 case 'Array':
-                    return target[key] = exports.extend([], source[key]);
+                    switch (type_1.type(target[key])) {
+                    case 'Array':
+                        return target[key] = exports.extend([], source[key]);
+                    default:
+                        return target[key] = source[key];
+                    }
                 case 'Object':
                     switch (type_1.type(target[key])) {
-                    case 'Function':
                     case 'Object':
                         return target[key] = exports.extend(target[key], source[key]);
                     default:
-                        return target[key] = exports.extend({}, source[key]);
+                        return target[key] = source[key];
                     }
                 default:
                     return target[key] = source[key];
@@ -136,7 +140,7 @@ require = function e(t, n, r) {
                 }
             }
         },
-        { './type': 74 }
+        { './type': 73 }
     ],
     4: [
         function (require, module, exports) {
@@ -3494,16 +3498,6 @@ require = function e(t, n, r) {
     67: [
         function (require, module, exports) {
             'use strict';
-            Object.defineProperty(exports, '__esModule', { value: true });
-            function noop() {
-            }
-            exports.noop = noop;
-        },
-        {}
-    ],
-    68: [
-        function (require, module, exports) {
-            'use strict';
             var __values = this && this.__values || function (o) {
                 var m = typeof Symbol === 'function' && o[Symbol.iterator], i = 0;
                 if (m)
@@ -3772,7 +3766,7 @@ require = function e(t, n, r) {
             './exception': 10
         }
     ],
-    69: [
+    68: [
         function (require, module, exports) {
             'use strict';
             function __export(m) {
@@ -3785,7 +3779,7 @@ require = function e(t, n, r) {
         },
         { './monad/sequence': 23 }
     ],
-    70: [
+    69: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3806,7 +3800,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    71: [
+    70: [
         function (require, module, exports) {
             'use strict';
             var __read = this && this.__read || function (o, n) {
@@ -3837,16 +3831,28 @@ require = function e(t, n, r) {
             };
             Object.defineProperty(exports, '__esModule', { value: true });
             var observation_1 = require('./observation');
+            var assign_1 = require('./assign');
             var tick_1 = require('./tick');
             var thenable_1 = require('./thenable');
             var sqid_1 = require('./sqid');
             var exception_1 = require('./exception');
-            var noop_1 = require('./noop');
             var Supervisor = function () {
-                function Supervisor(_a) {
-                    var _b = _a === void 0 ? {} : _a, _c = _b.name, name = _c === void 0 ? '' : _c, _d = _b.size, size = _d === void 0 ? Infinity : _d, _e = _b.timeout, timeout = _e === void 0 ? Infinity : _e, _f = _b.destructor, destructor = _f === void 0 ? noop_1.noop : _f, _g = _b.scheduler, scheduler = _g === void 0 ? tick_1.tick : _g, _h = _b.resource, resource = _h === void 0 ? 10 : _h;
+                function Supervisor(opts) {
+                    if (opts === void 0) {
+                        opts = {};
+                    }
                     var _this = this;
                     this.id = sqid_1.sqid();
+                    this.settings = {
+                        name: '',
+                        size: Infinity,
+                        timeout: Infinity,
+                        destructor: function (_) {
+                            return void 0;
+                        },
+                        scheduler: tick_1.tick,
+                        resource: 10
+                    };
                     this.events = {
                         init: new observation_1.Observation(),
                         loss: new observation_1.Observation(),
@@ -3857,23 +3863,21 @@ require = function e(t, n, r) {
                     this.available = true;
                     this.messages = [];
                     this.deliver = function () {
-                        var started = Date.now();
-                        var resource = _this.resource;
+                        var since = Date.now();
                         var _loop_1 = function (i, len) {
-                            var now = Date.now();
-                            var _a = __read(_this.messages[i], 5), name_1 = _a[0], param = _a[1], callback = _a[2], timeout = _a[3], registered = _a[4];
-                            var result = _this.workers.has(name_1) ? _this.workers.get(name_1).call([
+                            if (_this.settings.resource - (Date.now() - since) > 0 === false)
+                                return { value: void _this.schedule() };
+                            var _a = __read(_this.messages[i], 4), name_1 = _a[0], param = _a[1], callback = _a[2], expiry = _a[3];
+                            var result = _this.workers.has(name_1) && Date.now() <= expiry ? _this.workers.get(name_1).call([
                                 param,
-                                registered + timeout - now
+                                expiry
                             ]) : void 0;
-                            if (_this.available && !result && now < registered + timeout)
+                            if (!result && Date.now() < expiry)
                                 return out_i_1 = i, out_len_1 = len, 'continue';
                             i === 0 ? void _this.messages.shift() : void _this.messages.splice(i, 1);
                             void --i;
                             void --len;
-                            if (result) {
-                                resource = started + _this.resource - now;
-                            } else {
+                            if (!result) {
                                 void _this.events.loss.emit([name_1], [
                                     name_1,
                                     param
@@ -3905,40 +3909,25 @@ require = function e(t, n, r) {
                             out_len_1 = len;
                         };
                         var out_i_1, out_len_1;
-                        for (var i = 0, len = _this.messages.length; _this.available && i < len && resource > 0; ++i) {
-                            _loop_1(i, len);
+                        for (var i = 0, len = _this.messages.length; _this.available && i < len; ++i) {
+                            var state_1 = _loop_1(i, len);
                             i = out_i_1;
                             len = out_len_1;
-                        }
-                        if (!_this.available) {
-                            while (_this.messages.length > 0) {
-                                var _a = __read(_this.messages.shift(), 2), name_2 = _a[0], param = _a[1];
-                                void _this.events.loss.emit([name_2], [
-                                    name_2,
-                                    param
-                                ]);
-                            }
-                            void Object.freeze(_this.messages);
-                            return;
-                        }
-                        if (resource <= 0 && _this.messages.length > 0) {
-                            void _this.schedule();
+                            if (typeof state_1 === 'object')
+                                return state_1.value;
                         }
                     };
                     if (!this.constructor.hasOwnProperty('instances')) {
                         this.constructor.instances = new Set();
                     }
+                    void assign_1.extend(this.settings, opts);
+                    this.name = this.settings.name;
                     if (this.constructor === Supervisor)
                         throw new Error('Spica: Supervisor: <' + this.id + '/' + this.name + '>: Cannot instantiate abstract classes.');
                     void this.constructor.instances.add(this);
-                    this.name = name;
-                    this.size = size;
-                    this.timeout = timeout;
-                    this.destructor_ = destructor;
                     this.scheduler = function () {
-                        return void scheduler(_this.deliver);
+                        return void (void 0, _this.settings.scheduler)(_this.deliver);
                     };
-                    this.resource = resource;
                 }
                 Object.defineProperty(Supervisor, 'count', {
                     get: function () {
@@ -3961,11 +3950,19 @@ require = function e(t, n, r) {
                     void this.workers.forEach(function (worker) {
                         return void worker.terminate(reason);
                     });
-                    void this.deliver();
+                    void Object.freeze(this.workers);
+                    while (this.messages.length > 0) {
+                        var _a = __read(this.messages.shift(), 2), name_2 = _a[0], param = _a[1];
+                        void this.events.loss.emit([name_2], [
+                            name_2,
+                            param
+                        ]);
+                    }
+                    void Object.freeze(this.messages);
                     this.alive = false;
                     void this.constructor.instances.delete(this);
                     void Object.freeze(this);
-                    void this.destructor_(reason);
+                    void this.settings.destructor(reason);
                 };
                 Supervisor.prototype.validate = function () {
                     if (!this.available)
@@ -3993,10 +3990,16 @@ require = function e(t, n, r) {
                 Supervisor.prototype.call = function (name, param, callback, timeout) {
                     var _this = this;
                     if (timeout === void 0) {
-                        timeout = this.timeout;
+                        timeout = this.settings.timeout;
                     }
                     void this.validate();
-                    while (this.messages.length + 1 > this.size) {
+                    void this.messages.push([
+                        name,
+                        param,
+                        callback,
+                        Date.now() + timeout
+                    ]);
+                    while (this.messages.length > this.settings.size) {
                         var _a = __read(this.messages.shift(), 3), name_3 = _a[0], param_1 = _a[1], callback_1 = _a[2];
                         void this.events.loss.emit([name_3], [
                             name_3,
@@ -4008,13 +4011,6 @@ require = function e(t, n, r) {
                             void exception_1.causeAsyncException(reason);
                         }
                     }
-                    void this.messages.push([
-                        name,
-                        param,
-                        callback,
-                        timeout,
-                        Date.now()
-                    ]);
                     void this.schedule();
                     if (timeout <= 0)
                         return;
@@ -4026,7 +4022,7 @@ require = function e(t, n, r) {
                 };
                 Supervisor.prototype.cast = function (name, param, timeout) {
                     if (timeout === void 0) {
-                        timeout = this.timeout;
+                        timeout = this.settings.timeout;
                     }
                     void this.validate();
                     var result = this.workers.has(name) ? this.workers.get(name).call([
@@ -4073,6 +4069,8 @@ require = function e(t, n, r) {
                     return true;
                 };
                 Supervisor.prototype.schedule = function () {
+                    if (this.messages.length === 0)
+                        return;
                     void tick_1.tick(this.scheduler, true);
                 };
                 return Supervisor;
@@ -4090,7 +4088,7 @@ require = function e(t, n, r) {
                     this.available = true;
                     this.called = false;
                     this.call = function (_a) {
-                        var _b = __read(_a, 2), param = _b[0], timeout = _b[1];
+                        var _b = __read(_a, 2), param = _b[0], expiry = _b[1];
                         if (!_this.available)
                             return;
                         try {
@@ -4112,9 +4110,9 @@ require = function e(t, n, r) {
                                 return [reply];
                             } else {
                                 return [new Promise(function (resolve, reject) {
-                                        return void result_1.then(resolve, reject), timeout === Infinity ? void 0 : void setTimeout(function () {
+                                        return void result_1.then(resolve, reject), expiry === Infinity ? void 0 : void setTimeout(function () {
                                             return void reject(new Error());
-                                        }, timeout);
+                                        }, expiry - Date.now());
                                     }).then(function (_a) {
                                         var _b = __read(_a, 2), reply = _b[0], state = _b[1];
                                         return [
@@ -4176,15 +4174,15 @@ require = function e(t, n, r) {
             }();
         },
         {
+            './assign': 3,
             './exception': 10,
-            './noop': 67,
-            './observation': 68,
-            './sqid': 70,
-            './thenable': 72,
-            './tick': 73
+            './observation': 67,
+            './sqid': 69,
+            './thenable': 71,
+            './tick': 72
         }
     ],
-    72: [
+    71: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4195,19 +4193,13 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    73: [
+    72: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             var exception_1 = require('./exception');
             var queue = [];
             var register = new WeakSet();
-            function flush() {
-                var cbs = queue;
-                queue = [];
-                register = new WeakSet();
-                return cbs;
-            }
             function tick(cb, dedup) {
                 if (dedup === void 0) {
                     dedup = false;
@@ -4221,10 +4213,11 @@ require = function e(t, n, r) {
                 void schedule();
             }
             exports.tick = tick;
+            var scheduler = Promise.resolve();
             function schedule() {
                 if (queue.length !== 1)
                     return;
-                void Promise.resolve().then(run);
+                void scheduler.then(run);
             }
             function run() {
                 var cbs = flush();
@@ -4240,21 +4233,30 @@ require = function e(t, n, r) {
                     return;
                 }
             }
+            function flush() {
+                var cbs = queue;
+                queue = [];
+                register = new WeakSet();
+                return cbs;
+            }
         },
         { './exception': 10 }
     ],
-    74: [
+    73: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             function type(target) {
-                return Object.prototype.toString.call(target).split(' ').pop().slice(0, -1);
+                var type = Object.prototype.toString.call(target).split(' ').pop().slice(0, -1);
+                if (typeof target !== 'object' && target instanceof Object === false || target === null)
+                    return type.toLowerCase();
+                return type;
             }
             exports.type = type;
         },
         {}
     ],
-    75: [
+    74: [
         function (require, module, exports) {
             'use strict';
             function __export(m) {
@@ -4267,9 +4269,9 @@ require = function e(t, n, r) {
             var export_1 = require('./src/export');
             exports.default = export_1.default;
         },
-        { './src/export': 78 }
+        { './src/export': 77 }
     ],
-    76: [
+    75: [
         function (require, module, exports) {
             'use strict';
             var __assign = this && this.__assign || Object.assign || function (t) {
@@ -4333,7 +4335,7 @@ require = function e(t, n, r) {
                                 return element instanceof HTMLStyleElement && void scope(element);
                             });
                         }
-                        this.children_ = Object.freeze([]);
+                        this.children_ = [];
                         this.children = children_;
                         return;
                     case 'struct':
@@ -4395,15 +4397,13 @@ require = function e(t, n, r) {
                         case 'collection':
                             if (children === this.children_)
                                 return;
-                            if (!Object.isFrozen(this.children_))
-                                throw new Error('TypedHTMLElement collections cannot be updated recursively.');
                             void children.reduce(function (cs, c) {
                                 var i = cs.indexOf(c);
                                 if (i === -1)
                                     return cs;
                                 void cs.splice(i, 1);
                                 return cs;
-                            }, this.children_.slice()).forEach(function (child) {
+                            }, __spread(this.children_)).forEach(function (child) {
                                 return void child.element.remove();
                             });
                             this.children_ = [];
@@ -4451,7 +4451,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    77: [
+    76: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4642,9 +4642,9 @@ require = function e(t, n, r) {
                 }, el);
             }
         },
-        { './builder': 76 }
+        { './builder': 75 }
     ],
-    78: [
+    77: [
         function (require, module, exports) {
             'use strict';
             function __export(m) {
@@ -4659,11 +4659,11 @@ require = function e(t, n, r) {
             __export(require('./util/dom'));
         },
         {
-            './dom/html': 77,
-            './util/dom': 79
+            './dom/html': 76,
+            './util/dom': 78
         }
     ],
-    79: [
+    78: [
         function (require, module, exports) {
             'use strict';
             var __assign = this && this.__assign || Object.assign || function (t) {
@@ -4769,9 +4769,9 @@ require = function e(t, n, r) {
                 return supportEventListenerOptions ? option : typeof option === 'boolean' ? option : option.capture;
             }
         },
-        { './noop': 80 }
+        { './noop': 79 }
     ],
-    80: [
+    79: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4782,7 +4782,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    81: [
+    80: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4794,11 +4794,11 @@ require = function e(t, n, r) {
             exports.router = router_1.router;
         },
         {
-            './layer/interface/service/gui': 115,
-            './lib/router': 126
+            './layer/interface/service/gui': 114,
+            './lib/router': 125
         }
     ],
-    82: [
+    81: [
         function (require, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -4965,17 +4965,17 @@ require = function e(t, n, r) {
             exports.route = route;
         },
         {
-            '../domain/data/config': 88,
-            '../domain/event/router': 90,
-            '../domain/router/api': 91,
-            './config/scope': 83,
-            './data/error': 84,
-            './store/path': 85,
+            '../domain/data/config': 87,
+            '../domain/event/router': 89,
+            '../domain/router/api': 90,
+            './config/scope': 82,
+            './data/error': 83,
+            './store/path': 84,
             'spica/either': 8,
             'spica/maybe': 13
         }
     ],
-    83: [
+    82: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5000,14 +5000,14 @@ require = function e(t, n, r) {
             exports.scope = scope;
         },
         {
-            '../../../lib/router': 126,
-            '../../domain/data/config': 88,
+            '../../../lib/router': 125,
+            '../../domain/data/config': 87,
             'spica/assign': 3,
             'spica/maybe': 13,
-            'spica/sequence': 69
+            'spica/sequence': 68
         }
     ],
-    84: [
+    83: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -5037,9 +5037,9 @@ require = function e(t, n, r) {
             }(error_1.PjaxError);
             exports.ApplicationError = ApplicationError;
         },
-        { '../../../lib/error': 124 }
+        { '../../../lib/error': 123 }
     ],
-    85: [
+    84: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5047,9 +5047,9 @@ require = function e(t, n, r) {
             exports.loadTitle = path_1.loadTitle;
             exports.savePosition = path_1.savePosition;
         },
-        { '../../domain/store/path': 108 }
+        { '../../domain/store/path': 107 }
     ],
-    86: [
+    85: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5082,7 +5082,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    87: [
+    86: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5116,7 +5116,7 @@ require = function e(t, n, r) {
         },
         { 'spica/assign': 3 }
     ],
-    88: [
+    87: [
         function (require, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -5373,7 +5373,7 @@ require = function e(t, n, r) {
         },
         { 'spica/assign': 3 }
     ],
-    89: [
+    88: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -5403,9 +5403,9 @@ require = function e(t, n, r) {
             }(error_1.PjaxError);
             exports.DomainError = DomainError;
         },
-        { '../../../lib/error': 124 }
+        { '../../../lib/error': 123 }
     ],
-    90: [
+    89: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5494,14 +5494,14 @@ require = function e(t, n, r) {
             exports.RouterEventLocation = RouterEventLocation;
         },
         {
-            '../../../lib/dom': 123,
-            '../../../lib/url': 127,
-            '../../data/model/domain/url': 86,
-            '../data/error': 89,
-            'typed-dom': 75
+            '../../../lib/dom': 122,
+            '../../../lib/url': 126,
+            '../../data/model/domain/url': 85,
+            '../data/error': 88,
+            'typed-dom': 74
         }
     ],
-    91: [
+    90: [
         function (require, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -5710,16 +5710,16 @@ require = function e(t, n, r) {
             exports.route = route;
         },
         {
-            '../data/error': 89,
-            '../store/path': 108,
-            './model/eav/entity': 92,
-            './module/fetch': 95,
-            './module/update': 97,
-            './module/update/content': 99,
+            '../data/error': 88,
+            '../store/path': 107,
+            './model/eav/entity': 91,
+            './module/fetch': 94,
+            './module/update': 96,
+            './module/update/content': 98,
             'spica/either': 8
         }
     ],
-    92: [
+    91: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5745,7 +5745,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    93: [
+    92: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5774,11 +5774,11 @@ require = function e(t, n, r) {
             exports.FetchResult = FetchResult;
         },
         {
-            '../../../../../../lib/html': 125,
-            '../../../../../data/model/domain/url': 86
+            '../../../../../../lib/html': 124,
+            '../../../../../data/model/domain/url': 85
         }
     ],
-    94: [
+    93: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5794,7 +5794,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    95: [
+    94: [
         function (require, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -5993,13 +5993,13 @@ require = function e(t, n, r) {
             exports.fetch = fetch;
         },
         {
-            '../../../../lib/url': 127,
-            '../../data/error': 89,
-            '../module/fetch/xhr': 96,
+            '../../../../lib/url': 126,
+            '../../data/error': 88,
+            '../module/fetch/xhr': 95,
             'spica/either': 8
         }
     ],
-    96: [
+    95: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6051,13 +6051,13 @@ require = function e(t, n, r) {
             exports.match = match;
         },
         {
-            '../../../data/error': 89,
-            '../../model/eav/value/fetch': 93,
+            '../../../data/error': 88,
+            '../../model/eav/value/fetch': 92,
             'spica/either': 8,
-            'spica/sequence': 69
+            'spica/sequence': 68
         }
     ],
-    97: [
+    96: [
         function (require, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -6487,24 +6487,24 @@ require = function e(t, n, r) {
             exports.update = update;
         },
         {
-            '../../data/error': 89,
-            '../../event/router': 90,
-            '../../store/path': 108,
-            '../model/eav/value/update': 94,
-            '../module/update/blur': 98,
-            '../module/update/content': 99,
-            '../module/update/css': 100,
-            '../module/update/focus': 101,
-            '../module/update/head': 102,
-            '../module/update/script': 103,
-            '../module/update/scroll': 104,
-            '../module/update/title': 106,
-            '../module/update/url': 107,
+            '../../data/error': 88,
+            '../../event/router': 89,
+            '../../store/path': 107,
+            '../model/eav/value/update': 93,
+            '../module/update/blur': 97,
+            '../module/update/content': 98,
+            '../module/update/css': 99,
+            '../module/update/focus': 100,
+            '../module/update/head': 101,
+            '../module/update/script': 102,
+            '../module/update/scroll': 103,
+            '../module/update/title': 105,
+            '../module/update/url': 106,
             'spica/either': 8,
             'spica/hlist': 12
         }
     ],
-    98: [
+    97: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6518,7 +6518,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    99: [
+    98: [
         function (require, module, exports) {
             'use strict';
             var __read = this && this.__read || function (o, n) {
@@ -6645,14 +6645,14 @@ require = function e(t, n, r) {
             exports._wait = wait;
         },
         {
-            '../../../../../lib/dom': 123,
-            './script': 103,
+            '../../../../../lib/dom': 122,
+            './script': 102,
             'spica/concat': 6,
             'spica/maybe': 13,
-            'typed-dom': 75
+            'typed-dom': 74
         }
     ],
-    100: [
+    99: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6679,11 +6679,11 @@ require = function e(t, n, r) {
             }
         },
         {
-            '../../../../../lib/dom': 123,
-            './sync': 105
+            '../../../../../lib/dom': 122,
+            './sync': 104
         }
     ],
-    101: [
+    100: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6697,9 +6697,9 @@ require = function e(t, n, r) {
             }
             exports.focus = focus;
         },
-        { '../../../../../lib/dom': 123 }
+        { '../../../../../lib/dom': 122 }
     ],
-    102: [
+    101: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6719,11 +6719,11 @@ require = function e(t, n, r) {
             }
         },
         {
-            '../../../../../lib/dom': 123,
-            './sync': 105
+            '../../../../../lib/dom': 122,
+            './sync': 104
         }
     ],
-    103: [
+    102: [
         function (require, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -7074,14 +7074,14 @@ require = function e(t, n, r) {
             exports.escape = escape;
         },
         {
-            '../../../../../lib/dom': 123,
-            '../../../../../lib/error': 124,
-            '../../../../../lib/url': 127,
-            '../../../../data/model/domain/url': 86,
+            '../../../../../lib/dom': 122,
+            '../../../../../lib/error': 123,
+            '../../../../../lib/url': 126,
+            '../../../../data/model/domain/url': 85,
             'spica/either': 8
         }
     ],
-    104: [
+    103: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7132,9 +7132,9 @@ require = function e(t, n, r) {
             }
             exports._hash = hash;
         },
-        { '../../../event/router': 90 }
+        { '../../../event/router': 89 }
     ],
-    105: [
+    104: [
         function (require, module, exports) {
             'use strict';
             var __read = this && this.__read || function (o, n) {
@@ -7229,7 +7229,7 @@ require = function e(t, n, r) {
             'spica/either': 8
         }
     ],
-    106: [
+    105: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7240,7 +7240,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    107: [
+    106: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7288,11 +7288,11 @@ require = function e(t, n, r) {
             exports._isReplaceable = isReplaceable;
         },
         {
-            '../../../event/router': 90,
-            'typed-dom': 75
+            '../../../event/router': 89,
+            'typed-dom': 74
         }
     ],
-    108: [
+    107: [
         function (require, module, exports) {
             'use strict';
             function __export(m) {
@@ -7303,9 +7303,9 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             __export(require('../../data/store/state'));
         },
-        { '../../data/store/state': 87 }
+        { '../../data/store/state': 86 }
     ],
-    109: [
+    108: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -7335,9 +7335,9 @@ require = function e(t, n, r) {
             }(error_1.PjaxError);
             exports.InterfaceError = InterfaceError;
         },
-        { '../../../lib/error': 124 }
+        { '../../../lib/error': 123 }
     ],
-    110: [
+    109: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -7390,11 +7390,11 @@ require = function e(t, n, r) {
             exports.ClickView = ClickView;
         },
         {
-            'spica/supervisor': 71,
-            'typed-dom': 75
+            'spica/supervisor': 70,
+            'typed-dom': 74
         }
     ],
-    111: [
+    110: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -7447,13 +7447,13 @@ require = function e(t, n, r) {
             exports.NavigationView = NavigationView;
         },
         {
-            '../../../data/model/domain/url': 86,
-            '../../service/state/url': 122,
-            'spica/supervisor': 71,
-            'typed-dom': 75
+            '../../../data/model/domain/url': 85,
+            '../../service/state/url': 121,
+            'spica/supervisor': 70,
+            'typed-dom': 74
         }
     ],
-    112: [
+    111: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -7506,11 +7506,11 @@ require = function e(t, n, r) {
             exports.ScrollView = ScrollView;
         },
         {
-            'spica/supervisor': 71,
-            'typed-dom': 75
+            'spica/supervisor': 70,
+            'typed-dom': 74
         }
     ],
-    113: [
+    112: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -7561,11 +7561,11 @@ require = function e(t, n, r) {
             exports.SubmitView = SubmitView;
         },
         {
-            'spica/supervisor': 71,
-            'typed-dom': 75
+            'spica/supervisor': 70,
+            'typed-dom': 74
         }
     ],
-    114: [
+    113: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7606,15 +7606,15 @@ require = function e(t, n, r) {
             }
         },
         {
-            '../../../lib/html': 125,
-            '../../application/api': 82,
-            './router': 117,
-            './state/process': 119,
+            '../../../lib/html': 124,
+            '../../application/api': 81,
+            './router': 116,
+            './state/process': 118,
             'spica/assign': 3,
-            'typed-dom': 75
+            'typed-dom': 74
         }
     ],
-    115: [
+    114: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -7732,24 +7732,24 @@ require = function e(t, n, r) {
             }
         },
         {
-            '../../../lib/url': 127,
-            '../../application/api': 82,
-            '../../data/model/domain/url': 86,
-            '../module/view/click': 110,
-            '../module/view/navigation': 111,
-            '../module/view/scroll': 112,
-            '../module/view/submit': 113,
-            './api': 114,
-            './router': 117,
-            './state/process': 119,
-            './state/scroll-restoration': 121,
-            './state/url': 122,
+            '../../../lib/url': 126,
+            '../../application/api': 81,
+            '../../data/model/domain/url': 85,
+            '../module/view/click': 109,
+            '../module/view/navigation': 110,
+            '../module/view/scroll': 111,
+            '../module/view/submit': 112,
+            './api': 113,
+            './router': 116,
+            './state/process': 118,
+            './state/scroll-restoration': 120,
+            './state/url': 121,
             'spica/cancellation': 4,
             'spica/maybe': 13,
-            'spica/supervisor': 71
+            'spica/supervisor': 70
         }
     ],
-    116: [
+    115: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7779,7 +7779,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    117: [
+    116: [
         function (require, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -8011,18 +8011,18 @@ require = function e(t, n, r) {
             exports.route = route;
         },
         {
-            '../../../lib/url': 127,
-            '../../application/api': 82,
-            '../../data/model/domain/url': 86,
-            '../data/error': 109,
-            '../service/state/env': 118,
-            './progressbar': 116,
-            './state/url': 122,
+            '../../../lib/url': 126,
+            '../../application/api': 81,
+            '../../data/model/domain/url': 85,
+            '../data/error': 108,
+            '../service/state/env': 117,
+            './progressbar': 115,
+            './state/url': 121,
             'spica/cancellation': 4,
-            'typed-dom': 75
+            'typed-dom': 74
         }
     ],
-    118: [
+    117: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -8032,9 +8032,9 @@ require = function e(t, n, r) {
                 new Promise(setTimeout)
             ]);
         },
-        { './script': 120 }
+        { './script': 119 }
     ],
-    119: [
+    118: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -8063,9 +8063,9 @@ require = function e(t, n, r) {
                 return class_1;
             }(supervisor_1.Supervisor))();
         },
-        { 'spica/supervisor': 71 }
+        { 'spica/supervisor': 70 }
     ],
-    120: [
+    119: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -8083,13 +8083,13 @@ require = function e(t, n, r) {
             });
         },
         {
-            '../../../../lib/dom': 123,
-            '../../../../lib/url': 127,
-            '../../../data/model/domain/url': 86,
-            'typed-dom': 75
+            '../../../../lib/dom': 122,
+            '../../../../lib/url': 126,
+            '../../../data/model/domain/url': 85,
+            'typed-dom': 74
         }
     ],
-    121: [
+    120: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -8098,9 +8098,9 @@ require = function e(t, n, r) {
                 return window.history.scrollRestoration = 'auto';
             }, false);
         },
-        { 'typed-dom': 75 }
+        { 'typed-dom': 74 }
     ],
-    122: [
+    121: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -8127,11 +8127,11 @@ require = function e(t, n, r) {
             }())();
         },
         {
-            '../../../data/model/domain/url': 86,
-            'typed-dom': 75
+            '../../../data/model/domain/url': 85,
+            'typed-dom': 74
         }
     ],
-    123: [
+    122: [
         function (require, module, exports) {
             'use strict';
             var __read = this && this.__read || function (o, n) {
@@ -8208,7 +8208,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    124: [
+    123: [
         function (require, module, exports) {
             'use strict';
             var __extends = this && this.__extends || function () {
@@ -8249,7 +8249,7 @@ require = function e(t, n, r) {
         },
         {}
     ],
-    125: [
+    124: [
         function (require, module, exports) {
             'use strict';
             var __read = this && this.__read || function (o, n) {
@@ -8361,12 +8361,12 @@ require = function e(t, n, r) {
             }
         },
         {
-            './dom': 123,
+            './dom': 122,
             'spica/either': 8,
             'spica/maybe': 13
         }
     ],
-    126: [
+    125: [
         function (require, module, exports) {
             'use strict';
             var __read = this && this.__read || function (o, n) {
@@ -8411,7 +8411,7 @@ require = function e(t, n, r) {
             exports.router = router;
             function compare(pattern, path) {
                 var regSegment = /\/|[^/]+\/?/g;
-                var regTrailingSlash = /\/(?=$|[?#])/;
+                var regTrailingSlash = /\/$/;
                 return sequence_1.Sequence.zip(sequence_1.Sequence.from(expand(pattern)), sequence_1.Sequence.cycle([path])).map(function (_a) {
                     var _b = __read(_a, 2), pattern = _b[0], path = _b[1];
                     return [
@@ -8439,56 +8439,56 @@ require = function e(t, n, r) {
             }
             exports.expand = expand;
             function match(pattern, segment) {
-                pattern = pattern.replace(/[*]+/g, '*').replace(/[*]+[?]/g, '?');
-                var _a = __read(__spread(pattern).map(function (p, i) {
+                if (pattern.includes('**'))
+                    throw new Error('Invalid pattern: ' + pattern);
+                var _a = __read(__spread(optimize(pattern)).map(function (p, i, ps) {
                         return p === '*' ? [
                             p,
-                            pattern.slice(i + 1).match(/^[^?*/]*/)[0]
+                            ps.slice(i + 1).join('').split(/[?*]/, 1)[0]
                         ] : [
                             p,
                             ''
                         ];
                     }).reduce(function (_a, _b) {
-                        var _c = __read(_a, 3), ls = _c[0], _d = __read(_c[1]), _e = _d[0], r = _e === void 0 ? '' : _e, rs = _d.slice(1), s = _c[2];
-                        var _f = __read(_b, 2), p = _f[0], ps = _f[1];
-                        if (!s)
+                        var _c = __read(_a, 3), ls = _c[0], _d = __read(_c[1]), _e = _d[0], r = _e === void 0 ? '' : _e, rs = _d.slice(1), state = _c[2];
+                        var _f = __read(_b, 2), p = _f[0], ref = _f[1];
+                        if (!state)
                             return [
                                 ls,
                                 __spread([r], rs),
-                                s
+                                state
                             ];
                         switch (p) {
                         case '?':
                             return [
                                 ls.concat([r]),
                                 rs,
-                                s
+                                state
                             ];
                         case '*':
                             var seg = r.concat(rs.join(''));
-                            var ref = ps.split(/[?*]/, 1)[0];
                             return seg.includes(ref) ? ref === '' ? [
-                                ls.concat(__spread(seg.replace(/\/$/, ''))),
-                                __spread(seg.replace(/.*?(?=\/?$)/, '')),
-                                s
+                                ls.concat(__spread(seg.slice(0, seg.search(/\/|$/)))),
+                                __spread(seg.slice(seg.search(/\/|$/))),
+                                state
                             ] : [
                                 ls.concat(__spread(seg.slice(0, seg.indexOf(ref)))),
                                 __spread(seg.slice(seg.indexOf(ref))),
-                                s
+                                state
                             ] : [
                                 ls,
                                 __spread([r], rs),
-                                !s
+                                !state
                             ];
                         default:
                             return r === p ? [
                                 ls.concat([r]),
                                 rs,
-                                s
+                                state
                             ] : [
                                 ls,
                                 __spread([r], rs),
-                                !s
+                                !state
                             ];
                         }
                     }, [
@@ -8497,17 +8497,21 @@ require = function e(t, n, r) {
                         true
                     ]), 3), rest = _a[1], state = _a[2];
                 return rest.length === 0 && state;
+                function optimize(pattern) {
+                    var pat = pattern.replace(/\*(\?+)\*?/g, '$1*');
+                    return pat === pattern ? pat : optimize(pat);
+                }
             }
             exports.match = match;
         },
         {
-            '../layer/data/model/domain/url': 86,
-            './url': 127,
+            '../layer/data/model/domain/url': 85,
+            './url': 126,
             'spica/flip': 11,
-            'spica/sequence': 69
+            'spica/sequence': 68
         }
     ],
-    127: [
+    126: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -8617,11 +8621,11 @@ require = function e(t, n, r) {
     ],
     'pjax-api': [
         function (require, module, exports) {
-            arguments[4][75][0].apply(exports, arguments);
+            arguments[4][74][0].apply(exports, arguments);
         },
         {
-            './src/export': 81,
-            'dup': 75
+            './src/export': 80,
+            'dup': 74
         }
     ]
 }, {}, [
