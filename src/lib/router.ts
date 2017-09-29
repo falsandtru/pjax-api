@@ -73,6 +73,7 @@ export function match(pattern: string, segment: string): boolean {
         case '?':
           return [ls.concat([r]), rs, state];
         case '*':
+          assert(!ref.match(/[?*]/));
           const seg = r.concat(rs.join(''));
           return seg.includes(ref)
             ? ref === ''
