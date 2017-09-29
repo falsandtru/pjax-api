@@ -55,10 +55,10 @@
     "pump": "^1.0.2",
     "run-sequence": "^2.2.0",
     "semver": "^5.4.1",
-    "spica": "0.0.106",
+    "spica": "0.0.108",
     "tsify": "^3.0.3",
-    "typed-dom": "0.0.49",
-    "typescript": "2.6.0-dev.20170923",
+    "typed-dom": "0.0.50",
+    "typescript": "2.6.0-dev.20170929",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0",
     "watchify": "^3.9.0"
