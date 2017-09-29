@@ -17,8 +17,10 @@ export function router<T>(config: { [pattern: string]: (path: string) => T; }): 
 }
 
 export function compare(pattern: string, path: URL.Pathname<StandardUrl>): boolean {
+  assert(!path.includes('?'));
   const regSegment = /\/|[^/]+\/?/g;
-  const regTrailingSlash = /\/(?=$|[?#])/;
+  const regTrailingSlash = /\/$/;
+  assert(expand(pattern).every(pat => pat.match(regSegment)!.join('') === pat));
   return Sequence
     .zip(
       Sequence.from(expand(pattern)),
@@ -59,33 +61,38 @@ export function expand(pattern: string): string[] {
 }
 
 export function match(pattern: string, segment: string): boolean {
-  pattern = pattern
-    .replace(/[*]+/g, '*')
-    .replace(/[*]+[?]/g, '?');
-  const [, rest, state] = [...pattern]
-    .map<[string, string]>((p, i) =>
+  if (pattern.includes('**')) throw new Error(`Invalid pattern: ${pattern}`);
+  const [, rest, state] = [...optimize(pattern)]
+    .map<[string, string]>((p, i, ps) =>
       p === '*'
-        ? [p, pattern.slice(i + 1).match(/^[^?*/]*/)![0]]
+        ? [p, ps.slice(i + 1).join('').split(/[?*]/, 1)[0]]
         : [p, ''])
-    .reduce<[string[], string[], boolean]>(([ls, [r = '', ...rs], s], [p, ps]) => {
-      if (!s) return [ls, [r, ...rs], s];
+    .reduce<[string[], string[], boolean]>(([ls, [r = '', ...rs], state], [p, ref]) => {
+      if (!state) return [ls, [r, ...rs], state];
       switch (p) {
         case '?':
-          return [ls.concat([r]), rs, s];
+          return [ls.concat([r]), rs, state];
         case '*':
           const seg = r.concat(rs.join(''));
-          const ref = ps.split(/[?*]/, 1)[0];
           return seg.includes(ref)
             ? ref === ''
-              ? [ls.concat([...seg.replace(/\/$/, '')]), [...seg.replace(/.*?(?=\/?$)/, '')], s]
-              : [ls.concat([...seg.slice(0, seg.indexOf(ref))]), [...seg.slice(seg.indexOf(ref))], s]
-            : [ls, [r, ...rs], !s];
+              ? [ls.concat([...seg.slice(0, seg.search(/\/|$/))]), [...seg.slice(seg.search(/\/|$/))], state]
+              : [ls.concat([...seg.slice(0, seg.indexOf(ref))]), [...seg.slice(seg.indexOf(ref))], state]
+            : [ls, [r, ...rs], !state];
         default:
           return r === p
-            ? [ls.concat([r]), rs, s]
-            : [ls, [r, ...rs], !s];
+            ? [ls.concat([r]), rs, state]
+            : [ls, [r, ...rs], !state];
       }
     }, [[''], [...segment], true]);
   return rest.length === 0
       && state;
+  
+  function optimize(pattern: string): string {
+    const pat = pattern
+      .replace(/\*(\?+)\*?/g, '$1*');
+    return pat === pattern
+      ? pat
+      : optimize(pat);
+  }
 }

@@ -136,11 +136,16 @@ describe('Unit: lib/router', () => {
       assert(match('*b*', 'abc'));
       assert(match('*bc', 'abbc'));
       assert(match('*b*b*b', 'abcbeb'));
+      assert(!match('a?*c', 'ac'));
+      assert(!match('a*?c', 'ac'));
       assert(match('a?*c', 'abc'));
       assert(match('a*?c', 'abc'));
-      assert(!match('a*?c', 'ac'));
       assert(match('a?*c', 'abbc'));
-      assert(!match('a*?c', 'abbc'));
+      assert(match('a*?c', 'abbc'));
+    });
+
+    it('**', () => {
+      assert.throws(() => match('**', ''));
     });
 
   });
