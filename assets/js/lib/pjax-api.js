@@ -4310,48 +4310,45 @@ require = function e(t, n, r) {
                 return ar;
             };
             Object.defineProperty(exports, '__esModule', { value: true });
+            var ElChildrenType;
+            (function (ElChildrenType) {
+                ElChildrenType.Void = 'void';
+                ElChildrenType.Text = 'text';
+                ElChildrenType.Collection = 'collection';
+                ElChildrenType.Struct = 'struct';
+            }(ElChildrenType || (ElChildrenType = {})));
             var El = function () {
                 function El(element_, children_) {
                     var _this = this;
                     this.element_ = element_;
                     this.children_ = children_;
-                    this.mode = this.children_ === void 0 ? 'void' : typeof this.children_ === 'string' ? 'text' : Array.isArray(this.children_) ? 'collection' : 'struct';
-                    this.structkeys = this.mode === 'struct' ? Object.keys(this.children_) : [];
+                    this.type = this.children_ === void 0 ? ElChildrenType.Void : typeof this.children_ === 'string' ? ElChildrenType.Text : Array.isArray(this.children_) ? ElChildrenType.Collection : ElChildrenType.Struct;
+                    this.structkeys = this.type === 'struct' ? Object.keys(this.children_) : [];
                     this.tag;
-                    switch (this.mode) {
-                    case 'void':
+                    switch (this.type) {
+                    case ElChildrenType.Void:
                         return;
-                    case 'text':
+                    case ElChildrenType.Text:
                         void clear();
                         this.children_ = document.createTextNode('');
                         void this.element_.appendChild(this.children_);
                         this.children = children_;
                         return;
-                    case 'collection':
+                    case ElChildrenType.Collection:
                         void clear();
-                        if (element_.id) {
-                            void children_.forEach(function (_a) {
-                                var element = _a.element;
-                                return element instanceof HTMLStyleElement && void scope(element);
-                            });
-                        }
                         this.children_ = [];
                         this.children = children_;
+                        void scope(this.element_.id, this.children_);
                         return;
-                    case 'struct':
+                    case ElChildrenType.Struct:
                         void clear();
-                        if (element_.id) {
-                            void Object.keys(children_).map(function (k) {
-                                return children_[k];
-                            }).forEach(function (_a) {
-                                var element = _a.element;
-                                return element instanceof HTMLStyleElement && void scope(element);
-                            });
-                        }
-                        this.children_ = this.observe(__assign({}, children_));
+                        this.children_ = observe(this.element_, __assign({}, children_));
                         void this.structkeys.forEach(function (k) {
                             return void _this.element_.appendChild(children_[k].element);
                         });
+                        void scope(this.element_.id, this.structkeys.map(function (k) {
+                            return _this.children_[k];
+                        }));
                         return;
                     }
                     function clear() {
@@ -4359,13 +4356,41 @@ require = function e(t, n, r) {
                             void element_.removeChild(element_.firstChild);
                         }
                     }
-                    function scope(style) {
-                        if (!element_.id.match(/^[\w\-]+$/))
+                    function scope(id, children) {
+                        if (!id.match(/^[\w\-]+$/))
                             return;
-                        style.innerHTML = style.innerHTML.replace(/^\s*\$scope(?!\w)/gm, '#' + element_.id);
-                        void __spread(style.querySelectorAll('*')).forEach(function (el) {
-                            return void el.remove();
+                        return void children.map(function (_a) {
+                            var element = _a.element;
+                            return element;
+                        }).forEach(function (element) {
+                            return element instanceof HTMLStyleElement && void parse(element, id);
                         });
+                        function parse(style, id) {
+                            style.innerHTML = style.innerHTML.replace(/^\s*\$scope(?!\w)/gm, '#' + id);
+                            void __spread(style.querySelectorAll('*')).forEach(function (el) {
+                                return void el.remove();
+                            });
+                        }
+                    }
+                    function observe(element, children) {
+                        return Object.defineProperties(children, Object.keys(children).reduce(function (descs, key) {
+                            var current = children[key];
+                            descs[key] = {
+                                configurable: true,
+                                enumerable: true,
+                                get: function () {
+                                    return current;
+                                },
+                                set: function (newChild) {
+                                    var oldChild = current;
+                                    if (newChild === oldChild)
+                                        return;
+                                    current = newChild;
+                                    void element.replaceChild(newChild.element, oldChild.element);
+                                }
+                            };
+                            return descs;
+                        }, {}));
                     }
                 }
                 Object.defineProperty(El.prototype, 'element', {
@@ -4377,8 +4402,8 @@ require = function e(t, n, r) {
                 });
                 Object.defineProperty(El.prototype, 'children', {
                     get: function () {
-                        switch (this.mode) {
-                        case 'text':
+                        switch (this.type) {
+                        case ElChildrenType.Text:
                             return this.children_.data;
                         default:
                             return this.children_;
@@ -4386,15 +4411,15 @@ require = function e(t, n, r) {
                     },
                     set: function (children) {
                         var _this = this;
-                        switch (this.mode) {
-                        case 'void':
+                        switch (this.type) {
+                        case ElChildrenType.Void:
                             return;
-                        case 'text':
+                        case ElChildrenType.Text:
                             if (children === this.children_.data)
                                 return;
                             this.children_.data = children;
                             return;
-                        case 'collection':
+                        case ElChildrenType.Collection:
                             if (children === this.children_)
                                 return;
                             void children.reduce(function (cs, c) {
@@ -4412,7 +4437,7 @@ require = function e(t, n, r) {
                             });
                             void Object.freeze(this.children_);
                             return;
-                        case 'struct':
+                        case ElChildrenType.Struct:
                             if (children === this.children_)
                                 return;
                             void this.structkeys.forEach(function (k) {
@@ -4424,27 +4449,6 @@ require = function e(t, n, r) {
                     enumerable: true,
                     configurable: true
                 });
-                El.prototype.observe = function (children) {
-                    var _this = this;
-                    return Object.defineProperties(children, this.structkeys.reduce(function (descs, key) {
-                        var current = children[key];
-                        descs[key] = {
-                            configurable: true,
-                            enumerable: true,
-                            get: function () {
-                                return current;
-                            },
-                            set: function (newChild) {
-                                var oldChild = current;
-                                if (newChild === oldChild)
-                                    return;
-                                current = newChild;
-                                void _this.element_.replaceChild(newChild.element, oldChild.element);
-                            }
-                        };
-                        return descs;
-                    }, {}));
-                };
                 return El;
             }();
             exports.El = El;
