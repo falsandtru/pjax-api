@@ -63,37 +63,36 @@ export function expand(pattern: string): string[] {
 
 export function match(pattern: string, segment: string): boolean {
   if (pattern.includes('**')) throw new Error(`Invalid pattern: ${pattern}`);
-  type Data = [string[], string[]];
   return [...optimize(pattern)]
     .map<[string, string]>((p, i, ps) =>
       p === '*'
         ? [p, ps.slice(i + 1).join('').split(/[?*]/, 1)[0]]
         : [p, ''])
-    .reduce<Maybe<Data>>((m, [p, ref]) => m
-      .bind<Data>(([ls, [r = '', ...rs]]) => {
+    .reduce<Maybe<string[]>>((m, [p, ref]) => m
+      .bind(([r = '', ...rs]) => {
         switch (p) {
           case '?':
             return r === ''
               ? Nothing
-              : Just<Data>([ls.concat([r]), rs]);
+              : Just(rs);
           case '*':
             assert(!ref.match(/[?*]/));
             const seg = r.concat(rs.join(''));
             return seg.includes(ref)
               ? ref === ''
-                ? Just<Data>([ls.concat([...seg.slice(0, seg.search(/\/|$/))]), [...seg.slice(seg.search(/\/|$/))]])
-                : Just<Data>([ls.concat([...seg.slice(0, seg.indexOf(ref))]), [...seg.slice(seg.indexOf(ref))]])
+                ? Just([...seg.slice(seg.search(/\/|$/))])
+                : Just([...seg.slice(seg.indexOf(ref))])
               : Nothing;
           default:
             return r === p
-              ? Just<Data>([ls.concat([r]), rs])
+              ? Just(rs)
               : Nothing;
         }
       })
-    , Just<Data>([[''], [...segment]]))
-    .bind<Data>(([seg, rest]) =>
+    , Just([...segment]))
+    .bind(rest =>
       rest.length === 0
-        ? Just<Data>([seg, rest])
+        ? Just(void 0)
         : Nothing)
     .extract(
       () => false,
