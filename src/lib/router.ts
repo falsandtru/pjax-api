@@ -2,6 +2,7 @@ import { StandardUrl, standardizeUrl } from '../layer/data/model/domain/url';
 import { URL } from './url';
 import { Sequence } from 'spica/sequence';
 import { flip } from 'spica/flip';
+import { Maybe, Just, Nothing } from 'spica/maybe';
 
 export function router<T>(config: { [pattern: string]: (path: string) => T; }): (url: string) => T {
   return (url: string) => {
@@ -62,34 +63,41 @@ export function expand(pattern: string): string[] {
 
 export function match(pattern: string, segment: string): boolean {
   if (pattern.includes('**')) throw new Error(`Invalid pattern: ${pattern}`);
-  const [, rest, state] = [...optimize(pattern)]
+  type Data = [string[], string[]];
+  return [...optimize(pattern)]
     .map<[string, string]>((p, i, ps) =>
       p === '*'
         ? [p, ps.slice(i + 1).join('').split(/[?*]/, 1)[0]]
         : [p, ''])
-    .reduce<[string[], string[], boolean]>(([ls, [r = '', ...rs], state], [p, ref]) => {
-      if (!state) return [ls, [r, ...rs], false];
-      switch (p) {
-        case '?':
-          return r === ''
-            ? [ls, [], false]
-            : [ls.concat([r]), rs, state];
-        case '*':
-          assert(!ref.match(/[?*]/));
-          const seg = r.concat(rs.join(''));
-          return seg.includes(ref)
-            ? ref === ''
-              ? [ls.concat([...seg.slice(0, seg.search(/\/|$/))]), [...seg.slice(seg.search(/\/|$/))], state]
-              : [ls.concat([...seg.slice(0, seg.indexOf(ref))]), [...seg.slice(seg.indexOf(ref))], state]
-            : [ls, [r, ...rs], false];
-        default:
-          return r === p
-            ? [ls.concat([r]), rs, state]
-            : [ls, [r, ...rs], false];
-      }
-    }, [[''], [...segment], true]);
-  return rest.length === 0
-      && state;
+    .reduce<Maybe<Data>>((m, [p, ref]) => m
+      .bind<Data>(([ls, [r = '', ...rs]]) => {
+        switch (p) {
+          case '?':
+            return r === ''
+              ? Nothing
+              : Just<Data>([ls.concat([r]), rs]);
+          case '*':
+            assert(!ref.match(/[?*]/));
+            const seg = r.concat(rs.join(''));
+            return seg.includes(ref)
+              ? ref === ''
+                ? Just<Data>([ls.concat([...seg.slice(0, seg.search(/\/|$/))]), [...seg.slice(seg.search(/\/|$/))]])
+                : Just<Data>([ls.concat([...seg.slice(0, seg.indexOf(ref))]), [...seg.slice(seg.indexOf(ref))]])
+              : Nothing;
+          default:
+            return r === p
+              ? Just<Data>([ls.concat([r]), rs])
+              : Nothing;
+        }
+      })
+    , Just<Data>([[''], [...segment]]))
+    .bind<Data>(([seg, rest]) =>
+      rest.length === 0
+        ? Just<Data>([seg, rest])
+        : Nothing)
+    .extract(
+      () => false,
+      () => true);
   
   function optimize(pattern: string): string {
     const pat = pattern
