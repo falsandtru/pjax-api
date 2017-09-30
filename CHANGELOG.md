@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.16.9
+
+- Fix pattern matching.
+
 ## 3.16.8
 
 - Fix pattern matching.

@@ -116,6 +116,7 @@ describe('Unit: lib/router', () => {
 
     it('?', () => {
       assert(!match('', '?'));
+      assert(!match('?', ''));
       assert(match('?', 'a'));
     });
 

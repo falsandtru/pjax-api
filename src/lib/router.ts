@@ -68,10 +68,12 @@ export function match(pattern: string, segment: string): boolean {
         ? [p, ps.slice(i + 1).join('').split(/[?*]/, 1)[0]]
         : [p, ''])
     .reduce<[string[], string[], boolean]>(([ls, [r = '', ...rs], state], [p, ref]) => {
-      if (!state) return [ls, [r, ...rs], state];
+      if (!state) return [ls, [r, ...rs], false];
       switch (p) {
         case '?':
-          return [ls.concat([r]), rs, state];
+          return r === ''
+            ? [ls, [], false]
+            : [ls.concat([r]), rs, state];
         case '*':
           assert(!ref.match(/[?*]/));
           const seg = r.concat(rs.join(''));
@@ -79,11 +81,11 @@ export function match(pattern: string, segment: string): boolean {
             ? ref === ''
               ? [ls.concat([...seg.slice(0, seg.search(/\/|$/))]), [...seg.slice(seg.search(/\/|$/))], state]
               : [ls.concat([...seg.slice(0, seg.indexOf(ref))]), [...seg.slice(seg.indexOf(ref))], state]
-            : [ls, [r, ...rs], !state];
+            : [ls, [r, ...rs], false];
         default:
           return r === p
             ? [ls.concat([r]), rs, state]
-            : [ls, [r, ...rs], !state];
+            : [ls, [r, ...rs], false];
       }
     }, [[''], [...segment], true]);
   return rest.length === 0
