@@ -8400,6 +8400,7 @@ require = function e(t, n, r) {
             var url_2 = require('./url');
             var sequence_1 = require('spica/sequence');
             var flip_1 = require('spica/flip');
+            var maybe_1 = require('spica/maybe');
             function router(config) {
                 return function (url) {
                     var _a = new url_2.URL(url_1.standardizeUrl(url)), path = _a.path, pathname = _a.pathname;
@@ -8441,62 +8442,35 @@ require = function e(t, n, r) {
             function match(pattern, segment) {
                 if (pattern.includes('**'))
                     throw new Error('Invalid pattern: ' + pattern);
-                var _a = __read(__spread(optimize(pattern)).map(function (p, i, ps) {
-                        return p === '*' ? [
-                            p,
-                            ps.slice(i + 1).join('').split(/[?*]/, 1)[0]
-                        ] : [
-                            p,
-                            ''
-                        ];
-                    }).reduce(function (_a, _b) {
-                        var _c = __read(_a, 3), ls = _c[0], _d = __read(_c[1]), _e = _d[0], r = _e === void 0 ? '' : _e, rs = _d.slice(1), state = _c[2];
-                        var _f = __read(_b, 2), p = _f[0], ref = _f[1];
-                        if (!state)
-                            return [
-                                ls,
-                                __spread([r], rs),
-                                state
-                            ];
+                return __spread(optimize(pattern)).map(function (p, i, ps) {
+                    return p === '*' ? [
+                        p,
+                        ps.slice(i + 1).join('').split(/[?*]/, 1)[0]
+                    ] : [
+                        p,
+                        ''
+                    ];
+                }).reduce(function (m, _a) {
+                    var _b = __read(_a, 2), p = _b[0], ref = _b[1];
+                    return m.bind(function (_a) {
+                        var _b = __read(_a), _c = _b[0], r = _c === void 0 ? '' : _c, rs = _b.slice(1);
                         switch (p) {
                         case '?':
-                            return [
-                                ls.concat([r]),
-                                rs,
-                                state
-                            ];
+                            return r === '' ? maybe_1.Nothing : maybe_1.Just(rs);
                         case '*':
                             var seg = r.concat(rs.join(''));
-                            return seg.includes(ref) ? ref === '' ? [
-                                ls.concat(__spread(seg.slice(0, seg.search(/\/|$/)))),
-                                __spread(seg.slice(seg.search(/\/|$/))),
-                                state
-                            ] : [
-                                ls.concat(__spread(seg.slice(0, seg.indexOf(ref)))),
-                                __spread(seg.slice(seg.indexOf(ref))),
-                                state
-                            ] : [
-                                ls,
-                                __spread([r], rs),
-                                !state
-                            ];
+                            return seg.includes(ref) ? ref === '' ? maybe_1.Just(__spread(seg.slice(seg.search(/\/|$/)))) : maybe_1.Just(__spread(seg.slice(seg.indexOf(ref)))) : maybe_1.Nothing;
                         default:
-                            return r === p ? [
-                                ls.concat([r]),
-                                rs,
-                                state
-                            ] : [
-                                ls,
-                                __spread([r], rs),
-                                !state
-                            ];
+                            return r === p ? maybe_1.Just(rs) : maybe_1.Nothing;
                         }
-                    }, [
-                        [''],
-                        __spread(segment),
-                        true
-                    ]), 3), rest = _a[1], state = _a[2];
-                return rest.length === 0 && state;
+                    });
+                }, maybe_1.Just(__spread(segment))).bind(function (rest) {
+                    return rest.length === 0 ? maybe_1.Just(void 0) : maybe_1.Nothing;
+                }).extract(function () {
+                    return false;
+                }, function () {
+                    return true;
+                });
                 function optimize(pattern) {
                     var pat = pattern.replace(/\*(\?+)\*?/g, '$1*');
                     return pat === pattern ? pat : optimize(pat);
@@ -8508,6 +8482,7 @@ require = function e(t, n, r) {
             '../layer/data/model/domain/url': 85,
             './url': 126,
             'spica/flip': 11,
+            'spica/maybe': 13,
             'spica/sequence': 68
         }
     ],
