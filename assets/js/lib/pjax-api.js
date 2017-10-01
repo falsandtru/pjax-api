@@ -8404,7 +8404,6 @@ require = function e(t, n, r) {
             var url_2 = require('./url');
             var sequence_1 = require('spica/sequence');
             var flip_1 = require('spica/flip');
-            var maybe_1 = require('spica/maybe');
             function router(config) {
                 return function (url) {
                     var _a = new url_2.URL(url_1.standardizeUrl(url)), path = _a.path, pathname = _a.pathname;
@@ -8427,11 +8426,11 @@ require = function e(t, n, r) {
                     var _b = __read(_a, 2), ps = _b[0], ss = _b[1];
                     return ps.length <= ss.length;
                 }).filter(function (_a) {
-                    var _b = __read(_a, 2), patterns = _b[0], segments = _b[1];
-                    return sequence_1.Sequence.zip(sequence_1.Sequence.from(patterns), sequence_1.Sequence.from(segments)).takeWhile(function (_a) {
+                    var _b = __read(_a, 2), ps = _b[0], ss = _b[1];
+                    return sequence_1.Sequence.zip(sequence_1.Sequence.from(ps), sequence_1.Sequence.from(ss)).dropWhile(function (_a) {
                         var _b = __read(_a, 2), p = _b[0], s = _b[1];
                         return match(p, s);
-                    }).extract().length === patterns.length;
+                    }).take(1).extract().length === 0;
                 }).take(1).extract().length > 0;
             }
             exports.compare = compare;
@@ -8446,35 +8445,28 @@ require = function e(t, n, r) {
             function match(pattern, segment) {
                 if (pattern.includes('**'))
                     throw new Error('Invalid pattern: ' + pattern);
-                return __spread(optimize(pattern)).map(function (p, i, ps) {
-                    return p === '*' ? [
-                        p,
-                        ps.slice(i + 1).join('').split(/[?*]/, 1)[0]
-                    ] : [
-                        p,
-                        ''
-                    ];
-                }).reduce(function (m, _a) {
-                    var _b = __read(_a, 2), p = _b[0], ref = _b[1];
-                    return m.bind(function (_a) {
-                        var _b = __read(_a), _c = _b[0], r = _c === void 0 ? '' : _c, rs = _b.slice(1);
-                        switch (p) {
-                        case '?':
-                            return r === '' ? maybe_1.Nothing : maybe_1.Just(rs);
-                        case '*':
-                            var seg = r.concat(rs.join(''));
-                            return seg.includes(ref) ? ref === '' ? maybe_1.Just(__spread(seg.slice(seg.search(/\/|$/)))) : maybe_1.Just(__spread(seg.slice(seg.indexOf(ref)))) : maybe_1.Nothing;
-                        default:
-                            return r === p ? maybe_1.Just(rs) : maybe_1.Nothing;
-                        }
-                    });
-                }, maybe_1.Just(__spread(segment))).bind(function (rest) {
-                    return rest.length === 0 ? maybe_1.Just(void 0) : maybe_1.Nothing;
-                }).extract(function () {
+                if (segment[0] === '.' && pattern[0] === '*')
                     return false;
-                }, function () {
-                    return true;
-                });
+                return match(optimize(pattern), segment);
+                function match(pattern, segment) {
+                    var _a = __read(__spread(pattern)), _b = _a[0], p = _b === void 0 ? '' : _b, ps = _a.slice(1);
+                    var _c = __read(__spread(segment)), _d = _c[0], s = _d === void 0 ? '' : _d, ss = _c.slice(1);
+                    switch (p) {
+                    case '':
+                        return s === '';
+                    case '?':
+                        return s !== '' && match(ps.join(''), ss.join(''));
+                    case '*':
+                        return s === '/' ? match(ps.join(''), segment) : sequence_1.Sequence.zip(sequence_1.Sequence.cycle([ps.join('')]), sequence_1.Sequence.from(segment).tails().map(function (ss) {
+                            return ss.join('');
+                        })).filter(function (_a) {
+                            var _b = __read(_a, 2), pattern = _b[0], segment = _b[1];
+                            return match(pattern, segment);
+                        }).take(1).extract().length > 0;
+                    default:
+                        return s === p && match(ps.join(''), ss.join(''));
+                    }
+                }
                 function optimize(pattern) {
                     var pat = pattern.replace(/\*(\?+)\*?/g, '$1*');
                     return pat === pattern ? pat : optimize(pat);
@@ -8486,7 +8478,6 @@ require = function e(t, n, r) {
             '../layer/data/model/domain/url': 85,
             './url': 126,
             'spica/flip': 11,
-            'spica/maybe': 13,
             'spica/sequence': 68
         }
     ],
