@@ -2,7 +2,6 @@ import { StandardUrl, standardizeUrl } from '../layer/data/model/domain/url';
 import { URL } from './url';
 import { Sequence } from 'spica/sequence';
 import { flip } from 'spica/flip';
-import { Maybe, Just, Nothing } from 'spica/maybe';
 
 export function router<T>(config: { [pattern: string]: (path: string) => T; }): (url: string) => T {
   return (url: string) => {
@@ -35,14 +34,16 @@ export function compare(pattern: string, path: URL.Pathname<StandardUrl>): boole
       ])
     .filter(([ps, ss]) =>
       ps.length <= ss.length)
-    .filter(([patterns, segments]) =>
+    .filter(([ps, ss]) =>
       Sequence
         .zip(
-          Sequence.from(patterns),
-          Sequence.from(segments))
-        .takeWhile(([p, s]) => match(p, s))
+          Sequence.from(ps),
+          Sequence.from(ss))
+        .dropWhile(([p, s]) =>
+          match(p, s))
+        .take(1)
         .extract()
-        .length === patterns.length)
+        .length === 0)
     .take(1)
     .extract()
     .length > 0;
@@ -63,40 +64,37 @@ export function expand(pattern: string): string[] {
 
 export function match(pattern: string, segment: string): boolean {
   if (pattern.includes('**')) throw new Error(`Invalid pattern: ${pattern}`);
-  return [...optimize(pattern)]
-    .map<[string, string]>((p, i, ps) =>
-      p === '*'
-        ? [p, ps.slice(i + 1).join('').split(/[?*]/, 1)[0]]
-        : [p, ''])
-    .reduce<Maybe<string[]>>((m, [p, ref]) => m
-      .bind(([r = '', ...rs]) => {
-        switch (p) {
-          case '?':
-            return r === ''
-              ? Nothing
-              : Just(rs);
-          case '*':
-            assert(!ref.match(/[?*]/));
-            const seg = r.concat(rs.join(''));
-            return seg.includes(ref)
-              ? ref === ''
-                ? Just([...seg.slice(seg.search(/\/|$/))])
-                : Just([...seg.slice(seg.indexOf(ref))])
-              : Nothing;
-          default:
-            return r === p
-              ? Just(rs)
-              : Nothing;
-        }
-      })
-    , Just([...segment]))
-    .bind(rest =>
-      rest.length === 0
-        ? Just(void 0)
-        : Nothing)
-    .extract(
-      () => false,
-      () => true);
+  if (segment[0] === '.' && pattern[0] === '*') return false;
+  return match(optimize(pattern), segment);
+
+  function match(pattern: string, segment: string): boolean {
+    const [p = '', ...ps] = [...pattern];
+    const [s = '', ...ss] = [...segment];
+    switch (p) {
+      case '':
+        return s === '';
+      case '?':
+        return s !== ''
+            && match(ps.join(''), ss.join(''));
+      case '*':
+        return s === '/'
+          ? match(ps.join(''), segment)
+          : Sequence.zip(
+              Sequence.cycle([ps.join('')]),
+              Sequence.from(segment)
+                .tails()
+                .map(ss =>
+                  ss.join('')))
+              .filter(([pattern, segment]) =>
+                match(pattern, segment))
+              .take(1)
+              .extract()
+              .length > 0;
+      default:
+        return s === p
+            && match(ps.join(''), ss.join(''));
+    }
+  }
   
   function optimize(pattern: string): string {
     const pat = pattern
