@@ -76,6 +76,12 @@ describe('Unit: lib/router', () => {
   });
 
   describe('expand', () => {
+    it('0', () => {
+      assert.deepEqual(
+        expand('{}'),
+        ['']);
+    });
+
     it('1', () => {
       assert.deepEqual(
         expand('{a}'),
@@ -84,14 +90,26 @@ describe('Unit: lib/router', () => {
 
     it('2', () => {
       assert.deepEqual(
-        expand('{a}{b,c}d{e}{f,g}'),
-        ['abdef', 'abdeg', 'acdef', 'acdeg']);
+        expand('{a}{b,c}d{e}{,f}'),
+        ['abde', 'abdef', 'acde', 'acdef']);
     });
 
     it('3', () => {
       assert.deepEqual(
         expand('{ab,bc,cd}'),
         ['ab', 'bc', 'cd']);
+    });
+
+    it('nest', () => {
+      assert.throws(() => expand('{{}}'));
+    });
+
+    it('[]', () => {
+      assert.throws(() => expand('[]'));
+    });
+
+    it('**', () => {
+      assert.throws(() => expand('**'));
     });
 
   });
@@ -118,6 +136,9 @@ describe('Unit: lib/router', () => {
       assert(!match('', '?'));
       assert(!match('?', ''));
       assert(match('?', 'a'));
+      assert(!match('?', '/'));
+      assert(!match('?', '.'));
+      assert(match('a?', 'a.'));
     });
 
     it('*', () => {
@@ -149,10 +170,6 @@ describe('Unit: lib/router', () => {
       assert(match('.*', '.'));
       assert(match('*', 'a.b'));
       assert(match('*.*', 'a.b'));
-    });
-
-    it('**', () => {
-      assert.throws(() => match('**', ''));
     });
 
   });

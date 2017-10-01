@@ -50,6 +50,7 @@ export function compare(pattern: string, path: URL.Pathname<StandardUrl>): boole
 }
 
 export function expand(pattern: string): string[] {
+  if (pattern.match(/\*\*|[\[\]]|{[^}]*{/)) throw new Error(`Invalid pattern: ${pattern}`);
   return Sequence
     .from(
       (pattern.match(/{.*?}|[^{]*/g) || [])
@@ -63,8 +64,7 @@ export function expand(pattern: string): string[] {
 }
 
 export function match(pattern: string, segment: string): boolean {
-  if (pattern.includes('**')) throw new Error(`Invalid pattern: ${pattern}`);
-  if (segment[0] === '.' && pattern[0] === '*') return false;
+  if (segment[0] === '.' && [...'?*'].includes(pattern[0])) return false;
   return match(optimize(pattern), segment);
 
   function match(pattern: string, segment: string): boolean {
@@ -75,6 +75,7 @@ export function match(pattern: string, segment: string): boolean {
         return s === '';
       case '?':
         return s !== ''
+            && s !== '/'
             && match(ps.join(''), ss.join(''));
       case '*':
         return s === '/'
