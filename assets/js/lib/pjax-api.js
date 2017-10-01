@@ -8434,6 +8434,8 @@ require = function e(t, n, r) {
             }
             exports.compare = compare;
             function expand(pattern) {
+                if (pattern.match(/\*\*|[\[\]]|{[^}]*{/))
+                    throw new Error('Invalid pattern: ' + pattern);
                 return sequence_1.Sequence.from((pattern.match(/{.*?}|[^{]*/g) || []).map(function (p) {
                     return p[0] === '{' ? p.slice(1, -1).split(',') : [p];
                 })).mapM(sequence_1.Sequence.from).map(function (ps) {
@@ -8442,9 +8444,7 @@ require = function e(t, n, r) {
             }
             exports.expand = expand;
             function match(pattern, segment) {
-                if (pattern.includes('**'))
-                    throw new Error('Invalid pattern: ' + pattern);
-                if (segment[0] === '.' && pattern[0] === '*')
+                if (segment[0] === '.' && __spread('?*').includes(pattern[0]))
                     return false;
                 return match(optimize(pattern), segment);
                 function match(pattern, segment) {
@@ -8454,7 +8454,7 @@ require = function e(t, n, r) {
                     case '':
                         return s === '';
                     case '?':
-                        return s !== '' && match(ps.join(''), ss.join(''));
+                        return s !== '' && s !== '/' && match(ps.join(''), ss.join(''));
                     case '*':
                         return s === '/' ? match(ps.join(''), segment) : sequence_1.Sequence.zip(sequence_1.Sequence.cycle([ps.join('')]), sequence_1.Sequence.from(segment).tails().map(function (ss) {
                             return ss.join('');
