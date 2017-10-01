@@ -4319,11 +4319,9 @@ require = function e(t, n, r) {
             }(ElChildrenType || (ElChildrenType = {})));
             var El = function () {
                 function El(element_, children_) {
-                    var _this = this;
                     this.element_ = element_;
                     this.children_ = children_;
                     this.type = this.children_ === void 0 ? ElChildrenType.Void : typeof this.children_ === 'string' ? ElChildrenType.Text : Array.isArray(this.children_) ? ElChildrenType.Collection : ElChildrenType.Struct;
-                    this.structkeys = this.type === 'struct' ? Object.keys(this.children_) : [];
                     this.tag;
                     switch (this.type) {
                     case ElChildrenType.Void:
@@ -4343,12 +4341,7 @@ require = function e(t, n, r) {
                     case ElChildrenType.Struct:
                         void clear();
                         this.children_ = observe(this.element_, __assign({}, children_));
-                        void this.structkeys.forEach(function (k) {
-                            return void _this.element_.appendChild(children_[k].element);
-                        });
-                        void scope(this.element_.id, this.structkeys.map(function (k) {
-                            return _this.children_[k];
-                        }));
+                        void scope(this.element_.id, this.children_);
                         return;
                     }
                     function clear() {
@@ -4359,7 +4352,7 @@ require = function e(t, n, r) {
                     function scope(id, children) {
                         if (!id.match(/^[\w\-]+$/))
                             return;
-                        return void children.map(function (_a) {
+                        return void Object.values(children).map(function (_a) {
                             var element = _a.element;
                             return element;
                         }).forEach(function (element) {
@@ -4375,6 +4368,9 @@ require = function e(t, n, r) {
                     function observe(element, children) {
                         return Object.defineProperties(children, Object.keys(children).reduce(function (descs, key) {
                             var current = children[key];
+                            if (!isOrphan(current))
+                                throw new Error('TypedDOM: Cannot add a child element used in another dom.');
+                            void element.appendChild(current.element);
                             descs[key] = {
                                 configurable: true,
                                 enumerable: true,
@@ -4385,6 +4381,8 @@ require = function e(t, n, r) {
                                     var oldChild = current;
                                     if (newChild === oldChild)
                                         return;
+                                    if (!isOrphan(newChild))
+                                        throw new Error('TypedDOM: Cannot add a child element used in another dom.');
                                     current = newChild;
                                     void element.replaceChild(newChild.element, oldChild.element);
                                 }
@@ -4415,32 +4413,28 @@ require = function e(t, n, r) {
                         case ElChildrenType.Void:
                             return;
                         case ElChildrenType.Text:
-                            if (children === this.children_.data)
-                                return;
                             this.children_.data = children;
                             return;
                         case ElChildrenType.Collection:
-                            if (children === this.children_)
-                                return;
-                            void children.reduce(function (cs, c) {
+                            void this.children_.reduce(function (cs, c) {
                                 var i = cs.indexOf(c);
-                                if (i === -1)
+                                if (i > -1)
                                     return cs;
                                 void cs.splice(i, 1);
+                                void c.element.remove();
                                 return cs;
-                            }, __spread(this.children_)).forEach(function (child) {
-                                return void child.element.remove();
-                            });
+                            }, __spread(children));
                             this.children_ = [];
                             void children.forEach(function (child, i) {
-                                return _this.children_[i] = child, void _this.element_.appendChild(child.element);
+                                if (!isOrphan(child))
+                                    throw new Error('TypedDOM: Cannot add a child element used in another dom.');
+                                _this.children_[i] = child;
+                                void _this.element_.appendChild(child.element);
                             });
                             void Object.freeze(this.children_);
                             return;
                         case ElChildrenType.Struct:
-                            if (children === this.children_)
-                                return;
-                            void this.structkeys.forEach(function (k) {
+                            void Object.keys(this.children_).forEach(function (k) {
                                 return _this.children_[k] = children[k];
                             });
                             return;
@@ -4452,6 +4446,10 @@ require = function e(t, n, r) {
                 return El;
             }();
             exports.El = El;
+            function isOrphan(_a) {
+                var element = _a.element;
+                return element.parentNode === null || element.parentNode instanceof DocumentFragment;
+            }
         },
         {}
     ],
@@ -4631,19 +4629,20 @@ require = function e(t, n, r) {
                             return key === void 0 || typeof attrs[key] === 'object';
                         }) ? new builder_1.El(define(tag, factory), attrs) : new builder_1.El(define(tag, factory, attrs), children === factory ? void 0 : children);
                     default:
-                        throw new TypeError('Invalid arguments: [' + attrs + ', ' + children + ', ' + factory + ']');
+                        throw new TypeError('TypedDOM: Invalid arguments: [' + attrs + ', ' + children + ', ' + factory + ']');
                     }
                 }, obj;
             }, {});
             function define(tag, factory, attrs) {
                 var el = factory();
-                if (tag !== el.tagName && tag !== el.tagName.toLowerCase())
-                    throw new Error('Tag name must be "' + tag + '" but "' + el.tagName.toLowerCase() + '".');
+                if (tag !== el.tagName.toLowerCase())
+                    throw new Error('TypedDOM: Tag name must be "' + tag + '" but "' + el.tagName.toLowerCase() + '".');
                 if (!attrs)
                     return el;
-                return Object.keys(attrs).reduce(function (el, name) {
-                    return void el.setAttribute(name, attrs[name] || ''), el;
-                }, el);
+                void Object.keys(attrs).forEach(function (name) {
+                    return void el.setAttribute(name, attrs[name]);
+                });
+                return el;
             }
         },
         { './builder': 75 }
