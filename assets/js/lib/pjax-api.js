@@ -8434,13 +8434,15 @@ require = function e(t, n, r) {
             }
             exports.compare = compare;
             function expand(pattern) {
-                if (pattern.match(/\*\*|[\[\]]|{[^}]*{/))
+                if (pattern.match(/\*\*|[\[\]]/))
                     throw new Error('Invalid pattern: ' + pattern);
-                return sequence_1.Sequence.from((pattern.match(/{.*?}|[^{]*/g) || []).map(function (p) {
-                    return p[0] === '{' ? p.slice(1, -1).split(',') : [p];
-                })).mapM(sequence_1.Sequence.from).map(function (ps) {
-                    return ps.join('');
-                }).extract();
+                if (!pattern.match(/{[^{}]*}/))
+                    return [pattern];
+                return __spread(new Set(sequence_1.Sequence.from(pattern.match(/{[^{}]*}|.[^{]*/g)).map(function (p) {
+                    return p.match(/^{[^{}]*}$/) ? p.slice(1, -1).split(',') : [p];
+                }).mapM(sequence_1.Sequence.from).bind(function (ps) {
+                    return sequence_1.Sequence.from(expand(ps.join('')));
+                }).extract()));
             }
             exports.expand = expand;
             function match(pattern, segment) {
