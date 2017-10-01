@@ -76,31 +76,31 @@ describe('Unit: lib/router', () => {
   });
 
   describe('expand', () => {
-    it('0', () => {
+    it('{}', () => {
       assert.deepEqual(
         expand('{}'),
         ['']);
     });
 
-    it('1', () => {
+    it('{1}', () => {
       assert.deepEqual(
         expand('{a}'),
         ['a']);
     });
 
-    it('2', () => {
+    it('{1,2}', () => {
       assert.deepEqual(
         expand('{a}{b,c}d{e}{,f}'),
         ['abde', 'abdef', 'acde', 'acdef']);
     });
 
-    it('3', () => {
+    it('{1,2,3}', () => {
       assert.deepEqual(
         expand('{ab,bc,cd}'),
         ['ab', 'bc', 'cd']);
     });
 
-    it('nest', () => {
+    it('{{}}', () => {
       assert.throws(() => expand('{{}}'));
     });
 
