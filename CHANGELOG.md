@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.16.11
+
+- Enable nested brace expansion.
+
 ## 3.16.10
 
 - Fix pattern matching.

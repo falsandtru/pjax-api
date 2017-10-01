@@ -77,31 +77,12 @@ describe('Unit: lib/router', () => {
 
   describe('expand', () => {
     it('{}', () => {
-      assert.deepEqual(
-        expand('{}'),
-        ['']);
-    });
-
-    it('{1}', () => {
-      assert.deepEqual(
-        expand('{a}'),
-        ['a']);
-    });
-
-    it('{1,2}', () => {
-      assert.deepEqual(
-        expand('{a}{b,c}d{e}{,f}'),
-        ['abde', 'abdef', 'acde', 'acdef']);
-    });
-
-    it('{1,2,3}', () => {
-      assert.deepEqual(
-        expand('{ab,bc,cd}'),
-        ['ab', 'bc', 'cd']);
-    });
-
-    it('{{}}', () => {
-      assert.throws(() => expand('{{}}'));
+      assert.deepStrictEqual(expand('{}'), ['']);
+      assert.deepStrictEqual(expand('{a}'), ['a']);
+      assert.deepStrictEqual(expand('{a}{b,c}d{e}{,f}'), ['abde', 'abdef', 'acde', 'acdef']);
+      assert.deepStrictEqual(expand('{ab,bc,cd}'), ['ab', 'bc', 'cd']);
+      assert.deepStrictEqual(expand('{{}}'), ['']);
+      assert.deepStrictEqual(expand('{a,{b,}c}'), ['a', 'bc', 'c']);
     });
 
     it('[]', () => {

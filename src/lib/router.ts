@@ -50,17 +50,20 @@ export function compare(pattern: string, path: URL.Pathname<StandardUrl>): boole
 }
 
 export function expand(pattern: string): string[] {
-  if (pattern.match(/\*\*|[\[\]]|{[^}]*{/)) throw new Error(`Invalid pattern: ${pattern}`);
-  return Sequence
-    .from(
-      (pattern.match(/{.*?}|[^{]*/g) || [])
+  if (pattern.match(/\*\*|[\[\]]/)) throw new Error(`Invalid pattern: ${pattern}`);
+  if (!pattern.match(/{[^{}]*}/)) return [pattern];
+  return [
+    ...new Set(
+      Sequence.from(pattern.match(/{[^{}]*}|.[^{]*/g)!)
         .map(p =>
-          p[0] === '{'
+          p.match(/^{[^{}]*}$/)
             ? p.slice(1, -1).split(',')
-            : [p]))
-    .mapM(Sequence.from)
-    .map(ps => ps.join(''))
-    .extract();
+            : [p])
+        .mapM(Sequence.from)
+        .bind(ps =>
+          Sequence.from(expand(ps.join(''))))
+        .extract())
+  ];
 }
 
 export function match(pattern: string, segment: string): boolean {
