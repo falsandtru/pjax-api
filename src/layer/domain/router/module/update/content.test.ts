@@ -1,4 +1,4 @@
-import { content, _split, _wait } from './content';
+import { content, _split as split, _wait as wait } from './content';
 import { parse } from '../../../../../lib/html';
 import DOM from 'typed-dom';
 
@@ -34,13 +34,13 @@ describe('Unit: layer/domain/router/module/update/content', () => {
   describe('split', () => {
     it('single', () => {
       assert.deepStrictEqual(
-        _split('body'),
+        split('body'),
         ['body']);
     });
 
     it('multiple', () => {
       assert.deepStrictEqual(
-        _split('#id, .class[data-pjax]'),
+        split('#id, .class[data-pjax]'),
         ['#id', '.class[data-pjax]']);
     });
 
@@ -50,14 +50,14 @@ describe('Unit: layer/domain/router/module/update/content', () => {
     it('img', done => {
       const el = DOM.img({ src: './' }, []).element;
       document.body.appendChild(el);
-      _wait(el)
+      wait(el)
         .then(() => (el.remove(), done()));
     });
 
     it('iframe', done => {
       const el = DOM.iframe({ src: './' }, []).element;
       document.body.appendChild(el);
-      _wait(el)
+      wait(el)
         .then(() => (el.remove(), done()));
     });
 
