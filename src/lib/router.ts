@@ -1,6 +1,7 @@
 import { StandardUrl, standardizeUrl } from '../layer/data/model/domain/url';
 import { URL } from './url';
 import { Sequence } from 'spica/sequence';
+import { uncurry } from 'spica/uncurry';
 import { flip } from 'spica/flip';
 
 export function router<T>(config: { [pattern: string]: (path: string) => T; }): (url: string) => T {
@@ -51,19 +52,21 @@ export function compare(pattern: string, path: URL.Pathname<StandardUrl>): boole
 
 export function expand(pattern: string): string[] {
   if (pattern.match(/\*\*|[\[\]]/)) throw new Error(`Invalid pattern: ${pattern}`);
-  if (!pattern.match(/{[^{}]*}/)) return [pattern];
-  return [
-    ...new Set(
-      Sequence.from(pattern.match(/{[^{}]*}|.[^{]*/g)!)
+  return pattern === ''
+    ? [pattern]
+    : Sequence.from(pattern.match(/{[^{}]*}|.[^{]*/g)!)
         .map(p =>
           p.match(/^{[^{}]*}$/)
             ? p.slice(1, -1).split(',')
             : [p])
         .mapM(Sequence.from)
-        .bind(ps =>
-          Sequence.from(expand(ps.join(''))))
-        .extract())
-  ];
+        .map(ps => ps.join(''))
+        .bind(p =>
+          p === pattern
+            ? Sequence.from([p])
+            : Sequence.from(expand(p)))
+        .unique()
+        .extract();
 }
 
 export function match(pattern: string, segment: string): boolean {
@@ -89,8 +92,7 @@ export function match(pattern: string, segment: string): boolean {
                 .tails()
                 .map(ss =>
                   ss.join('')))
-              .filter(([pattern, segment]) =>
-                match(pattern, segment))
+              .filter(uncurry(match))
               .take(1)
               .extract()
               .length > 0;
