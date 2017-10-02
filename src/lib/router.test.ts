@@ -1,4 +1,4 @@
-import { router, compare, expand, match } from './router';
+import { router, compare, _expand as expand, _match as match } from './router';
 import { URL } from './url';
 import { standardizeUrl } from '../layer/data/model/domain/url';
 import { Sequence } from 'spica/sequence';

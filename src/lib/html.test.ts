@@ -1,4 +1,4 @@
-import { parse, _fixNoscript } from './html';
+import { parse, _fixNoscript as fixNoscript } from './html';
 import { find } from './dom';
 import DOM from 'typed-dom';
 
@@ -24,7 +24,7 @@ describe('Unit: lib/html', () => {
     it('', () => {
       const el = DOM.noscript([DOM.hr()]).element;
       document.body.appendChild(el);
-      const texts = _fixNoscript(el.ownerDocument)
+      const texts = fixNoscript(el.ownerDocument)
         .map(([, {textContent}]) => textContent);
       assert.deepStrictEqual(texts, ['<hr>']);
       el.remove();

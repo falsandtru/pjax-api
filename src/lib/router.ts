@@ -3,6 +3,7 @@ import { URL } from './url';
 import { Sequence } from 'spica/sequence';
 import { uncurry } from 'spica/uncurry';
 import { flip } from 'spica/flip';
+import { Cache } from 'spica/cache';
 
 export function router<T>(config: { [pattern: string]: (path: string) => T; }): (url: string) => T {
   return (url: string) => {
@@ -34,14 +35,12 @@ export function compare(pattern: string, path: URL.Pathname<StandardUrl>): boole
           : path.replace(regTrailingSlash, '').match(regSegment) || []
       ])
     .filter(([ps, ss]) =>
-      ps.length <= ss.length)
-    .filter(([ps, ss]) =>
+      ps.length <= ss.length &&
       Sequence
         .zip(
           Sequence.from(ps),
           Sequence.from(ss))
-        .dropWhile(([p, s]) =>
-          match(p, s))
+        .dropWhile(uncurry(match))
         .take(1)
         .extract()
         .length === 0)
@@ -50,8 +49,9 @@ export function compare(pattern: string, path: URL.Pathname<StandardUrl>): boole
     .length > 0;
 }
 
-export function expand(pattern: string): string[] {
+function expand(pattern: string): string[] {
   if (pattern.match(/\*\*|[\[\]]/)) throw new Error(`Invalid pattern: ${pattern}`);
+  assert(pattern === '' || pattern.match(/{[^{}]*}|.[^{]*/g)!.join('') === pattern);
   return pattern === ''
     ? [pattern]
     : Sequence.from(pattern.match(/{[^{}]*}|.[^{]*/g)!)
@@ -68,10 +68,17 @@ export function expand(pattern: string): string[] {
         .unique()
         .extract();
 }
+export { expand as _expand }
 
-export function match(pattern: string, segment: string): boolean {
+const cache = new Cache<string, boolean>(100);
+
+function match(pattern: string, segment: string): boolean {
+  assert(segment === '/' || !segment.startsWith('/'));
   if (segment[0] === '.' && [...'?*'].includes(pattern[0])) return false;
-  return match(optimize(pattern), segment);
+  const id = `${pattern}:${segment}`;
+  return cache.has(id)
+    ? cache.get(id)!
+    : cache.set(id, match(optimize(pattern), segment));
 
   function match(pattern: string, segment: string): boolean {
     const [p = '', ...ps] = [...pattern];
@@ -90,8 +97,7 @@ export function match(pattern: string, segment: string): boolean {
               Sequence.cycle([ps.join('')]),
               Sequence.from(segment)
                 .tails()
-                .map(ss =>
-                  ss.join('')))
+                .map(ss => ss.join('')))
               .filter(uncurry(match))
               .take(1)
               .extract()
@@ -110,3 +116,4 @@ export function match(pattern: string, segment: string): boolean {
       : optimize(pat);
   }
 }
+export { match as _match }
