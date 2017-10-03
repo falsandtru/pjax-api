@@ -93,11 +93,12 @@ function match(pattern: string, segment: string): boolean {
       case '*':
         return s === '/'
           ? match(ps.join(''), segment)
-          : Sequence.zip(
-              Sequence.cycle([ps.join('')]),
-              Sequence.from(segment)
-                .tails()
-                .map(ss => ss.join('')))
+          : Sequence
+              .zip(
+                Sequence.cycle([ps.join('')]),
+                Sequence.from(segment)
+                  .tails()
+                  .map(ss => ss.join('')))
               .filter(uncurry(match))
               .take(1)
               .extract()
@@ -109,8 +110,7 @@ function match(pattern: string, segment: string): boolean {
   }
   
   function optimize(pattern: string): string {
-    const pat = pattern
-      .replace(/\*(\?+)\*?/g, '$1*');
+    const pat = pattern.replace(/\*(\?+)\*?/g, '$1*');
     return pat === pattern
       ? pat
       : optimize(pat);

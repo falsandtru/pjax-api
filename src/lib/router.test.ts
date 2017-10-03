@@ -118,7 +118,9 @@ describe('Unit: lib/router', () => {
       assert(!match('?', ''));
       assert(match('?', 'a'));
       assert(!match('?', '/'));
+      assert(!match('a?', 'a/'));
       assert(!match('?', '.'));
+      assert(match('.?', '.a'));
       assert(match('a?', 'a.'));
     });
 
@@ -147,10 +149,12 @@ describe('Unit: lib/router', () => {
       assert(match('a*?c', 'abbc'));
       assert(!match('*', '/'));
       assert(match('*/', '/'));
-      assert(!match('*', '.'));
       assert(match('.*', '.'));
+      assert(!match('*', '.'));
       assert(match('*', 'a.b'));
+      assert(!match('*.', '.'));
       assert(match('*.*', 'a.b'));
+      assert(match('?*.*', 'a.b'));
     });
 
   });
