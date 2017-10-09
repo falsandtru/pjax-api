@@ -34,6 +34,7 @@
     <TypeScriptDownlevelIteration>True</TypeScriptDownlevelIteration>
     <TypeScriptJSXEmit>None</TypeScriptJSXEmit>
     <TypeScriptStrictNullChecks>True</TypeScriptStrictNullChecks>
+    <TypeScriptStrictFunctionTypes>False</TypeScriptStrictFunctionTypes>
     <TypeScriptNoImplicitAny>True</TypeScriptNoImplicitAny>
     <TypeScriptNoImplicitThis>True</TypeScriptNoImplicitThis>
     <TypeScriptNoImplicitReturns>True</TypeScriptNoImplicitReturns>

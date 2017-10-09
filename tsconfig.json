@@ -12,6 +12,7 @@
     "alwaysStrict": true,
     "allowSyntheticDefaultImports": true,
     "strictNullChecks": true,
+    "strictFunctionTypes": false,
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
