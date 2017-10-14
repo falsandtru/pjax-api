@@ -58,32 +58,6 @@ export class Config implements Option {
     throw reason;
   }
   public readonly sequence: ISequence<SequenceData.Fetch, SequenceData.Unload, SequenceData.Ready> = new Sequence();
-  public readonly balance = {
-    bounds: [
-      ''
-    ],
-    weight: 1,
-    random: 0,
-    client: {
-      hosts: [
-      ] as string[],
-      support: {
-        balance: /msie|trident.+ rv:|chrome|firefox|safari/i,
-        redirect: /msie|trident.+ rv:|chrome|firefox|safari/i
-      },
-      cookie: {
-        balance: 'balanceable',
-        redirect: 'redirectable'
-      }
-    },
-    server: {
-      header: 'X-Ajax-Host',
-      expiry: 3 * 24 * 3600 * 1e3
-    }
-  };
-  public readonly store = {
-    expiry: 3 * 3600 * 1e3
-  };
   public readonly progressbar: string = 'display:none;position:absolute;bottom:0;left:0;width:0;height:2px;background:rgb(40, 105, 255);';
   public readonly scope: { [path: string]: Option | undefined; } = {
     '/': {}

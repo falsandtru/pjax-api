@@ -33,30 +33,6 @@ export interface Config {
   };
   readonly fallback?: (target: HTMLAnchorElement | HTMLFormElement | Window, reason: any) => void;
   readonly sequence?: Sequence<any, any, any>;
-  readonly balance?: {
-    readonly bounds?: string[];
-    readonly weight?: number;
-    readonly random?: number;
-    readonly client?: {
-      readonly hosts?: string[];
-      readonly support?: {
-        readonly balance?: RegExp;
-        readonly redirect?: RegExp;
-      };
-      readonly cookie?: {
-        readonly balance?: string;
-        readonly redirect?: string;
-      };
-    };
-    readonly server?: {
-      readonly header?: string;
-      readonly respite?: number;
-      readonly expires?: number;
-    };
-  };
-  readonly store?: {
-    readonly expiry?: number;
-  };
   readonly scope?: { [path: string]: Config | undefined; };
 }
 

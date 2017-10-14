@@ -19,7 +19,6 @@ class: style-top
 	- Script markless auto load
 	- [more](https://github.com/falsandtru/pjax-api#feature)
 - Concurrency integration
-- Client-side load balancing (unimplemented)
 </div>
 
 <div class="col-md-4">

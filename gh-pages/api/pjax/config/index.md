@@ -128,12 +128,6 @@ It can integrate and synchronize other async processes.
 
 ### load: (result: c, events: Event[]): void
 
-## store: {...} = ...
-
-### expiry: number = `3 * 3600 * 1e3`
-
-Set an expiry of records.
-
 ## scope: { [path: string]: Config | undefined } = `{ '/': {} }`
 
 Override default configs by merging, or disable pjax per path of url.
