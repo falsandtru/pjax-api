@@ -5696,27 +5696,6 @@ require = function e(t, n, r) {
                         logger: ''
                     };
                     this.sequence = new Sequence();
-                    this.balance = {
-                        bounds: [''],
-                        weight: 1,
-                        random: 0,
-                        client: {
-                            hosts: [],
-                            support: {
-                                balance: /msie|trident.+ rv:|chrome|firefox|safari/i,
-                                redirect: /msie|trident.+ rv:|chrome|firefox|safari/i
-                            },
-                            cookie: {
-                                balance: 'balanceable',
-                                redirect: 'redirectable'
-                            }
-                        },
-                        server: {
-                            header: 'X-Ajax-Host',
-                            expiry: 3 * 24 * 3600 * 1000
-                        }
-                    };
-                    this.store = { expiry: 3 * 3600 * 1000 };
                     this.progressbar = 'display:none;position:absolute;bottom:0;left:0;width:0;height:2px;background:rgb(40, 105, 255);';
                     this.scope = { '/': {} };
                     void Object.defineProperties(this.update, {
