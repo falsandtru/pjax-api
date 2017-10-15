@@ -4302,9 +4302,6 @@ require = function e(t, n, r) {
                                 return state_1.value;
                         }
                     };
-                    if (!this.constructor.hasOwnProperty('instances')) {
-                        this.constructor.instances = new Set();
-                    }
                     void assign_1.extend(this.settings, opts);
                     this.name = this.settings.name;
                     if (this.constructor === Supervisor)
@@ -4314,18 +4311,25 @@ require = function e(t, n, r) {
                         return void (void 0, _this.settings.scheduler)(_this.deliver);
                     };
                 }
+                Object.defineProperty(Supervisor, 'instances', {
+                    get: function () {
+                        return this.hasOwnProperty('instances_') ? this.instances_ : this.instances_ = new Set();
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
                 Object.defineProperty(Supervisor, 'count', {
                     get: function () {
-                        return this.instances ? this.instances.size : 0;
+                        return this.instances.size;
                     },
                     enumerable: true,
                     configurable: true
                 });
                 Object.defineProperty(Supervisor, 'procs', {
                     get: function () {
-                        return this.instances ? __spread(this.instances).reduce(function (cnt, sv) {
+                        return __spread(this.instances).reduce(function (cnt, sv) {
                             return cnt + sv.workers.size;
-                        }, 0) : 0;
+                        }, 0);
                     },
                     enumerable: true,
                     configurable: true
