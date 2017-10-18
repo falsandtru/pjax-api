@@ -2,6 +2,7 @@
 
 ## 3.17.0
 
+- Document the Router APIs.
 - Remove unused APIs.
 
 ## 3.16.11
