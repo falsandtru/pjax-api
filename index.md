@@ -53,6 +53,7 @@ new Pjax({
 
 - [Pjax]({{ site.basepath }}api/pjax/)
 - [Event]({{ site.basepath }}api/event/)
+- [Router]({{ site.basepath }}api/router/)
 </div>
 
 </div>

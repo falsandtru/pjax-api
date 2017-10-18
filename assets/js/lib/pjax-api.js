@@ -8896,7 +8896,10 @@ require = function e(t, n, r) {
             function router(config) {
                 return function (url) {
                     var _a = new url_2.URL(url_1.standardizeUrl(url)), path = _a.path, pathname = _a.pathname;
-                    return sequence_1.Sequence.from(Object.keys(config).sort().reverse()).filter(flip_1.flip(compare)(pathname)).map(function (pattern) {
+                    return sequence_1.Sequence.from(Object.keys(config).filter(function (_a) {
+                        var _b = __read(_a, 1), c = _b[0];
+                        return c === '/';
+                    }).sort().reverse()).filter(flip_1.flip(compare)(pathname)).map(function (pattern) {
                         return config[pattern];
                     }).take(1).extract().pop().call(config, path);
                 };
