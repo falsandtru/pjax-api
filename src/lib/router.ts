@@ -83,6 +83,8 @@ function match(pattern: string, segment: string): boolean {
   function match(pattern: string, segment: string): boolean {
     const [p = '', ...ps] = [...pattern];
     const [s = '', ...ss] = [...segment];
+    assert(typeof p === 'string');
+    assert(typeof s === 'string');
     switch (p) {
       case '':
         return s === '';
