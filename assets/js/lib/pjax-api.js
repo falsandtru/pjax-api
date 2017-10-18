@@ -4885,138 +4885,219 @@ require = function e(t, n, r) {
     81: [
         function (require, module, exports) {
             'use strict';
+            var __read = this && this.__read || function (o, n) {
+                var m = typeof Symbol === 'function' && o[Symbol.iterator];
+                if (!m)
+                    return o;
+                var i = m.call(o), r, ar = [], e;
+                try {
+                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+                        ar.push(r.value);
+                } catch (error) {
+                    e = { error: error };
+                } finally {
+                    try {
+                        if (r && !r.done && (m = i['return']))
+                            m.call(i);
+                    } finally {
+                        if (e)
+                            throw e.error;
+                    }
+                }
+                return ar;
+            };
+            var __spread = this && this.__spread || function () {
+                for (var ar = [], i = 0; i < arguments.length; i++)
+                    ar = ar.concat(__read(arguments[i]));
+                return ar;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var builder_1 = require('./builder');
-            exports.TypedHTML = [
-                'a',
-                'applet',
-                'area',
-                'audio',
-                'base',
-                'basefont',
-                'blockquote',
-                'body',
-                'br',
-                'button',
-                'canvas',
-                'caption',
-                'col',
-                'colgroup',
-                'data',
-                'datalist',
-                'del',
-                'dir',
-                'div',
-                'dl',
-                'embed',
-                'fieldset',
-                'font',
-                'form',
-                'frame',
-                'frameset',
-                'h1',
-                'h2',
-                'h3',
-                'h4',
-                'h5',
-                'h6',
-                'head',
-                'hr',
-                'html',
-                'iframe',
-                'img',
-                'input',
-                'ins',
-                'isindex',
-                'label',
-                'legend',
-                'li',
-                'link',
-                'listing',
-                'map',
-                'marquee',
-                'menu',
-                'meta',
-                'meter',
-                'nextid',
-                'object',
-                'ol',
-                'optgroup',
-                'option',
-                'output',
-                'p',
-                'param',
-                'picture',
-                'pre',
-                'progress',
-                'q',
-                'script',
-                'select',
-                'source',
-                'span',
-                'style',
-                'table',
-                'tbody',
-                'td',
-                'template',
-                'textarea',
-                'tfoot',
-                'th',
-                'thead',
-                'time',
-                'title',
-                'tr',
-                'track',
-                'ul',
-                'video',
-                'x-ms-webview',
-                'xmp',
-                'abbr',
-                'acronym',
-                'address',
-                'article',
-                'aside',
-                'b',
-                'bdo',
-                'big',
-                'center',
-                'cite',
-                'code',
-                'dd',
-                'dfn',
-                'dt',
-                'em',
-                'figcaption',
-                'figure',
-                'footer',
-                'header',
-                'hgroup',
-                'i',
-                'kbd',
-                'keygen',
-                'mark',
-                'nav',
-                'nobr',
-                'noframes',
-                'noscript',
-                'plaintext',
-                'rt',
-                'ruby',
-                's',
-                'samp',
-                'section',
-                'small',
-                'strike',
-                'strong',
-                'sub',
-                'sup',
-                'tt',
-                'u',
-                'var',
-                'wbr',
+            exports.tags = {
+                'a': 0,
+                'applet': 0,
+                'area': 0,
+                'audio': 0,
+                'base': 0,
+                'basefont': 0,
+                'blockquote': 0,
+                'body': 0,
+                'br': 0,
+                'button': 0,
+                'canvas': 0,
+                'caption': 0,
+                'col': 0,
+                'colgroup': 0,
+                'data': 0,
+                'datalist': 0,
+                'del': 0,
+                'dir': 0,
+                'div': 0,
+                'dl': 0,
+                'embed': 0,
+                'fieldset': 0,
+                'font': 0,
+                'form': 0,
+                'frame': 0,
+                'frameset': 0,
+                'h1': 0,
+                'h2': 0,
+                'h3': 0,
+                'h4': 0,
+                'h5': 0,
+                'h6': 0,
+                'head': 0,
+                'hr': 0,
+                'html': 0,
+                'iframe': 0,
+                'img': 0,
+                'input': 0,
+                'ins': 0,
+                'isindex': 0,
+                'label': 0,
+                'legend': 0,
+                'li': 0,
+                'link': 0,
+                'listing': 0,
+                'map': 0,
+                'marquee': 0,
+                'menu': 0,
+                'meta': 0,
+                'meter': 0,
+                'nextid': 0,
+                'object': 0,
+                'ol': 0,
+                'optgroup': 0,
+                'option': 0,
+                'output': 0,
+                'p': 0,
+                'param': 0,
+                'picture': 0,
+                'pre': 0,
+                'progress': 0,
+                'q': 0,
+                'script': 0,
+                'select': 0,
+                'source': 0,
+                'span': 0,
+                'style': 0,
+                'table': 0,
+                'tbody': 0,
+                'td': 0,
+                'template': 0,
+                'textarea': 0,
+                'tfoot': 0,
+                'th': 0,
+                'thead': 0,
+                'time': 0,
+                'title': 0,
+                'tr': 0,
+                'track': 0,
+                'ul': 0,
+                'video': 0,
+                'x-ms-webview': 0,
+                'xmp': 0,
+                'abbr': 0,
+                'acronym': 0,
+                'address': 0,
+                'article': 0,
+                'aside': 0,
+                'b': 0,
+                'bdo': 0,
+                'big': 0,
+                'center': 0,
+                'circle': 0,
+                'cite': 0,
+                'clippath': 0,
+                'code': 0,
+                'dd': 0,
+                'defs': 0,
+                'desc': 0,
+                'dfn': 0,
+                'dt': 0,
+                'ellipse': 0,
+                'em': 0,
+                'feblend': 0,
+                'fecolormatrix': 0,
+                'fecomponenttransfer': 0,
+                'fecomposite': 0,
+                'feconvolvematrix': 0,
+                'fediffuselighting': 0,
+                'fedisplacementmap': 0,
+                'fedistantlight': 0,
+                'feflood': 0,
+                'fefunca': 0,
+                'fefuncb': 0,
+                'fefuncg': 0,
+                'fefuncr': 0,
+                'fegaussianblur': 0,
+                'feimage': 0,
+                'femerge': 0,
+                'femergenode': 0,
+                'femorphology': 0,
+                'feoffset': 0,
+                'fepointlight': 0,
+                'fespecularlighting': 0,
+                'fespotlight': 0,
+                'fetile': 0,
+                'feturbulence': 0,
+                'figcaption': 0,
+                'figure': 0,
+                'filter': 0,
+                'footer': 0,
+                'foreignobject': 0,
+                'g': 0,
+                'header': 0,
+                'hgroup': 0,
+                'i': 0,
+                'image': 0,
+                'kbd': 0,
+                'keygen': 0,
+                'line': 0,
+                'lineargradient': 0,
+                'mark': 0,
+                'marker': 0,
+                'mask': 0,
+                'metadata': 0,
+                'nav': 0,
+                'nobr': 0,
+                'noframes': 0,
+                'noscript': 0,
+                'path': 0,
+                'pattern': 0,
+                'plaintext': 0,
+                'polygon': 0,
+                'polyline': 0,
+                'radialgradient': 0,
+                'rect': 0,
+                'rt': 0,
+                'ruby': 0,
+                's': 0,
+                'samp': 0,
+                'section': 0,
+                'small': 0,
+                'stop': 0,
+                'strike': 0,
+                'strong': 0,
+                'sub': 0,
+                'sup': 0,
+                'svg': 0,
+                'switch': 0,
+                'symbol': 0,
+                'text': 0,
+                'textpath': 0,
+                'tspan': 0,
+                'tt': 0,
+                'u': 0,
+                'use': 0,
+                'var': 0,
+                'view': 0,
+                'wbr': 0
+            };
+            exports.TypedHTML = __spread(Object.keys(exports.tags), [
                 'create',
                 'any'
-            ].reduce(function (obj, prop) {
+            ]).reduce(function (obj, prop) {
                 return obj[prop] = prop === 'create' ? function (tag, b, c, d) {
                     if (b === void 0) {
                         b = function () {
@@ -5724,7 +5805,7 @@ require = function e(t, n, r) {
                 Config.prototype.filter = function (_el) {
                     return true;
                 };
-                Config.prototype.rewrite = function (_doc, _area, _host) {
+                Config.prototype.rewrite = function (_doc, _area) {
                 };
                 Config.prototype.fallback = function (target, reason) {
                     if (target instanceof HTMLAnchorElement) {
@@ -6362,9 +6443,9 @@ require = function e(t, n, r) {
                 var method = _a.method, url = _a.url, data = _a.data;
                 var _c = _b.fetch, timeout = _c.timeout, wait = _c.wait, sequence = _b.sequence;
                 return __awaiter(this, void 0, void 0, function () {
-                    var req, _a, res, seq;
-                    return __generator(this, function (_b) {
-                        switch (_b.label) {
+                    var req, _d, res, seq;
+                    return __generator(this, function (_e) {
+                        switch (_e.label) {
                         case 0:
                             req = xhr_1.xhr(method, url, data, timeout, process);
                             void window.dispatchEvent(new Event('pjax:fetch'));
@@ -6373,7 +6454,6 @@ require = function e(t, n, r) {
                                 Promise.all([
                                     req,
                                     sequence.fetch(void 0, {
-                                        host: '',
                                         path: new url_1.URL(url).path,
                                         method: method,
                                         data: data
@@ -6384,10 +6464,10 @@ require = function e(t, n, r) {
                                 ])
                             ];
                         case 1:
-                            _a = __read.apply(void 0, [
-                                _b.sent(),
+                            _d = __read.apply(void 0, [
+                                _e.sent(),
                                 2
-                            ]), res = _a[0], seq = _a[1];
+                            ]), res = _d[0], seq = _d[1];
                             return [
                                 2,
                                 res.bind(process.either).bind(function (result) {
@@ -6638,7 +6718,7 @@ require = function e(t, n, r) {
                 return __awaiter(this, void 0, void 0, function () {
                     var _this = this;
                     var process, documents;
-                    return __generator(this, function (_a) {
+                    return __generator(this, function (_c) {
                         process = state.process;
                         documents = new update_1.UpdateSource({
                             src: response.document,
@@ -6650,7 +6730,7 @@ require = function e(t, n, r) {
                                 return m.fmap(function (seq) {
                                     return content_1.separate(documents, config.areas).fmap(function (_a) {
                                         var _b = __read(_a, 1), area = _b[0];
-                                        return void config.rewrite(documents.src, area, '');
+                                        return void config.rewrite(documents.src, area);
                                     }).extract(function () {
                                         return __awaiter(_this, void 0, void 0, function () {
                                             return __generator(this, function (_a) {
@@ -6849,21 +6929,21 @@ require = function e(t, n, r) {
                                                                         var _b = __read(_a, 2), _c = __read(_b[0], 2), sp = _c[1], seq = _b[1];
                                                                         return __awaiter(_this, void 0, void 0, function () {
                                                                             var events;
-                                                                            return __generator(this, function (_a) {
-                                                                                switch (_a.label) {
+                                                                            return __generator(this, function (_d) {
+                                                                                switch (_d.label) {
                                                                                 case 0:
                                                                                     return [
                                                                                         4,
                                                                                         sp
                                                                                     ];
                                                                                 case 1:
-                                                                                    _a.sent();
+                                                                                    _d.sent();
                                                                                     return [
                                                                                         4,
                                                                                         cp
                                                                                     ];
                                                                                 case 2:
-                                                                                    events = _a.sent();
+                                                                                    events = _d.sent();
                                                                                     if (process.canceled)
                                                                                         return [2];
                                                                                     void window.dispatchEvent(new Event('pjax:load'));
@@ -8386,8 +8466,8 @@ require = function e(t, n, r) {
                                     return m.fmap(function (_a) {
                                         var _b = __read(_a, 2), ss = _b[0], p = _b[1];
                                         return __awaiter(_this, void 0, void 0, function () {
-                                            return __generator(this, function (_a) {
-                                                switch (_a.label) {
+                                            return __generator(this, function (_c) {
+                                                switch (_c.label) {
                                                 case 0:
                                                     void kill(), void url_1.docurl.sync(), void ss.filter(function (s) {
                                                         return s.hasAttribute('src');
@@ -8401,7 +8481,7 @@ require = function e(t, n, r) {
                                                 case 1:
                                                     return [
                                                         2,
-                                                        void _a.sent().filter(function (s) {
+                                                        void _c.sent().filter(function (s) {
                                                             return s.hasAttribute('src');
                                                         }).forEach(function (s) {
                                                             return void scripts.add(new url_3.URL(url_2.standardizeUrl(s.src)).href);
