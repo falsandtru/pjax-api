@@ -78,7 +78,7 @@ export async function update(
                 Promise.all(ps),
               ])
               .fmap(process.either)
-              .extract(() =>
+              .extract<Either<Error, [HTMLElement[], Promise<Event[]>]>>(() =>
                 Left(new DomainError(`Failed to update areas.`)))))
           .extend(async p => (await p).fmap(([areas]) => Promise.all(
             new HNil()
@@ -117,7 +117,7 @@ export async function update(
               m1.bind(ss =>
                 m2.fmap<[[HTMLScriptElement[], Promise<HTMLScriptElement[]>], SequenceData.Ready]>(seq =>
                   [ss, seq]))))
-            .extract<Left<Error>>(Left))
+            .extract<Either<Error, [[HTMLScriptElement[], Promise<HTMLScriptElement[]>], SequenceData.Ready]>>(Left))
           .reverse()
           .tuple())))
     // ready -> load
