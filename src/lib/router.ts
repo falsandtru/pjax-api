@@ -8,7 +8,7 @@ import { Cache } from 'spica/cache';
 export function router<T>(config: { [pattern: string]: (path: string) => T; }): (url: string) => T {
   return (url: string) => {
     const { path, pathname } = new URL(standardizeUrl(url));
-    return Sequence.from(Object.keys(config).sort().reverse())
+    return Sequence.from(Object.keys(config).filter(([c]) => c === '/').sort().reverse())
       .filter(flip(compare)(pathname))
       .map(pattern => config[pattern])
       .take(1)
