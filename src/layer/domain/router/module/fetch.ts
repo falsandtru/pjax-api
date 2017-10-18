@@ -31,7 +31,6 @@ export async function fetch(
   const [res, seq] = await Promise.all([
     req,
     sequence.fetch(void 0, {
-      host: '',
       path: new URL(url).path,
       method,
       data

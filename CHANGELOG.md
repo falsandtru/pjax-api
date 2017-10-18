@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.17.0
+
+- Remove unused APIs.
+
 ## 3.16.11
 
 - Enable nested brace expansion.

@@ -44,7 +44,7 @@ export async function update(
       .fmap(seq =>
         separate(documents, config.areas)
           .fmap(([area]) =>
-            void config.rewrite(documents.src, area, ''))
+            void config.rewrite(documents.src, area))
           .extract<Promise<Either<Error, SequenceData.Unload>>>(
             async () =>
               Left(new DomainError(`Failed to separate areas.`)),

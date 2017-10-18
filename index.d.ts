@@ -22,7 +22,7 @@ export interface Config {
     readonly timeout?: number;
     readonly wait?: number;
   };
-  readonly rewrite?: (doc: Document, area: string, host: string) => void;
+  readonly rewrite?: (doc: Document, area: string) => void;
   readonly update?: {
     readonly head?: string;
     readonly css?: boolean;
@@ -37,7 +37,7 @@ export interface Config {
 }
 
 export interface Sequence<a, b, c> {
-  readonly fetch: (result: void, request: { host: string; path: string; method: string; data: FormData | null; }) => Promise<a>;
+  readonly fetch: (result: void, request: { path: string; method: string; data: FormData | null; }) => Promise<a>;
   readonly unload: (result: a, response: { url: string; header: (name: string) => string | null; document: Document; }) => Promise<b>;
   readonly ready: (result: b, areas: HTMLElement[]) => Promise<c>;
   readonly load: (result: c, events: Event[]) => void;

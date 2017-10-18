@@ -48,13 +48,13 @@ Set timeout for request by ms.
 
 Wait specified milliseconds after sending a request.
 
-## rewrite: (doc: Document, area: string, host: string) => void = ...
+## rewrite: (doc: Document, area: string) => void = ...
 
 Rewrite a source document object.
 
 ```ts
   // default
-  public rewrite(doc: Document, area: string, host: string): void {
+  public rewrite(doc: Document, area: string): void {
   }
 ```
 
@@ -120,7 +120,7 @@ Override a fallback processing.
 Control the page routing sequence.
 It can integrate and synchronize other async processes.
 
-### fetch: (result: void, request: { host: string; path: string; method: string; data: FormData | null; }): Promise<a>
+### fetch: (result: void, request: { path: string; method: string; data: FormData | null; }): Promise<a>
 
 ### unload: (result: a, response: { url: string; headers: { [field: string]: string; }; document: Document; }): Promise<b>
 

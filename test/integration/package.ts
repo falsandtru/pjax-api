@@ -58,7 +58,6 @@ describe('Integration: Package', function () {
           assert(r === void 0);
           assert(window.history.scrollRestoration === 'manual');
           assert.deepStrictEqual(req, {
-            host: '',
             path: path,
             method: 'GET',
             data: null

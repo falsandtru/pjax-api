@@ -31,7 +31,7 @@ export class Config implements Option {
     timeout: 3000,
     wait: 0
   };
-  public rewrite(_doc: Document, _area: string, _host: string): void {
+  public rewrite(_doc: Document, _area: string): void {
   }
   public readonly update = {
     head: 'base, meta, link',
