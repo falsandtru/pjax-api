@@ -128,10 +128,10 @@ It can integrate and synchronize other async processes.
 
 ### load: (result: c, events: Event[]): void
 
-## scope: { [path: string]: Config | undefined } = `{ '/': {} }`
+## scope: Record<string, Option | undefined> = `{}`
 
 Override default configs by merging, or disable pjax per path of url.
-It can use `*`, `?` and `{a,b}` patterns like glob with path string. 
+You can use `{}`, `*`, and `?` metacharacters for path matching.
 
 ```ts
 new Pjax({

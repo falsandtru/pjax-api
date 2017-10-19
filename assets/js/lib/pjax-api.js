@@ -5491,6 +5491,15 @@ require = function e(t, n, r) {
     87: [
         function (require, module, exports) {
             'use strict';
+            var __assign = this && this.__assign || Object.assign || function (t) {
+                for (var s, i = 1, n = arguments.length; i < n; i++) {
+                    s = arguments[i];
+                    for (var p in s)
+                        if (Object.prototype.hasOwnProperty.call(s, p))
+                            t[p] = s[p];
+                }
+                return t;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var router_1 = require('../../../lib/router');
             var config_1 = require('../../domain/data/config');
@@ -5498,12 +5507,13 @@ require = function e(t, n, r) {
             var maybe_1 = require('spica/maybe');
             var assign_1 = require('spica/assign');
             function scope(config, path) {
-                return sequence_1.Sequence.from(Object.keys(config.scope).sort().reverse()).dropWhile(function (pattern) {
+                var scope = __assign({ '/': {} }, config.scope);
+                return sequence_1.Sequence.from(Object.keys(scope).sort().reverse()).dropWhile(function (pattern) {
                     return !!!router_1.compare(pattern, path.orig) && !router_1.compare(pattern, path.dest);
                 }).take(1).filter(function (pattern) {
                     return !!router_1.compare(pattern, path.orig) && router_1.compare(pattern, path.dest);
                 }).map(function (pattern) {
-                    return config.scope[pattern];
+                    return scope[pattern];
                 }).map(function (option) {
                     return option ? maybe_1.Just(new config_1.Config(assign_1.extend({}, config, option))) : maybe_1.Nothing;
                 }).extract().reduce(function (_, m) {
@@ -5782,7 +5792,7 @@ require = function e(t, n, r) {
                     };
                     this.sequence = new Sequence();
                     this.progressbar = 'display:none;position:absolute;bottom:0;left:0;width:0;height:2px;background:rgb(40, 105, 255);';
-                    this.scope = { '/': {} };
+                    this.scope = {};
                     void Object.defineProperties(this.update, {
                         ignore: {
                             enumerable: false,
