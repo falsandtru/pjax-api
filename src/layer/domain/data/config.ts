@@ -59,9 +59,7 @@ export class Config implements Option {
   }
   public readonly sequence: ISequence<SequenceData.Fetch, SequenceData.Unload, SequenceData.Ready> = new Sequence();
   public readonly progressbar: string = 'display:none;position:absolute;bottom:0;left:0;width:0;height:2px;background:rgb(40, 105, 255);';
-  public readonly scope: { [path: string]: Option | undefined; } = {
-    '/': {}
-  };
+  public readonly scope: Record<string, Option | undefined> = {};
 }
 
 class Sequence implements ISequence<SequenceData.Fetch, SequenceData.Unload, SequenceData.Ready> {

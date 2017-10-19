@@ -33,7 +33,7 @@ export interface Config {
   };
   readonly fallback?: (target: HTMLAnchorElement | HTMLFormElement | Window, reason: any) => void;
   readonly sequence?: Sequence<any, any, any>;
-  readonly scope?: { [path: string]: Config | undefined; };
+  readonly scope?: Record<string, Config | undefined>;
 }
 
 export interface Sequence<a, b, c> {

@@ -14,7 +14,8 @@ export function scope(
     dest: URL.Pathname<StandardUrl>;
   }
 ): Maybe<Config> {
-  return Sequence.from(Object.keys(config.scope).sort().reverse())
+  const scope = { '/': {}, ...config.scope };
+  return Sequence.from(Object.keys(scope).sort().reverse())
     .dropWhile(pattern =>
       !! !compare(pattern, path.orig)
       && !compare(pattern, path.dest))
@@ -22,7 +23,7 @@ export function scope(
     .filter(pattern =>
       !! compare(pattern, path.orig)
       && compare(pattern, path.dest))
-    .map(pattern => config.scope[pattern])
+    .map(pattern => scope[pattern])
     .map<Maybe<Config>>(option =>
       option
         ? Just(new Config(extend<Option>({}, config, option)))
