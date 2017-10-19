@@ -5,7 +5,7 @@ import { uncurry } from 'spica/uncurry';
 import { flip } from 'spica/flip';
 import { Cache } from 'spica/cache';
 
-export function router<T>(config: { [pattern: string]: (path: string) => T; }): (url: string) => T {
+export function router<T>(config: Record<string, (path: string) => T>): (url: string) => T {
   return (url: string) => {
     const { path, pathname } = new URL(standardizeUrl(url));
     return Sequence.from(Object.keys(config).filter(([c]) => c === '/').sort().reverse())
@@ -19,6 +19,7 @@ export function router<T>(config: { [pattern: string]: (path: string) => T; }): 
 }
 
 export function compare(pattern: string, path: URL.Pathname<StandardUrl>): boolean {
+  assert(path[0] === '/');
   assert(!path.includes('?'));
   const regSegment = /\/|[^/]+\/?/g;
   const regTrailingSlash = /\/$/;

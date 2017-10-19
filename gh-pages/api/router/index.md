@@ -8,9 +8,10 @@ class: style-api style-api-detail
 
 # Router
 
-## router\<T>(config: { [pattern: string]: (path: string) => T; }): (url: string) => T;
+## router\<T>(config: Record<string, (path: string) => T>): (url: string) => T;
 
-Make a router function. You can use `{}`, `*`, and `?` metacharacters for path matching.
+Make a router function.
+You can use `{}`, `*`, and `?` metacharacters for path matching.
 
 ```ts
 import { router } from 'pjax-api';
