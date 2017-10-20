@@ -119,16 +119,17 @@ Override a fallback processing.
 
 Control the page routing sequence.
 It can integrate and synchronize other async processes.
+All methods are required, not optional.
 
-### fetch: (result: void, request: { path: string; method: string; data: FormData | null; }): Promise<a>
+### fetch: (result: void, request: { path: string; method: string; data: FormData | null; }): Promise\<a>
 
-### unload: (result: a, response: { url: string; headers: { [field: string]: string; }; document: Document; }): Promise<b>
+### unload: (result: a, response: { url: string; headers: { [field: string]: string; }; document: Document; }): Promise\<b>
 
-### ready: (result: b, areas: HTMLElement[]): Promise<c>
+### ready: (result: b, areas: HTMLElement[]): Promise\<c>
 
 ### load: (result: c, events: Event[]): void
 
-## scope: Record<string, Option | undefined> = `{}`
+## scope: Record<string, Config | undefined> = `{}`
 
 Override default configs by merging, or disable pjax per path of url.
 You can use `{}`, `*`, and `?` metacharacters for path matching.
