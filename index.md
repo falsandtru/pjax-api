@@ -74,7 +74,7 @@ Requires es6 support.
 <div class="col-md-4">
 ## Source
 
-[GitHub: pjax-api](https://github.com/falsandtru/pjax-api)
+[https://github.com/falsandtru/pjax-api](https://github.com/falsandtru/pjax-api)
 </div>
 
 <div class="col-md-4">
