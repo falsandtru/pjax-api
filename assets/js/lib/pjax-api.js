@@ -5217,6 +5217,26 @@ require = function e(t, n, r) {
             Object.defineProperty(exports, '__esModule', { value: true });
             var noop_1 = require('./noop');
             exports.currentTargets = new WeakMap();
+            function listen(target, a, b, c, d) {
+                if (c === void 0) {
+                    c = false;
+                }
+                if (d === void 0) {
+                    d = {};
+                }
+                return typeof b === 'string' ? delegate(target, a, b, c, d) : bind(target, a, b, c);
+            }
+            exports.listen = listen;
+            function once(target, a, b, c, d) {
+                if (c === void 0) {
+                    c = false;
+                }
+                if (d === void 0) {
+                    d = {};
+                }
+                return typeof b === 'string' ? delegate(target, a, b, c, __assign({}, typeof d === 'boolean' ? { capture: d } : d, { once: true })) : bind(target, a, b, __assign({}, typeof c === 'boolean' ? { capture: c } : c, { once: true }));
+            }
+            exports.once = once;
             function bind(target, type, listener, option) {
                 if (option === void 0) {
                     option = false;
@@ -5245,15 +5265,6 @@ require = function e(t, n, r) {
                 }
             }
             exports.bind = bind;
-            function once(target, type, listener, option) {
-                if (option === void 0) {
-                    option = false;
-                }
-                return bind(target, type, function (ev) {
-                    return void listener(ev);
-                }, __assign({}, typeof option === 'boolean' ? { capture: option } : option, { once: true }));
-            }
-            exports.once = once;
             function delegate(target, selector, type, listener, option) {
                 if (option === void 0) {
                     option = {};
