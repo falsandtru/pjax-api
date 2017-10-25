@@ -7601,7 +7601,13 @@ require = function e(t, n, r) {
             function scroll(type, document, env, io) {
                 if (io === void 0) {
                     io = {
-                        scroll: window.scrollTo,
+                        scrollToElement: function (el) {
+                            return void el.scrollIntoView();
+                        },
+                        scrollToPosition: function (_a) {
+                            var top = _a.top, left = _a.left;
+                            return void window.scrollTo(left, top);
+                        },
                         hash: hash
                     };
                 }
@@ -7609,29 +7615,29 @@ require = function e(t, n, r) {
                 case router_1.RouterEventType.click:
                     if (io.hash(document, env.hash, io))
                         return;
-                    return void scroll({
+                    return void io.scrollToPosition({
                         top: 0,
                         left: 0
                     });
                 case router_1.RouterEventType.submit:
-                    return void scroll({
+                    return void io.scrollToPosition({
                         top: 0,
                         left: 0
                     });
                 case router_1.RouterEventType.popstate:
-                    return void scroll(env.position());
+                    return void io.scrollToPosition(env.position());
                 default:
                     throw new TypeError(type);
-                }
-                function scroll(_a) {
-                    var top = _a.top, left = _a.left;
-                    void io.scroll.call(window, left, top);
                 }
             }
             exports.scroll = scroll;
             function hash(document, hash, io) {
                 if (io === void 0) {
-                    io = { scroll: window.scrollTo };
+                    io = {
+                        scrollToElement: function (el) {
+                            return void el.scrollIntoView();
+                        }
+                    };
                 }
                 var index = hash.slice(1);
                 if (index.length === 0)
@@ -7639,7 +7645,7 @@ require = function e(t, n, r) {
                 var el = document.getElementById(index) || document.getElementsByName(index)[0];
                 if (!el)
                     return false;
-                void io.scroll.call(window, window.pageXOffset, window.pageYOffset + el.getBoundingClientRect().top | 0);
+                void io.scrollToElement(el);
                 return true;
             }
             exports._hash = hash;
