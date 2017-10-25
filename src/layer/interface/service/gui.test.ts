@@ -1,7 +1,7 @@
 import { GUI } from './gui';
 import { API } from './api';
 import { parse } from '../../../lib/html';
-import DOM, { delegate } from 'typed-dom';
+import DOM, { delegate, once } from 'typed-dom';
 
 describe('Unit: layer/interface/gui', function () {
   describe('assign', function () {
@@ -95,10 +95,10 @@ describe('Unit: layer/interface/gui', function () {
         ev.preventDefault();
         return Promise.resolve();
       }});
-      delegate(document, 'form', 'submit', ev => {
+      once(document, 'form', 'submit', ev => {
         assert(ev.defaultPrevented === true);
         done();
-      }, { once: true });
+      });
       form.querySelector('input')!.click();
     });
 
@@ -111,11 +111,11 @@ describe('Unit: layer/interface/gui', function () {
         ev.preventDefault();
         return Promise.resolve();
       }});
-      delegate(document, 'form', 'submit', ev => {
+      once(document, 'form', 'submit', ev => {
         assert(ev.defaultPrevented === false);
         ev.preventDefault();
         done();
-      }, { once: true });
+      });
       form.querySelector('input')!.click();
     });
 
