@@ -4327,8 +4327,8 @@ require = function e(t, n, r) {
                 });
                 Object.defineProperty(Supervisor, 'procs', {
                     get: function () {
-                        return __spread(this.instances).reduce(function (cnt, sv) {
-                            return cnt + sv.workers.size;
+                        return __spread(this.instances).reduce(function (acc, sv) {
+                            return acc + sv.workers.size;
                         }, 0);
                     },
                     enumerable: true,
