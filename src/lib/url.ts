@@ -46,7 +46,7 @@ export class URL<T extends string> {
     return this.parser.search as any;
   }
   public get fragment(): URL.Fragment<T> {
-    return this.parser.hash as any;
+    return this.parser.href.replace(/^[^#]+/, '') as any;
   }
 }
 export namespace URL {

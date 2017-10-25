@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.17.2
+
+- Fix hash click behavior.
+
 ## 3.17.1
 
 - Improve scope option's default value.

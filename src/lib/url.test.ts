@@ -68,6 +68,9 @@ describe('Unit: lib/url', () => {
 
     it('fragment', () => {
       assert(new URL(dir + file + query + fragment).fragment === fragment);
+      assert(new URL('').fragment === '');
+      assert(new URL('#').fragment === '#');
+      assert(new URL('##').fragment === '##');
     });
 
   });
