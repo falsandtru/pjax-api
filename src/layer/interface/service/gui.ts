@@ -23,7 +23,8 @@ export class GUI extends API {
   constructor(
     private readonly option: Option,
     private readonly io = {
-      document: window.document
+      document: window.document,
+      router: route,
     },
   ) {
     super();
@@ -44,7 +45,7 @@ export class GUI extends API {
                 ? Just(0)
                 : Nothing)
             .fmap(() =>
-              route(config, event, process, this.io))
+              io.router(config, event, process, this.io))
             .extract(docurl.sync))
           .close),
         void s.register(new SubmitView(this.io.document, config.form, event =>
@@ -54,7 +55,7 @@ export class GUI extends API {
                 ? Just(0)
                 : Nothing)
             .fmap(() =>
-              route(config, event, process, this.io))
+              io.router(config, event, process, this.io))
             .extract(docurl.sync))
           .close),
         void s.register(new NavigationView(window, event =>
@@ -65,7 +66,7 @@ export class GUI extends API {
                 ? Just(0)
                 : Nothing)
             .fmap(() =>
-              route(config, event, process, this.io))
+              io.router(config, event, process, this.io))
             .extract(docurl.sync))
           .close),
         void s.register(new ScrollView(window, () =>

@@ -8,13 +8,13 @@ import { route } from './router';
 import { parse } from '../../../lib/html';
 
 export class API {
-  public static assign(url: string, option: Option, io = { document: window.document }): undefined {
+  public static assign(url: string, option: Option, io = { document: window.document, router: route }): undefined {
     return void click(url, event =>
-      void route(new Config(option), event, process, io));
+      void io.router(new Config(option), event, process, io));
   }
-  public static replace(url: string, option: Option, io = { document: window.document }): undefined {
+  public static replace(url: string, option: Option, io = { document: window.document, router: route }): undefined {
     return void click(url, event =>
-      void route(new Config(extend<Option>({}, option, { replace: '*' })), event, process, io));
+      void io.router(new Config(extend<Option>({}, option, { replace: '*' })), event, process, io));
   }
 }
 

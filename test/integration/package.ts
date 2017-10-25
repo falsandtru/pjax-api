@@ -1,4 +1,5 @@
 import { Pjax, Sequence } from '../../index';
+import { route as router } from '../../src/layer/interface/service/router';
 import { parse } from '../../src/lib/html';
 import { once } from 'typed-dom';
 
@@ -16,7 +17,7 @@ describe('Integration: Package', function () {
       const document = parse('').extract();
       new Pjax({
         fallback: done
-      }, { document })
+      }, { document, router })
         .assign(path);
       let cnt = 0;
       once(window, 'pjax:fetch', ev => {
@@ -95,7 +96,7 @@ describe('Integration: Package', function () {
       new Pjax({
         sequence,
         fallback: done
-      }, { document })
+      }, { document, router })
         .assign(path);
       let cnt = 0;
       once(window, 'pjax:fetch', () =>
