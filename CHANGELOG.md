@@ -3,6 +3,7 @@
 ## 3.17.2
 
 - Fix hash click behavior.
+- Don't work with download attribute.
 
 ## 3.17.1
 

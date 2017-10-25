@@ -38,6 +38,7 @@ export class GUI extends API {
               isAccessible(url)
               && !isHashClick(url)
               && !isHashChange(url)
+              && !isDownload(event.currentTarget as RouterEventSource.Anchor)
               && !hasModifierKey(event)
               && config.filter(event.currentTarget as RouterEventSource.Anchor)
                 ? Just(0)
@@ -114,4 +115,8 @@ function isHashChange(dest: URL<StandardUrl>): boolean {
   return orig.origin === dest.origin
       && orig.path === dest.path
       && orig.fragment !== dest.fragment;
+}
+
+function isDownload(el: HTMLAnchorElement): boolean {
+  return el.hasAttribute('download');
 }
