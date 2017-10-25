@@ -14,10 +14,9 @@ describe('Unit: layer/domain/router/module/update/scroll', () => {
         ]).element.outerHTML).extract(),
         new URL(standardizeUrl('#hash.#')).fragment,
         {
-          scroll: (x?: number, y?: number) => {
+          scrollToElement: (el) => {
+            assert(el.id === 'hash.#');
             assert(cnt === 0 && ++cnt);
-            assert(x! >= 0);
-            assert(y! >= 0);
           }
         });
       assert(result === true);
@@ -31,7 +30,7 @@ describe('Unit: layer/domain/router/module/update/scroll', () => {
         ]).element.outerHTML).extract(),
         new URL(standardizeUrl('#hash.#')).fragment,
         {
-          scroll: () => {
+          scrollToElement: () => {
             throw new Error();
           }
         });

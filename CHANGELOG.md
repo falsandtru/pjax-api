@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.17.3
+
+- Micro refactoring.
+
 ## 3.17.2
 
 - Fix hash click behavior.
@@ -77,7 +81,7 @@
 
 ## 3.14.1
 
-- Refactoring.
+- Micro refactoring.
 
 ## 3.14.0
 
@@ -93,7 +97,7 @@
 
 ## 3.12.1
 
-- Refactoring.
+- Micro refactoring.
 
 ## 3.12.0
 
@@ -141,7 +145,7 @@
 
 ## 3.9.1
 
-- Refactoring.
+- Micro refactoring.
 
 ## 3.9.0
 
