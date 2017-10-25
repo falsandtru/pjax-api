@@ -45,7 +45,7 @@ export function xhr(
 }
 
 function verify(xhr: XMLHttpRequest): Either<Error, XMLHttpRequest> {
-  return Right(xhr)
+  return Right<Error, XMLHttpRequest>(xhr)
     .bind(xhr =>
       /2..|304/.test(`${xhr.status}`)
         ? Right(xhr)
