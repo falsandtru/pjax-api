@@ -89,7 +89,9 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
       Sequence.from(['text/plain', 'text/html'])
         .mapM(type =>
           Sequence.from([null, '', type, type + ';']))
-        .filter(types => !types.every(type => !type))
+        .map(types => types.slice(-2))
+        .unique()
+        .filter(types => types.some(type => !!type))
         .extract()
         .forEach(([a, b]) =>
           assert(!match(a, b || '')));

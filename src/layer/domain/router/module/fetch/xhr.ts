@@ -6,8 +6,6 @@ import { FetchResult } from '../../model/eav/value/fetch';
 import { StandardUrl } from '../../../../data/model/domain/url';
 import { DomainError } from '../../../data/error';
 
-const ContentType = 'text/html';
-
 export function xhr(
   method: RouterEventMethod,
   url: StandardUrl,
@@ -19,9 +17,10 @@ export function xhr(
   return new Promise<Either<Error, FetchResult>>(resolve => (
     void xhr.open(method, url, true),
 
-    xhr.responseType = /chrome|firefox/i.test(window.navigator.userAgent) && !/edge/i.test(window.navigator.userAgent)
-      ? 'document'
-      : 'text',
+    xhr.responseType = /chrome|firefox/i.test(window.navigator.userAgent)
+      && !/edge/i.test(window.navigator.userAgent) // Die fuckin' fraud browser 🖕
+        ? 'document'
+        : 'text',
     xhr.timeout = timeout,
     void xhr.setRequestHeader('X-Pjax', '1'),
     void xhr.send(data),
@@ -49,11 +48,11 @@ function verify(xhr: XMLHttpRequest): Either<Error, XMLHttpRequest> {
     .bind(xhr =>
       /2..|304/.test(`${xhr.status}`)
         ? Right(xhr)
-        : Left(new DomainError(`Faild to validate a content type of response.`)))
+        : Left(new DomainError(`Faild to validate the status of response.`)))
     .bind(xhr =>
-      match(xhr.getResponseHeader('Content-Type'), ContentType)
+      match(xhr.getResponseHeader('Content-Type'), 'text/html')
         ? Right(xhr)
-        : Left(new DomainError(`Faild to validate a content type of response.`)));
+        : Left(new DomainError(`Faild to validate the content type of response.`)));
 }
 
 export function match(actualContentType: string | null, expectedContentType: string): boolean {
