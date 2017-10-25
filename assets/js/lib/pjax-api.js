@@ -5229,11 +5229,19 @@ require = function e(t, n, r) {
                     return void unbind();
                 };
                 function handler(ev) {
-                    if (typeof option === 'object' && option.passive) {
-                        ev.preventDefault = noop_1.noop;
+                    if (typeof option === 'object') {
+                        if (option.passive) {
+                            ev.preventDefault = noop_1.noop;
+                        }
+                        if (option.once) {
+                            void unbind();
+                        }
                     }
                     void exports.currentTargets.set(ev, ev.currentTarget);
                     void listener(ev);
+                }
+                function adjustEventListenerOptions(option) {
+                    return supportEventListenerOptions ? option : typeof option === 'boolean' ? option : !!option.capture;
                 }
             }
             exports.bind = bind;
@@ -5241,13 +5249,9 @@ require = function e(t, n, r) {
                 if (option === void 0) {
                     option = false;
                 }
-                var unbind = bind(target, type, function (ev) {
-                    void unbind();
-                    void listener(ev);
-                }, option);
-                return function () {
-                    return void unbind();
-                };
+                return bind(target, type, function (ev) {
+                    return void listener(ev);
+                }, __assign({}, typeof option === 'boolean' ? { capture: option } : option, { once: true }));
             }
             exports.once = once;
             function delegate(target, selector, type, listener, option) {
@@ -5277,9 +5281,6 @@ require = function e(t, n, r) {
                     }
                 });
             } catch (e) {
-            }
-            function adjustEventListenerOptions(option) {
-                return supportEventListenerOptions ? option : typeof option === 'boolean' ? option : option.capture;
             }
         },
         { './noop': 84 }
@@ -6508,7 +6509,6 @@ require = function e(t, n, r) {
             var either_1 = require('spica/either');
             var fetch_1 = require('../../model/eav/value/fetch');
             var error_1 = require('../../../data/error');
-            var ContentType = 'text/html';
             function xhr(method, url, data, timeout, cancellation) {
                 var xhr = new XMLHttpRequest();
                 return new Promise(function (resolve) {
@@ -6532,9 +6532,9 @@ require = function e(t, n, r) {
             exports.xhr = xhr;
             function verify(xhr) {
                 return either_1.Right(xhr).bind(function (xhr) {
-                    return /2..|304/.test('' + xhr.status) ? either_1.Right(xhr) : either_1.Left(new error_1.DomainError('Faild to validate a content type of response.'));
+                    return /2..|304/.test('' + xhr.status) ? either_1.Right(xhr) : either_1.Left(new error_1.DomainError('Faild to validate the status of response.'));
                 }).bind(function (xhr) {
-                    return match(xhr.getResponseHeader('Content-Type'), ContentType) ? either_1.Right(xhr) : either_1.Left(new error_1.DomainError('Faild to validate a content type of response.'));
+                    return match(xhr.getResponseHeader('Content-Type'), 'text/html') ? either_1.Right(xhr) : either_1.Left(new error_1.DomainError('Faild to validate the content type of response.'));
                 });
             }
             function match(actualContentType, expectedContentType) {
@@ -8081,18 +8081,24 @@ require = function e(t, n, r) {
                 }
                 API.assign = function (url, option, io) {
                     if (io === void 0) {
-                        io = { document: window.document };
+                        io = {
+                            document: window.document,
+                            router: router_1.route
+                        };
                     }
                     return void click(url, function (event) {
-                        return void router_1.route(new api_1.Config(option), event, process_1.process, io);
+                        return void io.router(new api_1.Config(option), event, process_1.process, io);
                     });
                 };
                 API.replace = function (url, option, io) {
                     if (io === void 0) {
-                        io = { document: window.document };
+                        io = {
+                            document: window.document,
+                            router: router_1.route
+                        };
                     }
                     return void click(url, function (event) {
-                        return void router_1.route(new api_1.Config(assign_1.extend({}, option, { replace: '*' })), event, process_1.process, io);
+                        return void io.router(new api_1.Config(assign_1.extend({}, option, { replace: '*' })), event, process_1.process, io);
                     });
                 };
                 return API;
@@ -8162,7 +8168,10 @@ require = function e(t, n, r) {
                 __extends(GUI, _super);
                 function GUI(option, io) {
                     if (io === void 0) {
-                        io = { document: window.document };
+                        io = {
+                            document: window.document,
+                            router: router_1.route
+                        };
                     }
                     var _this = _super.call(this) || this;
                     _this.option = option;
@@ -8176,21 +8185,21 @@ require = function e(t, n, r) {
                         call: function (_, s) {
                             return void s.register(new click_1.ClickView(_this.io.document, config.link, function (event) {
                                 return void maybe_1.Just(new url_1.URL(url_2.standardizeUrl(event.currentTarget.href))).bind(function (url) {
-                                    return isAccessible(url) && !isHashClick(url) && !isHashChange(url) && !hasModifierKey(event) && config.filter(event.currentTarget) ? maybe_1.Just(0) : maybe_1.Nothing;
+                                    return isAccessible(url) && !isHashClick(url) && !isHashChange(url) && !isDownload(event.currentTarget) && !hasModifierKey(event) && config.filter(event.currentTarget) ? maybe_1.Just(0) : maybe_1.Nothing;
                                 }).fmap(function () {
-                                    return router_1.route(config, event, process_1.process, _this.io);
+                                    return io.router(config, event, process_1.process, _this.io);
                                 }).extract(url_3.docurl.sync);
                             }).close), void s.register(new submit_1.SubmitView(_this.io.document, config.form, function (event) {
                                 return void maybe_1.Just(new url_1.URL(url_2.standardizeUrl(event.currentTarget.action))).bind(function (url) {
                                     return isAccessible(url) ? maybe_1.Just(0) : maybe_1.Nothing;
                                 }).fmap(function () {
-                                    return router_1.route(config, event, process_1.process, _this.io);
+                                    return io.router(config, event, process_1.process, _this.io);
                                 }).extract(url_3.docurl.sync);
                             }).close), void s.register(new navigation_1.NavigationView(window, function (event) {
                                 return void maybe_1.Just(new url_1.URL(url_2.standardizeUrl(window.location.href))).bind(function (url) {
                                     return isAccessible(url) && !isHashChange(url) ? maybe_1.Just(0) : maybe_1.Nothing;
                                 }).fmap(function () {
-                                    return router_1.route(config, event, process_1.process, _this.io);
+                                    return io.router(config, event, process_1.process, _this.io);
                                 }).extract(url_3.docurl.sync);
                             }).close), void s.register(new scroll_1.ScrollView(window, function () {
                                 return void maybe_1.Just(new url_1.URL(url_2.standardizeUrl(window.location.href))).fmap(function (url) {
@@ -8230,6 +8239,9 @@ require = function e(t, n, r) {
             function isHashChange(dest) {
                 var orig = new url_1.URL(url_3.docurl.href);
                 return orig.origin === dest.origin && orig.path === dest.path && orig.fragment !== dest.fragment;
+            }
+            function isDownload(el) {
+                return el.hasAttribute('download');
             }
         },
         {
@@ -9077,7 +9089,7 @@ require = function e(t, n, r) {
                 });
                 Object.defineProperty(URL.prototype, 'fragment', {
                     get: function () {
-                        return this.parser.hash;
+                        return this.parser.href.replace(/^[^#]+/, '');
                     },
                     enumerable: true,
                     configurable: true
