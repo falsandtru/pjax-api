@@ -88,7 +88,7 @@ describe('Unit: layer/interface/gui', function () {
   describe('submit', function () {
     it('valid', function (done) {
       const form = DOM.form({ action: '' }, [
-        DOM.input({ type: 'submit', value: 'submit' }, []),
+        DOM.input({ type: 'submit', value: 'submit' }),
       ]).element;
       document.body.appendChild(form);
       new GUI({}, { document, router: (_, ev) => {
@@ -104,7 +104,7 @@ describe('Unit: layer/interface/gui', function () {
 
     it('external', function (done) {
       const form = DOM.form({ action: '//remote/' }, [
-        DOM.input({ type: 'submit', value: 'submit' }, []),
+        DOM.input({ type: 'submit', value: 'submit' }),
       ]).element;
       document.body.appendChild(form);
       new GUI({}, { document, router: (_, ev) => {

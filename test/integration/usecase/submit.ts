@@ -12,8 +12,8 @@ describe('Integration: Usecase', function () {
         done();
       });
       const form = DOM.form({ action: url }, [
-        DOM.input({ type: 'submit', value: 'submit' }, []),
-        DOM.input({ type: 'search', name: 'query', value: 'あアｱ亜=&' }, []),
+        DOM.input({ type: 'submit', value: 'submit' }),
+        DOM.input({ type: 'search', name: 'query', value: 'あアｱ亜=&' }),
       ]).element;
       document.body.appendChild(form);
       form.querySelector('input')!.click();
@@ -29,8 +29,8 @@ describe('Integration: Usecase', function () {
         }
       }, { document, router });
       const form = DOM.form({ action: url }, [
-        DOM.input({ type: 'submit', value: 'submit' }, []),
-        DOM.input({ type: 'search', name: 'query', value: 'あアｱ亜=&' }, []),
+        DOM.input({ type: 'submit', value: 'submit' }),
+        DOM.input({ type: 'search', name: 'query', value: 'あアｱ亜=&' }),
       ]).element;
       document.body.appendChild(form);
       form.querySelector('input')!.click();
