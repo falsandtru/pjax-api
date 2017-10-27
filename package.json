@@ -25,7 +25,7 @@
   ],
   "dependencies": {},
   "devDependencies": {
-    "@types/mocha": "^2.2.43",
+    "@types/mocha": "^2.2.44",
     "@types/power-assert": "1.4.29",
     "browserify": "^14.5.0",
     "del": "^3.0.0",
@@ -55,10 +55,10 @@
     "pump": "^1.0.2",
     "run-sequence": "^2.2.0",
     "semver": "^5.4.1",
-    "spica": "0.0.115",
+    "spica": "0.0.117",
     "tsify": "^3.0.3",
-    "typed-dom": "0.0.62",
-    "typescript": "2.7.0-dev.20171025",
+    "typed-dom": "0.0.63",
+    "typescript": "2.7.0-dev.20171026",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0",
     "watchify": "^3.9.0"

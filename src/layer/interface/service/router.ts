@@ -27,9 +27,11 @@ export async function route(
   void process.cast('', new InterfaceError(`Abort.`));
   const cancellation = new Cancellation<Error>();
   const kill = process.register('', e => {
+    void kill();
+    void cancellation.cancel(e);
     // A part of the workaround to record the correct browser history.
     io.document.title = loadTitle();
-    throw void cancellation.cancel(e);
+    return [void 0, void 0];
   }, void 0);
   const [scripts] = await env;
   window.history.scrollRestoration = 'manual';
