@@ -168,5 +168,5 @@ export function escape(script: HTMLScriptElement): () => undefined {
     script.text = code,
     typeof src === 'string'
       ? void script.setAttribute('src', src)
-      : void 0);
+      : undefined);
 }

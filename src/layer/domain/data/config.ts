@@ -64,13 +64,13 @@ export class Config implements Option {
 
 class Sequence implements ISequence<SequenceData.Fetch, SequenceData.Unload, SequenceData.Ready> {
   public async fetch(): Promise<SequenceData.Fetch> {
-    return void 0 as any;
+    return undefined as any;
   }
   public async unload(): Promise<SequenceData.Unload> {
-    return void 0 as any;
+    return undefined as any;
   }
   public async ready(): Promise<SequenceData.Ready> {
-    return void 0 as any;
+    return undefined as any;
   }
   public load(): void {
   }

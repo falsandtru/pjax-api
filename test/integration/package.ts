@@ -6,7 +6,7 @@ import { once } from 'typed-dom';
 describe('Integration: Package', function () {
   describe('state', function () {
     it('scrollRestoration', function () {
-      assert(window.history.scrollRestoration === 'auto' || window.history.scrollRestoration === void 0);
+      assert(window.history.scrollRestoration === 'auto' || window.history.scrollRestoration === undefined);
     });
 
   });
@@ -56,7 +56,7 @@ describe('Integration: Package', function () {
       const sequence: Sequence<boolean, number, string> = {
         async fetch(r, req) {
           assert(cnt === 1 && ++cnt);
-          assert(r === void 0);
+          assert(r === undefined);
           assert(window.history.scrollRestoration === 'manual');
           assert.deepStrictEqual(req, {
             path: path,

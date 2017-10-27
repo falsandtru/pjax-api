@@ -70,7 +70,7 @@ describe('Unit: layer/application/config/scope', () => {
 
     it('disable', () => {
       assert.deepStrictEqual(
-        scope(new Config({ scope: { '/': void 0 } }), {
+        scope(new Config({ scope: { '/': undefined } }), {
           orig: new URL(standardizeUrl('/')).pathname,
           dest: new URL(standardizeUrl('/')).pathname
         }).extract(() => ({})),
@@ -79,11 +79,11 @@ describe('Unit: layer/application/config/scope', () => {
 
     it('enable', () => {
       assert.deepStrictEqual(
-        scope(new Config({ scope: { '/': void 0, '/a': {} } }), {
+        scope(new Config({ scope: { '/': undefined, '/a': {} } }), {
           orig: new URL(standardizeUrl('/a')).pathname,
           dest: new URL(standardizeUrl('/a')).pathname
         }).extract(),
-        new Config({ scope: { '/': void 0, '/a': {} } }));
+        new Config({ scope: { '/': undefined, '/a': {} } }));
     });
 
   });

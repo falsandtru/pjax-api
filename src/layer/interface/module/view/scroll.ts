@@ -18,9 +18,9 @@ export class ScrollView {
               void listener(ev);
             }, 300)
         ), { passive: true })),
-      new Promise<never>(() => void 0)
-    ), void 0);
-    void this.sv.cast('', void 0);
+      new Promise<never>(() => undefined)
+    ), undefined);
+    void this.sv.cast('', undefined);
   }
   private readonly sv = new class extends Supervisor<'', void, void, void>{ }();
   public readonly close = () =>

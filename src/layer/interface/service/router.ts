@@ -31,8 +31,8 @@ export async function route(
     void cancellation.cancel(e);
     // A part of the workaround to record the correct browser history.
     io.document.title = loadTitle();
-    return [void 0, void 0];
-  }, void 0);
+    return [undefined, undefined];
+  }, undefined);
   const [scripts] = await env;
   window.history.scrollRestoration = 'manual';
   void progressbar(config.progressbar);
@@ -56,5 +56,5 @@ export async function route(
       void docurl.sync(),
       !cancellation.canceled || e instanceof Error && e.name === 'FatalError'
         ? void config.fallback(currentTargets.get(event) as RouterEventSource, e instanceof Error ? e : new Error(e))
-        : void 0));
+        : undefined));
 }

@@ -90,7 +90,7 @@ export async function update(
                         dst: documents.dst.head
                       },
                       config.update.ignore)
-                  : void 0,
+                  : undefined,
                 config.update.css
                   ? void css(
                       {
@@ -98,7 +98,7 @@ export async function update(
                         dst: documents.dst.body as HTMLBodyElement
                       },
                       config.update.ignore)
-                  : void 0,
+                  : undefined,
                 void focus(documents.dst),
                 void scroll(event.type, documents.dst, {
                   hash: event.location.dest.fragment,
@@ -133,7 +133,7 @@ export async function update(
                 void window.dispatchEvent(new Event('pjax:load'));
                 void config.sequence.load(seq, events);
               }))
-            .extract(() => void 0)),
+            .extract(() => undefined)),
           m2.fmap(([[ss, p]]) => [ss, p] as [typeof ss, typeof p]))))
       .extract<Left<Error>>(Left)))
     .head

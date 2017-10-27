@@ -74,14 +74,14 @@ export class GUI extends API {
             .fmap(url =>
               url.href === docurl.href
                 ? void savePosition()
-                : void 0)
+                : undefined)
             .extract())
           .close),
-        new Promise<never>(() => void 0)),
+        new Promise<never>(() => undefined)),
       exit: (_, s) =>
         void s.cancel(),
     }, new Cancellation());
-    void view.cast('', void 0);
+    void view.cast('', undefined);
   }
   public assign(url: string): undefined {
     return void API.assign(url, this.option, this.io);

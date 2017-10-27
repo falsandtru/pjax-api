@@ -30,7 +30,7 @@ export async function fetch(
   void window.dispatchEvent(new Event('pjax:fetch'));
   const [res, seq] = await Promise.all([
     req,
-    sequence.fetch(void 0, {
+    sequence.fetch(undefined, {
       path: new URL(url).path,
       method,
       data

@@ -15,11 +15,11 @@ export async function route(
     document: Document;
   }
 ): Promise<RouterResult> {
-  return Right<Error, void>(void 0)
+  return Right<Error, void>(undefined)
     .bind(entity.state.process.either)
     .bind(() =>
       match(io.document, entity.config.areas)
-        ? Right(void 0)
+        ? Right(undefined)
         : Left(new DomainError(`Failed to match areas.`)))
     .fmap(() =>
       fetch(entity.event.request, entity.config, entity.state.process))
