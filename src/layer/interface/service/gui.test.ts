@@ -52,6 +52,7 @@ describe('Unit: layer/interface/gui', function () {
       }});
       delegate(document, 'a', 'click', ev => {
         assert(ev.defaultPrevented === false);
+        ev.preventDefault();
         done();
       });
       document.querySelector('a')!.click();
@@ -65,6 +66,7 @@ describe('Unit: layer/interface/gui', function () {
       }});
       delegate(document, 'a', 'click', ev => {
         assert(ev.defaultPrevented === false);
+        ev.preventDefault();
         done();
       });
       document.querySelector('a')!.click();
@@ -78,6 +80,7 @@ describe('Unit: layer/interface/gui', function () {
       }});
       delegate(document, 'a', 'click', ev => {
         assert(ev.defaultPrevented === false);
+        ev.preventDefault();
         done();
       });
       document.querySelector('a')!.click();
