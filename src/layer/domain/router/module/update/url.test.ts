@@ -4,7 +4,7 @@ import { standardizeUrl } from '../../../../data/model/domain/url';
 import DOM from 'typed-dom';
 
 describe('Unit: layer/domain/router/module/update/url', () => {
-  describe('_isRegisterable', () => {
+  describe('isRegisterable', () => {
     it('same location', () => {
       assert(!isRegisterable(RouterEventType.click, new RouterEventLocation(standardizeUrl(location.href))));
       assert(!isRegisterable(RouterEventType.submit, new RouterEventLocation(standardizeUrl(location.href))));
@@ -25,7 +25,7 @@ describe('Unit: layer/domain/router/module/update/url', () => {
 
   });
 
-  describe('_isReplaceable', () => {
+  describe('isReplaceable', () => {
     it('click', () => {
       assert(!isReplaceable(RouterEventType.click, DOM.a([]).element, '.replace'));
       assert(isReplaceable(RouterEventType.click, DOM.a({ class: 'replace' }, []).element, '.replace'));

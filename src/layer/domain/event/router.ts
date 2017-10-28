@@ -8,12 +8,12 @@ export class RouterEvent {
   constructor(
     public readonly original: Event
   ) {
-    assert([HTMLAnchorElement, HTMLFormElement, Window].some(Class => this.source instanceof Class));
     assert(['click', 'submit', 'popstate'].some(type => this.original.type === type));
+    assert([HTMLAnchorElement, HTMLFormElement, Window].some(Class => this.source instanceof Class));
     void Object.freeze(this);
   }
-  public readonly source: RouterEventSource = currentTargets.get(this.original) as RouterEventSource;
   public readonly type: RouterEventType = this.original.type.toLowerCase() as RouterEventType;
+  public readonly source: RouterEventSource = currentTargets.get(this.original) as RouterEventSource;
   public readonly request: RouterEventRequest = new RouterEventRequest(this.source);
   public readonly location: RouterEventLocation = new RouterEventLocation(this.request.url);
 }
@@ -32,25 +32,20 @@ export namespace RouterEventSource {
 }
 
 export type RouterEventType
-  = RouterEventType.click
-  | RouterEventType.submit
-  | RouterEventType.popstate;
+  = typeof RouterEventType.click
+  | typeof RouterEventType.submit
+  | typeof RouterEventType.popstate;
 export namespace RouterEventType {
-  export type click = typeof click;
   export const click = 'click';
-  export type submit = typeof submit;
   export const submit = 'submit';
-  export type popstate = typeof popstate;
   export const popstate = 'popstate';
 }
 
 export type RouterEventMethod
-  = RouterEventMethod.GET
-  | RouterEventMethod.POST;
+  = typeof RouterEventMethod.GET
+  | typeof RouterEventMethod.POST;
 export namespace RouterEventMethod {
-  export type GET = typeof GET;
   export const GET = 'GET';
-  export type POST = typeof POST;
   export const POST = 'POST';
 }
 
@@ -80,8 +75,8 @@ export class RouterEventRequest {
     }
     if (this.source instanceof RouterEventSource.Form) {
       return this.source.method.toUpperCase() === RouterEventMethod.GET
-        ? standardizeUrl(this.source.action.split(/[?#]/).shift()!.concat(`?${serialize(this.source)}`))
-        : standardizeUrl(this.source.action.split(/[?#]/).shift()!);
+        ? standardizeUrl(this.source.action.split(/[?#]/)[0] + `?${serialize(this.source)}`)
+        : standardizeUrl(this.source.action.split(/[?#]/)[0]);
     }
     if (this.source instanceof RouterEventSource.Window) {
       return standardizeUrl(window.location.href);

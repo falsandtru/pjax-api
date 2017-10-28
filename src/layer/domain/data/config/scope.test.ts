@@ -1,9 +1,9 @@
 import { scope } from './scope';
-import { Config } from '../../domain/data/config';
-import { URL } from '../../../lib/url';
-import { standardizeUrl } from '../../data/model/domain/url';
+import { Config } from '../config';
+import { URL } from '../../../../lib/url';
+import { standardizeUrl } from '../../../data/model/domain/url';
 
-describe('Unit: layer/application/config/scope', () => {
+describe('Unit: layer/domain/data/config/scope', () => {
   describe('scope', () => {
     it('match', () => {
       assert.deepStrictEqual(

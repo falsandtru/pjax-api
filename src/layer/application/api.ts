@@ -1,16 +1,15 @@
 import { Cancellee } from 'spica/cancellation';
 import { Just } from 'spica/maybe';
 import { Left } from 'spica/either';
-import { Config } from '../domain/data/config';
+import { Config, scope } from '../domain/data/config';
 import { StandardUrl } from '../data/model/domain/url';
 import { URL } from '../../lib/url';
-import { scope } from './config/scope';
 import { route as route_, RouterEntity, RouterEntityState, RouterResult } from '../domain/router/api';
 import { RouterEvent } from '../domain/event/router';
 import { ApplicationError } from './data/error';
 
 export * from './store/path';
-export { Config }
+export { Config } from '../domain/data/config';
 
 export async function route(
   config: Config,

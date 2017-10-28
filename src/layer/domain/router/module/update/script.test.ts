@@ -293,7 +293,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
 
   });
 
-  describe('_request', () => {
+  describe('request', () => {
     it('external', done => {
       const src = '/base/test/unit/fixture/throw.js';
       const script = DOM.script({ src }).element;
@@ -337,7 +337,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
 
   });
 
-  describe('_evaluate', () => {
+  describe('evaluate', () => {
     it('external load', done => {
       const script = DOM.script({ src: '404' }).element;
       let cnt = 0;

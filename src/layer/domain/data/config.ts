@@ -1,6 +1,8 @@
 import { extend } from 'spica/assign';
 import { Config as Option, Sequence as ISequence } from '../../../../';
 
+export { scope } from './config/scope';
+
 export class Config implements Option {
   constructor(option: Option) {
     void Object.defineProperties(this.update, {
@@ -62,7 +64,7 @@ export class Config implements Option {
   public readonly scope: Record<string, Option | undefined> = {};
 }
 
-class Sequence implements ISequence<SequenceData.Fetch, SequenceData.Unload, SequenceData.Ready> {
+class Sequence {
   public async fetch(): Promise<SequenceData.Fetch> {
     return undefined as any;
   }
