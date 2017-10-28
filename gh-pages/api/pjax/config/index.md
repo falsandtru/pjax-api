@@ -131,7 +131,7 @@ All methods are required, not optional.
 
 ## scope: Record<string, Config | undefined> = `{}`
 
-Override default configs by merging, or disable pjax per path of url.
+Override default configs without `link`, `filter`, `form`, and `replace` by merging, or disable pjax per path of url.
 You can use `{}`, `*`, and `?` metacharacters for path matching.
 
 ```ts
