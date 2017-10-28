@@ -7992,16 +7992,20 @@ require = function e(t, n, r) {
             var ScrollView = function () {
                 function ScrollView(window, listener) {
                     var _this = this;
+                    this.active = true;
                     this.sv = new (function (_super) {
                         __extends(class_1, _super);
                         function class_1() {
                             return _super !== null && _super.apply(this, arguments) || this;
                         }
                         return class_1;
-                    }(supervisor_1.Supervisor))();
-                    this.active = true;
+                    }(supervisor_1.Supervisor))({
+                        destructor: function () {
+                            return _this.active = false;
+                        }
+                    });
                     this.close = function () {
-                        return _this.active = false, void _this.sv.terminate();
+                        return void _this.sv.terminate();
                     };
                     void this.sv.register('', function () {
                         return void _this.sv.events.exit.monitor([], typed_dom_1.bind(window, 'scroll', throttle_1.throttle(300, function (ev) {
