@@ -18,10 +18,11 @@ export class ScrollView {
     ), undefined);
     void this.sv.cast('', undefined);
   }
-  private readonly sv = new class extends Supervisor<'', void, void, void>{ }();
   private active = true;
-  public readonly close = () => (
-    this.active = false,
-    void this.sv.terminate()
-  );
+  private readonly sv = new class extends Supervisor<'', void, void, void>{ }({
+    destructor: () =>
+      this.active = false,
+  });
+  public readonly close = () =>
+    void this.sv.terminate();
 }
