@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.17.4
+
+- Improve link and filter options' default value.
+
 ## 3.17.3
 
 - Micro refactoring.

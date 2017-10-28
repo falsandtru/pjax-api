@@ -15,7 +15,7 @@ Set target areas.
 You can define the multiple targets like `['#header, #primary']`.
 Also, you can define the other candidates of targets like `['#container', 'body']`. 
 
-## link: string = `'a:not([target])'`
+## link: string = `'a'`
 
 Set target anchor links.
 
@@ -26,7 +26,7 @@ Filter target anchor links.
 ```ts
   // default
   public filter(el: HTMLAnchorElement): boolean {
-    return true;
+    return el.matches(':not([target])');
   }
 ```
 

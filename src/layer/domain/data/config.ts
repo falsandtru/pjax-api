@@ -21,9 +21,9 @@ export class Config implements Option {
     void Object.freeze(this);
   }
   public readonly areas = ['body'];
-  public readonly link = 'a:not([target])';
-  public filter(_el: HTMLAnchorElement): boolean {
-    return true;
+  public readonly link = 'a';
+  public filter(el: HTMLAnchorElement): boolean {
+    return el.matches(':not([target])');
   }
   public readonly form = 'form:not([method])';
   public readonly replace = '';

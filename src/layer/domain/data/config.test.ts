@@ -12,6 +12,7 @@ describe('Unit: layer/domain/data/config', () => {
       assert(filter(DOM.a({ href: '/dir/file.html' }, []).element));
       assert(filter(DOM.a({ href: '?' }, []).element));
       assert(filter(DOM.a({ href: '#' }, []).element));
+      assert(!filter(DOM.a({ href: '', target: '_blank' }, []).element));
     });
 
     it('ignore', () => {
