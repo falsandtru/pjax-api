@@ -1,20 +1,19 @@
 import { Config as Option } from '../../../../';
+import { route } from './router';
+import { Config, RouterEvent, RouterEventSource } from '../../application/router';
+import { process } from './state/process';
+import { parse } from '../../../lib/html';
 import { extend } from 'spica/assign';
 import { once } from 'typed-dom';
-import { Config } from '../../application/api';
-import { RouterEventSource } from '../../domain/event/router';
-import { process } from './state/process';
-import { route } from './router';
-import { parse } from '../../../lib/html';
 
 export class API {
   public static assign(url: string, option: Option, io = { document: window.document, router: route }): undefined {
     return void click(url, event =>
-      void io.router(new Config(option), event, process, io));
+      void io.router(new Config(option), new RouterEvent(event), process, io));
   }
   public static replace(url: string, option: Option, io = { document: window.document, router: route }): undefined {
     return void click(url, event =>
-      void io.router(new Config(extend<Option>({}, option, { replace: '*' })), event, process, io));
+      void io.router(new Config(extend<Option>({}, option, { replace: '*' })), new RouterEvent(event), process, io));
   }
 }
 

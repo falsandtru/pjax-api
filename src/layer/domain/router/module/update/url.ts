@@ -27,10 +27,7 @@ export function url(
         title,
         location.dest.href);
     default:
-      // A part of the workaround to record the correct browser history.
-      return void window.history.replaceState(
-        window.history.state,
-        window.document.title);
+      return;
   }
 }
 

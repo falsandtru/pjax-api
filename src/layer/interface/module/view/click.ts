@@ -1,4 +1,5 @@
 import { Supervisor } from 'spica/supervisor';
+import { Cancellee } from 'spica/cancellation';
 import { delegate } from 'typed-dom';
 
 export class ClickView {
@@ -6,6 +7,7 @@ export class ClickView {
     document: Document,
     selector: string,
     listener: (event: MouseEvent) => void,
+    cancellation: Cancellee,
   ) {
     void this.sv.register('', () => (
       void this.sv.events.exit.monitor(
@@ -18,8 +20,7 @@ export class ClickView {
       new Promise<never>(() => undefined)
     ), undefined);
     void this.sv.cast('', undefined);
+    void cancellation.register(() => this.sv.terminate());
   }
   private readonly sv = new class extends Supervisor<'', void, void, void>{ }();
-  public readonly close = () =>
-    void this.sv.terminate();
 }

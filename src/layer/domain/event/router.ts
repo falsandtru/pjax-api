@@ -1,7 +1,6 @@
 import { URL } from '../../../lib/url';
 import { StandardUrl, standardizeUrl } from '../../data/model/domain/url';
 import { serialize } from '../../../lib/dom';
-import { DomainError } from '../data/error';
 import { currentTargets } from 'typed-dom';
 
 export class RouterEvent {
@@ -93,7 +92,6 @@ export class RouterEventLocation {
   constructor(
     private readonly target: StandardUrl
   ) {
-    if (this.orig.origin !== this.dest.origin) throw new DomainError(`Cannot go to the different origin: ${this.dest.href}`);
     void Object.freeze(this);
   }
   public readonly orig: URL<StandardUrl> = new URL(standardizeUrl(window.location.href));

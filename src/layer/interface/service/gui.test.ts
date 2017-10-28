@@ -3,7 +3,7 @@ import { API } from './api';
 import { parse } from '../../../lib/html';
 import DOM, { delegate, once } from 'typed-dom';
 
-describe('Unit: layer/interface/gui', function () {
+describe('Unit: layer/interface/service/gui', function () {
   describe('assign', function () {
     it('', function (done) {
       assert(GUI.assign === API.assign);
@@ -31,56 +31,14 @@ describe('Unit: layer/interface/gui', function () {
   });
 
   describe('click', function () {
-    it('valid', function (done) {
+    it('', function (done) {
       const document = parse('<a href=""></a>').extract();
       new GUI({}, { document, router: (_, ev) => {
-        ev.preventDefault();
+        ev.original.preventDefault();
         return Promise.resolve();
       }});
       delegate(document, 'a', 'click', ev => {
         assert(ev.defaultPrevented === true);
-        done();
-      });
-      document.querySelector('a')!.click();
-    });
-
-    it('external', function (done) {
-      const document = parse('<a href="//remote/"></a>').extract();
-      new GUI({}, { document, router: (_, ev) => {
-        ev.preventDefault();
-        return Promise.resolve();
-      }});
-      delegate(document, 'a', 'click', ev => {
-        assert(ev.defaultPrevented === false);
-        ev.preventDefault();
-        done();
-      });
-      document.querySelector('a')!.click();
-    });
-
-    it('hash', function (done) {
-      const document = parse('<a href="#"></a>').extract();
-      new GUI({}, { document, router: (_, ev) => {
-        ev.preventDefault();
-        return Promise.resolve();
-      }});
-      delegate(document, 'a', 'click', ev => {
-        assert(ev.defaultPrevented === false);
-        ev.preventDefault();
-        done();
-      });
-      document.querySelector('a')!.click();
-    });
-
-    it('download', function (done) {
-      const document = parse('<a href="" download></a>').extract();
-      new GUI({}, { document, router: (_, ev) => {
-        ev.preventDefault();
-        return Promise.resolve();
-      }});
-      delegate(document, 'a', 'click', ev => {
-        assert(ev.defaultPrevented === false);
-        ev.preventDefault();
         done();
       });
       document.querySelector('a')!.click();
@@ -89,34 +47,17 @@ describe('Unit: layer/interface/gui', function () {
   });
 
   describe('submit', function () {
-    it('valid', function (done) {
+    it('', function (done) {
       const form = DOM.form({ action: '' }, [
         DOM.input({ type: 'submit', value: 'submit' }),
       ]).element;
       document.body.appendChild(form);
       new GUI({}, { document, router: (_, ev) => {
-        ev.preventDefault();
+        ev.original.preventDefault();
         return Promise.resolve();
       }});
       once(document, 'form', 'submit', ev => {
         assert(ev.defaultPrevented === true);
-        done();
-      });
-      form.querySelector('input')!.click();
-    });
-
-    it('external', function (done) {
-      const form = DOM.form({ action: '//remote/' }, [
-        DOM.input({ type: 'submit', value: 'submit' }),
-      ]).element;
-      document.body.appendChild(form);
-      new GUI({}, { document, router: (_, ev) => {
-        ev.preventDefault();
-        return Promise.resolve();
-      }});
-      once(document, 'form', 'submit', ev => {
-        assert(ev.defaultPrevented === false);
-        ev.preventDefault();
         done();
       });
       form.querySelector('input')!.click();

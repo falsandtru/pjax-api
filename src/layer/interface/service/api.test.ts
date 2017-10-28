@@ -1,6 +1,6 @@
 import { API } from './api';
 
-describe('Unit: layer/interface/api', function () {
+describe('Unit: layer/interface/service/api', function () {
   describe('assign', function () {
     it('', function (done) {
       API.assign('', {}, { document, router: config => {

@@ -1,4 +1,5 @@
 import { Supervisor } from 'spica/supervisor';
+import { Cancellee } from 'spica/cancellation';
 import { delegate } from 'typed-dom';
 
 export class SubmitView {
@@ -6,6 +7,7 @@ export class SubmitView {
     document: Document,
     selector: string,
     listener: (event: Event) => void,
+    cancellation: Cancellee,
   ) {
     void this.sv.register('', () => (
       void this.sv.events.exit.monitor(
@@ -17,8 +19,7 @@ export class SubmitView {
       new Promise<never>(() => undefined)
     ), undefined);
     void this.sv.cast('', undefined);
+    void cancellation.register(() => this.sv.terminate());
   }
   private readonly sv = new class extends Supervisor<'', void, void, void>{ }();
-  public readonly close = () =>
-    void this.sv.terminate();
 }
