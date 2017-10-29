@@ -4572,6 +4572,29 @@ require = function e(t, n, r) {
                 }
             }
             exports.throttle = throttle;
+            function debounce(delay, callback) {
+                var timer = 0;
+                var buffer = [];
+                return function (arg) {
+                    void buffer.push(arg);
+                    if (timer > 0)
+                        return;
+                    timer = setTimeout(function () {
+                        timer = 0;
+                        void setTimeout(function () {
+                            if (timer > 0)
+                                return;
+                            void callback(buffer[buffer.length - 1], flush());
+                        }, delay);
+                    }, delay);
+                };
+                function flush() {
+                    var buf = buffer;
+                    buffer = [];
+                    return buf;
+                }
+            }
+            exports.debounce = debounce;
         },
         {}
     ],
@@ -7814,7 +7837,7 @@ require = function e(t, n, r) {
                         }
                     });
                     void this.sv.register('', function () {
-                        return void _this.sv.events.exit.monitor([], typed_dom_1.bind(window, 'scroll', throttle_1.throttle(300, function (ev) {
+                        return void _this.sv.events.exit.monitor([], typed_dom_1.bind(window, 'scroll', throttle_1.debounce(100, function (ev) {
                             return _this.active && void listener(ev);
                         }), { passive: true })), new Promise(function () {
                             return undefined;
@@ -8251,10 +8274,10 @@ require = function e(t, n, r) {
                 var _this = this;
                 return void maybe_1.Just(0).guard(validate(new url_2.URL(event.request.url), config, event)).bind(function () {
                     return router_1.scope(config, function (_a) {
-                        var orig = _a.orig.pathname, dest = _a.dest.pathname;
+                        var orig = _a.orig, dest = _a.dest;
                         return {
-                            orig: orig,
-                            dest: dest
+                            orig: orig.pathname,
+                            dest: dest.pathname
                         };
                     }(event.location));
                 }).fmap(function (config) {
