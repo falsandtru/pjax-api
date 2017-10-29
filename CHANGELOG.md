@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.17.6
+
+- Fix config object pollution.
+
 ## 3.17.5
 
 - Fix url-based transition disabling processing.
