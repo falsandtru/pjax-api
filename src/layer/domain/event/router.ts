@@ -54,7 +54,7 @@ export class RouterEventRequest {
   ) {
     void Object.freeze(this);
   }
-  public method: RouterEventMethod = (() => {
+  public readonly method: RouterEventMethod = (() => {
     if (this.source instanceof RouterEventSource.Anchor) {
       return RouterEventMethod.GET;
     }
@@ -68,7 +68,7 @@ export class RouterEventRequest {
     }
     throw new TypeError();
   })();
-  public url: StandardUrl = (() => {
+  public readonly url: StandardUrl = (() => {
     if (this.source instanceof RouterEventSource.Anchor) {
       return standardizeUrl(this.source.href);
     }
