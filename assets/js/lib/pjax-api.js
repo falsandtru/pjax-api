@@ -63,7 +63,7 @@ require = function e(t, n, r) {
                 case 'Array':
                     return target[key] = exports.clone([], source[key]);
                 case 'Object':
-                    return target[key] = exports.clone({}, source[key]);
+                    return target[key] = source[key] instanceof Object ? exports.clone({}, source[key]) : source[key];
                 default:
                     return target[key] = source[key];
                 }
@@ -71,18 +71,13 @@ require = function e(t, n, r) {
             exports.extend = template(function (key, target, source) {
                 switch (type_1.type(source[key])) {
                 case 'Array':
-                    switch (type_1.type(target[key])) {
-                    case 'Array':
-                        return target[key] = exports.extend([], source[key]);
-                    default:
-                        return target[key] = source[key];
-                    }
+                    return target[key] = exports.extend([], source[key]);
                 case 'Object':
                     switch (type_1.type(target[key])) {
                     case 'Object':
-                        return target[key] = exports.extend(target[key], source[key]);
+                        return target[key] = source[key] instanceof Object ? exports.extend(target[key], source[key]) : source[key];
                     default:
-                        return target[key] = source[key];
+                        return target[key] = source[key] instanceof Object ? exports.extend({}, source[key]) : source[key];
                     }
                 default:
                     return target[key] = source[key];
@@ -994,6 +989,9 @@ require = function e(t, n, r) {
                         }
                         throw new TypeError('Spica: Maybe: Invalid monad value.\n\t' + m);
                     });
+                };
+                Maybe.prototype.guard = function (cond) {
+                    return cond ? this : Maybe.mzero;
                 };
                 Maybe.prototype.join = function () {
                     return this.bind(function (m) {
@@ -6920,7 +6918,12 @@ require = function e(t, n, r) {
                     }));
                 }, maybe_1.Nothing);
                 function sep(documents, area) {
-                    return split(area).reduce(function (acc, area) {
+                    return split(area).map(function (area) {
+                        return {
+                            src: dom_1.find(documents.src, area),
+                            dst: dom_1.find(documents.dst, area)
+                        };
+                    }).reduce(function (acc, area) {
                         return acc.bind(function (as) {
                             return pair(area).fmap(function (a) {
                                 return concat_1.concat(as, [a]);
@@ -6928,18 +6931,9 @@ require = function e(t, n, r) {
                         });
                     }, maybe_1.Just([]));
                     function pair(area) {
-                        return maybeValid(cons(area));
-                        function maybeValid(area) {
-                            return validate(area) ? maybe_1.Just(area) : maybe_1.Nothing;
-                            function validate(area) {
-                                return area.src.length > 0 && area.src.length === area.dst.length;
-                            }
-                        }
-                        function cons(area) {
-                            return {
-                                src: dom_1.find(documents.src, area),
-                                dst: dom_1.find(documents.dst, area)
-                            };
+                        return maybe_1.Just(area).guard(validate(area));
+                        function validate(area) {
+                            return area.src.length > 0 && area.src.length === area.dst.length;
                         }
                     }
                 }
@@ -7901,7 +7895,6 @@ require = function e(t, n, r) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             var router_1 = require('./router');
-            var router_2 = require('../../application/router');
             var process_1 = require('./state/process');
             var html_1 = require('../../../lib/html');
             var assign_1 = require('spica/assign');
@@ -7917,7 +7910,7 @@ require = function e(t, n, r) {
                         };
                     }
                     return void click(url, function (event) {
-                        return void io.router(new router_2.Config(option), new router_2.RouterEvent(event), process_1.process, io);
+                        return void io.router(new router_1.Config(option), new router_1.RouterEvent(event), process_1.process, io);
                     });
                 };
                 API.replace = function (url, option, io) {
@@ -7928,7 +7921,7 @@ require = function e(t, n, r) {
                         };
                     }
                     return void click(url, function (event) {
-                        return void io.router(new router_2.Config(assign_1.extend({}, option, { replace: '*' })), new router_2.RouterEvent(event), process_1.process, io);
+                        return void io.router(new router_1.Config(assign_1.extend({}, option, { replace: '*' })), new router_1.RouterEvent(event), process_1.process, io);
                     });
                 };
                 return API;
@@ -7944,7 +7937,6 @@ require = function e(t, n, r) {
         },
         {
             '../../../lib/html': 128,
-            '../../application/router': 86,
             './router': 120,
             './state/process': 122,
             'spica/assign': 3,
@@ -7974,14 +7966,13 @@ require = function e(t, n, r) {
             var api_1 = require('./api');
             var supervisor_1 = require('spica/supervisor');
             var cancellation_1 = require('spica/cancellation');
-            var router_1 = require('../../application/router');
             var url_1 = require('../../../lib/url');
             var url_2 = require('../../data/model/domain/url');
             var click_1 = require('../module/view/click');
             var submit_1 = require('../module/view/submit');
             var navigation_1 = require('../module/view/navigation');
             var scroll_1 = require('../module/view/scroll');
-            var router_2 = require('./router');
+            var router_1 = require('./router');
             var url_3 = require('./state/url');
             require('./state/scroll-restoration');
             var process_1 = require('./state/process');
@@ -7999,7 +7990,7 @@ require = function e(t, n, r) {
                     if (io === void 0) {
                         io = {
                             document: window.document,
-                            router: router_2.route
+                            router: router_1.route
                         };
                     }
                     var _this = _super.call(this) || this;
@@ -8046,7 +8037,6 @@ require = function e(t, n, r) {
         },
         {
             '../../../lib/url': 130,
-            '../../application/router': 86,
             '../../application/store': 87,
             '../../data/model/domain/url': 88,
             '../module/view/click': 113,
@@ -8244,109 +8234,115 @@ require = function e(t, n, r) {
             var cancellation_1 = require('spica/cancellation');
             var typed_dom_1 = require('typed-dom');
             var router_1 = require('../../application/router');
+            exports.Config = router_1.Config;
+            exports.RouterEvent = router_1.RouterEvent;
+            exports.RouterEventSource = router_1.RouterEventSource;
             var url_1 = require('./state/url');
             var env_1 = require('../service/state/env');
             var progressbar_1 = require('./progressbar');
             var error_1 = require('../data/error');
             var url_2 = require('../../../lib/url');
             var url_3 = require('../../data/model/domain/url');
+            var maybe_1 = require('spica/maybe');
             void typed_dom_1.bind(window, 'pjax:unload', function () {
                 return window.history.scrollRestoration = 'auto';
             }, true);
             function route(config, event, process, io) {
-                return __awaiter(this, void 0, void 0, function () {
-                    var _this = this;
-                    var cancellation, kill, _a, scripts;
-                    return __generator(this, function (_b) {
-                        switch (_b.label) {
-                        case 0:
-                            if (!validate(new url_2.URL(event.request.url), config, event))
+                var _this = this;
+                return void maybe_1.Just(0).guard(validate(new url_2.URL(event.request.url), config, event)).bind(function () {
+                    return router_1.scope(config, function (_a) {
+                        var orig = _a.orig.pathname, dest = _a.dest.pathname;
+                        return {
+                            orig: orig,
+                            dest: dest
+                        };
+                    }(event.location));
+                }).fmap(function (config) {
+                    return __awaiter(_this, void 0, void 0, function () {
+                        var _this = this;
+                        var cancellation, kill, _a, scripts;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
+                            case 0:
+                                void event.original.preventDefault();
+                                void process.cast('', new error_1.InterfaceError('Aborted.'));
+                                cancellation = new cancellation_1.Cancellation();
+                                kill = process.register('', function (e) {
+                                    void kill();
+                                    void cancellation.cancel(e);
+                                    return [
+                                        undefined,
+                                        undefined
+                                    ];
+                                }, undefined);
+                                return [
+                                    4,
+                                    env_1.env
+                                ];
+                            case 1:
+                                _a = __read.apply(void 0, [
+                                    _b.sent(),
+                                    1
+                                ]), scripts = _a[0];
+                                window.history.scrollRestoration = 'manual';
+                                void progressbar_1.progressbar(config.progressbar);
                                 return [
                                     2,
-                                    void url_1.docurl.sync()
-                                ];
-                            try {
-                                config = router_1.scope(config, function (_a) {
-                                    var orig = _a.orig.pathname, dest = _a.dest.pathname;
-                                    return {
-                                        orig: orig,
-                                        dest: dest
-                                    };
-                                }(event.location)).extract();
-                            } catch (reason) {
-                                void url_1.docurl.sync();
-                                switch (event.type) {
-                                case router_1.RouterEventType.click:
-                                case router_1.RouterEventType.submit:
-                                    return [2];
-                                case router_1.RouterEventType.popstate:
-                                    return [
-                                        2,
-                                        void config.fallback(event.source, reason)
-                                    ];
-                                }
-                            }
-                            void event.original.preventDefault();
-                            void process.cast('', new error_1.InterfaceError('Aborted.'));
-                            cancellation = new cancellation_1.Cancellation();
-                            kill = process.register('', function (e) {
-                                void kill();
-                                void cancellation.cancel(e);
-                                return [
-                                    undefined,
-                                    undefined
-                                ];
-                            }, undefined);
-                            return [
-                                4,
-                                env_1.env
-                            ];
-                        case 1:
-                            _a = __read.apply(void 0, [
-                                _b.sent(),
-                                1
-                            ]), scripts = _a[0];
-                            window.history.scrollRestoration = 'manual';
-                            void progressbar_1.progressbar(config.progressbar);
-                            return [
-                                2,
-                                router_1.route(config, event, {
-                                    process: cancellation,
-                                    scripts: scripts
-                                }, io).then(function (m) {
-                                    return m.fmap(function (_a) {
-                                        var _b = __read(_a, 2), ss = _b[0], p = _b[1];
-                                        return __awaiter(_this, void 0, void 0, function () {
-                                            return __generator(this, function (_c) {
-                                                switch (_c.label) {
-                                                case 0:
-                                                    void kill(), void url_1.docurl.sync(), void ss.filter(function (s) {
-                                                        return s.hasAttribute('src');
-                                                    }).forEach(function (s) {
-                                                        return void scripts.add(new url_2.URL(url_3.standardizeUrl(s.src)).href);
-                                                    });
-                                                    return [
-                                                        4,
-                                                        p
-                                                    ];
-                                                case 1:
-                                                    return [
-                                                        2,
-                                                        void _c.sent().filter(function (s) {
+                                    router_1.route(config, event, {
+                                        process: cancellation,
+                                        scripts: scripts
+                                    }, io).then(function (m) {
+                                        return m.fmap(function (_a) {
+                                            var _b = __read(_a, 2), ss = _b[0], p = _b[1];
+                                            return __awaiter(_this, void 0, void 0, function () {
+                                                return __generator(this, function (_c) {
+                                                    switch (_c.label) {
+                                                    case 0:
+                                                        void kill(), void url_1.docurl.sync(), void ss.filter(function (s) {
                                                             return s.hasAttribute('src');
                                                         }).forEach(function (s) {
                                                             return void scripts.add(new url_2.URL(url_3.standardizeUrl(s.src)).href);
-                                                        })
-                                                    ];
-                                                }
+                                                        });
+                                                        return [
+                                                            4,
+                                                            p
+                                                        ];
+                                                    case 1:
+                                                        return [
+                                                            2,
+                                                            void _c.sent().filter(function (s) {
+                                                                return s.hasAttribute('src');
+                                                            }).forEach(function (s) {
+                                                                return void scripts.add(new url_2.URL(url_3.standardizeUrl(s.src)).href);
+                                                            })
+                                                        ];
+                                                    }
+                                                });
                                             });
-                                        });
-                                    }).extract();
-                                }).catch(function (reason) {
-                                    return void kill(), void url_1.docurl.sync(), window.history.scrollRestoration = 'auto', !cancellation.canceled || reason instanceof Error && reason.name === 'FatalError' ? void config.fallback(typed_dom_1.currentTargets.get(event.original), reason) : undefined;
-                                })
-                            ];
-                        }
+                                        }).extract();
+                                    }).catch(function (reason) {
+                                        return void kill(), void url_1.docurl.sync(), window.history.scrollRestoration = 'auto', !cancellation.canceled || reason instanceof Error && reason.name === 'FatalError' ? void config.fallback(typed_dom_1.currentTargets.get(event.original), reason) : undefined;
+                                    })
+                                ];
+                            }
+                        });
+                    });
+                }).extract(function () {
+                    return __awaiter(_this, void 0, void 0, function () {
+                        return __generator(this, function (_a) {
+                            void url_1.docurl.sync();
+                            switch (event.type) {
+                            case router_1.RouterEventType.click:
+                            case router_1.RouterEventType.submit:
+                                return [2];
+                            case router_1.RouterEventType.popstate:
+                                return [
+                                    2,
+                                    void config.fallback(event.source, new Error('Disabled.'))
+                                ];
+                            }
+                            return [2];
+                        });
                     });
                 });
             }
@@ -8392,6 +8388,7 @@ require = function e(t, n, r) {
             './progressbar': 119,
             './state/url': 125,
             'spica/cancellation': 5,
+            'spica/maybe': 14,
             'typed-dom': 79
         }
     ],
