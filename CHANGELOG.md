@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.17.5
+
+- Fix url-based transition disabling processing.
+
 ## 3.17.4
 
 - Improve link and filter options' default value.

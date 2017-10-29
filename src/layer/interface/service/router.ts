@@ -6,8 +6,8 @@ import { docurl } from './state/url';
 import { env } from '../service/state/env';
 import { progressbar } from './progressbar';
 import { InterfaceError } from '../data/error';
-import { StandardUrl, standardizeUrl } from '../../data/model/domain/url';
 import { URL } from '../../../lib/url';
+import { StandardUrl, standardizeUrl } from '../../data/model/domain/url';
 
 void bind(window, 'pjax:unload', () =>
   window.history.scrollRestoration = 'auto', true);
@@ -22,10 +22,22 @@ export async function route(
 ): Promise<void> {
   assert([HTMLAnchorElement, HTMLFormElement, Window].some(Class => event.source instanceof Class));
   if (!validate(new URL(event.request.url), config, event)) return void docurl.sync();
-  void new Promise(() =>
-    config = scope(config, (({ orig: { pathname: orig }, dest: { pathname: dest } }) => ({ orig: orig, dest: dest }))(event.location)).extract());
+  try {
+    config = scope(config, (({ orig: { pathname: orig }, dest: { pathname: dest } }) => ({ orig, dest }))(event.location)).extract();
+  }
+  catch (reason) {
+    assert(reason === undefined);
+    void docurl.sync();
+    switch (event.type) {
+      case RouterEventType.click:
+      case RouterEventType.submit:
+        return;
+      case RouterEventType.popstate:
+        return void config.fallback(event.source, reason);
+    }
+  }
   void event.original.preventDefault();
-  void process.cast('', new InterfaceError(`Abort.`));
+  void process.cast('', new InterfaceError(`Aborted.`));
   const cancellation = new Cancellation<Error>();
   const kill = process.register('', e => {
     void kill();
@@ -49,12 +61,12 @@ export async function route(
           .forEach(s =>
             void scripts.add(new URL(standardizeUrl(s.src)).href))))
       .extract())
-    .catch(e => (
+    .catch(reason => (
       void kill(),
       void docurl.sync(),
       window.history.scrollRestoration = 'auto',
-      !cancellation.canceled || e instanceof Error && e.name === 'FatalError'
-        ? void config.fallback(currentTargets.get(event.original) as RouterEventSource, e instanceof Error ? e : new Error(e))
+      !cancellation.canceled || reason instanceof Error && reason.name === 'FatalError'
+        ? void config.fallback(currentTargets.get(event.original) as RouterEventSource, reason)
         : undefined));
 }
 
@@ -62,28 +74,24 @@ function validate(url: URL<StandardUrl>, config: Config, event: RouterEvent): bo
   switch (event.type) {
     case RouterEventType.click:
       assert(event.original instanceof MouseEvent);
-      return isAccessible(url, config)
+      return isAccessible(url)
           && !isHashClick(url)
           && !isHashChange(url)
           && !isDownload(event.source as RouterEventSource.Anchor)
-          && config.filter(event.source as RouterEventSource.Anchor)
-          && !hasModifierKey(event.original as MouseEvent);
+          && !hasModifierKey(event.original as MouseEvent)
+          && config.filter(event.source as RouterEventSource.Anchor);
     case RouterEventType.submit:
-      return isAccessible(url, config);
+      return isAccessible(url);
     case RouterEventType.popstate:
-      return isAccessible(url, config)
+      return isAccessible(url)
           && !isHashChange(url);
     default:
       return false;
   }
 
-  function isAccessible(dest: URL<StandardUrl>, config: Config): boolean {
+  function isAccessible(dest: URL<StandardUrl>): boolean {
     const orig: URL<StandardUrl> = new URL(docurl.href);
-    return orig.origin === dest.origin
-        && scope(config, { orig: orig.pathname, dest: dest.pathname })
-            .extract(
-              () => false,
-              () => true);
+    return orig.origin === dest.origin;
   }
 
   function isHashClick(dest: URL<StandardUrl>): boolean {
