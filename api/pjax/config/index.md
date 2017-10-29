@@ -15,7 +15,7 @@ Set target areas.
 You can define the multiple targets like `['#header, #primary']`.
 Also, you can define the other candidates of targets like `['#container', 'body']`. 
 
-## link: string = `'a:not([target])'`
+## link: string = `'a'`
 
 Set target anchor links.
 
@@ -26,7 +26,7 @@ Filter target anchor links.
 ```ts
   // default
   public filter(el: HTMLAnchorElement): boolean {
-    return true;
+    return el.matches(':not([target])');
   }
 ```
 
@@ -131,7 +131,7 @@ All methods are required, not optional.
 
 ## scope: Record<string, Config | undefined> = `{}`
 
-Override default configs by merging, or disable pjax per path of url.
+Override default configs without `link`, `filter`, `form`, and `replace` by merging, or disable pjax per path of url.
 You can use `{}`, `*`, and `?` metacharacters for path matching.
 
 ```ts
