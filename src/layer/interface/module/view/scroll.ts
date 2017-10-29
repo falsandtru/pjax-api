@@ -1,7 +1,7 @@
 import { Supervisor } from 'spica/supervisor';
 import { Cancellee } from 'spica/cancellation';
 import { bind } from 'typed-dom';
-import { throttle } from 'spica/throttle';
+import { debounce } from 'spica/throttle';
 
 export class ScrollView {
   constructor(
@@ -12,7 +12,7 @@ export class ScrollView {
     void this.sv.register('', () => (
       void this.sv.events.exit.monitor(
         [],
-        bind(window, 'scroll', throttle(300, ev => (
+        bind(window, 'scroll', debounce(100, ev => (
           this.active &&
           void listener(ev)
         )), { passive: true })),

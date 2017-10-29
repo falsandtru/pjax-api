@@ -27,7 +27,7 @@ export function route(
   return void Just(0)
     .guard(validate(new URL(event.request.url), config, event))
     .bind(() =>
-      scope(config, (({ orig: { pathname: orig }, dest: { pathname: dest } }) => ({ orig, dest }))(event.location)))
+      scope(config, (({ orig, dest }) => ({ orig: orig.pathname, dest: dest.pathname }))(event.location)))
     .fmap(async config => {
       void event.original.preventDefault();
       void process.cast('', new InterfaceError(`Aborted.`));

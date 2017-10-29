@@ -55,7 +55,7 @@
     "pump": "^1.0.2",
     "run-sequence": "^2.2.0",
     "semver": "^5.4.1",
-    "spica": "0.0.122",
+    "spica": "0.0.123",
     "tsify": "^3.0.3",
     "typed-dom": "0.0.63",
     "typescript": "2.7.0-dev.20171029",
