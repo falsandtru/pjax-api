@@ -1,73 +1,77 @@
 import { Supervisor } from 'spica/supervisor';
 import { Cancellation } from 'spica/cancellation';
 import { bind, currentTargets } from 'typed-dom';
-import { route as route_, Config, scope, RouterEvent, RouterEventType, RouterEventSource } from '../../application/router';
+import { route as router, Config, scope, RouterEvent, RouterEventType, RouterEventSource } from '../../application/router';
 import { docurl } from './state/url';
 import { env } from '../service/state/env';
 import { progressbar } from './progressbar';
 import { InterfaceError } from '../data/error';
 import { URL } from '../../../lib/url';
 import { StandardUrl, standardizeUrl } from '../../data/model/domain/url';
+import { Just } from 'spica/maybe';
 
 void bind(window, 'pjax:unload', () =>
   window.history.scrollRestoration = 'auto', true);
 
-export async function route(
+export { Config, RouterEvent, RouterEventSource }
+
+export function route(
   config: Config,
   event: RouterEvent,
   process: Supervisor<'', Error, void, void>,
   io: {
     document: Document;
   }
-): Promise<void> {
+): void {
   assert([HTMLAnchorElement, HTMLFormElement, Window].some(Class => event.source instanceof Class));
-  if (!validate(new URL(event.request.url), config, event)) return void docurl.sync();
-  try {
-    config = scope(config, (({ orig: { pathname: orig }, dest: { pathname: dest } }) => ({ orig, dest }))(event.location)).extract();
-  }
-  catch (reason) {
-    assert(reason === undefined);
-    void docurl.sync();
-    switch (event.type) {
-      case RouterEventType.click:
-      case RouterEventType.submit:
-        return;
-      case RouterEventType.popstate:
-        return void config.fallback(event.source, reason);
-    }
-  }
-  void event.original.preventDefault();
-  void process.cast('', new InterfaceError(`Aborted.`));
-  const cancellation = new Cancellation<Error>();
-  const kill = process.register('', e => {
-    void kill();
-    void cancellation.cancel(e);
-    return [undefined, undefined];
-  }, undefined);
-  const [scripts] = await env;
-  window.history.scrollRestoration = 'manual';
-  void progressbar(config.progressbar);
-  return route_(config, event, { process: cancellation, scripts }, io)
-    .then(m => m
-      .fmap(async ([ss, p]) => (
-        void kill(),
-        void docurl.sync(),
-        void ss
-          .filter(s => s.hasAttribute('src'))
-          .forEach(s =>
-            void scripts.add(new URL(standardizeUrl(s.src)).href)),
-        void (await p)
-          .filter(s => s.hasAttribute('src'))
-          .forEach(s =>
-            void scripts.add(new URL(standardizeUrl(s.src)).href))))
-      .extract())
-    .catch(reason => (
-      void kill(),
-      void docurl.sync(),
-      window.history.scrollRestoration = 'auto',
-      !cancellation.canceled || reason instanceof Error && reason.name === 'FatalError'
-        ? void config.fallback(currentTargets.get(event.original) as RouterEventSource, reason)
-        : undefined));
+  return void Just(0)
+    .guard(validate(new URL(event.request.url), config, event))
+    .bind(() =>
+      scope(config, (({ orig: { pathname: orig }, dest: { pathname: dest } }) => ({ orig, dest }))(event.location)))
+    .fmap(async config => {
+      void event.original.preventDefault();
+      void process.cast('', new InterfaceError(`Aborted.`));
+      const cancellation = new Cancellation<Error>();
+      const kill = process.register('', e => {
+        void kill();
+        void cancellation.cancel(e);
+        return [undefined, undefined];
+      }, undefined);
+      const [scripts] = await env;
+      window.history.scrollRestoration = 'manual';
+      void progressbar(config.progressbar);
+      return router(config, event, { process: cancellation, scripts }, io)
+        .then(m => m
+          .fmap(async ([ss, p]) => (
+            void kill(),
+            void docurl.sync(),
+            void ss
+              .filter(s => s.hasAttribute('src'))
+              .forEach(s =>
+                void scripts.add(new URL(standardizeUrl(s.src)).href)),
+            void (await p)
+              .filter(s => s.hasAttribute('src'))
+              .forEach(s =>
+                void scripts.add(new URL(standardizeUrl(s.src)).href))))
+          .extract())
+        .catch(reason => (
+          void kill(),
+          void docurl.sync(),
+          window.history.scrollRestoration = 'auto',
+          !cancellation.canceled || reason instanceof Error && reason.name === 'FatalError'
+            ? void config.fallback(currentTargets.get(event.original) as RouterEventSource, reason)
+            : undefined));
+    })
+    .extract(async () => {
+      void docurl.sync();
+      switch (event.type) {
+        case RouterEventType.click:
+        case RouterEventType.submit:
+          return;
+        case RouterEventType.popstate:
+          return void config.fallback(event.source, new Error(`Disabled.`));
+      }
+    });
 }
 
 function validate(url: URL<StandardUrl>, config: Config, event: RouterEvent): boolean {

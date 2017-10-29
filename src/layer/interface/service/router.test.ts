@@ -1,5 +1,4 @@
-import { _validate as validate } from './router';
-import { Config, RouterEvent } from '../../application/router';
+import { _validate as validate, Config, RouterEvent } from './router';
 import { URL } from '../../../lib/url';
 import { standardizeUrl } from '../../data/model/domain/url';
 import { parse } from '../../../lib/html';

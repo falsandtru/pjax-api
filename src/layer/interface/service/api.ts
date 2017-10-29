@@ -1,6 +1,5 @@
 import { Config as Option } from '../../../../';
-import { route } from './router';
-import { Config, RouterEvent, RouterEventSource } from '../../application/router';
+import { route, Config, RouterEvent, RouterEventSource } from './router';
 import { process } from './state/process';
 import { parse } from '../../../lib/html';
 import { extend } from 'spica/assign';

@@ -1,4 +1,4 @@
-import { route as route_, RouterEntity, RouterEntityState, RouterResult } from '../domain/router/api';
+import { route as router, RouterEntity, RouterEntityState, RouterResult } from '../domain/router/api';
 import { RouterEvent } from '../domain/event/router';
 import { Config } from '../domain/data/config';
 import { Cancellee } from 'spica/cancellation';
@@ -19,5 +19,5 @@ export function route(
     document: Document;
   }
 ): Promise<RouterResult> {
-  return route_(new RouterEntity(config, event, new RouterEntityState(state.process, state.scripts)), io);
+  return router(new RouterEntity(config, event, new RouterEntityState(state.process, state.scripts)), io);
 }
