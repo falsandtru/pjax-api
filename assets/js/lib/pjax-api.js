@@ -7814,8 +7814,8 @@ require = function e(t, n, r) {
                         }
                     });
                     void this.sv.register('', function () {
-                        return void _this.sv.events.exit.monitor([], typed_dom_1.bind(window, 'scroll', throttle_1.throttle(300, function (ev, buf) {
-                            return _this.active && buf.length === 1 && void listener(ev);
+                        return void _this.sv.events.exit.monitor([], typed_dom_1.bind(window, 'scroll', throttle_1.throttle(300, function (ev) {
+                            return _this.active && void listener(ev);
                         }), { passive: true })), new Promise(function () {
                             return undefined;
                         });
