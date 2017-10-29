@@ -23,7 +23,7 @@ export function scope(
     .filter(pattern =>
       !! compare(pattern, path.orig)
       && compare(pattern, path.dest))
-    .map(pattern => scope[pattern])
+    .map<Option | undefined>(pattern => scope[pattern])
     .map<Maybe<Config>>(option =>
       option
         ? Just(new Config(extend<Option>({}, config, option)))

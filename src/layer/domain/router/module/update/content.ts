@@ -64,6 +64,10 @@ export function separate(
 
   function sep(documents: DocumentRecord, area: string): Maybe<AreaRecord[]> {
     return split(area)
+      .map(area => ({
+        src: find(documents.src, area),
+        dst: find(documents.dst, area)
+      }))
       .reduce<Maybe<AreaRecord[]>>((acc, area) =>
         acc
           .bind(as =>
@@ -72,25 +76,13 @@ export function separate(
                 concat(as, [a])))
       , Just([]));
 
-    function pair(area: string): Maybe<AreaRecord> {
-      return maybeValid(cons(area));
+    function pair(area: AreaRecord): Maybe<AreaRecord> {
+      return Just(area)
+        .guard(validate(area));
 
-      function maybeValid(area: AreaRecord): Maybe<AreaRecord> {
-        return validate(area)
-          ? Just(area)
-          : Nothing;
-
-        function validate(area: AreaRecord): boolean {
-          return area.src.length > 0
-              && area.src.length === area.dst.length;
-        }
-      }
-
-      function cons(area: string): AreaRecord {
-        return {
-          src: find(documents.src, area),
-          dst: find(documents.dst, area)
-        };
+      function validate(area: AreaRecord): boolean {
+        return area.src.length > 0
+            && area.src.length === area.dst.length;
       }
     }
   }
