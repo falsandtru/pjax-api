@@ -8248,8 +8248,8 @@ require = function e(t, n, r) {
             var env_1 = require('../service/state/env');
             var progressbar_1 = require('./progressbar');
             var error_1 = require('../data/error');
-            var url_2 = require('../../data/model/domain/url');
-            var url_3 = require('../../../lib/url');
+            var url_2 = require('../../../lib/url');
+            var url_3 = require('../../data/model/domain/url');
             void typed_dom_1.bind(window, 'pjax:unload', function () {
                 return window.history.scrollRestoration = 'auto';
             }, true);
@@ -8260,22 +8260,34 @@ require = function e(t, n, r) {
                     return __generator(this, function (_b) {
                         switch (_b.label) {
                         case 0:
-                            if (!validate(new url_3.URL(event.request.url), config, event))
+                            if (!validate(new url_2.URL(event.request.url), config, event))
                                 return [
                                     2,
                                     void url_1.docurl.sync()
                                 ];
-                            void new Promise(function () {
-                                return config = router_1.scope(config, function (_a) {
+                            try {
+                                config = router_1.scope(config, function (_a) {
                                     var orig = _a.orig.pathname, dest = _a.dest.pathname;
                                     return {
                                         orig: orig,
                                         dest: dest
                                     };
                                 }(event.location)).extract();
-                            });
+                            } catch (reason) {
+                                void url_1.docurl.sync();
+                                switch (event.type) {
+                                case router_1.RouterEventType.click:
+                                case router_1.RouterEventType.submit:
+                                    return [2];
+                                case router_1.RouterEventType.popstate:
+                                    return [
+                                        2,
+                                        void config.fallback(event.source, reason)
+                                    ];
+                                }
+                            }
                             void event.original.preventDefault();
-                            void process.cast('', new error_1.InterfaceError('Abort.'));
+                            void process.cast('', new error_1.InterfaceError('Aborted.'));
                             cancellation = new cancellation_1.Cancellation();
                             kill = process.register('', function (e) {
                                 void kill();
@@ -8311,7 +8323,7 @@ require = function e(t, n, r) {
                                                     void kill(), void url_1.docurl.sync(), void ss.filter(function (s) {
                                                         return s.hasAttribute('src');
                                                     }).forEach(function (s) {
-                                                        return void scripts.add(new url_3.URL(url_2.standardizeUrl(s.src)).href);
+                                                        return void scripts.add(new url_2.URL(url_3.standardizeUrl(s.src)).href);
                                                     });
                                                     return [
                                                         4,
@@ -8323,15 +8335,15 @@ require = function e(t, n, r) {
                                                         void _c.sent().filter(function (s) {
                                                             return s.hasAttribute('src');
                                                         }).forEach(function (s) {
-                                                            return void scripts.add(new url_3.URL(url_2.standardizeUrl(s.src)).href);
+                                                            return void scripts.add(new url_2.URL(url_3.standardizeUrl(s.src)).href);
                                                         })
                                                     ];
                                                 }
                                             });
                                         });
                                     }).extract();
-                                }).catch(function (e) {
-                                    return void kill(), void url_1.docurl.sync(), window.history.scrollRestoration = 'auto', !cancellation.canceled || e instanceof Error && e.name === 'FatalError' ? void config.fallback(typed_dom_1.currentTargets.get(event.original), e instanceof Error ? e : new Error(e)) : undefined;
+                                }).catch(function (reason) {
+                                    return void kill(), void url_1.docurl.sync(), window.history.scrollRestoration = 'auto', !cancellation.canceled || reason instanceof Error && reason.name === 'FatalError' ? void config.fallback(typed_dom_1.currentTargets.get(event.original), reason) : undefined;
                                 })
                             ];
                         }
@@ -8342,31 +8354,24 @@ require = function e(t, n, r) {
             function validate(url, config, event) {
                 switch (event.type) {
                 case router_1.RouterEventType.click:
-                    return isAccessible(url, config) && !isHashClick(url) && !isHashChange(url) && !isDownload(event.source) && config.filter(event.source) && !hasModifierKey(event.original);
+                    return isAccessible(url) && !isHashClick(url) && !isHashChange(url) && !isDownload(event.source) && !hasModifierKey(event.original) && config.filter(event.source);
                 case router_1.RouterEventType.submit:
-                    return isAccessible(url, config);
+                    return isAccessible(url);
                 case router_1.RouterEventType.popstate:
-                    return isAccessible(url, config) && !isHashChange(url);
+                    return isAccessible(url) && !isHashChange(url);
                 default:
                     return false;
                 }
-                function isAccessible(dest, config) {
-                    var orig = new url_3.URL(url_1.docurl.href);
-                    return orig.origin === dest.origin && router_1.scope(config, {
-                        orig: orig.pathname,
-                        dest: dest.pathname
-                    }).extract(function () {
-                        return false;
-                    }, function () {
-                        return true;
-                    });
+                function isAccessible(dest) {
+                    var orig = new url_2.URL(url_1.docurl.href);
+                    return orig.origin === dest.origin;
                 }
                 function isHashClick(dest) {
-                    var orig = new url_3.URL(url_1.docurl.href);
+                    var orig = new url_2.URL(url_1.docurl.href);
                     return orig.origin === dest.origin && orig.path === dest.path && dest.fragment !== '';
                 }
                 function isHashChange(dest) {
-                    var orig = new url_3.URL(url_1.docurl.href);
+                    var orig = new url_2.URL(url_1.docurl.href);
                     return orig.origin === dest.origin && orig.path === dest.path && orig.fragment !== dest.fragment;
                 }
                 function isDownload(el) {
