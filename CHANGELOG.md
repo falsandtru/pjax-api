@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.17.7
+
+- Fix scroll position restoration.
+
 ## 3.17.6
 
 - Fix config object pollution.

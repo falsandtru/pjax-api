@@ -12,9 +12,8 @@ export class ScrollView {
     void this.sv.register('', () => (
       void this.sv.events.exit.monitor(
         [],
-        bind(window, 'scroll', throttle(300, (ev, buf) => (
+        bind(window, 'scroll', throttle(300, ev => (
           this.active &&
-          buf.length === 1 &&
           void listener(ev)
         )), { passive: true })),
       new Promise<never>(() => undefined)
