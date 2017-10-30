@@ -13,7 +13,7 @@ export class ScrollView {
       void this.sv.events.exit.monitor(
         [],
         bind(window, 'scroll', debounce(100, ev => (
-          this.active &&
+          !cancellation.canceled &&
           void listener(ev)
         )), { passive: true })),
       new Promise<never>(() => undefined)
@@ -21,9 +21,5 @@ export class ScrollView {
     void this.sv.cast('', undefined);
     void cancellation.register(() => this.sv.terminate());
   }
-  private active = true;
-  private readonly sv = new class extends Supervisor<'', void, void, void>{ }({
-    destructor: () =>
-      this.active = false,
-  });
+  private readonly sv = new class extends Supervisor<'', void, void, void>{ }();
 }
