@@ -14,7 +14,7 @@ import './state/scroll-restoration';
 import { process } from './state/process';
 import { loadTitle, savePosition } from '../../application/store';
 
-const view = new class extends Supervisor<'', void, void, Cancellation>{ }();
+const view = new class extends Supervisor<'', undefined, undefined, Cancellation>{ }();
 
 export class GUI extends API {
   constructor(

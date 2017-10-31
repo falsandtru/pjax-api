@@ -21,5 +21,5 @@ export class SubmitView {
     void this.sv.cast('', undefined);
     void cancellation.register(() => this.sv.terminate());
   }
-  private readonly sv = new class extends Supervisor<'', void, void, void>{ }();
+  private readonly sv = new class extends Supervisor<''>{ }();
 }

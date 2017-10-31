@@ -18,7 +18,7 @@ export { Config, RouterEvent, RouterEventSource }
 export function route(
   config: Config,
   event: RouterEvent,
-  process: Supervisor<'', Error, void, void>,
+  process: Supervisor<'', Error>,
   io: {
     document: Document;
   }
