@@ -4243,42 +4243,43 @@ require = function e(t, n, r) {
                     this.events = this.events_;
                     this.workers = new Map();
                     this.alive = true;
-                    this.available = true;
+                    this.available_ = true;
+                    this.scheduler = function () {
+                        return void (void 0, _this.settings.scheduler)(_this.deliver);
+                    };
                     this.messages = [];
                     this.deliver = function () {
                         var since = Date.now();
                         var _loop_1 = function (i, len) {
-                            if (_this.settings.resource - (Date.now() - since) > 0 === false)
+                            if (_this.settings.resource - (Date.now() - since) <= 0)
                                 return { value: void _this.schedule() };
                             var _a = __read(_this.messages[i], 4), name_1 = _a[0], param = _a[1], callback = _a[2], expiry = _a[3];
-                            var result = _this.workers.has(name_1) && Date.now() <= expiry ? _this.workers.get(name_1).call([
+                            var result = _this.workers.has(name_1) ? _this.workers.get(name_1).call([
                                 param,
                                 expiry
                             ]) : undefined;
-                            if (!result && Date.now() < expiry)
+                            if (result === undefined && Date.now() < expiry)
                                 return out_i_1 = i, out_len_1 = len, 'continue';
                             i === 0 ? void _this.messages.shift() : void _this.messages.splice(i, 1);
                             void --i;
                             void --len;
-                            if (!result) {
+                            if (result === undefined) {
                                 void _this.events_.loss.emit([name_1], [
                                     name_1,
                                     param
                                 ]);
-                            }
-                            if (!result || result instanceof Error) {
                                 try {
                                     void callback(undefined, new Error('Spica: Supervisor: A processing has failed.'));
                                 } catch (reason) {
                                     void exception_1.causeAsyncException(reason);
                                 }
-                                return out_i_1 = i, out_len_1 = len, 'continue';
+                            } else {
+                                void result.then(function (reply) {
+                                    return void callback(reply);
+                                }, function () {
+                                    return void callback(undefined, new Error('Spica: Supervisor: A processing has failed.'));
+                                });
                             }
-                            void result.then(function (reply) {
-                                return _this.available ? void callback(reply) : void callback(undefined, new Error('Spica: Supervisor: A processing has failed.'));
-                            }, function () {
-                                return void callback(undefined, new Error('Spica: Supervisor: A processing has failed.'));
-                            });
                             out_i_1 = i;
                             out_len_1 = len;
                         };
@@ -4296,9 +4297,6 @@ require = function e(t, n, r) {
                     if (this.constructor === Supervisor)
                         throw new Error('Spica: Supervisor: <' + this.id + '/' + this.name + '>: Cannot instantiate abstract classes.');
                     void this.constructor.instances.add(this);
-                    this.scheduler = function () {
-                        return void (void 0, _this.settings.scheduler)(_this.deliver);
-                    };
                 }
                 Object.defineProperty(Supervisor, 'instances', {
                     get: function () {
@@ -4324,7 +4322,7 @@ require = function e(t, n, r) {
                     configurable: true
                 });
                 Supervisor.prototype.destructor = function (reason) {
-                    this.available = false;
+                    this.available_ = false;
                     void this.workers.forEach(function (worker) {
                         return void worker.terminate(reason);
                     });
@@ -4342,13 +4340,24 @@ require = function e(t, n, r) {
                     void Object.freeze(this);
                     void this.settings.destructor(reason);
                 };
-                Supervisor.prototype.validate = function () {
+                Object.defineProperty(Supervisor.prototype, 'available', {
+                    get: function () {
+                        return this.available_;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                Supervisor.prototype.throwIfNotAvailable = function () {
                     if (!this.available)
                         throw new Error('Spica: Supervisor: <' + this.id + '/' + this.name + '>: A supervisor is already terminated.');
                 };
-                Supervisor.prototype.register = function (name, process, state) {
+                Supervisor.prototype.register = function (name, process, state, reason) {
                     var _this = this;
-                    void this.validate();
+                    void this.throwIfNotAvailable();
+                    if (arguments.length > 3) {
+                        void this.kill(name, reason);
+                        return this.register(name, process, state);
+                    }
                     if (this.workers.has(name))
                         throw new Error('Spica: Supervisor: <' + this.id + '/' + this.name + '/' + name + '>: Cannot register a process multiply with the same name.');
                     void this.schedule();
@@ -4356,7 +4365,7 @@ require = function e(t, n, r) {
                         init: function (state) {
                             return state;
                         },
-                        call: process,
+                        main: process,
                         exit: function (_) {
                             return undefined;
                         }
@@ -4370,7 +4379,7 @@ require = function e(t, n, r) {
                     if (timeout === void 0) {
                         timeout = this.settings.timeout;
                     }
-                    void this.validate();
+                    void this.throwIfNotAvailable();
                     void this.messages.push([
                         name,
                         param,
@@ -4402,7 +4411,7 @@ require = function e(t, n, r) {
                     if (timeout === void 0) {
                         timeout = this.settings.timeout;
                     }
-                    void this.validate();
+                    void this.throwIfNotAvailable();
                     var result = this.workers.has(name) ? this.workers.get(name).call([
                         param,
                         timeout
@@ -4413,7 +4422,7 @@ require = function e(t, n, r) {
                             param
                         ]);
                     }
-                    if (result === undefined || result instanceof Error)
+                    if (result === undefined)
                         return false;
                     void result.catch(function () {
                         return undefined;
@@ -4421,7 +4430,7 @@ require = function e(t, n, r) {
                     return true;
                 };
                 Supervisor.prototype.refs = function (name) {
-                    void this.validate();
+                    void this.throwIfNotAvailable();
                     return name === undefined ? __spread(this.workers.values()).map(convert) : this.workers.has(name) ? [convert(this.workers.get(name))] : [];
                     function convert(worker) {
                         return [
@@ -4462,15 +4471,16 @@ require = function e(t, n, r) {
                     this.destructor_ = destructor_;
                     this.alive = true;
                     this.available = true;
-                    this.activated = false;
+                    this.initiated = false;
                     this.call = function (_a) {
                         var _b = __read(_a, 2), param = _b[0], expiry = _b[1];
-                        if (!_this.available)
+                        var now = Date.now();
+                        if (!_this.available || now > expiry)
                             return;
-                        try {
+                        return new Promise(function (resolve, reject) {
                             _this.available = false;
-                            if (!_this.activated) {
-                                _this.activated = true;
+                            if (!_this.initiated) {
+                                _this.initiated = true;
                                 void _this.events.init.emit([_this.name], [
                                     _this.name,
                                     _this.process,
@@ -4478,33 +4488,23 @@ require = function e(t, n, r) {
                                 ]);
                                 _this.state = _this.process.init(_this.state);
                             }
-                            return new Promise(function (resolve, reject) {
-                                return isFinite(expiry) && void setTimeout(function () {
-                                    return void reject(new Error());
-                                }, expiry - Date.now()), void Promise.resolve(_this.process.call(param, _this.state)).then(resolve, reject);
-                            }).then(function (_a) {
-                                var _b = __read(_a, 2), reply = _b[0], state = _b[1];
-                                return [
-                                    reply,
-                                    state
-                                ];
-                            }).then(function (_a) {
-                                var _b = __read(_a, 2), reply = _b[0], state = _b[1];
-                                void _this.sv.schedule();
-                                if (!_this.alive)
-                                    return Promise.reject(new Error());
-                                _this.state = state;
-                                _this.available = true;
+                            void Promise.resolve(_this.process.main(param, _this.state)).then(resolve, reject);
+                            isFinite(expiry) && void setTimeout(function () {
+                                return void reject(new Error());
+                            }, expiry - now);
+                        }).then(function (_a) {
+                            var _b = __read(_a, 2), reply = _b[0], state = _b[1];
+                            if (!_this.alive)
                                 return reply;
-                            }, function (reason) {
-                                void _this.sv.schedule();
-                                void _this.terminate(reason);
-                                throw reason;
-                            });
-                        } catch (reason) {
+                            void _this.sv.schedule();
+                            _this.state = state;
+                            _this.available = true;
+                            return reply;
+                        }).catch(function (reason) {
+                            void _this.sv.schedule();
                             void _this.terminate(reason);
-                            return new Error();
-                        }
+                            throw reason;
+                        });
                     };
                     this.terminate = function (reason) {
                         if (!_this.alive)
@@ -4518,7 +4518,7 @@ require = function e(t, n, r) {
                     this.available = false;
                     void Object.freeze(this);
                     void this.destructor_();
-                    if (this.activated) {
+                    if (this.initiated) {
                         try {
                             void this.process.exit(reason, this.state);
                             void this.events.exit.emit([this.name], [
@@ -7824,21 +7824,16 @@ require = function e(t, n, r) {
             var ScrollView = function () {
                 function ScrollView(window, listener, cancellation) {
                     var _this = this;
-                    this.active = true;
                     this.sv = new (function (_super) {
                         __extends(class_1, _super);
                         function class_1() {
                             return _super !== null && _super.apply(this, arguments) || this;
                         }
                         return class_1;
-                    }(supervisor_1.Supervisor))({
-                        destructor: function () {
-                            return _this.active = false;
-                        }
-                    });
+                    }(supervisor_1.Supervisor))();
                     void this.sv.register('', function () {
                         return void _this.sv.events.exit.monitor([], typed_dom_1.bind(window, 'scroll', throttle_1.debounce(100, function (ev) {
-                            return _this.active && void listener(ev);
+                            return !cancellation.canceled && void listener(ev);
                         }), { passive: true })), new Promise(function () {
                             return undefined;
                         });
@@ -8020,12 +8015,11 @@ require = function e(t, n, r) {
                     _this.option = option;
                     _this.io = io;
                     var config = new router_1.Config(_this.option);
-                    void view.kill('');
                     void view.register('', {
                         init: function (s) {
                             return s;
                         },
-                        call: function (_, s) {
+                        main: function (_, s) {
                             return void new click_1.ClickView(_this.io.document, config.link, function (event) {
                                 return void io.router(config, new router_1.RouterEvent(event), process_1.process, io);
                             }, s), void new submit_1.SubmitView(_this.io.document, config.form, function (event) {
@@ -8044,7 +8038,7 @@ require = function e(t, n, r) {
                         exit: function (_, s) {
                             return void s.cancel();
                         }
-                    }, new cancellation_1.Cancellation());
+                    }, new cancellation_1.Cancellation(), new Error('Kill'));
                     void view.cast('', undefined);
                     return _this;
                 }
@@ -8293,10 +8287,9 @@ require = function e(t, n, r) {
                                 kill = process.register('', function (e) {
                                     void kill();
                                     void cancellation.cancel(e);
-                                    return [
-                                        undefined,
-                                        undefined
-                                    ];
+                                    return new Promise(function () {
+                                        return undefined;
+                                    });
                                 }, undefined);
                                 return [
                                     4,
