@@ -12,7 +12,7 @@ import { route, Config, RouterEvent } from './router';
 import { docurl } from './state/url';
 import './state/scroll-restoration';
 import { process } from './state/process';
-import { loadTitle, savePosition } from '../../application/store';
+import { savePosition } from '../../application/store';
 
 const view = new class extends Supervisor<'', undefined, undefined, Cancellation>{ }();
 
@@ -33,10 +33,8 @@ export class GUI extends API {
           void io.router(config, new RouterEvent(event), process, io), s),
         void new SubmitView(this.io.document, config.form, event =>
           void io.router(config, new RouterEvent(event), process, io), s),
-        void new NavigationView(window, event => {
-          io.document.title = loadTitle();
-          void io.router(config, new RouterEvent(event), process, io);
-        }, s),
+        void new NavigationView(window, event =>
+          void io.router(config, new RouterEvent(event), process, io), s),
         void new ScrollView(window, () => {
           if (new URL(standardizeUrl(window.location.href)).href !== docurl.href) return;
           void savePosition();

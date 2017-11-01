@@ -8,6 +8,7 @@ import { progressbar } from './progressbar';
 import { InterfaceError } from '../data/error';
 import { URL } from '../../../lib/url';
 import { StandardUrl, standardizeUrl } from '../../data/model/domain/url';
+import { loadTitle, savePosition } from '../../application/store';
 import { Just } from 'spica/maybe';
 
 void bind(window, 'pjax:unload', () =>
@@ -24,6 +25,15 @@ export function route(
   }
 ): void {
   assert([HTMLAnchorElement, HTMLFormElement, Window].some(Class => event.source instanceof Class));
+  switch (event.type) {
+    case RouterEventType.click:
+    case RouterEventType.submit:
+      void savePosition();
+      break;
+    case RouterEventType.popstate:
+      io.document.title = loadTitle();
+      break;
+  }
   return void Just(0)
     .guard(validate(new URL(event.request.url), config, event))
     .bind(() =>
