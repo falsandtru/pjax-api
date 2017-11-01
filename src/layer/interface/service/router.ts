@@ -35,7 +35,7 @@ export function route(
       const kill = process.register('', e => {
         void kill();
         void cancellation.cancel(e);
-        return [undefined, undefined];
+        return new Promise<never>(() => undefined);
       }, undefined);
       const [scripts] = await env;
       window.history.scrollRestoration = 'manual';

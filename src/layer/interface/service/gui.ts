@@ -26,10 +26,9 @@ export class GUI extends API {
   ) {
     super();
     const config = new Config(this.option);
-    void view.kill('');
     void view.register('', {
       init: s => s,
-      call: (_, s) => (
+      main: (_, s) => (
         void new ClickView(this.io.document, config.link, event =>
           void io.router(config, new RouterEvent(event), process, io), s),
         void new SubmitView(this.io.document, config.form, event =>
@@ -45,7 +44,7 @@ export class GUI extends API {
         new Promise<never>(() => undefined)),
       exit: (_, s) =>
         void s.cancel(),
-    }, new Cancellation());
+    }, new Cancellation(), new Error('Kill'));
     void view.cast('', undefined);
   }
   public assign(url: string): undefined {
