@@ -8025,8 +8025,7 @@ require = function e(t, n, r) {
                             }, s), void new submit_1.SubmitView(_this.io.document, config.form, function (event) {
                                 return void io.router(config, new router_1.RouterEvent(event), process_1.process, io);
                             }, s), void new navigation_1.NavigationView(window, function (event) {
-                                io.document.title = store_1.loadTitle();
-                                void io.router(config, new router_1.RouterEvent(event), process_1.process, io);
+                                return void io.router(config, new router_1.RouterEvent(event), process_1.process, io);
                             }, s), void new scroll_1.ScrollView(window, function () {
                                 if (new url_1.URL(url_2.standardizeUrl(window.location.href)).href !== url_3.docurl.href)
                                     return;
@@ -8260,12 +8259,22 @@ require = function e(t, n, r) {
             var error_1 = require('../data/error');
             var url_2 = require('../../../lib/url');
             var url_3 = require('../../data/model/domain/url');
+            var store_1 = require('../../application/store');
             var maybe_1 = require('spica/maybe');
             void typed_dom_1.bind(window, 'pjax:unload', function () {
                 return window.history.scrollRestoration = 'auto';
             }, true);
             function route(config, event, process, io) {
                 var _this = this;
+                switch (event.type) {
+                case router_1.RouterEventType.click:
+                case router_1.RouterEventType.submit:
+                    void store_1.savePosition();
+                    break;
+                case router_1.RouterEventType.popstate:
+                    io.document.title = store_1.loadTitle();
+                    break;
+                }
                 return void maybe_1.Just(0).guard(validate(new url_2.URL(event.request.url), config, event)).bind(function () {
                     return router_1.scope(config, function (_a) {
                         var orig = _a.orig, dest = _a.dest;
@@ -8398,6 +8407,7 @@ require = function e(t, n, r) {
         {
             '../../../lib/url': 130,
             '../../application/router': 86,
+            '../../application/store': 87,
             '../../data/model/domain/url': 88,
             '../data/error': 112,
             '../service/state/env': 121,
