@@ -1223,7 +1223,7 @@ require = function e(t, n, r) {
             var filterM_1 = require('./sequence/member/instance/filterM');
             var map_1 = require('./sequence/member/instance/map');
             var filter_1 = require('./sequence/member/instance/filter');
-            var scan_1 = require('./sequence/member/instance/scan');
+            var scanl_1 = require('./sequence/member/instance/scanl');
             var foldr_1 = require('./sequence/member/instance/foldr');
             var group_1 = require('./sequence/member/instance/group');
             var inits_1 = require('./sequence/member/instance/inits');
@@ -1232,7 +1232,7 @@ require = function e(t, n, r) {
             var subsequences_1 = require('./sequence/member/instance/subsequences');
             var permutations_1 = require('./sequence/member/instance/permutations');
             var compose_1 = require('../compose');
-            void compose_1.compose(core_1.Sequence, resume_1.default, from_1.default, cycle_1.default, random_1.default, concat_1.default, zip_1.default, difference_1.default, union_1.default, intersect_1.default, pure_1.default, return_1.default, sequence_1.default, mempty_1.default, mconcat_1.default, mappend_1.default, mzero_1.default, mplus_1.default, extract_1.default, iterate_1.default, memoize_1.default, reduce_1.default, take_1.default, drop_1.default, takeWhile_1.default, dropWhile_1.default, takeUntil_1.default, dropUntil_1.default, sort_1.default, unique_1.default, fmap_1.default, ap_1.default, bind_1.default, join_1.default, mapM_1.default, filterM_1.default, map_1.default, filter_1.default, scan_1.default, foldr_1.default, group_1.default, inits_1.default, tails_1.default, segs_1.default, subsequences_1.default, permutations_1.default);
+            void compose_1.compose(core_1.Sequence, resume_1.default, from_1.default, cycle_1.default, random_1.default, concat_1.default, zip_1.default, difference_1.default, union_1.default, intersect_1.default, pure_1.default, return_1.default, sequence_1.default, mempty_1.default, mconcat_1.default, mappend_1.default, mzero_1.default, mplus_1.default, extract_1.default, iterate_1.default, memoize_1.default, reduce_1.default, take_1.default, drop_1.default, takeWhile_1.default, dropWhile_1.default, takeUntil_1.default, dropUntil_1.default, sort_1.default, unique_1.default, fmap_1.default, ap_1.default, bind_1.default, join_1.default, mapM_1.default, filterM_1.default, map_1.default, filter_1.default, scanl_1.default, foldr_1.default, group_1.default, inits_1.default, tails_1.default, segs_1.default, subsequences_1.default, permutations_1.default);
         },
         {
             '../compose': 6,
@@ -1256,7 +1256,7 @@ require = function e(t, n, r) {
             './sequence/member/instance/memoize': 42,
             './sequence/member/instance/permutations': 43,
             './sequence/member/instance/reduce': 44,
-            './sequence/member/instance/scan': 45,
+            './sequence/member/instance/scanl': 45,
             './sequence/member/instance/segs': 46,
             './sequence/member/instance/sort': 47,
             './sequence/member/instance/subsequences': 48,
@@ -1976,7 +1976,7 @@ require = function e(t, n, r) {
                     return _super !== null && _super.apply(this, arguments) || this;
                 }
                 default_1.prototype.inits = function () {
-                    return core_1.Sequence.mappend(core_1.Sequence.from([[]]), this.scan(function (b, a) {
+                    return core_1.Sequence.mappend(core_1.Sequence.from([[]]), this.scanl(function (b, a) {
                         return b.concat([a]);
                     }, []).dropWhile(function (as) {
                         return as.length === 0;
@@ -2483,7 +2483,7 @@ require = function e(t, n, r) {
                 function default_1() {
                     return _super !== null && _super.apply(this, arguments) || this;
                 }
-                default_1.prototype.scan = function (f, z) {
+                default_1.prototype.scanl = function (f, z) {
                     var _this = this;
                     return new core_1.Sequence(function (_a) {
                         var _b = __read(_a === void 0 ? [
@@ -4472,40 +4472,6 @@ require = function e(t, n, r) {
                     this.alive = true;
                     this.available = true;
                     this.initiated = false;
-                    this.call = function (_a) {
-                        var _b = __read(_a, 2), param = _b[0], expiry = _b[1];
-                        var now = Date.now();
-                        if (!_this.available || now > expiry)
-                            return;
-                        return new Promise(function (resolve, reject) {
-                            _this.available = false;
-                            if (!_this.initiated) {
-                                _this.initiated = true;
-                                void _this.events.init.emit([_this.name], [
-                                    _this.name,
-                                    _this.process,
-                                    _this.state
-                                ]);
-                                _this.state = _this.process.init(_this.state);
-                            }
-                            void Promise.resolve(_this.process.main(param, _this.state)).then(resolve, reject);
-                            isFinite(expiry) && void setTimeout(function () {
-                                return void reject(new Error());
-                            }, expiry - now);
-                        }).then(function (_a) {
-                            var _b = __read(_a, 2), reply = _b[0], state = _b[1];
-                            if (!_this.alive)
-                                return reply;
-                            void _this.sv.schedule();
-                            _this.state = state;
-                            _this.available = true;
-                            return reply;
-                        }).catch(function (reason) {
-                            void _this.sv.schedule();
-                            void _this.terminate(reason);
-                            throw reason;
-                        });
-                    };
                     this.terminate = function (reason) {
                         if (!_this.alive)
                             return false;
@@ -4537,6 +4503,44 @@ require = function e(t, n, r) {
                             void this.sv.terminate(reason_);
                         }
                     }
+                };
+                Worker.prototype.call = function (_a) {
+                    var _this = this;
+                    var _b = __read(_a, 2), param = _b[0], expiry = _b[1];
+                    var now = Date.now();
+                    if (!this.available || now > expiry)
+                        return;
+                    return new Promise(function (resolve, reject) {
+                        isFinite(expiry) && void setTimeout(function () {
+                            return void reject(new Error());
+                        }, expiry - now);
+                        _this.available = false;
+                        if (!_this.initiated) {
+                            _this.initiated = true;
+                            void _this.events.init.emit([_this.name], [
+                                _this.name,
+                                _this.process,
+                                _this.state
+                            ]);
+                            _this.state = _this.process.init(_this.state);
+                        }
+                        void Promise.resolve(_this.process.main(param, _this.state)).then(resolve, reject);
+                    }).then(function (result) {
+                        var _a = __read(Array.isArray(result) ? result : [
+                                result.reply,
+                                result.state
+                            ], 2), reply = _a[0], state = _a[1];
+                        if (!_this.alive)
+                            return reply;
+                        void _this.sv.schedule();
+                        _this.state = state;
+                        _this.available = true;
+                        return reply;
+                    }).catch(function (reason) {
+                        void _this.sv.schedule();
+                        void _this.terminate(reason);
+                        throw reason;
+                    });
                 };
                 return Worker;
             }();
@@ -4774,20 +4778,19 @@ require = function e(t, n, r) {
                         return;
                     case ElChildrenType.Text:
                         void clear();
-                        this.children_ = document.createTextNode('');
-                        void this.element_.appendChild(this.children_);
+                        this.children_ = element_.appendChild(document.createTextNode(''));
                         this.children = children_;
                         return;
                     case ElChildrenType.Collection:
                         void clear();
                         this.children_ = [];
                         this.children = children_;
-                        void scope(this.element_.id, this.children_);
+                        void scope(element_.id, this.children_);
                         return;
                     case ElChildrenType.Struct:
                         void clear();
-                        this.children_ = observe(this.element_, __assign({}, children_));
-                        void scope(this.element_.id, this.children_);
+                        this.children_ = observe(element_, __assign({}, children_));
+                        void scope(element_.id, this.children_);
                         return;
                     }
                     function clear() {
