@@ -60,9 +60,11 @@ new Pjax({
 
 ## Browser
 
-Requires es6 support.
+Requires es6 and modern DOM API support.
 
 - Chrome
 - Firefox
 - Safari
 - Edge
+
+Polyfill: https://cdn.polyfill.io
