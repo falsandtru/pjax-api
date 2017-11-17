@@ -4347,13 +4347,13 @@ require = function e(t, n, r) {
                     enumerable: true,
                     configurable: true
                 });
-                Supervisor.prototype.throwIfNotAvailable = function () {
+                Supervisor.prototype.throwErrorIfNotAvailable = function () {
                     if (!this.available)
                         throw new Error('Spica: Supervisor: <' + this.id + '/' + this.name + '>: A supervisor is already terminated.');
                 };
                 Supervisor.prototype.register = function (name, process, state, reason) {
                     var _this = this;
-                    void this.throwIfNotAvailable();
+                    void this.throwErrorIfNotAvailable();
                     if (arguments.length > 3) {
                         void this.kill(name, reason);
                         return this.register(name, process, state);
@@ -4376,10 +4376,19 @@ require = function e(t, n, r) {
                 };
                 Supervisor.prototype.call = function (name, param, callback, timeout) {
                     var _this = this;
+                    if (callback === void 0) {
+                        callback = this.settings.timeout;
+                    }
                     if (timeout === void 0) {
                         timeout = this.settings.timeout;
                     }
-                    void this.throwIfNotAvailable();
+                    if (typeof callback === 'number')
+                        return new Promise(function (resolve, reject) {
+                            return void _this.call(name, param, function (result, err) {
+                                return err ? reject(err) : resolve(result);
+                            }, timeout);
+                        });
+                    void this.throwErrorIfNotAvailable();
                     void this.messages.push([
                         name,
                         param,
@@ -4411,7 +4420,7 @@ require = function e(t, n, r) {
                     if (timeout === void 0) {
                         timeout = this.settings.timeout;
                     }
-                    void this.throwIfNotAvailable();
+                    void this.throwErrorIfNotAvailable();
                     var result = this.workers.has(name) ? this.workers.get(name).call([
                         param,
                         timeout
@@ -4430,7 +4439,7 @@ require = function e(t, n, r) {
                     return true;
                 };
                 Supervisor.prototype.refs = function (name) {
-                    void this.throwIfNotAvailable();
+                    void this.throwErrorIfNotAvailable();
                     return name === undefined ? __spread(this.workers.values()).map(convert) : this.workers.has(name) ? [convert(this.workers.get(name))] : [];
                     function convert(worker) {
                         return [
@@ -4762,14 +4771,14 @@ require = function e(t, n, r) {
                 ElChildrenType.Void = 'void';
                 ElChildrenType.Text = 'text';
                 ElChildrenType.Collection = 'collection';
-                ElChildrenType.Struct = 'struct';
+                ElChildrenType.Record = 'record';
             }(ElChildrenType || (ElChildrenType = {})));
             var memory = new WeakSet();
             var El = function () {
                 function El(element_, children_) {
                     this.element_ = element_;
                     this.children_ = children_;
-                    this.type = this.children_ === undefined ? ElChildrenType.Void : typeof this.children_ === 'string' ? ElChildrenType.Text : Array.isArray(this.children_) ? ElChildrenType.Collection : ElChildrenType.Struct;
+                    this.type = this.children_ === undefined ? ElChildrenType.Void : typeof this.children_ === 'string' ? ElChildrenType.Text : Array.isArray(this.children_) ? ElChildrenType.Collection : ElChildrenType.Record;
                     this.tag;
                     void throwErrorIfNotUsable(this);
                     void memory.add(element_);
@@ -4787,7 +4796,7 @@ require = function e(t, n, r) {
                         this.children = children_;
                         void scope(element_.id, this.children_);
                         return;
-                    case ElChildrenType.Struct:
+                    case ElChildrenType.Record:
                         void clear();
                         this.children_ = observe(element_, __assign({}, children_));
                         void scope(element_.id, this.children_);
@@ -4879,7 +4888,7 @@ require = function e(t, n, r) {
                             });
                             void Object.freeze(this.children_);
                             return;
-                        case ElChildrenType.Struct:
+                        case ElChildrenType.Record:
                             void Object.keys(this.children_).forEach(function (k) {
                                 return _this.children_[k] = children[k];
                             });
@@ -4904,32 +4913,6 @@ require = function e(t, n, r) {
     81: [
         function (require, module, exports) {
             'use strict';
-            var __read = this && this.__read || function (o, n) {
-                var m = typeof Symbol === 'function' && o[Symbol.iterator];
-                if (!m)
-                    return o;
-                var i = m.call(o), r, ar = [], e;
-                try {
-                    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
-                        ar.push(r.value);
-                } catch (error) {
-                    e = { error: error };
-                } finally {
-                    try {
-                        if (r && !r.done && (m = i['return']))
-                            m.call(i);
-                    } finally {
-                        if (e)
-                            throw e.error;
-                    }
-                }
-                return ar;
-            };
-            var __spread = this && this.__spread || function () {
-                for (var ar = [], i = 0; i < arguments.length; i++)
-                    ar = ar.concat(__read(arguments[i]));
-                return ar;
-            };
             Object.defineProperty(exports, '__esModule', { value: true });
             var builder_1 = require('./builder');
             exports.tags = {
@@ -5113,11 +5096,15 @@ require = function e(t, n, r) {
                 'view': 0,
                 'wbr': 0
             };
-            exports.TypedHTML = __spread(Object.keys(exports.tags), [
-                'create',
-                'any'
-            ]).reduce(function (obj, prop) {
-                return obj[prop] = prop === 'create' ? function (tag, b, c, d) {
+            exports.TypedHTML = Object.keys(exports.tags).reduce(function (obj, tag) {
+                return obj[tag] = builder(tag), obj;
+            }, {
+                create: function (tag, a, b, c) {
+                    if (a === void 0) {
+                        a = function () {
+                            return document.createElement(tag);
+                        };
+                    }
                     if (b === void 0) {
                         b = function () {
                             return document.createElement(tag);
@@ -5128,50 +5115,37 @@ require = function e(t, n, r) {
                             return document.createElement(tag);
                         };
                     }
-                    if (d === void 0) {
-                        d = function () {
-                            return document.createElement(tag);
-                        };
-                    }
-                    return exports.TypedHTML['any'](b, c, d, tag);
-                } : function (attrs, children, factory, tag) {
-                    if (tag === void 0) {
-                        tag = prop;
-                    }
-                    tag = prop === 'any' ? tag : prop;
-                    switch (typeof attrs) {
-                    case 'undefined':
-                        return new builder_1.El(define(tag, function () {
-                            return document.createElement(tag);
-                        }), undefined);
-                    case 'function':
-                        return new builder_1.El(define(tag, attrs), undefined);
-                    case 'string':
-                        return new builder_1.El(define(tag, children || function () {
-                            return document.createElement(tag);
-                        }), attrs);
-                    case 'object':
-                        factory = typeof children === 'function' ? children : factory || function () {
-                            return document.createElement(tag);
-                        };
-                        return Object.keys(attrs).slice(-1).every(function (key) {
-                            return key === undefined || typeof attrs[key] === 'object';
-                        }) ? new builder_1.El(define(tag, factory), attrs) : new builder_1.El(define(tag, factory, attrs), children === factory ? undefined : children);
-                    default:
-                        throw new TypeError('TypedDOM: Invalid arguments: [' + attrs + ', ' + children + ', ' + factory + ']');
-                    }
-                }, obj;
-            }, {});
-            function define(tag, factory, attrs) {
-                var el = factory();
-                if (tag !== el.tagName.toLowerCase())
-                    throw new Error('TypedDOM: Tag name must be "' + tag + '" but "' + el.tagName.toLowerCase() + '".');
-                if (!attrs)
+                    return (exports.TypedHTML[tag] = exports.TypedHTML[tag] || builder(tag))(a, b, c);
+                }
+            });
+            function builder(tag) {
+                return function build(attrs, children, factory) {
+                    if (typeof attrs === 'function')
+                        return build(undefined, undefined, attrs);
+                    if (typeof children === 'function')
+                        return build(attrs, undefined, children);
+                    if (attrs !== undefined && isChildren(attrs))
+                        return build(undefined, attrs, factory);
+                    return new builder_1.El(define(tag, factory || function () {
+                        return document.createElement(tag);
+                    }, attrs), children);
+                };
+                function isChildren(children) {
+                    return typeof children !== 'object' || Object.values(children).slice(-1).every(function (val) {
+                        return typeof val === 'object';
+                    });
+                }
+                function define(tag, factory, attrs) {
+                    var el = factory();
+                    if (tag !== el.tagName.toLowerCase())
+                        throw new Error('TypedDOM: Tag name must be "' + tag + '" but "' + el.tagName.toLowerCase() + '".');
+                    if (!attrs)
+                        return el;
+                    void Object.keys(attrs).forEach(function (name) {
+                        return void el.setAttribute(name, attrs[name]);
+                    });
                     return el;
-                void Object.keys(attrs).forEach(function (name) {
-                    return void el.setAttribute(name, attrs[name]);
-                });
-                return el;
+                }
             }
         },
         { './builder': 80 }
