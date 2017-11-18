@@ -6,7 +6,7 @@
 
 The second generation PJAX for the advanced web frameworks.
 
-## Feature
+## Features
 
 |Feature|defunkt|falsandtru|Turbolinks|
 |:------|:-----:|:--------:|:--------:|
@@ -29,9 +29,9 @@ The second generation PJAX for the advanced web frameworks.
 |**Scroll position restoration**|**X**|O|**X**|
 |NOSCRIPT tag restoration|X|O|X|
 
-## Demo
+## Documents, APIs, and Demos
 
-- [Basic](http://falsandtru.github.io/pjax-api/demo/basic/1.html)
+[pjax-api](http://falsandtru.github.io/pjax-api)
 
 ## Usage
 
@@ -54,11 +54,7 @@ new Pjax({
 });
 ```
 
-## Document
-
-[pjax-api](http://falsandtru.github.io/pjax-api)
-
-## Browser
+## Browsers
 
 Requires es6 and modern DOM API support.
 
