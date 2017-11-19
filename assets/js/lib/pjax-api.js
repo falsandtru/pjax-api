@@ -4915,12 +4915,22 @@ require = function e(t, n, r) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             var builder_1 = require('./builder');
+            var NS;
+            (function (NS) {
+                NS.HTML = 'html';
+                NS.SVG = 'svg';
+            }(NS || (NS = {})));
             exports.TypedHTML = new Proxy({}, {
                 get: function (obj, tag) {
-                    return obj[tag] ? obj[tag] : obj[tag] = builder('' + tag);
+                    return obj[tag] ? obj[tag] : obj[tag] = builder(NS.HTML, '' + tag);
                 }
             });
-            function builder(tag) {
+            exports.TypedSVG = new Proxy({}, {
+                get: function (obj, tag) {
+                    return obj[tag] ? obj[tag] : obj[tag] = builder(NS.SVG, '' + tag);
+                }
+            });
+            function builder(ns, tag) {
                 return function build(attrs, children, factory) {
                     if (typeof attrs === 'function')
                         return build(undefined, undefined, attrs);
@@ -4928,9 +4938,7 @@ require = function e(t, n, r) {
                         return build(attrs, undefined, children);
                     if (attrs !== undefined && isChildren(attrs))
                         return build(undefined, attrs, factory);
-                    return new builder_1.El(define(tag, factory || function () {
-                        return document.createElement(tag);
-                    }, attrs), children);
+                    return new builder_1.El(define(tag, factory || factory_, attrs), children);
                 };
                 function isChildren(children) {
                     return typeof children !== 'object' || Object.values(children).slice(-1).every(function (val) {
@@ -4938,15 +4946,28 @@ require = function e(t, n, r) {
                     });
                 }
                 function define(tag, factory, attrs) {
+                    if (factory === void 0) {
+                        factory = factory_;
+                    }
                     var el = factory();
                     if (tag !== el.tagName.toLowerCase())
-                        throw new Error('TypedDOM: Tag name must be "' + tag + '" but "' + el.tagName.toLowerCase() + '".');
+                        throw new Error('TypedDOM: Tag name must be "' + tag + '" but got "' + el.tagName.toLowerCase() + '".');
                     if (!attrs)
                         return el;
                     void Object.keys(attrs).forEach(function (name) {
                         return void el.setAttribute(name, attrs[name]);
                     });
                     return el;
+                }
+                function factory_() {
+                    switch (ns) {
+                    case NS.HTML:
+                        return document.createElement(tag);
+                    case NS.SVG:
+                        return document.createElementNS('http://www.w3.org/2000/svg', tag);
+                    default:
+                        throw new Error('TypedDOM: Namespace must be "' + NS.HTML + '" or "' + NS.SVG + '", but got "' + ns + '".');
+                    }
                 }
             }
         },
@@ -4964,6 +4985,7 @@ require = function e(t, n, r) {
             var html_1 = require('./dom/html');
             exports.default = html_1.TypedHTML;
             exports.TypedHTML = html_1.TypedHTML;
+            exports.TypedSVG = html_1.TypedSVG;
             __export(require('./util/dom'));
         },
         {
