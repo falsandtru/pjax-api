@@ -4920,54 +4920,51 @@ require = function e(t, n, r) {
                 NS.HTML = 'html';
                 NS.SVG = 'svg';
             }(NS || (NS = {})));
-            exports.TypedHTML = new Proxy({}, {
-                get: function (obj, tag) {
-                    return obj[tag] ? obj[tag] : obj[tag] = builder(NS.HTML, '' + tag);
-                }
-            });
-            exports.TypedSVG = new Proxy({}, {
-                get: function (obj, tag) {
-                    return obj[tag] ? obj[tag] : obj[tag] = builder(NS.SVG, '' + tag);
-                }
-            });
-            function builder(ns, tag) {
-                return function build(attrs, children, factory) {
-                    if (typeof attrs === 'function')
-                        return build(undefined, undefined, attrs);
-                    if (typeof children === 'function')
-                        return build(attrs, undefined, children);
-                    if (attrs !== undefined && isChildren(attrs))
-                        return build(undefined, attrs, factory);
-                    return new builder_1.El(define(tag, factory || factory_, attrs), children);
+            exports.TypedHTML = new Proxy({}, handle(NS.HTML));
+            exports.TypedSVG = new Proxy({}, handle(NS.SVG));
+            function handle(ns) {
+                return {
+                    get: function (obj, prop) {
+                        return obj[prop] || typeof prop !== 'string' ? obj[prop] : obj[prop] = builder(ns, prop);
+                    }
                 };
-                function isChildren(children) {
-                    return typeof children !== 'object' || Object.values(children).slice(-1).every(function (val) {
-                        return typeof val === 'object';
-                    });
-                }
-                function define(tag, factory, attrs) {
-                    if (factory === void 0) {
-                        factory = factory_;
-                    }
-                    var el = factory();
-                    if (tag !== el.tagName.toLowerCase())
-                        throw new Error('TypedDOM: Tag name must be "' + tag + '" but got "' + el.tagName.toLowerCase() + '".');
-                    if (!attrs)
-                        return el;
-                    void Object.keys(attrs).forEach(function (name) {
-                        return void el.setAttribute(name, attrs[name]);
-                    });
-                    return el;
-                }
-                function factory_() {
-                    switch (ns) {
-                    case NS.HTML:
-                        return document.createElement(tag);
-                    case NS.SVG:
-                        return document.createElementNS('http://www.w3.org/2000/svg', tag);
-                    default:
-                        throw new Error('TypedDOM: Namespace must be "' + NS.HTML + '" or "' + NS.SVG + '", but got "' + ns + '".');
-                    }
+                function builder(ns, tag) {
+                    return function build(attrs, children, factory) {
+                        if (typeof attrs === 'function')
+                            return build(undefined, undefined, attrs);
+                        if (typeof children === 'function')
+                            return build(attrs, undefined, children);
+                        if (attrs !== undefined && isChildren(attrs))
+                            return build(undefined, attrs, factory);
+                        return new builder_1.El(elem(tag, factory, attrs), children);
+                        function isChildren(children) {
+                            return typeof children !== 'object' || Object.values(children).slice(-1).every(function (val) {
+                                return typeof val === 'object';
+                            });
+                        }
+                        function elem(tag, factory, attrs) {
+                            factory = factory || factory_;
+                            var el = factory();
+                            if (tag !== el.tagName.toLowerCase())
+                                throw new Error('TypedDOM: Tag name must be "' + tag + '", but got "' + el.tagName.toLowerCase() + '".');
+                            if (!attrs)
+                                return el;
+                            void Object.keys(attrs).forEach(function (name) {
+                                return void el.setAttribute(name, attrs[name]);
+                            });
+                            return el;
+                            function factory_() {
+                                switch (ns) {
+                                case NS.HTML:
+                                    return document.createElement(tag);
+                                case NS.SVG:
+                                    return document.createElementNS('http://www.w3.org/2000/svg', tag);
+                                default:
+                                    throw new Error('TypedDOM: Namespace must be "' + NS.HTML + '" or "' + NS.SVG + '", but got "' + ns + '".');
+                                }
+                            }
+                        }
+                    };
                 }
             }
         },
