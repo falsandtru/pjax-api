@@ -57,8 +57,8 @@
     "semver": "^5.4.1",
     "spica": "0.0.132",
     "tsify": "^3.0.3",
-    "typed-dom": "0.0.70",
-    "typescript": "2.7.0-dev.20171118",
+    "typed-dom": "0.0.72",
+    "typescript": "2.7.0-dev.20171121",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0",
     "watchify": "^3.9.0"
