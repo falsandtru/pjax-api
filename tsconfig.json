@@ -13,6 +13,7 @@
     "allowSyntheticDefaultImports": true,
     "strictNullChecks": true,
     "strictFunctionTypes": false,
+    "strictPropertyInitialization": true,
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,

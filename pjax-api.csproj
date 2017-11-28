@@ -35,6 +35,7 @@
     <TypeScriptJSXEmit>None</TypeScriptJSXEmit>
     <TypeScriptStrictNullChecks>True</TypeScriptStrictNullChecks>
     <TypeScriptStrictFunctionTypes>False</TypeScriptStrictFunctionTypes>
+    <TypeScriptStrictPropertyInitialization>True</TypeScriptStrictPropertyInitialization>
     <TypeScriptNoImplicitAny>True</TypeScriptNoImplicitAny>
     <TypeScriptNoImplicitThis>True</TypeScriptNoImplicitThis>
     <TypeScriptNoImplicitReturns>True</TypeScriptNoImplicitReturns>

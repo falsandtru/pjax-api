@@ -1,5 +1,5 @@
 export class URL<T extends string> {
-  private readonly URL: T;
+  private readonly URL!: T;
   constructor(url: PartialUrl<string> & T)
   constructor(url: T)
   constructor(url: T) {
