@@ -1,5 +1,6 @@
 import { Either, Left } from 'spica/either';
 import { HNil } from 'spica/hlist';
+import { tuple } from 'spica/tuple';
 import { RouterEntity } from '../model/eav/entity';
 import { RouterEventLocation } from '../../event/router';
 import { FetchResult } from '../model/eav/value/fetch';
@@ -73,12 +74,13 @@ export async function update(
               config.update.head,
               config.update.ignore),
             content(documents, config.areas)
-              .fmap<[HTMLElement[], Promise<Event[]>]>(([as, ps]) => [
-                as,
-                Promise.all(ps),
-              ])
+              .fmap(([as, ps]) =>
+                [
+                  as,
+                  Promise.all(ps),
+                ])
               .fmap(process.either)
-              .extract<Either<Error, [HTMLElement[], Promise<Event[]>]>>(() =>
+              .extract(() =>
                 Left(new DomainError(`Failed to update areas.`)))))
           .extend(async p => (await p).fmap(([areas]) => Promise.all(
             new HNil()
@@ -107,7 +109,7 @@ export async function update(
                 void savePosition(),
                 config.update.script
                   ? await script(documents, state.scripts, config.update, Math.max(config.fetch.timeout * 10, 10 * 1e3), process)
-                  : await process.either<[HTMLScriptElement[], Promise<HTMLScriptElement[]>]>([[], Promise.resolve([])])))
+                  : await process.either(tuple([[], Promise.resolve([])]))))
               .extend(async () => (
                 void io.document.dispatchEvent(new Event('pjax:ready')),
                 process.either(await config.sequence.ready(seq, areas))))
@@ -115,9 +117,9 @@ export async function update(
               .tuple())
             .then(([m1, m2]) =>
               m1.bind(ss =>
-                m2.fmap<[[HTMLScriptElement[], Promise<HTMLScriptElement[]>], SequenceData.Ready]>(seq =>
-                  [ss, seq]))))
-            .extract<Either<Error, [[HTMLScriptElement[], Promise<HTMLScriptElement[]>], SequenceData.Ready]>>(Left))
+                m2.fmap(seq =>
+                  tuple([ss, seq])))))
+            .extract(async e => Left(e)))
           .reverse()
           .tuple())))
     // ready -> load
@@ -134,7 +136,7 @@ export async function update(
                 void config.sequence.load(seq, events);
               }))
             .extract(() => undefined)),
-          m2.fmap(([[ss, p]]) => [ss, p] as [typeof ss, typeof p]))))
+          m2.fmap(([[ss, p]]) => tuple([ss, p])))))
       .extract<Left<Error>>(Left)))
     .head
     .extract<Left<Error>>(Left);

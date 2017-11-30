@@ -1,5 +1,6 @@
 import { Cancellee } from 'spica/cancellation';
 import { Either, Left, Right } from 'spica/either';
+import { tuple } from 'spica/tuple';
 import { find } from '../../../../../lib/dom';
 import { FatalError } from '../../../../../lib/error';
 import { URL } from '../../../../../lib/url';
@@ -51,22 +52,23 @@ export async function script(
               .bind(([ss, ps]) => m
                 .fmap(([script, code]) =>
                   io.evaluate(script, code, selector.logger, skip, Promise.all(ps), cancellation))
-                .bind<[HTMLScriptElement[], Promise<Either<Error, HTMLScriptElement>>[]]>(m =>
+                .bind(m =>
                   m.extract(
-                    m => m.fmap<[typeof ss, typeof ps]>(s => [ss.concat([s]), ps]),
-                    p => Right<[typeof ss, typeof ps]>([ss, ps.concat([p])]))))
+                    m => m.fmap(s => tuple([ss.concat([s]), ps])),
+                    p => Right(tuple([ss, ps.concat([p])])))))
           , Right<Error, [HTMLScriptElement[], Promise<Either<Error, HTMLScriptElement>>[]]>([[], []])))
-      .fmap<[HTMLScriptElement[], Promise<HTMLScriptElement[]>]>(([ss, ps]) => [
-        ss,
-        Promise.all(ps)
-          .then(ms => ms
-            .reduce((acc, m) => acc
-              .bind(scripts => m
-                .fmap(script =>
-                  scripts.concat([script])))
-            , Right([]) as Either<Error, HTMLScriptElement[]>)
-            .extract()),
-      ]);
+      .fmap(([ss, ps]) =>
+        [
+          ss,
+          Promise.all(ps)
+            .then(ms => ms
+              .reduce((acc, m) => acc
+                .bind(scripts => m
+                  .fmap(script =>
+                    scripts.concat([script])))
+              , Right([]) as Either<Error, HTMLScriptElement[]>)
+              .extract()),
+        ]);
   }
 }
 

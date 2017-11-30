@@ -1,5 +1,6 @@
 import { Either, Left, Right } from 'spica/either';
 import { concat } from 'spica/concat';
+import { tuple } from 'spica/tuple';
 
 export function sync<T extends HTMLElement>(
   pairs: [T[], T | null][],
@@ -36,7 +37,7 @@ export function pair<T>(srcs: T[], dsts: T[], compare: (a: T, b: T) => boolean):
     .forEach(dst =>
       void link.set(dst, []));
   return [...link]
-    .map<[T[], T | null]>(([dst, srcs]) => [srcs, dst]);
+    .map(([dst, srcs]) => tuple([srcs, dst]));
 
   function bind<T>(srcs: T[], dsts: T[], compare: (a: T, b: T) => boolean): Map<T | null, T[]> {
     return srcs

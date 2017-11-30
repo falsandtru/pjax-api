@@ -1,12 +1,13 @@
 import { Maybe, Just, Nothing } from 'spica/maybe';
 import { Either, Left, Right } from 'spica/either';
+import { tuple } from 'spica/tuple';
 import { find } from './dom';
 
 type Parser = (html: string) => Maybe<Document>;
 
 export const parse: Parser = [parseByDoc, parseByDOM]
   .reduce<Either<(html: string) => Document, Parser>>((m, parser) =>
-    m.bind<Parser>(() => test(parser) ? Left(parser) : m)
+    m.bind(() => test(parser) ? Left(parser) : m)
   , Right(() => Nothing))
   .extract(parser => (html: string): Maybe<Document> => Just(parser(html)));
 
@@ -49,10 +50,10 @@ function fix(doc: Document): undefined {
 function fixNoscript(doc: Document): [HTMLElement, HTMLElement][] {
   return find(doc, 'noscript')
     .filter(el => el.children.length > 0)
-    .map<[HTMLElement, HTMLElement]>(el => {
+    .map(el => {
       const clone = el.cloneNode(true) as HTMLElement;
       clone.textContent = el.innerHTML;
-      return [el, clone];
+      return tuple([el, clone]);
     });
 }
 

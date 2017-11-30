@@ -1,6 +1,7 @@
 import { script, _fetch, _evaluate, escape } from './script';
 import { Cancellation } from 'spica/cancellation';
 import { Left, Right } from 'spica/either';
+import { tuple } from 'spica/tuple';
 import { parse } from '../../../../../lib/html';
 import DOM from 'typed-dom';
 
@@ -21,7 +22,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         1e3,
         new Cancellation<Error>(),
         {
-          fetch: async script => Right<[HTMLScriptElement, string]>([script, script.text]),
+          fetch: async script => Right(tuple([script, script.text])),
           evaluate: script => Left(Right(script)),
         })
         .then(m => {
@@ -56,7 +57,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           fetch: async script => {
             assert(cnt === 0 && ++cnt);
             assert(script.className === 'test');
-            return Right<[HTMLScriptElement, string]>([script, script.text]);
+            return Right(tuple([script, script.text]));
           },
           evaluate: (script, code) => {
             assert(cnt === 2 && ++cnt);
@@ -98,7 +99,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           fetch: async script => {
             assert(++cnt);
             return cnt === 1
-              ? Right<[HTMLScriptElement, string]>([script, script.text])
+              ? Right(tuple([script, script.text]))
               : Left(new Error());
           },
           evaluate: script => {
@@ -132,7 +133,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           fetch: async script => {
             assert(cnt === 0 && ++cnt);
             assert(script.className === 'test');
-            return Right<[HTMLScriptElement, string]>([script, '']);
+            return Right(tuple([script, '']));
           },
           evaluate: () => {
             assert(cnt === 2 && ++cnt);
@@ -166,7 +167,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           fetch: async script => {
             assert(cnt === 0 && ++cnt);
             assert(script.className === 'test');
-            return Right<[HTMLScriptElement, string]>([script, '']);
+            return Right(tuple([script, '']));
           },
           evaluate: script => {
             assert(++cnt === NaN);
@@ -198,7 +199,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         new Cancellation<Error>(),
         {
           fetch: async script => {
-            return Right<[HTMLScriptElement, string]>([script, script.text]);
+            return Right(tuple([script, script.text]));
           },
           evaluate: script => {
             assert(cnt > 0 && ++cnt);
@@ -236,7 +237,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         new Cancellation<Error>(),
         {
           fetch: async script => {
-            return Right<[HTMLScriptElement, string]>([script, '']);
+            return Right(tuple([script, '']));
           },
           evaluate: () => {
             assert(cnt > 0 && ++cnt);
@@ -276,7 +277,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         {
           fetch: async script => {
             assert(cnt === 0 && ++cnt);
-            return Right<[HTMLScriptElement, string]>([script, '']);
+            return Right(tuple([script, '']));
           },
           evaluate: script => {
             assert(++cnt === NaN);

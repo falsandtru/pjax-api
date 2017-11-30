@@ -1,5 +1,6 @@
 import { Maybe, Just, Nothing} from 'spica/maybe';
 import { concat} from 'spica/concat';
+import { tuple } from 'spica/tuple';
 import { once } from 'typed-dom';
 import { find } from '../../../../../lib/dom';
 import { escape } from './script';
@@ -15,14 +16,15 @@ export function content(
   }
 ): Maybe<[HTMLElement[], Promise<Event>[]]> {
   return separate(documents, areas)
-    .fmap<[HTMLElement[], Promise<Event>[]]>(([, areas]) => [
-      areas
-        .map(a => a.dst)
-        .reduce<HTMLElement[]>(concat, []),
-      areas
-        .map(load)
-        .reduce<Promise<Event>[]>(concat, [])
-    ]);
+    .fmap(([, areas]) =>
+      [
+        areas
+          .map(a => a.dst)
+          .reduce<HTMLElement[]>(concat, []),
+        areas
+          .map(load)
+          .reduce<Promise<Event>[]>(concat, [])
+      ]);
 
   function load(area: AreaRecord): Promise<Event>[] {
     return area.src
@@ -54,12 +56,12 @@ export function separate(
   areas: string[]
 ): Maybe<[string, AreaRecord[]]> {
   return areas
-    .reduce<Maybe<[string, AreaRecord[]]>>((m, area) =>
+    .reduce((m, area) =>
       Maybe.mplus(
         m,
         sep(documents, area)
-          .fmap<[string, AreaRecord[]]>(as =>
-            [area, as]))
+          .fmap(as =>
+            tuple([area, as])))
     , Nothing)
 
   function sep(documents: DocumentRecord, area: string): Maybe<AreaRecord[]> {
