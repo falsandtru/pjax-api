@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.17.8
+
+- Micro refactoring.
+
 ## 3.17.7
 
 - Fix scroll position restoration.
