@@ -18,9 +18,9 @@ export async function fetch(
   {
     fetch: {
       timeout,
-      wait
+      wait,
     },
-    sequence
+    sequence,
   }: Config,
   process: Cancellee<Error>
 ): Promise<Either<Error, [FetchResult, SequenceData.Fetch]>> {
@@ -31,7 +31,7 @@ export async function fetch(
     sequence.fetch(undefined, {
       path: new URL(url).path,
       method,
-      data
+      data,
     }),
     new Promise<void>(resolve => void setTimeout(resolve, wait))
   ]);

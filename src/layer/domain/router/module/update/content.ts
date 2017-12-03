@@ -10,21 +10,19 @@ type AreaRecord = { src: HTMLElement[]; dst: HTMLElement[]; };
 
 export function content(
   documents: DocumentRecord,
-  areas: string[],
+  areas: AreaRecord[],
   io = {
     replace: (src: Node, dst: Node): void => void dst.parentNode!.replaceChild(src, dst)
   }
-): Maybe<[HTMLElement[], Promise<Event>[]]> {
-  return separate(documents, areas)
-    .fmap(([, areas]) =>
-      [
-        areas
-          .map(a => a.dst)
-          .reduce<HTMLElement[]>(concat, []),
-        areas
-          .map(load)
-          .reduce<Promise<Event>[]>(concat, [])
-      ]);
+): [HTMLElement[], Promise<Event>[]] {
+  return [
+    areas
+      .map(r => r.dst)
+      .reduce<HTMLElement[]>(concat, []),
+    areas
+      .map(load)
+      .reduce<Promise<Event>[]>(concat, []),
+  ];
 
   function load(area: AreaRecord): Promise<Event>[] {
     return area.src

@@ -22,10 +22,10 @@ export async function update(
   {
     event,
     config,
-    state
+    state,
   }: RouterEntity,
   {
-    response
+    response,
   }: FetchResult,
   seq: SequenceData.Fetch,
   io: {
@@ -36,7 +36,7 @@ export async function update(
   const { process } = state;
   const { documents } = new UpdateSource({
     src: response.document,
-    dst: io.document
+    dst: io.document,
   });
   return new HNil()
     .push(process.either(seq))
@@ -44,17 +44,17 @@ export async function update(
     .modify(m => m
       .fmap(seq =>
         separate(documents, config.areas)
-          .fmap(([area]) =>
-            void config.rewrite(documents.src, area))
-          .extract<Promise<Either<Error, SequenceData.Unload>>>(
+          .extract(
             async () =>
               Left(new DomainError(`Failed to separate areas.`)),
-            async () => (
+            async ([area, areas]) => (
+              void config.rewrite(documents.src, area),
               void window.dispatchEvent(new Event('pjax:unload')),
-              process.either(await config.sequence.unload(seq, response))))))
+              process.either(tuple([await config.sequence.unload(seq, response), areas]))))))
     // unload -> ready
     .modify(m => m.fmap(async p => (await p)
-      .fmap(seq =>
+      .bind(process.either)
+      .fmap(([seq, areas]) =>
         new HNil()
           .extend(async () => (
             void blur(documents.dst),
@@ -69,19 +69,16 @@ export async function update(
             void head(
               {
                 src: documents.src.head,
-                dst: documents.dst.head
+                dst: documents.dst.head,
               },
               config.update.head,
               config.update.ignore),
-            content(documents, config.areas)
+            process.either(content(documents, areas))
               .fmap(([as, ps]) =>
                 [
                   as,
                   Promise.all(ps),
-                ])
-              .fmap(process.either)
-              .extract(() =>
-                Left(new DomainError(`Failed to update areas.`)))))
+                ])))
           .extend(async p => (await p).fmap(([areas]) => Promise.all(
             new HNil()
               .extend(async () => (
@@ -124,10 +121,12 @@ export async function update(
           .tuple())))
     // ready -> load
     .modify(m => m.fmap(async p => (await p)
+      .bind(process.either)
       .fmap(([p1, p2]) =>
         p2.then(m2 => (
           void p1.then(m1 => m1
             .bind(([, cp]) => m2
+              .bind(process.either)
               .fmap(async ([[, sp], seq]) => {
                 await sp;
                 const events = await cp;
