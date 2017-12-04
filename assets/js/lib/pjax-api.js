@@ -6404,7 +6404,10 @@ require = function e(t, n, r) {
                             2,
                             new hlist_1.HNil().push(process.either(seq)).modify(function (m) {
                                 return m.fmap(function (seqA) {
-                                    return content_1.separate(documents, config.areas).extract(function () {
+                                    return content_1.separate(documents, config.areas).bind(function (_a) {
+                                        var _b = __read(_a, 1), area = _b[0];
+                                        return void config.rewrite(documents.src, area), content_1.separate(documents, config.areas);
+                                    }).extract(function () {
                                         return __awaiter(_this, void 0, void 0, function () {
                                             return __generator(this, function (_a) {
                                                 return [
@@ -6414,13 +6417,13 @@ require = function e(t, n, r) {
                                             });
                                         });
                                     }, function (_a) {
-                                        var _b = __read(_a, 2), area = _b[0], areas = _b[1];
+                                        var _b = __read(_a, 2), areas = _b[1];
                                         return __awaiter(_this, void 0, void 0, function () {
                                             var _c, _d, _e;
                                             return __generator(this, function (_f) {
                                                 switch (_f.label) {
                                                 case 0:
-                                                    void config.rewrite(documents.src, area), void window.dispatchEvent(new Event('pjax:unload'));
+                                                    void window.dispatchEvent(new Event('pjax:unload'));
                                                     _d = (_c = process).either;
                                                     _e = tuple_1.tuple;
                                                     return [
