@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.18.1
+
+- Check target areas again after rewriting sources.
+
 ## 3.18.0
 
 - Add pjax:content event.

@@ -43,11 +43,13 @@ export async function update(
     .modify(m => m
       .fmap(seqA =>
         separate(documents, config.areas)
+          .bind(([area]) => (
+            void config.rewrite(documents.src, area),
+            separate(documents, config.areas)))
           .extract(
             async () =>
               Left(new DomainError(`Failed to separate areas.`)),
-            async ([area, areas]) => (
-              void config.rewrite(documents.src, area),
+            async ([, areas]) => (
               void window.dispatchEvent(new Event('pjax:unload')),
               process.either(tuple([await config.sequence.unload(seqA, response), areas]))))))
     // unload -> ready
