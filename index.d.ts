@@ -32,15 +32,16 @@ export interface Config {
     readonly logger?: string;
   };
   readonly fallback?: (target: HTMLAnchorElement | HTMLFormElement | Window, reason: any) => void;
-  readonly sequence?: Sequence<any, any, any>;
+  readonly sequence?: Sequence<any, any, any, any>;
   readonly scope?: Record<string, Config | undefined>;
 }
 
-export interface Sequence<a, b, c> {
+export interface Sequence<a, b, c, d> {
   readonly fetch: (result: void, request: { path: string; method: string; data: FormData | null; }) => Promise<a>;
   readonly unload: (result: a, response: { url: string; header: (name: string) => string | null; document: Document; }) => Promise<b>;
-  readonly ready: (result: b, areas: HTMLElement[]) => Promise<c>;
-  readonly load: (result: c, events: Event[]) => void;
+  readonly content: (result: b, areas: HTMLElement[]) => Promise<c>;
+  readonly ready: (result: c) => Promise<d>;
+  readonly load: (result: d, events: Event[]) => Promise<void>;
 }
 
 declare global {
@@ -51,6 +52,7 @@ declare global {
   }
 
   interface DocumentEventMap {
+    'pjax:content': Event;
     'pjax:ready': Event;
   }
 

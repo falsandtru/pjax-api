@@ -59,32 +59,24 @@ export class Config implements Option {
     }
     throw reason;
   }
-  public readonly sequence: ISequence<SequenceData.Fetch, SequenceData.Unload, SequenceData.Ready> = new Sequence();
+  public readonly sequence: ISequence<'fetch', 'unload', 'content', 'ready'> = new Sequence();
   public readonly progressbar: string = 'display:none;position:absolute;bottom:0;left:0;width:0;height:2px;background:rgb(40, 105, 255);';
   public readonly scope: Record<string, Option | undefined> = {};
 }
 
-class Sequence {
-  public async fetch(): Promise<SequenceData.Fetch> {
-    return undefined as any;
+class Sequence implements ISequence<'fetch', 'unload', 'content', 'ready'> {
+  public async fetch(): Promise<'fetch'> {
+    return 'fetch';
   }
-  public async unload(): Promise<SequenceData.Unload> {
-    return undefined as any;
+  public async unload(): Promise<'unload'> {
+    return 'unload';
   }
-  public async ready(): Promise<SequenceData.Ready> {
-    return undefined as any;
+  public async content(): Promise<'content'> {
+    return 'content';
   }
-  public load(): void {
+  public async ready(): Promise<'ready'> {
+    return 'ready';
   }
-}
-export namespace SequenceData {
-  declare class SequenceData<T> {
-    private DATA: T;
-  }
-  export interface Fetch extends SequenceData<'fetch'> {
-  }
-  export interface Unload extends SequenceData<'unload'> {
-  }
-  export interface Ready extends SequenceData<'ready'> {
+  public async load(): Promise<void> {
   }
 }

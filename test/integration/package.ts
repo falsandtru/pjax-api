@@ -31,7 +31,7 @@ describe('Integration: Package', function () {
         assert(window.location.pathname !== path);
         assert(cnt === 1 && ++cnt);
       });
-      once(document, 'pjax:ready', ev => {
+      once(document, 'pjax:content', ev => {
         assert(ev instanceof Event);
         assert(window.history.scrollRestoration === 'auto');
         assert(window.location.pathname === path);
@@ -39,10 +39,15 @@ describe('Integration: Package', function () {
         assert(document.querySelector('header')!.innerHTML === 'Header 1');
         assert(cnt === 2 && ++cnt);
       });
-      once(window, 'pjax:load', ev => {
+      once(document, 'pjax:ready', ev => {
         assert(ev instanceof Event);
         assert(window.history.scrollRestoration === 'auto');
         assert(cnt === 3 && ++cnt);
+      });
+      once(window, 'pjax:load', ev => {
+        assert(ev instanceof Event);
+        assert(window.history.scrollRestoration === 'auto');
+        assert(cnt === 4 && ++cnt);
         done();
       });
     });
@@ -53,7 +58,7 @@ describe('Integration: Package', function () {
     it('sequence', function (done) {
       const path = '/base/test/integration/usecase/fixture/basic/2.html';
       const document = parse('').extract();
-      const sequence: Sequence<boolean, number, string> = {
+      const sequence: Sequence<1, 2, 3, 4> = {
         async fetch(r, req) {
           assert(cnt === 1 && ++cnt);
           assert(r === undefined);
@@ -63,31 +68,37 @@ describe('Integration: Package', function () {
             method: 'GET',
             data: null
           });
-          return false;
+          return 1;
         },
         async unload(r, res) {
           assert(cnt === 3 && ++cnt);
-          assert(r === false);
+          assert(r === 1);
           assert(res.header('Content-Type') === 'text/html');
           assert(res.document instanceof Document);
           assert(res.document !== window.document);
           assert(window.history.scrollRestoration === 'auto');
           assert(window.location.pathname !== path);
-          return 0;
+          return 2;
         },
-        async ready(r, areas) {
+        async content(r, areas) {
           assert(cnt === 5 && ++cnt);
-          assert(r === 0);
+          assert(r === 2);
           assert.deepStrictEqual(areas, [document.body]);
           assert(window.history.scrollRestoration === 'auto');
           assert(window.location.pathname === path);
           assert(document.title === 'Title 2');
           assert(document.querySelector('header')!.innerHTML === 'Header 2');
-          return '';
+          return 3;
         },
-        load(r, events) {
+        async ready(r) {
           assert(cnt === 7 && ++cnt);
-          assert(r === '');
+          assert(r === 3);
+          assert(window.history.scrollRestoration === 'auto');
+          return 4;
+        },
+        async load(r, events) {
+          assert(cnt === 9 && ++cnt);
+          assert(r === 4);
           assert.deepStrictEqual(events, []);
           assert(window.history.scrollRestoration === 'auto');
           done();
@@ -103,10 +114,12 @@ describe('Integration: Package', function () {
         assert(cnt === 0 && ++cnt));
       once(window, 'pjax:unload', () =>
         assert(cnt === 2 && ++cnt));
-      once(document, 'pjax:ready', () =>
+      once(document, 'pjax:content', () =>
         assert(cnt === 4 && ++cnt));
-      once(window, 'pjax:load', () =>
+      once(document, 'pjax:ready', () =>
         assert(cnt === 6 && ++cnt));
+      once(window, 'pjax:load', () =>
+        assert(cnt === 8 && ++cnt));
     });
 
   });

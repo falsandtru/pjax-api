@@ -4,7 +4,6 @@ import { tuple } from 'spica/tuple';
 import { Config } from '../../data/config';
 import { RouterEventRequest } from '../../event/router';
 import { FetchResult } from '../model/eav/value/fetch';
-import { SequenceData } from '../../data/config';
 import { xhr } from '../module/fetch/xhr';
 import { DomainError } from '../../data/error';
 import { URL } from '../../../../lib/url';
@@ -23,7 +22,7 @@ export async function fetch(
     sequence,
   }: Config,
   process: Cancellee<Error>
-): Promise<Either<Error, [FetchResult, SequenceData.Fetch]>> {
+): Promise<Either<Error, [FetchResult, 'fetch']>> {
   const req = xhr(method, url, data, timeout, process);
   void window.dispatchEvent(new Event('pjax:fetch'));
   const [res, seq] = await Promise.all([

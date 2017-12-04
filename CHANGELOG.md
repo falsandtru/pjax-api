@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.18.0
+
+- Add pjax:content event.
+- Refine sequence feature.
+
 ## 3.17.8
 
 - Micro refactoring.
