@@ -115,7 +115,7 @@ Override a fallback processing.
   }
 ```
 
-## sequence: Sequence<a, b, c> = ...
+## sequence: Sequence<a, b, c, d> = ...
 
 Control the page routing sequence.
 It can integrate and synchronize other async processes.
@@ -123,11 +123,13 @@ All methods are required, not optional.
 
 ### fetch: (result: void, request: { path: string; method: string; data: FormData | null; }): Promise\<a>
 
-### unload: (result: a, response: { url: string; headers: { [field: string]: string; }; document: Document; }): Promise\<b>
+### unload: (result: a, response: { url: string; header: (name: string) => string | null; document: Document; }): Promise\<b>
 
-### ready: (result: b, areas: HTMLElement[]): Promise\<c>
+### content: (result: b, areas: HTMLElement[]): Promise\<c>
 
-### load: (result: c, events: Event[]): void
+### ready: (result: c): Promise\<d>
+
+### load: (result: d, events: Event[]): Promise\<void>
 
 ## scope: Record<string, Config | undefined> = `{}`
 

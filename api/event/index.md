@@ -10,17 +10,21 @@ class: style-api style-api-detail
 
 ## pjax:fetch
 
-Dispatch after page request from `window` object.
+Dispatched from `window` object after requesting the page.
 
 ## pjax:unload
 
-Dispatch before page update from `window` object.
+Dispatched from `window` object before updating the page.
+
+## pjax:content
+
+Dispatched from `document` object after updating the contents and styles, before loading scripts and scrolling.
 
 ## pjax:ready
 
-Dispatch after dom update from `document` object.
+Dispatched from `document` object after updating the contents, styles, and scripts.
 
 ## pjax:load
 
-Dispatch after page update from `window` object.
+Dispatched from `window` object after updating the page.
 This event waits for loading of `img`, `iframe` and `frame` elements.
