@@ -83,19 +83,19 @@ export async function update(
           .extend(async p => (await p).fmap(async ([areas]) => {
             config.update.css
               ? void css(
-                {
-                  src: documents.src.head,
-                  dst: documents.dst.head,
-                },
-                config.update.ignore)
+                  {
+                    src: documents.src.head,
+                    dst: documents.dst.head,
+                  },
+                  config.update.ignore)
               : undefined;
             config.update.css
               ? void css(
-                {
-                  src: documents.src.body as HTMLBodyElement,
-                  dst: documents.dst.body as HTMLBodyElement,
-                },
-                config.update.ignore)
+                  {
+                    src: documents.src.body as HTMLBodyElement,
+                    dst: documents.dst.body as HTMLBodyElement,
+                  },
+                  config.update.ignore)
               : undefined;
             void io.document.dispatchEvent(new Event('pjax:content'));
             const seqC = await config.sequence.content(seqB, areas);
@@ -115,28 +115,31 @@ export async function update(
           })
             .fmap(p =>
               p.then(([m, seqD]) =>
-                m.fmap(ss =>
-                  tuple([ss, seqD]))))
+                m.fmap(sst =>
+                  [sst, seqD])))
             .extract(async e => Left(e)))
           .reverse()
           .tuple())))
     // ready -> load
     .modify(m => m.fmap(async p => (await p)
       .bind(process.either)
-      .fmap(([p1, p2]) =>
-        p2.then(m2 => (
-          void p1.then(m1 => m1
-            .bind(([, cp]) => m2
-              .bind(process.either)
-              .fmap(async ([[, sp], seqD]) => {
-                await sp;
-                const events = await cp;
-                if (process.canceled) return;
-                void window.dispatchEvent(new Event('pjax:load'));
-                void config.sequence.load(seqD, events);
-              }))
-            .extract(() => undefined)),
-          m2.fmap(([[ss, p]]) => tuple([ss, p])))))
+      .fmap(async ([p1, p2]) => (
+        void process.either(await Promise.all([p1, p2]))
+          .bind<void>(([m1, m2]) =>
+            m1.bind(([, cp]) =>
+              m2.fmap(([[, sp], seqD]) =>
+                // Asynchronously wait for load completion of elements and scripts.
+                void Promise.all([cp, sp])
+                  .then(process.either)
+                  .then(m => m
+                    .fmap(([events]) => (
+                      void window.dispatchEvent(new Event('pjax:load')),
+                      void config.sequence.load(seqD, events)))
+                    .extract(() => undefined)))))
+          .extract(() => undefined),
+        p2))
+      .fmap(async p => (await p)
+        .fmap(([sst]) => sst))
       .extract<Left<Error>>(Left)))
     .head
     .extract<Left<Error>>(Left);
