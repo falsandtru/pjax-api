@@ -18,11 +18,11 @@ Dispatched from `window` object before updating the page.
 
 ## pjax:content
 
-Dispatched from `document` object after updating the contents and styles, before loading scripts and scrolling.
+Dispatched from `document` object after updating the contents, styles, and scripts, before scrolling.
 
 ## pjax:ready
 
-Dispatched from `document` object after updating the contents, styles, and scripts.
+Dispatched from `document` object after updating the contents, styles, scripts, and scroll position.
 
 ## pjax:load
 

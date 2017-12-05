@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.18.2
+
+- Fix a timing of dispatching pjax:content event.
+
 ## 3.18.1
 
 - Check target areas again after rewriting sources.
