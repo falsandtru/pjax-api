@@ -6492,90 +6492,94 @@ require = function e(t, n, r) {
                                                                             2,
                                                                             _a.sent().fmap(function (_a) {
                                                                                 var _b = __read(_a, 1), areas = _b[0];
-                                                                                return __awaiter(_this, void 0, void 0, function () {
-                                                                                    var seqC, _c, _d, _e, _f;
-                                                                                    return __generator(this, function (_g) {
-                                                                                        switch (_g.label) {
-                                                                                        case 0:
-                                                                                            config.update.css ? void css_1.css({
-                                                                                                src: documents.src.head,
-                                                                                                dst: documents.dst.head
-                                                                                            }, config.update.ignore) : undefined;
-                                                                                            config.update.css ? void css_1.css({
-                                                                                                src: documents.src.body,
-                                                                                                dst: documents.dst.body
-                                                                                            }, config.update.ignore) : undefined;
-                                                                                            void io.document.dispatchEvent(new Event('pjax:content'));
-                                                                                            return [
-                                                                                                4,
-                                                                                                config.sequence.content(seqB, areas)
-                                                                                            ];
-                                                                                        case 1:
-                                                                                            seqC = _g.sent();
-                                                                                            void focus_1.focus(documents.dst);
-                                                                                            void scroll_1.scroll(event.type, documents.dst, {
-                                                                                                hash: event.location.dest.fragment,
-                                                                                                position: io.position
-                                                                                            });
-                                                                                            void path_1.savePosition();
-                                                                                            _c = tuple_1.tuple;
-                                                                                            if (!config.update.script)
+                                                                                return Promise.all(new hlist_1.HNil().extend(function () {
+                                                                                    return __awaiter(_this, void 0, void 0, function () {
+                                                                                        var _a;
+                                                                                        return __generator(this, function (_b) {
+                                                                                            switch (_b.label) {
+                                                                                            case 0:
+                                                                                                config.update.css ? void css_1.css({
+                                                                                                    src: documents.src.head,
+                                                                                                    dst: documents.dst.head
+                                                                                                }, config.update.ignore) : undefined, config.update.css ? void css_1.css({
+                                                                                                    src: documents.src.body,
+                                                                                                    dst: documents.dst.body
+                                                                                                }, config.update.ignore) : undefined;
+                                                                                                if (!config.update.script)
+                                                                                                    return [
+                                                                                                        3,
+                                                                                                        2
+                                                                                                    ];
+                                                                                                return [
+                                                                                                    4,
+                                                                                                    script_1.script(documents, state.scripts, config.update, Math.max(config.fetch.timeout * 10, 10 * 1000), process)
+                                                                                                ];
+                                                                                            case 1:
+                                                                                                _a = _b.sent();
                                                                                                 return [
                                                                                                     3,
-                                                                                                    3
+                                                                                                    4
                                                                                                 ];
-                                                                                            return [
-                                                                                                4,
-                                                                                                script_1.script(documents, state.scripts, config.update, Math.max(config.fetch.timeout * 10, 10 * 1000), process)
-                                                                                            ];
-                                                                                        case 2:
-                                                                                            _d = _g.sent();
-                                                                                            return [
-                                                                                                3,
-                                                                                                5
-                                                                                            ];
-                                                                                        case 3:
-                                                                                            return [
-                                                                                                4,
-                                                                                                process.either(tuple_1.tuple([
-                                                                                                    [],
-                                                                                                    Promise.resolve([])
-                                                                                                ]))
-                                                                                            ];
-                                                                                        case 4:
-                                                                                            _d = _g.sent();
-                                                                                            _g.label = 5;
-                                                                                        case 5:
-                                                                                            _e = [_d];
-                                                                                            _f = void io.document.dispatchEvent(new Event('pjax:ready'));
-                                                                                            if (_f)
+                                                                                            case 2:
                                                                                                 return [
-                                                                                                    3,
-                                                                                                    7
+                                                                                                    4,
+                                                                                                    process.either(tuple_1.tuple([
+                                                                                                        [],
+                                                                                                        Promise.resolve([])
+                                                                                                    ]))
                                                                                                 ];
-                                                                                            return [
-                                                                                                4,
-                                                                                                config.sequence.ready(seqC)
-                                                                                            ];
-                                                                                        case 6:
-                                                                                            _f = _g.sent();
-                                                                                            _g.label = 7;
-                                                                                        case 7:
-                                                                                            return [
-                                                                                                2,
-                                                                                                _c.apply(void 0, [_e.concat([_f])])
-                                                                                            ];
-                                                                                        }
+                                                                                            case 3:
+                                                                                                _a = _b.sent();
+                                                                                                _b.label = 4;
+                                                                                            case 4:
+                                                                                                return [
+                                                                                                    2,
+                                                                                                    _a
+                                                                                                ];
+                                                                                            }
+                                                                                        });
                                                                                     });
-                                                                                });
+                                                                                }).extend(function () {
+                                                                                    return __awaiter(_this, void 0, void 0, function () {
+                                                                                        var seqC;
+                                                                                        return __generator(this, function (_a) {
+                                                                                            switch (_a.label) {
+                                                                                            case 0:
+                                                                                                void io.document.dispatchEvent(new Event('pjax:content'));
+                                                                                                return [
+                                                                                                    4,
+                                                                                                    config.sequence.content(seqB, areas)
+                                                                                                ];
+                                                                                            case 1:
+                                                                                                seqC = _a.sent();
+                                                                                                void focus_1.focus(event.type, documents.dst);
+                                                                                                void scroll_1.scroll(event.type, documents.dst, {
+                                                                                                    hash: event.location.dest.fragment,
+                                                                                                    position: io.position
+                                                                                                });
+                                                                                                void path_1.savePosition();
+                                                                                                void io.document.dispatchEvent(new Event('pjax:ready'));
+                                                                                                return [
+                                                                                                    4,
+                                                                                                    config.sequence.ready(seqC)
+                                                                                                ];
+                                                                                            case 2:
+                                                                                                return [
+                                                                                                    2,
+                                                                                                    _a.sent()
+                                                                                                ];
+                                                                                            }
+                                                                                        });
+                                                                                    });
+                                                                                }).reverse().tuple());
                                                                             }).fmap(function (p) {
                                                                                 return p.then(function (_a) {
                                                                                     var _b = __read(_a, 2), m = _b[0], seqD = _b[1];
-                                                                                    return m.fmap(function (ss) {
-                                                                                        return tuple_1.tuple([
-                                                                                            ss,
+                                                                                    return m.fmap(function (sst) {
+                                                                                        return [
+                                                                                            sst,
                                                                                             seqD
-                                                                                        ]);
+                                                                                        ];
                                                                                     });
                                                                                 });
                                                                             }).extract(function (e) {
@@ -6615,47 +6619,66 @@ require = function e(t, n, r) {
                                                     2,
                                                     _a.sent().bind(process.either).fmap(function (_a) {
                                                         var _b = __read(_a, 2), p1 = _b[0], p2 = _b[1];
-                                                        return p2.then(function (m2) {
-                                                            return void p1.then(function (m1) {
-                                                                return m1.bind(function (_a) {
-                                                                    var _b = __read(_a, 2), cp = _b[1];
-                                                                    return m2.bind(process.either).fmap(function (_a) {
-                                                                        var _b = __read(_a, 2), _c = __read(_b[0], 2), sp = _c[1], seqD = _b[1];
-                                                                        return __awaiter(_this, void 0, void 0, function () {
-                                                                            var events;
-                                                                            return __generator(this, function (_d) {
-                                                                                switch (_d.label) {
-                                                                                case 0:
-                                                                                    return [
-                                                                                        4,
+                                                        return __awaiter(_this, void 0, void 0, function () {
+                                                            var _c, _d;
+                                                            return __generator(this, function (_e) {
+                                                                switch (_e.label) {
+                                                                case 0:
+                                                                    _d = (_c = process).either;
+                                                                    return [
+                                                                        4,
+                                                                        Promise.all([
+                                                                            p1,
+                                                                            p2
+                                                                        ])
+                                                                    ];
+                                                                case 1:
+                                                                    return [
+                                                                        2,
+                                                                        (void _d.apply(_c, [_e.sent()]).bind(function (_a) {
+                                                                            var _b = __read(_a, 2), m1 = _b[0], m2 = _b[1];
+                                                                            return m1.bind(function (_a) {
+                                                                                var _b = __read(_a, 2), cp = _b[1];
+                                                                                return m2.fmap(function (_a) {
+                                                                                    var _b = __read(_a, 2), _c = __read(_b[0], 2), sp = _c[1], seqD = _b[1];
+                                                                                    return void Promise.all([
+                                                                                        cp,
                                                                                         sp
-                                                                                    ];
-                                                                                case 1:
-                                                                                    _d.sent();
-                                                                                    return [
-                                                                                        4,
-                                                                                        cp
-                                                                                    ];
-                                                                                case 2:
-                                                                                    events = _d.sent();
-                                                                                    if (process.canceled)
-                                                                                        return [2];
-                                                                                    void window.dispatchEvent(new Event('pjax:load'));
-                                                                                    void config.sequence.load(seqD, events);
-                                                                                    return [2];
-                                                                                }
+                                                                                    ]).then(process.either).then(function (m) {
+                                                                                        return m.fmap(function (_a) {
+                                                                                            var _b = __read(_a, 1), events = _b[0];
+                                                                                            return void window.dispatchEvent(new Event('pjax:load')), void config.sequence.load(seqD, events);
+                                                                                        }).extract(function () {
+                                                                                            return undefined;
+                                                                                        });
+                                                                                    });
+                                                                                });
                                                                             });
-                                                                        });
-                                                                    });
-                                                                }).extract(function () {
-                                                                    return undefined;
-                                                                });
-                                                            }), m2.fmap(function (_a) {
-                                                                var _b = __read(_a, 1), _c = __read(_b[0], 2), ss = _c[0], p = _c[1];
-                                                                return tuple_1.tuple([
-                                                                    ss,
-                                                                    p
-                                                                ]);
+                                                                        }).extract(function () {
+                                                                            return undefined;
+                                                                        }), p2)
+                                                                    ];
+                                                                }
+                                                            });
+                                                        });
+                                                    }).fmap(function (p) {
+                                                        return __awaiter(_this, void 0, void 0, function () {
+                                                            return __generator(this, function (_a) {
+                                                                switch (_a.label) {
+                                                                case 0:
+                                                                    return [
+                                                                        4,
+                                                                        p
+                                                                    ];
+                                                                case 1:
+                                                                    return [
+                                                                        2,
+                                                                        _a.sent().fmap(function (_a) {
+                                                                            var _b = __read(_a, 1), sst = _b[0];
+                                                                            return sst;
+                                                                        })
+                                                                    ];
+                                                                }
                                                             });
                                                         });
                                                     }).extract(either_1.Left)
@@ -6847,17 +6870,29 @@ require = function e(t, n, r) {
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
+            var router_1 = require('../../../event/router');
             var dom_1 = require('../../../../../lib/dom');
-            function focus(document) {
-                return void dom_1.find(document, 'body, [autofocus]').slice(-1).filter(function (el) {
-                    return document === window.document && el !== document.activeElement;
-                }).forEach(function (el) {
-                    return void el.focus();
-                });
+            function focus(type, document) {
+                switch (type) {
+                case router_1.RouterEventType.click:
+                case router_1.RouterEventType.submit:
+                    return void dom_1.find(document, '[autofocus]').slice(-1).filter(function (el) {
+                        return el.closest('html') === window.document.documentElement && el !== document.activeElement;
+                    }).forEach(function (el) {
+                        return void el.focus();
+                    });
+                case router_1.RouterEventType.popstate:
+                    return;
+                default:
+                    throw new TypeError(type);
+                }
             }
             exports.focus = focus;
         },
-        { '../../../../../lib/dom': 127 }
+        {
+            '../../../../../lib/dom': 127,
+            '../../../event/router': 94
+        }
     ],
     106: [
         function (require, module, exports) {
