@@ -10,7 +10,6 @@ const seq = require('run-sequence');
 const browserify = require('browserify');
 const watchify = require('watchify');
 const tsify = require('tsify');
-const pump = require('pump');
 const Server = require('karma').Server;
 
 const pkg = require('./package.json');
