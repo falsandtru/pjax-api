@@ -2,6 +2,7 @@
 
 ## 3.18.2
 
+- Fix focus processing.
 - Fix a timing of dispatching pjax:content event.
 
 ## 3.18.1

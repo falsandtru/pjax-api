@@ -105,7 +105,7 @@ export async function update(
               .extend(async () => {
                 void io.document.dispatchEvent(new Event('pjax:content'));
                 const seqC = await config.sequence.content(seqB, areas);
-                void focus(documents.dst);
+                void focus(event.type, documents.dst);
                 void scroll(event.type, documents.dst, {
                   hash: event.location.dest.fragment,
                   position: io.position,
