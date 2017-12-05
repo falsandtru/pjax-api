@@ -85,15 +85,13 @@ gulp.task('ts:test', function () {
 
 gulp.task('ts:dist', function () {
   return compile(config.ts.dist, {}, b =>
-    pump([
-      b,
-      $.unassert(),
-      $.header(config.banner),
-      gulp.dest(config.ts.dist.dest),
-      $.rename({ extname: '.min.js' }),
-      $.uglify({ output: { comments: 'all' } }),
-      gulp.dest(config.ts.dist.dest)
-    ]));
+    b
+      .pipe($.unassert())
+      .pipe($.header(config.banner))
+      .pipe(gulp.dest(config.ts.dist.dest))
+      .pipe($.rename({ extname: '.min.js' }))
+      .pipe($.uglify({ output: { comments: 'all' } }))
+      .pipe(gulp.dest(config.ts.dist.dest)));
 });
 
 gulp.task('karma:watch', function (done) {
