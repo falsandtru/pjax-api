@@ -10,6 +10,8 @@ const seq = require('run-sequence');
 const browserify = require('browserify');
 const watchify = require('watchify');
 const tsify = require('tsify');
+const minify = require('gulp-uglify/composer')(require('uglify-es'), console);
+const pump = require('pump');
 const Server = require('karma').Server;
 
 const pkg = require('./package.json');
@@ -46,7 +48,7 @@ const config = {
   ].join('\n'),
 };
 
-function compile({ src, dest }, opts = {}, cb = b => b) {
+function compile({ src, dest }, opts = {}) {
   let done = true;
   const force = !!opts.plugin && opts.plugin.includes(watchify);
   const b = browserify(Object.values(src).map(p => glob.sync(p)), {
@@ -56,8 +58,8 @@ function compile({ src, dest }, opts = {}, cb = b => b) {
   })
     .require(`./index.ts`, { expose: pkg.name })
     .plugin(tsify, { global: true, ...require('./tsconfig.json').compilerOptions })
-    .on('update', () => void cb(bundle()));
-  return cb(bundle());
+    .on('update', () => void bundle());
+  return bundle();
 
   function bundle() {
     console.time('bundle');
@@ -82,15 +84,16 @@ gulp.task('ts:test', function () {
   return compile(config.ts.test);
 });
 
-gulp.task('ts:dist', function () {
-  return compile(config.ts.dist, {}, b =>
-    b
-      .pipe($.unassert())
-      .pipe($.header(config.banner))
-      .pipe(gulp.dest(config.ts.dist.dest))
-      .pipe($.rename({ extname: '.min.js' }))
-      .pipe($.uglify({ output: { comments: 'all' } }))
-      .pipe(gulp.dest(config.ts.dist.dest)));
+gulp.task('ts:dist', function (done) {
+  pump(
+    compile(config.ts.dist),
+    $.unassert(),
+    $.header(config.banner),
+    gulp.dest(config.ts.dist.dest),
+    $.rename({ extname: '.min.js' }),
+    minify({ output: { comments: /^!/ } }),
+    gulp.dest(config.ts.dist.dest),
+    done);
 });
 
 gulp.task('karma:watch', function (done) {
