@@ -11,7 +11,6 @@ const browserify = require('browserify');
 const watchify = require('watchify');
 const tsify = require('tsify');
 const minify = require('gulp-uglify/composer')(require('uglify-es'), console);
-const pump = require('pump');
 const Server = require('karma').Server;
 
 const pkg = require('./package.json');
@@ -84,16 +83,14 @@ gulp.task('ts:test', function () {
   return compile(config.ts.test);
 });
 
-gulp.task('ts:dist', function (done) {
-  pump(
-    compile(config.ts.dist),
-    $.unassert(),
-    $.header(config.banner),
-    gulp.dest(config.ts.dist.dest),
-    $.rename({ extname: '.min.js' }),
-    minify({ output: { comments: /^!/ } }),
-    gulp.dest(config.ts.dist.dest),
-    done);
+gulp.task('ts:dist', function () {
+  return compile(config.ts.dist)
+    .pipe($.unassert())
+    .pipe($.header(config.banner))
+    .pipe(gulp.dest(config.ts.dist.dest))
+    .pipe($.rename({ extname: '.min.js' }))
+    .pipe(minify({ output: { comments: /^!/ } }))
+    .pipe(gulp.dest(config.ts.dist.dest));
 });
 
 gulp.task('karma:watch', function (done) {
