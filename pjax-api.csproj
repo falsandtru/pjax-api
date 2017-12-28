@@ -29,9 +29,8 @@
     <TypeScriptModuleKind>CommonJs</TypeScriptModuleKind>
     <TypeScriptModuleResolution>Node</TypeScriptModuleResolution>
     <TypeScriptAllowSyntheticDefaultImports>True</TypeScriptAllowSyntheticDefaultImports>
-    <TypeScriptTarget>ES5</TypeScriptTarget>
+    <TypeScriptTarget>ES2016</TypeScriptTarget>
     <TypeScriptLib>dom,dom.iterable,es2017</TypeScriptLib>
-    <TypeScriptDownlevelIteration>True</TypeScriptDownlevelIteration>
     <TypeScriptJSXEmit>None</TypeScriptJSXEmit>
     <TypeScriptStrictNullChecks>True</TypeScriptStrictNullChecks>
     <TypeScriptStrictFunctionTypes>False</TypeScriptStrictFunctionTypes>

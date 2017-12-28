@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.19.0
+
+- Compile to es2016.
+
 ## 3.18.2
 
 - Fix focus processing.
