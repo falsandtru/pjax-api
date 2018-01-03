@@ -42,7 +42,7 @@ notifications:
     on_success: change
     on_failure: always
 after_deploy:
-- if [ ! $ENCRYPTION_LABEL ]; then exit 0; fi
+- if [ ! $ENCRYPTION_LABEL ]; then travis_terminate 0; fi
 - eval `ssh-agent -s`
 - openssl aes-256-cbc -K `eval echo $\{${ENCRYPTION_LABEL}_key\}` -iv `eval echo $\{${ENCRYPTION_LABEL}_iv\}` -in .travis/deploy_key.enc -d | ssh-add -
 - gulp site
@@ -54,7 +54,7 @@ after_deploy:
 - cat package.json | json version
 - old_version=$(cat package.json | json version)
 - git reset --hard ORIG_HEAD
-- node -e 'if (!require("semver").gte(process.argv[1], process.argv[2])) process.exit(1)' $new_version $old_version || exit 0
+- node -e 'if (!require("semver").gte(process.argv[1], process.argv[2])) process.exit(1)' $new_version $old_version || travis_terminate 0
 - git fetch origin gh-pages:gh-pages
 - git checkout --orphan gh-pages
 - git checkout -m gh-pages
