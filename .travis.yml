@@ -6,14 +6,6 @@ matrix:
     node_js: 9
   - os: osx
     node_js: 9
-env:
-  global:
-  - secure: byBYsMBLNyb+DGul6ET+jHuIp2TW1V18zPYZqqAi8HH3jeHErKlN+o3b9jSzz+314hfqVNlvu15ZRjCAF36gQ3BtATjULYmVjdkQxaXY+4zFWdfhEvWmGZ8MWYiUmerizKcPoGbc8FoBlBRBgWMOZO1GhGJF6mzP2F3v2l/dC7o=
-  - GIT_OWNER=$(echo $TRAVIS_REPO_SLUG | cut -d/ -f1)
-  - GIT_REPO=$(echo $TRAVIS_REPO_SLUG | cut -d/ -f2)
-  - GIT_COMMITTER_NAME=$(git log -1 --pretty=format:%an)
-  - GIT_COMMITTER_EMAIL=$(git log -1 --pretty=format:%ae)
-  - GIT_COMMIT_ID=$(git rev-parse HEAD)
 addons:
   firefox: latest
   apt:
@@ -50,8 +42,9 @@ notifications:
     on_success: change
     on_failure: always
 after_deploy:
-- if [ $TRAVIS_BRANCH != "master" ] || [ ! $GH_TOKEN ]; then exit 0; fi
-- if [ $deploy == "false" ]; then exit 0; fi
+- if [ ! $ENCRYPTION_LABEL ]; then exit 0; fi
+- eval `ssh-agent -s`
+- openssl aes-256-cbc -K `eval echo $\{${ENCRYPTION_LABEL}_key\}` -iv `eval echo $\{${ENCRYPTION_LABEL}_iv\}` -in .travis/deploy_key.enc -d | ssh-add -
 - gulp site
 - mkdir ../gh-pages
 - cp -rf ./gh-pages ../
@@ -69,8 +62,6 @@ after_deploy:
 - cp -rf ../gh-pages/* ./
 - find | grep -vE "^./.git(/|$)"
 - sed -i 's|\(baseurl:\s\+\)|\1//falsandtru.github.io|' _config.yml
-- git config user.name "Travis-CI"
-- git config user.email "Travis-CI"
 - git add -A :/
-- git commit -m 'chore(deploy)'\:' deploy web contents by Travis-CI'
-- git push https://${GH_TOKEN}@github.com/${GIT_OWNER}/${GIT_REPO}.git gh-pages:gh-pages 2>&1 | sed -e "s/:\/\/\w\+@/:\/\/[secure]@/g"
+- git commit -m 'chore(deploy)'\:' deploy web contents by Travis-CI' --author "Travis-CI"
+- git push git@github.com:${TRAVIS_REPO_SLUG} gh-pages:gh-pages
