@@ -32,12 +32,8 @@
     <TypeScriptTarget>ES2016</TypeScriptTarget>
     <TypeScriptLib>dom,dom.iterable,es2017</TypeScriptLib>
     <TypeScriptJSXEmit>None</TypeScriptJSXEmit>
-    <TypeScriptStrictNullChecks>True</TypeScriptStrictNullChecks>
+    <TypeScriptStrict>True</TypeScriptStrict>
     <TypeScriptStrictFunctionTypes>False</TypeScriptStrictFunctionTypes>
-    <TypeScriptStrictPropertyInitialization>True</TypeScriptStrictPropertyInitialization>
-    <TypeScriptNoImplicitAny>True</TypeScriptNoImplicitAny>
-    <TypeScriptNoImplicitThis>True</TypeScriptNoImplicitThis>
-    <TypeScriptNoImplicitReturns>True</TypeScriptNoImplicitReturns>
     <TypeScriptNoUnusedParameters>True</TypeScriptNoUnusedParameters>
     <TypeScriptNoUnusedLocals>True</TypeScriptNoUnusedLocals>
     <TypeScriptNoFallthroughCasesInSwitch>True</TypeScriptNoFallthroughCasesInSwitch>
