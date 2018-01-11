@@ -3,7 +3,7 @@ import { Either, Left, Right } from 'spica/either';
 import { tuple } from 'spica/tuple';
 import { Config } from '../../data/config';
 import { RouterEventRequest } from '../../event/router';
-import { FetchResult } from '../model/eav/value/fetch';
+import { FetchResponse } from '../model/eav/value/fetch';
 import { xhr } from '../module/fetch/xhr';
 import { DomainError } from '../../data/error';
 import { URL } from '../../../../lib/url';
@@ -23,7 +23,7 @@ export async function fetch(
     sequence,
   }: Config,
   process: Cancellee<Error>
-): Promise<Either<Error, [FetchResult, 'fetch']>> {
+): Promise<Either<Error, [FetchResponse, 'fetch']>> {
   const req = xhr(method, url, data, timeout, redirect, process);
   void window.dispatchEvent(new Event('pjax:fetch'));
   const [res, seq] = await Promise.all([
@@ -37,8 +37,8 @@ export async function fetch(
   ]);
   return res
     .bind(process.either)
-    .bind(result =>
-      result.response.url === '' || new URL(result.response.url).origin === new URL(url).origin
-        ? Right(tuple([result, seq]))
-        : Left(new DomainError(`Request is redirected to the different domain url ${new URL(result.response.url).href}`)));
+    .bind(res =>
+      res.url === '' || new URL(res.url).origin === new URL(url).origin
+        ? Right(tuple([res, seq]))
+        : Left(new DomainError(`Request is redirected to the different domain url ${new URL(res.url).href}`)));
 }

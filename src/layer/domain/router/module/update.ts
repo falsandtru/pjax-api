@@ -3,8 +3,7 @@ import { HNil } from 'spica/hlist';
 import { tuple } from 'spica/tuple';
 import { RouterEntity } from '../model/eav/entity';
 import { RouterEventLocation } from '../../event/router';
-import { FetchResult } from '../model/eav/value/fetch';
-import { UpdateSource } from '../model/eav/value/update';
+import { FetchResponse } from '../model/eav/value/fetch';
 import { blur } from '../module/update/blur';
 import { url } from '../module/update/url';
 import { title } from '../module/update/title';
@@ -23,9 +22,7 @@ export async function update(
     config,
     state,
   }: RouterEntity,
-  {
-    response,
-  }: FetchResult,
+  response: FetchResponse,
   seq: 'fetch',
   io: {
     document: Document;
@@ -33,10 +30,10 @@ export async function update(
   }
 ): Promise<Either<Error, [HTMLScriptElement[], Promise<HTMLScriptElement[]>]>> {
   const { process } = state;
-  const { documents } = new UpdateSource({
+  const documents = {
     src: response.document,
     dst: io.document,
-  });
+  };
   return new HNil()
     .push(process.either(seq))
     // fetch -> unload

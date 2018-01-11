@@ -1,28 +1,21 @@
 import { parse } from '../../../../../../lib/html';
 import { standardizeUrl } from '../../../../../data/model/domain/url';
 
-export class FetchResult {
+export class FetchResponse {
   constructor(
-    public readonly xhr: XMLHttpRequest,
+    private readonly xhr: XMLHttpRequest,
     private readonly redirect: boolean,
   ) {
     assert(this.xhr instanceof XMLHttpRequest);
-    assert(this.response.document instanceof Document);
+    assert(this.document instanceof Document);
     void Object.freeze(this);
   }
-  public readonly response = new class {
-    constructor(
-      private readonly parent: FetchResult,
-    ) {
-      void Object.freeze(this);
-    }
-    public readonly url = this.parent.redirect && this.parent.xhr.responseURL
-      ? standardizeUrl(this.parent.xhr.responseURL)
-      : '';
-    public readonly header = (name: string): string | null =>
-      this.parent.xhr.getResponseHeader(name);
-    public readonly document: Document = this.parent.xhr.responseType === 'document'
-      ? this.parent.xhr.responseXML as Document
-      : parse(this.parent.xhr.responseText).extract();
-  }(this);
+  public readonly url = this.redirect && this.xhr.responseURL
+    ? standardizeUrl(this.xhr.responseURL)
+    : '';
+  public readonly header = (name: string): string | null =>
+    this.xhr.getResponseHeader(name);
+  public readonly document: Document = this.xhr.responseType === 'document'
+    ? this.xhr.responseXML as Document
+    : parse(this.xhr.responseText).extract();
 }

@@ -15,10 +15,9 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
         p => p,
         new Cancellation<Error>())
         .then(m => m.fmap(res => {
-          assert(res.xhr instanceof XMLHttpRequest);
-          assert(res.response.url === standardizeUrl(''));
-          assert(res.response.header('Content-Type') === 'text/html');
-          assert(res.response.document instanceof Document);
+          assert(res.url === standardizeUrl(''));
+          assert(res.header('Content-Type') === 'text/html');
+          assert(res.document instanceof Document);
           done();
         }).extract());
     });
