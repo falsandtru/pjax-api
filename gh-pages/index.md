@@ -30,7 +30,11 @@ $ npm i pjax-api
 
 ```html
 <script src="/js/pjax-api.js"></script>
-<script>
+<script src="/js/config.js"></script>
+```
+
+```js
+// config.js
 var Pjax = require('pjax-api').Pjax;
 new Pjax({
   areas: [
@@ -42,7 +46,6 @@ new Pjax({
     'body'
   ]
 });
-</script>
 ```
 </div>
 
