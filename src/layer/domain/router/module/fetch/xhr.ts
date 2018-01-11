@@ -3,19 +3,22 @@ import { Sequence } from 'spica/sequence';
 import { Either, Left, Right } from 'spica/either';
 import { RouterEventMethod } from '../../../event/router';
 import { FetchResult } from '../../model/eav/value/fetch';
-import { StandardUrl } from '../../../../data/model/domain/url';
+import { StandardUrl, standardizeUrl } from '../../../../data/model/domain/url';
 import { DomainError } from '../../../data/error';
+import { URL } from '../../../../../lib/url';
 
 export function xhr(
   method: RouterEventMethod,
   url: StandardUrl,
   data: FormData | null,
   timeout: number,
+  redirect: (path: URL.Path<StandardUrl>) => string,
   cancellation: Cancellee<Error>
 ): Promise<Either<Error, FetchResult>> {
+  const url_ = standardizeUrl(redirect(new URL(url).path));
   const xhr = new XMLHttpRequest();
   return new Promise<Either<Error, FetchResult>>(resolve => (
-    void xhr.open(method, url, true),
+    void xhr.open(method, new URL(url_).path, true),
 
     xhr.responseType = /chrome|firefox/i.test(window.navigator.userAgent)
       && !/edge/i.test(window.navigator.userAgent) // Die fuckin' fraud browser 🖕
@@ -38,7 +41,7 @@ export function xhr(
       void verify(xhr)
         .extract(
           err => void resolve(Left(err)),
-          xhr => void resolve(Right(new FetchResult(xhr))))),
+          xhr => void resolve(Right(new FetchResult(xhr, url === url_))))),
 
     void cancellation.register(() => void xhr.abort())));
 }

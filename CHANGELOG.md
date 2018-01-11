@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.20.0
+
+- Add redirect option.
+
 ## 3.19.0
 
 - Compile to es2016.

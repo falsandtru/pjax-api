@@ -15,6 +15,7 @@ export async function fetch(
     data,
   }: RouterEventRequest,
   {
+    redirect,
     fetch: {
       timeout,
       wait,
@@ -23,7 +24,7 @@ export async function fetch(
   }: Config,
   process: Cancellee<Error>
 ): Promise<Either<Error, [FetchResult, 'fetch']>> {
-  const req = xhr(method, url, data, timeout, process);
+  const req = xhr(method, url, data, timeout, redirect, process);
   void window.dispatchEvent(new Event('pjax:fetch'));
   const [res, seq] = await Promise.all([
     req,

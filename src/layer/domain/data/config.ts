@@ -1,5 +1,7 @@
 import { extend } from 'spica/assign';
 import { Config as Option, Sequence as ISequence } from '../../../../';
+import { URL } from '../../../lib/url';
+import { StandardUrl } from '../../data/model/domain/url';
 
 export { scope } from './config/scope';
 
@@ -29,6 +31,9 @@ export class Config implements Option {
   }
   public readonly form = 'form:not([method])';
   public readonly replace = '';
+  public redirect(path: URL.Path<StandardUrl>): string {
+    return path;
+  }
   public readonly fetch = {
     timeout: 3000,
     wait: 0

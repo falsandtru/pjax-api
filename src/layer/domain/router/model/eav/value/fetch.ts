@@ -3,7 +3,8 @@ import { standardizeUrl } from '../../../../../data/model/domain/url';
 
 export class FetchResult {
   constructor(
-    public readonly xhr: XMLHttpRequest
+    public readonly xhr: XMLHttpRequest,
+    private readonly redirect: boolean,
   ) {
     assert(this.xhr instanceof XMLHttpRequest);
     assert(this.response.document instanceof Document);
@@ -11,17 +12,17 @@ export class FetchResult {
   }
   public readonly response = new class {
     constructor(
-      private readonly xhr: XMLHttpRequest
+      private readonly parent: FetchResult,
     ) {
       void Object.freeze(this);
     }
-    public readonly url = this.xhr.responseURL
-      ? standardizeUrl(this.xhr.responseURL)
+    public readonly url = this.parent.redirect && this.parent.xhr.responseURL
+      ? standardizeUrl(this.parent.xhr.responseURL)
       : '';
-    public header = (name: string): string | null =>
-      this.xhr.getResponseHeader(name);
-    public readonly document: Document = this.xhr.responseType === 'document'
-      ? this.xhr.responseXML as Document
-      : parse(this.xhr.responseText).extract();
-  }(this.xhr);
+    public readonly header = (name: string): string | null =>
+      this.parent.xhr.getResponseHeader(name);
+    public readonly document: Document = this.parent.xhr.responseType === 'document'
+      ? this.parent.xhr.responseXML as Document
+      : parse(this.parent.xhr.responseText).extract();
+  }(this);
 }
