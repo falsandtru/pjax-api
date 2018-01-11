@@ -38,6 +38,10 @@ Set target forms.
 
 Set target anchor links that will replace a current url.
 
+## redirect: (path: string) => string = path => path
+
+Redirect a page request silently.
+
 ## fetch: {...} = ...
 
 ### timeout: number = `3000`
@@ -51,6 +55,7 @@ Wait specified milliseconds after sending a request.
 ## rewrite: (doc: Document, area: string) => void = ...
 
 Rewrite a source document object.
+If you use the sequence option, you should use only it instead of this.
 
 ```ts
   // default
@@ -62,7 +67,7 @@ Rewrite a source document object.
 
 ### head: string = `'base, meta, link'`
 
-Set sync targets in head element. Only support `base`, `meta` and `link` tags.
+Set sync targets in head element. Only support `base`, `meta`, and `link` tags.
 
 ### css: boolean = `true`
 
