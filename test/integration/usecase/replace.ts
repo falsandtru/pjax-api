@@ -6,7 +6,7 @@ import { once } from 'typed-dom';
 describe('Integration: Usecase', function () {
   describe('replace', function () {
     it('basic', function (done) {
-      const url = '/base/test/integration/usecase/fixture/basic/1.html';
+      const url = '/base/test/integration/fixture/basic/1.html';
       const document = parse('').extract();
       new Pjax({}, { document, router })
         .replace(url);

@@ -6,7 +6,7 @@ import { once } from 'typed-dom';
 describe('Integration: Usecase', function () {
   describe('multibyte', function () {
     it('basic', function (done) {
-      const url = '/base/test/integration/usecase/fixture/multibyte/あアｱ亜.html';
+      const url = '/base/test/integration/fixture/multibyte/あアｱ亜.html';
       const document = parse('').extract();
       new Pjax({}, { document, router });
       once(document, 'pjax:ready', () => {

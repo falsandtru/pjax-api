@@ -5,7 +5,7 @@ import DOM, { once } from 'typed-dom';
 describe('Integration: Usecase', function () {
   describe('submit', function () {
     it('get', function (done) {
-      const url = '/base/test/integration/usecase/fixture/basic/1.html';
+      const url = '/base/test/integration/fixture/basic/1.html';
       new Pjax({}, { document, router });
       once(document, 'pjax:ready', () => {
         assert(decodeURIComponent(window.location.search) === '?query=あアｱ亜=&');
