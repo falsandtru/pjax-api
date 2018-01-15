@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.20.1
+
+- Fix call timing of rewrite option.
+
 ## 3.20.0
 
 - Add redirect option.
@@ -11,7 +15,7 @@
 ## 3.18.2
 
 - Fix focus processing.
-- Fix a timing of dispatching pjax:content event.
+- Fix dispatch timing of pjax:content event.
 
 ## 3.18.1
 

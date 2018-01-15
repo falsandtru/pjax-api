@@ -38,17 +38,31 @@ export async function update(
     .push(process.either(seq))
     // fetch -> unload
     .modify(m => m
-      .fmap(seqA =>
+      .bind(() =>
         separate(documents, config.areas)
-          .bind(([area]) => (
-            void config.rewrite(documents.src, area),
-            separate(documents, config.areas)))
           .extract(
-            async () =>
-              Left(new DomainError(`Failed to separate areas.`)),
-            async ([, areas]) => (
-              void window.dispatchEvent(new Event('pjax:unload')),
-              process.either(tuple([await config.sequence.unload(seqA, response), areas]))))))
+            () => Left(new DomainError(`Failed to separate the areas.`)),
+            () => m))
+      .fmap(async seqA => (
+        void window.dispatchEvent(new Event('pjax:unload')),
+        process.either(await config.sequence.unload(seqA, response))))
+      .fmap(async p => (await p)
+        .bind(seqB =>
+          separate(documents, config.areas)
+            .fmap(([area]) =>
+              [seqB, area])
+            .extract(
+              () => Left(new DomainError(`Failed to separate the areas.`)),
+              process.either)))
+      .fmap(async p => (await p)
+        .bind(([seqB, area]) => (
+          void config.rewrite(documents.src, area),
+          separate(documents, config.areas)
+            .fmap(([, areas]) =>
+              [seqB, areas])
+            .extract(
+              () => Left(new DomainError(`Failed to separate the areas.`)),
+              process.either)))))
     // unload -> ready
     .modify(m => m.fmap(async p => (await p)
       .bind(process.either)

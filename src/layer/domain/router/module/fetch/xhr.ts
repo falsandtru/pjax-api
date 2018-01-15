@@ -29,13 +29,13 @@ export function xhr(
     void xhr.send(data),
 
     void xhr.addEventListener("abort", () =>
-      void resolve(Left(new DomainError(`Failed to request by abort.`)))),
+      void resolve(Left(new DomainError(`Failed to request a page by abort.`)))),
 
     void xhr.addEventListener("error", () =>
-      void resolve(Left(new DomainError(`Failed to request by error.`)))),
+      void resolve(Left(new DomainError(`Failed to request a page by error.`)))),
 
     void xhr.addEventListener("timeout", () =>
-      void resolve(Left(new DomainError(`Failed to request by timeout.`)))),
+      void resolve(Left(new DomainError(`Failed to request a page by timeout.`)))),
 
     void xhr.addEventListener("load", () =>
       void verify(xhr)
