@@ -38,9 +38,16 @@ Set target forms.
 
 Set target anchor links that will replace a current url.
 
-## redirect: (path: string) => string = path => path
+## redirect: (path: string) => string = ...
 
-Redirect a page request silently.
+Redirect a page request implicitly.
+
+```ts
+  // default
+  public redirect(path: string): string {
+    return path;
+  }
+```
 
 ## fetch: {...} = ...
 

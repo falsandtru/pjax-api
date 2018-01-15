@@ -71,7 +71,7 @@ export async function update(
           .extend(async () => (
             void blur(documents.dst),
             void url(
-              new RouterEventLocation(response.url || event.location.dest.href),
+              new RouterEventLocation(response.url),
               documents.src.title,
               event.type,
               event.source,

@@ -39,9 +39,15 @@ export function xhr(
 
     void xhr.addEventListener("load", () =>
       void verify(xhr)
+        .fmap(xhr =>
+          new FetchResponse(
+            xhr.responseURL && url === url_
+              ? standardizeUrl(xhr.responseURL)
+              : url,
+            xhr))
         .extract(
           err => void resolve(Left(err)),
-          xhr => void resolve(Right(new FetchResponse(xhr, url === url_))))),
+          res => void resolve(Right(res)))),
 
     void cancellation.register(() => void xhr.abort())));
 }
@@ -58,7 +64,7 @@ function verify(xhr: XMLHttpRequest): Either<Error, XMLHttpRequest> {
         : Left(new DomainError(`Faild to validate the content type of response.`)));
 }
 
-export function match(actualContentType: string | null, expectedContentType: string): boolean {
+function match(actualContentType: string | null, expectedContentType: string): boolean {
   assert(actualContentType === null || actualContentType.split(':').length === 1);
   return Sequence
     .intersect(
@@ -75,3 +81,4 @@ export function match(actualContentType: string | null, expectedContentType: str
       .filter(type => type.length > 0);
   }
 }
+export { match as match_ }

@@ -1,4 +1,4 @@
-import { xhr, match } from './xhr';
+import { xhr, match_ as match } from './xhr';
 import { RouterEventMethod } from '../../../event/router';
 import { standardizeUrl } from '../../../../data/model/domain/url';
 import { Cancellation } from 'spica/cancellation';
