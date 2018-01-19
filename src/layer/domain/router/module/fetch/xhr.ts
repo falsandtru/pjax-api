@@ -20,10 +20,7 @@ export function xhr(
   return new Promise<Either<Error, FetchResponse>>(resolve => (
     void xhr.open(method, new URL(url_).path, true),
 
-    xhr.responseType = /chrome|firefox/i.test(window.navigator.userAgent)
-      && !/edge/i.test(window.navigator.userAgent) // Die fuckin' fraud browser 🖕
-        ? 'document'
-        : 'text',
+    xhr.responseType = 'document',
     xhr.timeout = timeout,
     void xhr.setRequestHeader('X-Pjax', '1'),
     void xhr.send(data),

@@ -5,45 +5,29 @@ import { find } from './dom';
 
 type Parser = (html: string) => Maybe<Document>;
 
-export const parse: Parser = [parseByDoc, parseByDOM]
+export const parse: Parser = [parseByDOM, parseByDoc]
   .reduce<Either<(html: string) => Document, Parser>>((m, parser) =>
     m.bind(() => test(parser) ? Left(parser) : m)
   , Right(() => Nothing))
   .extract(parser => (html: string): Maybe<Document> => Just(parser(html)));
 
 function parseByDOM(html: string): Document {
-  const doc = new DOMParser().parseFromString(html, 'text/html');
-  void fix(doc);
-  return doc;
+  const document = new DOMParser().parseFromString(html, 'text/html');
+  void fix(document);
+  return document;
 }
 
 function parseByDoc(html: string): Document {
   const document = window.document.implementation.createHTMLDocument('');
-  const title = find(parseHTML(html.slice(0, html.search(/<\/title>/i) + 8)), 'title')
-    .reduce((title, el) => el.textContent || title, '');
-  if ('function' === typeof DOMParser) {
-    document.title = title;
-  }
   void document.open();
   void document.write(html);
   void document.close();
-  if (document.title !== title) {
-    document.title = document.querySelector('title')!.textContent || '';
-  }
   void fix(document);
   return document;
-
-  function parseHTML(html: string): HTMLElement {
-    const parser = document.createElement('div');
-    parser.innerHTML = html;
-    return parser.firstElementChild
-      ? parser.firstElementChild as HTMLElement
-      : parser;
-  }
 }
 
-function fix(doc: Document): undefined {
-  return void fixNoscript(doc)
+function fix(doc: Document): void {
+  void fixNoscript(doc)
     .forEach(([src, fixed]) => src.textContent = fixed.textContent);
 }
 
@@ -56,6 +40,7 @@ function fixNoscript(doc: Document): [HTMLElement, HTMLElement][] {
       return tuple([el, clone]);
     });
 }
+export { fixNoscript as _fixNoscript }
 
 function test(parser: (html: string) => Document): boolean {
   try {
@@ -94,5 +79,3 @@ function test(parser: (html: string) => Document): boolean {
     return false;
   }
 }
-
-export { fixNoscript as _fixNoscript }
