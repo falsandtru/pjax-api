@@ -3426,24 +3426,18 @@ require = function e(t, n, r) {
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const html_1 = require('../../../../../../lib/html');
-            const url_1 = require('../../../../../data/model/domain/url');
             class FetchResponse {
-                constructor(xhr, redirect) {
+                constructor(url, xhr) {
+                    this.url = url;
                     this.xhr = xhr;
-                    this.redirect = redirect;
-                    this.url = this.redirect && this.xhr.responseURL ? url_1.standardizeUrl(this.xhr.responseURL) : '';
                     this.header = name => this.xhr.getResponseHeader(name);
-                    this.document = this.xhr.responseType === 'document' ? this.xhr.responseXML : html_1.parse(this.xhr.responseText).extract();
+                    this.document = this.xhr.responseXML;
                     void Object.freeze(this);
                 }
             }
             exports.FetchResponse = FetchResponse;
         },
-        {
-            '../../../../../../lib/html': 129,
-            '../../../../../data/model/domain/url': 90
-        }
+        {}
     ],
     99: [
         function (require, module, exports) {
@@ -3495,7 +3489,7 @@ require = function e(t, n, r) {
                         }),
                         new Promise(resolve => void setTimeout(resolve, wait))
                     ]);
-                    return res.bind(process.either).bind(res => res.url === '' || new url_1.URL(res.url).origin === new url_1.URL(url).origin ? either_1.Right(tuple_1.tuple([
+                    return res.bind(process.either).bind(res => new url_1.URL(res.url).origin === new url_1.URL(url).origin ? either_1.Right(tuple_1.tuple([
                         res,
                         seq
                     ])) : either_1.Left(new error_1.DomainError(`Request is redirected to the different domain url ${ new url_1.URL(res.url).href }`)));
@@ -3524,7 +3518,7 @@ require = function e(t, n, r) {
             function xhr(method, url, data, timeout, redirect, cancellation) {
                 const url_ = url_1.standardizeUrl(redirect(new url_2.URL(url).path));
                 const xhr = new XMLHttpRequest();
-                return new Promise(resolve => (void xhr.open(method, new url_2.URL(url_).path, true), xhr.responseType = /chrome|firefox/i.test(window.navigator.userAgent) && !/edge/i.test(window.navigator.userAgent) ? 'document' : 'text', xhr.timeout = timeout, void xhr.setRequestHeader('X-Pjax', '1'), void xhr.send(data), void xhr.addEventListener('abort', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request by abort.`)))), void xhr.addEventListener('error', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request by error.`)))), void xhr.addEventListener('timeout', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request by timeout.`)))), void xhr.addEventListener('load', () => void verify(xhr).extract(err => void resolve(either_1.Left(err)), xhr => void resolve(either_1.Right(new fetch_1.FetchResponse(xhr, url === url_))))), void cancellation.register(() => void xhr.abort())));
+                return new Promise(resolve => (void xhr.open(method, new url_2.URL(url_).path, true), xhr.responseType = 'document', xhr.timeout = timeout, void xhr.setRequestHeader('X-Pjax', '1'), void xhr.send(data), void xhr.addEventListener('abort', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by abort.`)))), void xhr.addEventListener('error', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by error.`)))), void xhr.addEventListener('timeout', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by timeout.`)))), void xhr.addEventListener('load', () => void verify(xhr).fmap(xhr => new fetch_1.FetchResponse(xhr.responseURL && url === url_ ? url_1.standardizeUrl(xhr.responseURL) : url, xhr)).extract(err => void resolve(either_1.Left(err)), res => void resolve(either_1.Right(res)))), void cancellation.register(() => void xhr.abort())));
             }
             exports.xhr = xhr;
             function verify(xhr) {
@@ -3536,7 +3530,7 @@ require = function e(t, n, r) {
                     return headerValue.split(';').map(type => type.trim()).filter(type => type.length > 0);
                 }
             }
-            exports.match = match;
+            exports.match_ = match;
         },
         {
             '../../../../../lib/url': 131,
@@ -3598,16 +3592,21 @@ require = function e(t, n, r) {
                             src: response.document,
                             dst: io.document
                         };
-                        return new hlist_1.HNil().push(process.either(seq)).modify(m => m.fmap(seqA => content_1.separate(documents, config.areas).bind(([area]) => (void config.rewrite(documents.src, area), content_1.separate(documents, config.areas))).extract(() => __awaiter(this, void 0, void 0, function* () {
-                            return either_1.Left(new error_1.DomainError(`Failed to separate areas.`));
-                        }), ([, areas]) => __awaiter(this, void 0, void 0, function* () {
-                            return void window.dispatchEvent(new Event('pjax:unload')), process.either(tuple_1.tuple([
-                                yield config.sequence.unload(seqA, response),
+                        return new hlist_1.HNil().push(process.either(seq)).modify(m => m.bind(() => content_1.separate(documents, config.areas).extract(() => either_1.Left(new error_1.DomainError(`Failed to separate the areas.`)), () => m)).fmap(seqA => __awaiter(this, void 0, void 0, function* () {
+                            return void window.dispatchEvent(new Event('pjax:unload')), process.either(yield config.sequence.unload(seqA, response));
+                        })).fmap(p => __awaiter(this, void 0, void 0, function* () {
+                            return (yield p).bind(seqB => content_1.separate(documents, config.areas).fmap(([area]) => [
+                                seqB,
+                                area
+                            ]).extract(() => either_1.Left(new error_1.DomainError(`Failed to separate the areas.`)), process.either));
+                        })).fmap(p => __awaiter(this, void 0, void 0, function* () {
+                            return (yield p).bind(([seqB, area]) => (void config.rewrite(documents.src, area), content_1.separate(documents, config.areas).fmap(([, areas]) => [
+                                seqB,
                                 areas
-                            ]));
-                        })))).modify(m => m.fmap(p => __awaiter(this, void 0, void 0, function* () {
+                            ]).extract(() => either_1.Left(new error_1.DomainError(`Failed to separate the areas.`)), process.either)));
+                        }))).modify(m => m.fmap(p => __awaiter(this, void 0, void 0, function* () {
                             return (yield p).bind(process.either).fmap(([seqB, areas]) => new hlist_1.HNil().extend(() => __awaiter(this, void 0, void 0, function* () {
-                                return void blur_1.blur(documents.dst), void url_1.url(new router_1.RouterEventLocation(response.url || event.location.dest.href), documents.src.title, event.type, event.source, config.replace), void title_1.title(documents), void path_1.saveTitle(), void head_1.head({
+                                return void blur_1.blur(documents.dst), void url_1.url(new router_1.RouterEventLocation(response.url), documents.src.title, event.type, event.source, config.replace), void title_1.title(documents), void path_1.saveTitle(), void head_1.head({
                                     src: documents.src.head,
                                     dst: documents.dst.head
                                 }, config.update.head, config.update.ignore), process.either(content_1.content(documents, areas)).fmap(([as, ps]) => [
@@ -4673,36 +4672,24 @@ require = function e(t, n, r) {
             const tuple_1 = require('spica/tuple');
             const dom_1 = require('./dom');
             exports.parse = [
-                parseByDoc,
-                parseByDOM
+                parseByDOM,
+                parseByDoc
             ].reduce((m, parser) => m.bind(() => test(parser) ? either_1.Left(parser) : m), either_1.Right(() => maybe_1.Nothing)).extract(parser => html => maybe_1.Just(parser(html)));
             function parseByDOM(html) {
-                const doc = new DOMParser().parseFromString(html, 'text/html');
-                void fix(doc);
-                return doc;
+                const document = new DOMParser().parseFromString(html, 'text/html');
+                void fix(document);
+                return document;
             }
             function parseByDoc(html) {
                 const document = window.document.implementation.createHTMLDocument('');
-                const title = dom_1.find(parseHTML(html.slice(0, html.search(/<\/title>/i) + 8)), 'title').reduce((title, el) => el.textContent || title, '');
-                if ('function' === typeof DOMParser) {
-                    document.title = title;
-                }
                 void document.open();
                 void document.write(html);
                 void document.close();
-                if (document.title !== title) {
-                    document.title = document.querySelector('title').textContent || '';
-                }
                 void fix(document);
                 return document;
-                function parseHTML(html) {
-                    const parser = document.createElement('div');
-                    parser.innerHTML = html;
-                    return parser.firstElementChild ? parser.firstElementChild : parser;
-                }
             }
             function fix(doc) {
-                return void fixNoscript(doc).forEach(([src, fixed]) => src.textContent = fixed.textContent);
+                void fixNoscript(doc).forEach(([src, fixed]) => src.textContent = fixed.textContent);
             }
             function fixNoscript(doc) {
                 return dom_1.find(doc, 'noscript').filter(el => el.children.length > 0).map(el => {
