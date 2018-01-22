@@ -6,10 +6,10 @@ import { find } from './dom';
 type Parser = (html: string) => Maybe<Document>;
 
 export const parse: Parser = [parseByDOM, parseByDoc]
-  .reduce<Either<(html: string) => Document, Parser>>((m, parser) =>
-    m.bind(() => test(parser) ? Left(parser) : m)
+  .reduce<Either<(html: string) => Document, Parser>>((m, f) =>
+    m.bind(() => test(f) ? Left(f) : m)
   , Right(() => Nothing))
-  .extract(parser => (html: string): Maybe<Document> => Just(parser(html)));
+  .extract(f => html => Just(f(html)));
 
 function parseByDOM(html: string): Document {
   const document = new DOMParser().parseFromString(html, 'text/html');
