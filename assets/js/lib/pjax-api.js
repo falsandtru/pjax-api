@@ -4674,7 +4674,7 @@ require = function e(t, n, r) {
             exports.parse = [
                 parseByDOM,
                 parseByDoc
-            ].reduce((m, parser) => m.bind(() => test(parser) ? either_1.Left(parser) : m), either_1.Right(() => maybe_1.Nothing)).extract(parser => html => maybe_1.Just(parser(html)));
+            ].reduce((m, f) => m.bind(() => test(f) ? either_1.Left(f) : m), either_1.Right(() => maybe_1.Nothing)).extract(f => html => maybe_1.Just(f(html)));
             function parseByDOM(html) {
                 const document = new DOMParser().parseFromString(html, 'text/html');
                 void fix(document);
