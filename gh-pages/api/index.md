@@ -10,7 +10,7 @@ class: style-api
 
 ## [Pjax]({{ site.basepath }}api/pjax/)
 
-Pjax apis.
+Pjax APIs.
 
 ## [Event]({{ site.basepath }}api/event/)
 
@@ -18,4 +18,4 @@ Global events.
 
 ## [Router]({{ site.basepath }}api/router/)
 
-Router api.
+Router APIs.
