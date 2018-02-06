@@ -25,9 +25,9 @@
   ],
   "dependencies": {},
   "devDependencies": {
-    "@types/mocha": "^2.2.46",
+    "@types/mocha": "^2.2.48",
     "@types/power-assert": "^1.4.29",
-    "browserify": "^15.2.0",
+    "browserify": "^16.0.0",
     "del": "^3.0.0",
     "extend": "^3.0.1",
     "gulp": "^3.9.1",
@@ -54,14 +54,14 @@
     "power-assert": "^1.4.4",
     "run-sequence": "^2.2.1",
     "semver": "^5.5.0",
-    "spica": "0.0.141",
+    "spica": "0.0.144",
     "tsify": "^3.0.4",
-    "typed-dom": "0.0.76",
-    "typescript": "2.7.0-dev.20180119",
-    "uglify-es": "^3.3.7",
+    "typed-dom": "0.0.79",
+    "typescript": "2.8.0-dev.20180206",
+    "uglify-es": "^3.3.9",
     "vinyl-buffer": "^1.0.1",
     "vinyl-source-stream": "^2.0.0",
-    "watchify": "^3.9.0"
+    "watchify": "^3.10.0"
   },
   "scripts": {
     "test": "gulp test",
