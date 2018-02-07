@@ -1,3 +1,4 @@
+declare const IDENTITY: unique symbol;
 export declare class Encoded {
-  private ENCODE;
+  private readonly [IDENTITY];
 }

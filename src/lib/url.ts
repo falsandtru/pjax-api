@@ -1,9 +1,10 @@
+const IDENTITY: unique symbol = Symbol();
 export class URL<T extends string> {
-  private readonly URL!: T;
+  private readonly [IDENTITY]: never;
   constructor(url: PartialUrl<string> & T)
   constructor(url: T)
   constructor(url: T) {
-    this.URL;
+    this[IDENTITY];
     this.parser.href = url || location.href;
     assert(this.parser.href.startsWith(this.parser.protocol));
     Object.freeze(this);

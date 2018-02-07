@@ -1,3 +1,4 @@
+declare const IDENTITY: unique symbol;
 export declare class Normalized {
-  private NORMALIZE;
+  private readonly [IDENTITY];
 }
