@@ -1,11 +1,12 @@
 import { extend } from 'spica/assign';
+import { DeepRequired } from 'spica/type';
 import { Config as Option, Sequence as ISequence } from '../../../../';
 import { URL } from '../../../lib/url';
 import { StandardUrl } from '../../data/model/domain/url';
 
 export { scope } from './config/scope';
 
-export class Config implements Option {
+export class Config implements DeepRequired<Option, Config['scope']> {
   constructor(option: Option) {
     void Object.defineProperties(this.update, {
       ignore: {
