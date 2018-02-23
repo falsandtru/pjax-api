@@ -2,9 +2,9 @@ import { Encoded } from '../attribute/encode';
 import { Normalized } from '../attribute/normalize';
 
 namespace Identifier {
-  declare const IDENTITY: unique symbol;
   declare class Url<T> {
-    private readonly [IDENTITY]: T;
+    private static readonly IDENTITY: unique symbol;
+    private readonly [Url.IDENTITY]: T;
   }
 
   export type URL<T> = Url<T> & string;

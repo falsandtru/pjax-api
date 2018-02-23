@@ -1,4 +1,4 @@
-declare const IDENTITY: unique symbol;
 export declare class Normalized {
-  private readonly [IDENTITY];
+  private static readonly IDENTITY: unique symbol;
+  private readonly [Normalized.IDENTITY];
 }
