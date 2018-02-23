@@ -4827,11 +4827,10 @@ require = function () {
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const IDENTITY = Symbol();
             class URL {
                 constructor(url) {
                     this.parser = document.createElement('a');
-                    this[IDENTITY];
+                    this[URL.IDENTITY];
                     this.parser.href = url || location.href;
                     Object.freeze(this);
                 }
@@ -4875,6 +4874,7 @@ require = function () {
                     return this.parser.href.replace(/^[^#]+/, '');
                 }
             }
+            URL.IDENTITY;
             exports.URL = URL;
         },
         {}
