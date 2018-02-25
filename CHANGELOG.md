@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.20.2
+
+- Enhance CSS synchronization.
+
 ## 3.20.1
 
 - Fix call timing of rewrite option.

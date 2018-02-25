@@ -16,18 +16,6 @@ export function css<T extends HTMLHeadElement | HTMLBodyElement>(
         .filter(el => !el.matches(ignore.trim() || '_')),
       find(scope.dst, selector)
         .filter(el => !el.matches(ignore.trim() || '_')),
-      compare),
+      (a, b) => a.outerHTML === b.outerHTML),
     scope.dst);
-}
-
-function compare<T extends HTMLLinkElement | HTMLStyleElement>(a: T, b: T): boolean {
-  assert(a.tagName.toLowerCase() === b.tagName.toLowerCase());
-  switch (a.tagName.toLowerCase()) {
-    case 'link':
-      return (a as HTMLLinkElement).href === (b as HTMLLinkElement).href;
-    case 'style':
-      return a.innerHTML.trim() === b.innerHTML.trim();
-    default:
-      return false;
-  }
 }

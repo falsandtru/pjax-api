@@ -16,10 +16,6 @@ export function head(
         .filter(el => !el.matches(ignore.trim() || '_')),
       find(scope.dst, selector)
         .filter(el => !el.matches(ignore.trim() || '_')),
-      compare),
+      (a, b) => a.outerHTML === b.outerHTML),
     scope.dst);
-}
-
-function compare(a: HTMLElement, b: HTMLElement): boolean {
-  return a.outerHTML === b.outerHTML;
 }
