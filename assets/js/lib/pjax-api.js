@@ -1,4 +1,4 @@
-/*! pjax-api v3.20.1 https://github.com/falsandtru/pjax-api | (c) 2018, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! pjax-api v3.20.2 https://github.com/falsandtru/pjax-api | (c) 2018, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 require = function () {
     function e(t, n, r) {
         function s(o, u) {
