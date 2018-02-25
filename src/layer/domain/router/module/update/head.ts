@@ -9,7 +9,7 @@ export function head(
   selector: string,
   ignore: string
 ): undefined {
-  ignore += selector.indexOf('link') > -1 ? ', link[rel~="stylesheet"]' : '';
+  ignore += selector.includes('link') ? ', link[rel~="stylesheet"]' : '';
   return void sync(
     pair(
       find(scope.src, selector)
