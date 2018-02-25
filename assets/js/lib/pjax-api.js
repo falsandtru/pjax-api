@@ -3780,19 +3780,9 @@ require = function () {
             const sync_1 = require('./sync');
             function css(scope, ignore) {
                 const selector = 'link[rel~="stylesheet"], style';
-                return void sync_1.sync(sync_1.pair(dom_1.find(scope.src, selector).filter(el => !el.matches(ignore.trim() || '_')), dom_1.find(scope.dst, selector).filter(el => !el.matches(ignore.trim() || '_')), compare), scope.dst);
+                return void sync_1.sync(sync_1.pair(dom_1.find(scope.src, selector).filter(el => !el.matches(ignore.trim() || '_')), dom_1.find(scope.dst, selector).filter(el => !el.matches(ignore.trim() || '_')), (a, b) => a.outerHTML === b.outerHTML), scope.dst);
             }
             exports.css = css;
-            function compare(a, b) {
-                switch (a.tagName.toLowerCase()) {
-                case 'link':
-                    return a.href === b.href;
-                case 'style':
-                    return a.innerHTML.trim() === b.innerHTML.trim();
-                default:
-                    return false;
-                }
-            }
         },
         {
             '../../../../../lib/dom': 126,
@@ -3831,12 +3821,9 @@ require = function () {
             const dom_1 = require('../../../../../lib/dom');
             function head(scope, selector, ignore) {
                 ignore += selector.includes('link') ? ', link[rel~="stylesheet"]' : '';
-                return void sync_1.sync(sync_1.pair(dom_1.find(scope.src, selector).filter(el => !el.matches(ignore.trim() || '_')), dom_1.find(scope.dst, selector).filter(el => !el.matches(ignore.trim() || '_')), compare), scope.dst);
+                return void sync_1.sync(sync_1.pair(dom_1.find(scope.src, selector).filter(el => !el.matches(ignore.trim() || '_')), dom_1.find(scope.dst, selector).filter(el => !el.matches(ignore.trim() || '_')), (a, b) => a.outerHTML === b.outerHTML), scope.dst);
             }
             exports.head = head;
-            function compare(a, b) {
-                return a.outerHTML === b.outerHTML;
-            }
         },
         {
             '../../../../../lib/dom': 126,
