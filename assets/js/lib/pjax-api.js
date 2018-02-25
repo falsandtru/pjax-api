@@ -3830,7 +3830,7 @@ require = function () {
             const sync_1 = require('./sync');
             const dom_1 = require('../../../../../lib/dom');
             function head(scope, selector, ignore) {
-                ignore += selector.indexOf('link') > -1 ? ', link[rel~="stylesheet"]' : '';
+                ignore += selector.includes('link') ? ', link[rel~="stylesheet"]' : '';
                 return void sync_1.sync(sync_1.pair(dom_1.find(scope.src, selector).filter(el => !el.matches(ignore.trim() || '_')), dom_1.find(scope.dst, selector).filter(el => !el.matches(ignore.trim() || '_')), compare), scope.dst);
             }
             exports.head = head;
