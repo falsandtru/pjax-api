@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.20.3
+
+- Fix the copyright notice.
+
 ## 3.20.2
 
 - Enhance CSS synchronization.
