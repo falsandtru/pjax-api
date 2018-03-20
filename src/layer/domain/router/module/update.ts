@@ -91,42 +91,45 @@ export async function update(
                   as,
                   Promise.all(ps),
                 ])))
-          .extend(async p => (await p).fmap(([areas]) => Promise.all(
-            new HNil()
-              .extend(async () => (
-                config.update.css
-                  ? void css(
-                      {
-                        src: documents.src.head,
-                        dst: documents.dst.head,
-                      },
-                      config.update.ignore)
-                  : undefined,
-                config.update.css
-                  ? void css(
-                      {
-                        src: documents.src.body as HTMLBodyElement,
-                        dst: documents.dst.body as HTMLBodyElement,
-                      },
-                      config.update.ignore)
-                  : undefined,
-                config.update.script
-                  ? await script(documents, state.scripts, config.update, Math.max(config.fetch.timeout * 10, 10 * 1e3), config.update.fallback, process)
-                  : await process.either(tuple([[], Promise.resolve([])]))))
-              .extend(async () => {
-                void io.document.dispatchEvent(new Event('pjax:content'));
-                const seqC = await config.sequence.content(seqB, areas);
-                void focus(event.type, documents.dst);
-                void scroll(event.type, documents.dst, {
-                  hash: event.location.dest.fragment,
-                  position: io.position,
-                });
-                void savePosition();
-                void io.document.dispatchEvent(new Event('pjax:ready'));
-                return await config.sequence.ready(seqC);
-              })
-              .reverse()
-              .tuple()))
+          .extend(async p => (await p)
+            .fmap(async ([areas]) => {
+              config.update.css
+                ? void css(
+                  {
+                    src: documents.src.head,
+                    dst: documents.dst.head,
+                  },
+                  config.update.ignore)
+                : undefined;
+              config.update.css
+                ? void css(
+                  {
+                    src: documents.src.body as HTMLBodyElement,
+                    dst: documents.dst.body as HTMLBodyElement,
+                  },
+                  config.update.ignore)
+                : undefined;
+              void io.document.dispatchEvent(new Event('pjax:content'));
+              const seqC = await config.sequence.content(seqB, areas);
+              const ssm = config.update.script
+                ? await script(documents, state.scripts, config.update, Math.max(config.fetch.timeout * 10, 10 * 1e3), config.update.fallback, process)
+                : await process.either(tuple([[] as HTMLScriptElement[], Promise.resolve(process.either([] as HTMLScriptElement[]))]));
+              void focus(event.type, documents.dst);
+              void scroll(event.type, documents.dst, {
+                hash: event.location.dest.fragment,
+                position: io.position,
+              });
+              void savePosition();
+              void io.document.dispatchEvent(new Event('pjax:ready'));
+              return tuple([
+                ssm
+                  .fmap(([ss, ap]) => [
+                    ss,
+                    ap.then(m => m.extract()),
+                  ]),
+                await config.sequence.ready(seqC),
+              ]);
+            })
             .fmap(p =>
               p.then(([m, seqD]) =>
                 m.fmap(sst =>

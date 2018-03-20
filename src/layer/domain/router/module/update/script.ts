@@ -1,15 +1,17 @@
 import { Cancellee } from 'spica/cancellation';
 import { Either, Left, Right } from 'spica/either';
 import { tuple } from 'spica/tuple';
+import { concat } from 'spica/concat';
 import { find } from '../../../../../lib/dom';
 import { FatalError } from '../../../../../lib/error';
 import { URL } from '../../../../../lib/url';
 import { StandardUrl, standardizeUrl } from '../../../../data/model/domain/url';
 import { html } from 'typed-dom';
 
-type Response = [HTMLScriptElement, string];
+type Result = Either<Error, [HTMLScriptElement[], Promise<Either<Error, HTMLScriptElement[]>>]>;
+type FetchData = [HTMLScriptElement, string];
 
-export async function script(
+export function script(
   documents: {
     src: Document;
     dst: Document;
@@ -27,7 +29,7 @@ export async function script(
     fetch,
     evaluate,
   }
-): Promise<Either<Error, [HTMLScriptElement[], Promise<HTMLScriptElement[]>]>> {
+): Promise<Result> {
   const scripts = find(documents.src, 'script')
     .filter(el => !el.type || /(?:application|text)\/(?:java|ecma)script|module/i.test(el.type))
     .filter(el => !el.matches(selector.ignore.trim() || '_'))
@@ -35,15 +37,49 @@ export async function script(
       el.hasAttribute('src')
         ? !skip.has(new URL(standardizeUrl(el.src)).href) || el.matches(selector.reload.trim() || '_')
         : true);
-  return run(await Promise.all(request(scripts)));
+  const { ss, as } = scripts.reduce((o, script) => {
+    switch (true) {
+      case script.matches('[src][async], [src][defer]'):
+        void o.as.push(script);
+        break;
+      default:
+        void o.ss.push(script);
+    }
+    return o;
+  }, {
+      ss: [] as HTMLScriptElement[],
+      as: [] as HTMLScriptElement[],
+    });
+  return Promise.all([
+    Promise.all(request(ss)).then(run),
+    Promise.all(request(as)).then(run),
+  ])
+    .then(async ([sm, am]) =>
+      sm.fmap(async p => (await p)
+        .fmap(([ss1, ap1]) =>
+          tuple([
+            ss1,
+            ap1.then(async as1 =>
+              am.fmap(async p => (await p)
+                .fmap(([ss2, ap2]) =>
+                  Promise.all([as1, Right<Error, HTMLScriptElement[]>(ss2), ap2])
+                    .then(sst =>
+                      sst.reduce((m1, m2) =>
+                        m1.bind(s1 =>
+                          m2.fmap(s2 =>
+                            concat(s1, s2))))))
+                .extract<Either<Error, HTMLScriptElement[]>>(Left))
+                .extract<Either<Error, HTMLScriptElement[]>>(Left)),
+          ])))
+        .extract<Result>(Left));
 
-  function request(scripts: HTMLScriptElement[]): Promise<Either<Error, Response>>[] {
+  function request(scripts: HTMLScriptElement[]): Promise<Either<Error, FetchData>>[] {
     return scripts
       .map(script =>
         io.fetch(script, timeout, fallback));
   }
 
-  function run(responses: Either<Error, Response>[]): Either<Error, [HTMLScriptElement[], Promise<HTMLScriptElement[]>]> {
+  function run(responses: Either<Error, FetchData>[]): Either<Error, Promise<Result>> {
     return responses
       .reduce(
         (results, m) => m.bind(() => results),
@@ -51,57 +87,60 @@ export async function script(
           .reduce((results, m) =>
             results
               .bind(cancellation.either)
-              .bind(([ss, ps]) => m
+              .bind(([sp, ap]) => m
                 .fmap(([script, code]) =>
-                  io.evaluate(script, code, selector.logger, skip, Promise.all(ps), fallback, cancellation))
+                  io.evaluate(script, code, selector.logger, skip, Promise.all(sp), fallback, cancellation))
                 .bind(m =>
                   m.extract(
-                    m => m.fmap(s => tuple([ss.concat([s]), ps])),
-                    p => Right(tuple([ss, ps.concat([p])])))))
-          , Right<Error, [HTMLScriptElement[], Promise<Either<Error, HTMLScriptElement>>[]]>([[], []])))
-      .fmap(([ss, ps]) =>
-        [
-          ss,
-          Promise.all(ps)
-            .then(ms => ms
-              .reduce((acc, m) => acc
-                .bind(scripts => m
-                  .fmap(script =>
-                    scripts.concat([script])))
-              , Right([]) as Either<Error, HTMLScriptElement[]>)
-              .extract()),
-        ]);
+                    p => Right(tuple([concat(sp, [p]), ap])),
+                    p => Right(tuple([sp, concat(ap, [p])])))))
+        , Right<Error, [Promise<Either<Error, HTMLScriptElement>>[], Promise<Either<Error, HTMLScriptElement>>[]]>([[], []])))
+      .fmap(([sp, ap]) =>
+        Promise.all(sp)
+          .then(traverse)
+          .then(sm =>
+            sm.fmap(ss => tuple([
+              ss,
+              Promise.all(ap)
+                .then(traverse)
+            ]))));
+
+
+    function traverse(ms: Either<Error, HTMLScriptElement>[]): Either<Error, HTMLScriptElement[]> {
+      return ms
+        .reduce((acc, m) => acc
+          .bind(scripts => m
+            .fmap(script =>
+              concat(scripts, [script])))
+          , Right([]) as Either<Error, HTMLScriptElement[]>);
+    }
   }
 }
 
-async function fetch(script: HTMLScriptElement, timeout: number, fallback: (target: HTMLScriptElement) => Promise<HTMLScriptElement>): Promise<Either<Error, Response>> {
-  if (script.hasAttribute('src')) {
-    if (script.type.toLowerCase() === 'module') return Right<Response>([script, '']);
-    const xhr = new XMLHttpRequest();
-    void xhr.open('GET', script.src, true);
-    xhr.timeout = timeout;
-    void xhr.send();
-    return new Promise<Either<Error, Response>>(resolve =>
-      ['load', 'abort', 'error', 'timeout']
-        .forEach(type => {
-          switch (type) {
-            case 'load':
-              return void xhr.addEventListener(
-                type,
-                () => void resolve(Right<Response>([script, xhr.response as string])));
-            default:
-              return void xhr.addEventListener(
-                type,
-                () =>
-                  type === 'error' && script.matches('[src][async]')
-                    ? void resolve(retry(script, fallback).catch(() => Left(new Error(`${script.src}: ${xhr.statusText}`))))
-                    : void resolve(Left(new Error(`${script.src}: ${xhr.statusText}`))));
-          }
-        }));
-  }
-  else {
-    return Right<Response>([script, script.text]);
-  }
+async function fetch(script: HTMLScriptElement, timeout: number, fallback: (target: HTMLScriptElement) => Promise<HTMLScriptElement>): Promise<Either<Error, FetchData>> {
+  if (!script.hasAttribute('src')) return Right<FetchData>([script, script.text]);
+  if (script.type.toLowerCase() === 'module') return Right<FetchData>([script, '']);
+  const xhr = new XMLHttpRequest();
+  void xhr.open('GET', script.src, true);
+  xhr.timeout = timeout;
+  void xhr.send();
+  return new Promise<Either<Error, FetchData>>(resolve =>
+    ['load', 'abort', 'error', 'timeout']
+      .forEach(type => {
+        switch (type) {
+          case 'load':
+            return void xhr.addEventListener(
+              type,
+              () => void resolve(Right<FetchData>([script, xhr.response as string])));
+          default:
+            return void xhr.addEventListener(
+              type,
+              () =>
+                type === 'error' && script.matches('[src][async]')
+                  ? void resolve(retry(script, fallback).catch(() => Left(new Error(`${script.src}: ${xhr.statusText}`))))
+                  : void resolve(Left(new Error(`${script.src}: ${xhr.statusText}`))));
+        }
+      }));
 }
 export { fetch as _fetch }
 
@@ -113,7 +152,7 @@ function evaluate(
   wait: Promise<any>,
   fallback: (target: HTMLScriptElement) => Promise<HTMLScriptElement>,
   cancellation: Cancellee<Error>,
-): Either<Either<Error, HTMLScriptElement>, Promise<Either<Error, HTMLScriptElement>>> {
+): Either<Promise<Either<Error, HTMLScriptElement>>, Promise<Either<Error, HTMLScriptElement>>> {
   assert(script.hasAttribute('src') ? script.childNodes.length === 0 : script.text === code);
   assert(script.textContent === script.text);
   assert(!cancellation.canceled);
@@ -133,25 +172,23 @@ function evaluate(
   void unescape();
   !logging && void script.remove();
   const url = new URL(standardizeUrl(window.location.href));
-  if (script.type.toLowerCase() === 'module') {
-    return Right(wait.then(() => import(script.src))
-      .catch(reason =>
-        reason.message.startsWith('Failed to load ') && script.matches('[src][async]')
-          ? retry(script, fallback)
-          : Promise.reject(reason))
-      .then(
-        () => (
-          void script.dispatchEvent(new Event('load')),
-          Right(script)),
-        reason => (
-          void script.dispatchEvent(new Event('error')),
-          Left(new FatalError(reason instanceof Error ? reason.message : reason + '')))));
-  }
-  else {
-    if (script.hasAttribute('defer')) return Right(wait.then(evaluate));
-    if (script.hasAttribute('async')) return Right(Promise.resolve().then(evaluate));
-    return Left(evaluate());
-  }
+  const result = script.type.toLowerCase() === 'module'
+    ? wait.then(() => import(script.src))
+        .catch(reason =>
+          reason.message.startsWith('Failed to load ') && script.matches('[src][async]')
+            ? retry(script, fallback)
+            : Promise.reject(reason))
+        .then(
+          () => (
+            void script.dispatchEvent(new Event('load')),
+            Right(script)),
+          reason => (
+            void script.dispatchEvent(new Event('error')),
+            Left(new FatalError(reason instanceof Error ? reason.message : reason + ''))))
+    : wait.then(() => evaluate());
+  return script.matches('[src][async]')
+    ? Right(result)
+    : Left(result);
 
   function evaluate(): Either<Error, HTMLScriptElement> {
     if (cancellation.canceled) return cancellation.either(script);
@@ -183,7 +220,7 @@ export function escape(script: HTMLScriptElement): () => undefined {
       : undefined);
 }
 
-function retry(script: HTMLScriptElement, fallback: (target: HTMLScriptElement) => Promise<HTMLScriptElement>): Promise<Either<Error, Response>> {
+function retry(script: HTMLScriptElement, fallback: (target: HTMLScriptElement) => Promise<HTMLScriptElement>): Promise<Either<Error, FetchData>> {
   return fallback(html('script', Object.values(script.attributes).reduce((o, { name, value }) => (o[name] = value, o), {}), [...script.childNodes]))
-    .then(() => Right<Response>([script, '']));
+    .then(() => Right<FetchData>([script, '']));
 }
