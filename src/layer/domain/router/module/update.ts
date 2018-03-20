@@ -111,7 +111,7 @@ export async function update(
                       config.update.ignore)
                   : undefined,
                 config.update.script
-                  ? await script(documents, state.scripts, config.update, Math.max(config.fetch.timeout * 10, 10 * 1e3), process)
+                  ? await script(documents, state.scripts, config.update, Math.max(config.fetch.timeout * 10, 10 * 1e3), config.update.fallback, process)
                   : await process.either(tuple([[], Promise.resolve([])]))))
               .extend(async () => {
                 void io.document.dispatchEvent(new Event('pjax:content'));

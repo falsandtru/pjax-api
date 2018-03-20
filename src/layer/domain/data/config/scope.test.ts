@@ -7,41 +7,41 @@ describe('Unit: layer/domain/data/config/scope', () => {
   describe('scope', () => {
     it('match', () => {
       assert.deepStrictEqual(
-        scope(new Config({}), {
+        scope(new Config({ update: { fallback } }), {
           orig: new URL(standardizeUrl('/')).pathname,
           dest: new URL(standardizeUrl('/')).pathname
         }).extract(),
-        new Config({}));
+        new Config({ update: { fallback } }));
       assert.deepStrictEqual(
-        scope(new Config({}), {
+        scope(new Config({ update: { fallback } }), {
           orig: new URL(standardizeUrl('/a')).pathname,
           dest: new URL(standardizeUrl('/a')).pathname
         }).extract(),
-        new Config({}));
+        new Config({ update: { fallback } }));
       assert.deepStrictEqual(
-        scope(new Config({}), {
+        scope(new Config({ update: { fallback } }), {
           orig: new URL(standardizeUrl('/a/')).pathname,
           dest: new URL(standardizeUrl('/a/')).pathname
         }).extract(),
-        new Config({}));
+        new Config({ update: { fallback } }));
       assert.deepStrictEqual(
-        scope(new Config({}), {
+        scope(new Config({ update: { fallback } }), {
           orig: new URL(standardizeUrl('/abc')).pathname,
           dest: new URL(standardizeUrl('/abc')).pathname
         }).extract(),
-        new Config({}));
+        new Config({ update: { fallback } }));
       assert.deepStrictEqual(
-        scope(new Config({}), {
+        scope(new Config({ update: { fallback } }), {
           orig: new URL(standardizeUrl('/abc/')).pathname,
           dest: new URL(standardizeUrl('/abc/')).pathname
         }).extract(),
-        new Config({}));
+        new Config({ update: { fallback } }));
       assert.deepStrictEqual(
-        scope(new Config({}), {
+        scope(new Config({ update: { fallback } }), {
           orig: new URL(standardizeUrl('/a/b/c.d')).pathname,
           dest: new URL(standardizeUrl('/a/b/c.d')).pathname
         }).extract(),
-        new Config({}));
+        new Config({ update: { fallback } }));
     });
 
     it('mismatch', () => {
@@ -61,11 +61,11 @@ describe('Unit: layer/domain/data/config/scope', () => {
 
     it('extend', () => {
       assert.deepStrictEqual(
-        scope(new Config({ scope: { '/': { fetch: { wait: 100 } } } }), {
+        scope(new Config({ scope: { '/': { fetch: { wait: 100 } } }, update: { fallback } }), {
           orig: new URL(standardizeUrl('/')).pathname,
           dest: new URL(standardizeUrl('/')).pathname
         }).extract(),
-        new Config({ fetch: { wait: 100 }, scope: { '/': { fetch: { wait: 100 } } } }));
+        new Config({ fetch: { wait: 100 }, scope: { '/': { fetch: { wait: 100 } } }, update: { fallback } }));
     });
 
     it('disable', () => {
@@ -79,12 +79,16 @@ describe('Unit: layer/domain/data/config/scope', () => {
 
     it('enable', () => {
       assert.deepStrictEqual(
-        scope(new Config({ scope: { '/': undefined, '/a': {} } }), {
+        scope(new Config({ scope: { '/': undefined, '/a': {} }, update: { fallback } }), {
           orig: new URL(standardizeUrl('/a')).pathname,
           dest: new URL(standardizeUrl('/a')).pathname
         }).extract(),
-        new Config({ scope: { '/': undefined, '/a': {} } }));
+        new Config({ scope: { '/': undefined, '/a': {} }, update: { fallback } }));
     });
+
+    function fallback() {
+      return Promise.resolve(document.createElement('script'));
+    }
 
   });
 

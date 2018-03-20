@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.21.0
+
+- Enhance script loading to avoid Same-origin policy only with async scripts.
+
 ## 3.20.3
 
 - Fix the copyright notice.

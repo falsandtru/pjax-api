@@ -107,6 +107,19 @@ Set reload targets for script.
 
 Set logging targets for script.
 
+### fallback: (target: HTMLScriptElement) => Promise<HTMLScriptElement> = ...
+
+Retry to load async scripts avoiding Same-origin policy.
+
+```ts
+// default
+fallback: (target: HTMLScriptElement) =>
+  new Promise<HTMLScriptElement>((resolve, reject) => (
+    void target.addEventListener('load', () => void resolve(target)),
+    void target.addEventListener('error', reject),
+    void document.body.appendChild(target))),
+```
+
 ## fallback: (target: HTMLAnchorElement | HTMLFormElement | Window, reason: any) => void = ...
 
 Override a fallback processing.

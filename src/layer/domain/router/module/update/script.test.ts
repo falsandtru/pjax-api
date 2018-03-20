@@ -20,6 +20,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           logger: ''
         },
         1e3,
+        fallback,
         new Cancellation<Error>(),
         {
           fetch: async script => Right(tuple([script, script.text])),
@@ -52,6 +53,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           logger: 'head'
         },
         1e3,
+        fallback,
         new Cancellation<Error>(),
         {
           fetch: async script => {
@@ -80,6 +82,34 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         });
     });
 
+    it('success over Same-origin policy', done => {
+      script(
+        {
+          src: parse(DOM.head([DOM.script({ src: 'https://platform.twitter.com/widgets.js', async: '' })]).element.outerHTML).extract(),
+          dst: parse('').extract()
+        },
+        new Set([]),
+        {
+          ignore: '',
+          reload: '',
+          logger: 'head'
+        },
+        1e3,
+        fallback,
+        new Cancellation<Error>())
+        .then(m => {
+          return m.extract();
+        })
+        .then(([ss, p]) => {
+          assert.deepStrictEqual(ss, []);
+          return p;
+        })
+        .then(ss => {
+          assert.deepStrictEqual(ss.map(s => s instanceof HTMLScriptElement), [true]);
+          done();
+        });
+    });
+
     it('failure fetch', done => {
       let cnt = 0;
       script(
@@ -94,6 +124,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           logger: 'head'
         },
         1e3,
+        fallback,
         new Cancellation<Error>(),
         {
           fetch: async script => {
@@ -128,6 +159,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           logger: 'head'
         },
         1e3,
+        fallback,
         new Cancellation<Error>(),
         {
           fetch: async script => {
@@ -162,6 +194,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           logger: 'head'
         },
         1e3,
+        fallback,
         cancellation,
         {
           fetch: async script => {
@@ -196,6 +229,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           logger: 'head'
         },
         1e3,
+        fallback,
         new Cancellation<Error>(),
         {
           fetch: async script => {
@@ -234,6 +268,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           logger: 'head'
         },
         1e3,
+        fallback,
         new Cancellation<Error>(),
         {
           fetch: async script => {
@@ -273,6 +308,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           logger: 'head'
         },
         1e3,
+        fallback,
         cancellation,
         {
           fetch: async script => {
@@ -298,7 +334,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
     it('external', done => {
       const src = '/base/test/unit/fixture/throw.js';
       const script = DOM.script({ src }).element;
-      _fetch(script, 1e3)
+      _fetch(script, 1e3, fallback)
         .then(m => m
           .fmap(([el, code]) => {
             assert(el === script);
@@ -312,7 +348,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
     it('external module', done => {
       const src = '/base/test/unit/fixture/throw.js';
       const script = DOM.script({ type: 'module', src }).element;
-      _fetch(script, 1e3)
+      _fetch(script, 1e3, fallback)
         .then(m => m
           .fmap(([el, code]) => {
             assert(el === script);
@@ -325,7 +361,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
 
     it('inline', done => {
       const script = DOM.script('throw 0').element;
-      _fetch(script, 1e3)
+      _fetch(script, 1e3, fallback)
         .then(m => m
           .fmap(([el, code]) => {
             assert(el === script);
@@ -349,7 +385,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      _evaluate(script, `assert(this === window)`, '', new Set(), Promise.resolve(), new Cancellation())
+      _evaluate(script, `assert(this === window)`, '', new Set(), Promise.resolve(), fallback, new Cancellation())
         .extract(m => m
           .fmap(el => {
             assert(el.outerHTML === `<script src="404"></script>`);
@@ -370,7 +406,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         assert(cnt === 0 && ++cnt);
         assert(event instanceof Event);
       });
-      _evaluate(script, `throw new Error()`, '', new Set(), Promise.resolve(), new Cancellation())
+      _evaluate(script, `throw new Error()`, '', new Set(), Promise.resolve(), fallback, new Cancellation())
         .extract(m => m
           .extract(e => {
             assert(e instanceof Error);
@@ -390,7 +426,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      _evaluate(script, `assert(this === window)`, '', new Set(), Promise.resolve(), new Cancellation())
+      _evaluate(script, `assert(this === window)`, '', new Set(), Promise.resolve(), fallback, new Cancellation())
         .fmap(p => p
           .then(m => m
             .fmap(el => {
@@ -412,7 +448,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         assert(cnt === 0 && ++cnt);
         assert(event instanceof Event);
       });
-      _evaluate(script, `throw new Error()`, '', new Set(), Promise.resolve(), new Cancellation())
+      _evaluate(script, `throw new Error()`, '', new Set(), Promise.resolve(), fallback, new Cancellation())
         .fmap(p => p
           .then(m => m
             .extract(e => {
@@ -435,7 +471,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      _evaluate(script, `assert(this === window)`, '', new Set(), Promise.resolve(), new Cancellation())
+      _evaluate(script, `assert(this === window)`, '', new Set(), Promise.resolve(), fallback, new Cancellation())
         .fmap(p => p
           .then(m => m
             .fmap(el => {
@@ -459,7 +495,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         assert(cnt === 0 && ++cnt);
         assert(event instanceof Event);
       });
-      _evaluate(script, `throw new Error()`, '', new Set(), Promise.resolve(), new Cancellation())
+      _evaluate(script, `throw new Error()`, '', new Set(), Promise.resolve(), fallback, new Cancellation())
         .fmap(p => p
           .then(m => m
             .extract(e => {
@@ -481,7 +517,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      _evaluate(script, script.text, '', new Set(), Promise.resolve(), new Cancellation())
+      _evaluate(script, script.text, '', new Set(), Promise.resolve(), fallback, new Cancellation())
         .extract(m => m
           .fmap(el => {
             assert(el.hasAttribute('src') === false);
@@ -503,7 +539,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      _evaluate(script, script.text, '', new Set(), Promise.resolve(), new Cancellation())
+      _evaluate(script, script.text, '', new Set(), Promise.resolve(), fallback, new Cancellation())
         .extract(m => m
           .extract(e => {
             assert(e instanceof Error);
@@ -547,5 +583,12 @@ describe('Unit: layer/domain/router/module/update/script', () => {
     });
 
   });
+
+  function fallback(target: HTMLScriptElement) {
+    return new Promise<HTMLScriptElement>((resolve, reject) => (
+      void target.addEventListener('load', () => void resolve(target)),
+      void target.addEventListener('error', reject),
+      void document.body.appendChild(target)));
+  }
 
 });
