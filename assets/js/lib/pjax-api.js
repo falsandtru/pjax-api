@@ -4041,24 +4041,27 @@ require = function () {
                 void container.appendChild(script);
                 void unescape();
                 !logging && void script.remove();
-                const url = new url_1.URL(url_2.standardizeUrl(window.location.href));
-                const result = script.type.toLowerCase() === 'module' ? wait.then(() => Promise.resolve().then(() => require(script.src))).catch(reason => reason.message.startsWith('Failed to load ') && script.matches('[src][async]') ? retry(script, fallback) : Promise.reject(reason)).then(() => (void script.dispatchEvent(new Event('load')), either_1.Right(script)), reason => (void script.dispatchEvent(new Event('error')), either_1.Left(new error_1.FatalError(reason instanceof Error ? reason.message : reason + '')))) : wait.then(() => evaluate());
+                const result = wait.then(cancellation.promise).then(evaluate);
                 return script.matches('[src][async]') ? either_1.Right(result) : either_1.Left(result);
                 function evaluate() {
-                    if (cancellation.canceled)
-                        return cancellation.either(script);
-                    try {
-                        if (new url_1.URL(url_2.standardizeUrl(window.location.href)).path !== url.path)
-                            throw new error_1.FatalError('Expired.');
-                        if (skip.has(new url_1.URL(url_2.standardizeUrl(window.location.href)).href))
-                            throw new error_1.FatalError('Expired.');
-                        void (0, eval)(code);
-                        script.hasAttribute('src') && void script.dispatchEvent(new Event('load'));
-                        return either_1.Right(script);
-                    } catch (reason) {
-                        script.hasAttribute('src') && void script.dispatchEvent(new Event('error'));
-                        return either_1.Left(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''));
-                    }
+                    return __awaiter(this, void 0, void 0, function* () {
+                        if (script.matches('[type="module"][src]')) {
+                            return Promise.resolve().then(() => require(script.src)).catch(reason => reason.message.startsWith('Failed to load ') && script.matches('[src][async]') ? retry(script, fallback).catch(() => Promise.reject(reason)) : Promise.reject(reason)).then(() => (void script.dispatchEvent(new Event('load')), either_1.Right(script)), reason => (void script.dispatchEvent(new Event('error')), either_1.Left(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''))));
+                        } else {
+                            try {
+                                if (new url_1.URL(url_2.standardizeUrl(window.location.href)).path !== new url_1.URL(url_2.standardizeUrl(window.location.href)).path)
+                                    throw new error_1.FatalError('Expired.');
+                                if (skip.has(new url_1.URL(url_2.standardizeUrl(window.location.href)).href))
+                                    throw new error_1.FatalError('Expired.');
+                                void (0, eval)(code);
+                                script.hasAttribute('src') && void script.dispatchEvent(new Event('load'));
+                                return either_1.Right(script);
+                            } catch (reason) {
+                                script.hasAttribute('src') && void script.dispatchEvent(new Event('error'));
+                                return either_1.Left(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''));
+                            }
+                        }
+                    });
                 }
             }
             exports._evaluate = evaluate;
@@ -4071,6 +4074,8 @@ require = function () {
             }
             exports.escape = escape;
             function retry(script, fallback) {
+                if (new url_1.URL(url_2.standardizeUrl(script.src)).origin === new url_1.URL(url_2.standardizeUrl(window.location.href)).origin)
+                    return Promise.reject(new Error());
                 return fallback(typed_dom_1.html('script', Object.values(script.attributes).reduce((o, {name, value}) => (o[name] = value, o), {}), [...script.childNodes])).then(() => either_1.Right([
                     script,
                     ''
