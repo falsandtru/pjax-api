@@ -171,12 +171,17 @@ function evaluate(
   void container.appendChild(script);
   void unescape();
   !logging && void script.remove();
-  const url = new URL(standardizeUrl(window.location.href));
-  const result = script.type.toLowerCase() === 'module'
-    ? wait.then(() => import(script.src))
+  const result = wait.then(cancellation.promise).then(evaluate);
+  return script.matches('[src][async]')
+    ? Right(result)
+    : Left(result);
+
+  async function evaluate(): Promise<Either<Error, HTMLScriptElement>> {
+    if (script.matches('[type="module"][src]')) {
+      return import(script.src)
         .catch(reason =>
           reason.message.startsWith('Failed to load ') && script.matches('[src][async]')
-            ? retry(script, fallback)
+            ? retry(script, fallback).catch(() => Promise.reject(reason))
             : Promise.reject(reason))
         .then(
           () => (
@@ -184,24 +189,20 @@ function evaluate(
             Right(script)),
           reason => (
             void script.dispatchEvent(new Event('error')),
-            Left(new FatalError(reason instanceof Error ? reason.message : reason + ''))))
-    : wait.then(() => evaluate());
-  return script.matches('[src][async]')
-    ? Right(result)
-    : Left(result);
-
-  function evaluate(): Either<Error, HTMLScriptElement> {
-    if (cancellation.canceled) return cancellation.either(script);
-    try {
-      if (new URL(standardizeUrl(window.location.href)).path !== url.path) throw new FatalError('Expired.');
-      if (skip.has(new URL(standardizeUrl(window.location.href)).href)) throw new FatalError('Expired.');
-      void (0, eval)(code);
-      script.hasAttribute('src') && void script.dispatchEvent(new Event('load'));
-      return Right(script);
+            Left(new FatalError(reason instanceof Error ? reason.message : reason + ''))));
     }
-    catch (reason) {
-      script.hasAttribute('src') && void script.dispatchEvent(new Event('error'));
-      return Left(new FatalError(reason instanceof Error ? reason.message : reason + ''));
+    else {
+      try {
+        if (new URL(standardizeUrl(window.location.href)).path !== new URL(standardizeUrl(window.location.href)).path) throw new FatalError('Expired.');
+        if (skip.has(new URL(standardizeUrl(window.location.href)).href)) throw new FatalError('Expired.');
+        void (0, eval)(code);
+        script.hasAttribute('src') && void script.dispatchEvent(new Event('load'));
+        return Right(script);
+      }
+      catch (reason) {
+        script.hasAttribute('src') && void script.dispatchEvent(new Event('error'));
+        return Left(new FatalError(reason instanceof Error ? reason.message : reason + ''));
+      }
     }
   }
 }
