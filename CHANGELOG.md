@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.21.1
+
+- Don't retry script loading with same origin.
+
 ## 3.21.0
 
 - Enhance script loading to avoid Same-origin policy only with async scripts.

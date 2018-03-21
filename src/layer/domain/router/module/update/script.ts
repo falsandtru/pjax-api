@@ -222,6 +222,7 @@ export function escape(script: HTMLScriptElement): () => undefined {
 }
 
 function retry(script: HTMLScriptElement, fallback: (target: HTMLScriptElement) => Promise<HTMLScriptElement>): Promise<Either<Error, FetchData>> {
+  if (new URL(standardizeUrl(script.src)).origin === new URL(standardizeUrl(window.location.href)).origin) return Promise.reject(new Error());
   return fallback(html('script', Object.values(script.attributes).reduce((o, { name, value }) => (o[name] = value, o), {}), [...script.childNodes]))
     .then(() => Right<FetchData>([script, '']));
 }
