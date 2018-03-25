@@ -1,4 +1,4 @@
-import { script, _fetch, _evaluate, escape } from './script';
+import { script, _fetch as fetch, _evaluate as evaluate, escape } from './script';
 import { Cancellation } from 'spica/cancellation';
 import { Left, Right } from 'spica/either';
 import { tuple } from 'spica/tuple';
@@ -336,11 +336,11 @@ describe('Unit: layer/domain/router/module/update/script', () => {
 
   });
 
-  describe('request', () => {
+  describe('fetch', () => {
     it('external', done => {
       const src = '/base/test/unit/fixture/throw.js';
       const script = html('script', { src });
-      _fetch(script, 1e3)
+      fetch(script, 1e3)
         .then(m => m
           .fmap(([el, code]) => {
             assert(el === script);
@@ -354,7 +354,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
     it('external module', done => {
       const src = '/base/test/unit/fixture/throw.js';
       const script = html('script', { type: 'module', src });
-      _fetch(script, 1e3)
+      fetch(script, 1e3)
         .then(m => m
           .fmap(([el, code]) => {
             assert(el === script);
@@ -367,7 +367,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
 
     it('inline', done => {
       const script = html('script', 'throw 0');
-      _fetch(script, 1e3)
+      fetch(script, 1e3)
         .then(m => m
           .fmap(([el, code]) => {
             assert(el === script);
@@ -391,7 +391,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      _evaluate(script, `assert(this === window)`, '', new Set(), Promise.resolve(), new Cancellation())
+      evaluate(script, `assert(this === window)`, '', new Set(), Promise.resolve(), new Cancellation())
         .extract(async p => (await p)
           .fmap(el => {
             assert(el.outerHTML === `<script src="404"></script>`);
@@ -412,7 +412,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         assert(cnt === 0 && ++cnt);
         assert(event instanceof Event);
       });
-      _evaluate(script, `throw new Error()`, '', new Set(), Promise.resolve(), new Cancellation())
+      evaluate(script, `throw new Error()`, '', new Set(), Promise.resolve(), new Cancellation())
         .extract(async p => (await p)
           .extract(e => {
             assert(e instanceof Error);
@@ -432,7 +432,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      _evaluate(script, `assert(this === window)`, '', new Set(), Promise.resolve(), new Cancellation())
+      evaluate(script, `assert(this === window)`, '', new Set(), Promise.resolve(), new Cancellation())
         .extract(async p => (await p)
           .fmap(el => {
             assert(el.parentElement === null);
@@ -452,7 +452,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         assert(cnt === 0 && ++cnt);
         assert(event instanceof Event);
       });
-      _evaluate(script, `throw new Error()`, '', new Set(), Promise.resolve(), new Cancellation())
+      evaluate(script, `throw new Error()`, '', new Set(), Promise.resolve(), new Cancellation())
         .extract(async p => (await p)
           .extract(e => {
             assert(e instanceof Error);
@@ -473,7 +473,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      _evaluate(script, `assert(this === window)`, '', new Set(), Promise.resolve(), new Cancellation())
+      evaluate(script, `assert(this === window)`, '', new Set(), Promise.resolve(), new Cancellation())
         .fmap(p => p
           .then(m => m
             .fmap(el => {
@@ -497,7 +497,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         assert(cnt === 0 && ++cnt);
         assert(event instanceof Event);
       });
-      _evaluate(script, `throw new Error()`, '', new Set(), Promise.resolve(), new Cancellation())
+      evaluate(script, `throw new Error()`, '', new Set(), Promise.resolve(), new Cancellation())
         .fmap(p => p
           .then(m => m
             .extract(e => {
@@ -519,7 +519,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      _evaluate(script, script.text, '', new Set(), Promise.resolve(), new Cancellation())
+      evaluate(script, script.text, '', new Set(), Promise.resolve(), new Cancellation())
         .extract(async p => (await p)
           .fmap(el => {
             assert(el.hasAttribute('src') === false);
@@ -541,7 +541,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
       script.addEventListener('error', () => {
         assert(--cnt === NaN);
       });
-      _evaluate(script, script.text, '', new Set(), Promise.resolve(), new Cancellation())
+      evaluate(script, script.text, '', new Set(), Promise.resolve(), new Cancellation())
         .extract(async p => (await p)
           .extract(e => {
             assert(e instanceof Error);
