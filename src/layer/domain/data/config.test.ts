@@ -1,18 +1,18 @@
 import { Config } from './config';
-import DOM from 'typed-dom';
+import { html } from 'typed-dom';
 
 describe('Unit: layer/domain/data/config', () => {
   describe('Config', () => {
     it('filter', () => {
       const filter = new Config({}).filter;
-      assert(filter(DOM.a({ href: '' }, []).element));
-      assert(filter(DOM.a({ href: '/' }, []).element));
-      assert(filter(DOM.a({ href: '/dir' }, []).element));
-      assert(filter(DOM.a({ href: '/dir/' }, []).element));
-      assert(filter(DOM.a({ href: '/dir/file.html' }, []).element));
-      assert(filter(DOM.a({ href: '?' }, []).element));
-      assert(filter(DOM.a({ href: '#' }, []).element));
-      assert(!filter(DOM.a({ href: '', target: '_blank' }, []).element));
+      assert(filter(html('a', { href: '' })));
+      assert(filter(html('a', { href: '/' })));
+      assert(filter(html('a', { href: '/dir' })));
+      assert(filter(html('a', { href: '/dir/' })));
+      assert(filter(html('a', { href: '/dir/file.html' })));
+      assert(filter(html('a', { href: '?' })));
+      assert(filter(html('a', { href: '#' })));
+      assert(!filter(html('a', { href: '', target: '_blank' })));
     });
 
     it('ignore', () => {

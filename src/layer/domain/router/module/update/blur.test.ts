@@ -1,10 +1,10 @@
 import { blur } from './blur';
-import DOM from 'typed-dom';
+import { html } from 'typed-dom';
 
 describe('Unit: layer/domain/router/module/update/blur', () => {
   describe('blur', () => {
     it('', () => {
-      const el = DOM.input().element;
+      const el = html('input');
       document.body.appendChild(el);
       el.focus();
       assert(document.activeElement === el);

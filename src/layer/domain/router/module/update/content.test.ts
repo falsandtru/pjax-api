@@ -1,6 +1,6 @@
 import { content, separate, _split as split, _wait as wait } from './content';
 import { parse } from '../../../../../lib/html';
-import DOM from 'typed-dom';
+import { html } from 'typed-dom';
 
 describe('Unit: layer/domain/router/module/update/content', () => {
   describe('content', () => {
@@ -48,14 +48,14 @@ describe('Unit: layer/domain/router/module/update/content', () => {
 
   describe('wait', () => {
     it('img', done => {
-      const el = DOM.img({ src: './' }, []).element;
+      const el = html('img', { src: './' });
       document.body.appendChild(el);
       wait(el)
         .then(() => (el.remove(), done()));
     });
 
     it('iframe', done => {
-      const el = DOM.iframe({ src: './' }, []).element;
+      const el = html('iframe', { src: './' });
       document.body.appendChild(el);
       wait(el)
         .then(() => (el.remove(), done()));

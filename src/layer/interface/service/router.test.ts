@@ -2,7 +2,7 @@ import { _validate as validate, Config, RouterEvent } from './router';
 import { URL } from '../../../lib/url';
 import { standardizeUrl } from '../../data/model/domain/url';
 import { parse } from '../../../lib/html';
-import DOM, { delegate, once } from 'typed-dom';
+import { html, delegate, once } from 'typed-dom';
 
 describe('Unit: layer/interface/service/router', function () {
   describe('validate', function () {
@@ -51,9 +51,9 @@ describe('Unit: layer/interface/service/router', function () {
 
     it('submit valid', function (done) {
       const url = '';
-      const form = DOM.form({ action: url }, [
-        DOM.input({ type: 'submit', value: 'submit' }),
-      ]).element;
+      const form = html('form', { action: url }, [
+        html('input', { type: 'submit', value: 'submit' }),
+      ]);
       document.body.appendChild(form);
       once(document, 'form', 'submit', ev => {
         assert(validate(new URL(standardizeUrl(url)), new Config({}), new RouterEvent(ev)));
@@ -64,9 +64,9 @@ describe('Unit: layer/interface/service/router', function () {
 
     it('submit external', function (done) {
       const url = '//external';
-      const form = DOM.form({ action: url }, [
-        DOM.input({ type: 'submit', value: 'submit' }),
-      ]).element;
+      const form = html('form', { action: url }, [
+        html('input', { type: 'submit', value: 'submit' }),
+      ]);
       document.body.appendChild(form);
       once(document, 'form', 'submit', ev => {
         assert(!validate(new URL(standardizeUrl(url)), new Config({}), new RouterEvent(ev)));

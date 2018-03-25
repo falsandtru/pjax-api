@@ -1,6 +1,6 @@
 import { parse, _fixNoscript as fixNoscript } from './html';
 import { find } from './dom';
-import DOM from 'typed-dom';
+import { html } from 'typed-dom';
 
 describe('Unit: lib/html', () => {
   describe('parse', () => {
@@ -22,7 +22,7 @@ describe('Unit: lib/html', () => {
 
   describe('_fixNoscript', () => {
     it('', () => {
-      const el = DOM.noscript([DOM.hr()]).element;
+      const el = html('noscript', [html('hr')]);
       document.body.appendChild(el);
       const texts = fixNoscript(el.ownerDocument)
         .map(([, {textContent}]) => textContent);

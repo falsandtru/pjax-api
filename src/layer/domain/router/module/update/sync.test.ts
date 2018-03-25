@@ -1,16 +1,16 @@
 import { sync, pair } from './sync';
 import { parse } from '../../../../../lib/html';
 import { find } from '../../../../../lib/dom';
-import DOM from 'typed-dom';
+import { html } from 'typed-dom';
 
 describe('Unit: layer/domain/router/module/update/sync', () => {
   describe('sync', () => {
     it('empty', () => {
       const documents = {
-        src: parse(DOM.head([
-        ]).element.outerHTML).extract(),
-        dst: parse(DOM.head([
-        ]).element.outerHTML).extract()
+        src: parse(html('head', [
+        ]).outerHTML).extract(),
+        dst: parse(html('head', [
+        ]).outerHTML).extract(),
       };
       sync(pair(find(documents.src, 'meta'), find(documents.dst, 'meta'), (a, b) => a.id === b.id), documents.dst.head);
       assert.deepStrictEqual(find(documents.dst, 'meta').map(el => el.id), [
@@ -19,13 +19,13 @@ describe('Unit: layer/domain/router/module/update/sync', () => {
 
     it('nothing to all', () => {
       const documents = {
-        src: parse(DOM.head([
-          DOM.meta({ id: 'a' }, []),
-          DOM.meta({ id: 'b' }, []),
-          DOM.meta({ id: 'c' }, [])
-        ]).element.outerHTML).extract(),
-        dst: parse(DOM.head([
-        ]).element.outerHTML).extract()
+        src: parse(html('head', [
+          html('meta', { id: 'a' }),
+          html('meta', { id: 'b' }),
+          html('meta', { id: 'c' }),
+        ]).outerHTML).extract(),
+        dst: parse(html('head', [
+        ]).outerHTML).extract(),
       };
       sync(pair(find(documents.src, 'meta'), find(documents.dst, 'meta'), (a, b) => a.id === b.id), documents.dst.head);
       assert.deepStrictEqual(find(documents.dst, 'meta').map(el => el.id), [
@@ -37,13 +37,13 @@ describe('Unit: layer/domain/router/module/update/sync', () => {
 
     it('all to nothing', () => {
       const documents = {
-        src: parse(DOM.head([
-        ]).element.outerHTML).extract(),
-        dst: parse(DOM.head([
-          DOM.meta({ id: 'a' }, []),
-          DOM.meta({ id: 'b' }, []),
-          DOM.meta({ id: 'c' }, [])
-        ]).element.outerHTML).extract()
+        src: parse(html('head', [
+        ]).outerHTML).extract(),
+        dst: parse(html('head', [
+          html('meta', { id: 'a' }),
+          html('meta', { id: 'b' }),
+          html('meta', { id: 'c' }),
+        ]).outerHTML).extract(),
       };
       sync(pair(find(documents.src, 'meta'), find(documents.dst, 'meta'), (a, b) => a.id === b.id), documents.dst.head);
       assert.deepStrictEqual(find(documents.dst, 'meta').map(el => el.id), [
@@ -52,16 +52,16 @@ describe('Unit: layer/domain/router/module/update/sync', () => {
 
     it('partial', () => {
       const documents = {
-        src: parse(DOM.head([
-          DOM.meta({ id: 'a' }, []),
-          DOM.meta({ id: 'c' }, []),
-          DOM.meta({ id: 'e' }, [])
-        ]).element.outerHTML).extract(),
-        dst: parse(DOM.head([
-          DOM.meta({ id: 'b' }, []),
-          DOM.meta({ id: 'c' }, []),
-          DOM.meta({ id: 'd' }, [])
-        ]).element.outerHTML).extract()
+        src: parse(html('head', [
+          html('meta', { id: 'a' }),
+          html('meta', { id: 'c' }),
+          html('meta', { id: 'e' }),
+        ]).outerHTML).extract(),
+        dst: parse(html('head', [
+          html('meta', { id: 'b' }),
+          html('meta', { id: 'c' }),
+          html('meta', { id: 'd' }),
+        ]).outerHTML).extract()
       };
       sync(pair(find(documents.src, 'meta'), find(documents.dst, 'meta'), (a, b) => a.id === b.id), documents.dst.head);
       assert.deepStrictEqual(find(documents.dst, 'meta').map(el => el.id), [

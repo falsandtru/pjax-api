@@ -1,6 +1,6 @@
 import { Pjax } from '../../../index';
 import { route as router } from '../../../src/layer/interface/service/router';
-import DOM, { once } from 'typed-dom';
+import { html, once } from 'typed-dom';
 
 describe('Integration: Usecase', function () {
   describe('submit', function () {
@@ -11,10 +11,10 @@ describe('Integration: Usecase', function () {
         assert(decodeURIComponent(window.location.search) === '?query=あアｱ亜=&');
         done();
       });
-      const form = DOM.form({ action: url }, [
-        DOM.input({ type: 'submit', value: 'submit' }),
-        DOM.input({ type: 'search', name: 'query', value: 'あアｱ亜=&' }),
-      ]).element;
+      const form = html('form', { action: url }, [
+        html('input', { type: 'submit', value: 'submit' }),
+        html('input', { type: 'search', name: 'query', value: 'あアｱ亜=&' }),
+      ]);
       document.body.appendChild(form);
       form.querySelector('input')!.click();
     });
@@ -28,10 +28,10 @@ describe('Integration: Usecase', function () {
           done();
         }
       }, { document, router });
-      const form = DOM.form({ action: url }, [
-        DOM.input({ type: 'submit', value: 'submit' }),
-        DOM.input({ type: 'search', name: 'query', value: 'あアｱ亜=&' }),
-      ]).element;
+      const form = html('form', { action: url }, [
+        html('input', { type: 'submit', value: 'submit' }),
+        html('input', { type: 'search', name: 'query', value: 'あアｱ亜=&' }),
+      ]);
       document.body.appendChild(form);
       form.querySelector('input')!.click();
     });

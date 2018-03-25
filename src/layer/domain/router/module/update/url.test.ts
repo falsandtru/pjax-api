@@ -1,7 +1,7 @@
 import { _isRegisterable as isRegisterable, _isReplaceable as isReplaceable } from './url';
 import { RouterEventLocation, RouterEventType } from '../../../event/router';
 import { standardizeUrl } from '../../../../data/model/domain/url';
-import DOM from 'typed-dom';
+import { html } from 'typed-dom';
 
 describe('Unit: layer/domain/router/module/update/url', () => {
   describe('isRegisterable', () => {
@@ -27,13 +27,13 @@ describe('Unit: layer/domain/router/module/update/url', () => {
 
   describe('isReplaceable', () => {
     it('click', () => {
-      assert(!isReplaceable(RouterEventType.click, DOM.a([]).element, '.replace'));
-      assert(isReplaceable(RouterEventType.click, DOM.a({ class: 'replace' }, []).element, '.replace'));
+      assert(!isReplaceable(RouterEventType.click, html('a'), '.replace'));
+      assert(isReplaceable(RouterEventType.click, html('a', { class: 'replace' }), '.replace'));
     });
 
     it('submit', () => {
-      assert(!isReplaceable(RouterEventType.submit, DOM.form([]).element, '.replace'));
-      assert(isReplaceable(RouterEventType.submit, DOM.form({ class: 'replace' }, []).element, '.replace'));
+      assert(!isReplaceable(RouterEventType.submit, html('form'), '.replace'));
+      assert(isReplaceable(RouterEventType.submit, html('form', { class: 'replace' }), '.replace'));
     });
 
     it('popstate', () => {

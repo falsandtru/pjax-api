@@ -1,7 +1,7 @@
 import { GUI } from './gui';
 import { API } from './api';
 import { parse } from '../../../lib/html';
-import DOM, { delegate, once } from 'typed-dom';
+import { html, delegate, once } from 'typed-dom';
 
 describe('Unit: layer/interface/service/gui', function () {
   describe('assign', function () {
@@ -48,9 +48,9 @@ describe('Unit: layer/interface/service/gui', function () {
 
   describe('submit', function () {
     it('', function (done) {
-      const form = DOM.form({ action: '' }, [
-        DOM.input({ type: 'submit', value: 'submit' }),
-      ]).element;
+      const form = html('form', { action: '' }, [
+        html('input', { type: 'submit', value: 'submit' }),
+      ]);
       document.body.appendChild(form);
       new GUI({}, { document, router: (_, ev) => {
         ev.original.preventDefault();
