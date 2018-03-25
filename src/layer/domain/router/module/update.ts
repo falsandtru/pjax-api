@@ -112,7 +112,7 @@ export async function update(
               void io.document.dispatchEvent(new Event('pjax:content'));
               const seqC = await config.sequence.content(seqB, areas);
               const ssm = config.update.script
-                ? await script(documents, state.scripts, config.update, Math.max(config.fetch.timeout * 10, 10 * 1e3), config.update.fallback, process)
+                ? await script(documents, state.scripts, config.update, Math.max(config.fetch.timeout, 1000) * 10, process)
                 : await process.either(tuple([[] as HTMLScriptElement[], Promise.resolve(process.either([] as HTMLScriptElement[]))]));
               void focus(event.type, documents.dst);
               void scroll(event.type, documents.dst, {

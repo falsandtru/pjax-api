@@ -31,7 +31,6 @@ export interface Config {
     readonly ignore?: string;
     readonly reload?: string;
     readonly logger?: string;
-    readonly fallback?: (target: HTMLScriptElement, event: Event) => Promise<HTMLScriptElement>;
   };
   readonly fallback?: (target: HTMLAnchorElement | HTMLFormElement | Window, reason: any) => void;
   readonly sequence?: Sequence<any, any, any, any>;

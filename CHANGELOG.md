@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.21.2
+
+- Remove config.update.fallback option.
+
 ## 3.21.1
 
 - Don't retry script loading with same origin.

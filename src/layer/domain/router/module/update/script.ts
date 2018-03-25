@@ -23,7 +23,6 @@ export function script(
     logger: string;
   },
   timeout: number,
-  fallback: (target: HTMLScriptElement) => Promise<HTMLScriptElement>,
   cancellation: Cancellee<Error>,
   io = {
     fetch,
@@ -76,7 +75,7 @@ export function script(
   function request(scripts: HTMLScriptElement[]): Promise<Either<Error, FetchData>>[] {
     return scripts
       .map(script =>
-        io.fetch(script, timeout, fallback));
+        io.fetch(script, timeout));
   }
 
   function run(responses: Either<Error, FetchData>[]): Either<Error, Promise<Result>> {
@@ -89,7 +88,7 @@ export function script(
               .bind(cancellation.either)
               .bind(([sp, ap]) => m
                 .fmap(([script, code]) =>
-                  io.evaluate(script, code, selector.logger, skip, Promise.all(sp), fallback, cancellation))
+                  io.evaluate(script, code, selector.logger, skip, Promise.all(sp), cancellation))
                 .bind(m =>
                   m.extract(
                     p => Right(tuple([concat(sp, [p]), ap])),
@@ -117,7 +116,10 @@ export function script(
   }
 }
 
-async function fetch(script: HTMLScriptElement, timeout: number, fallback: (target: HTMLScriptElement) => Promise<HTMLScriptElement>): Promise<Either<Error, FetchData>> {
+async function fetch(
+  script: HTMLScriptElement,
+  timeout: number,
+): Promise<Either<Error, FetchData>> {
   if (!script.hasAttribute('src')) return Right<FetchData>([script, script.text]);
   if (script.type.toLowerCase() === 'module') return Right<FetchData>([script, '']);
   const xhr = new XMLHttpRequest();
@@ -137,7 +139,7 @@ async function fetch(script: HTMLScriptElement, timeout: number, fallback: (targ
               type,
               () =>
                 type === 'error' && script.matches('[src][async]')
-                  ? void resolve(retry(script, fallback).catch(() => Left(new Error(`${script.src}: ${xhr.statusText}`))))
+                  ? void resolve(retry(script).then(() => Right<FetchData>([script, '']), () => Left(new Error(`${script.src}: ${xhr.statusText}`))))
                   : void resolve(Left(new Error(`${script.src}: ${xhr.statusText}`))));
         }
       }));
@@ -150,7 +152,6 @@ function evaluate(
   logger: string,
   skip: ReadonlySet<URL.Absolute<StandardUrl>>,
   wait: Promise<any>,
-  fallback: (target: HTMLScriptElement) => Promise<HTMLScriptElement>,
   cancellation: Cancellee<Error>,
 ): Either<Promise<Either<Error, HTMLScriptElement>>, Promise<Either<Error, HTMLScriptElement>>> {
   assert(script.hasAttribute('src') ? script.childNodes.length === 0 : script.text === code);
@@ -181,7 +182,7 @@ function evaluate(
       return import(script.src)
         .catch(reason =>
           reason.message.startsWith('Failed to load ') && script.matches('[src][async]')
-            ? retry(script, fallback).catch(() => Promise.reject(reason))
+            ? retry(script).catch(() => Promise.reject(reason))
             : Promise.reject(reason))
         .then(
           () => (
@@ -221,8 +222,12 @@ export function escape(script: HTMLScriptElement): () => undefined {
       : undefined);
 }
 
-function retry(script: HTMLScriptElement, fallback: (target: HTMLScriptElement) => Promise<HTMLScriptElement>): Promise<Either<Error, FetchData>> {
+function retry(script: HTMLScriptElement): Promise<undefined> {
   if (new URL(standardizeUrl(script.src)).origin === new URL(standardizeUrl(window.location.href)).origin) return Promise.reject(new Error());
-  return fallback(html('script', Object.values(script.attributes).reduce((o, { name, value }) => (o[name] = value, o), {}), [...script.childNodes]))
-    .then(() => Right<FetchData>([script, '']));
+  script = html('script', Object.values(script.attributes).reduce((o, { name, value }) => (o[name] = value, o), {}), [...script.childNodes]);
+  return new Promise((resolve, reject) => (
+    void script.addEventListener('load', () => void resolve()),
+    void script.addEventListener('error', reject),
+    void document.body.appendChild(script),
+    void script.remove()));
 }

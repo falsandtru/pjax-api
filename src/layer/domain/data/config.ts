@@ -52,11 +52,6 @@ export class Config implements DeepRequired<Option, Config['scope']> {
     },
     reload: '',
     logger: '',
-    fallback: (target: HTMLScriptElement) =>
-      new Promise<HTMLScriptElement>((resolve, reject) => (
-        void target.addEventListener('load', () => void resolve(target)),
-        void target.addEventListener('error', reject),
-        void document.body.appendChild(target))),
   };
   public fallback(target: HTMLAnchorElement | HTMLFormElement | Window, reason: any): void {
     if (target instanceof HTMLAnchorElement) {
