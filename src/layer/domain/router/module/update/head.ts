@@ -2,9 +2,9 @@ import { sync, pair } from './sync';
 import { find } from '../../../../../lib/dom';
 
 export function head(
-  scope: {
-    src: HTMLHeadElement;
-    dst: HTMLHeadElement;
+  documents: {
+    src: Document;
+    dst: Document;
   },
   selector: string,
   ignore: string
@@ -12,10 +12,13 @@ export function head(
   ignore += selector.includes('link') ? ', link[rel~="stylesheet"]' : '';
   return void sync(
     pair(
-      find(scope.src, selector)
-        .filter(el => !el.matches(ignore.trim() || '_')),
-      find(scope.dst, selector)
-        .filter(el => !el.matches(ignore.trim() || '_')),
+      list(documents.src.head),
+      list(documents.dst.head),
       (a, b) => a.outerHTML === b.outerHTML),
-    scope.dst);
+    documents.dst.head);
+
+  function list(source: HTMLElement): HTMLElement[] {
+    return find(source, selector)
+      .filter(el => !el.matches(ignore.trim() || '_'));
+  }
 }

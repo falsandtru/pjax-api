@@ -78,13 +78,7 @@ export async function update(
               config.replace),
             void title(documents),
             void saveTitle(),
-            void head(
-              {
-                src: documents.src.head,
-                dst: documents.dst.head,
-              },
-              config.update.head,
-              config.update.ignore),
+            void head(documents, config.update.head, config.update.ignore),
             process.either(content(documents, areas))
               .fmap(([as, ps]) =>
                 [
@@ -94,20 +88,7 @@ export async function update(
           .extend(async p => (await p)
             .fmap(async ([areas]) => {
               config.update.css
-                ? void css(
-                  {
-                    src: documents.src.head,
-                    dst: documents.dst.head,
-                  },
-                  config.update.ignore)
-                : undefined;
-              config.update.css
-                ? void css(
-                  {
-                    src: documents.src.body as HTMLBodyElement,
-                    dst: documents.dst.body as HTMLBodyElement,
-                  },
-                  config.update.ignore)
+                ? void css(documents, config.update.ignore)
                 : undefined;
               void io.document.dispatchEvent(new Event('pjax:content'));
               const seqC = await config.sequence.content(seqB, areas);
