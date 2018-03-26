@@ -63,6 +63,6 @@ after_deploy:
 - cp -rf ../gh-pages/* ./
 - find | grep -vE "^./.git(/|$)"
 - sed -i 's|\(baseurl:\s\+\)|\1//falsandtru.github.io|' _config.yml
-- git add -A :/
-- git commit -m 'chore(deploy)'\:' deploy web contents by Travis-CI' --author "Travis-CI"
+- git add -A
+- git commit -m 'Update web contents' --author "Travis-CI"
 - git push git@github.com:${TRAVIS_REPO_SLUG} gh-pages:gh-pages
