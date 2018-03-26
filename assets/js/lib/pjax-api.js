@@ -3211,8 +3211,7 @@ require = function () {
                             security: '[src*=".scr.kaspersky-labs.com/"]'
                         },
                         reload: '',
-                        logger: '',
-                        fallback: target => new Promise((resolve, reject) => (void target.addEventListener('load', () => void resolve(target)), void target.addEventListener('error', reject), void document.body.appendChild(target)))
+                        logger: ''
                     };
                     this.sequence = new Sequence();
                     this.progressbar = 'display:none;position:absolute;bottom:0;left:0;width:0;height:2px;background:rgb(40, 105, 255);';
@@ -3680,26 +3679,16 @@ require = function () {
                             ]).extract(() => either_1.Left(new error_1.DomainError(`Failed to separate the areas.`)), process.either)));
                         }))).modify(m => m.fmap(p => __awaiter(this, void 0, void 0, function* () {
                             return (yield p).bind(process.either).fmap(([seqB, areas]) => new hlist_1.HNil().extend(() => __awaiter(this, void 0, void 0, function* () {
-                                return void blur_1.blur(documents.dst), void url_1.url(new router_1.RouterEventLocation(response.url), documents.src.title, event.type, event.source, config.replace), void title_1.title(documents), void path_1.saveTitle(), void head_1.head({
-                                    src: documents.src.head,
-                                    dst: documents.dst.head
-                                }, config.update.head, config.update.ignore), process.either(content_1.content(documents, areas)).fmap(([as, ps]) => [
+                                return void blur_1.blur(documents.dst), void url_1.url(new router_1.RouterEventLocation(response.url), documents.src.title, event.type, event.source, config.replace), void title_1.title(documents), void path_1.saveTitle(), void head_1.head(documents, config.update.head, config.update.ignore), process.either(content_1.content(documents, areas)).fmap(([as, ps]) => [
                                     as,
                                     Promise.all(ps)
                                 ]);
                             })).extend(p => __awaiter(this, void 0, void 0, function* () {
                                 return (yield p).fmap(([areas]) => __awaiter(this, void 0, void 0, function* () {
-                                    config.update.css ? void css_1.css({
-                                        src: documents.src.head,
-                                        dst: documents.dst.head
-                                    }, config.update.ignore) : undefined;
-                                    config.update.css ? void css_1.css({
-                                        src: documents.src.body,
-                                        dst: documents.dst.body
-                                    }, config.update.ignore) : undefined;
+                                    config.update.css ? void css_1.css(documents, config.update.ignore) : undefined;
                                     void io.document.dispatchEvent(new Event('pjax:content'));
                                     const seqC = yield config.sequence.content(seqB, areas);
-                                    const ssm = config.update.script ? yield script_1.script(documents, state.scripts, config.update, Math.max(config.fetch.timeout * 10, 10 * 1000), config.update.fallback, process) : yield process.either(tuple_1.tuple([
+                                    const ssm = config.update.script ? yield script_1.script(documents, state.scripts, config.update, Math.max(config.fetch.timeout, 1000) * 10, process) : yield process.either(tuple_1.tuple([
                                         [],
                                         Promise.resolve(process.either([]))
                                     ]));
@@ -3850,9 +3839,18 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const dom_1 = require('../../../../../lib/dom');
             const sync_1 = require('./sync');
-            function css(scope, ignore) {
+            function css(documents, ignore) {
                 const selector = 'link[rel~="stylesheet"], style';
-                return void sync_1.sync(sync_1.pair(dom_1.find(scope.src, selector).filter(el => !el.matches(ignore.trim() || '_')), dom_1.find(scope.dst, selector).filter(el => !el.matches(ignore.trim() || '_')), (a, b) => a.outerHTML === b.outerHTML), scope.dst);
+                return void [
+                    'head',
+                    'body'
+                ].map(query => [
+                    documents.src.querySelector(query),
+                    documents.dst.querySelector(query)
+                ]).forEach(([src, dst]) => void sync_1.sync(sync_1.pair(list(src), list(dst), (a, b) => a.outerHTML === b.outerHTML), dst));
+                function list(source) {
+                    return dom_1.find(source, selector).filter(el => !el.matches(ignore.trim() || '_'));
+                }
             }
             exports.css = css;
         },
@@ -3891,9 +3889,12 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const sync_1 = require('./sync');
             const dom_1 = require('../../../../../lib/dom');
-            function head(scope, selector, ignore) {
+            function head(documents, selector, ignore) {
                 ignore += selector.includes('link') ? ', link[rel~="stylesheet"]' : '';
-                return void sync_1.sync(sync_1.pair(dom_1.find(scope.src, selector).filter(el => !el.matches(ignore.trim() || '_')), dom_1.find(scope.dst, selector).filter(el => !el.matches(ignore.trim() || '_')), (a, b) => a.outerHTML === b.outerHTML), scope.dst);
+                return void sync_1.sync(sync_1.pair(list(documents.src.head), list(documents.dst.head), (a, b) => a.outerHTML === b.outerHTML), documents.dst.head);
+                function list(source) {
+                    return dom_1.find(source, selector).filter(el => !el.matches(ignore.trim() || '_'));
+                }
             }
             exports.head = head;
         },
@@ -3938,7 +3939,7 @@ require = function () {
             const url_1 = require('../../../../../lib/url');
             const url_2 = require('../../../../data/model/domain/url');
             const typed_dom_1 = require('typed-dom');
-            function script(documents, skip, selector, timeout, fallback, cancellation, io = {
+            function script(documents, skip, selector, timeout, cancellation, io = {
                 fetch,
                 evaluate
             }) {
@@ -3976,10 +3977,10 @@ require = function () {
                     })).extract(either_1.Left);
                 }));
                 function request(scripts) {
-                    return scripts.map(script => io.fetch(script, timeout, fallback));
+                    return scripts.map(script => io.fetch(script, timeout));
                 }
                 function run(responses) {
-                    return responses.reduce((results, m) => m.bind(() => results), responses.reduce((results, m) => results.bind(cancellation.either).bind(([sp, ap]) => m.fmap(([script, code]) => io.evaluate(script, code, selector.logger, skip, Promise.all(sp), fallback, cancellation)).bind(m => m.extract(p => either_1.Right(tuple_1.tuple([
+                    return responses.reduce((results, m) => m.bind(() => results), responses.reduce((results, m) => results.bind(cancellation.either).bind(([sp, ap]) => m.fmap(([script, code]) => io.evaluate(script, code, selector.logger, skip, Promise.all(sp), cancellation)).bind(m => m.extract(p => either_1.Right(tuple_1.tuple([
                         concat_1.concat(sp, [p]),
                         ap
                     ])), p => either_1.Right(tuple_1.tuple([
@@ -3998,7 +3999,7 @@ require = function () {
                 }
             }
             exports.script = script;
-            function fetch(script, timeout, fallback) {
+            function fetch(script, timeout) {
                 return __awaiter(this, void 0, void 0, function* () {
                     if (!script.hasAttribute('src'))
                         return either_1.Right([
@@ -4027,13 +4028,16 @@ require = function () {
                                 xhr.response
                             ])));
                         default:
-                            return void xhr.addEventListener(type, () => type === 'error' && script.matches('[src][async]') ? void resolve(retry(script, fallback).catch(() => either_1.Left(new Error(`${ script.src }: ${ xhr.statusText }`)))) : void resolve(either_1.Left(new Error(`${ script.src }: ${ xhr.statusText }`))));
+                            return void xhr.addEventListener(type, () => type === 'error' && script.matches('[src][async]') ? void resolve(retry(script).then(() => either_1.Right([
+                                script,
+                                ''
+                            ]), () => either_1.Left(new Error(`${ script.src }: ${ xhr.statusText }`)))) : void resolve(either_1.Left(new Error(`${ script.src }: ${ xhr.statusText }`))));
                         }
                     }));
                 });
             }
             exports._fetch = fetch;
-            function evaluate(script, code, logger, skip, wait, fallback, cancellation) {
+            function evaluate(script, code, logger, skip, wait, cancellation) {
                 script = script.ownerDocument === document ? script : document.importNode(script.cloneNode(true), true);
                 const logging = !!script.parentElement && script.parentElement.matches(logger.trim() || '_');
                 const container = document.querySelector(logging ? script.parentElement.id ? `#${ script.parentElement.id }` : script.parentElement.tagName : '_') || document.body;
@@ -4046,7 +4050,7 @@ require = function () {
                 function evaluate() {
                     return __awaiter(this, void 0, void 0, function* () {
                         if (script.matches('[type="module"][src]')) {
-                            return Promise.resolve().then(() => require(script.src)).catch(reason => reason.message.startsWith('Failed to load ') && script.matches('[src][async]') ? retry(script, fallback).catch(() => Promise.reject(reason)) : Promise.reject(reason)).then(() => (void script.dispatchEvent(new Event('load')), either_1.Right(script)), reason => (void script.dispatchEvent(new Event('error')), either_1.Left(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''))));
+                            return Promise.resolve().then(() => require(script.src)).catch(reason => reason.message.startsWith('Failed to load ') && script.matches('[src][async]') ? retry(script).catch(() => Promise.reject(reason)) : Promise.reject(reason)).then(() => (void script.dispatchEvent(new Event('load')), either_1.Right(script)), reason => (void script.dispatchEvent(new Event('error')), either_1.Left(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''))));
                         } else {
                             try {
                                 if (new url_1.URL(url_2.standardizeUrl(window.location.href)).path !== new url_1.URL(url_2.standardizeUrl(window.location.href)).path)
@@ -4073,13 +4077,11 @@ require = function () {
                 return () => (script.text = ' ', script.text = code, typeof src === 'string' ? void script.setAttribute('src', src) : undefined);
             }
             exports.escape = escape;
-            function retry(script, fallback) {
+            function retry(script) {
                 if (new url_1.URL(url_2.standardizeUrl(script.src)).origin === new url_1.URL(url_2.standardizeUrl(window.location.href)).origin)
                     return Promise.reject(new Error());
-                return fallback(typed_dom_1.html('script', Object.values(script.attributes).reduce((o, {name, value}) => (o[name] = value, o), {}), [...script.childNodes])).then(() => either_1.Right([
-                    script,
-                    ''
-                ]));
+                script = typed_dom_1.html('script', Object.values(script.attributes).reduce((o, {name, value}) => (o[name] = value, o), {}), [...script.childNodes]);
+                return new Promise((resolve, reject) => (void script.addEventListener('load', () => void resolve()), void script.addEventListener('error', reject), void document.body.appendChild(script), void script.remove()));
             }
         },
         {
@@ -4661,19 +4663,13 @@ require = function () {
             const url_2 = require('../../../../lib/url');
             const dom_1 = require('../../../../lib/dom');
             const typed_dom_1 = require('typed-dom');
-            const concat_1 = require('spica/concat');
             exports.scripts = new Set();
             void typed_dom_1.bind(window, 'pjax:unload', () => void dom_1.find(document, 'script[src]').forEach(script => void exports.scripts.add(new url_2.URL(url_1.standardizeUrl(script.src)).href)));
-            void new MutationObserver(ms => void ms.reduce((ss, {addedNodes}) => concat_1.concat(ss, [...addedNodes].filter(node => node instanceof HTMLScriptElement && node.hasAttribute('src'))), []).forEach(script => void typed_dom_1.once(script, 'load', () => void exports.scripts.add(new url_2.URL(url_1.standardizeUrl(script.src)).href)))).observe(document.documentElement, {
-                childList: true,
-                subtree: true
-            });
         },
         {
             '../../../../lib/dom': 129,
             '../../../../lib/url': 133,
             '../../../data/model/domain/url': 92,
-            'spica/concat': 8,
             'typed-dom': 82
         }
     ],
