@@ -96,23 +96,13 @@ export function script(
         , Right<Error, [Promise<Either<Error, HTMLScriptElement>>[], Promise<Either<Error, HTMLScriptElement>>[]]>([[], []])))
       .fmap(([sp, ap]) =>
         Promise.all(sp)
-          .then(traverse)
+          .then(Either.sequence)
           .then(sm =>
             sm.fmap(ss => tuple([
               ss,
               Promise.all(ap)
-                .then(traverse)
+                .then(Either.sequence)
             ]))));
-
-
-    function traverse(ms: Either<Error, HTMLScriptElement>[]): Either<Error, HTMLScriptElement[]> {
-      return ms
-        .reduce((acc, m) => acc
-          .bind(scripts => m
-            .fmap(script =>
-              concat(scripts, [script])))
-          , Right([]) as Either<Error, HTMLScriptElement[]>);
-    }
   }
 }
 
