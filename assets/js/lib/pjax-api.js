@@ -3989,13 +3989,10 @@ require = function () {
                     ]))))), either_1.Right([
                         [],
                         []
-                    ]))).fmap(([sp, ap]) => Promise.all(sp).then(traverse).then(sm => sm.fmap(ss => tuple_1.tuple([
+                    ]))).fmap(([sp, ap]) => Promise.all(sp).then(either_1.Either.sequence).then(sm => sm.fmap(ss => tuple_1.tuple([
                         ss,
-                        Promise.all(ap).then(traverse)
+                        Promise.all(ap).then(either_1.Either.sequence)
                     ]))));
-                    function traverse(ms) {
-                        return ms.reduce((acc, m) => acc.bind(scripts => m.fmap(script => concat_1.concat(scripts, [script]))), either_1.Right([]));
-                    }
                 }
             }
             exports.script = script;
