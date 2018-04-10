@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.21.3
+
+- Micro refactoring.
+
 ## 3.21.2
 
 - Remove config.update.fallback option.
