@@ -26,7 +26,7 @@ describe('Unit: layer/domain/router/module/update/content', () => {
       const src = parse('<div id="id">a</div><div class="class">c</div>').extract();
       const dst = parse('<div id="id"></div><div class="class">b</div><div class="class"></div>').extract();
       const docs = { src, dst };
-      content(docs, separate(docs, ['_', '#id, .class', '.class', '_']).fmap(([, areas]) => areas).extract(done));
+      separate(docs, ['_', '#id, .class', '.class', '_']).fmap(([, areas]) => areas).extract(done);
     });
 
   });
