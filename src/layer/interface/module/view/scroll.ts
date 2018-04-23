@@ -9,14 +9,13 @@ export class ScrollView {
     listener: (event: Event) => void,
     cancellation: Cancellee,
   ) {
-    void this.sv.register('', () => (
+    void this.sv.register('', () => new Promise(() =>
       void this.sv.events.exit.monitor(
         [],
         bind(window, 'scroll', debounce(100, ev => (
           !cancellation.canceled &&
           void listener(ev)
-        )), { passive: true })),
-      new Promise<never>(() => undefined)
+        )), { passive: true }))
     ), undefined);
     void this.sv.cast('', undefined);
     void cancellation.register(() => this.sv.terminate());

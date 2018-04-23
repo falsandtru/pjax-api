@@ -28,18 +28,18 @@ export class GUI extends API {
     const config = new Config(this.option);
     void view.register('', {
       init: s => s,
-      main: (_, s) => (
+      main: (_, s) => new Promise(() => {
         void new ClickView(this.io.document, config.link, event =>
-          void io.router(config, new RouterEvent(event), process, io), s),
+          void io.router(config, new RouterEvent(event), process, io), s);
         void new SubmitView(this.io.document, config.form, event =>
-          void io.router(config, new RouterEvent(event), process, io), s),
+          void io.router(config, new RouterEvent(event), process, io), s);
         void new NavigationView(window, event =>
-          void io.router(config, new RouterEvent(event), process, io), s),
+          void io.router(config, new RouterEvent(event), process, io), s);
         void new ScrollView(window, () => {
           if (new URL(standardizeUrl(window.location.href)).href !== docurl.href) return;
           void savePosition();
-        }, s),
-        new Promise<never>(() => undefined)),
+        }, s);
+      }),
       exit: (_, s) =>
         void s.cancel(),
     }, new Cancellation(), new Error('Kill'));

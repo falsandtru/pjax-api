@@ -9,15 +9,14 @@ export class ClickView {
     listener: (event: MouseEvent) => void,
     cancellation: Cancellee,
   ) {
-    void this.sv.register('', () => (
+    void this.sv.register('', () => new Promise(() =>
       void this.sv.events.exit.monitor(
         [],
         delegate(document, selector, 'click', ev => {
           if (!(ev.currentTarget instanceof HTMLAnchorElement)) return;
           if (typeof ev.currentTarget.href !== 'string') return;
           void listener(ev);
-        })),
-      new Promise<never>(() => undefined)
+        }))
     ), undefined);
     void this.sv.cast('', undefined);
     void cancellation.register(() => this.sv.terminate());

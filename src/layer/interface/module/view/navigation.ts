@@ -10,14 +10,13 @@ export class NavigationView {
     listener: (event: Event) => void,
     cancellation: Cancellee,
   ) {
-    void this.sv.register('', () => (
+    void this.sv.register('', () => new Promise(() =>
       void this.sv.events.exit.monitor(
         [],
         bind(window, 'popstate', ev => {
           if (standardizeUrl(window.location.href) === docurl.href) return;
           void listener(ev);
-        })),
-      new Promise<never>(() => undefined)
+        }))
     ), undefined);
     void this.sv.cast('', undefined);
     void cancellation.register(() => this.sv.terminate());
