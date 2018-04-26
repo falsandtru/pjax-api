@@ -2482,6 +2482,7 @@ require = function () {
                     void tick_1.tick(this.scheduler, true);
                 }
             }
+            Supervisor.terminator = Symbol();
             exports.Supervisor = Supervisor;
             class Worker {
                 constructor(sv, name, process, state, events, destructor_) {
@@ -2505,7 +2506,16 @@ require = function () {
                     this.alive = false;
                     this.available = false;
                     void Object.freeze(this);
-                    void this.destructor_();
+                    try {
+                        this.job && this.job[Supervisor.terminator] && void this.job[Supervisor.terminator](reason);
+                    } catch (reason) {
+                        void exception_1.causeAsyncException(reason);
+                    }
+                    try {
+                        void this.destructor_();
+                    } catch (reason) {
+                        void exception_1.causeAsyncException(reason);
+                    }
                     if (this.initiated) {
                         try {
                             void this.process.exit(reason, this.state);
@@ -2542,7 +2552,8 @@ require = function () {
                             ]);
                             this.state = this.process.init(this.state);
                         }
-                        void Promise.resolve(this.process.main(param, this.state)).then(resolve, reject);
+                        this.job = this.process.main(param, this.state);
+                        void Promise.resolve(this.job).then(resolve, reject);
                     }).then(result => {
                         const [reply, state] = Array.isArray(result) ? result : [
                             result.reply,
@@ -2965,11 +2976,15 @@ require = function () {
                 return element('svg', tag, attrs, children);
             }
             exports.svg = svg;
+            function text(source) {
+                return document.createTextNode(source);
+            }
+            exports.text = text;
             function element(ns, tag, attrs = {}, children = []) {
                 if (isChildren(attrs))
                     return element(ns, tag, {}, attrs);
                 if (typeof children === 'string')
-                    return element(ns, tag, attrs, [document.createTextNode(children)]);
+                    return element(ns, tag, attrs, [text(children)]);
                 const key = `${ ns }:${ tag }`;
                 const el = cache.has(key) ? cache.get(key).cloneNode(true) : cache.set(key, elem(ns, tag)).get(key).cloneNode(true);
                 void Object.entries(attrs).forEach(([name, value]) => void el.setAttribute(name, value));
@@ -4284,13 +4299,13 @@ require = function () {
                 constructor(document, selector, listener, cancellation) {
                     this.sv = new class extends supervisor_1.Supervisor {
                     }();
-                    void this.sv.register('', () => (void this.sv.events.exit.monitor([], typed_dom_1.delegate(document, selector, 'click', ev => {
+                    void this.sv.register('', () => new Promise(() => void this.sv.events.exit.monitor([], typed_dom_1.delegate(document, selector, 'click', ev => {
                         if (!(ev.currentTarget instanceof HTMLAnchorElement))
                             return;
                         if (typeof ev.currentTarget.href !== 'string')
                             return;
                         void listener(ev);
-                    })), new Promise(() => undefined)), undefined);
+                    }))), undefined);
                     void this.sv.cast('', undefined);
                     void cancellation.register(() => this.sv.terminate());
                 }
@@ -4314,11 +4329,11 @@ require = function () {
                 constructor(window, listener, cancellation) {
                     this.sv = new class extends supervisor_1.Supervisor {
                     }();
-                    void this.sv.register('', () => (void this.sv.events.exit.monitor([], typed_dom_1.bind(window, 'popstate', ev => {
+                    void this.sv.register('', () => new Promise(() => void this.sv.events.exit.monitor([], typed_dom_1.bind(window, 'popstate', ev => {
                         if (url_1.standardizeUrl(window.location.href) === url_2.docurl.href)
                             return;
                         void listener(ev);
-                    })), new Promise(() => undefined)), undefined);
+                    }))), undefined);
                     void this.sv.cast('', undefined);
                     void cancellation.register(() => this.sv.terminate());
                 }
@@ -4343,7 +4358,7 @@ require = function () {
                 constructor(window, listener, cancellation) {
                     this.sv = new class extends supervisor_1.Supervisor {
                     }();
-                    void this.sv.register('', () => (void this.sv.events.exit.monitor([], typed_dom_1.bind(window, 'scroll', throttle_1.debounce(100, ev => !cancellation.canceled && void listener(ev)), { passive: true })), new Promise(() => undefined)), undefined);
+                    void this.sv.register('', () => new Promise(() => void this.sv.events.exit.monitor([], typed_dom_1.bind(window, 'scroll', throttle_1.debounce(100, ev => !cancellation.canceled && void listener(ev)), { passive: true }))), undefined);
                     void this.sv.cast('', undefined);
                     void cancellation.register(() => this.sv.terminate());
                 }
@@ -4366,11 +4381,11 @@ require = function () {
                 constructor(document, selector, listener, cancellation) {
                     this.sv = new class extends supervisor_1.Supervisor {
                     }();
-                    void this.sv.register('', () => (void this.sv.events.exit.monitor([], typed_dom_1.delegate(document, selector, 'submit', ev => {
+                    void this.sv.register('', () => new Promise(() => void this.sv.events.exit.monitor([], typed_dom_1.delegate(document, selector, 'submit', ev => {
                         if (!(ev.currentTarget instanceof HTMLFormElement))
                             return;
                         void listener(ev);
-                    })), new Promise(() => undefined)), undefined);
+                    }))), undefined);
                     void this.sv.cast('', undefined);
                     void cancellation.register(() => this.sv.terminate());
                 }
@@ -4453,11 +4468,16 @@ require = function () {
                     const config = new router_1.Config(this.option);
                     void view.register('', {
                         init: s => s,
-                        main: (_, s) => (void new click_1.ClickView(this.io.document, config.link, event => void io.router(config, new router_1.RouterEvent(event), process_1.process, io), s), void new submit_1.SubmitView(this.io.document, config.form, event => void io.router(config, new router_1.RouterEvent(event), process_1.process, io), s), void new navigation_1.NavigationView(window, event => void io.router(config, new router_1.RouterEvent(event), process_1.process, io), s), void new scroll_1.ScrollView(window, () => {
-                            if (new url_1.URL(url_2.standardizeUrl(window.location.href)).href !== url_3.docurl.href)
-                                return;
-                            void store_1.savePosition();
-                        }, s), new Promise(() => undefined)),
+                        main: (_, s) => new Promise(() => {
+                            void new click_1.ClickView(this.io.document, config.link, event => void io.router(config, new router_1.RouterEvent(event), process_1.process, io), s);
+                            void new submit_1.SubmitView(this.io.document, config.form, event => void io.router(config, new router_1.RouterEvent(event), process_1.process, io), s);
+                            void new navigation_1.NavigationView(window, event => void io.router(config, new router_1.RouterEvent(event), process_1.process, io), s);
+                            void new scroll_1.ScrollView(window, () => {
+                                if (new url_1.URL(url_2.standardizeUrl(window.location.href)).href !== url_3.docurl.href)
+                                    return;
+                                void store_1.savePosition();
+                            }, s);
+                        }),
                         exit: (_, s) => void s.cancel()
                     }, new cancellation_1.Cancellation(), new Error('Kill'));
                     void view.cast('', undefined);
