@@ -2,7 +2,6 @@ const gulp = require('gulp');
 const glob = require('glob');
 const shell = cmd => require('child_process').execSync(cmd, { stdio: [0, 1, 2] });
 const del = require('del');
-const extend = require('extend');
 const source = require('vinyl-source-stream');
 const buffer = require('vinyl-buffer');
 const $ = require('gulp-load-plugins')();
