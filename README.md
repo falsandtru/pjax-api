@@ -19,12 +19,12 @@ The second generation PJAX for the advanced web frameworks.
 |Script markless auto load|X|O|X|
 |External script load|O|O|O|
 |Inline script execution|X|O|O|
-|Keep execution sequence|X|O|X|
+|Execution sequence keeping|X|O|X|
 |Non-blocking script load|O|O|O|
 |Lightweight source rewrite|X|O|O|
-|Caching|O|X|O|
+|Cache|O|X|O|
 |URL scope|X|O|X|
-|URL scope base ovarride setting|X|O|X|
+|URL scope-based override settings|X|O|X|
 |**Browser history fix**|**X**|O|**X**|
 |**Scroll position restoration**|**X**|O|**X**|
 |NOSCRIPT tag restoration|X|O|X|
