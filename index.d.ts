@@ -38,7 +38,7 @@ export interface Config {
 }
 
 export interface Sequence<a, b, c, d> {
-  readonly fetch: (result: void, request: { path: string; method: string; data: FormData | null; }) => Promise<a>;
+  readonly fetch: (result: void, request: { path: string; method: string; body: FormData | null; }) => Promise<a>;
   readonly unload: (result: a, response: { url: string; header: (name: string) => string | null; document: Document; }) => Promise<b>;
   readonly content: (result: b, areas: HTMLElement[]) => Promise<c>;
   readonly ready: (result: c) => Promise<d>;

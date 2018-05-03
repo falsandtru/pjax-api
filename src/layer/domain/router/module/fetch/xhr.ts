@@ -10,7 +10,7 @@ import { URL } from '../../../../../lib/url';
 export function xhr(
   method: RouterEventMethod,
   url: StandardUrl,
-  data: FormData | null,
+  body: FormData | null,
   timeout: number,
   redirect: (path: URL.Path<StandardUrl>) => string,
   cancellation: Cancellee<Error>
@@ -23,7 +23,7 @@ export function xhr(
     xhr.responseType = 'document',
     xhr.timeout = timeout,
     void xhr.setRequestHeader('X-Pjax', '1'),
-    void xhr.send(data),
+    void xhr.send(body),
 
     void xhr.addEventListener("abort", () =>
       void resolve(Left(new DomainError(`Failed to request a page by abort.`)))),

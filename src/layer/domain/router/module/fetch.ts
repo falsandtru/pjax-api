@@ -12,7 +12,7 @@ export async function fetch(
   {
     method,
     url,
-    data,
+    body,
   }: RouterEventRequest,
   {
     redirect,
@@ -24,14 +24,14 @@ export async function fetch(
   }: Config,
   process: Cancellee<Error>
 ): Promise<Either<Error, [FetchResponse, 'fetch']>> {
-  const req = xhr(method, url, data, timeout, redirect, process);
+  const req = xhr(method, url, body, timeout, redirect, process);
   void window.dispatchEvent(new Event('pjax:fetch'));
   const [res, seq] = await Promise.all([
     req,
     sequence.fetch(undefined, {
       path: new URL(url).path,
       method,
-      data,
+      body,
     }),
     new Promise<void>(resolve => void setTimeout(resolve, wait))
   ]);

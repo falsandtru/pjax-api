@@ -82,7 +82,7 @@ export class RouterEventRequest {
     }
     throw new TypeError();
   })();
-  public readonly data: FormData | null = (() =>
+  public readonly body: FormData | null = (() =>
     this.source instanceof RouterEventSource.Form && this.method === RouterEventMethod.POST
       ? new FormData(this.source)
       : null)();

@@ -8,7 +8,7 @@ describe('Unit: layer/domain/event/router', () => {
       const req = new RouterEventRequest(html('a', { href: location.href }));
       assert(req.url === standardizeUrl(''));
       assert(req.method === RouterEventMethod.GET);
-      assert(req.data === null);
+      assert(req.body === null);
     });
 
     it('submit get', () => {
@@ -17,7 +17,7 @@ describe('Unit: layer/domain/event/router', () => {
       ]));
       assert(req.url === standardizeUrl('./search?test=abc'));
       assert(req.method === RouterEventMethod.GET);
-      assert(req.data === null);
+      assert(req.body === null);
     });
 
     it('submit post', () => {
@@ -26,14 +26,14 @@ describe('Unit: layer/domain/event/router', () => {
       ]));
       assert(req.url === standardizeUrl('./send'));
       assert(req.method === RouterEventMethod.POST);
-      assert(req.data instanceof FormData);
+      assert(req.body instanceof FormData);
     });
 
     it('popstate', () => {
       const req = new RouterEventRequest(window);
       assert(req.url === standardizeUrl(''));
       assert(req.method === RouterEventMethod.GET);
-      assert(req.data === null);
+      assert(req.body === null);
     });
 
   });
