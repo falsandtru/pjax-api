@@ -17,6 +17,7 @@ export async function fetch(
   {
     redirect,
     fetch: {
+      headers,
       timeout,
       wait,
     },
@@ -24,13 +25,14 @@ export async function fetch(
   }: Config,
   process: Cancellee<Error>
 ): Promise<Either<Error, [FetchResponse, 'fetch']>> {
-  const req = xhr(method, url, body, timeout, redirect, process);
+  const req = xhr(method, url, headers, body, timeout, redirect, process);
   void window.dispatchEvent(new Event('pjax:fetch'));
   const [res, seq] = await Promise.all([
     req,
     sequence.fetch(undefined, {
       path: new URL(url).path,
       method,
+      headers,
       body,
     }),
     new Promise<void>(resolve => void setTimeout(resolve, wait))

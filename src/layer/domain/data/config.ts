@@ -24,6 +24,7 @@ export class Config implements DeepRequired<Option, Config['scope']> {
     });
     void extend(this, option);
     void Object.freeze(this);
+    void this.fetch.headers.set('X-Pjax', '1');
   }
   public readonly areas = ['body'];
   public readonly link = 'a';
@@ -36,6 +37,7 @@ export class Config implements DeepRequired<Option, Config['scope']> {
     return path;
   }
   public readonly fetch = {
+    headers: new Headers(),
     timeout: 3000,
     wait: 0
   };

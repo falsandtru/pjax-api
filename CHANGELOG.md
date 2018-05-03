@@ -2,6 +2,7 @@
 
 ## 3.22.0
 
+- Add `headers` property to sequence.fetch option's parameter.
 - Change the property name from `data` to `body` of sequence.fetch option's parameter.
 
 ## 3.21.3

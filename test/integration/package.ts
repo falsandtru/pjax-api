@@ -66,6 +66,7 @@ describe('Integration: Package', function () {
           assert.deepStrictEqual(req, {
             path: path,
             method: 'GET',
+            headers: req.headers,
             body: null
           });
           return 1;

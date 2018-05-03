@@ -133,7 +133,7 @@ Control the page routing sequence.
 It can integrate and synchronize other async processes.
 All methods are required, not optional.
 
-### fetch: (result: void, request: { path: string; method: string; body: FormData | null; }): Promise\<a>
+### fetch: (result: void, request: { path: string; method: string; headers: Headers; body: FormData | null; }): Promise\<a>
 
 ### unload: (result: a, response: { url: string; header: (name: string) => string | null; document: Document; }): Promise\<b>
 

@@ -10,6 +10,7 @@ import { URL } from '../../../../../lib/url';
 export function xhr(
   method: RouterEventMethod,
   url: StandardUrl,
+  headers: Headers,
   body: FormData | null,
   timeout: number,
   redirect: (path: URL.Path<StandardUrl>) => string,
@@ -19,10 +20,12 @@ export function xhr(
   const xhr = new XMLHttpRequest();
   return new Promise<Either<Error, FetchResponse>>(resolve => (
     void xhr.open(method, new URL(url_).path, true),
+    void [...headers.entries()]
+      .forEach(([name, value]) =>
+        void xhr.setRequestHeader(name, value)),
 
     xhr.responseType = 'document',
     xhr.timeout = timeout,
-    void xhr.setRequestHeader('X-Pjax', '1'),
     void xhr.send(body),
 
     void xhr.addEventListener("abort", () =>
