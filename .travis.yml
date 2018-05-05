@@ -4,9 +4,9 @@ matrix:
   - os: linux
     dist: trusty
     sudo: required
-    node_js: 9
+    node_js: 10
   - os: osx
-    node_js: 9
+    node_js: 10
 addons:
   chrome: stable
   firefox: latest
@@ -27,7 +27,7 @@ deploy:
     secure: k9k/ScWG5ig5AnzTgYe43i6I+PgftS100qsF8kAvFPX7GYQEsugK5SCpO5rKFamNFul+dK8yDpGE3rEI87Ec/t3oTeneq51jTTxaTTwgC3X6GgzmaN80DMpqfXBIaksMzFjxjSifsO6NqCE2p6JWP4hLfJeXTX7CdlcZh8T0ois=
   on:
     branch: master
-    node: 9
+    node: 10
     condition: $TRAVIS_OS_NAME = linux
   skip_cleanup: true
 notifications:
