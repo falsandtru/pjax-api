@@ -2354,12 +2354,12 @@ require = function () {
                                     param
                                 ]);
                                 try {
-                                    void callback(undefined, new Error(`Spica: Supervisor: A processing has failed.`));
+                                    void callback(undefined, new Error(`Spica: Supervisor: A process has failed.`));
                                 } catch (reason) {
                                     void exception_1.causeAsyncException(reason);
                                 }
                             } else {
-                                void result.then(reply => void callback(reply), () => void callback(undefined, new Error(`Spica: Supervisor: A processing has failed.`)));
+                                void result.then(reply => void callback(reply), () => void callback(undefined, new Error(`Spica: Supervisor: A process has failed.`)));
                             }
                         }
                     };
@@ -2536,11 +2536,6 @@ require = function () {
                     this.available = false;
                     void Object.freeze(this);
                     try {
-                        this.job && this.job[Supervisor.terminator] && void this.job[Supervisor.terminator](reason);
-                    } catch (reason) {
-                        void exception_1.causeAsyncException(reason);
-                    }
-                    try {
                         void this.destructor_();
                     } catch (reason) {
                         void exception_1.causeAsyncException(reason);
@@ -2581,8 +2576,7 @@ require = function () {
                             ]);
                             this.state = this.process.init(this.state);
                         }
-                        this.job = this.process.main(param, this.state);
-                        void Promise.resolve(this.job).then(resolve, reject);
+                        void Promise.resolve(this.process.main(param, this.state)).then(resolve, reject);
                     }).then(result => {
                         const [reply, state] = Array.isArray(result) ? result : [
                             result.reply,
@@ -4989,10 +4983,11 @@ require = function () {
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
+            const IDENTITY = Symbol();
             class URL {
                 constructor(url) {
                     this.parser = document.createElement('a');
-                    this[URL.IDENTITY];
+                    this[IDENTITY];
                     this.parser.href = url || location.href;
                     Object.freeze(this);
                 }
@@ -5036,7 +5031,6 @@ require = function () {
                     return this.parser.href.replace(/^[^#]+/, '');
                 }
             }
-            URL.IDENTITY;
             exports.URL = URL;
         },
         {}
