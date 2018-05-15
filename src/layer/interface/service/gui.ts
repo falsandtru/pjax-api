@@ -1,6 +1,6 @@
 import { API } from './api';
 import { Config as Option } from '../../../../';
-import { Supervisor } from 'spica/supervisor';
+import { Supervisor } from 'spica/supervisor.legacy';
 import { Cancellation } from 'spica/cancellation';
 import { URL } from '../../../lib/url';
 import { standardizeUrl } from '../../data/model/domain/url';

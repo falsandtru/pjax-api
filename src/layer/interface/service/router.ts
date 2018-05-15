@@ -1,4 +1,4 @@
-import { Supervisor } from 'spica/supervisor';
+import { Supervisor } from 'spica/supervisor.legacy';
 import { Cancellation } from 'spica/cancellation';
 import { bind, currentTargets } from 'typed-dom';
 import { route as router, Config, scope, RouterEvent, RouterEventType, RouterEventSource } from '../../application/router';

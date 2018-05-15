@@ -1,4 +1,4 @@
-import { Supervisor } from 'spica/supervisor';
+import { Supervisor } from 'spica/supervisor.legacy';
 import { Cancellee } from 'spica/cancellation';
 import { delegate } from 'typed-dom';
 
