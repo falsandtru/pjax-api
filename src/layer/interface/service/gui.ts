@@ -29,16 +29,17 @@ export class GUI extends API {
     void view.register('', {
       init: s => s,
       main: (_, s) => new Promise(() => {
-        void new ClickView(this.io.document, config.link, event =>
-          void io.router(config, new RouterEvent(event), process, io), s);
-        void new SubmitView(this.io.document, config.form, event =>
-          void io.router(config, new RouterEvent(event), process, io), s);
-        void new NavigationView(window, event =>
-          void io.router(config, new RouterEvent(event), process, io), s);
-        void new ScrollView(window, () => {
+        void s.register(new ClickView(this.io.document, config.link, event =>
+          void io.router(config, new RouterEvent(event), process, io)).close);
+        void s.register(new SubmitView(this.io.document, config.form, event =>
+          void io.router(config, new RouterEvent(event), process, io)).close);
+        void s.register(new NavigationView(window, event =>
+          void io.router(config, new RouterEvent(event), process, io)).close);
+        void s.register(new ScrollView(window, () => {
+          if (s.canceled) return;
           if (new URL(standardizeUrl(window.location.href)).href !== docurl.href) return;
           void savePosition();
-        }, s);
+        }).close);
       }),
       exit: (_, s) =>
         void s.cancel(),
