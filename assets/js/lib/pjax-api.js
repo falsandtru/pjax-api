@@ -4372,9 +4372,10 @@ require = function () {
             const supervisor_legacy_1 = require('spica/supervisor.legacy');
             const typed_dom_1 = require('typed-dom');
             class ClickView {
-                constructor(document, selector, listener, cancellation) {
+                constructor(document, selector, listener) {
                     this.sv = new class extends supervisor_legacy_1.Supervisor {
                     }();
+                    this.close = () => void this.sv.terminate();
                     void this.sv.register('', () => new Promise(() => void this.sv.events.exit.monitor([], typed_dom_1.delegate(document, selector, 'click', ev => {
                         if (!(ev.currentTarget instanceof HTMLAnchorElement))
                             return;
@@ -4383,7 +4384,6 @@ require = function () {
                         void listener(ev);
                     }))), undefined);
                     void this.sv.cast('', undefined);
-                    void cancellation.register(() => this.sv.terminate());
                 }
             }
             exports.ClickView = ClickView;
@@ -4402,16 +4402,16 @@ require = function () {
             const url_1 = require('../../../data/model/domain/url');
             const url_2 = require('../../service/state/url');
             class NavigationView {
-                constructor(window, listener, cancellation) {
+                constructor(window, listener) {
                     this.sv = new class extends supervisor_legacy_1.Supervisor {
                     }();
+                    this.close = () => void this.sv.terminate();
                     void this.sv.register('', () => new Promise(() => void this.sv.events.exit.monitor([], typed_dom_1.bind(window, 'popstate', ev => {
                         if (url_1.standardizeUrl(window.location.href) === url_2.docurl.href)
                             return;
                         void listener(ev);
                     }))), undefined);
                     void this.sv.cast('', undefined);
-                    void cancellation.register(() => this.sv.terminate());
                 }
             }
             exports.NavigationView = NavigationView;
@@ -4431,12 +4431,14 @@ require = function () {
             const typed_dom_1 = require('typed-dom');
             const throttle_1 = require('spica/throttle');
             class ScrollView {
-                constructor(window, listener, cancellation) {
+                constructor(window, listener) {
                     this.sv = new class extends supervisor_legacy_1.Supervisor {
                     }();
-                    void this.sv.register('', () => new Promise(() => void this.sv.events.exit.monitor([], typed_dom_1.bind(window, 'scroll', throttle_1.debounce(100, ev => !cancellation.canceled && void listener(ev)), { passive: true }))), undefined);
+                    this.close = () => void this.sv.terminate();
+                    void this.sv.register('', () => new Promise(() => void this.sv.events.exit.monitor([], typed_dom_1.bind(window, 'scroll', throttle_1.debounce(100, ev => {
+                        void listener(ev);
+                    }), { passive: true }))), undefined);
                     void this.sv.cast('', undefined);
-                    void cancellation.register(() => this.sv.terminate());
                 }
             }
             exports.ScrollView = ScrollView;
@@ -4454,16 +4456,16 @@ require = function () {
             const supervisor_legacy_1 = require('spica/supervisor.legacy');
             const typed_dom_1 = require('typed-dom');
             class SubmitView {
-                constructor(document, selector, listener, cancellation) {
+                constructor(document, selector, listener) {
                     this.sv = new class extends supervisor_legacy_1.Supervisor {
                     }();
+                    this.close = () => void this.sv.terminate();
                     void this.sv.register('', () => new Promise(() => void this.sv.events.exit.monitor([], typed_dom_1.delegate(document, selector, 'submit', ev => {
                         if (!(ev.currentTarget instanceof HTMLFormElement))
                             return;
                         void listener(ev);
                     }))), undefined);
                     void this.sv.cast('', undefined);
-                    void cancellation.register(() => this.sv.terminate());
                 }
             }
             exports.SubmitView = SubmitView;
@@ -4545,14 +4547,16 @@ require = function () {
                     void view.register('', {
                         init: s => s,
                         main: (_, s) => new Promise(() => {
-                            void new click_1.ClickView(this.io.document, config.link, event => void io.router(config, new router_1.RouterEvent(event), process_1.process, io), s);
-                            void new submit_1.SubmitView(this.io.document, config.form, event => void io.router(config, new router_1.RouterEvent(event), process_1.process, io), s);
-                            void new navigation_1.NavigationView(window, event => void io.router(config, new router_1.RouterEvent(event), process_1.process, io), s);
-                            void new scroll_1.ScrollView(window, () => {
+                            void s.register(new click_1.ClickView(this.io.document, config.link, event => void io.router(config, new router_1.RouterEvent(event), process_1.process, io)).close);
+                            void s.register(new submit_1.SubmitView(this.io.document, config.form, event => void io.router(config, new router_1.RouterEvent(event), process_1.process, io)).close);
+                            void s.register(new navigation_1.NavigationView(window, event => void io.router(config, new router_1.RouterEvent(event), process_1.process, io)).close);
+                            void s.register(new scroll_1.ScrollView(window, () => {
+                                if (s.canceled)
+                                    return;
                                 if (new url_1.URL(url_2.standardizeUrl(window.location.href)).href !== url_3.docurl.href)
                                     return;
                                 void store_1.savePosition();
-                            }, s);
+                            }).close);
                         }),
                         exit: (_, s) => void s.cancel()
                     }, new cancellation_1.Cancellation(), new Error('Kill'));
