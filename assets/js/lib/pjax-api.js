@@ -461,11 +461,11 @@ require = function () {
                         void Object.freeze(this);
                         void this.listeners.forEach(cb => void cb(reason));
                     };
-                    this.close = () => {
+                    this.close = reason => {
                         if (!this.alive)
                             return;
                         this.alive = false;
-                        void this.state.bind(Promise.reject());
+                        void this.state.bind(Promise.reject(reason));
                         void Object.freeze(this.listeners);
                         void Object.freeze(this);
                     };
@@ -2456,7 +2456,7 @@ require = function () {
                         main: process,
                         exit: _ => undefined
                     } : process;
-                    return this.workers.set(name, new Worker(this, name, process, state, this.events_, () => void this.workers.delete(name))).get(name).terminate;
+                    return this.workers.set(name, new Worker(this, name, process, state, this.events_, state === Supervisor.coroutine, () => void this.workers.delete(name))).get(name).terminate;
                 }
                 call(name, param, callback = this.settings.timeout, timeout = this.settings.timeout) {
                     return this.call_(name === undefined ? new NamePool(this.workers) : name, param, callback, timeout);
@@ -2542,6 +2542,7 @@ require = function () {
                     void tick_1.tick(this.scheduler, true);
                 }
             }
+            Supervisor.coroutine = Symbol();
             exports.Supervisor = Supervisor;
             class NamePool {
                 constructor(workers) {
@@ -2552,7 +2553,7 @@ require = function () {
                 }
             }
             class Worker {
-                constructor(sv, name, process, state, events, destructor_) {
+                constructor(sv, name, process, state, events, initiated, destructor_) {
                     this.sv = sv;
                     this.name = name;
                     this.process = process;
@@ -2568,6 +2569,7 @@ require = function () {
                         void this.destructor(reason);
                         return true;
                     };
+                    initiated && this.init();
                 }
                 destructor(reason) {
                     this.alive = false;
@@ -2579,23 +2581,35 @@ require = function () {
                         void exception_1.causeAsyncException(reason);
                     }
                     if (this.initiated) {
-                        try {
-                            void this.process.exit(reason, this.state);
-                            void this.events.exit.emit([this.name], [
-                                this.name,
-                                this.process,
-                                this.state,
-                                reason
-                            ]);
-                        } catch (reason_) {
-                            void this.events.exit.emit([this.name], [
-                                this.name,
-                                this.process,
-                                this.state,
-                                reason
-                            ]);
-                            void this.sv.terminate(reason_);
-                        }
+                        void this.exit(reason);
+                    }
+                }
+                init() {
+                    this.initiated = true;
+                    void this.events.init.emit([this.name], [
+                        this.name,
+                        this.process,
+                        this.state
+                    ]);
+                    this.state = this.process.init(this.state);
+                }
+                exit(reason) {
+                    try {
+                        void this.process.exit(reason, this.state);
+                        void this.events.exit.emit([this.name], [
+                            this.name,
+                            this.process,
+                            this.state,
+                            reason
+                        ]);
+                    } catch (reason_) {
+                        void this.events.exit.emit([this.name], [
+                            this.name,
+                            this.process,
+                            this.state,
+                            reason
+                        ]);
+                        void this.sv.terminate(reason_);
                     }
                 }
                 call([param, expiry]) {
@@ -2606,13 +2620,7 @@ require = function () {
                         isFinite(expiry) && void setTimeout(() => void reject(new Error()), expiry - now);
                         this.available = false;
                         if (!this.initiated) {
-                            this.initiated = true;
-                            void this.events.init.emit([this.name], [
-                                this.name,
-                                this.process,
-                                this.state
-                            ]);
-                            this.state = this.process.init(this.state);
+                            void this.init();
                         }
                         void Promise.resolve(this.process.main(param, this.state)).then(resolve, reject);
                     }).then(result => {
