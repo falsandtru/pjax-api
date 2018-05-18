@@ -1,7 +1,7 @@
 import { GUI } from './gui';
 import { API } from './api';
 import { parse } from '../../../lib/html';
-import { html, delegate, once } from 'typed-dom';
+import { html, once } from 'typed-dom';
 
 describe('Unit: layer/interface/service/gui', function () {
   describe('assign', function () {
@@ -37,7 +37,7 @@ describe('Unit: layer/interface/service/gui', function () {
         ev.original.preventDefault();
         return Promise.resolve();
       }});
-      delegate(document, 'a', 'click', ev => {
+      once(document, 'a', 'click', ev => {
         assert(ev.defaultPrevented === true);
         done();
       });
