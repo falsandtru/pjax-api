@@ -54,7 +54,7 @@ const config = {
       root.returnExports = factory();
 }
 }(typeof self !== 'undefined' ? self : this, function () {
-  return require('atomic-promise');
+  return require('${pkg.name}');
 }));
 `,
 };
