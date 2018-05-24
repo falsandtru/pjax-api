@@ -1,3 +1,4 @@
+import { AtomicPromise } from 'spica/promise';
 import { Maybe, Just, Nothing} from 'spica/maybe';
 import { concat} from 'spica/concat';
 import { tuple } from 'spica/tuple';
@@ -14,17 +15,17 @@ export function content(
   io = {
     replace: (src: Node, dst: Node): void => void dst.parentNode!.replaceChild(src, dst)
   }
-): [HTMLElement[], Promise<Event>[]] {
+): [HTMLElement[], AtomicPromise<Event>[]] {
   return [
     areas
       .map(r => r.dst)
       .reduce<HTMLElement[]>(concat, []),
     areas
       .map(load)
-      .reduce<Promise<Event>[]>(concat, []),
+      .reduce<AtomicPromise<Event>[]>(concat, []),
   ];
 
-  function load(area: AreaRecord): Promise<Event>[] {
+  function load(area: AreaRecord): AtomicPromise<Event>[] {
     return area.src
       .map((_, i) => ({
         src: documents.dst.importNode(area.src[i].cloneNode(true), true) as HTMLElement,
@@ -94,11 +95,11 @@ function split(area: string): string[] {
 }
 export { split as _split }
 
-function wait(el: HTMLElement): Promise<Event> {
-  return Promise.race([
-    new Promise<Event>(resolve => void once(el, 'load', resolve)),
-    new Promise<Event>(resolve => void once(el, 'abort', resolve)),
-    new Promise<Event>(resolve => void once(el, 'error', resolve)),
+function wait(el: HTMLElement): AtomicPromise<Event> {
+  return AtomicPromise.race([
+    new AtomicPromise<Event>(resolve => void once(el, 'load', resolve)),
+    new AtomicPromise<Event>(resolve => void once(el, 'abort', resolve)),
+    new AtomicPromise<Event>(resolve => void once(el, 'error', resolve)),
   ]);
 }
 export { wait as _wait }

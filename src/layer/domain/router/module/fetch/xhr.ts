@@ -1,3 +1,4 @@
+import { AtomicPromise } from 'spica/promise';
 import { Cancellee } from 'spica/cancellation';
 import { Sequence } from 'spica/sequence';
 import { Either, Left, Right } from 'spica/either';
@@ -15,10 +16,10 @@ export function xhr(
   timeout: number,
   redirect: (path: URL.Path<StandardUrl>) => string,
   cancellation: Cancellee<Error>
-): Promise<Either<Error, FetchResponse>> {
+): AtomicPromise<Either<Error, FetchResponse>> {
   const url_ = standardizeUrl(redirect(new URL(url).path));
   const xhr = new XMLHttpRequest();
-  return new Promise<Either<Error, FetchResponse>>(resolve => (
+  return new AtomicPromise<Either<Error, FetchResponse>>(resolve => (
     void xhr.open(method, new URL(url_).path, true),
     void [...headers.entries()]
       .forEach(([name, value]) =>

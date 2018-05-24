@@ -39,11 +39,11 @@ export interface Config {
 }
 
 export interface Sequence<a, b, c, d> {
-  readonly fetch: (result: void, request: { path: string; method: string; headers: Headers; body: FormData | null; }) => Promise<a>;
-  readonly unload: (result: a, response: { url: string; header: (name: string) => string | null; document: Document; }) => Promise<b>;
-  readonly content: (result: b, areas: HTMLElement[]) => Promise<c>;
-  readonly ready: (result: c) => Promise<d>;
-  readonly load: (result: d, events: Event[]) => Promise<void>;
+  readonly fetch: (result: void, request: { path: string; method: string; headers: Headers; body: FormData | null; }) => PromiseLike<a>;
+  readonly unload: (result: a, response: { url: string; header: (name: string) => string | null; document: Document; }) => PromiseLike<b>;
+  readonly content: (result: b, areas: HTMLElement[]) => PromiseLike<c>;
+  readonly ready: (result: c) => PromiseLike<d>;
+  readonly load: (result: d, events: Event[]) => PromiseLike<void>;
 }
 
 declare global {

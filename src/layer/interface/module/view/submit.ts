@@ -1,4 +1,5 @@
 import { Supervisor } from 'spica/supervisor.legacy';
+import { AtomicPromise } from 'spica/promise';
 import { delegate } from 'typed-dom';
 
 export class SubmitView {
@@ -7,7 +8,7 @@ export class SubmitView {
     selector: string,
     listener: (event: Event) => void,
   ) {
-    void this.sv.register('', () => new Promise(() =>
+    void this.sv.register('', () => new AtomicPromise(() =>
       void this.sv.events.exit.monitor(
         [],
         delegate(document, selector, 'submit', ev => {

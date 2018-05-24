@@ -1,4 +1,5 @@
 import { Supervisor } from 'spica/supervisor.legacy';
+import { AtomicPromise } from 'spica/promise';
 import { bind } from 'typed-dom';
 import { debounce } from 'spica/throttle';
 
@@ -7,7 +8,7 @@ export class ScrollView {
     window: Window,
     listener: (event: Event) => void,
   ) {
-    void this.sv.register('', () => new Promise(() =>
+    void this.sv.register('', () => new AtomicPromise(() =>
       void this.sv.events.exit.monitor(
         [],
         bind(window, 'scroll', debounce(100, ev => {

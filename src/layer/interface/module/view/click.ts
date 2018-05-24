@@ -1,4 +1,5 @@
 import { Supervisor } from 'spica/supervisor.legacy';
+import { AtomicPromise } from 'spica/promise';
 import { delegate } from 'typed-dom';
 
 export class ClickView {
@@ -7,7 +8,7 @@ export class ClickView {
     selector: string,
     listener: (event: MouseEvent) => void,
   ) {
-    void this.sv.register('', () => new Promise(() =>
+    void this.sv.register('', () => new AtomicPromise(() =>
       void this.sv.events.exit.monitor(
         [],
         delegate(document, selector, 'click', ev => {

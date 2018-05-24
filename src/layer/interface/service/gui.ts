@@ -2,6 +2,7 @@ import { API } from './api';
 import { Config as Option } from '../../../../';
 import { Supervisor } from 'spica/supervisor.legacy';
 import { Cancellation } from 'spica/cancellation';
+import { AtomicPromise } from 'spica/promise';
 import { URL } from '../../../lib/url';
 import { standardizeUrl } from '../../data/model/domain/url';
 import { ClickView } from '../module/view/click';
@@ -28,7 +29,7 @@ export class GUI extends API {
     const config = new Config(this.option);
     void view.register('', {
       init: s => s,
-      main: (_, s) => new Promise(() => {
+      main: (_, s) => new AtomicPromise(() => {
         void s.register(new ClickView(this.io.document, config.link, event =>
           void io.router(config, new RouterEvent(event), process, io)).close);
         void s.register(new SubmitView(this.io.document, config.form, event =>
