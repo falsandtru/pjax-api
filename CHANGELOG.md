@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.22.1
+
+- Update module exports.
+
 ## 3.22.0
 
 - Add `headers` property to sequence.fetch option's parameter.

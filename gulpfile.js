@@ -44,6 +44,19 @@ const config = {
     `/*! ${pkg.name} v${pkg.version} ${pkg.repository.url} | (c) 2012, ${pkg.author} | ${pkg.license} License */`,
     ''
   ].join('\n'),
+  module: `
+(function (root, factory) {
+  if (typeof define === 'function' && define.amd) {
+      define([], factory);
+  } else if (typeof module === 'object' && module.exports) {
+      module.exports = factory();
+  } else {
+      root.returnExports = factory();
+}
+}(typeof self !== 'undefined' ? self : this, function () {
+  return require('atomic-promise');
+}));
+`,
 };
 
 function compile({ src, dest }, opts = {}) {
@@ -86,6 +99,7 @@ gulp.task('ts:dist', function () {
   return compile(config.ts.dist)
     .pipe($.unassert())
     .pipe($.header(config.banner))
+    .pipe($.footer(config.module))
     .pipe(gulp.dest(config.ts.dist.dest))
     .pipe($.rename({ extname: '.min.js' }))
     .pipe(minify({ output: { comments: /^!/ } }))
