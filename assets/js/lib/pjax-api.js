@@ -4207,6 +4207,7 @@ require = function () {
                 });
             };
             Object.defineProperty(exports, '__esModule', { value: true });
+            const promise_1 = require('spica/promise');
             const either_1 = require('spica/either');
             const tuple_1 = require('spica/tuple');
             const concat_1 = require('spica/concat');
@@ -4233,16 +4234,16 @@ require = function () {
                     ss: [],
                     as: []
                 });
-                return Promise.all([
-                    Promise.all(request(ss)).then(run),
-                    Promise.all(request(as)).then(run)
+                return promise_1.AtomicPromise.all([
+                    promise_1.AtomicPromise.all(request(ss)).then(run),
+                    promise_1.AtomicPromise.all(request(as)).then(run)
                 ]).then(([sm, am]) => __awaiter(this, void 0, void 0, function* () {
                     return sm.fmap(p => __awaiter(this, void 0, void 0, function* () {
                         return (yield p).fmap(([ss1, ap1]) => tuple_1.tuple([
                             ss1,
                             ap1.then(as1 => __awaiter(this, void 0, void 0, function* () {
                                 return am.fmap(p => __awaiter(this, void 0, void 0, function* () {
-                                    return (yield p).fmap(([ss2, ap2]) => Promise.all([
+                                    return (yield p).fmap(([ss2, ap2]) => promise_1.AtomicPromise.all([
                                         as1,
                                         either_1.Right(ss2),
                                         ap2
@@ -4256,7 +4257,7 @@ require = function () {
                     return scripts.map(script => io.fetch(script, timeout));
                 }
                 function run(responses) {
-                    return responses.reduce((results, m) => m.bind(() => results), responses.reduce((results, m) => results.bind(cancellation.either).bind(([sp, ap]) => m.fmap(([script, code]) => io.evaluate(script, code, selector.logger, skip, Promise.all(sp), cancellation)).bind(m => m.extract(p => either_1.Right(tuple_1.tuple([
+                    return responses.reduce((results, m) => m.bind(() => results), responses.reduce((results, m) => results.bind(cancellation.either).bind(([sp, ap]) => m.fmap(([script, code]) => io.evaluate(script, code, selector.logger, skip, promise_1.AtomicPromise.all(sp), cancellation)).bind(m => m.extract(p => either_1.Right(tuple_1.tuple([
                         concat_1.concat(sp, [p]),
                         ap
                     ])), p => either_1.Right(tuple_1.tuple([
@@ -4265,7 +4266,7 @@ require = function () {
                     ]))))), either_1.Right([
                         [],
                         []
-                    ]))).fmap(([sp, ap]) => Promise.all(sp).then(either_1.Either.sequence).then(sm => sm.fmap(ss => tuple_1.tuple([
+                    ]))).fmap(([sp, ap]) => promise_1.AtomicPromise.all(sp).then(either_1.Either.sequence).then(sm => sm.fmap(ss => tuple_1.tuple([
                         ss,
                         Promise.all(ap).then(either_1.Either.sequence)
                     ]))));
@@ -4288,7 +4289,7 @@ require = function () {
                     void xhr.open('GET', script.src, true);
                     xhr.timeout = timeout;
                     void xhr.send();
-                    return new Promise(resolve => [
+                    return new promise_1.AtomicPromise(resolve => [
                         'load',
                         'abort',
                         'error',
@@ -4318,27 +4319,25 @@ require = function () {
                 void container.appendChild(script);
                 void unescape();
                 !logging && void script.remove();
-                const result = wait.then(cancellation.promise).then(evaluate);
+                const result = promise_1.AtomicPromise.resolve(wait).then(cancellation.promise).then(evaluate);
                 return script.matches('[src][async]') ? either_1.Right(result) : either_1.Left(result);
                 function evaluate() {
-                    return __awaiter(this, void 0, void 0, function* () {
-                        if (script.matches('[type="module"][src]')) {
-                            return Promise.resolve().then(() => require(script.src)).catch(reason => reason.message.startsWith('Failed to load ') && script.matches('[src][async]') ? retry(script).catch(() => Promise.reject(reason)) : Promise.reject(reason)).then(() => (void script.dispatchEvent(new Event('load')), either_1.Right(script)), reason => (void script.dispatchEvent(new Event('error')), either_1.Left(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''))));
-                        } else {
-                            try {
-                                if (new url_1.URL(url_2.standardizeUrl(window.location.href)).path !== new url_1.URL(url_2.standardizeUrl(window.location.href)).path)
-                                    throw new error_1.FatalError('Expired.');
-                                if (skip.has(new url_1.URL(url_2.standardizeUrl(window.location.href)).href))
-                                    throw new error_1.FatalError('Expired.');
-                                void (0, eval)(code);
-                                script.hasAttribute('src') && void script.dispatchEvent(new Event('load'));
-                                return either_1.Right(script);
-                            } catch (reason) {
-                                script.hasAttribute('src') && void script.dispatchEvent(new Event('error'));
-                                return either_1.Left(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''));
-                            }
+                    if (script.matches('[type="module"][src]')) {
+                        return promise_1.AtomicPromise.resolve(Promise.resolve().then(() => require(script.src))).catch(reason => reason.message.startsWith('Failed to load ') && script.matches('[src][async]') ? retry(script).catch(() => promise_1.AtomicPromise.reject(reason)) : promise_1.AtomicPromise.reject(reason)).then(() => (void script.dispatchEvent(new Event('load')), either_1.Right(script)), reason => (void script.dispatchEvent(new Event('error')), either_1.Left(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''))));
+                    } else {
+                        try {
+                            if (new url_1.URL(url_2.standardizeUrl(window.location.href)).path !== new url_1.URL(url_2.standardizeUrl(window.location.href)).path)
+                                throw new error_1.FatalError('Expired.');
+                            if (skip.has(new url_1.URL(url_2.standardizeUrl(window.location.href)).href))
+                                throw new error_1.FatalError('Expired.');
+                            void (0, eval)(code);
+                            script.hasAttribute('src') && void script.dispatchEvent(new Event('load'));
+                            return promise_1.AtomicPromise.resolve(either_1.Right(script));
+                        } catch (reason) {
+                            script.hasAttribute('src') && void script.dispatchEvent(new Event('error'));
+                            return promise_1.AtomicPromise.resolve(either_1.Left(new error_1.FatalError(reason instanceof Error ? reason.message : reason + '')));
                         }
-                    });
+                    }
                 }
             }
             exports._evaluate = evaluate;
@@ -4352,9 +4351,9 @@ require = function () {
             exports.escape = escape;
             function retry(script) {
                 if (new url_1.URL(url_2.standardizeUrl(script.src)).origin === new url_1.URL(url_2.standardizeUrl(window.location.href)).origin)
-                    return Promise.reject(new Error());
+                    return promise_1.AtomicPromise.reject(new Error());
                 script = typed_dom_1.html('script', Object.values(script.attributes).reduce((o, {name, value}) => (o[name] = value, o), {}), [...script.childNodes]);
-                return new Promise((resolve, reject) => (void script.addEventListener('load', () => void resolve()), void script.addEventListener('error', reject), void document.body.appendChild(script), void script.remove()));
+                return new promise_1.AtomicPromise((resolve, reject) => (void script.addEventListener('load', () => void resolve()), void script.addEventListener('error', reject), void document.body.appendChild(script), void script.remove()));
             }
         },
         {
@@ -4364,6 +4363,7 @@ require = function () {
             '../../../../data/model/domain/url': 97,
             'spica/concat': 11,
             'spica/either': 13,
+            'spica/promise': 78,
             'spica/tuple': 83,
             'typed-dom': 87
         }
