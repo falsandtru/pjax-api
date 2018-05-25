@@ -4256,9 +4256,9 @@ require = function () {
                     ]))))), either_1.Right([
                         [],
                         []
-                    ]))).fmap(([sp, ap]) => promise_1.AtomicPromise.all(sp).then(either_1.Either.sequence).then(sm => sm.fmap(ss => tuple_1.tuple([
+                    ]))).fmap(([sp, ap]) => promise_1.AtomicPromise.all(sp).then(m => either_1.Either.sequence(m)).then(sm => sm.fmap(ss => tuple_1.tuple([
                         ss,
-                        Promise.all(ap).then(either_1.Either.sequence)
+                        Promise.all(ap).then(m => either_1.Either.sequence(m))
                     ]))));
                 }
             }
