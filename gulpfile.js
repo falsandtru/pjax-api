@@ -79,9 +79,9 @@ function compile({ src, dest }, opts = {}) {
       .on("error", err => done = console.log(err + ''))
       .pipe(source(`${pkg.name}.js`))
       .pipe(buffer())
-      .pipe($.footer(config.module))
       .once('finish', () => console.timeEnd('bundle'))
       .once("finish", () => done || force || process.exit(1))
+      .pipe($.footer(config.module))
       .pipe(gulp.dest(dest));
   }
 }
