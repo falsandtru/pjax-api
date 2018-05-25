@@ -796,6 +796,7 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const monad_1 = require('./monad');
+            const promise_1 = require('../promise');
             class Either extends monad_1.Monad {
                 constructor(thunk) {
                     super(thunk);
@@ -836,8 +837,8 @@ require = function () {
                 }
                 Either.pure = pure;
                 Either.Return = pure;
-                function sequence(ms) {
-                    return ms.reduce((acc, m) => acc.bind(bs => m.fmap(b => bs.concat([b]))), Either.Return([]));
+                function sequence(fm) {
+                    return fm instanceof Either ? fm.extract(b => promise_1.AtomicPromise.resolve(new Left(b)), a => promise_1.AtomicPromise.resolve(a).then(Either.Return)) : fm.reduce((acc, m) => acc.bind(as => m.fmap(a => as.concat([a]))), Either.Return([]));
                 }
                 Either.sequence = sequence;
             }(Either = exports.Either || (exports.Either = {})));
@@ -875,7 +876,10 @@ require = function () {
                 throw new Error(`Spica: Either: Invalid thunk call.`);
             }
         },
-        { './monad': 27 }
+        {
+            '../promise': 78,
+            './monad': 27
+        }
     ],
     22: [
         function (require, module, exports) {
@@ -940,6 +944,7 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const monadplus_1 = require('./monadplus');
+            const promise_1 = require('../promise');
             class Maybe extends monadplus_1.MonadPlus {
                 constructor(thunk) {
                     super(thunk);
@@ -983,8 +988,8 @@ require = function () {
                 }
                 Maybe.pure = pure;
                 Maybe.Return = pure;
-                function sequence(ms) {
-                    return ms.reduce((acc, m) => acc.bind(as => m.fmap(a => as.concat([a]))), Maybe.Return([]));
+                function sequence(fm) {
+                    return fm instanceof Maybe ? fm.extract(() => promise_1.AtomicPromise.resolve(Maybe.mzero), a => promise_1.AtomicPromise.resolve(a).then(Maybe.Return)) : fm.reduce((acc, m) => acc.bind(as => m.fmap(a => as.concat([a]))), Maybe.Return([]));
                 }
                 Maybe.sequence = sequence;
             }(Maybe = exports.Maybe || (exports.Maybe = {})));
@@ -1028,7 +1033,10 @@ require = function () {
                 throw new Error(`Spica: Maybe: Invalid thunk call.`);
             }
         },
-        { './monadplus': 28 }
+        {
+            '../promise': 78,
+            './monadplus': 28
+        }
     ],
     26: [
         function (require, module, exports) {
@@ -3917,6 +3925,7 @@ require = function () {
                     });
                 };
                 Object.defineProperty(exports, '__esModule', { value: true });
+                const promise_1 = require('spica/promise');
                 const either_1 = require('spica/either');
                 const hlist_1 = require('spica/hlist');
                 const tuple_1 = require('spica/tuple');
@@ -3933,74 +3942,54 @@ require = function () {
                 const path_1 = require('../../store/path');
                 const error_1 = require('../../data/error');
                 function update({event, config, state}, response, seq, io) {
-                    return __awaiter(this, void 0, void 0, function* () {
-                        const {process} = state;
-                        const documents = {
-                            src: response.document,
-                            dst: io.document
-                        };
-                        return new hlist_1.HNil().push(process.either(seq)).modify(m => m.bind(() => content_1.separate(documents, config.areas).extract(() => either_1.Left(new error_1.DomainError(`Failed to separate the areas.`)), () => m)).fmap(seqA => __awaiter(this, void 0, void 0, function* () {
-                            return void window.dispatchEvent(new Event('pjax:unload')), process.either(yield config.sequence.unload(seqA, response));
-                        })).fmap(p => __awaiter(this, void 0, void 0, function* () {
-                            return (yield p).bind(seqB => content_1.separate(documents, config.areas).fmap(([area]) => [
-                                seqB,
-                                area
-                            ]).extract(() => either_1.Left(new error_1.DomainError(`Failed to separate the areas.`)), process.either));
-                        })).fmap(p => __awaiter(this, void 0, void 0, function* () {
-                            return (yield p).bind(([seqB, area]) => (void config.rewrite(documents.src, area), content_1.separate(documents, config.areas).fmap(([, areas]) => [
-                                seqB,
-                                areas
-                            ]).extract(() => either_1.Left(new error_1.DomainError(`Failed to separate the areas.`)), process.either)));
-                        }))).modify(m => m.fmap(p => __awaiter(this, void 0, void 0, function* () {
-                            return (yield p).bind(process.either).fmap(([seqB, areas]) => new hlist_1.HNil().extend(() => __awaiter(this, void 0, void 0, function* () {
-                                return void blur_1.blur(documents.dst), void url_1.url(new router_1.RouterEventLocation(response.url), documents.src.title, event.type, event.source, config.replace), void title_1.title(documents), void path_1.saveTitle(), void head_1.head(documents, config.update.head, config.update.ignore), process.either(content_1.content(documents, areas)).fmap(([as, ps]) => [
-                                    as,
-                                    Promise.all(ps)
-                                ]);
-                            })).extend(p => __awaiter(this, void 0, void 0, function* () {
-                                return (yield p).fmap(([areas]) => __awaiter(this, void 0, void 0, function* () {
-                                    config.update.css ? void css_1.css(documents, config.update.ignore) : undefined;
-                                    void io.document.dispatchEvent(new Event('pjax:content'));
-                                    const seqC = yield config.sequence.content(seqB, areas);
-                                    const ssm = config.update.script ? yield script_1.script(documents, state.scripts, config.update, Math.max(config.fetch.timeout, 1000) * 10, process) : yield process.either(tuple_1.tuple([
-                                        [],
-                                        Promise.resolve(process.either([]))
-                                    ]));
-                                    void focus_1.focus(event.type, documents.dst);
-                                    void scroll_1.scroll(event.type, documents.dst, {
-                                        hash: event.location.dest.fragment,
-                                        position: io.position
-                                    });
-                                    void path_1.savePosition();
-                                    void io.document.dispatchEvent(new Event('pjax:ready'));
-                                    return tuple_1.tuple([
-                                        ssm.fmap(([ss, ap]) => [
-                                            ss,
-                                            ap.then(m => m.extract())
-                                        ]),
-                                        yield config.sequence.ready(seqC)
-                                    ]);
-                                })).fmap(p => p.then(([m, seqD]) => m.fmap(sst => [
-                                    sst,
-                                    seqD
-                                ]))).extract(e => __awaiter(this, void 0, void 0, function* () {
-                                    return either_1.Left(e);
-                                }));
-                            })).reverse().tuple());
-                        }))).modify(m => m.fmap(p => __awaiter(this, void 0, void 0, function* () {
-                            return (yield p).bind(process.either).fmap(([p1, p2]) => __awaiter(this, void 0, void 0, function* () {
-                                return void process.either(yield Promise.all([
-                                    p1,
-                                    p2
-                                ])).bind(([m1, m2]) => m1.bind(([, cp]) => m2.fmap(([[, sp], seqD]) => void Promise.all([
-                                    cp,
-                                    sp
-                                ]).then(process.either).then(m => m.fmap(([events]) => (void window.dispatchEvent(new Event('pjax:load')), void config.sequence.load(seqD, events))).extract(() => undefined))))).extract(() => undefined), p2;
-                            })).fmap(p => __awaiter(this, void 0, void 0, function* () {
-                                return (yield p).fmap(([sst]) => sst);
-                            })).extract(either_1.Left);
-                        }))).head.extract(either_1.Left);
-                    });
+                    const {process} = state;
+                    const documents = {
+                        src: response.document,
+                        dst: io.document
+                    };
+                    return promise_1.AtomicPromise.resolve(seq).then(process.either).then(m => m.bind(() => content_1.separate(documents, config.areas).extract(() => either_1.Left(new error_1.DomainError(`Failed to separate the areas.`)), () => m)).fmap(seqA => (void window.dispatchEvent(new Event('pjax:unload')), config.sequence.unload(seqA, response)))).then(m => either_1.Either.sequence(m)).then(process.promise).then(m => m.bind(seqB => content_1.separate(documents, config.areas).fmap(([area]) => [
+                        seqB,
+                        area
+                    ]).extract(() => either_1.Left(new error_1.DomainError(`Failed to separate the areas.`)), process.either)).bind(([seqB, area]) => (void config.rewrite(documents.src, area), content_1.separate(documents, config.areas).fmap(([, areas]) => [
+                        seqB,
+                        areas
+                    ]).extract(() => either_1.Left(new error_1.DomainError(`Failed to separate the areas.`)), process.either)))).then(process.promise).then(m => m.fmap(([seqB, areas]) => new hlist_1.HNil().extend(() => (void blur_1.blur(documents.dst), void url_1.url(new router_1.RouterEventLocation(response.url), documents.src.title, event.type, event.source, config.replace), void title_1.title(documents), void path_1.saveTitle(), void head_1.head(documents, config.update.head, config.update.ignore), process.either(content_1.content(documents, areas)).fmap(([as, ps]) => [
+                        as,
+                        promise_1.AtomicPromise.all(ps)
+                    ]))).extend(p => __awaiter(this, void 0, void 0, function* () {
+                        return (yield p).fmap(([areas]) => __awaiter(this, void 0, void 0, function* () {
+                            config.update.css ? void css_1.css(documents, config.update.ignore) : undefined;
+                            void io.document.dispatchEvent(new Event('pjax:content'));
+                            const seqC = yield config.sequence.content(seqB, areas);
+                            const ssm = config.update.script ? yield script_1.script(documents, state.scripts, config.update, Math.max(config.fetch.timeout, 1000) * 10, process) : yield process.either(tuple_1.tuple([
+                                [],
+                                promise_1.AtomicPromise.resolve(process.either([]))
+                            ]));
+                            void focus_1.focus(event.type, documents.dst);
+                            void scroll_1.scroll(event.type, documents.dst, {
+                                hash: event.location.dest.fragment,
+                                position: io.position
+                            });
+                            void path_1.savePosition();
+                            void io.document.dispatchEvent(new Event('pjax:ready'));
+                            return tuple_1.tuple([
+                                ssm.fmap(([ss, ap]) => [
+                                    ss,
+                                    ap.then(m => m.extract())
+                                ]),
+                                yield config.sequence.ready(seqC)
+                            ]);
+                        })).fmap(p => p.then(([m, seqD]) => m.fmap(sst => [
+                            sst,
+                            seqD
+                        ]))).extract(e => promise_1.AtomicPromise.resolve(either_1.Left(e)));
+                    })).reverse().tuple())).then(process.promise).then(m => m.fmap(([p1, p2]) => (void promise_1.AtomicPromise.all([
+                        p1,
+                        p2
+                    ]).then(([m1, m2]) => m1.bind(([, cp]) => m2.fmap(([[, sp], seqD]) => void promise_1.AtomicPromise.all([
+                        cp,
+                        sp
+                    ]).then(process.either).then(m => m.fmap(([events]) => (void window.dispatchEvent(new Event('pjax:load')), void config.sequence.load(seqD, events))).extract(() => undefined)))).extract(() => undefined)), p2))).then(m => either_1.Either.sequence(m).then(m => m.join())).then(m => m.fmap(([sst]) => sst));
                 }
                 exports.update = update;
             }.call(this, require('_process')));
@@ -4021,6 +4010,7 @@ require = function () {
             '_process': 4,
             'spica/either': 13,
             'spica/hlist': 18,
+            'spica/promise': 78,
             'spica/tuple': 83
         }
     ],
