@@ -1,6 +1,6 @@
 # Changelog
 
-## 3.22.1
+## 3.23.0
 
 - Update module exports.
 
