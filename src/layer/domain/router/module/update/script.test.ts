@@ -1,3 +1,4 @@
+import { AtomicPromise } from 'spica/promise';
 import { script, _fetch as fetch, _evaluate as evaluate, escape } from './script';
 import { Cancellation } from 'spica/cancellation';
 import { Left, Right } from 'spica/either';
@@ -23,7 +24,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         new Cancellation<Error>(),
         {
           fetch: async script => Right(tuple([script, script.text])),
-          evaluate: script => Left(Promise.resolve(Right(script))),
+          evaluate: script => Left(AtomicPromise.resolve(Right(script))),
         })
         .then(m => {
           return m.extract();
@@ -63,7 +64,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
             assert(cnt === 1 && ++cnt);
             assert(script.className === 'test');
             assert(script.text === code);
-            return Left(Promise.resolve(Right(script)));
+            return Left(AtomicPromise.resolve(Right(script)));
           },
         })
         .then(m => {
@@ -131,7 +132,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           },
           evaluate: script => {
             assert(++cnt === NaN);
-            return Left(Promise.resolve(Right(script)));
+            return Left(AtomicPromise.resolve(Right(script)));
           },
         })
         .then(m => {
@@ -164,7 +165,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           },
           evaluate: () => {
             assert(cnt === 1 && ++cnt);
-            return Left(Promise.resolve(Left(new Error())));
+            return Left(AtomicPromise.resolve(Left(new Error())));
           },
         })
         .then(m => {
@@ -198,7 +199,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           },
           evaluate: script => {
             assert(++cnt === NaN);
-            return Left(Promise.resolve(Right(script)));
+            return Left(AtomicPromise.resolve(Right(script)));
           },
         })
         .then(m => {
@@ -231,7 +232,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           },
           evaluate: script => {
             assert(cnt === 3 && ++cnt);
-            return Right(Promise.resolve(Right(script)));
+            return Right(AtomicPromise.resolve(Right(script)));
           },
         })
         .then(m => {
@@ -272,7 +273,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           },
           evaluate: () => {
             assert(cnt === 3 && ++cnt);
-            return Right(Promise.resolve(Left(new Error())));
+            return Right(AtomicPromise.resolve(Left(new Error())));
           },
         })
         .then(m => {
@@ -314,7 +315,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           },
           evaluate: script => {
             assert(++cnt === NaN);
-            return Right(Promise.resolve(Right(script)));
+            return Right(AtomicPromise.resolve(Right(script)));
           },
         })
         .then(m => {
