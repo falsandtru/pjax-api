@@ -1,3 +1,4 @@
+import { AtomicPromise } from 'spica/promise';
 import { Either, Left } from 'spica/either';
 import { HNil } from 'spica/hlist';
 import { tuple } from 'spica/tuple';
@@ -16,7 +17,7 @@ import { scroll } from '../module/update/scroll';
 import { saveTitle, savePosition } from '../../store/path';
 import { DomainError } from '../../data/error';
 
-export async function update(
+export function update(
   {
     event,
     config,
@@ -28,33 +29,34 @@ export async function update(
     document: Document;
     position: () => { top: number; left: number; };
   }
-): Promise<Either<Error, [HTMLScriptElement[], Promise<HTMLScriptElement[]>]>> {
+): AtomicPromise<Either<Error, [HTMLScriptElement[], Promise<HTMLScriptElement[]>]>> {
   const { process } = state;
   const documents = {
     src: response.document,
     dst: io.document,
   };
-  return new HNil()
-    .push(process.either(seq))
+  return AtomicPromise.resolve(seq)
+    .then(process.either)
     // fetch -> unload
-    .modify(m => m
+    .then(m => m
       .bind(() =>
         separate(documents, config.areas)
           .extract(
             () => Left(new DomainError(`Failed to separate the areas.`)),
             () => m))
-      .fmap(async seqA => (
+      .fmap(seqA => (
         void window.dispatchEvent(new Event('pjax:unload')),
-        process.either(await config.sequence.unload(seqA, response))))
-      .fmap(async p => (await p)
+        config.sequence.unload(seqA, response))))
+    .then(m => Either.sequence(m))
+    .then(process.promise)
+    .then(m => m
         .bind(seqB =>
           separate(documents, config.areas)
             .fmap(([area]) =>
               [seqB, area])
             .extract(
               () => Left(new DomainError(`Failed to separate the areas.`)),
-              process.either)))
-      .fmap(async p => (await p)
+              process.either))
         .bind(([seqB, area]) => (
           void config.rewrite(documents.src, area),
           separate(documents, config.areas)
@@ -62,13 +64,13 @@ export async function update(
               [seqB, areas])
             .extract(
               () => Left(new DomainError(`Failed to separate the areas.`)),
-              process.either)))))
+              process.either))))
+    .then(process.promise)
     // unload -> ready
-    .modify(m => m.fmap(async p => (await p)
-      .bind(process.either)
+    .then(m => m
       .fmap(([seqB, areas]) =>
         new HNil()
-          .extend(async () => (
+          .extend(() => (
             void blur(documents.dst),
             void url(
               new RouterEventLocation(response.url),
@@ -83,7 +85,7 @@ export async function update(
               .fmap(([as, ps]) =>
                 [
                   as,
-                  Promise.all(ps),
+                  AtomicPromise.all(ps),
                 ])))
           .extend(async p => (await p)
             .fmap(async ([areas]) => {
@@ -94,7 +96,7 @@ export async function update(
               const seqC = await config.sequence.content(seqB, areas);
               const ssm = config.update.script
                 ? await script(documents, state.scripts, config.update, Math.max(config.fetch.timeout, 1000) * 10, process)
-                : await process.either(tuple([[] as HTMLScriptElement[], Promise.resolve(process.either([] as HTMLScriptElement[]))]));
+                : await process.either(tuple([[] as HTMLScriptElement[], AtomicPromise.resolve(process.either([] as HTMLScriptElement[]))]));
               void focus(event.type, documents.dst);
               void scroll(event.type, documents.dst, {
                 hash: event.location.dest.fragment,
@@ -115,30 +117,28 @@ export async function update(
               p.then(([m, seqD]) =>
                 m.fmap(sst =>
                   [sst, seqD])))
-            .extract(async e => Left(e)))
+            .extract(e => AtomicPromise.resolve(Left(e))))
           .reverse()
-          .tuple())))
+          .tuple()))
+    .then(process.promise)
     // ready -> load
-    .modify(m => m.fmap(async p => (await p)
-      .bind(process.either)
-      .fmap(async ([p1, p2]) => (
-        void process.either(await Promise.all([p1, p2]))
-          .bind<void>(([m1, m2]) =>
+    .then(m => m
+      .fmap(([p1, p2]) => (
+        void AtomicPromise.all([p1, p2])
+          .then<void>(([m1, m2]) =>
             m1.bind(([, cp]) =>
               m2.fmap(([[, sp], seqD]) =>
                 // Asynchronously wait for load completion of elements and scripts.
-                void Promise.all([cp, sp])
+                void AtomicPromise.all([cp, sp])
                   .then(process.either)
                   .then(m => m
                     .fmap(([events]) => (
                       void window.dispatchEvent(new Event('pjax:load')),
                       void config.sequence.load(seqD, events)))
-                    .extract(() => undefined)))))
-          .extract(() => undefined),
-        p2))
-      .fmap(async p => (await p)
-        .fmap(([sst]) => sst))
-      .extract<Left<Error>>(Left)))
-    .head
-    .extract<Left<Error>>(Left);
+                    .extract(() => undefined))))
+              .extract(() => undefined)),
+        p2)))
+    .then(m => Either.sequence(m).then(m => m.join()))
+    .then(m => m
+      .fmap(([sst]) => sst));
 }

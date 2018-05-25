@@ -54,7 +54,7 @@
     "power-assert": "^1.5.0",
     "run-sequence": "^2.2.1",
     "semver": "^5.5.0",
-    "spica": "0.0.186",
+    "spica": "0.0.187",
     "tsify": "^4.0.0",
     "typed-dom": "0.0.99",
     "typescript": "3.0.0-dev.20180522",

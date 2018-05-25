@@ -97,12 +97,12 @@ export function script(
         , Right<Error, [AtomicPromise<Either<Error, HTMLScriptElement>>[], AtomicPromise<Either<Error, HTMLScriptElement>>[]]>([[], []])))
       .fmap(([sp, ap]) =>
         AtomicPromise.all(sp)
-          .then(Either.sequence)
+          .then<Either<Error, HTMLScriptElement[]>>(Either.sequence)
           .then(sm =>
             sm.fmap(ss => tuple([
               ss,
               Promise.all(ap)
-                .then(Either.sequence)
+                .then<Either<Error, HTMLScriptElement[]>>(Either.sequence)
             ]))));
   }
 }
