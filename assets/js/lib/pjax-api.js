@@ -2404,8 +2404,13 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             var _a;
             'use strict';
-            const noop_1 = require('./noop');
-            const value = Symbol();
+            const concat_1 = require('./concat');
+            var State;
+            (function (State) {
+                State[State['resolved'] = 0] = 'resolved';
+                State[State['rejected'] = 1] = 'rejected';
+            }(State || (State = {})));
+            const status = Symbol();
             const queue = Symbol();
             const resume = Symbol();
             class AtomicPromise {
@@ -2413,15 +2418,24 @@ require = function () {
                     this[Symbol.toStringTag] = 'Promise';
                     this[_a] = [];
                     try {
-                        void executor(val => {
-                            this[value] = this[value] || new PromiseValue('resolved', val);
+                        void executor(value => {
+                            this[status] = this[status] || [
+                                0,
+                                value
+                            ];
                             void this[resume]();
                         }, reason => {
-                            this[value] = this[value] || new PromiseValue('rejected', reason);
+                            this[status] = this[status] || [
+                                1,
+                                reason
+                            ];
                             void this[resume]();
                         });
                     } catch (reason) {
-                        this[value] = new PromiseValue('rejected', reason);
+                        this[status] = [
+                            1,
+                            reason
+                        ];
                         void this[resume]();
                     }
                 }
@@ -2429,46 +2443,54 @@ require = function () {
                     return AtomicPromise;
                 }
                 static all(values) {
-                    return values.reduce((acc, p) => acc.then(vs => AtomicPromise.resolve(p).then(value => vs.concat([value]))), AtomicPromise.resolve([]));
+                    return values.reduce((acc, value) => acc.then(vs => AtomicPromise.resolve(value).then(value => concat_1.concat(vs, [value]))), AtomicPromise.resolve([]));
                 }
                 static race(values) {
-                    return new AtomicPromise(resolve => void values.forEach(p => void AtomicPromise.resolve(p).then(resolve, resolve)));
+                    return new AtomicPromise((resolve, reject) => void values.forEach(value => void AtomicPromise.resolve(value).then(resolve, reject)));
                 }
                 static resolve(value) {
-                    return new AtomicPromise((resolve, reject) => isPromiseLike(value) ? void value.then(resolve, reject) : void resolve(value));
+                    return new AtomicPromise(resolve => void resolve(value));
                 }
                 static reject(reason) {
                     return new AtomicPromise((_, reject) => void reject(reason));
                 }
                 [resume]() {
-                    const val = this[value];
-                    if (!val)
+                    if (!this[status])
                         return;
+                    const [state, value] = this[status];
                     while (this[queue].length > 0) {
                         const [resolve, reject] = this[queue].shift();
-                        switch (val.state) {
-                        case 'resolved':
-                            isPromiseLike(val.value) ? void val.value.then(resolve, reject) : void resolve(val.value);
+                        switch (state) {
+                        case 0:
+                            isPromiseLike(value) ? void value.then(resolve, reject) : void resolve(value);
                             continue;
-                        case 'rejected':
-                            void reject(val.value);
+                        case 1:
+                            void reject(value);
                             continue;
                         }
                     }
                 }
                 then(onfulfilled, onrejected) {
-                    onfulfilled = onfulfilled || AtomicPromise.resolve;
-                    onrejected = onrejected || AtomicPromise.reject;
                     return new AtomicPromise((resolve, reject) => {
                         void this[queue].push([
                             value => {
+                                if (!onfulfilled)
+                                    return void resolve(value);
                                 try {
                                     void resolve(onfulfilled(value));
                                 } catch (reason) {
                                     void reject(reason);
                                 }
                             },
-                            reason => void new AtomicPromise(resolve => void resolve(onrejected(reason))).then(resolve, reject)
+                            reason => {
+                                if (!onrejected)
+                                    return void resolve(this);
+                                try {
+                                    void resolve(onrejected(reason));
+                                } catch (reason) {
+                                    void reject(reason);
+                                }
+                            }
                         ]);
                         void this[resume]();
                     });
@@ -2477,23 +2499,16 @@ require = function () {
                     return this.then(undefined, onrejected);
                 }
                 finally(onfinally) {
-                    onfinally = onfinally || noop_1.noop;
-                    return this.then(value => void onfinally() || value, reason => void onfinally() || AtomicPromise.reject(reason));
+                    return this.then(onfinally, onfinally).then(() => this);
                 }
             }
             _a = queue;
             exports.AtomicPromise = AtomicPromise;
-            class PromiseValue {
-                constructor(state, value) {
-                    this.state = state;
-                    this.value = value;
-                }
-            }
             function isPromiseLike(value) {
                 return !!value && typeof value === 'object' && 'then' in value && typeof value.then === 'function';
             }
         },
-        { './noop': 76 }
+        { './concat': 11 }
     ],
     79: [
         function (require, module, exports) {
@@ -3872,7 +3887,7 @@ require = function () {
             function xhr(method, url, headers, body, timeout, redirect, cancellation) {
                 const url_ = url_1.standardizeUrl(redirect(new url_2.URL(url).path));
                 const xhr = new XMLHttpRequest();
-                return new promise_1.AtomicPromise(resolve => (void xhr.open(method, new url_2.URL(url_).path, true), void [...headers.entries()].forEach(([name, value]) => void xhr.setRequestHeader(name, value)), xhr.responseType = 'document', xhr.timeout = timeout, void xhr.send(body), void xhr.addEventListener('abort', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by abort.`)))), void xhr.addEventListener('error', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by error.`)))), void xhr.addEventListener('timeout', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by timeout.`)))), void xhr.addEventListener('load', () => void verify(xhr).fmap(xhr => new fetch_1.FetchResponse(xhr.responseURL && url === url_ ? url_1.standardizeUrl(xhr.responseURL) : url, xhr)).extract(err => void resolve(either_1.Left(err)), res => void resolve(either_1.Right(res)))), void cancellation.register(() => void xhr.abort())));
+                return new promise_1.AtomicPromise(resolve => (void xhr.open(method, new url_2.URL(url_).path, true), void [...headers.entries()].forEach(([name, value]) => void xhr.setRequestHeader(name, value)), xhr.responseType = 'document', xhr.timeout = timeout, void xhr.send(body || undefined), void xhr.addEventListener('abort', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by abort.`)))), void xhr.addEventListener('error', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by error.`)))), void xhr.addEventListener('timeout', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by timeout.`)))), void xhr.addEventListener('load', () => void verify(xhr).fmap(xhr => new fetch_1.FetchResponse(xhr.responseURL && url === url_ ? url_1.standardizeUrl(xhr.responseURL) : url, xhr)).extract(err => void resolve(either_1.Left(err)), res => void resolve(either_1.Right(res)))), void cancellation.register(() => void xhr.abort())));
             }
             exports.xhr = xhr;
             function verify(xhr) {
