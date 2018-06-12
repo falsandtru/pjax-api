@@ -27,7 +27,7 @@ export function xhr(
 
     xhr.responseType = 'document',
     xhr.timeout = timeout,
-    void xhr.send(body),
+    void xhr.send(body || undefined),
 
     void xhr.addEventListener("abort", () =>
       void resolve(Left(new DomainError(`Failed to request a page by abort.`)))),
