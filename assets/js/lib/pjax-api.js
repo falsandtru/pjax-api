@@ -3196,7 +3196,7 @@ require = function () {
         },
         {
             './layer/interface/service/gui': 125,
-            './lib/router': 136
+            './lib/router': 135
         }
     ],
     94: [
@@ -3431,7 +3431,7 @@ require = function () {
             exports.scope = scope;
         },
         {
-            '../../../../lib/router': 136,
+            '../../../../lib/router': 135,
             '../../../domain/data/config': 98,
             'spica/assign': 4,
             'spica/maybe': 18,
@@ -3450,7 +3450,7 @@ require = function () {
             }
             exports.DomainError = DomainError;
         },
-        { '../../../lib/error': 134 }
+        { '../../../lib/error': 133 }
     ],
     101: [
         function (require, module, exports) {
@@ -3531,8 +3531,8 @@ require = function () {
             exports.RouterEventLocation = RouterEventLocation;
         },
         {
-            '../../../lib/dom': 133,
-            '../../../lib/url': 137,
+            '../../../lib/dom': 132,
+            '../../../lib/url': 136,
             '../../data/model/domain/url': 96,
             'typed-dom': 86
         }
@@ -3643,7 +3643,7 @@ require = function () {
             }
             exports.FetchResponse = FetchResponse;
         },
-        { '../../../../../../lib/html': 135 }
+        { '../../../../../../lib/html': 134 }
     ],
     105: [
         function (require, module, exports) {
@@ -3705,7 +3705,7 @@ require = function () {
             exports.fetch = fetch;
         },
         {
-            '../../../../lib/url': 137,
+            '../../../../lib/url': 136,
             '../../data/error': 100,
             '../module/fetch/xhr': 106,
             'spica/either': 12,
@@ -3741,7 +3741,7 @@ require = function () {
             exports.match_ = match;
         },
         {
-            '../../../../../lib/url': 137,
+            '../../../../../lib/url': 136,
             '../../../../data/model/domain/url': 96,
             '../../../data/error': 100,
             '../../model/eav/value/fetch': 104,
@@ -3941,7 +3941,7 @@ require = function () {
             exports._wait = wait;
         },
         {
-            '../../../../../lib/dom': 133,
+            '../../../../../lib/dom': 132,
             './script': 113,
             'spica/concat': 10,
             'spica/maybe': 18,
@@ -3972,7 +3972,7 @@ require = function () {
             exports.css = css;
         },
         {
-            '../../../../../lib/dom': 133,
+            '../../../../../lib/dom': 132,
             './sync': 115
         }
     ],
@@ -3996,7 +3996,7 @@ require = function () {
             exports.focus = focus;
         },
         {
-            '../../../../../lib/dom': 133,
+            '../../../../../lib/dom': 132,
             '../../../event/router': 101
         }
     ],
@@ -4016,7 +4016,7 @@ require = function () {
             exports.head = head;
         },
         {
-            '../../../../../lib/dom': 133,
+            '../../../../../lib/dom': 132,
             './sync': 115
         }
     ],
@@ -4198,9 +4198,9 @@ require = function () {
             }
         },
         {
-            '../../../../../lib/dom': 133,
-            '../../../../../lib/error': 134,
-            '../../../../../lib/url': 137,
+            '../../../../../lib/dom': 132,
+            '../../../../../lib/error': 133,
+            '../../../../../lib/url': 136,
             '../../../../data/model/domain/url': 96,
             'spica/concat': 10,
             'spica/either': 12,
@@ -4381,7 +4381,7 @@ require = function () {
             }
             exports.InterfaceError = InterfaceError;
         },
-        { '../../../lib/error': 134 }
+        { '../../../lib/error': 133 }
     ],
     120: [
         function (require, module, exports) {
@@ -4439,7 +4439,7 @@ require = function () {
         },
         {
             '../../../data/model/domain/url': 96,
-            '../../service/state/url': 132,
+            '../../service/state/url': 131,
             'spica/promise': 77,
             'spica/supervisor.legacy': 80,
             'typed-dom': 86
@@ -4534,9 +4534,9 @@ require = function () {
             }
         },
         {
-            '../../../lib/html': 135,
-            './router': 127,
-            './state/process': 129,
+            '../../../lib/html': 134,
+            './router': 126,
+            './state/process': 128,
             'spica/assign': 4,
             'typed-dom': 86
         }
@@ -4599,7 +4599,7 @@ require = function () {
             exports.GUI = GUI;
         },
         {
-            '../../../lib/url': 137,
+            '../../../lib/url': 136,
             '../../application/store': 95,
             '../../data/model/domain/url': 96,
             '../module/view/click': 120,
@@ -4607,34 +4607,16 @@ require = function () {
             '../module/view/scroll': 122,
             '../module/view/submit': 123,
             './api': 124,
-            './router': 127,
-            './state/process': 129,
-            './state/scroll-restoration': 131,
-            './state/url': 132,
+            './router': 126,
+            './state/process': 128,
+            './state/scroll-restoration': 130,
+            './state/url': 131,
             'spica/cancellation': 6,
             'spica/promise': 77,
             'spica/supervisor.legacy': 80
         }
     ],
     126: [
-        function (require, module, exports) {
-            'use strict';
-            Object.defineProperty(exports, '__esModule', { value: true });
-            const bar = document.createElement('div');
-            void window.addEventListener('pjax:fetch', () => void document.documentElement.appendChild(bar));
-            void window.addEventListener('pjax:fetch', () => bar.style.width = '5%');
-            void window.addEventListener('pjax:unload', () => bar.style.width = '80%');
-            void document.addEventListener('pjax:ready', () => bar.style.width = '90%');
-            void window.addEventListener('pjax:load', () => bar.style.width = '100%');
-            void window.addEventListener('pjax:load', () => void bar.remove());
-            function progressbar(style) {
-                void bar.setAttribute('style', style);
-            }
-            exports.progressbar = progressbar;
-        },
-        {}
-    ],
-    127: [
         function (require, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -4670,7 +4652,6 @@ require = function () {
             exports.RouterEventSource = router_1.RouterEventSource;
             const url_1 = require('./state/url');
             const env_1 = require('../service/state/env');
-            const progressbar_1 = require('./progressbar');
             const error_1 = require('../data/error');
             const url_2 = require('../../../lib/url');
             const url_3 = require('../../data/model/domain/url');
@@ -4701,7 +4682,6 @@ require = function () {
                     }, undefined);
                     const [scripts] = yield env_1.env;
                     window.history.scrollRestoration = 'manual';
-                    void progressbar_1.progressbar(config.progressbar);
                     return router_1.route(config, event, {
                         process: cancellation,
                         scripts
@@ -4753,20 +4733,19 @@ require = function () {
             exports._validate = validate;
         },
         {
-            '../../../lib/url': 137,
+            '../../../lib/url': 136,
             '../../application/router': 94,
             '../../application/store': 95,
             '../../data/model/domain/url': 96,
             '../data/error': 119,
-            '../service/state/env': 128,
-            './progressbar': 126,
-            './state/url': 132,
+            '../service/state/env': 127,
+            './state/url': 131,
             'spica/cancellation': 6,
             'spica/maybe': 18,
             'typed-dom': 86
         }
     ],
-    128: [
+    127: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4776,9 +4755,9 @@ require = function () {
                 new Promise(setTimeout)
             ]);
         },
-        { './script': 130 }
+        { './script': 129 }
     ],
-    129: [
+    128: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4788,7 +4767,7 @@ require = function () {
         },
         { 'spica/supervisor.legacy': 80 }
     ],
-    130: [
+    129: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4800,13 +4779,13 @@ require = function () {
             void typed_dom_1.bind(window, 'pjax:unload', () => void dom_1.find(document, 'script[src]').forEach(script => void exports.scripts.add(new url_2.URL(url_1.standardizeUrl(script.src)).href)));
         },
         {
-            '../../../../lib/dom': 133,
-            '../../../../lib/url': 137,
+            '../../../../lib/dom': 132,
+            '../../../../lib/url': 136,
             '../../../data/model/domain/url': 96,
             'typed-dom': 86
         }
     ],
-    131: [
+    130: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4815,7 +4794,7 @@ require = function () {
         },
         { 'typed-dom': 86 }
     ],
-    132: [
+    131: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4839,7 +4818,7 @@ require = function () {
             'typed-dom': 86
         }
     ],
-    133: [
+    132: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4884,7 +4863,7 @@ require = function () {
         },
         {}
     ],
-    134: [
+    133: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4904,7 +4883,7 @@ require = function () {
         },
         {}
     ],
-    135: [
+    134: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4982,13 +4961,13 @@ require = function () {
             }
         },
         {
-            './dom': 133,
+            './dom': 132,
             'spica/either': 12,
             'spica/maybe': 18,
             'spica/tuple': 82
         }
     ],
-    136: [
+    135: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5049,14 +5028,14 @@ require = function () {
         },
         {
             '../layer/data/model/domain/url': 96,
-            './url': 137,
+            './url': 136,
             'spica/cache': 5,
             'spica/flip': 15,
             'spica/sequence': 78,
             'spica/uncurry': 84
         }
     ],
-    137: [
+    136: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
