@@ -4,7 +4,7 @@ import { bind, currentTargets } from 'typed-dom';
 import { route as router, Config, scope, RouterEvent, RouterEventType, RouterEventSource } from '../../application/router';
 import { docurl } from './state/url';
 import { env } from '../service/state/env';
-import { progressbar } from './progressbar';
+//import { progressbar } from './progressbar';
 import { InterfaceError } from '../data/error';
 import { URL } from '../../../lib/url';
 import { StandardUrl, standardizeUrl } from '../../data/model/domain/url';
@@ -49,7 +49,7 @@ export function route(
       }, undefined);
       const [scripts] = await env;
       window.history.scrollRestoration = 'manual';
-      void progressbar(config.progressbar);
+      //void progressbar(config.progressbar);
       return router(config, event, { process: cancellation, scripts }, io)
         .then(m => m
           .fmap(async ([ss, p]) => (
