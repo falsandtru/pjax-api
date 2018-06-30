@@ -1,5 +1,5 @@
-import { AtomicPromise } from 'spica/promise';
 import { script, _fetch as fetch, _evaluate as evaluate, escape } from './script';
+import { AtomicPromise } from 'spica/promise';
 import { Cancellation } from 'spica/cancellation';
 import { Left, Right } from 'spica/either';
 import { tuple } from 'spica/tuple';
