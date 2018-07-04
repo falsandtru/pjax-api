@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.24.0
+
+- Add `X-Requested-With: XMLHttpRequest` header.
+
 ## 3.23.0
 
 - Update module exports.

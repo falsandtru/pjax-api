@@ -24,6 +24,7 @@ export class Config implements DeepRequired<Option, Config['scope']> {
     });
     void extend(this, option);
     void Object.freeze(this);
+    void this.fetch.headers.set('X-Requested-With', 'XMLHttpRequest');
     void this.fetch.headers.set('X-Pjax', '1');
   }
   public readonly areas = ['body'];
