@@ -3359,6 +3359,7 @@ require = function () {
                     });
                     void assign_1.extend(this, option);
                     void Object.freeze(this);
+                    void this.fetch.headers.set('X-Requested-With', 'XMLHttpRequest');
                     void this.fetch.headers.set('X-Pjax', '1');
                 }
                 filter(el) {
