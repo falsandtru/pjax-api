@@ -3003,20 +3003,17 @@ require = function () {
                         this.children_ = children;
                         return;
                     case ElChildrenType.Collection:
-                        void this.children_.reduce((cs, c) => {
-                            const i = cs.indexOf(c);
-                            if (i > -1)
-                                return cs;
-                            void cs.splice(i, 1);
-                            void c.element.remove();
-                            return cs;
-                        }, [...children]);
                         this.children_ = [];
                         void children.forEach((child, i) => {
                             child.element_.parentElement === this.element_ || void throwErrorIfNotUsable(child);
                             this.children_[i] = child;
-                            void this.element_.appendChild(child.element);
+                            if (this.children_[i] === this.element_.childNodes[i])
+                                return;
+                            void this.element_.insertBefore(child.element, this.element_.childNodes[i]);
                         });
+                        while (this.element_.childNodes.length > children.length) {
+                            void this.element_.removeChild(this.element_.lastChild);
+                        }
                         void Object.freeze(this.children_);
                         void this.scope(Object.values(this.children_));
                         return;
@@ -3093,7 +3090,7 @@ require = function () {
             }
             function define(el, attrs = {}, children = []) {
                 if (isChildren(attrs))
-                    return define(el, {}, attrs);
+                    return define(el, undefined, attrs);
                 if (typeof children === 'string')
                     return define(el, attrs, [text(children)]);
                 void Object.entries(attrs).forEach(([name, value]) => typeof value === 'string' ? void el.setAttribute(name, value) : void el.addEventListener(name.slice(2), value, {
