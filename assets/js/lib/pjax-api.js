@@ -2820,7 +2820,8 @@ require = function () {
             exports.svg = dom_1.svg;
             exports.text = dom_1.text;
             exports.frag = dom_1.frag;
-            exports.observe = dom_1.observe;
+            exports.define = dom_1.define;
+            exports.observer = dom_1.observer;
             __export(require('./src/util/listener'));
         },
         {
@@ -2929,9 +2930,7 @@ require = function () {
                         return;
                     }
                     function clear() {
-                        while (element_.childNodes.length > 0) {
-                            void element_.removeChild(element_.firstChild);
-                        }
+                        element_.innerHTML = '';
                     }
                     function observe(element, children) {
                         return Object.defineProperties(children, Object.entries(children).reduce((descs, [name, child]) => {
@@ -3037,7 +3036,7 @@ require = function () {
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            function observe(factory, callback, opts = { childList: true }) {
+            function observer(factory, callback, opts = { childList: true }) {
                 return (tag, ...args) => {
                     const obs = new MutationObserver(callback);
                     const el = factory(tag);
@@ -3046,8 +3045,13 @@ require = function () {
                     return el;
                 };
             }
-            exports.observe = observe;
-            const cache = new Map();
+            exports.observer = observer;
+            var cache;
+            (function (cache) {
+                cache.elem = new Map();
+                cache.text = document.createTextNode('');
+                cache.frag = document.createDocumentFragment();
+            }(cache || (cache = {})));
             function html(tag, attrs = {}, children = []) {
                 return element(0, tag, attrs, children);
             }
@@ -3058,13 +3062,15 @@ require = function () {
             exports.svg = svg;
             function frag(children = []) {
                 children = typeof children === 'string' ? [text(children)] : children;
-                const frag = document.createDocumentFragment();
+                const frag = cache.frag.cloneNode();
                 void [...children].forEach(child => void frag.appendChild(child));
                 return frag;
             }
             exports.frag = frag;
             function text(source) {
-                return document.createTextNode(source);
+                const text = cache.text.cloneNode();
+                text.data = source;
+                return text;
             }
             exports.text = text;
             var NS;
@@ -3074,7 +3080,7 @@ require = function () {
             }(NS || (NS = {})));
             function element(ns, tag, attrs = {}, children = []) {
                 const key = `${ ns }:${ tag }`;
-                const el = cache.has(key) ? cache.get(key).cloneNode(true) : cache.set(key, elem(ns, tag)).get(key).cloneNode(true);
+                const el = cache.elem.has(key) ? cache.elem.get(key).cloneNode(true) : cache.elem.set(key, elem(ns, tag)).get(key).cloneNode(true);
                 void define(el, attrs, children);
                 return el;
             }
@@ -3088,7 +3094,7 @@ require = function () {
                     throw new Error(`TypedDOM: Unknown namespace: ${ ns }`);
                 }
             }
-            function define(el, attrs = {}, children = []) {
+            function define(el, attrs = {}, children) {
                 if (isChildren(attrs))
                     return define(el, undefined, attrs);
                 if (typeof children === 'string')
@@ -3101,7 +3107,14 @@ require = function () {
                         'touchmove'
                     ].includes(name.slice(2))
                 }));
-                void [...children].forEach(child => void el.appendChild(child));
+                if (children) {
+                    el.innerHTML = '';
+                    while (el.firstChild) {
+                        void el.removeChild(el.firstChild);
+                    }
+                    void [...children].forEach(child => void el.appendChild(child));
+                }
+                return el;
             }
             exports.define = define;
             function isChildren(o) {
@@ -4750,7 +4763,7 @@ require = function () {
             const script_1 = require('./script');
             exports.env = Promise.all([
                 script_1.scripts,
-                new Promise(setTimeout)
+                new Promise(r => void setTimeout(r))
             ]);
         },
         { './script': 129 }
