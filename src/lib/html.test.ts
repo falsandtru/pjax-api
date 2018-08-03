@@ -24,7 +24,7 @@ describe('Unit: lib/html', () => {
     it('', () => {
       const el = html('noscript', [html('hr')]);
       document.body.appendChild(el);
-      const texts = fixNoscript(el.ownerDocument)
+      const texts = fixNoscript(el.ownerDocument!)
         .map(([, {textContent}]) => textContent);
       assert.deepStrictEqual(texts, ['<hr>']);
       el.remove();

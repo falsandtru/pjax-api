@@ -65,7 +65,7 @@ export function pair<T>(srcs: T[], dsts: T[], compare: (a: T, b: T) => boolean):
 function before(parent: HTMLElement, children: HTMLElement[], ref: HTMLElement | null): undefined {
   assert(!ref || ref.parentElement === parent);
   return void children
-    .map(child => parent.ownerDocument.importNode(child.cloneNode(true), true) as HTMLElement)
+    .map(child => parent.ownerDocument!.importNode(child.cloneNode(true), true) as HTMLElement)
     .forEach(child => void parent.insertBefore(child, ref));
 }
 

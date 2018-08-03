@@ -1,6 +1,6 @@
 const bar = document.createElement('div');
 void window.addEventListener('pjax:fetch', () =>
-  void document.documentElement.appendChild(bar));
+  void document.documentElement!.appendChild(bar));
 void window.addEventListener('pjax:fetch', () =>
   bar.style.width = '5%');
 void window.addEventListener('pjax:unload', () =>
