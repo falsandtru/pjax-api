@@ -2894,6 +2894,7 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const identity_1 = require('./identity');
+            const dom_1 = require('../util/dom');
             var ElChildrenType;
             (function (ElChildrenType) {
                 ElChildrenType.Void = 'void';
@@ -2914,23 +2915,20 @@ require = function () {
                     case ElChildrenType.Void:
                         return;
                     case ElChildrenType.Text:
-                        void clear();
+                        void dom_1.define(element_, []);
                         this.children_ = element_.appendChild(document.createTextNode(''));
                         this.children = children_;
                         return;
                     case ElChildrenType.Collection:
-                        void clear();
+                        void dom_1.define(element_, []);
                         this.children_ = [];
                         this.children = children_;
                         return;
                     case ElChildrenType.Record:
-                        void clear();
+                        void dom_1.define(element_, []);
                         this.children_ = observe(element_, Object.assign({}, children_));
                         this.children = children_;
                         return;
-                    }
-                    function clear() {
-                        element_.innerHTML = '';
                     }
                     function observe(element, children) {
                         return Object.defineProperties(children, Object.entries(children).reduce((descs, [name, child]) => {
@@ -3030,7 +3028,10 @@ require = function () {
                 throw new Error(`TypedDOM: Cannot add an element used in another typed dom.`);
             }
         },
-        { './identity': 88 }
+        {
+            '../util/dom': 90,
+            './identity': 88
+        }
     ],
     90: [
         function (require, module, exports) {
