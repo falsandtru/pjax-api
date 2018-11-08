@@ -4751,14 +4751,21 @@ require = function () {
                         return void kill(), void url_1.docurl.sync(), void ss.filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_2.URL(url_3.standardizeUrl(s.src)).href)), void (yield p).filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_2.URL(url_3.standardizeUrl(s.src)).href));
                     })).extract()).catch(reason => (void kill(), void url_1.docurl.sync(), window.history.scrollRestoration = 'auto', !cancellation.canceled || reason instanceof Error && reason.name === 'FatalError' ? void config.fallback(typed_dom_1.currentTargets.get(event.original), reason) : undefined));
                 })).extract(() => __awaiter(this, void 0, void 0, function* () {
-                    void url_1.docurl.sync();
                     switch (event.type) {
                     case router_1.RouterEventType.click:
+                        if (isHashClick(event.location.dest)) {
+                            void url_1.docurl.update(event.location.dest.href);
+                        }
+                        break;
                     case router_1.RouterEventType.submit:
-                        return;
+                        break;
                     case router_1.RouterEventType.popstate:
-                        return void config.fallback(event.source, new Error(`Disabled.`));
+                        if (!isHashChange(event.location.dest)) {
+                            void config.fallback(event.source, new Error(`Disabled.`));
+                        }
+                        break;
                     }
+                    void url_1.docurl.sync();
                 }));
             }
             exports.route = route;
@@ -4777,14 +4784,6 @@ require = function () {
                     const orig = new url_2.URL(url_1.docurl.href);
                     return orig.origin === dest.origin;
                 }
-                function isHashClick(dest) {
-                    const orig = new url_2.URL(url_1.docurl.href);
-                    return orig.origin === dest.origin && orig.path === dest.path && dest.fragment !== '';
-                }
-                function isHashChange(dest) {
-                    const orig = new url_2.URL(url_1.docurl.href);
-                    return orig.origin === dest.origin && orig.path === dest.path && orig.fragment !== dest.fragment;
-                }
                 function isDownload(el) {
                     return el.hasAttribute('download');
                 }
@@ -4793,6 +4792,14 @@ require = function () {
                 }
             }
             exports._validate = validate;
+            function isHashClick(dest) {
+                const orig = new url_2.URL(url_1.docurl.href);
+                return orig.origin === dest.origin && orig.path === dest.path && dest.fragment !== '';
+            }
+            function isHashChange(dest) {
+                const orig = new url_2.URL(url_1.docurl.href);
+                return orig.origin === dest.origin && orig.path === dest.path && orig.fragment !== dest.fragment;
+            }
         },
         {
             '../../../lib/url': 136,
@@ -4868,6 +4875,9 @@ require = function () {
                 constructor() {
                     this.sync = () => {
                         url = url_1.standardizeUrl(location.href);
+                    };
+                    this.update = url_ => {
+                        url = url_;
                     };
                 }
                 get href() {
