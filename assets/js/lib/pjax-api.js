@@ -3324,7 +3324,7 @@ require = function () {
             void saveTitle();
             void savePosition();
             function loadTitle() {
-                return window.history.state.title || document.title;
+                return window.history.state && window.history.state.title || document.title;
             }
             exports.loadTitle = loadTitle;
             function saveTitle() {
@@ -3332,7 +3332,7 @@ require = function () {
             }
             exports.saveTitle = saveTitle;
             function loadPosition() {
-                return window.history.state.position || {
+                return window.history.state && window.history.state.position || {
                     top: window.pageYOffset,
                     left: window.pageXOffset
                 };
