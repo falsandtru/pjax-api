@@ -73,14 +73,21 @@ export function route(
             : undefined));
     })
     .extract(async () => {
-      void docurl.sync();
       switch (event.type) {
         case RouterEventType.click:
+          if (isHashClick(event.location.dest)) {
+            void docurl.update(event.location.dest.href);
+          }
+          break;
         case RouterEventType.submit:
-          return;
+          break;
         case RouterEventType.popstate:
-          return void config.fallback(event.source, new Error(`Disabled.`));
+          if (!isHashChange(event.location.dest)) {
+            void config.fallback(event.source, new Error(`Disabled.`));
+          }
+          break;
       }
+      void docurl.sync();
     });
 }
 
@@ -108,20 +115,6 @@ function validate(url: URL<StandardUrl>, config: Config, event: RouterEvent): bo
     return orig.origin === dest.origin;
   }
 
-  function isHashClick(dest: URL<StandardUrl>): boolean {
-    const orig: URL<StandardUrl> = new URL(docurl.href);
-    return orig.origin === dest.origin
-        && orig.path === dest.path
-        && dest.fragment !== '';
-  }
-
-  function isHashChange(dest: URL<StandardUrl>): boolean {
-    const orig: URL<StandardUrl> = new URL(docurl.href);
-    return orig.origin === dest.origin
-        && orig.path === dest.path
-        && orig.fragment !== dest.fragment;
-  }
-
   function isDownload(el: HTMLAnchorElement): boolean {
     return el.hasAttribute('download');
   }
@@ -135,3 +128,17 @@ function validate(url: URL<StandardUrl>, config: Config, event: RouterEvent): bo
   }
 }
 export { validate as _validate }
+
+function isHashClick(dest: URL<StandardUrl>): boolean {
+  const orig: URL<StandardUrl> = new URL(docurl.href);
+  return orig.origin === dest.origin
+    && orig.path === dest.path
+    && dest.fragment !== '';
+}
+
+function isHashChange(dest: URL<StandardUrl>): boolean {
+  const orig: URL<StandardUrl> = new URL(docurl.href);
+  return orig.origin === dest.origin
+    && orig.path === dest.path
+    && orig.fragment !== dest.fragment;
+}

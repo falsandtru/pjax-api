@@ -21,6 +21,32 @@ describe('Integration: Usecase', function () {
       a.click();
     });
 
+    it('hash', function (done) {
+      const url = '/base/test/integration/fixture/basic/1.html#a';
+      new Pjax({}, { document, router });
+      const unbind = once(window, 'pjax:fetch', () => {
+        done(true);
+      });
+      once(document, 'click', ev => {
+        assert(!ev.defaultPrevented);
+        setTimeout(() => {
+          assert(window.location.hash === '#a');
+          once(window, 'hashchange', () => {
+            assert(window.location.hash === '');
+            setTimeout(() => {
+              unbind();
+              done();
+            }, 100);
+          });
+          window.history.back();
+        }, 100);
+      });
+      const a = document.createElement('a');
+      a.href = url;
+      document.body.appendChild(a);
+      a.click();
+    });
+
     it('failure', function (done) {
       const url = '404';
       const document = parse('').extract();

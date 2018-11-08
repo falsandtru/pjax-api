@@ -5,7 +5,7 @@ void saveTitle();
 void savePosition();
 
 export function loadTitle(): State.Title {
-  return window.history.state.title
+  return window.history.state && window.history.state.title
       || document.title;
 }
 
@@ -20,7 +20,7 @@ export function saveTitle(): void {
 }
 
 export function loadPosition(): State.Position {
-  return window.history.state.position
+  return window.history.state && window.history.state.position
       || {
            top: window.pageYOffset,
            left: window.pageXOffset

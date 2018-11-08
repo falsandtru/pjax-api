@@ -3,6 +3,7 @@
 ## 3.24.0
 
 - Add `X-Requested-With: XMLHttpRequest` header.
+- Fix a url transition bug with hash link.
 
 ## 3.23.0
 
