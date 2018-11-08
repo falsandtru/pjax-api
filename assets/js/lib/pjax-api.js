@@ -4868,9 +4868,7 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const url_1 = require('../../../data/model/domain/url');
-            const typed_dom_1 = require('typed-dom');
             let url = url_1.standardizeUrl(location.href);
-            void typed_dom_1.bind(window, 'hashchange', () => void exports.docurl.sync());
             exports.docurl = new class {
                 constructor() {
                     this.sync = () => {
@@ -4885,10 +4883,7 @@ require = function () {
                 }
             }();
         },
-        {
-            '../../../data/model/domain/url': 96,
-            'typed-dom': 86
-        }
+        { '../../../data/model/domain/url': 96 }
     ],
     132: [
         function (require, module, exports) {
