@@ -29,6 +29,7 @@ describe('Integration: Usecase', function () {
       });
       once(document, 'click', ev => {
         assert(!ev.defaultPrevented);
+        a.remove();
         setTimeout(() => {
           assert(window.location.hash === '#a');
           once(window, 'hashchange', () => {

@@ -58,6 +58,7 @@ describe('Unit: layer/interface/service/gui', function () {
       }});
       once(document, 'form', 'submit', ev => {
         assert(ev.defaultPrevented === true);
+        form.remove();
         done();
       });
       form.querySelector('input')!.click();

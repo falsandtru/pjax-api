@@ -57,6 +57,7 @@ describe('Unit: layer/interface/service/router', function () {
       document.body.appendChild(form);
       once(document, 'form', 'submit', ev => {
         assert(validate(new URL(standardizeUrl(url)), new Config({}), new RouterEvent(ev)));
+        form.remove();
         done();
       });
       form.querySelector('input')!.click();
@@ -71,6 +72,7 @@ describe('Unit: layer/interface/service/router', function () {
       once(document, 'form', 'submit', ev => {
         assert(!validate(new URL(standardizeUrl(url)), new Config({}), new RouterEvent(ev)));
         ev.preventDefault();
+        form.remove();
         done();
       });
       form.querySelector('input')!.click();

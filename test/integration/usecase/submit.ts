@@ -8,6 +8,7 @@ describe('Integration: Usecase', function () {
       const url = '/base/test/integration/fixture/basic/1.html';
       new Pjax({}, { document, router });
       once(document, 'pjax:ready', () => {
+        form.remove();
         assert(decodeURIComponent(window.location.search) === '?query=あアｱ亜=&');
         done();
       });
@@ -23,6 +24,7 @@ describe('Integration: Usecase', function () {
       const url = '404';
       new Pjax({
         fallback(target) {
+          form.remove();
           assert(target === form);
           assert(window.history.scrollRestoration === 'auto');
           done();
