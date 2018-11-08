@@ -668,6 +668,22 @@ require = function () {
                 extract(left, right) {
                     return !right ? this.evaluate().extract(left) : this.fmap(right).extract(left);
                 }
+                static do(block) {
+                    const iter = block();
+                    let val;
+                    while (true) {
+                        const {
+                            value: m,
+                            done
+                        } = iter.next(val);
+                        if (done)
+                            return m;
+                        const r = m.extract(() => undefined, a => [a]);
+                        if (!r)
+                            return m;
+                        val = r[0];
+                    }
+                }
             }
             exports.Either = Either;
             (function (Either) {
@@ -725,15 +741,12 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const Monad = require('./either.impl');
-            var Either;
-            (function (Either) {
-                Either.fmap = Monad.Either.fmap;
-                Either.pure = Monad.Either.pure;
-                Either.ap = Monad.Either.ap;
-                Either.Return = Monad.Either.Return;
-                Either.bind = Monad.Either.bind;
-                Either.sequence = Monad.Either.sequence;
-            }(Either = exports.Either || (exports.Either = {})));
+            class Either extends Monad.Either {
+                constructor() {
+                    super(() => undefined);
+                }
+            }
+            exports.Either = Either;
             function Left(a) {
                 return new Monad.Left(a);
             }
@@ -819,6 +832,22 @@ require = function () {
                 extract(nothing, just) {
                     return !just ? this.evaluate().extract(nothing) : this.fmap(just).extract(nothing);
                 }
+                static do(block) {
+                    const iter = block();
+                    let val;
+                    while (true) {
+                        const {
+                            value: m,
+                            done
+                        } = iter.next(val);
+                        if (done)
+                            return m;
+                        const r = m.extract(() => undefined, a => [a]);
+                        if (!r)
+                            return m;
+                        val = r[0];
+                    }
+                }
             }
             exports.Maybe = Maybe;
             (function (Maybe) {
@@ -882,17 +911,12 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const Monad = require('./maybe.impl');
-            var Maybe;
-            (function (Maybe) {
-                Maybe.fmap = Monad.Maybe.fmap;
-                Maybe.pure = Monad.Maybe.pure;
-                Maybe.ap = Monad.Maybe.ap;
-                Maybe.Return = Monad.Maybe.Return;
-                Maybe.bind = Monad.Maybe.bind;
-                Maybe.sequence = Monad.Maybe.sequence;
-                Maybe.mzero = Monad.Maybe.mzero;
-                Maybe.mplus = Monad.Maybe.mplus;
-            }(Maybe = exports.Maybe || (exports.Maybe = {})));
+            class Maybe extends Monad.Maybe {
+                constructor() {
+                    super(() => undefined);
+                }
+            }
+            exports.Maybe = Maybe;
             function Just(a) {
                 return new Monad.Just(a);
             }
@@ -2241,7 +2265,7 @@ require = function () {
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            var _a;
+            var _a, _b;
             'use strict';
             const concat_1 = require('./concat');
             var State;
@@ -2256,22 +2280,23 @@ require = function () {
                 constructor(executor) {
                     this[Symbol.toStringTag] = 'Promise';
                     this[_a] = [];
+                    this[_b] = [];
                     try {
                         void executor(value => {
-                            this[status] = this[status] || [
+                            this[status][0] = this[status][0] || [
                                 0,
                                 value
                             ];
                             void this[resume]();
                         }, reason => {
-                            this[status] = this[status] || [
+                            this[status][0] = this[status][0] || [
                                 1,
                                 reason
                             ];
                             void this[resume]();
                         });
                     } catch (reason) {
-                        this[status] = [
+                        this[status][0] = [
                             1,
                             reason
                         ];
@@ -2294,9 +2319,9 @@ require = function () {
                     return new AtomicPromise((_, reject) => void reject(reason));
                 }
                 [resume]() {
-                    if (!this[status])
+                    if (!this[status][0])
                         return;
-                    const [state, value] = this[status];
+                    const [state, value] = this[status][0];
                     while (this[queue].length > 0) {
                         const [resolve, reject] = this[queue].shift();
                         switch (state) {
@@ -2341,7 +2366,7 @@ require = function () {
                     return this.then(onfinally, onfinally).then(() => this);
                 }
             }
-            _a = queue;
+            _a = status, _b = queue;
             exports.AtomicPromise = AtomicPromise;
             function isPromiseLike(value) {
                 return !!value && typeof value === 'object' && 'then' in value && typeof value.then === 'function';
@@ -2388,14 +2413,25 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const promise_1 = require('./promise');
+            const future_1 = require('./future');
             const observation_1 = require('./observation');
             const assign_1 = require('./assign');
             const clock_1 = require('./clock');
             const sqid_1 = require('./sqid');
             const noop_1 = require('./noop');
             const exception_1 = require('./exception');
-            class Supervisor {
+            class Supervisor extends promise_1.AtomicPromise {
                 constructor(opts = {}) {
+                    super((resolve, reject) => (cb = [
+                        resolve,
+                        reject
+                    ], {
+                        next: () => new promise_1.AtomicPromise(r => void clock_1.tick(() => r({
+                            value: this.state,
+                            done: true
+                        })))
+                    }));
+                    this.state = new future_1.AtomicFuture();
                     this.id = sqid_1.sqid();
                     this.settings = {
                         name: '',
@@ -2447,6 +2483,8 @@ require = function () {
                             }
                         }
                     };
+                    var cb;
+                    void this.state.then(...cb);
                     void Object.freeze(assign_1.extend(this.settings, opts));
                     this.name = this.settings.name;
                     if (this.constructor === Supervisor)
@@ -2479,6 +2517,7 @@ require = function () {
                     void this.constructor.instances.delete(this);
                     void Object.freeze(this);
                     void this.settings.destructor(reason);
+                    void this.state.bind(reason === undefined ? undefined : promise_1.AtomicPromise.reject(reason));
                 }
                 get available() {
                     return this.available_;
@@ -2493,15 +2532,16 @@ require = function () {
                         void this.kill(name, reason);
                         return this.register(name, process, state);
                     }
+                    if (typeof process === 'function')
+                        return this.register(name, {
+                            init: state => state,
+                            main: process,
+                            exit: _ => undefined
+                        }, state);
                     if (this.workers.has(name))
                         throw new Error(`Spica: Supervisor: <${ this.id }/${ this.name }/${ name }>: Cannot register a process multiply with the same name.`);
                     void this.schedule();
-                    process = typeof process === 'function' ? {
-                        init: state => state,
-                        main: process,
-                        exit: _ => undefined
-                    } : process;
-                    return this.workers.set(name, new Worker(this, name, process, state, state === Supervisor.initiated, this.events_, () => void this.workers.delete(name))).get(name).terminate;
+                    return this.workers.set(name, new Worker(this, name, process, state, Supervisor.standalone.has(process), this.events_, () => void this.workers.delete(name))).get(name).terminate;
                 }
                 call(name, param, callback = this.settings.timeout, timeout = this.settings.timeout) {
                     return this.call_(name === undefined ? new NamePool(this.workers) : name, param, callback, timeout);
@@ -2587,7 +2627,7 @@ require = function () {
                     void clock_1.tick(this.scheduler, true);
                 }
             }
-            Supervisor.initiated = Symbol();
+            Supervisor.standalone = new WeakSet();
             exports.Supervisor = Supervisor;
             class NamePool {
                 constructor(workers) {
@@ -2691,6 +2731,7 @@ require = function () {
             './assign': 4,
             './clock': 8,
             './exception': 14,
+            './future': 16,
             './noop': 75,
             './observation': 76,
             './promise': 77,
@@ -3064,7 +3105,7 @@ require = function () {
             function frag(children = []) {
                 children = typeof children === 'string' ? [text(children)] : children;
                 const frag = cache.frag.cloneNode();
-                void [...children].forEach(child => void frag.appendChild(child));
+                void frag.append(...children);
                 return frag;
             }
             exports.frag = frag;
@@ -3100,20 +3141,29 @@ require = function () {
                     return define(el, undefined, attrs);
                 if (typeof children === 'string')
                     return define(el, attrs, [text(children)]);
-                void Object.entries(attrs).forEach(([name, value]) => typeof value === 'string' ? void el.setAttribute(name, value) : void el.addEventListener(name.slice(2), value, {
-                    passive: [
-                        'wheel',
-                        'mousewheel',
-                        'touchstart',
-                        'touchmove'
-                    ].includes(name.slice(2))
-                }));
+                void Object.entries(attrs).forEach(([name, value]) => {
+                    switch (typeof value) {
+                    case 'function':
+                        return void el.addEventListener(name.slice(2), value, {
+                            passive: [
+                                'wheel',
+                                'mousewheel',
+                                'touchstart',
+                                'touchmove'
+                            ].includes(name.slice(2))
+                        });
+                    case 'undefined':
+                        return void el.removeAttribute(name);
+                    default:
+                        return void el.setAttribute(name, value);
+                    }
+                });
                 if (children) {
                     el.innerHTML = '';
                     while (el.firstChild) {
                         void el.removeChild(el.firstChild);
                     }
-                    void [...children].forEach(child => void el.appendChild(child));
+                    void el.append(...children);
                 }
                 return el;
             }
