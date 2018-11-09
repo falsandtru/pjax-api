@@ -75,10 +75,6 @@ export function route(
     .extract(async () => {
       switch (event.type) {
         case RouterEventType.click:
-          if (isHashClick(event.location.dest)) {
-            void docurl.update(event.location.dest.href);
-          }
-          break;
         case RouterEventType.submit:
           break;
         case RouterEventType.popstate:
@@ -115,6 +111,13 @@ function validate(url: URL<StandardUrl>, config: Config, event: RouterEvent): bo
     return orig.origin === dest.origin;
   }
 
+  function isHashClick(dest: URL<StandardUrl>): boolean {
+    const orig: URL<StandardUrl> = new URL(docurl.href);
+    return orig.origin === dest.origin
+        && orig.path === dest.path
+        && dest.fragment !== '';
+  }
+
   function isDownload(el: HTMLAnchorElement): boolean {
     return el.hasAttribute('download');
   }
@@ -129,16 +132,9 @@ function validate(url: URL<StandardUrl>, config: Config, event: RouterEvent): bo
 }
 export { validate as _validate }
 
-function isHashClick(dest: URL<StandardUrl>): boolean {
-  const orig: URL<StandardUrl> = new URL(docurl.href);
-  return orig.origin === dest.origin
-    && orig.path === dest.path
-    && dest.fragment !== '';
-}
-
 function isHashChange(dest: URL<StandardUrl>): boolean {
   const orig: URL<StandardUrl> = new URL(docurl.href);
   return orig.origin === dest.origin
-    && orig.path === dest.path
-    && orig.fragment !== dest.fragment;
+      && orig.path === dest.path
+      && orig.fragment !== dest.fragment;
 }
