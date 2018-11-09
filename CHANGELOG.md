@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.24.1
+
+- Micro refactoring.
+
 ## 3.24.0
 
 - Add `X-Requested-With: XMLHttpRequest` header.
