@@ -4753,10 +4753,6 @@ require = function () {
                 })).extract(() => __awaiter(this, void 0, void 0, function* () {
                     switch (event.type) {
                     case router_1.RouterEventType.click:
-                        if (isHashClick(event.location.dest)) {
-                            void url_1.docurl.update(event.location.dest.href);
-                        }
-                        break;
                     case router_1.RouterEventType.submit:
                         break;
                     case router_1.RouterEventType.popstate:
@@ -4784,6 +4780,10 @@ require = function () {
                     const orig = new url_2.URL(url_1.docurl.href);
                     return orig.origin === dest.origin;
                 }
+                function isHashClick(dest) {
+                    const orig = new url_2.URL(url_1.docurl.href);
+                    return orig.origin === dest.origin && orig.path === dest.path && dest.fragment !== '';
+                }
                 function isDownload(el) {
                     return el.hasAttribute('download');
                 }
@@ -4792,10 +4792,6 @@ require = function () {
                 }
             }
             exports._validate = validate;
-            function isHashClick(dest) {
-                const orig = new url_2.URL(url_1.docurl.href);
-                return orig.origin === dest.origin && orig.path === dest.path && dest.fragment !== '';
-            }
             function isHashChange(dest) {
                 const orig = new url_2.URL(url_1.docurl.href);
                 return orig.origin === dest.origin && orig.path === dest.path && orig.fragment !== dest.fragment;
@@ -4868,22 +4864,24 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const url_1 = require('../../../data/model/domain/url');
-            let url = url_1.standardizeUrl(location.href);
+            const typed_dom_1 = require('typed-dom');
+            void typed_dom_1.bind(window, 'hashchange', () => void exports.docurl.sync());
             exports.docurl = new class {
                 constructor() {
-                    this.sync = () => {
-                        url = url_1.standardizeUrl(location.href);
-                    };
-                    this.update = url_ => {
-                        url = url_;
-                    };
+                    this.url = url_1.standardizeUrl(location.href);
                 }
                 get href() {
-                    return url;
+                    return this.url;
+                }
+                sync() {
+                    this.url = url_1.standardizeUrl(location.href);
                 }
             }();
         },
-        { '../../../data/model/domain/url': 96 }
+        {
+            '../../../data/model/domain/url': 96,
+            'typed-dom': 86
+        }
     ],
     132: [
         function (require, module, exports) {
