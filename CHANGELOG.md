@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.24.2
+
+- Add license notice.
+
 ## 3.24.1
 
 - Micro refactoring.

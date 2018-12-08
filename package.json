@@ -21,6 +21,7 @@
     "*.js",
     "*.json",
     "*.md",
+    "NOTICE",
     "LICENSE"
   ],
   "dependencies": {},
