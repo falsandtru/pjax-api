@@ -39,6 +39,9 @@ const config = {
       dest: 'dist'
     }
   },
+  site: {
+    js: './gh-pages/assets/js/lib',
+  },
   banner: [
     `/*! ${pkg.name} v${pkg.version} ${pkg.repository.url} | (c) 2012, ${pkg.author} | ${pkg.license} License */`,
     ''
@@ -58,6 +61,7 @@ const config = {
 `,
   clean: [
     'dist',
+    'gh-pages/assets/*/**/lib',
   ]
 };
 
@@ -101,6 +105,7 @@ gulp.task('ts:dist', () =>
     .pipe($.unassert())
     .pipe($.header(config.banner))
     .pipe(gulp.dest(config.ts.dist.dest))
+    .pipe(gulp.dest(config.site.js))
     .pipe($.rename({ extname: '.min.js' }))
     .pipe(minify({ output: { comments: /^!/ } }))
     .pipe(gulp.dest(config.ts.dist.dest)));
@@ -110,7 +115,7 @@ gulp.task('ts:view', () =>
     compile(config.ts.dist.src)
       .pipe($.unassert())
       .pipe($.header(config.banner))
-      .pipe(gulp.dest('./gh-pages/assets/js/lib'))));
+      .pipe(gulp.dest(config.site.js))));
 
 gulp.task('karma:dev', done =>
   new Server({
