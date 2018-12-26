@@ -72,8 +72,7 @@ function compile(src) {
     packageCache: {},
   })
     .require(`./index.ts`, { expose: pkg.name })
-    .plugin(tsify, { global: true, ...require('./tsconfig.json').compilerOptions })
-    .on('update', () => void bundle());
+    .plugin(tsify, { global: true, ...require('./tsconfig.json').compilerOptions });
   return bundle();
 
   function bundle() {
