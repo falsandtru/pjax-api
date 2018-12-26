@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.25.0
+
+- Validate script integrity.
+
 ## 3.24.2
 
 - Add license notice.

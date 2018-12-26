@@ -6,6 +6,7 @@ import { concat } from 'spica/concat';
 import { find } from '../../../../../lib/dom';
 import { FatalError } from '../../../../../lib/error';
 import { URL } from '../../../../../lib/url';
+import { checkData } from '../../../../../lib/integrity';
 import { StandardUrl, standardizeUrl } from '../../../../data/model/domain/url';
 import { html } from 'typed-dom';
 
@@ -124,7 +125,10 @@ async function fetch(
           case 'load':
             return void xhr.addEventListener(
               type,
-              () => void resolve(Right<FetchData>([script, xhr.response as string])));
+              () =>
+                !script.integrity || checkData(xhr.response, script.integrity)
+                  ? void resolve(Right<FetchData>([script, xhr.response as string]))
+                  : void resolve(Left(new Error(``))))
           default:
             return void xhr.addEventListener(
               type,

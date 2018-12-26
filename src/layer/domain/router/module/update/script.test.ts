@@ -81,6 +81,33 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         });
     });
 
+    it('success with integrity', done => {
+      script(
+        {
+          src: parse(html('head', [html('script', { src: 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js', integrity: 'sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=' })]).outerHTML).extract(),
+          dst: parse('').extract()
+        },
+        new Set([]),
+        {
+          ignore: '',
+          reload: '',
+          logger: 'head'
+        },
+        1e3,
+        new Cancellation<Error>())
+        .then(m => {
+          return m.extract();
+        })
+        .then(([ss, p]) => {
+          assert.deepStrictEqual(ss.map(s => s instanceof HTMLScriptElement), [true]);
+          return p;
+        })
+        .then(m => {
+          assert.deepStrictEqual(m.extract(), []);
+          done();
+        });
+    });
+
     it('success over Same-origin policy', done => {
       script(
         {
