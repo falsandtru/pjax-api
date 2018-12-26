@@ -128,7 +128,7 @@ async function fetch(
               () =>
                 !script.integrity || checkData(xhr.response, script.integrity)
                   ? void resolve(Right<FetchData>([script, xhr.response as string]))
-                  : void resolve(Left(new Error(``))))
+                  : void resolve(Left(new Error(`${script.src}: Invalid integrity.`))))
           default:
             return void xhr.addEventListener(
               type,
