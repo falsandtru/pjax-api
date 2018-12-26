@@ -25532,7 +25532,7 @@ require = function () {
                             return void xhr.addEventListener(type, () => !script.integrity || integrity_1.checkData(xhr.response, script.integrity) ? void resolve(either_1.Right([
                                 script,
                                 xhr.response
-                            ])) : void resolve(either_1.Left(new Error(``))));
+                            ])) : void resolve(either_1.Left(new Error(`${ script.src }: Invalid integrity.`))));
                         default:
                             return void xhr.addEventListener(type, () => type === 'error' && script.matches('[src][async]') ? void resolve(retry(script).then(() => either_1.Right([
                                 script,
