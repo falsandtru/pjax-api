@@ -82,6 +82,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
     });
 
     it('success over Same-origin policy', done => {
+      if (navigator.userAgent.includes('Firefox')) return done();
       script(
         {
           src: parse(html('head', [html('script', { src: 'https://platform.twitter.com/widgets.js', async: '' })]).outerHTML).extract(),
