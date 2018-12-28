@@ -205,7 +205,5 @@ gulp.task('ci',
     series(
       'ts:test',
       'karma:ci',
-      'karma:ci',
-      'karma:ci',
       'dist',
     )));
