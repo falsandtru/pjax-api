@@ -25533,11 +25533,13 @@ require = function () {
                                 script,
                                 xhr.response
                             ])) : void resolve(either_1.Left(new Error(`${ script.src }: Invalid integrity.`))));
-                        default:
-                            return void xhr.addEventListener(type, () => type === 'error' && script.matches('[src][async]') ? void resolve(retry(script).then(() => either_1.Right([
+                        case 'error':
+                            return void xhr.addEventListener(type, () => script.matches('[src][async]') ? void resolve(retry(script).then(() => either_1.Right([
                                 script,
                                 ''
                             ]), () => either_1.Left(new Error(`${ script.src }: ${ xhr.statusText }`)))) : void resolve(either_1.Left(new Error(`${ script.src }: ${ xhr.statusText }`))));
+                        default:
+                            return void xhr.addEventListener(type, () => void resolve(either_1.Left(new Error(`${ script.src }: ${ xhr.statusText }`))));
                         }
                     }));
                 });
