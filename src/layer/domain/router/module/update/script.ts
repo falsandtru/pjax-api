@@ -126,16 +126,24 @@ async function fetch(
             return void xhr.addEventListener(
               type,
               () =>
-                !script.integrity || checkData(xhr.response, script.integrity)
+                !script.integrity || checkData(xhr.response as string, script.integrity)
                   ? void resolve(Right<FetchData>([script, xhr.response as string]))
                   : void resolve(Left(new Error(`${script.src}: Invalid integrity.`))))
+          case 'error':
+            return void xhr.addEventListener(
+              type,
+              () =>
+                script.matches('[src][async]')
+                  ? void resolve(retry(script)
+                      .then(
+                        () => Right<FetchData>([script, '']),
+                        () => Left(new Error(`${script.src}: ${xhr.statusText}`))))
+                  : void resolve(Left(new Error(`${script.src}: ${xhr.statusText}`))));
           default:
             return void xhr.addEventListener(
               type,
               () =>
-                type === 'error' && script.matches('[src][async]')
-                  ? void resolve(retry(script).then(() => Right<FetchData>([script, '']), () => Left(new Error(`${script.src}: ${xhr.statusText}`))))
-                  : void resolve(Left(new Error(`${script.src}: ${xhr.statusText}`))));
+                void resolve(Left(new Error(`${script.src}: ${xhr.statusText}`))));
         }
       }));
 }
