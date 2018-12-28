@@ -66,7 +66,6 @@ const config = {
 };
 
 function compile(src) {
-  let done = true;
   const b = browserify(Object.values(src).map(p => glob.sync(p)), {
     cache: {},
     packageCache: {},
@@ -79,11 +78,10 @@ function compile(src) {
     console.time('bundle');
     return b
       .bundle()
-      .on("error", err => done = console.log(err + ''))
+      .on("error", err => console.log(err + ''))
       .pipe(source(`${pkg.name}.js`))
       .pipe(buffer())
       .once('finish', () => console.timeEnd('bundle'))
-      .once("finish", () => done || process.exit(1))
       .pipe($.footer(config.module));
   }
 }
