@@ -20765,8 +20765,8 @@ require = function () {
                         void Object.freeze(this);
                     };
                     this.promise = val => this.canceled_ ? promise_1.AtomicPromise.reject(this.reason) : promise_1.AtomicPromise.resolve(val);
-                    this.maybe = val => this.canceled_ ? maybe_1.Nothing : maybe_1.Just(val);
-                    this.either = val => this.canceled_ ? either_1.Left(this.reason) : either_1.Right(val);
+                    this.maybe = val => maybe_1.Just(val).bind(val => this.canceled_ ? maybe_1.Nothing : maybe_1.Just(val));
+                    this.either = val => either_1.Right(val).bind(val => this.canceled_ ? either_1.Left(this.reason) : either_1.Right(val));
                     var resolve;
                     void resolve(this.state);
                     void [...cancelees].forEach(cancellee => void cancellee.register(this.cancel));
