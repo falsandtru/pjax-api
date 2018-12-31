@@ -354,6 +354,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
     });
 
     it('external integrity', async () => {
+      if (navigator.userAgent.includes('Firefox')) return;
       await fetch(html('script', { src: 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js', integrity: 'sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=' }), 1e3)
         .then(m => m
           .fmap(([el]) => {
