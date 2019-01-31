@@ -23847,6 +23847,8 @@ require = function () {
                     return define(el, attrs, [text(children)]);
                 void Object.entries(attrs).forEach(([name, value]) => {
                     switch (typeof value) {
+                    case 'string':
+                        return void el.setAttribute(name, value);
                     case 'function':
                         return void el.addEventListener(name.slice(2), value, {
                             passive: [
@@ -23856,10 +23858,10 @@ require = function () {
                                 'touchmove'
                             ].includes(name.slice(2))
                         });
-                    case 'undefined':
+                    case 'object':
                         return void el.removeAttribute(name);
                     default:
-                        return void el.setAttribute(name, value);
+                        return;
                     }
                 });
                 if (children) {
