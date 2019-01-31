@@ -59,7 +59,7 @@
     "semver": "^5.6.0",
     "spica": "0.0.220",
     "tsify": "^4.0.1",
-    "typed-dom": "0.0.114",
+    "typed-dom": "0.0.115",
     "typescript": "3.4.0-dev.20190131",
     "uglify-es": "^3.3.9",
     "vinyl-buffer": "^1.0.1",
