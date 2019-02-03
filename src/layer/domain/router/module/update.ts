@@ -83,10 +83,7 @@ export function update(
             void head(documents, config.update.head, config.update.ignore),
             process.either(content(documents, areas))
               .fmap(([as, ps]) =>
-                [
-                  as,
-                  AtomicPromise.all(ps),
-                ])))
+                tuple([as, AtomicPromise.all(ps)]))))
           .extend(async p => (await p)
             .fmap(async ([areas]) => {
               config.update.css
@@ -106,17 +103,15 @@ export function update(
               void io.document.dispatchEvent(new Event('pjax:ready'));
               return tuple([
                 ssm
-                  .fmap(([ss, ap]) => [
-                    ss,
-                    ap.then(m => m.extract()),
-                  ]),
+                  .fmap(([ss, ap]) =>
+                    tuple([ss, ap.then(m => m.extract())])),
                 await config.sequence.ready(seqC),
               ]);
             })
             .fmap(p =>
               p.then(([m, seqD]) =>
                 m.fmap(sst =>
-                  [sst, seqD])))
+                  tuple([sst, seqD]))))
             .extract(e => AtomicPromise.resolve(Left(e))))
           .reverse()
           .tuple()))
