@@ -1,6 +1,5 @@
 import { Cancellee } from 'spica/cancellation';
 import { Either, Left, Right } from 'spica/either';
-import { tuple } from 'spica/tuple';
 import { Config } from '../../data/config';
 import { RouterEventRequest } from '../../event/router';
 import { FetchResponse } from '../model/eav/value/fetch';
@@ -24,7 +23,7 @@ export async function fetch(
     sequence,
   }: Config,
   process: Cancellee<Error>
-): Promise<Either<Error, [FetchResponse, 'fetch']>> {
+): Promise<Either<Error, readonly [FetchResponse, 'fetch']>> {
   const req = xhr(method, url, headers, body, timeout, redirect, process);
   void window.dispatchEvent(new Event('pjax:fetch'));
   const [res, seq] = await Promise.all([
@@ -41,6 +40,6 @@ export async function fetch(
     .bind(process.either)
     .bind(res =>
       new URL(res.url).origin === new URL(url).origin
-        ? Right(tuple([res, seq]))
+        ? Right([res, seq] as const)
         : Left(new DomainError(`Request is redirected to the different domain url ${new URL(res.url).href}`)));
 }

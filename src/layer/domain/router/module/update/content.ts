@@ -1,7 +1,6 @@
 import { AtomicPromise } from 'spica/promise';
 import { Maybe, Just, Nothing} from 'spica/maybe';
 import { concat} from 'spica/concat';
-import { tuple } from 'spica/tuple';
 import { once } from 'typed-dom';
 import { find } from '../../../../../lib/dom';
 import { escape } from './script';
@@ -53,14 +52,14 @@ export function content(
 export function separate(
   documents: DocumentRecord,
   areas: string[]
-): Maybe<[string, AreaRecord[]]> {
+): Maybe<readonly [string, AreaRecord[]]> {
   return areas
     .reduce((m, area) =>
       Maybe.mplus(
         m,
         sep(documents, area)
           .fmap(as =>
-            tuple([area, as])))
+            [area, as] as const))
     , Nothing)
 
   function sep(documents: DocumentRecord, area: string): Maybe<AreaRecord[]> {

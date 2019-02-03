@@ -1,6 +1,5 @@
 import { Maybe, Just, Nothing } from 'spica/maybe';
 import { Either, Left, Right } from 'spica/either';
-import { tuple } from 'spica/tuple';
 import { find } from './dom';
 
 type Parser = (html: string) => Maybe<Document>;
@@ -37,7 +36,7 @@ function fixNoscript(doc: Document): [HTMLElement, HTMLElement][] {
     .map(el => {
       const clone = el.cloneNode(true) as HTMLElement;
       clone.textContent = el.innerHTML;
-      return tuple([el, clone]);
+      return [el, clone];
     });
 }
 export { fixNoscript as _fixNoscript }

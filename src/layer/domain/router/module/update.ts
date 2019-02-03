@@ -1,7 +1,6 @@
 import { AtomicPromise } from 'spica/promise';
 import { Either, Left } from 'spica/either';
 import { HNil } from 'spica/hlist';
-import { tuple } from 'spica/tuple';
 import { RouterEntity } from '../model/eav/entity';
 import { RouterEventLocation } from '../../event/router';
 import { FetchResponse } from '../model/eav/value/fetch';
@@ -83,7 +82,7 @@ export function update(
             void head(documents, config.update.head, config.update.ignore),
             process.either(content(documents, areas))
               .fmap(([as, ps]) =>
-                tuple([as, AtomicPromise.all(ps)]))))
+                [as, AtomicPromise.all(ps)] as const)))
           .extend(async p => (await p)
             .fmap(async ([areas]) => {
               config.update.css
@@ -93,7 +92,7 @@ export function update(
               const seqC = await config.sequence.content(seqB, areas);
               const ssm = config.update.script
                 ? await script(documents, state.scripts, config.update, Math.max(config.fetch.timeout, 1000) * 10, process)
-                : await process.either(tuple([[] as HTMLScriptElement[], AtomicPromise.resolve(process.either([] as HTMLScriptElement[]))]));
+                : await process.either<[HTMLScriptElement[], AtomicPromise<Either<Error, HTMLScriptElement[]>>]>([[], AtomicPromise.resolve(process.either([]))]);
               void focus(event.type, documents.dst);
               void scroll(event.type, documents.dst, {
                 hash: event.location.dest.fragment,
@@ -101,17 +100,17 @@ export function update(
               });
               void savePosition();
               void io.document.dispatchEvent(new Event('pjax:ready'));
-              return tuple([
+              return [
                 ssm
                   .fmap(([ss, ap]) =>
-                    tuple([ss, ap.then(m => m.extract())])),
+                    [ss, ap.then(m => m.extract())]),
                 await config.sequence.ready(seqC),
-              ]);
+              ] as const;
             })
             .fmap(p =>
               p.then(([m, seqD]) =>
                 m.fmap(sst =>
-                  tuple([sst, seqD]))))
+                  [sst, seqD] as const)))
             .extract(e => AtomicPromise.resolve(Left(e))))
           .reverse()
           .tuple()))

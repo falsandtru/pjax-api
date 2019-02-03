@@ -58,7 +58,7 @@ export function script(
     .then(async ([sm, am]) =>
       sm.fmap(async p => (await p)
         .fmap(([ss1, ap1]) =>
-          tuple([
+          [
             ss1,
             ap1.then(async as1 =>
               am.fmap(async p => (await p)
@@ -71,7 +71,7 @@ export function script(
                             concat(s1, s2))))))
                 .extract<Either<Error, HTMLScriptElement[]>>(Left))
                 .extract<Either<Error, HTMLScriptElement[]>>(Left)),
-          ])))
+          ]))
         .extract<Result>(Left));
 
   function request(scripts: HTMLScriptElement[]): Promise<Either<Error, FetchData>>[] {
