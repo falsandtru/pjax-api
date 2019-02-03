@@ -20585,10 +20585,12 @@ require = function () {
                         LFU
                     };
                     this.store = new Map(entries);
-                    void [
-                        ...stats[1],
-                        ...stats[0]
-                    ].slice(LFU.length + LRU.length).forEach(k => void this.store.delete(k));
+                    for (const k of [
+                            ...stats[1],
+                            ...stats[0]
+                        ].slice(LFU.length + LRU.length)) {
+                        void this.store.delete(k);
+                    }
                     if (this.store.size !== LFU.length + LRU.length)
                         throw new Error(`Spica: Cache: Size of stats and entries is not matched.`);
                     if (![
@@ -20661,7 +20663,9 @@ require = function () {
                     };
                     if (this.settings.ignore.clear)
                         return;
-                    return void [...store].forEach(([key, val]) => void this.callback(key, val));
+                    for (const [key, val] of store) {
+                        void this.callback(key, val);
+                    }
                 }
                 [Symbol.iterator]() {
                     return this.store[Symbol.iterator]();
@@ -20754,7 +20758,9 @@ require = function () {
                         this.state.bind(this.reason);
                         void Object.freeze(this.listeners);
                         void Object.freeze(this);
-                        void this.listeners.forEach(cb => void cb(reason));
+                        for (const listener of this.listeners) {
+                            void listener(reason);
+                        }
                     };
                     this.close = reason => {
                         if (!this.alive)
@@ -20769,7 +20775,9 @@ require = function () {
                     this.either = val => either_1.Right(val).bind(val => this.canceled_ ? either_1.Left(this.reason) : either_1.Right(val));
                     var resolve;
                     void resolve(this.state);
-                    void [...cancelees].forEach(cancellee => void cancellee.register(this.cancel));
+                    for (const cancellee of cancelees) {
+                        void cancellee.register(this.cancel);
+                    }
                 }
                 static get [Symbol.species]() {
                     return promise_1.AtomicPromise;
@@ -22596,19 +22604,19 @@ require = function () {
                         });
                     case 'undefined': {
                             const node = this.seekNode_(namespace);
-                            void node.childrenNames.slice().forEach(name => {
+                            for (const name of node.childrenNames.slice()) {
                                 void this.off([
                                     ...namespace,
                                     name
                                 ]);
                                 const child = node.children.get(name);
                                 if (!child)
-                                    return;
+                                    continue;
                                 if (child.items.length + child.childrenNames.length > 0)
-                                    return;
+                                    continue;
                                 void node.children.delete(name);
                                 void node.childrenNames.splice(equal_1.findIndex(name, node.childrenNames), 1);
-                            });
+                            }
                             node.items = node.items.filter(({type}) => type === RegisterItemType.monitor);
                             return;
                         }
@@ -22633,13 +22641,13 @@ require = function () {
                 }
                 drain_(namespace, data, tracker) {
                     const results = [];
-                    void this.refsBelow_(this.seekNode_(namespace)).reduce((_, {
-                        type,
-                        listener,
-                        options: {once}
-                    }) => {
+                    for (const {
+                                type,
+                                listener,
+                                options: {once}
+                            } of this.refsBelow_(this.seekNode_(namespace))) {
                         if (type !== RegisterItemType.subscriber)
-                            return;
+                            continue;
                         if (once) {
                             void this.off(namespace, listener);
                         }
@@ -22651,14 +22659,14 @@ require = function () {
                         } catch (reason) {
                             void exception_1.causeAsyncException(reason);
                         }
-                    }, undefined);
-                    void this.refsAbove_(this.seekNode_(namespace)).reduce((_, {
-                        type,
-                        listener,
-                        options: {once}
-                    }) => {
+                    }
+                    for (const {
+                                type,
+                                listener,
+                                options: {once}
+                            } of this.refsAbove_(this.seekNode_(namespace))) {
                         if (type !== RegisterItemType.monitor)
-                            return;
+                            continue;
                         if (once) {
                             void this.off(namespace, listener, RegisterItemType.monitor);
                         }
@@ -22667,7 +22675,7 @@ require = function () {
                         } catch (reason) {
                             void exception_1.causeAsyncException(reason);
                         }
-                    }, undefined);
+                    }
                     if (tracker) {
                         try {
                             void tracker(data, results);
@@ -22780,7 +22788,11 @@ require = function () {
                     return values.reduce((acc, value) => acc.then(vs => AtomicPromise.resolve(value).then(value => concat_1.concat(vs, [value]))), AtomicPromise.resolve([]));
                 }
                 static race(values) {
-                    return new AtomicPromise((resolve, reject) => void values.forEach(value => void AtomicPromise.resolve(value).then(resolve, reject)));
+                    return new AtomicPromise((resolve, reject) => {
+                        for (const value of values) {
+                            void AtomicPromise.resolve(value).then(resolve, reject);
+                        }
+                    });
                 }
                 static resolve(value) {
                     return new AtomicPromise(resolve => void resolve(value));
@@ -22972,7 +22984,9 @@ require = function () {
                 }
                 destructor(reason) {
                     this.available_ = false;
-                    void this.workers.forEach(worker => void worker.terminate(reason));
+                    for (const [, worker] of this.workers) {
+                        void worker.terminate(reason);
+                    }
                     void Object.freeze(this.workers);
                     while (this.messages.length > 0) {
                         const [name, param] = this.messages.shift();
@@ -23503,7 +23517,6 @@ require = function () {
             exports.text = dom_1.text;
             exports.frag = dom_1.frag;
             exports.define = dom_1.define;
-            exports.observer = dom_1.observer;
             __export(require('./src/util/listener'));
         },
         {
@@ -23564,9 +23577,9 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const uuid_1 = require('spica/uuid');
             const sqid_1 = require('spica/sqid');
-            const id = uuid_1.uuid().split('-').pop();
+            const id = uuid_1.uuid().slice(-7);
             function uid() {
-                return `id-${ id }-${ String(+sqid_1.sqid()).padStart(6, '0') }`;
+                return `id-${ id }-${ +sqid_1.sqid() }`;
             }
             exports.uid = uid;
         },
@@ -23590,37 +23603,44 @@ require = function () {
             }(ElChildrenType || (ElChildrenType = {})));
             const memory = new WeakMap();
             function proxy(el) {
+                if (!memory.has(el))
+                    throw new Error(`TypedDOM: This element has no proxy.`);
                 return memory.get(el);
             }
             exports.proxy = proxy;
+            const tag = Symbol();
             class El {
-                constructor(element_, children_) {
-                    this.element_ = element_;
+                constructor(element, children_) {
+                    this.element = element;
                     this.children_ = children_;
+                    this.id_ = this.element.id.trim();
                     this.type = this.children_ === undefined ? ElChildrenType.Void : typeof this.children_ === 'string' ? ElChildrenType.Text : Array.isArray(this.children_) ? ElChildrenType.Collection : ElChildrenType.Record;
-                    this.initialChildren = new WeakSet();
-                    this.tag;
                     void throwErrorIfNotUsable(this);
-                    void memory.set(element_, this);
+                    void memory.set(element, this);
                     switch (this.type) {
                     case ElChildrenType.Void:
+                        this.initialChildren = new WeakSet();
                         return;
                     case ElChildrenType.Text:
-                        void dom_1.define(element_, []);
-                        this.children_ = element_.appendChild(dom_1.text(''));
+                        this.initialChildren = new WeakSet();
+                        void dom_1.define(element, []);
+                        this.children_ = element.appendChild(dom_1.text(''));
                         this.children = children_;
                         return;
                     case ElChildrenType.Collection:
-                        void dom_1.define(element_, []);
+                        this.initialChildren = new WeakSet(children_);
+                        void dom_1.define(element, []);
                         this.children_ = [];
                         this.children = children_;
                         return;
                     case ElChildrenType.Record:
-                        void dom_1.define(element_, []);
-                        this.children_ = observe(element_, Object.assign({}, children_));
-                        void Object.values(children_).forEach(child => void this.initialChildren.add(child.element_));
+                        this.initialChildren = new WeakSet(Object.values(children_));
+                        void dom_1.define(element, []);
+                        this.children_ = observe(element, Object.assign({}, children_));
                         this.children = children_;
                         return;
+                    default:
+                        throw new Error(`TypedDOM: Undefined type children.`);
                     }
                     function observe(element, children) {
                         return Object.defineProperties(children, Object.entries(children).reduce((descs, [name, child]) => {
@@ -23636,11 +23656,11 @@ require = function () {
                                     const oldChild = child;
                                     if (newChild === oldChild)
                                         return;
-                                    if (newChild.element_.parentElement !== element) {
+                                    if (newChild.element.parentElement !== element) {
                                         void throwErrorIfNotUsable(newChild);
                                     }
-                                    child = newChild;
                                     void element.replaceChild(newChild.element, oldChild.element);
+                                    child = newChild;
                                 }
                             };
                             return descs;
@@ -23648,17 +23668,21 @@ require = function () {
                     }
                 }
                 get id() {
-                    return this.id_ = this.id_ || this.element_.id.trim() || identity_1.uid();
+                    if (this.id_)
+                        return this.id_;
+                    this.id_ = identity_1.uid();
+                    void this.element.classList.add(this.id_);
+                    return this.id_;
                 }
                 get query() {
-                    return this.id === this.element_.id.trim() ? `#${ this.id }` : `.${ this.id }`;
+                    return this.id === this.element.id.trim() ? `#${ this.id }` : `.${ this.id }`;
                 }
                 scope(child) {
-                    const syntax = /^(\s*)\$scope(?!\w)/gm;
                     if (!(child.element instanceof HTMLStyleElement))
                         return;
                     return void parse(child.element, this.query);
                     function parse(style, query) {
+                        const syntax = /^(\s*)\$scope(?!\w)/gm;
                         if (style.innerHTML.search(syntax) === -1)
                             return;
                         style.innerHTML = style.innerHTML.replace(syntax, (_, indent) => `${ indent }${ query }`);
@@ -23675,21 +23699,18 @@ require = function () {
                         void [...style.querySelectorAll('*')].forEach(el => void el.remove());
                     }
                 }
-                get element() {
-                    return this.element_;
-                }
                 get children() {
                     switch (this.type) {
                     case ElChildrenType.Text:
-                        this.children_ = this.children_.parentNode === this.element_ ? this.children_ : [...this.element_.childNodes].find(node => node instanceof Text) || this.children_.cloneNode();
+                        this.children_ = this.children_.parentElement === this.element ? this.children_ : [...this.element.childNodes].find(node => node instanceof Text) || this.children_.cloneNode();
                         return this.children_.textContent;
                     default:
                         return this.children_;
                     }
                 }
                 set children(children) {
-                    const removedNodes = new Set();
-                    const addedNodes = new Set();
+                    const removedChildren = new Set();
+                    const addedChildren = new Set();
                     switch (this.type) {
                     case ElChildrenType.Void:
                         return;
@@ -23702,65 +23723,80 @@ require = function () {
                             targetChildren.textContent = newText;
                             if (newText === oldText)
                                 return;
-                            break;
+                            void this.element.dispatchEvent(new Event('change', {
+                                bubbles: false,
+                                cancelable: true
+                            }));
+                            return;
                         }
                     case ElChildrenType.Collection: {
                             const sourceChildren = children;
                             const targetChildren = [];
                             this.children_ = targetChildren;
-                            void sourceChildren.forEach((child, i) => {
-                                if (child.element_.parentElement !== this.element_) {
-                                    void throwErrorIfNotUsable(child);
+                            for (let i = 0; i < sourceChildren.length; ++i) {
+                                const newChild = sourceChildren[i];
+                                if (newChild.element.parentElement !== this.element) {
+                                    void throwErrorIfNotUsable(newChild);
                                 }
-                                targetChildren[i] = child;
-                                if (targetChildren[i].element_ === this.element_.childNodes[i])
-                                    return;
-                                if (child.element_.parentNode !== this.element_) {
-                                    void this.scope(child);
-                                    void addedNodes.add(child.element_);
+                                if (newChild.element === this.element.children[i]) {
+                                    void targetChildren.push(newChild);
+                                } else {
+                                    if (newChild.element.parentElement !== this.element) {
+                                        void this.scope(newChild);
+                                        void addedChildren.add(newChild);
+                                    }
+                                    void this.element.insertBefore(newChild.element, this.element.children[i]);
+                                    void targetChildren.push(newChild);
                                 }
-                                void this.element_.insertBefore(child.element, this.element_.childNodes[i]);
-                            });
-                            while (this.element_.childNodes.length > sourceChildren.length) {
-                                void removedNodes.add(this.element_.removeChild(this.element_.childNodes[sourceChildren.length]));
                             }
                             void Object.freeze(targetChildren);
+                            for (let i = this.element.children.length; i >= sourceChildren.length; --i) {
+                                if (!memory.has(this.element.children[i]))
+                                    continue;
+                                void removedChildren.add(proxy(this.element.removeChild(this.element.children[i])));
+                            }
                             break;
                         }
                     case ElChildrenType.Record: {
                             const sourceChildren = children;
                             const targetChildren = this.children_;
-                            const mem = new WeakSet();
-                            void Object.keys(targetChildren).forEach(k => {
-                                const oldChild = targetChildren[k];
-                                const newChild = sourceChildren[k];
+                            const log = new WeakSet();
+                            for (const name in targetChildren) {
+                                const oldChild = targetChildren[name];
+                                const newChild = sourceChildren[name];
                                 if (!newChild)
-                                    return;
-                                if (newChild.element_.parentElement !== this.element_) {
+                                    continue;
+                                if (newChild.element.parentElement !== this.element) {
                                     void throwErrorIfNotUsable(newChild);
                                 }
-                                if (mem.has(newChild.element_))
+                                if (log.has(newChild))
                                     throw new Error(`TypedDOM: Cannot use an element again used in the same record.`);
-                                void mem.add(newChild.element_);
-                                if (oldChild.element_ !== newChild.element_ || this.initialChildren.has(oldChild.element_)) {
+                                void log.add(newChild);
+                                if (oldChild.element !== newChild.element || this.initialChildren.has(oldChild)) {
                                     void this.scope(newChild);
-                                    void addedNodes.add(newChild.element_);
-                                    void removedNodes.add(oldChild.element_);
+                                    void addedChildren.add(newChild);
+                                    void removedChildren.add(oldChild);
                                 }
-                                targetChildren[k] = sourceChildren[k];
-                            });
+                                targetChildren[name] = sourceChildren[name];
+                            }
                             break;
                         }
                     }
-                    void removedNodes.forEach(node => !this.initialChildren.has(node) && void node.dispatchEvent(new Event('disconnect', {
-                        bubbles: false,
-                        cancelable: true
-                    })));
-                    void addedNodes.forEach(node => void node.dispatchEvent(new Event('connect', {
-                        bubbles: false,
-                        cancelable: true
-                    })));
-                    void this.element_.dispatchEvent(new Event('change', {
+                    for (const child of removedChildren) {
+                        if (this.initialChildren.has(child))
+                            continue;
+                        void child.element.dispatchEvent(new Event('disconnect', {
+                            bubbles: false,
+                            cancelable: true
+                        }));
+                    }
+                    for (const child of addedChildren) {
+                        void child.element.dispatchEvent(new Event('connect', {
+                            bubbles: false,
+                            cancelable: true
+                        }));
+                    }
+                    removedChildren.size + addedChildren.size > 0 && void this.element.dispatchEvent(new Event('change', {
                         bubbles: false,
                         cancelable: true
                     }));
@@ -23768,7 +23804,7 @@ require = function () {
             }
             exports.El = El;
             function throwErrorIfNotUsable({element}) {
-                if (element.parentElement === null || !memory.has(element.parentElement))
+                if (!element.parentElement || !memory.has(element.parentElement))
                     return;
                 throw new Error(`TypedDOM: Cannot add an element used in another typed dom.`);
             }
@@ -23782,16 +23818,6 @@ require = function () {
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            function observer(factory, callback, opts = { childList: true }) {
-                return (tag, ...args) => {
-                    const obs = new MutationObserver(callback);
-                    const el = factory(tag);
-                    void obs.observe(el, opts);
-                    void define(el, ...args);
-                    return el;
-                };
-            }
-            exports.observer = observer;
             var cache;
             (function (cache) {
                 cache.elem = new Map();
@@ -25278,10 +25304,10 @@ require = function () {
                 ]).extract(() => either_1.Left(new error_1.DomainError(`Failed to separate the areas.`)), process.either)).bind(([seqB, area]) => (void config.rewrite(documents.src, area), content_1.separate(documents, config.areas).fmap(([, areas]) => [
                     seqB,
                     areas
-                ]).extract(() => either_1.Left(new error_1.DomainError(`Failed to separate the areas.`)), process.either)))).then(process.promise).then(m => m.fmap(([seqB, areas]) => new hlist_1.HNil().extend(() => (void blur_1.blur(documents.dst), void url_1.url(new router_1.RouterEventLocation(response.url), documents.src.title, event.type, event.source, config.replace), void title_1.title(documents), void path_1.saveTitle(), void head_1.head(documents, config.update.head, config.update.ignore), process.either(content_1.content(documents, areas)).fmap(([as, ps]) => [
+                ]).extract(() => either_1.Left(new error_1.DomainError(`Failed to separate the areas.`)), process.either)))).then(process.promise).then(m => m.fmap(([seqB, areas]) => new hlist_1.HNil().extend(() => (void blur_1.blur(documents.dst), void url_1.url(new router_1.RouterEventLocation(response.url), documents.src.title, event.type, event.source, config.replace), void title_1.title(documents), void path_1.saveTitle(), void head_1.head(documents, config.update.head, config.update.ignore), process.either(content_1.content(documents, areas)).fmap(([as, ps]) => tuple_1.tuple([
                     as,
                     promise_1.AtomicPromise.all(ps)
-                ]))).extend(p => __awaiter(this, void 0, void 0, function* () {
+                ])))).extend(p => __awaiter(this, void 0, void 0, function* () {
                     return (yield p).fmap(([areas]) => __awaiter(this, void 0, void 0, function* () {
                         config.update.css ? void css_1.css(documents, config.update.ignore) : undefined;
                         void io.document.dispatchEvent(new Event('pjax:content'));
@@ -25298,16 +25324,16 @@ require = function () {
                         void path_1.savePosition();
                         void io.document.dispatchEvent(new Event('pjax:ready'));
                         return tuple_1.tuple([
-                            ssm.fmap(([ss, ap]) => [
+                            ssm.fmap(([ss, ap]) => tuple_1.tuple([
                                 ss,
                                 ap.then(m => m.extract())
-                            ]),
+                            ])),
                             yield config.sequence.ready(seqC)
                         ]);
-                    })).fmap(p => p.then(([m, seqD]) => m.fmap(sst => [
+                    })).fmap(p => p.then(([m, seqD]) => m.fmap(sst => tuple_1.tuple([
                         sst,
                         seqD
-                    ]))).extract(e => promise_1.AtomicPromise.resolve(either_1.Left(e)));
+                    ])))).extract(e => promise_1.AtomicPromise.resolve(either_1.Left(e)));
                 })).reverse().tuple())).then(process.promise).then(m => m.fmap(([p1, p2]) => (void promise_1.AtomicPromise.all([
                     p1,
                     p2
