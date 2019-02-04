@@ -25172,7 +25172,6 @@ require = function () {
             };
             Object.defineProperty(exports, '__esModule', { value: true });
             const either_1 = require('spica/either');
-            const tuple_1 = require('spica/tuple');
             const xhr_1 = require('../module/fetch/xhr');
             const error_1 = require('../../data/error');
             const url_1 = require('../../../../lib/url');
@@ -25194,10 +25193,10 @@ require = function () {
                         }),
                         new Promise(resolve => void setTimeout(resolve, wait))
                     ]);
-                    return res.bind(process.either).bind(res => new url_1.URL(res.url).origin === new url_1.URL(url).origin ? either_1.Right(tuple_1.tuple([
+                    return res.bind(process.either).bind(res => new url_1.URL(res.url).origin === new url_1.URL(url).origin ? either_1.Right([
                         res,
                         seq
-                    ])) : either_1.Left(new error_1.DomainError(`Request is redirected to the different domain url ${ new url_1.URL(res.url).href }`)));
+                    ]) : either_1.Left(new error_1.DomainError(`Request is redirected to the different domain url ${ new url_1.URL(res.url).href }`)));
                 });
             }
             exports.fetch = fetch;
@@ -25206,8 +25205,7 @@ require = function () {
             '../../../../lib/url': 294,
             '../../data/error': 257,
             '../module/fetch/xhr': 263,
-            'spica/either': 162,
-            'spica/tuple': 232
+            'spica/either': 162
         }
     ],
     263: [
@@ -25279,7 +25277,6 @@ require = function () {
             const promise_1 = require('spica/promise');
             const either_1 = require('spica/either');
             const hlist_1 = require('spica/hlist');
-            const tuple_1 = require('spica/tuple');
             const router_1 = require('../../event/router');
             const blur_1 = require('../module/update/blur');
             const url_1 = require('../module/update/url');
@@ -25304,18 +25301,18 @@ require = function () {
                 ]).extract(() => either_1.Left(new error_1.DomainError(`Failed to separate the areas.`)), process.either)).bind(([seqB, area]) => (void config.rewrite(documents.src, area), content_1.separate(documents, config.areas).fmap(([, areas]) => [
                     seqB,
                     areas
-                ]).extract(() => either_1.Left(new error_1.DomainError(`Failed to separate the areas.`)), process.either)))).then(process.promise).then(m => m.fmap(([seqB, areas]) => new hlist_1.HNil().extend(() => (void blur_1.blur(documents.dst), void url_1.url(new router_1.RouterEventLocation(response.url), documents.src.title, event.type, event.source, config.replace), void title_1.title(documents), void path_1.saveTitle(), void head_1.head(documents, config.update.head, config.update.ignore), process.either(content_1.content(documents, areas)).fmap(([as, ps]) => tuple_1.tuple([
+                ]).extract(() => either_1.Left(new error_1.DomainError(`Failed to separate the areas.`)), process.either)))).then(process.promise).then(m => m.fmap(([seqB, areas]) => new hlist_1.HNil().extend(() => (void blur_1.blur(documents.dst), void url_1.url(new router_1.RouterEventLocation(response.url), documents.src.title, event.type, event.source, config.replace), void title_1.title(documents), void path_1.saveTitle(), void head_1.head(documents, config.update.head, config.update.ignore), process.either(content_1.content(documents, areas)).fmap(([as, ps]) => [
                     as,
                     promise_1.AtomicPromise.all(ps)
-                ])))).extend(p => __awaiter(this, void 0, void 0, function* () {
+                ]))).extend(p => __awaiter(this, void 0, void 0, function* () {
                     return (yield p).fmap(([areas]) => __awaiter(this, void 0, void 0, function* () {
                         config.update.css ? void css_1.css(documents, config.update.ignore) : undefined;
                         void io.document.dispatchEvent(new Event('pjax:content'));
                         const seqC = yield config.sequence.content(seqB, areas);
-                        const ssm = config.update.script ? yield script_1.script(documents, state.scripts, config.update, Math.max(config.fetch.timeout, 1000) * 10, process) : yield process.either(tuple_1.tuple([
+                        const ssm = config.update.script ? yield script_1.script(documents, state.scripts, config.update, Math.max(config.fetch.timeout, 1000) * 10, process) : yield process.either([
                             [],
                             promise_1.AtomicPromise.resolve(process.either([]))
-                        ]));
+                        ]);
                         void focus_1.focus(event.type, documents.dst);
                         void scroll_1.scroll(event.type, documents.dst, {
                             hash: event.location.dest.fragment,
@@ -25323,17 +25320,17 @@ require = function () {
                         });
                         void path_1.savePosition();
                         void io.document.dispatchEvent(new Event('pjax:ready'));
-                        return tuple_1.tuple([
-                            ssm.fmap(([ss, ap]) => tuple_1.tuple([
+                        return [
+                            ssm.fmap(([ss, ap]) => [
                                 ss,
                                 ap.then(m => m.extract())
-                            ])),
+                            ]),
                             yield config.sequence.ready(seqC)
-                        ]);
-                    })).fmap(p => p.then(([m, seqD]) => m.fmap(sst => tuple_1.tuple([
+                        ];
+                    })).fmap(p => p.then(([m, seqD]) => m.fmap(sst => [
                         sst,
                         seqD
-                    ])))).extract(e => promise_1.AtomicPromise.resolve(either_1.Left(e)));
+                    ]))).extract(e => promise_1.AtomicPromise.resolve(either_1.Left(e)));
                 })).reverse().tuple())).then(process.promise).then(m => m.fmap(([p1, p2]) => (void promise_1.AtomicPromise.all([
                     p1,
                     p2
@@ -25359,8 +25356,7 @@ require = function () {
             '../module/update/url': 274,
             'spica/either': 162,
             'spica/hlist': 167,
-            'spica/promise': 227,
-            'spica/tuple': 232
+            'spica/promise': 227
         }
     ],
     265: [
@@ -25384,7 +25380,6 @@ require = function () {
             const promise_1 = require('spica/promise');
             const maybe_1 = require('spica/maybe');
             const concat_1 = require('spica/concat');
-            const tuple_1 = require('spica/tuple');
             const typed_dom_1 = require('typed-dom');
             const dom_1 = require('../../../../../lib/dom');
             const script_1 = require('./script');
@@ -25407,10 +25402,10 @@ require = function () {
             }
             exports.content = content;
             function separate(documents, areas) {
-                return areas.reduce((m, area) => maybe_1.Maybe.mplus(m, sep(documents, area).fmap(as => tuple_1.tuple([
+                return areas.reduce((m, area) => maybe_1.Maybe.mplus(m, sep(documents, area).fmap(as => [
                     area,
                     as
-                ]))), maybe_1.Nothing);
+                ])), maybe_1.Nothing);
                 function sep(documents, area) {
                     return split(area).map(area => ({
                         src: dom_1.find(documents.src, area),
@@ -25444,7 +25439,6 @@ require = function () {
             'spica/concat': 160,
             'spica/maybe': 168,
             'spica/promise': 227,
-            'spica/tuple': 232,
             'typed-dom': 239
         }
     ],
@@ -25579,7 +25573,7 @@ require = function () {
                     promise_1.AtomicPromise.all(request(as)).then(run)
                 ]).then(([sm, am]) => __awaiter(this, void 0, void 0, function* () {
                     return sm.fmap(p => __awaiter(this, void 0, void 0, function* () {
-                        return (yield p).fmap(([ss1, ap1]) => tuple_1.tuple([
+                        return (yield p).fmap(([ss1, ap1]) => [
                             ss1,
                             ap1.then(as1 => __awaiter(this, void 0, void 0, function* () {
                                 return am.fmap(p => __awaiter(this, void 0, void 0, function* () {
@@ -25590,7 +25584,7 @@ require = function () {
                                     ]).then(sst => sst.reduce((m1, m2) => m1.bind(s1 => m2.fmap(s2 => concat_1.concat(s1, s2)))))).extract(either_1.Left);
                                 })).extract(either_1.Left);
                             }))
-                        ]));
+                        ]);
                     })).extract(either_1.Left);
                 }));
                 function request(scripts) {
@@ -25761,7 +25755,6 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const either_1 = require('spica/either');
             const concat_1 = require('spica/concat');
-            const tuple_1 = require('spica/tuple');
             function sync(pairs, fallback, io = {
                 before,
                 remove
@@ -25775,10 +25768,10 @@ require = function () {
             function pair(srcs, dsts, compare) {
                 const link = bind(srcs, dsts, compare);
                 void dsts.filter(dst => !link.has(dst)).forEach(dst => void link.set(dst, []));
-                return [...link].map(([dst, srcs]) => tuple_1.tuple([
+                return [...link].map(([dst, srcs]) => [
                     srcs,
                     dst
-                ]));
+                ]);
                 function bind(srcs, dsts, compare) {
                     return srcs.reduce((link, src) => dsts.length === 0 ? link.set(null, concat_1.concat(link.get(null) || [], [src])) : dsts.reduce((m, dst) => m.bind(link => !link.has(dst) && compare(src, dst) ? (void link.set(dst, concat_1.concat(link.get(null) || [], [src])), void link.delete(null), either_1.Left(link)) : either_1.Right(link)), either_1.Right(link)).fmap(link => link.set(null, concat_1.concat(link.get(null) || [], [src]))).extract(link => link), new Map());
                 }
@@ -25793,8 +25786,7 @@ require = function () {
         },
         {
             'spica/concat': 160,
-            'spica/either': 162,
-            'spica/tuple': 232
+            'spica/either': 162
         }
     ],
     273: [
@@ -26394,7 +26386,6 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const maybe_1 = require('spica/maybe');
             const either_1 = require('spica/either');
-            const tuple_1 = require('spica/tuple');
             const dom_1 = require('./dom');
             exports.parse = [
                 parseByDOM,
@@ -26421,10 +26412,10 @@ require = function () {
                 return dom_1.find(doc, 'noscript').filter(el => el.children.length > 0).map(el => {
                     const clone = el.cloneNode(true);
                     clone.textContent = el.innerHTML;
-                    return tuple_1.tuple([
+                    return [
                         el,
                         clone
-                    ]);
+                    ];
                 });
             }
             exports._fixNoscript = fixNoscript;
@@ -26468,8 +26459,7 @@ require = function () {
         {
             './dom': 289,
             'spica/either': 162,
-            'spica/maybe': 168,
-            'spica/tuple': 232
+            'spica/maybe': 168
         }
     ],
     292: [
