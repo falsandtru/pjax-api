@@ -22,6 +22,7 @@ describe('Integration: Usecase', function () {
     });
 
     it('shadow', function (done) {
+      if (!window.document.body.attachShadow) return done();
       const url = '/base/test/integration/fixture/basic/1.html';
       const document = parse('').extract();
       new Pjax({}, { document, router });

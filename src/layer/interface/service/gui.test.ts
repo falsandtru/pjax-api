@@ -45,6 +45,7 @@ describe('Unit: layer/interface/service/gui', function () {
     });
 
     it('shadow', function (done) {
+      if (!window.document.body.attachShadow) return done();
       const document = parse('<a href=""></a>').extract();
       document.body.attachShadow({ mode: 'open' }).appendChild(document.body.firstChild!);
       new GUI({}, { document, router: (_, ev) => {
