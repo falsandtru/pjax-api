@@ -31,7 +31,7 @@ describe('Unit: layer/interface/service/gui', function () {
   });
 
   describe('click', function () {
-    it('', function (done) {
+    it('normal', function (done) {
       const document = parse('<a href=""></a>').extract();
       new GUI({}, { document, router: (_, ev) => {
         ev.original.preventDefault();
@@ -44,10 +44,24 @@ describe('Unit: layer/interface/service/gui', function () {
       document.querySelector('a')!.click();
     });
 
+    it('shadow', function (done) {
+      const document = parse('<a href=""></a>').extract();
+      document.body.attachShadow({ mode: 'open' }).appendChild(document.body.firstChild!);
+      new GUI({}, { document, router: (_, ev) => {
+        ev.original.preventDefault();
+        return Promise.resolve();
+      }});
+      once(document, 'a', 'click', ev => {
+        assert(ev.defaultPrevented === true);
+        done();
+      });
+      document.body.shadowRoot!.querySelector('a')!.click();
+    });
+
   });
 
   describe('submit', function () {
-    it('', function (done) {
+    it('normal', function (done) {
       const form = html('form', { action: '' }, [
         html('input', { type: 'submit', value: 'submit' }),
       ]);

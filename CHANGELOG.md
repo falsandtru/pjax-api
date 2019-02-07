@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.26.0
+
+- Handle events dispatched in shadow DOM.
+
 ## 3.25.0
 
 - Validate script integrity.
