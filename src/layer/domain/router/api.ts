@@ -7,7 +7,7 @@ import { loadPosition } from '../store/path';
 import { DomainError } from '../data/error';
 
 export { RouterEntity, RouterEntityState } from './model/eav/entity';
-export type RouterResult = Either<Error, [HTMLScriptElement[], Promise<HTMLScriptElement[]>]>;
+export type RouterResult = Either<Error, readonly [HTMLScriptElement[], Promise<HTMLScriptElement[]>]>;
 
 export async function route(
   entity: RouterEntity,

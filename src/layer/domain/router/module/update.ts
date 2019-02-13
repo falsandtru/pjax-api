@@ -28,7 +28,7 @@ export function update(
     document: Document;
     position: () => { top: number; left: number; };
   }
-): AtomicPromise<Either<Error, [HTMLScriptElement[], Promise<HTMLScriptElement[]>]>> {
+): AtomicPromise<Either<Error, readonly [HTMLScriptElement[], Promise<HTMLScriptElement[]>]>> {
   const { process } = state;
   const documents = {
     src: response.document,
@@ -103,7 +103,7 @@ export function update(
               return [
                 ssm
                   .fmap(([ss, ap]) =>
-                    [ss, ap.then(m => m.extract())]),
+                    [ss, ap.then(m => m.extract())] as const),
                 await config.sequence.ready(seqC),
               ] as const;
             })
