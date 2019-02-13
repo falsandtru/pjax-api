@@ -20851,7 +20851,7 @@ require = function () {
             exports.tick = clock_tick_1.tick;
             exports.clock = Promise.resolve();
             function wait(ms) {
-                return new promise_1.AtomicPromise(resolve => void setTimeout(resolve, ms));
+                return ms === 0 ? promise_1.AtomicPromise.resolve(exports.clock) : new promise_1.AtomicPromise(resolve => void setTimeout(resolve, ms));
             }
             exports.wait = wait;
         },
@@ -20880,9 +20880,7 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             function concat(target, source) {
-                for (let i = 0; i < source.length; ++i) {
-                    target.push(source[i]);
-                }
+                target.push(...source);
                 return target;
             }
             exports.concat = concat;
@@ -23498,19 +23496,14 @@ require = function () {
     239: [
         function (require, module, exports) {
             'use strict';
-            function __export(m) {
-                for (var p in m)
-                    if (!exports.hasOwnProperty(p))
-                        exports[p] = m[p];
-            }
             Object.defineProperty(exports, '__esModule', { value: true });
             var builder_1 = require('./src/dom/builder');
             exports.Shadow = builder_1.Shadow;
             exports.HTML = builder_1.HTML;
             exports.SVG = builder_1.SVG;
             exports.API = builder_1.API;
-            var manager_1 = require('./src/dom/manager');
-            exports.proxy = manager_1.proxy;
+            var proxy_1 = require('./src/dom/proxy');
+            exports.proxy = proxy_1.proxy;
             var dom_1 = require('./src/util/dom');
             exports.frag = dom_1.frag;
             exports.shadow = dom_1.shadow;
@@ -23518,11 +23511,16 @@ require = function () {
             exports.svg = dom_1.svg;
             exports.text = dom_1.text;
             exports.define = dom_1.define;
-            __export(require('./src/util/listener'));
+            var listener_1 = require('./src/util/listener');
+            exports.listen = listener_1.listen;
+            exports.once = listener_1.once;
+            exports.delegate = listener_1.delegate;
+            exports.bind = listener_1.bind;
+            exports.currentTargets = listener_1.currentTargets;
         },
         {
             './src/dom/builder': 240,
-            './src/dom/manager': 242,
+            './src/dom/proxy': 242,
             './src/util/dom': 243,
             './src/util/listener': 244
         }
@@ -23531,18 +23529,20 @@ require = function () {
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const manager_1 = require('./manager');
+            const proxy_1 = require('./proxy');
             const dom_1 = require('../util/dom');
             function API(baseFactory) {
                 return new Proxy(() => undefined, handle(baseFactory));
             }
             exports.API = API;
-            exports.Shadow = new Proxy(() => undefined, handle(dom_1.html, { mode: 'open' }));
+            exports.Shadow = new Proxy(() => undefined, handle(dom_1.html, true));
             exports.HTML = API(dom_1.html);
             exports.SVG = API(dom_1.svg);
-            function handle(baseFactory, opts) {
+            function handle(baseFactory, shadowing) {
                 return {
-                    apply: (obj, _, args, prop = args[0]) => (obj[prop] || prop in obj || typeof prop !== 'string' ? obj[prop] : obj[prop] = builder(prop, baseFactory))(...args.slice(1)),
+                    apply(obj, _, [prop, ...args]) {
+                        return this.get(obj, prop, undefined)(...args);
+                    },
                     get: (obj, prop) => obj[prop] || prop in obj || typeof prop !== 'string' ? obj[prop] : obj[prop] = builder(prop, baseFactory)
                 };
                 function builder(tag, baseFactory) {
@@ -23553,7 +23553,7 @@ require = function () {
                             return build(attrs, undefined, children);
                         if (attrs !== undefined && isChildren(attrs))
                             return build(undefined, attrs, factory);
-                        return new manager_1.El(elem(factory || ((f, tag) => f(tag)), attrs || {}, children), children, opts);
+                        return new proxy_1.El(elem(factory || ((f, tag) => f(tag)), attrs || {}, children), children, shadowing);
                     };
                     function isChildren(children) {
                         return typeof children !== 'object' || Object.values(children).slice(-1).every(val => typeof val === 'object');
@@ -23570,7 +23570,7 @@ require = function () {
         },
         {
             '../util/dom': 243,
-            './manager': 242
+            './proxy': 242
         }
     ],
     241: [
@@ -23612,14 +23612,14 @@ require = function () {
             exports.proxy = proxy;
             const tag = Symbol();
             class El {
-                constructor(element, children_, opts) {
+                constructor(element, children_, shadowing = false) {
                     this.element = element;
                     this.children_ = children_;
                     this.id_ = this.element.id.trim();
                     this.type = this.children_ === undefined ? ElChildrenType.Void : typeof this.children_ === 'string' ? ElChildrenType.Text : Array.isArray(this.children_) ? ElChildrenType.Collection : ElChildrenType.Record;
                     void throwErrorIfNotUsable(this);
                     void memory.set(this.element, this);
-                    this.container = opts ? dom_1.shadow(this.element, opts) : this.element;
+                    this.container = shadowing ? dom_1.shadow(this.element) : this.element;
                     switch (this.type) {
                     case ElChildrenType.Void:
                         this.initialChildren = new WeakSet();
@@ -23834,6 +23834,7 @@ require = function () {
                 cache.text = document.createTextNode('');
                 cache.frag = document.createDocumentFragment();
             }(cache || (cache = {})));
+            const shadows = new WeakMap();
             function frag(children = []) {
                 children = typeof children === 'string' ? [text(children)] : children;
                 const frag = cache.frag.cloneNode();
@@ -23841,12 +23842,14 @@ require = function () {
                 return frag;
             }
             exports.frag = frag;
-            function shadow(el, children, opts = { mode: 'closed' }) {
-                if (children !== undefined && !isChildren(children))
+            function shadow(el, children, opts) {
+                if (children && !isChildren(children))
                     return shadow(el, undefined, children);
-                if (typeof children === 'string')
-                    return shadow(el, [text(children)]);
-                return define(el.attachShadow(opts), children);
+                if (el.shadowRoot || shadows.has(el)) {
+                    return define(opts ? opts.mode === 'open' ? el.shadowRoot || el.attachShadow(opts) : shadows.get(el) || shadows.set(el, el.attachShadow(opts)).get(el) : el.shadowRoot || shadows.get(el) || el.attachShadow({ mode: 'open' }), children);
+                } else {
+                    return define(!opts || opts.mode === 'open' ? el.attachShadow({ mode: 'open' }) : shadows.set(el, el.attachShadow(opts)).get(el), children === undefined ? el.childNodes : children);
+                }
             }
             exports.shadow = shadow;
             function html(tag, attrs = {}, children = []) {
@@ -23880,8 +23883,6 @@ require = function () {
                     return document.createElement(tag);
                 case 1:
                     return document.createElementNS('http://www.w3.org/2000/svg', tag);
-                default:
-                    throw new Error(`TypedDOM: Unknown namespace: ${ ns }`);
                 }
             }
             function define(el, attrs = {}, children) {
@@ -23938,47 +23939,26 @@ require = function () {
                 return typeof b === 'string' ? delegate(target, a, b, c, Object.assign({}, typeof d === 'boolean' ? { capture: d } : d, { once: true })) : bind(target, a, b, Object.assign({}, typeof c === 'boolean' ? { capture: c } : c, { once: true }));
             }
             exports.once = once;
-            function bind(target, type, listener, option = false) {
-                void target.addEventListener(type, handler, adjustEventListenerOptions(option));
-                let unbind = () => (unbind = noop_1.noop, void target.removeEventListener(type, handler, adjustEventListenerOptions(option)));
-                return () => void unbind();
-                function handler(ev) {
-                    if (typeof option === 'object') {
-                        if (option.passive) {
-                            ev.preventDefault = noop_1.noop;
-                        }
-                        if (option.once) {
-                            void unbind();
-                        }
-                    }
-                    void exports.currentTargets.set(ev, ev.currentTarget);
-                    return listener(ev);
-                }
-                function adjustEventListenerOptions(option) {
-                    return supportEventListenerOptions ? option : typeof option === 'boolean' ? option : !!option.capture;
-                }
-            }
-            exports.bind = bind;
             function delegate(target, selector, type, listener, option = {}) {
                 return bind(target instanceof Document ? target.documentElement : target, type, ev => {
-                    const cx = (ev.target.shadowRoot ? ev.composedPath()[0] : ev.target).closest(selector);
-                    if (!(cx instanceof HTMLElement))
-                        return ev.returnValue;
-                    void once(cx, type, listener, option);
+                    const cx = (ev.target.shadowRoot && ev.composedPath()[0] || ev.target).closest(selector);
+                    if (cx instanceof HTMLElement) {
+                        void once(cx, type, listener, option);
+                    }
                     return ev.returnValue;
                 }, Object.assign({}, option, { capture: true }));
             }
             exports.delegate = delegate;
-            let supportEventListenerOptions = false;
-            try {
-                document.createElement('div').addEventListener('test', function () {
-                }, {
-                    get capture() {
-                        return supportEventListenerOptions = true;
-                    }
-                });
-            } catch (_a) {
+            function bind(target, type, listener, option = false) {
+                void target.addEventListener(type, handler, option);
+                let unbind = () => (unbind = noop_1.noop, void target.removeEventListener(type, handler, option));
+                return () => void unbind();
+                function handler(ev) {
+                    void exports.currentTargets.set(ev, ev.currentTarget);
+                    return listener(ev);
+                }
             }
+            exports.bind = bind;
         },
         { './noop': 245 }
     ],
