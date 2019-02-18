@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.26.1
+
+- Fix bundle processing.
+
 ## 3.26.0
 
 - Handle events dispatched in shadow DOM.

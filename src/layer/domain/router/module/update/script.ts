@@ -183,7 +183,7 @@ function evaluate(
   function evaluate(): AtomicPromise<Either<Error, HTMLScriptElement>> {
     if (script.matches('[type="module"][src]')) {
       return AtomicPromise.resolve(import(script.src))
-        .catch(reason =>
+        .catch((reason: Error) =>
           reason.message.startsWith('Failed to load ') && script.matches('[src][async]')
             ? retry(script).catch(() => AtomicPromise.reject(reason))
             : AtomicPromise.reject(reason))

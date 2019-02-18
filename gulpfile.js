@@ -82,6 +82,7 @@ function compile(src, watch = false) {
       .on("error", err => done = console.log(err + '') || watch)
       .pipe(source(`${pkg.name}.js`))
       .pipe(buffer())
+      .pipe($.derequire())
       .once('finish', () => console.timeEnd('bundle'))
       .once("finish", () => done || process.exit(1))
       .pipe($.footer(config.module));
