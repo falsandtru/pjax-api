@@ -27,31 +27,31 @@ require = function () {
     return r;
 }()({
     1: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
         },
         {}
     ],
     2: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             arguments[4][1][0].apply(exports, arguments);
         },
         { 'dup': 1 }
     ],
     3: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             arguments[4][1][0].apply(exports, arguments);
         },
         { 'dup': 1 }
     ],
     4: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             var asn1 = exports;
-            asn1.bignum = require('bn.js');
-            asn1.define = require('./asn1/api').define;
-            asn1.base = require('./asn1/base');
-            asn1.constants = require('./asn1/constants');
-            asn1.decoders = require('./asn1/decoders');
-            asn1.encoders = require('./asn1/encoders');
+            asn1.bignum = _dereq_('bn.js');
+            asn1.define = _dereq_('./asn1/api').define;
+            asn1.base = _dereq_('./asn1/base');
+            asn1.constants = _dereq_('./asn1/constants');
+            asn1.decoders = _dereq_('./asn1/decoders');
+            asn1.encoders = _dereq_('./asn1/encoders');
         },
         {
             './asn1/api': 5,
@@ -63,9 +63,9 @@ require = function () {
         }
     ],
     5: [
-        function (require, module, exports) {
-            var asn1 = require('../asn1');
-            var inherits = require('inherits');
+        function (_dereq_, module, exports) {
+            var asn1 = _dereq_('../asn1');
+            var inherits = _dereq_('inherits');
             var api = exports;
             api.define = function define(name, body) {
                 return new Entity(name, body);
@@ -80,7 +80,7 @@ require = function () {
             Entity.prototype._createNamed = function createNamed(base) {
                 var named;
                 try {
-                    named = require('vm').runInThisContext('(function ' + this.name + '(entity) {\n' + '  this._initNamed(entity);\n' + '})');
+                    named = _dereq_('vm').runInThisContext('(function ' + this.name + '(entity) {\n' + '  this._initNamed(entity);\n' + '})');
                 } catch (e) {
                     named = function (entity) {
                         this._initNamed(entity);
@@ -118,10 +118,10 @@ require = function () {
         }
     ],
     6: [
-        function (require, module, exports) {
-            var inherits = require('inherits');
-            var Reporter = require('../base').Reporter;
-            var Buffer = require('buffer').Buffer;
+        function (_dereq_, module, exports) {
+            var inherits = _dereq_('inherits');
+            var Reporter = _dereq_('../base').Reporter;
+            var Buffer = _dereq_('buffer').Buffer;
             function DecoderBuffer(base, options) {
                 Reporter.call(this, options);
                 if (!Buffer.isBuffer(base)) {
@@ -226,12 +226,12 @@ require = function () {
         }
     ],
     7: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             var base = exports;
-            base.Reporter = require('./reporter').Reporter;
-            base.DecoderBuffer = require('./buffer').DecoderBuffer;
-            base.EncoderBuffer = require('./buffer').EncoderBuffer;
-            base.Node = require('./node');
+            base.Reporter = _dereq_('./reporter').Reporter;
+            base.DecoderBuffer = _dereq_('./buffer').DecoderBuffer;
+            base.EncoderBuffer = _dereq_('./buffer').EncoderBuffer;
+            base.Node = _dereq_('./node');
         },
         {
             './buffer': 6,
@@ -240,11 +240,11 @@ require = function () {
         }
     ],
     8: [
-        function (require, module, exports) {
-            var Reporter = require('../base').Reporter;
-            var EncoderBuffer = require('../base').EncoderBuffer;
-            var DecoderBuffer = require('../base').DecoderBuffer;
-            var assert = require('minimalistic-assert');
+        function (_dereq_, module, exports) {
+            var Reporter = _dereq_('../base').Reporter;
+            var EncoderBuffer = _dereq_('../base').EncoderBuffer;
+            var DecoderBuffer = _dereq_('../base').DecoderBuffer;
+            var assert = _dereq_('minimalistic-assert');
             var tags = [
                 'seq',
                 'seqof',
@@ -756,8 +756,8 @@ require = function () {
         }
     ],
     9: [
-        function (require, module, exports) {
-            var inherits = require('inherits');
+        function (_dereq_, module, exports) {
+            var inherits = _dereq_('inherits');
             function Reporter(options) {
                 this._reporterState = {
                     obj: null,
@@ -859,8 +859,8 @@ require = function () {
         { 'inherits': 103 }
     ],
     10: [
-        function (require, module, exports) {
-            var constants = require('../constants');
+        function (_dereq_, module, exports) {
+            var constants = _dereq_('../constants');
             exports.tagClass = {
                 0: 'universal',
                 1: 'application',
@@ -904,7 +904,7 @@ require = function () {
         { '../constants': 11 }
     ],
     11: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             var constants = exports;
             constants._reverse = function reverse(map) {
                 var res = {};
@@ -916,14 +916,14 @@ require = function () {
                 });
                 return res;
             };
-            constants.der = require('./der');
+            constants.der = _dereq_('./der');
         },
         { './der': 10 }
     ],
     12: [
-        function (require, module, exports) {
-            var inherits = require('inherits');
-            var asn1 = require('../../asn1');
+        function (_dereq_, module, exports) {
+            var inherits = _dereq_('inherits');
+            var asn1 = _dereq_('../../asn1');
             var base = asn1.base;
             var bignum = asn1.bignum;
             var der = asn1.constants.der;
@@ -1183,10 +1183,10 @@ require = function () {
         }
     ],
     13: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             var decoders = exports;
-            decoders.der = require('./der');
-            decoders.pem = require('./pem');
+            decoders.der = _dereq_('./der');
+            decoders.pem = _dereq_('./pem');
         },
         {
             './der': 12,
@@ -1194,10 +1194,10 @@ require = function () {
         }
     ],
     14: [
-        function (require, module, exports) {
-            var inherits = require('inherits');
-            var Buffer = require('buffer').Buffer;
-            var DERDecoder = require('./der');
+        function (_dereq_, module, exports) {
+            var inherits = _dereq_('inherits');
+            var Buffer = _dereq_('buffer').Buffer;
+            var DERDecoder = _dereq_('./der');
             function PEMDecoder(entity) {
                 DERDecoder.call(this, entity);
                 this.enc = 'pem';
@@ -1243,10 +1243,10 @@ require = function () {
         }
     ],
     15: [
-        function (require, module, exports) {
-            var inherits = require('inherits');
-            var Buffer = require('buffer').Buffer;
-            var asn1 = require('../../asn1');
+        function (_dereq_, module, exports) {
+            var inherits = _dereq_('inherits');
+            var Buffer = _dereq_('buffer').Buffer;
+            var asn1 = _dereq_('../../asn1');
             var base = asn1.base;
             var der = asn1.constants.der;
             function DEREncoder(entity) {
@@ -1490,10 +1490,10 @@ require = function () {
         }
     ],
     16: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             var encoders = exports;
-            encoders.der = require('./der');
-            encoders.pem = require('./pem');
+            encoders.der = _dereq_('./der');
+            encoders.pem = _dereq_('./pem');
         },
         {
             './der': 15,
@@ -1501,9 +1501,9 @@ require = function () {
         }
     ],
     17: [
-        function (require, module, exports) {
-            var inherits = require('inherits');
-            var DEREncoder = require('./der');
+        function (_dereq_, module, exports) {
+            var inherits = _dereq_('inherits');
+            var DEREncoder = _dereq_('./der');
             function PEMEncoder(entity) {
                 DEREncoder.call(this, entity);
                 this.enc = 'pem';
@@ -1527,7 +1527,7 @@ require = function () {
         }
     ],
     18: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             exports.byteLength = byteLength;
             exports.toByteArray = toByteArray;
@@ -1624,7 +1624,7 @@ require = function () {
         {}
     ],
     19: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             (function (module, exports) {
                 'use strict';
                 function assert(val, msg) {
@@ -1664,7 +1664,7 @@ require = function () {
                 BN.wordSize = 26;
                 var Buffer;
                 try {
-                    Buffer = require('buffer').Buffer;
+                    Buffer = _dereq_('buffer').Buffer;
                 } catch (e) {
                 }
                 BN.isBN = function isBN(num) {
@@ -4369,7 +4369,7 @@ require = function () {
         { 'buffer': 21 }
     ],
     20: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             var r;
             module.exports = function rand(len) {
                 if (!r)
@@ -4411,7 +4411,7 @@ require = function () {
                 }
             } else {
                 try {
-                    var crypto = require('crypto');
+                    var crypto = _dereq_('crypto');
                     if (typeof crypto.randomBytes !== 'function')
                         throw new Error('Not supported');
                     Rand.prototype._rand = function _rand(n) {
@@ -4424,14 +4424,14 @@ require = function () {
         { 'crypto': 21 }
     ],
     21: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             arguments[4][1][0].apply(exports, arguments);
         },
         { 'dup': 1 }
     ],
     22: [
-        function (require, module, exports) {
-            var Buffer = require('safe-buffer').Buffer;
+        function (_dereq_, module, exports) {
+            var Buffer = _dereq_('safe-buffer').Buffer;
             function asUInt32Array(buf) {
                 if (!Buffer.isBuffer(buf))
                     buf = Buffer.from(buf);
@@ -4631,14 +4631,14 @@ require = function () {
         { 'safe-buffer': 145 }
     ],
     23: [
-        function (require, module, exports) {
-            var aes = require('./aes');
-            var Buffer = require('safe-buffer').Buffer;
-            var Transform = require('cipher-base');
-            var inherits = require('inherits');
-            var GHASH = require('./ghash');
-            var xor = require('buffer-xor');
-            var incr32 = require('./incr32');
+        function (_dereq_, module, exports) {
+            var aes = _dereq_('./aes');
+            var Buffer = _dereq_('safe-buffer').Buffer;
+            var Transform = _dereq_('cipher-base');
+            var inherits = _dereq_('inherits');
+            var GHASH = _dereq_('./ghash');
+            var xor = _dereq_('buffer-xor');
+            var incr32 = _dereq_('./incr32');
             function xorTest(a, b) {
                 var out = 0;
                 if (a.length !== b.length)
@@ -4762,10 +4762,10 @@ require = function () {
         }
     ],
     24: [
-        function (require, module, exports) {
-            var ciphers = require('./encrypter');
-            var deciphers = require('./decrypter');
-            var modes = require('./modes/list.json');
+        function (_dereq_, module, exports) {
+            var ciphers = _dereq_('./encrypter');
+            var deciphers = _dereq_('./decrypter');
+            var modes = _dereq_('./modes/list.json');
             function getCiphers() {
                 return Object.keys(modes);
             }
@@ -4782,15 +4782,15 @@ require = function () {
         }
     ],
     25: [
-        function (require, module, exports) {
-            var AuthCipher = require('./authCipher');
-            var Buffer = require('safe-buffer').Buffer;
-            var MODES = require('./modes');
-            var StreamCipher = require('./streamCipher');
-            var Transform = require('cipher-base');
-            var aes = require('./aes');
-            var ebtk = require('evp_bytestokey');
-            var inherits = require('inherits');
+        function (_dereq_, module, exports) {
+            var AuthCipher = _dereq_('./authCipher');
+            var Buffer = _dereq_('safe-buffer').Buffer;
+            var MODES = _dereq_('./modes');
+            var StreamCipher = _dereq_('./streamCipher');
+            var Transform = _dereq_('cipher-base');
+            var aes = _dereq_('./aes');
+            var ebtk = _dereq_('evp_bytestokey');
+            var inherits = _dereq_('inherits');
             function Decipher(mode, key, iv) {
                 Transform.call(this);
                 this._cache = new Splitter();
@@ -4910,15 +4910,15 @@ require = function () {
         }
     ],
     26: [
-        function (require, module, exports) {
-            var MODES = require('./modes');
-            var AuthCipher = require('./authCipher');
-            var Buffer = require('safe-buffer').Buffer;
-            var StreamCipher = require('./streamCipher');
-            var Transform = require('cipher-base');
-            var aes = require('./aes');
-            var ebtk = require('evp_bytestokey');
-            var inherits = require('inherits');
+        function (_dereq_, module, exports) {
+            var MODES = _dereq_('./modes');
+            var AuthCipher = _dereq_('./authCipher');
+            var Buffer = _dereq_('safe-buffer').Buffer;
+            var StreamCipher = _dereq_('./streamCipher');
+            var Transform = _dereq_('cipher-base');
+            var aes = _dereq_('./aes');
+            var ebtk = _dereq_('evp_bytestokey');
+            var inherits = _dereq_('inherits');
             function Cipher(mode, key, iv) {
                 Transform.call(this);
                 this._cache = new Splitter();
@@ -5026,8 +5026,8 @@ require = function () {
         }
     ],
     27: [
-        function (require, module, exports) {
-            var Buffer = require('safe-buffer').Buffer;
+        function (_dereq_, module, exports) {
+            var Buffer = _dereq_('safe-buffer').Buffer;
             var ZEROES = Buffer.alloc(16, 0);
             function toArray(buf) {
                 return [
@@ -5118,7 +5118,7 @@ require = function () {
         { 'safe-buffer': 145 }
     ],
     28: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             function incr32(iv) {
                 var len = iv.length;
                 var item;
@@ -5138,8 +5138,8 @@ require = function () {
         {}
     ],
     29: [
-        function (require, module, exports) {
-            var xor = require('buffer-xor');
+        function (_dereq_, module, exports) {
+            var xor = _dereq_('buffer-xor');
             exports.encrypt = function (self, block) {
                 var data = xor(block, self._prev);
                 self._prev = self._cipher.encryptBlock(data);
@@ -5155,9 +5155,9 @@ require = function () {
         { 'buffer-xor': 49 }
     ],
     30: [
-        function (require, module, exports) {
-            var Buffer = require('safe-buffer').Buffer;
-            var xor = require('buffer-xor');
+        function (_dereq_, module, exports) {
+            var Buffer = _dereq_('safe-buffer').Buffer;
+            var xor = _dereq_('buffer-xor');
             function encryptStart(self, data, decrypt) {
                 var len = data.length;
                 var out = xor(data, self._cache);
@@ -5200,8 +5200,8 @@ require = function () {
         }
     ],
     31: [
-        function (require, module, exports) {
-            var Buffer = require('safe-buffer').Buffer;
+        function (_dereq_, module, exports) {
+            var Buffer = _dereq_('safe-buffer').Buffer;
             function encryptByte(self, byteParam, decrypt) {
                 var pad;
                 var i = -1;
@@ -5243,8 +5243,8 @@ require = function () {
         { 'safe-buffer': 145 }
     ],
     32: [
-        function (require, module, exports) {
-            var Buffer = require('safe-buffer').Buffer;
+        function (_dereq_, module, exports) {
+            var Buffer = _dereq_('safe-buffer').Buffer;
             function encryptByte(self, byteParam, decrypt) {
                 var pad = self._cipher.encryptBlock(self._prev);
                 var out = pad[0] ^ byteParam;
@@ -5267,10 +5267,10 @@ require = function () {
         { 'safe-buffer': 145 }
     ],
     33: [
-        function (require, module, exports) {
-            var xor = require('buffer-xor');
-            var Buffer = require('safe-buffer').Buffer;
-            var incr32 = require('../incr32');
+        function (_dereq_, module, exports) {
+            var xor = _dereq_('buffer-xor');
+            var Buffer = _dereq_('safe-buffer').Buffer;
+            var incr32 = _dereq_('../incr32');
             function getBlock(self) {
                 var out = self._cipher.encryptBlockRaw(self._prev);
                 incr32(self._prev);
@@ -5304,7 +5304,7 @@ require = function () {
         }
     ],
     34: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             exports.encrypt = function (self, block) {
                 return self._cipher.encryptBlock(block);
             };
@@ -5315,18 +5315,18 @@ require = function () {
         {}
     ],
     35: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             var modeModules = {
-                ECB: require('./ecb'),
-                CBC: require('./cbc'),
-                CFB: require('./cfb'),
-                CFB8: require('./cfb8'),
-                CFB1: require('./cfb1'),
-                OFB: require('./ofb'),
-                CTR: require('./ctr'),
-                GCM: require('./ctr')
+                ECB: _dereq_('./ecb'),
+                CBC: _dereq_('./cbc'),
+                CFB: _dereq_('./cfb'),
+                CFB8: _dereq_('./cfb8'),
+                CFB1: _dereq_('./cfb1'),
+                OFB: _dereq_('./ofb'),
+                CTR: _dereq_('./ctr'),
+                GCM: _dereq_('./ctr')
             };
-            var modes = require('./list.json');
+            var modes = _dereq_('./list.json');
             for (var key in modes) {
                 modes[key].module = modeModules[modes[key].mode];
             }
@@ -5344,7 +5344,7 @@ require = function () {
         }
     ],
     36: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             module.exports = {
                 'aes-128-ecb': {
                     'cipher': 'AES',
@@ -5540,9 +5540,9 @@ require = function () {
         {}
     ],
     37: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             (function (Buffer) {
-                var xor = require('buffer-xor');
+                var xor = _dereq_('buffer-xor');
                 function getBlock(self) {
                     self._prev = self._cipher.encryptBlock(self._prev);
                     return self._prev;
@@ -5558,7 +5558,7 @@ require = function () {
                     self._cache = self._cache.slice(chunk.length);
                     return xor(chunk, pad);
                 };
-            }.call(this, require('buffer').Buffer));
+            }.call(this, _dereq_('buffer').Buffer));
         },
         {
             'buffer': 50,
@@ -5566,11 +5566,11 @@ require = function () {
         }
     ],
     38: [
-        function (require, module, exports) {
-            var aes = require('./aes');
-            var Buffer = require('safe-buffer').Buffer;
-            var Transform = require('cipher-base');
-            var inherits = require('inherits');
+        function (_dereq_, module, exports) {
+            var aes = _dereq_('./aes');
+            var Buffer = _dereq_('safe-buffer').Buffer;
+            var Transform = _dereq_('cipher-base');
+            var inherits = _dereq_('inherits');
             function StreamCipher(mode, key, iv, decrypt) {
                 Transform.call(this);
                 this._cipher = new aes.AES(key);
@@ -5597,12 +5597,12 @@ require = function () {
         }
     ],
     39: [
-        function (require, module, exports) {
-            var DES = require('browserify-des');
-            var aes = require('browserify-aes/browser');
-            var aesModes = require('browserify-aes/modes');
-            var desModes = require('browserify-des/modes');
-            var ebtk = require('evp_bytestokey');
+        function (_dereq_, module, exports) {
+            var DES = _dereq_('browserify-des');
+            var aes = _dereq_('browserify-aes/browser');
+            var aesModes = _dereq_('browserify-aes/modes');
+            var desModes = _dereq_('browserify-des/modes');
+            var ebtk = _dereq_('evp_bytestokey');
             function createCipher(suite, password) {
                 suite = suite.toLowerCase();
                 var keyLen, ivLen;
@@ -5676,11 +5676,11 @@ require = function () {
         }
     ],
     40: [
-        function (require, module, exports) {
-            var CipherBase = require('cipher-base');
-            var des = require('des.js');
-            var inherits = require('inherits');
-            var Buffer = require('safe-buffer').Buffer;
+        function (_dereq_, module, exports) {
+            var CipherBase = _dereq_('cipher-base');
+            var des = _dereq_('des.js');
+            var inherits = _dereq_('inherits');
+            var Buffer = _dereq_('safe-buffer').Buffer;
             var modes = {
                 'des-ede3-cbc': des.CBC.instantiate(des.EDE),
                 'des-ede3': des.EDE,
@@ -5738,7 +5738,7 @@ require = function () {
         }
     ],
     41: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             exports['des-ecb'] = {
                 key: 8,
                 iv: 0
@@ -5767,10 +5767,10 @@ require = function () {
         {}
     ],
     42: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             (function (Buffer) {
-                var bn = require('bn.js');
-                var randomBytes = require('randombytes');
+                var bn = _dereq_('bn.js');
+                var randomBytes = _dereq_('randombytes');
                 module.exports = crt;
                 function blind(priv) {
                     var r = getr(priv);
@@ -5808,7 +5808,7 @@ require = function () {
                     }
                     return r;
                 }
-            }.call(this, require('buffer').Buffer));
+            }.call(this, _dereq_('buffer').Buffer));
         },
         {
             'bn.js': 19,
@@ -5817,13 +5817,13 @@ require = function () {
         }
     ],
     43: [
-        function (require, module, exports) {
-            module.exports = require('./browser/algorithms.json');
+        function (_dereq_, module, exports) {
+            module.exports = _dereq_('./browser/algorithms.json');
         },
         { './browser/algorithms.json': 44 }
     ],
     44: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             module.exports = {
                 'sha224WithRSAEncryption': {
                     'sign': 'rsa',
@@ -5980,7 +5980,7 @@ require = function () {
         {}
     ],
     45: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             module.exports = {
                 '1.3.132.0.10': 'secp256k1',
                 '1.3.132.0.33': 'p224',
@@ -5993,14 +5993,14 @@ require = function () {
         {}
     ],
     46: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             (function (Buffer) {
-                var createHash = require('create-hash');
-                var stream = require('stream');
-                var inherits = require('inherits');
-                var sign = require('./sign');
-                var verify = require('./verify');
-                var algorithms = require('./algorithms.json');
+                var createHash = _dereq_('create-hash');
+                var stream = _dereq_('stream');
+                var inherits = _dereq_('inherits');
+                var sign = _dereq_('./sign');
+                var verify = _dereq_('./verify');
+                var algorithms = _dereq_('./algorithms.json');
                 Object.keys(algorithms).forEach(function (key) {
                     algorithms[key].id = new Buffer(algorithms[key].id, 'hex');
                     algorithms[key.toLowerCase()] = algorithms[key];
@@ -6071,7 +6071,7 @@ require = function () {
                     createSign: createSign,
                     createVerify: createVerify
                 };
-            }.call(this, require('buffer').Buffer));
+            }.call(this, _dereq_('buffer').Buffer));
         },
         {
             './algorithms.json': 44,
@@ -6084,14 +6084,14 @@ require = function () {
         }
     ],
     47: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             (function (Buffer) {
-                var createHmac = require('create-hmac');
-                var crt = require('browserify-rsa');
-                var EC = require('elliptic').ec;
-                var BN = require('bn.js');
-                var parseKeys = require('parse-asn1');
-                var curves = require('./curves.json');
+                var createHmac = _dereq_('create-hmac');
+                var crt = _dereq_('browserify-rsa');
+                var EC = _dereq_('elliptic').ec;
+                var BN = _dereq_('bn.js');
+                var parseKeys = _dereq_('parse-asn1');
+                var curves = _dereq_('./curves.json');
                 function sign(hash, key, hashType, signType, tag) {
                     var priv = parseKeys(key);
                     if (priv.curve) {
@@ -6244,7 +6244,7 @@ require = function () {
                 module.exports = sign;
                 module.exports.getKey = getKey;
                 module.exports.makeKey = makeKey;
-            }.call(this, require('buffer').Buffer));
+            }.call(this, _dereq_('buffer').Buffer));
         },
         {
             './curves.json': 45,
@@ -6257,12 +6257,12 @@ require = function () {
         }
     ],
     48: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             (function (Buffer) {
-                var BN = require('bn.js');
-                var EC = require('elliptic').ec;
-                var parseKeys = require('parse-asn1');
-                var curves = require('./curves.json');
+                var BN = _dereq_('bn.js');
+                var EC = _dereq_('elliptic').ec;
+                var parseKeys = _dereq_('parse-asn1');
+                var curves = _dereq_('./curves.json');
                 function verify(sig, hash, key, signType, tag) {
                     var pub = parseKeys(key);
                     if (pub.type === 'ec') {
@@ -6337,7 +6337,7 @@ require = function () {
                         throw new Error('invalid sig');
                 }
                 module.exports = verify;
-            }.call(this, require('buffer').Buffer));
+            }.call(this, _dereq_('buffer').Buffer));
         },
         {
             './curves.json': 45,
@@ -6348,7 +6348,7 @@ require = function () {
         }
     ],
     49: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             (function (Buffer) {
                 module.exports = function xor(a, b) {
                     var length = Math.min(a.length, b.length);
@@ -6358,15 +6358,15 @@ require = function () {
                     }
                     return buffer;
                 };
-            }.call(this, require('buffer').Buffer));
+            }.call(this, _dereq_('buffer').Buffer));
         },
         { 'buffer': 50 }
     ],
     50: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var base64 = require('base64-js');
-            var ieee754 = require('ieee754');
+            var base64 = _dereq_('base64-js');
+            var ieee754 = _dereq_('ieee754');
             exports.Buffer = Buffer;
             exports.SlowBuffer = SlowBuffer;
             exports.INSPECT_MAX_BYTES = 50;
@@ -7784,11 +7784,11 @@ require = function () {
         }
     ],
     51: [
-        function (require, module, exports) {
-            var Buffer = require('safe-buffer').Buffer;
-            var Transform = require('stream').Transform;
-            var StringDecoder = require('string_decoder').StringDecoder;
-            var inherits = require('inherits');
+        function (_dereq_, module, exports) {
+            var Buffer = _dereq_('safe-buffer').Buffer;
+            var Transform = _dereq_('stream').Transform;
+            var StringDecoder = _dereq_('string_decoder').StringDecoder;
+            var inherits = _dereq_('inherits');
             function CipherBase(hashMode) {
                 Transform.call(this);
                 this.hashMode = typeof hashMode === 'string';
@@ -7881,7 +7881,7 @@ require = function () {
         }
     ],
     52: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             (function (Buffer) {
                 function isArray(arg) {
                     if (Array.isArray) {
@@ -7946,15 +7946,15 @@ require = function () {
                 function objectToString(o) {
                     return Object.prototype.toString.call(o);
                 }
-            }.call(this, { 'isBuffer': require('../../is-buffer/index.js') }));
+            }.call(this, { 'isBuffer': _dereq_('../../is-buffer/index.js') }));
         },
         { '../../is-buffer/index.js': 104 }
     ],
     53: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             (function (Buffer) {
-                var elliptic = require('elliptic');
-                var BN = require('bn.js');
+                var elliptic = _dereq_('elliptic');
+                var BN = _dereq_('bn.js');
                 module.exports = function createECDH(curve) {
                     return new ECDH(curve);
                 };
@@ -8066,7 +8066,7 @@ require = function () {
                         return buf.toString(enc);
                     }
                 }
-            }.call(this, require('buffer').Buffer));
+            }.call(this, _dereq_('buffer').Buffer));
         },
         {
             'bn.js': 19,
@@ -8075,13 +8075,13 @@ require = function () {
         }
     ],
     54: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var inherits = require('inherits');
-            var MD5 = require('md5.js');
-            var RIPEMD160 = require('ripemd160');
-            var sha = require('sha.js');
-            var Base = require('cipher-base');
+            var inherits = _dereq_('inherits');
+            var MD5 = _dereq_('md5.js');
+            var RIPEMD160 = _dereq_('ripemd160');
+            var sha = _dereq_('sha.js');
+            var Base = _dereq_('cipher-base');
             function Hash(hash) {
                 Base.call(this, 'digest');
                 this._hash = hash;
@@ -8111,8 +8111,8 @@ require = function () {
         }
     ],
     55: [
-        function (require, module, exports) {
-            var MD5 = require('md5.js');
+        function (_dereq_, module, exports) {
+            var MD5 = _dereq_('md5.js');
             module.exports = function (buffer) {
                 return new MD5().update(buffer).digest();
             };
@@ -8120,15 +8120,15 @@ require = function () {
         { 'md5.js': 106 }
     ],
     56: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var inherits = require('inherits');
-            var Legacy = require('./legacy');
-            var Base = require('cipher-base');
-            var Buffer = require('safe-buffer').Buffer;
-            var md5 = require('create-hash/md5');
-            var RIPEMD160 = require('ripemd160');
-            var sha = require('sha.js');
+            var inherits = _dereq_('inherits');
+            var Legacy = _dereq_('./legacy');
+            var Base = _dereq_('cipher-base');
+            var Buffer = _dereq_('safe-buffer').Buffer;
+            var md5 = _dereq_('create-hash/md5');
+            var RIPEMD160 = _dereq_('ripemd160');
+            var sha = _dereq_('sha.js');
             var ZEROS = Buffer.alloc(128);
             function Hmac(alg, key) {
                 Base.call(this, 'digest');
@@ -8187,11 +8187,11 @@ require = function () {
         }
     ],
     57: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var inherits = require('inherits');
-            var Buffer = require('safe-buffer').Buffer;
-            var Base = require('cipher-base');
+            var inherits = _dereq_('inherits');
+            var Buffer = _dereq_('safe-buffer').Buffer;
+            var Base = _dereq_('cipher-base');
             var ZEROS = Buffer.alloc(128);
             var blocksize = 64;
             function Hmac(alg, key) {
@@ -8237,12 +8237,12 @@ require = function () {
         }
     ],
     58: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            exports.randomBytes = exports.rng = exports.pseudoRandomBytes = exports.prng = require('randombytes');
-            exports.createHash = exports.Hash = require('create-hash');
-            exports.createHmac = exports.Hmac = require('create-hmac');
-            var algos = require('browserify-sign/algos');
+            exports.randomBytes = exports.rng = exports.pseudoRandomBytes = exports.prng = _dereq_('randombytes');
+            exports.createHash = exports.Hash = _dereq_('create-hash');
+            exports.createHmac = exports.Hmac = _dereq_('create-hmac');
+            var algos = _dereq_('browserify-sign/algos');
             var algoKeys = Object.keys(algos);
             var hashes = [
                 'sha1',
@@ -8256,10 +8256,10 @@ require = function () {
             exports.getHashes = function () {
                 return hashes;
             };
-            var p = require('pbkdf2');
+            var p = _dereq_('pbkdf2');
             exports.pbkdf2 = p.pbkdf2;
             exports.pbkdf2Sync = p.pbkdf2Sync;
-            var aes = require('browserify-cipher');
+            var aes = _dereq_('browserify-cipher');
             exports.Cipher = aes.Cipher;
             exports.createCipher = aes.createCipher;
             exports.Cipheriv = aes.Cipheriv;
@@ -8270,24 +8270,24 @@ require = function () {
             exports.createDecipheriv = aes.createDecipheriv;
             exports.getCiphers = aes.getCiphers;
             exports.listCiphers = aes.listCiphers;
-            var dh = require('diffie-hellman');
+            var dh = _dereq_('diffie-hellman');
             exports.DiffieHellmanGroup = dh.DiffieHellmanGroup;
             exports.createDiffieHellmanGroup = dh.createDiffieHellmanGroup;
             exports.getDiffieHellman = dh.getDiffieHellman;
             exports.createDiffieHellman = dh.createDiffieHellman;
             exports.DiffieHellman = dh.DiffieHellman;
-            var sign = require('browserify-sign');
+            var sign = _dereq_('browserify-sign');
             exports.createSign = sign.createSign;
             exports.Sign = sign.Sign;
             exports.createVerify = sign.createVerify;
             exports.Verify = sign.Verify;
-            exports.createECDH = require('create-ecdh');
-            var publicEncrypt = require('public-encrypt');
+            exports.createECDH = _dereq_('create-ecdh');
+            var publicEncrypt = _dereq_('public-encrypt');
             exports.publicEncrypt = publicEncrypt.publicEncrypt;
             exports.privateEncrypt = publicEncrypt.privateEncrypt;
             exports.publicDecrypt = publicEncrypt.publicDecrypt;
             exports.privateDecrypt = publicEncrypt.privateDecrypt;
-            var rf = require('randomfill');
+            var rf = _dereq_('randomfill');
             exports.randomFill = rf.randomFill;
             exports.randomFillSync = rf.randomFillSync;
             exports.createCredentials = function () {
@@ -8330,13 +8330,13 @@ require = function () {
         }
     ],
     59: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            exports.utils = require('./des/utils');
-            exports.Cipher = require('./des/cipher');
-            exports.DES = require('./des/des');
-            exports.CBC = require('./des/cbc');
-            exports.EDE = require('./des/ede');
+            exports.utils = _dereq_('./des/utils');
+            exports.Cipher = _dereq_('./des/cipher');
+            exports.DES = _dereq_('./des/des');
+            exports.CBC = _dereq_('./des/cbc');
+            exports.EDE = _dereq_('./des/ede');
         },
         {
             './des/cbc': 60,
@@ -8347,10 +8347,10 @@ require = function () {
         }
     ],
     60: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var assert = require('minimalistic-assert');
-            var inherits = require('inherits');
+            var assert = _dereq_('minimalistic-assert');
+            var inherits = _dereq_('inherits');
             var proto = {};
             function CBCState(iv) {
                 this.iv = new Array(8);
@@ -8403,9 +8403,9 @@ require = function () {
         }
     ],
     61: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var assert = require('minimalistic-assert');
+            var assert = _dereq_('minimalistic-assert');
             function Cipher(options) {
                 this.options = options;
                 this.type = this.options.type;
@@ -8508,11 +8508,11 @@ require = function () {
         { 'minimalistic-assert': 108 }
     ],
     62: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var assert = require('minimalistic-assert');
-            var inherits = require('inherits');
-            var des = require('../des');
+            var assert = _dereq_('minimalistic-assert');
+            var inherits = _dereq_('inherits');
+            var des = _dereq_('../des');
             var utils = des.utils;
             var Cipher = des.Cipher;
             function DESState() {
@@ -8632,11 +8632,11 @@ require = function () {
         }
     ],
     63: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var assert = require('minimalistic-assert');
-            var inherits = require('inherits');
-            var des = require('../des');
+            var assert = _dereq_('minimalistic-assert');
+            var inherits = _dereq_('inherits');
+            var des = _dereq_('../des');
             var Cipher = des.Cipher;
             var DES = des.DES;
             function EDEState(type, key) {
@@ -8701,7 +8701,7 @@ require = function () {
         }
     ],
     64: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             exports.readUInt32BE = function readUInt32BE(bytes, off) {
                 var res = bytes[0 + off] << 24 | bytes[1 + off] << 16 | bytes[2 + off] << 8 | bytes[3 + off];
@@ -9464,11 +9464,11 @@ require = function () {
         {}
     ],
     65: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             (function (Buffer) {
-                var generatePrime = require('./lib/generatePrime');
-                var primes = require('./lib/primes.json');
-                var DH = require('./lib/dh');
+                var generatePrime = _dereq_('./lib/generatePrime');
+                var primes = _dereq_('./lib/primes.json');
+                var DH = _dereq_('./lib/dh');
                 function getDiffieHellman(mod) {
                     var prime = new Buffer(primes[mod].prime, 'hex');
                     var gen = new Buffer(primes[mod].gen, 'hex');
@@ -9499,7 +9499,7 @@ require = function () {
                 }
                 exports.DiffieHellmanGroup = exports.createDiffieHellmanGroup = exports.getDiffieHellman = getDiffieHellman;
                 exports.createDiffieHellman = exports.DiffieHellman = createDiffieHellman;
-            }.call(this, require('buffer').Buffer));
+            }.call(this, _dereq_('buffer').Buffer));
         },
         {
             './lib/dh': 66,
@@ -9509,18 +9509,18 @@ require = function () {
         }
     ],
     66: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             (function (Buffer) {
-                var BN = require('bn.js');
-                var MillerRabin = require('miller-rabin');
+                var BN = _dereq_('bn.js');
+                var MillerRabin = _dereq_('miller-rabin');
                 var millerRabin = new MillerRabin();
                 var TWENTYFOUR = new BN(24);
                 var ELEVEN = new BN(11);
                 var TEN = new BN(10);
                 var THREE = new BN(3);
                 var SEVEN = new BN(7);
-                var primes = require('./generatePrime');
-                var randomBytes = require('randombytes');
+                var primes = _dereq_('./generatePrime');
+                var randomBytes = _dereq_('randombytes');
                 module.exports = DH;
                 function setPublicKey(pub, enc) {
                     enc = enc || 'utf8';
@@ -9657,7 +9657,7 @@ require = function () {
                         return buf.toString(enc);
                     }
                 }
-            }.call(this, require('buffer').Buffer));
+            }.call(this, _dereq_('buffer').Buffer));
         },
         {
             './generatePrime': 67,
@@ -9668,14 +9668,14 @@ require = function () {
         }
     ],
     67: [
-        function (require, module, exports) {
-            var randomBytes = require('randombytes');
+        function (_dereq_, module, exports) {
+            var randomBytes = _dereq_('randombytes');
             module.exports = findPrime;
             findPrime.simpleSieve = simpleSieve;
             findPrime.fermatTest = fermatTest;
-            var BN = require('bn.js');
+            var BN = _dereq_('bn.js');
             var TWENTYFOUR = new BN(24);
-            var MillerRabin = require('miller-rabin');
+            var MillerRabin = _dereq_('miller-rabin');
             var millerRabin = new MillerRabin();
             var ONE = new BN(1);
             var TWO = new BN(2);
@@ -9773,7 +9773,7 @@ require = function () {
         }
     ],
     68: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             module.exports = {
                 'modp1': {
                     'gen': '02',
@@ -9812,16 +9812,16 @@ require = function () {
         {}
     ],
     69: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             var elliptic = exports;
-            elliptic.version = require('../package.json').version;
-            elliptic.utils = require('./elliptic/utils');
-            elliptic.rand = require('brorand');
-            elliptic.curve = require('./elliptic/curve');
-            elliptic.curves = require('./elliptic/curves');
-            elliptic.ec = require('./elliptic/ec');
-            elliptic.eddsa = require('./elliptic/eddsa');
+            elliptic.version = _dereq_('../package.json').version;
+            elliptic.utils = _dereq_('./elliptic/utils');
+            elliptic.rand = _dereq_('brorand');
+            elliptic.curve = _dereq_('./elliptic/curve');
+            elliptic.curves = _dereq_('./elliptic/curves');
+            elliptic.ec = _dereq_('./elliptic/ec');
+            elliptic.eddsa = _dereq_('./elliptic/eddsa');
         },
         {
             '../package.json': 84,
@@ -9834,10 +9834,10 @@ require = function () {
         }
     ],
     70: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var BN = require('bn.js');
-            var elliptic = require('../../elliptic');
+            var BN = _dereq_('bn.js');
+            var elliptic = _dereq_('../../elliptic');
             var utils = elliptic.utils;
             var getNAF = utils.getNAF;
             var getJSF = utils.getJSF;
@@ -10134,12 +10134,12 @@ require = function () {
         }
     ],
     71: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var curve = require('../curve');
-            var elliptic = require('../../elliptic');
-            var BN = require('bn.js');
-            var inherits = require('inherits');
+            var curve = _dereq_('../curve');
+            var elliptic = _dereq_('../../elliptic');
+            var BN = _dereq_('bn.js');
+            var inherits = _dereq_('inherits');
             var Base = curve.base;
             var assert = elliptic.utils.assert;
             function EdwardsCurve(conf) {
@@ -10443,13 +10443,13 @@ require = function () {
         }
     ],
     72: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             var curve = exports;
-            curve.base = require('./base');
-            curve.short = require('./short');
-            curve.mont = require('./mont');
-            curve.edwards = require('./edwards');
+            curve.base = _dereq_('./base');
+            curve.short = _dereq_('./short');
+            curve.mont = _dereq_('./mont');
+            curve.edwards = _dereq_('./edwards');
         },
         {
             './base': 70,
@@ -10459,13 +10459,13 @@ require = function () {
         }
     ],
     73: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var curve = require('../curve');
-            var BN = require('bn.js');
-            var inherits = require('inherits');
+            var curve = _dereq_('../curve');
+            var BN = _dereq_('bn.js');
+            var inherits = _dereq_('inherits');
             var Base = curve.base;
-            var elliptic = require('../../elliptic');
+            var elliptic = _dereq_('../../elliptic');
             var utils = elliptic.utils;
             function MontCurve(conf) {
                 Base.call(this, 'mont', conf);
@@ -10593,12 +10593,12 @@ require = function () {
         }
     ],
     74: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var curve = require('../curve');
-            var elliptic = require('../../elliptic');
-            var BN = require('bn.js');
-            var inherits = require('inherits');
+            var curve = _dereq_('../curve');
+            var elliptic = _dereq_('../../elliptic');
+            var BN = _dereq_('bn.js');
+            var inherits = _dereq_('inherits');
             var Base = curve.base;
             var assert = elliptic.utils.assert;
             function ShortCurve(conf) {
@@ -11323,11 +11323,11 @@ require = function () {
         }
     ],
     75: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             var curves = exports;
-            var hash = require('hash.js');
-            var elliptic = require('../elliptic');
+            var hash = _dereq_('hash.js');
+            var elliptic = _dereq_('../elliptic');
             var assert = elliptic.utils.assert;
             function PresetCurve(options) {
                 if (options.type === 'short')
@@ -11454,7 +11454,7 @@ require = function () {
             });
             var pre;
             try {
-                pre = require('./precomputed/secp256k1');
+                pre = _dereq_('./precomputed/secp256k1');
             } catch (e) {
                 pre = undefined;
             }
@@ -11494,15 +11494,15 @@ require = function () {
         }
     ],
     76: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var BN = require('bn.js');
-            var HmacDRBG = require('hmac-drbg');
-            var elliptic = require('../../elliptic');
+            var BN = _dereq_('bn.js');
+            var HmacDRBG = _dereq_('hmac-drbg');
+            var elliptic = _dereq_('../../elliptic');
             var utils = elliptic.utils;
             var assert = utils.assert;
-            var KeyPair = require('./key');
-            var Signature = require('./signature');
+            var KeyPair = _dereq_('./key');
+            var Signature = _dereq_('./signature');
             function EC(options) {
                 if (!(this instanceof EC))
                     return new EC(options);
@@ -11676,10 +11676,10 @@ require = function () {
         }
     ],
     77: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var BN = require('bn.js');
-            var elliptic = require('../../elliptic');
+            var BN = _dereq_('bn.js');
+            var elliptic = _dereq_('../../elliptic');
             var utils = elliptic.utils;
             var assert = utils.assert;
             function KeyPair(ec, options) {
@@ -11780,10 +11780,10 @@ require = function () {
         }
     ],
     78: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var BN = require('bn.js');
-            var elliptic = require('../../elliptic');
+            var BN = _dereq_('bn.js');
+            var elliptic = _dereq_('../../elliptic');
             var utils = elliptic.utils;
             var assert = utils.assert;
             function Signature(options, enc) {
@@ -11904,15 +11904,15 @@ require = function () {
         }
     ],
     79: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var hash = require('hash.js');
-            var elliptic = require('../../elliptic');
+            var hash = _dereq_('hash.js');
+            var elliptic = _dereq_('../../elliptic');
             var utils = elliptic.utils;
             var assert = utils.assert;
             var parseBytes = utils.parseBytes;
-            var KeyPair = require('./key');
-            var Signature = require('./signature');
+            var KeyPair = _dereq_('./key');
+            var Signature = _dereq_('./signature');
             function EDDSA(curve) {
                 if (!(this instanceof EDDSA))
                     return new EDDSA(curve);
@@ -11996,9 +11996,9 @@ require = function () {
         }
     ],
     80: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var elliptic = require('../../elliptic');
+            var elliptic = _dereq_('../../elliptic');
             var utils = elliptic.utils;
             var assert = utils.assert;
             var parseBytes = utils.parseBytes;
@@ -12068,10 +12068,10 @@ require = function () {
         { '../../elliptic': 69 }
     ],
     81: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var BN = require('bn.js');
-            var elliptic = require('../../elliptic');
+            var BN = _dereq_('bn.js');
+            var elliptic = _dereq_('../../elliptic');
             var utils = elliptic.utils;
             var assert = utils.assert;
             var cachedProperty = utils.cachedProperty;
@@ -12119,7 +12119,7 @@ require = function () {
         }
     ],
     82: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             module.exports = {
                 doubles: {
                     step: 4,
@@ -12904,12 +12904,12 @@ require = function () {
         {}
     ],
     83: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             var utils = exports;
-            var BN = require('bn.js');
-            var minAssert = require('minimalistic-assert');
-            var minUtils = require('minimalistic-crypto-utils');
+            var BN = _dereq_('bn.js');
+            var minAssert = _dereq_('minimalistic-assert');
+            var minUtils = _dereq_('minimalistic-crypto-utils');
             utils.assert = minAssert;
             utils.toArray = minUtils.toArray;
             utils.zero2 = minUtils.zero2;
@@ -13011,7 +13011,7 @@ require = function () {
         }
     ],
     84: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             module.exports = {
                 '_from': 'elliptic@^6.0.0',
                 '_id': 'elliptic@6.4.1',
@@ -13099,7 +13099,7 @@ require = function () {
         {}
     ],
     85: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             var objectCreate = Object.create || objectCreatePolyfill;
             var objectKeys = Object.keys || objectKeysPolyfill;
             var bind = Function.prototype.bind || functionBindPolyfill;
@@ -13518,9 +13518,9 @@ require = function () {
         {}
     ],
     86: [
-        function (require, module, exports) {
-            var Buffer = require('safe-buffer').Buffer;
-            var MD5 = require('md5.js');
+        function (_dereq_, module, exports) {
+            var Buffer = _dereq_('safe-buffer').Buffer;
+            var MD5 = _dereq_('md5.js');
             function EVP_BytesToKey(password, salt, keyBits, ivLen) {
                 if (!Buffer.isBuffer(password))
                     password = Buffer.from(password, 'binary');
@@ -13569,7 +13569,7 @@ require = function () {
         }
     ],
     87: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             class FiggyPudding {
                 constructor(specs, opts, providers) {
@@ -13657,7 +13657,7 @@ require = function () {
                 }
             }
             try {
-                const util = require('util');
+                const util = _dereq_('util');
                 FiggyPudding.prototype[util.inspect.custom] = function (depth, opts) {
                     return this[Symbol.toStringTag] + ' ' + util.inspect(this.toJSON(), opts);
                 };
@@ -13761,11 +13761,11 @@ require = function () {
         { 'util': 248 }
     ],
     88: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var Buffer = require('safe-buffer').Buffer;
-            var Transform = require('stream').Transform;
-            var inherits = require('inherits');
+            var Buffer = _dereq_('safe-buffer').Buffer;
+            var Transform = _dereq_('stream').Transform;
+            var inherits = _dereq_('inherits');
             function throwIfNotStringOrBuffer(val, prefix) {
                 if (!Buffer.isBuffer(val) && typeof val !== 'string') {
                     throw new TypeError(prefix + ' must be a string or a buffer');
@@ -13855,13 +13855,13 @@ require = function () {
         }
     ],
     89: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             var hash = exports;
-            hash.utils = require('./hash/utils');
-            hash.common = require('./hash/common');
-            hash.sha = require('./hash/sha');
-            hash.ripemd = require('./hash/ripemd');
-            hash.hmac = require('./hash/hmac');
+            hash.utils = _dereq_('./hash/utils');
+            hash.common = _dereq_('./hash/common');
+            hash.sha = _dereq_('./hash/sha');
+            hash.ripemd = _dereq_('./hash/ripemd');
+            hash.hmac = _dereq_('./hash/hmac');
             hash.sha1 = hash.sha.sha1;
             hash.sha256 = hash.sha.sha256;
             hash.sha224 = hash.sha.sha224;
@@ -13878,10 +13878,10 @@ require = function () {
         }
     ],
     90: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var utils = require('./utils');
-            var assert = require('minimalistic-assert');
+            var utils = _dereq_('./utils');
+            var assert = _dereq_('minimalistic-assert');
             function BlockHash() {
                 this.pending = null;
                 this.pendingTotal = 0;
@@ -13958,10 +13958,10 @@ require = function () {
         }
     ],
     91: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var utils = require('./utils');
-            var assert = require('minimalistic-assert');
+            var utils = _dereq_('./utils');
+            var assert = _dereq_('minimalistic-assert');
             function Hmac(hash, key, enc) {
                 if (!(this instanceof Hmac))
                     return new Hmac(hash, key, enc);
@@ -14000,10 +14000,10 @@ require = function () {
         }
     ],
     92: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var utils = require('./utils');
-            var common = require('./common');
+            var utils = _dereq_('./utils');
+            var common = _dereq_('./common');
             var rotl32 = utils.rotl32;
             var sum32 = utils.sum32;
             var sum32_3 = utils.sum32_3;
@@ -14437,13 +14437,13 @@ require = function () {
         }
     ],
     93: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            exports.sha1 = require('./sha/1');
-            exports.sha224 = require('./sha/224');
-            exports.sha256 = require('./sha/256');
-            exports.sha384 = require('./sha/384');
-            exports.sha512 = require('./sha/512');
+            exports.sha1 = _dereq_('./sha/1');
+            exports.sha224 = _dereq_('./sha/224');
+            exports.sha256 = _dereq_('./sha/256');
+            exports.sha384 = _dereq_('./sha/384');
+            exports.sha512 = _dereq_('./sha/512');
         },
         {
             './sha/1': 94,
@@ -14454,11 +14454,11 @@ require = function () {
         }
     ],
     94: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var utils = require('../utils');
-            var common = require('../common');
-            var shaCommon = require('./common');
+            var utils = _dereq_('../utils');
+            var common = _dereq_('../common');
+            var shaCommon = _dereq_('./common');
             var rotl32 = utils.rotl32;
             var sum32 = utils.sum32;
             var sum32_5 = utils.sum32_5;
@@ -14529,10 +14529,10 @@ require = function () {
         }
     ],
     95: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var utils = require('../utils');
-            var SHA256 = require('./256');
+            var utils = _dereq_('../utils');
+            var SHA256 = _dereq_('./256');
             function SHA224() {
                 if (!(this instanceof SHA224))
                     return new SHA224();
@@ -14567,12 +14567,12 @@ require = function () {
         }
     ],
     96: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var utils = require('../utils');
-            var common = require('../common');
-            var shaCommon = require('./common');
-            var assert = require('minimalistic-assert');
+            var utils = _dereq_('../utils');
+            var common = _dereq_('../common');
+            var shaCommon = _dereq_('./common');
+            var assert = _dereq_('minimalistic-assert');
             var sum32 = utils.sum32;
             var sum32_4 = utils.sum32_4;
             var sum32_5 = utils.sum32_5;
@@ -14722,10 +14722,10 @@ require = function () {
         }
     ],
     97: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var utils = require('../utils');
-            var SHA512 = require('./512');
+            var utils = _dereq_('../utils');
+            var SHA512 = _dereq_('./512');
             function SHA384() {
                 if (!(this instanceof SHA384))
                     return new SHA384();
@@ -14768,11 +14768,11 @@ require = function () {
         }
     ],
     98: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var utils = require('../utils');
-            var common = require('../common');
-            var assert = require('minimalistic-assert');
+            var utils = _dereq_('../utils');
+            var common = _dereq_('../common');
+            var assert = _dereq_('minimalistic-assert');
             var rotr64_hi = utils.rotr64_hi;
             var rotr64_lo = utils.rotr64_lo;
             var shr64_hi = utils.shr64_hi;
@@ -15169,9 +15169,9 @@ require = function () {
         }
     ],
     99: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var utils = require('../utils');
+            var utils = _dereq_('../utils');
             var rotr32 = utils.rotr32;
             function ft_1(s, x, y, z) {
                 if (s === 0)
@@ -15214,10 +15214,10 @@ require = function () {
         { '../utils': 100 }
     ],
     100: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var assert = require('minimalistic-assert');
-            var inherits = require('inherits');
+            var assert = _dereq_('minimalistic-assert');
+            var inherits = _dereq_('inherits');
             exports.inherits = inherits;
             function isSurrogatePair(msg, i) {
                 if ((msg.charCodeAt(i) & 64512) !== 55296) {
@@ -15460,11 +15460,11 @@ require = function () {
         }
     ],
     101: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var hash = require('hash.js');
-            var utils = require('minimalistic-crypto-utils');
-            var assert = require('minimalistic-assert');
+            var hash = _dereq_('hash.js');
+            var utils = _dereq_('minimalistic-crypto-utils');
+            var assert = _dereq_('minimalistic-assert');
             function HmacDRBG(options) {
                 if (!(this instanceof HmacDRBG))
                     return new HmacDRBG(options);
@@ -15549,7 +15549,7 @@ require = function () {
         }
     ],
     102: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             exports.read = function (buffer, offset, isLE, mLen, nBytes) {
                 var e, m;
                 var eLen = nBytes * 8 - mLen - 1;
@@ -15631,7 +15631,7 @@ require = function () {
         {}
     ],
     103: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             if (typeof Object.create === 'function') {
                 module.exports = function inherits(ctor, superCtor) {
                     ctor.super_ = superCtor;
@@ -15658,7 +15658,7 @@ require = function () {
         {}
     ],
     104: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             module.exports = function (obj) {
                 return obj != null && (isBuffer(obj) || isSlowBuffer(obj) || !!obj._isBuffer);
             };
@@ -15672,7 +15672,7 @@ require = function () {
         {}
     ],
     105: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             var toString = {}.toString;
             module.exports = Array.isArray || function (arr) {
                 return toString.call(arr) == '[object Array]';
@@ -15681,11 +15681,11 @@ require = function () {
         {}
     ],
     106: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var inherits = require('inherits');
-            var HashBase = require('hash-base');
-            var Buffer = require('safe-buffer').Buffer;
+            var inherits = _dereq_('inherits');
+            var HashBase = _dereq_('hash-base');
+            var Buffer = _dereq_('safe-buffer').Buffer;
             var ARRAY16 = new Array(16);
             function MD5() {
                 HashBase.call(this, 64);
@@ -15814,9 +15814,9 @@ require = function () {
         }
     ],
     107: [
-        function (require, module, exports) {
-            var bn = require('bn.js');
-            var brorand = require('brorand');
+        function (_dereq_, module, exports) {
+            var bn = _dereq_('bn.js');
+            var brorand = _dereq_('brorand');
             function MillerRabin(rand) {
                 this.rand = rand || new brorand.Rand();
             }
@@ -15907,7 +15907,7 @@ require = function () {
         }
     ],
     108: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             module.exports = assert;
             function assert(val, msg) {
                 if (!val)
@@ -15921,7 +15921,7 @@ require = function () {
         {}
     ],
     109: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             var utils = exports;
             function toArray(msg, enc) {
@@ -15979,7 +15979,7 @@ require = function () {
         {}
     ],
     110: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             module.exports = {
                 '2.16.840.1.101.3.4.1.1': 'aes-128-ecb',
                 '2.16.840.1.101.3.4.1.2': 'aes-128-cbc',
@@ -15998,10 +15998,10 @@ require = function () {
         {}
     ],
     111: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var asn1 = require('asn1.js');
-            exports.certificate = require('./certificate');
+            var asn1 = _dereq_('asn1.js');
+            exports.certificate = _dereq_('./certificate');
             var RSAPrivateKey = asn1.define('RSAPrivateKey', function () {
                 this.seq().obj(this.key('version').int(), this.key('modulus').int(), this.key('publicExponent').int(), this.key('privateExponent').int(), this.key('prime1').int(), this.key('prime2').int(), this.key('exponent1').int(), this.key('exponent2').int(), this.key('coefficient').int());
             });
@@ -16049,9 +16049,9 @@ require = function () {
         }
     ],
     112: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var asn = require('asn1.js');
+            var asn = _dereq_('asn1.js');
             var Time = asn.define('Time', function () {
                 this.choice({
                     utcTime: this.utctime(),
@@ -16093,13 +16093,13 @@ require = function () {
         { 'asn1.js': 4 }
     ],
     113: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             var findProc = /Proc-Type: 4,ENCRYPTED[\n\r]+DEK-Info: AES-((?:128)|(?:192)|(?:256))-CBC,([0-9A-H]+)[\n\r]+([0-9A-z\n\r\+\/\=]+)[\n\r]+/m;
             var startRegex = /^-----BEGIN ((?:.*? KEY)|CERTIFICATE)-----/m;
             var fullRegex = /^-----BEGIN ((?:.*? KEY)|CERTIFICATE)-----([0-9A-z\n\r\+\/\=]+)-----END \1-----$/m;
-            var evp = require('evp_bytestokey');
-            var ciphers = require('browserify-aes');
-            var Buffer = require('safe-buffer').Buffer;
+            var evp = _dereq_('evp_bytestokey');
+            var ciphers = _dereq_('browserify-aes');
+            var Buffer = _dereq_('safe-buffer').Buffer;
             module.exports = function (okey, password) {
                 var key = okey.toString();
                 var match = key.match(findProc);
@@ -16132,13 +16132,13 @@ require = function () {
         }
     ],
     114: [
-        function (require, module, exports) {
-            var asn1 = require('./asn1');
-            var aesid = require('./aesid.json');
-            var fixProc = require('./fixProc');
-            var ciphers = require('browserify-aes');
-            var compat = require('pbkdf2');
-            var Buffer = require('safe-buffer').Buffer;
+        function (_dereq_, module, exports) {
+            var asn1 = _dereq_('./asn1');
+            var aesid = _dereq_('./aesid.json');
+            var fixProc = _dereq_('./fixProc');
+            var ciphers = _dereq_('browserify-aes');
+            var compat = _dereq_('pbkdf2');
+            var Buffer = _dereq_('safe-buffer').Buffer;
             module.exports = parseKeys;
             function parseKeys(buffer) {
                 var password;
@@ -16249,9 +16249,9 @@ require = function () {
         }
     ],
     115: [
-        function (require, module, exports) {
-            exports.pbkdf2 = require('./lib/async');
-            exports.pbkdf2Sync = require('./lib/sync');
+        function (_dereq_, module, exports) {
+            exports.pbkdf2 = _dereq_('./lib/async');
+            exports.pbkdf2Sync = _dereq_('./lib/sync');
         },
         {
             './lib/async': 116,
@@ -16259,12 +16259,12 @@ require = function () {
         }
     ],
     116: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             (function (process, global) {
-                var checkParameters = require('./precondition');
-                var defaultEncoding = require('./default-encoding');
-                var sync = require('./sync');
-                var Buffer = require('safe-buffer').Buffer;
+                var checkParameters = _dereq_('./precondition');
+                var defaultEncoding = _dereq_('./default-encoding');
+                var sync = _dereq_('./sync');
+                var Buffer = _dereq_('safe-buffer').Buffer;
                 var ZERO_BUF;
                 var subtle = global.crypto && global.crypto.subtle;
                 var toBrowser = {
@@ -16352,7 +16352,7 @@ require = function () {
                         return sync(password, salt, iterations, keylen, digest);
                     }), callback);
                 };
-            }.call(this, require('_process'), typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {}));
+            }.call(this, _dereq_('_process'), typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {}));
         },
         {
             './default-encoding': 117,
@@ -16363,7 +16363,7 @@ require = function () {
         }
     ],
     117: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             (function (process) {
                 var defaultEncoding;
                 if (process.browser) {
@@ -16373,12 +16373,12 @@ require = function () {
                     defaultEncoding = pVersionMajor >= 6 ? 'utf-8' : 'binary';
                 }
                 module.exports = defaultEncoding;
-            }.call(this, require('_process')));
+            }.call(this, _dereq_('_process')));
         },
         { '_process': 121 }
     ],
     118: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             (function (Buffer) {
                 var MAX_ALLOC = Math.pow(2, 30) - 1;
                 function checkBuffer(buf, name) {
@@ -16402,18 +16402,18 @@ require = function () {
                         throw new TypeError('Bad key length');
                     }
                 };
-            }.call(this, { 'isBuffer': require('../../is-buffer/index.js') }));
+            }.call(this, { 'isBuffer': _dereq_('../../is-buffer/index.js') }));
         },
         { '../../is-buffer/index.js': 104 }
     ],
     119: [
-        function (require, module, exports) {
-            var md5 = require('create-hash/md5');
-            var RIPEMD160 = require('ripemd160');
-            var sha = require('sha.js');
-            var checkParameters = require('./precondition');
-            var defaultEncoding = require('./default-encoding');
-            var Buffer = require('safe-buffer').Buffer;
+        function (_dereq_, module, exports) {
+            var md5 = _dereq_('create-hash/md5');
+            var RIPEMD160 = _dereq_('ripemd160');
+            var sha = _dereq_('sha.js');
+            var checkParameters = _dereq_('./precondition');
+            var defaultEncoding = _dereq_('./default-encoding');
+            var Buffer = _dereq_('safe-buffer').Buffer;
             var ZEROS = Buffer.alloc(128);
             var sizes = {
                 md5: 16,
@@ -16511,7 +16511,7 @@ require = function () {
         }
     ],
     120: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             (function (process) {
                 'use strict';
                 if (!process.version || process.version.indexOf('v0.') === 0 || process.version.indexOf('v1.') === 0 && process.version.indexOf('v1.8.') !== 0) {
@@ -16552,12 +16552,12 @@ require = function () {
                         });
                     }
                 }
-            }.call(this, require('_process')));
+            }.call(this, _dereq_('_process')));
         },
         { '_process': 121 }
     ],
     121: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             var process = module.exports = {};
             var cachedSetTimeout;
             var cachedClearTimeout;
@@ -16718,9 +16718,9 @@ require = function () {
         {}
     ],
     122: [
-        function (require, module, exports) {
-            exports.publicEncrypt = require('./publicEncrypt');
-            exports.privateDecrypt = require('./privateDecrypt');
+        function (_dereq_, module, exports) {
+            exports.publicEncrypt = _dereq_('./publicEncrypt');
+            exports.privateDecrypt = _dereq_('./privateDecrypt');
             exports.privateEncrypt = function privateEncrypt(key, buf) {
                 return exports.publicEncrypt(key, buf, true);
             };
@@ -16734,9 +16734,9 @@ require = function () {
         }
     ],
     123: [
-        function (require, module, exports) {
-            var createHash = require('create-hash');
-            var Buffer = require('safe-buffer').Buffer;
+        function (_dereq_, module, exports) {
+            var createHash = _dereq_('create-hash');
+            var Buffer = _dereq_('safe-buffer').Buffer;
             module.exports = function (seed, len) {
                 var t = Buffer.alloc(0);
                 var i = 0;
@@ -16762,15 +16762,15 @@ require = function () {
         }
     ],
     124: [
-        function (require, module, exports) {
-            var parseKeys = require('parse-asn1');
-            var mgf = require('./mgf');
-            var xor = require('./xor');
-            var BN = require('bn.js');
-            var crt = require('browserify-rsa');
-            var createHash = require('create-hash');
-            var withPublic = require('./withPublic');
-            var Buffer = require('safe-buffer').Buffer;
+        function (_dereq_, module, exports) {
+            var parseKeys = _dereq_('parse-asn1');
+            var mgf = _dereq_('./mgf');
+            var xor = _dereq_('./xor');
+            var BN = _dereq_('bn.js');
+            var crt = _dereq_('browserify-rsa');
+            var createHash = _dereq_('create-hash');
+            var withPublic = _dereq_('./withPublic');
+            var Buffer = _dereq_('safe-buffer').Buffer;
             module.exports = function privateDecrypt(privateKey, enc, reverse) {
                 var padding;
                 if (privateKey.padding) {
@@ -16879,16 +16879,16 @@ require = function () {
         }
     ],
     125: [
-        function (require, module, exports) {
-            var parseKeys = require('parse-asn1');
-            var randomBytes = require('randombytes');
-            var createHash = require('create-hash');
-            var mgf = require('./mgf');
-            var xor = require('./xor');
-            var BN = require('bn.js');
-            var withPublic = require('./withPublic');
-            var crt = require('browserify-rsa');
-            var Buffer = require('safe-buffer').Buffer;
+        function (_dereq_, module, exports) {
+            var parseKeys = _dereq_('parse-asn1');
+            var randomBytes = _dereq_('randombytes');
+            var createHash = _dereq_('create-hash');
+            var mgf = _dereq_('./mgf');
+            var xor = _dereq_('./xor');
+            var BN = _dereq_('bn.js');
+            var withPublic = _dereq_('./withPublic');
+            var crt = _dereq_('browserify-rsa');
+            var Buffer = _dereq_('safe-buffer').Buffer;
             module.exports = function publicEncrypt(publicKey, msg, reverse) {
                 var padding;
                 if (publicKey.padding) {
@@ -16997,9 +16997,9 @@ require = function () {
         }
     ],
     126: [
-        function (require, module, exports) {
-            var BN = require('bn.js');
-            var Buffer = require('safe-buffer').Buffer;
+        function (_dereq_, module, exports) {
+            var BN = _dereq_('bn.js');
+            var Buffer = _dereq_('safe-buffer').Buffer;
             function withPublic(paddedMsg, key) {
                 return Buffer.from(paddedMsg.toRed(BN.mont(key.modulus)).redPow(new BN(key.publicExponent)).fromRed().toArray());
             }
@@ -17011,7 +17011,7 @@ require = function () {
         }
     ],
     127: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             module.exports = function xor(a, b) {
                 var len = a.length;
                 var i = -1;
@@ -17024,13 +17024,13 @@ require = function () {
         {}
     ],
     128: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             (function (process, global) {
                 'use strict';
                 function oldBrowser() {
                     throw new Error('Secure random number generation is not supported by this browser.\nUse Chrome, Firefox or Internet Explorer 11');
                 }
-                var Buffer = require('safe-buffer').Buffer;
+                var Buffer = _dereq_('safe-buffer').Buffer;
                 var crypto = global.crypto || global.msCrypto;
                 if (crypto && crypto.getRandomValues) {
                     module.exports = randomBytes;
@@ -17052,7 +17052,7 @@ require = function () {
                     }
                     return bytes;
                 }
-            }.call(this, require('_process'), typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {}));
+            }.call(this, _dereq_('_process'), typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {}));
         },
         {
             '_process': 121,
@@ -17060,14 +17060,14 @@ require = function () {
         }
     ],
     129: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             (function (process, global) {
                 'use strict';
                 function oldBrowser() {
                     throw new Error('secure random number generation not supported by this browser\nuse chrome, FireFox or Internet Explorer 11');
                 }
-                var safeBuffer = require('safe-buffer');
-                var randombytes = require('randombytes');
+                var safeBuffer = _dereq_('safe-buffer');
+                var randombytes = _dereq_('randombytes');
                 var Buffer = safeBuffer.Buffer;
                 var kBufferMaxLength = safeBuffer.kMaxLength;
                 var crypto = global.crypto || global.msCrypto;
@@ -17159,7 +17159,7 @@ require = function () {
                     assertSize(size, offset, buf.length);
                     return actualFill(buf, offset, size);
                 }
-            }.call(this, require('_process'), typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {}));
+            }.call(this, _dereq_('_process'), typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {}));
         },
         {
             '_process': 121,
@@ -17168,15 +17168,15 @@ require = function () {
         }
     ],
     130: [
-        function (require, module, exports) {
-            module.exports = require('./lib/_stream_duplex.js');
+        function (_dereq_, module, exports) {
+            module.exports = _dereq_('./lib/_stream_duplex.js');
         },
         { './lib/_stream_duplex.js': 131 }
     ],
     131: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var pna = require('process-nextick-args');
+            var pna = _dereq_('process-nextick-args');
             var objectKeys = Object.keys || function (obj) {
                 var keys = [];
                 for (var key in obj) {
@@ -17185,10 +17185,10 @@ require = function () {
                 return keys;
             };
             module.exports = Duplex;
-            var util = require('core-util-is');
-            util.inherits = require('inherits');
-            var Readable = require('./_stream_readable');
-            var Writable = require('./_stream_writable');
+            var util = _dereq_('core-util-is');
+            util.inherits = _dereq_('inherits');
+            var Readable = _dereq_('./_stream_readable');
+            var Writable = _dereq_('./_stream_writable');
             util.inherits(Duplex, Readable);
             {
                 var keys = objectKeys(Writable.prototype);
@@ -17256,12 +17256,12 @@ require = function () {
         }
     ],
     132: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             module.exports = PassThrough;
-            var Transform = require('./_stream_transform');
-            var util = require('core-util-is');
-            util.inherits = require('inherits');
+            var Transform = _dereq_('./_stream_transform');
+            var util = _dereq_('core-util-is');
+            util.inherits = _dereq_('inherits');
             util.inherits(PassThrough, Transform);
             function PassThrough(options) {
                 if (!(this instanceof PassThrough))
@@ -17279,20 +17279,20 @@ require = function () {
         }
     ],
     133: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             (function (process, global) {
                 'use strict';
-                var pna = require('process-nextick-args');
+                var pna = _dereq_('process-nextick-args');
                 module.exports = Readable;
-                var isArray = require('isarray');
+                var isArray = _dereq_('isarray');
                 var Duplex;
                 Readable.ReadableState = ReadableState;
-                var EE = require('events').EventEmitter;
+                var EE = _dereq_('events').EventEmitter;
                 var EElistenerCount = function (emitter, type) {
                     return emitter.listeners(type).length;
                 };
-                var Stream = require('./internal/streams/stream');
-                var Buffer = require('safe-buffer').Buffer;
+                var Stream = _dereq_('./internal/streams/stream');
+                var Buffer = _dereq_('safe-buffer').Buffer;
                 var OurUint8Array = global.Uint8Array || function () {
                 };
                 function _uint8ArrayToBuffer(chunk) {
@@ -17301,9 +17301,9 @@ require = function () {
                 function _isUint8Array(obj) {
                     return Buffer.isBuffer(obj) || obj instanceof OurUint8Array;
                 }
-                var util = require('core-util-is');
-                util.inherits = require('inherits');
-                var debugUtil = require('util');
+                var util = _dereq_('core-util-is');
+                util.inherits = _dereq_('inherits');
+                var debugUtil = _dereq_('util');
                 var debug = void 0;
                 if (debugUtil && debugUtil.debuglog) {
                     debug = debugUtil.debuglog('stream');
@@ -17311,8 +17311,8 @@ require = function () {
                     debug = function () {
                     };
                 }
-                var BufferList = require('./internal/streams/BufferList');
-                var destroyImpl = require('./internal/streams/destroy');
+                var BufferList = _dereq_('./internal/streams/BufferList');
+                var destroyImpl = _dereq_('./internal/streams/destroy');
                 var StringDecoder;
                 util.inherits(Readable, Stream);
                 var kProxyEvents = [
@@ -17336,7 +17336,7 @@ require = function () {
                         ];
                 }
                 function ReadableState(options, stream) {
-                    Duplex = Duplex || require('./_stream_duplex');
+                    Duplex = Duplex || _dereq_('./_stream_duplex');
                     options = options || {};
                     var isDuplex = stream instanceof Duplex;
                     this.objectMode = !!options.objectMode;
@@ -17373,13 +17373,13 @@ require = function () {
                     this.encoding = null;
                     if (options.encoding) {
                         if (!StringDecoder)
-                            StringDecoder = require('string_decoder/').StringDecoder;
+                            StringDecoder = _dereq_('string_decoder/').StringDecoder;
                         this.decoder = new StringDecoder(options.encoding);
                         this.encoding = options.encoding;
                     }
                 }
                 function Readable(options) {
-                    Duplex = Duplex || require('./_stream_duplex');
+                    Duplex = Duplex || _dereq_('./_stream_duplex');
                     if (!(this instanceof Readable))
                         return new Readable(options);
                     this._readableState = new ReadableState(options, this);
@@ -17502,7 +17502,7 @@ require = function () {
                 };
                 Readable.prototype.setEncoding = function (enc) {
                     if (!StringDecoder)
-                        StringDecoder = require('string_decoder/').StringDecoder;
+                        StringDecoder = _dereq_('string_decoder/').StringDecoder;
                     this._readableState.decoder = new StringDecoder(enc);
                     this._readableState.encoding = enc;
                     return this;
@@ -18042,7 +18042,7 @@ require = function () {
                     }
                     return -1;
                 }
-            }.call(this, require('_process'), typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {}));
+            }.call(this, _dereq_('_process'), typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {}));
         },
         {
             './_stream_duplex': 131,
@@ -18061,12 +18061,12 @@ require = function () {
         }
     ],
     134: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             module.exports = Transform;
-            var Duplex = require('./_stream_duplex');
-            var util = require('core-util-is');
-            util.inherits = require('inherits');
+            var Duplex = _dereq_('./_stream_duplex');
+            var util = _dereq_('core-util-is');
+            util.inherits = _dereq_('inherits');
             util.inherits(Transform, Duplex);
             function afterTransform(er, data) {
                 var ts = this._transformState;
@@ -18171,10 +18171,10 @@ require = function () {
         }
     ],
     135: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             (function (process, global, setImmediate) {
                 'use strict';
-                var pna = require('process-nextick-args');
+                var pna = _dereq_('process-nextick-args');
                 module.exports = Writable;
                 function WriteReq(chunk, encoding, cb) {
                     this.chunk = chunk;
@@ -18196,11 +18196,11 @@ require = function () {
                 ].indexOf(process.version.slice(0, 5)) > -1 ? setImmediate : pna.nextTick;
                 var Duplex;
                 Writable.WritableState = WritableState;
-                var util = require('core-util-is');
-                util.inherits = require('inherits');
-                var internalUtil = { deprecate: require('util-deprecate') };
-                var Stream = require('./internal/streams/stream');
-                var Buffer = require('safe-buffer').Buffer;
+                var util = _dereq_('core-util-is');
+                util.inherits = _dereq_('inherits');
+                var internalUtil = { deprecate: _dereq_('util-deprecate') };
+                var Stream = _dereq_('./internal/streams/stream');
+                var Buffer = _dereq_('safe-buffer').Buffer;
                 var OurUint8Array = global.Uint8Array || function () {
                 };
                 function _uint8ArrayToBuffer(chunk) {
@@ -18209,12 +18209,12 @@ require = function () {
                 function _isUint8Array(obj) {
                     return Buffer.isBuffer(obj) || obj instanceof OurUint8Array;
                 }
-                var destroyImpl = require('./internal/streams/destroy');
+                var destroyImpl = _dereq_('./internal/streams/destroy');
                 util.inherits(Writable, Stream);
                 function nop() {
                 }
                 function WritableState(options, stream) {
-                    Duplex = Duplex || require('./_stream_duplex');
+                    Duplex = Duplex || _dereq_('./_stream_duplex');
                     options = options || {};
                     var isDuplex = stream instanceof Duplex;
                     this.objectMode = !!options.objectMode;
@@ -18294,7 +18294,7 @@ require = function () {
                     };
                 }
                 function Writable(options) {
-                    Duplex = Duplex || require('./_stream_duplex');
+                    Duplex = Duplex || _dereq_('./_stream_duplex');
                     if (!realHasInstance.call(Writable, this) && !(this instanceof Duplex)) {
                         return new Writable(options);
                     }
@@ -18655,7 +18655,7 @@ require = function () {
                     this.end();
                     cb(err);
                 };
-            }.call(this, require('_process'), typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {}, require('timers').setImmediate));
+            }.call(this, _dereq_('_process'), typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {}, _dereq_('timers').setImmediate));
         },
         {
             './_stream_duplex': 131,
@@ -18671,15 +18671,15 @@ require = function () {
         }
     ],
     136: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             function _classCallCheck(instance, Constructor) {
                 if (!(instance instanceof Constructor)) {
                     throw new TypeError('Cannot call a class as a function');
                 }
             }
-            var Buffer = require('safe-buffer').Buffer;
-            var util = require('util');
+            var Buffer = _dereq_('safe-buffer').Buffer;
+            var util = _dereq_('util');
             function copyBuffer(src, target, offset) {
                 src.copy(target, offset);
             }
@@ -18767,9 +18767,9 @@ require = function () {
         }
     ],
     137: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var pna = require('process-nextick-args');
+            var pna = _dereq_('process-nextick-args');
             function destroy(err, cb) {
                 var _this = this;
                 var readableDestroyed = this._readableState && this._readableState.destroyed;
@@ -18826,15 +18826,15 @@ require = function () {
         { 'process-nextick-args': 120 }
     ],
     138: [
-        function (require, module, exports) {
-            module.exports = require('events').EventEmitter;
+        function (_dereq_, module, exports) {
+            module.exports = _dereq_('events').EventEmitter;
         },
         { 'events': 85 }
     ],
     139: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var Buffer = require('safe-buffer').Buffer;
+            var Buffer = _dereq_('safe-buffer').Buffer;
             var isEncoding = Buffer.isEncoding || function (encoding) {
                 encoding = '' + encoding;
                 switch (encoding && encoding.toLowerCase()) {
@@ -19092,20 +19092,20 @@ require = function () {
         { 'safe-buffer': 145 }
     ],
     140: [
-        function (require, module, exports) {
-            module.exports = require('./readable').PassThrough;
+        function (_dereq_, module, exports) {
+            module.exports = _dereq_('./readable').PassThrough;
         },
         { './readable': 141 }
     ],
     141: [
-        function (require, module, exports) {
-            exports = module.exports = require('./lib/_stream_readable.js');
+        function (_dereq_, module, exports) {
+            exports = module.exports = _dereq_('./lib/_stream_readable.js');
             exports.Stream = exports;
             exports.Readable = exports;
-            exports.Writable = require('./lib/_stream_writable.js');
-            exports.Duplex = require('./lib/_stream_duplex.js');
-            exports.Transform = require('./lib/_stream_transform.js');
-            exports.PassThrough = require('./lib/_stream_passthrough.js');
+            exports.Writable = _dereq_('./lib/_stream_writable.js');
+            exports.Duplex = _dereq_('./lib/_stream_duplex.js');
+            exports.Transform = _dereq_('./lib/_stream_transform.js');
+            exports.PassThrough = _dereq_('./lib/_stream_passthrough.js');
         },
         {
             './lib/_stream_duplex.js': 131,
@@ -19116,23 +19116,23 @@ require = function () {
         }
     ],
     142: [
-        function (require, module, exports) {
-            module.exports = require('./readable').Transform;
+        function (_dereq_, module, exports) {
+            module.exports = _dereq_('./readable').Transform;
         },
         { './readable': 141 }
     ],
     143: [
-        function (require, module, exports) {
-            module.exports = require('./lib/_stream_writable.js');
+        function (_dereq_, module, exports) {
+            module.exports = _dereq_('./lib/_stream_writable.js');
         },
         { './lib/_stream_writable.js': 135 }
     ],
     144: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
-            var Buffer = require('buffer').Buffer;
-            var inherits = require('inherits');
-            var HashBase = require('hash-base');
+            var Buffer = _dereq_('buffer').Buffer;
+            var inherits = _dereq_('inherits');
+            var HashBase = _dereq_('hash-base');
             var ARRAY16 = new Array(16);
             var zl = [
                 0,
@@ -19582,8 +19582,8 @@ require = function () {
         }
     ],
     145: [
-        function (require, module, exports) {
-            var buffer = require('buffer');
+        function (_dereq_, module, exports) {
+            var buffer = _dereq_('buffer');
             var Buffer = buffer.Buffer;
             function copyProps(src, dst) {
                 for (var key in src) {
@@ -19638,8 +19638,8 @@ require = function () {
         { 'buffer': 50 }
     ],
     146: [
-        function (require, module, exports) {
-            var Buffer = require('safe-buffer').Buffer;
+        function (_dereq_, module, exports) {
+            var Buffer = _dereq_('safe-buffer').Buffer;
             function Hash(blockSize, finalSize) {
                 this._block = Buffer.alloc(blockSize);
                 this._finalSize = finalSize;
@@ -19699,7 +19699,7 @@ require = function () {
         { 'safe-buffer': 145 }
     ],
     147: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             var exports = module.exports = function SHA(algorithm) {
                 algorithm = algorithm.toLowerCase();
                 var Algorithm = exports[algorithm];
@@ -19707,12 +19707,12 @@ require = function () {
                     throw new Error(algorithm + ' is not supported (we accept pull requests)');
                 return new Algorithm();
             };
-            exports.sha = require('./sha');
-            exports.sha1 = require('./sha1');
-            exports.sha224 = require('./sha224');
-            exports.sha256 = require('./sha256');
-            exports.sha384 = require('./sha384');
-            exports.sha512 = require('./sha512');
+            exports.sha = _dereq_('./sha');
+            exports.sha1 = _dereq_('./sha1');
+            exports.sha224 = _dereq_('./sha224');
+            exports.sha256 = _dereq_('./sha256');
+            exports.sha384 = _dereq_('./sha384');
+            exports.sha512 = _dereq_('./sha512');
         },
         {
             './sha': 148,
@@ -19724,10 +19724,10 @@ require = function () {
         }
     ],
     148: [
-        function (require, module, exports) {
-            var inherits = require('inherits');
-            var Hash = require('./hash');
-            var Buffer = require('safe-buffer').Buffer;
+        function (_dereq_, module, exports) {
+            var inherits = _dereq_('inherits');
+            var Hash = _dereq_('./hash');
+            var Buffer = _dereq_('safe-buffer').Buffer;
             var K = [
                 1518500249,
                 1859775393,
@@ -19806,10 +19806,10 @@ require = function () {
         }
     ],
     149: [
-        function (require, module, exports) {
-            var inherits = require('inherits');
-            var Hash = require('./hash');
-            var Buffer = require('safe-buffer').Buffer;
+        function (_dereq_, module, exports) {
+            var inherits = _dereq_('inherits');
+            var Hash = _dereq_('./hash');
+            var Buffer = _dereq_('safe-buffer').Buffer;
             var K = [
                 1518500249,
                 1859775393,
@@ -19891,11 +19891,11 @@ require = function () {
         }
     ],
     150: [
-        function (require, module, exports) {
-            var inherits = require('inherits');
-            var Sha256 = require('./sha256');
-            var Hash = require('./hash');
-            var Buffer = require('safe-buffer').Buffer;
+        function (_dereq_, module, exports) {
+            var inherits = _dereq_('inherits');
+            var Sha256 = _dereq_('./sha256');
+            var Hash = _dereq_('./hash');
+            var Buffer = _dereq_('safe-buffer').Buffer;
             var W = new Array(64);
             function Sha224() {
                 this.init();
@@ -19935,10 +19935,10 @@ require = function () {
         }
     ],
     151: [
-        function (require, module, exports) {
-            var inherits = require('inherits');
-            var Hash = require('./hash');
-            var Buffer = require('safe-buffer').Buffer;
+        function (_dereq_, module, exports) {
+            var inherits = _dereq_('inherits');
+            var Hash = _dereq_('./hash');
+            var Buffer = _dereq_('safe-buffer').Buffer;
             var K = [
                 1116352408,
                 1899447441,
@@ -20097,11 +20097,11 @@ require = function () {
         }
     ],
     152: [
-        function (require, module, exports) {
-            var inherits = require('inherits');
-            var SHA512 = require('./sha512');
-            var Hash = require('./hash');
-            var Buffer = require('safe-buffer').Buffer;
+        function (_dereq_, module, exports) {
+            var inherits = _dereq_('inherits');
+            var SHA512 = _dereq_('./sha512');
+            var Hash = _dereq_('./hash');
+            var Buffer = _dereq_('safe-buffer').Buffer;
             var W = new Array(160);
             function Sha384() {
                 this.init();
@@ -20152,10 +20152,10 @@ require = function () {
         }
     ],
     153: [
-        function (require, module, exports) {
-            var inherits = require('inherits');
-            var Hash = require('./hash');
-            var Buffer = require('safe-buffer').Buffer;
+        function (_dereq_, module, exports) {
+            var inherits = _dereq_('inherits');
+            var Hash = _dereq_('./hash');
+            var Buffer = _dereq_('safe-buffer').Buffer;
             var K = [
                 1116352408,
                 3609767458,
@@ -20497,10 +20497,10 @@ require = function () {
         }
     ],
     154: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const type_1 = require('./type');
+            const type_1 = _dereq_('./type');
             exports.assign = template((key, target, source) => target[key] = source[key]);
             exports.clone = template((key, target, source) => {
                 switch (type_1.type(source[key])) {
@@ -20551,11 +20551,11 @@ require = function () {
         { './type': 233 }
     ],
     155: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const assign_1 = require('./assign');
-            const equal_1 = require('./equal');
+            const assign_1 = _dereq_('./assign');
+            const equal_1 = _dereq_('./equal');
             class Cache {
                 constructor(size, callback = () => undefined, opts = {}) {
                     this.size = size;
@@ -20718,14 +20718,14 @@ require = function () {
         }
     ],
     156: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const promise_1 = require('./promise');
-            const future_1 = require('./future');
-            const exception_1 = require('./exception');
-            const maybe_1 = require('./monad/maybe');
-            const either_1 = require('./monad/either');
+            const promise_1 = _dereq_('./promise');
+            const future_1 = _dereq_('./future');
+            const exception_1 = _dereq_('./exception');
+            const maybe_1 = _dereq_('./monad/maybe');
+            const either_1 = _dereq_('./monad/either');
             class Cancellation extends promise_1.AtomicPromise {
                 constructor(cancelees = []) {
                     super(res => resolve = res);
@@ -20796,10 +20796,10 @@ require = function () {
         }
     ],
     157: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const exception_1 = require('./exception');
+            const exception_1 = _dereq_('./exception');
             let queue = [];
             let register = new WeakSet();
             function tick(cb, dedup = false) {
@@ -20842,11 +20842,11 @@ require = function () {
         { './exception': 164 }
     ],
     158: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const promise_1 = require('./promise');
-            var clock_tick_1 = require('./clock.tick');
+            const promise_1 = _dereq_('./promise');
+            var clock_tick_1 = _dereq_('./clock.tick');
             exports.tick = clock_tick_1.tick;
             exports.clock = Promise.resolve();
             function wait(ms) {
@@ -20860,7 +20860,7 @@ require = function () {
         }
     ],
     159: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             function compose(target, ...sources) {
@@ -20875,7 +20875,7 @@ require = function () {
         {}
     ],
     160: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             function concat(target, source) {
@@ -20887,7 +20887,7 @@ require = function () {
         {}
     ],
     161: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.curry = f => f.length === 0 ? f : apply(f, []);
@@ -20901,7 +20901,7 @@ require = function () {
         {}
     ],
     162: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             function __export(m) {
                 for (var p in m)
@@ -20909,12 +20909,12 @@ require = function () {
                         exports[p] = m[p];
             }
             Object.defineProperty(exports, '__esModule', { value: true });
-            __export(require('./monad/either'));
+            __export(_dereq_('./monad/either'));
         },
         { './monad/either': 171 }
     ],
     163: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             function findIndex(a1, as) {
@@ -20931,7 +20931,7 @@ require = function () {
         {}
     ],
     164: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             function causeAsyncException(reason) {
@@ -20949,10 +20949,10 @@ require = function () {
         {}
     ],
     165: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const curry_1 = require('./curry');
+            const curry_1 = _dereq_('./curry');
             function flip(f) {
                 return curry_1.curry((b, a) => f.length > 1 ? f(a, b) : f(a)(b));
             }
@@ -20961,10 +20961,10 @@ require = function () {
         { './curry': 161 }
     ],
     166: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const promise_1 = require('./promise');
+            const promise_1 = _dereq_('./promise');
             class Future extends Promise {
                 constructor() {
                     let state = true;
@@ -21005,10 +21005,10 @@ require = function () {
         { './promise': 227 }
     ],
     167: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const concat_1 = require('./concat');
+            const concat_1 = _dereq_('./concat');
             class HNil {
                 constructor() {
                     void this.NIL;
@@ -21060,7 +21060,7 @@ require = function () {
         { './concat': 160 }
     ],
     168: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             function __export(m) {
                 for (var p in m)
@@ -21068,16 +21068,16 @@ require = function () {
                         exports[p] = m[p];
             }
             Object.defineProperty(exports, '__esModule', { value: true });
-            __export(require('./monad/maybe'));
+            __export(_dereq_('./monad/maybe'));
         },
         { './monad/maybe': 175 }
     ],
     169: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const functor_1 = require('./functor');
-            const curry_1 = require('../curry');
+            const functor_1 = _dereq_('./functor');
+            const curry_1 = _dereq_('../curry');
             class Applicative extends functor_1.Functor {
             }
             exports.Applicative = Applicative;
@@ -21094,11 +21094,11 @@ require = function () {
         }
     ],
     170: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const monad_1 = require('./monad');
-            const promise_1 = require('../promise');
+            const monad_1 = _dereq_('./monad');
+            const promise_1 = _dereq_('../promise');
             class Either extends monad_1.Monad {
                 constructor(thunk) {
                     super(thunk);
@@ -21203,10 +21203,10 @@ require = function () {
         }
     ],
     171: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const Monad = require('./either.impl');
+            const Monad = _dereq_('./either.impl');
             class Either extends Monad.Either {
                 constructor() {
                     super(() => undefined);
@@ -21225,10 +21225,10 @@ require = function () {
         { './either.impl': 170 }
     ],
     172: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const lazy_1 = require('./lazy');
+            const lazy_1 = _dereq_('./lazy');
             class Functor extends lazy_1.Lazy {
             }
             exports.Functor = Functor;
@@ -21242,7 +21242,7 @@ require = function () {
         { './lazy': 173 }
     ],
     173: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             class Lazy {
@@ -21258,11 +21258,11 @@ require = function () {
         {}
     ],
     174: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const monadplus_1 = require('./monadplus');
-            const promise_1 = require('../promise');
+            const monadplus_1 = _dereq_('./monadplus');
+            const promise_1 = _dereq_('../promise');
             class Maybe extends monadplus_1.MonadPlus {
                 constructor(thunk) {
                     super(thunk);
@@ -21376,10 +21376,10 @@ require = function () {
         }
     ],
     175: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const Monad = require('./maybe.impl');
+            const Monad = _dereq_('./maybe.impl');
             class Maybe extends Monad.Maybe {
                 constructor() {
                     super(() => undefined);
@@ -21395,10 +21395,10 @@ require = function () {
         { './maybe.impl': 174 }
     ],
     176: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const applicative_1 = require('./applicative');
+            const applicative_1 = _dereq_('./applicative');
             class Monad extends applicative_1.Applicative {
             }
             exports.Monad = Monad;
@@ -21412,10 +21412,10 @@ require = function () {
         { './applicative': 169 }
     ],
     177: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const monad_1 = require('./monad');
+            const monad_1 = _dereq_('./monad');
             class MonadPlus extends monad_1.Monad {
             }
             exports.MonadPlus = MonadPlus;
@@ -21425,57 +21425,57 @@ require = function () {
         { './monad': 176 }
     ],
     178: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('./sequence/core');
+            const core_1 = _dereq_('./sequence/core');
             exports.Sequence = core_1.Sequence;
-            const resume_1 = require('./sequence/member/static/resume');
-            const from_1 = require('./sequence/member/static/from');
-            const cycle_1 = require('./sequence/member/static/cycle');
-            const random_1 = require('./sequence/member/static/random');
-            const concat_1 = require('./sequence/member/static/concat');
-            const zip_1 = require('./sequence/member/static/zip');
-            const difference_1 = require('./sequence/member/static/difference');
-            const union_1 = require('./sequence/member/static/union');
-            const intersect_1 = require('./sequence/member/static/intersect');
-            const pure_1 = require('./sequence/member/static/pure');
-            const return_1 = require('./sequence/member/static/return');
-            const sequence_1 = require('./sequence/member/static/sequence');
-            const mempty_1 = require('./sequence/member/static/mempty');
-            const mconcat_1 = require('./sequence/member/static/mconcat');
-            const mappend_1 = require('./sequence/member/static/mappend');
-            const mzero_1 = require('./sequence/member/static/mzero');
-            const mplus_1 = require('./sequence/member/static/mplus');
-            const extract_1 = require('./sequence/member/instance/extract');
-            const iterate_1 = require('./sequence/member/instance/iterate');
-            const memoize_1 = require('./sequence/member/instance/memoize');
-            const reduce_1 = require('./sequence/member/instance/reduce');
-            const take_1 = require('./sequence/member/instance/take');
-            const drop_1 = require('./sequence/member/instance/drop');
-            const takeWhile_1 = require('./sequence/member/instance/takeWhile');
-            const dropWhile_1 = require('./sequence/member/instance/dropWhile');
-            const takeUntil_1 = require('./sequence/member/instance/takeUntil');
-            const dropUntil_1 = require('./sequence/member/instance/dropUntil');
-            const sort_1 = require('./sequence/member/instance/sort');
-            const unique_1 = require('./sequence/member/instance/unique');
-            const fmap_1 = require('./sequence/member/instance/fmap');
-            const ap_1 = require('./sequence/member/instance/ap');
-            const bind_1 = require('./sequence/member/instance/bind');
-            const join_1 = require('./sequence/member/instance/join');
-            const mapM_1 = require('./sequence/member/instance/mapM');
-            const filterM_1 = require('./sequence/member/instance/filterM');
-            const map_1 = require('./sequence/member/instance/map');
-            const filter_1 = require('./sequence/member/instance/filter');
-            const scanl_1 = require('./sequence/member/instance/scanl');
-            const foldr_1 = require('./sequence/member/instance/foldr');
-            const group_1 = require('./sequence/member/instance/group');
-            const inits_1 = require('./sequence/member/instance/inits');
-            const tails_1 = require('./sequence/member/instance/tails');
-            const segs_1 = require('./sequence/member/instance/segs');
-            const subsequences_1 = require('./sequence/member/instance/subsequences');
-            const permutations_1 = require('./sequence/member/instance/permutations');
-            const compose_1 = require('../compose');
+            const resume_1 = _dereq_('./sequence/member/static/resume');
+            const from_1 = _dereq_('./sequence/member/static/from');
+            const cycle_1 = _dereq_('./sequence/member/static/cycle');
+            const random_1 = _dereq_('./sequence/member/static/random');
+            const concat_1 = _dereq_('./sequence/member/static/concat');
+            const zip_1 = _dereq_('./sequence/member/static/zip');
+            const difference_1 = _dereq_('./sequence/member/static/difference');
+            const union_1 = _dereq_('./sequence/member/static/union');
+            const intersect_1 = _dereq_('./sequence/member/static/intersect');
+            const pure_1 = _dereq_('./sequence/member/static/pure');
+            const return_1 = _dereq_('./sequence/member/static/return');
+            const sequence_1 = _dereq_('./sequence/member/static/sequence');
+            const mempty_1 = _dereq_('./sequence/member/static/mempty');
+            const mconcat_1 = _dereq_('./sequence/member/static/mconcat');
+            const mappend_1 = _dereq_('./sequence/member/static/mappend');
+            const mzero_1 = _dereq_('./sequence/member/static/mzero');
+            const mplus_1 = _dereq_('./sequence/member/static/mplus');
+            const extract_1 = _dereq_('./sequence/member/instance/extract');
+            const iterate_1 = _dereq_('./sequence/member/instance/iterate');
+            const memoize_1 = _dereq_('./sequence/member/instance/memoize');
+            const reduce_1 = _dereq_('./sequence/member/instance/reduce');
+            const take_1 = _dereq_('./sequence/member/instance/take');
+            const drop_1 = _dereq_('./sequence/member/instance/drop');
+            const takeWhile_1 = _dereq_('./sequence/member/instance/takeWhile');
+            const dropWhile_1 = _dereq_('./sequence/member/instance/dropWhile');
+            const takeUntil_1 = _dereq_('./sequence/member/instance/takeUntil');
+            const dropUntil_1 = _dereq_('./sequence/member/instance/dropUntil');
+            const sort_1 = _dereq_('./sequence/member/instance/sort');
+            const unique_1 = _dereq_('./sequence/member/instance/unique');
+            const fmap_1 = _dereq_('./sequence/member/instance/fmap');
+            const ap_1 = _dereq_('./sequence/member/instance/ap');
+            const bind_1 = _dereq_('./sequence/member/instance/bind');
+            const join_1 = _dereq_('./sequence/member/instance/join');
+            const mapM_1 = _dereq_('./sequence/member/instance/mapM');
+            const filterM_1 = _dereq_('./sequence/member/instance/filterM');
+            const map_1 = _dereq_('./sequence/member/instance/map');
+            const filter_1 = _dereq_('./sequence/member/instance/filter');
+            const scanl_1 = _dereq_('./sequence/member/instance/scanl');
+            const foldr_1 = _dereq_('./sequence/member/instance/foldr');
+            const group_1 = _dereq_('./sequence/member/instance/group');
+            const inits_1 = _dereq_('./sequence/member/instance/inits');
+            const tails_1 = _dereq_('./sequence/member/instance/tails');
+            const segs_1 = _dereq_('./sequence/member/instance/segs');
+            const subsequences_1 = _dereq_('./sequence/member/instance/subsequences');
+            const permutations_1 = _dereq_('./sequence/member/instance/permutations');
+            const compose_1 = _dereq_('../compose');
             void compose_1.compose(core_1.Sequence, resume_1.default, from_1.default, cycle_1.default, random_1.default, concat_1.default, zip_1.default, difference_1.default, union_1.default, intersect_1.default, pure_1.default, return_1.default, sequence_1.default, mempty_1.default, mconcat_1.default, mappend_1.default, mzero_1.default, mplus_1.default, extract_1.default, iterate_1.default, memoize_1.default, reduce_1.default, take_1.default, drop_1.default, takeWhile_1.default, dropWhile_1.default, takeUntil_1.default, dropUntil_1.default, sort_1.default, unique_1.default, fmap_1.default, ap_1.default, bind_1.default, join_1.default, mapM_1.default, filterM_1.default, map_1.default, filter_1.default, scanl_1.default, foldr_1.default, group_1.default, inits_1.default, tails_1.default, segs_1.default, subsequences_1.default, permutations_1.default);
         },
         {
@@ -21529,10 +21529,10 @@ require = function () {
         }
     ],
     179: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const monadplus_1 = require('../monadplus');
+            const monadplus_1 = _dereq_('../monadplus');
             class Sequence extends monadplus_1.MonadPlus {
                 constructor(cons) {
                     super(throwCallError);
@@ -21632,10 +21632,10 @@ require = function () {
         { '../monadplus': 177 }
     ],
     180: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 ap(a) {
                     return core_1.Sequence.ap(this, a);
@@ -21646,10 +21646,10 @@ require = function () {
         { '../../core': 179 }
     ],
     181: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 bind(f) {
                     return core_1.Sequence.concat(this.fmap(f));
@@ -21660,10 +21660,10 @@ require = function () {
         { '../../core': 179 }
     ],
     182: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 drop(n) {
                     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), (thunk, recur) => core_1.Sequence.Thunk.index(thunk) < n ? recur() : cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
@@ -21674,10 +21674,10 @@ require = function () {
         { '../../core': 179 }
     ],
     183: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 dropUntil(f) {
                     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), (thunk, recur) => f(core_1.Sequence.Thunk.value(thunk)) ? recur() : cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
@@ -21688,10 +21688,10 @@ require = function () {
         { '../../core': 179 }
     ],
     184: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 dropWhile(f) {
                     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), (thunk, recur) => f(core_1.Sequence.Thunk.value(thunk)) ? recur() : cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
@@ -21702,11 +21702,11 @@ require = function () {
         { '../../core': 179 }
     ],
     185: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
-            const concat_1 = require('../../../../concat');
+            const core_1 = _dereq_('../../core');
+            const concat_1 = _dereq_('../../../../concat');
             class default_1 extends core_1.Sequence {
                 extract() {
                     const acc = [];
@@ -21728,10 +21728,10 @@ require = function () {
         }
     ],
     186: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 filter(f) {
                     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), (thunk, recur) => f(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.index(thunk)) ? cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk)) : recur()));
@@ -21742,11 +21742,11 @@ require = function () {
         { '../../core': 179 }
     ],
     187: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
-            const concat_1 = require('../../../../concat');
+            const core_1 = _dereq_('../../core');
+            const concat_1 = _dereq_('../../../../concat');
             class default_1 extends core_1.Sequence {
                 filterM(f) {
                     return core_1.Sequence.from([0]).bind(() => {
@@ -21770,10 +21770,10 @@ require = function () {
         }
     ],
     188: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 fmap(f) {
                     return new core_1.Sequence((iter = () => this.iterate()) => core_1.Sequence.Iterator.when(iter(), () => core_1.Sequence.Data.cons(), thunk => core_1.Sequence.Data.cons(f(core_1.Sequence.Thunk.value(thunk)), core_1.Sequence.Thunk.iterator(thunk))));
@@ -21784,10 +21784,10 @@ require = function () {
         { '../../core': 179 }
     ],
     189: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 foldr(f, z) {
                     return new core_1.Sequence((iter = () => this.reduce().iterate()) => core_1.Sequence.Iterator.when(iter(), () => core_1.Sequence.Data.cons(z), thunk => core_1.Sequence.Data.cons(f(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.resume(core_1.Sequence.Thunk.iterator(thunk)).foldr(f, z))))).bind(s => s);
@@ -21798,11 +21798,11 @@ require = function () {
         { '../../core': 179 }
     ],
     190: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
-            const concat_1 = require('../../../../concat');
+            const core_1 = _dereq_('../../core');
+            const concat_1 = _dereq_('../../../../concat');
             class default_1 extends core_1.Sequence {
                 group(f) {
                     return new core_1.Sequence(([iter, acc] = [
@@ -21822,10 +21822,10 @@ require = function () {
         }
     ],
     191: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 inits() {
                     return core_1.Sequence.mappend(core_1.Sequence.from([[]]), this.scanl((b, a) => [
@@ -21839,10 +21839,10 @@ require = function () {
         { '../../core': 179 }
     ],
     192: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 iterate() {
                     return this.iterate_();
@@ -21878,10 +21878,10 @@ require = function () {
         { '../../core': 179 }
     ],
     193: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 join() {
                     return core_1.Sequence.concat(this);
@@ -21892,10 +21892,10 @@ require = function () {
         { '../../core': 179 }
     ],
     194: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 map(f) {
                     return new core_1.Sequence((iter = () => this.iterate()) => core_1.Sequence.Iterator.when(iter(), () => core_1.Sequence.Data.cons(), thunk => core_1.Sequence.Data.cons(f(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.index(thunk)), core_1.Sequence.Thunk.iterator(thunk))));
@@ -21906,11 +21906,11 @@ require = function () {
         { '../../core': 179 }
     ],
     195: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
-            const concat_1 = require('../../../../concat');
+            const core_1 = _dereq_('../../core');
+            const concat_1 = _dereq_('../../../../concat');
             class default_1 extends core_1.Sequence {
                 mapM(f) {
                     return core_1.Sequence.from([0]).bind(() => {
@@ -21934,10 +21934,10 @@ require = function () {
         }
     ],
     196: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             const memories = new WeakMap();
             class default_1 extends core_1.Sequence {
                 memoize() {
@@ -21955,10 +21955,10 @@ require = function () {
         { '../../core': 179 }
     ],
     197: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 permutations() {
                     return core_1.Sequence.from([0]).bind(() => {
@@ -21995,10 +21995,10 @@ require = function () {
         { '../../core': 179 }
     ],
     198: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 reduce() {
                     return new core_1.Sequence(([i, memo] = [
@@ -22015,10 +22015,10 @@ require = function () {
         { '../../core': 179 }
     ],
     199: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 scanl(f, z) {
                     return new core_1.Sequence(([prev, iter, i] = [
@@ -22037,11 +22037,11 @@ require = function () {
         { '../../core': 179 }
     ],
     200: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
-            const concat_1 = require('../../../../concat');
+            const core_1 = _dereq_('../../core');
+            const concat_1 = _dereq_('../../../../concat');
             class default_1 extends core_1.Sequence {
                 segs() {
                     return core_1.Sequence.mappend(this.foldr((a, bs) => bs.take(1).bind(b => core_1.Sequence.mappend(core_1.Sequence.from([core_1.Sequence.mappend(core_1.Sequence.from([[a]]), core_1.Sequence.from(b).map(c => concat_1.concat([a], c)))]), bs)), core_1.Sequence.from([core_1.Sequence.from([])])).bind(a => a), core_1.Sequence.from([[]]));
@@ -22055,10 +22055,10 @@ require = function () {
         }
     ],
     201: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 sort(cmp) {
                     return core_1.Sequence.from(this.extract().sort(cmp));
@@ -22069,11 +22069,11 @@ require = function () {
         { '../../core': 179 }
     ],
     202: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
-            const concat_1 = require('../../../../concat');
+            const core_1 = _dereq_('../../core');
+            const concat_1 = _dereq_('../../../../concat');
             class default_1 extends core_1.Sequence {
                 subsequences() {
                     return core_1.Sequence.mappend(core_1.Sequence.from([[]]), core_1.Sequence.from([0]).bind(() => nonEmptySubsequences(this)));
@@ -22090,10 +22090,10 @@ require = function () {
         }
     ],
     203: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 tails() {
                     return core_1.Sequence.mappend(core_1.Sequence.from(this.extract().map((_, i, as) => as.slice(i))), core_1.Sequence.from([[]]));
@@ -22104,10 +22104,10 @@ require = function () {
         { '../../core': 179 }
     ],
     204: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 take(n) {
                     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(n > 0 ? iter() : core_1.Sequence.Iterator.done(), () => cons(), thunk => core_1.Sequence.Thunk.index(thunk) + 1 < n ? cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk)) : cons(core_1.Sequence.Thunk.value(thunk))));
@@ -22118,10 +22118,10 @@ require = function () {
         { '../../core': 179 }
     ],
     205: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 takeUntil(f) {
                     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), thunk => f(core_1.Sequence.Thunk.value(thunk)) ? cons(core_1.Sequence.Thunk.value(thunk)) : cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
@@ -22132,10 +22132,10 @@ require = function () {
         { '../../core': 179 }
     ],
     206: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 takeWhile(f) {
                     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), thunk => f(core_1.Sequence.Thunk.value(thunk)) ? cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk)) : cons()));
@@ -22146,10 +22146,10 @@ require = function () {
         { '../../core': 179 }
     ],
     207: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 unique() {
                     const memory = new Set();
@@ -22161,10 +22161,10 @@ require = function () {
         { '../../core': 179 }
     ],
     208: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 static concat(as) {
                     return new core_1.Sequence(([ai, bi] = [
@@ -22181,10 +22181,10 @@ require = function () {
         { '../../core': 179 }
     ],
     209: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 static cycle(as) {
                     return new core_1.Sequence(function cycle([iter, i] = [
@@ -22207,10 +22207,10 @@ require = function () {
         { '../../core': 179 }
     ],
     210: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 static difference(a, b, cmp) {
                     return new core_1.Sequence(([ai, bi] = [
@@ -22243,10 +22243,10 @@ require = function () {
         { '../../core': 179 }
     ],
     211: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 static from(as) {
                     return new core_1.Sequence(([iter, i] = [
@@ -22266,10 +22266,10 @@ require = function () {
         { '../../core': 179 }
     ],
     212: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 static intersect(a, b, cmp) {
                     return new core_1.Sequence(([ai, bi] = [
@@ -22293,10 +22293,10 @@ require = function () {
         { '../../core': 179 }
     ],
     213: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 static mappend(l, r) {
                     return core_1.Sequence.mconcat([
@@ -22310,10 +22310,10 @@ require = function () {
         { '../../core': 179 }
     ],
     214: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 static mconcat(as) {
                     return [...as].reduce((a, b) => mconcat(a, b), core_1.Sequence.mempty);
@@ -22336,10 +22336,10 @@ require = function () {
         { '../../core': 179 }
     ],
     215: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
             }
             default_1.mempty = new core_1.Sequence((_, cons) => cons());
@@ -22348,10 +22348,10 @@ require = function () {
         { '../../core': 179 }
     ],
     216: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
             }
             default_1.mplus = core_1.Sequence.mappend;
@@ -22360,10 +22360,10 @@ require = function () {
         { '../../core': 179 }
     ],
     217: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
             }
             default_1.mzero = core_1.Sequence.mempty;
@@ -22372,10 +22372,10 @@ require = function () {
         { '../../core': 179 }
     ],
     218: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 static pure(a) {
                     return new core_1.Sequence((_, cons) => cons(a));
@@ -22386,10 +22386,10 @@ require = function () {
         { '../../core': 179 }
     ],
     219: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 static random(p = () => Math.random()) {
                     return typeof p === 'function' ? core_1.Sequence.from(new core_1.Sequence((_, cons) => cons(p(), _))) : this.random().map(r => p[r * p.length | 0]);
@@ -22400,10 +22400,10 @@ require = function () {
         { '../../core': 179 }
     ],
     220: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 static resume(iterator) {
                     return new core_1.Sequence((iter = iterator, cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), thunk => cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
@@ -22414,10 +22414,10 @@ require = function () {
         { '../../core': 179 }
     ],
     221: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 static Return(a) {
                     return new core_1.Sequence((_, cons) => cons(a));
@@ -22428,10 +22428,10 @@ require = function () {
         { '../../core': 179 }
     ],
     222: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 static sequence(ms) {
                     return ms.reduce((acc, m) => acc.fmap(bs => core_1.Sequence.mappend(bs, m)), core_1.Sequence.Return(core_1.Sequence.from([])));
@@ -22442,10 +22442,10 @@ require = function () {
         { '../../core': 179 }
     ],
     223: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 static union(a, b, cmp) {
                     return new core_1.Sequence(([ai, bi] = [
@@ -22481,10 +22481,10 @@ require = function () {
         { '../../core': 179 }
     ],
     224: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
+            const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
                 static zip(a, b) {
                     return new core_1.Sequence(([ai, bi] = [
@@ -22504,7 +22504,7 @@ require = function () {
         { '../../core': 179 }
     ],
     225: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             function noop() {
@@ -22514,13 +22514,13 @@ require = function () {
         {}
     ],
     226: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const assign_1 = require('./assign');
-            const concat_1 = require('./concat');
-            const equal_1 = require('./equal');
-            const exception_1 = require('./exception');
+            const assign_1 = _dereq_('./assign');
+            const concat_1 = _dereq_('./concat');
+            const equal_1 = _dereq_('./equal');
+            const exception_1 = _dereq_('./exception');
             var RegisterItemType;
             (function (RegisterItemType) {
                 RegisterItemType.monitor = 'monitor';
@@ -22737,12 +22737,12 @@ require = function () {
         }
     ],
     227: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             var _a, _b;
             'use strict';
-            const concat_1 = require('./concat');
+            const concat_1 = _dereq_('./concat');
             var State;
             (function (State) {
                 State[State['resolved'] = 0] = 'resolved';
@@ -22827,7 +22827,7 @@ require = function () {
                             },
                             reason => {
                                 if (!onrejected)
-                                    return void resolve(this);
+                                    return void reject(reason);
                                 try {
                                     void resolve(onrejected(reason));
                                 } catch (reason) {
@@ -22854,7 +22854,7 @@ require = function () {
         { './concat': 160 }
     ],
     228: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             function __export(m) {
                 for (var p in m)
@@ -22862,12 +22862,12 @@ require = function () {
                         exports[p] = m[p];
             }
             Object.defineProperty(exports, '__esModule', { value: true });
-            __export(require('./monad/sequence'));
+            __export(_dereq_('./monad/sequence'));
         },
         { './monad/sequence': 178 }
     ],
     229: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const zeros = '0'.repeat(15);
@@ -22888,27 +22888,27 @@ require = function () {
         {}
     ],
     230: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const promise_1 = require('./promise');
-            const future_1 = require('./future');
-            const observation_1 = require('./observation');
-            const assign_1 = require('./assign');
-            const clock_1 = require('./clock');
-            const sqid_1 = require('./sqid');
-            const noop_1 = require('./noop');
-            const exception_1 = require('./exception');
+            const promise_1 = _dereq_('./promise');
+            const future_1 = _dereq_('./future');
+            const observation_1 = _dereq_('./observation');
+            const assign_1 = _dereq_('./assign');
+            const clock_1 = _dereq_('./clock');
+            const sqid_1 = _dereq_('./sqid');
+            const noop_1 = _dereq_('./noop');
+            const exception_1 = _dereq_('./exception');
             class Supervisor extends promise_1.AtomicPromise {
                 constructor(opts = {}) {
                     super((resolve, reject) => (cb = [
                         resolve,
                         reject
-                    ], {
-                        next: () => new promise_1.AtomicPromise(r => void clock_1.tick(() => r({
-                            value: this.state,
+                    ], state = new future_1.AtomicFuture(), {
+                        next: () => new promise_1.AtomicPromise(r => r({
+                            value: state,
                             done: true
-                        })))
+                        }))
                     }));
                     this.state = new future_1.AtomicFuture();
                     this.id = sqid_1.sqid();
@@ -22928,7 +22928,7 @@ require = function () {
                     this.events = this.events_;
                     this.workers = new Map();
                     this.alive = true;
-                    this.available_ = true;
+                    this.available = true;
                     this.scheduler = () => void (void 0, this.settings.scheduler)(this.deliver);
                     this.messages = [];
                     this.deliver = () => {
@@ -22963,7 +22963,9 @@ require = function () {
                         }
                     };
                     var cb;
+                    var state;
                     void this.state.then(...cb);
+                    void state.bind(this.state);
                     void assign_1.extend(this.settings, opts);
                     this.name = this.settings.name;
                     if (this.constructor === Supervisor)
@@ -22980,7 +22982,7 @@ require = function () {
                     return [...this.instances].reduce((acc, sv) => acc + sv.workers.size, 0);
                 }
                 destructor(reason) {
-                    this.available_ = false;
+                    this.available = false;
                     for (const [, worker] of this.workers) {
                         void worker.terminate(reason);
                     }
@@ -22999,9 +23001,6 @@ require = function () {
                     void Object.freeze(this);
                     void this.settings.destructor(reason);
                     void this.state.bind(reason === undefined ? undefined : promise_1.AtomicPromise.reject(reason));
-                }
-                get available() {
-                    return this.available_;
                 }
                 throwErrorIfNotAvailable() {
                     if (!this.available)
@@ -23220,7 +23219,7 @@ require = function () {
         }
     ],
     231: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             function throttle(interval, callback) {
@@ -23269,7 +23268,7 @@ require = function () {
         {}
     ],
     232: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             function tuple(as) {
@@ -23280,7 +23279,7 @@ require = function () {
         {}
     ],
     233: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             function type(target) {
@@ -23298,7 +23297,7 @@ require = function () {
         {}
     ],
     234: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.uncurry = f => xs => f(...xs);
@@ -23306,7 +23305,7 @@ require = function () {
         {}
     ],
     235: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const FORMAT_V4 = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
@@ -23329,16 +23328,16 @@ require = function () {
         {}
     ],
     236: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             module.exports = Stream;
-            var EE = require('events').EventEmitter;
-            var inherits = require('inherits');
+            var EE = _dereq_('events').EventEmitter;
+            var inherits = _dereq_('inherits');
             inherits(Stream, EE);
-            Stream.Readable = require('readable-stream/readable.js');
-            Stream.Writable = require('readable-stream/writable.js');
-            Stream.Duplex = require('readable-stream/duplex.js');
-            Stream.Transform = require('readable-stream/transform.js');
-            Stream.PassThrough = require('readable-stream/passthrough.js');
+            Stream.Readable = _dereq_('readable-stream/readable.js');
+            Stream.Writable = _dereq_('readable-stream/writable.js');
+            Stream.Duplex = _dereq_('readable-stream/duplex.js');
+            Stream.Transform = _dereq_('readable-stream/transform.js');
+            Stream.PassThrough = _dereq_('readable-stream/passthrough.js');
             Stream.Stream = Stream;
             function Stream() {
                 EE.call(this);
@@ -23414,7 +23413,7 @@ require = function () {
         }
     ],
     237: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             arguments[4][139][0].apply(exports, arguments);
         },
         {
@@ -23423,9 +23422,9 @@ require = function () {
         }
     ],
     238: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             (function (setImmediate, clearImmediate) {
-                var nextTick = require('process/browser.js').nextTick;
+                var nextTick = _dereq_('process/browser.js').nextTick;
                 var apply = Function.prototype.apply;
                 var slice = Array.prototype.slice;
                 var immediateIds = {};
@@ -23485,7 +23484,7 @@ require = function () {
                 exports.clearImmediate = typeof clearImmediate === 'function' ? clearImmediate : function (id) {
                     delete immediateIds[id];
                 };
-            }.call(this, require('timers').setImmediate, require('timers').clearImmediate));
+            }.call(this, _dereq_('timers').setImmediate, _dereq_('timers').clearImmediate));
         },
         {
             'process/browser.js': 121,
@@ -23493,24 +23492,24 @@ require = function () {
         }
     ],
     239: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            var builder_1 = require('./src/dom/builder');
+            var builder_1 = _dereq_('./src/dom/builder');
             exports.Shadow = builder_1.Shadow;
             exports.HTML = builder_1.HTML;
             exports.SVG = builder_1.SVG;
             exports.API = builder_1.API;
-            var proxy_1 = require('./src/dom/proxy');
+            var proxy_1 = _dereq_('./src/dom/proxy');
             exports.proxy = proxy_1.proxy;
-            var dom_1 = require('./src/util/dom');
+            var dom_1 = _dereq_('./src/util/dom');
             exports.frag = dom_1.frag;
             exports.shadow = dom_1.shadow;
             exports.html = dom_1.html;
             exports.svg = dom_1.svg;
             exports.text = dom_1.text;
             exports.define = dom_1.define;
-            var listener_1 = require('./src/util/listener');
+            var listener_1 = _dereq_('./src/util/listener');
             exports.listen = listener_1.listen;
             exports.once = listener_1.once;
             exports.delegate = listener_1.delegate;
@@ -23525,19 +23524,19 @@ require = function () {
         }
     ],
     240: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const proxy_1 = require('./proxy');
-            const dom_1 = require('../util/dom');
-            function API(baseFactory) {
-                return new Proxy(() => undefined, handle(baseFactory));
+            const proxy_1 = _dereq_('./proxy');
+            const dom_1 = _dereq_('../util/dom');
+            function API(baseFactory, formatter = el => el) {
+                return new Proxy(() => undefined, handle(baseFactory, formatter));
             }
             exports.API = API;
-            exports.Shadow = new Proxy(() => undefined, handle(dom_1.html, true));
+            exports.Shadow = API(dom_1.html, dom_1.shadow);
             exports.HTML = API(dom_1.html);
             exports.SVG = API(dom_1.svg);
-            function handle(baseFactory, shadowing) {
+            function handle(baseFactory, formatter) {
                 return {
                     apply(obj, _, [prop, ...args]) {
                         return this.get(obj, prop, undefined)(...args);
@@ -23552,7 +23551,8 @@ require = function () {
                             return build(attrs, undefined, children);
                         if (attrs !== undefined && isChildren(attrs))
                             return build(undefined, attrs, factory);
-                        return new proxy_1.El(elem(factory || ((f, tag) => f(tag)), attrs || {}, children), children, shadowing);
+                        const node = formatter(elem(factory || defaultFactory, attrs || {}, children));
+                        return node instanceof Element ? new proxy_1.Elem(node, children) : new proxy_1.Elem(node.host, children, node);
                     };
                     function isChildren(children) {
                         return typeof children !== 'object' || Object.values(children).slice(-1).every(val => typeof val === 'object');
@@ -23561,8 +23561,18 @@ require = function () {
                         const el = factory(baseFactory, tag, attrs, children);
                         if (tag !== el.tagName.toLowerCase())
                             throw new Error(`TypedDOM: Tag name must be "${ tag }", but got "${ el.tagName.toLowerCase() }".`);
-                        void dom_1.define(el, attrs);
+                        if (factory !== defaultFactory) {
+                            for (const [k, v] of Object.entries(attrs)) {
+                                if (typeof v !== 'function')
+                                    continue;
+                                void el.removeEventListener(k, v);
+                            }
+                            void dom_1.define(el, attrs);
+                        }
                         return el;
+                    }
+                    function defaultFactory(factory, tag, attrs) {
+                        return factory(tag, attrs);
                     }
                 }
             }
@@ -23573,11 +23583,11 @@ require = function () {
         }
     ],
     241: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const uuid_1 = require('spica/uuid');
-            const sqid_1 = require('spica/sqid');
+            const uuid_1 = _dereq_('spica/uuid');
+            const sqid_1 = _dereq_('spica/sqid');
             const id = uuid_1.uuid().slice(-7);
             function uid() {
                 return `id-${ id }-${ +sqid_1.sqid() }`;
@@ -23590,11 +23600,11 @@ require = function () {
         }
     ],
     242: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const identity_1 = require('./identity');
-            const dom_1 = require('../util/dom');
+            const identity_1 = _dereq_('./identity');
+            const dom_1 = _dereq_('../util/dom');
             var ElChildrenType;
             (function (ElChildrenType) {
                 ElChildrenType.Void = 'void';
@@ -23610,15 +23620,15 @@ require = function () {
             }
             exports.proxy = proxy;
             const tag = Symbol();
-            class El {
-                constructor(element, children_, shadowing = false) {
+            class Elem {
+                constructor(element, children_, container = element) {
                     this.element = element;
                     this.children_ = children_;
+                    this.container = container;
                     this.id_ = this.element.id.trim();
                     this.type = this.children_ === undefined ? ElChildrenType.Void : typeof this.children_ === 'string' ? ElChildrenType.Text : Array.isArray(this.children_) ? ElChildrenType.Collection : ElChildrenType.Record;
                     void throwErrorIfNotUsable(this);
                     void memory.set(this.element, this);
-                    this.container = shadowing ? dom_1.shadow(this.element) : this.element;
                     switch (this.type) {
                     case ElChildrenType.Void:
                         this.initialChildren = new WeakSet();
@@ -23811,7 +23821,7 @@ require = function () {
                     }));
                 }
             }
-            exports.El = El;
+            exports.Elem = Elem;
             function throwErrorIfNotUsable({element}) {
                 if (!element.parentElement || !memory.has(element.parentElement))
                     return;
@@ -23824,16 +23834,16 @@ require = function () {
         }
     ],
     243: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
+            const shadows = new WeakMap();
             var cache;
             (function (cache) {
                 cache.elem = new Map();
                 cache.text = document.createTextNode('');
                 cache.frag = document.createDocumentFragment();
             }(cache || (cache = {})));
-            const shadows = new WeakMap();
             function frag(children = []) {
                 children = typeof children === 'string' ? [text(children)] : children;
                 const frag = cache.frag.cloneNode();
@@ -23845,7 +23855,7 @@ require = function () {
                 if (children && !isChildren(children))
                     return shadow(el, undefined, children);
                 if (el.shadowRoot || shadows.has(el)) {
-                    return define(opts ? opts.mode === 'open' ? el.shadowRoot || el.attachShadow(opts) : shadows.get(el) || shadows.set(el, el.attachShadow(opts)).get(el) : el.shadowRoot || shadows.get(el) || el.attachShadow({ mode: 'open' }), children);
+                    return define(opts ? opts.mode === 'open' ? el.shadowRoot || el.attachShadow(opts) : shadows.get(el) || shadows.set(el, el.attachShadow(opts)).get(el) : el.shadowRoot || shadows.get(el), children);
                 } else {
                     return define(!opts || opts.mode === 'open' ? el.attachShadow({ mode: 'open' }) : shadows.set(el, el.attachShadow(opts)).get(el), children === undefined ? el.childNodes : children);
                 }
@@ -23925,10 +23935,10 @@ require = function () {
         {}
     ],
     244: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const noop_1 = require('./noop');
+            const noop_1 = _dereq_('./noop');
             exports.currentTargets = new WeakMap();
             function listen(target, a, b, c = false, d = {}) {
                 return typeof b === 'string' ? delegate(target, a, b, c, d) : bind(target, a, b, c);
@@ -23962,7 +23972,7 @@ require = function () {
         { './noop': 245 }
     ],
     245: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             function noop() {
@@ -23973,7 +23983,7 @@ require = function () {
         {}
     ],
     246: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             (function (global) {
                 module.exports = deprecate;
                 function deprecate(fn, msg) {
@@ -24013,7 +24023,7 @@ require = function () {
         {}
     ],
     247: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             module.exports = function isBuffer(arg) {
                 return arg && typeof arg === 'object' && typeof arg.copy === 'function' && typeof arg.fill === 'function' && typeof arg.readUInt8 === 'function';
             };
@@ -24021,7 +24031,7 @@ require = function () {
         {}
     ],
     248: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             (function (process, global) {
                 var formatRegExp = /%[sdj%]/g;
                 exports.format = function (f) {
@@ -24455,7 +24465,7 @@ require = function () {
                     return arg === null || typeof arg === 'boolean' || typeof arg === 'number' || typeof arg === 'string' || typeof arg === 'symbol' || typeof arg === 'undefined';
                 }
                 exports.isPrimitive = isPrimitive;
-                exports.isBuffer = require('./support/isBuffer');
+                exports.isBuffer = _dereq_('./support/isBuffer');
                 function objectToString(o) {
                     return Object.prototype.toString.call(o);
                 }
@@ -24492,7 +24502,7 @@ require = function () {
                 exports.log = function () {
                     console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
                 };
-                exports.inherits = require('inherits');
+                exports.inherits = _dereq_('inherits');
                 exports._extend = function (origin, add) {
                     if (!add || !isObject(add))
                         return origin;
@@ -24506,7 +24516,7 @@ require = function () {
                 function hasOwnProperty(obj, prop) {
                     return Object.prototype.hasOwnProperty.call(obj, prop);
                 }
-            }.call(this, require('_process'), typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {}));
+            }.call(this, _dereq_('_process'), typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {}));
         },
         {
             './support/isBuffer': 247,
@@ -24515,7 +24525,7 @@ require = function () {
         }
     ],
     249: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             var indexOf = function (xs, item) {
                 if (xs.indexOf)
                     return xs.indexOf(item);
@@ -24678,14 +24688,14 @@ require = function () {
         {}
     ],
     250: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            var gui_1 = require('./layer/interface/service/gui');
+            var gui_1 = _dereq_('./layer/interface/service/gui');
             exports.default = gui_1.GUI;
-            var gui_2 = require('./layer/interface/service/gui');
+            var gui_2 = _dereq_('./layer/interface/service/gui');
             exports.Pjax = gui_2.GUI;
-            var router_1 = require('./lib/router');
+            var router_1 = _dereq_('./lib/router');
             exports.router = router_1.router;
         },
         {
@@ -24694,15 +24704,15 @@ require = function () {
         }
     ],
     251: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const api_1 = require('../domain/router/api');
-            var router_1 = require('../domain/event/router');
+            const api_1 = _dereq_('../domain/router/api');
+            var router_1 = _dereq_('../domain/event/router');
             exports.RouterEvent = router_1.RouterEvent;
             exports.RouterEventType = router_1.RouterEventType;
             exports.RouterEventSource = router_1.RouterEventSource;
-            var config_1 = require('../domain/data/config');
+            var config_1 = _dereq_('../domain/data/config');
             exports.Config = config_1.Config;
             exports.scope = config_1.scope;
             function route(config, event, state, io) {
@@ -24717,17 +24727,17 @@ require = function () {
         }
     ],
     252: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            var path_1 = require('../domain/store/path');
+            var path_1 = _dereq_('../domain/store/path');
             exports.loadTitle = path_1.loadTitle;
             exports.savePosition = path_1.savePosition;
         },
         { '../domain/store/path': 275 }
     ],
     253: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             var Identifier;
@@ -24750,10 +24760,10 @@ require = function () {
         {}
     ],
     254: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const assign_1 = require('spica/assign');
+            const assign_1 = _dereq_('spica/assign');
             void saveTitle();
             void savePosition();
             function loadTitle() {
@@ -24784,7 +24794,7 @@ require = function () {
         { 'spica/assign': 154 }
     ],
     255: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
                 return new (P || (P = Promise))(function (resolve, reject) {
@@ -24811,8 +24821,8 @@ require = function () {
                 });
             };
             Object.defineProperty(exports, '__esModule', { value: true });
-            const assign_1 = require('spica/assign');
-            var scope_1 = require('./config/scope');
+            const assign_1 = _dereq_('spica/assign');
+            var scope_1 = _dereq_('./config/scope');
             exports.scope = scope_1.scope;
             class Config {
                 constructor(option) {
@@ -24911,14 +24921,14 @@ require = function () {
         }
     ],
     256: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const router_1 = require('../../../../lib/router');
-            const config_1 = require('../../../domain/data/config');
-            const sequence_1 = require('spica/sequence');
-            const maybe_1 = require('spica/maybe');
-            const assign_1 = require('spica/assign');
+            const router_1 = _dereq_('../../../../lib/router');
+            const config_1 = _dereq_('../../../domain/data/config');
+            const sequence_1 = _dereq_('spica/sequence');
+            const maybe_1 = _dereq_('spica/maybe');
+            const assign_1 = _dereq_('spica/assign');
             function scope(config, path) {
                 const scope = Object.assign({ '/': {} }, config.scope);
                 return sequence_1.Sequence.from(Object.keys(scope).sort().reverse()).dropWhile(pattern => !!!router_1.compare(pattern, path.orig) && !router_1.compare(pattern, path.dest)).take(1).filter(pattern => !!router_1.compare(pattern, path.orig) && router_1.compare(pattern, path.dest)).map(pattern => scope[pattern]).map(option => option ? maybe_1.Just(new config_1.Config(assign_1.extend({}, config, option))) : maybe_1.Nothing).extract().reduce((_, m) => m, maybe_1.Nothing);
@@ -24934,10 +24944,10 @@ require = function () {
         }
     ],
     257: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const error_1 = require('../../../lib/error');
+            const error_1 = _dereq_('../../../lib/error');
             class DomainError extends error_1.PjaxError {
                 constructor(msg) {
                     super(`Domain: ${ msg }`);
@@ -24948,13 +24958,13 @@ require = function () {
         { '../../../lib/error': 290 }
     ],
     258: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const url_1 = require('../../../lib/url');
-            const url_2 = require('../../data/model/domain/url');
-            const dom_1 = require('../../../lib/dom');
-            const typed_dom_1 = require('typed-dom');
+            const url_1 = _dereq_('../../../lib/url');
+            const url_2 = _dereq_('../../data/model/domain/url');
+            const dom_1 = _dereq_('../../../lib/dom');
+            const typed_dom_1 = _dereq_('typed-dom');
             class RouterEvent {
                 constructor(original) {
                     this.original = original;
@@ -25033,7 +25043,7 @@ require = function () {
         }
     ],
     259: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
                 return new (P || (P = Promise))(function (resolve, reject) {
@@ -25060,13 +25070,13 @@ require = function () {
                 });
             };
             Object.defineProperty(exports, '__esModule', { value: true });
-            const either_1 = require('spica/either');
-            const fetch_1 = require('./module/fetch');
-            const update_1 = require('./module/update');
-            const content_1 = require('./module/update/content');
-            const path_1 = require('../store/path');
-            const error_1 = require('../data/error');
-            var entity_1 = require('./model/eav/entity');
+            const either_1 = _dereq_('spica/either');
+            const fetch_1 = _dereq_('./module/fetch');
+            const update_1 = _dereq_('./module/update');
+            const content_1 = _dereq_('./module/update/content');
+            const path_1 = _dereq_('../store/path');
+            const error_1 = _dereq_('../data/error');
+            var entity_1 = _dereq_('./model/eav/entity');
             exports.RouterEntity = entity_1.RouterEntity;
             exports.RouterEntityState = entity_1.RouterEntityState;
             function route(entity, io) {
@@ -25098,7 +25108,7 @@ require = function () {
         }
     ],
     260: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             class RouterEntity {
@@ -25122,10 +25132,10 @@ require = function () {
         {}
     ],
     261: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const html_1 = require('../../../../../../lib/html');
+            const html_1 = _dereq_('../../../../../../lib/html');
             class FetchResponse {
                 constructor(url, xhr) {
                     this.url = url;
@@ -25141,7 +25151,7 @@ require = function () {
         { '../../../../../../lib/html': 291 }
     ],
     262: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
                 return new (P || (P = Promise))(function (resolve, reject) {
@@ -25168,10 +25178,10 @@ require = function () {
                 });
             };
             Object.defineProperty(exports, '__esModule', { value: true });
-            const either_1 = require('spica/either');
-            const xhr_1 = require('../module/fetch/xhr');
-            const error_1 = require('../../data/error');
-            const url_1 = require('../../../../lib/url');
+            const either_1 = _dereq_('spica/either');
+            const xhr_1 = _dereq_('../module/fetch/xhr');
+            const error_1 = _dereq_('../../data/error');
+            const url_1 = _dereq_('../../../../lib/url');
             function fetch({method, url, body}, {
                 redirect,
                 fetch: {headers, timeout, wait},
@@ -25206,16 +25216,16 @@ require = function () {
         }
     ],
     263: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const promise_1 = require('spica/promise');
-            const sequence_1 = require('spica/sequence');
-            const either_1 = require('spica/either');
-            const fetch_1 = require('../../model/eav/value/fetch');
-            const url_1 = require('../../../../data/model/domain/url');
-            const error_1 = require('../../../data/error');
-            const url_2 = require('../../../../../lib/url');
+            const promise_1 = _dereq_('spica/promise');
+            const sequence_1 = _dereq_('spica/sequence');
+            const either_1 = _dereq_('spica/either');
+            const fetch_1 = _dereq_('../../model/eav/value/fetch');
+            const url_1 = _dereq_('../../../../data/model/domain/url');
+            const error_1 = _dereq_('../../../data/error');
+            const url_2 = _dereq_('../../../../../lib/url');
             function xhr(method, url, headers, body, timeout, redirect, cancellation) {
                 const url_ = url_1.standardizeUrl(redirect(new url_2.URL(url).path));
                 const xhr = new XMLHttpRequest();
@@ -25244,7 +25254,7 @@ require = function () {
         }
     ],
     264: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
                 return new (P || (P = Promise))(function (resolve, reject) {
@@ -25271,21 +25281,21 @@ require = function () {
                 });
             };
             Object.defineProperty(exports, '__esModule', { value: true });
-            const promise_1 = require('spica/promise');
-            const either_1 = require('spica/either');
-            const hlist_1 = require('spica/hlist');
-            const router_1 = require('../../event/router');
-            const blur_1 = require('../module/update/blur');
-            const url_1 = require('../module/update/url');
-            const title_1 = require('../module/update/title');
-            const head_1 = require('../module/update/head');
-            const content_1 = require('../module/update/content');
-            const css_1 = require('../module/update/css');
-            const script_1 = require('../module/update/script');
-            const focus_1 = require('../module/update/focus');
-            const scroll_1 = require('../module/update/scroll');
-            const path_1 = require('../../store/path');
-            const error_1 = require('../../data/error');
+            const promise_1 = _dereq_('spica/promise');
+            const either_1 = _dereq_('spica/either');
+            const hlist_1 = _dereq_('spica/hlist');
+            const router_1 = _dereq_('../../event/router');
+            const blur_1 = _dereq_('../module/update/blur');
+            const url_1 = _dereq_('../module/update/url');
+            const title_1 = _dereq_('../module/update/title');
+            const head_1 = _dereq_('../module/update/head');
+            const content_1 = _dereq_('../module/update/content');
+            const css_1 = _dereq_('../module/update/css');
+            const script_1 = _dereq_('../module/update/script');
+            const focus_1 = _dereq_('../module/update/focus');
+            const scroll_1 = _dereq_('../module/update/scroll');
+            const path_1 = _dereq_('../../store/path');
+            const error_1 = _dereq_('../../data/error');
             function update({event, config, state}, response, seq, io) {
                 const {process} = state;
                 const documents = {
@@ -25357,7 +25367,7 @@ require = function () {
         }
     ],
     265: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             function blur(document) {
@@ -25371,15 +25381,15 @@ require = function () {
         {}
     ],
     266: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const promise_1 = require('spica/promise');
-            const maybe_1 = require('spica/maybe');
-            const concat_1 = require('spica/concat');
-            const typed_dom_1 = require('typed-dom');
-            const dom_1 = require('../../../../../lib/dom');
-            const script_1 = require('./script');
+            const promise_1 = _dereq_('spica/promise');
+            const maybe_1 = _dereq_('spica/maybe');
+            const concat_1 = _dereq_('spica/concat');
+            const typed_dom_1 = _dereq_('typed-dom');
+            const dom_1 = _dereq_('../../../../../lib/dom');
+            const script_1 = _dereq_('./script');
             function content(documents, areas, io = { replace: (src, dst) => void dst.parentNode.replaceChild(src, dst) }) {
                 return [
                     areas.map(r => r.dst).reduce(concat_1.concat, []),
@@ -25440,11 +25450,11 @@ require = function () {
         }
     ],
     267: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const dom_1 = require('../../../../../lib/dom');
-            const sync_1 = require('./sync');
+            const dom_1 = _dereq_('../../../../../lib/dom');
+            const sync_1 = _dereq_('./sync');
             function css(documents, ignore) {
                 const selector = 'link[rel~="stylesheet"], style';
                 return void [
@@ -25466,11 +25476,11 @@ require = function () {
         }
     ],
     268: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const router_1 = require('../../../event/router');
-            const dom_1 = require('../../../../../lib/dom');
+            const router_1 = _dereq_('../../../event/router');
+            const dom_1 = _dereq_('../../../../../lib/dom');
             function focus(type, document) {
                 switch (type) {
                 case router_1.RouterEventType.click:
@@ -25490,11 +25500,11 @@ require = function () {
         }
     ],
     269: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const sync_1 = require('./sync');
-            const dom_1 = require('../../../../../lib/dom');
+            const sync_1 = _dereq_('./sync');
+            const dom_1 = _dereq_('../../../../../lib/dom');
             function head(documents, selector, ignore) {
                 ignore += selector.includes('link') ? ', link[rel~="stylesheet"]' : '';
                 return void sync_1.sync(sync_1.pair(list(documents.src.head), list(documents.dst.head), (a, b) => a.outerHTML === b.outerHTML), documents.dst.head);
@@ -25510,7 +25520,7 @@ require = function () {
         }
     ],
     270: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
                 return new (P || (P = Promise))(function (resolve, reject) {
@@ -25537,16 +25547,16 @@ require = function () {
                 });
             };
             Object.defineProperty(exports, '__esModule', { value: true });
-            const promise_1 = require('spica/promise');
-            const either_1 = require('spica/either');
-            const tuple_1 = require('spica/tuple');
-            const concat_1 = require('spica/concat');
-            const dom_1 = require('../../../../../lib/dom');
-            const error_1 = require('../../../../../lib/error');
-            const url_1 = require('../../../../../lib/url');
-            const integrity_1 = require('../../../../../lib/integrity');
-            const url_2 = require('../../../../data/model/domain/url');
-            const typed_dom_1 = require('typed-dom');
+            const promise_1 = _dereq_('spica/promise');
+            const either_1 = _dereq_('spica/either');
+            const tuple_1 = _dereq_('spica/tuple');
+            const concat_1 = _dereq_('spica/concat');
+            const dom_1 = _dereq_('../../../../../lib/dom');
+            const error_1 = _dereq_('../../../../../lib/error');
+            const url_1 = _dereq_('../../../../../lib/url');
+            const integrity_1 = _dereq_('../../../../../lib/integrity');
+            const url_2 = _dereq_('../../../../data/model/domain/url');
+            const typed_dom_1 = _dereq_('typed-dom');
             function script(documents, skip, selector, timeout, cancellation, io = {
                 fetch,
                 evaluate
@@ -25656,7 +25666,7 @@ require = function () {
                 return script.matches('[src][async]') ? either_1.Right(result) : either_1.Left(result);
                 function evaluate() {
                     if (script.matches('[type="module"][src]')) {
-                        return promise_1.AtomicPromise.resolve(Promise.resolve().then(() => require(script.src))).catch(reason => reason.message.startsWith('Failed to load ') && script.matches('[src][async]') ? retry(script).catch(() => promise_1.AtomicPromise.reject(reason)) : promise_1.AtomicPromise.reject(reason)).then(() => (void script.dispatchEvent(new Event('load')), either_1.Right(script)), reason => (void script.dispatchEvent(new Event('error')), either_1.Left(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''))));
+                        return promise_1.AtomicPromise.resolve(Promise.resolve().then(() => _dereq_(script.src))).catch(reason => reason.message.startsWith('Failed to load ') && script.matches('[src][async]') ? retry(script).catch(() => promise_1.AtomicPromise.reject(reason)) : promise_1.AtomicPromise.reject(reason)).then(() => (void script.dispatchEvent(new Event('load')), either_1.Right(script)), reason => (void script.dispatchEvent(new Event('error')), either_1.Left(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''))));
                     } else {
                         try {
                             if (new url_1.URL(url_2.standardizeUrl(window.location.href)).path !== new url_1.URL(url_2.standardizeUrl(window.location.href)).path)
@@ -25703,10 +25713,10 @@ require = function () {
         }
     ],
     271: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const router_1 = require('../../../event/router');
+            const router_1 = _dereq_('../../../event/router');
             function scroll(type, document, env, io = {
                 scrollToElement: el => void el.scrollIntoView(),
                 scrollToPosition: ({top, left}) => void window.scrollTo(left, top),
@@ -25747,11 +25757,11 @@ require = function () {
         { '../../../event/router': 258 }
     ],
     272: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const either_1 = require('spica/either');
-            const concat_1 = require('spica/concat');
+            const either_1 = _dereq_('spica/either');
+            const concat_1 = _dereq_('spica/concat');
             function sync(pairs, fallback, io = {
                 before,
                 remove
@@ -25787,7 +25797,7 @@ require = function () {
         }
     ],
     273: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             function title(documents) {
@@ -25798,11 +25808,11 @@ require = function () {
         {}
     ],
     274: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const router_1 = require('../../../event/router');
-            const typed_dom_1 = require('typed-dom');
+            const router_1 = _dereq_('../../../event/router');
+            const typed_dom_1 = _dereq_('typed-dom');
             void typed_dom_1.bind(document, 'pjax:ready', () => void window.history.replaceState(window.history.state, window.document.title));
             function url(location, title, type, source, replaceable) {
                 switch (true) {
@@ -25848,7 +25858,7 @@ require = function () {
         }
     ],
     275: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             function __export(m) {
                 for (var p in m)
@@ -25856,15 +25866,15 @@ require = function () {
                         exports[p] = m[p];
             }
             Object.defineProperty(exports, '__esModule', { value: true });
-            __export(require('../../data/store/state'));
+            __export(_dereq_('../../data/store/state'));
         },
         { '../../data/store/state': 254 }
     ],
     276: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const error_1 = require('../../../lib/error');
+            const error_1 = _dereq_('../../../lib/error');
             class InterfaceError extends error_1.PjaxError {
                 constructor(msg) {
                     super(`Interface: ${ msg }`);
@@ -25875,12 +25885,12 @@ require = function () {
         { '../../../lib/error': 290 }
     ],
     277: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const supervisor_legacy_1 = require('spica/supervisor.legacy');
-            const promise_1 = require('spica/promise');
-            const typed_dom_1 = require('typed-dom');
+            const supervisor_legacy_1 = _dereq_('spica/supervisor.legacy');
+            const promise_1 = _dereq_('spica/promise');
+            const typed_dom_1 = _dereq_('typed-dom');
             class ClickView {
                 constructor(document, selector, listener) {
                     this.sv = new class extends supervisor_legacy_1.Supervisor {
@@ -25905,14 +25915,14 @@ require = function () {
         }
     ],
     278: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const supervisor_legacy_1 = require('spica/supervisor.legacy');
-            const promise_1 = require('spica/promise');
-            const typed_dom_1 = require('typed-dom');
-            const url_1 = require('../../../data/model/domain/url');
-            const url_2 = require('../../service/state/url');
+            const supervisor_legacy_1 = _dereq_('spica/supervisor.legacy');
+            const promise_1 = _dereq_('spica/promise');
+            const typed_dom_1 = _dereq_('typed-dom');
+            const url_1 = _dereq_('../../../data/model/domain/url');
+            const url_2 = _dereq_('../../service/state/url');
             class NavigationView {
                 constructor(window, listener) {
                     this.sv = new class extends supervisor_legacy_1.Supervisor {
@@ -25937,13 +25947,13 @@ require = function () {
         }
     ],
     279: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const supervisor_legacy_1 = require('spica/supervisor.legacy');
-            const promise_1 = require('spica/promise');
-            const typed_dom_1 = require('typed-dom');
-            const throttle_1 = require('spica/throttle');
+            const supervisor_legacy_1 = _dereq_('spica/supervisor.legacy');
+            const promise_1 = _dereq_('spica/promise');
+            const typed_dom_1 = _dereq_('typed-dom');
+            const throttle_1 = _dereq_('spica/throttle');
             class ScrollView {
                 constructor(window, listener) {
                     this.sv = new class extends supervisor_legacy_1.Supervisor {
@@ -25965,12 +25975,12 @@ require = function () {
         }
     ],
     280: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const supervisor_legacy_1 = require('spica/supervisor.legacy');
-            const promise_1 = require('spica/promise');
-            const typed_dom_1 = require('typed-dom');
+            const supervisor_legacy_1 = _dereq_('spica/supervisor.legacy');
+            const promise_1 = _dereq_('spica/promise');
+            const typed_dom_1 = _dereq_('typed-dom');
             class SubmitView {
                 constructor(document, selector, listener) {
                     this.sv = new class extends supervisor_legacy_1.Supervisor {
@@ -25993,14 +26003,14 @@ require = function () {
         }
     ],
     281: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const router_1 = require('./router');
-            const process_1 = require('./state/process');
-            const html_1 = require('../../../lib/html');
-            const assign_1 = require('spica/assign');
-            const typed_dom_1 = require('typed-dom');
+            const router_1 = _dereq_('./router');
+            const process_1 = _dereq_('./state/process');
+            const html_1 = _dereq_('../../../lib/html');
+            const assign_1 = _dereq_('spica/assign');
+            const typed_dom_1 = _dereq_('typed-dom');
             class API {
                 static assign(url, option, io = {
                     document: window.document,
@@ -26033,24 +26043,24 @@ require = function () {
         }
     ],
     282: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const api_1 = require('./api');
-            const supervisor_legacy_1 = require('spica/supervisor.legacy');
-            const cancellation_1 = require('spica/cancellation');
-            const promise_1 = require('spica/promise');
-            const url_1 = require('../../../lib/url');
-            const url_2 = require('../../data/model/domain/url');
-            const click_1 = require('../module/view/click');
-            const submit_1 = require('../module/view/submit');
-            const navigation_1 = require('../module/view/navigation');
-            const scroll_1 = require('../module/view/scroll');
-            const router_1 = require('./router');
-            const url_3 = require('./state/url');
-            require('./state/scroll-restoration');
-            const process_1 = require('./state/process');
-            const store_1 = require('../../application/store');
+            const api_1 = _dereq_('./api');
+            const supervisor_legacy_1 = _dereq_('spica/supervisor.legacy');
+            const cancellation_1 = _dereq_('spica/cancellation');
+            const promise_1 = _dereq_('spica/promise');
+            const url_1 = _dereq_('../../../lib/url');
+            const url_2 = _dereq_('../../data/model/domain/url');
+            const click_1 = _dereq_('../module/view/click');
+            const submit_1 = _dereq_('../module/view/submit');
+            const navigation_1 = _dereq_('../module/view/navigation');
+            const scroll_1 = _dereq_('../module/view/scroll');
+            const router_1 = _dereq_('./router');
+            const url_3 = _dereq_('./state/url');
+            _dereq_('./state/scroll-restoration');
+            const process_1 = _dereq_('./state/process');
+            const store_1 = _dereq_('../../application/store');
             const view = new class extends supervisor_legacy_1.Supervisor {
             }();
             class GUI extends api_1.API {
@@ -26108,7 +26118,7 @@ require = function () {
         }
     ],
     283: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
                 return new (P || (P = Promise))(function (resolve, reject) {
@@ -26135,19 +26145,19 @@ require = function () {
                 });
             };
             Object.defineProperty(exports, '__esModule', { value: true });
-            const cancellation_1 = require('spica/cancellation');
-            const typed_dom_1 = require('typed-dom');
-            const router_1 = require('../../application/router');
+            const cancellation_1 = _dereq_('spica/cancellation');
+            const typed_dom_1 = _dereq_('typed-dom');
+            const router_1 = _dereq_('../../application/router');
             exports.Config = router_1.Config;
             exports.RouterEvent = router_1.RouterEvent;
             exports.RouterEventSource = router_1.RouterEventSource;
-            const url_1 = require('./state/url');
-            const env_1 = require('../service/state/env');
-            const error_1 = require('../data/error');
-            const url_2 = require('../../../lib/url');
-            const url_3 = require('../../data/model/domain/url');
-            const store_1 = require('../../application/store');
-            const maybe_1 = require('spica/maybe');
+            const url_1 = _dereq_('./state/url');
+            const env_1 = _dereq_('../service/state/env');
+            const error_1 = _dereq_('../data/error');
+            const url_2 = _dereq_('../../../lib/url');
+            const url_3 = _dereq_('../../data/model/domain/url');
+            const store_1 = _dereq_('../../application/store');
+            const maybe_1 = _dereq_('spica/maybe');
             void typed_dom_1.bind(window, 'pjax:unload', () => window.history.scrollRestoration = 'auto', true);
             function route(config, event, process, io) {
                 switch (event.type) {
@@ -26240,10 +26250,10 @@ require = function () {
         }
     ],
     284: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const script_1 = require('./script');
+            const script_1 = _dereq_('./script');
             exports.env = Promise.all([
                 script_1.scripts,
                 new Promise(r => void setTimeout(r))
@@ -26252,23 +26262,23 @@ require = function () {
         { './script': 286 }
     ],
     285: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const supervisor_legacy_1 = require('spica/supervisor.legacy');
+            const supervisor_legacy_1 = _dereq_('spica/supervisor.legacy');
             exports.process = new class extends supervisor_legacy_1.Supervisor {
             }();
         },
         { 'spica/supervisor.legacy': 230 }
     ],
     286: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const url_1 = require('../../../data/model/domain/url');
-            const url_2 = require('../../../../lib/url');
-            const dom_1 = require('../../../../lib/dom');
-            const typed_dom_1 = require('typed-dom');
+            const url_1 = _dereq_('../../../data/model/domain/url');
+            const url_2 = _dereq_('../../../../lib/url');
+            const dom_1 = _dereq_('../../../../lib/dom');
+            const typed_dom_1 = _dereq_('typed-dom');
             exports.scripts = new Set();
             void typed_dom_1.bind(window, 'pjax:unload', () => void dom_1.find(document, 'script[src]').forEach(script => void exports.scripts.add(new url_2.URL(url_1.standardizeUrl(script.src)).href)));
         },
@@ -26280,20 +26290,20 @@ require = function () {
         }
     ],
     287: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const typed_dom_1 = require('typed-dom');
+            const typed_dom_1 = _dereq_('typed-dom');
             void typed_dom_1.bind(window, 'unload', () => window.history.scrollRestoration = 'auto', false);
         },
         { 'typed-dom': 239 }
     ],
     288: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const url_1 = require('../../../data/model/domain/url');
-            const typed_dom_1 = require('typed-dom');
+            const url_1 = _dereq_('../../../data/model/domain/url');
+            const typed_dom_1 = _dereq_('typed-dom');
             void typed_dom_1.bind(window, 'hashchange', () => void exports.docurl.sync());
             exports.docurl = new class {
                 constructor() {
@@ -26313,7 +26323,7 @@ require = function () {
         }
     ],
     289: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             function find(target, selector) {
@@ -26358,7 +26368,7 @@ require = function () {
         {}
     ],
     290: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             class PjaxError extends Error {
@@ -26378,12 +26388,12 @@ require = function () {
         {}
     ],
     291: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const maybe_1 = require('spica/maybe');
-            const either_1 = require('spica/either');
-            const dom_1 = require('./dom');
+            const maybe_1 = _dereq_('spica/maybe');
+            const either_1 = _dereq_('spica/either');
+            const dom_1 = _dereq_('./dom');
             exports.parse = [
                 parseByDOM,
                 parseByDoc
@@ -26460,10 +26470,10 @@ require = function () {
         }
     ],
     292: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             (function (Buffer) {
-                const crypto = require('crypto');
-                const figgyPudding = require('figgy-pudding');
+                const crypto = _dereq_('crypto');
+                const figgyPudding = _dereq_('figgy-pudding');
                 const SPEC_ALGORITHMS = [
                     'sha256',
                     'sha384',
@@ -26662,7 +26672,7 @@ require = function () {
                 function getPrioritizedHash(algo1, algo2) {
                     return DEFAULT_PRIORITY.indexOf(algo1.toLowerCase()) >= DEFAULT_PRIORITY.indexOf(algo2.toLowerCase()) ? algo1 : algo2;
                 }
-            }.call(this, require('buffer').Buffer));
+            }.call(this, _dereq_('buffer').Buffer));
         },
         {
             'buffer': 50,
@@ -26671,15 +26681,15 @@ require = function () {
         }
     ],
     293: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const url_1 = require('../layer/data/model/domain/url');
-            const url_2 = require('./url');
-            const sequence_1 = require('spica/sequence');
-            const uncurry_1 = require('spica/uncurry');
-            const flip_1 = require('spica/flip');
-            const cache_1 = require('spica/cache');
+            const url_1 = _dereq_('../layer/data/model/domain/url');
+            const url_2 = _dereq_('./url');
+            const sequence_1 = _dereq_('spica/sequence');
+            const uncurry_1 = _dereq_('spica/uncurry');
+            const flip_1 = _dereq_('spica/flip');
+            const cache_1 = _dereq_('spica/cache');
             function router(config) {
                 return url => {
                     const {path, pathname} = new url_2.URL(url_1.standardizeUrl(url));
@@ -26739,7 +26749,7 @@ require = function () {
         }
     ],
     294: [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const IDENTITY = Symbol();
@@ -26795,7 +26805,7 @@ require = function () {
         {}
     ],
     'pjax-api': [
-        function (require, module, exports) {
+        function (_dereq_, module, exports) {
             'use strict';
             function __export(m) {
                 for (var p in m)
@@ -26803,8 +26813,8 @@ require = function () {
                         exports[p] = m[p];
             }
             Object.defineProperty(exports, '__esModule', { value: true });
-            __export(require('./src/export'));
-            var export_1 = require('./src/export');
+            __export(_dereq_('./src/export'));
+            var export_1 = _dereq_('./src/export');
             exports.default = export_1.default;
         },
         { './src/export': 250 }
