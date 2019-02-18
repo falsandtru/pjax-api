@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.26.2
+
+- Fix distribution.
+
 ## 3.26.1
 
 - Fix bundle processing.

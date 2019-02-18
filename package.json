@@ -12,6 +12,7 @@
     "pjax",
     "router"
   ],
+  "types": "./index.d.ts",
   "main": "./dist/pjax-api.js",
   "files": [
     "dist",
