@@ -17027,6 +17027,8 @@ require = function () {
         function (_dereq_, module, exports) {
             (function (process, global) {
                 'use strict';
+                var MAX_BYTES = 65536;
+                var MAX_UINT32 = 4294967295;
                 function oldBrowser() {
                     throw new Error('Secure random number generation is not supported by this browser.\nUse Chrome, Firefox or Internet Explorer 11');
                 }
@@ -17038,13 +17040,18 @@ require = function () {
                     module.exports = oldBrowser;
                 }
                 function randomBytes(size, cb) {
-                    if (size > 65536)
-                        throw new Error('requested too many random bytes');
-                    var rawBytes = new global.Uint8Array(size);
+                    if (size > MAX_UINT32)
+                        throw new RangeError('requested too many random bytes');
+                    var bytes = Buffer.allocUnsafe(size);
                     if (size > 0) {
-                        crypto.getRandomValues(rawBytes);
+                        if (size > MAX_BYTES) {
+                            for (var generated = 0; generated < size; generated += MAX_BYTES) {
+                                crypto.getRandomValues(bytes.slice(generated, generated + MAX_BYTES));
+                            }
+                        } else {
+                            crypto.getRandomValues(bytes);
+                        }
                     }
-                    var bytes = Buffer.from(rawBytes.buffer);
                     if (typeof cb === 'function') {
                         return process.nextTick(function () {
                             cb(null, bytes);
