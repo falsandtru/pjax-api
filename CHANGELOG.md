@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.27.0
+
+- Change the return types of APIs to express that the request is accepted or not.
+
 ## 3.26.2
 
 - Fix distribution.

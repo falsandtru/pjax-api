@@ -23,7 +23,7 @@ export function route(
   io: {
     document: Document;
   }
-): void {
+): boolean {
   assert([HTMLAnchorElement, HTMLFormElement, Window].some(Class => event.source instanceof Class));
   switch (event.type) {
     case RouterEventType.click:
@@ -34,7 +34,7 @@ export function route(
       io.document.title = loadTitle();
       break;
   }
-  return void Just(0)
+  return Just(0)
     .guard(validate(new URL(event.request.url), config, event))
     .bind(() =>
       scope(config, (({ orig, dest }) => ({ orig: orig.pathname, dest: dest.pathname }))(event.location)))
@@ -72,19 +72,23 @@ export function route(
             ? void config.fallback(currentTargets.get(event.original) as RouterEventSource, reason)
             : undefined));
     })
-    .extract(async () => {
-      switch (event.type) {
-        case RouterEventType.click:
-        case RouterEventType.submit:
-          break;
-        case RouterEventType.popstate:
-          if (!isHashChange(event.location.dest)) {
-            void config.fallback(event.source, new Error(`Disabled.`));
-          }
-          break;
-      }
-      void docurl.sync();
-    });
+    .extract(
+      () => {
+        switch (event.type) {
+          case RouterEventType.click:
+          case RouterEventType.submit:
+            break;
+          case RouterEventType.popstate:
+            if (!isHashChange(event.location.dest)) {
+              void config.fallback(event.source, new Error(`Disabled.`));
+              return true;
+            }
+            break;
+        }
+        void docurl.sync();
+        return false;
+      },
+      () => true);
 }
 
 function validate(url: URL<StandardUrl>, config: Config, event: RouterEvent): boolean {

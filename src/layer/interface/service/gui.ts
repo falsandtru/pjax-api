@@ -47,10 +47,10 @@ export class GUI extends API {
     }, new Cancellation(), new Error('Kill'));
     void view.cast('', undefined);
   }
-  public assign(url: string): undefined {
-    return void API.assign(url, this.option, this.io);
+  public assign(url: string): boolean {
+    return API.assign(url, this.option, this.io);
   }
-  public replace(url: string): undefined {
-    return void API.replace(url, this.option, this.io);
+  public replace(url: string): boolean {
+    return API.replace(url, this.option, this.io);
   }
 }

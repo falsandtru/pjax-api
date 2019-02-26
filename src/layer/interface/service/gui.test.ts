@@ -5,56 +5,52 @@ import { html, once } from 'typed-dom';
 
 describe('Unit: layer/interface/service/gui', function () {
   describe('assign', function () {
-    it('', function (done) {
+    it('', function () {
       assert(GUI.assign === API.assign);
-      new GUI({}, { document, router: config => {
+      assert(new GUI({}, { document, router: config => {
         assert(config.replace as string !== '*');
-        done();
-        return Promise.resolve();
+        return true;
       }})
-        .assign('');
+        .assign(''));
     });
 
   });
 
   describe('replace', function () {
-    it('', function (done) {
+    it('', function () {
       assert(GUI.replace === API.replace);
-      new GUI({}, { document, router: config => {
+      assert(new GUI({}, { document, router: config => {
         assert(config.replace as string === '*');
-        done();
-        return Promise.resolve();
+        return true;
       }})
-        .replace('');
+        .replace(''));
     });
 
   });
 
   describe('click', function () {
-    it('normal', function (done) {
+    it('normal', function () {
       const document = parse('<a href=""></a>').extract();
-      new GUI({}, { document, router: (_, ev) => {
+      assert(new GUI({}, { document, router: (_, ev) => {
         ev.original.preventDefault();
-        return Promise.resolve();
-      }});
+        return true;
+      }}));
       once(document, 'a', 'click', ev => {
         assert(ev.defaultPrevented === true);
-        done();
       });
       document.querySelector('a')!.click();
     });
 
-    it('shadow', function (done) {
-      if (!window.document.body.attachShadow) return done();
+    it('shadow', function () {
+      if (!window.document.body.attachShadow) return;
       const document = parse('<a href=""></a>').extract();
       document.body.attachShadow({ mode: 'open' }).appendChild(document.body.firstChild!);
-      new GUI({}, { document, router: (_, ev) => {
+      assert(new GUI({}, { document, router: (_, ev) => {
         ev.original.preventDefault();
-        return Promise.resolve();
-      }});
+        return true;
+      }}));
       once(document, 'a', 'click', ev => {
         assert(ev.defaultPrevented === true);
-        done();
       });
       document.body.shadowRoot!.querySelector('a')!.click();
     });
@@ -62,19 +58,18 @@ describe('Unit: layer/interface/service/gui', function () {
   });
 
   describe('submit', function () {
-    it('normal', function (done) {
+    it('normal', function () {
       const form = html('form', { action: '' }, [
         html('input', { type: 'submit', value: 'submit' }),
       ]);
       document.body.appendChild(form);
-      new GUI({}, { document, router: (_, ev) => {
+      assert(new GUI({}, { document, router: (_, ev) => {
         ev.original.preventDefault();
-        return Promise.resolve();
-      }});
+        return true;
+      }}));
       once(document, 'form', 'submit', ev => {
         assert(ev.defaultPrevented === true);
         form.remove();
-        done();
       });
       form.querySelector('input')!.click();
     });

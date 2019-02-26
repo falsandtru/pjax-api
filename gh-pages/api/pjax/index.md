@@ -32,15 +32,18 @@ new Pjax({
 
 [Config]({{ site.basepath }}api/pjax/config/)
 
-## #assign(url: string): undefined
+## #assign(url: string): boolean
 
 Go to url.
+
+The return type means the request is accepted or not. In other words, in progress or not.
+The same shall apply hereinafter.
 
 ```ts
 new Pjax({}).assign('/');
 ```
 
-## #replace(url: string): undefined
+## #replace(url: string): boolean
 
 Go to url with replacing.
 
@@ -48,7 +51,7 @@ Go to url with replacing.
 new Pjax({}).replace('/');
 ```
 
-## .assign(url: string, config: Config): undefined
+## .assign(url: string, config: Config): boolean
 
 Go to url.
 
@@ -56,7 +59,7 @@ Go to url.
 Pjax.assign('/', {});
 ```
 
-## .replace(url: string, config: Config): undefined
+## .replace(url: string, config: Config): boolean
 
 Go to url with replacing.
 

@@ -1,15 +1,15 @@
 ﻿export default Pjax;
 
 export class Pjax {
-  static assign(url: string, config: Config): undefined;
-  static replace(url: string, config: Config): undefined;
+  static assign(url: string, config: Config): boolean;
+  static replace(url: string, config: Config): boolean;
   constructor(
     config: Config,
     io?: {
       document: Document;
     });
-  assign(url: string): undefined;
-  replace(url: string): undefined;
+  assign(url: string): boolean;
+  replace(url: string): boolean;
 }
 
 export interface Config {
