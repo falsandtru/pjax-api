@@ -92,6 +92,7 @@ export function route(
 }
 
 function validate(url: URL<StandardUrl>, config: Config, event: RouterEvent): boolean {
+  if (event.original.defaultPrevented) return false;
   switch (event.type) {
     case RouterEventType.click:
       assert(event.original instanceof MouseEvent);

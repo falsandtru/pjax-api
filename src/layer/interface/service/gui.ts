@@ -54,3 +54,7 @@ export class GUI extends API {
     return API.replace(url, this.option, this.io);
   }
 }
+
+export function unregister(): void {
+  void view.kill('');
+}

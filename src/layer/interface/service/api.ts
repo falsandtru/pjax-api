@@ -27,5 +27,6 @@ function click(url: string, callback: (ev: Event) => void): void {
   el.href = url;
   void parse('').extract().body.appendChild(el);
   void once(el, 'click', callback);
+  void once(el, 'click', ev => void ev.preventDefault());
   void el.click();
 }

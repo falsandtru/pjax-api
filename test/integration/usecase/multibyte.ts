@@ -1,9 +1,14 @@
 import { Pjax } from '../../../index';
 import { route as router } from '../../../src/layer/interface/service/router';
+import { unregister } from '../../../src/layer/interface/service/gui';
 import { parse } from '../../../src/lib/html';
 import { once } from 'typed-dom';
 
 describe('Integration: Usecase', function () {
+  afterEach(() => {
+    unregister();
+  });
+
   describe('multibyte', function () {
     it('basic', function (done) {
       const url = '/base/test/integration/fixture/multibyte/あアｱ亜.html';

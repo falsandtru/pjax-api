@@ -1,8 +1,13 @@
 import { Pjax } from '../../../index';
 import { route as router } from '../../../src/layer/interface/service/router';
+import { unregister } from '../../../src/layer/interface/service/gui';
 import { html, once } from 'typed-dom';
 
 describe('Integration: Usecase', function () {
+  afterEach(() => {
+    unregister();
+  });
+
   describe('submit', function () {
     it('get', function (done) {
       const url = '/base/test/integration/fixture/basic/1.html';
