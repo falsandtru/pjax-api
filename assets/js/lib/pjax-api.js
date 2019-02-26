@@ -26026,13 +26026,17 @@ require = function () {
                     document: window.document,
                     router: router_1.route
                 }) {
-                    return void click(url, event => void io.router(new router_1.Config(option), new router_1.RouterEvent(event), process_1.process, io));
+                    let result;
+                    void click(url, event => result = io.router(new router_1.Config(option), new router_1.RouterEvent(event), process_1.process, io));
+                    return result;
                 }
                 static replace(url, option, io = {
                     document: window.document,
                     router: router_1.route
                 }) {
-                    return void click(url, event => void io.router(new router_1.Config(assign_1.extend({}, option, { replace: '*' })), new router_1.RouterEvent(event), process_1.process, io));
+                    let result;
+                    void click(url, event => result = io.router(new router_1.Config(assign_1.extend({}, option, { replace: '*' })), new router_1.RouterEvent(event), process_1.process, io));
+                    return result;
                 }
             }
             exports.API = API;
@@ -26041,6 +26045,7 @@ require = function () {
                 el.href = url;
                 void html_1.parse('').extract().body.appendChild(el);
                 void typed_dom_1.once(el, 'click', callback);
+                void typed_dom_1.once(el, 'click', ev => void ev.preventDefault());
                 void el.click();
             }
         },
@@ -26101,13 +26106,17 @@ require = function () {
                     void view.cast('', undefined);
                 }
                 assign(url) {
-                    return void api_1.API.assign(url, this.option, this.io);
+                    return api_1.API.assign(url, this.option, this.io);
                 }
                 replace(url) {
-                    return void api_1.API.replace(url, this.option, this.io);
+                    return api_1.API.replace(url, this.option, this.io);
                 }
             }
             exports.GUI = GUI;
+            function unregister() {
+                void view.kill('');
+            }
+            exports.unregister = unregister;
         },
         {
             '../../../lib/url': 294,
@@ -26179,7 +26188,7 @@ require = function () {
                     io.document.title = store_1.loadTitle();
                     break;
                 }
-                return void maybe_1.Just(0).guard(validate(new url_2.URL(event.request.url), config, event)).bind(() => router_1.scope(config, (({orig, dest}) => ({
+                return maybe_1.Just(0).guard(validate(new url_2.URL(event.request.url), config, event)).bind(() => router_1.scope(config, (({orig, dest}) => ({
                     orig: orig.pathname,
                     dest: dest.pathname
                 }))(event.location))).fmap(config => __awaiter(this, void 0, void 0, function* () {
@@ -26199,7 +26208,7 @@ require = function () {
                     }, io).then(m => m.fmap(([ss, p]) => __awaiter(this, void 0, void 0, function* () {
                         return void kill(), void url_1.docurl.sync(), void ss.filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_2.URL(url_3.standardizeUrl(s.src)).href)), void (yield p).filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_2.URL(url_3.standardizeUrl(s.src)).href));
                     })).extract()).catch(reason => (void kill(), void url_1.docurl.sync(), window.history.scrollRestoration = 'auto', !cancellation.canceled || reason instanceof Error && reason.name === 'FatalError' ? void config.fallback(typed_dom_1.currentTargets.get(event.original), reason) : undefined));
-                })).extract(() => __awaiter(this, void 0, void 0, function* () {
+                })).extract(() => {
                     switch (event.type) {
                     case router_1.RouterEventType.click:
                     case router_1.RouterEventType.submit:
@@ -26207,14 +26216,18 @@ require = function () {
                     case router_1.RouterEventType.popstate:
                         if (!isHashChange(event.location.dest)) {
                             void config.fallback(event.source, new Error(`Disabled.`));
+                            return true;
                         }
                         break;
                     }
                     void url_1.docurl.sync();
-                }));
+                    return false;
+                }, () => true);
             }
             exports.route = route;
             function validate(url, config, event) {
+                if (event.original.defaultPrevented)
+                    return false;
                 switch (event.type) {
                 case router_1.RouterEventType.click:
                     return isAccessible(url) && !isHashClick(url) && !isHashChange(url) && !isDownload(event.source) && !hasModifierKey(event.original) && config.filter(event.source);
