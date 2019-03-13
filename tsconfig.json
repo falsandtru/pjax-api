@@ -4,7 +4,6 @@
     "lib": [
       "dom",
       "dom.iterable",
-      "esnext.asynciterable",
       "es2017"
     ],
     "module": "commonjs",
