@@ -44,6 +44,7 @@ const config = {
   },
   banner: [
     `/*! ${pkg.name} v${pkg.version} ${pkg.repository.url} | (c) 2012, ${pkg.author} | ${pkg.license} License */`,
+    `/*! ssri https://github.com/zkat/ssri | (c) npm, Inc. | ISC License */`,
     ''
   ].join('\n'),
   module: `

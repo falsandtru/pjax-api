@@ -6,7 +6,7 @@ import { concat } from 'spica/concat';
 import { find } from '../../../../../lib/dom';
 import { FatalError } from '../../../../../lib/error';
 import { URL } from '../../../../../lib/url';
-import { checkData } from '../../../../../lib/integrity';
+import { checkData } from '../../../../../lib/ssri';
 import { StandardUrl, standardizeUrl } from '../../../../data/model/domain/url';
 import { html } from 'typed-dom';
 
