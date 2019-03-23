@@ -1,4 +1,5 @@
 /*! pjax-api v3.27.0 https://github.com/falsandtru/pjax-api | (c) 2012, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! ssri https://github.com/zkat/ssri | (c) npm, Inc. | ISC License */
 require = function () {
     function r(e, n, t) {
         function o(i, f) {
@@ -24712,7 +24713,7 @@ require = function () {
         },
         {
             './layer/interface/service/gui': 282,
-            './lib/router': 293
+            './lib/router': 292
         }
     ],
     251: [
@@ -24948,7 +24949,7 @@ require = function () {
             exports.scope = scope;
         },
         {
-            '../../../../lib/router': 293,
+            '../../../../lib/router': 292,
             '../../../domain/data/config': 255,
             'spica/assign': 154,
             'spica/maybe': 168,
@@ -25566,7 +25567,7 @@ require = function () {
             const dom_1 = _dereq_('../../../../../lib/dom');
             const error_1 = _dereq_('../../../../../lib/error');
             const url_1 = _dereq_('../../../../../lib/url');
-            const integrity_1 = _dereq_('../../../../../lib/integrity');
+            const ssri_1 = _dereq_('../../../../../lib/ssri');
             const url_2 = _dereq_('../../../../data/model/domain/url');
             const typed_dom_1 = _dereq_('typed-dom');
             function script(documents, skip, selector, timeout, cancellation, io = {
@@ -25650,7 +25651,7 @@ require = function () {
                     ].forEach(type => {
                         switch (type) {
                         case 'load':
-                            return void xhr.addEventListener(type, () => !script.integrity || integrity_1.checkData(xhr.response, script.integrity) ? void resolve(either_1.Right([
+                            return void xhr.addEventListener(type, () => !script.integrity || ssri_1.checkData(xhr.response, script.integrity) ? void resolve(either_1.Right([
                                 script,
                                 xhr.response
                             ])) : void resolve(either_1.Left(new Error(`${ script.src }: Invalid integrity.`))));
@@ -25714,7 +25715,7 @@ require = function () {
         {
             '../../../../../lib/dom': 289,
             '../../../../../lib/error': 290,
-            '../../../../../lib/integrity': 292,
+            '../../../../../lib/ssri': 293,
             '../../../../../lib/url': 294,
             '../../../../data/model/domain/url': 253,
             'spica/concat': 160,
@@ -26496,6 +26497,74 @@ require = function () {
     ],
     292: [
         function (_dereq_, module, exports) {
+            'use strict';
+            Object.defineProperty(exports, '__esModule', { value: true });
+            const url_1 = _dereq_('../layer/data/model/domain/url');
+            const url_2 = _dereq_('./url');
+            const sequence_1 = _dereq_('spica/sequence');
+            const uncurry_1 = _dereq_('spica/uncurry');
+            const flip_1 = _dereq_('spica/flip');
+            const cache_1 = _dereq_('spica/cache');
+            function router(config) {
+                return url => {
+                    const {path, pathname} = new url_2.URL(url_1.standardizeUrl(url));
+                    return sequence_1.Sequence.from(Object.keys(config).filter(([c]) => c === '/').sort().reverse()).filter(flip_1.flip(compare)(pathname)).map(pattern => config[pattern]).take(1).extract().pop().call(config, path);
+                };
+            }
+            exports.router = router;
+            function compare(pattern, path) {
+                const regSegment = /\/|[^/]+\/?/g;
+                const regTrailingSlash = /\/$/;
+                return sequence_1.Sequence.zip(sequence_1.Sequence.from(expand(pattern)), sequence_1.Sequence.cycle([path])).map(([pattern, path]) => [
+                    pattern.match(regSegment) || [],
+                    pattern.match(regTrailingSlash) ? path.match(regSegment) || [] : path.replace(regTrailingSlash, '').match(regSegment) || []
+                ]).filter(([ps, ss]) => ps.length <= ss.length && sequence_1.Sequence.zip(sequence_1.Sequence.from(ps), sequence_1.Sequence.from(ss)).dropWhile(uncurry_1.uncurry(match)).take(1).extract().length === 0).take(1).extract().length > 0;
+            }
+            exports.compare = compare;
+            function expand(pattern) {
+                if (pattern.match(/\*\*|[\[\]]/))
+                    throw new Error(`Invalid pattern: ${ pattern }`);
+                return pattern === '' ? [pattern] : sequence_1.Sequence.from(pattern.match(/{[^{}]*}|.[^{]*/g)).map(p => p.match(/^{[^{}]*}$/) ? p.slice(1, -1).split(',') : [p]).mapM(sequence_1.Sequence.from).map(ps => ps.join('')).bind(p => p === pattern ? sequence_1.Sequence.from([p]) : sequence_1.Sequence.from(expand(p))).unique().extract();
+            }
+            exports._expand = expand;
+            const cache = new cache_1.Cache(100);
+            function match(pattern, segment) {
+                if (segment[0] === '.' && [...'?*'].includes(pattern[0]))
+                    return false;
+                const id = `${ pattern }:${ segment }`;
+                return cache.has(id) ? cache.get(id) : cache.set(id, match(optimize(pattern), segment));
+                function match(pattern, segment) {
+                    const [p = '', ...ps] = [...pattern];
+                    const [s = '', ...ss] = [...segment];
+                    switch (p) {
+                    case '':
+                        return s === '';
+                    case '?':
+                        return s !== '' && s !== '/' && match(ps.join(''), ss.join(''));
+                    case '*':
+                        return s === '/' ? match(ps.join(''), segment) : sequence_1.Sequence.zip(sequence_1.Sequence.cycle([ps.join('')]), sequence_1.Sequence.from(segment).tails().map(ss => ss.join(''))).filter(uncurry_1.uncurry(match)).take(1).extract().length > 0;
+                    default:
+                        return s === p && match(ps.join(''), ss.join(''));
+                    }
+                }
+                function optimize(pattern) {
+                    const pat = pattern.replace(/\*(\?+)\*?/g, '$1*');
+                    return pat === pattern ? pat : optimize(pat);
+                }
+            }
+            exports._match = match;
+        },
+        {
+            '../layer/data/model/domain/url': 253,
+            './url': 294,
+            'spica/cache': 155,
+            'spica/flip': 165,
+            'spica/sequence': 228,
+            'spica/uncurry': 234
+        }
+    ],
+    293: [
+        function (_dereq_, module, exports) {
             (function (Buffer) {
                 const crypto = _dereq_('crypto');
                 const figgyPudding = _dereq_('figgy-pudding');
@@ -26703,74 +26772,6 @@ require = function () {
             'buffer': 50,
             'crypto': 58,
             'figgy-pudding': 87
-        }
-    ],
-    293: [
-        function (_dereq_, module, exports) {
-            'use strict';
-            Object.defineProperty(exports, '__esModule', { value: true });
-            const url_1 = _dereq_('../layer/data/model/domain/url');
-            const url_2 = _dereq_('./url');
-            const sequence_1 = _dereq_('spica/sequence');
-            const uncurry_1 = _dereq_('spica/uncurry');
-            const flip_1 = _dereq_('spica/flip');
-            const cache_1 = _dereq_('spica/cache');
-            function router(config) {
-                return url => {
-                    const {path, pathname} = new url_2.URL(url_1.standardizeUrl(url));
-                    return sequence_1.Sequence.from(Object.keys(config).filter(([c]) => c === '/').sort().reverse()).filter(flip_1.flip(compare)(pathname)).map(pattern => config[pattern]).take(1).extract().pop().call(config, path);
-                };
-            }
-            exports.router = router;
-            function compare(pattern, path) {
-                const regSegment = /\/|[^/]+\/?/g;
-                const regTrailingSlash = /\/$/;
-                return sequence_1.Sequence.zip(sequence_1.Sequence.from(expand(pattern)), sequence_1.Sequence.cycle([path])).map(([pattern, path]) => [
-                    pattern.match(regSegment) || [],
-                    pattern.match(regTrailingSlash) ? path.match(regSegment) || [] : path.replace(regTrailingSlash, '').match(regSegment) || []
-                ]).filter(([ps, ss]) => ps.length <= ss.length && sequence_1.Sequence.zip(sequence_1.Sequence.from(ps), sequence_1.Sequence.from(ss)).dropWhile(uncurry_1.uncurry(match)).take(1).extract().length === 0).take(1).extract().length > 0;
-            }
-            exports.compare = compare;
-            function expand(pattern) {
-                if (pattern.match(/\*\*|[\[\]]/))
-                    throw new Error(`Invalid pattern: ${ pattern }`);
-                return pattern === '' ? [pattern] : sequence_1.Sequence.from(pattern.match(/{[^{}]*}|.[^{]*/g)).map(p => p.match(/^{[^{}]*}$/) ? p.slice(1, -1).split(',') : [p]).mapM(sequence_1.Sequence.from).map(ps => ps.join('')).bind(p => p === pattern ? sequence_1.Sequence.from([p]) : sequence_1.Sequence.from(expand(p))).unique().extract();
-            }
-            exports._expand = expand;
-            const cache = new cache_1.Cache(100);
-            function match(pattern, segment) {
-                if (segment[0] === '.' && [...'?*'].includes(pattern[0]))
-                    return false;
-                const id = `${ pattern }:${ segment }`;
-                return cache.has(id) ? cache.get(id) : cache.set(id, match(optimize(pattern), segment));
-                function match(pattern, segment) {
-                    const [p = '', ...ps] = [...pattern];
-                    const [s = '', ...ss] = [...segment];
-                    switch (p) {
-                    case '':
-                        return s === '';
-                    case '?':
-                        return s !== '' && s !== '/' && match(ps.join(''), ss.join(''));
-                    case '*':
-                        return s === '/' ? match(ps.join(''), segment) : sequence_1.Sequence.zip(sequence_1.Sequence.cycle([ps.join('')]), sequence_1.Sequence.from(segment).tails().map(ss => ss.join(''))).filter(uncurry_1.uncurry(match)).take(1).extract().length > 0;
-                    default:
-                        return s === p && match(ps.join(''), ss.join(''));
-                    }
-                }
-                function optimize(pattern) {
-                    const pat = pattern.replace(/\*(\?+)\*?/g, '$1*');
-                    return pat === pattern ? pat : optimize(pat);
-                }
-            }
-            exports._match = match;
-        },
-        {
-            '../layer/data/model/domain/url': 253,
-            './url': 294,
-            'spica/cache': 155,
-            'spica/flip': 165,
-            'spica/sequence': 228,
-            'spica/uncurry': 234
         }
     ],
     294: [
