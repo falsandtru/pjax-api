@@ -361,6 +361,11 @@ describe('Unit: layer/domain/router/module/update/script', () => {
             assert(el.integrity);
           })
           .extract());
+      await fetch(html('script', { src: 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js', integrity: 'sha256-N1K43s+8twRa+tzzoF3V8EgssdDiZ6kd9r8Rfgg8kZU=' }), 1e3)
+        .then(m => m
+          .extract(
+            e => Promise.resolve(e),
+            () => Promise.reject()));
       await fetch(html('script', { src: 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js', integrity: 'sha256' }), 1e3)
         .then(m => m
           .extract(
