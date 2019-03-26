@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.27.1
+
+- Use fetch API for script loading.
+
 ## 3.27.0
 
 - Change the return types of APIs to express that the request is accepted or not.

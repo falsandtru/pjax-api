@@ -3,10 +3,10 @@ import { Cancellee } from 'spica/cancellation';
 import { Either, Left, Right } from 'spica/either';
 import { tuple } from 'spica/tuple';
 import { concat } from 'spica/concat';
+import { wait } from 'spica/clock';
 import { find } from '../../../../../lib/dom';
 import { FatalError } from '../../../../../lib/error';
 import { URL } from '../../../../../lib/url';
-import { checkData } from '../../../../../lib/ssri';
 import { StandardUrl, standardizeUrl } from '../../../../data/model/domain/url';
 import { html } from 'typed-dom';
 
@@ -114,38 +114,23 @@ async function fetch(
 ): Promise<Either<Error, FetchData>> {
   if (!script.hasAttribute('src')) return Right<FetchData>([script, script.text]);
   if (script.type.toLowerCase() === 'module') return Right<FetchData>([script, '']);
-  const xhr = new XMLHttpRequest();
-  void xhr.open('GET', script.src, true);
-  xhr.timeout = timeout;
-  void xhr.send();
-  return new AtomicPromise<Either<Error, FetchData>>(resolve =>
-    ['load', 'abort', 'error', 'timeout']
-      .forEach(type => {
-        switch (type) {
-          case 'load':
-            return void xhr.addEventListener(
-              type,
-              () =>
-                !script.integrity || checkData(xhr.response as string, script.integrity)
-                  ? void resolve(Right<FetchData>([script, xhr.response as string]))
-                  : void resolve(Left(new Error(`${script.src}: Invalid integrity.`))))
-          case 'error':
-            return void xhr.addEventListener(
-              type,
-              () =>
-                script.matches('[src][async]')
-                  ? void resolve(retry(script)
-                      .then(
-                        () => Right<FetchData>([script, '']),
-                        () => Left(new Error(`${script.src}: ${xhr.statusText}`))))
-                  : void resolve(Left(new Error(`${script.src}: ${xhr.statusText}`))));
-          default:
-            return void xhr.addEventListener(
-              type,
-              () =>
-                void resolve(Left(new Error(`${script.src}: ${xhr.statusText}`))));
-        }
-      }));
+  return AtomicPromise.race([
+    window.fetch(script.src, {
+      integrity: script.integrity,
+    })
+      .then(
+        async res =>
+          res.ok
+            ? Right<FetchData>([script, await res.text()])
+            : script.matches('[src][async]')
+              ? retry(script)
+                .then(
+                  () => Right<FetchData>([script, '']),
+                  () => Left(new Error(`${script.src}: ${res.statusText}`)))
+              : Left(new Error(res.statusText)),
+        (error: Error) => Left(error)),
+    wait(timeout).then(() => Left(new Error(`${script.src}: Timeout.`))),
+  ]);
 }
 export { fetch as _fetch }
 
