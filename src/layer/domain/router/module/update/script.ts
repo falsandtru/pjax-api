@@ -117,20 +117,20 @@ async function fetch(
   return AtomicPromise.race([
     window.fetch(script.src, {
       integrity: script.integrity,
-    })
-      .then(
-        async res =>
-          res.ok
-            ? Right<FetchData>([script, await res.text()])
-            : script.matches('[src][async]')
-              ? retry(script)
+    }),
+    wait(timeout).then(() => AtomicPromise.reject(new Error(`${script.src}: Timeout.`))),
+  ])
+    .then(
+      async res =>
+        res.ok
+          ? Right<FetchData>([script, await res.text()])
+          : script.matches('[src][async]')
+            ? retry(script)
                 .then(
                   () => Right<FetchData>([script, '']),
                   () => Left(new Error(`${script.src}: ${res.statusText}`)))
-              : Left(new Error(res.statusText)),
-        (error: Error) => Left(error)),
-    wait(timeout).then(() => Left(new Error(`${script.src}: Timeout.`))),
-  ]);
+            : Left(new Error(res.statusText)),
+      (error: Error) => Left(error));
 }
 export { fetch as _fetch }
 
