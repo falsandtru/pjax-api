@@ -4307,17 +4307,17 @@ require = function () {
                             ''
                         ]);
                     return promise_1.AtomicPromise.race([
-                        window.fetch(script.src, { integrity: script.integrity }).then(res => __awaiter(this, void 0, void 0, function* () {
-                            return res.ok ? either_1.Right([
-                                script,
-                                yield res.text()
-                            ]) : script.matches('[src][async]') ? retry(script).then(() => either_1.Right([
-                                script,
-                                ''
-                            ]), () => either_1.Left(new Error(`${ script.src }: ${ res.statusText }`))) : either_1.Left(new Error(res.statusText));
-                        }), error => either_1.Left(error)),
-                        clock_1.wait(timeout).then(() => either_1.Left(new Error(`${ script.src }: Timeout.`)))
-                    ]);
+                        window.fetch(script.src, { integrity: script.integrity }),
+                        clock_1.wait(timeout).then(() => promise_1.AtomicPromise.reject(new Error(`${ script.src }: Timeout.`)))
+                    ]).then(res => __awaiter(this, void 0, void 0, function* () {
+                        return res.ok ? either_1.Right([
+                            script,
+                            yield res.text()
+                        ]) : script.matches('[src][async]') ? retry(script).then(() => either_1.Right([
+                            script,
+                            ''
+                        ]), () => either_1.Left(new Error(`${ script.src }: ${ res.statusText }`))) : either_1.Left(new Error(res.statusText));
+                    }), error => either_1.Left(error));
                 });
             }
             exports._fetch = fetch;
