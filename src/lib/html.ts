@@ -25,7 +25,7 @@ function parseByDoc(html: string): Document {
   return document;
 }
 
-export function fix(doc: Document): void {
+function fix(doc: Document): void {
   void fixNoscript(doc)
     .forEach(([src, fixed]) => src.textContent = fixed.textContent);
 }

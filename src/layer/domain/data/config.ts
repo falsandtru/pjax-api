@@ -36,6 +36,7 @@ export class Config implements DeepRequired<Option, Config['scope']> {
   public readonly replace = '';
   public readonly fetch = {
     rewrite: (path: URL.Path<StandardUrl>): string => path,
+    cache: (_path: URL.Path<StandardUrl>, _headers: Headers): string => '',
     headers: new Headers(),
     timeout: 3000,
     wait: 0,

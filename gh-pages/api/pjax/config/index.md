@@ -59,6 +59,13 @@ Wait specified milliseconds after sending a request.
 Rewrite a source document object.
 If you use the sequence option, you should use only it instead of this.
 
+### cache: (path: string, headers: Headers) => string = () => ''
+
+Give a key of the request cache.
+If you return empty string, the current request won't use or make the cache.
+This option is only enabled with GET method.
+Note that from caches you can't get the actual URL redirected on servers.
+
 ### head: string = `'base, meta, link'`
 
 Set sync targets in head element. Only support `base`, `meta`, and `link` tags.

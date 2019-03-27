@@ -16,6 +16,7 @@ export async function fetch(
   {
     fetch: {
       rewrite,
+      cache,
       headers,
       timeout,
       wait,
@@ -24,7 +25,7 @@ export async function fetch(
   }: Config,
   process: Cancellee<Error>
 ): Promise<Either<Error, readonly [FetchResponse, 'fetch']>> {
-  const req = xhr(method, url, headers, body, timeout, rewrite, process);
+  const req = xhr(method, url, headers, body, timeout, rewrite, cache, process);
   void window.dispatchEvent(new Event('pjax:fetch'));
   const [res, seq] = await Promise.all([
     req,

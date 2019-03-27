@@ -2,11 +2,14 @@ import { AtomicPromise } from 'spica/promise';
 import { Cancellee } from 'spica/cancellation';
 import { Sequence } from 'spica/sequence';
 import { Either, Left, Right } from 'spica/either';
+import { Cache } from 'spica/cache';
 import { RouterEventMethod } from '../../../event/router';
 import { FetchResponse } from '../../model/eav/value/fetch';
 import { StandardUrl, standardizeUrl } from '../../../../data/model/domain/url';
 import { DomainError } from '../../../data/error';
 import { URL } from '../../../../../lib/url';
+
+const memory = new Cache<string, (url: StandardUrl, url_: StandardUrl) => FetchResponse>(99);
 
 export function xhr(
   method: RouterEventMethod,
@@ -15,18 +18,23 @@ export function xhr(
   body: FormData | null,
   timeout: number,
   rewrite: (path: URL.Path<StandardUrl>) => string,
+  cache: (path: string, headers: Headers) => string,
   cancellation: Cancellee<Error>
 ): AtomicPromise<Either<Error, FetchResponse>> {
+  void headers.set('Accept', headers.get('Accept') || 'text/html');
   const url_ = standardizeUrl(rewrite(new URL(url).path));
+  const path = new URL(url_).path;
+  const key = method === 'GET'
+    ? cache(path, headers)
+    : '';
+  if (key && memory.has(key)) return AtomicPromise.resolve(Right(memory.get(key)!(url, url_)));
   const xhr = new XMLHttpRequest();
   return new AtomicPromise<Either<Error, FetchResponse>>(resolve => (
-    void xhr.open(method, new URL(url_).path, true),
-    void headers.set('Accept', headers.get('Accept') || 'text/html'),
+    void xhr.open(method, path, true),
     void [...headers.entries()]
       .forEach(([name, value]) =>
         void xhr.setRequestHeader(name, value)),
 
-    xhr.responseType = 'document',
     xhr.timeout = timeout,
     void xhr.send(body),
 
@@ -42,11 +50,17 @@ export function xhr(
     void xhr.addEventListener("load", () =>
       void verify(xhr)
         .fmap(xhr =>
-          new FetchResponse(
-            xhr.responseURL && url === url_
-              ? standardizeUrl(xhr.responseURL)
-              : url,
+          (url: StandardUrl, url_: StandardUrl) => new FetchResponse(
+            xhr.responseURL === url_
+              ? url
+              : standardizeUrl(key ? url : xhr.responseURL || url),
             xhr))
+        .fmap(f => {
+          if (key) {
+            void memory.set(key, f);
+          }
+          return f(url, url_);
+        })
         .extract(
           err => void resolve(Left(err)),
           res => void resolve(Right(res)))),

@@ -22,7 +22,7 @@ The second generation PJAX for the advanced web frameworks.
 |Non-blocking script load|O|O|O|
 |Subresource integrity checking|X|O<sup>\*1</sup>|X|
 |Lightweight source rewrite|X|O|O|
-|Cache|O|X|O|
+|Cache|O|O|O|
 |URL scope|X|O|X|
 |URL scope-based override settings|X|O|X|
 |**Browser history fix**|**X**|O|**X**|

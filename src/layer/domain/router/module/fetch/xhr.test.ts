@@ -14,6 +14,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
         null,
         0,
         p => p,
+        () => '',
         new Cancellation<Error>())
         .then(m => m.fmap(res => {
           assert(res.url === standardizeUrl(''));
@@ -31,6 +32,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
         null,
         1,
         p => p,
+        () => '',
         new Cancellation<Error>())
         .then(m => m.extract(err => {
           assert(err instanceof Error);
@@ -47,6 +49,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
         null,
         0,
         p => p,
+        () => '',
         new Cancellation<Error>())
         .then(m => m.fmap(() => {
           assert(Date.now() - time > 1000 - 10);
@@ -63,6 +66,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
         null,
         0,
         p => p,
+        () => '',
         cancellation)
         .then(m => m.extract(err => {
           assert(err instanceof Error);

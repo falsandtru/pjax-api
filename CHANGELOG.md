@@ -2,6 +2,8 @@
 
 ## 3.28.0
 
+- Add cache feature.
+  - Add `fetch.cache` option.
 - Move and rename `redirect` option to `fetch.rewrite`.
 - Move `rewrite` option to `update.rewrite`.
 
