@@ -3909,7 +3909,7 @@ require = function () {
             function xhr(method, url, headers, body, timeout, redirect, cancellation) {
                 const url_ = url_1.standardizeUrl(redirect(new url_2.URL(url).path));
                 const xhr = new XMLHttpRequest();
-                return new promise_1.AtomicPromise(resolve => (void xhr.open(method, new url_2.URL(url_).path, true), void [...headers.entries()].forEach(([name, value]) => void xhr.setRequestHeader(name, value)), xhr.responseType = 'document', xhr.timeout = timeout, void xhr.send(body), void xhr.addEventListener('abort', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by abort.`)))), void xhr.addEventListener('error', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by error.`)))), void xhr.addEventListener('timeout', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by timeout.`)))), void xhr.addEventListener('load', () => void verify(xhr).fmap(xhr => new fetch_1.FetchResponse(xhr.responseURL && url === url_ ? url_1.standardizeUrl(xhr.responseURL) : url, xhr)).extract(err => void resolve(either_1.Left(err)), res => void resolve(either_1.Right(res)))), void cancellation.register(() => void xhr.abort())));
+                return new promise_1.AtomicPromise(resolve => (void xhr.open(method, new url_2.URL(url_).path, true), void headers.set('Accept', headers.get('Accept') || 'text/html'), void [...headers.entries()].forEach(([name, value]) => void xhr.setRequestHeader(name, value)), xhr.responseType = 'document', xhr.timeout = timeout, void xhr.send(body), void xhr.addEventListener('abort', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by abort.`)))), void xhr.addEventListener('error', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by error.`)))), void xhr.addEventListener('timeout', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by timeout.`)))), void xhr.addEventListener('load', () => void verify(xhr).fmap(xhr => new fetch_1.FetchResponse(xhr.responseURL && url === url_ ? url_1.standardizeUrl(xhr.responseURL) : url, xhr)).extract(err => void resolve(either_1.Left(err)), res => void resolve(either_1.Right(res)))), void cancellation.register(() => void xhr.abort())));
             }
             exports.xhr = xhr;
             function verify(xhr) {
@@ -4307,7 +4307,10 @@ require = function () {
                             ''
                         ]);
                     return promise_1.AtomicPromise.race([
-                        window.fetch(script.src, { integrity: script.integrity }),
+                        window.fetch(script.src, {
+                            headers: new Headers({ Accept: 'application/javascript' }),
+                            integrity: script.integrity
+                        }),
                         clock_1.wait(timeout).then(() => promise_1.AtomicPromise.reject(new Error(`${ script.src }: Timeout.`)))
                     ]).then(res => __awaiter(this, void 0, void 0, function* () {
                         return res.ok ? either_1.Right([
