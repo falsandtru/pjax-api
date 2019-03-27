@@ -52,18 +52,12 @@ Set timeout for request by ms.
 
 Wait specified milliseconds after sending a request.
 
-## rewrite: (doc: Document, area: string) => void = ...
+## update: {...} = ...
+
+### rewrite: (doc: Document, area: string) => void = () => undefined
 
 Rewrite a source document object.
 If you use the sequence option, you should use only it instead of this.
-
-```ts
-  // default
-  public rewrite(doc: Document, area: string): void {
-  }
-```
-
-## update: {...} = ...
 
 ### head: string = `'base, meta, link'`
 

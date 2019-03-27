@@ -57,7 +57,7 @@ export function update(
               () => Left(new DomainError(`Failed to separate the areas.`)),
               process.either))
         .bind(([seqB, area]) => (
-          void config.rewrite(documents.src, area),
+          void config.update.rewrite(documents.src, area),
           separate(documents, config.areas)
             .fmap(([, areas]) =>
               [seqB, areas])

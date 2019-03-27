@@ -24,8 +24,8 @@ export interface Config {
     readonly timeout?: number;
     readonly wait?: number;
   };
-  readonly rewrite?: (doc: Document, area: string) => void;
   readonly update?: {
+    readonly rewrite?: (doc: Document, area: string) => void;
     readonly head?: string;
     readonly css?: boolean;
     readonly script?: boolean;

@@ -3,6 +3,7 @@
 ## 3.28.0
 
 - Move and rename `redirect` option to `fetch.rewrite`.
+- Move `rewrite` option to `update.rewrite`.
 
 ## 3.27.2
 

@@ -40,9 +40,8 @@ export class Config implements DeepRequired<Option, Config['scope']> {
     timeout: 3000,
     wait: 0,
   };
-  public rewrite(_doc: Document, _area: string): void {
-  }
   public readonly update = {
+    rewrite: (_doc: Document, _area: string): void => undefined,
     head: 'base, meta, link',
     css: true,
     script: true,
