@@ -38,18 +38,11 @@ Set target forms.
 
 Set target anchor links that will replace a current url.
 
-## redirect: (path: string) => string = ...
-
-Redirect a page request implicitly.
-
-```ts
-  // default
-  public redirect(path: string): string {
-    return path;
-  }
-```
-
 ## fetch: {...} = ...
+
+### rewrite: (path: string) => string = path => path
+
+Rewrite URL implicitly.
 
 ### timeout: number = `3000`
 
@@ -59,18 +52,19 @@ Set timeout for request by ms.
 
 Wait specified milliseconds after sending a request.
 
-## rewrite: (doc: Document, area: string) => void = ...
+## update: {...} = ...
+
+### rewrite: (doc: Document, area: string) => void = () => undefined
 
 Rewrite a source document object.
 If you use the sequence option, you should use only it instead of this.
 
-```ts
-  // default
-  public rewrite(doc: Document, area: string): void {
-  }
-```
+### cache: (path: string, headers: Headers) => string = () => ''
 
-## update: {...} = ...
+Give a key of the request cache.
+If you return empty string, the current request won't use or make the cache.
+This option is only enabled with GET method.
+Note that from caches you can't get the actual URL redirected on servers.
 
 ### head: string = `'base, meta, link'`
 

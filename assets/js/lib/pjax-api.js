@@ -3511,11 +3511,14 @@ require = function () {
                     this.form = 'form:not([method])';
                     this.replace = '';
                     this.fetch = {
+                        rewrite: path => path,
+                        cache: (_path, _headers) => '',
                         headers: new Headers(),
                         timeout: 3000,
                         wait: 0
                     };
                     this.update = {
+                        rewrite: (_doc, _area) => undefined,
                         head: 'base, meta, link',
                         css: true,
                         script: true,
@@ -3548,11 +3551,6 @@ require = function () {
                 }
                 filter(el) {
                     return el.matches(':not([target])');
-                }
-                redirect(path) {
-                    return path;
-                }
-                rewrite(_doc, _area) {
                 }
                 fallback(target, reason) {
                     if (target instanceof HTMLAnchorElement) {
@@ -3690,13 +3688,13 @@ require = function () {
                     })();
                     this.url = (() => {
                         if (this.source instanceof RouterEventSource.Anchor) {
-                            return url_2.standardizeUrl(this.source.href);
+                            return new url_1.URL(url_2.standardizeUrl(this.source.href)).href;
                         }
                         if (this.source instanceof RouterEventSource.Form) {
-                            return this.source.method.toUpperCase() === RouterEventMethod.GET ? url_2.standardizeUrl(this.source.action.split(/[?#]/)[0] + `?${ dom_1.serialize(this.source) }`) : url_2.standardizeUrl(this.source.action.split(/[?#]/)[0]);
+                            return this.source.method.toUpperCase() === RouterEventMethod.GET ? new url_1.URL(url_2.standardizeUrl(this.source.action.split(/[?#]/)[0] + `?${ dom_1.serialize(this.source) }`)).href : new url_1.URL(url_2.standardizeUrl(this.source.action.split(/[?#]/)[0])).href;
                         }
                         if (this.source instanceof RouterEventSource.Window) {
-                            return url_2.standardizeUrl(window.location.href);
+                            return new url_1.URL(url_2.standardizeUrl(window.location.href)).href;
                         }
                         throw new TypeError();
                     })();
@@ -3821,8 +3819,7 @@ require = function () {
                     this.url = url;
                     this.xhr = xhr;
                     this.header = name => this.xhr.getResponseHeader(name);
-                    this.document = this.xhr.response;
-                    void html_1.fix(this.document);
+                    this.document = html_1.parse(this.xhr.responseText).extract();
                     void Object.freeze(this);
                 }
             }
@@ -3863,12 +3860,11 @@ require = function () {
             const error_1 = _dereq_('../../data/error');
             const url_1 = _dereq_('../../../../lib/url');
             function fetch({method, url, body}, {
-                redirect,
-                fetch: {headers, timeout, wait},
+                fetch: {rewrite, cache, headers, timeout, wait},
                 sequence
             }, process) {
                 return __awaiter(this, void 0, void 0, function* () {
-                    const req = xhr_1.xhr(method, url, headers, body, timeout, redirect, process);
+                    const req = xhr_1.xhr(method, url, headers, body, timeout, rewrite, cache, process);
                     void window.dispatchEvent(new Event('pjax:fetch'));
                     const [res, seq] = yield Promise.all([
                         req,
@@ -3902,14 +3898,26 @@ require = function () {
             const promise_1 = _dereq_('spica/promise');
             const sequence_1 = _dereq_('spica/sequence');
             const either_1 = _dereq_('spica/either');
+            const cache_1 = _dereq_('spica/cache');
             const fetch_1 = _dereq_('../../model/eav/value/fetch');
             const url_1 = _dereq_('../../../../data/model/domain/url');
             const error_1 = _dereq_('../../../data/error');
             const url_2 = _dereq_('../../../../../lib/url');
-            function xhr(method, url, headers, body, timeout, redirect, cancellation) {
-                const url_ = url_1.standardizeUrl(redirect(new url_2.URL(url).path));
+            const memory = new cache_1.Cache(99);
+            function xhr(method, url, headers, body, timeout, rewrite, cache, cancellation) {
+                void headers.set('Accept', headers.get('Accept') || 'text/html');
+                const url_ = new url_2.URL(url_1.standardizeUrl(rewrite(new url_2.URL(url).path))).href;
+                const path = new url_2.URL(url_).path;
+                const key = method === 'GET' ? cache(path, headers) : '';
+                if (key && memory.has(key))
+                    return promise_1.AtomicPromise.resolve(either_1.Right(memory.get(key)(url, url_)));
                 const xhr = new XMLHttpRequest();
-                return new promise_1.AtomicPromise(resolve => (void xhr.open(method, new url_2.URL(url_).path, true), void headers.set('Accept', headers.get('Accept') || 'text/html'), void [...headers.entries()].forEach(([name, value]) => void xhr.setRequestHeader(name, value)), xhr.responseType = 'document', xhr.timeout = timeout, void xhr.send(body), void xhr.addEventListener('abort', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by abort.`)))), void xhr.addEventListener('error', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by error.`)))), void xhr.addEventListener('timeout', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by timeout.`)))), void xhr.addEventListener('load', () => void verify(xhr).fmap(xhr => new fetch_1.FetchResponse(xhr.responseURL && url === url_ ? url_1.standardizeUrl(xhr.responseURL) : url, xhr)).extract(err => void resolve(either_1.Left(err)), res => void resolve(either_1.Right(res)))), void cancellation.register(() => void xhr.abort())));
+                return new promise_1.AtomicPromise(resolve => (void xhr.open(method, path, true), void [...headers.entries()].forEach(([name, value]) => void xhr.setRequestHeader(name, value)), xhr.timeout = timeout, void xhr.send(body), void xhr.addEventListener('abort', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by abort.`)))), void xhr.addEventListener('error', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by error.`)))), void xhr.addEventListener('timeout', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by timeout.`)))), void xhr.addEventListener('load', () => void verify(xhr).fmap(xhr => (url, url_) => new fetch_1.FetchResponse(xhr.responseURL === url_ ? url : new url_2.URL(url_1.standardizeUrl(key ? url : xhr.responseURL || url)).href, xhr)).fmap(f => {
+                    if (key) {
+                        void memory.set(key, f);
+                    }
+                    return f(url, url_);
+                }).extract(err => void resolve(either_1.Left(err)), res => void resolve(either_1.Right(res)))), void cancellation.register(() => void xhr.abort())));
             }
             exports.xhr = xhr;
             function verify(xhr) {
@@ -3928,6 +3936,7 @@ require = function () {
             '../../../../data/model/domain/url': 96,
             '../../../data/error': 100,
             '../../model/eav/value/fetch': 104,
+            'spica/cache': 5,
             'spica/either': 12,
             'spica/promise': 77,
             'spica/sequence': 78
@@ -3985,7 +3994,7 @@ require = function () {
                 return promise_1.AtomicPromise.resolve(seq).then(process.either).then(m => m.bind(() => content_1.separate(documents, config.areas).extract(() => either_1.Left(new error_1.DomainError(`Failed to separate the areas.`)), () => m)).fmap(seqA => (void window.dispatchEvent(new Event('pjax:unload')), config.sequence.unload(seqA, response)))).then(m => either_1.Either.sequence(m)).then(process.promise).then(m => m.bind(seqB => content_1.separate(documents, config.areas).fmap(([area]) => [
                     seqB,
                     area
-                ]).extract(() => either_1.Left(new error_1.DomainError(`Failed to separate the areas.`)), process.either)).bind(([seqB, area]) => (void config.rewrite(documents.src, area), content_1.separate(documents, config.areas).fmap(([, areas]) => [
+                ]).extract(() => either_1.Left(new error_1.DomainError(`Failed to separate the areas.`)), process.either)).bind(([seqB, area]) => (void config.update.rewrite(documents.src, area), content_1.separate(documents, config.areas).fmap(([, areas]) => [
                     seqB,
                     areas
                 ]).extract(() => either_1.Left(new error_1.DomainError(`Failed to separate the areas.`)), process.either)))).then(process.promise).then(m => m.fmap(([seqB, areas]) => new hlist_1.HNil().extend(() => (void blur_1.blur(documents.dst), void url_1.url(new router_1.RouterEventLocation(response.url), documents.src.title, event.type, event.source, config.replace), void title_1.title(documents), void path_1.saveTitle(), void head_1.head(documents, config.update.head, config.update.ignore), process.either(content_1.content(documents, areas)).fmap(([as, ps]) => [
@@ -5097,7 +5106,6 @@ require = function () {
             function fix(doc) {
                 void fixNoscript(doc).forEach(([src, fixed]) => src.textContent = fixed.textContent);
             }
-            exports.fix = fix;
             function fixNoscript(doc) {
                 return dom_1.find(doc, 'noscript').filter(el => el.children.length > 0).map(el => {
                     const clone = el.cloneNode(true);
