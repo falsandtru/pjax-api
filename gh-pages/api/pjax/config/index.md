@@ -40,7 +40,7 @@ Set target anchor links that will replace a current url.
 
 ## fetch: {...} = ...
 
-### rewrite: (path: string) => string = path => path
+### rewrite: (path: string) => string = `path => path`
 
 Rewrite URL implicitly.
 
@@ -54,12 +54,12 @@ Wait specified milliseconds after sending a request.
 
 ## update: {...} = ...
 
-### rewrite: (doc: Document, area: string) => void = () => undefined
+### rewrite: (doc: Document, area: string) => void = `() => undefined`
 
 Rewrite a source document object.
 If you use the sequence option, you should use only it instead of this.
 
-### cache: (path: string, headers: Headers) => string = () => ''
+### cache: (path: string, headers: Headers) => string = `() => ''`
 
 Give a key of the request cache.
 If you return empty string, the current request won't use or make the cache.
