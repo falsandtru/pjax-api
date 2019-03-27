@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.27.2
+
+- Add accept header to requests.
+
 ## 3.27.1
 
 - Use fetch API for script loading.

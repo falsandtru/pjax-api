@@ -21,6 +21,7 @@ export function xhr(
   const xhr = new XMLHttpRequest();
   return new AtomicPromise<Either<Error, FetchResponse>>(resolve => (
     void xhr.open(method, new URL(url_).path, true),
+    void headers.set('Accept', headers.get('Accept') || 'text/html'),
     void [...headers.entries()]
       .forEach(([name, value]) =>
         void xhr.setRequestHeader(name, value)),
