@@ -1,4 +1,5 @@
 import { RouterEventMethod, RouterEventRequest, RouterEventLocation } from './router';
+import { URL } from '../../../lib/url';
 import { standardizeUrl } from '../../data/model/domain/url';
 import { html } from 'typed-dom';
 
@@ -40,7 +41,7 @@ describe('Unit: layer/domain/event/router', () => {
 
   describe('RouterEventLocation', () => {
     it('instance', () => {
-      const loc = new RouterEventLocation(standardizeUrl('#'));
+      const loc = new RouterEventLocation(new URL(standardizeUrl('#')).href);
       assert(loc.orig.href === standardizeUrl(location.href));
       assert(loc.dest.href === standardizeUrl(location.href + '#'));
     });

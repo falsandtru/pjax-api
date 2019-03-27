@@ -1,5 +1,6 @@
 import { xhr, match_ as match } from './xhr';
 import { RouterEventMethod } from '../../../event/router';
+import { URL } from '../../../../../lib/url';
 import { standardizeUrl } from '../../../../data/model/domain/url';
 import { Cancellation } from 'spica/cancellation';
 import { Sequence } from 'spica/sequence';
@@ -9,7 +10,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
     it('success', done => {
       xhr(
         RouterEventMethod.GET,
-        standardizeUrl(''),
+        new URL(standardizeUrl('')).href,
         new Headers(),
         null,
         0,
@@ -27,7 +28,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
     it.skip('timeout', done => {
       xhr(
         RouterEventMethod.GET,
-        standardizeUrl('?timeout'),
+        new URL(standardizeUrl('?timeout')).href,
         new Headers(),
         null,
         1,
@@ -44,7 +45,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
       const time = Date.now();
       xhr(
         RouterEventMethod.GET,
-        standardizeUrl(''),
+        new URL(standardizeUrl('')).href,
         new Headers(),
         null,
         0,
@@ -61,7 +62,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
       const cancellation = new Cancellation<Error>();
       xhr(
         RouterEventMethod.GET,
-        standardizeUrl(''),
+        new URL(standardizeUrl('')).href,
         new Headers(),
         null,
         0,

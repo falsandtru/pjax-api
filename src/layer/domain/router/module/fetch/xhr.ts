@@ -9,11 +9,11 @@ import { StandardUrl, standardizeUrl } from '../../../../data/model/domain/url';
 import { DomainError } from '../../../data/error';
 import { URL } from '../../../../../lib/url';
 
-const memory = new Cache<string, (url: StandardUrl, url_: StandardUrl) => FetchResponse>(99);
+const memory = new Cache<string, (a: URL.Absolute<StandardUrl>, b: URL.Absolute<StandardUrl>) => FetchResponse>(99);
 
 export function xhr(
   method: RouterEventMethod,
-  url: StandardUrl,
+  url: URL.Absolute<StandardUrl>,
   headers: Headers,
   body: FormData | null,
   timeout: number,
@@ -22,7 +22,7 @@ export function xhr(
   cancellation: Cancellee<Error>
 ): AtomicPromise<Either<Error, FetchResponse>> {
   void headers.set('Accept', headers.get('Accept') || 'text/html');
-  const url_ = standardizeUrl(rewrite(new URL(url).path));
+  const url_ = new URL(standardizeUrl(rewrite(new URL(url).path))).href;
   const path = new URL(url_).path;
   const key = method === 'GET'
     ? cache(path, headers)
@@ -50,10 +50,10 @@ export function xhr(
     void xhr.addEventListener("load", () =>
       void verify(xhr)
         .fmap(xhr =>
-          (url: StandardUrl, url_: StandardUrl) => new FetchResponse(
+          (url: URL.Absolute<StandardUrl>, url_: URL.Absolute<StandardUrl>) => new FetchResponse(
             xhr.responseURL === url_
               ? url
-              : standardizeUrl(key ? url : xhr.responseURL || url),
+              : new URL(standardizeUrl(key ? url : xhr.responseURL || url)).href,
             xhr))
         .fmap(f => {
           if (key) {
