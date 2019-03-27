@@ -7,83 +7,83 @@ describe('Unit: layer/domain/data/config/scope', () => {
   describe('scope', () => {
     it('match', () => {
       assert.deepStrictEqual(
-        scope(new Config({}), {
+        JSON.stringify(scope(new Config({}), {
           orig: new URL(standardizeUrl('/')).pathname,
           dest: new URL(standardizeUrl('/')).pathname
-        }).extract(),
-        new Config({}));
+        }).extract()),
+        JSON.stringify(new Config({})));
       assert.deepStrictEqual(
-        scope(new Config({}), {
+        JSON.stringify(scope(new Config({}), {
           orig: new URL(standardizeUrl('/a')).pathname,
           dest: new URL(standardizeUrl('/a')).pathname
-        }).extract(),
-        new Config({}));
+        }).extract()),
+        JSON.stringify(new Config({})));
       assert.deepStrictEqual(
-        scope(new Config({}), {
+        JSON.stringify(scope(new Config({}), {
           orig: new URL(standardizeUrl('/a/')).pathname,
           dest: new URL(standardizeUrl('/a/')).pathname
-        }).extract(),
-        new Config({}));
+        }).extract()),
+        JSON.stringify(new Config({})));
       assert.deepStrictEqual(
-        scope(new Config({}), {
+        JSON.stringify(scope(new Config({}), {
           orig: new URL(standardizeUrl('/abc')).pathname,
           dest: new URL(standardizeUrl('/abc')).pathname
-        }).extract(),
-        new Config({}));
+        }).extract()),
+        JSON.stringify(new Config({})));
       assert.deepStrictEqual(
-        scope(new Config({}), {
+        JSON.stringify(scope(new Config({}), {
           orig: new URL(standardizeUrl('/abc/')).pathname,
           dest: new URL(standardizeUrl('/abc/')).pathname
-        }).extract(),
-        new Config({}));
+        }).extract()),
+        JSON.stringify(new Config({})));
       assert.deepStrictEqual(
-        scope(new Config({}), {
+        JSON.stringify(scope(new Config({}), {
           orig: new URL(standardizeUrl('/a/b/c.d')).pathname,
           dest: new URL(standardizeUrl('/a/b/c.d')).pathname
-        }).extract(),
-        new Config({}));
+        }).extract()),
+        JSON.stringify(new Config({})));
     });
 
     it('mismatch', () => {
       assert.deepStrictEqual(
-        scope(new Config({ scope: { '/a': {} } }), {
+        JSON.stringify(scope(new Config({ scope: { '/a': {} } }), {
           orig: new URL(standardizeUrl('/')).pathname,
           dest: new URL(standardizeUrl('/a')).pathname
-        }).extract(() => []),
-        []);
+        }).extract(() => [])),
+        JSON.stringify([]));
       assert.deepStrictEqual(
-        scope(new Config({ scope: { '/a': {} } }), {
+        JSON.stringify(scope(new Config({ scope: { '/a': {} } }), {
           orig: new URL(standardizeUrl('/a')).pathname,
           dest: new URL(standardizeUrl('/')).pathname
-        }).extract(() => []),
-        []);
+        }).extract(() => [])),
+        JSON.stringify([]));
     });
 
     it('extend', () => {
       assert.deepStrictEqual(
-        scope(new Config({ scope: { '/': { fetch: { wait: 100 } } } }), {
+        JSON.stringify(scope(new Config({ scope: { '/': { fetch: { wait: 100 } } } }), {
           orig: new URL(standardizeUrl('/')).pathname,
           dest: new URL(standardizeUrl('/')).pathname
-        }).extract(),
-        new Config({ fetch: { wait: 100 }, scope: { '/': { fetch: { wait: 100 } } } }));
+        }).extract()),
+        JSON.stringify(new Config({ fetch: { wait: 100 }, scope: { '/': { fetch: { wait: 100 } } } })));
     });
 
     it('disable', () => {
       assert.deepStrictEqual(
-        scope(new Config({ scope: { '/': undefined } }), {
+        JSON.stringify(scope(new Config({ scope: { '/': undefined } }), {
           orig: new URL(standardizeUrl('/')).pathname,
           dest: new URL(standardizeUrl('/')).pathname
-        }).extract(() => ({})),
-        {});
+        }).extract(() => ({}))),
+        JSON.stringify({}));
     });
 
     it('enable', () => {
       assert.deepStrictEqual(
-        scope(new Config({ scope: { '/': undefined, '/a': {} } }), {
+        JSON.stringify(scope(new Config({ scope: { '/': undefined, '/a': {} } }), {
           orig: new URL(standardizeUrl('/a')).pathname,
           dest: new URL(standardizeUrl('/a')).pathname
-        }).extract(),
-        new Config({ scope: { '/': undefined, '/a': {} } }));
+        }).extract()),
+        JSON.stringify(new Config({ scope: { '/': undefined, '/a': {} } })));
     });
 
   });

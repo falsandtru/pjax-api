@@ -14,10 +14,10 @@ export function xhr(
   headers: Headers,
   body: FormData | null,
   timeout: number,
-  redirect: (path: URL.Path<StandardUrl>) => string,
+  rewrite: (path: URL.Path<StandardUrl>) => string,
   cancellation: Cancellee<Error>
 ): AtomicPromise<Either<Error, FetchResponse>> {
-  const url_ = standardizeUrl(redirect(new URL(url).path));
+  const url_ = standardizeUrl(rewrite(new URL(url).path));
   const xhr = new XMLHttpRequest();
   return new AtomicPromise<Either<Error, FetchResponse>>(resolve => (
     void xhr.open(method, new URL(url_).path, true),

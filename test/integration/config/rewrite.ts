@@ -9,12 +9,14 @@ describe('Integration: Config', function () {
     unregister();
   });
 
-  describe('redirect', function () {
+  describe('rewrite', function () {
     it('', function (done) {
       const url = '/base/test/integration/fixture/basic/1.html';
       const document = parse('').extract();
       new Pjax({
-        redirect: path => path.replace('/1.html', '/2.html') 
+        fetch: {
+          rewrite: path => path.replace('/1.html', '/2.html')
+        }
       }, { document, router })
         .assign(url);
       once(document, 'pjax:ready', () => {

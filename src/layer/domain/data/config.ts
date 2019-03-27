@@ -34,13 +34,11 @@ export class Config implements DeepRequired<Option, Config['scope']> {
   }
   public readonly form = 'form:not([method])';
   public readonly replace = '';
-  public redirect(path: URL.Path<StandardUrl>): string {
-    return path;
-  }
   public readonly fetch = {
+    rewrite: (path: URL.Path<StandardUrl>): string => path,
     headers: new Headers(),
     timeout: 3000,
-    wait: 0
+    wait: 0,
   };
   public rewrite(_doc: Document, _area: string): void {
   }

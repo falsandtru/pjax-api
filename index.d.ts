@@ -18,8 +18,8 @@ export interface Config {
   readonly filter?: (el: HTMLAnchorElement) => boolean;
   readonly form?: string;
   readonly replace?: string;
-  readonly redirect?: (path: string) => string;
   readonly fetch?: {
+    readonly rewrite?: (path: string) => string;
     readonly headers?: Headers;
     readonly timeout?: number;
     readonly wait?: number;

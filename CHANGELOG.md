@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.28.0
+
+- Move and rename `redirect` option to `fetch.rewrite`.
+
 ## 3.27.2
 
 - Add accept header to requests.

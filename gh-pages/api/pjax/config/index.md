@@ -38,18 +38,11 @@ Set target forms.
 
 Set target anchor links that will replace a current url.
 
-## redirect: (path: string) => string = ...
-
-Redirect a page request implicitly.
-
-```ts
-  // default
-  public redirect(path: string): string {
-    return path;
-  }
-```
-
 ## fetch: {...} = ...
+
+### rewrite: (path: string) => string = path => path
+
+Rewrite URL implicitly.
 
 ### timeout: number = `3000`
 
