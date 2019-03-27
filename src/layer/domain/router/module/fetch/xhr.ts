@@ -22,8 +22,7 @@ export function xhr(
   cancellation: Cancellee<Error>
 ): AtomicPromise<Either<Error, FetchResponse>> {
   void headers.set('Accept', headers.get('Accept') || 'text/html');
-  const url_ = new URL(standardizeUrl(rewrite(new URL(url).path))).href;
-  const path = new URL(url_).path;
+  const { href: url_, path } = new URL(standardizeUrl(rewrite(new URL(url).path)));
   const key = method === 'GET'
     ? cache(path, headers)
     : '';
@@ -50,11 +49,12 @@ export function xhr(
     void xhr.addEventListener("load", () =>
       void verify(xhr)
         .fmap(xhr =>
-          (url1: URL.Absolute<StandardUrl>, url2: URL.Absolute<StandardUrl>) => new FetchResponse(
-            xhr.responseURL === url2
-              ? url1
-              : new URL(standardizeUrl(url1 === url || !key ? xhr.responseURL || url1 : url1)).href,
-            xhr))
+          (url1: URL.Absolute<StandardUrl>, url2: URL.Absolute<StandardUrl>) =>
+            new FetchResponse(
+              xhr.responseURL === url2
+                ? url1
+                : new URL(standardizeUrl(url1 === url || !key ? xhr.responseURL || url1 : url1)).href,
+              xhr))
         .fmap(f => {
           if (key) {
             void memory.set(key, f);
