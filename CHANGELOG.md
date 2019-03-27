@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.28.1
+
+- Fix cache feature.
+
 ## 3.28.0
 
 - Add cache feature.

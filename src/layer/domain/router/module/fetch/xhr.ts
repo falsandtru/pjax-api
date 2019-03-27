@@ -50,10 +50,10 @@ export function xhr(
     void xhr.addEventListener("load", () =>
       void verify(xhr)
         .fmap(xhr =>
-          (url: URL.Absolute<StandardUrl>, url_: URL.Absolute<StandardUrl>) => new FetchResponse(
-            xhr.responseURL === url_
-              ? url
-              : new URL(standardizeUrl(key ? url : xhr.responseURL || url)).href,
+          (url1: URL.Absolute<StandardUrl>, url2: URL.Absolute<StandardUrl>) => new FetchResponse(
+            xhr.responseURL === url2
+              ? url1
+              : new URL(standardizeUrl(url1 === url || !key ? xhr.responseURL || url1 : url1)).href,
             xhr))
         .fmap(f => {
           if (key) {
