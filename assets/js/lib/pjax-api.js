@@ -3906,8 +3906,10 @@ require = function () {
             const memory = new cache_1.Cache(99);
             function xhr(method, url, headers, body, timeout, rewrite, cache, cancellation) {
                 void headers.set('Accept', headers.get('Accept') || 'text/html');
-                const url_ = new url_2.URL(url_1.standardizeUrl(rewrite(new url_2.URL(url).path))).href;
-                const path = new url_2.URL(url_).path;
+                const {
+                    href: url_,
+                    path
+                } = new url_2.URL(url_1.standardizeUrl(rewrite(new url_2.URL(url).path)));
                 const key = method === 'GET' ? cache(path, headers) : '';
                 if (key && memory.has(key))
                     return promise_1.AtomicPromise.resolve(either_1.Right(memory.get(key)(url, url_)));
