@@ -1,5 +1,6 @@
 import { Cancellee } from 'spica/cancellation';
 import { Either, Left, Right } from 'spica/either';
+import { wait as sleep } from 'spica/clock';
 import { Config } from '../../data/config';
 import { RouterEventRequest } from '../../event/router';
 import { FetchResponse } from '../model/eav/value/fetch';
@@ -35,7 +36,7 @@ export async function fetch(
       headers,
       body,
     }),
-    new Promise<void>(resolve => void setTimeout(resolve, wait))
+    sleep(wait),
   ]);
   return res
     .bind(process.either)
