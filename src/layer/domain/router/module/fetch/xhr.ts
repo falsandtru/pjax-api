@@ -28,23 +28,23 @@ export function xhr(
     : '';
   if (key && memory.has(key)) return AtomicPromise.resolve(Right(memory.get(key)!(url, url_)));
   const xhr = new XMLHttpRequest();
-  return new AtomicPromise<Either<Error, FetchResponse>>(resolve => (
-    void xhr.open(method, path, true),
-    void [...headers.entries()]
-      .forEach(([name, value]) =>
-        void xhr.setRequestHeader(name, value)),
+  return new AtomicPromise<Either<Error, FetchResponse>>(resolve => {
+    void xhr.open(method, path, true);
+    for (const [name, value] of headers) {
+      void xhr.setRequestHeader(name, value);
+    }
 
-    xhr.timeout = timeout,
-    void xhr.send(body),
+    xhr.timeout = timeout;
+    void xhr.send(body);
 
     void xhr.addEventListener("abort", () =>
-      void resolve(Left(new DomainError(`Failed to request a page by abort.`)))),
+      void resolve(Left(new DomainError(`Failed to request a page by abort.`))));
 
     void xhr.addEventListener("error", () =>
-      void resolve(Left(new DomainError(`Failed to request a page by error.`)))),
+      void resolve(Left(new DomainError(`Failed to request a page by error.`))));
 
     void xhr.addEventListener("timeout", () =>
-      void resolve(Left(new DomainError(`Failed to request a page by timeout.`)))),
+      void resolve(Left(new DomainError(`Failed to request a page by timeout.`))));
 
     void xhr.addEventListener("load", () =>
       void verify(xhr)
@@ -63,9 +63,10 @@ export function xhr(
         })
         .extract(
           err => void resolve(Left(err)),
-          res => void resolve(Right(res)))),
+          res => void resolve(Right(res))));
 
-    void cancellation.register(() => void xhr.abort())));
+    void cancellation.register(() => void xhr.abort());
+  });
 }
 
 function verify(xhr: XMLHttpRequest): Either<Error, XMLHttpRequest> {
