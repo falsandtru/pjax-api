@@ -24,8 +24,8 @@ export function xhr(
   void headers.set('Accept', headers.get('Accept') || 'text/html');
   const { href: url_, path } = new URL(standardizeUrl(rewrite(new URL(url).path)));
   const key = method === 'GET'
-    ? cache(path, headers)
-    : '';
+    ? cache(path, headers) || undefined
+    : undefined;
   if (key && memory.has(key)) return AtomicPromise.resolve(Right(memory.get(key)!(url, url_)));
   const xhr = new XMLHttpRequest();
   return new AtomicPromise<Either<Error, FetchResponse>>(resolve => {
