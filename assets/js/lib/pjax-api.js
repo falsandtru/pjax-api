@@ -3856,6 +3856,7 @@ require = function () {
             };
             Object.defineProperty(exports, '__esModule', { value: true });
             const either_1 = _dereq_('spica/either');
+            const clock_1 = _dereq_('spica/clock');
             const xhr_1 = _dereq_('../module/fetch/xhr');
             const error_1 = _dereq_('../../data/error');
             const url_1 = _dereq_('../../../../lib/url');
@@ -3874,7 +3875,7 @@ require = function () {
                             headers,
                             body
                         }),
-                        new Promise(resolve => void setTimeout(resolve, wait))
+                        clock_1.wait(wait)
                     ]);
                     return res.bind(process.either).bind(res => new url_1.URL(res.url).origin === new url_1.URL(url).origin ? either_1.Right([
                         res,
@@ -3888,6 +3889,7 @@ require = function () {
             '../../../../lib/url': 136,
             '../../data/error': 100,
             '../module/fetch/xhr': 106,
+            'spica/clock': 8,
             'spica/either': 12
         }
     ],
@@ -3910,16 +3912,28 @@ require = function () {
                     href: url_,
                     path
                 } = new url_2.URL(url_1.standardizeUrl(rewrite(new url_2.URL(url).path)));
-                const key = method === 'GET' ? cache(path, headers) : '';
+                const key = method === 'GET' ? cache(path, headers) || undefined : undefined;
                 if (key && memory.has(key))
                     return promise_1.AtomicPromise.resolve(either_1.Right(memory.get(key)(url, url_)));
                 const xhr = new XMLHttpRequest();
-                return new promise_1.AtomicPromise(resolve => (void xhr.open(method, path, true), void [...headers.entries()].forEach(([name, value]) => void xhr.setRequestHeader(name, value)), xhr.timeout = timeout, void xhr.send(body), void xhr.addEventListener('abort', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by abort.`)))), void xhr.addEventListener('error', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by error.`)))), void xhr.addEventListener('timeout', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by timeout.`)))), void xhr.addEventListener('load', () => void verify(xhr).fmap(xhr => (url1, url2) => new fetch_1.FetchResponse(xhr.responseURL === url2 ? url1 : new url_2.URL(url_1.standardizeUrl(url1 === url || !key ? xhr.responseURL || url1 : url1)).href, xhr)).fmap(f => {
-                    if (key) {
-                        void memory.set(key, f);
+                return new promise_1.AtomicPromise(resolve => {
+                    void xhr.open(method, path, true);
+                    for (const [name, value] of headers) {
+                        void xhr.setRequestHeader(name, value);
                     }
-                    return f(url, url_);
-                }).extract(err => void resolve(either_1.Left(err)), res => void resolve(either_1.Right(res)))), void cancellation.register(() => void xhr.abort())));
+                    xhr.timeout = timeout;
+                    void xhr.send(body);
+                    void xhr.addEventListener('abort', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by abort.`))));
+                    void xhr.addEventListener('error', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by error.`))));
+                    void xhr.addEventListener('timeout', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by timeout.`))));
+                    void xhr.addEventListener('load', () => void verify(xhr).fmap(xhr => (url1, url2) => new fetch_1.FetchResponse(xhr.responseURL === url2 ? url1 : new url_2.URL(url_1.standardizeUrl(url1 === url || !key ? xhr.responseURL || url1 : url1)).href, xhr)).fmap(f => {
+                        if (key) {
+                            void memory.set(key, f);
+                        }
+                        return f(url, url_);
+                    }).extract(err => void resolve(either_1.Left(err)), res => void resolve(either_1.Right(res))));
+                    void cancellation.register(() => void xhr.abort());
+                });
             }
             exports.xhr = xhr;
             function verify(xhr) {
