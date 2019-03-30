@@ -54,7 +54,7 @@ export function xhr(
             new FetchResponse(
               !xhr.responseURL || standardizeUrl(xhr.responseURL) === overriddenRequestURL.href
                 ? overriddenDisplayURL.href
-                : overriddenDisplayURL.href === url || !key
+                : overriddenRequestURL.href === requestURL.href || !key
                     ? new URL(standardizeUrl(xhr.responseURL)).href
                     : overriddenDisplayURL.href,
               xhr))

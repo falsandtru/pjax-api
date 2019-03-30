@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.28.2
+
+- Fix URL control with shared caches.
+
 ## 3.28.1
 
 - Fix cache feature.
