@@ -50,13 +50,13 @@ export function xhr(
     void xhr.addEventListener("load", () =>
       void verify(xhr)
         .fmap(xhr =>
-          (displayURL: URL<StandardUrl>, requestURL: URL<StandardUrl>) =>
+          (overriddenDisplayURL: URL<StandardUrl>, overriddenRequestURL: URL<StandardUrl>) =>
             new FetchResponse(
-              !xhr.responseURL || standardizeUrl(xhr.responseURL) === requestURL.href
-                ? displayURL.href
-                : displayURL.href === url || !key
+              !xhr.responseURL || standardizeUrl(xhr.responseURL) === overriddenRequestURL.href
+                ? overriddenDisplayURL.href
+                : overriddenDisplayURL.href === url || !key
                     ? new URL(standardizeUrl(xhr.responseURL)).href
-                    : displayURL.href,
+                    : overriddenDisplayURL.href,
               xhr))
         .fmap(f => {
           if (key) {
