@@ -3924,7 +3924,7 @@ require = function () {
                     void xhr.addEventListener('abort', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by abort.`))));
                     void xhr.addEventListener('error', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by error.`))));
                     void xhr.addEventListener('timeout', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by timeout.`))));
-                    void xhr.addEventListener('load', () => void verify(xhr).fmap(xhr => (displayURL, requestURL) => new fetch_1.FetchResponse(!xhr.responseURL || xhr.responseURL === requestURL.href ? displayURL.href : displayURL.href === url || !key ? new url_2.URL(url_1.standardizeUrl(xhr.responseURL)).href : displayURL.href, xhr)).fmap(f => {
+                    void xhr.addEventListener('load', () => void verify(xhr).fmap(xhr => (overriddenDisplayURL, overriddenRequestURL) => new fetch_1.FetchResponse(!xhr.responseURL || url_1.standardizeUrl(xhr.responseURL) === overriddenRequestURL.href ? overriddenDisplayURL.href : overriddenRequestURL.href === requestURL.href || !key ? new url_2.URL(url_1.standardizeUrl(xhr.responseURL)).href : overriddenDisplayURL.href, xhr)).fmap(f => {
                         if (key) {
                             void memory.set(key, f);
                         }
