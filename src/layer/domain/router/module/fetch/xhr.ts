@@ -27,9 +27,9 @@ export function xhr(
   const key = method === 'GET'
     ? cache(requestURL.path, headers) || undefined
     : undefined;
-  if (key && memory.has(key)) return AtomicPromise.resolve(Right(memory.get(key)!(displayURL, requestURL)));
-  const xhr = new XMLHttpRequest();
   return new AtomicPromise<Either<Error, FetchResponse>>(resolve => {
+    if (key && memory.has(key)) return resolve(Right(memory.get(key)!(displayURL, requestURL)));
+    const xhr = new XMLHttpRequest();
     void xhr.open(method, requestURL.path, true);
     for (const [name, value] of headers) {
       void xhr.setRequestHeader(name, value);
