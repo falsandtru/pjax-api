@@ -9,7 +9,7 @@ import { StandardUrl, standardizeUrl } from '../../../../data/model/domain/url';
 import { DomainError } from '../../../data/error';
 import { URL } from '../../../../../lib/url';
 
-const memory = new Cache<string, (a: URL.Absolute<StandardUrl>, b: URL.Absolute<StandardUrl>) => FetchResponse>(99);
+const memory = new Cache<string, (displayURL: URL<StandardUrl>, requestURL: URL<StandardUrl>) => FetchResponse>(99);
 
 export function xhr(
   method: RouterEventMethod,
@@ -22,14 +22,15 @@ export function xhr(
   cancellation: Cancellee<Error>
 ): AtomicPromise<Either<Error, FetchResponse>> {
   void headers.set('Accept', headers.get('Accept') || 'text/html');
-  const { href: url_, path } = new URL(standardizeUrl(rewrite(new URL(url).path)));
+  const displayURL = new URL(url);
+  const requestURL = new URL(standardizeUrl(rewrite(displayURL.path)));
   const key = method === 'GET'
-    ? cache(path, headers) || undefined
+    ? cache(requestURL.path, headers) || undefined
     : undefined;
-  if (key && memory.has(key)) return AtomicPromise.resolve(Right(memory.get(key)!(url, url_)));
+  if (key && memory.has(key)) return AtomicPromise.resolve(Right(memory.get(key)!(displayURL, requestURL)));
   const xhr = new XMLHttpRequest();
   return new AtomicPromise<Either<Error, FetchResponse>>(resolve => {
-    void xhr.open(method, path, true);
+    void xhr.open(method, requestURL.path, true);
     for (const [name, value] of headers) {
       void xhr.setRequestHeader(name, value);
     }
@@ -49,17 +50,17 @@ export function xhr(
     void xhr.addEventListener("load", () =>
       void verify(xhr)
         .fmap(xhr =>
-          (url1: URL.Absolute<StandardUrl>, url2: URL.Absolute<StandardUrl>) =>
+          (displayURL: URL<StandardUrl>, requestURL: URL<StandardUrl>) =>
             new FetchResponse(
-              xhr.responseURL === url2
-                ? url1
-                : new URL(standardizeUrl(url1 === url || !key ? xhr.responseURL || url1 : url1)).href,
+              xhr.responseURL === requestURL.href
+                ? displayURL.href
+                : new URL(standardizeUrl(displayURL.href === url || !key ? xhr.responseURL || displayURL.href : displayURL.href)).href,
               xhr))
         .fmap(f => {
           if (key) {
             void memory.set(key, f);
           }
-          return f(url, url_);
+          return f(displayURL, requestURL);
         })
         .extract(
           err => void resolve(Left(err)),
