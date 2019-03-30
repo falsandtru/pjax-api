@@ -52,7 +52,7 @@ export function xhr(
         .fmap(xhr =>
           (displayURL: URL<StandardUrl>, requestURL: URL<StandardUrl>) =>
             new FetchResponse(
-              !xhr.responseURL || xhr.responseURL === requestURL.href
+              !xhr.responseURL || standardizeUrl(xhr.responseURL) === requestURL.href
                 ? displayURL.href
                 : displayURL.href === url || !key
                     ? new URL(standardizeUrl(xhr.responseURL)).href
