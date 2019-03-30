@@ -3911,10 +3911,10 @@ require = function () {
                 const displayURL = new url_2.URL(url);
                 const requestURL = new url_2.URL(url_1.standardizeUrl(rewrite(displayURL.path)));
                 const key = method === 'GET' ? cache(requestURL.path, headers) || undefined : undefined;
-                if (key && memory.has(key))
-                    return promise_1.AtomicPromise.resolve(either_1.Right(memory.get(key)(displayURL, requestURL)));
-                const xhr = new XMLHttpRequest();
                 return new promise_1.AtomicPromise(resolve => {
+                    if (key && memory.has(key))
+                        return resolve(either_1.Right(memory.get(key)(displayURL, requestURL)));
+                    const xhr = new XMLHttpRequest();
                     void xhr.open(method, requestURL.path, true);
                     for (const [name, value] of headers) {
                         void xhr.setRequestHeader(name, value);
