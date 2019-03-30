@@ -3908,16 +3908,14 @@ require = function () {
             const memory = new cache_1.Cache(99);
             function xhr(method, url, headers, body, timeout, rewrite, cache, cancellation) {
                 void headers.set('Accept', headers.get('Accept') || 'text/html');
-                const {
-                    href: url_,
-                    path
-                } = new url_2.URL(url_1.standardizeUrl(rewrite(new url_2.URL(url).path)));
-                const key = method === 'GET' ? cache(path, headers) || undefined : undefined;
+                const displayURL = new url_2.URL(url);
+                const requestURL = new url_2.URL(url_1.standardizeUrl(rewrite(displayURL.path)));
+                const key = method === 'GET' ? cache(requestURL.path, headers) || undefined : undefined;
                 if (key && memory.has(key))
-                    return promise_1.AtomicPromise.resolve(either_1.Right(memory.get(key)(url, url_)));
+                    return promise_1.AtomicPromise.resolve(either_1.Right(memory.get(key)(displayURL, requestURL)));
                 const xhr = new XMLHttpRequest();
                 return new promise_1.AtomicPromise(resolve => {
-                    void xhr.open(method, path, true);
+                    void xhr.open(method, requestURL.path, true);
                     for (const [name, value] of headers) {
                         void xhr.setRequestHeader(name, value);
                     }
@@ -3926,11 +3924,11 @@ require = function () {
                     void xhr.addEventListener('abort', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by abort.`))));
                     void xhr.addEventListener('error', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by error.`))));
                     void xhr.addEventListener('timeout', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by timeout.`))));
-                    void xhr.addEventListener('load', () => void verify(xhr).fmap(xhr => (url1, url2) => new fetch_1.FetchResponse(xhr.responseURL === url2 ? url1 : new url_2.URL(url_1.standardizeUrl(url1 === url || !key ? xhr.responseURL || url1 : url1)).href, xhr)).fmap(f => {
+                    void xhr.addEventListener('load', () => void verify(xhr).fmap(xhr => (displayURL, requestURL) => new fetch_1.FetchResponse(!xhr.responseURL || xhr.responseURL === requestURL.href ? displayURL.href : displayURL.href === url || !key ? new url_2.URL(url_1.standardizeUrl(xhr.responseURL)).href : displayURL.href, xhr)).fmap(f => {
                         if (key) {
                             void memory.set(key, f);
                         }
-                        return f(url, url_);
+                        return f(displayURL, requestURL);
                     }).extract(err => void resolve(either_1.Left(err)), res => void resolve(either_1.Right(res))));
                     void cancellation.register(() => void xhr.abort());
                 });
