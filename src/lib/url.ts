@@ -6,7 +6,7 @@ export class URL<T extends string> {
   constructor(url: T)
   constructor(url: T) {
     this[IDENTITY];
-    this.parser.href = url || location.href;
+    this.parser.href = url || window.location.href;
     assert(this.parser.href.startsWith(this.parser.protocol));
     Object.freeze(this);
   }

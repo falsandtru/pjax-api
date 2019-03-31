@@ -60,7 +60,7 @@ function normalize(url: Url<any>): void
 function normalize(url: string): NormalizedUrl
 function normalize(url: string): NormalizedUrl {
   // Absolute path
-  parser.href = url || location.href;
+  parser.href = url || window.location.href;
   assert(parser.href.startsWith(parser.protocol));
   return parser.href
     // Remove the default port
