@@ -10,6 +10,10 @@ describe('Unit: layer/data/model/url', () => {
       assert(standardizeURL('') === window.location.href);
     });
 
+    it('trim', () => {
+      assert(standardizeURL(' ') === window.location.href);
+    });
+
     it('default port removing', () => {
       assert(standardizeURL('//host:').endsWith('//host/'));
       assert(standardizeURL('//host:/').endsWith('//host/'));
@@ -31,6 +35,12 @@ describe('Unit: layer/data/model/url', () => {
       assert(standardizeURL('//host/?').endsWith('//host/?'));
       assert(standardizeURL('//host/path?').endsWith('//host/path?'));
       assert(standardizeURL('//host/path/?').endsWith('//host/path/?'));
+    });
+
+    it('verbose flag leaving', () => {
+      assert(standardizeURL('?').endsWith(`?`));
+      assert(standardizeURL('#').endsWith(`#`));
+      assert(standardizeURL('?#').endsWith(`?#`));
     });
 
     it('percent-encoding', () => {

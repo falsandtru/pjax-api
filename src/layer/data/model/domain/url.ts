@@ -46,8 +46,9 @@ function encode(url: string): EncodedURL {
           str.length < 3
             ? encodeURIComponent(str)
             : str))
+    // Use uppercase letters within percent-encoding triplets
     .replace(/%[0-9A-F]{2}/ig, str => str.toUpperCase())
-    .replace(/#.+/, url.slice(url.indexOf('#'))) as EncodedURL;
+    .replace(/#.+/, url.slice(url.indexOf('#')).trim()) as EncodedURL;
 }
 export { encode as _encode }
 
@@ -57,14 +58,5 @@ type NormalizedURL = URL<Normalized>;
 function normalize(url: URL<any>): void
 function normalize(url: string): NormalizedURL
 function normalize(url: string): NormalizedURL {
-  // Absolute path
-  url = new window.URL(url, window.location.href).href;
-  return url
-    // Remove the default port
-    .replace(/^([^:/?#]+:\/\/[^/?#]*?):(?:80)?(?=$|[/?#])/, '$1')
-    // Fill the root path
-    .replace(/^([^:/?#]+:\/\/[^/?#]*)\/?/, '$1/')
-    // Use uppercase letters within percent-encoding triplets
-    .replace(/%[0-9A-F]{2}/ig, str => str.toUpperCase())
-    .replace(/#.+/, url.slice(url.indexOf('#'))) as NormalizedURL;
+  return new window.URL(url, window.location.href).href as NormalizedURL;
 }

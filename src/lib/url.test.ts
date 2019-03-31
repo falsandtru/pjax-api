@@ -16,6 +16,10 @@ describe('Unit: lib/url', () => {
       assert(new URL('').href === window.location.href);
     });
 
+    it('trim', () => {
+      assert(new URL(' ').href === window.location.href);
+    });
+
     it('origin', () => {
       assert(new URL(domain).origin === domain);
       assert(new URL(domain + ':80').origin === domain + ':80');
