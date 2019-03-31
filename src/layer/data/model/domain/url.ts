@@ -2,34 +2,34 @@ import { Encoded } from '../attribute/encode';
 import { Normalized } from '../attribute/normalize';
 
 namespace Identifier {
-  declare class Url<T> {
+  declare class Identity<T> {
     private static readonly IDENTITY: unique symbol;
-    private readonly [Url.IDENTITY]: T;
+    private readonly [Identity.IDENTITY]: T;
   }
 
-  export type URL<T> = Url<T> & string;
+  export type URL<T> = Identity<T> & string;
 }
 
-type Url<T> = Identifier.URL<T>;
+type URL<T> = Identifier.URL<T>;
 
 
 // https://www.ietf.org/rfc/rfc3986.txt
 
-export type StandardUrl = Url<Encoded & Normalized>;
+export type StandardURL = URL<Encoded & Normalized>;
 
-export function standardizeUrl(url: Url<any>): void
-export function standardizeUrl(url: string): StandardUrl
-export function standardizeUrl(url: string): StandardUrl {
+export function standardizeURL(url: URL<any>): void
+export function standardizeURL(url: string): StandardURL
+export function standardizeURL(url: string): StandardURL {
   return encode(normalize(url));
 }
 
 
-type EncodedUrl<T = Encoded> = Url<Encoded & T>;
+type EncodedURL<T = Encoded> = URL<Encoded & T>;
 
-function encode(url: EncodedUrl): void
-function encode<T>(url: Url<T>): EncodedUrl<T>
-function encode(url: string): EncodedUrl
-function encode(url: string): EncodedUrl {
+function encode(url: EncodedURL): void
+function encode<T>(url: URL<T>): EncodedURL<T>
+function encode(url: string): EncodedURL
+function encode(url: string): EncodedURL {
   return url
     // Trim
     .trim()
@@ -47,18 +47,18 @@ function encode(url: string): EncodedUrl {
             ? encodeURIComponent(str)
             : str))
     .replace(/%[0-9A-F]{2}/ig, str => str.toUpperCase())
-    .replace(/#.+/, url.slice(url.indexOf('#'))) as EncodedUrl;
+    .replace(/#.+/, url.slice(url.indexOf('#'))) as EncodedURL;
 }
 export { encode as _encode }
 
 
-type NormalizedUrl = Url<Normalized>;
+type NormalizedURL = URL<Normalized>;
 
-function normalize(url: Url<any>): void
-function normalize(url: string): NormalizedUrl
-function normalize(url: string): NormalizedUrl {
+function normalize(url: URL<any>): void
+function normalize(url: string): NormalizedURL
+function normalize(url: string): NormalizedURL {
   // Absolute path
-  url = new URL(url, window.location.href).href;
+  url = new window.URL(url, window.location.href).href;
   return url
     // Remove the default port
     .replace(/^([^:/?#]+:\/\/[^/?#]*?):(?:80)?(?=$|[/?#])/, '$1')
@@ -66,5 +66,5 @@ function normalize(url: string): NormalizedUrl {
     .replace(/^([^:/?#]+:\/\/[^/?#]*)\/?/, '$1/')
     // Use uppercase letters within percent-encoding triplets
     .replace(/%[0-9A-F]{2}/ig, str => str.toUpperCase())
-    .replace(/#.+/, url.slice(url.indexOf('#'))) as NormalizedUrl;
+    .replace(/#.+/, url.slice(url.indexOf('#'))) as NormalizedURL;
 }

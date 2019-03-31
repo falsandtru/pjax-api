@@ -3,7 +3,7 @@ import { RouterEvent } from '../domain/event/router';
 import { Config } from '../domain/data/config';
 import { Cancellee } from 'spica/cancellation';
 import { URL } from '../../lib/url';
-import { StandardUrl } from '../data/model/domain/url';
+import { StandardURL } from '../data/model/domain/url';
 
 export { RouterEvent, RouterEventType, RouterEventSource } from '../domain/event/router';
 export { Config, scope } from '../domain/data/config';
@@ -13,7 +13,7 @@ export function route(
   event: RouterEvent,
   state: {
     process: Cancellee<Error>;
-    scripts: ReadonlySet<URL.Absolute<StandardUrl>>;
+    scripts: ReadonlySet<URL.Absolute<StandardURL>>;
   },
   io: {
     document: Document;

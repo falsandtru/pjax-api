@@ -1,12 +1,12 @@
 import { RouterEventType } from '../../../event/router';
 import { URL } from '../../../../../lib/url';
-import { StandardUrl } from '../../../../data/model/domain/url';
+import { StandardURL } from '../../../../data/model/domain/url';
 
 export function scroll(
   type: RouterEventType,
   document: Document,
   env: {
-    hash: URL.Fragment<StandardUrl>,
+    hash: URL.Fragment<StandardURL>,
     position: () => {
       top: number;
       left: number;
@@ -33,7 +33,7 @@ export function scroll(
 
 function hash(
   document: Document,
-  hash: URL.Fragment<StandardUrl>,
+  hash: URL.Fragment<StandardURL>,
   io = {
     scrollToElement: (el: HTMLElement): void => void el.scrollIntoView(),
   }

@@ -1,15 +1,15 @@
-import { StandardUrl, standardizeUrl } from '../../../data/model/domain/url';
+import { StandardURL, standardizeURL } from '../../../data/model/domain/url';
 import { bind } from 'typed-dom';
 
 void bind(window, 'hashchange', () =>
   void docurl.sync());
 
 export const docurl = new class {
-  private url: StandardUrl = standardizeUrl(window.location.href);
-  public get href(): StandardUrl {
+  private url: StandardURL = standardizeURL(window.location.href);
+  public get href(): StandardURL {
     return this.url;
   }
   public sync(): void {
-    this.url = standardizeUrl(window.location.href);
+    this.url = standardizeURL(window.location.href);
   }
 };

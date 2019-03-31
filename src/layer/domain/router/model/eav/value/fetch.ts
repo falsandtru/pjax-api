@@ -1,10 +1,10 @@
 import { URL } from '../../../../../../lib/url';
-import { StandardUrl } from '../../../../../data/model/domain/url';
+import { StandardURL } from '../../../../../data/model/domain/url';
 import { parse } from '../../../../../../lib/html';
 
 export class FetchResponse {
   constructor(
-    public readonly url: URL<StandardUrl>,
+    public readonly url: URL<StandardURL>,
     private readonly xhr: XMLHttpRequest,
   ) {
     assert(this.document instanceof Document);

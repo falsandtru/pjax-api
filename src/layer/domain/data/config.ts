@@ -2,7 +2,7 @@ import { extend } from 'spica/assign';
 import { DeepRequired } from 'spica/type';
 import { Config as Option, Sequence as ISequence } from '../../../../';
 import { URL } from '../../../lib/url';
-import { StandardUrl } from '../../data/model/domain/url';
+import { StandardURL } from '../../data/model/domain/url';
 
 export { scope } from './config/scope';
 
@@ -35,8 +35,8 @@ export class Config implements DeepRequired<Option, Config['scope']> {
   public readonly form = 'form:not([method])';
   public readonly replace = '';
   public readonly fetch = {
-    rewrite: (path: URL.Path<StandardUrl>): string => path,
-    cache: (_path: URL.Path<StandardUrl>, _headers: Headers): string => '',
+    rewrite: (path: URL.Path<StandardURL>): string => path,
+    cache: (_path: URL.Path<StandardURL>, _headers: Headers): string => '',
     headers: new Headers(),
     timeout: 3000,
     wait: 0,

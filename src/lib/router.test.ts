@@ -1,6 +1,6 @@
 import { router, compare, _expand as expand, _match as match } from './router';
 import { URL } from './url';
-import { standardizeUrl } from '../layer/data/model/domain/url';
+import { standardizeURL } from '../layer/data/model/domain/url';
 import { Sequence } from 'spica/sequence';
 
 describe('Unit: lib/router', () => {
@@ -38,39 +38,39 @@ describe('Unit: lib/router', () => {
 
   describe('compare', () => {
     it('root', () => {
-      assert(compare('/', new URL(standardizeUrl('/')).pathname));
-      assert(compare('/', new URL(standardizeUrl('/a')).pathname));
-      assert(compare('/', new URL(standardizeUrl('/abc')).pathname));
-      assert(compare('/', new URL(standardizeUrl('/a/')).pathname));
-      assert(compare('/', new URL(standardizeUrl('/abc/')).pathname));
-      assert(compare('/', new URL(standardizeUrl('/a/b')).pathname));
-      assert(compare('/', new URL(standardizeUrl('/abc/bcd')).pathname));
+      assert(compare('/', new URL(standardizeURL('/')).pathname));
+      assert(compare('/', new URL(standardizeURL('/a')).pathname));
+      assert(compare('/', new URL(standardizeURL('/abc')).pathname));
+      assert(compare('/', new URL(standardizeURL('/a/')).pathname));
+      assert(compare('/', new URL(standardizeURL('/abc/')).pathname));
+      assert(compare('/', new URL(standardizeURL('/a/b')).pathname));
+      assert(compare('/', new URL(standardizeURL('/abc/bcd')).pathname));
     });
 
     it('dir', () => {
-      assert(!compare('/abc', new URL(standardizeUrl('/')).pathname));
-      assert(compare('/abc', new URL(standardizeUrl('/abc')).pathname));
-      assert(compare('/abc', new URL(standardizeUrl('/abc/')).pathname));
-      assert(!compare('/abc/', new URL(standardizeUrl('/abc')).pathname));
-      assert(compare('/abc/', new URL(standardizeUrl('/abc/')).pathname));
-      assert(!compare('/abc', new URL(standardizeUrl('/ab')).pathname));
-      assert(!compare('/ab', new URL(standardizeUrl('/abc')).pathname));
+      assert(!compare('/abc', new URL(standardizeURL('/')).pathname));
+      assert(compare('/abc', new URL(standardizeURL('/abc')).pathname));
+      assert(compare('/abc', new URL(standardizeURL('/abc/')).pathname));
+      assert(!compare('/abc/', new URL(standardizeURL('/abc')).pathname));
+      assert(compare('/abc/', new URL(standardizeURL('/abc/')).pathname));
+      assert(!compare('/abc', new URL(standardizeURL('/ab')).pathname));
+      assert(!compare('/ab', new URL(standardizeURL('/abc')).pathname));
     });
 
     it('file', () => {
-      assert(compare('/a/b/c.d', new URL(standardizeUrl('/a/b/c.d')).pathname));
-      assert(!compare('/a/b/c', new URL(standardizeUrl('/a/b/c.d')).pathname));
-      assert(!compare('/a/b/c.d', new URL(standardizeUrl('/a/b/c')).pathname));
+      assert(compare('/a/b/c.d', new URL(standardizeURL('/a/b/c.d')).pathname));
+      assert(!compare('/a/b/c', new URL(standardizeURL('/a/b/c.d')).pathname));
+      assert(!compare('/a/b/c.d', new URL(standardizeURL('/a/b/c')).pathname));
     });
 
     it('expand', () => {
-      assert(compare('/{a,b}', new URL(standardizeUrl('/a')).pathname));
-      assert(compare('/{a,b}', new URL(standardizeUrl('/b')).pathname));
+      assert(compare('/{a,b}', new URL(standardizeURL('/a')).pathname));
+      assert(compare('/{a,b}', new URL(standardizeURL('/b')).pathname));
     });
 
     it('match', () => {
-      assert(compare('/*/{a,b}?/*/{1?3}', new URL(standardizeUrl('/---/ac/-/103')).pathname));
-      assert(compare('/*/{a,b}?/*/{1?3}', new URL(standardizeUrl('/---/bc/-/103')).pathname));
+      assert(compare('/*/{a,b}?/*/{1?3}', new URL(standardizeURL('/---/ac/-/103')).pathname));
+      assert(compare('/*/{a,b}?/*/{1?3}', new URL(standardizeURL('/---/bc/-/103')).pathname));
     });
 
   });

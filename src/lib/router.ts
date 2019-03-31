@@ -1,4 +1,4 @@
-import { StandardUrl, standardizeUrl } from '../layer/data/model/domain/url';
+import { StandardURL, standardizeURL } from '../layer/data/model/domain/url';
 import { URL } from './url';
 import { Sequence } from 'spica/sequence';
 import { uncurry } from 'spica/uncurry';
@@ -7,7 +7,7 @@ import { Cache } from 'spica/cache';
 
 export function router<T>(config: Record<string, (path: string) => T>): (url: string) => T {
   return (url: string) => {
-    const { path, pathname } = new URL(standardizeUrl(url));
+    const { path, pathname } = new URL(standardizeURL(url));
     return Sequence.from(Object.keys(config).filter(([c]) => c === '/').sort().reverse())
       .filter(flip(compare)(pathname))
       .map(pattern => config[pattern])
@@ -18,7 +18,7 @@ export function router<T>(config: Record<string, (path: string) => T>): (url: st
   };
 }
 
-export function compare(pattern: string, path: URL.Pathname<StandardUrl>): boolean {
+export function compare(pattern: string, path: URL.Pathname<StandardURL>): boolean {
   assert(path[0] === '/');
   assert(!path.includes('?'));
   const regSegment = /\/|[^/]+\/?/g;

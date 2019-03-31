@@ -5,24 +5,24 @@ import { Either, Left, Right } from 'spica/either';
 import { Cache } from 'spica/cache';
 import { RouterEventMethod } from '../../../event/router';
 import { FetchResponse } from '../../model/eav/value/fetch';
-import { StandardUrl, standardizeUrl } from '../../../../data/model/domain/url';
+import { StandardURL, standardizeURL } from '../../../../data/model/domain/url';
 import { DomainError } from '../../../data/error';
 import { URL } from '../../../../../lib/url';
 
-const memory = new Cache<string, (displayURL: URL<StandardUrl>, requestURL: URL<StandardUrl>) => FetchResponse>(99);
+const memory = new Cache<string, (displayURL: URL<StandardURL>, requestURL: URL<StandardURL>) => FetchResponse>(99);
 
 export function xhr(
   method: RouterEventMethod,
-  displayURL: URL<StandardUrl>,
+  displayURL: URL<StandardURL>,
   headers: Headers,
   body: FormData | null,
   timeout: number,
-  rewrite: (path: URL.Path<StandardUrl>) => string,
+  rewrite: (path: URL.Path<StandardURL>) => string,
   cache: (path: string, headers: Headers) => string,
   cancellation: Cancellee<Error>
 ): AtomicPromise<Either<Error, FetchResponse>> {
   void headers.set('Accept', headers.get('Accept') || 'text/html');
-  const requestURL = new URL(standardizeUrl(rewrite(displayURL.path)));
+  const requestURL = new URL(standardizeURL(rewrite(displayURL.path)));
   const key = method === 'GET'
     ? cache(requestURL.path, headers) || undefined
     : undefined;
@@ -49,12 +49,12 @@ export function xhr(
     void xhr.addEventListener("load", () =>
       void verify(xhr)
         .fmap(xhr =>
-          (overriddenDisplayURL: URL<StandardUrl>, overriddenRequestURL: URL<StandardUrl>) =>
+          (overriddenDisplayURL: URL<StandardURL>, overriddenRequestURL: URL<StandardURL>) =>
             new FetchResponse(
-              !xhr.responseURL || standardizeUrl(xhr.responseURL) === overriddenRequestURL.href
+              !xhr.responseURL || standardizeURL(xhr.responseURL) === overriddenRequestURL.href
                 ? overriddenDisplayURL
                 : overriddenRequestURL.href === requestURL.href || !key
-                    ? new URL(standardizeUrl(xhr.responseURL))
+                    ? new URL(standardizeURL(xhr.responseURL))
                     : overriddenDisplayURL,
               xhr))
         .fmap(f => {

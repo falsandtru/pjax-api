@@ -7,7 +7,7 @@ import { env } from '../service/state/env';
 //import { progressbar } from './progressbar';
 import { InterfaceError } from '../data/error';
 import { URL } from '../../../lib/url';
-import { StandardUrl, standardizeUrl } from '../../data/model/domain/url';
+import { StandardURL, standardizeURL } from '../../data/model/domain/url';
 import { loadTitle, savePosition } from '../../application/store';
 import { Just } from 'spica/maybe';
 
@@ -58,11 +58,11 @@ export function route(
             void ss
               .filter(s => s.hasAttribute('src'))
               .forEach(s =>
-                void scripts.add(new URL(standardizeUrl(s.src)).href)),
+                void scripts.add(new URL(standardizeURL(s.src)).href)),
             void (await p)
               .filter(s => s.hasAttribute('src'))
               .forEach(s =>
-                void scripts.add(new URL(standardizeUrl(s.src)).href))))
+                void scripts.add(new URL(standardizeURL(s.src)).href))))
           .extract())
         .catch(reason => (
           void kill(),
@@ -91,7 +91,7 @@ export function route(
       () => true);
 }
 
-function validate(url: URL<StandardUrl>, config: Config, event: RouterEvent): boolean {
+function validate(url: URL<StandardURL>, config: Config, event: RouterEvent): boolean {
   if (event.original.defaultPrevented) return false;
   switch (event.type) {
     case RouterEventType.click:
@@ -111,13 +111,13 @@ function validate(url: URL<StandardUrl>, config: Config, event: RouterEvent): bo
       return false;
   }
 
-  function isAccessible(dest: URL<StandardUrl>): boolean {
-    const orig: URL<StandardUrl> = new URL(docurl.href);
+  function isAccessible(dest: URL<StandardURL>): boolean {
+    const orig: URL<StandardURL> = new URL(docurl.href);
     return orig.origin === dest.origin;
   }
 
-  function isHashClick(dest: URL<StandardUrl>): boolean {
-    const orig: URL<StandardUrl> = new URL(docurl.href);
+  function isHashClick(dest: URL<StandardURL>): boolean {
+    const orig: URL<StandardURL> = new URL(docurl.href);
     return orig.origin === dest.origin
         && orig.path === dest.path
         && dest.fragment !== '';
@@ -137,8 +137,8 @@ function validate(url: URL<StandardUrl>, config: Config, event: RouterEvent): bo
 }
 export { validate as _validate }
 
-function isHashChange(dest: URL<StandardUrl>): boolean {
-  const orig: URL<StandardUrl> = new URL(docurl.href);
+function isHashChange(dest: URL<StandardURL>): boolean {
+  const orig: URL<StandardURL> = new URL(docurl.href);
   return orig.origin === dest.origin
       && orig.path === dest.path
       && orig.fragment !== dest.fragment;

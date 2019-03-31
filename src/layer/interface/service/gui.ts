@@ -4,7 +4,7 @@ import { Supervisor } from 'spica/supervisor.legacy';
 import { Cancellation } from 'spica/cancellation';
 import { AtomicPromise } from 'spica/promise';
 import { URL } from '../../../lib/url';
-import { standardizeUrl } from '../../data/model/domain/url';
+import { standardizeURL } from '../../data/model/domain/url';
 import { ClickView } from '../module/view/click';
 import { SubmitView } from '../module/view/submit';
 import { NavigationView } from '../module/view/navigation';
@@ -38,7 +38,7 @@ export class GUI extends API {
           void io.router(config, new RouterEvent(event), process, io)).close);
         void s.register(new ScrollView(window, () => {
           if (s.canceled) return;
-          if (new URL(standardizeUrl(window.location.href)).href !== docurl.href) return;
+          if (new URL(standardizeURL(window.location.href)).href !== docurl.href) return;
           void savePosition();
         }).close);
       }),

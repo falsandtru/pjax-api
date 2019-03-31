@@ -1,7 +1,7 @@
 import { xhr, match_ as match } from './xhr';
 import { RouterEventMethod } from '../../../event/router';
 import { URL } from '../../../../../lib/url';
-import { standardizeUrl } from '../../../../data/model/domain/url';
+import { standardizeURL } from '../../../../data/model/domain/url';
 import { Cancellation } from 'spica/cancellation';
 import { Sequence } from 'spica/sequence';
 
@@ -10,7 +10,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
     it('success', done => {
       xhr(
         RouterEventMethod.GET,
-        new URL(standardizeUrl('')),
+        new URL(standardizeURL('')),
         new Headers(),
         null,
         0,
@@ -18,7 +18,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
         () => '',
         new Cancellation<Error>())
         .then(m => m.fmap(res => {
-          assert(res.url.href === standardizeUrl(''));
+          assert(res.url.href === standardizeURL(''));
           assert(res.header('Content-Type') === 'text/html');
           assert(res.document instanceof Document);
           done();
@@ -28,7 +28,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
     it.skip('timeout', done => {
       xhr(
         RouterEventMethod.GET,
-        new URL(standardizeUrl('?timeout')),
+        new URL(standardizeURL('?timeout')),
         new Headers(),
         null,
         1,
@@ -45,7 +45,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
       const time = Date.now();
       xhr(
         RouterEventMethod.GET,
-        new URL(standardizeUrl('')),
+        new URL(standardizeURL('')),
         new Headers(),
         null,
         0,
@@ -62,7 +62,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
       const cancellation = new Cancellation<Error>();
       xhr(
         RouterEventMethod.GET,
-        new URL(standardizeUrl('')),
+        new URL(standardizeURL('')),
         new Headers(),
         null,
         0,

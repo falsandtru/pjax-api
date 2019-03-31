@@ -2,7 +2,7 @@ const IDENTITY = Symbol();
 
 export class URL<T extends string> {
   private readonly [IDENTITY]: never;
-  constructor(url: PartialUrl<string> & T)
+  constructor(url: PartialURL<string> & T)
   constructor(url: T)
   constructor(url: T) {
     this[IDENTITY];
@@ -52,21 +52,21 @@ export class URL<T extends string> {
   }
 }
 export namespace URL {
-  export type Absolute<T extends string> = PartialUrl<'absolute'> & T;
-  export type Origin<T extends string> = PartialUrl<'origin'> & T;
-  export type Domain<T extends string> = PartialUrl<'domain'> & T;
-  export type Scheme<T extends string> = PartialUrl<'scheme'> & T;
-  export type Protocol<T extends string> = PartialUrl<'protocol'> & T;
-  export type Userinfo<T extends string> = PartialUrl<'userinfo'> & T;
-  export type Host<T extends string> = PartialUrl<'host'> & T;
-  export type Hostname<T extends string> = PartialUrl<'hostname'> & T;
-  export type Port<T extends string> = PartialUrl<'port'> & T;
-  export type Path<T extends string> = PartialUrl<'path'> & T;
-  export type Pathname<T extends string> = PartialUrl<'pathname'> & T;
-  export type Query<T extends string> = PartialUrl<'query'> & T;
-  export type Fragment<T extends string> = PartialUrl<'fragment'> & T;
+  export type Absolute<T extends string> = PartialURL<'absolute'> & T;
+  export type Origin<T extends string> = PartialURL<'origin'> & T;
+  export type Domain<T extends string> = PartialURL<'domain'> & T;
+  export type Scheme<T extends string> = PartialURL<'scheme'> & T;
+  export type Protocol<T extends string> = PartialURL<'protocol'> & T;
+  export type Userinfo<T extends string> = PartialURL<'userinfo'> & T;
+  export type Host<T extends string> = PartialURL<'host'> & T;
+  export type Hostname<T extends string> = PartialURL<'hostname'> & T;
+  export type Port<T extends string> = PartialURL<'port'> & T;
+  export type Path<T extends string> = PartialURL<'path'> & T;
+  export type Pathname<T extends string> = PartialURL<'pathname'> & T;
+  export type Query<T extends string> = PartialURL<'query'> & T;
+  export type Fragment<T extends string> = PartialURL<'fragment'> & T;
 }
 
-declare class PartialUrl<T extends string> {
+declare class PartialURL<T extends string> {
   private readonly URL: T;
 }

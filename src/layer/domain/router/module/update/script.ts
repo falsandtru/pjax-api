@@ -7,7 +7,7 @@ import { wait } from 'spica/clock';
 import { find } from '../../../../../lib/dom';
 import { FatalError } from '../../../../../lib/error';
 import { URL } from '../../../../../lib/url';
-import { StandardUrl, standardizeUrl } from '../../../../data/model/domain/url';
+import { StandardURL, standardizeURL } from '../../../../data/model/domain/url';
 import { html } from 'typed-dom';
 
 type Result = Either<Error, [HTMLScriptElement[], Promise<Either<Error, HTMLScriptElement[]>>]>;
@@ -18,7 +18,7 @@ export function script(
     src: Document;
     dst: Document;
   },
-  skip: ReadonlySet<URL.Absolute<StandardUrl>>,
+  skip: ReadonlySet<URL.Absolute<StandardURL>>,
   selector: {
     ignore: string;
     reload: string;
@@ -36,7 +36,7 @@ export function script(
     .filter(el => !el.matches(selector.ignore.trim() || '_'))
     .filter(el =>
       el.hasAttribute('src')
-        ? !skip.has(new URL(standardizeUrl(el.src)).href) || el.matches(selector.reload.trim() || '_')
+        ? !skip.has(new URL(standardizeURL(el.src)).href) || el.matches(selector.reload.trim() || '_')
         : true);
   const { ss, as } = scripts.reduce((o, script) => {
     switch (true) {
@@ -141,7 +141,7 @@ function evaluate(
   script: HTMLScriptElement,
   code: string,
   logger: string,
-  skip: ReadonlySet<URL.Absolute<StandardUrl>>,
+  skip: ReadonlySet<URL.Absolute<StandardURL>>,
   wait: Promise<any>,
   cancellation: Cancellee<Error>,
 ): Either<AtomicPromise<Either<Error, HTMLScriptElement>>, AtomicPromise<Either<Error, HTMLScriptElement>>> {
@@ -185,8 +185,8 @@ function evaluate(
     }
     else {
       try {
-        if (new URL(standardizeUrl(window.location.href)).path !== new URL(standardizeUrl(window.location.href)).path) throw new FatalError('Expired.');
-        if (skip.has(new URL(standardizeUrl(window.location.href)).href)) throw new FatalError('Expired.');
+        if (new URL(standardizeURL(window.location.href)).path !== new URL(standardizeURL(window.location.href)).path) throw new FatalError('Expired.');
+        if (skip.has(new URL(standardizeURL(window.location.href)).href)) throw new FatalError('Expired.');
         void (0, eval)(code);
         script.hasAttribute('src') && void script.dispatchEvent(new Event('load'));
         return AtomicPromise.resolve(Right(script));
@@ -214,7 +214,7 @@ export function escape(script: HTMLScriptElement): () => undefined {
 }
 
 function retry(script: HTMLScriptElement): AtomicPromise<undefined> {
-  if (new URL(standardizeUrl(script.src)).origin === new URL(standardizeUrl(window.location.href)).origin) return AtomicPromise.reject(new Error());
+  if (new URL(standardizeURL(script.src)).origin === new URL(standardizeURL(window.location.href)).origin) return AtomicPromise.reject(new Error());
   script = html('script', Object.values(script.attributes).reduce((o, { name, value }) => (o[name] = value, o), {}), [...script.childNodes]);
   return new AtomicPromise((resolve, reject) => (
     void script.addEventListener('load', () => void resolve()),

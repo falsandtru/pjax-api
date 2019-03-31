@@ -1,7 +1,7 @@
 import { Cancellee } from 'spica/cancellation';
 import { RouterEvent } from '../../../event/router';
 import { Config } from '../../../data/config';
-import { StandardUrl } from '../../../../data/model/domain/url';
+import { StandardURL } from '../../../../data/model/domain/url';
 import { URL } from '../../../../../lib/url';
 
 export class RouterEntity {
@@ -17,7 +17,7 @@ export class RouterEntity {
 export class RouterEntityState {
   constructor(
     public readonly process: Cancellee<Error>,
-    public readonly scripts: ReadonlySet<URL.Absolute<StandardUrl>>,
+    public readonly scripts: ReadonlySet<URL.Absolute<StandardURL>>,
   ) {
     void Object.freeze(this);
   }

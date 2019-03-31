@@ -1,27 +1,27 @@
 import { _isRegisterable as isRegisterable, _isReplaceable as isReplaceable } from './url';
 import { RouterEventLocation, RouterEventType } from '../../../event/router';
 import { URL } from '../../../../../lib/url';
-import { standardizeUrl } from '../../../../data/model/domain/url';
+import { standardizeURL } from '../../../../data/model/domain/url';
 import { html } from 'typed-dom';
 
 describe('Unit: layer/domain/router/module/update/url', () => {
   describe('isRegisterable', () => {
     it('same location', () => {
-      assert(!isRegisterable(RouterEventType.click, new RouterEventLocation(new URL(standardizeUrl(location.href)))));
-      assert(!isRegisterable(RouterEventType.submit, new RouterEventLocation(new URL(standardizeUrl(location.href)))));
-      assert(!isRegisterable(RouterEventType.popstate, new RouterEventLocation(new URL(standardizeUrl(location.href)))));
+      assert(!isRegisterable(RouterEventType.click, new RouterEventLocation(new URL(standardizeURL(location.href)))));
+      assert(!isRegisterable(RouterEventType.submit, new RouterEventLocation(new URL(standardizeURL(location.href)))));
+      assert(!isRegisterable(RouterEventType.popstate, new RouterEventLocation(new URL(standardizeURL(location.href)))));
     });
 
     it('click', () => {
-      assert(isRegisterable(RouterEventType.click, new RouterEventLocation(new URL(standardizeUrl(`#${Math.random()}`)))));
+      assert(isRegisterable(RouterEventType.click, new RouterEventLocation(new URL(standardizeURL(`#${Math.random()}`)))));
     });
 
     it('submit', () => {
-      assert(isRegisterable(RouterEventType.submit, new RouterEventLocation(new URL(standardizeUrl(`#${Math.random()}`)))));
+      assert(isRegisterable(RouterEventType.submit, new RouterEventLocation(new URL(standardizeURL(`#${Math.random()}`)))));
     });
 
     it('popstate', () => {
-      assert(!isRegisterable(RouterEventType.popstate, new RouterEventLocation(new URL(standardizeUrl(`#${Math.random()}`)))));
+      assert(!isRegisterable(RouterEventType.popstate, new RouterEventLocation(new URL(standardizeURL(`#${Math.random()}`)))));
     });
 
   });
