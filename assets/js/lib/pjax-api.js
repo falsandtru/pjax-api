@@ -3433,7 +3433,7 @@ require = function () {
             exports._encode = encode;
             const parser = document.createElement('a');
             function normalize(url) {
-                parser.href = url || location.href;
+                parser.href = url || window.location.href;
                 return parser.href.replace(/^([^:/?#]+:\/\/[^/?#]*?):(?:80)?(?=$|[/?#])/, '$1').replace(/^([^:/?#]+:\/\/[^/?#]*)\/?/, '$1/').replace(/%[0-9A-F]{2}/ig, str => str.toUpperCase()).replace(/#.+/, url.slice(url.indexOf('#')));
             }
         },
@@ -5009,13 +5009,13 @@ require = function () {
             void typed_dom_1.bind(window, 'hashchange', () => void exports.docurl.sync());
             exports.docurl = new class {
                 constructor() {
-                    this.url = url_1.standardizeUrl(location.href);
+                    this.url = url_1.standardizeUrl(window.location.href);
                 }
                 get href() {
                     return this.url;
                 }
                 sync() {
-                    this.url = url_1.standardizeUrl(location.href);
+                    this.url = url_1.standardizeUrl(window.location.href);
                 }
             }();
         },
@@ -5247,7 +5247,7 @@ require = function () {
                 constructor(url) {
                     this.parser = document.createElement('a');
                     this[IDENTITY];
-                    this.parser.href = url || location.href;
+                    this.parser.href = url || window.location.href;
                     Object.freeze(this);
                 }
                 get href() {
