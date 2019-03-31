@@ -4,7 +4,7 @@ import { parse } from '../../../../../../lib/html';
 
 export class FetchResponse {
   constructor(
-    public readonly url: URL.Absolute<StandardUrl>,
+    public readonly url: URL<StandardUrl>,
     private readonly xhr: XMLHttpRequest,
   ) {
     assert(this.document instanceof Document);

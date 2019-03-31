@@ -13,7 +13,7 @@ const memory = new Cache<string, (displayURL: URL<StandardUrl>, requestURL: URL<
 
 export function xhr(
   method: RouterEventMethod,
-  url: URL.Absolute<StandardUrl>,
+  displayURL: URL<StandardUrl>,
   headers: Headers,
   body: FormData | null,
   timeout: number,
@@ -22,7 +22,6 @@ export function xhr(
   cancellation: Cancellee<Error>
 ): AtomicPromise<Either<Error, FetchResponse>> {
   void headers.set('Accept', headers.get('Accept') || 'text/html');
-  const displayURL = new URL(url);
   const requestURL = new URL(standardizeUrl(rewrite(displayURL.path)));
   const key = method === 'GET'
     ? cache(requestURL.path, headers) || undefined
@@ -53,10 +52,10 @@ export function xhr(
           (overriddenDisplayURL: URL<StandardUrl>, overriddenRequestURL: URL<StandardUrl>) =>
             new FetchResponse(
               !xhr.responseURL || standardizeUrl(xhr.responseURL) === overriddenRequestURL.href
-                ? overriddenDisplayURL.href
+                ? overriddenDisplayURL
                 : overriddenRequestURL.href === requestURL.href || !key
-                    ? new URL(standardizeUrl(xhr.responseURL)).href
-                    : overriddenDisplayURL.href,
+                    ? new URL(standardizeUrl(xhr.responseURL))
+                    : overriddenDisplayURL,
               xhr))
         .fmap(f => {
           if (key) {

@@ -10,7 +10,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
     it('success', done => {
       xhr(
         RouterEventMethod.GET,
-        new URL(standardizeUrl('')).href,
+        new URL(standardizeUrl('')),
         new Headers(),
         null,
         0,
@@ -18,7 +18,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
         () => '',
         new Cancellation<Error>())
         .then(m => m.fmap(res => {
-          assert(res.url === standardizeUrl(''));
+          assert(res.url.href === standardizeUrl(''));
           assert(res.header('Content-Type') === 'text/html');
           assert(res.document instanceof Document);
           done();
@@ -28,7 +28,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
     it.skip('timeout', done => {
       xhr(
         RouterEventMethod.GET,
-        new URL(standardizeUrl('?timeout')).href,
+        new URL(standardizeUrl('?timeout')),
         new Headers(),
         null,
         1,
@@ -45,7 +45,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
       const time = Date.now();
       xhr(
         RouterEventMethod.GET,
-        new URL(standardizeUrl('')).href,
+        new URL(standardizeUrl('')),
         new Headers(),
         null,
         0,
@@ -62,7 +62,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
       const cancellation = new Cancellation<Error>();
       xhr(
         RouterEventMethod.GET,
-        new URL(standardizeUrl('')).href,
+        new URL(standardizeUrl('')),
         new Headers(),
         null,
         0,

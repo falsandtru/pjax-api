@@ -68,17 +68,17 @@ export class RouterEventRequest {
     }
     throw new TypeError();
   })();
-  public readonly url: URL.Absolute<StandardUrl> = (() => {
+  public readonly url: URL<StandardUrl> = (() => {
     if (this.source instanceof RouterEventSource.Anchor) {
-      return new URL(standardizeUrl(this.source.href)).href;
+      return new URL(standardizeUrl(this.source.href));
     }
     if (this.source instanceof RouterEventSource.Form) {
       return this.source.method.toUpperCase() === RouterEventMethod.GET
-        ? new URL(standardizeUrl(this.source.action.split(/[?#]/)[0] + `?${serialize(this.source)}`)).href
-        : new URL(standardizeUrl(this.source.action.split(/[?#]/)[0])).href;
+        ? new URL(standardizeUrl(this.source.action.split(/[?#]/)[0] + `?${serialize(this.source)}`))
+        : new URL(standardizeUrl(this.source.action.split(/[?#]/)[0]));
     }
     if (this.source instanceof RouterEventSource.Window) {
-      return new URL(standardizeUrl(window.location.href)).href;
+      return new URL(standardizeUrl(window.location.href));
     }
     throw new TypeError();
   })();
@@ -90,10 +90,9 @@ export class RouterEventRequest {
 
 export class RouterEventLocation {
   constructor(
-    private readonly target: URL.Absolute<StandardUrl>
+    public readonly dest: URL<StandardUrl>
   ) {
     void Object.freeze(this);
   }
   public readonly orig: URL<StandardUrl> = new URL(standardizeUrl(window.location.href));
-  public readonly dest: URL<StandardUrl> = new URL(this.target);
 }

@@ -35,7 +35,7 @@ export function route(
       break;
   }
   return Just(0)
-    .guard(validate(new URL(event.request.url), config, event))
+    .guard(validate(event.request.url, config, event))
     .bind(() =>
       scope(config, (({ orig, dest }) => ({ orig: orig.pathname, dest: dest.pathname }))(event.location)))
     .fmap(async config => {
