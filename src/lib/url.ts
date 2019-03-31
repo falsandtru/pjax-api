@@ -26,9 +26,6 @@ export class URL<T extends string> {
   public get protocol(): URL.Protocol<T> {
     return this.url.protocol as any;
   }
-  public get userinfo(): URL.Userinfo<T> {
-    return this.url.href.match(/[^:/?#]+:\/\/([^/?#]*)@|$/)!.pop() || '' as any;
-  }
   public get host(): URL.Host<T> {
     return this.url.host as any;
   }
@@ -45,10 +42,14 @@ export class URL<T extends string> {
     return this.url.pathname as any;
   }
   public get query(): URL.Query<T> {
-    return this.url.search as any;
+    return this.url.search || !this.url.href.split('#', 1)[0].includes('?')
+      ? this.url.search as any
+      : '?';
   }
   public get fragment(): URL.Fragment<T> {
-    return this.url.href.replace(/^[^#]+/, '') as any;
+    return this.url.hash || !this.url.href.includes('#')
+      ? this.url.hash as any
+      : '#';
   }
 }
 export namespace URL {
@@ -57,7 +58,6 @@ export namespace URL {
   export type Domain<T extends string> = PartialURL<'domain'> & T;
   export type Scheme<T extends string> = PartialURL<'scheme'> & T;
   export type Protocol<T extends string> = PartialURL<'protocol'> & T;
-  export type Userinfo<T extends string> = PartialURL<'userinfo'> & T;
   export type Host<T extends string> = PartialURL<'host'> & T;
   export type Hostname<T extends string> = PartialURL<'hostname'> & T;
   export type Port<T extends string> = PartialURL<'port'> & T;

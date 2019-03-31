@@ -3,67 +3,79 @@ import { URL } from './url';
 describe('Unit: lib/url', () => {
   describe('URL', () => {
     const protocol = 'https:';
-    //const userinfo = 'user';
     const hostname = 'example.com';
-    const port = '80';
     const dir = '/dir/';
     const file = 'index.html';
     const query = '?a=1&b=2';
-    const fragment = '#hash';
+    const fragment = '#?hash';
 
-    const origin = protocol + '//' + hostname + ':' + port;
     const domain = protocol + '//' + hostname;
-    assert(origin === 'https://example.com:80');
+    assert(domain === 'https://example.com');
+
+    it('relative', () => {
+      assert(new URL('').href === window.location.href);
+    });
 
     it('origin', () => {
-      assert(new URL(origin).origin === origin);
+      assert(new URL(domain).origin === domain);
+      assert(new URL(domain + ':80').origin === domain + ':80');
+      assert(new URL(domain + ':443').origin === domain + '');
     });
 
     it('domain', () => {
-      assert(new URL(origin).domain === domain);
+      assert(new URL(domain).domain === domain);
+      assert(new URL(domain + ':80').domain === domain);
+      assert(new URL(domain + ':443').domain === domain);
     });
 
     it('scheme', () => {
-      assert(new URL(origin).scheme === protocol.split(':')[0]);
+      assert(new URL(domain).scheme === protocol.split(':')[0]);
     });
 
     it('protocol', () => {
-      assert(new URL(origin).protocol === protocol);
-    });
-
-    it('userinfo', () => {
-      assert(new URL(origin).userinfo === '');
-      //assert(new URL(protocol + '//' + userinfo + '@' + hostname + ':' + port).userinfo === userinfo);
+      assert(new URL(domain).protocol === protocol);
     });
 
     it('host', () => {
-      assert(new URL(origin).host === hostname + ':' + port);
-      //assert(new URL(protocol + '//' + userinfo + '@' + hostname + ':' + port).host === hostname + ':' + port);
+      assert(new URL(domain).host === hostname);
+      assert(new URL(domain + ':80').host === hostname + ':80');
+      assert(new URL(domain + ':443').host === hostname + '');
     });
 
     it('hostname', () => {
-      assert(new URL(origin).hostname === hostname);
+      assert(new URL(domain).hostname === hostname);
+      assert(new URL(domain + ':80').hostname === hostname);
+      assert(new URL(domain + ':443').hostname === hostname);
     });
 
     it('port', () => {
-      assert(new URL(origin).port === port);
+      assert(new URL(domain).port === '');
+      assert(new URL(domain + ':80').port === '80');
+      assert(new URL(domain + ':443').port === '');
     });
 
     it('href', () => {
-      assert(new URL(origin + dir + file).href === origin + dir + file);
-      assert(new URL(origin + dir + file + query + fragment).href === origin + dir + file + query + fragment);
+      assert(new URL(domain + dir + file).href === domain + dir + file);
+      assert(new URL(domain + dir + file + query + fragment).href === domain + dir + file + query + fragment);
     });
 
     it('path', () => {
       assert(new URL(dir + file + query + fragment).path === dir + file + query);
+      assert(new URL(domain).path === '/');
+      assert(new URL('/').path === '/');
     });
 
     it('pathname', () => {
       assert(new URL(dir + file + query + fragment).pathname === dir + file);
+      assert(new URL(domain).pathname === '/');
+      assert(new URL('/').pathname === '/');
     });
 
     it('query', () => {
       assert(new URL(dir + file + query + fragment).query === query);
+      assert(new URL('').query === '');
+      assert(new URL('?').query === '?');
+      assert(new URL('??').query === '??');
     });
 
     it('fragment', () => {
