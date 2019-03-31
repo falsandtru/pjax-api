@@ -2,7 +2,7 @@ const IDENTITY = Symbol();
 
 export class URL<T extends string> {
   private readonly [IDENTITY]: never;
-  constructor(url: PartialURL<string> & T)
+  constructor(url: URLFragment<string> & T)
   constructor(url: T)
   constructor(url: T) {
     this[IDENTITY];
@@ -53,20 +53,20 @@ export class URL<T extends string> {
   }
 }
 export namespace URL {
-  export type Absolute<T extends string> = PartialURL<'absolute'> & T;
-  export type Origin<T extends string> = PartialURL<'origin'> & T;
-  export type Domain<T extends string> = PartialURL<'domain'> & T;
-  export type Scheme<T extends string> = PartialURL<'scheme'> & T;
-  export type Protocol<T extends string> = PartialURL<'protocol'> & T;
-  export type Host<T extends string> = PartialURL<'host'> & T;
-  export type Hostname<T extends string> = PartialURL<'hostname'> & T;
-  export type Port<T extends string> = PartialURL<'port'> & T;
-  export type Path<T extends string> = PartialURL<'path'> & T;
-  export type Pathname<T extends string> = PartialURL<'pathname'> & T;
-  export type Query<T extends string> = PartialURL<'query'> & T;
-  export type Fragment<T extends string> = PartialURL<'fragment'> & T;
+  export type Absolute<T extends string> = URLFragment<'absolute'> & T;
+  export type Origin<T extends string> = URLFragment<'origin'> & T;
+  export type Domain<T extends string> = URLFragment<'domain'> & T;
+  export type Scheme<T extends string> = URLFragment<'scheme'> & T;
+  export type Protocol<T extends string> = URLFragment<'protocol'> & T;
+  export type Host<T extends string> = URLFragment<'host'> & T;
+  export type Hostname<T extends string> = URLFragment<'hostname'> & T;
+  export type Port<T extends string> = URLFragment<'port'> & T;
+  export type Path<T extends string> = URLFragment<'path'> & T;
+  export type Pathname<T extends string> = URLFragment<'pathname'> & T;
+  export type Query<T extends string> = URLFragment<'query'> & T;
+  export type Fragment<T extends string> = URLFragment<'fragment'> & T;
 }
 
-declare class PartialURL<T extends string> {
+declare class URLFragment<T extends string> {
   private readonly URL: T;
 }
