@@ -3688,13 +3688,13 @@ require = function () {
                     })();
                     this.url = (() => {
                         if (this.source instanceof RouterEventSource.Anchor) {
-                            return new url_1.URL(url_2.standardizeUrl(this.source.href)).href;
+                            return new url_1.URL(url_2.standardizeUrl(this.source.href));
                         }
                         if (this.source instanceof RouterEventSource.Form) {
-                            return this.source.method.toUpperCase() === RouterEventMethod.GET ? new url_1.URL(url_2.standardizeUrl(this.source.action.split(/[?#]/)[0] + `?${ dom_1.serialize(this.source) }`)).href : new url_1.URL(url_2.standardizeUrl(this.source.action.split(/[?#]/)[0])).href;
+                            return this.source.method.toUpperCase() === RouterEventMethod.GET ? new url_1.URL(url_2.standardizeUrl(this.source.action.split(/[?#]/)[0] + `?${ dom_1.serialize(this.source) }`)) : new url_1.URL(url_2.standardizeUrl(this.source.action.split(/[?#]/)[0]));
                         }
                         if (this.source instanceof RouterEventSource.Window) {
-                            return new url_1.URL(url_2.standardizeUrl(window.location.href)).href;
+                            return new url_1.URL(url_2.standardizeUrl(window.location.href));
                         }
                         throw new TypeError();
                     })();
@@ -3704,10 +3704,9 @@ require = function () {
             }
             exports.RouterEventRequest = RouterEventRequest;
             class RouterEventLocation {
-                constructor(target) {
-                    this.target = target;
+                constructor(dest) {
+                    this.dest = dest;
                     this.orig = new url_1.URL(url_2.standardizeUrl(window.location.href));
-                    this.dest = new url_1.URL(this.target);
                     void Object.freeze(this);
                 }
             }
@@ -3859,7 +3858,6 @@ require = function () {
             const clock_1 = _dereq_('spica/clock');
             const xhr_1 = _dereq_('../module/fetch/xhr');
             const error_1 = _dereq_('../../data/error');
-            const url_1 = _dereq_('../../../../lib/url');
             function fetch({method, url, body}, {
                 fetch: {rewrite, cache, headers, timeout, wait},
                 sequence
@@ -3870,23 +3868,22 @@ require = function () {
                     const [res, seq] = yield Promise.all([
                         req,
                         sequence.fetch(undefined, {
-                            path: new url_1.URL(url).path,
+                            path: url.path,
                             method,
                             headers,
                             body
                         }),
                         clock_1.wait(wait)
                     ]);
-                    return res.bind(process.either).bind(res => new url_1.URL(res.url).origin === new url_1.URL(url).origin ? either_1.Right([
+                    return res.bind(process.either).bind(res => res.url.origin === url.origin ? either_1.Right([
                         res,
                         seq
-                    ]) : either_1.Left(new error_1.DomainError(`Request is redirected to the different domain url ${ new url_1.URL(res.url).href }`)));
+                    ]) : either_1.Left(new error_1.DomainError(`Request is redirected to the different domain url ${ res.url.href }`)));
                 });
             }
             exports.fetch = fetch;
         },
         {
-            '../../../../lib/url': 136,
             '../../data/error': 100,
             '../module/fetch/xhr': 106,
             'spica/clock': 8,
@@ -3906,9 +3903,8 @@ require = function () {
             const error_1 = _dereq_('../../../data/error');
             const url_2 = _dereq_('../../../../../lib/url');
             const memory = new cache_1.Cache(99);
-            function xhr(method, url, headers, body, timeout, rewrite, cache, cancellation) {
+            function xhr(method, displayURL, headers, body, timeout, rewrite, cache, cancellation) {
                 void headers.set('Accept', headers.get('Accept') || 'text/html');
-                const displayURL = new url_2.URL(url);
                 const requestURL = new url_2.URL(url_1.standardizeUrl(rewrite(displayURL.path)));
                 const key = method === 'GET' ? cache(requestURL.path, headers) || undefined : undefined;
                 return new promise_1.AtomicPromise(resolve => {
@@ -3924,7 +3920,7 @@ require = function () {
                     void xhr.addEventListener('abort', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by abort.`))));
                     void xhr.addEventListener('error', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by error.`))));
                     void xhr.addEventListener('timeout', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by timeout.`))));
-                    void xhr.addEventListener('load', () => void verify(xhr).fmap(xhr => (overriddenDisplayURL, overriddenRequestURL) => new fetch_1.FetchResponse(!xhr.responseURL || url_1.standardizeUrl(xhr.responseURL) === overriddenRequestURL.href ? overriddenDisplayURL.href : overriddenRequestURL.href === requestURL.href || !key ? new url_2.URL(url_1.standardizeUrl(xhr.responseURL)).href : overriddenDisplayURL.href, xhr)).fmap(f => {
+                    void xhr.addEventListener('load', () => void verify(xhr).fmap(xhr => (overriddenDisplayURL, overriddenRequestURL) => new fetch_1.FetchResponse(!xhr.responseURL || url_1.standardizeUrl(xhr.responseURL) === overriddenRequestURL.href ? overriddenDisplayURL : overriddenRequestURL.href === requestURL.href || !key ? new url_2.URL(url_1.standardizeUrl(xhr.responseURL)) : overriddenDisplayURL, xhr)).fmap(f => {
                         if (key) {
                             void memory.set(key, f);
                         }
@@ -4005,7 +4001,7 @@ require = function () {
                     src: response.document,
                     dst: io.document
                 };
-                return promise_1.AtomicPromise.resolve(seq).then(process.either).then(m => m.bind(() => content_1.separate(documents, config.areas).extract(() => either_1.Left(new error_1.DomainError(`Failed to separate the areas.`)), () => m)).fmap(seqA => (void window.dispatchEvent(new Event('pjax:unload')), config.sequence.unload(seqA, response)))).then(m => either_1.Either.sequence(m)).then(process.promise).then(m => m.bind(seqB => content_1.separate(documents, config.areas).fmap(([area]) => [
+                return promise_1.AtomicPromise.resolve(seq).then(process.either).then(m => m.bind(() => content_1.separate(documents, config.areas).extract(() => either_1.Left(new error_1.DomainError(`Failed to separate the areas.`)), () => m)).fmap(seqA => (void window.dispatchEvent(new Event('pjax:unload')), config.sequence.unload(seqA, Object.assign({}, response, { url: response.url.href }))))).then(m => either_1.Either.sequence(m)).then(process.promise).then(m => m.bind(seqB => content_1.separate(documents, config.areas).fmap(([area]) => [
                     seqB,
                     area
                 ]).extract(() => either_1.Left(new error_1.DomainError(`Failed to separate the areas.`)), process.either)).bind(([seqB, area]) => (void config.update.rewrite(documents.src, area), content_1.separate(documents, config.areas).fmap(([, areas]) => [
@@ -4871,7 +4867,7 @@ require = function () {
                     io.document.title = store_1.loadTitle();
                     break;
                 }
-                return maybe_1.Just(0).guard(validate(new url_2.URL(event.request.url), config, event)).bind(() => router_1.scope(config, (({orig, dest}) => ({
+                return maybe_1.Just(0).guard(validate(event.request.url, config, event)).bind(() => router_1.scope(config, (({orig, dest}) => ({
                     orig: orig.pathname,
                     dest: dest.pathname
                 }))(event.location))).fmap(config => __awaiter(this, void 0, void 0, function* () {
