@@ -3423,18 +3423,16 @@ require = function () {
             var Identifier;
             (function (Identifier) {
             }(Identifier || (Identifier = {})));
-            function standardizeUrl(url) {
+            function standardizeURL(url) {
                 return encode(normalize(url));
             }
-            exports.standardizeUrl = standardizeUrl;
+            exports.standardizeURL = standardizeURL;
             function encode(url) {
-                return url.trim().replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]?|[\uDC00-\uDFFF]/g, str => str.length === 2 ? str : '').replace(/%(?![0-9A-F]{2})|[^%\[\]]+/ig, encodeURI).replace(/\?[^#]+/, query => '?' + query.slice(1).replace(/%[0-9A-F]{2}|[^=&]/ig, str => str.length < 3 ? encodeURIComponent(str) : str)).replace(/%[0-9A-F]{2}/ig, str => str.toUpperCase()).replace(/#.+/, url.slice(url.indexOf('#')));
+                return url.trim().replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]?|[\uDC00-\uDFFF]/g, str => str.length === 2 ? str : '').replace(/%(?![0-9A-F]{2})|[^%\[\]]+/ig, encodeURI).replace(/\?[^#]+/, query => '?' + query.slice(1).replace(/%[0-9A-F]{2}|[^=&]/ig, str => str.length < 3 ? encodeURIComponent(str) : str)).replace(/%[0-9A-F]{2}/ig, str => str.toUpperCase()).replace(/#.+/, url.slice(url.indexOf('#')).trim());
             }
             exports._encode = encode;
-            const parser = document.createElement('a');
             function normalize(url) {
-                parser.href = url || window.location.href;
-                return parser.href.replace(/^([^:/?#]+:\/\/[^/?#]*?):(?:80)?(?=$|[/?#])/, '$1').replace(/^([^:/?#]+:\/\/[^/?#]*)\/?/, '$1/').replace(/%[0-9A-F]{2}/ig, str => str.toUpperCase()).replace(/#.+/, url.slice(url.indexOf('#')));
+                return new window.URL(url, window.location.href).href;
             }
         },
         {}
@@ -3688,13 +3686,13 @@ require = function () {
                     })();
                     this.url = (() => {
                         if (this.source instanceof RouterEventSource.Anchor) {
-                            return new url_1.URL(url_2.standardizeUrl(this.source.href));
+                            return new url_1.URL(url_2.standardizeURL(this.source.href));
                         }
                         if (this.source instanceof RouterEventSource.Form) {
-                            return this.source.method.toUpperCase() === RouterEventMethod.GET ? new url_1.URL(url_2.standardizeUrl(this.source.action.split(/[?#]/)[0] + `?${ dom_1.serialize(this.source) }`)) : new url_1.URL(url_2.standardizeUrl(this.source.action.split(/[?#]/)[0]));
+                            return this.source.method.toUpperCase() === RouterEventMethod.GET ? new url_1.URL(url_2.standardizeURL(this.source.action.split(/[?#]/)[0] + `?${ dom_1.serialize(this.source) }`)) : new url_1.URL(url_2.standardizeURL(this.source.action.split(/[?#]/)[0]));
                         }
                         if (this.source instanceof RouterEventSource.Window) {
-                            return new url_1.URL(url_2.standardizeUrl(window.location.href));
+                            return new url_1.URL(url_2.standardizeURL(window.location.href));
                         }
                         throw new TypeError();
                     })();
@@ -3706,7 +3704,7 @@ require = function () {
             class RouterEventLocation {
                 constructor(dest) {
                     this.dest = dest;
-                    this.orig = new url_1.URL(url_2.standardizeUrl(window.location.href));
+                    this.orig = new url_1.URL(url_2.standardizeURL(window.location.href));
                     void Object.freeze(this);
                 }
             }
@@ -3905,7 +3903,7 @@ require = function () {
             const memory = new cache_1.Cache(99);
             function xhr(method, displayURL, headers, body, timeout, rewrite, cache, cancellation) {
                 void headers.set('Accept', headers.get('Accept') || 'text/html');
-                const requestURL = new url_2.URL(url_1.standardizeUrl(rewrite(displayURL.path)));
+                const requestURL = new url_2.URL(url_1.standardizeURL(rewrite(displayURL.path)));
                 const key = method === 'GET' ? cache(requestURL.path, headers) || undefined : undefined;
                 return new promise_1.AtomicPromise(resolve => {
                     if (key && memory.has(key))
@@ -3920,7 +3918,7 @@ require = function () {
                     void xhr.addEventListener('abort', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by abort.`))));
                     void xhr.addEventListener('error', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by error.`))));
                     void xhr.addEventListener('timeout', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by timeout.`))));
-                    void xhr.addEventListener('load', () => void verify(xhr).fmap(xhr => (overriddenDisplayURL, overriddenRequestURL) => new fetch_1.FetchResponse(!xhr.responseURL || url_1.standardizeUrl(xhr.responseURL) === overriddenRequestURL.href ? overriddenDisplayURL : overriddenRequestURL.href === requestURL.href || !key ? new url_2.URL(url_1.standardizeUrl(xhr.responseURL)) : overriddenDisplayURL, xhr)).fmap(f => {
+                    void xhr.addEventListener('load', () => void verify(xhr).fmap(xhr => (overriddenDisplayURL, overriddenRequestURL) => new fetch_1.FetchResponse(!xhr.responseURL || url_1.standardizeURL(xhr.responseURL) === overriddenRequestURL.href ? overriddenDisplayURL : overriddenRequestURL.href === requestURL.href || !key ? new url_2.URL(url_1.standardizeURL(xhr.responseURL)) : overriddenDisplayURL, xhr)).fmap(f => {
                         if (key) {
                             void memory.set(key, f);
                         }
@@ -4260,7 +4258,7 @@ require = function () {
                 fetch,
                 evaluate
             }) {
-                const scripts = dom_1.find(documents.src, 'script').filter(el => !el.type || /(?:application|text)\/(?:java|ecma)script|module/i.test(el.type)).filter(el => !el.matches(selector.ignore.trim() || '_')).filter(el => el.hasAttribute('src') ? !skip.has(new url_1.URL(url_2.standardizeUrl(el.src)).href) || el.matches(selector.reload.trim() || '_') : true);
+                const scripts = dom_1.find(documents.src, 'script').filter(el => !el.type || /(?:application|text)\/(?:java|ecma)script|module/i.test(el.type)).filter(el => !el.matches(selector.ignore.trim() || '_')).filter(el => el.hasAttribute('src') ? !skip.has(new url_1.URL(url_2.standardizeURL(el.src)).href) || el.matches(selector.reload.trim() || '_') : true);
                 const {ss, as} = scripts.reduce((o, script) => {
                     switch (true) {
                     case script.matches('[src][async], [src][defer]'):
@@ -4358,9 +4356,9 @@ require = function () {
                         return promise_1.AtomicPromise.resolve(Promise.resolve().then(() => _dereq_(script.src))).catch(reason => reason.message.startsWith('Failed to load ') && script.matches('[src][async]') ? retry(script).catch(() => promise_1.AtomicPromise.reject(reason)) : promise_1.AtomicPromise.reject(reason)).then(() => (void script.dispatchEvent(new Event('load')), either_1.Right(script)), reason => (void script.dispatchEvent(new Event('error')), either_1.Left(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''))));
                     } else {
                         try {
-                            if (new url_1.URL(url_2.standardizeUrl(window.location.href)).path !== new url_1.URL(url_2.standardizeUrl(window.location.href)).path)
+                            if (new url_1.URL(url_2.standardizeURL(window.location.href)).path !== new url_1.URL(url_2.standardizeURL(window.location.href)).path)
                                 throw new error_1.FatalError('Expired.');
-                            if (skip.has(new url_1.URL(url_2.standardizeUrl(window.location.href)).href))
+                            if (skip.has(new url_1.URL(url_2.standardizeURL(window.location.href)).href))
                                 throw new error_1.FatalError('Expired.');
                             void (0, eval)(code);
                             script.hasAttribute('src') && void script.dispatchEvent(new Event('load'));
@@ -4382,7 +4380,7 @@ require = function () {
             }
             exports.escape = escape;
             function retry(script) {
-                if (new url_1.URL(url_2.standardizeUrl(script.src)).origin === new url_1.URL(url_2.standardizeUrl(window.location.href)).origin)
+                if (new url_1.URL(url_2.standardizeURL(script.src)).origin === new url_1.URL(url_2.standardizeURL(window.location.href)).origin)
                     return promise_1.AtomicPromise.reject(new Error());
                 script = typed_dom_1.html('script', Object.values(script.attributes).reduce((o, {name, value}) => (o[name] = value, o), {}), [...script.childNodes]);
                 return new promise_1.AtomicPromise((resolve, reject) => (void script.addEventListener('load', () => void resolve()), void script.addEventListener('error', reject), void document.body.appendChild(script), void script.remove()));
@@ -4618,7 +4616,7 @@ require = function () {
                     }();
                     this.close = () => void this.sv.terminate();
                     void this.sv.register('', () => new promise_1.AtomicPromise(() => void this.sv.events.exit.monitor([], typed_dom_1.bind(window, 'popstate', ev => {
-                        if (url_1.standardizeUrl(window.location.href) === url_2.docurl.href)
+                        if (url_1.standardizeURL(window.location.href) === url_2.docurl.href)
                             return;
                         void listener(ev);
                     }))), undefined);
@@ -4775,7 +4773,7 @@ require = function () {
                             void s.register(new scroll_1.ScrollView(window, () => {
                                 if (s.canceled)
                                     return;
-                                if (new url_1.URL(url_2.standardizeUrl(window.location.href)).href !== url_3.docurl.href)
+                                if (new url_1.URL(url_2.standardizeURL(window.location.href)).href !== url_3.docurl.href)
                                     return;
                                 void store_1.savePosition();
                             }).close);
@@ -4885,7 +4883,7 @@ require = function () {
                         process: cancellation,
                         scripts
                     }, io).then(m => m.fmap(([ss, p]) => __awaiter(this, void 0, void 0, function* () {
-                        return void kill(), void url_1.docurl.sync(), void ss.filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_2.URL(url_3.standardizeUrl(s.src)).href)), void (yield p).filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_2.URL(url_3.standardizeUrl(s.src)).href));
+                        return void kill(), void url_1.docurl.sync(), void ss.filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_2.URL(url_3.standardizeURL(s.src)).href)), void (yield p).filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_2.URL(url_3.standardizeURL(s.src)).href));
                     })).extract()).catch(reason => (void kill(), void url_1.docurl.sync(), window.history.scrollRestoration = 'auto', !cancellation.canceled || reason instanceof Error && reason.name === 'FatalError' ? void config.fallback(typed_dom_1.currentTargets.get(event.original), reason) : undefined));
                 })).extract(() => {
                     switch (event.type) {
@@ -4982,7 +4980,7 @@ require = function () {
             const dom_1 = _dereq_('../../../../lib/dom');
             const typed_dom_1 = _dereq_('typed-dom');
             exports.scripts = new Set();
-            void typed_dom_1.bind(window, 'pjax:unload', () => void dom_1.find(document, 'script[src]').forEach(script => void exports.scripts.add(new url_2.URL(url_1.standardizeUrl(script.src)).href)));
+            void typed_dom_1.bind(window, 'pjax:unload', () => void dom_1.find(document, 'script[src]').forEach(script => void exports.scripts.add(new url_2.URL(url_1.standardizeURL(script.src)).href)));
         },
         {
             '../../../../lib/dom': 132,
@@ -5009,13 +5007,13 @@ require = function () {
             void typed_dom_1.bind(window, 'hashchange', () => void exports.docurl.sync());
             exports.docurl = new class {
                 constructor() {
-                    this.url = url_1.standardizeUrl(window.location.href);
+                    this.url = url_1.standardizeURL(window.location.href);
                 }
                 get href() {
                     return this.url;
                 }
                 sync() {
-                    this.url = url_1.standardizeUrl(window.location.href);
+                    this.url = url_1.standardizeURL(window.location.href);
                 }
             }();
         },
@@ -5182,7 +5180,7 @@ require = function () {
             const cache_1 = _dereq_('spica/cache');
             function router(config) {
                 return url => {
-                    const {path, pathname} = new url_2.URL(url_1.standardizeUrl(url));
+                    const {path, pathname} = new url_2.URL(url_1.standardizeURL(url));
                     return sequence_1.Sequence.from(Object.keys(config).filter(([c]) => c === '/').sort().reverse()).filter(flip_1.flip(compare)(pathname)).map(pattern => config[pattern]).take(1).extract().pop().call(config, path);
                 };
             }
@@ -5245,13 +5243,12 @@ require = function () {
             const IDENTITY = Symbol();
             class URL {
                 constructor(url) {
-                    this.parser = document.createElement('a');
                     this[IDENTITY];
-                    this.parser.href = url || window.location.href;
+                    this.url = new window.URL(url, window.location.href);
                     Object.freeze(this);
                 }
                 get href() {
-                    return this.parser.href;
+                    return this.url.href;
                 }
                 get origin() {
                     return `${ this.protocol }//${ this.host }`;
@@ -5260,34 +5257,31 @@ require = function () {
                     return `${ this.protocol }//${ this.hostname }`;
                 }
                 get scheme() {
-                    return this.parser.protocol.slice(0, -1);
+                    return this.url.protocol.slice(0, -1);
                 }
                 get protocol() {
-                    return this.parser.protocol;
-                }
-                get userinfo() {
-                    return this.parser.href.match(/[^:/?#]+:\/\/([^/?#]*)@|$/).pop() || '';
+                    return this.url.protocol;
                 }
                 get host() {
-                    return this.parser.host;
+                    return this.url.host;
                 }
                 get hostname() {
-                    return this.parser.hostname;
+                    return this.url.hostname;
                 }
                 get port() {
-                    return this.parser.port;
+                    return this.url.port;
                 }
                 get path() {
                     return `${ this.pathname }${ this.query }`;
                 }
                 get pathname() {
-                    return this.parser.pathname;
+                    return this.url.pathname;
                 }
                 get query() {
-                    return this.parser.search;
+                    return this.url.search || !this.url.href.split('#', 1)[0].includes('?') ? this.url.search : '?';
                 }
                 get fragment() {
-                    return this.parser.href.replace(/^[^#]+/, '');
+                    return this.url.hash || !this.url.href.includes('#') ? this.url.hash : '#';
                 }
             }
             exports.URL = URL;
