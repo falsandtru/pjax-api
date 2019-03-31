@@ -7,9 +7,9 @@ import { html } from 'typed-dom';
 describe('Unit: layer/domain/router/module/update/url', () => {
   describe('isRegisterable', () => {
     it('same location', () => {
-      assert(!isRegisterable(RouterEventType.click, new RouterEventLocation(new URL(standardizeURL(location.href)))));
-      assert(!isRegisterable(RouterEventType.submit, new RouterEventLocation(new URL(standardizeURL(location.href)))));
-      assert(!isRegisterable(RouterEventType.popstate, new RouterEventLocation(new URL(standardizeURL(location.href)))));
+      assert(!isRegisterable(RouterEventType.click, new RouterEventLocation(new URL(standardizeURL(window.location.href)))));
+      assert(!isRegisterable(RouterEventType.submit, new RouterEventLocation(new URL(standardizeURL(window.location.href)))));
+      assert(!isRegisterable(RouterEventType.popstate, new RouterEventLocation(new URL(standardizeURL(window.location.href)))));
     });
 
     it('click', () => {

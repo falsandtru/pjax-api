@@ -6,7 +6,7 @@ import { html } from 'typed-dom';
 describe('Unit: layer/domain/event/router', () => {
   describe('RouterEventRequest', () => {
     it('click', () => {
-      const req = new RouterEventRequest(html('a', { href: location.href }));
+      const req = new RouterEventRequest(html('a', { href: window.location.href }));
       assert(req.url.href === standardizeURL(''));
       assert(req.method === RouterEventMethod.GET);
       assert(req.body === null);
@@ -42,8 +42,8 @@ describe('Unit: layer/domain/event/router', () => {
   describe('RouterEventLocation', () => {
     it('instance', () => {
       const loc = new RouterEventLocation(new URL(standardizeURL('#')));
-      assert(loc.orig.href === standardizeURL(location.href));
-      assert(loc.dest.href === standardizeURL(location.href + '#'));
+      assert(loc.orig.href === standardizeURL(window.location.href));
+      assert(loc.dest.href === standardizeURL(window.location.href + '#'));
     });
 
   });

@@ -6,8 +6,8 @@ describe('Unit: layer/data/model/url', () => {
       assert(typeof standardizeURL('') === 'string');
     });
 
-    it('absolute path', () => {
-      assert(standardizeURL('') === location.href);
+    it('absolutization', () => {
+      assert(standardizeURL('') === window.location.href);
     });
 
     it('default port removing', () => {
