@@ -54,15 +54,12 @@ export { encode as _encode }
 
 type NormalizedUrl = Url<Normalized>;
 
-const parser = document.createElement('a');
-
 function normalize(url: Url<any>): void
 function normalize(url: string): NormalizedUrl
 function normalize(url: string): NormalizedUrl {
   // Absolute path
-  parser.href = url || window.location.href;
-  assert(parser.href.startsWith(parser.protocol));
-  return parser.href
+  url = new URL(url, window.location.href).href;
+  return url
     // Remove the default port
     .replace(/^([^:/?#]+:\/\/[^/?#]*?):(?:80)?(?=$|[/?#])/, '$1')
     // Fill the root path

@@ -6,13 +6,13 @@ export class URL<T extends string> {
   constructor(url: T)
   constructor(url: T) {
     this[IDENTITY];
-    this.parser.href = url || window.location.href;
-    assert(this.parser.href.startsWith(this.parser.protocol));
+    this.url = new window.URL(url, window.location.href);
+    assert(this.url.href.startsWith(this.url.protocol));
     Object.freeze(this);
   }
-  private readonly parser = document.createElement('a');
+  private readonly url: InstanceType<typeof window.URL>;
   public get href(): URL.Absolute<T> {
-    return this.parser.href as any;
+    return this.url.href as any;
   }
   public get origin(): URL.Origin<T> {
     return `${this.protocol}//${this.host}` as any;
@@ -21,34 +21,34 @@ export class URL<T extends string> {
     return `${this.protocol}//${this.hostname}` as any;
   }
   public get scheme(): URL.Scheme<T> {
-    return this.parser.protocol.slice(0, -1) as any;
+    return this.url.protocol.slice(0, -1) as any;
   }
   public get protocol(): URL.Protocol<T> {
-    return this.parser.protocol as any;
+    return this.url.protocol as any;
   }
   public get userinfo(): URL.Userinfo<T> {
-    return this.parser.href.match(/[^:/?#]+:\/\/([^/?#]*)@|$/)!.pop() || '' as any;
+    return this.url.href.match(/[^:/?#]+:\/\/([^/?#]*)@|$/)!.pop() || '' as any;
   }
   public get host(): URL.Host<T> {
-    return this.parser.host as any;
+    return this.url.host as any;
   }
   public get hostname(): URL.Hostname<T> {
-    return this.parser.hostname as any;
+    return this.url.hostname as any;
   }
   public get port(): URL.Port<T> {
-    return this.parser.port as any;
+    return this.url.port as any;
   }
   public get path(): URL.Path<T> {
     return `${this.pathname}${this.query}` as any;
   }
   public get pathname(): URL.Pathname<T> {
-    return this.parser.pathname as any;
+    return this.url.pathname as any;
   }
   public get query(): URL.Query<T> {
-    return this.parser.search as any;
+    return this.url.search as any;
   }
   public get fragment(): URL.Fragment<T> {
-    return this.parser.href.replace(/^[^#]+/, '') as any;
+    return this.url.href.replace(/^[^#]+/, '') as any;
   }
 }
 export namespace URL {
