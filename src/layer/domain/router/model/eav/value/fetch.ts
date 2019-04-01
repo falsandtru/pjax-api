@@ -8,6 +8,13 @@ export class FetchResponse {
     private readonly xhr: XMLHttpRequest,
   ) {
     assert(this.document instanceof Document);
+    void Object.defineProperty(this.document, 'URL', {
+      configurable: true,
+      enumerable: true,
+      value: url.href,
+      writable: false,
+    });
+    assert(this.document.URL === url.href);
     void Object.freeze(this);
   }
   public readonly header: (name: string) => string | null =
