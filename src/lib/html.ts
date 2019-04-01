@@ -60,7 +60,6 @@ function test(parser: (html: string) => Document): boolean {
 `;
     const doc = parser(html);
     switch (false) {
-      case doc.URL && doc.URL.startsWith(`${window.location.protocol}//${window.location.host}`):
       case doc.title === '&':
       case !!doc.querySelector('html.html[lang="en"]'):
       case !!doc.querySelector<HTMLLinkElement>('head > link')!.href:

@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.28.3
+
+- Fix support for Edge browser.
+
 ## 3.28.2
 
 - Fix URL control with shared caches.
