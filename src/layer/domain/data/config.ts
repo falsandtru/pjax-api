@@ -1,8 +1,7 @@
 import { extend } from 'spica/assign';
 import { DeepRequired } from 'spica/type';
 import { Config as Option, Sequence as ISequence } from '../../../../';
-import { URL } from '../../../lib/url';
-import { StandardURL } from '../../data/model/domain/url';
+import { URL, StandardURL } from '../../../lib/url';
 
 export { scope } from './config/scope';
 

@@ -6,8 +6,7 @@ import { docurl } from './state/url';
 import { env } from '../service/state/env';
 //import { progressbar } from './progressbar';
 import { InterfaceError } from '../data/error';
-import { URL } from '../../../lib/url';
-import { StandardURL, standardizeURL } from '../../data/model/domain/url';
+import { URL, StandardURL, standardizeURL } from '../../../lib/url';
 import { loadTitle, savePosition } from '../../application/store';
 import { Just } from 'spica/maybe';
 

@@ -1,6 +1,5 @@
 import { RouterEventType } from '../../../event/router';
-import { URL } from '../../../../../lib/url';
-import { StandardURL } from '../../../../data/model/domain/url';
+import { URL, StandardURL } from '../../../../../lib/url';
 
 export function scroll(
   type: RouterEventType,

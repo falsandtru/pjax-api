@@ -1,3 +1,7 @@
+import { formatURLForEdge } from './url/domain/format';
+
+export { StandardURL, standardizeURL } from './url/domain/format';
+
 const IDENTITY = Symbol();
 
 export class URL<T extends string> {
@@ -69,8 +73,4 @@ export namespace URL {
 
 declare class URLFragment<T extends string> {
   private readonly URL: T;
-}
-
-export function formatURLForEdge(url: string): string {
-  return (url.trim() || window.location.href);
 }

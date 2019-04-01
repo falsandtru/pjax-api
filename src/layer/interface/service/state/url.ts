@@ -1,4 +1,4 @@
-import { StandardURL, standardizeURL } from '../../../data/model/domain/url';
+import { StandardURL, standardizeURL } from '../../../../lib/url';
 import { bind } from 'typed-dom';
 
 void bind(window, 'hashchange', () =>

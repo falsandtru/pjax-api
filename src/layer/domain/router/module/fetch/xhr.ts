@@ -5,9 +5,8 @@ import { Either, Left, Right } from 'spica/either';
 import { Cache } from 'spica/cache';
 import { RouterEventMethod } from '../../../event/router';
 import { FetchResponse } from '../../model/eav/value/fetch';
-import { StandardURL, standardizeURL } from '../../../../data/model/domain/url';
 import { DomainError } from '../../../data/error';
-import { URL } from '../../../../../lib/url';
+import { URL, StandardURL, standardizeURL } from '../../../../../lib/url';
 
 const memory = new Cache<string, (displayURL: URL<StandardURL>, requestURL: URL<StandardURL>) => FetchResponse>(99);
 

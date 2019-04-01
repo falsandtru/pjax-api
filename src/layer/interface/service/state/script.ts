@@ -1,5 +1,4 @@
-import { StandardURL, standardizeURL } from '../../../data/model/domain/url';
-import { URL } from '../../../../lib/url';
+import { URL, StandardURL, standardizeURL } from '../../../../lib/url';
 import { find } from '../../../../lib/dom';
 import { bind } from 'typed-dom';
 

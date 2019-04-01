@@ -1,6 +1,5 @@
 import { _validate as validate, Config, RouterEvent } from './router';
-import { URL } from '../../../lib/url';
-import { standardizeURL } from '../../data/model/domain/url';
+import { URL, standardizeURL } from '../../../lib/url';
 import { parse } from '../../../lib/html';
 import { html, delegate, once } from 'typed-dom';
 

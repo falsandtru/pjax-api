@@ -1,7 +1,6 @@
 import { scope } from './scope';
 import { Config } from '../config';
-import { URL } from '../../../../lib/url';
-import { standardizeURL } from '../../../data/model/domain/url';
+import { URL, standardizeURL } from '../../../../lib/url';
 
 describe('Unit: layer/domain/data/config/scope', () => {
   describe('scope', () => {

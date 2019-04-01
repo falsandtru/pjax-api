@@ -1,6 +1,5 @@
 import { RouterEventMethod, RouterEventRequest, RouterEventLocation } from './router';
-import { URL } from '../../../lib/url';
-import { standardizeURL } from '../../data/model/domain/url';
+import { URL, standardizeURL } from '../../../lib/url';
 import { html } from 'typed-dom';
 
 describe('Unit: layer/domain/event/router', () => {

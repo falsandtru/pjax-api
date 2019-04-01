@@ -1,5 +1,4 @@
-import { StandardURL, standardizeURL } from '../layer/data/model/domain/url';
-import { URL } from './url';
+import { URL, StandardURL, standardizeURL } from './url';
 import { Sequence } from 'spica/sequence';
 import { uncurry } from 'spica/uncurry';
 import { flip } from 'spica/flip';

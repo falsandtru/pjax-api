@@ -1,5 +1,4 @@
-import { URL } from '../../../lib/url';
-import { StandardURL, standardizeURL } from '../../data/model/domain/url';
+import { URL, StandardURL, standardizeURL } from '../../../lib/url';
 import { serialize } from '../../../lib/dom';
 import { currentTargets } from 'typed-dom';
 

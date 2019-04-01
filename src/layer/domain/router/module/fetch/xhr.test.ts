@@ -1,7 +1,6 @@
 import { xhr, match_ as match } from './xhr';
 import { RouterEventMethod } from '../../../event/router';
-import { URL } from '../../../../../lib/url';
-import { standardizeURL } from '../../../../data/model/domain/url';
+import { URL, standardizeURL } from '../../../../../lib/url';
 import { Cancellation } from 'spica/cancellation';
 import { Sequence } from 'spica/sequence';
 

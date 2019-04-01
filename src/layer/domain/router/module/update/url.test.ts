@@ -1,7 +1,6 @@
 import { _isRegisterable as isRegisterable, _isReplaceable as isReplaceable } from './url';
 import { RouterEventLocation, RouterEventType } from '../../../event/router';
-import { URL } from '../../../../../lib/url';
-import { standardizeURL } from '../../../../data/model/domain/url';
+import { URL, standardizeURL } from '../../../../../lib/url';
 import { html } from 'typed-dom';
 
 describe('Unit: layer/domain/router/module/update/url', () => {

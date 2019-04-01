@@ -1,8 +1,8 @@
 import { Supervisor } from 'spica/supervisor.legacy';
 import { AtomicPromise } from 'spica/promise';
 import { bind } from 'typed-dom';
-import { standardizeURL } from '../../../data/model/domain/url';
 import { docurl } from '../../service/state/url';
+import { standardizeURL } from '../../../../lib/url';
 
 export class NavigationView {
   constructor(

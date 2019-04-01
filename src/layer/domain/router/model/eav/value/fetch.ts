@@ -1,5 +1,4 @@
-import { URL } from '../../../../../../lib/url';
-import { StandardURL } from '../../../../../data/model/domain/url';
+import { URL, StandardURL } from '../../../../../../lib/url';
 import { fix } from '../../../../../../lib/html';
 
 export class FetchResponse {

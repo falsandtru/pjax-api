@@ -1,6 +1,6 @@
-import { standardizeURL, _encode as encode } from './url';
+import { standardizeURL, _encode as encode } from './format';
 
-describe('Unit: layer/data/model/url', () => {
+describe('Unit: lib/url/domain/format', () => {
   describe('standardizeURL', () => {
     it('primitive', () => {
       assert(typeof standardizeURL('') === 'string');

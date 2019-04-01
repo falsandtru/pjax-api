@@ -1,8 +1,7 @@
 import { Config as Option } from '../../../../../';
 import { compare } from '../../../../lib/router';
 import { Config } from '../../../domain/data/config';
-import { URL } from '../../../../lib/url';
-import { StandardURL } from '../../../data/model/domain/url';
+import { URL, StandardURL } from '../../../../lib/url';
 import { Sequence } from 'spica/sequence';
 import { Maybe, Just, Nothing } from 'spica/maybe';
 import { extend } from 'spica/assign';

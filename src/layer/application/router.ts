@@ -2,8 +2,7 @@ import { route as router, RouterEntity, RouterEntityState, RouterResult } from '
 import { RouterEvent } from '../domain/event/router';
 import { Config } from '../domain/data/config';
 import { Cancellee } from 'spica/cancellation';
-import { URL } from '../../lib/url';
-import { StandardURL } from '../data/model/domain/url';
+import { URL, StandardURL } from '../../lib/url';
 
 export { RouterEvent, RouterEventType, RouterEventSource } from '../domain/event/router';
 export { Config, scope } from '../domain/data/config';

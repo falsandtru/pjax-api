@@ -1,7 +1,6 @@
 import { _hash as hash } from './scroll';
 import { parse } from '../../../../../lib/html';
-import { URL } from '../../../../../lib/url';
-import { standardizeURL } from '../../../../data/model/domain/url';
+import { URL, standardizeURL } from '../../../../../lib/url';
 import { html } from 'typed-dom';
 
 describe('Unit: layer/domain/router/module/update/scroll', () => {

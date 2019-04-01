@@ -6,8 +6,7 @@ import { concat } from 'spica/concat';
 import { wait } from 'spica/clock';
 import { find } from '../../../../../lib/dom';
 import { FatalError } from '../../../../../lib/error';
-import { URL } from '../../../../../lib/url';
-import { StandardURL, standardizeURL } from '../../../../data/model/domain/url';
+import { URL, StandardURL, standardizeURL } from '../../../../../lib/url';
 import { html } from 'typed-dom';
 
 type Result = Either<Error, [HTMLScriptElement[], Promise<Either<Error, HTMLScriptElement[]>>]>;
