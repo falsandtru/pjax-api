@@ -1,5 +1,6 @@
 import { Encoded } from '../attribute/encode';
 import { Normalized } from '../attribute/normalize';
+import { formatURLForEdge } from '../../../../lib/url';
 
 namespace Identifier {
   declare class Identity<T> {
@@ -58,5 +59,5 @@ type NormalizedURL = URL<Normalized>;
 function normalize(url: URL<any>): void
 function normalize(url: string): NormalizedURL
 function normalize(url: string): NormalizedURL {
-  return new window.URL(url, window.location.href).href as NormalizedURL;
+  return new window.URL(formatURLForEdge(url), window.location.href).href as NormalizedURL;
 }

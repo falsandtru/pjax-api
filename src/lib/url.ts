@@ -6,7 +6,7 @@ export class URL<T extends string> {
   constructor(url: T)
   constructor(url: T) {
     this[IDENTITY];
-    this.url = new window.URL(url, window.location.href);
+    this.url = new window.URL(formatURLForEdge(url), window.location.href);
     assert(this.url.href.startsWith(this.url.protocol));
     Object.freeze(this);
   }
@@ -69,4 +69,8 @@ export namespace URL {
 
 declare class URLFragment<T extends string> {
   private readonly URL: T;
+}
+
+export function formatURLForEdge(url: string): string {
+  return (url.trim() || window.location.href);
 }
