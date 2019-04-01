@@ -1,6 +1,6 @@
 import { URL } from '../../../../../../lib/url';
 import { StandardURL } from '../../../../../data/model/domain/url';
-import { parse } from '../../../../../../lib/html';
+import { fix } from '../../../../../../lib/html';
 
 export class FetchResponse {
   constructor(
@@ -14,11 +14,12 @@ export class FetchResponse {
       value: url.href,
       writable: false,
     });
+    void fix(this.document);
     assert(this.document.URL === url.href);
     void Object.freeze(this);
   }
   public readonly header: (name: string) => string | null =
     name => this.xhr.getResponseHeader(name);
   public readonly document: Document =
-    parse(this.xhr.responseText).extract();
+    this.xhr.responseXML!.cloneNode(true) as Document;
 }

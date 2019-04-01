@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.28.4
+
+- Improve document object creation.
+
 ## 3.28.3
 
 - Fix support for Edge browser.

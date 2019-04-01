@@ -34,6 +34,7 @@ export function xhr(
       void xhr.setRequestHeader(name, value);
     }
 
+    xhr.responseType = 'document';
     xhr.timeout = timeout;
     void xhr.send(body);
 
