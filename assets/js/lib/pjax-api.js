@@ -3420,6 +3420,7 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
+            const url_1 = _dereq_('../../../../lib/url');
             var Identifier;
             (function (Identifier) {
             }(Identifier || (Identifier = {})));
@@ -3432,10 +3433,10 @@ require = function () {
             }
             exports._encode = encode;
             function normalize(url) {
-                return new window.URL(url, window.location.href).href;
+                return new window.URL(url_1.formatURLForEdge(url), window.location.href).href;
             }
         },
-        {}
+        { '../../../../lib/url': 136 }
     ],
     97: [
         function (_dereq_, module, exports) {
@@ -5144,7 +5145,6 @@ require = function () {
 `;
                     const doc = parser(html);
                     switch (false) {
-                    case doc.URL && doc.URL.startsWith(`${ window.location.protocol }//${ window.location.host }`):
                     case doc.title === '&':
                     case !!doc.querySelector('html.html[lang="en"]'):
                     case !!doc.querySelector('head > link').href:
@@ -5244,7 +5244,7 @@ require = function () {
             class URL {
                 constructor(url) {
                     this[IDENTITY];
-                    this.url = new window.URL(url, window.location.href);
+                    this.url = new window.URL(formatURLForEdge(url), window.location.href);
                     Object.freeze(this);
                 }
                 get href() {
@@ -5285,6 +5285,10 @@ require = function () {
                 }
             }
             exports.URL = URL;
+            function formatURLForEdge(url) {
+                return url.trim() || window.location.href;
+            }
+            exports.formatURLForEdge = formatURLForEdge;
         },
         {}
     ],
