@@ -3817,7 +3817,14 @@ require = function () {
                     this.url = url;
                     this.xhr = xhr;
                     this.header = name => this.xhr.getResponseHeader(name);
-                    this.document = html_1.parse(this.xhr.responseText).extract();
+                    this.document = this.xhr.responseXML.cloneNode(true);
+                    void Object.defineProperty(this.document, 'URL', {
+                        configurable: true,
+                        enumerable: true,
+                        value: url.href,
+                        writable: false
+                    });
+                    void html_1.fix(this.document);
                     void Object.freeze(this);
                 }
             }
@@ -3914,6 +3921,7 @@ require = function () {
                     for (const [name, value] of headers) {
                         void xhr.setRequestHeader(name, value);
                     }
+                    xhr.responseType = 'document';
                     xhr.timeout = timeout;
                     void xhr.send(body);
                     void xhr.addEventListener('abort', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by abort.`))));
@@ -5115,6 +5123,7 @@ require = function () {
             function fix(doc) {
                 void fixNoscript(doc).forEach(([src, fixed]) => src.textContent = fixed.textContent);
             }
+            exports.fix = fix;
             function fixNoscript(doc) {
                 return dom_1.find(doc, 'noscript').filter(el => el.children.length > 0).map(el => {
                     const clone = el.cloneNode(true);
