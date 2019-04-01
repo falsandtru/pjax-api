@@ -57,6 +57,7 @@ describe('Unit: layer/interface/service/router', function () {
       document.body.appendChild(form);
       once(document, 'form', 'submit', ev => {
         assert(validate(new URL(standardizeURL(url)), new Config({}), new RouterEvent(ev)));
+        ev.preventDefault();
         form.remove();
         done();
       });
