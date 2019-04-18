@@ -2286,8 +2286,8 @@ require = function () {
     77: [
         function (_dereq_, module, exports) {
             'use strict';
-            Object.defineProperty(exports, '__esModule', { value: true });
             var _a, _b;
+            Object.defineProperty(exports, '__esModule', { value: true });
             'use strict';
             const concat_1 = _dereq_('./concat');
             var State;
