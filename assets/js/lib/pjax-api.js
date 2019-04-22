@@ -3522,6 +3522,7 @@ require = function () {
                         }
                     });
                     void assign_1.extend(this, option);
+                    void this.fetch.headers.delete('If-None-Match');
                     void Object.freeze(this);
                     void this.fetch.headers.set('X-Requested-With', 'XMLHttpRequest');
                     void this.fetch.headers.set('X-Pjax', '1');
@@ -3884,9 +3885,14 @@ require = function () {
             const error_1 = _dereq_('../../../data/error');
             const url_1 = _dereq_('../../../../../lib/url');
             const memory = new cache_1.Cache(99);
+            const xhrs = new cache_1.Cache(99);
+            const etags = new cache_1.Cache(99);
             function xhr(method, displayURL, headers, body, timeout, rewrite, cache, cancellation) {
                 void headers.set('Accept', headers.get('Accept') || 'text/html');
                 const requestURL = new url_1.URL(url_1.standardizeURL(rewrite(displayURL.path)));
+                if (method === 'GET' && etags.has(requestURL.href) && xhrs.has(requestURL.href)) {
+                    void headers.set('If-None-Match', headers.get('If-None-Match') || etags.get(requestURL.href));
+                }
                 const key = method === 'GET' ? cache(requestURL.path, headers) || undefined : undefined;
                 return new promise_1.AtomicPromise(resolve => {
                     if (key && memory.has(key))
@@ -3902,7 +3908,24 @@ require = function () {
                     void xhr.addEventListener('abort', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by abort.`))));
                     void xhr.addEventListener('error', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by error.`))));
                     void xhr.addEventListener('timeout', () => void resolve(either_1.Left(new error_1.DomainError(`Failed to request a page by timeout.`))));
-                    void xhr.addEventListener('load', () => void verify(xhr).fmap(xhr => (overriddenDisplayURL, overriddenRequestURL) => new fetch_1.FetchResponse(!xhr.responseURL || url_1.standardizeURL(xhr.responseURL) === overriddenRequestURL.href ? overriddenDisplayURL : overriddenRequestURL.href === requestURL.href || !key ? new url_1.URL(url_1.standardizeURL(xhr.responseURL)) : overriddenDisplayURL, xhr)).fmap(f => {
+                    void xhr.addEventListener('load', () => void verify(xhr, method).fmap(xhr => {
+                        const responseURL = new url_1.URL(url_1.standardizeURL(xhr.responseURL));
+                        if (method === 'GET') {
+                            for (const url of new Set([
+                                    requestURL.href,
+                                    responseURL.href
+                                ])) {
+                                if (xhr.getResponseHeader('etag')) {
+                                    void xhrs.set(url, xhr);
+                                    void etags.set(url, xhr.getResponseHeader('etag'));
+                                } else {
+                                    void xhrs.delete(url);
+                                    void etags.delete(url);
+                                }
+                            }
+                        }
+                        return (overriddenDisplayURL, overriddenRequestURL) => new fetch_1.FetchResponse(responseURL.href === overriddenRequestURL.href ? overriddenDisplayURL : overriddenRequestURL.href === requestURL.href || !key ? responseURL : overriddenDisplayURL, xhr);
+                    }).fmap(f => {
                         if (key) {
                             void memory.set(key, f);
                         }
@@ -3912,8 +3935,22 @@ require = function () {
                 });
             }
             exports.xhr = xhr;
-            function verify(xhr) {
-                return either_1.Right(xhr).bind(xhr => /2..|304/.test(`${ xhr.status }`) ? either_1.Right(xhr) : either_1.Left(new error_1.DomainError(`Faild to validate the status of response.`))).bind(xhr => match(xhr.getResponseHeader('Content-Type'), 'text/html') ? either_1.Right(xhr) : either_1.Left(new error_1.DomainError(`Faild to validate the content type of response.`)));
+            function verify(xhr, method) {
+                return either_1.Right(xhr).bind(xhr => {
+                    const url = url_1.standardizeURL(xhr.responseURL);
+                    switch (true) {
+                    case !/2..|304/.test(`${ xhr.status }`):
+                        return either_1.Left(new error_1.DomainError(`Failed to validate the status of response.`));
+                    case !xhr.responseURL:
+                        return either_1.Left(new error_1.DomainError(`Failed to get the response URL.`));
+                    case !xhr.responseXML:
+                        return method === 'GET' && xhrs.has(url) ? either_1.Right(xhrs.get(url)) : either_1.Left(new error_1.DomainError(`Failed to get the response body.`));
+                    case !match(xhr.getResponseHeader('Content-Type'), 'text/html'):
+                        return either_1.Left(new error_1.DomainError(`Failed to validate the content type of response.`));
+                    default:
+                        return either_1.Right(xhr);
+                    }
+                });
             }
             function match(actualContentType, expectedContentType) {
                 return sequence_1.Sequence.intersect(sequence_1.Sequence.from(parse(actualContentType || '').sort()), sequence_1.Sequence.from(parse(expectedContentType).sort()), (a, b) => a.localeCompare(b)).take(1).extract().length > 0;
