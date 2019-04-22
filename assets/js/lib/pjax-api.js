@@ -3917,7 +3917,7 @@ require = function () {
                                 if (xhr.getResponseHeader('etag')) {
                                     void caches.set(url, {
                                         etag: xhr.getResponseHeader('etag'),
-                                        expires: Date.now() + (+((xhr.getResponseHeader('Cache-Control') || '').match(/(?![\w-])max-age=(\d+)/) || [
+                                        expires: Date.now() + (+((xhr.getResponseHeader('Cache-Control') || '').match(/(?:^|[\s;])max-age=(\d+)/) || [
                                             '',
                                             ''
                                         ])[1] || NaN) || 0,
