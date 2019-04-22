@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.29.2
+
+- Call `Sequence.fetch` function before sending a request.
+
 ## 3.29.1
 
 - Support `Cache-Control` header's `max-age` parameter.
