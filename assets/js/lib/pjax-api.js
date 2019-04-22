@@ -3846,16 +3846,15 @@ require = function () {
                 sequence
             }, process) {
                 return __awaiter(this, void 0, void 0, function* () {
-                    const req = xhr_1.xhr(method, url, headers, body, timeout, rewrite, cache, process);
                     void window.dispatchEvent(new Event('pjax:fetch'));
-                    const [res, seq] = yield Promise.all([
-                        req,
+                    const [seq, res] = yield Promise.all([
                         sequence.fetch(undefined, {
                             path: url.path,
                             method,
                             headers,
                             body
                         }),
+                        xhr_1.xhr(method, url, headers, body, timeout, rewrite, cache, process),
                         clock_1.wait(wait)
                     ]);
                     return res.bind(process.either).bind(res => res.url.origin === url.origin ? either_1.Right([
@@ -3917,10 +3916,10 @@ require = function () {
                                 if (xhr.getResponseHeader('etag')) {
                                     void caches.set(url, {
                                         etag: xhr.getResponseHeader('etag'),
-                                        expiry: Date.now() + (+((xhr.getResponseHeader('Cache-Control') || '').match(/(?:^|[\s;])max-age=(\d+)/) || [
+                                        expiry: Date.now() + +((xhr.getResponseHeader('Cache-Control') || '').match(/(?:^|[\s;])max-age=(\d+)/) || [
                                             '',
-                                            ''
-                                        ])[1] || NaN) * 1000 || 0,
+                                            'NaN'
+                                        ])[1] * 1000 || 0,
                                         xhr
                                     });
                                 } else {
