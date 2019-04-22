@@ -59,7 +59,7 @@ export function xhr(
               if (xhr.getResponseHeader('etag')) {
                 void caches.set(url, {
                   etag: xhr.getResponseHeader('etag')!,
-                  expiry: Date.now() + (+((xhr.getResponseHeader('Cache-Control') || '').match(/(?:^|[\s;])max-age=(\d+)/) || ['', ''])[1] || NaN) * 1000 || 0,
+                  expiry: Date.now() + +((xhr.getResponseHeader('Cache-Control') || '').match(/(?:^|[\s;])max-age=(\d+)/) || ['', 'NaN'])[1] * 1000 || 0,
                   xhr,
                 });
               }
