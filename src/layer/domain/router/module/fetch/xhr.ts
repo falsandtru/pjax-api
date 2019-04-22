@@ -76,11 +76,11 @@ function verify(xhr: XMLHttpRequest): Either<Error, XMLHttpRequest> {
     .bind(xhr =>
       /2..|304/.test(`${xhr.status}`)
         ? Right(xhr)
-        : Left(new DomainError(`Faild to validate the status of response.`)))
+        : Left(new DomainError(`Failed to validate the status of response.`)))
     .bind(xhr =>
       match(xhr.getResponseHeader('Content-Type'), 'text/html')
         ? Right(xhr)
-        : Left(new DomainError(`Faild to validate the content type of response.`)));
+        : Left(new DomainError(`Failed to validate the content type of response.`)));
 }
 
 function match(actualContentType: string | null, expectedContentType: string): boolean {
