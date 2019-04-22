@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.29.1
+
+- Support `Cache-Control` header's `max-age` parameter.
+
 ## 3.29.0
 
 - Support `ETag` header.

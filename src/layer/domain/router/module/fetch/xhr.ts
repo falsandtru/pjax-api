@@ -9,8 +9,7 @@ import { DomainError } from '../../../data/error';
 import { URL, StandardURL, standardizeURL } from '../../../../../lib/url';
 
 const memory = new Cache<string, (displayURL: URL<StandardURL>, requestURL: URL<StandardURL>) => FetchResponse>(99);
-const xhrs = new Cache<StandardURL, XMLHttpRequest>(99);
-const etags = new Cache<StandardURL, string>(99);
+const caches = new Cache<StandardURL, { etag: string; expires: number; xhr: XMLHttpRequest; }>(99);
 
 export function xhr(
   method: RouterEventMethod,
@@ -24,8 +23,8 @@ export function xhr(
 ): AtomicPromise<Either<Error, FetchResponse>> {
   void headers.set('Accept', headers.get('Accept') || 'text/html');
   const requestURL = new URL(standardizeURL(rewrite(displayURL.path)));
-  if (method === 'GET' && etags.has(requestURL.href) && xhrs.has(requestURL.href)) {
-    void headers.set('If-None-Match', headers.get('If-None-Match') || etags.get(requestURL.href)!);
+  if (method === 'GET' && caches.has(requestURL.href) && Date.now() > caches.get(requestURL.href)!.expires) {
+    void headers.set('If-None-Match', headers.get('If-None-Match') || caches.get(requestURL.href)!.etag);
   }
   const key = method === 'GET'
     ? cache(requestURL.path, headers) || undefined
@@ -58,12 +57,14 @@ export function xhr(
           if (method === 'GET') {
             for (const url of new Set([requestURL.href, responseURL.href])) {
               if (xhr.getResponseHeader('etag')) {
-                void xhrs.set(url, xhr);
-                void etags.set(url, xhr.getResponseHeader('etag')!);
+                void caches.set(url, {
+                  etag: xhr.getResponseHeader('etag')!,
+                  expires: Date.now() + (+((xhr.getResponseHeader('Cache-Control') || '').match(/(?![\w-])max-age=(\d+)/) || ['', ''])[1] || NaN) || 0,
+                  xhr,
+                });
               }
               else {
-                void xhrs.delete(url);
-                void etags.delete(url);
+                void caches.delete(url);
               }
             }
           }
@@ -100,8 +101,8 @@ function verify(xhr: XMLHttpRequest, method: RouterEventMethod): Either<Error, X
         case !xhr.responseURL:
           return Left(new DomainError(`Failed to get the response URL.`));
         case !xhr.responseXML:
-          return method === 'GET' && xhrs.has(url)
-            ? Right(xhrs.get(url)!)
+          return method === 'GET' && caches.has(url)
+            ? Right(caches.get(url)!.xhr)
             : Left(new DomainError(`Failed to get the response body.`));
         case !match(xhr.getResponseHeader('Content-Type'), 'text/html'):
           return Left(new DomainError(`Failed to validate the content type of response.`));
