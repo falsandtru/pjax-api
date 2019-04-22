@@ -3920,7 +3920,7 @@ require = function () {
                                         expiry: Date.now() + (+((xhr.getResponseHeader('Cache-Control') || '').match(/(?:^|[\s;])max-age=(\d+)/) || [
                                             '',
                                             ''
-                                        ])[1] || NaN) || 0,
+                                        ])[1] || NaN) * 1000 || 0,
                                         xhr
                                     });
                                 } else {
