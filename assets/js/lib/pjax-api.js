@@ -3885,13 +3885,12 @@ require = function () {
             const error_1 = _dereq_('../../../data/error');
             const url_1 = _dereq_('../../../../../lib/url');
             const memory = new cache_1.Cache(99);
-            const xhrs = new cache_1.Cache(99);
-            const etags = new cache_1.Cache(99);
+            const caches = new cache_1.Cache(99);
             function xhr(method, displayURL, headers, body, timeout, rewrite, cache, cancellation) {
                 void headers.set('Accept', headers.get('Accept') || 'text/html');
                 const requestURL = new url_1.URL(url_1.standardizeURL(rewrite(displayURL.path)));
-                if (method === 'GET' && etags.has(requestURL.href) && xhrs.has(requestURL.href)) {
-                    void headers.set('If-None-Match', headers.get('If-None-Match') || etags.get(requestURL.href));
+                if (method === 'GET' && caches.has(requestURL.href) && Date.now() > caches.get(requestURL.href).expires) {
+                    void headers.set('If-None-Match', headers.get('If-None-Match') || caches.get(requestURL.href).etag);
                 }
                 const key = method === 'GET' ? cache(requestURL.path, headers) || undefined : undefined;
                 return new promise_1.AtomicPromise(resolve => {
@@ -3916,11 +3915,16 @@ require = function () {
                                     responseURL.href
                                 ])) {
                                 if (xhr.getResponseHeader('etag')) {
-                                    void xhrs.set(url, xhr);
-                                    void etags.set(url, xhr.getResponseHeader('etag'));
+                                    void caches.set(url, {
+                                        etag: xhr.getResponseHeader('etag'),
+                                        expires: Date.now() + (+((xhr.getResponseHeader('Cache-Control') || '').match(/(?![\w-])max-age=(\d+)/) || [
+                                            '',
+                                            ''
+                                        ])[1] || NaN) || 0,
+                                        xhr
+                                    });
                                 } else {
-                                    void xhrs.delete(url);
-                                    void etags.delete(url);
+                                    void caches.delete(url);
                                 }
                             }
                         }
@@ -3944,7 +3948,7 @@ require = function () {
                     case !xhr.responseURL:
                         return either_1.Left(new error_1.DomainError(`Failed to get the response URL.`));
                     case !xhr.responseXML:
-                        return method === 'GET' && xhrs.has(url) ? either_1.Right(xhrs.get(url)) : either_1.Left(new error_1.DomainError(`Failed to get the response body.`));
+                        return method === 'GET' && caches.has(url) ? either_1.Right(caches.get(url).xhr) : either_1.Left(new error_1.DomainError(`Failed to get the response body.`));
                     case !match(xhr.getResponseHeader('Content-Type'), 'text/html'):
                         return either_1.Left(new error_1.DomainError(`Failed to validate the content type of response.`));
                     default:
