@@ -3889,7 +3889,7 @@ require = function () {
             function xhr(method, displayURL, headers, body, timeout, rewrite, cache, cancellation) {
                 void headers.set('Accept', headers.get('Accept') || 'text/html');
                 const requestURL = new url_1.URL(url_1.standardizeURL(rewrite(displayURL.path)));
-                if (method === 'GET' && caches.has(requestURL.href) && Date.now() > caches.get(requestURL.href).expires) {
+                if (method === 'GET' && caches.has(requestURL.href) && Date.now() > caches.get(requestURL.href).expiry) {
                     void headers.set('If-None-Match', headers.get('If-None-Match') || caches.get(requestURL.href).etag);
                 }
                 const key = method === 'GET' ? cache(requestURL.path, headers) || undefined : undefined;
@@ -3917,7 +3917,7 @@ require = function () {
                                 if (xhr.getResponseHeader('etag')) {
                                     void caches.set(url, {
                                         etag: xhr.getResponseHeader('etag'),
-                                        expires: Date.now() + (+((xhr.getResponseHeader('Cache-Control') || '').match(/(?:^|[\s;])max-age=(\d+)/) || [
+                                        expiry: Date.now() + (+((xhr.getResponseHeader('Cache-Control') || '').match(/(?:^|[\s;])max-age=(\d+)/) || [
                                             '',
                                             ''
                                         ])[1] || NaN) || 0,
