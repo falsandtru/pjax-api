@@ -25,7 +25,7 @@
 
 ## 3.27.2
 
-- Add accept header to requests.
+- Add `Accept` header to requests.
 
 ## 3.27.1
 
