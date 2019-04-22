@@ -9,7 +9,7 @@ import { DomainError } from '../../../data/error';
 import { URL, StandardURL, standardizeURL } from '../../../../../lib/url';
 
 const memory = new Cache<string, (displayURL: URL<StandardURL>, requestURL: URL<StandardURL>) => FetchResponse>(99);
-const caches = new Cache<StandardURL, { etag: string; expires: number; xhr: XMLHttpRequest; }>(99);
+const caches = new Cache<StandardURL, { etag: string; expiry: number; xhr: XMLHttpRequest; }>(99);
 
 export function xhr(
   method: RouterEventMethod,
@@ -23,7 +23,7 @@ export function xhr(
 ): AtomicPromise<Either<Error, FetchResponse>> {
   void headers.set('Accept', headers.get('Accept') || 'text/html');
   const requestURL = new URL(standardizeURL(rewrite(displayURL.path)));
-  if (method === 'GET' && caches.has(requestURL.href) && Date.now() > caches.get(requestURL.href)!.expires) {
+  if (method === 'GET' && caches.has(requestURL.href) && Date.now() > caches.get(requestURL.href)!.expiry) {
     void headers.set('If-None-Match', headers.get('If-None-Match') || caches.get(requestURL.href)!.etag);
   }
   const key = method === 'GET'
@@ -59,7 +59,7 @@ export function xhr(
               if (xhr.getResponseHeader('etag')) {
                 void caches.set(url, {
                   etag: xhr.getResponseHeader('etag')!,
-                  expires: Date.now() + (+((xhr.getResponseHeader('Cache-Control') || '').match(/(?:^|[\s;])max-age=(\d+)/) || ['', ''])[1] || NaN) || 0,
+                  expiry: Date.now() + (+((xhr.getResponseHeader('Cache-Control') || '').match(/(?:^|[\s;])max-age=(\d+)/) || ['', ''])[1] || NaN) || 0,
                   xhr,
                 });
               }
