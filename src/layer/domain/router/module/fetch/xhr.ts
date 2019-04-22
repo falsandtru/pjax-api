@@ -9,6 +9,8 @@ import { DomainError } from '../../../data/error';
 import { URL, StandardURL, standardizeURL } from '../../../../../lib/url';
 
 const memory = new Cache<string, (displayURL: URL<StandardURL>, requestURL: URL<StandardURL>) => FetchResponse>(99);
+const xhrs = new Cache<StandardURL, XMLHttpRequest>(99);
+const etags = new Cache<StandardURL, string>(99);
 
 export function xhr(
   method: RouterEventMethod,
@@ -22,6 +24,9 @@ export function xhr(
 ): AtomicPromise<Either<Error, FetchResponse>> {
   void headers.set('Accept', headers.get('Accept') || 'text/html');
   const requestURL = new URL(standardizeURL(rewrite(displayURL.path)));
+  if (method === 'GET' && etags.has(requestURL.href) && xhrs.has(requestURL.href)) {
+    void headers.set('If-None-Match', headers.get('If-None-Match') || etags.get(requestURL.href)!);
+  }
   const key = method === 'GET'
     ? cache(requestURL.path, headers) || undefined
     : undefined;
@@ -47,16 +52,30 @@ export function xhr(
       void resolve(Left(new DomainError(`Failed to request a page by timeout.`))));
 
     void xhr.addEventListener("load", () =>
-      void verify(xhr)
-        .fmap(xhr =>
-          (overriddenDisplayURL: URL<StandardURL>, overriddenRequestURL: URL<StandardURL>) =>
+      void verify(xhr, method)
+        .fmap(xhr => {
+          const responseURL: URL<StandardURL> = new URL(standardizeURL(xhr.responseURL));
+          if (method === 'GET') {
+            for (const url of new Set([requestURL.href, responseURL.href])) {
+              if (xhr.getResponseHeader('etag')) {
+                void xhrs.set(url, xhr);
+                void etags.set(url, xhr.getResponseHeader('etag')!);
+              }
+              else {
+                void xhrs.delete(url);
+                void etags.delete(url);
+              }
+            }
+          }
+          return (overriddenDisplayURL: URL<StandardURL>, overriddenRequestURL: URL<StandardURL>) =>
             new FetchResponse(
-              !xhr.responseURL || standardizeURL(xhr.responseURL) === overriddenRequestURL.href
+              responseURL.href === overriddenRequestURL.href
                 ? overriddenDisplayURL
                 : overriddenRequestURL.href === requestURL.href || !key
-                    ? new URL(standardizeURL(xhr.responseURL))
+                    ? responseURL
                     : overriddenDisplayURL,
-              xhr))
+              xhr);
+        })
         .fmap(f => {
           if (key) {
             void memory.set(key, f);
@@ -71,16 +90,25 @@ export function xhr(
   });
 }
 
-function verify(xhr: XMLHttpRequest): Either<Error, XMLHttpRequest> {
+function verify(xhr: XMLHttpRequest, method: RouterEventMethod): Either<Error, XMLHttpRequest> {
   return Right<Error, XMLHttpRequest>(xhr)
-    .bind(xhr =>
-      /2..|304/.test(`${xhr.status}`)
-        ? Right(xhr)
-        : Left(new DomainError(`Failed to validate the status of response.`)))
-    .bind(xhr =>
-      match(xhr.getResponseHeader('Content-Type'), 'text/html')
-        ? Right(xhr)
-        : Left(new DomainError(`Failed to validate the content type of response.`)));
+    .bind(xhr => {
+      const url = standardizeURL(xhr.responseURL);
+      switch (true) {
+        case !/2..|304/.test(`${xhr.status}`):
+          return Left(new DomainError(`Failed to validate the status of response.`));
+        case !xhr.responseURL:
+          return Left(new DomainError(`Failed to get the response URL.`));
+        case !xhr.responseXML:
+          return method === 'GET' && xhrs.has(url)
+            ? Right(xhrs.get(url)!)
+            : Left(new DomainError(`Failed to get the response body.`));
+        case !match(xhr.getResponseHeader('Content-Type'), 'text/html'):
+          return Left(new DomainError(`Failed to validate the content type of response.`));
+        default:
+          return Right(xhr);
+      }
+    });
 }
 
 function match(actualContentType: string | null, expectedContentType: string): boolean {

@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.29.0
+
+- Support `ETag` header.
+  - Add `If-None-Match` header to requests.
+
 ## 3.28.4
 
 - Improve document object creation.
