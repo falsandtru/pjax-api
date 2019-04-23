@@ -3522,7 +3522,6 @@ require = function () {
                         }
                     });
                     void assign_1.extend(this, option);
-                    void this.fetch.headers.delete('If-None-Match');
                     void Object.freeze(this);
                     void this.fetch.headers.set('X-Requested-With', 'XMLHttpRequest');
                     void this.fetch.headers.set('X-Pjax', '1');
@@ -3886,6 +3885,7 @@ require = function () {
             const memory = new cache_1.Cache(99);
             const caches = new cache_1.Cache(99);
             function xhr(method, displayURL, headers, body, timeout, rewrite, cache, cancellation) {
+                headers = new Headers([...headers]);
                 void headers.set('Accept', headers.get('Accept') || 'text/html');
                 const requestURL = new url_1.URL(url_1.standardizeURL(rewrite(displayURL.path)));
                 if (method === 'GET' && caches.has(requestURL.href) && Date.now() > caches.get(requestURL.href).expiry) {
