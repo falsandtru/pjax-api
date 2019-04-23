@@ -1,4 +1,4 @@
-﻿export default Pjax;
+export default Pjax;
 
 export class Pjax {
   static assign(url: string, config: Config): boolean;
