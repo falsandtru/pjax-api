@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.29.3
+
+- Fix a pollution of `fetch.headers` option.
+
 ## 3.29.2
 
 - Call `Sequence.fetch` function before sending a request.

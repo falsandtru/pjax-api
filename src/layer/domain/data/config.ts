@@ -22,7 +22,7 @@ export class Config implements DeepRequired<Option, Config['scope']> {
       },
     });
     void extend(this, option);
-    void this.fetch.headers.delete('If-None-Match');
+    this.fetch.headers = new Headers(this.fetch.headers);
     void Object.freeze(this);
     void this.fetch.headers.set('X-Requested-With', 'XMLHttpRequest');
     void this.fetch.headers.set('X-Pjax', '1');

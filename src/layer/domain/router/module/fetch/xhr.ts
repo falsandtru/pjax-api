@@ -21,6 +21,7 @@ export function xhr(
   cache: (path: string, headers: Headers) => string,
   cancellation: Cancellee<Error>
 ): AtomicPromise<Either<Error, FetchResponse>> {
+  headers = new Headers(headers);
   void headers.set('Accept', headers.get('Accept') || 'text/html');
   const requestURL = new URL(standardizeURL(rewrite(displayURL.path)));
   if (method === 'GET' && caches.has(requestURL.href) && Date.now() > caches.get(requestURL.href)!.expiry) {
