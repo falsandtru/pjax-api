@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.29.4
+
+- Support `Cache-Control` header's `no-cache` and `no-store` parameters.
+
 ## 3.29.3
 
 - Fix a pollution of `fetch.headers` option.
