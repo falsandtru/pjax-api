@@ -7,6 +7,7 @@ export class FetchResponse {
     private readonly xhr: XMLHttpRequest,
   ) {
     assert(this.document instanceof Document);
+    if (url.origin !== new URL(xhr.responseURL).origin) throw new Error(`Redirected to another origin.`);
     void Object.defineProperty(this.document, 'URL', {
       configurable: true,
       enumerable: true,

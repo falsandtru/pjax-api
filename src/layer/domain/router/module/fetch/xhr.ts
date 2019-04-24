@@ -102,6 +102,8 @@ function verify(xhr: XMLHttpRequest, method: RouterEventMethod): Either<Error, X
       switch (true) {
         case !xhr.responseURL:
           return Left(new DomainError(`Failed to get the response URL.`));
+        case url.origin !== new URL(window.location.origin).origin:
+          return Left(new DomainError(`Redirected to another origin.`));
         case !/2..|304/.test(`${xhr.status}`):
           return Left(new DomainError(`Failed to validate the status of response.`));
         case !xhr.responseXML:
