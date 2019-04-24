@@ -3914,13 +3914,10 @@ require = function () {
                                     requestURL.href,
                                     responseURL.href
                                 ])) {
-                                if (xhr.getResponseHeader('etag')) {
+                                if (xhr.getResponseHeader('ETag') && !(xhr.getResponseHeader('Cache-Control') || '').trim().split(/[\s,]+/).includes('no-store')) {
                                     void caches.set(url, {
-                                        etag: xhr.getResponseHeader('etag'),
-                                        expiry: Date.now() + +((xhr.getResponseHeader('Cache-Control') || '').match(/(?:^|[\s;])max-age=(\d+)/) || [
-                                            '',
-                                            'NaN'
-                                        ])[1] * 1000 || 0,
+                                        etag: xhr.getResponseHeader('ETag'),
+                                        expiry: xhr.getResponseHeader('Cache-Control').trim().split(/[\s,]+/).includes('no-cache') ? 0 : Date.now() + +(xhr.getResponseHeader('Cache-Control').trim().split(/[\s,]+/).find(s => s.startsWith('max-age=')) || '').split('=')[1] * 1000 || 0,
                                         xhr
                                     });
                                 } else {
