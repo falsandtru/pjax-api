@@ -5,7 +5,6 @@ import { Either, Left, Right } from 'spica/either';
 import { Cache } from 'spica/cache';
 import { RouterEventMethod } from '../../../event/router';
 import { FetchResponse } from '../../model/eav/value/fetch';
-import { DomainError } from '../../../data/error';
 import { URL, StandardURL, standardizeURL } from '../../../../../lib/url';
 
 const memory = new Cache<string, (displayURL: URL<StandardURL>, requestURL: URL<StandardURL>) => FetchResponse>(99);
@@ -43,13 +42,13 @@ export function xhr(
     void xhr.send(body);
 
     void xhr.addEventListener("abort", () =>
-      void resolve(Left(new DomainError(`Failed to request a page by abort.`))));
+      void resolve(Left(new Error(`Failed to request a page by abort.`))));
 
     void xhr.addEventListener("error", () =>
-      void resolve(Left(new DomainError(`Failed to request a page by error.`))));
+      void resolve(Left(new Error(`Failed to request a page by error.`))));
 
     void xhr.addEventListener("timeout", () =>
-      void resolve(Left(new DomainError(`Failed to request a page by timeout.`))));
+      void resolve(Left(new Error(`Failed to request a page by timeout.`))));
 
     void xhr.addEventListener("load", () =>
       void verify(xhr, method)
@@ -101,17 +100,17 @@ function verify(xhr: XMLHttpRequest, method: RouterEventMethod): Either<Error, X
       const url = new URL(standardizeURL(xhr.responseURL));
       switch (true) {
         case !xhr.responseURL:
-          return Left(new DomainError(`Failed to get the response URL.`));
+          return Left(new Error(`Failed to get the response URL.`));
         case url.origin !== new URL(window.location.origin).origin:
-          return Left(new DomainError(`Redirected to another origin.`));
+          return Left(new Error(`Redirected to another origin.`));
         case !/2..|304/.test(`${xhr.status}`):
-          return Left(new DomainError(`Failed to validate the status of response.`));
+          return Left(new Error(`Failed to validate the status of response.`));
         case !xhr.responseXML:
           return method === 'GET' && xhr.status === 304 && caches.has(url.path)
             ? Right(caches.get(url.path)!.xhr)
-            : Left(new DomainError(`Failed to get the response body.`));
+            : Left(new Error(`Failed to get the response body.`));
         case !match(xhr.getResponseHeader('Content-Type'), 'text/html'):
-          return Left(new DomainError(`Failed to validate the content type of response.`));
+          return Left(new Error(`Failed to validate the content type of response.`));
         default:
           return Right(xhr);
       }

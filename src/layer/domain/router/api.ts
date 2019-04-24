@@ -4,7 +4,6 @@ import { fetch } from './module/fetch';
 import { update } from './module/update';
 import { separate } from './module/update/content';
 import { loadPosition } from '../store/path';
-import { DomainError } from '../data/error';
 
 export { RouterEntity, RouterEntityState } from './model/eav/entity';
 export type RouterResult = Either<Error, readonly [HTMLScriptElement[], Promise<HTMLScriptElement[]>]>;
@@ -20,7 +19,7 @@ export async function route(
     .bind(() =>
       match(io.document, entity.config.areas)
         ? Right(undefined)
-        : Left(new DomainError(`Failed to match areas.`)))
+        : Left(new Error(`Failed to match areas.`)))
     .fmap(() =>
       fetch(entity.event.request, entity.config, entity.state.process))
     .fmap(async p => (await p)

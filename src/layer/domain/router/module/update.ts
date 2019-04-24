@@ -14,7 +14,6 @@ import { script } from '../module/update/script';
 import { focus } from '../module/update/focus';
 import { scroll } from '../module/update/scroll';
 import { saveTitle, savePosition } from '../../store/path';
-import { DomainError } from '../../data/error';
 
 export function update(
   {
@@ -41,7 +40,7 @@ export function update(
       .bind(() =>
         separate(documents, config.areas)
           .extract(
-            () => Left(new DomainError(`Failed to separate the areas.`)),
+            () => Left(new Error(`Failed to separate the areas.`)),
             () => m))
       .fmap(seqA => (
         void window.dispatchEvent(new Event('pjax:unload')),
@@ -54,7 +53,7 @@ export function update(
             .fmap(([area]) =>
               [seqB, area])
             .extract(
-              () => Left(new DomainError(`Failed to separate the areas.`)),
+              () => Left(new Error(`Failed to separate the areas.`)),
               process.either))
         .bind(([seqB, area]) => (
           void config.update.rewrite(documents.src, area),
@@ -62,7 +61,7 @@ export function update(
             .fmap(([, areas]) =>
               [seqB, areas])
             .extract(
-              () => Left(new DomainError(`Failed to separate the areas.`)),
+              () => Left(new Error(`Failed to separate the areas.`)),
               process.either))))
     .then(process.promise)
     // unload -> ready

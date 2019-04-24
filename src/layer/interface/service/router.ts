@@ -5,8 +5,8 @@ import { route as router, Config, scope, RouterEvent, RouterEventType, RouterEve
 import { docurl } from './state/url';
 import { env } from '../service/state/env';
 //import { progressbar } from './progressbar';
-import { InterfaceError } from '../data/error';
 import { URL, StandardURL, standardizeURL } from '../../../lib/url';
+import { FatalError } from '../../../lib/error';
 import { loadTitle, savePosition } from '../../application/store';
 import { Just } from 'spica/maybe';
 
@@ -39,7 +39,7 @@ export function route(
       scope(config, (({ orig, dest }) => ({ orig: orig.pathname, dest: dest.pathname }))(event.location)))
     .fmap(async config => {
       void event.original.preventDefault();
-      void process.cast('', new InterfaceError(`Aborted.`));
+      void process.cast('', new Error(`Aborted.`));
       const cancellation = new Cancellation<Error>();
       const kill = process.register('', e => {
         void kill();
@@ -67,7 +67,7 @@ export function route(
           void kill(),
           void docurl.sync(),
           window.history.scrollRestoration = 'auto',
-          !cancellation.canceled || reason instanceof Error && reason.name === 'FatalError'
+          !cancellation.canceled || reason instanceof FatalError
             ? void config.fallback(currentTargets.get(event.original) as RouterEventSource, reason)
             : undefined));
     })
