@@ -100,12 +100,12 @@ function verify(xhr: XMLHttpRequest, method: RouterEventMethod): Either<Error, X
     .bind(xhr => {
       const url = new URL(standardizeURL(xhr.responseURL));
       switch (true) {
-        case !/2..|304/.test(`${xhr.status}`):
-          return Left(new DomainError(`Failed to validate the status of response.`));
         case !xhr.responseURL:
           return Left(new DomainError(`Failed to get the response URL.`));
+        case !/2..|304/.test(`${xhr.status}`):
+          return Left(new DomainError(`Failed to validate the status of response.`));
         case !xhr.responseXML:
-          return method === 'GET' && caches.has(url.path)
+          return method === 'GET' && xhr.status === 304 && caches.has(url.path)
             ? Right(caches.get(url.path)!.xhr)
             : Left(new DomainError(`Failed to get the response body.`));
         case !match(xhr.getResponseHeader('Content-Type'), 'text/html'):
