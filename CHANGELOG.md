@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.29.5
+
+- Fix cache processing to ignore URL hash.
+
 ## 3.29.4
 
 - Support `Cache-Control` header's `no-cache` and `no-store` parameters.

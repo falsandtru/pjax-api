@@ -9,7 +9,7 @@ import { DomainError } from '../../../data/error';
 import { URL, StandardURL, standardizeURL } from '../../../../../lib/url';
 
 const memory = new Cache<string, (displayURL: URL<StandardURL>, requestURL: URL<StandardURL>) => FetchResponse>(99);
-const caches = new Cache<StandardURL, { etag: string; expiry: number; xhr: XMLHttpRequest; }>(99);
+const caches = new Cache<URL.Path<StandardURL>, { etag: string; expiry: number; xhr: XMLHttpRequest; }>(99);
 
 export function xhr(
   method: RouterEventMethod,
@@ -24,8 +24,8 @@ export function xhr(
   headers = new Headers(headers);
   void headers.set('Accept', headers.get('Accept') || 'text/html');
   const requestURL = new URL(standardizeURL(rewrite(displayURL.path)));
-  if (method === 'GET' && caches.has(requestURL.href) && Date.now() > caches.get(requestURL.href)!.expiry) {
-    void headers.set('If-None-Match', headers.get('If-None-Match') || caches.get(requestURL.href)!.etag);
+  if (method === 'GET' && caches.has(requestURL.path) && Date.now() > caches.get(requestURL.path)!.expiry) {
+    void headers.set('If-None-Match', headers.get('If-None-Match') || caches.get(requestURL.path)!.etag);
   }
   const key = method === 'GET'
     ? cache(requestURL.path, headers) || undefined
@@ -56,10 +56,10 @@ export function xhr(
         .fmap(xhr => {
           const responseURL: URL<StandardURL> = new URL(standardizeURL(xhr.responseURL));
           if (method === 'GET') {
-            for (const url of new Set([requestURL.href, responseURL.href])) {
+            for (const path of new Set([requestURL.path, responseURL.path])) {
               if (xhr.getResponseHeader('ETag') &&
                   !(xhr.getResponseHeader('Cache-Control') || '').trim().split(/[\s,]+/).includes('no-store')) {
-                void caches.set(url, {
+                void caches.set(path, {
                   etag: xhr.getResponseHeader('ETag')!,
                   expiry: xhr.getResponseHeader('Cache-Control')!.trim().split(/[\s,]+/).includes('no-cache')
                     ? 0
@@ -68,15 +68,15 @@ export function xhr(
                 });
               }
               else {
-                void caches.delete(url);
+                void caches.delete(path);
               }
             }
           }
           return (overriddenDisplayURL: URL<StandardURL>, overriddenRequestURL: URL<StandardURL>) =>
             new FetchResponse(
-              responseURL.href === overriddenRequestURL.href
+              responseURL.path === overriddenRequestURL.path
                 ? overriddenDisplayURL
-                : overriddenRequestURL.href === requestURL.href || !key
+                : overriddenRequestURL.path === requestURL.path || !key
                     ? responseURL
                     : overriddenDisplayURL,
               xhr);
@@ -98,15 +98,15 @@ export function xhr(
 function verify(xhr: XMLHttpRequest, method: RouterEventMethod): Either<Error, XMLHttpRequest> {
   return Right<Error, XMLHttpRequest>(xhr)
     .bind(xhr => {
-      const url = standardizeURL(xhr.responseURL);
+      const url = new URL(standardizeURL(xhr.responseURL));
       switch (true) {
         case !/2..|304/.test(`${xhr.status}`):
           return Left(new DomainError(`Failed to validate the status of response.`));
         case !xhr.responseURL:
           return Left(new DomainError(`Failed to get the response URL.`));
         case !xhr.responseXML:
-          return method === 'GET' && caches.has(url)
-            ? Right(caches.get(url)!.xhr)
+          return method === 'GET' && caches.has(url.path)
+            ? Right(caches.get(url.path)!.xhr)
             : Left(new DomainError(`Failed to get the response body.`));
         case !match(xhr.getResponseHeader('Content-Type'), 'text/html'):
           return Left(new DomainError(`Failed to validate the content type of response.`));
