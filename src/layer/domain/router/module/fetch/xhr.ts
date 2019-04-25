@@ -5,7 +5,7 @@ import { Either, Left, Right } from 'spica/either';
 import { Cache } from 'spica/cache';
 import { RouterEventMethod } from '../../../event/router';
 import { FetchResponse } from '../../model/eav/value/fetch';
-import { URL, StandardURL, standardizeURL } from '../../../../../lib/url';
+import { URL, StandardURL, standardize } from '../../../../../lib/url';
 
 const memory = new Cache<string, (displayURL: URL<StandardURL>, requestURL: URL<StandardURL>) => FetchResponse>(99);
 const caches = new Cache<URL.Path<StandardURL>, { etag: string; expiry: number; xhr: XMLHttpRequest; }>(99);
@@ -22,7 +22,7 @@ export function xhr(
 ): AtomicPromise<Either<Error, FetchResponse>> {
   headers = new Headers(headers);
   void headers.set('Accept', headers.get('Accept') || 'text/html');
-  const requestURL = new URL(standardizeURL(rewrite(displayURL.path)));
+  const requestURL = new URL(standardize(rewrite(displayURL.path)));
   if (method === 'GET' && caches.has(requestURL.path) && Date.now() > caches.get(requestURL.path)!.expiry) {
     void headers.set('If-None-Match', headers.get('If-None-Match') || caches.get(requestURL.path)!.etag);
   }
@@ -53,7 +53,7 @@ export function xhr(
     void xhr.addEventListener("load", () =>
       void verify(xhr, method)
         .fmap(xhr => {
-          const responseURL: URL<StandardURL> = new URL(standardizeURL(xhr.responseURL));
+          const responseURL: URL<StandardURL> = new URL(standardize(xhr.responseURL));
           assert(responseURL.origin === new URL(window.location.origin).origin);
           if (method === 'GET') {
             const cc = new Map<string, string>(
@@ -104,7 +104,7 @@ export function xhr(
 function verify(xhr: XMLHttpRequest, method: RouterEventMethod): Either<Error, XMLHttpRequest> {
   return Right<Error, XMLHttpRequest>(xhr)
     .bind(xhr => {
-      const url = new URL(standardizeURL(xhr.responseURL));
+      const url = new URL(standardize(xhr.responseURL));
       switch (true) {
         case !xhr.responseURL:
           return Left(new Error(`Failed to get the response URL.`));

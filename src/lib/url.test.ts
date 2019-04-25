@@ -1,4 +1,4 @@
-import { URL, StandardURL, standardizeURL } from './url';
+import { URL, StandardURL, standardize } from './url';
 
 describe('Unit: lib/url', () => {
   describe('URL', () => {
@@ -93,11 +93,11 @@ describe('Unit: lib/url', () => {
     });
 
     it('standard', () => {
-      assert((): URL<StandardURL> => new URL(standardizeURL('')));
+      assert((): URL<StandardURL> => new URL(standardize('')));
       //assert((): URL<StandardURL> => new URL(standardizeURL('')));
-      assert((): URL<StandardURL> => new URL<StandardURL>(standardizeURL('')));
-      assert((): URL<StandardURL> => new URL(new URL(standardizeURL('')).reference));
-      assert((): URL<StandardURL> => new URL(new URL(standardizeURL('')).path));
+      assert((): URL<StandardURL> => new URL<StandardURL>(standardize('')));
+      assert((): URL<StandardURL> => new URL(new URL(standardize('')).reference));
+      assert((): URL<StandardURL> => new URL(new URL(standardize('')).path));
     });
 
   });

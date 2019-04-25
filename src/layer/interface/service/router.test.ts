@@ -1,5 +1,5 @@
 import { _validate as validate, Config, RouterEvent } from './router';
-import { URL, standardizeURL } from '../../../lib/url';
+import { URL, standardize } from '../../../lib/url';
 import { parse } from '../../../lib/html';
 import { html, delegate, once } from 'typed-dom';
 
@@ -9,7 +9,7 @@ describe('Unit: layer/interface/service/router', function () {
       const url = '';
       const document = parse(`<a href="${url}"></a>`).extract();
       delegate(document, 'a', 'click', ev => {
-        assert(validate(new URL(standardizeURL(url)), new Config({}), new RouterEvent(ev)));
+        assert(validate(new URL(standardize(url)), new Config({}), new RouterEvent(ev)));
         done();
       });
       document.querySelector('a')!.click();
@@ -19,7 +19,7 @@ describe('Unit: layer/interface/service/router', function () {
       const url = '//external';
       const document = parse(`<a href="${url}"></a>`).extract();
       delegate(document, 'a', 'click', ev => {
-        assert(!validate(new URL(standardizeURL(url)), new Config({}), new RouterEvent(ev)));
+        assert(!validate(new URL(standardize(url)), new Config({}), new RouterEvent(ev)));
         ev.preventDefault();
         done();
       });
@@ -30,7 +30,7 @@ describe('Unit: layer/interface/service/router', function () {
       const url = '#';
       const document = parse(`<a href="${url}"></a>`).extract();
       delegate(document, 'a', 'click', ev => {
-        assert(!validate(new URL(standardizeURL(url)), new Config({}), new RouterEvent(ev)));
+        assert(!validate(new URL(standardize(url)), new Config({}), new RouterEvent(ev)));
         ev.preventDefault();
         done();
       });
@@ -41,7 +41,7 @@ describe('Unit: layer/interface/service/router', function () {
       const url = '';
       const document = parse(`<a href="${url}" download></a>`).extract();
       delegate(document, 'a', 'click', ev => {
-        assert(!validate(new URL(standardizeURL(url)), new Config({}), new RouterEvent(ev)));
+        assert(!validate(new URL(standardize(url)), new Config({}), new RouterEvent(ev)));
         ev.preventDefault();
         done();
       });
@@ -55,7 +55,7 @@ describe('Unit: layer/interface/service/router', function () {
       ]);
       document.body.appendChild(form);
       once(document, 'form', 'submit', ev => {
-        assert(validate(new URL(standardizeURL(url)), new Config({}), new RouterEvent(ev)));
+        assert(validate(new URL(standardize(url)), new Config({}), new RouterEvent(ev)));
         ev.preventDefault();
         form.remove();
         done();
@@ -70,7 +70,7 @@ describe('Unit: layer/interface/service/router', function () {
       ]);
       document.body.appendChild(form);
       once(document, 'form', 'submit', ev => {
-        assert(!validate(new URL(standardizeURL(url)), new Config({}), new RouterEvent(ev)));
+        assert(!validate(new URL(standardize(url)), new Config({}), new RouterEvent(ev)));
         ev.preventDefault();
         form.remove();
         done();

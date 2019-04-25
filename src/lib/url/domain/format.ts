@@ -17,9 +17,9 @@ type URL<T> = Identifier.URL<T>;
 
 export type StandardURL = URL<Encoded & Normalized>;
 
-export function standardizeURL(url: URL<any>): void
-export function standardizeURL(url: string): StandardURL
-export function standardizeURL(url: string): StandardURL {
+export function standardize(url: URL<any>): void
+export function standardize(url: string): StandardURL
+export function standardize(url: string): StandardURL {
   return encode(normalize(url));
 }
 

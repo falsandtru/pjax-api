@@ -5,7 +5,7 @@ import { route as router, Config, scope, RouterEvent, RouterEventType, RouterEve
 import { docurl } from './state/url';
 import { env } from '../service/state/env';
 //import { progressbar } from './progressbar';
-import { URL, StandardURL, standardizeURL } from '../../../lib/url';
+import { URL, StandardURL, standardize } from '../../../lib/url';
 import { FatalError } from '../../../lib/error';
 import { loadTitle, savePosition } from '../../application/store';
 import { Just } from 'spica/maybe';
@@ -57,11 +57,11 @@ export function route(
             void ss
               .filter(s => s.hasAttribute('src'))
               .forEach(s =>
-                void scripts.add(new URL(standardizeURL(s.src)).reference)),
+                void scripts.add(new URL(standardize(s.src)).reference)),
             void (await p)
               .filter(s => s.hasAttribute('src'))
               .forEach(s =>
-                void scripts.add(new URL(standardizeURL(s.src)).reference))))
+                void scripts.add(new URL(standardize(s.src)).reference))))
           .extract())
         .catch(reason => (
           void kill(),

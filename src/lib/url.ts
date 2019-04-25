@@ -1,6 +1,6 @@
 import { formatURLForEdge } from './url/domain/format';
 
-export { StandardURL, standardizeURL } from './url/domain/format';
+export { StandardURL, standardize } from './url/domain/format';
 
 export class URL<T extends string> {
   constructor(url: URL.Reference<T> | URL.Resource<T> | URL.Origin<T>)

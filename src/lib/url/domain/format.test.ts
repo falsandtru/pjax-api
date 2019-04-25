@@ -1,56 +1,56 @@
-import { standardizeURL, _encode as encode } from './format';
+import { standardize, _encode as encode } from './format';
 
 describe('Unit: lib/url/domain/format', () => {
-  describe('standardizeURL', () => {
+  describe('standardize', () => {
     it('primitive', () => {
-      assert(typeof standardizeURL('') === 'string');
+      assert(typeof standardize('') === 'string');
     });
 
     it('absolutization', () => {
-      assert(standardizeURL('') === window.location.href);
+      assert(standardize('') === window.location.href);
     });
 
     it('trim', () => {
-      assert(standardizeURL(' ') === window.location.href);
+      assert(standardize(' ') === window.location.href);
     });
 
     it('default port removing', () => {
-      assert(standardizeURL('//host:').endsWith('//host/'));
-      assert(standardizeURL('//host:/').endsWith('//host/'));
-      assert(standardizeURL('//host:80/').endsWith('//host/'));
-      assert(standardizeURL('//[80:80::80]/').endsWith('//[80:80::80]/'));
-      assert(standardizeURL('//[80:80::80]:/').endsWith('//[80:80::80]/'));
-      assert(standardizeURL('//[80:80::80]:80/').endsWith('//[80:80::80]/'));
-      assert(standardizeURL('//host/path:/').endsWith('//host/path:/'));
-      assert(standardizeURL('//host/path:80/').endsWith('//host/path:80/'));
+      assert(standardize('//host:').endsWith('//host/'));
+      assert(standardize('//host:/').endsWith('//host/'));
+      assert(standardize('//host:80/').endsWith('//host/'));
+      assert(standardize('//[80:80::80]/').endsWith('//[80:80::80]/'));
+      assert(standardize('//[80:80::80]:/').endsWith('//[80:80::80]/'));
+      assert(standardize('//[80:80::80]:80/').endsWith('//[80:80::80]/'));
+      assert(standardize('//host/path:/').endsWith('//host/path:/'));
+      assert(standardize('//host/path:80/').endsWith('//host/path:80/'));
     });
 
     it('root path filling', () => {
-      assert(standardizeURL('//host').endsWith('//host/'));
-      assert(standardizeURL('//host:').endsWith('//host/'));
-      assert(standardizeURL('//host:80').endsWith('//host/'));
-      assert(standardizeURL('//[80:80::80]').endsWith('//[80:80::80]/'));
-      assert(standardizeURL('//host/path').endsWith('//host/path'));
-      assert(standardizeURL('//host?').endsWith('//host/?'));
-      assert(standardizeURL('//host/?').endsWith('//host/?'));
-      assert(standardizeURL('//host/path?').endsWith('//host/path?'));
-      assert(standardizeURL('//host/path/?').endsWith('//host/path/?'));
+      assert(standardize('//host').endsWith('//host/'));
+      assert(standardize('//host:').endsWith('//host/'));
+      assert(standardize('//host:80').endsWith('//host/'));
+      assert(standardize('//[80:80::80]').endsWith('//[80:80::80]/'));
+      assert(standardize('//host/path').endsWith('//host/path'));
+      assert(standardize('//host?').endsWith('//host/?'));
+      assert(standardize('//host/?').endsWith('//host/?'));
+      assert(standardize('//host/path?').endsWith('//host/path?'));
+      assert(standardize('//host/path/?').endsWith('//host/path/?'));
     });
 
     it('verbose flag leaving', () => {
-      assert(standardizeURL('?').endsWith(`?`));
-      assert(standardizeURL('#').endsWith(`#`));
-      assert(standardizeURL('?#').endsWith(`?#`));
+      assert(standardize('?').endsWith(`?`));
+      assert(standardize('#').endsWith(`#`));
+      assert(standardize('?#').endsWith(`?#`));
     });
 
     it('percent-encoding', () => {
       if (navigator.userAgent.includes('Edge')) return;
-      assert(standardizeURL('?a=b+c&%%3f#/?=+&%%3f#').endsWith(`?a=b%2Bc&%25%3F#/?=+&%%3f#`));
+      assert(standardize('?a=b+c&%%3f#/?=+&%%3f#').endsWith(`?a=b%2Bc&%25%3F#/?=+&%%3f#`));
     });
 
     it('multiple-encoding', () => {
       if (navigator.userAgent.includes('Edge')) return;
-      assert(standardizeURL(standardizeURL('/%%3f%3d') as string).endsWith('/%25%3F%3D'));
+      assert(standardize(standardize('/%%3f%3d') as string).endsWith('/%25%3F%3D'));
     });
 
   });

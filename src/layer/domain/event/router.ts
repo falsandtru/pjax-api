@@ -1,4 +1,4 @@
-import { URL, StandardURL, standardizeURL } from '../../../lib/url';
+import { URL, StandardURL, standardize } from '../../../lib/url';
 import { serialize } from '../../../lib/dom';
 import { currentTargets } from 'typed-dom';
 
@@ -69,15 +69,15 @@ export class RouterEventRequest {
   })();
   public readonly url: URL<StandardURL> = (() => {
     if (this.source instanceof RouterEventSource.Anchor) {
-      return new URL(standardizeURL(this.source.href));
+      return new URL(standardize(this.source.href));
     }
     if (this.source instanceof RouterEventSource.Form) {
       return this.source.method.toUpperCase() === RouterEventMethod.GET
-        ? new URL(standardizeURL(this.source.action.split(/[?#]/)[0] + `?${serialize(this.source)}`))
-        : new URL(standardizeURL(this.source.action.split(/[?#]/)[0]));
+        ? new URL(standardize(this.source.action.split(/[?#]/)[0] + `?${serialize(this.source)}`))
+        : new URL(standardize(this.source.action.split(/[?#]/)[0]));
     }
     if (this.source instanceof RouterEventSource.Window) {
-      return new URL(standardizeURL(window.location.href));
+      return new URL(standardize(window.location.href));
     }
     throw new TypeError();
   })();
@@ -93,5 +93,5 @@ export class RouterEventLocation {
   ) {
     void Object.freeze(this);
   }
-  public readonly orig: URL<StandardURL> = new URL(standardizeURL(window.location.href));
+  public readonly orig: URL<StandardURL> = new URL(standardize(window.location.href));
 }

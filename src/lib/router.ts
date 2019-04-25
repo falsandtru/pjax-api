@@ -1,4 +1,4 @@
-import { URL, StandardURL, standardizeURL } from './url';
+import { URL, StandardURL, standardize } from './url';
 import { Sequence } from 'spica/sequence';
 import { uncurry } from 'spica/uncurry';
 import { flip } from 'spica/flip';
@@ -6,7 +6,7 @@ import { Cache } from 'spica/cache';
 
 export function router<T>(config: Record<string, (path: string) => T>): (url: string) => T {
   return (url: string) => {
-    const { path, pathname } = new URL(standardizeURL(url));
+    const { path, pathname } = new URL(standardize(url));
     return Sequence.from(Object.keys(config).filter(([c]) => c === '/').sort().reverse())
       .filter(flip(compare)(pathname))
       .map(pattern => config[pattern])

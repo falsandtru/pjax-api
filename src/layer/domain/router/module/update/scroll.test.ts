@@ -1,6 +1,6 @@
 import { _hash as hash } from './scroll';
 import { parse } from '../../../../../lib/html';
-import { URL, standardizeURL } from '../../../../../lib/url';
+import { URL, standardize } from '../../../../../lib/url';
 import { html } from 'typed-dom';
 
 describe('Unit: layer/domain/router/module/update/scroll', () => {
@@ -11,7 +11,7 @@ describe('Unit: layer/domain/router/module/update/scroll', () => {
         parse(html('body', [
           html('div', { id: 'hash.#' }),
         ]).outerHTML).extract(),
-        new URL(standardizeURL('#hash.#')).fragment,
+        new URL(standardize('#hash.#')).fragment,
         {
           scrollToElement: (el) => {
             assert(el.id === 'hash.#');
@@ -27,7 +27,7 @@ describe('Unit: layer/domain/router/module/update/scroll', () => {
       const result = hash(
         parse(html('body', [
         ]).outerHTML).extract(),
-        new URL(standardizeURL('#hash.#')).fragment,
+        new URL(standardize('#hash.#')).fragment,
         {
           scrollToElement: () => {
             throw new Error();

@@ -2,7 +2,7 @@ import { Supervisor } from 'spica/supervisor.legacy';
 import { AtomicPromise } from 'spica/promise';
 import { bind } from 'typed-dom';
 import { docurl } from '../../service/state/url';
-import { standardizeURL } from '../../../../lib/url';
+import { standardize } from '../../../../lib/url';
 
 export class NavigationView {
   constructor(
@@ -13,7 +13,7 @@ export class NavigationView {
       void this.sv.events.exit.monitor(
         [],
         bind(window, 'popstate', ev => {
-          if (standardizeURL(window.location.href) === docurl.href) return;
+          if (standardize(window.location.href) === docurl.href) return;
           void listener(ev);
         }))
     ), undefined);
