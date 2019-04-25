@@ -57,12 +57,12 @@ export function xhr(
           if (method === 'GET') {
             for (const path of new Set([requestURL.path, responseURL.path])) {
               if (xhr.getResponseHeader('ETag') &&
-                  !(xhr.getResponseHeader('Cache-Control') || '').trim().split(/[\s,]+/).includes('no-store')) {
+                  !(xhr.getResponseHeader('Cache-Control') || '').trim().split(/\s*,\s*/).includes('no-store')) {
                 void caches.set(path, {
                   etag: xhr.getResponseHeader('ETag')!,
-                  expiry: xhr.getResponseHeader('Cache-Control')!.trim().split(/[\s,]+/).includes('no-cache')
+                  expiry: xhr.getResponseHeader('Cache-Control')!.trim().split(/\s*,\s*/).includes('no-cache')
                     ? 0
-                    : Date.now() + +(xhr.getResponseHeader('Cache-Control')!.trim().split(/[\s,]+/).find(s => s.startsWith('max-age=')) || '').split('=')[1] * 1000 || 0,
+                    : Date.now() + +(xhr.getResponseHeader('Cache-Control')!.trim().split(/\s*,\s*/).find(s => s.startsWith('max-age=')) || '').split('=')[1] * 1000 || 0,
                   xhr,
                 });
               }
@@ -129,9 +129,8 @@ function match(actualContentType: string | null, expectedContentType: string): b
     .length > 0;
 
   function parse(headerValue: string): string[] {
-    return headerValue.split(';')
-      .map(type => type.trim())
-      .filter(type => type.length > 0);
+    return headerValue.split(/\s*;\s*/)
+      .filter(v => v.length > 0);
   }
 }
 export { match as match_ }
