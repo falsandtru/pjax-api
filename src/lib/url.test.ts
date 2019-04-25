@@ -26,12 +26,6 @@ describe('Unit: lib/url', () => {
       assert(new URL(domain + ':443').origin === domain + '');
     });
 
-    it('domain', () => {
-      assert(new URL(domain).domain === domain);
-      assert(new URL(domain + ':80').domain === domain);
-      assert(new URL(domain + ':443').domain === domain);
-    });
-
     it('scheme', () => {
       assert(new URL(domain).scheme === protocol.split(':')[0]);
     });

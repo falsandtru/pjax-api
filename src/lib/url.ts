@@ -26,9 +26,6 @@ export class URL<T extends string> {
   public get origin(): URL.Origin<T> {
     return `${this.protocol}//${this.host}` as any;
   }
-  public get domain(): URL.Domain<T> {
-    return `${this.protocol}//${this.hostname}` as any;
-  }
   public get scheme(): URL.Scheme<T> {
     return this.url.protocol.slice(0, -1) as any;
   }
