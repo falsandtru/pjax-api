@@ -19,6 +19,10 @@ export class URL<T extends string> {
     assert(this.url.href === `${this.origin}${this.path}${this.fragment}`);
     return this.url.href as any;
   }
+  public get resource(): URL.Resource<T> {
+    return `${this.origin}${this.path}`
+      .replace(/\/?\??$|\/(?=\?)/, '') as any;
+  }
   public get origin(): URL.Origin<T> {
     return `${this.protocol}//${this.host}` as any;
   }
@@ -59,6 +63,7 @@ export class URL<T extends string> {
 }
 export namespace URL {
   export type Reference<T extends string> = URLFragment<'reference'> & T;
+  export type Resource<T extends string> = URLFragment<'resource'> & T;
   export type Origin<T extends string> = URLFragment<'origin'> & T;
   export type Domain<T extends string> = URLFragment<'domain'> & T;
   export type Scheme<T extends string> = URLFragment<'scheme'> & T;

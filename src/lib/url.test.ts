@@ -63,6 +63,15 @@ describe('Unit: lib/url', () => {
       assert(new URL(domain + dir + file + query + fragment).reference === domain + dir + file + query + fragment);
     });
 
+    it('resource', () => {
+      assert(new URL(domain + dir + file).resource === domain + dir + file);
+      assert(new URL(domain + dir + file + query + fragment).resource === domain + dir + file + query);
+      assert(new URL(domain + dir + file + '?').resource === domain + dir + file);
+      assert(new URL(domain + dir + file + '/').resource === domain + dir + file);
+      assert(new URL(domain + '/' + query).resource === domain + query);
+      assert(new URL(domain + '/?').resource === domain);
+    });
+
     it('path', () => {
       assert(new URL(dir + file + query + fragment).path === dir + file + query);
       assert(new URL(domain).path === '/');
