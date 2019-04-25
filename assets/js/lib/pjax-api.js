@@ -3785,7 +3785,7 @@ require = function () {
                     void Object.defineProperty(this.document, 'URL', {
                         configurable: true,
                         enumerable: true,
-                        value: url.href,
+                        value: url.reference,
                         writable: false
                     });
                     void html_1.fix(this.document);
@@ -3895,14 +3895,15 @@ require = function () {
                     void xhr.addEventListener('load', () => void verify(xhr, method).fmap(xhr => {
                         const responseURL = new url_1.URL(url_1.standardizeURL(xhr.responseURL));
                         if (method === 'GET') {
+                            const cc = new Map(xhr.getResponseHeader('Cache-Control') ? xhr.getResponseHeader('Cache-Control').trim().split(/\s*,\s*/).filter(v => v.length > 0).map(v => v.split('=').concat('')) : []);
                             for (const path of new Set([
                                     requestURL.path,
                                     responseURL.path
                                 ])) {
-                                if (xhr.getResponseHeader('ETag') && !(xhr.getResponseHeader('Cache-Control') || '').trim().split(/[\s,]+/).includes('no-store')) {
+                                if (xhr.getResponseHeader('ETag') && !cc.has('no-store')) {
                                     void caches.set(path, {
                                         etag: xhr.getResponseHeader('ETag'),
-                                        expiry: xhr.getResponseHeader('Cache-Control').trim().split(/[\s,]+/).includes('no-cache') ? 0 : Date.now() + +(xhr.getResponseHeader('Cache-Control').trim().split(/[\s,]+/).find(s => s.startsWith('max-age=')) || '').split('=')[1] * 1000 || 0,
+                                        expiry: cc.has('max-age') && !cc.has('no-cache') ? Date.now() + +cc.get('max-age') * 1000 || 0 : 0,
                                         xhr
                                     });
                                 } else {
@@ -3943,7 +3944,7 @@ require = function () {
             function match(actualContentType, expectedContentType) {
                 return sequence_1.Sequence.intersect(sequence_1.Sequence.from(parse(actualContentType || '').sort()), sequence_1.Sequence.from(parse(expectedContentType).sort()), (a, b) => a.localeCompare(b)).take(1).extract().length > 0;
                 function parse(headerValue) {
-                    return headerValue.split(';').map(type => type.trim()).filter(type => type.length > 0);
+                    return headerValue.split(/\s*;\s*/).filter(v => v.length > 0);
                 }
             }
             exports.match_ = match;
@@ -4005,7 +4006,7 @@ require = function () {
                     src: response.document,
                     dst: io.document
                 };
-                return promise_1.AtomicPromise.resolve(seq).then(process.either).then(m => m.bind(() => content_1.separate(documents, config.areas).extract(() => either_1.Left(new Error(`Failed to separate the areas.`)), () => m)).fmap(seqA => (void window.dispatchEvent(new Event('pjax:unload')), config.sequence.unload(seqA, Object.assign({}, response, { url: response.url.href }))))).then(m => either_1.Either.sequence(m)).then(process.promise).then(m => m.bind(seqB => content_1.separate(documents, config.areas).fmap(([area]) => [
+                return promise_1.AtomicPromise.resolve(seq).then(process.either).then(m => m.bind(() => content_1.separate(documents, config.areas).extract(() => either_1.Left(new Error(`Failed to separate the areas.`)), () => m)).fmap(seqA => (void window.dispatchEvent(new Event('pjax:unload')), config.sequence.unload(seqA, Object.assign({}, response, { url: response.url.reference }))))).then(m => either_1.Either.sequence(m)).then(process.promise).then(m => m.bind(seqB => content_1.separate(documents, config.areas).fmap(([area]) => [
                     seqB,
                     area
                 ]).extract(() => either_1.Left(new Error(`Failed to separate the areas.`)), process.either)).bind(([seqB, area]) => (void config.update.rewrite(documents.src, area), content_1.separate(documents, config.areas).fmap(([, areas]) => [
@@ -4262,7 +4263,7 @@ require = function () {
                 fetch,
                 evaluate
             }) {
-                const scripts = dom_1.find(documents.src, 'script').filter(el => !el.type || /(?:application|text)\/(?:java|ecma)script|module/i.test(el.type)).filter(el => !el.matches(selector.ignore.trim() || '_')).filter(el => el.hasAttribute('src') ? !skip.has(new url_1.URL(url_1.standardizeURL(el.src)).href) || el.matches(selector.reload.trim() || '_') : true);
+                const scripts = dom_1.find(documents.src, 'script').filter(el => !el.type || /(?:application|text)\/(?:java|ecma)script|module/i.test(el.type)).filter(el => !el.matches(selector.ignore.trim() || '_')).filter(el => el.hasAttribute('src') ? !skip.has(new url_1.URL(url_1.standardizeURL(el.src)).reference) || el.matches(selector.reload.trim() || '_') : true);
                 const {ss, as} = scripts.reduce((o, script) => {
                     switch (true) {
                     case script.matches('[src][async], [src][defer]'):
@@ -4362,7 +4363,7 @@ require = function () {
                         try {
                             if (new url_1.URL(url_1.standardizeURL(window.location.href)).path !== new url_1.URL(url_1.standardizeURL(window.location.href)).path)
                                 throw new error_1.FatalError('Expired.');
-                            if (skip.has(new url_1.URL(url_1.standardizeURL(window.location.href)).href))
+                            if (skip.has(new url_1.URL(url_1.standardizeURL(window.location.href)).reference))
                                 throw new error_1.FatalError('Expired.');
                             void (0, eval)(code);
                             script.hasAttribute('src') && void script.dispatchEvent(new Event('load'));
@@ -4507,16 +4508,16 @@ require = function () {
             function url(location, title, type, source, replaceable) {
                 switch (true) {
                 case isReplaceable(type, source, replaceable):
-                    return void window.history.replaceState({}, title, location.dest.href);
+                    return void window.history.replaceState({}, title, location.dest.reference);
                 case isRegisterable(type, location):
-                    return void window.history.pushState({}, title, location.dest.href);
+                    return void window.history.pushState({}, title, location.dest.reference);
                 default:
                     return;
                 }
             }
             exports.url = url;
             function isRegisterable(type, location) {
-                if (location.dest.href === location.orig.href)
+                if (location.dest.reference === location.orig.reference)
                     return false;
                 switch (type) {
                 case router_1.RouterEventType.click:
@@ -4761,7 +4762,7 @@ require = function () {
                             void s.register(new scroll_1.ScrollView(window, () => {
                                 if (s.canceled)
                                     return;
-                                if (new url_1.URL(url_1.standardizeURL(window.location.href)).href !== url_2.docurl.href)
+                                if (new url_1.URL(url_1.standardizeURL(window.location.href)).reference !== url_2.docurl.href)
                                     return;
                                 void store_1.savePosition();
                             }).close);
@@ -4869,7 +4870,7 @@ require = function () {
                         process: cancellation,
                         scripts
                     }, io).then(m => m.fmap(([ss, p]) => __awaiter(this, void 0, void 0, function* () {
-                        return void kill(), void url_1.docurl.sync(), void ss.filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_2.URL(url_2.standardizeURL(s.src)).href)), void (yield p).filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_2.URL(url_2.standardizeURL(s.src)).href));
+                        return void kill(), void url_1.docurl.sync(), void ss.filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_2.URL(url_2.standardizeURL(s.src)).reference)), void (yield p).filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_2.URL(url_2.standardizeURL(s.src)).reference));
                     })).extract()).catch(reason => (void kill(), void url_1.docurl.sync(), window.history.scrollRestoration = 'auto', !cancellation.canceled || reason instanceof error_1.FatalError ? void config.fallback(typed_dom_1.currentTargets.get(event.original), reason) : undefined));
                 })).extract(() => {
                     switch (event.type) {
@@ -4964,7 +4965,7 @@ require = function () {
             const dom_1 = _dereq_('../../../../lib/dom');
             const typed_dom_1 = _dereq_('typed-dom');
             exports.scripts = new Set();
-            void typed_dom_1.bind(window, 'pjax:unload', () => void dom_1.find(document, 'script[src]').forEach(script => void exports.scripts.add(new url_1.URL(url_1.standardizeURL(script.src)).href)));
+            void typed_dom_1.bind(window, 'pjax:unload', () => void dom_1.find(document, 'script[src]').forEach(script => void exports.scripts.add(new url_1.URL(url_1.standardizeURL(script.src)).reference)));
         },
         {
             '../../../../lib/dom': 129,
@@ -5225,14 +5226,14 @@ require = function () {
                     this.url = new window.URL(format_1.formatURLForEdge(url), window.location.href);
                     Object.freeze(this);
                 }
-                get href() {
+                get reference() {
                     return this.url.href;
+                }
+                get resource() {
+                    return `${ this.origin }${ this.path }`.replace(/\/?\??$|\/(?=\?)/, '');
                 }
                 get origin() {
                     return `${ this.protocol }//${ this.host }`;
-                }
-                get domain() {
-                    return `${ this.protocol }//${ this.hostname }`;
                 }
                 get scheme() {
                     return this.url.protocol.slice(0, -1);
