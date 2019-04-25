@@ -9,8 +9,8 @@ describe('Unit: lib/url', () => {
     const query = '?a=1&b=2';
     const fragment = '#?hash';
 
-    const domain = protocol + '//' + hostname;
-    assert(domain === 'https://example.com');
+    const origin = protocol + '//' + hostname;
+    assert(origin === 'https://example.com');
 
     it('relative', () => {
       assert(new URL('').reference === window.location.href);
@@ -21,60 +21,60 @@ describe('Unit: lib/url', () => {
     });
 
     it('origin', () => {
-      assert(new URL(domain).origin === domain);
-      assert(new URL(domain + ':80').origin === domain + ':80');
-      assert(new URL(domain + ':443').origin === domain + '');
+      assert(new URL(origin).origin === origin);
+      assert(new URL(origin + ':80').origin === origin + ':80');
+      assert(new URL(origin + ':443').origin === origin + '');
     });
 
     it('scheme', () => {
-      assert(new URL(domain).scheme === protocol.split(':')[0]);
+      assert(new URL(origin).scheme === protocol.split(':')[0]);
     });
 
     it('protocol', () => {
-      assert(new URL(domain).protocol === protocol);
+      assert(new URL(origin).protocol === protocol);
     });
 
     it('host', () => {
-      assert(new URL(domain).host === hostname);
-      assert(new URL(domain + ':80').host === hostname + ':80');
-      assert(new URL(domain + ':443').host === hostname + '');
+      assert(new URL(origin).host === hostname);
+      assert(new URL(origin + ':80').host === hostname + ':80');
+      assert(new URL(origin + ':443').host === hostname + '');
     });
 
     it('hostname', () => {
-      assert(new URL(domain).hostname === hostname);
-      assert(new URL(domain + ':80').hostname === hostname);
-      assert(new URL(domain + ':443').hostname === hostname);
+      assert(new URL(origin).hostname === hostname);
+      assert(new URL(origin + ':80').hostname === hostname);
+      assert(new URL(origin + ':443').hostname === hostname);
     });
 
     it('port', () => {
-      assert(new URL(domain).port === '');
-      assert(new URL(domain + ':80').port === '80');
-      assert(new URL(domain + ':443').port === '');
+      assert(new URL(origin).port === '');
+      assert(new URL(origin + ':80').port === '80');
+      assert(new URL(origin + ':443').port === '');
     });
 
     it('reference', () => {
-      assert(new URL(domain + dir + file).reference === domain + dir + file);
-      assert(new URL(domain + dir + file + query + fragment).reference === domain + dir + file + query + fragment);
+      assert(new URL(origin + dir + file).reference === origin + dir + file);
+      assert(new URL(origin + dir + file + query + fragment).reference === origin + dir + file + query + fragment);
     });
 
     it('resource', () => {
-      assert(new URL(domain + dir + file).resource === domain + dir + file);
-      assert(new URL(domain + dir + file + query + fragment).resource === domain + dir + file + query);
-      assert(new URL(domain + dir + file + '?').resource === domain + dir + file);
-      assert(new URL(domain + dir + file + '/').resource === domain + dir + file);
-      assert(new URL(domain + '/' + query).resource === domain + query);
-      assert(new URL(domain + '/?').resource === domain);
+      assert(new URL(origin + dir + file).resource === origin + dir + file);
+      assert(new URL(origin + dir + file + query + fragment).resource === origin + dir + file + query);
+      assert(new URL(origin + dir + file + '?').resource === origin + dir + file);
+      assert(new URL(origin + dir + file + '/').resource === origin + dir + file);
+      assert(new URL(origin + '/' + query).resource === origin + query);
+      assert(new URL(origin + '/?').resource === origin);
     });
 
     it('path', () => {
       assert(new URL(dir + file + query + fragment).path === dir + file + query);
-      assert(new URL(domain).path === '/');
+      assert(new URL(origin).path === '/');
       assert(new URL('/').path === '/');
     });
 
     it('pathname', () => {
       assert(new URL(dir + file + query + fragment).pathname === dir + file);
-      assert(new URL(domain).pathname === '/');
+      assert(new URL(origin).pathname === '/');
       assert(new URL('/').pathname === '/');
     });
 
