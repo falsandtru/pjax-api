@@ -1,4 +1,4 @@
-import { URL } from './url';
+import { URL, StandardURL, standardizeURL } from './url';
 
 describe('Unit: lib/url', () => {
   describe('URL', () => {
@@ -90,6 +90,14 @@ describe('Unit: lib/url', () => {
       assert(new URL('').fragment === '');
       assert(new URL('#').fragment === '#');
       assert(new URL('##').fragment === '##');
+    });
+
+    it('standard', () => {
+      assert((): URL<StandardURL> => new URL(standardizeURL('')));
+      //assert((): URL<StandardURL> => new URL(standardizeURL('')));
+      assert((): URL<StandardURL> => new URL<StandardURL>(standardizeURL('')));
+      assert((): URL<StandardURL> => new URL(new URL(standardizeURL('')).reference));
+      assert((): URL<StandardURL> => new URL(new URL(standardizeURL('')).path));
     });
 
   });

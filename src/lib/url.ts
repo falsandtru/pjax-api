@@ -2,14 +2,12 @@ import { formatURLForEdge } from './url/domain/format';
 
 export { StandardURL, standardizeURL } from './url/domain/format';
 
-const IDENTITY = Symbol();
-
 export class URL<T extends string> {
-  private readonly [IDENTITY]: never;
-  constructor(url: URLFragment<string> & T)
+  constructor(url: URL.Reference<T> | URL.Resource<T> | URL.Origin<T>)
+  constructor(url: URL.Origin<T> | URL.Path<T> | URL.Pathname<T> | URL.Query<T> | URL.Fragment<T>)
+  constructor(url: URL.Fragment<string> & T)
   constructor(url: T)
   constructor(url: T) {
-    this[IDENTITY];
     this.url = new window.URL(formatURLForEdge(url), window.location.href);
     assert(this.url.href.startsWith(this.url.protocol));
     Object.freeze(this);
