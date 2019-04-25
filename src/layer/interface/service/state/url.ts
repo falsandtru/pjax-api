@@ -1,4 +1,4 @@
-import { StandardURL, standardize } from '../../../../lib/url';
+import { StandardURL, standardize } from 'spica/url';
 import { bind } from 'typed-dom';
 
 void bind(window, 'hashchange', () =>

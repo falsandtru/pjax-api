@@ -3,7 +3,7 @@ import { Config as Option } from '../../../../';
 import { Supervisor } from 'spica/supervisor.legacy';
 import { Cancellation } from 'spica/cancellation';
 import { AtomicPromise } from 'spica/promise';
-import { URL, standardize } from '../../../lib/url';
+import { URL, standardize } from 'spica/url';
 import { ClickView } from '../module/view/click';
 import { SubmitView } from '../module/view/submit';
 import { NavigationView } from '../module/view/navigation';

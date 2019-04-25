@@ -1,5 +1,5 @@
 import { RouterEventType } from '../../../event/router';
-import { URL, StandardURL } from '../../../../../lib/url';
+import { URL, StandardURL } from 'spica/url';
 
 export function scroll(
   type: RouterEventType,

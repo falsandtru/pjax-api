@@ -1,5 +1,5 @@
 import { router, compare, _expand as expand, _match as match } from './router';
-import { URL, standardize } from './url';
+import { URL, standardize } from 'spica/url';
 import { Sequence } from 'spica/sequence';
 
 describe('Unit: lib/router', () => {

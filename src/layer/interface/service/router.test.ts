@@ -1,5 +1,5 @@
 import { _validate as validate, Config, RouterEvent } from './router';
-import { URL, standardize } from '../../../lib/url';
+import { URL, standardize } from 'spica/url';
 import { parse } from '../../../lib/html';
 import { html, delegate, once } from 'typed-dom';
 

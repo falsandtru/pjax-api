@@ -1,4 +1,4 @@
-import { URL, StandardURL, standardize } from './url';
+import { URL, StandardURL, standardize } from 'spica/url';
 import { Sequence } from 'spica/sequence';
 import { uncurry } from 'spica/uncurry';
 import { flip } from 'spica/flip';

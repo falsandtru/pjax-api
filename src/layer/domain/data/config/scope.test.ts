@@ -1,6 +1,6 @@
 import { scope } from './scope';
 import { Config } from '../config';
-import { URL, standardize } from '../../../../lib/url';
+import { URL, standardize } from 'spica/url';
 
 describe('Unit: layer/domain/data/config/scope', () => {
   describe('scope', () => {

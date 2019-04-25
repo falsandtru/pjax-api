@@ -1,5 +1,5 @@
 import { RouterEventMethod, RouterEventRequest, RouterEventLocation } from './router';
-import { URL, standardize } from '../../../lib/url';
+import { URL, standardize } from 'spica/url';
 import { html } from 'typed-dom';
 
 describe('Unit: layer/domain/event/router', () => {

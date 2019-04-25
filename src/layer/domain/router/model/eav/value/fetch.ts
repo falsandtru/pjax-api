@@ -1,4 +1,4 @@
-import { URL, StandardURL } from '../../../../../../lib/url';
+import { URL, StandardURL } from 'spica/url';
 import { fix } from '../../../../../../lib/html';
 
 export class FetchResponse {

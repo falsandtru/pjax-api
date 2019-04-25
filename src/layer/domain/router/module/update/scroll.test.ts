@@ -1,6 +1,6 @@
 import { _hash as hash } from './scroll';
 import { parse } from '../../../../../lib/html';
-import { URL, standardize } from '../../../../../lib/url';
+import { URL, standardize } from 'spica/url';
 import { html } from 'typed-dom';
 
 describe('Unit: layer/domain/router/module/update/scroll', () => {

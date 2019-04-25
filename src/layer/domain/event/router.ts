@@ -1,4 +1,4 @@
-import { URL, StandardURL, standardize } from '../../../lib/url';
+import { URL, StandardURL, standardize } from 'spica/url';
 import { serialize } from '../../../lib/dom';
 import { currentTargets } from 'typed-dom';
 

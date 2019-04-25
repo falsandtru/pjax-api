@@ -2,7 +2,7 @@ import { Supervisor } from 'spica/supervisor.legacy';
 import { AtomicPromise } from 'spica/promise';
 import { bind } from 'typed-dom';
 import { docurl } from '../../service/state/url';
-import { standardize } from '../../../../lib/url';
+import { standardize } from 'spica/url';
 
 export class NavigationView {
   constructor(

@@ -1,7 +1,7 @@
 import { Cancellee } from 'spica/cancellation';
 import { RouterEvent } from '../../../event/router';
 import { Config } from '../../../data/config';
-import { URL, StandardURL } from '../../../../../lib/url';
+import { URL, StandardURL } from 'spica/url';
 
 export class RouterEntity {
   constructor(

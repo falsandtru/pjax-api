@@ -1,4 +1,4 @@
-import { URL, StandardURL, standardize } from '../../../../lib/url';
+import { URL, StandardURL, standardize } from 'spica/url';
 import { find } from '../../../../lib/dom';
 import { bind } from 'typed-dom';
 

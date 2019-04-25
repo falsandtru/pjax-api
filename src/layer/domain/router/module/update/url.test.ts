@@ -1,6 +1,6 @@
 import { _isRegisterable as isRegisterable, _isReplaceable as isReplaceable } from './url';
 import { RouterEventLocation, RouterEventType } from '../../../event/router';
-import { URL, standardize } from '../../../../../lib/url';
+import { URL, standardize } from 'spica/url';
 import { html } from 'typed-dom';
 
 describe('Unit: layer/domain/router/module/update/url', () => {

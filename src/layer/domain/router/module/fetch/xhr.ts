@@ -5,7 +5,7 @@ import { Either, Left, Right } from 'spica/either';
 import { Cache } from 'spica/cache';
 import { RouterEventMethod } from '../../../event/router';
 import { FetchResponse } from '../../model/eav/value/fetch';
-import { URL, StandardURL, standardize } from '../../../../../lib/url';
+import { URL, StandardURL, standardize } from 'spica/url';
 
 const memory = new Cache<string, (displayURL: URL<StandardURL>, requestURL: URL<StandardURL>) => FetchResponse>(99);
 const caches = new Cache<URL.Path<StandardURL>, { etag: string; expiry: number; xhr: XMLHttpRequest; }>(99);
