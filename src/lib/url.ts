@@ -62,7 +62,6 @@ export namespace URL {
   export type Reference<T extends string> = URLFragment<'reference'> & T;
   export type Resource<T extends string> = URLFragment<'resource'> & T;
   export type Origin<T extends string> = URLFragment<'origin'> & T;
-  export type Domain<T extends string> = URLFragment<'domain'> & T;
   export type Scheme<T extends string> = URLFragment<'scheme'> & T;
   export type Protocol<T extends string> = URLFragment<'protocol'> & T;
   export type Host<T extends string> = URLFragment<'host'> & T;
