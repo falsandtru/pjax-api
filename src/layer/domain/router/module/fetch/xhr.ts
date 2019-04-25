@@ -54,6 +54,7 @@ export function xhr(
       void verify(xhr, method)
         .fmap(xhr => {
           const responseURL: URL<StandardURL> = new URL(standardizeURL(xhr.responseURL));
+          assert(responseURL.origin === new URL(window.location.origin).origin);
           if (method === 'GET') {
             for (const path of new Set([requestURL.path, responseURL.path])) {
               if (xhr.getResponseHeader('ETag') &&
