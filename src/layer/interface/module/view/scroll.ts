@@ -1,7 +1,7 @@
 import { Supervisor } from 'spica/supervisor.legacy';
 import { AtomicPromise } from 'spica/promise';
-import { bind } from 'typed-dom';
 import { debounce } from 'spica/throttle';
+import { bind } from 'typed-dom';
 
 export class ScrollView {
   constructor(

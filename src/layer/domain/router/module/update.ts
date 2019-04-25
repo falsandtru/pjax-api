@@ -1,6 +1,3 @@
-import { AtomicPromise } from 'spica/promise';
-import { Either, Left } from 'spica/either';
-import { HNil } from 'spica/hlist';
 import { RouterEntity } from '../model/eav/entity';
 import { RouterEventLocation } from '../../event/router';
 import { FetchResponse } from '../model/eav/value/fetch';
@@ -14,6 +11,9 @@ import { script } from '../module/update/script';
 import { focus } from '../module/update/focus';
 import { scroll } from '../module/update/scroll';
 import { saveTitle, savePosition } from '../../store/path';
+import { AtomicPromise } from 'spica/promise';
+import { Either, Left } from 'spica/either';
+import { HNil } from 'spica/hlist';
 
 export function update(
   {

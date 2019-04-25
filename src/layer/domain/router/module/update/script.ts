@@ -1,12 +1,12 @@
+import { find } from '../../../../../lib/dom';
+import { FatalError } from '../../../../../lib/error';
 import { AtomicPromise } from 'spica/promise';
 import { Cancellee } from 'spica/cancellation';
 import { Either, Left, Right } from 'spica/either';
+import { URL, StandardURL, standardize } from 'spica/url';
 import { tuple } from 'spica/tuple';
 import { concat } from 'spica/concat';
 import { wait } from 'spica/clock';
-import { find } from '../../../../../lib/dom';
-import { FatalError } from '../../../../../lib/error';
-import { URL, StandardURL, standardize } from 'spica/url';
 import { html } from 'typed-dom';
 
 type Result = Either<Error, [HTMLScriptElement[], Promise<Either<Error, HTMLScriptElement[]>>]>;

@@ -1,9 +1,9 @@
-import { Either, Left, Right } from 'spica/either';
 import { RouterEntity } from './model/eav/entity';
 import { fetch } from './module/fetch';
 import { update } from './module/update';
 import { separate } from './module/update/content';
 import { loadPosition } from '../store/path';
+import { Either, Left, Right } from 'spica/either';
 
 export { RouterEntity, RouterEntityState } from './model/eav/entity';
 export type RouterResult = Either<Error, readonly [HTMLScriptElement[], Promise<HTMLScriptElement[]>]>;

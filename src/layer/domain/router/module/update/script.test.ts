@@ -1,9 +1,9 @@
 import { script, _fetch as fetch, _evaluate as evaluate, escape } from './script';
+import { parse } from '../../../../../lib/html';
 import { AtomicPromise } from 'spica/promise';
 import { Cancellation } from 'spica/cancellation';
 import { Left, Right } from 'spica/either';
 import { tuple } from 'spica/tuple';
-import { parse } from '../../../../../lib/html';
 import { html } from 'typed-dom';
 
 describe('Unit: layer/domain/router/module/update/script', () => {

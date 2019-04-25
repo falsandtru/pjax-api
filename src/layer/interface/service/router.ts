@@ -1,14 +1,14 @@
-import { Supervisor } from 'spica/supervisor.legacy';
-import { Cancellation } from 'spica/cancellation';
-import { bind, currentTargets } from 'typed-dom';
 import { route as router, Config, scope, RouterEvent, RouterEventType, RouterEventSource } from '../../application/router';
 import { docurl } from './state/url';
 import { env } from '../service/state/env';
 //import { progressbar } from './progressbar';
-import { URL, StandardURL, standardize } from 'spica/url';
 import { FatalError } from '../../../lib/error';
 import { loadTitle, savePosition } from '../../application/store';
+import { URL, StandardURL, standardize } from 'spica/url';
+import { Supervisor } from 'spica/supervisor.legacy';
+import { Cancellation } from 'spica/cancellation';
 import { Just } from 'spica/maybe';
+import { bind, currentTargets } from 'typed-dom';
 
 void bind(window, 'pjax:unload', () =>
   window.history.scrollRestoration = 'auto', true);

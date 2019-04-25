@@ -1,10 +1,10 @@
-import { Cancellee } from 'spica/cancellation';
-import { Either } from 'spica/either';
-import { wait as sleep } from 'spica/clock';
 import { Config } from '../../data/config';
 import { RouterEventRequest } from '../../event/router';
 import { FetchResponse } from '../model/eav/value/fetch';
 import { xhr } from '../module/fetch/xhr';
+import { Cancellee } from 'spica/cancellation';
+import { Either } from 'spica/either';
+import { wait as sleep } from 'spica/clock';
 
 export async function fetch(
   {

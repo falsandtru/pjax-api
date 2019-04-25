@@ -1,5 +1,5 @@
-import { URL, StandardURL, standardize } from 'spica/url';
 import { find } from '../../../../lib/dom';
+import { URL, StandardURL, standardize } from 'spica/url';
 import { bind } from 'typed-dom';
 
 export const scripts = new Set<URL.Reference<StandardURL>>();

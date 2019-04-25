@@ -1,5 +1,5 @@
-import { extend } from 'spica/assign';
 import { State } from '../schema/state';
+import { extend } from 'spica/assign';
 
 void saveTitle();
 void savePosition();

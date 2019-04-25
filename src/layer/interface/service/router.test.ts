@@ -1,6 +1,6 @@
 import { _validate as validate, Config, RouterEvent } from './router';
-import { URL, standardize } from 'spica/url';
 import { parse } from '../../../lib/html';
+import { URL, standardize } from 'spica/url';
 import { html, delegate, once } from 'typed-dom';
 
 describe('Unit: layer/interface/service/router', function () {

@@ -1,5 +1,5 @@
-import { URL, StandardURL } from 'spica/url';
 import { fix } from '../../../../../../lib/html';
+import { URL, StandardURL } from 'spica/url';
 
 export class FetchResponse {
   constructor(

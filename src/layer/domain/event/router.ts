@@ -1,5 +1,5 @@
-import { URL, StandardURL, standardize } from 'spica/url';
 import { serialize } from '../../../lib/dom';
+import { URL, StandardURL, standardize } from 'spica/url';
 import { currentTargets } from 'typed-dom';
 
 export class RouterEvent {

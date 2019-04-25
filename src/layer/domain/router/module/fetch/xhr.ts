@@ -1,10 +1,10 @@
+import { RouterEventMethod } from '../../../event/router';
+import { FetchResponse } from '../../model/eav/value/fetch';
 import { AtomicPromise } from 'spica/promise';
 import { Cancellee } from 'spica/cancellation';
 import { Sequence } from 'spica/sequence';
 import { Either, Left, Right } from 'spica/either';
 import { Cache } from 'spica/cache';
-import { RouterEventMethod } from '../../../event/router';
-import { FetchResponse } from '../../model/eav/value/fetch';
 import { URL, StandardURL, standardize } from 'spica/url';
 
 const memory = new Cache<string, (displayURL: URL<StandardURL>, requestURL: URL<StandardURL>) => FetchResponse>(99);

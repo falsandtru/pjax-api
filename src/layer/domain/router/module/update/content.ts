@@ -1,9 +1,9 @@
+import { find } from '../../../../../lib/dom';
+import { escape } from './script';
 import { AtomicPromise } from 'spica/promise';
 import { Maybe, Just, Nothing} from 'spica/maybe';
 import { concat} from 'spica/concat';
 import { once } from 'typed-dom';
-import { find } from '../../../../../lib/dom';
-import { escape } from './script';
 
 type DocumentRecord = { src: Document; dst: Document; };
 type AreaRecord = { src: HTMLElement[]; dst: HTMLElement[]; };
