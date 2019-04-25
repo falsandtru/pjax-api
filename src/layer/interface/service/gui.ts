@@ -37,7 +37,7 @@ export class GUI extends API {
           void io.router(config, new RouterEvent(event), process, io)).close);
         void s.register(new ScrollView(window, () => {
           if (s.canceled) return;
-          if (new URL(standardizeURL(window.location.href)).href !== docurl.href) return;
+          if (new URL(standardizeURL(window.location.href)).reference !== docurl.href) return;
           void savePosition();
         }).close);
       }),

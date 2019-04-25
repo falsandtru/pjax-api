@@ -57,11 +57,11 @@ export function route(
             void ss
               .filter(s => s.hasAttribute('src'))
               .forEach(s =>
-                void scripts.add(new URL(standardizeURL(s.src)).href)),
+                void scripts.add(new URL(standardizeURL(s.src)).reference)),
             void (await p)
               .filter(s => s.hasAttribute('src'))
               .forEach(s =>
-                void scripts.add(new URL(standardizeURL(s.src)).href))))
+                void scripts.add(new URL(standardizeURL(s.src)).reference))))
           .extract())
         .catch(reason => (
           void kill(),

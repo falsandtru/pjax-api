@@ -13,11 +13,11 @@ describe('Unit: lib/url', () => {
     assert(domain === 'https://example.com');
 
     it('relative', () => {
-      assert(new URL('').href === window.location.href);
+      assert(new URL('').reference === window.location.href);
     });
 
     it('trim', () => {
-      assert(new URL(' ').href === window.location.href);
+      assert(new URL(' ').reference === window.location.href);
     });
 
     it('origin', () => {
@@ -58,9 +58,9 @@ describe('Unit: lib/url', () => {
       assert(new URL(domain + ':443').port === '');
     });
 
-    it('href', () => {
-      assert(new URL(domain + dir + file).href === domain + dir + file);
-      assert(new URL(domain + dir + file + query + fragment).href === domain + dir + file + query + fragment);
+    it('reference', () => {
+      assert(new URL(domain + dir + file).reference === domain + dir + file);
+      assert(new URL(domain + dir + file + query + fragment).reference === domain + dir + file + query + fragment);
     });
 
     it('path', () => {

@@ -15,7 +15,8 @@ export class URL<T extends string> {
     Object.freeze(this);
   }
   private readonly url: InstanceType<typeof window.URL>;
-  public get href(): URL.Absolute<T> {
+  public get reference(): URL.Reference<T> {
+    assert(this.url.href === `${this.origin}${this.path}${this.fragment}`);
     return this.url.href as any;
   }
   public get origin(): URL.Origin<T> {
@@ -57,7 +58,7 @@ export class URL<T extends string> {
   }
 }
 export namespace URL {
-  export type Absolute<T extends string> = URLFragment<'absolute'> & T;
+  export type Reference<T extends string> = URLFragment<'reference'> & T;
   export type Origin<T extends string> = URLFragment<'origin'> & T;
   export type Domain<T extends string> = URLFragment<'domain'> & T;
   export type Scheme<T extends string> = URLFragment<'scheme'> & T;

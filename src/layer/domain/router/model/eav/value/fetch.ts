@@ -11,11 +11,11 @@ export class FetchResponse {
     void Object.defineProperty(this.document, 'URL', {
       configurable: true,
       enumerable: true,
-      value: url.href,
+      value: url.reference,
       writable: false,
     });
     void fix(this.document);
-    assert(this.document.URL === url.href);
+    assert(this.document.URL === url.reference);
     void Object.freeze(this);
   }
   public readonly header: (name: string) => string | null =

@@ -44,7 +44,7 @@ export function update(
             () => m))
       .fmap(seqA => (
         void window.dispatchEvent(new Event('pjax:unload')),
-        config.sequence.unload(seqA, { ...response, url: response.url.href }))))
+        config.sequence.unload(seqA, { ...response, url: response.url.reference }))))
     .then(m => Either.sequence(m))
     .then(process.promise)
     .then(m => m
