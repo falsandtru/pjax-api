@@ -3717,8 +3717,8 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const url_1 = _dereq_('spica/url');
             const dom_1 = _dereq_('../../../lib/dom');
+            const url_1 = _dereq_('spica/url');
             const typed_dom_1 = _dereq_('typed-dom');
             class RouterEvent {
                 constructor(original) {
@@ -3823,11 +3823,11 @@ require = function () {
                 });
             };
             Object.defineProperty(exports, '__esModule', { value: true });
-            const either_1 = _dereq_('spica/either');
             const fetch_1 = _dereq_('./module/fetch');
             const update_1 = _dereq_('./module/update');
             const content_1 = _dereq_('./module/update/content');
             const path_1 = _dereq_('../store/path');
+            const either_1 = _dereq_('spica/either');
             var entity_1 = _dereq_('./model/eav/entity');
             exports.RouterEntity = entity_1.RouterEntity;
             exports.RouterEntityState = entity_1.RouterEntityState;
@@ -3886,8 +3886,8 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const url_1 = _dereq_('spica/url');
             const html_1 = _dereq_('../../../../../../lib/html');
+            const url_1 = _dereq_('spica/url');
             class FetchResponse {
                 constructor(url, xhr) {
                     this.url = url;
@@ -3941,8 +3941,8 @@ require = function () {
                 });
             };
             Object.defineProperty(exports, '__esModule', { value: true });
-            const clock_1 = _dereq_('spica/clock');
             const xhr_1 = _dereq_('../module/fetch/xhr');
+            const clock_1 = _dereq_('spica/clock');
             function fetch({method, url, body}, {
                 fetch: {rewrite, cache, headers, timeout, wait},
                 sequence
@@ -3976,11 +3976,11 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
+            const fetch_1 = _dereq_('../../model/eav/value/fetch');
             const promise_1 = _dereq_('spica/promise');
             const sequence_1 = _dereq_('spica/sequence');
             const either_1 = _dereq_('spica/either');
             const cache_1 = _dereq_('spica/cache');
-            const fetch_1 = _dereq_('../../model/eav/value/fetch');
             const url_1 = _dereq_('spica/url');
             const memory = new cache_1.Cache(99);
             const caches = new cache_1.Cache(99);
@@ -4100,9 +4100,6 @@ require = function () {
                 });
             };
             Object.defineProperty(exports, '__esModule', { value: true });
-            const promise_1 = _dereq_('spica/promise');
-            const either_1 = _dereq_('spica/either');
-            const hlist_1 = _dereq_('spica/hlist');
             const router_1 = _dereq_('../../event/router');
             const blur_1 = _dereq_('../module/update/blur');
             const url_1 = _dereq_('../module/update/url');
@@ -4114,6 +4111,9 @@ require = function () {
             const focus_1 = _dereq_('../module/update/focus');
             const scroll_1 = _dereq_('../module/update/scroll');
             const path_1 = _dereq_('../../store/path');
+            const promise_1 = _dereq_('spica/promise');
+            const either_1 = _dereq_('spica/either');
+            const hlist_1 = _dereq_('spica/hlist');
             function update({event, config, state}, response, seq, io) {
                 const {process} = state;
                 const documents = {
@@ -4201,12 +4201,12 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
+            const dom_1 = _dereq_('../../../../../lib/dom');
+            const script_1 = _dereq_('./script');
             const promise_1 = _dereq_('spica/promise');
             const maybe_1 = _dereq_('spica/maybe');
             const concat_1 = _dereq_('spica/concat');
             const typed_dom_1 = _dereq_('typed-dom');
-            const dom_1 = _dereq_('../../../../../lib/dom');
-            const script_1 = _dereq_('./script');
             function content(documents, areas, io = { replace: (src, dst) => void dst.parentNode.replaceChild(src, dst) }) {
                 return [
                     areas.map(r => r.dst).reduce(concat_1.concat, []),
@@ -4364,14 +4364,14 @@ require = function () {
                 });
             };
             Object.defineProperty(exports, '__esModule', { value: true });
+            const dom_1 = _dereq_('../../../../../lib/dom');
+            const error_1 = _dereq_('../../../../../lib/error');
             const promise_1 = _dereq_('spica/promise');
             const either_1 = _dereq_('spica/either');
+            const url_1 = _dereq_('spica/url');
             const tuple_1 = _dereq_('spica/tuple');
             const concat_1 = _dereq_('spica/concat');
             const clock_1 = _dereq_('spica/clock');
-            const dom_1 = _dereq_('../../../../../lib/dom');
-            const error_1 = _dereq_('../../../../../lib/error');
-            const url_1 = _dereq_('spica/url');
             const typed_dom_1 = _dereq_('typed-dom');
             function script(documents, skip, selector, timeout, cancellation, io = {
                 fetch,
@@ -4709,11 +4709,11 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
+            const url_1 = _dereq_('../../service/state/url');
             const supervisor_legacy_1 = _dereq_('spica/supervisor.legacy');
             const promise_1 = _dereq_('spica/promise');
-            const typed_dom_1 = _dereq_('typed-dom');
-            const url_1 = _dereq_('../../service/state/url');
             const url_2 = _dereq_('spica/url');
+            const typed_dom_1 = _dereq_('typed-dom');
             class NavigationView {
                 constructor(window, listener) {
                     this.sv = new class extends supervisor_legacy_1.Supervisor {
@@ -4743,8 +4743,8 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const supervisor_legacy_1 = _dereq_('spica/supervisor.legacy');
             const promise_1 = _dereq_('spica/promise');
-            const typed_dom_1 = _dereq_('typed-dom');
             const throttle_1 = _dereq_('spica/throttle');
+            const typed_dom_1 = _dereq_('typed-dom');
             class ScrollView {
                 constructor(window, listener) {
                     this.sv = new class extends supervisor_legacy_1.Supervisor {
@@ -4843,19 +4843,19 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const api_1 = _dereq_('./api');
-            const supervisor_legacy_1 = _dereq_('spica/supervisor.legacy');
-            const cancellation_1 = _dereq_('spica/cancellation');
-            const promise_1 = _dereq_('spica/promise');
-            const url_1 = _dereq_('spica/url');
             const click_1 = _dereq_('../module/view/click');
             const submit_1 = _dereq_('../module/view/submit');
             const navigation_1 = _dereq_('../module/view/navigation');
             const scroll_1 = _dereq_('../module/view/scroll');
             const router_1 = _dereq_('./router');
-            const url_2 = _dereq_('./state/url');
+            const url_1 = _dereq_('./state/url');
             _dereq_('./state/scroll-restoration');
             const process_1 = _dereq_('./state/process');
             const store_1 = _dereq_('../../application/store');
+            const supervisor_legacy_1 = _dereq_('spica/supervisor.legacy');
+            const cancellation_1 = _dereq_('spica/cancellation');
+            const promise_1 = _dereq_('spica/promise');
+            const url_2 = _dereq_('spica/url');
             const view = new class extends supervisor_legacy_1.Supervisor {
             }();
             class GUI extends api_1.API {
@@ -4876,7 +4876,7 @@ require = function () {
                             void s.register(new scroll_1.ScrollView(window, () => {
                                 if (s.canceled)
                                     return;
-                                if (new url_1.URL(url_1.standardize(window.location.href)).reference !== url_2.docurl.href)
+                                if (new url_2.URL(url_2.standardize(window.location.href)).reference !== url_1.docurl.href)
                                     return;
                                 void store_1.savePosition();
                             }).close);
@@ -4943,18 +4943,18 @@ require = function () {
                 });
             };
             Object.defineProperty(exports, '__esModule', { value: true });
-            const cancellation_1 = _dereq_('spica/cancellation');
-            const typed_dom_1 = _dereq_('typed-dom');
             const router_1 = _dereq_('../../application/router');
             exports.Config = router_1.Config;
             exports.RouterEvent = router_1.RouterEvent;
             exports.RouterEventSource = router_1.RouterEventSource;
             const url_1 = _dereq_('./state/url');
             const env_1 = _dereq_('../service/state/env');
-            const url_2 = _dereq_('spica/url');
             const error_1 = _dereq_('../../../lib/error');
             const store_1 = _dereq_('../../application/store');
+            const url_2 = _dereq_('spica/url');
+            const cancellation_1 = _dereq_('spica/cancellation');
             const maybe_1 = _dereq_('spica/maybe');
+            const typed_dom_1 = _dereq_('typed-dom');
             void typed_dom_1.bind(window, 'pjax:unload', () => window.history.scrollRestoration = 'auto', true);
             function route(config, event, process, io) {
                 switch (event.type) {
@@ -5075,8 +5075,8 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const url_1 = _dereq_('spica/url');
             const dom_1 = _dereq_('../../../../lib/dom');
+            const url_1 = _dereq_('spica/url');
             const typed_dom_1 = _dereq_('typed-dom');
             exports.scripts = new Set();
             void typed_dom_1.bind(window, 'pjax:unload', () => void dom_1.find(document, 'script[src]').forEach(script => void exports.scripts.add(new url_1.URL(url_1.standardize(script.src)).reference)));
