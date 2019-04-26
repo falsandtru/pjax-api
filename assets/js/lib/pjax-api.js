@@ -4893,10 +4893,10 @@ require = function () {
                 }
             }
             exports.GUI = GUI;
-            function unregister() {
+            function clear() {
                 void view.kill('');
             }
-            exports.unregister = unregister;
+            exports.clear = clear;
         },
         {
             '../../application/store': 97,
