@@ -1,11 +1,11 @@
-import { GUI, unregister } from './gui';
+import { GUI, clear } from './gui';
 import { API } from './api';
 import { parse } from '../../../lib/html';
 import { html, once } from 'typed-dom';
 
 describe('Unit: layer/interface/service/gui', function () {
   afterEach(() => {
-    unregister();
+    clear();
   });
 
   describe('assign', function () {

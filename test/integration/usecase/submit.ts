@@ -1,11 +1,11 @@
 import { Pjax } from '../../../index';
 import { route as router } from '../../../src/layer/interface/service/router';
-import { unregister } from '../../../src/layer/interface/service/gui';
+import { clear } from '../../../src/layer/interface/service/gui';
 import { html, once } from 'typed-dom';
 
 describe('Integration: Usecase', function () {
   afterEach(() => {
-    unregister();
+    clear();
   });
 
   describe('submit', function () {

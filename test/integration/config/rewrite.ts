@@ -1,12 +1,12 @@
 import { Pjax } from '../../../index';
 import { route as router } from '../../../src/layer/interface/service/router';
-import { unregister } from '../../../src/layer/interface/service/gui';
+import { clear } from '../../../src/layer/interface/service/gui';
 import { parse } from '../../../src/lib/html';
 import { once } from 'typed-dom';
 
 describe('Integration: Config', function () {
   afterEach(() => {
-    unregister();
+    clear();
   });
 
   describe('rewrite', function () {

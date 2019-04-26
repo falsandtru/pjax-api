@@ -54,6 +54,6 @@ export class GUI extends API {
   }
 }
 
-export function unregister(): void {
+export function clear(): void {
   void view.kill('');
 }

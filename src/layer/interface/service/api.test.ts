@@ -1,9 +1,9 @@
 import { API } from './api';
-import { unregister } from './gui';
+import { clear } from './gui';
 
 describe('Unit: layer/interface/service/api', function () {
   afterEach(() => {
-    unregister();
+    clear();
   });
 
   describe('assign', function () {
