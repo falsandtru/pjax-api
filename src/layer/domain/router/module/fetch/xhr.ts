@@ -63,8 +63,7 @@ export function xhr(
                     .map(v => v.split('=').concat('') as [string, string])
                 : []);
             for (const path of new Set([requestURL.path, responseURL.path])) {
-              if (xhr.getResponseHeader('ETag') &&
-                  !cc.has('no-store')) {
+              if (xhr.getResponseHeader('ETag') && !cc.has('no-store')) {
                 void caches.set(path, {
                   etag: xhr.getResponseHeader('ETag')!,
                   expiry: cc.has('max-age') && !cc.has('no-cache')
