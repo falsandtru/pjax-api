@@ -2528,11 +2528,16 @@ require = function () {
                 static get procs() {
                     return [...this.instances].reduce((acc, sv) => acc + sv.workers.size, 0);
                 }
+                static clear(reason) {
+                    while (this.instances.size > 0) {
+                        for (const sv of this.instances) {
+                            void sv.terminate(reason);
+                        }
+                    }
+                }
                 destructor(reason) {
                     this.available = false;
-                    for (const [, worker] of this.workers) {
-                        void worker.terminate(reason);
-                    }
+                    void this.clear(reason);
                     void Object.freeze(this.workers);
                     while (this.messages.length > 0) {
                         const [name, param] = this.messages.shift();
@@ -2641,6 +2646,13 @@ require = function () {
                     if (!this.available)
                         return false;
                     return this.workers.has(name) ? this.workers.get(name).terminate(reason) : false;
+                }
+                clear(reason) {
+                    while (this.workers.size > 0) {
+                        for (const [, worker] of this.workers) {
+                            void worker.terminate(reason);
+                        }
+                    }
                 }
                 terminate(reason) {
                     if (!this.available)
