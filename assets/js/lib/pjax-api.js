@@ -348,13 +348,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const exception_1 = _dereq_('./exception');
             let queue = [];
-            let register = new WeakSet();
-            function tick(cb, dedup = false) {
-                if (dedup) {
-                    if (register.has(cb))
-                        return;
-                    void register.add(cb);
-                }
+            function tick(cb) {
                 void queue.push(cb);
                 void schedule();
             }
@@ -382,7 +376,6 @@ require = function () {
             function flush() {
                 const cbs = queue;
                 queue = [];
-                register = new WeakSet();
                 return cbs;
             }
         },
@@ -2476,27 +2469,35 @@ require = function () {
                     this.workers = new Map();
                     this.alive = true;
                     this.available = true;
+                    this.scheduled = false;
                     this.scheduler = () => void (void 0, this.settings.scheduler)(this.deliver);
                     this.messages = [];
                     this.deliver = () => {
+                        this.scheduled = false;
                         const since = Date.now();
                         for (let i = 0, len = this.messages.length; this.available && i < len; ++i) {
                             if (this.settings.resource - (Date.now() - since) <= 0)
                                 return void this.schedule();
                             const [name, param, callback, expiry] = this.messages[i];
-                            const names = typeof name === 'string' ? [name] : [...name];
-                            const result = names.reduce((result, name) => result ? result : this.workers.has(name) ? this.workers.get(name).call([
-                                param,
-                                expiry
-                            ]) : undefined, undefined);
+                            const names = typeof name === 'string' ? [name] : name;
+                            let result;
+                            for (const name of names) {
+                                result = this.workers.has(name) ? this.workers.get(name).call([
+                                    param,
+                                    expiry
+                                ]) : undefined;
+                                if (result)
+                                    break;
+                            }
                             if (result === undefined && Date.now() < expiry)
                                 continue;
                             i === 0 ? void this.messages.shift() : void this.messages.splice(i, 1);
                             void --i;
                             void --len;
                             if (result === undefined) {
-                                void this.events_.loss.emit([names[0]], [
-                                    names[0],
+                                const name = names[Symbol.iterator]().next().value;
+                                void this.events_.loss.emit([name], [
+                                    name,
                                     param
                                 ]);
                                 try {
@@ -2576,7 +2577,7 @@ require = function () {
                     return this.workers.set(name, new Worker(this, name, process, state, Supervisor.standalone.has(process), this.events_, () => void this.workers.delete(name))).get(name).terminate;
                 }
                 call(name, param, callback = this.settings.timeout, timeout = this.settings.timeout) {
-                    return this.call_(name === undefined ? new NamePool(this.workers) : name, param, callback, timeout);
+                    return this.call_(typeof name === 'string' ? name : new NamePool(this.workers, name), param, callback, timeout);
                 }
                 call_(name, param, callback, timeout) {
                     void this.throwErrorIfNotAvailable();
@@ -2590,7 +2591,7 @@ require = function () {
                     ]);
                     while (this.messages.length > this.settings.size) {
                         const [name, param, callback] = this.messages.shift();
-                        const names = typeof name === 'string' ? [name] : [...name];
+                        const names = typeof name === 'string' ? [name] : [name[Symbol.iterator]().next().value];
                         void this.events_.loss.emit([names[0]], [
                             names[0],
                             param
@@ -2609,7 +2610,7 @@ require = function () {
                     void setTimeout(() => void this.schedule(), timeout + 3);
                 }
                 cast(name, param, timeout = this.settings.timeout) {
-                    const result = this.cast_(name === undefined ? new NamePool(this.workers) : name, param, timeout);
+                    const result = this.cast_(typeof name === 'string' ? name : new NamePool(this.workers, name), param, timeout);
                     if (result === undefined)
                         return false;
                     void result.catch(noop_1.noop);
@@ -2617,14 +2618,20 @@ require = function () {
                 }
                 cast_(name, param, timeout) {
                     void this.throwErrorIfNotAvailable();
-                    const names = typeof name === 'string' ? [name] : [...name];
-                    const result = names.reduce((result, name) => result ? result : this.workers.has(name) ? this.workers.get(name).call([
-                        param,
-                        Date.now() + timeout
-                    ]) : undefined, undefined);
+                    const names = typeof name === 'string' ? [name] : name;
+                    let result;
+                    for (const name of names) {
+                        result = this.workers.has(name) ? this.workers.get(name).call([
+                            param,
+                            Date.now() + timeout
+                        ]) : undefined;
+                        if (result)
+                            break;
+                    }
                     if (result === undefined) {
-                        void this.events_.loss.emit([names[0]], [
-                            names[0],
+                        const name = names[Symbol.iterator]().next().value;
+                        void this.events_.loss.emit([name], [
+                            name,
                             param
                         ]);
                     }
@@ -2661,19 +2668,30 @@ require = function () {
                     return true;
                 }
                 schedule() {
+                    if (this.scheduled)
+                        return;
                     if (this.messages.length === 0)
                         return;
-                    void clock_1.tick(this.scheduler, true);
+                    void clock_1.tick(this.scheduler);
+                    this.scheduled = true;
                 }
             }
             Supervisor.standalone = new WeakSet();
             exports.Supervisor = Supervisor;
             class NamePool {
-                constructor(workers) {
+                constructor(workers, selector = ns => ns) {
                     this.workers = workers;
+                    this.selector = selector;
                 }
-                [Symbol.iterator]() {
-                    return this.workers.size === 0 ? [''][Symbol.iterator]() : this.workers.keys();
+                *[Symbol.iterator]() {
+                    let cnt = 0;
+                    for (const name of this.selector(this.workers.keys())) {
+                        void ++cnt;
+                        yield name;
+                    }
+                    if (cnt === 0) {
+                        yield '';
+                    }
                 }
             }
             class Worker {
@@ -2752,11 +2770,11 @@ require = function () {
                             result.reply,
                             result.state
                         ];
-                        if (!this.alive)
-                            return reply;
-                        void this.sv.schedule();
-                        this.state = state;
-                        this.available = true;
+                        if (this.alive) {
+                            void this.sv.schedule();
+                            this.state = state;
+                            this.available = true;
+                        }
                         return reply;
                     }).catch(reason => {
                         void this.sv.schedule();
