@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.29.6
+
+- Fix `Cache-Control` header handling.
+
 ## 3.29.5
 
 - Fix cache processing to ignore URL hash.
