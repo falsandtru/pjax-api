@@ -36,6 +36,14 @@ The second generation PJAX for the advanced web frameworks.
 
 [pjax-api](http://falsandtru.github.io/pjax-api)
 
+## Install
+
+```
+$ npm i pjax-api
+$ ls node_modules/pjax-api/dist/
+pjax-api.js  pjax-api.min.js
+```
+
 ## Usage
 
 ```html
