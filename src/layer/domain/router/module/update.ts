@@ -111,8 +111,7 @@ export function update(
                 m.fmap(sst =>
                   [sst, seqD] as const)))
             .extract(e => AtomicPromise.resolve(Left(e))))
-          .reverse()
-          .tuple()))
+          .reverse()))
     .then(process.promise)
     // ready -> load
     .then(m => m
