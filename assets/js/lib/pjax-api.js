@@ -548,7 +548,6 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const concat_1 = _dereq_('./concat');
             class HNil {
                 constructor() {
                     void this.NIL;
@@ -559,7 +558,7 @@ require = function () {
                 extend(f) {
                     return this.push(f());
                 }
-                array() {
+                tuple() {
                     return [];
                 }
             }
@@ -570,8 +569,8 @@ require = function () {
                     this.tail = tail;
                     void this.CONS;
                 }
-                push(b) {
-                    return new HCons(b, this);
+                push(a) {
+                    return new HCons(a, this);
                 }
                 walk(f) {
                     void f(this.head);
@@ -587,17 +586,16 @@ require = function () {
                     return this.tail.modify(r => f(this.head, r));
                 }
                 reverse() {
-                    return this.array().reduce((l, e) => l.push(e), new HNil());
+                    return this.tuple().reverse();
                 }
                 tuple() {
-                    return this.array();
-                }
-                array() {
-                    return concat_1.concat([this.head], this.tail.array());
+                    const t = this.tail.tuple();
+                    void t.unshift(this.head);
+                    return t;
                 }
             }
         },
-        { './concat': 10 }
+        {}
     ],
     18: [
         function (_dereq_, module, exports) {
@@ -4186,7 +4184,7 @@ require = function () {
                         sst,
                         seqD
                     ]))).extract(e => promise_1.AtomicPromise.resolve(either_1.Left(e)));
-                })).reverse().tuple())).then(process.promise).then(m => m.fmap(([p1, p2]) => (void promise_1.AtomicPromise.all([
+                })).reverse())).then(process.promise).then(m => m.fmap(([p1, p2]) => (void promise_1.AtomicPromise.all([
                     p1,
                     p2
                 ]).then(([m1, m2]) => m1.bind(([, cp]) => m2.fmap(([[, sp], seqD]) => void promise_1.AtomicPromise.all([
