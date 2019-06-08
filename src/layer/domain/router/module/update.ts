@@ -67,7 +67,7 @@ export function update(
     // unload -> ready
     .then(m => m
       .fmap(([seqB, areas]) =>
-        new HNil()
+        HNil
           .extend(() => (
             void blur(documents.dst),
             void url(
