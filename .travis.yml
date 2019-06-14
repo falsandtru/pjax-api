@@ -1,3 +1,4 @@
+dist: xenial
 language: node_js
 matrix:
   include:
@@ -8,10 +9,8 @@ matrix:
 addons:
   chrome: stable
   firefox: latest
-before_install:
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CHROME_BIN=google-chrome-stable; fi
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export DISPLAY=:99.0; fi
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sh -e /etc/init.d/xvfb start; fi
+services:
+- xvfb
 script:
 - travis_retry npm run ci
 before_deploy:
