@@ -1879,8 +1879,8 @@ require = function () {
             const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
             }
-            default_1.mempty = new core_1.Sequence((_, cons) => cons());
             exports.default = default_1;
+            default_1.mempty = new core_1.Sequence((_, cons) => cons());
         },
         { '../../core': 29 }
     ],
@@ -1891,8 +1891,8 @@ require = function () {
             const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
             }
-            default_1.mplus = core_1.Sequence.mappend;
             exports.default = default_1;
+            default_1.mplus = core_1.Sequence.mappend;
         },
         { '../../core': 29 }
     ],
@@ -1903,8 +1903,8 @@ require = function () {
             const core_1 = _dereq_('../../core');
             class default_1 extends core_1.Sequence {
             }
-            default_1.mzero = core_1.Sequence.mempty;
             exports.default = default_1;
+            default_1.mzero = core_1.Sequence.mempty;
         },
         { '../../core': 29 }
     ],
@@ -2382,8 +2382,8 @@ require = function () {
                     return this.then(onfinally, onfinally).then(() => this);
                 }
             }
-            _a = status, _b = queue;
             exports.AtomicPromise = AtomicPromise;
+            _a = status, _b = queue;
             function isPromiseLike(value) {
                 return !!value && typeof value === 'object' && 'then' in value && typeof value.then === 'function';
             }
@@ -2673,8 +2673,8 @@ require = function () {
                     this.scheduled = true;
                 }
             }
-            Supervisor.standalone = new WeakSet();
             exports.Supervisor = Supervisor;
+            Supervisor.standalone = new WeakSet();
             class NamePool {
                 constructor(workers, selector = ns => ns) {
                     this.workers = workers;
