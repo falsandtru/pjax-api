@@ -160,7 +160,7 @@ gulp.task('install', done => {
 
 gulp.task('update', done => {
   shell('bundle update');
-  shell('ncu -ux del');
+  shell('ncu -ux del,npm-check-updates');
   shell('npm i -DE typescript@next --no-shrinkwrap');
   shell('npm i --no-shrinkwrap');
   done();
