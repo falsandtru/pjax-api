@@ -366,11 +366,11 @@ require = function () {
                         while (cbs.length > 0) {
                             void cbs.shift()();
                         }
+                        return;
                     } catch (reason) {
                         void exception_1.causeAsyncException(reason);
                         continue;
                     }
-                    return;
                 }
             }
             function flush() {
@@ -477,13 +477,6 @@ require = function () {
                 void new Promise((_, reject) => void reject(reason));
             }
             exports.causeAsyncException = causeAsyncException;
-            function stringify(target) {
-                try {
-                    return target instanceof Error && typeof target.stack === 'string' ? target.stack : target !== undefined && target !== null && typeof target.toString === 'function' ? target + '' : Object.prototype.toString.call(target);
-                } catch (reason) {
-                    return stringify(reason);
-                }
-            }
         },
         {}
     ],
@@ -2447,11 +2440,8 @@ require = function () {
                             return state;
                         return function* () {
                             while (this.available) {
-                                const value = yield;
-                                if (!this.available && value.length === 0)
-                                    continue;
-                                const [name, param, callback = undefined, timeout = undefined] = value;
-                                typeof callback === 'function' ? void this.call(name, param, callback, timeout) : void this.call(name, param, callback || timeout);
+                                const [name, param, callback = undefined, timeout = undefined] = yield;
+                                typeof callback === 'function' ? void this.call(name, param, callback, timeout) : void this.call(name, param, callback);
                             }
                             return state;
                         }.call(this);
@@ -2589,9 +2579,12 @@ require = function () {
                     return this.call_(typeof name === 'string' ? name : new NamePool(this.workers, name), param, callback, timeout);
                 }
                 call_(name, param, callback, timeout) {
+                    if (!this.available && typeof callback === 'function') {
+                        void new promise_1.AtomicPromise(() => void this.throwErrorIfNotAvailable()).catch(err => void callback(undefined, err));
+                    }
                     void this.throwErrorIfNotAvailable();
                     if (typeof callback === 'number')
-                        return new promise_1.AtomicPromise((resolve, reject) => void this.call_(name, param, (result, err) => err ? reject(err) : resolve(result), timeout));
+                        return new promise_1.AtomicPromise((resolve, reject) => void this.call_(name, param, (result, err) => err ? reject(err) : resolve(result), callback));
                     void this.messages.push([
                         name,
                         param,
