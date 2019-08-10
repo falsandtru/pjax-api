@@ -9,7 +9,7 @@ export function css(
   ignore: string
 ): undefined {
   const selector: string = 'link[rel~="stylesheet"], style';
-  return void ['head' as 'head', 'body' as 'body']
+  return void (['head', 'body'] as const)
     .map(query => [
       documents.src.querySelector(query)!,
       documents.dst.querySelector(query)!,
