@@ -2436,16 +2436,10 @@ require = function () {
                             reject
                         ];
                         state = new future_1.AtomicFuture();
-                        if (this.then === promise_1.AtomicPromise.prototype.then)
+                        return this.then === promise_1.AtomicPromise.prototype.then ? state : function* () {
                             return state;
-                        return function* () {
-                            while (this.available) {
-                                const [name, param, callback = undefined, timeout = undefined] = yield;
-                                typeof callback === 'function' ? void this.call(name, param, callback, timeout) : void this.call(name, param, callback);
-                            }
-                            return state;
-                        }.call(this);
-                    }, { size: typeof opts.size === 'number' ? opts.size : Infinity });
+                        }();
+                    });
                     this.state = new future_1.AtomicFuture();
                     this.id = sqid_1.sqid();
                     this.settings = {
@@ -2579,10 +2573,6 @@ require = function () {
                     return this.call_(typeof name === 'string' ? name : new NamePool(this.workers, name), param, callback, timeout);
                 }
                 call_(name, param, callback, timeout) {
-                    if (!this.available && typeof callback === 'function') {
-                        void new promise_1.AtomicPromise(() => void this.throwErrorIfNotAvailable()).catch(err => void callback(undefined, err));
-                    }
-                    void this.throwErrorIfNotAvailable();
                     if (typeof callback === 'number')
                         return new promise_1.AtomicPromise((resolve, reject) => void this.call_(name, param, (result, err) => err ? reject(err) : resolve(result), callback));
                     void this.messages.push([
@@ -2591,7 +2581,7 @@ require = function () {
                         callback,
                         Date.now() + timeout
                     ]);
-                    while (this.messages.length > this.settings.size) {
+                    while (this.messages.length > (this.available ? this.settings.size : 0)) {
                         const [name, param, callback] = this.messages.shift();
                         const names = typeof name === 'string' ? [name] : [name[Symbol.iterator]().next().value];
                         void this.events_.loss.emit([names[0]], [
@@ -2604,6 +2594,7 @@ require = function () {
                             void exception_1.causeAsyncException(reason);
                         }
                     }
+                    void this.throwErrorIfNotAvailable();
                     void this.schedule();
                     if (timeout <= 0)
                         return;
@@ -2640,7 +2631,6 @@ require = function () {
                     return result;
                 }
                 refs(name) {
-                    void this.throwErrorIfNotAvailable();
                     return name === undefined ? [...this.workers.values()].map(convert) : this.workers.has(name) ? [convert(this.workers.get(name))] : [];
                     function convert(worker) {
                         return [
@@ -3951,7 +3941,7 @@ require = function () {
                     this.url = url;
                     this.xhr = xhr;
                     this.header = name => this.xhr.getResponseHeader(name);
-                    this.document = this.xhr.responseXML.cloneNode(true);
+                    this.document = this.xhr.responseType === 'document' ? this.xhr.responseXML.cloneNode(true) : html_1.parse(this.xhr.responseText).extract();
                     if (url.origin !== new url_1.URL(xhr.responseURL).origin)
                         throw new Error(`Redirected to another origin.`);
                     void Object.defineProperty(this.document, 'URL', {
@@ -4061,7 +4051,7 @@ require = function () {
                     for (const [name, value] of headers) {
                         void xhr.setRequestHeader(name, value);
                     }
-                    xhr.responseType = 'document';
+                    xhr.responseType = window.navigator.userAgent.includes('Edge') ? 'text' : 'document';
                     xhr.timeout = timeout;
                     void xhr.send(body);
                     void xhr.addEventListener('abort', () => void resolve(either_1.Left(new Error(`Failed to request a page by abort.`))));
@@ -4107,7 +4097,7 @@ require = function () {
                         return either_1.Left(new Error(`Redirected to another origin.`));
                     case !/2..|304/.test(`${ xhr.status }`):
                         return either_1.Left(new Error(`Failed to validate the status of response.`));
-                    case !xhr.responseXML:
+                    case !xhr.response:
                         return method === 'GET' && xhr.status === 304 && caches.has(url.path) ? either_1.Right(caches.get(url.path).xhr) : either_1.Left(new Error(`Failed to get the response body.`));
                     case !match(xhr.getResponseHeader('Content-Type'), 'text/html'):
                         return either_1.Left(new Error(`Failed to validate the content type of response.`));
@@ -4535,15 +4525,15 @@ require = function () {
                 void container.appendChild(script);
                 void unescape();
                 !logging && void script.remove();
-                const result = promise_1.AtomicPromise.resolve(wait).then(cancellation.promise).then(evaluate);
+                const result = promise_1.AtomicPromise.resolve(wait).then(evaluate);
                 return script.matches('[src][async]') ? either_1.Right(result) : either_1.Left(result);
                 function evaluate() {
+                    if (cancellation.canceled)
+                        throw new error_1.FatalError('Expired.');
                     if (script.matches('[type="module"][src]')) {
                         return promise_1.AtomicPromise.resolve(Promise.resolve().then(() => _dereq_(script.src))).catch(reason => reason.message.startsWith('Failed to load ') && script.matches('[src][async]') ? retry(script).catch(() => promise_1.AtomicPromise.reject(reason)) : promise_1.AtomicPromise.reject(reason)).then(() => (void script.dispatchEvent(new Event('load')), either_1.Right(script)), reason => (void script.dispatchEvent(new Event('error')), either_1.Left(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''))));
                     } else {
                         try {
-                            if (new url_1.URL(url_1.standardize(window.location.href)).path !== new url_1.URL(url_1.standardize(window.location.href)).path)
-                                throw new error_1.FatalError('Expired.');
                             if (skip.has(new url_1.URL(url_1.standardize(window.location.href)).reference))
                                 throw new error_1.FatalError('Expired.');
                             void (0, eval)(code);
