@@ -37,7 +37,9 @@ export function xhr(
       void xhr.setRequestHeader(name, value);
     }
 
-    xhr.responseType = 'document';
+    xhr.responseType = window.navigator.userAgent.includes('Edge')
+      ? 'text'
+      : 'document';
     xhr.timeout = timeout;
     void xhr.send(body);
 
@@ -111,7 +113,7 @@ function verify(xhr: XMLHttpRequest, method: RouterEventMethod): Either<Error, X
           return Left(new Error(`Redirected to another origin.`));
         case !/2..|304/.test(`${xhr.status}`):
           return Left(new Error(`Failed to validate the status of response.`));
-        case !xhr.responseXML:
+        case !xhr.response:
           return method === 'GET' && xhr.status === 304 && caches.has(url.path)
             ? Right(caches.get(url.path)!.xhr)
             : Left(new Error(`Failed to get the response body.`));

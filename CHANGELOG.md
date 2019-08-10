@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.29.7
+
+- Fix support for Edge browser.
+
 ## 3.29.6
 
 - Fix `Cache-Control` header handling.

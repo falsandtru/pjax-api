@@ -162,12 +162,13 @@ function evaluate(
   void container.appendChild(script);
   void unescape();
   !logging && void script.remove();
-  const result = AtomicPromise.resolve(wait).then(cancellation.promise).then(evaluate);
+  const result = AtomicPromise.resolve(wait).then(evaluate);
   return script.matches('[src][async]')
     ? Right(result)
     : Left(result);
 
   function evaluate(): AtomicPromise<Either<Error, HTMLScriptElement>> {
+    if (cancellation.canceled) throw new FatalError('Expired.');
     if (script.matches('[type="module"][src]')) {
       return AtomicPromise.resolve(import(script.src))
         .catch((reason: Error) =>
@@ -184,7 +185,6 @@ function evaluate(
     }
     else {
       try {
-        if (new URL(standardize(window.location.href)).path !== new URL(standardize(window.location.href)).path) throw new FatalError('Expired.');
         if (skip.has(new URL(standardize(window.location.href)).reference)) throw new FatalError('Expired.');
         void (0, eval)(code);
         script.hasAttribute('src') && void script.dispatchEvent(new Event('load'));
