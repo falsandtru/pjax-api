@@ -2541,7 +2541,6 @@ require = function () {
                             param
                         ]);
                     }
-                    void Object.freeze(this.messages);
                     this.alive = false;
                     void this.constructor.instances.delete(this);
                     void Object.freeze(this);
