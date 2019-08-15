@@ -57,39 +57,36 @@ export function separate(
       Maybe.mplus(
         m,
         sep(documents, area)
-          .fmap(as =>
-            [area, as] as const))
+          .fmap(rs =>
+            [area, rs] as const))
     , Nothing)
 
   function sep(documents: DocumentRecord, area: string): Maybe<AreaRecord[]> {
     return split(area)
-      .map(area => ({
-        src: [...apply<HTMLElement>(documents.src, area)],
-        dst: [...apply<HTMLElement>(documents.dst, area)],
-      }))
-      .reduce<Maybe<AreaRecord[]>>((acc, area) =>
-        acc
-          .bind(as =>
-            pair(area)
-              .fmap(a =>
-                concat(as, [a])))
-      , Just([]));
-
-    function pair(area: AreaRecord): Maybe<AreaRecord> {
-      return Just(area)
-        .guard(validate(area));
-
-      function validate(area: AreaRecord): boolean {
-        return area.src.length > 0
-            && area.src.length === area.dst.length;
-      }
-    }
+      .bind(areas =>
+        areas.reduce((m, area) =>
+          m.bind(acc => {
+            const record = {
+              src: [...apply<HTMLElement>(documents.src, area)],
+              dst: [...apply<HTMLElement>(documents.dst, area)],
+            };
+            return record.src.length > 0
+                && record.src.length === record.dst.length
+              ? Just(concat(acc, [record]))
+              : Nothing;
+          })
+        , Just([])));
   }
 }
 
-function split(area: string): string[] {
+function split(area: string): Maybe<string[]> {
   return (area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g) || [])
-    .map(a => a.trim() || '_');
+    .map(area => area.trim())
+    .reduce((m, area) =>
+      area
+        ? m.fmap(acc => concat(acc, [area]))
+        : Nothing
+    , Just([]));
 }
 export { split as _split }
 

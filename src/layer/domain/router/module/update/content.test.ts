@@ -34,13 +34,13 @@ describe('Unit: layer/domain/router/module/update/content', () => {
   describe('split', () => {
     it('single', () => {
       assert.deepStrictEqual(
-        split('body'),
+        split('body').extract(),
         ['body']);
     });
 
     it('multiple', () => {
       assert.deepStrictEqual(
-        split('#id, .class[data-pjax]'),
+        split('#id, .class[data-pjax]').extract(),
         ['#id', '.class[data-pjax]']);
     });
 
