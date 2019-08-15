@@ -4254,7 +4254,6 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const dom_1 = _dereq_('../../../../../lib/dom');
             const script_1 = _dereq_('./script');
             const promise_1 = _dereq_('spica/promise');
             const maybe_1 = _dereq_('spica/maybe');
@@ -4269,9 +4268,9 @@ require = function () {
                     return area.src.map((_, i) => ({
                         src: documents.dst.importNode(area.src[i].cloneNode(true), true),
                         dst: area.dst[i]
-                    })).map(area => (void replace(area), dom_1.find(area.src, 'img, iframe, frame').map(wait))).reduce(concat_1.concat, []);
+                    })).map(area => (void replace(area), [...typed_dom_1.apply(area.src, 'img, iframe, frame')].map(wait))).reduce(concat_1.concat, []);
                     function replace(area) {
-                        const unescape = dom_1.find(area.src, 'script').map(script_1.escape).reduce((f, g) => () => (void f(), void g()), () => undefined);
+                        const unescape = [...typed_dom_1.apply(area.src, 'script')].map(script_1.escape).reduce((f, g) => () => (void f(), void g()), () => undefined);
                         void io.replace(area.src, area.dst);
                         void unescape();
                     }
@@ -4279,26 +4278,23 @@ require = function () {
             }
             exports.content = content;
             function separate(documents, areas) {
-                return areas.reduce((m, area) => maybe_1.Maybe.mplus(m, sep(documents, area).fmap(as => [
+                return areas.reduce((m, area) => maybe_1.Maybe.mplus(m, sep(documents, area).fmap(rs => [
                     area,
-                    as
+                    rs
                 ])), maybe_1.Nothing);
                 function sep(documents, area) {
-                    return split(area).map(area => ({
-                        src: dom_1.find(documents.src, area),
-                        dst: dom_1.find(documents.dst, area)
-                    })).reduce((acc, area) => acc.bind(as => pair(area).fmap(a => concat_1.concat(as, [a]))), maybe_1.Just([]));
-                    function pair(area) {
-                        return maybe_1.Just(area).guard(validate(area));
-                        function validate(area) {
-                            return area.src.length > 0 && area.src.length === area.dst.length;
-                        }
-                    }
+                    return split(area).bind(areas => areas.reduce((m, area) => m.bind(acc => {
+                        const record = {
+                            src: [...typed_dom_1.apply(documents.src, area)],
+                            dst: [...typed_dom_1.apply(documents.dst, area)]
+                        };
+                        return record.src.length > 0 && record.src.length === record.dst.length ? maybe_1.Just(concat_1.concat(acc, [record])) : maybe_1.Nothing;
+                    }), maybe_1.Just([])));
                 }
             }
             exports.separate = separate;
             function split(area) {
-                return (area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g) || []).map(a => a.trim());
+                return (area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g) || []).map(area => area.trim()).reduce((m, area) => area ? m.fmap(acc => concat_1.concat(acc, [area])) : maybe_1.Nothing, maybe_1.Just([]));
             }
             exports._split = split;
             function wait(el) {
@@ -4311,7 +4307,6 @@ require = function () {
             exports._wait = wait;
         },
         {
-            '../../../../../lib/dom': 132,
             './script': 114,
             'spica/concat': 10,
             'spica/maybe': 18,
@@ -4323,8 +4318,8 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const dom_1 = _dereq_('../../../../../lib/dom');
             const sync_1 = _dereq_('./sync');
+            const typed_dom_1 = _dereq_('typed-dom');
             function css(documents, ignore) {
                 const selector = 'link[rel~="stylesheet"], style';
                 return void [
@@ -4335,14 +4330,14 @@ require = function () {
                     documents.dst.querySelector(query)
                 ]).forEach(([src, dst]) => void sync_1.sync(sync_1.pair(list(src), list(dst), (a, b) => a.outerHTML === b.outerHTML), dst));
                 function list(source) {
-                    return dom_1.find(source, selector).filter(el => !el.matches(ignore.trim() || '_'));
+                    return [...typed_dom_1.apply(source, selector)].filter(el => !ignore || !el.matches(ignore));
                 }
             }
             exports.css = css;
         },
         {
-            '../../../../../lib/dom': 132,
-            './sync': 116
+            './sync': 116,
+            'typed-dom': 88
         }
     ],
     112: [
@@ -4350,12 +4345,12 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const router_1 = _dereq_('../../../event/router');
-            const dom_1 = _dereq_('../../../../../lib/dom');
+            const typed_dom_1 = _dereq_('typed-dom');
             function focus(type, document) {
                 switch (type) {
                 case router_1.RouterEventType.click:
                 case router_1.RouterEventType.submit:
-                    return void dom_1.find(document, '[autofocus]').slice(-1).filter(el => el.closest('html') === window.document.documentElement && el !== document.activeElement).forEach(el => void el.focus());
+                    return void [...typed_dom_1.apply(document, '[autofocus]')].slice(-1).filter(el => el.closest('html') === window.document.documentElement && el !== document.activeElement).forEach(el => void el.focus());
                 case router_1.RouterEventType.popstate:
                     return;
                 default:
@@ -4365,8 +4360,8 @@ require = function () {
             exports.focus = focus;
         },
         {
-            '../../../../../lib/dom': 132,
-            '../../../event/router': 102
+            '../../../event/router': 102,
+            'typed-dom': 88
         }
     ],
     113: [
@@ -4374,19 +4369,19 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const sync_1 = _dereq_('./sync');
-            const dom_1 = _dereq_('../../../../../lib/dom');
+            const typed_dom_1 = _dereq_('typed-dom');
             function head(documents, selector, ignore) {
                 ignore += selector.includes('link') ? ', link[rel~="stylesheet"]' : '';
                 return void sync_1.sync(sync_1.pair(list(documents.src.head), list(documents.dst.head), (a, b) => a.outerHTML === b.outerHTML), documents.dst.head);
                 function list(source) {
-                    return dom_1.find(source, selector).filter(el => !el.matches(ignore.trim() || '_'));
+                    return [...typed_dom_1.apply(source, selector)].filter(el => !ignore || !el.matches(ignore));
                 }
             }
             exports.head = head;
         },
         {
-            '../../../../../lib/dom': 132,
-            './sync': 116
+            './sync': 116,
+            'typed-dom': 88
         }
     ],
     114: [
@@ -4420,7 +4415,6 @@ require = function () {
                 });
             };
             Object.defineProperty(exports, '__esModule', { value: true });
-            const dom_1 = _dereq_('../../../../../lib/dom');
             const error_1 = _dereq_('../../../../../lib/error');
             const promise_1 = _dereq_('spica/promise');
             const either_1 = _dereq_('spica/either');
@@ -4433,7 +4427,7 @@ require = function () {
                 fetch,
                 evaluate
             }) {
-                const scripts = dom_1.find(documents.src, 'script').filter(el => !el.type || /(?:application|text)\/(?:java|ecma)script|module/i.test(el.type)).filter(el => !el.matches(selector.ignore.trim() || '_')).filter(el => el.hasAttribute('src') ? !skip.has(new url_1.URL(url_1.standardize(el.src)).reference) || el.matches(selector.reload.trim() || '_') : true);
+                const scripts = [...typed_dom_1.apply(documents.src, 'script')].filter(el => !el.type || /(?:application|text)\/(?:java|ecma)script|module/i.test(el.type)).filter(el => !el.matches(selector.ignore.trim() || '_')).filter(el => el.hasAttribute('src') ? !skip.has(new url_1.URL(url_1.standardize(el.src)).reference) || el.matches(selector.reload.trim() || '_') : true);
                 const {ss, as} = scripts.reduce((o, script) => {
                     switch (true) {
                     case script.matches('[src][async], [src][defer]'):
@@ -4562,7 +4556,6 @@ require = function () {
             }
         },
         {
-            '../../../../../lib/dom': 132,
             '../../../../../lib/error': 133,
             'spica/clock': 8,
             'spica/concat': 10,
@@ -5134,14 +5127,12 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const dom_1 = _dereq_('../../../../lib/dom');
             const url_1 = _dereq_('spica/url');
             const typed_dom_1 = _dereq_('typed-dom');
             exports.scripts = new Set();
-            void typed_dom_1.bind(window, 'pjax:unload', () => void dom_1.find(document, 'script[src]').forEach(script => void exports.scripts.add(new url_1.URL(url_1.standardize(script.src)).reference)));
+            void typed_dom_1.bind(window, 'pjax:unload', () => void typed_dom_1.apply(document, 'script[src]').forEach(script => void exports.scripts.add(new url_1.URL(url_1.standardize(script.src)).reference)));
         },
         {
-            '../../../../lib/dom': 132,
             'spica/url': 85,
             'typed-dom': 88
         }
@@ -5183,10 +5174,6 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            function find(target, selector) {
-                return [...target.querySelectorAll(selector || '_')];
-            }
-            exports.find = find;
             function serialize(form) {
                 return Array.from(form.elements).filter(el => {
                     if (el.disabled)
@@ -5244,7 +5231,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const maybe_1 = _dereq_('spica/maybe');
             const either_1 = _dereq_('spica/either');
-            const dom_1 = _dereq_('./dom');
+            const typed_dom_1 = _dereq_('typed-dom');
             exports.parse = [
                 parseByDOM,
                 parseByDoc
@@ -5267,7 +5254,7 @@ require = function () {
             }
             exports.fix = fix;
             function fixNoscript(doc) {
-                return dom_1.find(doc, 'noscript').filter(el => el.children.length > 0).map(el => {
+                return [...typed_dom_1.apply(doc, 'noscript')].filter(el => el.children.length > 0).map(el => {
                     const clone = el.cloneNode(true);
                     clone.textContent = el.innerHTML;
                     return [
@@ -5314,9 +5301,9 @@ require = function () {
             }
         },
         {
-            './dom': 132,
             'spica/either': 12,
-            'spica/maybe': 18
+            'spica/maybe': 18,
+            'typed-dom': 88
         }
     ],
     135: [
