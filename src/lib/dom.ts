@@ -1,9 +1,3 @@
-export function find<T extends keyof HTMLElementTagNameMap>(target: HTMLElement | Document, selector: T): HTMLElementTagNameMap[T][];
-export function find<T extends HTMLElement>(target: HTMLElement | Document, selector: string): T[];
-export function find<T extends HTMLElement>(target: HTMLElement | Document, selector: string): T[] {
-  return [...target.querySelectorAll<T>(selector || '_')];
-}
-
 export function serialize(form: HTMLFormElement): string {
   return (Array.from(form.elements) as HTMLInputElement[])
     .filter(el => {

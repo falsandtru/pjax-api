@@ -1,11 +1,11 @@
-import { find, serialize } from './dom';
+import { serialize } from './dom';
 import { html } from 'typed-dom';
 
 describe('Unit: lib/dom', () => {
   describe('find', () => {
     it('children', () => {
-      assert(find(html('div', [html('p')]), 'p').length === 1);
-      assert(find(html('div', [html('p')]), 'p')[0].matches('p'));
+      assert(html('div', [html('p')]).querySelectorAll('p').length === 1);
+      assert(html('div', [html('p')]).querySelector('p'));
     });
 
   });

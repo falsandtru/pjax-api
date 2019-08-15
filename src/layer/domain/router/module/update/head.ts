@@ -1,5 +1,5 @@
 import { sync, pair } from './sync';
-import { find } from '../../../../../lib/dom';
+import { apply } from 'typed-dom';
 
 export function head(
   documents: {
@@ -18,7 +18,8 @@ export function head(
     documents.dst.head!);
 
   function list(source: HTMLElement): HTMLElement[] {
-    return find(source, selector)
-      .filter(el => !el.matches(ignore.trim() || '_'));
+    assert(selector);
+    return [...apply<HTMLElement>(source, selector)]
+      .filter(el => !ignore || !el.matches(ignore));
   }
 }

@@ -1,7 +1,6 @@
 import { sync, pair } from './sync';
 import { parse } from '../../../../../lib/html';
-import { find } from '../../../../../lib/dom';
-import { html } from 'typed-dom';
+import { html, apply } from 'typed-dom';
 
 describe('Unit: layer/domain/router/module/update/sync', () => {
   describe('sync', () => {
@@ -12,8 +11,8 @@ describe('Unit: layer/domain/router/module/update/sync', () => {
         dst: parse(html('head', [
         ]).outerHTML).extract(),
       };
-      sync(pair(find(documents.src, 'meta'), find(documents.dst, 'meta'), (a, b) => a.id === b.id), documents.dst.head!);
-      assert.deepStrictEqual(find(documents.dst, 'meta').map(el => el.id), [
+      sync(pair([...apply(documents.src, 'meta')], [...apply(documents.dst, 'meta')], (a, b) => a.id === b.id), documents.dst.head!);
+      assert.deepStrictEqual([...apply(documents.dst, 'meta')].map(el => el.id), [
       ]);
     });
 
@@ -27,8 +26,8 @@ describe('Unit: layer/domain/router/module/update/sync', () => {
         dst: parse(html('head', [
         ]).outerHTML).extract(),
       };
-      sync(pair(find(documents.src, 'meta'), find(documents.dst, 'meta'), (a, b) => a.id === b.id), documents.dst.head!);
-      assert.deepStrictEqual(find(documents.dst, 'meta').map(el => el.id), [
+      sync(pair([...apply(documents.src, 'meta')], [...apply(documents.dst, 'meta')], (a, b) => a.id === b.id), documents.dst.head!);
+      assert.deepStrictEqual([...apply(documents.dst, 'meta')].map(el => el.id), [
         'a',
         'b',
         'c'
@@ -45,8 +44,8 @@ describe('Unit: layer/domain/router/module/update/sync', () => {
           html('meta', { id: 'c' }),
         ]).outerHTML).extract(),
       };
-      sync(pair(find(documents.src, 'meta'), find(documents.dst, 'meta'), (a, b) => a.id === b.id), documents.dst.head!);
-      assert.deepStrictEqual(find(documents.dst, 'meta').map(el => el.id), [
+      sync(pair([...apply(documents.src, 'meta')], [...apply(documents.dst, 'meta')], (a, b) => a.id === b.id), documents.dst.head!);
+      assert.deepStrictEqual([...apply(documents.dst, 'meta')].map(el => el.id), [
       ]);
     });
 
@@ -63,8 +62,8 @@ describe('Unit: layer/domain/router/module/update/sync', () => {
           html('meta', { id: 'd' }),
         ]).outerHTML).extract()
       };
-      sync(pair(find(documents.src, 'meta'), find(documents.dst, 'meta'), (a, b) => a.id === b.id), documents.dst.head!);
-      assert.deepStrictEqual(find(documents.dst, 'meta').map(el => el.id), [
+      sync(pair([...apply(documents.src, 'meta')], [...apply(documents.dst, 'meta')], (a, b) => a.id === b.id), documents.dst.head!);
+      assert.deepStrictEqual([...apply(documents.dst, 'meta')].map(el => el.id), [
         'a',
         'c',
         'e'

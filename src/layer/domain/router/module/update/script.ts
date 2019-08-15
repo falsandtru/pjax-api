@@ -1,4 +1,3 @@
-import { find } from '../../../../../lib/dom';
 import { FatalError } from '../../../../../lib/error';
 import { AtomicPromise } from 'spica/promise';
 import { Cancellee } from 'spica/cancellation';
@@ -7,7 +6,7 @@ import { URL, StandardURL, standardize } from 'spica/url';
 import { tuple } from 'spica/tuple';
 import { concat } from 'spica/concat';
 import { wait } from 'spica/clock';
-import { html } from 'typed-dom';
+import { html, apply } from 'typed-dom';
 
 type Result = Either<Error, [HTMLScriptElement[], Promise<Either<Error, HTMLScriptElement[]>>]>;
 type FetchData = [HTMLScriptElement, string];
@@ -30,7 +29,7 @@ export function script(
     evaluate,
   }
 ): AtomicPromise<Result> {
-  const scripts = find(documents.src, 'script')
+  const scripts = [...apply(documents.src, 'script')]
     .filter(el => !el.type || /(?:application|text)\/(?:java|ecma)script|module/i.test(el.type))
     .filter(el => !el.matches(selector.ignore.trim() || '_'))
     .filter(el =>

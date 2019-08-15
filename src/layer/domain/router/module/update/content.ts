@@ -1,9 +1,8 @@
-import { find } from '../../../../../lib/dom';
 import { escape } from './script';
 import { AtomicPromise } from 'spica/promise';
 import { Maybe, Just, Nothing} from 'spica/maybe';
 import { concat} from 'spica/concat';
-import { once } from 'typed-dom';
+import { once, apply } from 'typed-dom';
 
 type DocumentRecord = { src: Document; dst: Document; };
 type AreaRecord = { src: HTMLElement[]; dst: HTMLElement[]; };
@@ -32,12 +31,12 @@ export function content(
       }))
       .map(area => (
         void replace(area),
-        find(area.src, 'img, iframe, frame')
+        [...apply(area.src, 'img, iframe, frame')]
           .map(wait)))
       .reduce(concat, []);
 
     function replace(area: { src: HTMLElement, dst: HTMLElement; }): void {
-      const unescape = find(area.src, 'script')
+      const unescape = [...apply(area.src, 'script')]
         .map(escape)
         .reduce((f, g) => () => (
           void f(),
@@ -65,8 +64,8 @@ export function separate(
   function sep(documents: DocumentRecord, area: string): Maybe<AreaRecord[]> {
     return split(area)
       .map(area => ({
-        src: find(documents.src, area),
-        dst: find(documents.dst, area)
+        src: [...apply<HTMLElement>(documents.src, area)],
+        dst: [...apply<HTMLElement>(documents.dst, area)],
       }))
       .reduce<Maybe<AreaRecord[]>>((acc, area) =>
         acc
@@ -90,7 +89,7 @@ export function separate(
 
 function split(area: string): string[] {
   return (area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g) || [])
-    .map(a => a.trim());
+    .map(a => a.trim() || '_');
 }
 export { split as _split }
 

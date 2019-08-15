@@ -1,5 +1,4 @@
 import { parse, _fixNoscript as fixNoscript } from './html';
-import { find } from './dom';
 import { html } from 'typed-dom';
 
 describe('Unit: lib/html', () => {
@@ -15,7 +14,7 @@ describe('Unit: lib/html', () => {
 
     it('noscript', () => {
       const dom = parse('<noscript><hr></noscript>').extract();
-      assert(find(dom, 'noscript')[0].innerHTML !== '<hr>');
+      assert(dom.querySelector('noscript')!.innerHTML !== '<hr>');
     });
 
   });

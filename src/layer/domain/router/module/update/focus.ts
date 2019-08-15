@@ -1,5 +1,5 @@
 import { RouterEventType } from '../../../event/router';
-import { find } from '../../../../../lib/dom';
+import { apply } from 'typed-dom';
 
 export function focus(
   type: RouterEventType,
@@ -8,7 +8,7 @@ export function focus(
   switch (type) {
     case RouterEventType.click:
     case RouterEventType.submit:
-      return void find(document, '[autofocus]')
+      return void [...apply<HTMLElement>(document, '[autofocus]')]
         .slice(-1)
         .filter(el =>
           el.closest('html') === window.document.documentElement &&
