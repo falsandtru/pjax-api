@@ -36,18 +36,24 @@ The second generation PJAX for the advanced web frameworks.
 
 [pjax-api](http://falsandtru.github.io/pjax-api)
 
-## Install
+## Get
+
+### CDN
+
+https://www.jsdelivr.com/package/npm/pjax-api
+
+### npm
 
 ```
 $ npm i pjax-api
-$ ls node_modules/pjax-api/dist/
-pjax-api.js  pjax-api.min.js
 ```
 
 ## Usage
 
+Note that this example specifies the latest version. You have to replace it with any specific version to preserve APIs from breaking changes.
+
 ```html
-<script src="/js/pjax-api.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pjax-api@latest"></script>
 ```
 
 ```ts
