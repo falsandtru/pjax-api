@@ -22,20 +22,19 @@ class: style-top
 </div>
 
 <div class="col-md-4">
-## Installation
-
-```
-$ npm i pjax-api
-```
+## Usage
 
 ```html
-<script src="/js/pjax-api.js"></script>
-<script src="/js/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pjax-api@latest"></script>
+<script src="/assets/js/config.js"></script>
 ```
 
 ```js
 // config.js
-var Pjax = require('pjax-api').Pjax;
+import Pjax from 'pjax-api';
+// or
+const { Pjax } = require('pjax-api');
+
 new Pjax({
   areas: [
     // try to use the first query.
