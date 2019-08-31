@@ -54,10 +54,14 @@ Note that this example specifies the latest version. You have to replace it with
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/pjax-api@latest"></script>
+<script src="/assets/js/config.js"></script>
 ```
 
 ```ts
+// config.js
 import Pjax from 'pjax-api';
+// or
+const { Pjax } = require('pjax-api');
 
 new Pjax({
   areas: [
