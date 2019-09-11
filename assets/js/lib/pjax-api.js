@@ -474,7 +474,7 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             function causeAsyncException(reason) {
-                void new Promise((_, reject) => void reject(reason));
+                void Promise.reject(reason);
             }
             exports.causeAsyncException = causeAsyncException;
         },
@@ -2894,7 +2894,7 @@ require = function () {
                     return this.url.href;
                 }
                 get resource() {
-                    return `${ this.origin }${ this.path }`.replace(/\/?\??$|\/(?=\?)/, '');
+                    return `${ this.origin }${ this.path }`.replace(/\?(?=#|$)/, '');
                 }
                 get origin() {
                     return `${ this.protocol }//${ this.host }`;
