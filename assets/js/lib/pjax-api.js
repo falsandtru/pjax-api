@@ -2270,7 +2270,6 @@ require = function () {
             'use strict';
             var _a, _b;
             Object.defineProperty(exports, '__esModule', { value: true });
-            'use strict';
             const concat_1 = _dereq_('./concat');
             var State;
             (function (State) {
