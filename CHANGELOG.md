@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.29.8
+
+- Don't remove trailing slash of URL.
+
 ## 3.29.7
 
 - Fix support for Edge browser.
