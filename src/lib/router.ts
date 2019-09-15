@@ -1,6 +1,6 @@
 import { URL, StandardURL, standardize } from 'spica/url';
 import { Sequence } from 'spica/sequence';
-import { uncurry } from 'spica/uncurry';
+import { curry } from 'spica/curry';
 import { flip } from 'spica/flip';
 import { Cache } from 'spica/cache';
 
@@ -8,7 +8,7 @@ export function router<T>(config: Record<string, (path: string) => T>): (url: st
   return (url: string) => {
     const { path, pathname } = new URL(standardize(url));
     return Sequence.from(Object.keys(config).filter(([c]) => c === '/').sort().reverse())
-      .filter(flip(compare)(pathname))
+      .filter(curry(flip(compare))(pathname))
       .map(pattern => config[pattern])
       .take(1)
       .extract()
@@ -40,7 +40,7 @@ export function compare(pattern: string, path: URL.Pathname<StandardURL>): boole
         .zip(
           Sequence.from(ps),
           Sequence.from(ss))
-        .dropWhile(uncurry(match))
+        .dropWhile(([a, b]) => match(a, b))
         .take(1)
         .extract()
         .length === 0)
@@ -101,7 +101,7 @@ function match(pattern: string, segment: string): boolean {
                 Sequence.from(segment)
                   .tails()
                   .map(ss => ss.join('')))
-              .filter(uncurry(match))
+            .filter(([a, b]) => match(a, b))
               .take(1)
               .extract()
               .length > 0;
