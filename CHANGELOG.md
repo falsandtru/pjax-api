@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.29.9
+
+- Remove only an empty query of URL.
+
 ## 3.29.8
 
 - Don't remove trailing slash of URL.
