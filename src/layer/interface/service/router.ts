@@ -74,19 +74,21 @@ export function route(
     .extract(
       () => {
         void process.cast('', new Error(`Aborted.`));
+        assert(!event.original.defaultPrevented);
         switch (event.type) {
           case RouterEventType.click:
           case RouterEventType.submit:
-            break;
+            void docurl.sync();
+            return false;
           case RouterEventType.popstate:
-            if (!isHashChange(event.location.dest)) {
-              void config.fallback(event.source, new Error(`Disabled.`));
-              return true;
+            if (isHashChange(event.location.dest)) {
+              void docurl.sync();
+              return false;
             }
-            break;
+            void config.fallback(event.source, new Error(`Disabled.`));
+            void docurl.sync();
+            return true;
         }
-        void docurl.sync();
-        return false;
       },
       () => true);
 }
