@@ -120,8 +120,7 @@ function validate(url: URL<StandardURL>, config: Config, event: RouterEvent): bo
 
   function isHashClick(dest: URL<StandardURL>): boolean {
     const orig: URL<StandardURL> = new URL(docurl.href);
-    return orig.origin === dest.origin
-        && orig.path === dest.path
+    return orig.resource === dest.resource
         && dest.fragment !== '';
   }
 
@@ -141,7 +140,6 @@ export { validate as _validate }
 
 function isHashChange(dest: URL<StandardURL>): boolean {
   const orig: URL<StandardURL> = new URL(docurl.href);
-  return orig.origin === dest.origin
-      && orig.path === dest.path
+  return orig.resource === dest.resource
       && orig.fragment !== dest.fragment;
 }
