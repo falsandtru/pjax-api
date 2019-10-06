@@ -2,7 +2,8 @@ import { Pjax } from '../../../index';
 import { route as router } from '../../../src/layer/interface/service/router';
 import { clear } from '../../../src/layer/interface/service/gui';
 import { parse } from '../../../src/lib/html';
-import { once } from 'typed-dom';
+import { wait as delay } from 'spica/clock';
+import { once, wait } from 'typed-dom';
 
 describe('Integration: Usecase', function () {
   afterEach(() => {
@@ -22,6 +23,18 @@ describe('Integration: Usecase', function () {
         assert(document.querySelector('#primary')!.textContent === 'Primary 2');
         setTimeout(done, 1000);
       });
+    });
+
+    it('hash', function (done) {
+      const url1 = '/base/test/integration/fixture/basic/1.html';
+      const url2 = '#';
+      const document = parse('').extract();
+      Pjax.assign(url1, { fallback: done }, { document, router });
+      Pjax.assign(url2, { fallback: done }, { document, router });
+      Promise.race([
+        wait(document, 'pjax:ready'),
+        delay(1000)
+      ]).then(done);
     });
 
   });

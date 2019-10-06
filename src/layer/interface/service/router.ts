@@ -73,6 +73,7 @@ export function route(
     })
     .extract(
       () => {
+        void process.cast('', new Error(`Aborted.`));
         switch (event.type) {
           case RouterEventType.click:
           case RouterEventType.submit:

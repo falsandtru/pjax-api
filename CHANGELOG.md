@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.29.10
+
+- Always cancel the page transition when a link is clicked or URL is changed.
+
 ## 3.29.9
 
 - Remove only an empty query of URL.
