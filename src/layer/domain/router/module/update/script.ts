@@ -46,9 +46,9 @@ export function script(
     }
     return o;
   }, {
-      ss: [] as HTMLScriptElement[],
-      as: [] as HTMLScriptElement[],
-    });
+    ss: [] as HTMLScriptElement[],
+    as: [] as HTMLScriptElement[],
+  });
   return AtomicPromise.all([
     AtomicPromise.all(request(ss)).then(run),
     AtomicPromise.all(request(as)).then(run),
