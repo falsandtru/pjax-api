@@ -8,7 +8,7 @@ import { URL, StandardURL, standardize } from 'spica/url';
 import { Supervisor } from 'spica/supervisor.legacy';
 import { Cancellation } from 'spica/cancellation';
 import { Just } from 'spica/maybe';
-import { bind, currentTargets } from 'typed-dom';
+import { bind } from 'typed-dom';
 
 void bind(window, 'pjax:unload', () =>
   window.history.scrollRestoration = 'auto', true);
@@ -68,7 +68,7 @@ export function route(
           void docurl.sync(),
           window.history.scrollRestoration = 'auto',
           !cancellation.canceled || reason instanceof FatalError
-            ? void config.fallback(currentTargets.get(event.original) as RouterEventSource, reason)
+            ? void config.fallback(event.source, reason)
             : undefined));
     })
     .extract(
