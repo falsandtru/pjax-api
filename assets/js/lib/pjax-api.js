@@ -5065,22 +5065,23 @@ require = function () {
                         scripts
                     }, io).then(m => m.fmap(([ss, p]) => __awaiter(this, void 0, void 0, function* () {
                         return void kill(), void url_1.docurl.sync(), void ss.filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_2.URL(url_2.standardize(s.src)).reference)), void (yield p).filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_2.URL(url_2.standardize(s.src)).reference));
-                    })).extract()).catch(reason => (void kill(), void url_1.docurl.sync(), window.history.scrollRestoration = 'auto', !cancellation.canceled || reason instanceof error_1.FatalError ? void config.fallback(typed_dom_1.currentTargets.get(event.original), reason) : undefined));
+                    })).extract()).catch(reason => (void kill(), void url_1.docurl.sync(), window.history.scrollRestoration = 'auto', !cancellation.canceled || reason instanceof error_1.FatalError ? void config.fallback(event.source, reason) : undefined));
                 })).extract(() => {
                     void process.cast('', new Error(`Aborted.`));
                     switch (event.type) {
                     case router_1.RouterEventType.click:
                     case router_1.RouterEventType.submit:
-                        break;
+                        void url_1.docurl.sync();
+                        return false;
                     case router_1.RouterEventType.popstate:
-                        if (!isHashChange(event.location.dest)) {
-                            void config.fallback(event.source, new Error(`Disabled.`));
-                            return true;
+                        if (isHashChange(event.location.dest)) {
+                            void url_1.docurl.sync();
+                            return false;
                         }
-                        break;
+                        void config.fallback(event.source, new Error(`Disabled.`));
+                        void url_1.docurl.sync();
+                        return true;
                     }
-                    void url_1.docurl.sync();
-                    return false;
                 }, () => true);
             }
             exports.route = route;
@@ -5103,7 +5104,7 @@ require = function () {
                 }
                 function isHashClick(dest) {
                     const orig = new url_2.URL(url_1.docurl.href);
-                    return orig.origin === dest.origin && orig.path === dest.path && dest.fragment !== '';
+                    return orig.resource === dest.resource && dest.fragment !== '';
                 }
                 function isDownload(el) {
                     return el.hasAttribute('download');
@@ -5115,7 +5116,7 @@ require = function () {
             exports._validate = validate;
             function isHashChange(dest) {
                 const orig = new url_2.URL(url_1.docurl.href);
-                return orig.origin === dest.origin && orig.path === dest.path && orig.fragment !== dest.fragment;
+                return orig.resource === dest.resource && orig.fragment !== dest.fragment;
             }
         },
         {

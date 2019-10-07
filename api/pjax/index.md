@@ -34,7 +34,7 @@ new Pjax({
 
 ## #assign(url: string): boolean
 
-Go to url.
+Go to URL.
 
 The return type means the request is accepted or not. In other words, in progress or not.
 The same shall apply hereinafter.
@@ -45,7 +45,7 @@ new Pjax({}).assign('/');
 
 ## #replace(url: string): boolean
 
-Go to url with replacing.
+Go to URL with replacing.
 
 ```ts
 new Pjax({}).replace('/');
@@ -53,7 +53,7 @@ new Pjax({}).replace('/');
 
 ## .assign(url: string, config: Config): boolean
 
-Go to url.
+Go to URL.
 
 ```ts
 Pjax.assign('/', {});
@@ -61,7 +61,7 @@ Pjax.assign('/', {});
 
 ## .replace(url: string, config: Config): boolean
 
-Go to url with replacing.
+Go to URL with replacing.
 
 ```ts
 Pjax.replace('/', {});

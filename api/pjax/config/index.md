@@ -36,7 +36,7 @@ Set target forms.
 
 ## replace: string = `''`
 
-Set target anchor links that will replace a current url.
+Set target anchor links that will replace the current URL.
 
 ## fetch: {...} = ...
 
@@ -78,7 +78,7 @@ Switch css auto sync.
 
 Switch script auto load.
 
-External scripts will be run once per url.
+External scripts will be run once per URL.
 Inline scripts will be run everytime.
 
 ### ignore: string = `''`
@@ -139,7 +139,7 @@ All methods are required, not optional.
 
 ## scope: Record<string, Config | undefined> = `{}`
 
-Override default configs without `link`, `filter`, `form`, and `replace` by merging, or disable pjax per path of url.
+Override default configs without `link`, `filter`, `form`, and `replace` by merging, or disable pjax per path of URL.
 You can use `{}`, `*`, and `?` metacharacters for path matching.
 
 ```ts
