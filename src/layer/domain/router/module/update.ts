@@ -51,7 +51,7 @@ export function update(
         .bind(seqB =>
           separate(documents, config.areas)
             .fmap(([area]) =>
-              [seqB, area])
+              [seqB, area] as const)
             .extract(
               () => Left(new Error(`Failed to separate the areas.`)),
               process.either))
@@ -59,7 +59,7 @@ export function update(
           void config.update.rewrite(documents.src, area),
           separate(documents, config.areas)
             .fmap(([, areas]) =>
-              [seqB, areas])
+              [seqB, areas] as const)
             .extract(
               () => Left(new Error(`Failed to separate the areas.`)),
               process.either))))

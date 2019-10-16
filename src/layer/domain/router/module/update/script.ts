@@ -8,8 +8,8 @@ import { concat } from 'spica/concat';
 import { wait } from 'spica/clock';
 import { html, apply } from 'typed-dom';
 
-type Result = Either<Error, [HTMLScriptElement[], Promise<Either<Error, HTMLScriptElement[]>>]>;
-type FetchData = [HTMLScriptElement, string];
+type Result = Either<Error, readonly [HTMLScriptElement[], Promise<Either<Error, HTMLScriptElement[]>>]>;
+type FetchData = readonly [HTMLScriptElement, string];
 
 export function script(
   documents: {
@@ -69,7 +69,7 @@ export function script(
                             concat(s1, s2))))))
                 .extract<Either<Error, HTMLScriptElement[]>>(Left))
                 .extract<Either<Error, HTMLScriptElement[]>>(Left)),
-          ]))
+          ] as const))
         .extract<Result>(Left));
 
   function request(scripts: HTMLScriptElement[]): Promise<Either<Error, FetchData>>[] {
