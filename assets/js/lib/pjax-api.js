@@ -47,14 +47,22 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
+            const global_1 = _dereq_('./global');
             const type_1 = _dereq_('./type');
+            const concat_1 = _dereq_('./concat');
+            const {Object: Obj} = global_1.global;
             exports.assign = template((key, target, source) => target[key] = source[key]);
             exports.clone = template((key, target, source) => {
                 switch (type_1.type(source[key])) {
                 case 'Array':
                     return target[key] = exports.clone([], source[key]);
                 case 'Object':
-                    return target[key] = type_1.isObject(source[key]) ? exports.clone(source[key] instanceof Object ? {} : Object.create(null), source[key]) : source[key];
+                    switch (type_1.type(target[key])) {
+                    case 'Object':
+                        return target[key] = exports.clone(source[key] instanceof Obj ? {} : Obj.create(null), source[key]);
+                    default:
+                        return target[key] = source[key];
+                    }
                 default:
                     return target[key] = source[key];
                 }
@@ -66,43 +74,82 @@ require = function () {
                 case 'Object':
                     switch (type_1.type(target[key])) {
                     case 'Object':
-                        return target[key] = type_1.isObject(source[key]) ? exports.extend(target[key], source[key]) : source[key];
+                        return target[key] = exports.extend(target[key], source[key]);
                     default:
-                        return target[key] = type_1.isObject(source[key]) ? exports.extend(source[key] instanceof Object ? {} : Object.create(null), source[key]) : source[key];
+                        return target[key] = exports.extend(source[key] instanceof Obj ? {} : Obj.create(null), source[key]);
                     }
                 default:
                     return target[key] = source[key];
                 }
             });
-            function template(strategy) {
+            exports.merge = template((key, target, source) => {
+                switch (type_1.type(source[key])) {
+                case 'Array':
+                    switch (type_1.type(target[key])) {
+                    case 'Array':
+                        return target[key] = concat_1.concat(target[key], source[key]);
+                    default:
+                        return target[key] = exports.merge([], source[key]);
+                    }
+                case 'Object':
+                    switch (type_1.type(target[key])) {
+                    case 'Object':
+                        return target[key] = exports.merge(target[key], source[key]);
+                    default:
+                        return target[key] = exports.merge(source[key] instanceof Obj ? {} : Obj.create(null), source[key]);
+                    }
+                default:
+                    return target[key] = source[key];
+                }
+            });
+            function template(strategy, empty = empty_) {
                 return walk;
                 function walk(target, ...sources) {
-                    if (target === undefined || target === null) {
-                        throw new TypeError(`Spica: assign: Cannot walk on ${ target }.`);
-                    }
+                    let isPrimitiveTarget = type_1.isPrimitive(target);
                     for (const source of sources) {
-                        if (source === undefined || source === null) {
-                            continue;
-                        }
-                        for (const key of Object.keys(Object(source))) {
-                            const desc = Object.getOwnPropertyDescriptor(Object(source), key);
-                            if (desc !== undefined && desc.enumerable) {
-                                void strategy(key, Object(target), Object(source));
+                        const isPrimitiveSource = type_1.isPrimitive(source);
+                        if (isPrimitiveSource) {
+                            target = source;
+                            isPrimitiveTarget = isPrimitiveSource;
+                        } else {
+                            if (isPrimitiveTarget) {
+                                target = empty(source);
+                                isPrimitiveTarget = isPrimitiveSource;
+                            }
+                            for (const key of Obj.keys(source)) {
+                                void strategy(key, target, source);
                             }
                         }
                     }
-                    return Object(target);
+                    return target;
+                }
+            }
+            exports.template = template;
+            function empty_(source) {
+                switch (type_1.type(source)) {
+                case 'Array':
+                    return [];
+                case 'Object':
+                    return source instanceof Obj ? {} : Obj.create(null);
+                default:
+                    return source;
                 }
             }
         },
-        { './type': 85 }
+        {
+            './concat': 10,
+            './global': 17,
+            './type': 85
+        }
     ],
     5: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
+            const global_1 = _dereq_('./global');
             const assign_1 = _dereq_('./assign');
             const equal_1 = _dereq_('./equal');
+            const {Map} = global_1.global;
             class Cache {
                 constructor(size, callback = () => undefined, opts = {}) {
                     this.size = size;
@@ -261,17 +308,23 @@ require = function () {
         },
         {
             './assign': 4,
-            './equal': 13
+            './equal': 13,
+            './global': 17
         }
     ],
     6: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
+            const global_1 = _dereq_('./global');
             const promise_1 = _dereq_('./promise');
             const exception_1 = _dereq_('./exception');
             const maybe_1 = _dereq_('./monad/maybe');
             const either_1 = _dereq_('./monad/either');
+            const {
+                Object: Obj,
+                Set
+            } = global_1.global;
             class Cancellation extends promise_1.AtomicPromise {
                 constructor(cancelees = []) {
                     super(res => resolve = res);
@@ -300,8 +353,8 @@ require = function () {
                         this.canceled_ = true;
                         this.reason = reason;
                         this.resolve(this.reason);
-                        void Object.freeze(this.listeners);
-                        void Object.freeze(this);
+                        void Obj.freeze(this.listeners);
+                        void Obj.freeze(this);
                         for (const listener of this.listeners) {
                             void listener(reason);
                         }
@@ -311,8 +364,8 @@ require = function () {
                             return;
                         this.alive = false;
                         void this.resolve(promise_1.AtomicPromise.reject(reason));
-                        void Object.freeze(this.listeners);
-                        void Object.freeze(this);
+                        void Obj.freeze(this.listeners);
+                        void Obj.freeze(this);
                     };
                     this.promise = val => this.canceled_ ? promise_1.AtomicPromise.reject(this.reason) : promise_1.AtomicPromise.resolve(val);
                     this.maybe = val => maybe_1.Just(val).bind(val => this.canceled_ ? maybe_1.Nothing : maybe_1.Just(val));
@@ -334,6 +387,7 @@ require = function () {
         },
         {
             './exception': 14,
+            './global': 17,
             './monad/either': 23,
             './monad/maybe': 27,
             './promise': 79
@@ -382,9 +436,11 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
+            const global_1 = _dereq_('./global');
             const promise_1 = _dereq_('./promise');
             var clock_tick_1 = _dereq_('./clock.tick');
             exports.tick = clock_tick_1.tick;
+            const {setTimeout} = global_1.global;
             exports.clock = Promise.resolve();
             function wait(ms) {
                 return ms === 0 ? promise_1.AtomicPromise.resolve(exports.clock) : new promise_1.AtomicPromise(resolve => void setTimeout(resolve, ms));
@@ -393,6 +449,7 @@ require = function () {
         },
         {
             './clock.tick': 7,
+            './global': 17,
             './promise': 79
         }
     ],
@@ -536,7 +593,10 @@ require = function () {
     17: [
         function (_dereq_, module, exports) {
             'use strict';
-            eval('var global = typeof globalThis !== \'undefined\' && globalThis || this;');
+            Object.defineProperty(exports, '__esModule', { value: true });
+            exports.global = typeof globalThis !== 'undefined' && globalThis || typeof self !== 'undefined' && self || this;
+            exports.default = exports.global;
+            exports.global.global = exports.global;
         },
         {}
     ],
@@ -2061,10 +2121,12 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
+            const global_1 = _dereq_('./global');
             const assign_1 = _dereq_('./assign');
             const concat_1 = _dereq_('./concat');
             const equal_1 = _dereq_('./equal');
             const exception_1 = _dereq_('./exception');
+            const {Map, WeakSet, Error} = global_1.global;
             var RegisterItemType;
             (function (RegisterItemType) {
                 RegisterItemType.monitor = 'monitor';
@@ -2229,7 +2291,7 @@ require = function () {
                     return this.refsBelow_(this.seekNode_(namespace));
                 }
                 refsAbove_({parent, items}) {
-                    items = concat_1.concat([], items);
+                    items = items.slice();
                     while (parent) {
                         items = concat_1.concat(items, parent.items);
                         parent = parent.parent;
@@ -2237,7 +2299,7 @@ require = function () {
                     return items;
                 }
                 refsBelow_({childrenNames, children, items}) {
-                    items = concat_1.concat([], items);
+                    items = items.slice();
                     for (let i = 0; i < childrenNames.length; ++i) {
                         const name = childrenNames[i];
                         const below = this.refsBelow_(children.get(name));
@@ -2277,7 +2339,8 @@ require = function () {
             './assign': 4,
             './concat': 10,
             './equal': 13,
-            './exception': 14
+            './exception': 14,
+            './global': 17
         }
     ],
     79: [
@@ -2434,6 +2497,7 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
+            const global_1 = _dereq_('./global');
             const promise_1 = _dereq_('./promise');
             const future_1 = _dereq_('./future');
             const observation_1 = _dereq_('./observation');
@@ -2442,6 +2506,14 @@ require = function () {
             const sqid_1 = _dereq_('./sqid');
             const noop_1 = _dereq_('./noop');
             const exception_1 = _dereq_('./exception');
+            const {
+                Object: Obj,
+                Set,
+                Map,
+                WeakSet,
+                Error,
+                setTimeout
+            } = global_1.global;
             class Supervisor extends promise_1.AtomicPromise {
                 constructor(opts = {}) {
                     super((resolve, reject) => {
@@ -2546,7 +2618,7 @@ require = function () {
                 destructor(reason) {
                     this.available = false;
                     void this.clear(reason);
-                    void Object.freeze(this.workers);
+                    void Obj.freeze(this.workers);
                     while (this.messages.length > 0) {
                         const [name, param] = this.messages.shift();
                         const names = typeof name === 'string' ? [name] : [...name];
@@ -2557,7 +2629,7 @@ require = function () {
                     }
                     this.alive = false;
                     void this.constructor.instances.delete(this);
-                    void Object.freeze(this);
+                    void Obj.freeze(this);
                     void this.settings.destructor(reason);
                     void this.state.bind(reason === undefined ? undefined : promise_1.AtomicPromise.reject(reason));
                 }
@@ -2722,7 +2794,7 @@ require = function () {
                 destructor(reason) {
                     this.alive = false;
                     this.available = false;
-                    void Object.freeze(this);
+                    void Obj.freeze(this);
                     try {
                         void this.destructor_();
                     } catch (reason) {
@@ -2795,6 +2867,7 @@ require = function () {
             './clock': 8,
             './exception': 14,
             './future': 16,
+            './global': 17,
             './noop': 77,
             './observation': 78,
             './promise': 79,
@@ -2805,6 +2878,8 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
+            const global_1 = _dereq_('./global');
+            const {setTimeout} = global_1.global;
             function throttle(interval, callback) {
                 let timer = 0;
                 let buffer = [];
@@ -2848,7 +2923,7 @@ require = function () {
             }
             exports.debounce = debounce;
         },
-        {}
+        { './global': 17 }
     ],
     84: [
         function (_dereq_, module, exports) {
@@ -2865,19 +2940,42 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
+            const global_1 = _dereq_('./global');
+            const {Object: Obj} = global_1.global;
             function type(target) {
-                const type = Object.prototype.toString.call(target).split(' ').pop().slice(0, -1);
-                if (target === null || typeof target !== 'object' && target instanceof Object === false)
-                    return type.toLowerCase();
-                return type;
+                const t = target == null ? target : typeof target;
+                switch (t) {
+                case undefined:
+                case null:
+                    return `${ target }`;
+                case 'boolean':
+                case 'number':
+                case 'bigint':
+                case 'string':
+                case 'symbol':
+                    return t;
+                default:
+                    return Obj.prototype.toString.call(target).slice(8, -1);
+                }
             }
             exports.type = type;
-            function isObject(target) {
-                return target !== null && (typeof target === 'object' || target instanceof Object);
+            function isPrimitive(target) {
+                switch (type(target)) {
+                case 'undefined':
+                case 'null':
+                case 'boolean':
+                case 'number':
+                case 'bigint':
+                case 'string':
+                case 'symbol':
+                    return true;
+                default:
+                    return false;
+                }
             }
-            exports.isObject = isObject;
+            exports.isPrimitive = isPrimitive;
         },
-        {}
+        { './global': 17 }
     ],
     86: [
         function (_dereq_, module, exports) {
@@ -2889,61 +2987,55 @@ require = function () {
     ],
     87: [
         function (_dereq_, module, exports) {
-            (function (global) {
-                'use strict';
-                Object.defineProperty(exports, '__esModule', { value: true });
-                _dereq_('./global');
-                const format_1 = _dereq_('./url/domain/format');
-                var format_2 = _dereq_('./url/domain/format');
-                exports.standardize = format_2.standardize;
-                const location = {
-                    get href() {
-                        return global['location'] && global['location'].href;
-                    }
-                };
-                class URL {
-                    constructor(url, base = location.href) {
-                        this.url = format_1.newURL(url, base);
-                    }
-                    get reference() {
-                        return this.url.href;
-                    }
-                    get resource() {
-                        return `${ this.origin }${ this.pathname }${ this.query === '?' ? '' : this.query }`;
-                    }
-                    get origin() {
-                        return `${ this.protocol }//${ this.host }`;
-                    }
-                    get scheme() {
-                        return this.url.protocol.slice(0, -1);
-                    }
-                    get protocol() {
-                        return this.url.protocol;
-                    }
-                    get host() {
-                        return this.url.host;
-                    }
-                    get hostname() {
-                        return this.url.hostname;
-                    }
-                    get port() {
-                        return this.url.port;
-                    }
-                    get path() {
-                        return `${ this.pathname }${ this.query }`;
-                    }
-                    get pathname() {
-                        return this.url.pathname;
-                    }
-                    get query() {
-                        return this.url.search || !this.url.href.split('#', 1)[0].includes('?') ? this.url.search : '?';
-                    }
-                    get fragment() {
-                        return this.url.hash || !this.url.href.includes('#') ? this.url.hash : '#';
-                    }
+            'use strict';
+            Object.defineProperty(exports, '__esModule', { value: true });
+            const global_1 = _dereq_('./global');
+            const format_1 = _dereq_('./url/domain/format');
+            var format_2 = _dereq_('./url/domain/format');
+            exports.standardize = format_2.standardize;
+            const {location} = global_1.global;
+            class URL {
+                constructor(url, base = location.href) {
+                    this.url = format_1.newURL(url, base);
                 }
-                exports.URL = URL;
-            }.call(this, typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {}));
+                get reference() {
+                    return this.url.href;
+                }
+                get resource() {
+                    return `${ this.origin }${ this.pathname }${ this.query === '?' ? '' : this.query }`;
+                }
+                get origin() {
+                    return `${ this.protocol }//${ this.host }`;
+                }
+                get scheme() {
+                    return this.url.protocol.slice(0, -1);
+                }
+                get protocol() {
+                    return this.url.protocol;
+                }
+                get host() {
+                    return this.url.host;
+                }
+                get hostname() {
+                    return this.url.hostname;
+                }
+                get port() {
+                    return this.url.port;
+                }
+                get path() {
+                    return `${ this.pathname }${ this.query }`;
+                }
+                get pathname() {
+                    return this.url.pathname;
+                }
+                get query() {
+                    return this.url.search || !this.url.href.split('#', 1)[0].includes('?') ? this.url.search : '?';
+                }
+                get fragment() {
+                    return this.url.hash || !this.url.href.includes('#') ? this.url.hash : '#';
+                }
+            }
+            exports.URL = URL;
         },
         {
             './global': 17,
@@ -2959,11 +3051,10 @@ require = function () {
                 const cache_1 = _dereq_('../../cache');
                 const flip_1 = _dereq_('../../flip');
                 const uncurry_1 = _dereq_('../../uncurry');
-                const location = {
-                    get href() {
-                        return global['location'] && global['location'].href;
-                    }
-                };
+                const {
+                    URL: NativeURL,
+                    location
+                } = global;
                 var Identifier;
                 (function (Identifier) {
                 }(Identifier || (Identifier = {})));
@@ -2978,7 +3069,7 @@ require = function () {
                 function normalize(url, base) {
                     return exports.newURL(url, base).href;
                 }
-                exports.newURL = flip_1.flip(uncurry_1.uncurry(memoization_1.memoize(base => memoization_1.memoize(url => new global.URL(formatURLForEdge(url, base), base), new cache_1.Cache(9)), new cache_1.Cache(9))));
+                exports.newURL = flip_1.flip(uncurry_1.uncurry(memoization_1.memoize(base => memoization_1.memoize(url => new NativeURL(formatURLForEdge(url, base), base), new cache_1.Cache(9)), new cache_1.Cache(9))));
                 function formatURLForEdge(url, base = location.href) {
                     return url.trim() || base;
                 }
@@ -2996,12 +3087,13 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const FORMAT_V4 = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
+            const {random} = Math;
             function uuid() {
                 let acc = '';
                 for (let i = 0; i < FORMAT_V4.length; ++i) {
                     const c = FORMAT_V4[i];
                     if (c === 'x' || c === 'y') {
-                        const r = Math.random() * 16 | 0;
+                        const r = random() * 16 | 0;
                         const v = c == 'x' ? r : r & 3 | 8;
                         acc += v.toString(16);
                     } else {
@@ -3018,6 +3110,7 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
+            _dereq_('spica/global');
             var builder_1 = _dereq_('./src/dom/builder');
             exports.Shadow = builder_1.Shadow;
             exports.HTML = builder_1.HTML;
@@ -3047,62 +3140,66 @@ require = function () {
             './src/dom/proxy': 93,
             './src/util/dom': 94,
             './src/util/listener': 95,
-            './src/util/query': 97
+            './src/util/query': 97,
+            'spica/global': 17
         }
     ],
     91: [
         function (_dereq_, module, exports) {
-            'use strict';
-            Object.defineProperty(exports, '__esModule', { value: true });
-            const proxy_1 = _dereq_('./proxy');
-            const dom_1 = _dereq_('../util/dom');
-            function API(baseFactory, formatter = el => el) {
-                return new Proxy(() => undefined, handle(baseFactory, formatter));
-            }
-            exports.API = API;
-            exports.Shadow = API(dom_1.html, dom_1.shadow);
-            exports.HTML = API(dom_1.html);
-            exports.SVG = API(dom_1.svg);
-            function handle(baseFactory, formatter) {
-                return {
-                    apply(obj, _, [prop, ...args]) {
-                        return this.get(obj, prop, undefined)(...args);
-                    },
-                    get: (obj, prop) => obj[prop] || prop in obj || typeof prop !== 'string' ? obj[prop] : obj[prop] = builder(prop, baseFactory)
-                };
-                function builder(tag, baseFactory) {
-                    return function build(attrs, children, factory) {
-                        if (typeof attrs === 'function')
-                            return build(undefined, undefined, attrs);
-                        if (typeof children === 'function')
-                            return build(attrs, undefined, children);
-                        if (attrs !== undefined && isChildren(attrs))
-                            return build(undefined, attrs, factory);
-                        const node = formatter(elem(factory || defaultFactory, attrs || {}, children));
-                        return node instanceof Element ? new proxy_1.Elem(node, children) : new proxy_1.Elem(node.host, children, node);
+            (function (global) {
+                'use strict';
+                Object.defineProperty(exports, '__esModule', { value: true });
+                const proxy_1 = _dereq_('./proxy');
+                const dom_1 = _dereq_('../util/dom');
+                const {Object: Obj} = global;
+                function API(baseFactory, formatter = el => el) {
+                    return new Proxy(() => undefined, handle(baseFactory, formatter));
+                }
+                exports.API = API;
+                exports.Shadow = API(dom_1.html, dom_1.shadow);
+                exports.HTML = API(dom_1.html);
+                exports.SVG = API(dom_1.svg);
+                function handle(baseFactory, formatter) {
+                    return {
+                        apply(obj, _, [prop, ...args]) {
+                            return this.get(obj, prop, undefined)(...args);
+                        },
+                        get: (obj, prop) => obj[prop] || prop in obj || typeof prop !== 'string' ? obj[prop] : obj[prop] = builder(prop, baseFactory)
                     };
-                    function isChildren(children) {
-                        return typeof children !== 'object' || Object.values(children).slice(-1).every(val => typeof val === 'object');
-                    }
-                    function elem(factory, attrs, children) {
-                        const el = factory(baseFactory, tag, attrs, children);
-                        if (tag !== el.tagName.toLowerCase())
-                            throw new Error(`TypedDOM: Expected tag name is "${ tag }" but actually "${ el.tagName.toLowerCase() }".`);
-                        if (factory !== defaultFactory) {
-                            for (const [k, v] of Object.entries(attrs)) {
-                                if (typeof v !== 'function')
-                                    continue;
-                                void el.removeEventListener(k, v);
-                            }
-                            void dom_1.define(el, attrs);
+                    function builder(tag, baseFactory) {
+                        return function build(attrs, children, factory) {
+                            if (typeof attrs === 'function')
+                                return build(undefined, undefined, attrs);
+                            if (typeof children === 'function')
+                                return build(attrs, undefined, children);
+                            if (attrs !== undefined && isChildren(attrs))
+                                return build(undefined, attrs, factory);
+                            const node = formatter(elem(factory || defaultFactory, attrs || {}, children));
+                            return node.nodeType === 1 ? new proxy_1.Elem(node, children) : new proxy_1.Elem(node.host, children, node);
+                        };
+                        function isChildren(children) {
+                            return typeof children !== 'object' || Obj.values(children).slice(-1).every(val => typeof val === 'object');
                         }
-                        return el;
-                    }
-                    function defaultFactory(factory, tag, attrs) {
-                        return factory(tag, attrs);
+                        function elem(factory, attrs, children) {
+                            const el = factory(baseFactory, tag, attrs, children);
+                            if (tag !== el.tagName.toLowerCase())
+                                throw new Error(`TypedDOM: Expected tag name is "${ tag }" but actually "${ el.tagName.toLowerCase() }".`);
+                            if (factory !== defaultFactory) {
+                                for (const [k, v] of Obj.entries(attrs)) {
+                                    if (typeof v !== 'function')
+                                        continue;
+                                    void el.removeEventListener(k, v);
+                                }
+                                void dom_1.define(el, attrs);
+                            }
+                            return el;
+                        }
+                        function defaultFactory(factory, tag, attrs) {
+                            return factory(tag, attrs);
+                        }
                     }
                 }
-            }
+            }.call(this, typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {}));
         },
         {
             '../util/dom': 94,
@@ -3128,253 +3225,263 @@ require = function () {
     ],
     93: [
         function (_dereq_, module, exports) {
-            'use strict';
-            Object.defineProperty(exports, '__esModule', { value: true });
-            const identity_1 = _dereq_('./identity');
-            const dom_1 = _dereq_('../util/dom');
-            var ElChildrenType;
-            (function (ElChildrenType) {
-                ElChildrenType.Void = 'void';
-                ElChildrenType.Text = 'text';
-                ElChildrenType.Array = 'array';
-                ElChildrenType.Record = 'record';
-            }(ElChildrenType || (ElChildrenType = {})));
-            const memory = new WeakMap();
-            function proxy(el) {
-                if (!memory.has(el))
-                    throw new Error(`TypedDOM: This element has no proxy.`);
-                return memory.get(el);
-            }
-            exports.proxy = proxy;
-            const tag = Symbol();
-            class Elem {
-                constructor(element, children_, container = element) {
-                    this.element = element;
-                    this.children_ = children_;
-                    this.container = container;
-                    this.id_ = this.element.id.trim();
-                    switch (true) {
-                    case children_ === undefined:
-                        this.type = ElChildrenType.Void;
-                        break;
-                    case typeof children_ === 'string':
-                        this.type = ElChildrenType.Text;
-                        break;
-                    case Array.isArray(children_):
-                        this.type = ElChildrenType.Array;
-                        break;
-                    case children_ && typeof children_ === 'object':
-                        this.type = ElChildrenType.Record;
-                        break;
-                    default:
-                        throw new Error(`TypedDOM: Invalid type children.`);
-                    }
-                    void throwErrorIfNotUsable(this);
-                    void memory.set(this.element, this);
-                    switch (this.type) {
-                    case ElChildrenType.Void:
-                        this.initialChildren = new WeakSet();
-                        return;
-                    case ElChildrenType.Text:
-                        this.initialChildren = new WeakSet();
-                        void dom_1.define(this.container, []);
-                        this.children_ = this.container.appendChild(dom_1.text(''));
-                        this.children = children_;
-                        return;
-                    case ElChildrenType.Array:
-                        this.initialChildren = new WeakSet(children_);
-                        void dom_1.define(this.container, []);
-                        this.children_ = [];
-                        this.children = children_;
-                        return;
-                    case ElChildrenType.Record:
-                        this.initialChildren = new WeakSet(Object.values(children_));
-                        void dom_1.define(this.container, []);
-                        this.children_ = observe(this.container, Object.assign({}, children_));
-                        this.children = children_;
-                        return;
-                    default:
-                        throw new Error(`TypedDOM: Unreachable code.`);
-                    }
-                    function observe(node, children) {
-                        return Object.defineProperties(children, Object.entries(children).reduce((descs, [name, child]) => {
-                            void throwErrorIfNotUsable(child);
-                            void node.appendChild(child.element);
-                            descs[name] = {
-                                configurable: true,
-                                enumerable: true,
-                                get: () => {
-                                    return child;
-                                },
-                                set: newChild => {
-                                    const oldChild = child;
-                                    if (newChild === oldChild)
-                                        return;
-                                    if (newChild.element.parentElement !== node) {
-                                        void throwErrorIfNotUsable(newChild);
-                                    }
-                                    void node.replaceChild(newChild.element, oldChild.element);
-                                    child = newChild;
-                                }
-                            };
-                            return descs;
-                        }, {}));
-                    }
+            (function (global) {
+                'use strict';
+                Object.defineProperty(exports, '__esModule', { value: true });
+                const identity_1 = _dereq_('./identity');
+                const dom_1 = _dereq_('../util/dom');
+                const {
+                    Array,
+                    Object: Obj,
+                    Set,
+                    WeakMap,
+                    WeakSet,
+                    Event
+                } = global;
+                var ElChildrenType;
+                (function (ElChildrenType) {
+                    ElChildrenType.Void = 'void';
+                    ElChildrenType.Text = 'text';
+                    ElChildrenType.Array = 'array';
+                    ElChildrenType.Record = 'record';
+                }(ElChildrenType || (ElChildrenType = {})));
+                const memory = new WeakMap();
+                function proxy(el) {
+                    if (!memory.has(el))
+                        throw new Error(`TypedDOM: This element has no proxy.`);
+                    return memory.get(el);
                 }
-                get id() {
-                    if (this.id_)
-                        return this.id_;
-                    this.id_ = identity_1.uid();
-                    void this.element.classList.add(this.id_);
-                    return this.id_;
-                }
-                get query() {
-                    switch (true) {
-                    case this.element !== this.container:
-                        return ':host';
-                    case this.id === this.element.id.trim():
-                        return `#${ this.id }`;
-                    default:
-                        return `.${ this.id }`;
-                    }
-                }
-                scope(child) {
-                    if (!(child.element instanceof HTMLStyleElement))
-                        return;
-                    const syntax = /^(\s*)\$scope(?!\w)/gm;
-                    const style = child.element;
-                    const query = this.query;
-                    if (style.innerHTML.search(syntax) === -1)
-                        return;
-                    style.innerHTML = style.innerHTML.replace(syntax, (_, indent) => `${ indent }${ query }`);
-                    switch (query[0]) {
-                    case '.': {
-                            const id = query.slice(1);
-                            if (!style.classList.contains(id))
-                                break;
-                            void style.classList.add(id);
+                exports.proxy = proxy;
+                const tag = Symbol();
+                class Elem {
+                    constructor(element, children_, container = element) {
+                        this.element = element;
+                        this.children_ = children_;
+                        this.container = container;
+                        this.id_ = this.element.id.trim();
+                        switch (true) {
+                        case children_ === undefined:
+                            this.type = ElChildrenType.Void;
                             break;
+                        case typeof children_ === 'string':
+                            this.type = ElChildrenType.Text;
+                            break;
+                        case Array.isArray(children_):
+                            this.type = ElChildrenType.Array;
+                            break;
+                        case children_ && typeof children_ === 'object':
+                            this.type = ElChildrenType.Record;
+                            break;
+                        default:
+                            throw new Error(`TypedDOM: Invalid type children.`);
+                        }
+                        void throwErrorIfNotUsable(this);
+                        void memory.set(this.element, this);
+                        switch (this.type) {
+                        case ElChildrenType.Void:
+                            this.initialChildren = new WeakSet();
+                            return;
+                        case ElChildrenType.Text:
+                            this.initialChildren = new WeakSet();
+                            void dom_1.define(this.container, []);
+                            this.children_ = this.container.appendChild(dom_1.text(''));
+                            this.children = children_;
+                            return;
+                        case ElChildrenType.Array:
+                            this.initialChildren = new WeakSet(children_);
+                            void dom_1.define(this.container, []);
+                            this.children_ = [];
+                            this.children = children_;
+                            return;
+                        case ElChildrenType.Record:
+                            this.initialChildren = new WeakSet(Obj.values(children_));
+                            void dom_1.define(this.container, []);
+                            this.children_ = observe(this.container, Object.assign({}, children_));
+                            this.children = children_;
+                            return;
+                        default:
+                            throw new Error(`TypedDOM: Unreachable code.`);
+                        }
+                        function observe(node, children) {
+                            return Obj.defineProperties(children, Obj.entries(children).reduce((descs, [name, child]) => {
+                                void throwErrorIfNotUsable(child);
+                                void node.appendChild(child.element);
+                                descs[name] = {
+                                    configurable: true,
+                                    enumerable: true,
+                                    get: () => {
+                                        return child;
+                                    },
+                                    set: newChild => {
+                                        const oldChild = child;
+                                        if (newChild === oldChild)
+                                            return;
+                                        if (newChild.element.parentElement !== node) {
+                                            void throwErrorIfNotUsable(newChild);
+                                        }
+                                        void node.replaceChild(newChild.element, oldChild.element);
+                                        child = newChild;
+                                    }
+                                };
+                                return descs;
+                            }, {}));
                         }
                     }
-                    if (style.children.length === 0)
-                        return;
-                    for (const el of style.querySelectorAll('*')) {
-                        void el.remove();
+                    get id() {
+                        if (this.id_)
+                            return this.id_;
+                        this.id_ = identity_1.uid();
+                        void this.element.classList.add(this.id_);
+                        return this.id_;
                     }
-                }
-                get children() {
-                    switch (this.type) {
-                    case ElChildrenType.Text:
-                        this.children_ = this.children_.parentNode === this.container ? this.children_ : [...this.container.childNodes].find(node => node instanceof Text) || this.children_.cloneNode();
-                        return this.children_.textContent;
-                    default:
-                        return this.children_;
+                    get query() {
+                        switch (true) {
+                        case this.element !== this.container:
+                            return ':host';
+                        case this.id === this.element.id.trim():
+                            return `#${ this.id }`;
+                        default:
+                            return `.${ this.id }`;
+                        }
                     }
-                }
-                set children(children) {
-                    const removedChildren = new Set();
-                    const addedChildren = new Set();
-                    switch (this.type) {
-                    case ElChildrenType.Void:
-                        return;
-                    case ElChildrenType.Text: {
-                            if (children === this.children && !this.initialChildren.has(this.children_))
+                    scope(child) {
+                        if (child.element.nodeName !== 'STYLE')
+                            return;
+                        const syntax = /(^|[,}])(\s*)\$scope(?![\w-])(?=[^;{}]*{)/g;
+                        const style = child.element;
+                        const query = this.query;
+                        if (style.innerHTML.search(syntax) === -1)
+                            return;
+                        style.innerHTML = style.innerHTML.replace(syntax, (_, frag, space) => `${ frag }${ space }${ query }`);
+                        switch (query[0]) {
+                        case '.': {
+                                const id = query.slice(1);
+                                if (!style.classList.contains(id))
+                                    break;
+                                void style.classList.add(id);
+                                break;
+                            }
+                        }
+                        if (style.children.length === 0)
+                            return;
+                        for (const el of style.querySelectorAll('*')) {
+                            void el.remove();
+                        }
+                    }
+                    get children() {
+                        switch (this.type) {
+                        case ElChildrenType.Text:
+                            this.children_ = this.children_.parentNode === this.container ? this.children_ : [...this.container.childNodes].find(node => node.nodeType === 3) || this.children_.cloneNode();
+                            return this.children_.textContent;
+                        default:
+                            return this.children_;
+                        }
+                    }
+                    set children(children) {
+                        const removedChildren = new Set();
+                        const addedChildren = new Set();
+                        switch (this.type) {
+                        case ElChildrenType.Void:
+                            return;
+                        case ElChildrenType.Text: {
+                                if (children === this.children && !this.initialChildren.has(this.children_))
+                                    return;
+                                const targetChildren = this.children_;
+                                const oldText = targetChildren.textContent;
+                                const newText = children;
+                                targetChildren.textContent = newText;
+                                if (newText === oldText)
+                                    return;
+                                void this.element.dispatchEvent(new Event('change', {
+                                    bubbles: false,
+                                    cancelable: true
+                                }));
                                 return;
-                            const targetChildren = this.children_;
-                            const oldText = targetChildren.textContent;
-                            const newText = children;
-                            targetChildren.textContent = newText;
-                            if (newText === oldText)
-                                return;
-                            void this.element.dispatchEvent(new Event('change', {
+                            }
+                        case ElChildrenType.Array: {
+                                const sourceChildren = children;
+                                const targetChildren = [];
+                                this.children_ = targetChildren;
+                                const mem = new WeakSet();
+                                for (let i = 0; i < sourceChildren.length; ++i) {
+                                    const newChild = sourceChildren[i];
+                                    if (mem.has(newChild))
+                                        throw new Error(`TypedDOM: Typed DOM children can't repeatedly be used to the same object.`);
+                                    void mem.add(newChild);
+                                    if (newChild.element.parentNode !== this.container) {
+                                        void throwErrorIfNotUsable(newChild);
+                                    }
+                                    if (newChild.element === this.container.children[i]) {
+                                        void targetChildren.push(newChild);
+                                    } else {
+                                        if (newChild.element.parentNode !== this.container) {
+                                            void this.scope(newChild);
+                                            void addedChildren.add(newChild);
+                                        }
+                                        void this.container.insertBefore(newChild.element, this.container.children[i]);
+                                        void targetChildren.push(newChild);
+                                    }
+                                }
+                                void Obj.freeze(targetChildren);
+                                for (let i = this.container.children.length; i >= sourceChildren.length; --i) {
+                                    if (!memory.has(this.container.children[i]))
+                                        continue;
+                                    void removedChildren.add(proxy(this.container.removeChild(this.container.children[i])));
+                                }
+                                break;
+                            }
+                        case ElChildrenType.Record: {
+                                const sourceChildren = children;
+                                const targetChildren = this.children_;
+                                const mem = new WeakSet();
+                                for (const name in targetChildren) {
+                                    const oldChild = targetChildren[name];
+                                    const newChild = sourceChildren[name];
+                                    if (!newChild)
+                                        continue;
+                                    if (mem.has(newChild))
+                                        throw new Error(`TypedDOM: Typed DOM children can't repeatedly be used to the same object.`);
+                                    void mem.add(newChild);
+                                    if (newChild.element.parentNode !== this.container) {
+                                        void throwErrorIfNotUsable(newChild);
+                                    }
+                                    if (oldChild.element !== newChild.element || this.initialChildren.has(oldChild)) {
+                                        void this.scope(newChild);
+                                        void addedChildren.add(newChild);
+                                        void removedChildren.add(oldChild);
+                                    }
+                                    targetChildren[name] = sourceChildren[name];
+                                }
+                                break;
+                            }
+                        }
+                        for (const child of removedChildren) {
+                            if (this.initialChildren.has(child))
+                                continue;
+                            void child.element.dispatchEvent(new Event('disconnect', {
                                 bubbles: false,
                                 cancelable: true
                             }));
-                            return;
                         }
-                    case ElChildrenType.Array: {
-                            const sourceChildren = children;
-                            const targetChildren = [];
-                            this.children_ = targetChildren;
-                            const mem = new WeakSet();
-                            for (let i = 0; i < sourceChildren.length; ++i) {
-                                const newChild = sourceChildren[i];
-                                if (mem.has(newChild))
-                                    throw new Error(`TypedDOM: Typed DOM children can't repeatedly be used to the same object.`);
-                                void mem.add(newChild);
-                                if (newChild.element.parentNode !== this.container) {
-                                    void throwErrorIfNotUsable(newChild);
-                                }
-                                if (newChild.element === this.container.children[i]) {
-                                    void targetChildren.push(newChild);
-                                } else {
-                                    if (newChild.element.parentNode !== this.container) {
-                                        void this.scope(newChild);
-                                        void addedChildren.add(newChild);
-                                    }
-                                    void this.container.insertBefore(newChild.element, this.container.children[i]);
-                                    void targetChildren.push(newChild);
-                                }
-                            }
-                            void Object.freeze(targetChildren);
-                            for (let i = this.container.children.length; i >= sourceChildren.length; --i) {
-                                if (!memory.has(this.container.children[i]))
-                                    continue;
-                                void removedChildren.add(proxy(this.container.removeChild(this.container.children[i])));
-                            }
-                            break;
+                        for (const child of addedChildren) {
+                            void child.element.dispatchEvent(new Event('connect', {
+                                bubbles: false,
+                                cancelable: true
+                            }));
                         }
-                    case ElChildrenType.Record: {
-                            const sourceChildren = children;
-                            const targetChildren = this.children_;
-                            const mem = new WeakSet();
-                            for (const name in targetChildren) {
-                                const oldChild = targetChildren[name];
-                                const newChild = sourceChildren[name];
-                                if (!newChild)
-                                    continue;
-                                if (mem.has(newChild))
-                                    throw new Error(`TypedDOM: Typed DOM children can't repeatedly be used to the same object.`);
-                                void mem.add(newChild);
-                                if (newChild.element.parentNode !== this.container) {
-                                    void throwErrorIfNotUsable(newChild);
-                                }
-                                if (oldChild.element !== newChild.element || this.initialChildren.has(oldChild)) {
-                                    void this.scope(newChild);
-                                    void addedChildren.add(newChild);
-                                    void removedChildren.add(oldChild);
-                                }
-                                targetChildren[name] = sourceChildren[name];
-                            }
-                            break;
-                        }
-                    }
-                    for (const child of removedChildren) {
-                        if (this.initialChildren.has(child))
-                            continue;
-                        void child.element.dispatchEvent(new Event('disconnect', {
+                        removedChildren.size + addedChildren.size > 0 && void this.element.dispatchEvent(new Event('change', {
                             bubbles: false,
                             cancelable: true
                         }));
                     }
-                    for (const child of addedChildren) {
-                        void child.element.dispatchEvent(new Event('connect', {
-                            bubbles: false,
-                            cancelable: true
-                        }));
-                    }
-                    removedChildren.size + addedChildren.size > 0 && void this.element.dispatchEvent(new Event('change', {
-                        bubbles: false,
-                        cancelable: true
-                    }));
                 }
-            }
-            exports.Elem = Elem;
-            function throwErrorIfNotUsable({element}) {
-                if (!element.parentElement || !memory.has(element.parentElement))
-                    return;
-                throw new Error(`TypedDOM: Typed DOM children can't be used to another typed DOM.`);
-            }
+                exports.Elem = Elem;
+                function throwErrorIfNotUsable({element}) {
+                    if (!element.parentElement || !memory.has(element.parentElement))
+                        return;
+                    throw new Error(`TypedDOM: Typed DOM children can't be used to another typed DOM.`);
+                }
+            }.call(this, typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {}));
         },
         {
             '../util/dom': 94,
@@ -3383,102 +3490,108 @@ require = function () {
     ],
     94: [
         function (_dereq_, module, exports) {
-            'use strict';
-            Object.defineProperty(exports, '__esModule', { value: true });
-            const shadows = new WeakMap();
-            var cache;
-            (function (cache) {
-                cache.elem = new Map();
-                cache.text = document.createTextNode('');
-                cache.frag = document.createDocumentFragment();
-            }(cache || (cache = {})));
-            function frag(children = []) {
-                children = typeof children === 'string' ? [text(children)] : children;
-                const frag = cache.frag.cloneNode();
-                void frag.append(...children);
-                return frag;
-            }
-            exports.frag = frag;
-            function shadow(el, children, opts) {
-                if (children && !isChildren(children))
-                    return shadow(el, undefined, children);
-                if (el.shadowRoot || shadows.has(el)) {
-                    return define(opts ? opts.mode === 'open' ? el.shadowRoot || el.attachShadow(opts) : shadows.get(el) || shadows.set(el, el.attachShadow(opts)).get(el) : el.shadowRoot || shadows.get(el), children);
-                } else {
-                    return define(!opts || opts.mode === 'open' ? el.attachShadow({ mode: 'open' }) : shadows.set(el, el.attachShadow(opts)).get(el), children === undefined ? el.childNodes : children);
+            (function (global) {
+                'use strict';
+                Object.defineProperty(exports, '__esModule', { value: true });
+                const {
+                    Object: Obj,
+                    document
+                } = global;
+                const shadows = new WeakMap();
+                var cache;
+                (function (cache) {
+                    cache.elem = new Map();
+                    cache.text = document.createTextNode('');
+                    cache.frag = document.createDocumentFragment();
+                }(cache || (cache = {})));
+                function frag(children = []) {
+                    children = typeof children === 'string' ? [text(children)] : children;
+                    const frag = cache.frag.cloneNode();
+                    void frag.append(...children);
+                    return frag;
                 }
-            }
-            exports.shadow = shadow;
-            function html(tag, attrs = {}, children = []) {
-                return element(0, tag, attrs, children);
-            }
-            exports.html = html;
-            function svg(tag, attrs = {}, children = []) {
-                return element(1, tag, attrs, children);
-            }
-            exports.svg = svg;
-            function text(source) {
-                const text = cache.text.cloneNode();
-                text.data = source;
-                return text;
-            }
-            exports.text = text;
-            var NS;
-            (function (NS) {
-                NS[NS['HTML'] = 0] = 'HTML';
-                NS[NS['SVG'] = 1] = 'SVG';
-            }(NS || (NS = {})));
-            function element(ns, tag, attrs = {}, children = []) {
-                const key = `${ ns }:${ tag }`;
-                const el = tag.includes('-') ? elem(ns, tag) : cache.elem.has(key) ? cache.elem.get(key).cloneNode(true) : cache.elem.set(key, elem(ns, tag)).get(key).cloneNode(true);
-                void define(el, attrs, children);
-                return el;
-            }
-            function elem(ns, tag) {
-                switch (ns) {
-                case 0:
-                    return document.createElement(tag);
-                case 1:
-                    return document.createElementNS('http://www.w3.org/2000/svg', tag);
-                }
-            }
-            function define(el, attrs = {}, children) {
-                if (isChildren(attrs))
-                    return define(el, undefined, attrs);
-                if (typeof children === 'string')
-                    return define(el, attrs, [text(children)]);
-                void Object.entries(attrs).forEach(([name, value]) => {
-                    switch (typeof value) {
-                    case 'string':
-                        return void el.setAttribute(name, value);
-                    case 'function':
-                        return void el.addEventListener(name.slice(2), value, {
-                            passive: [
-                                'wheel',
-                                'mousewheel',
-                                'touchstart',
-                                'touchmove'
-                            ].includes(name.slice(2))
-                        });
-                    case 'object':
-                        return void el.removeAttribute(name);
-                    default:
-                        return;
+                exports.frag = frag;
+                function shadow(el, children, opts) {
+                    if (children && !isChildren(children))
+                        return shadow(el, undefined, children);
+                    if (el.shadowRoot || shadows.has(el)) {
+                        return define(opts ? opts.mode === 'open' ? el.shadowRoot || el.attachShadow(opts) : shadows.get(el) || shadows.set(el, el.attachShadow(opts)).get(el) : el.shadowRoot || shadows.get(el), children);
+                    } else {
+                        return define(!opts || opts.mode === 'open' ? el.attachShadow({ mode: 'open' }) : shadows.set(el, el.attachShadow(opts)).get(el), children === undefined ? el.childNodes : children);
                     }
-                });
-                if (children) {
-                    el.innerHTML = '';
-                    while (el.firstChild) {
-                        void el.removeChild(el.firstChild);
-                    }
-                    void el.append(...children);
                 }
-                return el;
-            }
-            exports.define = define;
-            function isChildren(o) {
-                return !!o[Symbol.iterator];
-            }
+                exports.shadow = shadow;
+                function html(tag, attrs = {}, children = []) {
+                    return element(0, tag, attrs, children);
+                }
+                exports.html = html;
+                function svg(tag, attrs = {}, children = []) {
+                    return element(1, tag, attrs, children);
+                }
+                exports.svg = svg;
+                function text(source) {
+                    const text = cache.text.cloneNode();
+                    text.data = source;
+                    return text;
+                }
+                exports.text = text;
+                var NS;
+                (function (NS) {
+                    NS[NS['HTML'] = 0] = 'HTML';
+                    NS[NS['SVG'] = 1] = 'SVG';
+                }(NS || (NS = {})));
+                function element(ns, tag, attrs = {}, children = []) {
+                    const key = `${ ns }:${ tag }`;
+                    const el = tag.includes('-') ? elem(ns, tag) : cache.elem.has(key) ? cache.elem.get(key).cloneNode(true) : cache.elem.set(key, elem(ns, tag)).get(key).cloneNode(true);
+                    void define(el, attrs, children);
+                    return el;
+                }
+                function elem(ns, tag) {
+                    switch (ns) {
+                    case 0:
+                        return document.createElement(tag);
+                    case 1:
+                        return document.createElementNS('http://www.w3.org/2000/svg', tag);
+                    }
+                }
+                function define(el, attrs = {}, children) {
+                    if (isChildren(attrs))
+                        return define(el, undefined, attrs);
+                    if (typeof children === 'string')
+                        return define(el, attrs, [text(children)]);
+                    void Obj.entries(attrs).forEach(([name, value]) => {
+                        switch (typeof value) {
+                        case 'string':
+                            return void el.setAttribute(name, value);
+                        case 'function':
+                            return void el.addEventListener(name.slice(2), value, {
+                                passive: [
+                                    'wheel',
+                                    'mousewheel',
+                                    'touchstart',
+                                    'touchmove'
+                                ].includes(name.slice(2))
+                            });
+                        case 'object':
+                            return void el.removeAttribute(name);
+                        default:
+                            return;
+                        }
+                    });
+                    if (children) {
+                        el.innerHTML = '';
+                        while (el.firstChild) {
+                            void el.removeChild(el.firstChild);
+                        }
+                        void el.append(...children);
+                    }
+                    return el;
+                }
+                exports.define = define;
+                function isChildren(o) {
+                    return !!o[Symbol.iterator];
+                }
+            }.call(this, typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {}));
         },
         {}
     ],
@@ -3501,11 +3614,9 @@ require = function () {
             }
             exports.wait = wait;
             function delegate(target, selector, type, listener, option = {}) {
-                return bind(target instanceof Document ? target.documentElement : target, type, ev => {
+                return bind(target.nodeType === 9 ? target.documentElement : target, type, ev => {
                     const cx = (ev.target.shadowRoot && ev.composedPath()[0] || ev.target).closest(selector);
-                    if (cx instanceof Element) {
-                        void once(cx, type, listener, option);
-                    }
+                    cx && void once(cx, type, listener, option);
                     return ev.returnValue;
                 }, Object.assign(Object.assign({}, option), { capture: true }));
             }
