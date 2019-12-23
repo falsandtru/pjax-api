@@ -51,55 +51,55 @@ require = function () {
             const type_1 = _dereq_('./type');
             const concat_1 = _dereq_('./concat');
             const {Object: Obj} = global_1.global;
-            exports.assign = template((key, target, source) => target[key] = source[key]);
-            exports.clone = template((key, target, source) => {
-                switch (type_1.type(source[key])) {
+            exports.assign = template((prop, target, source) => target[prop] = source[prop]);
+            exports.clone = template((prop, target, source) => {
+                switch (type_1.type(source[prop])) {
                 case 'Array':
-                    return target[key] = exports.clone([], source[key]);
+                    return target[prop] = exports.clone([], source[prop]);
                 case 'Object':
-                    switch (type_1.type(target[key])) {
+                    switch (type_1.type(target[prop])) {
                     case 'Object':
-                        return target[key] = exports.clone(source[key] instanceof Obj ? {} : Obj.create(null), source[key]);
+                        return target[prop] = exports.clone(source[prop] instanceof Obj ? {} : Obj.create(null), source[prop]);
                     default:
-                        return target[key] = source[key];
+                        return target[prop] = source[prop];
                     }
                 default:
-                    return target[key] = source[key];
+                    return target[prop] = source[prop];
                 }
             });
-            exports.extend = template((key, target, source) => {
-                switch (type_1.type(source[key])) {
+            exports.extend = template((prop, target, source) => {
+                switch (type_1.type(source[prop])) {
                 case 'Array':
-                    return target[key] = exports.extend([], source[key]);
+                    return target[prop] = exports.extend([], source[prop]);
                 case 'Object':
-                    switch (type_1.type(target[key])) {
+                    switch (type_1.type(target[prop])) {
                     case 'Object':
-                        return target[key] = exports.extend(target[key], source[key]);
+                        return target[prop] = exports.extend(target[prop], source[prop]);
                     default:
-                        return target[key] = exports.extend(source[key] instanceof Obj ? {} : Obj.create(null), source[key]);
+                        return target[prop] = exports.extend(source[prop] instanceof Obj ? {} : Obj.create(null), source[prop]);
                     }
                 default:
-                    return target[key] = source[key];
+                    return target[prop] = source[prop];
                 }
             });
-            exports.merge = template((key, target, source) => {
-                switch (type_1.type(source[key])) {
+            exports.merge = template((prop, target, source) => {
+                switch (type_1.type(source[prop])) {
                 case 'Array':
-                    switch (type_1.type(target[key])) {
+                    switch (type_1.type(target[prop])) {
                     case 'Array':
-                        return target[key] = concat_1.concat(target[key], source[key]);
+                        return target[prop] = concat_1.concat(target[prop], source[prop]);
                     default:
-                        return target[key] = exports.merge([], source[key]);
+                        return target[prop] = exports.merge([], source[prop]);
                     }
                 case 'Object':
-                    switch (type_1.type(target[key])) {
+                    switch (type_1.type(target[prop])) {
                     case 'Object':
-                        return target[key] = exports.merge(target[key], source[key]);
+                        return target[prop] = exports.merge(target[prop], source[prop]);
                     default:
-                        return target[key] = exports.merge(source[key] instanceof Obj ? {} : Obj.create(null), source[key]);
+                        return target[prop] = exports.merge(source[prop] instanceof Obj ? {} : Obj.create(null), source[prop]);
                     }
                 default:
-                    return target[key] = source[key];
+                    return target[prop] = source[prop];
                 }
             });
             function template(strategy, empty = empty_) {
@@ -116,8 +116,10 @@ require = function () {
                                 target = empty(source);
                                 isPrimitiveTarget = isPrimitiveSource;
                             }
-                            for (const key of Obj.keys(source)) {
-                                void strategy(key, target, source);
+                            for (const prop in source) {
+                                if (source.hasOwnProperty && !source.hasOwnProperty(prop))
+                                    continue;
+                                void strategy(prop, target, source);
                             }
                         }
                     }
@@ -2940,14 +2942,13 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const global_1 = _dereq_('./global');
-            const {Object: Obj} = global_1.global;
-            function type(target) {
-                const t = target == null ? target : typeof target;
+            const toString = Object.prototype.toString;
+            function type(value) {
+                const t = value == null ? value : typeof value;
                 switch (t) {
                 case undefined:
                 case null:
-                    return `${ target }`;
+                    return `${ value }`;
                 case 'boolean':
                 case 'number':
                 case 'bigint':
@@ -2955,12 +2956,12 @@ require = function () {
                 case 'symbol':
                     return t;
                 default:
-                    return Obj.prototype.toString.call(target).slice(8, -1);
+                    return toString.call(value).slice(8, -1);
                 }
             }
             exports.type = type;
-            function isPrimitive(target) {
-                switch (type(target)) {
+            function isPrimitive(value) {
+                switch (type(value)) {
                 case 'undefined':
                 case 'null':
                 case 'boolean':
@@ -2975,7 +2976,7 @@ require = function () {
             }
             exports.isPrimitive = isPrimitive;
         },
-        { './global': 17 }
+        {}
     ],
     86: [
         function (_dereq_, module, exports) {
@@ -3047,7 +3048,7 @@ require = function () {
             (function (global) {
                 'use strict';
                 Object.defineProperty(exports, '__esModule', { value: true });
-                const memoization_1 = _dereq_('../../memoization');
+                const memoize_1 = _dereq_('../../memoize');
                 const cache_1 = _dereq_('../../cache');
                 const flip_1 = _dereq_('../../flip');
                 const uncurry_1 = _dereq_('../../uncurry');
@@ -3069,7 +3070,7 @@ require = function () {
                 function normalize(url, base) {
                     return exports.newURL(url, base).href;
                 }
-                exports.newURL = flip_1.flip(uncurry_1.uncurry(memoization_1.memoize(base => memoization_1.memoize(url => new NativeURL(formatURLForEdge(url, base), base), new cache_1.Cache(9)), new cache_1.Cache(9))));
+                exports.newURL = flip_1.flip(uncurry_1.uncurry(memoize_1.memoize(base => memoize_1.memoize(url => new NativeURL(formatURLForEdge(url, base), base), new cache_1.Cache(9)), new cache_1.Cache(9))));
                 function formatURLForEdge(url, base = location.href) {
                     return url.trim() || base;
                 }
@@ -3078,7 +3079,7 @@ require = function () {
         {
             '../../cache': 5,
             '../../flip': 15,
-            '../../memoization': 20,
+            '../../memoize': 20,
             '../../uncurry': 86
         }
     ],
@@ -3185,7 +3186,10 @@ require = function () {
                             if (tag !== el.tagName.toLowerCase())
                                 throw new Error(`TypedDOM: Expected tag name is "${ tag }" but actually "${ el.tagName.toLowerCase() }".`);
                             if (factory !== defaultFactory) {
-                                for (const [k, v] of Obj.entries(attrs)) {
+                                for (const k in attrs) {
+                                    if (!attrs.hasOwnProperty(k))
+                                        continue;
+                                    const v = attrs[k];
                                     if (typeof v !== 'function')
                                         continue;
                                     void el.removeEventListener(k, v);
@@ -3303,7 +3307,11 @@ require = function () {
                             throw new Error(`TypedDOM: Unreachable code.`);
                         }
                         function observe(node, children) {
-                            return Obj.defineProperties(children, Obj.entries(children).reduce((descs, [name, child]) => {
+                            const descs = {};
+                            for (const name in children) {
+                                if (!children.hasOwnProperty(name))
+                                    continue;
+                                let child = children[name];
                                 void throwErrorIfNotUsable(child);
                                 void node.appendChild(child.element);
                                 descs[name] = {
@@ -3323,8 +3331,8 @@ require = function () {
                                         child = newChild;
                                     }
                                 };
-                                return descs;
-                            }, {}));
+                            }
+                            return Obj.defineProperties(children, descs);
                         }
                     }
                     get id() {
@@ -3493,10 +3501,7 @@ require = function () {
             (function (global) {
                 'use strict';
                 Object.defineProperty(exports, '__esModule', { value: true });
-                const {
-                    Object: Obj,
-                    document
-                } = global;
+                const {document} = global;
                 const shadows = new WeakMap();
                 var cache;
                 (function (cache) {
@@ -3512,6 +3517,8 @@ require = function () {
                 }
                 exports.frag = frag;
                 function shadow(el, children, opts) {
+                    if (typeof el === 'string')
+                        return shadow(html(el), children, opts);
                     if (children && !isChildren(children))
                         return shadow(el, undefined, children);
                     if (el.shadowRoot || shadows.has(el)) {
@@ -3559,12 +3566,16 @@ require = function () {
                         return define(el, undefined, attrs);
                     if (typeof children === 'string')
                         return define(el, attrs, [text(children)]);
-                    void Obj.entries(attrs).forEach(([name, value]) => {
+                    for (const name in attrs) {
+                        if (!attrs.hasOwnProperty(name))
+                            continue;
+                        const value = attrs[name];
                         switch (typeof value) {
                         case 'string':
-                            return void el.setAttribute(name, value);
+                            void el.setAttribute(name, value);
+                            break;
                         case 'function':
-                            return void el.addEventListener(name.slice(2), value, {
+                            void el.addEventListener(name.slice(2), value, {
                                 passive: [
                                     'wheel',
                                     'mousewheel',
@@ -3572,12 +3583,14 @@ require = function () {
                                     'touchmove'
                                 ].includes(name.slice(2))
                             });
+                            break;
                         case 'object':
-                            return void el.removeAttribute(name);
+                            void el.removeAttribute(name);
+                            break;
                         default:
-                            return;
+                            break;
                         }
-                    });
+                    }
                     if (children) {
                         el.innerHTML = '';
                         while (el.firstChild) {
@@ -3600,6 +3613,7 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const noop_1 = _dereq_('./noop');
+            const promise_1 = _dereq_('spica/promise');
             exports.currentTargets = new WeakMap();
             function listen(target, a, b, c = false, d = {}) {
                 return typeof b === 'string' ? delegate(target, a, b, c, d) : bind(target, a, b, c);
@@ -3610,7 +3624,7 @@ require = function () {
             }
             exports.once = once;
             function wait(target, a, b = false, c = {}) {
-                return new Promise(resolve => typeof b === 'string' ? void once(target, a, b, resolve, c) : void once(target, a, resolve, b));
+                return new promise_1.AtomicPromise(resolve => typeof b === 'string' ? void once(target, a, b, resolve, c) : void once(target, a, resolve, b));
             }
             exports.wait = wait;
             function delegate(target, selector, type, listener, option = {}) {
@@ -3632,7 +3646,10 @@ require = function () {
             }
             exports.bind = bind;
         },
-        { './noop': 96 }
+        {
+            './noop': 96,
+            'spica/promise': 79
+        }
     ],
     96: [
         function (_dereq_, module, exports) {
