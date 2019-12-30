@@ -258,8 +258,8 @@ require = function () {
                     };
                     if (this.settings.ignore.clear)
                         return;
-                    for (const [key, val] of store) {
-                        void this.callback(key, val);
+                    for (const key of store.keys()) {
+                        void this.callback(key, store.get(key));
                     }
                 }
                 [Symbol.iterator]() {
@@ -2125,7 +2125,6 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const global_1 = _dereq_('./global');
             const assign_1 = _dereq_('./assign');
-            const concat_1 = _dereq_('./concat');
             const equal_1 = _dereq_('./equal');
             const exception_1 = _dereq_('./exception');
             const {Map, WeakSet, Error} = global_1.global;
@@ -2200,27 +2199,27 @@ require = function () {
                                 return false;
                             switch (i) {
                             case 0:
-                                return !void items.shift();
+                                return items.shift(), true;
                             case items.length - 1:
-                                return !void items.pop();
+                                return items.pop(), true;
                             default:
-                                return !void items.splice(i, 1);
+                                return items.splice(i, 1), true;
                             }
                         });
                     case 'undefined': {
                             const node = this.seekNode_(namespace);
-                            for (const name of node.childrenNames.slice()) {
+                            for (let i = 0; i < node.childrenNames.length; ++i) {
+                                const name = node.childrenNames[i];
                                 void this.off([
                                     ...namespace,
                                     name
                                 ]);
                                 const child = node.children.get(name);
-                                if (!child)
-                                    continue;
                                 if (child.items.length + child.childrenNames.length > 0)
                                     continue;
                                 void node.children.delete(name);
                                 void node.childrenNames.splice(equal_1.findIndex(name, node.childrenNames), 1);
+                                void --i;
                             }
                             node.items = node.items.filter(({type}) => type === RegisterItemType.monitor);
                             return;
@@ -2295,7 +2294,7 @@ require = function () {
                 refsAbove_({parent, items}) {
                     items = items.slice();
                     while (parent) {
-                        items = concat_1.concat(items, parent.items);
+                        void items.push(...parent.items);
                         parent = parent.parent;
                     }
                     return items;
@@ -2305,7 +2304,7 @@ require = function () {
                     for (let i = 0; i < childrenNames.length; ++i) {
                         const name = childrenNames[i];
                         const below = this.refsBelow_(children.get(name));
-                        items = concat_1.concat(items, below);
+                        void items.push(...below);
                         if (below.length === 0) {
                             void children.delete(name);
                             void childrenNames.splice(equal_1.findIndex(name, childrenNames), 1);
@@ -2339,7 +2338,6 @@ require = function () {
         },
         {
             './assign': 4,
-            './concat': 10,
             './equal': 13,
             './exception': 14,
             './global': 17
@@ -2356,9 +2354,9 @@ require = function () {
                 State[State['resolved'] = 0] = 'resolved';
                 State[State['rejected'] = 1] = 'rejected';
             }(State || (State = {})));
-            const status = Symbol();
-            const queue = Symbol();
-            const resume = Symbol();
+            const status = Symbol.for('status');
+            const queue = Symbol.for('queue');
+            const resume = Symbol.for('resume');
             class AtomicPromise {
                 constructor(executor) {
                     this[Symbol.toStringTag] = 'Promise';
@@ -2735,7 +2733,7 @@ require = function () {
                 }
                 clear(reason) {
                     while (this.workers.size > 0) {
-                        for (const [, worker] of this.workers) {
+                        for (const worker of this.workers.values()) {
                             void worker.terminate(reason);
                         }
                     }
@@ -3256,7 +3254,7 @@ require = function () {
                     return memory.get(el);
                 }
                 exports.proxy = proxy;
-                const tag = Symbol();
+                const tag = Symbol.for('TagName');
                 class Elem {
                     constructor(element, children_, container = element) {
                         this.element = element;
@@ -3305,34 +3303,6 @@ require = function () {
                             return;
                         default:
                             throw new Error(`TypedDOM: Unreachable code.`);
-                        }
-                        function observe(node, children) {
-                            const descs = {};
-                            for (const name in children) {
-                                if (!children.hasOwnProperty(name))
-                                    continue;
-                                let child = children[name];
-                                void throwErrorIfNotUsable(child);
-                                void node.appendChild(child.element);
-                                descs[name] = {
-                                    configurable: true,
-                                    enumerable: true,
-                                    get: () => {
-                                        return child;
-                                    },
-                                    set: newChild => {
-                                        const oldChild = child;
-                                        if (newChild === oldChild)
-                                            return;
-                                        if (newChild.element.parentElement !== node) {
-                                            void throwErrorIfNotUsable(newChild);
-                                        }
-                                        void node.replaceChild(newChild.element, oldChild.element);
-                                        child = newChild;
-                                    }
-                                };
-                            }
-                            return Obj.defineProperties(children, descs);
                         }
                     }
                     get id() {
@@ -3484,6 +3454,34 @@ require = function () {
                     }
                 }
                 exports.Elem = Elem;
+                function observe(node, children) {
+                    const descs = {};
+                    for (const name in children) {
+                        if (!children.hasOwnProperty(name))
+                            continue;
+                        let child = children[name];
+                        void throwErrorIfNotUsable(child);
+                        void node.appendChild(child.element);
+                        descs[name] = {
+                            configurable: true,
+                            enumerable: true,
+                            get: () => {
+                                return child;
+                            },
+                            set: newChild => {
+                                const oldChild = child;
+                                if (newChild === oldChild)
+                                    return;
+                                if (newChild.element.parentElement !== node) {
+                                    void throwErrorIfNotUsable(newChild);
+                                }
+                                void node.replaceChild(newChild.element, oldChild.element);
+                                child = newChild;
+                            }
+                        };
+                    }
+                    return Obj.defineProperties(children, descs);
+                }
                 function throwErrorIfNotUsable({element}) {
                     if (!element.parentElement || !memory.has(element.parentElement))
                         return;
@@ -3521,11 +3519,7 @@ require = function () {
                         return shadow(html(el), children, opts);
                     if (children && !isChildren(children))
                         return shadow(el, undefined, children);
-                    if (el.shadowRoot || shadows.has(el)) {
-                        return define(opts ? opts.mode === 'open' ? el.shadowRoot || el.attachShadow(opts) : shadows.get(el) || shadows.set(el, el.attachShadow(opts)).get(el) : el.shadowRoot || shadows.get(el), children);
-                    } else {
-                        return define(!opts || opts.mode === 'open' ? el.attachShadow({ mode: 'open' }) : shadows.set(el, el.attachShadow(opts)).get(el), children === undefined ? el.childNodes : children);
-                    }
+                    return el.shadowRoot || shadows.has(el) ? define(opts ? opts.mode === 'open' ? el.shadowRoot || el.attachShadow(opts) : shadows.get(el) || shadows.set(el, el.attachShadow(opts)).get(el) : el.shadowRoot || shadows.get(el), children) : define(!opts || opts.mode === 'open' ? el.attachShadow({ mode: 'open' }) : shadows.set(el, el.attachShadow(opts)).get(el), children === undefined ? el.childNodes : children);
                 }
                 exports.shadow = shadow;
                 function html(tag, attrs = {}, children = []) {
