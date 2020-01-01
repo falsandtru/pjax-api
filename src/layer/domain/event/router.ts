@@ -1,6 +1,6 @@
 import { serialize } from '../../../lib/dom';
 import { URL, StandardURL, standardize } from 'spica/url';
-import { currentTargets } from 'typed-dom';
+import { currentTarget } from 'typed-dom';
 
 export class RouterEvent {
   constructor(
@@ -11,7 +11,7 @@ export class RouterEvent {
     void Object.freeze(this);
   }
   public readonly type: RouterEventType = this.original.type.toLowerCase() as RouterEventType;
-  public readonly source: RouterEventSource = currentTargets.get(this.original) as RouterEventSource;
+  public readonly source: RouterEventSource = this.original[currentTarget] as RouterEventSource;
   public readonly request: RouterEventRequest = new RouterEventRequest(this.source);
   public readonly location: RouterEventLocation = new RouterEventLocation(this.request.url);
 }
