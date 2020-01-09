@@ -161,7 +161,7 @@ gulp.task('install', done => {
 
 gulp.task('update', done => {
   shell('bundle update');
-  shell('ncu -ux del');
+  shell('ncu -ux del,karma-coverage');
   shell('ncu -ut typescript');
   shell('npm i --no-shrinkwrap');
   done();
