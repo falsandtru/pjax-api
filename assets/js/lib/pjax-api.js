@@ -449,11 +449,28 @@ require = function () {
             var clock_tick_1 = _dereq_('./clock.tick');
             exports.tick = clock_tick_1.tick;
             const {setTimeout} = global_1.global;
-            exports.clock = Promise.resolve();
+            exports.clock = Promise.resolve(undefined);
             function wait(ms) {
                 return ms === 0 ? promise_1.AtomicPromise.resolve(exports.clock) : new promise_1.AtomicPromise(resolve => void setTimeout(resolve, ms));
             }
             exports.wait = wait;
+            exports.never = new class Never extends promise_1.AtomicPromise {
+                static get [Symbol.species]() {
+                    return Never;
+                }
+                constructor() {
+                    super(() => undefined);
+                }
+                then() {
+                    return super.then();
+                }
+                catch() {
+                    return super.then();
+                }
+                finally() {
+                    return super.then();
+                }
+            }();
         },
         {
             './clock.tick': 7,
@@ -561,12 +578,8 @@ require = function () {
             const promise_1 = _dereq_('./promise');
             class Future extends Promise {
                 constructor() {
-                    let state = true;
                     let bind;
                     super(resolve => bind = value => {
-                        if (!state)
-                            throw new Error(`Spica: Future: Cannot rebind a value.`);
-                        state = false;
                         void resolve(value);
                         return this;
                     });
@@ -579,12 +592,8 @@ require = function () {
             exports.Future = Future;
             class AtomicFuture extends promise_1.AtomicPromise {
                 constructor() {
-                    let state = true;
                     let bind;
                     super(resolve => bind = value => {
-                        if (!state)
-                            throw new Error(`Spica: AtomicFuture: Cannot rebind a value.`);
-                        state = false;
                         void resolve(value);
                         return this;
                     });
@@ -2661,13 +2670,12 @@ require = function () {
                     if (!this.available)
                         throw new Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: A supervisor is already terminated.`);
                 }
-                register(name, process, state, reason) {
+                register(name, process, state) {
                     state = state;
                     void this.throwErrorIfNotAvailable();
-                    arguments.length > 3 && void this.kill(name, reason);
                     if (typeof process === 'function') {
                         if (isGeneratorFunction(process)) {
-                            const iter = process.call(this, state);
+                            const iter = process(state);
                             return this.register(name, {
                                 init: state => (void iter.next(), state),
                                 main: (param, state, kill) => {
@@ -4413,7 +4421,7 @@ require = function () {
                     })).fmap(p => p.then(([m, seqD]) => m.fmap(sst => [
                         sst,
                         seqD
-                    ]))).extract(e => promise_1.AtomicPromise.resolve(either_1.Left(e)));
+                    ]))).extract(err => promise_1.AtomicPromise.resolve(either_1.Left(err)));
                 })).reverse())).then(process.promise).then(m => m.fmap(([p1, p2]) => (void promise_1.AtomicPromise.all([
                     p1,
                     p2
@@ -5121,6 +5129,7 @@ require = function () {
                     this.option = option;
                     this.io = io;
                     const config = new router_1.Config(this.option);
+                    void view.kill('');
                     void view.register('', {
                         init: s => s,
                         main: (_, s) => new promise_1.AtomicPromise(() => {
@@ -5136,7 +5145,7 @@ require = function () {
                             }).close);
                         }),
                         exit: (_, s) => void s.cancel()
-                    }, new cancellation_1.Cancellation(), new Error('Kill'));
+                    }, new cancellation_1.Cancellation());
                     void view.cast('', undefined);
                 }
                 assign(url) {
@@ -5211,6 +5220,7 @@ require = function () {
             const url_2 = _dereq_('spica/url');
             const cancellation_1 = _dereq_('spica/cancellation');
             const maybe_1 = _dereq_('spica/maybe');
+            const clock_1 = _dereq_('spica/clock');
             const typed_dom_1 = _dereq_('typed-dom');
             void typed_dom_1.bind(window, 'pjax:unload', () => window.history.scrollRestoration = 'auto', true);
             function route(config, event, process, io) {
@@ -5230,10 +5240,10 @@ require = function () {
                     void event.original.preventDefault();
                     void process.cast('', new Error(`Aborted.`));
                     const cancellation = new cancellation_1.Cancellation();
-                    const kill = process.register('', e => {
+                    const kill = process.register('', err => {
                         void kill();
-                        void cancellation.cancel(e);
-                        return new Promise(() => undefined);
+                        void cancellation.cancel(err);
+                        return clock_1.never;
                     }, undefined);
                     const [scripts] = yield env_1.env;
                     window.history.scrollRestoration = 'manual';
@@ -5303,6 +5313,7 @@ require = function () {
             '../service/state/env': 129,
             './state/url': 133,
             'spica/cancellation': 6,
+            'spica/clock': 8,
             'spica/maybe': 19,
             'spica/url': 87,
             'typed-dom': 90
