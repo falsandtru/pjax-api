@@ -26,6 +26,7 @@ export class GUI extends API {
   ) {
     super();
     const config = new Config(this.option);
+    void view.kill('');
     void view.register('', {
       init: s => s,
       main: (_, s) => new AtomicPromise(() => {
@@ -43,7 +44,7 @@ export class GUI extends API {
       }),
       exit: (_, s) =>
         void s.cancel(),
-    }, new Cancellation(), new Error('Kill'));
+    }, new Cancellation());
     void view.cast('', undefined);
   }
   public assign(url: string): boolean {
