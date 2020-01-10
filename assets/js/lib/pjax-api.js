@@ -4955,7 +4955,7 @@ require = function () {
                         if (typeof ev.currentTarget.href !== 'string')
                             return;
                         void listener(ev);
-                    }))), undefined);
+                    }))));
                     void this.sv.cast('', undefined);
                 }
             }
@@ -4985,7 +4985,7 @@ require = function () {
                         if (url_2.standardize(window.location.href) === url_1.docurl.href)
                             return;
                         void listener(ev);
-                    }))), undefined);
+                    }))));
                     void this.sv.cast('', undefined);
                 }
             }
@@ -5014,7 +5014,7 @@ require = function () {
                     this.close = () => void this.sv.terminate();
                     void this.sv.register('', () => new promise_1.AtomicPromise(() => void this.sv.events.exit.monitor([], typed_dom_1.bind(window, 'scroll', throttle_1.debounce(100, ev => {
                         void listener(ev);
-                    }), { passive: true }))), undefined);
+                    }), { passive: true }))));
                     void this.sv.cast('', undefined);
                 }
             }
@@ -5043,7 +5043,7 @@ require = function () {
                         if (!(ev.currentTarget instanceof HTMLFormElement))
                             return;
                         void listener(ev);
-                    }))), undefined);
+                    }))));
                     void this.sv.cast('', undefined);
                 }
             }
@@ -5244,7 +5244,7 @@ require = function () {
                         void kill();
                         void cancellation.cancel(err);
                         return clock_1.never;
-                    }, undefined);
+                    });
                     const [scripts] = yield env_1.env;
                     window.history.scrollRestoration = 'manual';
                     return router_1.route(config, event, {
