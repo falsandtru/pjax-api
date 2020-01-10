@@ -2542,13 +2542,13 @@ require = function () {
             class Supervisor extends promise_1.AtomicPromise {
                 constructor(opts = {}) {
                     super((resolve, reject) => {
+                        const legacy = !state;
                         cb = [
                             resolve,
                             reject
                         ];
-                        state = new future_1.AtomicFuture();
-                        return this.then === promise_1.AtomicPromise.prototype.then ? state : function* () {
-                            return state;
+                        state = state || new future_1.AtomicFuture();
+                        return legacy ? undefined : function* () {
                         }();
                     });
                     this.state = new future_1.AtomicFuture();
@@ -2614,9 +2614,8 @@ require = function () {
                         }
                     };
                     var cb;
-                    var state;
-                    cb || void this.then();
-                    void this.state.then(...cb);
+                    var state = state = new future_1.AtomicFuture();
+                    cb && void this.state.then(...cb);
                     void state.bind(this.state);
                     void assign_1.extend(this.settings, opts);
                     this.name = this.settings.name;
@@ -2663,14 +2662,12 @@ require = function () {
                         throw new Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: A supervisor is already terminated.`);
                 }
                 register(name, process, state, reason) {
+                    state = state;
                     void this.throwErrorIfNotAvailable();
-                    if (arguments.length > 3) {
-                        void this.kill(name, reason);
-                        return this.register(name, process, state);
-                    }
+                    arguments.length > 3 && void this.kill(name, reason);
                     if (typeof process === 'function') {
                         if (isGeneratorFunction(process)) {
-                            const iter = process(state);
+                            const iter = process.call(this, state);
                             return this.register(name, {
                                 init: state => (void iter.next(), state),
                                 main: (param, state, kill) => {
@@ -2891,7 +2888,7 @@ require = function () {
                         if (!this.initiated) {
                             void this.init();
                             if (!this.alive)
-                                return;
+                                return void reject();
                         }
                         void promise_1.AtomicPromise.resolve(this.process.main(param, this.state, this.terminate)).then(resolve, reject);
                     }).then(result => {
