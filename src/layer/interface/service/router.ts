@@ -8,6 +8,7 @@ import { URL, StandardURL, standardize } from 'spica/url';
 import { Supervisor } from 'spica/supervisor.legacy';
 import { Cancellation } from 'spica/cancellation';
 import { Just } from 'spica/maybe';
+import { never } from 'spica/clock';
 import { bind } from 'typed-dom';
 
 void bind(window, 'pjax:unload', () =>
@@ -44,7 +45,7 @@ export function route(
       const kill = process.register('', err => {
         void kill();
         void cancellation.cancel(err);
-        return new Promise<never>(() => undefined);
+        return never;
       }, undefined);
       const [scripts] = await env;
       window.history.scrollRestoration = 'manual';
