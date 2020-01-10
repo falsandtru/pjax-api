@@ -110,7 +110,7 @@ export function update(
               p.then(([m, seqD]) =>
                 m.fmap(sst =>
                   [sst, seqD] as const)))
-            .extract(e => AtomicPromise.resolve(Left(e))))
+            .extract(err => AtomicPromise.resolve(Left(err))))
           .reverse()))
     .then(process.promise)
     // ready -> load

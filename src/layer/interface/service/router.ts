@@ -41,9 +41,9 @@ export function route(
       void event.original.preventDefault();
       void process.cast('', new Error(`Aborted.`));
       const cancellation = new Cancellation<Error>();
-      const kill = process.register('', e => {
+      const kill = process.register('', err => {
         void kill();
-        void cancellation.cancel(e);
+        void cancellation.cancel(err);
         return new Promise<never>(() => undefined);
       }, undefined);
       const [scripts] = await env;
