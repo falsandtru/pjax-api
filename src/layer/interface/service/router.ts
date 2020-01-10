@@ -46,7 +46,7 @@ export function route(
         void kill();
         void cancellation.cancel(err);
         return never;
-      }, undefined);
+      });
       const [scripts] = await env;
       window.history.scrollRestoration = 'manual';
       //void progressbar(config.progressbar);

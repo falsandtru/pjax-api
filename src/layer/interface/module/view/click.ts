@@ -15,8 +15,7 @@ export class ClickView {
           if (!(ev.currentTarget instanceof HTMLAnchorElement)) return;
           if (typeof ev.currentTarget.href !== 'string') return;
           void listener(ev);
-        }))
-    ), undefined);
+        }))));
     void this.sv.cast('', undefined);
   }
   private readonly sv = new class extends Supervisor<''>{ }();

@@ -13,8 +13,7 @@ export class ScrollView {
         [],
         bind(window, 'scroll', debounce(100, ev => {
           void listener(ev);
-        }), { passive: true }))
-    ), undefined);
+        }), { passive: true }))));
     void this.sv.cast('', undefined);
   }
   private readonly sv = new class extends Supervisor<''>{ }();

@@ -15,8 +15,7 @@ export class NavigationView {
         bind(window, 'popstate', ev => {
           if (standardize(window.location.href) === docurl.href) return;
           void listener(ev);
-        }))
-    ), undefined);
+        }))));
     void this.sv.cast('', undefined);
   }
   private readonly sv = new class extends Supervisor<''>{ }();
