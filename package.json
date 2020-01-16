@@ -57,10 +57,10 @@
     "npm-check-updates": "^4.0.1",
     "power-assert": "^1.6.1",
     "semver": "^7.1.1",
-    "spica": "0.0.299",
+    "spica": "0.0.301",
     "tsify": "^4.0.1",
-    "typed-dom": "0.0.156",
-    "typescript": "3.8.0-dev.20200110",
+    "typed-dom": "0.0.158",
+    "typescript": "3.8.0-dev.20200115",
     "uglify-es": "^3.3.9",
     "vinyl-buffer": "^1.0.1",
     "vinyl-source-stream": "^2.0.0"
