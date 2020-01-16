@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.29.11
+
+- Update dependencies.
+
 ## 3.29.10
 
 - Always cancel the page transition when a link is clicked or URL is changed.
