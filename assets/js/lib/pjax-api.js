@@ -577,11 +577,17 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const promise_1 = _dereq_('./promise');
             class Future extends Promise {
-                constructor() {
+                constructor(strict = true) {
                     let bind;
+                    let state = true;
                     super(resolve => bind = value => {
+                        if (!state && !strict)
+                            return this.then();
+                        if (!state)
+                            throw new Error(`Spica: Future: Cannot rebind a value.`);
+                        state = false;
                         void resolve(value);
-                        return this;
+                        return this.then();
                     });
                     this.bind = bind;
                 }
@@ -591,11 +597,17 @@ require = function () {
             }
             exports.Future = Future;
             class AtomicFuture extends promise_1.AtomicPromise {
-                constructor() {
+                constructor(strict = true) {
                     let bind;
+                    let state = true;
                     super(resolve => bind = value => {
+                        if (!state && !strict)
+                            return this.then();
+                        if (!state)
+                            throw new Error(`Spica: AtomicFuture: Cannot rebind a value.`);
+                        state = false;
                         void resolve(value);
-                        return this;
+                        return this.then();
                     });
                     this.bind = bind;
                 }
@@ -2675,9 +2687,9 @@ require = function () {
                     void this.throwErrorIfNotAvailable();
                     if (typeof process === 'function') {
                         if (isGeneratorFunction(process)) {
-                            const iter = process(state);
+                            let iter;
                             return this.register(name, {
-                                init: state => (void iter.next(), state),
+                                init: (state, kill) => (iter = process(state, kill), void iter.next(), state),
                                 main: (param, state, kill) => {
                                     const {
                                         value: reply,
@@ -2689,13 +2701,13 @@ require = function () {
                                         state
                                     ];
                                 },
-                                exit: _ => undefined
+                                exit: () => undefined
                             }, state);
                         }
                         return this.register(name, {
                             init: state => state,
                             main: process,
-                            exit: _ => undefined
+                            exit: () => undefined
                         }, state);
                     }
                     if (this.workers.has(name))
@@ -2865,7 +2877,7 @@ require = function () {
                         this.process,
                         this.state
                     ]);
-                    this.state = this.process.init(this.state);
+                    this.state = this.process.init(this.state, this.terminate);
                 }
                 exit(reason) {
                     try {
@@ -2899,11 +2911,7 @@ require = function () {
                                 return void reject();
                         }
                         void promise_1.AtomicPromise.resolve(this.process.main(param, this.state, this.terminate)).then(resolve, reject);
-                    }).then(result => {
-                        const [reply, state] = Array.isArray(result) ? result : [
-                            result.reply,
-                            result.state
-                        ];
+                    }).then(([reply, state]) => {
                         if (this.alive) {
                             void this.sv.schedule();
                             this.state = state;
@@ -3179,6 +3187,7 @@ require = function () {
             exports.html = dom_1.html;
             exports.svg = dom_1.svg;
             exports.text = dom_1.text;
+            exports.element = dom_1.element;
             exports.define = dom_1.define;
             var listener_1 = _dereq_('./src/util/listener');
             exports.listen = listener_1.listen;
@@ -3557,17 +3566,23 @@ require = function () {
             (function (global) {
                 'use strict';
                 Object.defineProperty(exports, '__esModule', { value: true });
+                const memoize_1 = _dereq_('spica/memoize');
                 const {document} = global;
+                var NS;
+                (function (NS) {
+                    NS['HTML'] = 'HTML';
+                    NS['SVG'] = 'SVG';
+                }(NS || (NS = {})));
                 const shadows = new WeakMap();
-                var cache;
-                (function (cache) {
-                    cache.elem = new Map();
-                    cache.text = document.createTextNode('');
-                    cache.frag = document.createDocumentFragment();
-                }(cache || (cache = {})));
+                var caches;
+                (function (caches) {
+                    caches.elem = memoize_1.memoize(() => new Map(), new WeakMap());
+                    caches.text = document.createTextNode('');
+                    caches.frag = document.createDocumentFragment();
+                }(caches || (caches = {})));
                 function frag(children) {
                     children = typeof children === 'string' ? [text(children)] : children;
-                    const frag = cache.frag.cloneNode();
+                    const frag = caches.frag.cloneNode();
                     children && void frag.append(...children);
                     return frag;
                 }
@@ -3589,23 +3604,22 @@ require = function () {
                 }
                 exports.svg = svg;
                 function text(source) {
-                    const text = cache.text.cloneNode();
+                    const text = caches.text.cloneNode();
                     text.data = source;
                     return text;
                 }
                 exports.text = text;
-                var NS;
-                (function (NS) {
-                    NS['HTML'] = 'HTML';
-                    NS['SVG'] = 'SVG';
-                }(NS || (NS = {})));
                 function element(context, ns, tag, attrs, children) {
+                    const cache = caches.elem(context);
                     const key = `${ ns }:${ tag }`;
-                    const el = tag.includes('-') ? elem(context, ns, tag) : cache.elem.has(key) ? cache.elem.get(key).cloneNode(true) : cache.elem.set(key, elem(context, ns, tag)).get(key).cloneNode(true);
+                    const el = tag.includes('-') ? elem(context, ns, tag) : cache.has(key) ? cache.get(key).cloneNode(true) : cache.set(key, elem(context, ns, tag)).get(key).cloneNode(true);
                     void define(el, attrs, children);
                     return el;
                 }
+                exports.element = element;
                 function elem(context, ns, tag) {
+                    if (context.nodeType === 1)
+                        throw new Error(`TypedDOM: Scoped custom elements are not supported.`);
                     switch (ns) {
                     case 'HTML':
                         return context.createElement(tag);
@@ -3659,11 +3673,11 @@ require = function () {
                 }
                 exports.define = define;
                 function isChildren(o) {
-                    return !!o && !!o[Symbol.iterator];
+                    return !!(o === null || o === void 0 ? void 0 : o[Symbol.iterator]);
                 }
             }.call(this, typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {}));
         },
-        {}
+        { 'spica/memoize': 20 }
     ],
     95: [
         function (_dereq_, module, exports) {
