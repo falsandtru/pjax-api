@@ -1,3 +1,3 @@
-import { Supervisor } from 'spica/supervisor.legacy';
+import { Supervisor } from 'spica/supervisor';
 
 export const process = new class extends Supervisor<'', Error> { }();

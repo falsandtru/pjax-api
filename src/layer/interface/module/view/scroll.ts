@@ -1,21 +1,20 @@
-import { Supervisor } from 'spica/supervisor.legacy';
-import { AtomicPromise } from 'spica/promise';
+import { docurl } from '../../service/state/url';
+import { Coroutine } from 'spica/coroutine';
+import { standardize } from 'spica/url';
 import { debounce } from 'spica/throttle';
 import { bind } from 'typed-dom';
 
-export class ScrollView {
+export class ScrollView extends Coroutine {
   constructor(
     window: Window,
     listener: (event: Event) => void,
   ) {
-    void this.sv.register('', () => new AtomicPromise(() =>
-      void this.sv.events.exit.monitor(
-        [],
-        bind(window, 'scroll', debounce(100, ev => {
-          void listener(ev);
-        }), { passive: true }))));
-    void this.sv.cast('', undefined);
+    super(function* () {
+      return this.finally(bind(window, 'scroll', debounce(100, ev => {
+        if (new URL(standardize(window.location.href)).href !== docurl.href) return;
+        void listener(ev);
+      }), { passive: true }));
+    });
+    void this[Coroutine.init]();
   }
-  private readonly sv = new class extends Supervisor<''>{ }();
-  public close: () => void = () => void this.sv.terminate();
 }

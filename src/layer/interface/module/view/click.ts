@@ -1,23 +1,19 @@
-import { Supervisor } from 'spica/supervisor.legacy';
-import { AtomicPromise } from 'spica/promise';
+import { Coroutine } from 'spica/coroutine';
 import { delegate } from 'typed-dom';
 
-export class ClickView {
+export class ClickView extends Coroutine {
   constructor(
     document: Document,
     selector: string,
     listener: (event: MouseEvent) => void,
   ) {
-    void this.sv.register('', () => new AtomicPromise(() =>
-      void this.sv.events.exit.monitor(
-        [],
-        delegate(document, selector, 'click', ev => {
-          if (!(ev.currentTarget instanceof HTMLAnchorElement)) return;
-          if (typeof ev.currentTarget.href !== 'string') return;
-          void listener(ev);
-        }))));
-    void this.sv.cast('', undefined);
+    super(function* () {
+      return this.finally(delegate(document, selector, 'click', ev => {
+        if (!(ev.currentTarget instanceof HTMLAnchorElement)) return;
+        if (typeof ev.currentTarget.href !== 'string') return;
+        void listener(ev);
+      }));
+    });
+    void this[Coroutine.init]();
   }
-  private readonly sv = new class extends Supervisor<''>{ }();
-  public close: () => void = () => void this.sv.terminate();
 }

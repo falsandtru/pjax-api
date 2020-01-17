@@ -5,16 +5,10 @@ import { SubmitView } from '../module/view/submit';
 import { NavigationView } from '../module/view/navigation';
 import { ScrollView } from '../module/view/scroll';
 import { route, Config, RouterEvent } from './router';
-import { docurl } from './state/url';
 import './state/scroll-restoration';
 import { process } from './state/process';
 import { savePosition } from '../../application/store';
-import { Supervisor } from 'spica/supervisor.legacy';
-import { Cancellation } from 'spica/cancellation';
-import { AtomicPromise } from 'spica/promise';
-import { URL, standardize } from 'spica/url';
-
-const view = new class extends Supervisor<'', undefined, undefined, Cancellation>{ }();
+import { Supervisor } from 'spica/supervisor';
 
 export class GUI extends API {
   constructor(
@@ -25,27 +19,7 @@ export class GUI extends API {
     },
   ) {
     super();
-    const config = new Config(this.option);
-    void view.kill('');
-    void view.register('', {
-      init: s => s,
-      main: (_, s) => new AtomicPromise(() => {
-        void s.register(new ClickView(this.io.document, config.link, event =>
-          void io.router(config, new RouterEvent(event), process, io)).close);
-        void s.register(new SubmitView(this.io.document, config.form, event =>
-          void io.router(config, new RouterEvent(event), process, io)).close);
-        void s.register(new NavigationView(window, event =>
-          void io.router(config, new RouterEvent(event), process, io)).close);
-        void s.register(new ScrollView(window, () => {
-          if (s.canceled) return;
-          if (new URL(standardize(window.location.href)).reference !== docurl.href) return;
-          void savePosition();
-        }).close);
-      }),
-      exit: (_, s) =>
-        void s.cancel(),
-    }, new Cancellation());
-    void view.cast('', undefined);
+    new View(this.option, io);
   }
   public assign(url: string): boolean {
     return API.assign(url, this.option, this.io);
@@ -55,6 +29,29 @@ export class GUI extends API {
   }
 }
 
+class View {
+  private static readonly resource = new class extends Supervisor<string, unknown>{ }();
+  constructor(
+    option: Option,
+    io: {
+      document: Document,
+      router: typeof route,
+    },
+  ) {
+    const config = new Config(option);
+    const router = (event: Event) => void io.router(config, new RouterEvent(event), process, io);
+    void [
+      new ClickView(io.document, config.link, router),
+      new SubmitView(io.document, config.form, router),
+      new NavigationView(window, router),
+      new ScrollView(window, savePosition),
+    ]
+      .forEach((view, i) =>
+        void View.resource.kill(`${i}`) ||
+        void View.resource.register(`${i}`, view));
+  }
+}
+
 export function clear(): void {
-  void view.kill('');
+  void View['resource'].clear();
 }

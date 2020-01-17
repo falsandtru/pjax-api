@@ -5,7 +5,7 @@ import { env } from '../service/state/env';
 import { FatalError } from '../../../lib/error';
 import { loadTitle, savePosition } from '../../application/store';
 import { URL, StandardURL, standardize } from 'spica/url';
-import { Supervisor } from 'spica/supervisor.legacy';
+import { Supervisor } from 'spica/supervisor';
 import { Cancellation } from 'spica/cancellation';
 import { Just } from 'spica/maybe';
 import { never } from 'spica/clock';
