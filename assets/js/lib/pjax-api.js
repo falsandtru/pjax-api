@@ -140,8 +140,8 @@ require = function () {
         },
         {
             './concat': 10,
-            './global': 17,
-            './type': 85
+            './global': 18,
+            './type': 86
         }
     ],
     5: [
@@ -310,8 +310,8 @@ require = function () {
         },
         {
             './assign': 4,
-            './equal': 13,
-            './global': 17
+            './equal': 14,
+            './global': 18
         }
     ],
     6: [
@@ -394,11 +394,11 @@ require = function () {
             exports.Cancellation = Cancellation;
         },
         {
-            './exception': 14,
-            './global': 17,
-            './monad/either': 23,
-            './monad/maybe': 27,
-            './promise': 79
+            './exception': 15,
+            './global': 18,
+            './monad/either': 24,
+            './monad/maybe': 28,
+            './promise': 80
         }
     ],
     7: [
@@ -438,7 +438,7 @@ require = function () {
                 return cbs;
             }
         },
-        { './exception': 14 }
+        { './exception': 15 }
     ],
     8: [
         function (require, module, exports) {
@@ -474,8 +474,8 @@ require = function () {
         },
         {
             './clock.tick': 7,
-            './global': 17,
-            './promise': 79
+            './global': 18,
+            './promise': 80
         }
     ],
     9: [
@@ -507,6 +507,256 @@ require = function () {
     11: [
         function (require, module, exports) {
             'use strict';
+            var _a;
+            Object.defineProperty(exports, '__esModule', { value: true });
+            const global_1 = require('./global');
+            const promise_1 = require('./promise');
+            const future_1 = require('./future');
+            const assign_1 = require('./assign');
+            const clock_1 = require('./clock');
+            const exception_1 = require('./exception');
+            const noop_1 = require('./noop');
+            const {
+                Object: Obj,
+                Error
+            } = global_1.global;
+            const alive = Symbol.for('spica/Coroutine.alive');
+            const init = Symbol.for('spica/Coroutine.init');
+            const exit = Symbol.for('spica/Coroutine.exit');
+            const terminate = Symbol.for('spica/Coroutine.terminate');
+            const port = Symbol.for('spica/Coroutine.port');
+            class Internal {
+                constructor(opts) {
+                    this.alive = true;
+                    this.state = new future_1.AtomicFuture();
+                    this.resume = new future_1.AtomicFuture();
+                    this.result = new future_1.AtomicFuture();
+                    this.msgs = [];
+                    this.settings = {
+                        autorun: true,
+                        size: 0,
+                        interval: 0,
+                        resume: () => undefined,
+                        trigger: undefined
+                    };
+                    void assign_1.extend(this.settings, opts);
+                    void this.result.finally(() => {
+                        while (true) {
+                            try {
+                                while (this.msgs.length > 0) {
+                                    const [, reply] = this.msgs.shift();
+                                    void reply(promise_1.AtomicPromise.reject(new Error(`Spica: Coroutine: Canceled.`)));
+                                }
+                                return;
+                            } catch (reason) {
+                                void exception_1.causeAsyncException(reason);
+                                continue;
+                            }
+                        }
+                    });
+                }
+            }
+            const internal = Symbol.for('spica/coroutine::internal');
+            class Coroutine extends promise_1.AtomicPromise {
+                constructor(gen, opts = {}) {
+                    super(resolve => res = resolve);
+                    this[_a] = new Port(this);
+                    var res;
+                    this[internal] = new Internal(opts);
+                    void res(this[internal].result);
+                    this[Coroutine.init] = async () => {
+                        let reply = noop_1.noop;
+                        try {
+                            this[Coroutine.init] = noop_1.noop;
+                            if (!this[internal].alive)
+                                return;
+                            const resume = () => this[internal].msgs.length > 0 ? ([, reply] = this[internal].msgs.shift())[0] : this[internal].resume.then(resume);
+                            const iter = gen.call(this);
+                            let cnt = 0;
+                            while (this[internal].alive) {
+                                void ++cnt;
+                                const [msg] = cnt === 1 ? [undefined] : await promise_1.AtomicPromise.all([
+                                    this[internal].settings.size === 0 ? undefined : resume(),
+                                    promise_1.AtomicPromise.all([
+                                        this[internal].settings.resume(),
+                                        this[internal].settings.interval > 0 ? clock_1.wait(this[internal].settings.interval) : undefined
+                                    ])
+                                ]);
+                                if (!this[internal].alive)
+                                    break;
+                                const {value, done} = await iter.next(msg);
+                                if (!this[internal].alive)
+                                    break;
+                                if (!done) {
+                                    const state = this[internal].state;
+                                    this[internal].state = new future_1.AtomicFuture();
+                                    void state.bind({
+                                        value: value,
+                                        done
+                                    });
+                                    void reply({
+                                        value: value,
+                                        done
+                                    });
+                                    continue;
+                                } else {
+                                    const result = await value;
+                                    if (!this[internal].alive)
+                                        break;
+                                    this[internal].alive = false;
+                                    void this[internal].state.bind({
+                                        value: undefined,
+                                        done
+                                    });
+                                    void this[internal].result.bind(result);
+                                    void reply({
+                                        value: result,
+                                        done
+                                    });
+                                    return;
+                                }
+                            }
+                            void reply(promise_1.AtomicPromise.reject(new Error(`Spica: Coroutine: Canceled.`)));
+                        } catch (reason) {
+                            void reply(promise_1.AtomicPromise.reject(reason));
+                            void this[Coroutine.terminate](reason);
+                        }
+                    };
+                    if (this[internal].settings.trigger !== undefined) {
+                        for (const prop of Array().concat(this[internal].settings.trigger)) {
+                            if (prop in this)
+                                continue;
+                            const desc = Obj.getOwnPropertyDescriptor(this, prop) || {
+                                value: this[prop],
+                                enumerable: true,
+                                configurable: true,
+                                writable: true
+                            };
+                            void Obj.defineProperty(this, prop, {
+                                set(value) {
+                                    void Obj.defineProperty(this, prop, {
+                                        ...desc,
+                                        value
+                                    });
+                                    void this[init]();
+                                },
+                                get() {
+                                    return this[prop];
+                                },
+                                enumerable: true,
+                                configurable: true
+                            });
+                        }
+                    }
+                    this[internal].settings.autorun && void clock_1.tick(() => void this[Coroutine.init]());
+                }
+                static get [Symbol.species]() {
+                    return promise_1.AtomicPromise;
+                }
+                get [alive]() {
+                    return this[internal].alive;
+                }
+                [exit](result) {
+                    if (!this[internal].alive)
+                        return;
+                    void promise_1.AtomicPromise.resolve(result).then(result => {
+                        if (!this[internal].alive)
+                            return;
+                        this[internal].alive = false;
+                        void this[internal].state.bind({
+                            value: undefined,
+                            done: true
+                        });
+                        void this[internal].result.bind(result);
+                    }, reason => {
+                        if (!this[internal].alive)
+                            return;
+                        this[internal].alive = false;
+                        void this[internal].state.bind({
+                            value: undefined,
+                            done: true
+                        });
+                        void this[internal].result.bind(promise_1.AtomicPromise.reject(reason));
+                    });
+                }
+                [terminate](reason) {
+                    return this[exit](promise_1.AtomicPromise.reject(reason));
+                }
+                async *[Symbol.asyncIterator]() {
+                    while (this[internal].alive) {
+                        const {value} = await this[internal].state;
+                        if (!this[internal].alive)
+                            break;
+                        yield value;
+                    }
+                    return this.then(() => undefined);
+                }
+            }
+            exports.Coroutine = Coroutine;
+            _a = port;
+            Coroutine.alive = alive;
+            Coroutine.init = init;
+            Coroutine.exit = exit;
+            Coroutine.terminate = terminate;
+            Coroutine.port = port;
+            class Port {
+                constructor(co) {
+                    this.co = co;
+                }
+                recv() {
+                    return this.co[internal].state.then(({value, done}) => done ? this.co.then(value => ({
+                        value,
+                        done
+                    })) : {
+                        value: value,
+                        done
+                    });
+                }
+                send(msg) {
+                    if (!this.co[internal].alive)
+                        return promise_1.AtomicPromise.reject(new Error(`Spica: Coroutine: Canceled.`));
+                    const res = new future_1.AtomicFuture();
+                    void this.co[internal].msgs.push([
+                        msg,
+                        res.bind
+                    ]);
+                    void this.co[internal].resume.bind();
+                    this.co[internal].resume = new future_1.AtomicFuture();
+                    while (this.co[internal].msgs.length > this.co[internal].settings.size) {
+                        const [, reply] = this.co[internal].msgs.shift();
+                        void reply(promise_1.AtomicPromise.reject(new Error(`Spica: Coroutine: Overflowed.`)));
+                    }
+                    return res.then();
+                }
+                async connect(com) {
+                    const iter = com.call(this.co);
+                    let reply;
+                    while (true) {
+                        const {value, done} = await iter.next(reply);
+                        if (done)
+                            return value;
+                        reply = (await this.send(value)).value;
+                    }
+                }
+            }
+            function isCoroutine(target) {
+                return typeof target === 'object' && !!target && typeof target.constructor['exit'] === 'symbol' && typeof target[target.constructor['exit']] === 'function' && typeof target.constructor['terminate'] === 'symbol' && typeof target[target.constructor['terminate']] === 'function' && typeof target.constructor['port'] === 'symbol' && typeof target[target.constructor['port']] === 'object';
+            }
+            exports.isCoroutine = isCoroutine;
+        },
+        {
+            './assign': 4,
+            './clock': 8,
+            './exception': 15,
+            './future': 17,
+            './global': 18,
+            './noop': 78,
+            './promise': 80
+        }
+    ],
+    12: [
+        function (require, module, exports) {
+            'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.curry = f => apply(f, []);
             function apply(f, xs) {
@@ -518,7 +768,7 @@ require = function () {
         },
         {}
     ],
-    12: [
+    13: [
         function (require, module, exports) {
             'use strict';
             function __export(m) {
@@ -529,9 +779,9 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             __export(require('./monad/either'));
         },
-        { './monad/either': 23 }
+        { './monad/either': 24 }
     ],
-    13: [
+    14: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -548,7 +798,7 @@ require = function () {
         },
         {}
     ],
-    14: [
+    15: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -559,7 +809,7 @@ require = function () {
         },
         {}
     ],
-    15: [
+    16: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -569,9 +819,9 @@ require = function () {
             }
             exports.flip = flip;
         },
-        { './curry': 11 }
+        { './curry': 12 }
     ],
-    16: [
+    17: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -617,9 +867,9 @@ require = function () {
             }
             exports.AtomicFuture = AtomicFuture;
         },
-        { './promise': 79 }
+        { './promise': 80 }
     ],
-    17: [
+    18: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -629,7 +879,7 @@ require = function () {
         },
         {}
     ],
-    18: [
+    19: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -681,7 +931,7 @@ require = function () {
         },
         {}
     ],
-    19: [
+    20: [
         function (require, module, exports) {
             'use strict';
             function __export(m) {
@@ -692,9 +942,9 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             __export(require('./monad/maybe'));
         },
-        { './monad/maybe': 27 }
+        { './monad/maybe': 28 }
     ],
-    20: [
+    21: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -705,7 +955,7 @@ require = function () {
         },
         {}
     ],
-    21: [
+    22: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -722,11 +972,11 @@ require = function () {
             }(Applicative = exports.Applicative || (exports.Applicative = {})));
         },
         {
-            '../curry': 11,
-            './functor': 24
+            '../curry': 12,
+            './functor': 25
         }
     ],
-    22: [
+    23: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -831,11 +1081,11 @@ require = function () {
             }
         },
         {
-            '../promise': 79,
-            './monad': 28
+            '../promise': 80,
+            './monad': 29
         }
     ],
-    23: [
+    24: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -855,9 +1105,9 @@ require = function () {
             }
             exports.Right = Right;
         },
-        { './either.impl': 22 }
+        { './either.impl': 23 }
     ],
-    24: [
+    25: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -872,9 +1122,9 @@ require = function () {
                 Functor.fmap = fmap;
             }(Functor = exports.Functor || (exports.Functor = {})));
         },
-        { './lazy': 25 }
+        { './lazy': 26 }
     ],
-    25: [
+    26: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -890,7 +1140,7 @@ require = function () {
         },
         {}
     ],
-    26: [
+    27: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1004,11 +1254,11 @@ require = function () {
             }
         },
         {
-            '../promise': 79,
-            './monadplus': 29
+            '../promise': 80,
+            './monadplus': 30
         }
     ],
-    27: [
+    28: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1025,9 +1275,9 @@ require = function () {
             exports.Just = Just;
             exports.Nothing = Monad.Maybe.mzero;
         },
-        { './maybe.impl': 26 }
+        { './maybe.impl': 27 }
     ],
-    28: [
+    29: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1042,9 +1292,9 @@ require = function () {
                 Monad.bind = bind;
             }(Monad = exports.Monad || (exports.Monad = {})));
         },
-        { './applicative': 21 }
+        { './applicative': 22 }
     ],
-    29: [
+    30: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1055,9 +1305,9 @@ require = function () {
             (function (MonadPlus) {
             }(MonadPlus = exports.MonadPlus || (exports.MonadPlus = {})));
         },
-        { './monad': 28 }
+        { './monad': 29 }
     ],
-    30: [
+    31: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1113,55 +1363,55 @@ require = function () {
         },
         {
             '../compose': 9,
-            './sequence/core': 31,
-            './sequence/member/instance/ap': 32,
-            './sequence/member/instance/bind': 33,
-            './sequence/member/instance/drop': 34,
-            './sequence/member/instance/dropUntil': 35,
-            './sequence/member/instance/dropWhile': 36,
-            './sequence/member/instance/extract': 37,
-            './sequence/member/instance/filter': 38,
-            './sequence/member/instance/filterM': 39,
-            './sequence/member/instance/fmap': 40,
-            './sequence/member/instance/foldr': 41,
-            './sequence/member/instance/group': 42,
-            './sequence/member/instance/inits': 43,
-            './sequence/member/instance/iterate': 44,
-            './sequence/member/instance/join': 45,
-            './sequence/member/instance/map': 46,
-            './sequence/member/instance/mapM': 47,
-            './sequence/member/instance/memoize': 48,
-            './sequence/member/instance/permutations': 49,
-            './sequence/member/instance/reduce': 50,
-            './sequence/member/instance/scanl': 51,
-            './sequence/member/instance/segs': 52,
-            './sequence/member/instance/sort': 53,
-            './sequence/member/instance/subsequences': 54,
-            './sequence/member/instance/tails': 55,
-            './sequence/member/instance/take': 56,
-            './sequence/member/instance/takeUntil': 57,
-            './sequence/member/instance/takeWhile': 58,
-            './sequence/member/instance/unique': 59,
-            './sequence/member/static/concat': 60,
-            './sequence/member/static/cycle': 61,
-            './sequence/member/static/difference': 62,
-            './sequence/member/static/from': 63,
-            './sequence/member/static/intersect': 64,
-            './sequence/member/static/mappend': 65,
-            './sequence/member/static/mconcat': 66,
-            './sequence/member/static/mempty': 67,
-            './sequence/member/static/mplus': 68,
-            './sequence/member/static/mzero': 69,
-            './sequence/member/static/pure': 70,
-            './sequence/member/static/random': 71,
-            './sequence/member/static/resume': 72,
-            './sequence/member/static/return': 73,
-            './sequence/member/static/sequence': 74,
-            './sequence/member/static/union': 75,
-            './sequence/member/static/zip': 76
+            './sequence/core': 32,
+            './sequence/member/instance/ap': 33,
+            './sequence/member/instance/bind': 34,
+            './sequence/member/instance/drop': 35,
+            './sequence/member/instance/dropUntil': 36,
+            './sequence/member/instance/dropWhile': 37,
+            './sequence/member/instance/extract': 38,
+            './sequence/member/instance/filter': 39,
+            './sequence/member/instance/filterM': 40,
+            './sequence/member/instance/fmap': 41,
+            './sequence/member/instance/foldr': 42,
+            './sequence/member/instance/group': 43,
+            './sequence/member/instance/inits': 44,
+            './sequence/member/instance/iterate': 45,
+            './sequence/member/instance/join': 46,
+            './sequence/member/instance/map': 47,
+            './sequence/member/instance/mapM': 48,
+            './sequence/member/instance/memoize': 49,
+            './sequence/member/instance/permutations': 50,
+            './sequence/member/instance/reduce': 51,
+            './sequence/member/instance/scanl': 52,
+            './sequence/member/instance/segs': 53,
+            './sequence/member/instance/sort': 54,
+            './sequence/member/instance/subsequences': 55,
+            './sequence/member/instance/tails': 56,
+            './sequence/member/instance/take': 57,
+            './sequence/member/instance/takeUntil': 58,
+            './sequence/member/instance/takeWhile': 59,
+            './sequence/member/instance/unique': 60,
+            './sequence/member/static/concat': 61,
+            './sequence/member/static/cycle': 62,
+            './sequence/member/static/difference': 63,
+            './sequence/member/static/from': 64,
+            './sequence/member/static/intersect': 65,
+            './sequence/member/static/mappend': 66,
+            './sequence/member/static/mconcat': 67,
+            './sequence/member/static/mempty': 68,
+            './sequence/member/static/mplus': 69,
+            './sequence/member/static/mzero': 70,
+            './sequence/member/static/pure': 71,
+            './sequence/member/static/random': 72,
+            './sequence/member/static/resume': 73,
+            './sequence/member/static/return': 74,
+            './sequence/member/static/sequence': 75,
+            './sequence/member/static/union': 76,
+            './sequence/member/static/zip': 77
         }
     ],
-    31: [
+    32: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1262,9 +1512,9 @@ require = function () {
                 throw new Error(`Spica: Sequence: Invalid thunk call.`);
             }
         },
-        { '../monadplus': 29 }
+        { '../monadplus': 30 }
     ],
-    32: [
+    33: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1276,9 +1526,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    33: [
+    34: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1290,9 +1540,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    34: [
+    35: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1304,9 +1554,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    35: [
+    36: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1318,9 +1568,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    36: [
+    37: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1332,9 +1582,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    37: [
+    38: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1357,10 +1607,10 @@ require = function () {
         },
         {
             '../../../../concat': 10,
-            '../../core': 31
+            '../../core': 32
         }
     ],
-    38: [
+    39: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1372,9 +1622,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    39: [
+    40: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1399,10 +1649,10 @@ require = function () {
         },
         {
             '../../../../concat': 10,
-            '../../core': 31
+            '../../core': 32
         }
     ],
-    40: [
+    41: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1414,9 +1664,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    41: [
+    42: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1428,9 +1678,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    42: [
+    43: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1451,10 +1701,10 @@ require = function () {
         },
         {
             '../../../../concat': 10,
-            '../../core': 31
+            '../../core': 32
         }
     ],
-    43: [
+    44: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1469,9 +1719,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    44: [
+    45: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1508,9 +1758,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    45: [
+    46: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1522,9 +1772,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    46: [
+    47: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1536,9 +1786,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    47: [
+    48: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1563,10 +1813,10 @@ require = function () {
         },
         {
             '../../../../concat': 10,
-            '../../core': 31
+            '../../core': 32
         }
     ],
-    48: [
+    49: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1585,9 +1835,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    49: [
+    50: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1625,9 +1875,9 @@ require = function () {
                 })).bind(xs => xs));
             }
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    50: [
+    51: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1645,9 +1895,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    51: [
+    52: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1667,9 +1917,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    52: [
+    53: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1684,10 +1934,10 @@ require = function () {
         },
         {
             '../../../../concat': 10,
-            '../../core': 31
+            '../../core': 32
         }
     ],
-    53: [
+    54: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1699,9 +1949,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    54: [
+    55: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1719,10 +1969,10 @@ require = function () {
         },
         {
             '../../../../concat': 10,
-            '../../core': 31
+            '../../core': 32
         }
     ],
-    55: [
+    56: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1734,9 +1984,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    56: [
+    57: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1748,9 +1998,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    57: [
+    58: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1762,9 +2012,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    58: [
+    59: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1776,9 +2026,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    59: [
+    60: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1791,9 +2041,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    60: [
+    61: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1811,9 +2061,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    61: [
+    62: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1837,9 +2087,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    62: [
+    63: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1873,9 +2123,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    63: [
+    64: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1896,9 +2146,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    64: [
+    65: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1923,9 +2173,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    65: [
+    66: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1940,9 +2190,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    66: [
+    67: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1966,19 +2216,7 @@ require = function () {
                 ])));
             }
         },
-        { '../../core': 31 }
-    ],
-    67: [
-        function (require, module, exports) {
-            'use strict';
-            Object.defineProperty(exports, '__esModule', { value: true });
-            const core_1 = require('../../core');
-            class default_1 extends core_1.Sequence {
-            }
-            exports.default = default_1;
-            default_1.mempty = new core_1.Sequence((_, cons) => cons());
-        },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
     68: [
         function (require, module, exports) {
@@ -1988,9 +2226,9 @@ require = function () {
             class default_1 extends core_1.Sequence {
             }
             exports.default = default_1;
-            default_1.mplus = core_1.Sequence.mappend;
+            default_1.mempty = new core_1.Sequence((_, cons) => cons());
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
     69: [
         function (require, module, exports) {
@@ -2000,11 +2238,23 @@ require = function () {
             class default_1 extends core_1.Sequence {
             }
             exports.default = default_1;
-            default_1.mzero = core_1.Sequence.mempty;
+            default_1.mplus = core_1.Sequence.mappend;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
     70: [
+        function (require, module, exports) {
+            'use strict';
+            Object.defineProperty(exports, '__esModule', { value: true });
+            const core_1 = require('../../core');
+            class default_1 extends core_1.Sequence {
+            }
+            exports.default = default_1;
+            default_1.mzero = core_1.Sequence.mempty;
+        },
+        { '../../core': 32 }
+    ],
+    71: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2016,9 +2266,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    71: [
+    72: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2030,9 +2280,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    72: [
+    73: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2044,9 +2294,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    73: [
+    74: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2058,9 +2308,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    74: [
+    75: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2072,9 +2322,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    75: [
+    76: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2111,9 +2361,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    76: [
+    77: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2134,9 +2384,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 31 }
+        { '../../core': 32 }
     ],
-    77: [
+    78: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2146,20 +2396,21 @@ require = function () {
         },
         {}
     ],
-    78: [
+    79: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const global_1 = require('./global');
             const assign_1 = require('./assign');
+            const concat_1 = require('./concat');
             const equal_1 = require('./equal');
             const exception_1 = require('./exception');
             const {Map, WeakSet, Error} = global_1.global;
             var RegisterItemType;
             (function (RegisterItemType) {
-                RegisterItemType.monitor = 'monitor';
-                RegisterItemType.subscriber = 'subscriber';
-            }(RegisterItemType = exports.RegisterItemType || (exports.RegisterItemType = {})));
+                RegisterItemType['Monitor'] = 'monitor';
+                RegisterItemType['Subscriber'] = 'subscriber';
+            }(RegisterItemType || (RegisterItemType = {})));
             class Observation {
                 constructor(opts = {}) {
                     this.settings = { limit: 10 };
@@ -2177,14 +2428,14 @@ require = function () {
                 } = {}) {
                     if (typeof listener !== 'function')
                         throw new Error(`Spica: Observation: Invalid listener: ${ listener }`);
-                    const off = () => this.off(namespace, listener, RegisterItemType.monitor);
+                    const off = () => this.off(namespace, listener, 'monitor');
                     const {items} = this.seekNode_(namespace);
-                    if (isRegistered(items, RegisterItemType.monitor, namespace, listener))
+                    if (isRegistered(items, 'monitor', namespace, listener))
                         return off;
                     if (items.length === this.settings.limit)
                         throw new Error(`Spica: Observation: Exceeded max listener limit.`);
                     void items.push({
-                        type: RegisterItemType.monitor,
+                        type: 'monitor',
                         namespace,
                         listener,
                         options: { once }
@@ -2198,12 +2449,12 @@ require = function () {
                         throw new Error(`Spica: Observation: Invalid listener: ${ listener }`);
                     const off = () => this.off(namespace, listener);
                     const {items} = this.seekNode_(namespace);
-                    if (isRegistered(items, RegisterItemType.subscriber, namespace, listener))
+                    if (isRegistered(items, 'subscriber', namespace, listener))
                         return off;
                     if (items.length === this.settings.limit)
                         throw new Error(`Spica: Observation: Exceeded max listener limit.`);
                     void items.push({
-                        type: RegisterItemType.subscriber,
+                        type: 'subscriber',
                         namespace,
                         listener,
                         options: { once }
@@ -2213,7 +2464,7 @@ require = function () {
                 once(namespace, listener) {
                     return this.on(namespace, listener, { once: true });
                 }
-                off(namespace, listener, type = RegisterItemType.subscriber) {
+                off(namespace, listener, type = 'subscriber') {
                     switch (typeof listener) {
                     case 'function':
                         return void this.seekNode_(namespace).items.some(({
@@ -2248,7 +2499,7 @@ require = function () {
                                 void node.childrenNames.splice(equal_1.findIndex(name, node.childrenNames), 1);
                                 void --i;
                             }
-                            node.items = node.items.filter(({type}) => type === RegisterItemType.monitor);
+                            void concat_1.concat(node.items, node.items.splice(0, Infinity).filter(({type}) => type === 'monitor'));
                             return;
                         }
                     default:
@@ -2277,7 +2528,7 @@ require = function () {
                                 listener,
                                 options: {once}
                             } of this.refsBelow_(this.seekNode_(namespace))) {
-                        if (type !== RegisterItemType.subscriber)
+                        if (type !== 'subscriber')
                             continue;
                         if (once) {
                             void this.off(namespace, listener);
@@ -2296,10 +2547,10 @@ require = function () {
                                 listener,
                                 options: {once}
                             } of this.refsAbove_(this.seekNode_(namespace))) {
-                        if (type !== RegisterItemType.monitor)
+                        if (type !== 'monitor')
                             continue;
                         if (once) {
-                            void this.off(namespace, listener, RegisterItemType.monitor);
+                            void this.off(namespace, listener, 'monitor');
                         }
                         try {
                             void listener(data, namespace);
@@ -2321,7 +2572,7 @@ require = function () {
                 refsAbove_({parent, items}) {
                     items = items.slice();
                     while (parent) {
-                        void items.push(...parent.items);
+                        void concat_1.concat(items, parent.items);
                         parent = parent.parent;
                     }
                     return items;
@@ -2331,7 +2582,7 @@ require = function () {
                     for (let i = 0; i < childrenNames.length; ++i) {
                         const name = childrenNames[i];
                         const below = this.refsBelow_(children.get(name));
-                        void items.push(...below);
+                        void concat_1.concat(items, below);
                         if (below.length === 0) {
                             void children.delete(name);
                             void childrenNames.splice(equal_1.findIndex(name, childrenNames), 1);
@@ -2341,21 +2592,19 @@ require = function () {
                     return items;
                 }
                 seekNode_(namespace) {
-                    let node = this.node_;
-                    for (const name of namespace) {
+                    return namespace.reduce((node, name) => {
                         const {children} = node;
                         if (!children.has(name)) {
                             void node.childrenNames.push(name);
-                            children.set(name, {
+                            void children.set(name, {
                                 parent: node,
                                 children: new Map(),
                                 childrenNames: [],
                                 items: []
                             });
                         }
-                        node = children.get(name);
-                    }
-                    return node;
+                        return children.get(name);
+                    }, this.node_);
                 }
             }
             exports.Observation = Observation;
@@ -2365,12 +2614,13 @@ require = function () {
         },
         {
             './assign': 4,
-            './equal': 13,
-            './exception': 14,
-            './global': 17
+            './concat': 10,
+            './equal': 14,
+            './exception': 15,
+            './global': 18
         }
     ],
-    79: [
+    80: [
         function (require, module, exports) {
             'use strict';
             var _a;
@@ -2505,7 +2755,7 @@ require = function () {
         },
         { './concat': 10 }
     ],
-    80: [
+    81: [
         function (require, module, exports) {
             'use strict';
             function __export(m) {
@@ -2516,9 +2766,9 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             __export(require('./monad/sequence'));
         },
-        { './monad/sequence': 30 }
+        { './monad/sequence': 31 }
     ],
-    81: [
+    82: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2539,11 +2789,13 @@ require = function () {
         },
         {}
     ],
-    82: [
+    83: [
         function (require, module, exports) {
             'use strict';
+            var _a;
             Object.defineProperty(exports, '__esModule', { value: true });
             const global_1 = require('./global');
+            const coroutine_1 = require('./coroutine');
             const promise_1 = require('./promise');
             const future_1 = require('./future');
             const observation_1 = require('./observation');
@@ -2560,17 +2812,10 @@ require = function () {
                 Error,
                 setTimeout
             } = global_1.global;
-            class Supervisor extends promise_1.AtomicPromise {
+            class Supervisor extends coroutine_1.Coroutine {
                 constructor(opts = {}) {
-                    super((resolve, reject) => {
-                        const legacy = !state;
-                        cb = [
-                            resolve,
-                            reject
-                        ];
-                        state = state || new future_1.AtomicFuture();
-                        return legacy ? undefined : function* () {
-                        }();
+                    super(async function* () {
+                        return this.state;
                     });
                     this.state = new future_1.AtomicFuture();
                     this.id = sqid_1.sqid();
@@ -2591,6 +2836,17 @@ require = function () {
                     this.workers = new Map();
                     this.alive = true;
                     this.available = true;
+                    this[_a] = {
+                        recv: () => {
+                            throw new Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot use coroutine port.`);
+                        },
+                        send: () => {
+                            throw new Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot use coroutine port.`);
+                        },
+                        connect: () => {
+                            throw new Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot use coroutine port.`);
+                        }
+                    };
                     this.scheduled = false;
                     this.scheduler = () => void (void 0, this.settings.scheduler)(this.deliver);
                     this.messages = [];
@@ -2634,10 +2890,7 @@ require = function () {
                             }
                         }
                     };
-                    var cb;
-                    var state = state = new future_1.AtomicFuture();
-                    cb && void this.state.then(...cb);
-                    void state.bind(this.state);
+                    void this[coroutine_1.Coroutine.init]();
                     void assign_1.extend(this.settings, opts);
                     this.name = this.settings.name;
                     if (this.constructor === Supervisor)
@@ -2685,6 +2938,37 @@ require = function () {
                 register(name, process, state) {
                     state = state;
                     void this.throwErrorIfNotAvailable();
+                    if (coroutine_1.isCoroutine(process)) {
+                        const proc = {
+                            init: state => state,
+                            main: (param, state, kill) => process[coroutine_1.Coroutine.port].send(param).then(({
+                                value: reply,
+                                done
+                            }) => done && void kill() || [
+                                reply,
+                                state
+                            ]),
+                            exit: reason => void process[coroutine_1.Coroutine.terminate](reason)
+                        };
+                        void this.constructor.standalone.add(proc);
+                        const kill = this.register(name, proc, state);
+                        void process.catch(kill);
+                        return kill;
+                    }
+                    if (isAsyncGeneratorFunction(process)) {
+                        let iter;
+                        return this.register(name, {
+                            init: (state, kill) => (iter = process(state, kill), void iter.next().catch(kill), state),
+                            main: (param, state, kill) => promise_1.AtomicPromise.resolve(iter.next(param)).then(({
+                                value: reply,
+                                done
+                            }) => done && void kill() || [
+                                reply,
+                                state
+                            ]),
+                            exit: () => undefined
+                        }, state);
+                    }
                     if (typeof process === 'function') {
                         if (isGeneratorFunction(process)) {
                             let iter;
@@ -2716,6 +3000,9 @@ require = function () {
                     const worker = new Worker(this, name, process, state, this.constructor.standalone.has(process), this.events_, () => this.workers.get(name) === worker && void this.workers.delete(name));
                     void this.workers.set(name, worker);
                     return worker.terminate;
+                    function isAsyncGeneratorFunction(process) {
+                        return process[Symbol.toStringTag] === 'AsyncGeneratorFunction';
+                    }
                     function isGeneratorFunction(process) {
                         return process[Symbol.toStringTag] === 'GeneratorFunction';
                     }
@@ -2808,7 +3095,11 @@ require = function () {
                     if (!this.available)
                         return false;
                     void this.destructor(reason);
+                    void this[coroutine_1.Coroutine.exit](undefined);
                     return true;
+                }
+                [coroutine_1.Coroutine.terminate](reason) {
+                    void this.terminate(reason);
                 }
                 schedule() {
                     if (this.scheduled)
@@ -2820,6 +3111,7 @@ require = function () {
                 }
             }
             exports.Supervisor = Supervisor;
+            _a = coroutine_1.Coroutine.port;
             Supervisor.standalone = new WeakSet();
             class NamePool {
                 constructor(workers, selector = ns => ns) {
@@ -2929,16 +3221,17 @@ require = function () {
         {
             './assign': 4,
             './clock': 8,
-            './exception': 14,
-            './future': 16,
-            './global': 17,
-            './noop': 77,
-            './observation': 78,
-            './promise': 79,
-            './sqid': 81
+            './coroutine': 11,
+            './exception': 15,
+            './future': 17,
+            './global': 18,
+            './noop': 78,
+            './observation': 79,
+            './promise': 80,
+            './sqid': 82
         }
     ],
-    83: [
+    84: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2987,9 +3280,9 @@ require = function () {
             }
             exports.debounce = debounce;
         },
-        { './global': 17 }
+        { './global': 18 }
     ],
-    84: [
+    85: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3000,7 +3293,7 @@ require = function () {
         },
         {}
     ],
-    85: [
+    86: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3040,7 +3333,7 @@ require = function () {
         },
         {}
     ],
-    86: [
+    87: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3048,7 +3341,7 @@ require = function () {
         },
         {}
     ],
-    87: [
+    88: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3101,11 +3394,11 @@ require = function () {
             exports.URL = URL;
         },
         {
-            './global': 17,
-            './url/domain/format': 88
+            './global': 18,
+            './url/domain/format': 89
         }
     ],
-    88: [
+    89: [
         function (require, module, exports) {
             (function (global) {
                 'use strict';
@@ -3140,12 +3433,12 @@ require = function () {
         },
         {
             '../../cache': 5,
-            '../../flip': 15,
-            '../../memoize': 20,
-            '../../uncurry': 86
+            '../../flip': 16,
+            '../../memoize': 21,
+            '../../uncurry': 87
         }
     ],
-    89: [
+    90: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3169,7 +3462,7 @@ require = function () {
         },
         {}
     ],
-    90: [
+    91: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3200,15 +3493,15 @@ require = function () {
             exports.apply = query_1.apply;
         },
         {
-            './src/dom/builder': 91,
-            './src/dom/proxy': 93,
-            './src/util/dom': 94,
-            './src/util/listener': 95,
-            './src/util/query': 97,
-            'spica/global': 17
+            './src/dom/builder': 92,
+            './src/dom/proxy': 94,
+            './src/util/dom': 95,
+            './src/util/listener': 96,
+            './src/util/query': 98,
+            'spica/global': 18
         }
     ],
-    91: [
+    92: [
         function (require, module, exports) {
             (function (global) {
                 'use strict';
@@ -3270,11 +3563,11 @@ require = function () {
             }.call(this, typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {}));
         },
         {
-            '../util/dom': 94,
-            './proxy': 93
+            '../util/dom': 95,
+            './proxy': 94
         }
     ],
-    92: [
+    93: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3287,11 +3580,11 @@ require = function () {
             exports.uid = uid;
         },
         {
-            'spica/sqid': 81,
-            'spica/uuid': 89
+            'spica/sqid': 82,
+            'spica/uuid': 90
         }
     ],
-    93: [
+    94: [
         function (require, module, exports) {
             (function (global) {
                 'use strict';
@@ -3557,11 +3850,11 @@ require = function () {
             }.call(this, typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {}));
         },
         {
-            '../util/dom': 94,
-            './identity': 92
+            '../util/dom': 95,
+            './identity': 93
         }
     ],
-    94: [
+    95: [
         function (require, module, exports) {
             (function (global) {
                 'use strict';
@@ -3581,10 +3874,11 @@ require = function () {
                     caches.frag = document.createDocumentFragment();
                 }(caches || (caches = {})));
                 function frag(children) {
-                    children = typeof children === 'string' ? [text(children)] : children;
-                    const frag = caches.frag.cloneNode();
-                    children && void frag.append(...children);
-                    return frag;
+                    if (typeof children === 'string')
+                        return frag([text(children)]);
+                    const node = caches.frag.cloneNode();
+                    children && void node.append(...children);
+                    return node;
                 }
                 exports.frag = frag;
                 function shadow(el, children, opts) {
@@ -3677,9 +3971,9 @@ require = function () {
                 }
             }.call(this, typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {}));
         },
-        { 'spica/memoize': 20 }
+        { 'spica/memoize': 21 }
     ],
-    95: [
+    96: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3727,11 +4021,11 @@ require = function () {
             exports.bind = bind;
         },
         {
-            './noop': 96,
-            'spica/promise': 79
+            './noop': 97,
+            'spica/promise': 80
         }
     ],
-    96: [
+    97: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3742,7 +4036,7 @@ require = function () {
         },
         {}
     ],
-    97: [
+    98: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3756,9 +4050,9 @@ require = function () {
             }
             exports.apply = apply;
         },
-        { './dom': 94 }
+        { './dom': 95 }
     ],
-    98: [
+    99: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3770,11 +4064,11 @@ require = function () {
             exports.router = router_1.router;
         },
         {
-            './layer/interface/service/gui': 127,
-            './lib/router': 137
+            './layer/interface/service/gui': 128,
+            './lib/router': 138
         }
     ],
-    99: [
+    100: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3792,12 +4086,12 @@ require = function () {
             exports.route = route;
         },
         {
-            '../domain/data/config': 102,
-            '../domain/event/router': 104,
-            '../domain/router/api': 105
+            '../domain/data/config': 103,
+            '../domain/event/router': 105,
+            '../domain/router/api': 106
         }
     ],
-    100: [
+    101: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3805,9 +4099,9 @@ require = function () {
             exports.loadTitle = path_1.loadTitle;
             exports.savePosition = path_1.savePosition;
         },
-        { '../domain/store/path': 121 }
+        { '../domain/store/path': 122 }
     ],
-    101: [
+    102: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3841,7 +4135,7 @@ require = function () {
         },
         { 'spica/assign': 4 }
     ],
-    102: [
+    103: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3929,11 +4223,11 @@ require = function () {
             }
         },
         {
-            './config/scope': 103,
+            './config/scope': 104,
             'spica/assign': 4
         }
     ],
-    103: [
+    104: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3952,14 +4246,14 @@ require = function () {
             exports.scope = scope;
         },
         {
-            '../../../../lib/router': 137,
-            '../../../domain/data/config': 102,
+            '../../../../lib/router': 138,
+            '../../../domain/data/config': 103,
             'spica/assign': 4,
-            'spica/maybe': 19,
-            'spica/sequence': 80
+            'spica/maybe': 20,
+            'spica/sequence': 81
         }
     ],
-    104: [
+    105: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4036,12 +4330,12 @@ require = function () {
             exports.RouterEventLocation = RouterEventLocation;
         },
         {
-            '../../../lib/dom': 134,
-            'spica/url': 87,
-            'typed-dom': 90
+            '../../../lib/dom': 135,
+            'spica/url': 88,
+            'typed-dom': 91
         }
     ],
-    105: [
+    106: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4068,15 +4362,15 @@ require = function () {
             exports.route = route;
         },
         {
-            '../store/path': 121,
-            './model/eav/entity': 106,
-            './module/fetch': 108,
-            './module/update': 110,
-            './module/update/content': 112,
-            'spica/either': 12
+            '../store/path': 122,
+            './model/eav/entity': 107,
+            './module/fetch': 109,
+            './module/update': 111,
+            './module/update/content': 113,
+            'spica/either': 13
         }
     ],
-    106: [
+    107: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4100,7 +4394,7 @@ require = function () {
         },
         {}
     ],
-    107: [
+    108: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4127,11 +4421,11 @@ require = function () {
             exports.FetchResponse = FetchResponse;
         },
         {
-            '../../../../../../lib/html': 136,
-            'spica/url': 87
+            '../../../../../../lib/html': 137,
+            'spica/url': 88
         }
     ],
-    108: [
+    109: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4160,11 +4454,11 @@ require = function () {
             exports.fetch = fetch;
         },
         {
-            '../module/fetch/xhr': 109,
+            '../module/fetch/xhr': 110,
             'spica/clock': 8
         }
     ],
-    109: [
+    110: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4256,15 +4550,15 @@ require = function () {
             exports.match_ = match;
         },
         {
-            '../../model/eav/value/fetch': 107,
+            '../../model/eav/value/fetch': 108,
             'spica/cache': 5,
-            'spica/either': 12,
-            'spica/promise': 79,
-            'spica/sequence': 80,
-            'spica/url': 87
+            'spica/either': 13,
+            'spica/promise': 80,
+            'spica/sequence': 81,
+            'spica/url': 88
         }
     ],
-    110: [
+    111: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4336,23 +4630,23 @@ require = function () {
             exports.update = update;
         },
         {
-            '../../event/router': 104,
-            '../../store/path': 121,
-            '../module/update/blur': 111,
-            '../module/update/content': 112,
-            '../module/update/css': 113,
-            '../module/update/focus': 114,
-            '../module/update/head': 115,
-            '../module/update/script': 116,
-            '../module/update/scroll': 117,
-            '../module/update/title': 119,
-            '../module/update/url': 120,
-            'spica/either': 12,
-            'spica/hlist': 18,
-            'spica/promise': 79
+            '../../event/router': 105,
+            '../../store/path': 122,
+            '../module/update/blur': 112,
+            '../module/update/content': 113,
+            '../module/update/css': 114,
+            '../module/update/focus': 115,
+            '../module/update/head': 116,
+            '../module/update/script': 117,
+            '../module/update/scroll': 118,
+            '../module/update/title': 120,
+            '../module/update/url': 121,
+            'spica/either': 13,
+            'spica/hlist': 19,
+            'spica/promise': 80
         }
     ],
-    111: [
+    112: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4366,7 +4660,7 @@ require = function () {
         },
         {}
     ],
-    112: [
+    113: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4423,14 +4717,14 @@ require = function () {
             exports._wait = wait;
         },
         {
-            './script': 116,
+            './script': 117,
             'spica/concat': 10,
-            'spica/maybe': 19,
-            'spica/promise': 79,
-            'typed-dom': 90
+            'spica/maybe': 20,
+            'spica/promise': 80,
+            'typed-dom': 91
         }
     ],
-    113: [
+    114: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4452,11 +4746,11 @@ require = function () {
             exports.css = css;
         },
         {
-            './sync': 118,
-            'typed-dom': 90
+            './sync': 119,
+            'typed-dom': 91
         }
     ],
-    114: [
+    115: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4476,11 +4770,11 @@ require = function () {
             exports.focus = focus;
         },
         {
-            '../../../event/router': 104,
-            'typed-dom': 90
+            '../../../event/router': 105,
+            'typed-dom': 91
         }
     ],
-    115: [
+    116: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4496,11 +4790,11 @@ require = function () {
             exports.head = head;
         },
         {
-            './sync': 118,
-            'typed-dom': 90
+            './sync': 119,
+            'typed-dom': 91
         }
     ],
-    116: [
+    117: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4633,17 +4927,17 @@ require = function () {
             }
         },
         {
-            '../../../../../lib/error': 135,
+            '../../../../../lib/error': 136,
             'spica/clock': 8,
             'spica/concat': 10,
-            'spica/either': 12,
-            'spica/promise': 79,
-            'spica/tuple': 84,
-            'spica/url': 87,
-            'typed-dom': 90
+            'spica/either': 13,
+            'spica/promise': 80,
+            'spica/tuple': 85,
+            'spica/url': 88,
+            'typed-dom': 91
         }
     ],
-    117: [
+    118: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4685,9 +4979,9 @@ require = function () {
             }
             exports._hash = hash;
         },
-        { '../../../event/router': 104 }
+        { '../../../event/router': 105 }
     ],
-    118: [
+    119: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4724,10 +5018,10 @@ require = function () {
         },
         {
             'spica/concat': 10,
-            'spica/either': 12
+            'spica/either': 13
         }
     ],
-    119: [
+    120: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4738,7 +5032,7 @@ require = function () {
         },
         {}
     ],
-    120: [
+    121: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4784,11 +5078,11 @@ require = function () {
             exports._isReplaceable = isReplaceable;
         },
         {
-            '../../../event/router': 104,
-            'typed-dom': 90
+            '../../../event/router': 105,
+            'typed-dom': 91
         }
     ],
-    121: [
+    122: [
         function (require, module, exports) {
             'use strict';
             function __export(m) {
@@ -4799,127 +5093,121 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             __export(require('../../data/store/state'));
         },
-        { '../../data/store/state': 101 }
-    ],
-    122: [
-        function (require, module, exports) {
-            'use strict';
-            Object.defineProperty(exports, '__esModule', { value: true });
-            const supervisor_legacy_1 = require('spica/supervisor.legacy');
-            const promise_1 = require('spica/promise');
-            const typed_dom_1 = require('typed-dom');
-            class ClickView {
-                constructor(document, selector, listener) {
-                    this.sv = new class extends supervisor_legacy_1.Supervisor {
-                    }();
-                    this.close = () => void this.sv.terminate();
-                    void this.sv.register('', () => new promise_1.AtomicPromise(() => void this.sv.events.exit.monitor([], typed_dom_1.delegate(document, selector, 'click', ev => {
-                        if (!(ev.currentTarget instanceof HTMLAnchorElement))
-                            return;
-                        if (typeof ev.currentTarget.href !== 'string')
-                            return;
-                        void listener(ev);
-                    }))));
-                    void this.sv.cast('', undefined);
-                }
-            }
-            exports.ClickView = ClickView;
-        },
-        {
-            'spica/promise': 79,
-            'spica/supervisor.legacy': 82,
-            'typed-dom': 90
-        }
+        { '../../data/store/state': 102 }
     ],
     123: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const url_1 = require('../../service/state/url');
-            const supervisor_legacy_1 = require('spica/supervisor.legacy');
-            const promise_1 = require('spica/promise');
-            const url_2 = require('spica/url');
+            const coroutine_1 = require('spica/coroutine');
             const typed_dom_1 = require('typed-dom');
-            class NavigationView {
-                constructor(window, listener) {
-                    this.sv = new class extends supervisor_legacy_1.Supervisor {
-                    }();
-                    this.close = () => void this.sv.terminate();
-                    void this.sv.register('', () => new promise_1.AtomicPromise(() => void this.sv.events.exit.monitor([], typed_dom_1.bind(window, 'popstate', ev => {
-                        if (url_2.standardize(window.location.href) === url_1.docurl.href)
-                            return;
-                        void listener(ev);
-                    }))));
-                    void this.sv.cast('', undefined);
+            class ClickView extends coroutine_1.Coroutine {
+                constructor(document, selector, listener) {
+                    super(function* () {
+                        return this.finally(typed_dom_1.delegate(document, selector, 'click', ev => {
+                            if (!(ev.currentTarget instanceof HTMLAnchorElement))
+                                return;
+                            if (typeof ev.currentTarget.href !== 'string')
+                                return;
+                            void listener(ev);
+                        }));
+                    });
+                    void this[coroutine_1.Coroutine.init]();
                 }
             }
-            exports.NavigationView = NavigationView;
+            exports.ClickView = ClickView;
         },
         {
-            '../../service/state/url': 133,
-            'spica/promise': 79,
-            'spica/supervisor.legacy': 82,
-            'spica/url': 87,
-            'typed-dom': 90
+            'spica/coroutine': 11,
+            'typed-dom': 91
         }
     ],
     124: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const supervisor_legacy_1 = require('spica/supervisor.legacy');
-            const promise_1 = require('spica/promise');
-            const throttle_1 = require('spica/throttle');
+            const url_1 = require('../../service/state/url');
+            const coroutine_1 = require('spica/coroutine');
+            const url_2 = require('spica/url');
             const typed_dom_1 = require('typed-dom');
-            class ScrollView {
+            class NavigationView extends coroutine_1.Coroutine {
                 constructor(window, listener) {
-                    this.sv = new class extends supervisor_legacy_1.Supervisor {
-                    }();
-                    this.close = () => void this.sv.terminate();
-                    void this.sv.register('', () => new promise_1.AtomicPromise(() => void this.sv.events.exit.monitor([], typed_dom_1.bind(window, 'scroll', throttle_1.debounce(100, ev => {
-                        void listener(ev);
-                    }), { passive: true }))));
-                    void this.sv.cast('', undefined);
+                    super(function* () {
+                        return this.finally(typed_dom_1.bind(window, 'popstate', ev => {
+                            if (url_2.standardize(window.location.href) === url_1.docurl.href)
+                                return;
+                            void listener(ev);
+                        }));
+                    });
+                    void this[coroutine_1.Coroutine.init]();
                 }
             }
-            exports.ScrollView = ScrollView;
+            exports.NavigationView = NavigationView;
         },
         {
-            'spica/promise': 79,
-            'spica/supervisor.legacy': 82,
-            'spica/throttle': 83,
-            'typed-dom': 90
+            '../../service/state/url': 134,
+            'spica/coroutine': 11,
+            'spica/url': 88,
+            'typed-dom': 91
         }
     ],
     125: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const supervisor_legacy_1 = require('spica/supervisor.legacy');
-            const promise_1 = require('spica/promise');
+            const url_1 = require('../../service/state/url');
+            const coroutine_1 = require('spica/coroutine');
+            const url_2 = require('spica/url');
+            const throttle_1 = require('spica/throttle');
             const typed_dom_1 = require('typed-dom');
-            class SubmitView {
+            class ScrollView extends coroutine_1.Coroutine {
+                constructor(window, listener) {
+                    super(function* () {
+                        return this.finally(typed_dom_1.bind(window, 'scroll', throttle_1.debounce(100, ev => {
+                            if (new URL(url_2.standardize(window.location.href)).href !== url_1.docurl.href)
+                                return;
+                            void listener(ev);
+                        }), { passive: true }));
+                    });
+                    void this[coroutine_1.Coroutine.init]();
+                }
+            }
+            exports.ScrollView = ScrollView;
+        },
+        {
+            '../../service/state/url': 134,
+            'spica/coroutine': 11,
+            'spica/throttle': 84,
+            'spica/url': 88,
+            'typed-dom': 91
+        }
+    ],
+    126: [
+        function (require, module, exports) {
+            'use strict';
+            Object.defineProperty(exports, '__esModule', { value: true });
+            const coroutine_1 = require('spica/coroutine');
+            const typed_dom_1 = require('typed-dom');
+            class SubmitView extends coroutine_1.Coroutine {
                 constructor(document, selector, listener) {
-                    this.sv = new class extends supervisor_legacy_1.Supervisor {
-                    }();
-                    this.close = () => void this.sv.terminate();
-                    void this.sv.register('', () => new promise_1.AtomicPromise(() => void this.sv.events.exit.monitor([], typed_dom_1.delegate(document, selector, 'submit', ev => {
-                        if (!(ev.currentTarget instanceof HTMLFormElement))
-                            return;
-                        void listener(ev);
-                    }))));
-                    void this.sv.cast('', undefined);
+                    super(function* () {
+                        return this.finally(typed_dom_1.delegate(document, selector, 'submit', ev => {
+                            if (!(ev.currentTarget instanceof HTMLFormElement))
+                                return;
+                            void listener(ev);
+                        }));
+                    });
+                    void this[coroutine_1.Coroutine.init]();
                 }
             }
             exports.SubmitView = SubmitView;
         },
         {
-            'spica/promise': 79,
-            'spica/supervisor.legacy': 82,
-            'typed-dom': 90
+            'spica/coroutine': 11,
+            'typed-dom': 91
         }
     ],
-    126: [
+    127: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4957,14 +5245,14 @@ require = function () {
             }
         },
         {
-            '../../../lib/html': 136,
-            './router': 128,
-            './state/process': 130,
+            '../../../lib/html': 137,
+            './router': 129,
+            './state/process': 131,
             'spica/assign': 4,
-            'typed-dom': 90
+            'typed-dom': 91
         }
     ],
-    127: [
+    128: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4974,16 +5262,10 @@ require = function () {
             const navigation_1 = require('../module/view/navigation');
             const scroll_1 = require('../module/view/scroll');
             const router_1 = require('./router');
-            const url_1 = require('./state/url');
             require('./state/scroll-restoration');
             const process_1 = require('./state/process');
             const store_1 = require('../../application/store');
-            const supervisor_legacy_1 = require('spica/supervisor.legacy');
-            const cancellation_1 = require('spica/cancellation');
-            const promise_1 = require('spica/promise');
-            const url_2 = require('spica/url');
-            const view = new class extends supervisor_legacy_1.Supervisor {
-            }();
+            const supervisor_1 = require('spica/supervisor');
             class GUI extends api_1.API {
                 constructor(option, io = {
                     document: window.document,
@@ -4992,25 +5274,7 @@ require = function () {
                     super();
                     this.option = option;
                     this.io = io;
-                    const config = new router_1.Config(this.option);
-                    void view.kill('');
-                    void view.register('', {
-                        init: s => s,
-                        main: (_, s) => new promise_1.AtomicPromise(() => {
-                            void s.register(new click_1.ClickView(this.io.document, config.link, event => void io.router(config, new router_1.RouterEvent(event), process_1.process, io)).close);
-                            void s.register(new submit_1.SubmitView(this.io.document, config.form, event => void io.router(config, new router_1.RouterEvent(event), process_1.process, io)).close);
-                            void s.register(new navigation_1.NavigationView(window, event => void io.router(config, new router_1.RouterEvent(event), process_1.process, io)).close);
-                            void s.register(new scroll_1.ScrollView(window, () => {
-                                if (s.canceled)
-                                    return;
-                                if (new url_2.URL(url_2.standardize(window.location.href)).reference !== url_1.docurl.href)
-                                    return;
-                                void store_1.savePosition();
-                            }).close);
-                        }),
-                        exit: (_, s) => void s.cancel()
-                    }, new cancellation_1.Cancellation());
-                    void view.cast('', undefined);
+                    new View(this.option, io);
                 }
                 assign(url) {
                     return api_1.API.assign(url, this.option, this.io);
@@ -5020,29 +5284,39 @@ require = function () {
                 }
             }
             exports.GUI = GUI;
+            class View {
+                constructor(option, io) {
+                    const config = new router_1.Config(option);
+                    const router = event => void io.router(config, new router_1.RouterEvent(event), process_1.process, io);
+                    void [
+                        new click_1.ClickView(io.document, config.link, router),
+                        new submit_1.SubmitView(io.document, config.form, router),
+                        new navigation_1.NavigationView(window, router),
+                        new scroll_1.ScrollView(window, store_1.savePosition)
+                    ].forEach((view, i) => void View.resource.kill(`${ i }`) || void View.resource.register(`${ i }`, view));
+                }
+            }
+            View.resource = new class extends supervisor_1.Supervisor {
+            }();
             function clear() {
-                void view.kill('');
+                void View['resource'].clear();
             }
             exports.clear = clear;
         },
         {
-            '../../application/store': 100,
-            '../module/view/click': 122,
-            '../module/view/navigation': 123,
-            '../module/view/scroll': 124,
-            '../module/view/submit': 125,
-            './api': 126,
-            './router': 128,
-            './state/process': 130,
-            './state/scroll-restoration': 132,
-            './state/url': 133,
-            'spica/cancellation': 6,
-            'spica/promise': 79,
-            'spica/supervisor.legacy': 82,
-            'spica/url': 87
+            '../../application/store': 101,
+            '../module/view/click': 123,
+            '../module/view/navigation': 124,
+            '../module/view/scroll': 125,
+            '../module/view/submit': 126,
+            './api': 127,
+            './router': 129,
+            './state/process': 131,
+            './state/scroll-restoration': 133,
+            'spica/supervisor': 83
         }
     ],
-    128: [
+    129: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5142,19 +5416,19 @@ require = function () {
             }
         },
         {
-            '../../../lib/error': 135,
-            '../../application/router': 99,
-            '../../application/store': 100,
-            '../service/state/env': 129,
-            './state/url': 133,
+            '../../../lib/error': 136,
+            '../../application/router': 100,
+            '../../application/store': 101,
+            '../service/state/env': 130,
+            './state/url': 134,
             'spica/cancellation': 6,
             'spica/clock': 8,
-            'spica/maybe': 19,
-            'spica/url': 87,
-            'typed-dom': 90
+            'spica/maybe': 20,
+            'spica/url': 88,
+            'typed-dom': 91
         }
     ],
-    129: [
+    130: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5164,19 +5438,19 @@ require = function () {
                 new Promise(r => void setTimeout(r))
             ]);
         },
-        { './script': 131 }
+        { './script': 132 }
     ],
-    130: [
+    131: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const supervisor_legacy_1 = require('spica/supervisor.legacy');
-            exports.process = new class extends supervisor_legacy_1.Supervisor {
+            const supervisor_1 = require('spica/supervisor');
+            exports.process = new class extends supervisor_1.Supervisor {
             }();
         },
-        { 'spica/supervisor.legacy': 82 }
+        { 'spica/supervisor': 83 }
     ],
-    131: [
+    132: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5186,20 +5460,20 @@ require = function () {
             void typed_dom_1.bind(window, 'pjax:unload', () => void typed_dom_1.apply(document, 'script[src]').forEach(script => void exports.scripts.add(new url_1.URL(url_1.standardize(script.src)).reference)));
         },
         {
-            'spica/url': 87,
-            'typed-dom': 90
+            'spica/url': 88,
+            'typed-dom': 91
         }
     ],
-    132: [
+    133: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const typed_dom_1 = require('typed-dom');
             void typed_dom_1.bind(window, 'unload', () => window.history.scrollRestoration = 'auto', false);
         },
-        { 'typed-dom': 90 }
+        { 'typed-dom': 91 }
     ],
-    133: [
+    134: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5219,11 +5493,11 @@ require = function () {
             }();
         },
         {
-            'spica/url': 87,
-            'typed-dom': 90
+            'spica/url': 88,
+            'typed-dom': 91
         }
     ],
-    134: [
+    135: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5264,7 +5538,7 @@ require = function () {
         },
         {}
     ],
-    135: [
+    136: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5279,7 +5553,7 @@ require = function () {
         },
         {}
     ],
-    136: [
+    137: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5355,12 +5629,12 @@ require = function () {
             }
         },
         {
-            'spica/either': 12,
-            'spica/maybe': 19,
-            'typed-dom': 90
+            'spica/either': 13,
+            'spica/maybe': 20,
+            'typed-dom': 91
         }
     ],
-    137: [
+    138: [
         function (require, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5420,10 +5694,10 @@ require = function () {
         },
         {
             'spica/cache': 5,
-            'spica/curry': 11,
-            'spica/flip': 15,
-            'spica/sequence': 80,
-            'spica/url': 87
+            'spica/curry': 12,
+            'spica/flip': 16,
+            'spica/sequence': 81,
+            'spica/url': 88
         }
     ],
     'pjax-api': [
@@ -5439,7 +5713,7 @@ require = function () {
             var export_1 = require('./src/export');
             exports.default = export_1.default;
         },
-        { './src/export': 98 }
+        { './src/export': 99 }
     ]
 }, {}, [
     1,
