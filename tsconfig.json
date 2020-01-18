@@ -16,7 +16,6 @@
     "noFallthroughCasesInSwitch": true,
     "preserveConstEnums": true,
     "suppressImplicitAnyIndexErrors": true,
-    "allowUnusedLabels": true,
     "rootDir": "./",
     "forceConsistentCasingInFileNames": true,
     "removeComments": false
