@@ -12,7 +12,7 @@ addons:
 services:
 - xvfb
 script:
-- travis_retry npm run ci
+- npm run ci
 before_deploy:
 - sed -i 's/"private":\ true/"private":\ false/' package.json
 - sed -i -E 's/^dist\/?.*$//' .gitignore
