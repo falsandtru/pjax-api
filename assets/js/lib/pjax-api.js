@@ -4519,7 +4519,7 @@ require = function () {
             exports.RouterEntityState = entity_1.RouterEntityState;
             function route(entity, io) {
                 return __awaiter(this, void 0, void 0, function* () {
-                    return either_1.Right(undefined).bind(entity.state.process.either).bind(() => match(io.document, entity.config.areas) ? either_1.Right(undefined) : either_1.Left(new Error(`Failed to match areas.`))).fmap(() => fetch_1.fetch(entity.event.request, entity.config, entity.state.process)).fmap(p => __awaiter(this, void 0, void 0, function* () {
+                    return either_1.Right(void 0).bind(entity.state.process.either).bind(() => match(io.document, entity.config.areas) ? either_1.Right(void 0) : either_1.Left(new Error(`Failed to match areas.`))).fmap(() => fetch_1.fetch(entity.event.request, entity.config, entity.state.process)).fmap(p => __awaiter(this, void 0, void 0, function* () {
                         return (yield p).fmap(([res, seq]) => update_1.update(entity, res, seq, {
                             document: io.document,
                             position: path_1.loadPosition
@@ -4639,7 +4639,7 @@ require = function () {
                 return __awaiter(this, void 0, void 0, function* () {
                     void window.dispatchEvent(new Event('pjax:fetch'));
                     const [seq, res] = yield Promise.all([
-                        sequence.fetch(undefined, {
+                        sequence.fetch(void 0, {
                             path: url.path,
                             method,
                             headers,
@@ -4680,7 +4680,7 @@ require = function () {
                 if (method === 'GET' && caches.has(requestURL.path) && Date.now() > caches.get(requestURL.path).expiry) {
                     void headers.set('If-None-Match', headers.get('If-None-Match') || caches.get(requestURL.path).etag);
                 }
-                const key = method === 'GET' ? cache(requestURL.path, headers) || undefined : undefined;
+                const key = method === 'GET' ? cache(requestURL.path, headers) || void 0 : void 0;
                 return new promise_1.AtomicPromise(resolve => {
                     if (key && memory.has(key))
                         return resolve(either_1.Right(memory.get(key)(displayURL, requestURL)));
@@ -4823,7 +4823,7 @@ require = function () {
                     promise_1.AtomicPromise.all(ps)
                 ]))).extend(p => __awaiter(this, void 0, void 0, function* () {
                     return (yield p).fmap(([areas]) => __awaiter(this, void 0, void 0, function* () {
-                        config.update.css ? void css_1.css(documents, config.update.ignore) : undefined;
+                        config.update.css ? void css_1.css(documents, config.update.ignore) : void 0;
                         void io.document.dispatchEvent(new Event('pjax:content'));
                         const seqC = yield config.sequence.content(seqB, areas);
                         const ssm = config.update.script ? yield script_1.script(documents, state.scripts, config.update, Math.max(config.fetch.timeout, 1000) * 10, process) : yield process.either([
@@ -4854,7 +4854,7 @@ require = function () {
                 ]).then(([m1, m2]) => m1.bind(([, cp]) => m2.fmap(([[, sp], seqD]) => void promise_1.AtomicPromise.all([
                     cp,
                     sp
-                ]).then(process.either).then(m => m.fmap(([events]) => (void window.dispatchEvent(new Event('pjax:load')), void config.sequence.load(seqD, events))).extract(() => undefined)))).extract(() => undefined)), p2))).then(m => either_1.Either.sequence(m).then(m => m.join())).then(m => m.fmap(([sst]) => sst));
+                ]).then(process.either).then(m => m.fmap(([events]) => (void window.dispatchEvent(new Event('pjax:load')), void config.sequence.load(seqD, events))).extract(() => void 0)))).extract(() => void 0)), p2))).then(m => either_1.Either.sequence(m).then(m => m.join())).then(m => m.fmap(([sst]) => sst));
             }
             exports.update = update;
         },
@@ -4909,7 +4909,7 @@ require = function () {
                         dst: area.dst[i]
                     })).map(area => (void replace(area), [...typed_dom_1.apply(area.src, 'img, iframe, frame')].map(wait))).reduce(concat_1.concat, []);
                     function replace(area) {
-                        const unescape = [...typed_dom_1.apply(area.src, 'script')].map(script_1.escape).reduce((f, g) => () => (void f(), void g()), () => undefined);
+                        const unescape = [...typed_dom_1.apply(area.src, 'script')].map(script_1.escape).reduce((f, g) => () => (void f(), void g()), () => void 0);
                         void io.replace(area.src, area.dst);
                         void unescape();
                     }
@@ -5184,7 +5184,7 @@ require = function () {
                 const code = script.text;
                 void script.removeAttribute('src');
                 script.text = '';
-                return () => (script.text = ' ', script.text = code, typeof src === 'string' ? void script.setAttribute('src', src) : undefined);
+                return () => (script.text = ' ', script.text = code, typeof src === 'string' ? void script.setAttribute('src', src) : void 0);
             }
             exports.escape = escape;
             function retry(script) {
@@ -5259,7 +5259,7 @@ require = function () {
                 before,
                 remove
             }) {
-                return void pairs.forEach(([srcs, dst]) => (void io.before(parent(dst), srcs.slice(-1).some(src => !!dst && src.outerHTML === dst.outerHTML) ? srcs.slice(0, -1) : srcs, dst), dst && srcs.length === 0 ? void io.remove(dst) : undefined));
+                return void pairs.forEach(([srcs, dst]) => (void io.before(parent(dst), srcs.slice(-1).some(src => !!dst && src.outerHTML === dst.outerHTML) ? srcs.slice(0, -1) : srcs, dst), dst && srcs.length === 0 ? void io.remove(dst) : void 0));
                 function parent(dst) {
                     return dst ? dst.parentElement : fallback;
                 }
@@ -5658,7 +5658,7 @@ require = function () {
                         scripts
                     }, io).then(m => m.fmap(([ss, p]) => __awaiter(this, void 0, void 0, function* () {
                         return void kill(), void url_1.docurl.sync(), void ss.filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_2.URL(url_2.standardize(s.src)).reference)), void (yield p).filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_2.URL(url_2.standardize(s.src)).reference));
-                    })).extract()).catch(reason => (void kill(), void url_1.docurl.sync(), window.history.scrollRestoration = 'auto', !cancellation.canceled || reason instanceof error_1.FatalError ? void config.fallback(event.source, reason) : undefined));
+                    })).extract()).catch(reason => (void kill(), void url_1.docurl.sync(), window.history.scrollRestoration = 'auto', !cancellation.canceled || reason instanceof error_1.FatalError ? void config.fallback(event.source, reason) : void 0));
                 })).extract(() => {
                     void process.cast('', new Error(`Aborted.`));
                     switch (event.type) {
@@ -5917,7 +5917,7 @@ require = function () {
                     case doc.querySelector('img').src.endsWith('abc'):
                     case doc.querySelector('head > noscript').textContent === '<style>/**/</style>':
                     case doc.querySelector('body > noscript').textContent === 'noscript':
-                        throw undefined;
+                        throw void 0;
                     }
                     return true;
                 } catch (_a) {
