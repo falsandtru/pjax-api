@@ -47,6 +47,23 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
+            function indexOf(as, a) {
+                const isNaN = a !== a;
+                for (let i = 0; i < as.length; ++i) {
+                    const ai = as[i];
+                    if (isNaN ? ai !== ai : ai === a)
+                        return i;
+                }
+                return -1;
+            }
+            exports.indexOf = indexOf;
+        },
+        {}
+    ],
+    5: [
+        function (_dereq_, module, exports) {
+            'use strict';
+            Object.defineProperty(exports, '__esModule', { value: true });
             const global_1 = _dereq_('./global');
             const type_1 = _dereq_('./type');
             const concat_1 = _dereq_('./concat');
@@ -140,20 +157,21 @@ require = function () {
         },
         {
             './concat': 10,
-            './global': 18,
+            './global': 17,
             './type': 86
         }
     ],
-    5: [
+    6: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const global_1 = _dereq_('./global');
             const assign_1 = _dereq_('./assign');
-            const equal_1 = _dereq_('./equal');
+            const concat_1 = _dereq_('./concat');
+            const array_1 = _dereq_('./array');
             const {Map} = global_1.global;
             class Cache {
-                constructor(size, callback = () => undefined, opts = {}) {
+                constructor(size, callback = () => void 0, opts = {}) {
                     this.size = size;
                     this.callback = callback;
                     this.settings = {
@@ -180,10 +198,9 @@ require = function () {
                         LFU
                     };
                     this.store = new Map(entries);
-                    for (const k of [
-                            ...stats[1],
-                            ...stats[0]
-                        ].slice(LFU.length + LRU.length)) {
+                    if (!opts.data)
+                        return;
+                    for (const k of concat_1.concat(stats[1].slice(LFU.length), stats[0].slice(LRU.length))) {
                         void this.store.delete(k);
                     }
                     if (this.store.size !== LFU.length + LRU.length)
@@ -237,7 +254,7 @@ require = function () {
                             LFU,
                             LRU
                         ]) {
-                        const index = equal_1.findIndex(key, stat);
+                        const index = array_1.indexOf(stat, key);
                         if (index === -1)
                             continue;
                         const val = this.store.get(key);
@@ -288,7 +305,7 @@ require = function () {
                     if (!this.store.has(key))
                         return false;
                     const {LRU} = this.stats;
-                    const index = equal_1.findIndex(key, LRU);
+                    const index = array_1.indexOf(LRU, key);
                     if (index === -1)
                         return false;
                     const {LFU} = this.stats;
@@ -299,7 +316,7 @@ require = function () {
                     if (!this.store.has(key))
                         return false;
                     const {LFU} = this.stats;
-                    const index = equal_1.findIndex(key, LFU);
+                    const index = array_1.indexOf(LFU, key);
                     if (index === -1)
                         return false;
                     void LFU.unshift(...LFU.splice(index, 1));
@@ -309,12 +326,13 @@ require = function () {
             exports.Cache = Cache;
         },
         {
-            './assign': 4,
-            './equal': 14,
-            './global': 18
+            './array': 4,
+            './assign': 5,
+            './concat': 10,
+            './global': 17
         }
     ],
-    6: [
+    7: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -341,11 +359,11 @@ require = function () {
                     super(res => resolve = res);
                     this.register = listener => {
                         if (this[internal].canceled)
-                            return void handler(this[internal].reason), () => undefined;
+                            return void handler(this[internal].reason), () => void 0;
                         if (!this[internal].alive)
-                            return () => undefined;
+                            return () => void 0;
                         void this[internal].listeners.add(handler);
-                        return () => this[internal].alive ? void this[internal].listeners.delete(handler) : undefined;
+                        return () => this[internal].alive ? void this[internal].listeners.delete(handler) : void 0;
                         function handler(reason) {
                             try {
                                 void listener(reason);
@@ -394,14 +412,14 @@ require = function () {
             exports.Cancellation = Cancellation;
         },
         {
-            './exception': 15,
-            './global': 18,
+            './exception': 14,
+            './global': 17,
             './monad/either': 24,
             './monad/maybe': 28,
             './promise': 80
         }
     ],
-    7: [
+    8: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -438,9 +456,9 @@ require = function () {
                 return cbs;
             }
         },
-        { './exception': 15 }
+        { './exception': 14 }
     ],
-    8: [
+    9: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -459,39 +477,24 @@ require = function () {
                     return Never;
                 }
                 constructor() {
-                    super(() => undefined);
+                    super(() => void 0);
                 }
                 then() {
-                    return super.then();
+                    return this;
                 }
                 catch() {
-                    return super.then();
+                    return this;
                 }
                 finally() {
-                    return super.then();
+                    return this;
                 }
             }();
         },
         {
-            './clock.tick': 7,
-            './global': 18,
+            './clock.tick': 8,
+            './global': 17,
             './promise': 80
         }
-    ],
-    9: [
-        function (_dereq_, module, exports) {
-            'use strict';
-            Object.defineProperty(exports, '__esModule', { value: true });
-            function compose(target, ...sources) {
-                return sources.reduce((b, d) => {
-                    void Object.getOwnPropertyNames(d.prototype).filter(p => !(p in b.prototype)).forEach(p => b.prototype[p] = d.prototype[p]);
-                    void Object.getOwnPropertyNames(d).filter(p => !(p in b)).forEach(p => b[p] = d[p]);
-                    return b;
-                }, target);
-            }
-            exports.compose = compose;
-        },
-        {}
     ],
     10: [
         function (_dereq_, module, exports) {
@@ -578,7 +581,6 @@ require = function () {
                         resume(q[0][0], q[0][1]);
                 }
             };
-            var _a;
             Object.defineProperty(exports, '__esModule', { value: true });
             const global_1 = _dereq_('./global');
             const promise_1 = _dereq_('./promise');
@@ -607,8 +609,8 @@ require = function () {
                         autorun: true,
                         size: 0,
                         interval: 0,
-                        resume: () => undefined,
-                        trigger: undefined
+                        resume: () => void 0,
+                        trigger: void 0
                     };
                     void assign_1.extend(this.settings, opts);
                     void this.result.finally(() => {
@@ -631,9 +633,9 @@ require = function () {
             class Coroutine extends promise_1.AtomicPromise {
                 constructor(gen, opts = {}) {
                     super(resolve => res = resolve);
-                    this[_a] = new Port(this);
                     var res;
                     this[internal] = new Internal(opts);
+                    this[port] = new Port(this, this[internal]);
                     void res(this[internal].result);
                     this[Coroutine.init] = () => __awaiter(this, void 0, void 0, function* () {
                         let reply = noop_1.noop;
@@ -646,11 +648,11 @@ require = function () {
                             let cnt = 0;
                             while (this[internal].alive) {
                                 void ++cnt;
-                                const [msg] = cnt === 1 ? [undefined] : yield promise_1.AtomicPromise.all([
-                                    this[internal].settings.size === 0 ? undefined : resume(),
+                                const [msg] = cnt === 1 ? [void 0] : yield promise_1.AtomicPromise.all([
+                                    this[internal].settings.size === 0 ? void 0 : resume(),
                                     promise_1.AtomicPromise.all([
                                         this[internal].settings.resume(),
-                                        this[internal].settings.interval > 0 ? clock_1.wait(this[internal].settings.interval) : undefined
+                                        this[internal].settings.interval > 0 ? clock_1.wait(this[internal].settings.interval) : void 0
                                     ])
                                 ]);
                                 if (!this[internal].alive)
@@ -676,7 +678,7 @@ require = function () {
                                         break;
                                     this[internal].alive = false;
                                     void this[internal].state.bind({
-                                        value: undefined,
+                                        value: void 0,
                                         done
                                     });
                                     void this[internal].result.bind(result);
@@ -693,7 +695,7 @@ require = function () {
                             void this[Coroutine.terminate](reason);
                         }
                     });
-                    if (this[internal].settings.trigger !== undefined) {
+                    if (this[internal].settings.trigger !== void 0) {
                         for (const prop of Array().concat(this[internal].settings.trigger)) {
                             if (prop in this)
                                 continue;
@@ -732,7 +734,7 @@ require = function () {
                             return;
                         this[internal].alive = false;
                         void this[internal].state.bind({
-                            value: undefined,
+                            value: void 0,
                             done: true
                         });
                         void this[internal].result.bind(result);
@@ -741,7 +743,7 @@ require = function () {
                             return;
                         this[internal].alive = false;
                         void this[internal].state.bind({
-                            value: undefined,
+                            value: void 0,
                             done: true
                         });
                         void this[internal].result.bind(promise_1.AtomicPromise.reject(reason));
@@ -751,30 +753,30 @@ require = function () {
                     return this[exit](promise_1.AtomicPromise.reject(reason));
                 }
                 [Symbol.asyncIterator]() {
-                    return __asyncGenerator(this, arguments, function* _b() {
+                    return __asyncGenerator(this, arguments, function* _a() {
                         while (this[internal].alive) {
                             const {value} = yield __await(this[internal].state);
                             if (!this[internal].alive)
                                 break;
                             yield yield __await(value);
                         }
-                        return yield __await(this.then(() => undefined));
+                        return yield __await(this.then(() => void 0));
                     });
                 }
             }
             exports.Coroutine = Coroutine;
-            _a = port;
             Coroutine.alive = alive;
             Coroutine.init = init;
             Coroutine.exit = exit;
             Coroutine.terminate = terminate;
             Coroutine.port = port;
             class Port {
-                constructor(co) {
+                constructor(co, internal) {
                     this.co = co;
+                    this.internal = internal;
                 }
                 recv() {
-                    return this.co[internal].state.then(({value, done}) => done ? this.co.then(value => ({
+                    return this.internal.state.then(({value, done}) => done ? this.co.then(value => ({
                         value,
                         done
                     })) : {
@@ -783,17 +785,17 @@ require = function () {
                     });
                 }
                 send(msg) {
-                    if (!this.co[internal].alive)
+                    if (!this.internal.alive)
                         return promise_1.AtomicPromise.reject(new Error(`Spica: Coroutine: Canceled.`));
                     const res = new future_1.AtomicFuture();
-                    void this.co[internal].msgs.push([
+                    void this.internal.msgs.push([
                         msg,
                         res.bind
                     ]);
-                    void this.co[internal].resume.bind();
-                    this.co[internal].resume = new future_1.AtomicFuture();
-                    while (this.co[internal].msgs.length > this.co[internal].settings.size) {
-                        const [, reply] = this.co[internal].msgs.shift();
+                    void this.internal.resume.bind();
+                    this.internal.resume = new future_1.AtomicFuture();
+                    while (this.internal.msgs.length > this.internal.settings.size) {
+                        const [, reply] = this.internal.msgs.shift();
                         void reply(promise_1.AtomicPromise.reject(new Error(`Spica: Coroutine: Overflowed.`)));
                     }
                     return res.then();
@@ -812,16 +814,16 @@ require = function () {
                 }
             }
             function isCoroutine(target) {
-                return typeof target === 'object' && !!target && typeof target.constructor['exit'] === 'symbol' && typeof target[target.constructor['exit']] === 'function' && typeof target.constructor['terminate'] === 'symbol' && typeof target[target.constructor['terminate']] === 'function' && typeof target.constructor['port'] === 'symbol' && typeof target[target.constructor['port']] === 'object';
+                return typeof target === 'object' && target !== null && typeof target.constructor['exit'] === 'symbol' && typeof target[target.constructor['exit']] === 'function' && typeof target.constructor['terminate'] === 'symbol' && typeof target[target.constructor['terminate']] === 'function' && typeof target.constructor['port'] === 'symbol' && typeof target[target.constructor['port']] === 'object';
             }
             exports.isCoroutine = isCoroutine;
         },
         {
-            './assign': 4,
-            './clock': 8,
-            './exception': 15,
-            './future': 17,
-            './global': 18,
+            './assign': 5,
+            './clock': 9,
+            './exception': 14,
+            './future': 16,
+            './global': 17,
             './noop': 78,
             './promise': 80
         }
@@ -857,23 +859,6 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            function findIndex(a1, as) {
-                const isNaN = a1 !== a1;
-                for (let i = 0; i < as.length; ++i) {
-                    const a2 = as[i];
-                    if (isNaN ? a2 !== a2 : a2 === a1)
-                        return i;
-                }
-                return -1;
-            }
-            exports.findIndex = findIndex;
-        },
-        {}
-    ],
-    15: [
-        function (_dereq_, module, exports) {
-            'use strict';
-            Object.defineProperty(exports, '__esModule', { value: true });
             function causeAsyncException(reason) {
                 void Promise.reject(reason);
             }
@@ -881,7 +866,7 @@ require = function () {
         },
         {}
     ],
-    16: [
+    15: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -893,7 +878,7 @@ require = function () {
         },
         { './curry': 12 }
     ],
-    17: [
+    16: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -941,13 +926,28 @@ require = function () {
         },
         { './promise': 80 }
     ],
-    18: [
+    17: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.global = typeof globalThis !== 'undefined' && globalThis || typeof self !== 'undefined' && self || this;
             exports.default = exports.global;
             exports.global.global = exports.global;
+        },
+        {}
+    ],
+    18: [
+        function (_dereq_, module, exports) {
+            'use strict';
+            Object.defineProperty(exports, '__esModule', { value: true });
+            function compose(target, ...sources) {
+                return sources.reduce((b, d) => {
+                    void Object.getOwnPropertyNames(d.prototype).filter(p => !(p in b.prototype)).forEach(p => b.prototype[p] = d.prototype[p]);
+                    void Object.getOwnPropertyNames(d).filter(p => !(p in b)).forEach(p => b[p] = d[p]);
+                    return b;
+                }, target);
+            }
+            exports.compose = compose;
         },
         {}
     ],
@@ -1096,7 +1096,7 @@ require = function () {
                         } = iter.next(val);
                         if (done)
                             return m;
-                        const r = m.extract(() => undefined, a => [a]);
+                        const r = m.extract(() => void 0, a => [a]);
                         if (!r)
                             return m;
                         val = r[0];
@@ -1164,7 +1164,7 @@ require = function () {
             const Monad = _dereq_('./either.impl');
             class Either extends Monad.Either {
                 constructor() {
-                    super(() => undefined);
+                    super(() => void 0);
                 }
             }
             exports.Either = Either;
@@ -1263,7 +1263,7 @@ require = function () {
                         } = iter.next(val);
                         if (done)
                             return m;
-                        const r = m.extract(() => undefined, a => [a]);
+                        const r = m.extract(() => void 0, a => [a]);
                         if (!r)
                             return m;
                         val = r[0];
@@ -1309,7 +1309,7 @@ require = function () {
                 }
                 extract(nothing) {
                     if (!nothing)
-                        throw undefined;
+                        throw void 0;
                     return nothing();
                 }
             }
@@ -1337,7 +1337,7 @@ require = function () {
             const Monad = _dereq_('./maybe.impl');
             class Maybe extends Monad.Maybe {
                 constructor() {
-                    super(() => undefined);
+                    super(() => void 0);
                 }
             }
             exports.Maybe = Maybe;
@@ -1430,11 +1430,11 @@ require = function () {
             const segs_1 = _dereq_('./sequence/member/instance/segs');
             const subsequences_1 = _dereq_('./sequence/member/instance/subsequences');
             const permutations_1 = _dereq_('./sequence/member/instance/permutations');
-            const compose_1 = _dereq_('../compose');
+            const compose_1 = _dereq_('../helper/compose');
             void compose_1.compose(core_1.Sequence, resume_1.default, from_1.default, cycle_1.default, random_1.default, concat_1.default, zip_1.default, difference_1.default, union_1.default, intersect_1.default, pure_1.default, return_1.default, sequence_1.default, mempty_1.default, mconcat_1.default, mappend_1.default, mzero_1.default, mplus_1.default, extract_1.default, iterate_1.default, memoize_1.default, reduce_1.default, take_1.default, drop_1.default, takeWhile_1.default, dropWhile_1.default, takeUntil_1.default, dropUntil_1.default, sort_1.default, unique_1.default, fmap_1.default, ap_1.default, bind_1.default, join_1.default, mapM_1.default, filterM_1.default, map_1.default, filter_1.default, scanl_1.default, foldr_1.default, group_1.default, inits_1.default, tails_1.default, segs_1.default, subsequences_1.default, permutations_1.default);
         },
         {
-            '../compose': 9,
+            '../helper/compose': 18,
             './sequence/core': 32,
             './sequence/member/instance/ap': 33,
             './sequence/member/instance/bind': 34,
@@ -1807,7 +1807,7 @@ require = function () {
                     switch (data.length) {
                     case 0:
                         return [
-                            undefined,
+                            void 0,
                             core_1.Sequence.Iterator.done,
                             -1
                         ];
@@ -2463,6 +2463,7 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             function noop() {
+                return;
             }
             exports.noop = noop;
         },
@@ -2475,24 +2476,38 @@ require = function () {
             const global_1 = _dereq_('./global');
             const assign_1 = _dereq_('./assign');
             const concat_1 = _dereq_('./concat');
-            const equal_1 = _dereq_('./equal');
             const exception_1 = _dereq_('./exception');
-            const {Map, WeakSet, Error} = global_1.global;
+            const {Map, WeakMap, Error} = global_1.global;
+            class RegisterNode {
+                constructor(parent, index) {
+                    this.parent = parent;
+                    this.index = index;
+                    this.children = new Map();
+                    this.childrenIndexes = [];
+                    this.monitors = [];
+                    this.subscribers = [];
+                }
+            }
             var RegisterItemType;
             (function (RegisterItemType) {
-                RegisterItemType['Monitor'] = 'monitor';
-                RegisterItemType['Subscriber'] = 'subscriber';
+                RegisterItemType[RegisterItemType['Monitor'] = 0] = 'Monitor';
+                RegisterItemType[RegisterItemType['Subscriber'] = 1] = 'Subscriber';
             }(RegisterItemType || (RegisterItemType = {})));
+            var SeekMode;
+            (function (SeekMode) {
+                SeekMode[SeekMode['Extensible'] = 0] = 'Extensible';
+                SeekMode[SeekMode['Breakable'] = 1] = 'Breakable';
+                SeekMode[SeekMode['Closest'] = 2] = 'Closest';
+            }(SeekMode || (SeekMode = {})));
+            let id = 0;
             class Observation {
                 constructor(opts = {}) {
-                    this.settings = { limit: 10 };
-                    this.relaySources = new WeakSet();
-                    this.node_ = {
-                        parent: undefined,
-                        children: new Map(),
-                        childrenNames: [],
-                        items: []
+                    this.node = new RegisterNode(void 0, void 0);
+                    this.settings = {
+                        limit: 10,
+                        cleanup: false
                     };
+                    this.unrelaies = new WeakMap();
                     void assign_1.extend(this.settings, opts);
                 }
                 monitor(namespace, listener, {
@@ -2500,134 +2515,127 @@ require = function () {
                 } = {}) {
                     if (typeof listener !== 'function')
                         throw new Error(`Spica: Observation: Invalid listener: ${ listener }`);
-                    const off = () => this.off(namespace, listener, 'monitor');
-                    const {items} = this.seekNode_(namespace);
-                    if (isRegistered(items, 'monitor', namespace, listener))
-                        return off;
-                    if (items.length === this.settings.limit)
+                    const {monitors} = this.seekNode(namespace, 0);
+                    if (monitors.length === this.settings.limit)
                         throw new Error(`Spica: Observation: Exceeded max listener limit.`);
-                    void items.push({
-                        type: 'monitor',
+                    const item = {
+                        id: ++id,
+                        type: 0,
                         namespace,
                         listener,
                         options: { once }
-                    });
-                    return off;
+                    };
+                    void monitors.push(item);
+                    return () => void this.off(namespace, item);
                 }
                 on(namespace, listener, {
                     once = false
                 } = {}) {
                     if (typeof listener !== 'function')
                         throw new Error(`Spica: Observation: Invalid listener: ${ listener }`);
-                    const off = () => this.off(namespace, listener);
-                    const {items} = this.seekNode_(namespace);
-                    if (isRegistered(items, 'subscriber', namespace, listener))
-                        return off;
-                    if (items.length === this.settings.limit)
+                    const {subscribers} = this.seekNode(namespace, 0);
+                    if (subscribers.length === this.settings.limit)
                         throw new Error(`Spica: Observation: Exceeded max listener limit.`);
-                    void items.push({
-                        type: 'subscriber',
+                    const item = {
+                        id: ++id,
+                        type: 1,
                         namespace,
                         listener,
                         options: { once }
-                    });
-                    return off;
+                    };
+                    void subscribers.push(item);
+                    return () => void this.off(namespace, item);
                 }
                 once(namespace, listener) {
                     return this.on(namespace, listener, { once: true });
                 }
-                off(namespace, listener, type = 'subscriber') {
+                off(namespace, listener) {
+                    const node = this.seekNode(namespace, 1);
+                    if (!node)
+                        return;
                     switch (typeof listener) {
-                    case 'function':
-                        return void this.seekNode_(namespace).items.some(({
-                            type: type_,
-                            listener: listener_
-                        }, i, items) => {
-                            if (listener_ !== listener)
-                                return false;
-                            if (type_ !== type)
-                                return false;
-                            switch (i) {
-                            case 0:
-                                return items.shift(), true;
-                            case items.length - 1:
-                                return items.pop(), true;
-                            default:
-                                return items.splice(i, 1), true;
-                            }
-                        });
-                    case 'undefined': {
-                            const node = this.seekNode_(namespace);
-                            for (let i = 0; i < node.childrenNames.length; ++i) {
-                                const name = node.childrenNames[i];
-                                void this.off([
-                                    ...namespace,
-                                    name
-                                ]);
-                                const child = node.children.get(name);
-                                if (child.items.length + child.childrenNames.length > 0)
-                                    continue;
-                                void node.children.delete(name);
-                                void node.childrenNames.splice(equal_1.findIndex(name, node.childrenNames), 1);
-                                void --i;
-                            }
-                            void concat_1.concat(node.items, node.items.splice(0, Infinity).filter(({type}) => type === 'monitor'));
-                            return;
+                    case 'object': {
+                            const items = listener.type === 0 ? node.monitors : node.subscribers;
+                            if (items.length === 0 || listener.id < items[0].id || listener.id > items[items.length - 1].id)
+                                return;
+                            return void remove(items, items.indexOf(listener));
                         }
-                    default:
-                        throw new Error(`Spica: Observation: Unreachable.`);
+                    case 'function': {
+                            const items = node.subscribers;
+                            return void remove(items, items.findIndex(item => item.listener === listener));
+                        }
+                    case 'undefined':
+                        return void clear(node);
                     }
                 }
                 emit(namespace, data, tracker) {
-                    void this.drain_(namespace, data, tracker);
+                    void this.drain(namespace, data, tracker);
                 }
                 reflect(namespace, data) {
-                    let results = [];
+                    let results;
                     void this.emit(namespace, data, (_, r) => results = r);
                     return results;
                 }
                 relay(source) {
-                    if (this.relaySources.has(source))
-                        return () => undefined;
-                    void this.relaySources.add(source);
+                    if (this.unrelaies.has(source))
+                        return this.unrelaies.get(source);
                     const unbind = source.monitor([], (data, namespace) => void this.emit(namespace, data));
-                    return () => (void this.relaySources.delete(source), unbind());
+                    const unrelay = () => (void this.unrelaies.delete(source), void unbind());
+                    void this.unrelaies.set(source, unrelay);
+                    return unrelay;
                 }
-                drain_(namespace, data, tracker) {
+                refs(namespace) {
+                    const node = this.seekNode(namespace, 1);
+                    if (!node)
+                        return [];
+                    return concat_1.concat(this.refsBelow(node, 0), this.refsBelow(node, 1)).reduce((acc, rs) => concat_1.concat(acc, rs), []);
+                }
+                drain(namespace, data, tracker) {
+                    const node = this.seekNode(namespace, 1);
                     const results = [];
-                    for (const {
-                                type,
-                                listener,
-                                options: {once}
-                            } of this.refsBelow_(this.seekNode_(namespace))) {
-                        if (type !== 'subscriber')
+                    const sss = node ? this.refsBelow(node, 1) : [];
+                    for (let i = 0; i < sss.length; ++i) {
+                        const items = sss[i];
+                        if (items.length === 0)
                             continue;
-                        if (once) {
-                            void this.off(namespace, listener);
-                        }
-                        try {
-                            const result = listener(data, namespace);
-                            if (tracker) {
-                                results[results.length] = result;
+                        for (let i = 0, max = items[items.length - 1].id; i < items.length && items[i].id <= max; ++i) {
+                            const item = items[i];
+                            if (item.options.once) {
+                                void this.off(item.namespace, item);
                             }
-                        } catch (reason) {
-                            void exception_1.causeAsyncException(reason);
+                            try {
+                                const result = item.listener(data, namespace);
+                                tracker && void results.push(result);
+                            } catch (reason) {
+                                void exception_1.causeAsyncException(reason);
+                            }
+                            i = i < items.length ? i : items.length - 1;
+                            for (; i >= 0; --i) {
+                                if (items[i].id <= item.id)
+                                    break;
+                            }
                         }
                     }
-                    for (const {
-                                type,
-                                listener,
-                                options: {once}
-                            } of this.refsAbove_(this.seekNode_(namespace))) {
-                        if (type !== 'monitor')
+                    const mss = this.refsAbove(node || this.seekNode(namespace, 2), 0);
+                    for (let i = 0; i < mss.length; ++i) {
+                        const items = mss[i];
+                        if (items.length === 0)
                             continue;
-                        if (once) {
-                            void this.off(namespace, listener, 'monitor');
-                        }
-                        try {
-                            void listener(data, namespace);
-                        } catch (reason) {
-                            void exception_1.causeAsyncException(reason);
+                        for (let i = 0, max = items[items.length - 1].id; i < items.length && items[i].id <= max; ++i) {
+                            const item = items[i];
+                            if (item.options.once) {
+                                void this.off(item.namespace, item);
+                            }
+                            try {
+                                void item.listener(data, namespace);
+                            } catch (reason) {
+                                void exception_1.causeAsyncException(reason);
+                            }
+                            i = i < items.length ? i : items.length - 1;
+                            for (; i >= 0; --i) {
+                                if (items[i].id <= item.id)
+                                    break;
+                            }
                         }
                     }
                     if (tracker) {
@@ -2638,194 +2646,300 @@ require = function () {
                         }
                     }
                 }
-                refs(namespace) {
-                    return this.refsBelow_(this.seekNode_(namespace));
-                }
-                refsAbove_({parent, items}) {
-                    items = items.slice();
+                refsAbove({parent, monitors, subscribers}, type) {
+                    const acc = type === 0 ? [monitors] : [subscribers];
                     while (parent) {
-                        void concat_1.concat(items, parent.items);
+                        type === 0 ? void acc.push(parent.monitors) : void acc.push(parent.subscribers);
                         parent = parent.parent;
                     }
-                    return items;
+                    return acc;
                 }
-                refsBelow_({childrenNames, children, items}) {
-                    items = items.slice();
-                    for (let i = 0; i < childrenNames.length; ++i) {
-                        const name = childrenNames[i];
-                        const below = this.refsBelow_(children.get(name));
-                        void concat_1.concat(items, below);
-                        if (below.length === 0) {
-                            void children.delete(name);
-                            void childrenNames.splice(equal_1.findIndex(name, childrenNames), 1);
+                refsBelow(node, type) {
+                    return this.refsBelow_(node, type, [])[0];
+                }
+                refsBelow_({monitors, subscribers, childrenIndexes, children}, type, acc) {
+                    type === 0 ? void acc.push(monitors) : void acc.push(subscribers);
+                    let count = 0;
+                    for (let i = 0; i < childrenIndexes.length; ++i) {
+                        const index = childrenIndexes[i];
+                        const cnt = this.refsBelow_(children.get(index), type, acc)[1];
+                        count += cnt;
+                        if (cnt === 0 && this.settings.cleanup) {
+                            void children.delete(index);
+                            void remove(childrenIndexes, i);
                             void --i;
                         }
                     }
-                    return items;
+                    return [
+                        acc,
+                        monitors.length + subscribers.length + count
+                    ];
                 }
-                seekNode_(namespace) {
-                    return namespace.reduce((node, name) => {
-                        const {children} = node;
-                        if (!children.has(name)) {
-                            void node.childrenNames.push(name);
-                            void children.set(name, {
-                                parent: node,
-                                children: new Map(),
-                                childrenNames: [],
-                                items: []
-                            });
+                seekNode(namespace, mode) {
+                    let node = this.node;
+                    for (let i = 0; i < namespace.length; ++i) {
+                        const index = namespace[i];
+                        const {childrenIndexes, children} = node;
+                        let child = children.get(index);
+                        if (!child) {
+                            switch (mode) {
+                            case 1:
+                                return;
+                            case 2:
+                                return node;
+                            }
+                            child = new RegisterNode(node, index);
+                            void childrenIndexes.push(index);
+                            void children.set(index, child);
                         }
-                        return children.get(name);
-                    }, this.node_);
+                        node = child;
+                    }
+                    return node;
                 }
             }
             exports.Observation = Observation;
-            function isRegistered(items, type, namespace, listener) {
-                return items.some(item => item.type === type && item.namespace.length === namespace.length && item.namespace.every((ns, i) => ns === namespace[i]) && item.listener === listener);
+            function remove(target, index) {
+                switch (index) {
+                case -1:
+                    return;
+                case 0:
+                    return void target.shift();
+                case target.length - 1:
+                    return void target.pop();
+                default:
+                    return void target.splice(index, 1);
+                }
+            }
+            function clear({monitors, subscribers, childrenIndexes, children}) {
+                for (let i = 0; i < childrenIndexes.length; ++i) {
+                    if (!clear(children.get(childrenIndexes[i])))
+                        continue;
+                    void children.delete(childrenIndexes[i]);
+                    void remove(childrenIndexes, i);
+                    void --i;
+                }
+                if (subscribers.length > 0) {
+                    subscribers.length = 0;
+                }
+                return monitors.length === 0;
             }
         },
         {
-            './assign': 4,
+            './assign': 5,
             './concat': 10,
-            './equal': 14,
-            './exception': 15,
-            './global': 18
+            './exception': 14,
+            './global': 17
         }
     ],
     80: [
         function (_dereq_, module, exports) {
-            'use strict';
-            var _a;
-            Object.defineProperty(exports, '__esModule', { value: true });
-            const concat_1 = _dereq_('./concat');
-            var State;
-            (function (State) {
-                State[State['pending'] = 0] = 'pending';
-                State[State['resolved'] = 1] = 'resolved';
-                State[State['rejected'] = 2] = 'rejected';
-            }(State || (State = {})));
-            class Internal {
-                constructor() {
-                    this.status = { state: 0 };
-                    this.fulfillReactions = [];
-                    this.rejectReactions = [];
-                    this.isHandled = false;
-                }
-            }
-            const internal = Symbol.for('spica/promise::internal');
-            class AtomicPromise {
-                constructor(executor) {
-                    this[Symbol.toStringTag] = 'Promise';
-                    this[_a] = new Internal();
-                    try {
-                        void executor(value => {
-                            if (this[internal].status.state === 0) {
-                                this[internal].status = {
-                                    state: 1,
-                                    result: isPromiseLike(value) ? {
-                                        value,
-                                        promise: true
-                                    } : {
-                                        value: value,
-                                        promise: false
-                                    }
-                                };
-                            }
-                            void resume(this[internal]);
-                        }, reason => {
-                            if (this[internal].status.state === 0) {
-                                this[internal].status = {
-                                    state: 2,
-                                    result: { value: reason }
-                                };
-                            }
-                            void resume(this[internal]);
-                        });
-                    } catch (reason) {
-                        if (this[internal].status.state === 0) {
-                            this[internal].status = {
-                                state: 2,
-                                result: { value: reason }
-                            };
-                        }
-                        void resume(this[internal]);
+            (function (global) {
+                'use strict';
+                var _a;
+                Object.defineProperty(exports, '__esModule', { value: true });
+                _dereq_('./global');
+                const {Array} = global;
+                var State;
+                (function (State) {
+                    State[State['pending'] = 0] = 'pending';
+                    State[State['resolved'] = 1] = 'resolved';
+                    State[State['fulfilled'] = 2] = 'fulfilled';
+                    State[State['rejected'] = 3] = 'rejected';
+                }(State || (State = {})));
+                class Internal {
+                    constructor() {
+                        this.status = { state: 0 };
+                        this.fulfillReactions = [];
+                        this.rejectReactions = [];
+                        this.isHandled = false;
                     }
                 }
-                static get [Symbol.species]() {
-                    return AtomicPromise;
-                }
-                static all(values) {
-                    return values.reduce((acc, value) => acc.then(vs => AtomicPromise.resolve(value).then(value => concat_1.concat(vs, [value]))), AtomicPromise.resolve([]));
-                }
-                static race(values) {
-                    return new AtomicPromise((resolve, reject) => {
-                        for (const value of values) {
-                            void AtomicPromise.resolve(value).then(resolve, reject);
+                const internal = Symbol.for('spica/promise::internal');
+                class AtomicPromise {
+                    constructor(executor) {
+                        this[Symbol.toStringTag] = 'Promise';
+                        this[_a] = new Internal();
+                        const intl = internal;
+                        try {
+                            const internal = this[intl];
+                            void executor(value => {
+                                if (internal.status.state !== 0)
+                                    return;
+                                if (isPromiseLike(value)) {
+                                    internal.status = {
+                                        state: 1,
+                                        result: value
+                                    };
+                                    void value.then(value => {
+                                        internal.status = {
+                                            state: 2,
+                                            result: value
+                                        };
+                                        void resume(internal);
+                                    }, reason => {
+                                        internal.status = {
+                                            state: 3,
+                                            result: reason
+                                        };
+                                        void resume(internal);
+                                    });
+                                } else {
+                                    internal.status = {
+                                        state: 2,
+                                        result: value
+                                    };
+                                    void resume(internal);
+                                }
+                            }, reason => {
+                                if (internal.status.state !== 0)
+                                    return;
+                                internal.status = {
+                                    state: 3,
+                                    result: reason
+                                };
+                                void resume(internal);
+                            });
+                        } catch (reason) {
+                            const internal = this[intl];
+                            if (internal.status.state !== 0)
+                                return;
+                            internal.status = {
+                                state: 3,
+                                result: reason
+                            };
+                            void resume(internal);
                         }
-                    });
-                }
-                static resolve(value) {
-                    return new AtomicPromise(resolve => void resolve(value));
-                }
-                static reject(reason) {
-                    return new AtomicPromise((_, reject) => void reject(reason));
-                }
-                then(onfulfilled, onrejected) {
-                    return new AtomicPromise((resolve, reject) => {
-                        const {fulfillReactions, rejectReactions} = this[internal];
-                        void fulfillReactions.push(value => {
-                            if (!onfulfilled)
-                                return void resolve(value);
-                            try {
-                                void resolve(onfulfilled(value));
-                            } catch (reason) {
-                                void reject(reason);
+                    }
+                    static get [Symbol.species]() {
+                        return AtomicPromise;
+                    }
+                    static all(vs) {
+                        return new AtomicPromise((resolve, reject) => {
+                            const values = [...vs];
+                            const length = values.length;
+                            const acc = Array(length);
+                            let cnt = 0;
+                            for (let i = 0; i < length; ++i) {
+                                const value = values[i];
+                                if (isPromiseLike(value)) {
+                                    void value.then(value => {
+                                        acc[i] = value;
+                                        void ++cnt;
+                                        cnt === length && void resolve(acc);
+                                    }, reason => {
+                                        i = length;
+                                        void reject(reason);
+                                    });
+                                } else {
+                                    acc[i] = value;
+                                    void ++cnt;
+                                }
+                            }
+                            cnt === length && void resolve(acc);
+                        });
+                    }
+                    static race(values) {
+                        return new AtomicPromise((resolve, reject) => {
+                            let done = false;
+                            for (const value of values) {
+                                if (done)
+                                    break;
+                                if (isPromiseLike(value)) {
+                                    void value.then(value => {
+                                        done = true;
+                                        void resolve(value);
+                                    }, reason => {
+                                        done = true;
+                                        void reject(reason);
+                                    });
+                                } else {
+                                    done = true;
+                                    void resolve(value);
+                                }
                             }
                         });
-                        void rejectReactions.push(reason => {
-                            if (!onrejected)
-                                return void reject(reason);
-                            try {
-                                void resolve(onrejected(reason));
-                            } catch (reason) {
-                                void reject(reason);
+                    }
+                    static resolve(value) {
+                        return new AtomicPromise(resolve => void resolve(value));
+                    }
+                    static reject(reason) {
+                        return new AtomicPromise((_, reject) => void reject(reason));
+                    }
+                    then(onfulfilled, onrejected) {
+                        return new AtomicPromise((resolve, reject) => {
+                            const {fulfillReactions, rejectReactions, status} = this[internal];
+                            if (status.state !== 3) {
+                                void fulfillReactions.push(value => {
+                                    if (!onfulfilled)
+                                        return void resolve(value);
+                                    try {
+                                        void resolve(onfulfilled(value));
+                                    } catch (reason) {
+                                        void reject(reason);
+                                    }
+                                });
                             }
+                            if (status.state !== 2) {
+                                void rejectReactions.push(reason => {
+                                    if (!onrejected)
+                                        return void reject(reason);
+                                    try {
+                                        void resolve(onrejected(reason));
+                                    } catch (reason) {
+                                        void reject(reason);
+                                    }
+                                });
+                            }
+                            void resume(this[internal]);
                         });
-                        void resume(this[internal]);
-                    });
+                    }
+                    catch(onrejected) {
+                        return this.then(void 0, onrejected);
+                    }
+                    finally(onfinally) {
+                        return this.then(onfinally, onfinally).then(() => this);
+                    }
                 }
-                catch(onrejected) {
-                    return this.then(undefined, onrejected);
+                exports.AtomicPromise = AtomicPromise;
+                _a = internal;
+                function isPromiseLike(value) {
+                    return value !== null && typeof value === 'object' && 'then' in value && typeof value.then === 'function';
                 }
-                finally(onfinally) {
-                    return this.then(onfinally, onfinally).then(() => this);
+                exports.isPromiseLike = isPromiseLike;
+                function resume(internal) {
+                    const {status, fulfillReactions, rejectReactions} = internal;
+                    switch (status.state) {
+                    case 0:
+                    case 1:
+                        return;
+                    case 2:
+                        if (!internal.isHandled && rejectReactions.length > 0) {
+                            rejectReactions.length = 0;
+                        }
+                        if (fulfillReactions.length === 0)
+                            return;
+                        internal.isHandled = true;
+                        void consume(fulfillReactions, status.result);
+                        return;
+                    case 3:
+                        if (!internal.isHandled && fulfillReactions.length > 0) {
+                            fulfillReactions.length = 0;
+                        }
+                        if (rejectReactions.length === 0)
+                            return;
+                        internal.isHandled = true;
+                        void consume(rejectReactions, status.result);
+                        return;
+                    }
                 }
-            }
-            exports.AtomicPromise = AtomicPromise;
-            _a = internal;
-            function resume(internal) {
-                const {status, fulfillReactions, rejectReactions} = internal;
-                internal.isHandled = true;
-                switch (status.state) {
-                case 0:
-                    return;
-                case 1:
-                    return status.result.promise ? void status.result.value.then(value => void consume(fulfillReactions, value), reason => void consume(rejectReactions, reason)) : void consume(fulfillReactions, status.result.value);
-                case 2:
-                    return void consume(rejectReactions, status.result.value);
+                function consume(fs, a) {
+                    while (fs.length > 0) {
+                        void fs.shift()(a);
+                    }
                 }
-            }
-            function consume(fs, a) {
-                while (fs.length > 0) {
-                    void fs.shift()(a);
-                }
-            }
-            function isPromiseLike(value) {
-                return !!value && typeof value === 'object' && 'then' in value && typeof value.then === 'function';
-            }
-            exports.isPromiseLike = isPromiseLike;
+            }.call(this, typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {}));
         },
-        { './concat': 10 }
+        { './global': 17 }
     ],
     81: [
         function (_dereq_, module, exports) {
@@ -2855,7 +2969,7 @@ require = function () {
                     if (id % 1 !== 0)
                         throw new TypeError(`Spica: sqid: A parameter value must be an integer: ${ id }`);
                 }
-                return id === undefined ? (zeros + ++cnt).slice(-15) : (zeros + id).slice(-15);
+                return id === void 0 ? (zeros + ++cnt).slice(-15) : (zeros + id).slice(-15);
             }
             exports.sqid = sqid;
         },
@@ -2918,7 +3032,6 @@ require = function () {
             const assign_1 = _dereq_('./assign');
             const clock_1 = _dereq_('./clock');
             const sqid_1 = _dereq_('./sqid');
-            const noop_1 = _dereq_('./noop');
             const exception_1 = _dereq_('./exception');
             const {
                 Object: Obj,
@@ -2941,7 +3054,7 @@ require = function () {
                         name: '',
                         size: Infinity,
                         timeout: Infinity,
-                        destructor: _ => undefined,
+                        destructor: _ => void 0,
                         scheduler: clock_1.tick,
                         resource: 10
                     };
@@ -2966,48 +3079,7 @@ require = function () {
                         }
                     };
                     this.scheduled = false;
-                    this.scheduler = () => void (void 0, this.settings.scheduler)(this.deliver);
                     this.messages = [];
-                    this.deliver = () => {
-                        if (!this.available)
-                            return;
-                        this.scheduled = false;
-                        const since = Date.now();
-                        for (let i = 0, len = this.messages.length; this.available && i < len; ++i) {
-                            if (this.settings.resource - (Date.now() - since) <= 0)
-                                return void this.schedule();
-                            const [name, param, callback, expiry] = this.messages[i];
-                            const names = typeof name === 'string' ? [name] : name;
-                            let result;
-                            for (const name of names) {
-                                result = this.workers.has(name) ? this.workers.get(name).call([
-                                    param,
-                                    expiry
-                                ]) : undefined;
-                                if (result)
-                                    break;
-                            }
-                            if (result === undefined && Date.now() < expiry)
-                                continue;
-                            i === 0 ? void this.messages.shift() : void this.messages.splice(i, 1);
-                            void --i;
-                            void --len;
-                            if (result === undefined) {
-                                const name = names[Symbol.iterator]().next().value;
-                                void this.events_.loss.emit([name], [
-                                    name,
-                                    param
-                                ]);
-                                try {
-                                    void callback(undefined, new Error(`Spica: Supervisor: A process has failed.`));
-                                } catch (reason) {
-                                    void exception_1.causeAsyncException(reason);
-                                }
-                            } else {
-                                void result.then(reply => void callback(reply), () => void callback(undefined, new Error(`Spica: Supervisor: A process has failed.`)));
-                            }
-                        }
-                    };
                     void this[coroutine_1.Coroutine.init]();
                     void assign_1.extend(this.settings, opts);
                     this.name = this.settings.name;
@@ -3036,10 +3108,10 @@ require = function () {
                     void this.clear(reason);
                     void Obj.freeze(this.workers);
                     while (this.messages.length > 0) {
-                        const [name, param] = this.messages.shift();
-                        const names = typeof name === 'string' ? [name] : [...name];
-                        void this.events_.loss.emit([names[0]], [
-                            names[0],
+                        const [names, param] = this.messages.shift();
+                        const name = typeof names === 'string' ? names : names[Symbol.iterator]().next().value;
+                        void this.events_.loss.emit([name], [
+                            name,
                             param
                         ]);
                     }
@@ -3047,7 +3119,7 @@ require = function () {
                     void this.constructor.instances.delete(this);
                     void Obj.freeze(this);
                     void this.settings.destructor(reason);
-                    void this.state.bind(reason === undefined ? undefined : promise_1.AtomicPromise.reject(reason));
+                    void this.state.bind(reason === void 0 ? void 0 : promise_1.AtomicPromise.reject(reason));
                 }
                 throwErrorIfNotAvailable() {
                     if (!this.available)
@@ -3059,14 +3131,14 @@ require = function () {
                     if (coroutine_1.isCoroutine(process)) {
                         const proc = {
                             init: state => state,
-                            main: (param, state, kill) => process[coroutine_1.Coroutine.port].send(param).then(({
+                            main: (param, state, kill) => process[process.constructor.port].send(param).then(({
                                 value: reply,
                                 done
                             }) => done && void kill() || [
                                 reply,
                                 state
                             ]),
-                            exit: reason => void process[coroutine_1.Coroutine.terminate](reason)
+                            exit: reason => void process[process.constructor.terminate](reason)
                         };
                         void this.constructor.standalone.add(proc);
                         const kill = this.register(name, proc, state);
@@ -3084,7 +3156,7 @@ require = function () {
                                 reply,
                                 state
                             ]),
-                            exit: () => undefined
+                            exit: () => void 0
                         }, state);
                     }
                     if (typeof process === 'function') {
@@ -3103,19 +3175,19 @@ require = function () {
                                         state
                                     ];
                                 },
-                                exit: () => undefined
+                                exit: () => void 0
                             }, state);
                         }
                         return this.register(name, {
                             init: state => state,
                             main: process,
-                            exit: () => undefined
+                            exit: () => void 0
                         }, state);
                     }
                     if (this.workers.has(name))
                         throw new Error(`Spica: Supervisor: <${ this.id }/${ this.name }/${ name }>: Cannot register a process multiply with the same name.`);
                     void this.schedule();
-                    const worker = new Worker(this, name, process, state, this.constructor.standalone.has(process), this.events_, () => this.workers.get(name) === worker && void this.workers.delete(name));
+                    const worker = new Worker(name, process, state, this, () => void this.schedule(), this.constructor.standalone.has(process), this.events_, () => this.workers.get(name) === worker && void this.workers.delete(name));
                     void this.workers.set(name, worker);
                     return worker.terminate;
                     function isAsyncGeneratorFunction(process) {
@@ -3126,68 +3198,55 @@ require = function () {
                     }
                 }
                 call(name, param, callback = this.settings.timeout, timeout = this.settings.timeout) {
-                    return this.call_(typeof name === 'string' ? name : new NamePool(this.workers, name), param, callback, timeout);
-                }
-                call_(name, param, callback, timeout) {
-                    if (typeof callback === 'number')
-                        return new promise_1.AtomicPromise((resolve, reject) => void this.call_(name, param, (result, err) => err ? reject(err) : resolve(result), callback));
+                    if (typeof callback !== 'function')
+                        return new promise_1.AtomicPromise((resolve, reject) => void this.call(name, param, (result, err) => err ? reject(err) : resolve(result), callback));
                     void this.messages.push([
-                        name,
+                        typeof name === 'string' ? name : new NamePool(this.workers, name),
                         param,
                         callback,
                         Date.now() + timeout
                     ]);
                     while (this.messages.length > (this.available ? this.settings.size : 0)) {
-                        const [name, param, callback] = this.messages.shift();
-                        const names = typeof name === 'string' ? [name] : [name[Symbol.iterator]().next().value];
-                        void this.events_.loss.emit([names[0]], [
-                            names[0],
+                        const [names, param, callback] = this.messages.shift();
+                        const name = typeof names === 'string' ? names : names[Symbol.iterator]().next().value;
+                        void this.events_.loss.emit([name], [
+                            name,
                             param
                         ]);
                         try {
-                            void callback(undefined, new Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: A message overflowed.`));
+                            void callback(void 0, new Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: A message overflowed.`));
                         } catch (reason) {
                             void exception_1.causeAsyncException(reason);
                         }
                     }
                     void this.throwErrorIfNotAvailable();
                     void this.schedule();
-                    if (timeout <= 0)
-                        return;
-                    if (timeout === Infinity)
-                        return;
-                    void setTimeout(() => void this.schedule(), timeout + 3);
+                    if (timeout > 0 && timeout !== Infinity) {
+                        void setTimeout(() => void this.schedule(), timeout + 3);
+                    }
                 }
                 cast(name, param, timeout = this.settings.timeout) {
-                    const result = this.cast_(typeof name === 'string' ? name : new NamePool(this.workers, name), param, timeout);
-                    if (result === undefined)
-                        return false;
-                    void result.catch(noop_1.noop);
-                    return true;
-                }
-                cast_(name, param, timeout) {
                     void this.throwErrorIfNotAvailable();
-                    const names = typeof name === 'string' ? [name] : name;
                     let result;
-                    for (const name of names) {
+                    for (name of typeof name === 'string' ? [name] : new NamePool(this.workers, name)) {
                         result = this.workers.has(name) ? this.workers.get(name).call([
                             param,
                             Date.now() + timeout
-                        ]) : undefined;
+                        ]) : void 0;
                         if (result)
                             break;
                     }
-                    if (result === undefined) {
-                        const name = names[Symbol.iterator]().next().value;
-                        void this.events_.loss.emit([name], [
-                            name,
-                            param
-                        ]);
-                    }
-                    return result;
+                    name = name;
+                    if (result)
+                        return true;
+                    void this.events_.loss.emit([name], [
+                        name,
+                        param
+                    ]);
+                    return false;
                 }
                 refs(name) {
-                    return name === undefined ? [...this.workers.values()].map(convert) : this.workers.has(name) ? [convert(this.workers.get(name))] : [];
+                    return name === void 0 ? [...this.workers.values()].map(convert) : this.workers.has(name) ? [convert(this.workers.get(name))] : [];
                     function convert(worker) {
                         return [
                             worker.name,
@@ -3213,19 +3272,63 @@ require = function () {
                     if (!this.available)
                         return false;
                     void this.destructor(reason);
-                    void this[coroutine_1.Coroutine.exit](undefined);
+                    void this[coroutine_1.Coroutine.exit](void 0);
                     return true;
                 }
                 [coroutine_1.Coroutine.terminate](reason) {
                     void this.terminate(reason);
                 }
                 schedule() {
-                    if (this.scheduled)
+                    if (!this.available || this.scheduled || this.messages.length === 0)
                         return;
-                    if (this.messages.length === 0)
-                        return;
-                    void clock_1.tick(this.scheduler);
+                    const p = new future_1.AtomicFuture(false);
+                    void p.finally(() => {
+                        this.scheduled = false;
+                        void this.deliver();
+                    });
+                    void clock_1.tick(() => {
+                        void this.settings.scheduler.call(void 0, p.bind);
+                        this.settings.scheduler === requestAnimationFrame && void setTimeout(p.bind, 1000);
+                    });
                     this.scheduled = true;
+                }
+                deliver() {
+                    if (!this.available)
+                        return;
+                    const since = Date.now();
+                    for (let i = 0, len = this.messages.length; this.available && i < len; ++i) {
+                        if (this.settings.resource - (Date.now() - since) <= 0)
+                            return void this.schedule();
+                        const [names, param, callback, expiry] = this.messages[i];
+                        let result;
+                        let name;
+                        for (name of typeof names === 'string' ? [names] : names) {
+                            result = this.workers.has(name) ? this.workers.get(name).call([
+                                param,
+                                expiry
+                            ]) : void 0;
+                            if (result)
+                                break;
+                        }
+                        if (result === void 0 && Date.now() < expiry)
+                            continue;
+                        i === 0 ? void this.messages.shift() : void this.messages.splice(i, 1);
+                        void --i;
+                        void --len;
+                        if (result === void 0) {
+                            void this.events_.loss.emit([name], [
+                                name,
+                                param
+                            ]);
+                            try {
+                                void callback(void 0, new Error(`Spica: Supervisor: A process has failed.`));
+                            } catch (reason) {
+                                void exception_1.causeAsyncException(reason);
+                            }
+                        } else {
+                            void result.then(reply => void callback(reply), () => void callback(void 0, new Error(`Spica: Supervisor: A process has failed.`)));
+                        }
+                    }
                 }
             }
             exports.Supervisor = Supervisor;
@@ -3249,11 +3352,12 @@ require = function () {
                 }
             }
             class Worker {
-                constructor(sv, name, process, state, initiated, events, destructor_) {
-                    this.sv = sv;
+                constructor(name, process, state, sv, schedule, initiated, events, destructor_) {
                     this.name = name;
                     this.process = process;
                     this.state = state;
+                    this.sv = sv;
+                    this.schedule = schedule;
                     this.events = events;
                     this.destructor_ = destructor_;
                     this.alive = true;
@@ -3323,13 +3427,13 @@ require = function () {
                         void promise_1.AtomicPromise.resolve(this.process.main(param, this.state, this.terminate)).then(resolve, reject);
                     }).then(([reply, state]) => {
                         if (this.alive) {
-                            void this.sv.schedule();
+                            void this.schedule();
                             this.state = state;
                             this.available = true;
                         }
                         return reply;
                     }).catch(reason => {
-                        void this.sv.schedule();
+                        void this.schedule();
                         void this.terminate(reason);
                         throw reason;
                     });
@@ -3337,13 +3441,12 @@ require = function () {
             }
         },
         {
-            './assign': 4,
-            './clock': 8,
+            './assign': 5,
+            './clock': 9,
             './coroutine': 11,
-            './exception': 15,
-            './future': 17,
-            './global': 18,
-            './noop': 78,
+            './exception': 14,
+            './future': 16,
+            './global': 17,
             './observation': 79,
             './promise': 80,
             './sqid': 82
@@ -3398,7 +3501,7 @@ require = function () {
             }
             exports.debounce = debounce;
         },
-        { './global': 18 }
+        { './global': 17 }
     ],
     85: [
         function (_dereq_, module, exports) {
@@ -3433,10 +3536,20 @@ require = function () {
                 }
             }
             exports.type = type;
+            function isType(value, name) {
+                switch (name) {
+                case 'function':
+                    return typeof value === 'function';
+                case 'object':
+                    return value !== null && typeof value === 'object';
+                default:
+                    return type(value) === name;
+                }
+            }
+            exports.isType = isType;
             function isPrimitive(value) {
-                switch (type(value)) {
+                switch (typeof value) {
                 case 'undefined':
-                case 'null':
                 case 'boolean':
                 case 'number':
                 case 'bigint':
@@ -3444,7 +3557,7 @@ require = function () {
                 case 'symbol':
                     return true;
                 default:
-                    return false;
+                    return value === null;
                 }
             }
             exports.isPrimitive = isPrimitive;
@@ -3512,7 +3625,7 @@ require = function () {
             exports.URL = URL;
         },
         {
-            './global': 18,
+            './global': 17,
             './url/domain/format': 89
         }
     ],
@@ -3550,8 +3663,8 @@ require = function () {
             }.call(this, typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {}));
         },
         {
-            '../../cache': 5,
-            '../../flip': 16,
+            '../../cache': 6,
+            '../../flip': 15,
             '../../memoize': 21,
             '../../uncurry': 87
         }
@@ -3615,8 +3728,8 @@ require = function () {
             './src/dom/proxy': 94,
             './src/util/dom': 95,
             './src/util/listener': 96,
-            './src/util/query': 98,
-            'spica/global': 18
+            './src/util/query': 97,
+            'spica/global': 17
         }
     ],
     92: [
@@ -3628,7 +3741,7 @@ require = function () {
                 const dom_1 = _dereq_('../util/dom');
                 const {Object: Obj} = global;
                 function API(baseFactory, formatter = el => el) {
-                    return new Proxy(() => undefined, handle(baseFactory, formatter));
+                    return new Proxy(() => void 0, handle(baseFactory, formatter));
                 }
                 exports.API = API;
                 exports.Shadow = API(dom_1.html, dom_1.shadow);
@@ -3644,11 +3757,11 @@ require = function () {
                     function builder(tag, baseFactory) {
                         return function build(attrs, children, factory) {
                             if (typeof attrs === 'function')
-                                return build(undefined, undefined, attrs);
+                                return build(void 0, void 0, attrs);
                             if (typeof children === 'function')
-                                return build(attrs, undefined, children);
-                            if (attrs !== undefined && isChildren(attrs))
-                                return build(undefined, attrs, factory);
+                                return build(attrs, void 0, children);
+                            if (attrs !== void 0 && isChildren(attrs))
+                                return build(void 0, attrs, factory);
                             const node = formatter(elem(factory || defaultFactory, attrs, children));
                             return node.nodeType === 1 ? new proxy_1.Elem(node, children) : new proxy_1.Elem(node.host, children, node);
                         };
@@ -3738,7 +3851,7 @@ require = function () {
                         this.container = container;
                         this.id_ = this.element.id.trim();
                         switch (true) {
-                        case children_ === undefined:
+                        case children_ === void 0:
                             this.type = ElChildrenType.Void;
                             break;
                         case typeof children_ === 'string':
@@ -4003,8 +4116,8 @@ require = function () {
                     if (typeof el === 'string')
                         return shadow(html(el), children, opts);
                     if (children && !isChildren(children))
-                        return shadow(el, undefined, children);
-                    return el.shadowRoot || shadows.has(el) ? define(opts ? opts.mode === 'open' ? el.shadowRoot || el.attachShadow(opts) : shadows.get(el) || shadows.set(el, el.attachShadow(opts)).get(el) : el.shadowRoot || shadows.get(el), children) : define(!opts || opts.mode === 'open' ? el.attachShadow({ mode: 'open' }) : shadows.set(el, el.attachShadow(opts)).get(el), children === undefined ? el.childNodes : children);
+                        return shadow(el, void 0, children);
+                    return el.shadowRoot || shadows.has(el) ? define(opts ? opts.mode === 'open' ? el.shadowRoot || el.attachShadow(opts) : shadows.get(el) || shadows.set(el, el.attachShadow(opts)).get(el) : el.shadowRoot || shadows.get(el), children) : define(!opts || opts.mode === 'open' ? el.attachShadow({ mode: 'open' }) : shadows.set(el, el.attachShadow(opts)).get(el), children === void 0 ? el.childNodes : children);
                 }
                 exports.shadow = shadow;
                 function html(tag, attrs, children) {
@@ -4041,7 +4154,7 @@ require = function () {
                 }
                 function define(el, attrs, children) {
                     if (isChildren(attrs))
-                        return define(el, undefined, attrs);
+                        return define(el, void 0, attrs);
                     if (typeof children === 'string')
                         return define(el, attrs, [text(children)]);
                     if (attrs)
@@ -4095,9 +4208,9 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const noop_1 = _dereq_('./noop');
             const promise_1 = _dereq_('spica/promise');
-            exports.currentTarget = Symbol();
+            const noop_1 = _dereq_('spica/noop');
+            exports.currentTarget = Symbol.for('currentTarget');
             function listen(target, a, b, c = false, d = {}) {
                 return typeof b === 'string' ? delegate(target, a, b, c, d) : bind(target, a, b, c);
             }
@@ -4130,22 +4243,11 @@ require = function () {
             exports.bind = bind;
         },
         {
-            './noop': 97,
+            'spica/noop': 78,
             'spica/promise': 80
         }
     ],
     97: [
-        function (_dereq_, module, exports) {
-            'use strict';
-            Object.defineProperty(exports, '__esModule', { value: true });
-            function noop() {
-                return;
-            }
-            exports.noop = noop;
-        },
-        {}
-    ],
-    98: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4161,7 +4263,7 @@ require = function () {
         },
         { './dom': 95 }
     ],
-    99: [
+    98: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4173,11 +4275,11 @@ require = function () {
             exports.router = router_1.router;
         },
         {
-            './layer/interface/service/gui': 128,
-            './lib/router': 138
+            './layer/interface/service/gui': 127,
+            './lib/router': 137
         }
     ],
-    100: [
+    99: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4195,12 +4297,12 @@ require = function () {
             exports.route = route;
         },
         {
-            '../domain/data/config': 103,
-            '../domain/event/router': 105,
-            '../domain/router/api': 106
+            '../domain/data/config': 102,
+            '../domain/event/router': 104,
+            '../domain/router/api': 105
         }
     ],
-    101: [
+    100: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4208,9 +4310,9 @@ require = function () {
             exports.loadTitle = path_1.loadTitle;
             exports.savePosition = path_1.savePosition;
         },
-        { '../domain/store/path': 122 }
+        { '../domain/store/path': 121 }
     ],
-    102: [
+    101: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4242,9 +4344,9 @@ require = function () {
             }
             exports.savePosition = savePosition;
         },
-        { 'spica/assign': 4 }
+        { 'spica/assign': 5 }
     ],
-    103: [
+    102: [
         function (_dereq_, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -4369,11 +4471,11 @@ require = function () {
             }
         },
         {
-            './config/scope': 104,
-            'spica/assign': 4
+            './config/scope': 103,
+            'spica/assign': 5
         }
     ],
-    104: [
+    103: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4389,14 +4491,14 @@ require = function () {
             exports.scope = scope;
         },
         {
-            '../../../../lib/router': 138,
-            '../../../domain/data/config': 103,
-            'spica/assign': 4,
+            '../../../../lib/router': 137,
+            '../../../domain/data/config': 102,
+            'spica/assign': 5,
             'spica/maybe': 20,
             'spica/sequence': 81
         }
     ],
-    105: [
+    104: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4473,12 +4575,12 @@ require = function () {
             exports.RouterEventLocation = RouterEventLocation;
         },
         {
-            '../../../lib/dom': 135,
+            '../../../lib/dom': 134,
             'spica/url': 88,
             'typed-dom': 91
         }
     ],
-    106: [
+    105: [
         function (_dereq_, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -4536,15 +4638,15 @@ require = function () {
             exports.route = route;
         },
         {
-            '../store/path': 122,
-            './model/eav/entity': 107,
-            './module/fetch': 109,
-            './module/update': 111,
-            './module/update/content': 113,
+            '../store/path': 121,
+            './model/eav/entity': 106,
+            './module/fetch': 108,
+            './module/update': 110,
+            './module/update/content': 112,
             'spica/either': 13
         }
     ],
-    107: [
+    106: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4568,7 +4670,7 @@ require = function () {
         },
         {}
     ],
-    108: [
+    107: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4595,11 +4697,11 @@ require = function () {
             exports.FetchResponse = FetchResponse;
         },
         {
-            '../../../../../../lib/html': 137,
+            '../../../../../../lib/html': 136,
             'spica/url': 88
         }
     ],
-    109: [
+    108: [
         function (_dereq_, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -4657,11 +4759,11 @@ require = function () {
             exports.fetch = fetch;
         },
         {
-            '../module/fetch/xhr': 110,
-            'spica/clock': 8
+            '../module/fetch/xhr': 109,
+            'spica/clock': 9
         }
     ],
-    110: [
+    109: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4753,15 +4855,15 @@ require = function () {
             exports.match_ = match;
         },
         {
-            '../../model/eav/value/fetch': 108,
-            'spica/cache': 5,
+            '../../model/eav/value/fetch': 107,
+            'spica/cache': 6,
             'spica/either': 13,
             'spica/promise': 80,
             'spica/sequence': 81,
             'spica/url': 88
         }
     ],
-    111: [
+    110: [
         function (_dereq_, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -4859,23 +4961,23 @@ require = function () {
             exports.update = update;
         },
         {
-            '../../event/router': 105,
-            '../../store/path': 122,
-            '../module/update/blur': 112,
-            '../module/update/content': 113,
-            '../module/update/css': 114,
-            '../module/update/focus': 115,
-            '../module/update/head': 116,
-            '../module/update/script': 117,
-            '../module/update/scroll': 118,
-            '../module/update/title': 120,
-            '../module/update/url': 121,
+            '../../event/router': 104,
+            '../../store/path': 121,
+            '../module/update/blur': 111,
+            '../module/update/content': 112,
+            '../module/update/css': 113,
+            '../module/update/focus': 114,
+            '../module/update/head': 115,
+            '../module/update/script': 116,
+            '../module/update/scroll': 117,
+            '../module/update/title': 119,
+            '../module/update/url': 120,
             'spica/either': 13,
             'spica/hlist': 19,
             'spica/promise': 80
         }
     ],
-    112: [
+    111: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4889,7 +4991,7 @@ require = function () {
         },
         {}
     ],
-    113: [
+    112: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4946,14 +5048,14 @@ require = function () {
             exports._wait = wait;
         },
         {
-            './script': 117,
+            './script': 116,
             'spica/concat': 10,
             'spica/maybe': 20,
             'spica/promise': 80,
             'typed-dom': 91
         }
     ],
-    114: [
+    113: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4975,11 +5077,11 @@ require = function () {
             exports.css = css;
         },
         {
-            './sync': 119,
+            './sync': 118,
             'typed-dom': 91
         }
     ],
-    115: [
+    114: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4999,11 +5101,11 @@ require = function () {
             exports.focus = focus;
         },
         {
-            '../../../event/router': 105,
+            '../../../event/router': 104,
             'typed-dom': 91
         }
     ],
-    116: [
+    115: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5019,11 +5121,11 @@ require = function () {
             exports.head = head;
         },
         {
-            './sync': 119,
+            './sync': 118,
             'typed-dom': 91
         }
     ],
-    117: [
+    116: [
         function (_dereq_, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -5195,8 +5297,8 @@ require = function () {
             }
         },
         {
-            '../../../../../lib/error': 136,
-            'spica/clock': 8,
+            '../../../../../lib/error': 135,
+            'spica/clock': 9,
             'spica/concat': 10,
             'spica/either': 13,
             'spica/promise': 80,
@@ -5205,7 +5307,7 @@ require = function () {
             'typed-dom': 91
         }
     ],
-    118: [
+    117: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5247,9 +5349,9 @@ require = function () {
             }
             exports._hash = hash;
         },
-        { '../../../event/router': 105 }
+        { '../../../event/router': 104 }
     ],
-    119: [
+    118: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5289,7 +5391,7 @@ require = function () {
             'spica/either': 13
         }
     ],
-    120: [
+    119: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5300,7 +5402,7 @@ require = function () {
         },
         {}
     ],
-    121: [
+    120: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5346,11 +5448,11 @@ require = function () {
             exports._isReplaceable = isReplaceable;
         },
         {
-            '../../../event/router': 105,
+            '../../../event/router': 104,
             'typed-dom': 91
         }
     ],
-    122: [
+    121: [
         function (_dereq_, module, exports) {
             'use strict';
             function __export(m) {
@@ -5361,9 +5463,9 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             __export(_dereq_('../../data/store/state'));
         },
-        { '../../data/store/state': 102 }
+        { '../../data/store/state': 101 }
     ],
-    123: [
+    122: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5390,7 +5492,7 @@ require = function () {
             'typed-dom': 91
         }
     ],
-    124: [
+    123: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5413,13 +5515,13 @@ require = function () {
             exports.NavigationView = NavigationView;
         },
         {
-            '../../service/state/url': 134,
+            '../../service/state/url': 133,
             'spica/coroutine': 11,
             'spica/url': 88,
             'typed-dom': 91
         }
     ],
-    125: [
+    124: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5443,14 +5545,14 @@ require = function () {
             exports.ScrollView = ScrollView;
         },
         {
-            '../../service/state/url': 134,
+            '../../service/state/url': 133,
             'spica/coroutine': 11,
             'spica/throttle': 84,
             'spica/url': 88,
             'typed-dom': 91
         }
     ],
-    126: [
+    125: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5475,7 +5577,7 @@ require = function () {
             'typed-dom': 91
         }
     ],
-    127: [
+    126: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5513,14 +5615,14 @@ require = function () {
             }
         },
         {
-            '../../../lib/html': 137,
-            './router': 129,
-            './state/process': 131,
-            'spica/assign': 4,
+            '../../../lib/html': 136,
+            './router': 128,
+            './state/process': 130,
+            'spica/assign': 5,
             'typed-dom': 91
         }
     ],
-    128: [
+    127: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5572,19 +5674,19 @@ require = function () {
             exports.clear = clear;
         },
         {
-            '../../application/store': 101,
-            '../module/view/click': 123,
-            '../module/view/navigation': 124,
-            '../module/view/scroll': 125,
-            '../module/view/submit': 126,
-            './api': 127,
-            './router': 129,
-            './state/process': 131,
-            './state/scroll-restoration': 133,
+            '../../application/store': 100,
+            '../module/view/click': 122,
+            '../module/view/navigation': 123,
+            '../module/view/scroll': 124,
+            '../module/view/submit': 125,
+            './api': 126,
+            './router': 128,
+            './state/process': 130,
+            './state/scroll-restoration': 132,
             'spica/supervisor': 83
         }
     ],
-    129: [
+    128: [
         function (_dereq_, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -5713,19 +5815,19 @@ require = function () {
             }
         },
         {
-            '../../../lib/error': 136,
-            '../../application/router': 100,
-            '../../application/store': 101,
-            '../service/state/env': 130,
-            './state/url': 134,
-            'spica/cancellation': 6,
-            'spica/clock': 8,
+            '../../../lib/error': 135,
+            '../../application/router': 99,
+            '../../application/store': 100,
+            '../service/state/env': 129,
+            './state/url': 133,
+            'spica/cancellation': 7,
+            'spica/clock': 9,
             'spica/maybe': 20,
             'spica/url': 88,
             'typed-dom': 91
         }
     ],
-    130: [
+    129: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5735,9 +5837,9 @@ require = function () {
                 new Promise(r => void setTimeout(r))
             ]);
         },
-        { './script': 132 }
+        { './script': 131 }
     ],
-    131: [
+    130: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5747,7 +5849,7 @@ require = function () {
         },
         { 'spica/supervisor': 83 }
     ],
-    132: [
+    131: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5761,7 +5863,7 @@ require = function () {
             'typed-dom': 91
         }
     ],
-    133: [
+    132: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5770,7 +5872,7 @@ require = function () {
         },
         { 'typed-dom': 91 }
     ],
-    134: [
+    133: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5794,7 +5896,7 @@ require = function () {
             'typed-dom': 91
         }
     ],
-    135: [
+    134: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5835,7 +5937,7 @@ require = function () {
         },
         {}
     ],
-    136: [
+    135: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5850,7 +5952,7 @@ require = function () {
         },
         {}
     ],
-    137: [
+    136: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5931,7 +6033,7 @@ require = function () {
             'typed-dom': 91
         }
     ],
-    138: [
+    137: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5990,9 +6092,9 @@ require = function () {
             exports._match = match;
         },
         {
-            'spica/cache': 5,
+            'spica/cache': 6,
             'spica/curry': 12,
-            'spica/flip': 16,
+            'spica/flip': 15,
             'spica/sequence': 81,
             'spica/url': 88
         }
@@ -6010,7 +6112,7 @@ require = function () {
             var export_1 = _dereq_('./src/export');
             exports.default = export_1.default;
         },
-        { './src/export': 99 }
+        { './src/export': 98 }
     ]
 }, {}, [
     1,
