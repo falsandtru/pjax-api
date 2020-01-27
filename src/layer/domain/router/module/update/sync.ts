@@ -19,7 +19,7 @@ export function sync<T extends HTMLElement>(
         dst),
       dst && srcs.length === 0
         ? void io.remove(dst)
-        : undefined));
+        : void 0));
 
   function parent(dst: T | null): HTMLElement {
     return dst

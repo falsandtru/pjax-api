@@ -41,7 +41,7 @@ export function content(
         .reduce((f, g) => () => (
           void f(),
           void g())
-        , () => undefined);
+        , () => void 0);
       void io.replace(area.src, area.dst);
       void unescape();
     }

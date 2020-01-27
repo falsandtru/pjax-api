@@ -86,7 +86,7 @@ export function update(
             .fmap(async ([areas]) => {
               config.update.css
                 ? void css(documents, config.update.ignore)
-                : undefined;
+                : void 0;
               void io.document.dispatchEvent(new Event('pjax:content'));
               const seqC = await config.sequence.content(seqB, areas);
               const ssm = config.update.script
@@ -127,8 +127,8 @@ export function update(
                     .fmap(([events]) => (
                       void window.dispatchEvent(new Event('pjax:load')),
                       void config.sequence.load(seqD, events)))
-                    .extract(() => undefined))))
-              .extract(() => undefined)),
+                    .extract(() => void 0))))
+              .extract(() => void 0)),
         p2)))
     .then(m => Either.sequence(m).then(m => m.join()))
     .then(m => m

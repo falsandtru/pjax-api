@@ -10,14 +10,14 @@ export class API {
     let result!: boolean;
     void click(url, event =>
       result = io.router(new Config(option), new RouterEvent(event), process, io));
-    assert(result !== undefined);
+    assert(result !== void 0);
     return result;
   }
   public static replace(url: string, option: Option, io = { document: window.document, router: route }): boolean {
     let result!: boolean;
     void click(url, event =>
       result = io.router(new Config(extend<Option>({}, option, { replace: '*' })), new RouterEvent(event), process, io));
-    assert(result !== undefined);
+    assert(result !== void 0);
     return result;
   }
 }

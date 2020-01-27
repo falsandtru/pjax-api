@@ -208,7 +208,7 @@ export function escape(script: HTMLScriptElement): () => undefined {
     script.text = code,
     typeof src === 'string'
       ? void script.setAttribute('src', src)
-      : undefined);
+      : void 0);
 }
 
 function retry(script: HTMLScriptElement): AtomicPromise<undefined> {

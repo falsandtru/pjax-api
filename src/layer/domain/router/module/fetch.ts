@@ -26,7 +26,7 @@ export async function fetch(
 ): Promise<Either<Error, readonly [FetchResponse, 'fetch']>> {
   void window.dispatchEvent(new Event('pjax:fetch'));
   const [seq, res] = await Promise.all([
-    sequence.fetch(undefined, {
+    sequence.fetch(void 0, {
       path: url.path,
       method,
       headers,

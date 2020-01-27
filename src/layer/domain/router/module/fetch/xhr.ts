@@ -27,8 +27,8 @@ export function xhr(
     void headers.set('If-None-Match', headers.get('If-None-Match') || caches.get(requestURL.path)!.etag);
   }
   const key = method === 'GET'
-    ? cache(requestURL.path, headers) || undefined
-    : undefined;
+    ? cache(requestURL.path, headers) || void 0
+    : void 0;
   return new AtomicPromise<Either<Error, FetchResponse>>(resolve => {
     if (key && memory.has(key)) return resolve(Right(memory.get(key)!(displayURL, requestURL)));
     const xhr = new XMLHttpRequest();

@@ -69,7 +69,7 @@ function test(parser: (html: string) => Document): boolean {
       case doc.querySelector('img')!.src.endsWith('abc'):
       case doc.querySelector<HTMLElement>('head > noscript')!.textContent === '<style>/**/</style>':
       case doc.querySelector<HTMLElement>('body > noscript')!.textContent === 'noscript':
-        throw undefined;
+        throw void 0;
     }
     return true;
   }

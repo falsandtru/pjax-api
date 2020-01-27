@@ -70,7 +70,7 @@ export function route(
           window.history.scrollRestoration = 'auto',
           !cancellation.canceled || reason instanceof FatalError
             ? void config.fallback(event.source, reason)
-            : undefined));
+            : void 0));
     })
     .extract(
       () => {
