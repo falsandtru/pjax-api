@@ -1,6 +1,7 @@
+os: linux
 dist: xenial
 language: node_js
-matrix:
+jobs:
   include:
   - os: linux
     node_js: 12
@@ -18,23 +19,32 @@ before_deploy:
 - sed -i -E 's/^dist\/?.*$//' .gitignore
 deploy:
   provider: npm
+  edge: true
   email:
     secure: "ZLEGnYL6GYBbb4NyU+zd2RCZdPUdoCUMwjtRQgVCGHsS79FVQpmKmIjMzQiVPSYw0l0QN6vsr8W1aLsaPPuD/vSyc4jr2tSFzi4Qyul2SDH4KAlYHFi1Gq98z1oKbD+wM4tkPm016Kfk3y8fBGVbLFXsFzaPlshmYUUpfs/bTXs8b8/JLEEunJ4lcfn358+3t1xyAPsmC728bRQ8OxXpRTk2ij0RGE62cv8vjJRXQWVcnIjE9IAAInsg1mI0XXutWcAk343ZCLXnJsnsz3yYK6XJuRoXoG80LpCmIPS0G20aYoBpcABje4FhKIwPMIcIPUPfYb0rUZLhFz43EjWaEXfu379eBrsX4h5TT3VdLVszXFLIk31RXoMezZaVb9+ImdfUrsK6e74HfkA1slqAv0z1L7G7M/8U0Z2VXsO8UYhFghHEsV84l8SHABRKEx3Iz2hWkHmCQKWaynBPOJROhw8gucar5iHOqeUlCcw532+6nSHBxrq2xLOQVicrjpWYGiAO8lW7lSqH4/07h60wg+6FLCet7lOATdqALUtUsUbHwwnRDOH+HdF4uQAzkQoc2eAzM8Wsc+/LQXwNw0qi2TP+jOeimxrKdp9dBWFk5eww3SHQd5zUKMBHjE++fDQixzJFYkwCcyKrogRRTEjoT/t1fk3KcWWmRfCRNQY+FZs="
-  api_key:
+  api_token:
     secure: "p858Gl0y3wgXImnT9r0T2gkYvr9dgqYCycI0DFYi7aWWl+pbjJwZxSO0KIwLf34lLfiBrMliiEx/2B+1D6i/am9qa1qetqfk2OgteBGdMc93WB4dXPDUDZ4NUfdMXvINs5CjMgL78i6/n6QsmnpNeURjBKGP+K+kzbyH7oY3Digrl9wW3bWXQY0Ag6yYkf0aVgaKEwgsEXoGKVppZSh0y62ezDThudf50lOfHIsHxggYcuczmznvPHyBQUDXBkB0dbkgs2wKVH7/I1iGalOkVYdXGyJHMaMZmSH6408+Q2WW5HA3UOA0Axn0V6EMU1JQyl7bBi0NXypTiqqlHx49fd2DSneAzUXPv53L7+b3Qol75Wtowiso3fnarDHelWKRfs37CY7k7Yt6/kEAZRWRNWR08z6k0fpaDd50L9Xl0OhCgpy+hkTTI07HNhQgVVti01GiNDYriUKMYwlrH32kZyfOSEJzmAya0zzdsZpcJ/kg5byIoYyZbXLSwg309K99PxNwyY1PySKxpfD6bx1I3uKYkqNkCfaARVWUtVY3Jpiy+KM82WzMUcMJ/ajw1ixsnLgPLMssy/nXEU081c65eif7SAsk9D5PDaYFvILBVAfEDh2O1NkBwQOw9ghB2q6IdCBn44xUwB0av88bAtna94uoNZd3HVMRPD2ffk9aOww="
   on:
-    branch: master
-    node: 12
-    condition: $TRAVIS_OS_NAME = linux
-  skip_cleanup: true
+    node_js: 12
+    condition:
+    - $TRAVIS_BRANCH = master
+    - $TRAVIS_EVENT_TYPE = push
+    - $TRAVIS_COMMIT_MESSAGE =~ ^v[0-9]+(\.[0-9]+)*($|\n)
+    - $TRAVIS_OS_NAME = linux
 notifications:
   email:
     recipients:
     - secure: "ZLEGnYL6GYBbb4NyU+zd2RCZdPUdoCUMwjtRQgVCGHsS79FVQpmKmIjMzQiVPSYw0l0QN6vsr8W1aLsaPPuD/vSyc4jr2tSFzi4Qyul2SDH4KAlYHFi1Gq98z1oKbD+wM4tkPm016Kfk3y8fBGVbLFXsFzaPlshmYUUpfs/bTXs8b8/JLEEunJ4lcfn358+3t1xyAPsmC728bRQ8OxXpRTk2ij0RGE62cv8vjJRXQWVcnIjE9IAAInsg1mI0XXutWcAk343ZCLXnJsnsz3yYK6XJuRoXoG80LpCmIPS0G20aYoBpcABje4FhKIwPMIcIPUPfYb0rUZLhFz43EjWaEXfu379eBrsX4h5TT3VdLVszXFLIk31RXoMezZaVb9+ImdfUrsK6e74HfkA1slqAv0z1L7G7M/8U0Z2VXsO8UYhFghHEsV84l8SHABRKEx3Iz2hWkHmCQKWaynBPOJROhw8gucar5iHOqeUlCcw532+6nSHBxrq2xLOQVicrjpWYGiAO8lW7lSqH4/07h60wg+6FLCet7lOATdqALUtUsUbHwwnRDOH+HdF4uQAzkQoc2eAzM8Wsc+/LQXwNw0qi2TP+jOeimxrKdp9dBWFk5eww3SHQd5zUKMBHjE++fDQixzJFYkwCcyKrogRRTEjoT/t1fk3KcWWmRfCRNQY+FZs="
     on_success: change
     on_failure: always
-after_deploy:
-- if [ ! $ENCRYPTION_LABEL ]; then travis_terminate 0; fi
+after_script:
+- |-
+  if
+    [ "$TRAVIS_BRANCH" == "master" ] &&
+    [ "$TRAVIS_EVENT_TYPE" == "push" ] &&
+    [ "$TRAVIS_OS_NAME" == "linux" ] &&
+    [ "$ENCRYPTION_LABEL" ]
+  then :; else exit 0; fi
 - eval `ssh-agent -s`
 - openssl aes-256-cbc -K `eval echo $\{${ENCRYPTION_LABEL}_key\}` -iv `eval echo $\{${ENCRYPTION_LABEL}_iv\}` -in .travis/deploy_key.enc -d | ssh-add -
 - gulp site
