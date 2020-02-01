@@ -65,5 +65,5 @@ after_script:
 - find | grep -vE "^./.git(/|$)"
 - sed -i 's|\(baseurl:\s\+\)|\1//falsandtru.github.io|' _config.yml
 - git add -A
-- git commit -m "chore":" update web contents" --author "Travis-CI"
+- git commit -m "Update web contents" --author "Travis-CI"
 - git push git@github.com:${TRAVIS_REPO_SLUG} gh-pages:gh-pages
