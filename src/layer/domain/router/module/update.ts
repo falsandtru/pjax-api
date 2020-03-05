@@ -13,7 +13,7 @@ import { scroll } from '../module/update/scroll';
 import { saveTitle, savePosition } from '../../store/path';
 import { AtomicPromise } from 'spica/promise';
 import { Either, Left } from 'spica/either';
-import { HNil } from 'spica/hlist';
+import { HList } from 'spica/hlist';
 
 export function update(
   {
@@ -67,8 +67,8 @@ export function update(
     // unload -> ready
     .then(m => m
       .fmap(([seqB, areas]) =>
-        HNil
-          .extend(() => (
+        HList()
+          .unfold(() => (
             void blur(documents.dst),
             void url(
               new RouterEventLocation(response.url),
@@ -82,7 +82,7 @@ export function update(
             process.either(content(documents, areas))
               .fmap(([as, ps]) =>
                 [as, AtomicPromise.all(ps)] as const)))
-          .extend(async p => (await p)
+          .unfold(async p => (await p)
             .fmap(async ([areas]) => {
               config.update.css
                 ? void css(documents, config.update.ignore)

@@ -1,3 +1,3 @@
 export { Config, Sequence } from './';
-export * from './src/export';
+export { Pjax, router } from './src/export';
 export { default } from './src/export';
