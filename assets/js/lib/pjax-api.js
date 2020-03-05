@@ -4281,9 +4281,8 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             var gui_1 = _dereq_('./layer/interface/service/gui');
+            exports.Pjax = gui_1.GUI;
             exports.default = gui_1.GUI;
-            var gui_2 = _dereq_('./layer/interface/service/gui');
-            exports.Pjax = gui_2.GUI;
             var router_1 = _dereq_('./lib/router');
             exports.router = router_1.router;
         },
