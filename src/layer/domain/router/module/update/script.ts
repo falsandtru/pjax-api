@@ -91,18 +91,18 @@ export function script(
                   io.evaluate(script, code, selector.logger, skip, AtomicPromise.all(sp), cancellation))
                 .bind(m =>
                   m.extract(
-                    p => Right(tuple([concat(sp, [p]), ap])),
-                    p => Right(tuple([sp, concat(ap, [p])])))))
+                    p => Right(tuple(concat(sp, [p]), ap)),
+                    p => Right(tuple(sp, concat(ap, [p]))))))
         , Right<Error, [AtomicPromise<Either<Error, HTMLScriptElement>>[], AtomicPromise<Either<Error, HTMLScriptElement>>[]]>([[], []])))
       .fmap(([sp, ap]) =>
         AtomicPromise.all(sp)
           .then(m => Either.sequence(m))
           .then(sm =>
-            sm.fmap(ss => tuple([
-              ss,
-              Promise.all(ap)
-                .then(m => Either.sequence(m))
-            ]))));
+            sm.fmap(ss =>
+              tuple(
+                ss,
+                Promise.all(ap)
+                  .then(m => Either.sequence(m))))));
   }
 }
 
