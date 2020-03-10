@@ -83,7 +83,8 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            exports.join = exports.push = exports.pop = exports.unshift = exports.shift = exports.indexOf = void 0;
+            exports.join = exports.splice = exports.push = exports.pop = exports.unshift = exports.shift = exports.indexOf = void 0;
+            const global_1 = _dereq_('./global');
             const alias_1 = _dereq_('./alias');
             function indexOf(as, a) {
                 return a === a ? as.indexOf(a) : as.findIndex(a => a !== a);
@@ -92,11 +93,11 @@ require = function () {
             function shift(as, count) {
                 if (count < 0)
                     throw new Error('Unexpected negative number');
-                return count === void 0 ? [
+                return count === global_1.undefined ? [
                     as.shift(),
                     as
                 ] : [
-                    as.splice(0, count),
+                    splice(as, 0, count),
                     as
                 ];
             }
@@ -115,12 +116,12 @@ require = function () {
             function pop(as, count) {
                 if (count < 0)
                     throw new Error('Unexpected negative number');
-                return count === void 0 ? [
+                return count === global_1.undefined ? [
                     as,
                     as.pop()
                 ] : [
                     as,
-                    as.splice(as.length - count, count)
+                    splice(as, as.length - count, count)
                 ];
             }
             exports.pop = pop;
@@ -135,6 +136,59 @@ require = function () {
                 return as;
             }
             exports.push = push;
+            function splice(as, index, count, ...inserts) {
+                if (count === 0 && inserts.length === 0)
+                    return [];
+                count = count > as.length ? as.length : count;
+                switch (index) {
+                case 0:
+                    switch (count) {
+                    case 0:
+                        return [
+                            [],
+                            unshift(inserts, as)
+                        ][0];
+                    case 1:
+                        return as.length === 0 ? [
+                            [],
+                            unshift(inserts, as)
+                        ][0] : [
+                            [as.shift()],
+                            unshift(inserts, as)
+                        ][0];
+                    case global_1.undefined:
+                        if (as.length > 1 || arguments.length > 2)
+                            break;
+                        return as.length === 0 ? [] : splice(as, index, 1);
+                    }
+                    break;
+                case -1:
+                case as.length - 1:
+                case global_1.Infinity:
+                    switch (count) {
+                    case 0:
+                        return [
+                            [],
+                            push(as, inserts)
+                        ][0];
+                    case 1:
+                        return as.length === 0 ? [
+                            [],
+                            push(as, inserts)
+                        ][0] : [
+                            [as.pop()],
+                            push(as, inserts)
+                        ][0];
+                    case global_1.undefined:
+                        if (as.length > 1 || arguments.length > 2)
+                            break;
+                        return as.length === 0 ? [] : splice(as, index, 1);
+                    }
+                    break;
+                }
+                return arguments.length > 2 ? as.splice(index, count, ...inserts) : as.splice(index);
+            }
+            exports.splice = splice;
             function join(as, sep = '') {
                 let acc = '';
                 for (let i = 0; i < as.length; ++i) {
@@ -144,7 +198,10 @@ require = function () {
             }
             exports.join = join;
         },
-        { './alias': 4 }
+        {
+            './alias': 4,
+            './global': 17
+        }
     ],
     6: [
         function (_dereq_, module, exports) {
@@ -262,8 +319,8 @@ require = function () {
         {
             './alias': 4,
             './array': 5,
-            './global': 18,
-            './type': 88
+            './global': 17,
+            './type': 87
         }
     ],
     7: [
@@ -275,7 +332,7 @@ require = function () {
             const assign_1 = _dereq_('./assign');
             const array_1 = _dereq_('./array');
             class Cache {
-                constructor(size, callback = () => void 0, opts = {}) {
+                constructor(size, callback = () => global_1.undefined, opts = {}) {
                     this.size = size;
                     this.callback = callback;
                     this.settings = {
@@ -291,9 +348,10 @@ require = function () {
                             entries: []
                         }
                     };
+                    this.nullish = false;
                     if (size > 0 === false)
                         throw new Error(`Spica: Cache: Cache size must be greater than 0.`);
-                    void assign_1.extend(this.settings, opts);
+                    assign_1.extend(this.settings, opts);
                     const {stats, entries} = this.settings.data;
                     const LFU = stats[1].slice(0, size);
                     const LRU = stats[0].slice(0, size - LFU.length);
@@ -305,7 +363,7 @@ require = function () {
                     if (!opts.data)
                         return;
                     for (const k of array_1.push(stats[1].slice(LFU.length), stats[0].slice(LRU.length))) {
-                        void this.store.delete(k);
+                        this.store.delete(k);
                     }
                     if (this.store.size !== LFU.length + LRU.length)
                         throw new Error(`Spica: Cache: Size of stats and entries is not matched.`);
@@ -316,36 +374,39 @@ require = function () {
                         throw new Error(`Spica: Cache: Keys of stats and entries is not matched.`);
                 }
                 put(key, value, log = true) {
-                    if (!log && this.store.has(key))
-                        return void this.store.set(key, value), true;
-                    if (this.access(key))
-                        return void this.store.set(key, value), true;
+                    !this.nullish && value === global_1.undefined ? this.nullish = true : global_1.undefined;
+                    const hit = this.store.has(key);
+                    if (!log && hit)
+                        return this.store.set(key, value), true;
+                    if (hit && this.access(key))
+                        return this.store.set(key, value), true;
                     const {LRU, LFU} = this.stats;
                     if (LRU.length + LFU.length === this.size && LRU.length < LFU.length) {
                         const key = LFU.pop();
                         const val = this.store.get(key);
-                        void this.store.delete(key);
-                        void this.callback(key, val);
+                        this.store.delete(key);
+                        this.callback(key, val);
                     }
-                    void LRU.unshift(key);
-                    void this.store.set(key, value);
+                    LRU.unshift(key);
+                    this.store.set(key, value);
                     if (LRU.length + LFU.length > this.size) {
                         const key = LRU.pop();
                         const val = this.store.get(key);
-                        void this.store.delete(key);
-                        void this.callback(key, val);
+                        this.store.delete(key);
+                        this.callback(key, val);
                     }
                     return false;
                 }
                 set(key, value, log) {
-                    void this.put(key, value, log);
+                    this.put(key, value, log);
                     return value;
                 }
                 get(key, log = true) {
+                    const val = this.store.get(key);
                     if (!log)
-                        return this.store.get(key);
-                    void this.access(key);
-                    return this.store.get(key);
+                        return val;
+                    const hit = val !== global_1.undefined || this.nullish && this.store.has(key);
+                    return hit && this.access(key) ? val : global_1.undefined;
                 }
                 has(key) {
                     return this.store.has(key);
@@ -362,10 +423,10 @@ require = function () {
                         if (index === -1)
                             continue;
                         const val = this.store.get(key);
-                        void this.store.delete(stat.splice(index, 1)[0]);
+                        this.store.delete(array_1.splice(stat, index, 1)[0]);
                         if (this.settings.ignore.delete)
                             return true;
-                        void this.callback(key, val);
+                        this.callback(key, val);
                         return true;
                     }
                     return false;
@@ -379,8 +440,8 @@ require = function () {
                     };
                     if (this.settings.ignore.clear)
                         return;
-                    for (const key of store.keys()) {
-                        void this.callback(key, store.get(key));
+                    for (const kv of store) {
+                        this.callback(kv[0], kv[1]);
                     }
                 }
                 [Symbol.iterator]() {
@@ -403,8 +464,6 @@ require = function () {
                     ];
                 }
                 access(key) {
-                    if (!this.store.has(key))
-                        return false;
                     return this.accessLFU(key) || this.accessLRU(key);
                 }
                 accessLRU(key) {
@@ -413,7 +472,7 @@ require = function () {
                     if (index === -1)
                         return false;
                     const {LFU} = this.stats;
-                    void LFU.unshift(...LRU.splice(index, 1));
+                    LFU.unshift(array_1.splice(LRU, index, 1)[0]);
                     return true;
                 }
                 accessLFU(key) {
@@ -421,7 +480,9 @@ require = function () {
                     const index = array_1.indexOf(LFU, key);
                     if (index === -1)
                         return false;
-                    void LFU.unshift(...LFU.splice(index, 1));
+                    if (index === 0)
+                        return true;
+                    LFU.unshift(array_1.splice(LFU, index, 1)[0]);
                     return true;
                 }
             }
@@ -430,7 +491,7 @@ require = function () {
         {
             './array': 5,
             './assign': 6,
-            './global': 18
+            './global': 17
         }
     ],
     8: [
@@ -439,10 +500,35 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.Cancellation = void 0;
             const global_1 = _dereq_('./global');
+            const noop_1 = _dereq_('./noop');
             const promise_1 = _dereq_('./promise');
             const exception_1 = _dereq_('./exception');
             const maybe_1 = _dereq_('./monad/maybe');
             const either_1 = _dereq_('./monad/either');
+            const internal = Symbol.for('spica/cancellation::internal');
+            class Cancellation extends promise_1.AtomicPromise {
+                constructor(cancelees = []) {
+                    super(res => resolve = res);
+                    this.register = listener => this[internal].register(listener);
+                    this.cancel = reason => this[internal].cancel(reason);
+                    this.close = reason => this[internal].close(reason);
+                    this.promise = val => this[internal].promise(val);
+                    this.maybe = val => this[internal].maybe(val);
+                    this.either = val => this[internal].either(val);
+                    var resolve;
+                    this[internal] = new Internal(resolve);
+                    for (const cancellee of cancelees) {
+                        cancellee.register(this.cancel);
+                    }
+                }
+                static get [Symbol.species]() {
+                    return promise_1.AtomicPromise;
+                }
+                get canceled() {
+                    return this[internal].canceled;
+                }
+            }
+            exports.Cancellation = Cancellation;
             class Internal {
                 constructor(resolve) {
                     this.resolve = resolve;
@@ -453,68 +539,57 @@ require = function () {
                 get canceled() {
                     return 'reason' in this;
                 }
-            }
-            const internal = Symbol.for('spica/cancellation::internal');
-            class Cancellation extends promise_1.AtomicPromise {
-                constructor(cancelees = []) {
-                    super(res => resolve = res);
-                    this.register = listener => {
-                        if (!this[internal].alive) {
-                            this[internal].canceled && void handler(this[internal].reason);
-                            return () => void 0;
+                register(listener) {
+                    if (!this.alive) {
+                        this.canceled && handler(this.reason);
+                        return noop_1.noop;
+                    }
+                    this.listeners.add(handler);
+                    return () => void this.listeners.delete(handler);
+                    function handler(reason) {
+                        try {
+                            listener(reason);
+                        } catch (reason) {
+                            exception_1.causeAsyncException(reason);
                         }
-                        void this[internal].listeners.add(handler);
-                        return () => this[internal].alive ? void this[internal].listeners.delete(handler) : void 0;
-                        function handler(reason) {
-                            try {
-                                void listener(reason);
-                            } catch (reason) {
-                                void exception_1.causeAsyncException(reason);
-                            }
-                        }
-                    };
-                    this.cancel = reason => {
-                        if (!this[internal].available)
-                            return;
-                        this[internal].available = false;
-                        this[internal].reason = reason;
-                        this[internal].resolve(this[internal].reason);
-                        for (const listener of this[internal].listeners) {
-                            void listener(reason);
-                        }
-                        this[internal].alive = false;
-                    };
-                    this.close = reason => {
-                        if (!this[internal].available)
-                            return;
-                        this[internal].available = false;
-                        void this[internal].resolve(promise_1.AtomicPromise.reject(reason));
-                        this[internal].alive = false;
-                    };
-                    this.promise = val => this[internal].canceled ? promise_1.AtomicPromise.reject(this[internal].reason) : promise_1.AtomicPromise.resolve(val);
-                    this.maybe = val => maybe_1.Just(val).bind(val => this[internal].canceled ? maybe_1.Nothing : maybe_1.Just(val));
-                    this.either = val => either_1.Right(val).bind(val => this[internal].canceled ? either_1.Left(this[internal].reason) : either_1.Right(val));
-                    var resolve;
-                    this[internal] = new Internal(resolve);
-                    for (const cancellee of cancelees) {
-                        void cancellee.register(this.cancel);
                     }
                 }
-                static get [Symbol.species]() {
-                    return promise_1.AtomicPromise;
+                cancel(reason) {
+                    if (!this.available)
+                        return;
+                    this.available = false;
+                    this.reason = reason;
+                    for (const listener of this.listeners) {
+                        listener(reason);
+                    }
+                    this.resolve(this.reason);
+                    this.alive = false;
                 }
-                get canceled() {
-                    return 'reason' in this[internal];
+                close(reason) {
+                    if (!this.available)
+                        return;
+                    this.available = false;
+                    this.resolve(promise_1.AtomicPromise.reject(reason));
+                    this.alive = false;
+                }
+                promise(val) {
+                    return this.canceled ? promise_1.AtomicPromise.reject(this.reason) : promise_1.AtomicPromise.resolve(val);
+                }
+                maybe(val) {
+                    return maybe_1.Just(val).bind(val => this.canceled ? maybe_1.Nothing : maybe_1.Just(val));
+                }
+                either(val) {
+                    return either_1.Right(val).bind(val => this.canceled ? either_1.Left(this.reason) : either_1.Right(val));
                 }
             }
-            exports.Cancellation = Cancellation;
         },
         {
-            './exception': 15,
-            './global': 18,
-            './monad/either': 26,
-            './monad/maybe': 30,
-            './promise': 82
+            './exception': 14,
+            './global': 17,
+            './monad/either': 25,
+            './monad/maybe': 29,
+            './noop': 79,
+            './promise': 81
         }
     ],
     9: [
@@ -547,6 +622,7 @@ require = function () {
                         }
                         return;
                     } catch (reason) {
+                        node = node.tail;
                         void exception_1.causeAsyncException(reason);
                         continue;
                     }
@@ -554,8 +630,8 @@ require = function () {
             }
         },
         {
-            './exception': 15,
-            './list': 21
+            './exception': 14,
+            './list': 20
         }
     ],
     10: [
@@ -597,31 +673,11 @@ require = function () {
         },
         {
             './clock.tick': 9,
-            './global': 18,
-            './promise': 82
+            './global': 17,
+            './promise': 81
         }
     ],
     11: [
-        function (_dereq_, module, exports) {
-            'use strict';
-            Object.defineProperty(exports, '__esModule', { value: true });
-            exports.concat = void 0;
-            const alias_1 = _dereq_('./alias');
-            function concat(target, source) {
-                if (alias_1.isArray(source)) {
-                    for (let i = 0; i < source.length; ++i) {
-                        void target.push(source[i]);
-                    }
-                } else {
-                    void target.push(...source);
-                }
-                return target;
-            }
-            exports.concat = concat;
-        },
-        { './alias': 4 }
-    ],
-    12: [
         function (_dereq_, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -937,29 +993,29 @@ require = function () {
             './alias': 4,
             './assign': 6,
             './clock': 10,
-            './exception': 15,
-            './future': 17,
-            './global': 18,
-            './noop': 80,
-            './promise': 82
+            './exception': 14,
+            './future': 16,
+            './global': 17,
+            './noop': 79,
+            './promise': 81
         }
     ],
-    13: [
+    12: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            exports.curry = void 0;
-            exports.curry = f => apply(f, []);
-            function apply(f, xs) {
-                return xs.length >= f.length ? f(...xs) : (...ys) => apply(f, [
-                    ...xs,
-                    ...ys
-                ]);
+            exports.uncurry = exports.curry = void 0;
+            const global_1 = _dereq_('./global');
+            exports.curry = f => apply(f);
+            function apply(f, ...xs) {
+                let g;
+                return xs.length < f.length ? (y, ...ys) => apply(g = g || f.bind(global_1.undefined, ...xs), y, ...ys) : f(...xs);
             }
+            exports.uncurry = f => (...xs) => f.length === 0 ? f(...xs) : xs.reduce((f, x) => f(x), f);
         },
-        {}
+        { './global': 17 }
     ],
-    14: [
+    13: [
         function (_dereq_, module, exports) {
             'use strict';
             var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
@@ -984,9 +1040,9 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             __exportStar(_dereq_('./monad/either'), exports);
         },
-        { './monad/either': 26 }
+        { './monad/either': 25 }
     ],
-    15: [
+    14: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -998,7 +1054,7 @@ require = function () {
         },
         {}
     ],
-    16: [
+    15: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1009,9 +1065,9 @@ require = function () {
             }
             exports.flip = flip;
         },
-        { './curry': 13 }
+        { './curry': 12 }
     ],
-    17: [
+    16: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1058,9 +1114,9 @@ require = function () {
             }
             exports.AtomicFuture = AtomicFuture;
         },
-        { './promise': 82 }
+        { './promise': 81 }
     ],
-    18: [
+    17: [
         function (_dereq_, module, exports) {
             'use strict';
             const global = void 0 || typeof globalThis !== 'undefined' && globalThis || typeof self !== 'undefined' && self || Function('return this')();
@@ -1069,7 +1125,7 @@ require = function () {
         },
         {}
     ],
-    19: [
+    18: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1085,7 +1141,7 @@ require = function () {
         },
         {}
     ],
-    20: [
+    19: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1138,7 +1194,7 @@ require = function () {
         },
         {}
     ],
-    21: [
+    20: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1322,9 +1378,9 @@ require = function () {
                 }
             }
         },
-        { './global': 18 }
+        { './global': 17 }
     ],
-    22: [
+    21: [
         function (_dereq_, module, exports) {
             'use strict';
             var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
@@ -1349,31 +1405,36 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             __exportStar(_dereq_('./monad/maybe'), exports);
         },
-        { './monad/maybe': 30 }
+        { './monad/maybe': 29 }
     ],
-    23: [
+    22: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.memoize = void 0;
             const global_1 = _dereq_('./global');
-            function memoize(f, memory = new Map()) {
-                let nullable = false;
-                return a => {
-                    let z = memory.get(a);
-                    if (z !== global_1.undefined || nullable && memory.has(a))
+            function memoize(f, identify = (...as) => as[0], memory) {
+                if (typeof identify === 'object')
+                    return memoize(f, global_1.undefined, identify);
+                if (memory === global_1.undefined)
+                    return memoize(f, identify, new global_1.Map());
+                let nullish = false;
+                return (...as) => {
+                    const b = identify(...as);
+                    let z = memory.get(b);
+                    if (z !== global_1.undefined || nullish && memory.has(b))
                         return z;
-                    z = f(a);
-                    nullable = nullable || z === global_1.undefined;
-                    memory.set(a, z);
+                    z = f(...as);
+                    nullish = nullish || z === global_1.undefined;
+                    memory.set(b, z);
                     return z;
                 };
             }
             exports.memoize = memoize;
         },
-        { './global': 18 }
+        { './global': 17 }
     ],
-    24: [
+    23: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1391,11 +1452,11 @@ require = function () {
             }(Applicative = exports.Applicative || (exports.Applicative = {})));
         },
         {
-            '../curry': 13,
-            './functor': 27
+            '../curry': 12,
+            './functor': 26
         }
     ],
-    25: [
+    24: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1501,11 +1562,11 @@ require = function () {
             }
         },
         {
-            '../promise': 82,
-            './monad': 31
+            '../promise': 81,
+            './monad': 30
         }
     ],
-    26: [
+    25: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1526,9 +1587,9 @@ require = function () {
             }
             exports.Right = Right;
         },
-        { './either.impl': 25 }
+        { './either.impl': 24 }
     ],
-    27: [
+    26: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1544,9 +1605,9 @@ require = function () {
                 Functor.fmap = fmap;
             }(Functor = exports.Functor || (exports.Functor = {})));
         },
-        { './lazy': 28 }
+        { './lazy': 27 }
     ],
-    28: [
+    27: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1563,7 +1624,7 @@ require = function () {
         },
         {}
     ],
-    29: [
+    28: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1678,11 +1739,11 @@ require = function () {
             }
         },
         {
-            '../promise': 82,
-            './monadplus': 32
+            '../promise': 81,
+            './monadplus': 31
         }
     ],
-    30: [
+    29: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1700,9 +1761,9 @@ require = function () {
             exports.Just = Just;
             exports.Nothing = Monad.Maybe.mzero;
         },
-        { './maybe.impl': 29 }
+        { './maybe.impl': 28 }
     ],
-    31: [
+    30: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1718,9 +1779,9 @@ require = function () {
                 Monad.bind = bind;
             }(Monad = exports.Monad || (exports.Monad = {})));
         },
-        { './applicative': 24 }
+        { './applicative': 23 }
     ],
-    32: [
+    31: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1732,9 +1793,9 @@ require = function () {
             (function (MonadPlus) {
             }(MonadPlus = exports.MonadPlus || (exports.MonadPlus = {})));
         },
-        { './monad': 31 }
+        { './monad': 30 }
     ],
-    33: [
+    32: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1795,56 +1856,56 @@ require = function () {
             void compose_1.compose(core_1.Sequence, resume_1.default, from_1.default, cycle_1.default, random_1.default, concat_1.default, zip_1.default, difference_1.default, union_1.default, intersect_1.default, pure_1.default, return_1.default, sequence_1.default, mempty_1.default, mconcat_1.default, mappend_1.default, mzero_1.default, mplus_1.default, extract_1.default, iterate_1.default, memoize_1.default, reduce_1.default, take_1.default, drop_1.default, takeWhile_1.default, dropWhile_1.default, takeUntil_1.default, dropUntil_1.default, sort_1.default, unique_1.default, fmap_1.default, ap_1.default, bind_1.default, join_1.default, mapM_1.default, filterM_1.default, map_1.default, filter_1.default, scanl_1.default, foldr_1.default, group_1.default, inits_1.default, tails_1.default, segs_1.default, subsequences_1.default, permutations_1.default);
         },
         {
-            '../helper/compose': 19,
-            './sequence/core': 34,
-            './sequence/member/instance/ap': 35,
-            './sequence/member/instance/bind': 36,
-            './sequence/member/instance/drop': 37,
-            './sequence/member/instance/dropUntil': 38,
-            './sequence/member/instance/dropWhile': 39,
-            './sequence/member/instance/extract': 40,
-            './sequence/member/instance/filter': 41,
-            './sequence/member/instance/filterM': 42,
-            './sequence/member/instance/fmap': 43,
-            './sequence/member/instance/foldr': 44,
-            './sequence/member/instance/group': 45,
-            './sequence/member/instance/inits': 46,
-            './sequence/member/instance/iterate': 47,
-            './sequence/member/instance/join': 48,
-            './sequence/member/instance/map': 49,
-            './sequence/member/instance/mapM': 50,
-            './sequence/member/instance/memoize': 51,
-            './sequence/member/instance/permutations': 52,
-            './sequence/member/instance/reduce': 53,
-            './sequence/member/instance/scanl': 54,
-            './sequence/member/instance/segs': 55,
-            './sequence/member/instance/sort': 56,
-            './sequence/member/instance/subsequences': 57,
-            './sequence/member/instance/tails': 58,
-            './sequence/member/instance/take': 59,
-            './sequence/member/instance/takeUntil': 60,
-            './sequence/member/instance/takeWhile': 61,
-            './sequence/member/instance/unique': 62,
-            './sequence/member/static/concat': 63,
-            './sequence/member/static/cycle': 64,
-            './sequence/member/static/difference': 65,
-            './sequence/member/static/from': 66,
-            './sequence/member/static/intersect': 67,
-            './sequence/member/static/mappend': 68,
-            './sequence/member/static/mconcat': 69,
-            './sequence/member/static/mempty': 70,
-            './sequence/member/static/mplus': 71,
-            './sequence/member/static/mzero': 72,
-            './sequence/member/static/pure': 73,
-            './sequence/member/static/random': 74,
-            './sequence/member/static/resume': 75,
-            './sequence/member/static/return': 76,
-            './sequence/member/static/sequence': 77,
-            './sequence/member/static/union': 78,
-            './sequence/member/static/zip': 79
+            '../helper/compose': 18,
+            './sequence/core': 33,
+            './sequence/member/instance/ap': 34,
+            './sequence/member/instance/bind': 35,
+            './sequence/member/instance/drop': 36,
+            './sequence/member/instance/dropUntil': 37,
+            './sequence/member/instance/dropWhile': 38,
+            './sequence/member/instance/extract': 39,
+            './sequence/member/instance/filter': 40,
+            './sequence/member/instance/filterM': 41,
+            './sequence/member/instance/fmap': 42,
+            './sequence/member/instance/foldr': 43,
+            './sequence/member/instance/group': 44,
+            './sequence/member/instance/inits': 45,
+            './sequence/member/instance/iterate': 46,
+            './sequence/member/instance/join': 47,
+            './sequence/member/instance/map': 48,
+            './sequence/member/instance/mapM': 49,
+            './sequence/member/instance/memoize': 50,
+            './sequence/member/instance/permutations': 51,
+            './sequence/member/instance/reduce': 52,
+            './sequence/member/instance/scanl': 53,
+            './sequence/member/instance/segs': 54,
+            './sequence/member/instance/sort': 55,
+            './sequence/member/instance/subsequences': 56,
+            './sequence/member/instance/tails': 57,
+            './sequence/member/instance/take': 58,
+            './sequence/member/instance/takeUntil': 59,
+            './sequence/member/instance/takeWhile': 60,
+            './sequence/member/instance/unique': 61,
+            './sequence/member/static/concat': 62,
+            './sequence/member/static/cycle': 63,
+            './sequence/member/static/difference': 64,
+            './sequence/member/static/from': 65,
+            './sequence/member/static/intersect': 66,
+            './sequence/member/static/mappend': 67,
+            './sequence/member/static/mconcat': 68,
+            './sequence/member/static/mempty': 69,
+            './sequence/member/static/mplus': 70,
+            './sequence/member/static/mzero': 71,
+            './sequence/member/static/pure': 72,
+            './sequence/member/static/random': 73,
+            './sequence/member/static/resume': 74,
+            './sequence/member/static/return': 75,
+            './sequence/member/static/sequence': 76,
+            './sequence/member/static/union': 77,
+            './sequence/member/static/zip': 78
         }
     ],
-    34: [
+    33: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1946,9 +2007,9 @@ require = function () {
                 throw new Error(`Spica: Sequence: Invalid thunk call.`);
             }
         },
-        { '../monadplus': 32 }
+        { '../monadplus': 31 }
     ],
-    35: [
+    34: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1960,9 +2021,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    36: [
+    35: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1974,9 +2035,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    37: [
+    36: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1988,9 +2049,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    38: [
+    37: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2002,9 +2063,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    39: [
+    38: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2016,9 +2077,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    40: [
+    39: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2038,9 +2099,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    41: [
+    40: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2052,9 +2113,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    42: [
+    41: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2079,9 +2140,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    43: [
+    42: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2093,9 +2154,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    44: [
+    43: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2107,9 +2168,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    45: [
+    44: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2127,9 +2188,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    46: [
+    45: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2144,9 +2205,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    47: [
+    46: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2183,9 +2244,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    48: [
+    47: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2197,9 +2258,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    49: [
+    48: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2211,9 +2272,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    50: [
+    49: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2238,9 +2299,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    51: [
+    50: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2259,9 +2320,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    52: [
+    51: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2299,9 +2360,9 @@ require = function () {
                 })).bind(xs => xs));
             }
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    53: [
+    52: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2319,9 +2380,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    54: [
+    53: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2341,9 +2402,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    55: [
+    54: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2358,9 +2419,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    56: [
+    55: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2372,9 +2433,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    57: [
+    56: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2392,9 +2453,9 @@ require = function () {
                     ]])), r), core_1.Sequence.mempty)))).bind(xs => xs)));
             }
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    58: [
+    57: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2406,9 +2467,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    59: [
+    58: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2420,9 +2481,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    60: [
+    59: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2434,9 +2495,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    61: [
+    60: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2448,9 +2509,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    62: [
+    61: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2463,9 +2524,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    63: [
+    62: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2483,9 +2544,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    64: [
+    63: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2509,9 +2570,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    65: [
+    64: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2545,9 +2606,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    66: [
+    65: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2568,9 +2629,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    67: [
+    66: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2595,9 +2656,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    68: [
+    67: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2612,9 +2673,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    69: [
+    68: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2638,9 +2699,9 @@ require = function () {
                 ])));
             }
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    70: [
+    69: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2653,9 +2714,9 @@ require = function () {
             })();
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    71: [
+    70: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2668,9 +2729,9 @@ require = function () {
             })();
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    72: [
+    71: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2683,9 +2744,9 @@ require = function () {
             })();
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    73: [
+    72: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2697,9 +2758,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    74: [
+    73: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2711,9 +2772,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    75: [
+    74: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2725,9 +2786,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    76: [
+    75: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2739,9 +2800,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    77: [
+    76: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2753,9 +2814,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    78: [
+    77: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2792,9 +2853,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    79: [
+    78: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2815,9 +2876,9 @@ require = function () {
             }
             exports.default = default_1;
         },
-        { '../../core': 34 }
+        { '../../core': 33 }
     ],
-    80: [
+    79: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2829,7 +2890,7 @@ require = function () {
         },
         {}
     ],
-    81: [
+    80: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2862,13 +2923,13 @@ require = function () {
             let id = 0;
             class Observation {
                 constructor(opts = {}) {
-                    this.node = new ListenerNode(void 0, void 0);
+                    this.node = new ListenerNode(global_1.undefined, global_1.undefined);
                     this.settings = {
                         limit: 10,
                         cleanup: false
                     };
                     this.unrelaies = new global_1.WeakMap();
-                    void assign_1.extend(this.settings, opts);
+                    assign_1.extend(this.settings, opts);
                 }
                 monitor(namespace, monitor, {
                     once = false
@@ -2887,7 +2948,7 @@ require = function () {
                         listener: monitor,
                         options: { once }
                     };
-                    void monitors.push(item);
+                    monitors.push(item);
                     return () => void this.off(namespace, item);
                 }
                 on(namespace, subscriber, {
@@ -2907,7 +2968,7 @@ require = function () {
                         listener: subscriber,
                         options: { once }
                     };
-                    void subscribers.push(item);
+                    subscribers.push(item);
                     return () => void this.off(namespace, item);
                 }
                 once(namespace, subscriber) {
@@ -2922,22 +2983,22 @@ require = function () {
                             const items = subscriber.type === 0 ? node.monitors : node.subscribers;
                             if (items.length === 0 || subscriber.id < items[0].id || subscriber.id > items[items.length - 1].id)
                                 return;
-                            return void remove(items, items.indexOf(subscriber));
+                            return void array_1.splice(items, items.indexOf(subscriber), 1);
                         }
                     case 'function': {
                             const items = node.subscribers;
-                            return void remove(items, items.findIndex(item => item.listener === subscriber));
+                            return void array_1.splice(items, items.findIndex(item => item.listener === subscriber), 1);
                         }
                     case 'undefined':
                         return void clear(node);
                     }
                 }
                 emit(namespace, data, tracker) {
-                    void this.drain(namespace, data, tracker);
+                    this.drain(namespace, data, tracker);
                 }
                 reflect(namespace, data) {
                     let results;
-                    void this.emit(namespace, data, (_, r) => results = r);
+                    this.emit(namespace, data, (_, r) => results = r);
                     return results;
                 }
                 relay(source) {
@@ -2945,7 +3006,7 @@ require = function () {
                         return this.unrelaies.get(source);
                     const unbind = source.monitor([], (data, namespace) => void this.emit(namespace, data));
                     const unrelay = () => (void this.unrelaies.delete(source), void unbind());
-                    void this.unrelaies.set(source, unrelay);
+                    this.unrelaies.set(source, unrelay);
                     return unrelay;
                 }
                 refs(namespace) {
@@ -2965,19 +3026,16 @@ require = function () {
                         for (let i = 0, max = items[items.length - 1].id; i < items.length && items[i].id <= max; ++i) {
                             const item = items[i];
                             if (item.options.once) {
-                                void this.off(item.namespace, item);
+                                this.off(item.namespace, item);
                             }
                             try {
                                 const result = item.listener(data, namespace);
-                                tracker && void results.push(result);
+                                tracker && results.push(result);
                             } catch (reason) {
-                                void exception_1.causeAsyncException(reason);
+                                exception_1.causeAsyncException(reason);
                             }
                             i = i < items.length ? i : items.length - 1;
-                            for (; i >= 0; --i) {
-                                if (items[i].id <= item.id)
-                                    break;
-                            }
+                            for (; i >= 0 && items[i].id > item.id; --i);
                         }
                     }
                     const mss = this.refsAbove(node || this.seekNode(namespace, 2), 0);
@@ -2988,32 +3046,29 @@ require = function () {
                         for (let i = 0, max = items[items.length - 1].id; i < items.length && items[i].id <= max; ++i) {
                             const item = items[i];
                             if (item.options.once) {
-                                void this.off(item.namespace, item);
+                                this.off(item.namespace, item);
                             }
                             try {
-                                void item.listener(data, namespace);
+                                item.listener(data, namespace);
                             } catch (reason) {
-                                void exception_1.causeAsyncException(reason);
+                                exception_1.causeAsyncException(reason);
                             }
                             i = i < items.length ? i : items.length - 1;
-                            for (; i >= 0; --i) {
-                                if (items[i].id <= item.id)
-                                    break;
-                            }
+                            for (; i >= 0 && items[i].id > item.id; --i);
                         }
                     }
                     if (tracker) {
                         try {
-                            void tracker(data, results);
+                            tracker(data, results);
                         } catch (reason) {
-                            void exception_1.causeAsyncException(reason);
+                            exception_1.causeAsyncException(reason);
                         }
                     }
                 }
                 refsAbove({parent, monitors, subscribers}, type) {
                     const acc = type === 0 ? [monitors] : [subscribers];
                     while (parent) {
-                        type === 0 ? void acc.push(parent.monitors) : void acc.push(parent.subscribers);
+                        type === 0 ? acc.push(parent.monitors) : acc.push(parent.subscribers);
                         parent = parent.parent;
                     }
                     return acc;
@@ -3022,16 +3077,16 @@ require = function () {
                     return this.refsBelow_(node, type, [])[0];
                 }
                 refsBelow_({monitors, subscribers, childrenIndexes, children}, type, acc) {
-                    type === 0 ? void acc.push(monitors) : void acc.push(subscribers);
+                    type === 0 ? acc.push(monitors) : acc.push(subscribers);
                     let count = 0;
                     for (let i = 0; i < childrenIndexes.length; ++i) {
                         const index = childrenIndexes[i];
                         const cnt = this.refsBelow_(children.get(index), type, acc)[1];
                         count += cnt;
                         if (cnt === 0 && this.settings.cleanup) {
-                            void children.delete(index);
-                            void remove(childrenIndexes, i);
-                            void --i;
+                            children.delete(index);
+                            array_1.splice(childrenIndexes, i, 1);
+                            --i;
                         }
                     }
                     return [
@@ -3053,8 +3108,8 @@ require = function () {
                                 return node;
                             }
                             child = new ListenerNode(node, index);
-                            void childrenIndexes.push(index);
-                            void children.set(index, child);
+                            childrenIndexes.push(index);
+                            children.set(index, child);
                         }
                         node = child;
                     }
@@ -3062,46 +3117,34 @@ require = function () {
                 }
             }
             exports.Observation = Observation;
-            function remove(target, index) {
-                switch (index) {
-                case -1:
-                    return;
-                case 0:
-                    return void target.shift();
-                case target.length - 1:
-                    return void target.pop();
-                default:
-                    return void target.splice(index, 1);
-                }
-            }
             function clear({monitors, subscribers, childrenIndexes, children}) {
                 for (let i = 0; i < childrenIndexes.length; ++i) {
                     if (!clear(children.get(childrenIndexes[i])))
                         continue;
-                    void children.delete(childrenIndexes[i]);
-                    void remove(childrenIndexes, i);
-                    void --i;
+                    children.delete(childrenIndexes[i]);
+                    array_1.splice(childrenIndexes, i, 1);
+                    --i;
                 }
-                if (subscribers.length > 0) {
-                    subscribers.length = 0;
-                }
+                array_1.splice(subscribers, 0);
                 return monitors.length === 0;
             }
         },
         {
             './array': 5,
             './assign': 6,
-            './exception': 15,
-            './global': 18
+            './exception': 14,
+            './global': 17
         }
     ],
-    82: [
+    81: [
         function (_dereq_, module, exports) {
             'use strict';
             var _a;
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.isPromiseLike = exports.AtomicPromise = void 0;
             const global_1 = _dereq_('./global');
+            const alias_1 = _dereq_('./alias');
+            const array_1 = _dereq_('./array');
             var State;
             (function (State) {
                 State[State['pending'] = 0] = 'pending';
@@ -3125,7 +3168,7 @@ require = function () {
                     const intl = internal;
                     try {
                         const internal = this[intl];
-                        void executor(value => {
+                        executor(value => {
                             if (internal.status.state !== 0)
                                 return;
                             if (isPromiseLike(value)) {
@@ -3133,25 +3176,25 @@ require = function () {
                                     state: 1,
                                     result: value
                                 };
-                                void value.then(value => {
+                                value.then(value => {
                                     internal.status = {
                                         state: 2,
                                         result: value
                                     };
-                                    void resume(internal);
+                                    resume(internal);
                                 }, reason => {
                                     internal.status = {
                                         state: 3,
                                         result: reason
                                     };
-                                    void resume(internal);
+                                    resume(internal);
                                 });
                             } else {
                                 internal.status = {
                                     state: 2,
                                     result: value
                                 };
-                                void resume(internal);
+                                resume(internal);
                             }
                         }, reason => {
                             if (internal.status.state !== 0)
@@ -3160,7 +3203,7 @@ require = function () {
                                 state: 3,
                                 result: reason
                             };
-                            void resume(internal);
+                            resume(internal);
                         });
                     } catch (reason) {
                         const internal = this[intl];
@@ -3170,7 +3213,7 @@ require = function () {
                             state: 3,
                             result: reason
                         };
-                        void resume(internal);
+                        resume(internal);
                     }
                 }
                 static get [Symbol.species]() {
@@ -3178,27 +3221,27 @@ require = function () {
                 }
                 static all(vs) {
                     return new AtomicPromise((resolve, reject) => {
-                        const values = [...vs];
+                        const values = alias_1.isArray(vs) ? vs : [...vs];
                         const length = values.length;
-                        const acc = global_1.Array(length);
+                        const acc = [];
                         let cnt = 0;
                         for (let i = 0; i < length; ++i) {
                             const value = values[i];
                             if (isPromiseLike(value)) {
-                                void value.then(value => {
+                                value.then(value => {
                                     acc[i] = value;
-                                    void ++cnt;
-                                    cnt === length && void resolve(acc);
+                                    ++cnt;
+                                    cnt === length && resolve(acc);
                                 }, reason => {
                                     i = length;
-                                    void reject(reason);
+                                    reject(reason);
                                 });
                             } else {
                                 acc[i] = value;
-                                void ++cnt;
+                                ++cnt;
                             }
                         }
-                        cnt === length && void resolve(acc);
+                        cnt === length && resolve(acc);
                     });
                 }
                 static race(values) {
@@ -3208,56 +3251,56 @@ require = function () {
                             if (done)
                                 break;
                             if (isPromiseLike(value)) {
-                                void value.then(value => {
+                                value.then(value => {
                                     done = true;
-                                    void resolve(value);
+                                    resolve(value);
                                 }, reason => {
                                     done = true;
-                                    void reject(reason);
+                                    reject(reason);
                                 });
                             } else {
                                 done = true;
-                                void resolve(value);
+                                resolve(value);
                             }
                         }
                     });
                 }
                 static resolve(value) {
-                    return new AtomicPromise(resolve => void resolve(value));
+                    return new AtomicPromise(resolve => resolve(value));
                 }
                 static reject(reason) {
-                    return new AtomicPromise((_, reject) => void reject(reason));
+                    return new AtomicPromise((_, reject) => reject(reason));
                 }
                 then(onfulfilled, onrejected) {
                     return new AtomicPromise((resolve, reject) => {
                         const {fulfillReactions, rejectReactions, status} = this[internal];
                         if (status.state !== 3) {
-                            void fulfillReactions.push(value => {
+                            fulfillReactions.push(value => {
                                 if (!onfulfilled)
-                                    return void resolve(value);
+                                    return resolve(value);
                                 try {
-                                    void resolve(onfulfilled(value));
+                                    resolve(onfulfilled(value));
                                 } catch (reason) {
-                                    void reject(reason);
+                                    reject(reason);
                                 }
                             });
                         }
                         if (status.state !== 2) {
-                            void rejectReactions.push(reason => {
+                            rejectReactions.push(reason => {
                                 if (!onrejected)
-                                    return void reject(reason);
+                                    return reject(reason);
                                 try {
-                                    void resolve(onrejected(reason));
+                                    resolve(onrejected(reason));
                                 } catch (reason) {
-                                    void reject(reason);
+                                    reject(reason);
                                 }
                             });
                         }
-                        void resume(this[internal]);
+                        resume(this[internal]);
                     });
                 }
                 catch(onrejected) {
-                    return this.then(void 0, onrejected);
+                    return this.then(global_1.undefined, onrejected);
                 }
                 finally(onfinally) {
                     return this.then(onfinally, onfinally).then(() => this);
@@ -3277,33 +3320,44 @@ require = function () {
                     return;
                 case 2:
                     if (!internal.isHandled && rejectReactions.length > 0) {
-                        rejectReactions.length = 0;
+                        array_1.splice(rejectReactions, 0);
                     }
                     if (fulfillReactions.length === 0)
                         return;
                     internal.isHandled = true;
-                    void consume(fulfillReactions, status.result);
+                    consume(fulfillReactions, status.result);
                     return;
                 case 3:
                     if (!internal.isHandled && fulfillReactions.length > 0) {
-                        fulfillReactions.length = 0;
+                        array_1.splice(fulfillReactions, 0);
                     }
                     if (rejectReactions.length === 0)
                         return;
                     internal.isHandled = true;
-                    void consume(rejectReactions, status.result);
+                    consume(rejectReactions, status.result);
                     return;
                 }
             }
             function consume(fs, a) {
-                while (fs.length > 0) {
-                    void fs.shift()(a);
+                if (fs.length > 5) {
+                    for (let i = 0; i < fs.length; ++i) {
+                        fs[i](a);
+                    }
+                    array_1.splice(fs, 0);
+                } else {
+                    while (fs.length > 0) {
+                        fs.shift()(a);
+                    }
                 }
             }
         },
-        { './global': 18 }
+        {
+            './alias': 4,
+            './array': 5,
+            './global': 17
+        }
     ],
-    83: [
+    82: [
         function (_dereq_, module, exports) {
             'use strict';
             var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
@@ -3328,31 +3382,36 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             __exportStar(_dereq_('./monad/sequence'), exports);
         },
-        { './monad/sequence': 33 }
+        { './monad/sequence': 32 }
     ],
-    84: [
+    83: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.sqid = void 0;
+            const global_1 = _dereq_('./global');
             const zeros = '0'.repeat(15);
             let cnt = 0;
             function sqid(id) {
-                if (arguments.length > 0) {
+                if (arguments.length === 0) {
+                    if (cnt === global_1.Number.MAX_SAFE_INTEGER)
+                        throw new TypeError(`Spica: sqid: sqid reached max safe integer.`);
+                    return sqid(++cnt);
+                } else {
                     if (typeof id !== 'number')
                         throw new TypeError(`Spica: sqid: A parameter value must be a number: ${ id }`);
                     if (id >= 0 === false)
                         throw new TypeError(`Spica: sqid: A parameter value must be a positive number: ${ id }`);
                     if (id % 1 !== 0)
                         throw new TypeError(`Spica: sqid: A parameter value must be an integer: ${ id }`);
+                    return (zeros + id).slice(-16);
                 }
-                return id === void 0 ? (zeros + ++cnt).slice(-15) : (zeros + id).slice(-15);
             }
             exports.sqid = sqid;
         },
-        {}
+        { './global': 17 }
     ],
-    85: [
+    84: [
         function (_dereq_, module, exports) {
             'use strict';
             var __await = this && this.__await || function (v) {
@@ -3407,6 +3466,7 @@ require = function () {
             const promise_1 = _dereq_('./promise');
             const future_1 = _dereq_('./future');
             const observation_1 = _dereq_('./observation');
+            const array_1 = _dereq_('./array');
             const assign_1 = _dereq_('./assign');
             const clock_1 = _dereq_('./clock');
             const sqid_1 = _dereq_('./sqid');
@@ -3684,7 +3744,7 @@ require = function () {
                             }
                             if (result === void 0 && Date.now() < expiry)
                                 continue;
-                            i === 0 ? void this.messages.shift() : void this.messages.splice(i, 1);
+                            void array_1.splice(this.messages, i, 1);
                             void --i;
                             void --len;
                             if (result === void 0) {
@@ -3816,18 +3876,19 @@ require = function () {
         },
         {
             './alias': 4,
+            './array': 5,
             './assign': 6,
             './clock': 10,
-            './coroutine': 12,
-            './exception': 15,
-            './future': 17,
-            './global': 18,
-            './observation': 81,
-            './promise': 82,
-            './sqid': 84
+            './coroutine': 11,
+            './exception': 14,
+            './future': 16,
+            './global': 17,
+            './observation': 80,
+            './promise': 81,
+            './sqid': 83
         }
     ],
-    86: [
+    85: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3876,23 +3937,23 @@ require = function () {
             exports.debounce = debounce;
         },
         {
-            './global': 18,
-            './list': 21
+            './global': 17,
+            './list': 20
         }
     ],
-    87: [
+    86: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.tuple = void 0;
-            function tuple(as) {
+            function tuple(...as) {
                 return as;
             }
             exports.tuple = tuple;
         },
         {}
     ],
-    88: [
+    87: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -3943,16 +4004,7 @@ require = function () {
         },
         {}
     ],
-    89: [
-        function (_dereq_, module, exports) {
-            'use strict';
-            Object.defineProperty(exports, '__esModule', { value: true });
-            exports.uncurry = void 0;
-            exports.uncurry = f => (...args) => args.reduce((f, arg) => f(arg), f);
-        },
-        {}
-    ],
-    90: [
+    88: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4019,11 +4071,11 @@ require = function () {
             exports.URL = URL;
         },
         {
-            './global': 18,
-            './url/domain/format': 91
+            './global': 17,
+            './url/domain/format': 89
         }
     ],
-    91: [
+    89: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4032,7 +4084,7 @@ require = function () {
             const memoize_1 = _dereq_('../../memoize');
             const cache_1 = _dereq_('../../cache');
             const flip_1 = _dereq_('../../flip');
-            const uncurry_1 = _dereq_('../../uncurry');
+            const curry_1 = _dereq_('../../curry');
             var Identifier;
             (function (Identifier) {
             }(Identifier || (Identifier = {})));
@@ -4047,20 +4099,20 @@ require = function () {
             function normalize(url, base) {
                 return exports.newURL(url, base).href;
             }
-            exports.newURL = flip_1.flip(uncurry_1.uncurry(memoize_1.memoize(base => memoize_1.memoize(url => new global_1.global.URL(formatURLForEdge(url, base), base), new cache_1.Cache(9)), new cache_1.Cache(9))));
+            exports.newURL = flip_1.flip(curry_1.uncurry(memoize_1.memoize(base => memoize_1.memoize(url => new global_1.global.URL(formatURLForEdge(url, base), base), new cache_1.Cache(100)), new cache_1.Cache(100))));
             function formatURLForEdge(url, base) {
                 return url.trim() || base;
             }
         },
         {
             '../../cache': 7,
-            '../../flip': 16,
-            '../../global': 18,
-            '../../memoize': 23,
-            '../../uncurry': 89
+            '../../curry': 12,
+            '../../flip': 15,
+            '../../global': 17,
+            '../../memoize': 22
         }
     ],
-    92: [
+    90: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4085,7 +4137,7 @@ require = function () {
         },
         {}
     ],
-    93: [
+    91: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4211,24 +4263,25 @@ require = function () {
             });
         },
         {
-            './src/dom/builder': 94,
-            './src/dom/proxy': 96,
-            './src/util/dom': 97,
-            './src/util/listener': 98,
-            './src/util/query': 99,
-            'spica/global': 18
+            './src/dom/builder': 92,
+            './src/dom/proxy': 94,
+            './src/util/dom': 95,
+            './src/util/listener': 96,
+            './src/util/query': 97,
+            'spica/global': 17
         }
     ],
-    94: [
+    92: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.SVG = exports.HTML = exports.Shadow = exports.API = void 0;
+            const global_1 = _dereq_('spica/global');
             const alias_1 = _dereq_('spica/alias');
             const proxy_1 = _dereq_('./proxy');
             const dom_1 = _dereq_('../util/dom');
             function API(baseFactory, formatter = el => el) {
-                return new Proxy(() => void 0, handle(baseFactory, formatter));
+                return new Proxy(() => global_1.undefined, handle(baseFactory, formatter));
             }
             exports.API = API;
             exports.Shadow = API(dom_1.html, dom_1.shadow);
@@ -4244,11 +4297,11 @@ require = function () {
                 function builder(tag, baseFactory) {
                     return function build(attrs, children, factory) {
                         if (typeof attrs === 'function')
-                            return build(void 0, void 0, attrs);
+                            return build(global_1.undefined, global_1.undefined, attrs);
                         if (typeof children === 'function')
-                            return build(attrs, void 0, children);
-                        if (attrs !== void 0 && isChildren(attrs))
-                            return build(void 0, attrs, factory);
+                            return build(attrs, global_1.undefined, children);
+                        if (attrs !== global_1.undefined && isChildren(attrs))
+                            return build(global_1.undefined, attrs, factory);
                         const node = formatter(elem(factory || defaultFactory, attrs, children));
                         return node.nodeType === 1 ? new proxy_1.Elem(node, children) : new proxy_1.Elem(node.host, children, node);
                     };
@@ -4265,9 +4318,9 @@ require = function () {
                                     const value = attrs[name];
                                     if (typeof value !== 'function')
                                         continue;
-                                    void el.removeEventListener(name, value);
+                                    el.removeEventListener(name, value);
                                 }
-                            void dom_1.define(el, attrs);
+                            dom_1.define(el, attrs);
                         }
                         return el;
                     }
@@ -4278,30 +4331,28 @@ require = function () {
             }
         },
         {
-            '../util/dom': 97,
-            './proxy': 96,
-            'spica/alias': 4
+            '../util/dom': 95,
+            './proxy': 94,
+            'spica/alias': 4,
+            'spica/global': 17
         }
     ],
-    95: [
+    93: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.uid = void 0;
             const uuid_1 = _dereq_('spica/uuid');
-            const sqid_1 = _dereq_('spica/sqid');
             const id = uuid_1.uuid().slice(-7);
+            let counter = 0;
             function uid() {
-                return `id-${ id }-${ +sqid_1.sqid() }`;
+                return `id-${ id }-${ ++counter }`;
             }
             exports.uid = uid;
         },
-        {
-            'spica/sqid': 84,
-            'spica/uuid': 92
-        }
+        { 'spica/uuid': 90 }
     ],
-    96: [
+    94: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4310,6 +4361,7 @@ require = function () {
             const alias_1 = _dereq_('spica/alias');
             const identity_1 = _dereq_('./identity');
             const dom_1 = _dereq_('../util/dom');
+            const array_1 = _dereq_('spica/array');
             var ElChildrenType;
             (function (ElChildrenType) {
                 ElChildrenType.Void = 'void';
@@ -4319,9 +4371,10 @@ require = function () {
             }(ElChildrenType || (ElChildrenType = {})));
             const proxies = new global_1.WeakMap();
             function proxy(el) {
-                if (!proxies.has(el))
-                    throw new Error(`TypedDOM: This element has no proxy.`);
-                return proxies.get(el);
+                const proxy = proxies.get(el);
+                if (proxy)
+                    return proxy;
+                throw new Error(`TypedDOM: This element has no proxy.`);
             }
             exports.proxy = proxy;
             const tag = Symbol.for('typed-dom/tag');
@@ -4330,11 +4383,12 @@ require = function () {
                     this.element = element;
                     this.children_ = children_;
                     this.container = container;
-                    this.id_ = this.element.id.trim();
+                    this.id_ = '';
+                    this.query_ = '';
                     this.isPartialUpdate = false;
                     this.isInitialization = true;
                     switch (true) {
-                    case children_ === void 0:
+                    case children_ === global_1.undefined:
                         this.type = ElChildrenType.Void;
                         break;
                     case typeof children_ === 'string':
@@ -4349,26 +4403,26 @@ require = function () {
                     default:
                         throw new Error(`TypedDOM: Invalid type children.`);
                     }
-                    void throwErrorIfNotUsable(this);
-                    void proxies.set(this.element, this);
+                    throwErrorIfNotUsable(this);
+                    proxies.set(this.element, this);
                     switch (this.type) {
                     case ElChildrenType.Void:
                         this.isInitialization = false;
                         return;
                     case ElChildrenType.Text:
-                        void dom_1.define(this.container, []);
+                        dom_1.define(this.container, []);
                         this.children_ = this.container.appendChild(dom_1.text(''));
                         this.children = children_;
                         this.isInitialization = false;
                         return;
                     case ElChildrenType.Array:
-                        void dom_1.define(this.container, []);
+                        dom_1.define(this.container, []);
                         this.children_ = [];
                         this.children = children_;
                         this.isInitialization = false;
                         return;
                     case ElChildrenType.Record:
-                        void dom_1.define(this.container, []);
+                        dom_1.define(this.container, []);
                         this.children_ = this.observe(Object.assign({}, children_));
                         this.children = children_;
                         this.isInitialization = false;
@@ -4380,18 +4434,23 @@ require = function () {
                 get id() {
                     if (this.id_)
                         return this.id_;
+                    this.id_ = this.element.id.trim();
+                    if (this.id_)
+                        return this.id_;
                     this.id_ = identity_1.uid();
-                    void this.element.classList.add(this.id_);
+                    this.element.classList.add(this.id_);
                     return this.id_;
                 }
                 get query() {
+                    if (this.query_)
+                        return this.query_;
                     switch (true) {
                     case this.element !== this.container:
-                        return ':host';
+                        return this.query_ = ':host';
                     case this.id === this.element.id.trim():
-                        return `#${ this.id }`;
+                        return this.query_ = `#${ this.id }`;
                     default:
-                        return `.${ this.id }`;
+                        return this.query_ = `.${ this.id }`;
                     }
                 }
                 observe(children) {
@@ -4400,8 +4459,8 @@ require = function () {
                         if (name in {})
                             continue;
                         let child = children[name];
-                        void throwErrorIfNotUsable(child);
-                        void this.container.appendChild(child.element);
+                        throwErrorIfNotUsable(child);
+                        this.container.appendChild(child.element);
                         descs[name] = {
                             configurable: true,
                             enumerable: true,
@@ -4416,11 +4475,11 @@ require = function () {
                                     child = newChild;
                                     if (newChild.element.parentNode === oldChild.element.parentNode) {
                                         const ref = newChild.element.nextSibling !== oldChild.element ? newChild.element.nextSibling : oldChild.element.nextSibling;
-                                        void this.container.replaceChild(newChild.element, oldChild.element);
-                                        void this.container.insertBefore(oldChild.element, ref);
+                                        this.container.replaceChild(newChild.element, oldChild.element);
+                                        this.container.insertBefore(oldChild.element, ref);
                                     } else {
-                                        void this.container.insertBefore(newChild.element, oldChild.element);
-                                        void this.container.removeChild(oldChild.element);
+                                        this.container.insertBefore(newChild.element, oldChild.element);
+                                        this.container.removeChild(oldChild.element);
                                     }
                                 } else {
                                     this.children = Object.assign(Object.assign({}, this.children_), { [name]: newChild });
@@ -4433,32 +4492,23 @@ require = function () {
                 scope(child) {
                     if (child.element.tagName !== 'STYLE')
                         return;
-                    const syntax = /(^|[,}])(\s*)\$scope(?![\w-])(?=[^;{}]*{)/g;
                     const style = child.element;
+                    const target = /(^|[,}])(\s*)\$scope(?![\w-])(?=[^;{}]*{)/g;
+                    if (style.innerHTML.search(target) === -1)
+                        return;
                     const query = this.query;
-                    if (style.innerHTML.search(syntax) === -1)
+                    style.innerHTML = style.innerHTML.replace(target, (_, frag, space) => `${ frag }${ space }${ query }`);
+                    if (!style.firstElementChild)
                         return;
-                    style.innerHTML = style.innerHTML.replace(syntax, (_, frag, space) => `${ frag }${ space }${ query }`);
-                    switch (query[0]) {
-                    case '.': {
-                            const id = query.slice(1);
-                            if (!style.classList.contains(id))
-                                break;
-                            void style.classList.add(id);
-                            break;
-                        }
-                    }
-                    if (style.children.length === 0)
-                        return;
-                    for (const el of style.querySelectorAll('*')) {
-                        void el.remove();
+                    for (const el of style.children) {
+                        el.remove();
                     }
                 }
                 get children() {
                     switch (this.type) {
                     case ElChildrenType.Text:
                         if (this.children_.parentNode !== this.container) {
-                            this.children_ = void 0;
+                            this.children_ = global_1.undefined;
                             for (const node of this.container.childNodes) {
                                 if ('wholeText' in node === false)
                                     continue;
@@ -4487,7 +4537,7 @@ require = function () {
                             targetChildren.data = newText;
                             if (newText === oldText)
                                 return;
-                            void this.element.dispatchEvent(new global_1.Event('change', {
+                            this.element.dispatchEvent(new global_1.Event('change', {
                                 bubbles: false,
                                 cancelable: true
                             }));
@@ -4502,24 +4552,24 @@ require = function () {
                                 const newChild = sourceChildren[i];
                                 const el = nodeChildren[i];
                                 if (newChild.element.parentNode !== this.container) {
-                                    void throwErrorIfNotUsable(newChild);
+                                    throwErrorIfNotUsable(newChild);
                                 }
                                 if (newChild.element !== el) {
                                     if (newChild.element.parentNode !== this.container) {
-                                        void this.scope(newChild);
-                                        void addedChildren.push(newChild);
+                                        this.scope(newChild);
+                                        addedChildren.push(newChild);
                                     }
-                                    void this.container.insertBefore(newChild.element, el);
+                                    this.container.insertBefore(newChild.element, el);
                                     isChanged = true;
                                 }
-                                void targetChildren.push(newChild);
+                                targetChildren.push(newChild);
                             }
-                            void alias_1.ObjectFreeze(targetChildren);
+                            alias_1.ObjectFreeze(targetChildren);
                             for (let i = nodeChildren.length; sourceChildren.length < i--;) {
                                 const el = nodeChildren[sourceChildren.length];
                                 if (!proxies.has(el))
                                     continue;
-                                void removedChildren.push(proxy(this.container.removeChild(el)));
+                                removedChildren.push(proxy(this.container.removeChild(el)));
                                 isChanged = true;
                             }
                             break;
@@ -4533,18 +4583,18 @@ require = function () {
                                 if (!this.isInitialization && newChild === oldChild)
                                     continue;
                                 if (newChild.element.parentNode !== this.container) {
-                                    void throwErrorIfNotUsable(newChild);
+                                    throwErrorIfNotUsable(newChild);
                                 }
                                 if (this.isInitialization || newChild !== oldChild && newChild.element.parentNode !== oldChild.element.parentNode) {
-                                    void this.scope(newChild);
-                                    void addedChildren.push(newChild);
+                                    this.scope(newChild);
+                                    addedChildren.push(newChild);
                                     if (!this.isInitialization) {
                                         let i = 0;
                                         i = removedChildren.lastIndexOf(newChild);
-                                        i > -1 && removedChildren.splice(i, 1);
-                                        void removedChildren.push(oldChild);
+                                        i > -1 && array_1.splice(removedChildren, i, 1);
+                                        removedChildren.push(oldChild);
                                         i = addedChildren.lastIndexOf(oldChild);
-                                        i > -1 && addedChildren.splice(i, 1);
+                                        i > -1 && array_1.splice(addedChildren, i, 1);
                                     }
                                 }
                                 this.isPartialUpdate = true;
@@ -4556,19 +4606,19 @@ require = function () {
                         }
                     }
                     for (const child of removedChildren) {
-                        void child.element.dispatchEvent(new global_1.Event('disconnect', {
+                        child.element.dispatchEvent(new global_1.Event('disconnect', {
                             bubbles: false,
                             cancelable: true
                         }));
                     }
                     for (const child of addedChildren) {
-                        void child.element.dispatchEvent(new global_1.Event('connect', {
+                        child.element.dispatchEvent(new global_1.Event('connect', {
                             bubbles: false,
                             cancelable: true
                         }));
                     }
                     if (isChanged) {
-                        void this.element.dispatchEvent(new global_1.Event('change', {
+                        this.element.dispatchEvent(new global_1.Event('change', {
                             bubbles: false,
                             cancelable: true
                         }));
@@ -4583,13 +4633,14 @@ require = function () {
             }
         },
         {
-            '../util/dom': 97,
-            './identity': 95,
+            '../util/dom': 95,
+            './identity': 93,
             'spica/alias': 4,
-            'spica/global': 18
+            'spica/array': 5,
+            'spica/global': 17
         }
     ],
-    97: [
+    95: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4597,6 +4648,7 @@ require = function () {
             const global_1 = _dereq_('spica/global');
             const alias_1 = _dereq_('spica/alias');
             const memoize_1 = _dereq_('spica/memoize');
+            const curry_1 = _dereq_('spica/curry');
             var NS;
             (function (NS) {
                 NS['HTML'] = 'HTML';
@@ -4605,21 +4657,20 @@ require = function () {
             const shadows = new WeakMap();
             var caches;
             (function (caches) {
-                caches.elem = memoize_1.memoize(() => Object.create(null), new WeakMap());
-                caches.frag = global_1.document.createDocumentFragment();
+                caches.fragment = global_1.document.createDocumentFragment();
+                caches.element = memoize_1.memoize(context => memoize_1.memoize(curry_1.uncurry(curry_1.curry(elem)(context)), (ns, tag) => `${ ns }:${ tag }`), new WeakMap());
             }(caches || (caches = {})));
             function frag(children) {
-                if (typeof children === 'string')
-                    return frag([children]);
-                return defineChildren(caches.frag.cloneNode(), children, true);
+                return defineChildren(caches.fragment.cloneNode(), children);
             }
             exports.frag = frag;
             function shadow(el, children, opts) {
                 if (typeof el === 'string')
                     return shadow(html(el), children, opts);
                 if (children && !isChildren(children))
-                    return shadow(el, void 0, children);
-                return el.shadowRoot || shadows.has(el) ? defineChildren(opts ? opts.mode === 'open' ? el.shadowRoot || el.attachShadow(opts) : shadows.get(el) || shadows.set(el, el.attachShadow(opts)).get(el) : el.shadowRoot || shadows.get(el), children, !shadows.has(el)) : defineChildren(!opts || opts.mode === 'open' ? el.attachShadow({ mode: 'open' }) : shadows.set(el, el.attachShadow(opts)).get(el), children === void 0 ? el.childNodes : children, !shadows.has(el));
+                    return shadow(el, global_1.undefined, children);
+                const root = opts === global_1.undefined ? el.shadowRoot || shadows.get(el) : opts.mode === 'open' ? el.shadowRoot || global_1.undefined : shadows.get(el);
+                return defineChildren(!opts || opts.mode === 'open' ? root || el.attachShadow(opts || { mode: 'open' }) : root || shadows.set(el, el.attachShadow(opts)).get(el), !root && children == global_1.undefined ? el.childNodes : children);
             }
             exports.shadow = shadow;
             function html(tag, attrs, children) {
@@ -4635,10 +4686,8 @@ require = function () {
             }
             exports.text = text;
             function element(context, ns, tag, attrs, children) {
-                const cache = caches.elem(context);
-                const key = `${ ns }:${ tag }`;
-                const el = tag.includes('-') ? elem(context, ns, tag) : (cache[key] = cache[key] || elem(context, ns, tag)).cloneNode(true);
-                return isChildren(attrs) ? defineChildren(el, attrs, true) : defineChildren(defineAttrs(el, attrs), children, true);
+                const el = tag.includes('-') ? elem(context, ns, tag) : caches.element(context)(ns, tag).cloneNode(true);
+                return isChildren(attrs) ? defineChildren(el, attrs) : defineChildren(defineAttrs(el, attrs), children);
             }
             exports.element = element;
             function elem(context, ns, tag) {
@@ -4662,14 +4711,14 @@ require = function () {
                     const value = attrs[name];
                     switch (typeof value) {
                     case 'string':
-                        void el.setAttribute(name, value);
+                        el.setAttribute(name, value);
                         continue;
                     case 'function':
                         if (name.length < 3)
                             throw new Error(`TypedDOM: Attribute names for event listeners must have an event name but got "${ name }".`);
                         if (name.slice(0, 2) !== 'on')
                             throw new Error(`TypedDOM: Attribute names for event listeners must start with "on" but got "${ name }".`);
-                        void el.addEventListener(name.slice(2), value, {
+                        el.addEventListener(name.slice(2), value, {
                             passive: [
                                 'wheel',
                                 'mousewheel',
@@ -4679,7 +4728,7 @@ require = function () {
                         });
                         continue;
                     case 'object':
-                        void el.removeAttribute(name);
+                        el.removeAttribute(name);
                         continue;
                     default:
                         continue;
@@ -4687,58 +4736,58 @@ require = function () {
                 }
                 return el;
             }
-            function defineChildren(el, children, clean = false) {
+            function defineChildren(el, children) {
                 switch (typeof children) {
                 case 'undefined':
                     return el;
                 case 'string':
-                    return defineChildren(el, [children], clean);
+                    return defineChildren(el, [children]);
                 }
-                const targetNodes = clean ? [] : el.childNodes;
+                const targetNodes = el.firstChild ? el.childNodes : [];
                 let targetLength = targetNodes.length;
                 if (targetLength === 0) {
-                    void el.append(...children);
+                    el.append(...children);
                     return el;
                 }
                 if (!alias_1.isArray(children))
-                    return defineChildren(el, [...children], clean);
+                    return defineChildren(el, [...children]);
                 let count = 0;
                 I:
                     for (let i = 0; i < children.length; ++i) {
                         if (count === targetLength) {
-                            void el.append(...children.slice(i));
+                            el.append(...children.slice(i));
                             return el;
                         }
                         const child = children[i];
                         if (typeof child === 'object' && child.nodeType === 11) {
                             const sourceNodes = child.childNodes;
                             const sourceLength = sourceNodes.length;
-                            void el.insertBefore(child, targetNodes[count] || null);
+                            el.insertBefore(child, targetNodes[count] || null);
                             count += sourceLength;
                             targetLength += sourceLength;
                             continue;
                         }
-                        void ++count;
+                        ++count;
                         while (targetLength > children.length) {
                             const node = targetNodes[count - 1];
                             if (equal(node, child))
                                 continue I;
-                            void node.remove();
-                            void --targetLength;
+                            node.remove();
+                            --targetLength;
                         }
                         const node = targetNodes[count - 1];
                         if (equal(node, child))
                             continue;
                         if (targetLength < children.length - i + count) {
-                            void el.insertBefore(typeof child === 'string' ? text(child) : child, node);
-                            void ++targetLength;
+                            el.insertBefore(typeof child === 'string' ? text(child) : child, node);
+                            ++targetLength;
                         } else {
-                            void el.replaceChild(typeof child === 'string' ? text(child) : child, node);
+                            el.replaceChild(typeof child === 'string' ? text(child) : child, node);
                         }
                     }
                 while (count < targetLength) {
-                    void targetNodes[count].remove();
-                    void --targetLength;
+                    targetNodes[count].remove();
+                    --targetLength;
                 }
                 return el;
             }
@@ -4751,11 +4800,12 @@ require = function () {
         },
         {
             'spica/alias': 4,
-            'spica/global': 18,
-            'spica/memoize': 23
+            'spica/curry': 12,
+            'spica/global': 17,
+            'spica/memoize': 22
         }
     ],
-    98: [
+    96: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4795,11 +4845,11 @@ require = function () {
             exports.bind = bind;
         },
         {
-            'spica/noop': 80,
-            'spica/promise': 82
+            'spica/noop': 79,
+            'spica/promise': 81
         }
     ],
-    99: [
+    97: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4808,15 +4858,15 @@ require = function () {
             function apply(node, selector, attrs) {
                 const ns = node.querySelectorAll(selector);
                 for (let i = 0, len = ns.length; i < len; ++i) {
-                    void dom_1.define(ns[i], attrs);
+                    dom_1.define(ns[i], attrs);
                 }
                 return ns;
             }
             exports.apply = apply;
         },
-        { './dom': 97 }
+        { './dom': 95 }
     ],
-    100: [
+    98: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4842,11 +4892,11 @@ require = function () {
             });
         },
         {
-            './layer/interface/service/gui': 129,
-            './lib/router': 139
+            './layer/interface/service/gui': 127,
+            './lib/router': 137
         }
     ],
-    101: [
+    99: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4890,12 +4940,12 @@ require = function () {
             exports.route = route;
         },
         {
-            '../domain/data/config': 104,
-            '../domain/event/router': 106,
-            '../domain/router/api': 107
+            '../domain/data/config': 102,
+            '../domain/event/router': 104,
+            '../domain/router/api': 105
         }
     ],
-    102: [
+    100: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4913,9 +4963,9 @@ require = function () {
                 }
             });
         },
-        { '../domain/store/path': 123 }
+        { '../domain/store/path': 121 }
     ],
-    103: [
+    101: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4950,7 +5000,7 @@ require = function () {
         },
         { 'spica/assign': 6 }
     ],
-    104: [
+    102: [
         function (_dereq_, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -5081,11 +5131,11 @@ require = function () {
             }
         },
         {
-            './config/scope': 105,
+            './config/scope': 103,
             'spica/assign': 6
         }
     ],
-    105: [
+    103: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5102,14 +5152,14 @@ require = function () {
             exports.scope = scope;
         },
         {
-            '../../../../lib/router': 139,
-            '../../../domain/data/config': 104,
+            '../../../../lib/router': 137,
+            '../../../domain/data/config': 102,
             'spica/assign': 6,
-            'spica/maybe': 22,
-            'spica/sequence': 83
+            'spica/maybe': 21,
+            'spica/sequence': 82
         }
     ],
-    106: [
+    104: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5187,12 +5237,12 @@ require = function () {
             exports.RouterEventLocation = RouterEventLocation;
         },
         {
-            '../../../lib/dom': 136,
-            'spica/url': 90,
-            'typed-dom': 93
+            '../../../lib/dom': 134,
+            'spica/url': 88,
+            'typed-dom': 91
         }
     ],
-    107: [
+    105: [
         function (_dereq_, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -5261,15 +5311,15 @@ require = function () {
             exports.route = route;
         },
         {
-            '../store/path': 123,
-            './model/eav/entity': 108,
-            './module/fetch': 110,
-            './module/update': 112,
-            './module/update/content': 114,
-            'spica/either': 14
+            '../store/path': 121,
+            './model/eav/entity': 106,
+            './module/fetch': 108,
+            './module/update': 110,
+            './module/update/content': 112,
+            'spica/either': 13
         }
     ],
-    108: [
+    106: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5294,7 +5344,7 @@ require = function () {
         },
         {}
     ],
-    109: [
+    107: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5322,11 +5372,11 @@ require = function () {
             exports.FetchResponse = FetchResponse;
         },
         {
-            '../../../../../../lib/html': 138,
-            'spica/url': 90
+            '../../../../../../lib/html': 136,
+            'spica/url': 88
         }
     ],
-    110: [
+    108: [
         function (_dereq_, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -5385,11 +5435,11 @@ require = function () {
             exports.fetch = fetch;
         },
         {
-            '../module/fetch/xhr': 111,
+            '../module/fetch/xhr': 109,
             'spica/clock': 10
         }
     ],
-    111: [
+    109: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5482,15 +5532,15 @@ require = function () {
             exports.match_ = match;
         },
         {
-            '../../model/eav/value/fetch': 109,
+            '../../model/eav/value/fetch': 107,
             'spica/cache': 7,
-            'spica/either': 14,
-            'spica/promise': 82,
-            'spica/sequence': 83,
-            'spica/url': 90
+            'spica/either': 13,
+            'spica/promise': 81,
+            'spica/sequence': 82,
+            'spica/url': 88
         }
     ],
-    112: [
+    110: [
         function (_dereq_, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -5589,23 +5639,23 @@ require = function () {
             exports.update = update;
         },
         {
-            '../../event/router': 106,
-            '../../store/path': 123,
-            '../module/update/blur': 113,
-            '../module/update/content': 114,
-            '../module/update/css': 115,
-            '../module/update/focus': 116,
-            '../module/update/head': 117,
-            '../module/update/script': 118,
-            '../module/update/scroll': 119,
-            '../module/update/title': 121,
-            '../module/update/url': 122,
-            'spica/either': 14,
-            'spica/hlist': 20,
-            'spica/promise': 82
+            '../../event/router': 104,
+            '../../store/path': 121,
+            '../module/update/blur': 111,
+            '../module/update/content': 112,
+            '../module/update/css': 113,
+            '../module/update/focus': 114,
+            '../module/update/head': 115,
+            '../module/update/script': 116,
+            '../module/update/scroll': 117,
+            '../module/update/title': 119,
+            '../module/update/url': 120,
+            'spica/either': 13,
+            'spica/hlist': 19,
+            'spica/promise': 81
         }
     ],
-    113: [
+    111: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5620,7 +5670,7 @@ require = function () {
         },
         {}
     ],
-    114: [
+    112: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5628,18 +5678,18 @@ require = function () {
             const script_1 = _dereq_('./script');
             const promise_1 = _dereq_('spica/promise');
             const maybe_1 = _dereq_('spica/maybe');
-            const concat_1 = _dereq_('spica/concat');
+            const array_1 = _dereq_('spica/array');
             const typed_dom_1 = _dereq_('typed-dom');
             function content(documents, areas, io = { replace: (src, dst) => void dst.parentNode.replaceChild(src, dst) }) {
                 return [
-                    areas.map(r => r.dst).reduce(concat_1.concat, []),
-                    areas.map(load).reduce(concat_1.concat, [])
+                    areas.map(r => r.dst).reduce(array_1.push, []),
+                    areas.map(load).reduce(array_1.push, [])
                 ];
                 function load(area) {
                     return area.src.map((_, i) => ({
                         src: documents.dst.importNode(area.src[i].cloneNode(true), true),
                         dst: area.dst[i]
-                    })).map(area => (void replace(area), [...typed_dom_1.apply(area.src, 'img, iframe, frame')].map(wait))).reduce(concat_1.concat, []);
+                    })).map(area => (void replace(area), [...typed_dom_1.apply(area.src, 'img, iframe, frame')].map(wait))).reduce(array_1.push, []);
                     function replace(area) {
                         const unescape = [...typed_dom_1.apply(area.src, 'script')].map(script_1.escape).reduce((f, g) => () => (void f(), void g()), () => void 0);
                         void io.replace(area.src, area.dst);
@@ -5659,13 +5709,13 @@ require = function () {
                             src: [...typed_dom_1.apply(documents.src, area)],
                             dst: [...typed_dom_1.apply(documents.dst, area)]
                         };
-                        return record.src.length > 0 && record.src.length === record.dst.length ? maybe_1.Just(concat_1.concat(acc, [record])) : maybe_1.Nothing;
+                        return record.src.length > 0 && record.src.length === record.dst.length ? maybe_1.Just(array_1.push(acc, [record])) : maybe_1.Nothing;
                     }), maybe_1.Just([])));
                 }
             }
             exports.separate = separate;
             function split(area) {
-                return (area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g) || []).map(area => area.trim()).reduce((m, area) => area ? m.fmap(acc => concat_1.concat(acc, [area])) : maybe_1.Nothing, maybe_1.Just([]));
+                return (area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g) || []).map(area => area.trim()).reduce((m, area) => area ? m.fmap(acc => array_1.push(acc, [area])) : maybe_1.Nothing, maybe_1.Just([]));
             }
             exports._split = split;
             function wait(el) {
@@ -5678,14 +5728,14 @@ require = function () {
             exports._wait = wait;
         },
         {
-            './script': 118,
-            'spica/concat': 11,
-            'spica/maybe': 22,
-            'spica/promise': 82,
-            'typed-dom': 93
+            './script': 116,
+            'spica/array': 5,
+            'spica/maybe': 21,
+            'spica/promise': 81,
+            'typed-dom': 91
         }
     ],
-    115: [
+    113: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5708,11 +5758,11 @@ require = function () {
             exports.css = css;
         },
         {
-            './sync': 120,
-            'typed-dom': 93
+            './sync': 118,
+            'typed-dom': 91
         }
     ],
-    116: [
+    114: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5733,11 +5783,11 @@ require = function () {
             exports.focus = focus;
         },
         {
-            '../../../event/router': 106,
-            'typed-dom': 93
+            '../../../event/router': 104,
+            'typed-dom': 91
         }
     ],
-    117: [
+    115: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5754,11 +5804,11 @@ require = function () {
             exports.head = head;
         },
         {
-            './sync': 120,
-            'typed-dom': 93
+            './sync': 118,
+            'typed-dom': 91
         }
     ],
-    118: [
+    116: [
         function (_dereq_, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -5794,8 +5844,8 @@ require = function () {
             const promise_1 = _dereq_('spica/promise');
             const either_1 = _dereq_('spica/either');
             const url_1 = _dereq_('spica/url');
+            const array_1 = _dereq_('spica/array');
             const tuple_1 = _dereq_('spica/tuple');
-            const concat_1 = _dereq_('spica/concat');
             const clock_1 = _dereq_('spica/clock');
             const typed_dom_1 = _dereq_('typed-dom');
             function script(documents, skip, selector, timeout, cancellation, io = {
@@ -5829,7 +5879,7 @@ require = function () {
                                         as1,
                                         either_1.Right(ss2),
                                         ap2
-                                    ]).then(sst => sst.reduce((m1, m2) => m1.bind(s1 => m2.fmap(s2 => concat_1.concat(s1, s2)))))).extract(either_1.Left);
+                                    ]).then(sst => sst.reduce((m1, m2) => m1.bind(s1 => m2.fmap(s2 => array_1.push(s1, s2)))))).extract(either_1.Left);
                                 })).extract(either_1.Left);
                             }))
                         ]);
@@ -5839,19 +5889,10 @@ require = function () {
                     return scripts.map(script => io.fetch(script, timeout));
                 }
                 function run(responses) {
-                    return responses.reduce((results, m) => m.bind(() => results), responses.reduce((results, m) => results.bind(cancellation.either).bind(([sp, ap]) => m.fmap(([script, code]) => io.evaluate(script, code, selector.logger, skip, promise_1.AtomicPromise.all(sp), cancellation)).bind(m => m.extract(p => either_1.Right(tuple_1.tuple([
-                        concat_1.concat(sp, [p]),
-                        ap
-                    ])), p => either_1.Right(tuple_1.tuple([
-                        sp,
-                        concat_1.concat(ap, [p])
-                    ]))))), either_1.Right([
+                    return responses.reduce((results, m) => m.bind(() => results), responses.reduce((results, m) => results.bind(cancellation.either).bind(([sp, ap]) => m.fmap(([script, code]) => io.evaluate(script, code, selector.logger, skip, promise_1.AtomicPromise.all(sp), cancellation)).bind(m => m.extract(p => either_1.Right(tuple_1.tuple(array_1.push(sp, [p]), ap)), p => either_1.Right(tuple_1.tuple(sp, array_1.push(ap, [p])))))), either_1.Right([
                         [],
                         []
-                    ]))).fmap(([sp, ap]) => promise_1.AtomicPromise.all(sp).then(m => either_1.Either.sequence(m)).then(sm => sm.fmap(ss => tuple_1.tuple([
-                        ss,
-                        Promise.all(ap).then(m => either_1.Either.sequence(m))
-                    ]))));
+                    ]))).fmap(([sp, ap]) => promise_1.AtomicPromise.all(sp).then(m => either_1.Either.sequence(m)).then(sm => sm.fmap(ss => tuple_1.tuple(ss, Promise.all(ap).then(m => either_1.Either.sequence(m))))));
                 }
             }
             exports.script = script;
@@ -5931,17 +5972,17 @@ require = function () {
             }
         },
         {
-            '../../../../../lib/error': 137,
+            '../../../../../lib/error': 135,
+            'spica/array': 5,
             'spica/clock': 10,
-            'spica/concat': 11,
-            'spica/either': 14,
-            'spica/promise': 82,
-            'spica/tuple': 87,
-            'spica/url': 90,
-            'typed-dom': 93
+            'spica/either': 13,
+            'spica/promise': 81,
+            'spica/tuple': 86,
+            'spica/url': 88,
+            'typed-dom': 91
         }
     ],
-    119: [
+    117: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5984,15 +6025,15 @@ require = function () {
             }
             exports._hash = hash;
         },
-        { '../../../event/router': 106 }
+        { '../../../event/router': 104 }
     ],
-    120: [
+    118: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.pair = exports.sync = void 0;
             const either_1 = _dereq_('spica/either');
-            const concat_1 = _dereq_('spica/concat');
+            const array_1 = _dereq_('spica/array');
             function sync(pairs, fallback, io = {
                 before,
                 remove
@@ -6011,7 +6052,7 @@ require = function () {
                     dst
                 ]);
                 function bind(srcs, dsts, compare) {
-                    return srcs.reduce((link, src) => dsts.length === 0 ? link.set(null, concat_1.concat(link.get(null) || [], [src])) : dsts.reduce((m, dst) => m.bind(link => !link.has(dst) && compare(src, dst) ? (void link.set(dst, concat_1.concat(link.get(null) || [], [src])), void link.delete(null), either_1.Left(link)) : either_1.Right(link)), either_1.Right(link)).fmap(link => link.set(null, concat_1.concat(link.get(null) || [], [src]))).extract(link => link), new Map());
+                    return srcs.reduce((link, src) => dsts.length === 0 ? link.set(null, array_1.push(link.get(null) || [], [src])) : dsts.reduce((m, dst) => m.bind(link => !link.has(dst) && compare(src, dst) ? (void link.set(dst, array_1.push(link.get(null) || [], [src])), void link.delete(null), either_1.Left(link)) : either_1.Right(link)), either_1.Right(link)).fmap(link => link.set(null, array_1.push(link.get(null) || [], [src]))).extract(link => link), new Map());
                 }
             }
             exports.pair = pair;
@@ -6023,11 +6064,11 @@ require = function () {
             }
         },
         {
-            'spica/concat': 11,
-            'spica/either': 14
+            'spica/array': 5,
+            'spica/either': 13
         }
     ],
-    121: [
+    119: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6039,7 +6080,7 @@ require = function () {
         },
         {}
     ],
-    122: [
+    120: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6086,11 +6127,11 @@ require = function () {
             exports._isReplaceable = isReplaceable;
         },
         {
-            '../../../event/router': 106,
-            'typed-dom': 93
+            '../../../event/router': 104,
+            'typed-dom': 91
         }
     ],
-    123: [
+    121: [
         function (_dereq_, module, exports) {
             'use strict';
             var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
@@ -6115,9 +6156,9 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             __exportStar(_dereq_('../../data/store/state'), exports);
         },
-        { '../../data/store/state': 103 }
+        { '../../data/store/state': 101 }
     ],
-    124: [
+    122: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6141,11 +6182,11 @@ require = function () {
             exports.ClickView = ClickView;
         },
         {
-            'spica/coroutine': 12,
-            'typed-dom': 93
+            'spica/coroutine': 11,
+            'typed-dom': 91
         }
     ],
-    125: [
+    123: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6169,13 +6210,13 @@ require = function () {
             exports.NavigationView = NavigationView;
         },
         {
-            '../../service/state/url': 135,
-            'spica/coroutine': 12,
-            'spica/url': 90,
-            'typed-dom': 93
+            '../../service/state/url': 133,
+            'spica/coroutine': 11,
+            'spica/url': 88,
+            'typed-dom': 91
         }
     ],
-    126: [
+    124: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6200,14 +6241,14 @@ require = function () {
             exports.ScrollView = ScrollView;
         },
         {
-            '../../service/state/url': 135,
-            'spica/coroutine': 12,
-            'spica/throttle': 86,
-            'spica/url': 90,
-            'typed-dom': 93
+            '../../service/state/url': 133,
+            'spica/coroutine': 11,
+            'spica/throttle': 85,
+            'spica/url': 88,
+            'typed-dom': 91
         }
     ],
-    127: [
+    125: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6229,11 +6270,11 @@ require = function () {
             exports.SubmitView = SubmitView;
         },
         {
-            'spica/coroutine': 12,
-            'typed-dom': 93
+            'spica/coroutine': 11,
+            'typed-dom': 91
         }
     ],
-    128: [
+    126: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6272,14 +6313,14 @@ require = function () {
             }
         },
         {
-            '../../../lib/html': 138,
-            './router': 130,
-            './state/process': 132,
+            '../../../lib/html': 136,
+            './router': 128,
+            './state/process': 130,
             'spica/assign': 6,
-            'typed-dom': 93
+            'typed-dom': 91
         }
     ],
-    129: [
+    127: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6335,19 +6376,19 @@ require = function () {
             exports.clear = clear;
         },
         {
-            '../../application/store': 102,
-            '../module/view/click': 124,
-            '../module/view/navigation': 125,
-            '../module/view/scroll': 126,
-            '../module/view/submit': 127,
-            './api': 128,
-            './router': 130,
-            './state/process': 132,
-            './state/scroll-restoration': 134,
-            'spica/supervisor': 85
+            '../../application/store': 100,
+            '../module/view/click': 122,
+            '../module/view/navigation': 123,
+            '../module/view/scroll': 124,
+            '../module/view/submit': 125,
+            './api': 126,
+            './router': 128,
+            './state/process': 130,
+            './state/scroll-restoration': 132,
+            'spica/supervisor': 84
         }
     ],
-    130: [
+    128: [
         function (_dereq_, module, exports) {
             'use strict';
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
@@ -6492,19 +6533,19 @@ require = function () {
             }
         },
         {
-            '../../../lib/error': 137,
-            '../../application/router': 101,
-            '../../application/store': 102,
-            '../service/state/env': 131,
-            './state/url': 135,
+            '../../../lib/error': 135,
+            '../../application/router': 99,
+            '../../application/store': 100,
+            '../service/state/env': 129,
+            './state/url': 133,
             'spica/cancellation': 8,
             'spica/clock': 10,
-            'spica/maybe': 22,
-            'spica/url': 90,
-            'typed-dom': 93
+            'spica/maybe': 21,
+            'spica/url': 88,
+            'typed-dom': 91
         }
     ],
-    131: [
+    129: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6515,9 +6556,9 @@ require = function () {
                 new Promise(r => void setTimeout(r))
             ]);
         },
-        { './script': 133 }
+        { './script': 131 }
     ],
-    132: [
+    130: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6526,9 +6567,9 @@ require = function () {
             exports.process = new class extends supervisor_1.Supervisor {
             }();
         },
-        { 'spica/supervisor': 85 }
+        { 'spica/supervisor': 84 }
     ],
-    133: [
+    131: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6539,20 +6580,20 @@ require = function () {
             void typed_dom_1.bind(window, 'pjax:unload', () => void typed_dom_1.apply(document, 'script[src]').forEach(script => void exports.scripts.add(new url_1.URL(url_1.standardize(script.src)).reference)));
         },
         {
-            'spica/url': 90,
-            'typed-dom': 93
+            'spica/url': 88,
+            'typed-dom': 91
         }
     ],
-    134: [
+    132: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const typed_dom_1 = _dereq_('typed-dom');
             void typed_dom_1.bind(window, 'unload', () => window.history.scrollRestoration = 'auto', false);
         },
-        { 'typed-dom': 93 }
+        { 'typed-dom': 91 }
     ],
-    135: [
+    133: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6573,11 +6614,11 @@ require = function () {
             }();
         },
         {
-            'spica/url': 90,
-            'typed-dom': 93
+            'spica/url': 88,
+            'typed-dom': 91
         }
     ],
-    136: [
+    134: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6619,7 +6660,7 @@ require = function () {
         },
         {}
     ],
-    137: [
+    135: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6635,7 +6676,7 @@ require = function () {
         },
         {}
     ],
-    138: [
+    136: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6712,12 +6753,12 @@ require = function () {
             }
         },
         {
-            'spica/either': 14,
-            'spica/maybe': 22,
-            'typed-dom': 93
+            'spica/either': 13,
+            'spica/maybe': 21,
+            'typed-dom': 91
         }
     ],
-    139: [
+    137: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6778,10 +6819,10 @@ require = function () {
         },
         {
             'spica/cache': 7,
-            'spica/curry': 13,
-            'spica/flip': 16,
-            'spica/sequence': 83,
-            'spica/url': 90
+            'spica/curry': 12,
+            'spica/flip': 15,
+            'spica/sequence': 82,
+            'spica/url': 88
         }
     ],
     'pjax-api': [
@@ -6816,7 +6857,7 @@ require = function () {
             });
             __exportStar(_dereq_('./src/export'), exports);
         },
-        { './src/export': 100 }
+        { './src/export': 98 }
     ]
 }, {}, [
     1,
