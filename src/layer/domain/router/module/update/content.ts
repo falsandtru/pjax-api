@@ -1,7 +1,7 @@
 import { escape } from './script';
 import { AtomicPromise } from 'spica/promise';
 import { Maybe, Just, Nothing} from 'spica/maybe';
-import { concat} from 'spica/concat';
+import { push } from 'spica/array';
 import { once, apply } from 'typed-dom';
 
 type DocumentRecord = { src: Document; dst: Document; };
@@ -17,10 +17,10 @@ export function content(
   return [
     areas
       .map(r => r.dst)
-      .reduce<HTMLElement[]>(concat, []),
+      .reduce<HTMLElement[]>(push, []),
     areas
       .map(load)
-      .reduce<AtomicPromise<Event>[]>(concat, []),
+      .reduce<AtomicPromise<Event>[]>(push, []),
   ];
 
   function load(area: AreaRecord): AtomicPromise<Event>[] {
@@ -33,7 +33,7 @@ export function content(
         void replace(area),
         [...apply(area.src, 'img, iframe, frame')]
           .map(wait)))
-      .reduce(concat, []);
+      .reduce(push, []);
 
     function replace(area: { src: HTMLElement, dst: HTMLElement; }): void {
       const unescape = [...apply(area.src, 'script')]
@@ -72,7 +72,7 @@ export function separate(
             };
             return record.src.length > 0
                 && record.src.length === record.dst.length
-              ? Just(concat(acc, [record]))
+              ? Just(push(acc, [record]))
               : Nothing;
           })
         , Just([])));
@@ -84,7 +84,7 @@ function split(area: string): Maybe<string[]> {
     .map(area => area.trim())
     .reduce((m, area) =>
       area
-        ? m.fmap(acc => concat(acc, [area]))
+        ? m.fmap(acc => push(acc, [area]))
         : Nothing
     , Just([]));
 }

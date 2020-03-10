@@ -1,5 +1,5 @@
 import { Either, Left, Right } from 'spica/either';
-import { concat } from 'spica/concat';
+import { push } from 'spica/array';
 
 export function sync<T extends HTMLElement>(
   pairs: [T[], T | null][],
@@ -42,19 +42,19 @@ export function pair<T>(srcs: T[], dsts: T[], compare: (a: T, b: T) => boolean):
     return srcs
       .reduce<Map<T | null, T[]>>((link, src) =>
         dsts.length === 0
-          ? link.set(null, concat(link.get(null) || [], [src]))
+          ? link.set(null, push(link.get(null) || [], [src]))
           : dsts
               .reduce<Either<typeof link, typeof link>>((m, dst) =>
                 m.bind(link =>
                   !link.has(dst) && compare(src, dst)
                     ? (
-                      void link.set(dst, concat(link.get(null) || [], [src])),
+                      void link.set(dst, push(link.get(null) || [], [src])),
                       void link.delete(null),
                       Left(link))
                     : Right(link))
               , Right(link))
               .fmap(link =>
-                link.set(null, concat(link.get(null) || [], [src])))
+                link.set(null, push(link.get(null) || [], [src])))
               .extract(link =>
                 link)
       , new Map<T, T[]>());

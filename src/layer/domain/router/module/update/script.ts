@@ -3,8 +3,8 @@ import { AtomicPromise } from 'spica/promise';
 import { Cancellee } from 'spica/cancellation';
 import { Either, Left, Right } from 'spica/either';
 import { URL, StandardURL, standardize } from 'spica/url';
+import { push } from 'spica/array';
 import { tuple } from 'spica/tuple';
-import { concat } from 'spica/concat';
 import { wait } from 'spica/clock';
 import { html, apply } from 'typed-dom';
 
@@ -66,7 +66,7 @@ export function script(
                       sst.reduce((m1, m2) =>
                         m1.bind(s1 =>
                           m2.fmap(s2 =>
-                            concat(s1, s2))))))
+                            push(s1, s2))))))
                 .extract<Either<Error, HTMLScriptElement[]>>(Left))
                 .extract<Either<Error, HTMLScriptElement[]>>(Left)),
           ] as const))
@@ -91,8 +91,8 @@ export function script(
                   io.evaluate(script, code, selector.logger, skip, AtomicPromise.all(sp), cancellation))
                 .bind(m =>
                   m.extract(
-                    p => Right(tuple(concat(sp, [p]), ap)),
-                    p => Right(tuple(sp, concat(ap, [p]))))))
+                    p => Right(tuple(push(sp, [p]), ap)),
+                    p => Right(tuple(sp, push(ap, [p]))))))
         , Right<Error, [AtomicPromise<Either<Error, HTMLScriptElement>>[], AtomicPromise<Either<Error, HTMLScriptElement>>[]]>([[], []])))
       .fmap(([sp, ap]) =>
         AtomicPromise.all(sp)
