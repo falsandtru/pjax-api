@@ -623,7 +623,7 @@ require = function () {
                         return;
                     } catch (reason) {
                         node = node.tail;
-                        void exception_1.causeAsyncException(reason);
+                        exception_1.causeAsyncException(reason);
                         continue;
                     }
                 }
@@ -1006,14 +1006,22 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.uncurry = exports.curry = void 0;
             const global_1 = _dereq_('./global');
-            exports.curry = f => apply(f);
-            function apply(f, ...xs) {
+            const array_1 = _dereq_('./array');
+            exports.curry = f => curry_(f, f.length);
+            function curry_(f, arity, ...xs) {
                 let g;
-                return xs.length < f.length ? (y, ...ys) => apply(g = g || f.bind(global_1.undefined, ...xs), y, ...ys) : f(...xs);
+                return xs.length < arity ? (...ys) => curry_(g = g || xs.length && f.bind(global_1.undefined, ...xs) || f, arity - xs.length, ...ys) : f(...xs);
             }
-            exports.uncurry = f => (...xs) => f.length === 0 ? f(...xs) : xs.reduce((f, x) => f(x), f);
+            exports.uncurry = f => uncurry_(f);
+            function uncurry_(f) {
+                const arity = f.length;
+                return (...xs) => arity === 0 || xs.length < 2 || xs.length <= arity ? f(...xs) : uncurry_(f(...array_1.shift(xs, arity)[0]))(...xs);
+            }
         },
-        { './global': 17 }
+        {
+            './array': 5,
+            './global': 17
+        }
     ],
     13: [
         function (_dereq_, module, exports) {
@@ -1059,13 +1067,13 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.flip = void 0;
-            const curry_1 = _dereq_('./curry');
             function flip(f) {
-                return curry_1.curry((b, a) => f.length > 1 ? f(a, b) : f(a)(b));
+                const arity = f.length;
+                return arity > 1 ? (b, a) => f(a, b) : (b, ...as) => as.length === 0 ? a => f(a)(b) : f(as[0])(b);
             }
             exports.flip = flip;
         },
-        { './curry': 12 }
+        {}
     ],
     16: [
         function (_dereq_, module, exports) {
@@ -3904,10 +3912,8 @@ require = function () {
                         return;
                     timer = global_1.setTimeout(() => {
                         timer = 0;
-                        const buf = [
-                            buffer,
-                            buffer = list_1.MList()
-                        ][0];
+                        const buf = buffer;
+                        buffer = list_1.MList();
                         void callback(buf.head, buf);
                     }, interval);
                 };
@@ -3925,10 +3931,8 @@ require = function () {
                         void global_1.setTimeout(() => {
                             if (timer > 0)
                                 return;
-                            const buf = [
-                                buffer,
-                                buffer = list_1.MList()
-                            ][0];
+                            const buf = buffer;
+                            buffer = list_1.MList();
                             void callback(buf.head, buf);
                         }, buffer.length > 1 ? delay : 0);
                     }, delay);
@@ -4175,6 +4179,12 @@ require = function () {
                 }
             });
             var dom_1 = _dereq_('./src/util/dom');
+            Object.defineProperty(exports, 'NS', {
+                enumerable: true,
+                get: function () {
+                    return dom_1.NS;
+                }
+            });
             Object.defineProperty(exports, 'frag', {
                 enumerable: true,
                 get: function () {
@@ -4343,7 +4353,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.uid = void 0;
             const uuid_1 = _dereq_('spica/uuid');
-            const id = uuid_1.uuid().slice(-7);
+            const id = uuid_1.uuid().split('-').pop();
             let counter = 0;
             function uid() {
                 return `id-${ id }-${ ++counter }`;
@@ -4490,18 +4500,21 @@ require = function () {
                     return alias_1.ObjectDefineProperties(children, descs);
                 }
                 scope(child) {
-                    if (child.element.tagName !== 'STYLE')
-                        return;
                     const style = child.element;
+                    if (style.tagName !== 'STYLE')
+                        return;
                     const target = /(^|[,}])(\s*)\$scope(?![\w-])(?=[^;{}]*{)/g;
-                    if (style.innerHTML.search(target) === -1)
+                    const html = style.innerHTML;
+                    if (html.search(target) === -1)
                         return;
                     const query = this.query;
-                    style.innerHTML = style.innerHTML.replace(target, (_, frag, space) => `${ frag }${ space }${ query }`);
+                    if (query.includes('<'))
+                        return;
+                    style.innerHTML = html.replace(target, (_, frag, space) => `${ frag }${ space }${ query }`);
                     if (!style.firstElementChild)
                         return;
-                    for (const el of style.children) {
-                        el.remove();
+                    for (let es = style.children, i = 0, len = es.length; i < len; ++i) {
+                        es[0].remove();
                     }
                 }
                 get children() {
@@ -4509,7 +4522,8 @@ require = function () {
                     case ElChildrenType.Text:
                         if (this.children_.parentNode !== this.container) {
                             this.children_ = global_1.undefined;
-                            for (const node of this.container.childNodes) {
+                            for (let ns = this.container.childNodes, i = 0, len = ns.length; i < len; ++i) {
+                                const node = ns[i];
                                 if ('wholeText' in node === false)
                                     continue;
                                 this.children_ = node;
@@ -4644,7 +4658,7 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            exports.define = exports.element = exports.text = exports.svg = exports.html = exports.shadow = exports.frag = void 0;
+            exports.define = exports.element = exports.text = exports.svg = exports.html = exports.shadow = exports.frag = exports.NS = void 0;
             const global_1 = _dereq_('spica/global');
             const alias_1 = _dereq_('spica/alias');
             const memoize_1 = _dereq_('spica/memoize');
@@ -4653,7 +4667,7 @@ require = function () {
             (function (NS) {
                 NS['HTML'] = 'HTML';
                 NS['SVG'] = 'SVG';
-            }(NS || (NS = {})));
+            }(NS = exports.NS || (exports.NS = {})));
             const shadows = new WeakMap();
             var caches;
             (function (caches) {
@@ -4666,33 +4680,30 @@ require = function () {
             exports.frag = frag;
             function shadow(el, children, opts) {
                 if (typeof el === 'string')
-                    return shadow(html(el), children, opts);
+                    return shadow(exports.html(el), children, opts);
                 if (children && !isChildren(children))
                     return shadow(el, global_1.undefined, children);
                 const root = opts === global_1.undefined ? el.shadowRoot || shadows.get(el) : opts.mode === 'open' ? el.shadowRoot || global_1.undefined : shadows.get(el);
                 return defineChildren(!opts || opts.mode === 'open' ? root || el.attachShadow(opts || { mode: 'open' }) : root || shadows.set(el, el.attachShadow(opts)).get(el), !root && children == global_1.undefined ? el.childNodes : children);
             }
             exports.shadow = shadow;
-            function html(tag, attrs, children) {
-                return element(global_1.document, 'HTML', tag, attrs, children);
-            }
-            exports.html = html;
-            function svg(tag, attrs, children) {
-                return element(global_1.document, 'SVG', tag, attrs, children);
-            }
-            exports.svg = svg;
+            exports.html = element(global_1.document, 'HTML');
+            exports.svg = element(global_1.document, 'SVG');
             function text(source) {
                 return global_1.document.createTextNode(source);
             }
             exports.text = text;
-            function element(context, ns, tag, attrs, children) {
-                const el = tag.includes('-') ? elem(context, ns, tag) : caches.element(context)(ns, tag).cloneNode(true);
-                return isChildren(attrs) ? defineChildren(el, attrs) : defineChildren(defineAttrs(el, attrs), children);
+            function element(context, ns) {
+                return element;
+                function element(tag, attrs, children) {
+                    const el = tag.includes('-') ? elem(context, ns, tag) : caches.element(context)(ns, tag).cloneNode(true);
+                    return isChildren(attrs) ? defineChildren(el, attrs) : defineChildren(defineAttrs(el, attrs), children);
+                }
             }
             exports.element = element;
             function elem(context, ns, tag) {
-                if ('id' in context)
-                    throw new Error(`TypedDOM: Scoped custom elements are not supported.`);
+                if (!('createElement' in context))
+                    throw new Error(`TypedDOM: Scoped custom elements are not supported on this browser.`);
                 switch (ns) {
                 case 'HTML':
                     return context.createElement(tag);
@@ -4700,8 +4711,8 @@ require = function () {
                     return context.createElementNS('http://www.w3.org/2000/svg', tag);
                 }
             }
-            function define(el, attrs, children) {
-                return isChildren(attrs) ? defineChildren(el, attrs) : defineChildren(defineAttrs(el, attrs), children);
+            function define(node, attrs, children) {
+                return isChildren(attrs) ? defineChildren(node, attrs) : defineChildren(defineAttrs(node, attrs), children);
             }
             exports.define = define;
             function defineAttrs(el, attrs) {
@@ -4736,60 +4747,66 @@ require = function () {
                 }
                 return el;
             }
-            function defineChildren(el, children) {
+            function defineChildren(node, children) {
                 switch (typeof children) {
                 case 'undefined':
-                    return el;
+                    return node;
                 case 'string':
-                    return defineChildren(el, [children]);
+                    return defineChildren(node, [children]);
                 }
-                const targetNodes = el.firstChild ? el.childNodes : [];
+                if (!alias_1.isArray(children)) {
+                    if (!('length' in children))
+                        return defineChildren(node, [...children]);
+                    const ns = [];
+                    for (let i = 0, len = children.length; i < len; ++i) {
+                        ns.push(children[i]);
+                    }
+                    return defineChildren(node, ns);
+                }
+                const targetNodes = node.firstChild ? node.childNodes : [];
                 let targetLength = targetNodes.length;
                 if (targetLength === 0) {
-                    el.append(...children);
-                    return el;
+                    node.append(...children);
+                    return node;
                 }
-                if (!alias_1.isArray(children))
-                    return defineChildren(el, [...children]);
                 let count = 0;
                 I:
                     for (let i = 0; i < children.length; ++i) {
                         if (count === targetLength) {
-                            el.append(...children.slice(i));
-                            return el;
+                            node.append(...children.slice(i));
+                            return node;
                         }
-                        const child = children[i];
-                        if (typeof child === 'object' && child.nodeType === 11) {
-                            const sourceNodes = child.childNodes;
-                            const sourceLength = sourceNodes.length;
-                            el.insertBefore(child, targetNodes[count] || null);
+                        const newChild = children[i];
+                        if (typeof newChild === 'object' && newChild.nodeType === 11) {
+                            const sourceLength = newChild.childNodes.length;
+                            node.insertBefore(newChild, targetNodes[count] || null);
                             count += sourceLength;
                             targetLength += sourceLength;
                             continue;
                         }
                         ++count;
                         while (targetLength > children.length) {
-                            const node = targetNodes[count - 1];
-                            if (equal(node, child))
+                            const oldChild = targetNodes[count - 1];
+                            if (equal(oldChild, newChild))
                                 continue I;
-                            node.remove();
+                            oldChild.remove();
                             --targetLength;
                         }
-                        const node = targetNodes[count - 1];
-                        if (equal(node, child))
+                        const oldChild = targetNodes[count - 1];
+                        if (equal(oldChild, newChild))
                             continue;
                         if (targetLength < children.length - i + count) {
-                            el.insertBefore(typeof child === 'string' ? text(child) : child, node);
+                            node.insertBefore(typeof newChild === 'string' ? text(newChild) : newChild, oldChild);
                             ++targetLength;
                         } else {
-                            el.replaceChild(typeof child === 'string' ? text(child) : child, node);
+                            node.replaceChild(typeof newChild === 'string' ? text(newChild) : newChild, oldChild);
                         }
                     }
                 while (count < targetLength) {
                     targetNodes[count].remove();
                     --targetLength;
                 }
-                return el;
+                return node;
             }
             function isChildren(o) {
                 return !!(o === null || o === void 0 ? void 0 : o[global_1.Symbol.iterator]);
@@ -4810,6 +4827,7 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.bind = exports.delegate = exports.wait = exports.once = exports.listen = exports.currentTarget = void 0;
+            const global_1 = _dereq_('spica/global');
             const promise_1 = _dereq_('spica/promise');
             const noop_1 = _dereq_('spica/noop');
             exports.currentTarget = Symbol.for('currentTarget');
@@ -4822,29 +4840,31 @@ require = function () {
             }
             exports.once = once;
             function wait(target, a, b = false, c = {}) {
-                return new promise_1.AtomicPromise(resolve => typeof b === 'string' ? void once(target, a, b, resolve, c) : void once(target, a, resolve, b));
+                return new promise_1.AtomicPromise(resolve => typeof b === 'string' ? once(target, a, b, resolve, c) : once(target, a, resolve, b));
             }
             exports.wait = wait;
             function delegate(target, selector, type, listener, option = {}) {
-                return bind(target.nodeType === 9 ? target.documentElement : target, type, ev => {
-                    const cx = (ev.target.shadowRoot && ev.composedPath()[0] || ev.target).closest(selector);
-                    cx && void once(cx, type, listener, option);
-                    return ev.returnValue;
+                let unbind = noop_1.noop;
+                return bind(target, type, ev => {
+                    var _a, _b;
+                    unbind();
+                    const cx = ev.target.shadowRoot ? (_a = ev.composedPath()[0]) === null || _a === void 0 ? void 0 : _a.closest(selector) : (_b = ev.target) === null || _b === void 0 ? void 0 : _b.closest(selector);
+                    return cx ? unbind = once(cx, type, listener, option) : global_1.undefined, ev.returnValue;
                 }, Object.assign(Object.assign({}, option), { capture: true }));
             }
             exports.delegate = delegate;
             function bind(target, type, listener, option = false) {
-                void target.addEventListener(type, handler, option);
-                let unbind = () => (unbind = noop_1.noop, void target.removeEventListener(type, handler, option));
-                return () => void unbind();
+                target.addEventListener(type, handler, option);
+                let unbind = () => void target.removeEventListener(type, handler, option);
+                return () => void (unbind = unbind() || noop_1.noop);
                 function handler(ev) {
-                    ev[exports.currentTarget] = ev.currentTarget;
-                    return listener(ev);
+                    return exports.currentTarget in ev && !ev[exports.currentTarget] ? global_1.undefined : ev[exports.currentTarget] = ev.currentTarget, listener(ev);
                 }
             }
             exports.bind = bind;
         },
         {
+            'spica/global': 17,
             'spica/noop': 79,
             'spica/promise': 81
         }
