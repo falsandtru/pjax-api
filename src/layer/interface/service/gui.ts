@@ -40,6 +40,7 @@ class View {
   ) {
     const config = new Config(option);
     const router = (event: Event) => void io.router(config, new RouterEvent(event), process, io);
+    void View.resource.clear();
     void [
       new ClickView(io.document, config.link, router),
       new SubmitView(io.document, config.form, router),
@@ -47,7 +48,6 @@ class View {
       new ScrollView(window, savePosition),
     ]
       .forEach((view, i) =>
-        void View.resource.kill(`${i}`) ||
         void View.resource.register(`${i}`, view));
   }
 }
