@@ -2917,17 +2917,6 @@ require = function () {
                     this.subscribers = [];
                 }
             }
-            var ListenerType;
-            (function (ListenerType) {
-                ListenerType[ListenerType['Monitor'] = 0] = 'Monitor';
-                ListenerType[ListenerType['Subscriber'] = 1] = 'Subscriber';
-            }(ListenerType || (ListenerType = {})));
-            var SeekMode;
-            (function (SeekMode) {
-                SeekMode[SeekMode['Extensible'] = 0] = 'Extensible';
-                SeekMode[SeekMode['Breakable'] = 1] = 'Breakable';
-                SeekMode[SeekMode['Closest'] = 2] = 'Closest';
-            }(SeekMode || (SeekMode = {})));
             let id = 0;
             class Observation {
                 constructor(opts = {}) {
@@ -3153,13 +3142,6 @@ require = function () {
             const global_1 = _dereq_('./global');
             const alias_1 = _dereq_('./alias');
             const array_1 = _dereq_('./array');
-            var State;
-            (function (State) {
-                State[State['pending'] = 0] = 'pending';
-                State[State['resolved'] = 1] = 'resolved';
-                State[State['fulfilled'] = 2] = 'fulfilled';
-                State[State['rejected'] = 3] = 'rejected';
-            }(State || (State = {})));
             class Internal {
                 constructor() {
                     this.status = { state: 0 };
@@ -4179,12 +4161,6 @@ require = function () {
                 }
             });
             var dom_1 = _dereq_('./src/util/dom');
-            Object.defineProperty(exports, 'NS', {
-                enumerable: true,
-                get: function () {
-                    return dom_1.NS;
-                }
-            });
             Object.defineProperty(exports, 'frag', {
                 enumerable: true,
                 get: function () {
@@ -4662,16 +4638,11 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            exports.define = exports.element = exports.text = exports.svg = exports.html = exports.shadow = exports.frag = exports.NS = void 0;
+            exports.define = exports.element = exports.text = exports.svg = exports.html = exports.shadow = exports.frag = void 0;
             const global_1 = _dereq_('spica/global');
             const alias_1 = _dereq_('spica/alias');
             const memoize_1 = _dereq_('spica/memoize');
             const curry_1 = _dereq_('spica/curry');
-            var NS;
-            (function (NS) {
-                NS['HTML'] = 'HTML';
-                NS['SVG'] = 'SVG';
-            }(NS = exports.NS || (exports.NS = {})));
             const shadows = new WeakMap();
             var caches;
             (function (caches) {
@@ -6382,12 +6353,13 @@ require = function () {
                     constructor(option, io) {
                         const config = new router_1.Config(option);
                         const router = event => void io.router(config, new router_1.RouterEvent(event), process_1.process, io);
+                        void View.resource.clear();
                         void [
                             new click_1.ClickView(io.document, config.link, router),
                             new submit_1.SubmitView(io.document, config.form, router),
                             new navigation_1.NavigationView(window, router),
                             new scroll_1.ScrollView(window, store_1.savePosition)
-                        ].forEach((view, i) => void View.resource.kill(`${ i }`) || void View.resource.register(`${ i }`, view));
+                        ].forEach((view, i) => void View.resource.register(`${ i }`, view));
                     }
                 }
                 View.resource = new class extends supervisor_1.Supervisor {
