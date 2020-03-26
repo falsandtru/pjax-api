@@ -9,8 +9,10 @@ import './state/scroll-restoration';
 import { process } from './state/process';
 import { savePosition } from '../../application/store';
 import { Supervisor } from 'spica/supervisor';
+import { Copropagator } from 'spica/copropagator';
 
 export class GUI extends API {
+  private static readonly resources = new class extends Supervisor { }();
   constructor(
     private readonly option: Option,
     private readonly io = {
@@ -19,8 +21,10 @@ export class GUI extends API {
     },
   ) {
     super();
-    new View(this.option, io);
+    void GUI.resources.clear();
+    void GUI.resources.register('view', this.view);
   }
+  private readonly view = new View(this.option, this.io);
   public assign(url: string): boolean {
     return API.assign(url, this.option, this.io);
   }
@@ -29,8 +33,7 @@ export class GUI extends API {
   }
 }
 
-class View {
-  private static readonly resource = new class extends Supervisor<string, unknown>{ }();
+class View extends Copropagator<never> {
   constructor(
     option: Option,
     io: {
@@ -40,18 +43,11 @@ class View {
   ) {
     const config = new Config(option);
     const router = (event: Event) => void io.router(config, new RouterEvent(event), process, io);
-    void View.resource.clear();
-    void [
+    super([
       new ClickView(io.document, config.link, router),
       new SubmitView(io.document, config.form, router),
       new NavigationView(window, router),
       new ScrollView(window, savePosition),
-    ]
-      .forEach((view, i) =>
-        void View.resource.register(`${i}`, view));
+    ]);
   }
-}
-
-export function clear(): void {
-  void View['resource'].clear();
 }

@@ -4,12 +4,12 @@ import { standardize } from 'spica/url';
 import { debounce } from 'spica/throttle';
 import { bind } from 'typed-dom';
 
-export class ScrollView extends Coroutine {
+export class ScrollView extends Coroutine<never> {
   constructor(
     window: Window,
     listener: (event: Event) => void,
   ) {
-    super(function* () {
+    super(async function* () {
       return this.finally(bind(window, 'scroll', debounce(100, ev => {
         if (new URL(standardize(window.location.href)).href !== docurl.href) return;
         void listener(ev);

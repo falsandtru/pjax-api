@@ -1,11 +1,10 @@
 import { Pjax } from '../../../index';
 import { route as router } from '../../../src/layer/interface/service/router';
-import { clear } from '../../../src/layer/interface/service/gui';
 import { html, once } from 'typed-dom';
 
 describe('Integration: Usecase', function () {
   afterEach(() => {
-    clear();
+    Pjax['resources'].clear();
   });
 
   describe('submit', function () {

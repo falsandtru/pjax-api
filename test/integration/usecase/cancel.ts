@@ -1,13 +1,12 @@
 import { Pjax } from '../../../index';
 import { route as router } from '../../../src/layer/interface/service/router';
-import { clear } from '../../../src/layer/interface/service/gui';
 import { parse } from '../../../src/lib/html';
 import { wait as delay } from 'spica/clock';
 import { once, wait } from 'typed-dom';
 
 describe('Integration: Usecase', function () {
   afterEach(() => {
-    clear();
+    Pjax['resources'].clear();
   });
 
   describe('cancel', function () {

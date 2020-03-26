@@ -1,11 +1,6 @@
 import { API } from './api';
-import { clear } from './gui';
 
 describe('Unit: layer/interface/service/api', function () {
-  afterEach(() => {
-    clear();
-  });
-
   describe('assign', function () {
     it('', function () {
       assert(API.assign('', {}, { document, router: config => {

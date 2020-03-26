@@ -1,12 +1,11 @@
 import { Pjax } from '../../../index';
 import { route as router } from '../../../src/layer/interface/service/router';
-import { clear } from '../../../src/layer/interface/service/gui';
 import { parse } from '../../../src/lib/html';
 import { once } from 'typed-dom';
 
 describe('Integration: Usecase', function () {
   afterEach(() => {
-    clear();
+    Pjax['resources'].clear();
   });
 
   describe('multibyte', function () {

@@ -1,11 +1,11 @@
-import { GUI, clear } from './gui';
+import { GUI } from './gui';
 import { API } from './api';
 import { parse } from '../../../lib/html';
 import { html, once } from 'typed-dom';
 
 describe('Unit: layer/interface/service/gui', function () {
   afterEach(() => {
-    clear();
+    GUI['resources'].clear();
   });
 
   describe('assign', function () {
