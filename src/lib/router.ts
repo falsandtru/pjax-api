@@ -2,7 +2,7 @@ import { URL, StandardURL, standardize } from 'spica/url';
 import { Sequence } from 'spica/sequence';
 import { curry } from 'spica/curry';
 import { flip } from 'spica/flip';
-import { Cache } from 'spica/cache';
+import { memoize } from 'spica/memoize';
 
 export function router<T>(config: Record<string, (path: string) => T>): (url: string) => T {
   return (url: string) => {
@@ -49,7 +49,7 @@ export function compare(pattern: string, path: URL.Pathname<StandardURL>): boole
     .length > 0;
 }
 
-function expand(pattern: string): string[] {
+const expand = memoize((pattern: string): string[] => {
   if (pattern.match(/\*\*|[\[\]]/)) throw new Error(`Invalid pattern: ${pattern}`);
   assert(pattern === '' || pattern.match(/{[^{}]*}|.[^{]*/g)!.join('') === pattern);
   return pattern === ''
@@ -67,18 +67,13 @@ function expand(pattern: string): string[] {
             : Sequence.from(expand(p)))
         .unique()
         .extract();
-}
+});
 export { expand as _expand }
 
-const cache = new Cache<string, boolean>(100);
-
-function match(pattern: string, segment: string): boolean {
+const match = memoize((pattern: string, segment: string): boolean => {
   assert(segment === '/' || !segment.startsWith('/'));
   if (segment[0] === '.' && [...'?*'].includes(pattern[0])) return false;
-  const id = `${pattern}:${segment}`;
-  return cache.has(id)
-    ? cache.get(id)!
-    : cache.set(id, match(optimize(pattern), segment));
+  return match(optimize(pattern), segment);
 
   function match(pattern: string, segment: string): boolean {
     const [p = '', ...ps] = [...pattern];
@@ -117,5 +112,5 @@ function match(pattern: string, segment: string): boolean {
       ? pat
       : optimize(pat);
   }
-}
+}, (pat, seg) => `${pat} ${seg}`);
 export { match as _match }
