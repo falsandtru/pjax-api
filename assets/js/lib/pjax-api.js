@@ -6292,8 +6292,6 @@ require = function () {
                             return yield __await(this.finally(typed_dom_1.delegate(document, selector, 'click', ev => {
                                 if (!(ev.currentTarget instanceof HTMLAnchorElement))
                                     return;
-                                if (typeof ev.currentTarget.href !== 'string')
-                                    return;
                                 void listener(ev);
                             })));
                         });
@@ -6443,7 +6441,7 @@ require = function () {
                     super(function () {
                         return __asyncGenerator(this, arguments, function* () {
                             return yield __await(this.finally(typed_dom_1.bind(window, 'scroll', throttle_1.debounce(100, ev => {
-                                if (new URL(url_2.standardize(window.location.href)).href !== url_1.docurl.href)
+                                if (url_2.standardize(window.location.href) !== url_1.docurl.href)
                                     return;
                                 void listener(ev);
                             }), { passive: true })));
@@ -7027,11 +7025,11 @@ require = function () {
             const sequence_1 = _dereq_('spica/sequence');
             const curry_1 = _dereq_('spica/curry');
             const flip_1 = _dereq_('spica/flip');
-            const cache_1 = _dereq_('spica/cache');
+            const memoize_1 = _dereq_('spica/memoize');
             function router(config) {
                 return url => {
                     const {path, pathname} = new url_1.URL(url_1.standardize(url));
-                    return sequence_1.Sequence.from(Object.keys(config).filter(([c]) => c === '/').sort().reverse()).filter(curry_1.curry(flip_1.flip(compare))(pathname)).map(pattern => config[pattern]).take(1).extract().pop().call(config, path);
+                    return sequence_1.Sequence.from(Object.keys(config).filter(p => p[0] === '/').sort().reverse()).filter(curry_1.curry(flip_1.flip(compare))(pathname)).map(pattern => config[pattern]).take(1).extract().pop().call(config, path);
                 };
             }
             exports.router = router;
@@ -7044,18 +7042,16 @@ require = function () {
                 ]).filter(([ps, ss]) => ps.length <= ss.length && sequence_1.Sequence.zip(sequence_1.Sequence.from(ps), sequence_1.Sequence.from(ss)).dropWhile(([a, b]) => match(a, b)).take(1).extract().length === 0).take(1).extract().length > 0;
             }
             exports.compare = compare;
-            function expand(pattern) {
+            const expand = memoize_1.memoize(pattern => {
                 if (pattern.match(/\*\*|[\[\]]/))
                     throw new Error(`Invalid pattern: ${ pattern }`);
                 return pattern === '' ? [pattern] : sequence_1.Sequence.from(pattern.match(/{[^{}]*}|.[^{]*/g)).map(p => p.match(/^{[^{}]*}$/) ? p.slice(1, -1).split(',') : [p]).mapM(sequence_1.Sequence.from).map(ps => ps.join('')).bind(p => p === pattern ? sequence_1.Sequence.from([p]) : sequence_1.Sequence.from(expand(p))).unique().extract();
-            }
+            });
             exports._expand = expand;
-            const cache = new cache_1.Cache(100);
-            function match(pattern, segment) {
+            const match = memoize_1.memoize((pattern, segment) => {
                 if (segment[0] === '.' && [...'?*'].includes(pattern[0]))
                     return false;
-                const id = `${ pattern }:${ segment }`;
-                return cache.has(id) ? cache.get(id) : cache.set(id, match(optimize(pattern), segment));
+                return match(optimize(pattern), segment);
                 function match(pattern, segment) {
                     const [p = '', ...ps] = [...pattern];
                     const [s = '', ...ss] = [...segment];
@@ -7074,13 +7070,13 @@ require = function () {
                     const pat = pattern.replace(/\*(\?+)\*?/g, '$1*');
                     return pat === pattern ? pat : optimize(pat);
                 }
-            }
+            }, (pat, seg) => `${ pat } ${ seg }`);
             exports._match = match;
         },
         {
-            'spica/cache': 7,
             'spica/curry': 13,
             'spica/flip': 16,
+            'spica/memoize': 23,
             'spica/sequence': 83,
             'spica/url': 89
         }
