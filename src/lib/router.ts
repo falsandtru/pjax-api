@@ -7,7 +7,7 @@ import { Cache } from 'spica/cache';
 export function router<T>(config: Record<string, (path: string) => T>): (url: string) => T {
   return (url: string) => {
     const { path, pathname } = new URL(standardize(url));
-    return Sequence.from(Object.keys(config).filter(([c]) => c === '/').sort().reverse())
+    return Sequence.from(Object.keys(config).filter(p => p[0] === '/').sort().reverse())
       .filter(curry(flip(compare))(pathname))
       .map(pattern => config[pattern])
       .take(1)
@@ -110,7 +110,7 @@ function match(pattern: string, segment: string): boolean {
             && match(ps.join(''), ss.join(''));
     }
   }
-  
+
   function optimize(pattern: string): string {
     const pat = pattern.replace(/\*(\?+)\*?/g, '$1*');
     return pat === pattern
