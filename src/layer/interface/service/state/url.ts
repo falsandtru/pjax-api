@@ -12,4 +12,4 @@ export const docurl = new class {
   public sync(): void {
     this.url = standardize(window.location.href);
   }
-};
+}();
