@@ -11,7 +11,7 @@ export class ScrollView extends Coroutine<never> {
   ) {
     super(async function* () {
       return this.finally(bind(window, 'scroll', debounce(100, ev => {
-        if (new URL(standardize(window.location.href)).href !== docurl.href) return;
+        if (standardize(window.location.href) !== docurl.href) return;
         void listener(ev);
       }), { passive: true }));
     });
