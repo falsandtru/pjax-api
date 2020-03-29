@@ -68,7 +68,7 @@ export function route(
           void kill(),
           void docurl.sync(),
           window.history.scrollRestoration = 'auto',
-          !cancellation.canceled || reason instanceof FatalError
+          cancellation.alive || reason instanceof FatalError
             ? void config.fallback(event.source, reason)
             : void 0));
     })
