@@ -332,8 +332,8 @@ require = function () {
             const assign_1 = _dereq_('./assign');
             const array_1 = _dereq_('./array');
             class Cache {
-                constructor(size, callback = () => global_1.undefined, opts = {}) {
-                    this.size = size;
+                constructor(capacity, callback = () => global_1.undefined, opts = {}) {
+                    this.capacity = capacity;
                     this.callback = callback;
                     this.settings = {
                         ignore: {
@@ -349,12 +349,12 @@ require = function () {
                         }
                     };
                     this.nullish = false;
-                    if (size > 0 === false)
-                        throw new Error(`Spica: Cache: Cache size must be greater than 0.`);
+                    if (capacity > 0 === false)
+                        throw new Error(`Spica: Cache: Cache capacity must be greater than 0.`);
                     assign_1.extend(this.settings, opts);
                     const {stats, entries} = this.settings.data;
-                    const LFU = stats[1].slice(0, size);
-                    const LRU = stats[0].slice(0, size - LFU.length);
+                    const LFU = stats[1].slice(0, capacity);
+                    const LRU = stats[0].slice(0, capacity - LFU.length);
                     this.stats = {
                         LRU,
                         LFU
@@ -381,7 +381,7 @@ require = function () {
                     if (hit && this.access(key))
                         return this.store.set(key, value), true;
                     const {LRU, LFU} = this.stats;
-                    if (LRU.length + LFU.length === this.size && LRU.length < LFU.length) {
+                    if (LRU.length + LFU.length === this.capacity && LRU.length < LFU.length) {
                         const key = LFU.pop();
                         const val = this.store.get(key);
                         this.store.delete(key);
@@ -389,7 +389,7 @@ require = function () {
                     }
                     LRU.unshift(key);
                     this.store.set(key, value);
-                    if (LRU.length + LFU.length > this.size) {
+                    if (LRU.length + LFU.length > this.capacity) {
                         const key = LRU.pop();
                         const val = this.store.get(key);
                         this.store.delete(key);
@@ -443,6 +443,9 @@ require = function () {
                     for (const kv of store) {
                         this.callback(kv[0], kv[1]);
                     }
+                }
+                get size() {
+                    return this.store.size;
                 }
                 [Symbol.iterator]() {
                     return this.store[Symbol.iterator]();
@@ -500,32 +503,44 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.Cancellation = void 0;
             const global_1 = _dereq_('./global');
-            const noop_1 = _dereq_('./noop');
             const promise_1 = _dereq_('./promise');
             const exception_1 = _dereq_('./exception');
             const maybe_1 = _dereq_('./monad/maybe');
             const either_1 = _dereq_('./monad/either');
+            const noop_1 = _dereq_('./noop');
             const internal = Symbol.for('spica/cancellation::internal');
             class Cancellation extends promise_1.AtomicPromise {
                 constructor(cancelees = []) {
                     super(res => resolve = res);
-                    this.register = listener => this[internal].register(listener);
-                    this.cancel = reason => this[internal].cancel(reason);
-                    this.close = reason => this[internal].close(reason);
-                    this.promise = val => this[internal].promise(val);
-                    this.maybe = val => this[internal].maybe(val);
-                    this.either = val => this[internal].either(val);
                     var resolve;
                     this[internal] = new Internal(resolve);
                     for (const cancellee of cancelees) {
                         cancellee.register(this.cancel);
                     }
                 }
-                static get [Symbol.species]() {
-                    return promise_1.AtomicPromise;
+                get alive() {
+                    return this[internal].alive;
                 }
                 get canceled() {
                     return this[internal].canceled;
+                }
+                register(listener) {
+                    return this[internal].register(listener);
+                }
+                get cancel() {
+                    return reason => this[internal].cancel(reason);
+                }
+                get close() {
+                    return reason => this[internal].close(reason);
+                }
+                get promise() {
+                    return val => this[internal].promise(val);
+                }
+                get maybe() {
+                    return val => this[internal].maybe(val);
+                }
+                get either() {
+                    return val => this[internal].either(val);
                 }
             }
             exports.Cancellation = Cancellation;
@@ -597,41 +612,38 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.tick = void 0;
-            const list_1 = _dereq_('./list');
+            const global_1 = _dereq_('./global');
             const exception_1 = _dereq_('./exception');
-            let list = list_1.MList();
-            let last = list;
+            let queue = [];
+            let jobs = [];
+            let index = 0;
+            const scheduler = Promise.resolve();
             function tick(cb) {
-                schedule();
-                last = last.append(cb);
+                index === 0 && scheduler.then(run);
+                index++ === queue.length ? queue.push(cb) : queue[index - 1] = cb;
             }
             exports.tick = tick;
-            const scheduler = Promise.resolve();
-            function schedule() {
-                if (list.tail)
-                    return;
-                scheduler.then(run);
-            }
             function run() {
-                let node = list;
-                list = last = list_1.MList();
-                while (true) {
+                const count = index;
+                [index, queue, jobs] = [
+                    0,
+                    jobs,
+                    queue
+                ];
+                for (let i = 0; i < count; ++i) {
                     try {
-                        for (; node.tail; node = node.tail) {
-                            node.head();
-                        }
-                        return;
+                        jobs[i]();
+                        jobs[i] = global_1.undefined;
                     } catch (reason) {
-                        node = node.tail;
                         exception_1.causeAsyncException(reason);
-                        continue;
                     }
                 }
+                jobs.length > 1000 && count < jobs.length * 0.5 && jobs.splice(jobs.length * 0.9 | 0, jobs.length);
             }
         },
         {
             './exception': 15,
-            './list': 21
+            './global': 18
         }
     ],
     10: [
@@ -726,10 +738,11 @@ require = function () {
             };
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.Copropagator = void 0;
+            const global_1 = _dereq_('./global');
+            const alias_1 = _dereq_('./alias');
             const coroutine_1 = _dereq_('./coroutine');
             const promise_1 = _dereq_('./promise');
             const clock_1 = _dereq_('./clock');
-            const global_1 = _dereq_('./global');
             class Copropagator extends coroutine_1.Coroutine {
                 constructor(coroutines, reducer = results => results[0]) {
                     super(function () {
@@ -744,7 +757,7 @@ require = function () {
                                     void co[coroutine_1.Coroutine.exit](rejection);
                                 }
                             });
-                            void promise_1.AtomicPromise.all(coroutines).then(results => results.length === 0 ? void this[coroutine_1.Coroutine.terminate](new global_1.Error(`Spica: Copropagator: No result.`)) : void this[coroutine_1.Coroutine.exit](reducer(results)), reason => void this[coroutine_1.Coroutine.terminate](reason));
+                            void all(coroutines).then(results => results.length === 0 ? void this[coroutine_1.Coroutine.terminate](new global_1.Error(`Spica: Copropagator: No result.`)) : void this[coroutine_1.Coroutine.exit](reducer(results)), reason => void this[coroutine_1.Coroutine.terminate](reason));
                             return yield __await(clock_1.never);
                         });
                     }, { autorun: false });
@@ -752,8 +765,23 @@ require = function () {
                 }
             }
             exports.Copropagator = Copropagator;
+            function all(sources, memory) {
+                const before = alias_1.isArray(sources) ? sources : [...sources];
+                return promise_1.AtomicPromise.all(before).then(values => {
+                    const after = alias_1.isArray(sources) ? sources : [...sources];
+                    const same = after.length === before.length && after.every((_, i) => after[i] === before[i]);
+                    if (!memory && same)
+                        return values;
+                    memory = memory || new global_1.Map();
+                    for (let i = 0; i < values.length; ++i) {
+                        void memory.set(before[i], values[i]);
+                    }
+                    return same ? [...memory.values()] : all(after, memory);
+                });
+            }
         },
         {
+            './alias': 4,
             './clock': 10,
             './coroutine': 12,
             './global': 18,
@@ -866,16 +894,12 @@ require = function () {
                     };
                     void assign_1.extend(this.settings, opts);
                     void this.result.finally(() => {
-                        while (true) {
+                        while (this.msgs.length > 0) {
+                            const [, reply] = this.msgs.shift();
                             try {
-                                while (this.msgs.length > 0) {
-                                    const [, reply] = this.msgs.shift();
-                                    void reply(promise_1.AtomicPromise.reject(new global_1.Error(`Spica: Coroutine: Canceled.`)));
-                                }
-                                return;
+                                void reply(promise_1.AtomicPromise.reject(new global_1.Error(`Spica: Coroutine: Canceled.`)));
                             } catch (reason) {
                                 void exception_1.causeAsyncException(reason);
-                                continue;
                             }
                         }
                     });
@@ -888,17 +912,18 @@ require = function () {
                         super(resolve => res = resolve);
                         var res;
                         this[internal] = new Internal(opts);
-                        this[port] = new Port(this, this[internal]);
+                        this[port] = new Port(this, this[internal], () => void this[Coroutine.init]());
                         void res(this[internal].result.then(({value}) => value));
+                        let cnt = 0;
                         this[Coroutine.init] = () => __awaiter(this, void 0, void 0, function* () {
+                            if (cnt !== 0)
+                                return;
                             let reply = noop_1.noop;
                             try {
-                                this[Coroutine.init] = noop_1.noop;
                                 if (!this[internal].alive)
                                     return;
                                 const resume = () => this[internal].msgs.length > 0 ? [([, reply] = this[internal].msgs.shift())[0]] : this[internal].resume.then(resume);
                                 const iter = gen.call(this);
-                                let cnt = 0;
                                 while (this[internal].alive) {
                                     void ++cnt;
                                     const [[msg]] = cnt === 1 ? [[void 0]] : yield promise_1.AtomicPromise.all([
@@ -932,32 +957,46 @@ require = function () {
                         });
                         if (this[internal].settings.trigger !== void 0) {
                             for (const prop of global_1.Array().concat(this[internal].settings.trigger)) {
-                                if (prop in this)
+                                if (prop in this && this.hasOwnProperty(prop))
                                     continue;
-                                const desc = alias_1.ObjectGetOwnPropertyDescriptor(this, prop) || {
-                                    value: this[prop],
-                                    enumerable: true,
-                                    configurable: true,
-                                    writable: true
-                                };
-                                void alias_1.ObjectDefineProperty(this, prop, {
-                                    set(value) {
-                                        void alias_1.ObjectDefineProperty(this, prop, Object.assign(Object.assign({}, desc), { value }));
-                                        void this[init]();
-                                    },
-                                    get() {
-                                        return this[prop];
-                                    },
-                                    enumerable: true,
-                                    configurable: true
-                                });
+                                if (prop in this) {
+                                    void alias_1.ObjectDefineProperty(this, prop, {
+                                        set(value) {
+                                            delete this[prop];
+                                            this[prop] = value;
+                                            void this[init]();
+                                        },
+                                        get() {
+                                            delete this[prop];
+                                            void this[init]();
+                                            return this[prop];
+                                        },
+                                        enumerable: true,
+                                        configurable: true
+                                    });
+                                } else {
+                                    const desc = alias_1.ObjectGetOwnPropertyDescriptor(this, prop) || {
+                                        value: this[prop],
+                                        enumerable: true,
+                                        configurable: true,
+                                        writable: true
+                                    };
+                                    void alias_1.ObjectDefineProperty(this, prop, {
+                                        set(value) {
+                                            void alias_1.ObjectDefineProperty(this, prop, Object.assign(Object.assign({}, desc), { value }));
+                                            void this[init]();
+                                        },
+                                        get() {
+                                            return this[prop];
+                                        },
+                                        enumerable: true,
+                                        configurable: true
+                                    });
+                                }
                             }
                         }
                         this[internal].settings.debug && void this[Coroutine.init]();
-                        this[internal].settings.autorun && void clock_1.tick(() => void this[Coroutine.init]());
-                    }
-                    static get [Symbol.species]() {
-                        return promise_1.AtomicPromise;
+                        this[internal].settings.autorun && void clock_1.tick(this[Coroutine.init]);
                     }
                     get [alive]() {
                         return this[internal].alive;
@@ -992,11 +1031,11 @@ require = function () {
                         return __asyncGenerator(this, arguments, function* _a() {
                             while (this[internal].alive) {
                                 const state = yield __await(this[internal].state);
-                                if (state.done || !this[internal].alive)
+                                if (state.done)
                                     break;
                                 yield yield __await(state.value);
                             }
-                            return yield __await(this.then(() => void 0));
+                            return yield __await(this);
                         });
                     }
                 }
@@ -1009,13 +1048,15 @@ require = function () {
             })();
             exports.Coroutine = Coroutine;
             class Port {
-                constructor(co, internal) {
+                constructor(co, internal, init) {
                     this.co = co;
                     this.internal = internal;
+                    this.init = init;
                 }
                 recv() {
                     if (!this.internal.alive)
                         return promise_1.AtomicPromise.reject(new global_1.Error(`Spica: Coroutine: Canceled.`));
+                    void this.init();
                     return this.internal.state.then(state => __awaiter(this, void 0, void 0, function* () {
                         return state.done ? this.internal.result.then(({value}) => ({
                             value,
@@ -1026,8 +1067,9 @@ require = function () {
                 send(msg) {
                     if (!this.internal.alive)
                         return promise_1.AtomicPromise.reject(new global_1.Error(`Spica: Coroutine: Canceled.`));
+                    void this.init();
                     if (this.internal.settings.size === 0)
-                        return this.recv();
+                        return promise_1.AtomicPromise.reject(new global_1.Error(`Spica: Coroutine: Overflowed.`));
                     const res = new future_1.AtomicFuture();
                     void this.internal.msgs.push([
                         msg,
@@ -1047,6 +1089,7 @@ require = function () {
                     return __awaiter(this, void 0, void 0, function* () {
                         if (!this.internal.alive)
                             return promise_1.AtomicPromise.reject(new global_1.Error(`Spica: Coroutine: Canceled.`));
+                        void this.init();
                         const iter = com.call(this.co);
                         let reply;
                         while (true) {
@@ -1059,7 +1102,7 @@ require = function () {
                 }
             }
             function isCoroutine(target) {
-                return typeof target === 'object' && target !== null && typeof target.constructor['exit'] === 'symbol' && typeof target[target.constructor['exit']] === 'function' && typeof target.constructor['terminate'] === 'symbol' && typeof target[target.constructor['terminate']] === 'function' && typeof target.constructor['port'] === 'symbol' && typeof target[target.constructor['port']] === 'object';
+                return typeof target === 'object' && target !== null && typeof target.constructor === 'function' && typeof target.constructor['alive'] === 'symbol' && typeof target[target.constructor['alive']] === 'boolean' && typeof target.constructor['init'] === 'symbol' && typeof target[target.constructor['init']] === 'function' && typeof target.constructor['exit'] === 'symbol' && typeof target[target.constructor['exit']] === 'function' && typeof target.constructor['terminate'] === 'symbol' && typeof target[target.constructor['terminate']] === 'function' && typeof target.constructor['port'] === 'symbol' && typeof target[target.constructor['port']] === 'object';
             }
             exports.isCoroutine = isCoroutine;
         },
@@ -1158,13 +1201,13 @@ require = function () {
             class Future extends Promise {
                 constructor(strict = true) {
                     let bind;
-                    let state = true;
+                    let done = false;
                     super(resolve => bind = value => {
-                        if (!state && !strict)
+                        if (done && !strict)
                             return this.then();
-                        if (!state)
+                        if (done)
                             throw new Error(`Spica: Future: Cannot rebind a value.`);
-                        state = false;
+                        done = true;
                         void resolve(value);
                         return this.then();
                     });
@@ -1178,20 +1221,17 @@ require = function () {
             class AtomicFuture extends promise_1.AtomicPromise {
                 constructor(strict = true) {
                     let bind;
-                    let state = true;
+                    let done = false;
                     super(resolve => bind = value => {
-                        if (!state && !strict)
+                        if (done && !strict)
                             return this.then();
-                        if (!state)
+                        if (done)
                             throw new Error(`Spica: AtomicFuture: Cannot rebind a value.`);
-                        state = false;
+                        done = true;
                         void resolve(value);
                         return this.then();
                     });
                     this.bind = bind;
-                }
-                static get [Symbol.species]() {
-                    return promise_1.AtomicPromise;
                 }
             }
             exports.AtomicFuture = AtomicFuture;
@@ -3219,6 +3259,7 @@ require = function () {
             class Internal {
                 constructor() {
                     this.status = { state: 0 };
+                    this.reactable = true;
                     this.fulfillReactions = [];
                     this.rejectReactions = [];
                     this.isHandled = false;
@@ -3235,7 +3276,13 @@ require = function () {
                         executor(value => {
                             if (internal.status.state !== 0)
                                 return;
-                            if (isPromiseLike(value)) {
+                            if (!isPromiseLike(value)) {
+                                internal.status = {
+                                    state: 2,
+                                    result: value
+                                };
+                                resume(internal);
+                            } else {
                                 internal.status = {
                                     state: 1,
                                     result: value
@@ -3253,12 +3300,6 @@ require = function () {
                                     };
                                     resume(internal);
                                 });
-                            } else {
-                                internal.status = {
-                                    state: 2,
-                                    result: value
-                                };
-                                resume(internal);
                             }
                         }, reason => {
                             if (internal.status.state !== 0)
@@ -3285,36 +3326,36 @@ require = function () {
                 }
                 static all(vs) {
                     return new AtomicPromise((resolve, reject) => {
-                        const values = alias_1.isArray(vs) ? vs : [...vs];
-                        const length = values.length;
-                        const acc = [];
-                        let cnt = 0;
-                        for (let i = 0; i < length; ++i) {
+                        const values = alias_1.isArray(vs) ? vs.slice() : [...vs];
+                        const results = global_1.Array(values.length);
+                        let count = 0;
+                        for (let i = 0; i < values.length; ++i) {
                             const value = values[i];
-                            if (isPromiseLike(value)) {
+                            if (!isPromiseLike(value)) {
+                                results[i] = value;
+                                ++count;
+                            } else {
                                 value.then(value => {
-                                    acc[i] = value;
-                                    ++cnt;
-                                    cnt === length && resolve(acc);
+                                    results[i] = value;
+                                    ++count;
+                                    count === values.length && resolve(results);
                                 }, reason => {
-                                    i = length;
+                                    i = values.length;
                                     reject(reason);
                                 });
-                            } else {
-                                acc[i] = value;
-                                ++cnt;
                             }
                         }
-                        cnt === length && resolve(acc);
+                        count === values.length && resolve(results);
                     });
                 }
                 static race(values) {
                     return new AtomicPromise((resolve, reject) => {
                         let done = false;
                         for (const value of values) {
-                            if (done)
-                                break;
-                            if (isPromiseLike(value)) {
+                            if (!isPromiseLike(value)) {
+                                done = true;
+                                resolve(value);
+                            } else {
                                 value.then(value => {
                                     done = true;
                                     resolve(value);
@@ -3322,10 +3363,9 @@ require = function () {
                                     done = true;
                                     reject(reason);
                                 });
-                            } else {
-                                done = true;
-                                resolve(value);
                             }
+                            if (done)
+                                break;
                         }
                     });
                 }
@@ -3337,7 +3377,7 @@ require = function () {
                 }
                 then(onfulfilled, onrejected) {
                     return new AtomicPromise((resolve, reject) => {
-                        const {fulfillReactions, rejectReactions, status} = this[internal];
+                        const {status, fulfillReactions, rejectReactions} = this[internal];
                         if (status.state !== 3) {
                             fulfillReactions.push(value => {
                                 if (!onfulfilled)
@@ -3377,6 +3417,8 @@ require = function () {
             }
             exports.isPromiseLike = isPromiseLike;
             function resume(internal) {
+                if (!internal.reactable)
+                    return;
                 const {status, fulfillReactions, rejectReactions} = internal;
                 switch (status.state) {
                 case 0:
@@ -3389,7 +3431,9 @@ require = function () {
                     if (fulfillReactions.length === 0)
                         return;
                     internal.isHandled = true;
-                    consume(fulfillReactions, status.result);
+                    internal.reactable = false;
+                    react(fulfillReactions, status.result);
+                    internal.reactable = true;
                     return;
                 case 3:
                     if (!internal.isHandled && fulfillReactions.length > 0) {
@@ -3398,20 +3442,22 @@ require = function () {
                     if (rejectReactions.length === 0)
                         return;
                     internal.isHandled = true;
-                    consume(rejectReactions, status.result);
+                    internal.reactable = false;
+                    react(rejectReactions, status.result);
+                    internal.reactable = true;
                     return;
                 }
             }
-            function consume(fs, a) {
-                if (fs.length > 5) {
-                    for (let i = 0; i < fs.length; ++i) {
-                        fs[i](a);
+            function react(reactions, result) {
+                if (reactions.length < 5) {
+                    while (reactions.length > 0) {
+                        reactions.shift()(result);
                     }
-                    array_1.splice(fs, 0);
                 } else {
-                    while (fs.length > 0) {
-                        fs.shift()(a);
+                    for (let i = 0; i < reactions.length; ++i) {
+                        reactions[i](result);
                     }
+                    array_1.splice(reactions, 0);
                 }
             }
         },
@@ -6013,7 +6059,7 @@ require = function () {
                 const result = promise_1.AtomicPromise.resolve(wait).then(evaluate);
                 return script.matches('[src][async]') ? either_1.Right(result) : either_1.Left(result);
                 function evaluate() {
-                    if (cancellation.canceled)
+                    if (!cancellation.alive)
                         throw new error_1.FatalError('Expired.');
                     if (script.matches('[type="module"][src]')) {
                         return promise_1.AtomicPromise.resolve(Promise.resolve().then(() => _dereq_(script.src))).catch(reason => reason.message.startsWith('Failed to load ') && script.matches('[src][async]') ? retry(script).catch(() => promise_1.AtomicPromise.reject(reason)) : promise_1.AtomicPromise.reject(reason)).then(() => (void script.dispatchEvent(new Event('load')), either_1.Right(script)), reason => (void script.dispatchEvent(new Event('error')), either_1.Left(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''))));
@@ -6736,7 +6782,7 @@ require = function () {
                         scripts
                     }, io).then(m => m.fmap(([ss, p]) => __awaiter(this, void 0, void 0, function* () {
                         return void kill(), void url_1.docurl.sync(), void ss.filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_2.URL(url_2.standardize(s.src)).reference)), void (yield p).filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_2.URL(url_2.standardize(s.src)).reference));
-                    })).extract()).catch(reason => (void kill(), void url_1.docurl.sync(), window.history.scrollRestoration = 'auto', !cancellation.canceled || reason instanceof error_1.FatalError ? void config.fallback(event.source, reason) : void 0));
+                    })).extract()).catch(reason => (void kill(), void url_1.docurl.sync(), window.history.scrollRestoration = 'auto', cancellation.alive || reason instanceof error_1.FatalError ? void config.fallback(event.source, reason) : void 0));
                 })).extract(() => {
                     void process.cast('', new Error(`Aborted.`));
                     switch (event.type) {
