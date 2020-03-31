@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.30.1
+
+- Update dependencies.
+
 ## 3.30.0
 
 - Remove support for old Edge browser.
