@@ -1941,9 +1941,42 @@ require = function () {
     27: [
         function (_dereq_, module, exports) {
             'use strict';
+            var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
+                if (k2 === undefined)
+                    k2 = k;
+                Object.defineProperty(o, k2, {
+                    enumerable: true,
+                    get: function () {
+                        return m[k];
+                    }
+                });
+            } : function (o, m, k, k2) {
+                if (k2 === undefined)
+                    k2 = k;
+                o[k2] = m[k];
+            });
+            var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
+                Object.defineProperty(o, 'default', {
+                    enumerable: true,
+                    value: v
+                });
+            } : function (o, v) {
+                o['default'] = v;
+            });
+            var __importStar = this && this.__importStar || function (mod) {
+                if (mod && mod.__esModule)
+                    return mod;
+                var result = {};
+                if (mod != null)
+                    for (var k in mod)
+                        if (Object.hasOwnProperty.call(mod, k))
+                            __createBinding(result, mod, k);
+                __setModuleDefault(result, mod);
+                return result;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.Right = exports.Left = exports.Either = void 0;
-            const Monad = _dereq_('./either.impl');
+            const Monad = __importStar(_dereq_('./either.impl'));
             class Either extends Monad.Either {
                 constructor() {
                     super(() => void 0);
@@ -2118,9 +2151,42 @@ require = function () {
     31: [
         function (_dereq_, module, exports) {
             'use strict';
+            var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
+                if (k2 === undefined)
+                    k2 = k;
+                Object.defineProperty(o, k2, {
+                    enumerable: true,
+                    get: function () {
+                        return m[k];
+                    }
+                });
+            } : function (o, m, k, k2) {
+                if (k2 === undefined)
+                    k2 = k;
+                o[k2] = m[k];
+            });
+            var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
+                Object.defineProperty(o, 'default', {
+                    enumerable: true,
+                    value: v
+                });
+            } : function (o, v) {
+                o['default'] = v;
+            });
+            var __importStar = this && this.__importStar || function (mod) {
+                if (mod && mod.__esModule)
+                    return mod;
+                var result = {};
+                if (mod != null)
+                    for (var k in mod)
+                        if (Object.hasOwnProperty.call(mod, k))
+                            __createBinding(result, mod, k);
+                __setModuleDefault(result, mod);
+                return result;
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.Nothing = exports.Just = exports.Maybe = void 0;
-            const Monad = _dereq_('./maybe.impl');
+            const Monad = __importStar(_dereq_('./maybe.impl'));
             class Maybe extends Monad.Maybe {
                 constructor() {
                     super(() => void 0);
@@ -2170,6 +2236,9 @@ require = function () {
     34: [
         function (_dereq_, module, exports) {
             'use strict';
+            var __importDefault = this && this.__importDefault || function (mod) {
+                return mod && mod.__esModule ? mod : { 'default': mod };
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.Sequence = void 0;
             const core_1 = _dereq_('./sequence/core');
@@ -2179,51 +2248,51 @@ require = function () {
                     return core_1.Sequence;
                 }
             });
-            const resume_1 = _dereq_('./sequence/member/static/resume');
-            const from_1 = _dereq_('./sequence/member/static/from');
-            const cycle_1 = _dereq_('./sequence/member/static/cycle');
-            const random_1 = _dereq_('./sequence/member/static/random');
-            const concat_1 = _dereq_('./sequence/member/static/concat');
-            const zip_1 = _dereq_('./sequence/member/static/zip');
-            const difference_1 = _dereq_('./sequence/member/static/difference');
-            const union_1 = _dereq_('./sequence/member/static/union');
-            const intersect_1 = _dereq_('./sequence/member/static/intersect');
-            const pure_1 = _dereq_('./sequence/member/static/pure');
-            const return_1 = _dereq_('./sequence/member/static/return');
-            const sequence_1 = _dereq_('./sequence/member/static/sequence');
-            const mempty_1 = _dereq_('./sequence/member/static/mempty');
-            const mconcat_1 = _dereq_('./sequence/member/static/mconcat');
-            const mappend_1 = _dereq_('./sequence/member/static/mappend');
-            const mzero_1 = _dereq_('./sequence/member/static/mzero');
-            const mplus_1 = _dereq_('./sequence/member/static/mplus');
-            const extract_1 = _dereq_('./sequence/member/instance/extract');
-            const iterate_1 = _dereq_('./sequence/member/instance/iterate');
-            const memoize_1 = _dereq_('./sequence/member/instance/memoize');
-            const reduce_1 = _dereq_('./sequence/member/instance/reduce');
-            const take_1 = _dereq_('./sequence/member/instance/take');
-            const drop_1 = _dereq_('./sequence/member/instance/drop');
-            const takeWhile_1 = _dereq_('./sequence/member/instance/takeWhile');
-            const dropWhile_1 = _dereq_('./sequence/member/instance/dropWhile');
-            const takeUntil_1 = _dereq_('./sequence/member/instance/takeUntil');
-            const dropUntil_1 = _dereq_('./sequence/member/instance/dropUntil');
-            const sort_1 = _dereq_('./sequence/member/instance/sort');
-            const unique_1 = _dereq_('./sequence/member/instance/unique');
-            const fmap_1 = _dereq_('./sequence/member/instance/fmap');
-            const ap_1 = _dereq_('./sequence/member/instance/ap');
-            const bind_1 = _dereq_('./sequence/member/instance/bind');
-            const join_1 = _dereq_('./sequence/member/instance/join');
-            const mapM_1 = _dereq_('./sequence/member/instance/mapM');
-            const filterM_1 = _dereq_('./sequence/member/instance/filterM');
-            const map_1 = _dereq_('./sequence/member/instance/map');
-            const filter_1 = _dereq_('./sequence/member/instance/filter');
-            const scanl_1 = _dereq_('./sequence/member/instance/scanl');
-            const foldr_1 = _dereq_('./sequence/member/instance/foldr');
-            const group_1 = _dereq_('./sequence/member/instance/group');
-            const inits_1 = _dereq_('./sequence/member/instance/inits');
-            const tails_1 = _dereq_('./sequence/member/instance/tails');
-            const segs_1 = _dereq_('./sequence/member/instance/segs');
-            const subsequences_1 = _dereq_('./sequence/member/instance/subsequences');
-            const permutations_1 = _dereq_('./sequence/member/instance/permutations');
+            const resume_1 = __importDefault(_dereq_('./sequence/member/static/resume'));
+            const from_1 = __importDefault(_dereq_('./sequence/member/static/from'));
+            const cycle_1 = __importDefault(_dereq_('./sequence/member/static/cycle'));
+            const random_1 = __importDefault(_dereq_('./sequence/member/static/random'));
+            const concat_1 = __importDefault(_dereq_('./sequence/member/static/concat'));
+            const zip_1 = __importDefault(_dereq_('./sequence/member/static/zip'));
+            const difference_1 = __importDefault(_dereq_('./sequence/member/static/difference'));
+            const union_1 = __importDefault(_dereq_('./sequence/member/static/union'));
+            const intersect_1 = __importDefault(_dereq_('./sequence/member/static/intersect'));
+            const pure_1 = __importDefault(_dereq_('./sequence/member/static/pure'));
+            const return_1 = __importDefault(_dereq_('./sequence/member/static/return'));
+            const sequence_1 = __importDefault(_dereq_('./sequence/member/static/sequence'));
+            const mempty_1 = __importDefault(_dereq_('./sequence/member/static/mempty'));
+            const mconcat_1 = __importDefault(_dereq_('./sequence/member/static/mconcat'));
+            const mappend_1 = __importDefault(_dereq_('./sequence/member/static/mappend'));
+            const mzero_1 = __importDefault(_dereq_('./sequence/member/static/mzero'));
+            const mplus_1 = __importDefault(_dereq_('./sequence/member/static/mplus'));
+            const extract_1 = __importDefault(_dereq_('./sequence/member/instance/extract'));
+            const iterate_1 = __importDefault(_dereq_('./sequence/member/instance/iterate'));
+            const memoize_1 = __importDefault(_dereq_('./sequence/member/instance/memoize'));
+            const reduce_1 = __importDefault(_dereq_('./sequence/member/instance/reduce'));
+            const take_1 = __importDefault(_dereq_('./sequence/member/instance/take'));
+            const drop_1 = __importDefault(_dereq_('./sequence/member/instance/drop'));
+            const takeWhile_1 = __importDefault(_dereq_('./sequence/member/instance/takeWhile'));
+            const dropWhile_1 = __importDefault(_dereq_('./sequence/member/instance/dropWhile'));
+            const takeUntil_1 = __importDefault(_dereq_('./sequence/member/instance/takeUntil'));
+            const dropUntil_1 = __importDefault(_dereq_('./sequence/member/instance/dropUntil'));
+            const sort_1 = __importDefault(_dereq_('./sequence/member/instance/sort'));
+            const unique_1 = __importDefault(_dereq_('./sequence/member/instance/unique'));
+            const fmap_1 = __importDefault(_dereq_('./sequence/member/instance/fmap'));
+            const ap_1 = __importDefault(_dereq_('./sequence/member/instance/ap'));
+            const bind_1 = __importDefault(_dereq_('./sequence/member/instance/bind'));
+            const join_1 = __importDefault(_dereq_('./sequence/member/instance/join'));
+            const mapM_1 = __importDefault(_dereq_('./sequence/member/instance/mapM'));
+            const filterM_1 = __importDefault(_dereq_('./sequence/member/instance/filterM'));
+            const map_1 = __importDefault(_dereq_('./sequence/member/instance/map'));
+            const filter_1 = __importDefault(_dereq_('./sequence/member/instance/filter'));
+            const scanl_1 = __importDefault(_dereq_('./sequence/member/instance/scanl'));
+            const foldr_1 = __importDefault(_dereq_('./sequence/member/instance/foldr'));
+            const group_1 = __importDefault(_dereq_('./sequence/member/instance/group'));
+            const inits_1 = __importDefault(_dereq_('./sequence/member/instance/inits'));
+            const tails_1 = __importDefault(_dereq_('./sequence/member/instance/tails'));
+            const segs_1 = __importDefault(_dereq_('./sequence/member/instance/segs'));
+            const subsequences_1 = __importDefault(_dereq_('./sequence/member/instance/subsequences'));
+            const permutations_1 = __importDefault(_dereq_('./sequence/member/instance/permutations'));
             const compose_1 = _dereq_('../helper/compose');
             void compose_1.compose(core_1.Sequence, resume_1.default, from_1.default, cycle_1.default, random_1.default, concat_1.default, zip_1.default, difference_1.default, union_1.default, intersect_1.default, pure_1.default, return_1.default, sequence_1.default, mempty_1.default, mconcat_1.default, mappend_1.default, mzero_1.default, mplus_1.default, extract_1.default, iterate_1.default, memoize_1.default, reduce_1.default, take_1.default, drop_1.default, takeWhile_1.default, dropWhile_1.default, takeUntil_1.default, dropUntil_1.default, sort_1.default, unique_1.default, fmap_1.default, ap_1.default, bind_1.default, join_1.default, mapM_1.default, filterM_1.default, map_1.default, filter_1.default, scanl_1.default, foldr_1.default, group_1.default, inits_1.default, tails_1.default, segs_1.default, subsequences_1.default, permutations_1.default);
         },
@@ -6224,6 +6293,39 @@ require = function () {
     118: [
         function (_dereq_, module, exports) {
             'use strict';
+            var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
+                if (k2 === undefined)
+                    k2 = k;
+                Object.defineProperty(o, k2, {
+                    enumerable: true,
+                    get: function () {
+                        return m[k];
+                    }
+                });
+            } : function (o, m, k, k2) {
+                if (k2 === undefined)
+                    k2 = k;
+                o[k2] = m[k];
+            });
+            var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
+                Object.defineProperty(o, 'default', {
+                    enumerable: true,
+                    value: v
+                });
+            } : function (o, v) {
+                o['default'] = v;
+            });
+            var __importStar = this && this.__importStar || function (mod) {
+                if (mod && mod.__esModule)
+                    return mod;
+                var result = {};
+                if (mod != null)
+                    for (var k in mod)
+                        if (Object.hasOwnProperty.call(mod, k))
+                            __createBinding(result, mod, k);
+                __setModuleDefault(result, mod);
+                return result;
+            };
             var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
                 function adopt(value) {
                     return value instanceof P ? value : new P(function (resolve) {
@@ -6353,7 +6455,7 @@ require = function () {
                     if (!cancellation.alive)
                         throw new error_1.FatalError('Expired.');
                     if (script.matches('[type="module"][src]')) {
-                        return promise_1.AtomicPromise.resolve(Promise.resolve().then(() => _dereq_(script.src))).catch(reason => reason.message.startsWith('Failed to load ') && script.matches('[src][async]') ? retry(script).catch(() => promise_1.AtomicPromise.reject(reason)) : promise_1.AtomicPromise.reject(reason)).then(() => (void script.dispatchEvent(new Event('load')), either_1.Right(script)), reason => (void script.dispatchEvent(new Event('error')), either_1.Left(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''))));
+                        return promise_1.AtomicPromise.resolve(Promise.resolve().then(() => __importStar(_dereq_(script.src)))).catch(reason => reason.message.startsWith('Failed to load ') && script.matches('[src][async]') ? retry(script).catch(() => promise_1.AtomicPromise.reject(reason)) : promise_1.AtomicPromise.reject(reason)).then(() => (void script.dispatchEvent(new Event('load')), either_1.Right(script)), reason => (void script.dispatchEvent(new Event('error')), either_1.Left(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''))));
                     } else {
                         try {
                             if (skip.has(new url_1.URL(url_1.standardize(window.location.href)).reference))
