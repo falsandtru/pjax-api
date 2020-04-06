@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/falsandtru/pjax-api.svg?branch=master)](https://travis-ci.org/falsandtru/pjax-api)
 
-The second generation PJAX for the advanced web frameworks.
+The second generation PJAX for advanced web frameworks.
 
 ## Features
 
