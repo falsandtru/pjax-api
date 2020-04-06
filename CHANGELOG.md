@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.30.2
+
+- Enable esModuleInterop option.
+
 ## 3.30.1
 
 - Update dependencies.
