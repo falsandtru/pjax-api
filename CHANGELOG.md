@@ -1,7 +1,8 @@
 # Changelog
 
-## 3.30.2
+## 3.31.0
 
+- Update compile target to ES2018.
 - Enable esModuleInterop option.
 
 ## 3.30.1
