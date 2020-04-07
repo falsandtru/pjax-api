@@ -610,50 +610,6 @@ require = function () {
     9: [
         function (_dereq_, module, exports) {
             'use strict';
-            var __await = this && this.__await || function (v) {
-                return this instanceof __await ? (this.v = v, this) : new __await(v);
-            };
-            var __asyncGenerator = this && this.__asyncGenerator || function (thisArg, _arguments, generator) {
-                if (!Symbol.asyncIterator)
-                    throw new TypeError('Symbol.asyncIterator is not defined.');
-                var g = generator.apply(thisArg, _arguments || []), i, q = [];
-                return i = {}, verb('next'), verb('throw'), verb('return'), i[Symbol.asyncIterator] = function () {
-                    return this;
-                }, i;
-                function verb(n) {
-                    if (g[n])
-                        i[n] = function (v) {
-                            return new Promise(function (a, b) {
-                                q.push([
-                                    n,
-                                    v,
-                                    a,
-                                    b
-                                ]) > 1 || resume(n, v);
-                            });
-                        };
-                }
-                function resume(n, v) {
-                    try {
-                        step(g[n](v));
-                    } catch (e) {
-                        settle(q[0][3], e);
-                    }
-                }
-                function step(r) {
-                    r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r);
-                }
-                function fulfill(value) {
-                    resume('next', value);
-                }
-                function reject(value) {
-                    resume('throw', value);
-                }
-                function settle(f, v) {
-                    if (f(v), q.shift(), q.length)
-                        resume(q[0][0], q[0][1]);
-                }
-            };
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.Channel = void 0;
             const promise_1 = _dereq_('./promise');
@@ -721,18 +677,16 @@ require = function () {
                         return consumers[consumers.push(new future_1.AtomicFuture()) - 1].then();
                     }
                 }
-                [Symbol.asyncIterator]() {
-                    return __asyncGenerator(this, arguments, function* _a() {
-                        try {
-                            while (this.alive) {
-                                yield yield __await(this.take());
-                            }
-                        } catch (reason) {
-                            if (this.alive)
-                                throw reason;
+                async *[Symbol.asyncIterator]() {
+                    try {
+                        while (this.alive) {
+                            yield this.take();
                         }
-                        return yield __await(void 0);
-                    });
+                    } catch (reason) {
+                        if (this.alive)
+                            throw reason;
+                    }
+                    return;
                 }
             }
             exports.Channel = Channel;
@@ -836,50 +790,6 @@ require = function () {
     12: [
         function (_dereq_, module, exports) {
             'use strict';
-            var __await = this && this.__await || function (v) {
-                return this instanceof __await ? (this.v = v, this) : new __await(v);
-            };
-            var __asyncGenerator = this && this.__asyncGenerator || function (thisArg, _arguments, generator) {
-                if (!Symbol.asyncIterator)
-                    throw new TypeError('Symbol.asyncIterator is not defined.');
-                var g = generator.apply(thisArg, _arguments || []), i, q = [];
-                return i = {}, verb('next'), verb('throw'), verb('return'), i[Symbol.asyncIterator] = function () {
-                    return this;
-                }, i;
-                function verb(n) {
-                    if (g[n])
-                        i[n] = function (v) {
-                            return new Promise(function (a, b) {
-                                q.push([
-                                    n,
-                                    v,
-                                    a,
-                                    b
-                                ]) > 1 || resume(n, v);
-                            });
-                        };
-                }
-                function resume(n, v) {
-                    try {
-                        step(g[n](v));
-                    } catch (e) {
-                        settle(q[0][3], e);
-                    }
-                }
-                function step(r) {
-                    r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r);
-                }
-                function fulfill(value) {
-                    resume('next', value);
-                }
-                function reject(value) {
-                    resume('throw', value);
-                }
-                function settle(f, v) {
-                    if (f(v), q.shift(), q.length)
-                        resume(q[0][0], q[0][1]);
-                }
-            };
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.Copropagator = void 0;
             const global_1 = _dereq_('./global');
@@ -889,21 +799,19 @@ require = function () {
             const clock_1 = _dereq_('./clock');
             class Copropagator extends coroutine_1.Coroutine {
                 constructor(coroutines, reducer = results => results[0]) {
-                    super(function () {
-                        return __asyncGenerator(this, arguments, function* () {
-                            void this.then(result => {
-                                for (const co of coroutines) {
-                                    void co[coroutine_1.Coroutine.exit](result);
-                                }
-                            }, reason => {
-                                const rejection = promise_1.AtomicPromise.reject(reason);
-                                for (const co of coroutines) {
-                                    void co[coroutine_1.Coroutine.exit](rejection);
-                                }
-                            });
-                            void all(coroutines).then(results => results.length === 0 ? void this[coroutine_1.Coroutine.terminate](new global_1.Error(`Spica: Copropagator: No result.`)) : void this[coroutine_1.Coroutine.exit](reducer(results)), reason => void this[coroutine_1.Coroutine.terminate](reason));
-                            return yield __await(clock_1.never);
+                    super(async function* () {
+                        void this.then(result => {
+                            for (const co of coroutines) {
+                                void co[coroutine_1.Coroutine.exit](result);
+                            }
+                        }, reason => {
+                            const rejection = promise_1.AtomicPromise.reject(reason);
+                            for (const co of coroutines) {
+                                void co[coroutine_1.Coroutine.exit](rejection);
+                            }
                         });
+                        void all(coroutines).then(results => results.length === 0 ? void this[coroutine_1.Coroutine.terminate](new global_1.Error(`Spica: Copropagator: No result.`)) : void this[coroutine_1.Coroutine.exit](reducer(results)), reason => void this[coroutine_1.Coroutine.terminate](reason));
+                        return clock_1.never;
                     }, { autorun: false });
                     void this[coroutine_1.Coroutine.init]();
                 }
@@ -935,77 +843,6 @@ require = function () {
     13: [
         function (_dereq_, module, exports) {
             'use strict';
-            var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
-                function adopt(value) {
-                    return value instanceof P ? value : new P(function (resolve) {
-                        resolve(value);
-                    });
-                }
-                return new (P || (P = Promise))(function (resolve, reject) {
-                    function fulfilled(value) {
-                        try {
-                            step(generator.next(value));
-                        } catch (e) {
-                            reject(e);
-                        }
-                    }
-                    function rejected(value) {
-                        try {
-                            step(generator['throw'](value));
-                        } catch (e) {
-                            reject(e);
-                        }
-                    }
-                    function step(result) {
-                        result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
-                    }
-                    step((generator = generator.apply(thisArg, _arguments || [])).next());
-                });
-            };
-            var __await = this && this.__await || function (v) {
-                return this instanceof __await ? (this.v = v, this) : new __await(v);
-            };
-            var __asyncGenerator = this && this.__asyncGenerator || function (thisArg, _arguments, generator) {
-                if (!Symbol.asyncIterator)
-                    throw new TypeError('Symbol.asyncIterator is not defined.');
-                var g = generator.apply(thisArg, _arguments || []), i, q = [];
-                return i = {}, verb('next'), verb('throw'), verb('return'), i[Symbol.asyncIterator] = function () {
-                    return this;
-                }, i;
-                function verb(n) {
-                    if (g[n])
-                        i[n] = function (v) {
-                            return new Promise(function (a, b) {
-                                q.push([
-                                    n,
-                                    v,
-                                    a,
-                                    b
-                                ]) > 1 || resume(n, v);
-                            });
-                        };
-                }
-                function resume(n, v) {
-                    try {
-                        step(g[n](v));
-                    } catch (e) {
-                        settle(q[0][3], e);
-                    }
-                }
-                function step(r) {
-                    r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r);
-                }
-                function fulfill(value) {
-                    resume('next', value);
-                }
-                function reject(value) {
-                    resume('throw', value);
-                }
-                function settle(f, v) {
-                    if (f(v), q.shift(), q.length)
-                        resume(q[0][0], q[0][1]);
-                }
-            };
             var _a;
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.isCoroutine = exports.Coroutine = void 0;
@@ -1030,7 +867,7 @@ require = function () {
                         super(resolve => res = resolve);
                         var res;
                         let count = 0;
-                        this[Coroutine.init] = () => __awaiter(this, void 0, void 0, function* () {
+                        this[Coroutine.init] = async () => {
                             const core = this[internal];
                             if (!core.alive)
                                 return;
@@ -1043,7 +880,7 @@ require = function () {
                                     const [[msg, rpy]] = ++count === 1 ? [[
                                             global_1.undefined,
                                             noop_1.noop
-                                        ]] : yield global_1.Promise.all([
+                                        ]] : await global_1.Promise.all([
                                         core.settings.size < 0 ? [
                                             global_1.undefined,
                                             noop_1.noop
@@ -1056,15 +893,15 @@ require = function () {
                                     reply = rpy;
                                     if (!core.alive)
                                         break;
-                                    const result = yield iter.next(msg);
+                                    const result = await iter.next(msg);
                                     if (!result.done) {
-                                        reply(Object.assign({}, result));
-                                        yield core.recvBuffer.put(Object.assign({}, result));
+                                        reply({ ...result });
+                                        await core.recvBuffer.put({ ...result });
                                         continue;
                                     } else {
                                         core.alive = false;
-                                        reply(Object.assign({}, result));
-                                        core.recvBuffer.put(Object.assign({}, result));
+                                        reply({ ...result });
+                                        core.recvBuffer.put({ ...result });
                                         core.result.bind(result);
                                         return;
                                     }
@@ -1074,7 +911,7 @@ require = function () {
                                 reply(promise_1.AtomicPromise.reject(reason));
                                 this[Coroutine.terminate](reason);
                             }
-                        });
+                        };
                         this[internal] = new Internal(opts);
                         this[port] = new Port(this, this[Coroutine.init]);
                         const core = this[internal];
@@ -1107,7 +944,10 @@ require = function () {
                                     };
                                     alias_1.ObjectDefineProperty(this, prop, {
                                         set(value) {
-                                            alias_1.ObjectDefineProperty(this, prop, Object.assign(Object.assign({}, desc), { value }));
+                                            alias_1.ObjectDefineProperty(this, prop, {
+                                                ...desc,
+                                                value
+                                            });
                                             this[init]();
                                         },
                                         get() {
@@ -1153,18 +993,16 @@ require = function () {
                     [terminate](reason) {
                         return this[exit](promise_1.AtomicPromise.reject(reason));
                     }
-                    [Symbol.asyncIterator]() {
-                        return __asyncGenerator(this, arguments, function* _b() {
-                            const core = this[internal];
-                            const port = this[Coroutine.port];
-                            while (core.alive) {
-                                const result = yield __await(port.recv());
-                                if (result.done)
-                                    return yield __await(result.value);
-                                yield yield __await(result.value);
-                            }
-                            return yield __await(this);
-                        });
+                    async *[Symbol.asyncIterator]() {
+                        const core = this[internal];
+                        const port = this[Coroutine.port];
+                        while (core.alive) {
+                            const result = await port.recv();
+                            if (result.done)
+                                return result.value;
+                            yield result.value;
+                        }
+                        return this;
                     }
                 }
                 Coroutine.alive = alive;
@@ -1230,7 +1068,10 @@ require = function () {
                     return global_1.Promise.all([
                         future,
                         core.recvBuffer.take()
-                    ]).then(([result]) => result.done ? core.result.then(({value}) => Object.assign(Object.assign({}, result), { value })) : Object.assign({}, result));
+                    ]).then(([result]) => result.done ? core.result.then(({value}) => ({
+                        ...result,
+                        value
+                    })) : { ...result });
                 }
                 recv() {
                     const core = this[internal].co[internal];
@@ -1238,7 +1079,10 @@ require = function () {
                         return promise_1.AtomicPromise.reject(new global_1.Error(`Spica: Coroutine: Canceled.`));
                     this[internal].init();
                     ++core.reception;
-                    return global_1.Promise.resolve(core.recvBuffer.take()).then(result => result.done ? core.result.then(({value}) => Object.assign(Object.assign({}, result), { value })) : Object.assign({}, result));
+                    return global_1.Promise.resolve(core.recvBuffer.take()).then(result => result.done ? core.result.then(({value}) => ({
+                        ...result,
+                        value
+                    })) : { ...result });
                 }
                 send(msg) {
                     const core = this[internal].co[internal];
@@ -1258,18 +1102,18 @@ require = function () {
                     const core = this[internal].co[internal];
                     if (!core.alive)
                         return promise_1.AtomicPromise.reject(new global_1.Error(`Spica: Coroutine: Canceled.`));
-                    return (() => __awaiter(this, void 0, void 0, function* () {
+                    return (async () => {
                         core.settings.size >= 0 && core.reception === 0 && ++core.reception && core.recvBuffer.take();
                         this[internal].init();
                         const iter = com.call(this[internal].co);
                         let reply;
                         while (true) {
-                            const result = yield iter.next(reply);
+                            const result = await iter.next(reply);
                             if (result.done)
                                 return result.value;
-                            reply = (yield this.ask(result.value)).value;
+                            reply = (await this.ask(result.value)).value;
                         }
-                    }))();
+                    })();
                 }
             }
             function isCoroutine(target) {
@@ -3880,50 +3724,6 @@ require = function () {
     86: [
         function (_dereq_, module, exports) {
             'use strict';
-            var __await = this && this.__await || function (v) {
-                return this instanceof __await ? (this.v = v, this) : new __await(v);
-            };
-            var __asyncGenerator = this && this.__asyncGenerator || function (thisArg, _arguments, generator) {
-                if (!Symbol.asyncIterator)
-                    throw new TypeError('Symbol.asyncIterator is not defined.');
-                var g = generator.apply(thisArg, _arguments || []), i, q = [];
-                return i = {}, verb('next'), verb('throw'), verb('return'), i[Symbol.asyncIterator] = function () {
-                    return this;
-                }, i;
-                function verb(n) {
-                    if (g[n])
-                        i[n] = function (v) {
-                            return new Promise(function (a, b) {
-                                q.push([
-                                    n,
-                                    v,
-                                    a,
-                                    b
-                                ]) > 1 || resume(n, v);
-                            });
-                        };
-                }
-                function resume(n, v) {
-                    try {
-                        step(g[n](v));
-                    } catch (e) {
-                        settle(q[0][3], e);
-                    }
-                }
-                function step(r) {
-                    r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r);
-                }
-                function fulfill(value) {
-                    resume('next', value);
-                }
-                function reject(value) {
-                    resume('throw', value);
-                }
-                function settle(f, v) {
-                    if (f(v), q.shift(), q.length)
-                        resume(q[0][0], q[0][1]);
-                }
-            };
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.Supervisor = void 0;
             const global_1 = _dereq_('./global');
@@ -3941,10 +3741,8 @@ require = function () {
                 var _a;
                 class Supervisor extends coroutine_1.Coroutine {
                     constructor(opts = {}) {
-                        super(function () {
-                            return __asyncGenerator(this, arguments, function* () {
-                                return yield __await(this.state);
-                            });
+                        super(async function* () {
+                            return this.state;
                         });
                         this.state = new future_1.AtomicFuture();
                         this.id = sqid_1.sqid();
@@ -4893,7 +4691,7 @@ require = function () {
                         return;
                     case 3:
                         dom_1.define(this.container, []);
-                        this.children_ = this.observe(Object.assign({}, children_));
+                        this.children_ = this.observe({ ...children_ });
                         this.children = children_;
                         this.isInit = false;
                         return;
@@ -4952,7 +4750,10 @@ require = function () {
                                         this.container.removeChild(oldChild.element);
                                     }
                                 } else {
-                                    this.children = Object.assign(Object.assign({}, this.children_), { [name]: newChild });
+                                    this.children = {
+                                        ...this.children_,
+                                        [name]: newChild
+                                    };
                                 }
                             }
                         };
@@ -5298,7 +5099,13 @@ require = function () {
             }
             exports.listen = listen;
             function once(target, a, b, c = false, d = {}) {
-                return typeof b === 'string' ? delegate(target, a, b, c, Object.assign(Object.assign({}, typeof d === 'boolean' ? { capture: d } : d), { once: true })) : bind(target, a, b, Object.assign(Object.assign({}, typeof c === 'boolean' ? { capture: c } : c), { once: true }));
+                return typeof b === 'string' ? delegate(target, a, b, c, {
+                    ...typeof d === 'boolean' ? { capture: d } : d,
+                    once: true
+                }) : bind(target, a, b, {
+                    ...typeof c === 'boolean' ? { capture: c } : c,
+                    once: true
+                });
             }
             exports.once = once;
             function wait(target, a, b = false, c = {}) {
@@ -5312,7 +5119,10 @@ require = function () {
                     unbind();
                     const cx = ev.target.shadowRoot ? (_a = ev.composedPath()[0]) === null || _a === void 0 ? void 0 : _a.closest(selector) : (_b = ev.target) === null || _b === void 0 ? void 0 : _b.closest(selector);
                     return cx ? unbind = once(cx, type, listener, option) : global_1.undefined, ev.returnValue;
-                }, Object.assign(Object.assign({}, option), { capture: true }));
+                }, {
+                    ...option,
+                    capture: true
+                });
             }
             exports.delegate = delegate;
             function bind(target, type, listener, option = false) {
@@ -5485,33 +5295,6 @@ require = function () {
     104: [
         function (_dereq_, module, exports) {
             'use strict';
-            var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
-                function adopt(value) {
-                    return value instanceof P ? value : new P(function (resolve) {
-                        resolve(value);
-                    });
-                }
-                return new (P || (P = Promise))(function (resolve, reject) {
-                    function fulfilled(value) {
-                        try {
-                            step(generator.next(value));
-                        } catch (e) {
-                            reject(e);
-                        }
-                    }
-                    function rejected(value) {
-                        try {
-                            step(generator['throw'](value));
-                        } catch (e) {
-                            reject(e);
-                        }
-                    }
-                    function step(result) {
-                        result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
-                    }
-                    step((generator = generator.apply(thisArg, _arguments || [])).next());
-                });
-            };
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.Config = void 0;
             const assign_1 = _dereq_('spica/assign');
@@ -5586,29 +5369,19 @@ require = function () {
             }
             exports.Config = Config;
             class Sequence {
-                fetch() {
-                    return __awaiter(this, void 0, void 0, function* () {
-                        return 'fetch';
-                    });
+                async fetch() {
+                    return 'fetch';
                 }
-                unload() {
-                    return __awaiter(this, void 0, void 0, function* () {
-                        return 'unload';
-                    });
+                async unload() {
+                    return 'unload';
                 }
-                content() {
-                    return __awaiter(this, void 0, void 0, function* () {
-                        return 'content';
-                    });
+                async content() {
+                    return 'content';
                 }
-                ready() {
-                    return __awaiter(this, void 0, void 0, function* () {
-                        return 'ready';
-                    });
+                async ready() {
+                    return 'ready';
                 }
-                load() {
-                    return __awaiter(this, void 0, void 0, function* () {
-                    });
+                async load() {
                 }
             }
         },
@@ -5628,7 +5401,10 @@ require = function () {
             const maybe_1 = _dereq_('spica/maybe');
             const assign_1 = _dereq_('spica/assign');
             function scope(config, path) {
-                const scope = Object.assign({ '/': {} }, config.scope);
+                const scope = {
+                    '/': {},
+                    ...config.scope
+                };
                 return sequence_1.Sequence.from(Object.keys(scope).sort().reverse()).dropWhile(pattern => !!!router_1.compare(pattern, path.orig) && !router_1.compare(pattern, path.dest)).take(1).filter(pattern => !!router_1.compare(pattern, path.orig) && router_1.compare(pattern, path.dest)).map(pattern => scope[pattern]).map(option => option ? maybe_1.Just(new config_1.Config(assign_1.extend({}, config, option))) : maybe_1.Nothing).extract().reduce((_, m) => m, maybe_1.Nothing);
             }
             exports.scope = scope;
@@ -5727,33 +5503,6 @@ require = function () {
     107: [
         function (_dereq_, module, exports) {
             'use strict';
-            var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
-                function adopt(value) {
-                    return value instanceof P ? value : new P(function (resolve) {
-                        resolve(value);
-                    });
-                }
-                return new (P || (P = Promise))(function (resolve, reject) {
-                    function fulfilled(value) {
-                        try {
-                            step(generator.next(value));
-                        } catch (e) {
-                            reject(e);
-                        }
-                    }
-                    function rejected(value) {
-                        try {
-                            step(generator['throw'](value));
-                        } catch (e) {
-                            reject(e);
-                        }
-                    }
-                    function step(result) {
-                        result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
-                    }
-                    step((generator = generator.apply(thisArg, _arguments || [])).next());
-                });
-            };
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.route = void 0;
             const fetch_1 = _dereq_('./module/fetch');
@@ -5774,21 +5523,17 @@ require = function () {
                     return entity_1.RouterEntityState;
                 }
             });
-            function route(entity, io) {
-                return __awaiter(this, void 0, void 0, function* () {
-                    return either_1.Right(void 0).bind(entity.state.process.either).bind(() => match(io.document, entity.config.areas) ? either_1.Right(void 0) : either_1.Left(new Error(`Failed to match areas.`))).fmap(() => fetch_1.fetch(entity.event.request, entity.config, entity.state.process)).fmap(p => __awaiter(this, void 0, void 0, function* () {
-                        return (yield p).fmap(([res, seq]) => update_1.update(entity, res, seq, {
-                            document: io.document,
-                            position: path_1.loadPosition
-                        })).extract(either_1.Left);
-                    })).extract(either_1.Left);
-                    function match(document, areas) {
-                        return content_1.separate({
-                            src: document,
-                            dst: document
-                        }, areas).extract(() => false, () => true);
-                    }
-                });
+            async function route(entity, io) {
+                return either_1.Right(void 0).bind(entity.state.process.either).bind(() => match(io.document, entity.config.areas) ? either_1.Right(void 0) : either_1.Left(new Error(`Failed to match areas.`))).fmap(() => fetch_1.fetch(entity.event.request, entity.config, entity.state.process)).fmap(async p => (await p).fmap(([res, seq]) => update_1.update(entity, res, seq, {
+                    document: io.document,
+                    position: path_1.loadPosition
+                })).extract(either_1.Left)).extract(either_1.Left);
+                function match(document, areas) {
+                    return content_1.separate({
+                        src: document,
+                        dst: document
+                    }, areas).extract(() => false, () => true);
+                }
             }
             exports.route = route;
         },
@@ -5861,58 +5606,29 @@ require = function () {
     110: [
         function (_dereq_, module, exports) {
             'use strict';
-            var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
-                function adopt(value) {
-                    return value instanceof P ? value : new P(function (resolve) {
-                        resolve(value);
-                    });
-                }
-                return new (P || (P = Promise))(function (resolve, reject) {
-                    function fulfilled(value) {
-                        try {
-                            step(generator.next(value));
-                        } catch (e) {
-                            reject(e);
-                        }
-                    }
-                    function rejected(value) {
-                        try {
-                            step(generator['throw'](value));
-                        } catch (e) {
-                            reject(e);
-                        }
-                    }
-                    function step(result) {
-                        result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
-                    }
-                    step((generator = generator.apply(thisArg, _arguments || [])).next());
-                });
-            };
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.fetch = void 0;
             const xhr_1 = _dereq_('../module/fetch/xhr');
             const clock_1 = _dereq_('spica/clock');
-            function fetch({method, url, body}, {
+            async function fetch({method, url, body}, {
                 fetch: {rewrite, cache, headers, timeout, wait},
                 sequence
             }, process) {
-                return __awaiter(this, void 0, void 0, function* () {
-                    void window.dispatchEvent(new Event('pjax:fetch'));
-                    const [seq, res] = yield Promise.all([
-                        sequence.fetch(void 0, {
-                            path: url.path,
-                            method,
-                            headers,
-                            body
-                        }),
-                        xhr_1.xhr(method, url, headers, body, timeout, rewrite, cache, process),
-                        clock_1.wait(wait)
-                    ]);
-                    return res.bind(process.either).fmap(res => [
-                        res,
-                        seq
-                    ]);
-                });
+                void window.dispatchEvent(new Event('pjax:fetch'));
+                const [seq, res] = await Promise.all([
+                    sequence.fetch(void 0, {
+                        path: url.path,
+                        method,
+                        headers,
+                        body
+                    }),
+                    xhr_1.xhr(method, url, headers, body, timeout, rewrite, cache, process),
+                    clock_1.wait(wait)
+                ]);
+                return res.bind(process.either).fmap(res => [
+                    res,
+                    seq
+                ]);
             }
             exports.fetch = fetch;
         },
@@ -6025,33 +5741,6 @@ require = function () {
     112: [
         function (_dereq_, module, exports) {
             'use strict';
-            var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
-                function adopt(value) {
-                    return value instanceof P ? value : new P(function (resolve) {
-                        resolve(value);
-                    });
-                }
-                return new (P || (P = Promise))(function (resolve, reject) {
-                    function fulfilled(value) {
-                        try {
-                            step(generator.next(value));
-                        } catch (e) {
-                            reject(e);
-                        }
-                    }
-                    function rejected(value) {
-                        try {
-                            step(generator['throw'](value));
-                        } catch (e) {
-                            reject(e);
-                        }
-                    }
-                    function step(result) {
-                        result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
-                    }
-                    step((generator = generator.apply(thisArg, _arguments || [])).next());
-                });
-            };
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.update = void 0;
             const router_1 = _dereq_('../../event/router');
@@ -6074,7 +5763,10 @@ require = function () {
                     src: response.document,
                     dst: io.document
                 };
-                return promise_1.AtomicPromise.resolve(seq).then(process.either).then(m => m.bind(() => content_1.separate(documents, config.areas).extract(() => either_1.Left(new Error(`Failed to separate the areas.`)), () => m)).fmap(seqA => (void window.dispatchEvent(new Event('pjax:unload')), config.sequence.unload(seqA, Object.assign(Object.assign({}, response), { url: response.url.reference }))))).then(m => either_1.Either.sequence(m)).then(process.promise).then(m => m.bind(seqB => content_1.separate(documents, config.areas).fmap(([area]) => [
+                return promise_1.AtomicPromise.resolve(seq).then(process.either).then(m => m.bind(() => content_1.separate(documents, config.areas).extract(() => either_1.Left(new Error(`Failed to separate the areas.`)), () => m)).fmap(seqA => (void window.dispatchEvent(new Event('pjax:unload')), config.sequence.unload(seqA, {
+                    ...response,
+                    url: response.url.reference
+                })))).then(m => either_1.Either.sequence(m)).then(process.promise).then(m => m.bind(seqB => content_1.separate(documents, config.areas).fmap(([area]) => [
                     seqB,
                     area
                 ]).extract(() => either_1.Left(new Error(`Failed to separate the areas.`)), process.either)).bind(([seqB, area]) => (void config.update.rewrite(documents.src, area), content_1.separate(documents, config.areas).fmap(([, areas]) => [
@@ -6083,34 +5775,32 @@ require = function () {
                 ]).extract(() => either_1.Left(new Error(`Failed to separate the areas.`)), process.either)))).then(process.promise).then(m => m.fmap(([seqB, areas]) => hlist_1.HList().unfold(() => (void blur_1.blur(documents.dst), void url_1.url(new router_1.RouterEventLocation(response.url), documents.src.title, event.type, event.source, config.replace), void title_1.title(documents), void path_1.saveTitle(), void head_1.head(documents, config.update.head, config.update.ignore), process.either(content_1.content(documents, areas)).fmap(([as, ps]) => [
                     as,
                     promise_1.AtomicPromise.all(ps)
-                ]))).unfold(p => __awaiter(this, void 0, void 0, function* () {
-                    return (yield p).fmap(([areas]) => __awaiter(this, void 0, void 0, function* () {
-                        config.update.css ? void css_1.css(documents, config.update.ignore) : void 0;
-                        void io.document.dispatchEvent(new Event('pjax:content'));
-                        const seqC = yield config.sequence.content(seqB, areas);
-                        const ssm = config.update.script ? yield script_1.script(documents, state.scripts, config.update, Math.max(config.fetch.timeout, 1000) * 10, process) : yield process.either([
-                            [],
-                            promise_1.AtomicPromise.resolve(process.either([]))
-                        ]);
-                        void focus_1.focus(event.type, documents.dst);
-                        void scroll_1.scroll(event.type, documents.dst, {
-                            hash: event.location.dest.fragment,
-                            position: io.position
-                        });
-                        void path_1.savePosition();
-                        void io.document.dispatchEvent(new Event('pjax:ready'));
-                        return [
-                            ssm.fmap(([ss, ap]) => [
-                                ss,
-                                ap.then(m => m.extract())
-                            ]),
-                            yield config.sequence.ready(seqC)
-                        ];
-                    })).fmap(p => p.then(([m, seqD]) => m.fmap(sst => [
-                        sst,
-                        seqD
-                    ]))).extract(err => promise_1.AtomicPromise.resolve(either_1.Left(err)));
-                })).reverse())).then(process.promise).then(m => m.fmap(([p1, p2]) => (void promise_1.AtomicPromise.all([
+                ]))).unfold(async p => (await p).fmap(async ([areas]) => {
+                    config.update.css ? void css_1.css(documents, config.update.ignore) : void 0;
+                    void io.document.dispatchEvent(new Event('pjax:content'));
+                    const seqC = await config.sequence.content(seqB, areas);
+                    const ssm = config.update.script ? await script_1.script(documents, state.scripts, config.update, Math.max(config.fetch.timeout, 1000) * 10, process) : await process.either([
+                        [],
+                        promise_1.AtomicPromise.resolve(process.either([]))
+                    ]);
+                    void focus_1.focus(event.type, documents.dst);
+                    void scroll_1.scroll(event.type, documents.dst, {
+                        hash: event.location.dest.fragment,
+                        position: io.position
+                    });
+                    void path_1.savePosition();
+                    void io.document.dispatchEvent(new Event('pjax:ready'));
+                    return [
+                        ssm.fmap(([ss, ap]) => [
+                            ss,
+                            ap.then(m => m.extract())
+                        ]),
+                        await config.sequence.ready(seqC)
+                    ];
+                }).fmap(p => p.then(([m, seqD]) => m.fmap(sst => [
+                    sst,
+                    seqD
+                ]))).extract(err => promise_1.AtomicPromise.resolve(either_1.Left(err)))).reverse())).then(process.promise).then(m => m.fmap(([p1, p2]) => (void promise_1.AtomicPromise.all([
                     p1,
                     p2
                 ]).then(([m1, m2]) => m1.bind(([, cp]) => m2.fmap(([[, sp], seqD]) => void promise_1.AtomicPromise.all([
@@ -6326,33 +6016,6 @@ require = function () {
                 __setModuleDefault(result, mod);
                 return result;
             };
-            var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
-                function adopt(value) {
-                    return value instanceof P ? value : new P(function (resolve) {
-                        resolve(value);
-                    });
-                }
-                return new (P || (P = Promise))(function (resolve, reject) {
-                    function fulfilled(value) {
-                        try {
-                            step(generator.next(value));
-                        } catch (e) {
-                            reject(e);
-                        }
-                    }
-                    function rejected(value) {
-                        try {
-                            step(generator['throw'](value));
-                        } catch (e) {
-                            reject(e);
-                        }
-                    }
-                    function step(result) {
-                        result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
-                    }
-                    step((generator = generator.apply(thisArg, _arguments || [])).next());
-                });
-            };
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.escape = exports._evaluate = exports._fetch = exports.script = void 0;
             const error_1 = _dereq_('../../../../../lib/error');
@@ -6384,22 +6047,14 @@ require = function () {
                 return promise_1.AtomicPromise.all([
                     promise_1.AtomicPromise.all(request(ss)).then(run),
                     promise_1.AtomicPromise.all(request(as)).then(run)
-                ]).then(([sm, am]) => __awaiter(this, void 0, void 0, function* () {
-                    return sm.fmap(p => __awaiter(this, void 0, void 0, function* () {
-                        return (yield p).fmap(([ss1, ap1]) => [
-                            ss1,
-                            ap1.then(as1 => __awaiter(this, void 0, void 0, function* () {
-                                return am.fmap(p => __awaiter(this, void 0, void 0, function* () {
-                                    return (yield p).fmap(([ss2, ap2]) => promise_1.AtomicPromise.all([
-                                        as1,
-                                        either_1.Right(ss2),
-                                        ap2
-                                    ]).then(sst => sst.reduce((m1, m2) => m1.bind(s1 => m2.fmap(s2 => array_1.push(s1, s2)))))).extract(either_1.Left);
-                                })).extract(either_1.Left);
-                            }))
-                        ]);
-                    })).extract(either_1.Left);
-                }));
+                ]).then(async ([sm, am]) => sm.fmap(async p => (await p).fmap(([ss1, ap1]) => [
+                    ss1,
+                    ap1.then(async as1 => am.fmap(async p => (await p).fmap(([ss2, ap2]) => promise_1.AtomicPromise.all([
+                        as1,
+                        either_1.Right(ss2),
+                        ap2
+                    ]).then(sst => sst.reduce((m1, m2) => m1.bind(s1 => m2.fmap(s2 => array_1.push(s1, s2)))))).extract(either_1.Left)).extract(either_1.Left))
+                ])).extract(either_1.Left));
                 function request(scripts) {
                     return scripts.map(script => io.fetch(script, timeout));
                 }
@@ -6411,34 +6066,30 @@ require = function () {
                 }
             }
             exports.script = script;
-            function fetch(script, timeout) {
-                return __awaiter(this, void 0, void 0, function* () {
-                    if (!script.hasAttribute('src'))
-                        return either_1.Right([
-                            script,
-                            script.text
-                        ]);
-                    if (script.type.toLowerCase() === 'module')
-                        return either_1.Right([
-                            script,
-                            ''
-                        ]);
-                    return promise_1.AtomicPromise.race([
-                        window.fetch(script.src, {
-                            headers: new Headers({ Accept: 'application/javascript' }),
-                            integrity: script.integrity
-                        }),
-                        clock_1.wait(timeout).then(() => promise_1.AtomicPromise.reject(new Error(`${ script.src }: Timeout.`)))
-                    ]).then(res => __awaiter(this, void 0, void 0, function* () {
-                        return res.ok ? either_1.Right([
-                            script,
-                            yield res.text()
-                        ]) : script.matches('[src][async]') ? retry(script).then(() => either_1.Right([
-                            script,
-                            ''
-                        ]), () => either_1.Left(new Error(`${ script.src }: ${ res.statusText }`))) : either_1.Left(new Error(res.statusText));
-                    }), error => either_1.Left(error));
-                });
+            async function fetch(script, timeout) {
+                if (!script.hasAttribute('src'))
+                    return either_1.Right([
+                        script,
+                        script.text
+                    ]);
+                if (script.type.toLowerCase() === 'module')
+                    return either_1.Right([
+                        script,
+                        ''
+                    ]);
+                return promise_1.AtomicPromise.race([
+                    window.fetch(script.src, {
+                        headers: new Headers({ Accept: 'application/javascript' }),
+                        integrity: script.integrity
+                    }),
+                    clock_1.wait(timeout).then(() => promise_1.AtomicPromise.reject(new Error(`${ script.src }: Timeout.`)))
+                ]).then(async res => res.ok ? either_1.Right([
+                    script,
+                    await res.text()
+                ]) : script.matches('[src][async]') ? retry(script).then(() => either_1.Right([
+                    script,
+                    ''
+                ]), () => either_1.Left(new Error(`${ script.src }: ${ res.statusText }`))) : either_1.Left(new Error(res.statusText)), error => either_1.Left(error));
             }
             exports._fetch = fetch;
             function evaluate(script, code, logger, skip, wait, cancellation) {
@@ -6676,64 +6327,18 @@ require = function () {
     124: [
         function (_dereq_, module, exports) {
             'use strict';
-            var __await = this && this.__await || function (v) {
-                return this instanceof __await ? (this.v = v, this) : new __await(v);
-            };
-            var __asyncGenerator = this && this.__asyncGenerator || function (thisArg, _arguments, generator) {
-                if (!Symbol.asyncIterator)
-                    throw new TypeError('Symbol.asyncIterator is not defined.');
-                var g = generator.apply(thisArg, _arguments || []), i, q = [];
-                return i = {}, verb('next'), verb('throw'), verb('return'), i[Symbol.asyncIterator] = function () {
-                    return this;
-                }, i;
-                function verb(n) {
-                    if (g[n])
-                        i[n] = function (v) {
-                            return new Promise(function (a, b) {
-                                q.push([
-                                    n,
-                                    v,
-                                    a,
-                                    b
-                                ]) > 1 || resume(n, v);
-                            });
-                        };
-                }
-                function resume(n, v) {
-                    try {
-                        step(g[n](v));
-                    } catch (e) {
-                        settle(q[0][3], e);
-                    }
-                }
-                function step(r) {
-                    r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r);
-                }
-                function fulfill(value) {
-                    resume('next', value);
-                }
-                function reject(value) {
-                    resume('throw', value);
-                }
-                function settle(f, v) {
-                    if (f(v), q.shift(), q.length)
-                        resume(q[0][0], q[0][1]);
-                }
-            };
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.ClickView = void 0;
             const coroutine_1 = _dereq_('spica/coroutine');
             const typed_dom_1 = _dereq_('typed-dom');
             class ClickView extends coroutine_1.Coroutine {
                 constructor(document, selector, listener) {
-                    super(function () {
-                        return __asyncGenerator(this, arguments, function* () {
-                            return yield __await(this.finally(typed_dom_1.delegate(document, selector, 'click', ev => {
-                                if (!(ev.currentTarget instanceof HTMLAnchorElement))
-                                    return;
-                                void listener(ev);
-                            })));
-                        });
+                    super(async function* () {
+                        return this.finally(typed_dom_1.delegate(document, selector, 'click', ev => {
+                            if (!(ev.currentTarget instanceof HTMLAnchorElement))
+                                return;
+                            void listener(ev);
+                        }));
                     });
                     void this[coroutine_1.Coroutine.init]();
                 }
@@ -6748,50 +6353,6 @@ require = function () {
     125: [
         function (_dereq_, module, exports) {
             'use strict';
-            var __await = this && this.__await || function (v) {
-                return this instanceof __await ? (this.v = v, this) : new __await(v);
-            };
-            var __asyncGenerator = this && this.__asyncGenerator || function (thisArg, _arguments, generator) {
-                if (!Symbol.asyncIterator)
-                    throw new TypeError('Symbol.asyncIterator is not defined.');
-                var g = generator.apply(thisArg, _arguments || []), i, q = [];
-                return i = {}, verb('next'), verb('throw'), verb('return'), i[Symbol.asyncIterator] = function () {
-                    return this;
-                }, i;
-                function verb(n) {
-                    if (g[n])
-                        i[n] = function (v) {
-                            return new Promise(function (a, b) {
-                                q.push([
-                                    n,
-                                    v,
-                                    a,
-                                    b
-                                ]) > 1 || resume(n, v);
-                            });
-                        };
-                }
-                function resume(n, v) {
-                    try {
-                        step(g[n](v));
-                    } catch (e) {
-                        settle(q[0][3], e);
-                    }
-                }
-                function step(r) {
-                    r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r);
-                }
-                function fulfill(value) {
-                    resume('next', value);
-                }
-                function reject(value) {
-                    resume('throw', value);
-                }
-                function settle(f, v) {
-                    if (f(v), q.shift(), q.length)
-                        resume(q[0][0], q[0][1]);
-                }
-            };
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.NavigationView = void 0;
             const url_1 = _dereq_('../../service/state/url');
@@ -6800,14 +6361,12 @@ require = function () {
             const typed_dom_1 = _dereq_('typed-dom');
             class NavigationView extends coroutine_1.Coroutine {
                 constructor(window, listener) {
-                    super(function () {
-                        return __asyncGenerator(this, arguments, function* () {
-                            return yield __await(this.finally(typed_dom_1.bind(window, 'popstate', ev => {
-                                if (url_2.standardize(window.location.href) === url_1.docurl.href)
-                                    return;
-                                void listener(ev);
-                            })));
-                        });
+                    super(async function* () {
+                        return this.finally(typed_dom_1.bind(window, 'popstate', ev => {
+                            if (url_2.standardize(window.location.href) === url_1.docurl.href)
+                                return;
+                            void listener(ev);
+                        }));
                     });
                     void this[coroutine_1.Coroutine.init]();
                 }
@@ -6824,50 +6383,6 @@ require = function () {
     126: [
         function (_dereq_, module, exports) {
             'use strict';
-            var __await = this && this.__await || function (v) {
-                return this instanceof __await ? (this.v = v, this) : new __await(v);
-            };
-            var __asyncGenerator = this && this.__asyncGenerator || function (thisArg, _arguments, generator) {
-                if (!Symbol.asyncIterator)
-                    throw new TypeError('Symbol.asyncIterator is not defined.');
-                var g = generator.apply(thisArg, _arguments || []), i, q = [];
-                return i = {}, verb('next'), verb('throw'), verb('return'), i[Symbol.asyncIterator] = function () {
-                    return this;
-                }, i;
-                function verb(n) {
-                    if (g[n])
-                        i[n] = function (v) {
-                            return new Promise(function (a, b) {
-                                q.push([
-                                    n,
-                                    v,
-                                    a,
-                                    b
-                                ]) > 1 || resume(n, v);
-                            });
-                        };
-                }
-                function resume(n, v) {
-                    try {
-                        step(g[n](v));
-                    } catch (e) {
-                        settle(q[0][3], e);
-                    }
-                }
-                function step(r) {
-                    r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r);
-                }
-                function fulfill(value) {
-                    resume('next', value);
-                }
-                function reject(value) {
-                    resume('throw', value);
-                }
-                function settle(f, v) {
-                    if (f(v), q.shift(), q.length)
-                        resume(q[0][0], q[0][1]);
-                }
-            };
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.ScrollView = void 0;
             const url_1 = _dereq_('../../service/state/url');
@@ -6877,14 +6392,12 @@ require = function () {
             const typed_dom_1 = _dereq_('typed-dom');
             class ScrollView extends coroutine_1.Coroutine {
                 constructor(window, listener) {
-                    super(function () {
-                        return __asyncGenerator(this, arguments, function* () {
-                            return yield __await(this.finally(typed_dom_1.bind(window, 'scroll', throttle_1.debounce(100, ev => {
-                                if (url_2.standardize(window.location.href) !== url_1.docurl.href)
-                                    return;
-                                void listener(ev);
-                            }), { passive: true })));
-                        });
+                    super(async function* () {
+                        return this.finally(typed_dom_1.bind(window, 'scroll', throttle_1.debounce(100, ev => {
+                            if (url_2.standardize(window.location.href) !== url_1.docurl.href)
+                                return;
+                            void listener(ev);
+                        }), { passive: true }));
                     });
                     void this[coroutine_1.Coroutine.init]();
                 }
@@ -6902,64 +6415,18 @@ require = function () {
     127: [
         function (_dereq_, module, exports) {
             'use strict';
-            var __await = this && this.__await || function (v) {
-                return this instanceof __await ? (this.v = v, this) : new __await(v);
-            };
-            var __asyncGenerator = this && this.__asyncGenerator || function (thisArg, _arguments, generator) {
-                if (!Symbol.asyncIterator)
-                    throw new TypeError('Symbol.asyncIterator is not defined.');
-                var g = generator.apply(thisArg, _arguments || []), i, q = [];
-                return i = {}, verb('next'), verb('throw'), verb('return'), i[Symbol.asyncIterator] = function () {
-                    return this;
-                }, i;
-                function verb(n) {
-                    if (g[n])
-                        i[n] = function (v) {
-                            return new Promise(function (a, b) {
-                                q.push([
-                                    n,
-                                    v,
-                                    a,
-                                    b
-                                ]) > 1 || resume(n, v);
-                            });
-                        };
-                }
-                function resume(n, v) {
-                    try {
-                        step(g[n](v));
-                    } catch (e) {
-                        settle(q[0][3], e);
-                    }
-                }
-                function step(r) {
-                    r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r);
-                }
-                function fulfill(value) {
-                    resume('next', value);
-                }
-                function reject(value) {
-                    resume('throw', value);
-                }
-                function settle(f, v) {
-                    if (f(v), q.shift(), q.length)
-                        resume(q[0][0], q[0][1]);
-                }
-            };
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.SubmitView = void 0;
             const coroutine_1 = _dereq_('spica/coroutine');
             const typed_dom_1 = _dereq_('typed-dom');
             class SubmitView extends coroutine_1.Coroutine {
                 constructor(document, selector, listener) {
-                    super(function () {
-                        return __asyncGenerator(this, arguments, function* () {
-                            return yield __await(this.finally(typed_dom_1.delegate(document, selector, 'submit', ev => {
-                                if (!(ev.currentTarget instanceof HTMLFormElement))
-                                    return;
-                                void listener(ev);
-                            })));
-                        });
+                    super(async function* () {
+                        return this.finally(typed_dom_1.delegate(document, selector, 'submit', ev => {
+                            if (!(ev.currentTarget instanceof HTMLFormElement))
+                                return;
+                            void listener(ev);
+                        }));
                     });
                     void this[coroutine_1.Coroutine.init]();
                 }
@@ -7088,33 +6555,6 @@ require = function () {
     130: [
         function (_dereq_, module, exports) {
             'use strict';
-            var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
-                function adopt(value) {
-                    return value instanceof P ? value : new P(function (resolve) {
-                        resolve(value);
-                    });
-                }
-                return new (P || (P = Promise))(function (resolve, reject) {
-                    function fulfilled(value) {
-                        try {
-                            step(generator.next(value));
-                        } catch (e) {
-                            reject(e);
-                        }
-                    }
-                    function rejected(value) {
-                        try {
-                            step(generator['throw'](value));
-                        } catch (e) {
-                            reject(e);
-                        }
-                    }
-                    function step(result) {
-                        result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
-                    }
-                    step((generator = generator.apply(thisArg, _arguments || [])).next());
-                });
-            };
             Object.defineProperty(exports, '__esModule', { value: true });
             exports._validate = exports.route = exports.RouterEventSource = exports.RouterEvent = exports.Config = void 0;
             const router_1 = _dereq_('../../application/router');
@@ -7159,7 +6599,7 @@ require = function () {
                 return maybe_1.Just(0).guard(validate(event.request.url, config, event)).bind(() => router_1.scope(config, (({orig, dest}) => ({
                     orig: orig.pathname,
                     dest: dest.pathname
-                }))(event.location))).fmap(config => __awaiter(this, void 0, void 0, function* () {
+                }))(event.location))).fmap(async config => {
                     void event.original.preventDefault();
                     void process.cast('', new Error(`Aborted.`));
                     const cancellation = new cancellation_1.Cancellation();
@@ -7168,15 +6608,13 @@ require = function () {
                         void cancellation.cancel(err);
                         return clock_1.never;
                     });
-                    const [scripts] = yield env_1.env;
+                    const [scripts] = await env_1.env;
                     window.history.scrollRestoration = 'manual';
                     return router_1.route(config, event, {
                         process: cancellation,
                         scripts
-                    }, io).then(m => m.fmap(([ss, p]) => __awaiter(this, void 0, void 0, function* () {
-                        return void kill(), void url_1.docurl.sync(), void ss.filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_2.URL(url_2.standardize(s.src)).reference)), void (yield p).filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_2.URL(url_2.standardize(s.src)).reference));
-                    })).extract()).catch(reason => (void kill(), void url_1.docurl.sync(), window.history.scrollRestoration = 'auto', cancellation.alive || reason instanceof error_1.FatalError ? void config.fallback(event.source, reason) : void 0));
-                })).extract(() => {
+                    }, io).then(m => m.fmap(async ([ss, p]) => (void kill(), void url_1.docurl.sync(), void ss.filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_2.URL(url_2.standardize(s.src)).reference)), void (await p).filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_2.URL(url_2.standardize(s.src)).reference)))).extract()).catch(reason => (void kill(), void url_1.docurl.sync(), window.history.scrollRestoration = 'auto', cancellation.alive || reason instanceof error_1.FatalError ? void config.fallback(event.source, reason) : void 0));
+                }).extract(() => {
                     void process.cast('', new Error(`Aborted.`));
                     switch (event.type) {
                     case router_1.RouterEventType.click:
