@@ -37,11 +37,11 @@ const { Pjax } = require('pjax-api');
 
 new Pjax({
   areas: [
-    // try to use the first query.
+    // Try the first query.
     '#header, #primary',
-    // fallback, retrying with the second query.
+    // Retry with the second query when the first query doesn't match.
     '#container',
-    // fallback.
+    // Retry.
     'body'
   ]
 });
