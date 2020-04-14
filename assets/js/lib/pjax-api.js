@@ -1225,7 +1225,7 @@ require = function () {
             });
             var __exportStar = this && this.__exportStar || function (m, exports) {
                 for (var p in m)
-                    if (!exports.hasOwnProperty(p))
+                    if (p !== 'default' && !exports.hasOwnProperty(p))
                         __createBinding(exports, m, p);
             };
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1615,7 +1615,7 @@ require = function () {
             });
             var __exportStar = this && this.__exportStar || function (m, exports) {
                 for (var p in m)
-                    if (!exports.hasOwnProperty(p))
+                    if (p !== 'default' && !exports.hasOwnProperty(p))
                         __createBinding(exports, m, p);
             };
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -2080,68 +2080,61 @@ require = function () {
     34: [
         function (_dereq_, module, exports) {
             'use strict';
-            var __importDefault = this && this.__importDefault || function (mod) {
-                return mod && mod.__esModule ? mod : { 'default': mod };
-            };
             Object.defineProperty(exports, '__esModule', { value: true });
-            exports.Sequence = void 0;
-            const core_1 = _dereq_('./sequence/core');
+            _dereq_('./sequence/member/static/resume');
+            _dereq_('./sequence/member/static/from');
+            _dereq_('./sequence/member/static/cycle');
+            _dereq_('./sequence/member/static/random');
+            _dereq_('./sequence/member/static/concat');
+            _dereq_('./sequence/member/static/zip');
+            _dereq_('./sequence/member/static/difference');
+            _dereq_('./sequence/member/static/union');
+            _dereq_('./sequence/member/static/intersect');
+            _dereq_('./sequence/member/static/pure');
+            _dereq_('./sequence/member/static/return');
+            _dereq_('./sequence/member/static/sequence');
+            _dereq_('./sequence/member/static/mempty');
+            _dereq_('./sequence/member/static/mconcat');
+            _dereq_('./sequence/member/static/mappend');
+            _dereq_('./sequence/member/static/mzero');
+            _dereq_('./sequence/member/static/mplus');
+            _dereq_('./sequence/member/instance/extract');
+            _dereq_('./sequence/member/instance/iterate');
+            _dereq_('./sequence/member/instance/memoize');
+            _dereq_('./sequence/member/instance/reduce');
+            _dereq_('./sequence/member/instance/take');
+            _dereq_('./sequence/member/instance/drop');
+            _dereq_('./sequence/member/instance/takeWhile');
+            _dereq_('./sequence/member/instance/dropWhile');
+            _dereq_('./sequence/member/instance/takeUntil');
+            _dereq_('./sequence/member/instance/dropUntil');
+            _dereq_('./sequence/member/instance/sort');
+            _dereq_('./sequence/member/instance/unique');
+            _dereq_('./sequence/member/instance/fmap');
+            _dereq_('./sequence/member/instance/ap');
+            _dereq_('./sequence/member/instance/bind');
+            _dereq_('./sequence/member/instance/join');
+            _dereq_('./sequence/member/instance/mapM');
+            _dereq_('./sequence/member/instance/filterM');
+            _dereq_('./sequence/member/instance/map');
+            _dereq_('./sequence/member/instance/filter');
+            _dereq_('./sequence/member/instance/scanl');
+            _dereq_('./sequence/member/instance/foldr');
+            _dereq_('./sequence/member/instance/group');
+            _dereq_('./sequence/member/instance/inits');
+            _dereq_('./sequence/member/instance/tails');
+            _dereq_('./sequence/member/instance/segs');
+            _dereq_('./sequence/member/instance/subsequences');
+            _dereq_('./sequence/member/instance/permutations');
+            var core_1 = _dereq_('./sequence/core');
             Object.defineProperty(exports, 'Sequence', {
                 enumerable: true,
                 get: function () {
                     return core_1.Sequence;
                 }
             });
-            const resume_1 = __importDefault(_dereq_('./sequence/member/static/resume'));
-            const from_1 = __importDefault(_dereq_('./sequence/member/static/from'));
-            const cycle_1 = __importDefault(_dereq_('./sequence/member/static/cycle'));
-            const random_1 = __importDefault(_dereq_('./sequence/member/static/random'));
-            const concat_1 = __importDefault(_dereq_('./sequence/member/static/concat'));
-            const zip_1 = __importDefault(_dereq_('./sequence/member/static/zip'));
-            const difference_1 = __importDefault(_dereq_('./sequence/member/static/difference'));
-            const union_1 = __importDefault(_dereq_('./sequence/member/static/union'));
-            const intersect_1 = __importDefault(_dereq_('./sequence/member/static/intersect'));
-            const pure_1 = __importDefault(_dereq_('./sequence/member/static/pure'));
-            const return_1 = __importDefault(_dereq_('./sequence/member/static/return'));
-            const sequence_1 = __importDefault(_dereq_('./sequence/member/static/sequence'));
-            const mempty_1 = __importDefault(_dereq_('./sequence/member/static/mempty'));
-            const mconcat_1 = __importDefault(_dereq_('./sequence/member/static/mconcat'));
-            const mappend_1 = __importDefault(_dereq_('./sequence/member/static/mappend'));
-            const mzero_1 = __importDefault(_dereq_('./sequence/member/static/mzero'));
-            const mplus_1 = __importDefault(_dereq_('./sequence/member/static/mplus'));
-            const extract_1 = __importDefault(_dereq_('./sequence/member/instance/extract'));
-            const iterate_1 = __importDefault(_dereq_('./sequence/member/instance/iterate'));
-            const memoize_1 = __importDefault(_dereq_('./sequence/member/instance/memoize'));
-            const reduce_1 = __importDefault(_dereq_('./sequence/member/instance/reduce'));
-            const take_1 = __importDefault(_dereq_('./sequence/member/instance/take'));
-            const drop_1 = __importDefault(_dereq_('./sequence/member/instance/drop'));
-            const takeWhile_1 = __importDefault(_dereq_('./sequence/member/instance/takeWhile'));
-            const dropWhile_1 = __importDefault(_dereq_('./sequence/member/instance/dropWhile'));
-            const takeUntil_1 = __importDefault(_dereq_('./sequence/member/instance/takeUntil'));
-            const dropUntil_1 = __importDefault(_dereq_('./sequence/member/instance/dropUntil'));
-            const sort_1 = __importDefault(_dereq_('./sequence/member/instance/sort'));
-            const unique_1 = __importDefault(_dereq_('./sequence/member/instance/unique'));
-            const fmap_1 = __importDefault(_dereq_('./sequence/member/instance/fmap'));
-            const ap_1 = __importDefault(_dereq_('./sequence/member/instance/ap'));
-            const bind_1 = __importDefault(_dereq_('./sequence/member/instance/bind'));
-            const join_1 = __importDefault(_dereq_('./sequence/member/instance/join'));
-            const mapM_1 = __importDefault(_dereq_('./sequence/member/instance/mapM'));
-            const filterM_1 = __importDefault(_dereq_('./sequence/member/instance/filterM'));
-            const map_1 = __importDefault(_dereq_('./sequence/member/instance/map'));
-            const filter_1 = __importDefault(_dereq_('./sequence/member/instance/filter'));
-            const scanl_1 = __importDefault(_dereq_('./sequence/member/instance/scanl'));
-            const foldr_1 = __importDefault(_dereq_('./sequence/member/instance/foldr'));
-            const group_1 = __importDefault(_dereq_('./sequence/member/instance/group'));
-            const inits_1 = __importDefault(_dereq_('./sequence/member/instance/inits'));
-            const tails_1 = __importDefault(_dereq_('./sequence/member/instance/tails'));
-            const segs_1 = __importDefault(_dereq_('./sequence/member/instance/segs'));
-            const subsequences_1 = __importDefault(_dereq_('./sequence/member/instance/subsequences'));
-            const permutations_1 = __importDefault(_dereq_('./sequence/member/instance/permutations'));
-            const compose_1 = _dereq_('../helper/compose');
-            void compose_1.compose(core_1.Sequence, resume_1.default, from_1.default, cycle_1.default, random_1.default, concat_1.default, zip_1.default, difference_1.default, union_1.default, intersect_1.default, pure_1.default, return_1.default, sequence_1.default, mempty_1.default, mconcat_1.default, mappend_1.default, mzero_1.default, mplus_1.default, extract_1.default, iterate_1.default, memoize_1.default, reduce_1.default, take_1.default, drop_1.default, takeWhile_1.default, dropWhile_1.default, takeUntil_1.default, dropUntil_1.default, sort_1.default, unique_1.default, fmap_1.default, ap_1.default, bind_1.default, join_1.default, mapM_1.default, filterM_1.default, map_1.default, filter_1.default, scanl_1.default, foldr_1.default, group_1.default, inits_1.default, tails_1.default, segs_1.default, subsequences_1.default, permutations_1.default);
         },
         {
-            '../helper/compose': 20,
             './sequence/core': 35,
             './sequence/member/instance/ap': 36,
             './sequence/member/instance/bind': 37,
@@ -2256,7 +2249,7 @@ require = function () {
                 let Iterator;
                 (function (Iterator) {
                     Iterator.done = () => [
-                        undefined,
+                        void 0,
                         Iterator.done,
                         -1
                     ];
@@ -2299,77 +2292,93 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 ap(a) {
                     return core_1.Sequence.ap(this, a);
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     37: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 bind(f) {
                     return core_1.Sequence.concat(this.fmap(f));
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     38: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 drop(n) {
                     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), (thunk, recur) => core_1.Sequence.Thunk.index(thunk) < n ? recur() : cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     39: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 dropUntil(f) {
                     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), (thunk, recur) => f(core_1.Sequence.Thunk.value(thunk)) ? recur() : cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     40: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 dropWhile(f) {
                     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), (thunk, recur) => f(core_1.Sequence.Thunk.value(thunk)) ? recur() : cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     41: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 extract() {
                     const acc = [];
                     let iter = () => this.iterate();
@@ -2381,31 +2390,37 @@ require = function () {
                         iter = core_1.Sequence.Thunk.iterator(thunk);
                     }
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     42: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 filter(f) {
                     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), (thunk, recur) => f(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.index(thunk)) ? cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk)) : recur()));
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     43: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 filterM(f) {
                     return core_1.Sequence.from([0]).bind(() => {
                         const xs = this.extract();
@@ -2422,45 +2437,54 @@ require = function () {
                         }
                     });
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     44: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 fmap(f) {
                     return new core_1.Sequence((iter = () => this.iterate()) => core_1.Sequence.Iterator.when(iter(), () => core_1.Sequence.Data.cons(), thunk => core_1.Sequence.Data.cons(f(core_1.Sequence.Thunk.value(thunk)), core_1.Sequence.Thunk.iterator(thunk))));
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     45: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 foldr(f, z) {
                     return new core_1.Sequence((iter = () => this.reduce().iterate()) => core_1.Sequence.Iterator.when(iter(), () => core_1.Sequence.Data.cons(z), thunk => core_1.Sequence.Data.cons(f(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.resume(core_1.Sequence.Thunk.iterator(thunk)).foldr(f, z))))).bind(s => s);
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     46: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 group(f) {
                     return new core_1.Sequence(([iter, acc] = [
                         () => this.iterate(),
@@ -2470,34 +2494,40 @@ require = function () {
                         [core_1.Sequence.Thunk.value(thunk)]
                     ])));
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     47: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 inits() {
                     return core_1.Sequence.mappend(core_1.Sequence.from([[]]), this.scanl((b, a) => [
                         ...b,
                         a
                     ], []).dropWhile(as => as.length === 0));
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     48: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 iterate() {
                     return this.iterate_();
                 }
@@ -2526,45 +2556,54 @@ require = function () {
                         throw core_1.Sequence.Exception.invalidDataError(data);
                     }
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     49: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 join() {
                     return core_1.Sequence.concat(this);
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     50: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 map(f) {
                     return new core_1.Sequence((iter = () => this.iterate()) => core_1.Sequence.Iterator.when(iter(), () => core_1.Sequence.Data.cons(), thunk => core_1.Sequence.Data.cons(f(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.index(thunk)), core_1.Sequence.Thunk.iterator(thunk))));
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     51: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 mapM(f) {
                     return core_1.Sequence.from([0]).bind(() => {
                         const xs = this.extract();
@@ -2581,46 +2620,55 @@ require = function () {
                         }
                     });
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     52: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
+            const global_1 = _dereq_('../../../../global');
             const core_1 = _dereq_('../../core');
-            const memories = new WeakMap();
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            const memoize_1 = _dereq_('../../../../memoize');
+            const memory = memoize_1.memoize(_ => new global_1.Map());
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 memoize() {
                     return new core_1.Sequence(([i, memo] = [
                         0,
-                        memories.get(this) || memories.set(this, new Map()).get(this)
+                        memory(this)
                     ], cons) => core_1.Sequence.Iterator.when(memo.get(i) || memo.set(i, i > 0 && memo.has(i - 1) ? core_1.Sequence.Thunk.iterator(memo.get(i - 1))() : this.iterate()).get(i), () => cons(), thunk => cons(core_1.Sequence.Thunk.value(thunk), [
                         i + 1,
                         memo
                     ])));
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../global': 19,
+            '../../../../helper/compose': 20,
+            '../../../../memoize': 24,
+            '../../core': 35
+        }
     ],
     53: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 permutations() {
                     return core_1.Sequence.from([0]).bind(() => {
                         const xs = this.extract();
                         return xs.length === 0 ? core_1.Sequence.mempty : core_1.Sequence.from([xs]);
                     }).bind(xs => core_1.Sequence.mappend(core_1.Sequence.from([xs]), perms(core_1.Sequence.from(xs), core_1.Sequence.mempty)));
                 }
-            }
-            exports.default = default_1;
+            });
             function perms(ts, is) {
                 return core_1.Sequence.Iterator.when(ts.iterate(), () => core_1.Sequence.mempty, tt => new core_1.Sequence((_, cons) => core_1.Sequence.Iterator.when(tt, () => cons(), tt => {
                     const t = core_1.Sequence.Thunk.value(tt);
@@ -2645,34 +2693,43 @@ require = function () {
                 })).bind(xs => xs));
             }
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     54: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
+            const global_1 = _dereq_('../../../../global');
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 reduce() {
                     return new core_1.Sequence(([i, memo] = [
                         0,
-                        new Map()
+                        new global_1.Map()
                     ], cons) => core_1.Sequence.Iterator.when(memo.get(i) || memo.set(i, i > 0 && memo.has(i - 1) ? core_1.Sequence.Thunk.iterator(memo.get(i - 1))() : this.iterate()).get(i), () => cons(), thunk => cons(core_1.Sequence.Thunk.value(thunk), [
                         i + 1,
                         memo
                     ])));
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../global': 19,
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     55: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 scanl(f, z) {
                     return new core_1.Sequence(([prev, iter, i] = [
                         z,
@@ -2684,53 +2741,61 @@ require = function () {
                         core_1.Sequence.Thunk.index(thunk) + 1
                     ])));
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     56: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 segs() {
                     return core_1.Sequence.mappend(this.foldr((a, bs) => bs.take(1).bind(b => core_1.Sequence.mappend(core_1.Sequence.from([core_1.Sequence.mappend(core_1.Sequence.from([[a]]), core_1.Sequence.from(b).map(c => [
                             a,
                             ...c
                         ]))]), bs)), core_1.Sequence.from([core_1.Sequence.from([])])).bind(a => a), core_1.Sequence.from([[]]));
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     57: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 sort(cmp) {
                     return core_1.Sequence.from(this.extract().sort(cmp));
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     58: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 subsequences() {
                     return core_1.Sequence.mappend(core_1.Sequence.from([[]]), core_1.Sequence.from([0]).bind(() => nonEmptySubsequences(this)));
                 }
-            }
-            exports.default = default_1;
+            });
             function nonEmptySubsequences(xs) {
                 return core_1.Sequence.Iterator.when(xs.iterate(), () => core_1.Sequence.mempty, xt => core_1.Sequence.mappend(core_1.Sequence.from([[core_1.Sequence.Thunk.value(xt)]]), new core_1.Sequence((_, cons) => core_1.Sequence.Iterator.when(xt, () => cons(), xt => cons(nonEmptySubsequences(core_1.Sequence.resume(core_1.Sequence.Thunk.iterator(xt))).foldr((ys, r) => core_1.Sequence.mappend(core_1.Sequence.mappend(core_1.Sequence.from([ys]), core_1.Sequence.from([[
                         core_1.Sequence.Thunk.value(xt),
@@ -2738,85 +2803,104 @@ require = function () {
                     ]])), r), core_1.Sequence.mempty)))).bind(xs => xs)));
             }
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     59: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 tails() {
                     return core_1.Sequence.mappend(core_1.Sequence.from(this.extract().map((_, i, as) => as.slice(i))), core_1.Sequence.from([[]]));
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     60: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 take(n) {
                     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(n > 0 ? iter() : core_1.Sequence.Iterator.done(), () => cons(), thunk => core_1.Sequence.Thunk.index(thunk) + 1 < n ? cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk)) : cons(core_1.Sequence.Thunk.value(thunk))));
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     61: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 takeUntil(f) {
                     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), thunk => f(core_1.Sequence.Thunk.value(thunk)) ? cons(core_1.Sequence.Thunk.value(thunk)) : cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     62: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 takeWhile(f) {
                     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), thunk => f(core_1.Sequence.Thunk.value(thunk)) ? cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk)) : cons()));
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     63: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 unique() {
                     const memory = new Set();
                     return this.filter(a => !memory.has(a) && !!memory.add(a));
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     64: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 static concat(as) {
                     return new core_1.Sequence(([ai, bi] = [
                         () => as.iterate(),
@@ -2826,17 +2910,20 @@ require = function () {
                         core_1.Sequence.Thunk.iterator(bt)
                     ])))));
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     65: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 static cycle(as) {
                     return new core_1.Sequence(function cycle([iter, i] = [
                         as[Symbol.iterator](),
@@ -2852,17 +2939,20 @@ require = function () {
                         ]);
                     }).reduce();
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     66: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 static difference(a, b, cmp) {
                     return new core_1.Sequence(([ai, bi] = [
                         () => a.iterate(),
@@ -2888,17 +2978,20 @@ require = function () {
                         return bi = () => core_1.Sequence.Thunk.iterator(bt)(), ar();
                     })));
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     67: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 static from(as) {
                     return new core_1.Sequence(([iter, i] = [
                         as[Symbol.iterator](),
@@ -2911,17 +3004,20 @@ require = function () {
                         ]);
                     }).reduce();
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     68: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 static intersect(a, b, cmp) {
                     return new core_1.Sequence(([ai, bi] = [
                         () => a.iterate(),
@@ -2938,39 +3034,44 @@ require = function () {
                         ]);
                     })));
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     69: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 static mappend(l, r) {
                     return core_1.Sequence.mconcat([
                         l,
                         r
                     ]);
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     70: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 static mconcat(as) {
                     return [...as].reduce((a, b) => mconcat(a, b), core_1.Sequence.mempty);
                 }
-            }
-            exports.default = default_1;
+            });
             function mconcat(a, b) {
                 return new core_1.Sequence(([ai, bi] = [
                     () => a.iterate(),
@@ -2984,129 +3085,148 @@ require = function () {
                 ])));
             }
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     71: [
         function (_dereq_, module, exports) {
             'use strict';
+            var _a;
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            let default_1 = (() => {
-                class default_1 extends core_1.Sequence {
-                }
-                default_1.mempty = new core_1.Sequence((_, cons) => cons());
-                return default_1;
-            })();
-            exports.default = default_1;
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, (_a = class extends core_1.Sequence {
+            }, _a.mempty = new core_1.Sequence((_, cons) => cons()), _a));
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     72: [
         function (_dereq_, module, exports) {
             'use strict';
+            var _a;
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            let default_1 = (() => {
-                class default_1 extends core_1.Sequence {
-                }
-                default_1.mplus = core_1.Sequence.mappend;
-                return default_1;
-            })();
-            exports.default = default_1;
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, (_a = class extends core_1.Sequence {
+            }, _a.mplus = core_1.Sequence.mappend, _a));
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     73: [
         function (_dereq_, module, exports) {
             'use strict';
+            var _a;
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            let default_1 = (() => {
-                class default_1 extends core_1.Sequence {
-                }
-                default_1.mzero = core_1.Sequence.mempty;
-                return default_1;
-            })();
-            exports.default = default_1;
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, (_a = class extends core_1.Sequence {
+            }, _a.mzero = core_1.Sequence.mempty, _a));
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     74: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 static pure(a) {
                     return new core_1.Sequence((_, cons) => cons(a));
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     75: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 static random(p = () => Math.random()) {
                     return typeof p === 'function' ? core_1.Sequence.from(new core_1.Sequence((_, cons) => cons(p(), _))) : this.random().map(r => p[r * p.length | 0]);
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     76: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 static resume(iterator) {
                     return new core_1.Sequence((iter = iterator, cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), thunk => cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     77: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 static Return(a) {
                     return new core_1.Sequence((_, cons) => cons(a));
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     78: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 static sequence(ms) {
                     return ms.reduce((acc, m) => acc.fmap(bs => core_1.Sequence.mappend(bs, m)), core_1.Sequence.Return(core_1.Sequence.from([])));
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     79: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 static union(a, b, cmp) {
                     return new core_1.Sequence(([ai, bi] = [
                         () => a.iterate(),
@@ -3135,17 +3255,20 @@ require = function () {
                         ]);
                     })));
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     80: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
-            class default_1 extends core_1.Sequence {
+            const compose_1 = _dereq_('../../../../helper/compose');
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 static zip(a, b) {
                     return new core_1.Sequence(([ai, bi] = [
                         () => a.iterate(),
@@ -3158,10 +3281,12 @@ require = function () {
                         core_1.Sequence.Thunk.iterator(bt)
                     ]))));
                 }
-            }
-            exports.default = default_1;
+            });
         },
-        { '../../core': 35 }
+        {
+            '../../../../helper/compose': 20,
+            '../../core': 35
+        }
     ],
     81: [
         function (_dereq_, module, exports) {
@@ -3686,7 +3811,7 @@ require = function () {
             });
             var __exportStar = this && this.__exportStar || function (m, exports) {
                 for (var p in m)
-                    if (!exports.hasOwnProperty(p))
+                    if (p !== 'default' && !exports.hasOwnProperty(p))
                         __createBinding(exports, m, p);
             };
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6316,7 +6441,7 @@ require = function () {
             });
             var __exportStar = this && this.__exportStar || function (m, exports) {
                 for (var p in m)
-                    if (!exports.hasOwnProperty(p))
+                    if (p !== 'default' && !exports.hasOwnProperty(p))
                         __createBinding(exports, m, p);
             };
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6977,7 +7102,7 @@ require = function () {
             });
             var __exportStar = this && this.__exportStar || function (m, exports) {
                 for (var p in m)
-                    if (!exports.hasOwnProperty(p))
+                    if (p !== 'default' && !exports.hasOwnProperty(p))
                         __createBinding(exports, m, p);
             };
             Object.defineProperty(exports, '__esModule', { value: true });
