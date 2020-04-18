@@ -798,7 +798,7 @@ require = function () {
             const promise_1 = _dereq_('./promise');
             const clock_1 = _dereq_('./clock');
             class Copropagator extends coroutine_1.Coroutine {
-                constructor(coroutines, reducer = results => results[0]) {
+                constructor(coroutines, reducer = results => results[0], opts) {
                     super(async function* () {
                         void this.then(result => {
                             for (const co of coroutines) {
@@ -812,8 +812,10 @@ require = function () {
                         });
                         void all(coroutines).then(results => results.length === 0 ? void this[coroutine_1.Coroutine.terminate](new global_1.Error(`Spica: Copropagator: No result.`)) : void this[coroutine_1.Coroutine.exit](reducer(results)), reason => void this[coroutine_1.Coroutine.terminate](reason));
                         return clock_1.never;
-                    }, { autorun: false });
-                    void this[coroutine_1.Coroutine.init]();
+                    }, {
+                        ...opts,
+                        delay: false
+                    });
                 }
             }
             exports.Copropagator = Copropagator;
@@ -862,10 +864,13 @@ require = function () {
             const port = Symbol.for('spica/Coroutine.port');
             const internal = Symbol.for('spica/coroutine::internal');
             let Coroutine = (() => {
+                var _b;
                 class Coroutine extends promise_1.AtomicPromise {
                     constructor(gen, opts = {}) {
                         super(resolve => res = resolve);
+                        this[_b] = new Port(this);
                         var res;
+                        this[internal] = new Internal(opts);
                         let count = 0;
                         this[Coroutine.init] = async () => {
                             const core = this[internal];
@@ -912,8 +917,6 @@ require = function () {
                                 this[Coroutine.terminate](reason);
                             }
                         };
-                        this[internal] = new Internal(opts);
-                        this[port] = new Port(this, this[Coroutine.init]);
                         const core = this[internal];
                         res(core.result.then(({value}) => value));
                         if (core.settings.trigger !== global_1.undefined) {
@@ -959,8 +962,9 @@ require = function () {
                                 }
                             }
                         }
-                        this[internal].settings.debug && this[Coroutine.init]();
-                        this[internal].settings.autorun && clock_1.tick(this[Coroutine.init]);
+                        if (this[internal].settings.run) {
+                            this[internal].settings.delay ? clock_1.tick(this[Coroutine.init]) : this[Coroutine.init]();
+                        }
                     }
                     get [alive]() {
                         return this[internal].alive;
@@ -1005,6 +1009,7 @@ require = function () {
                         return this;
                     }
                 }
+                _b = port;
                 Coroutine.alive = alive;
                 Coroutine.init = init;
                 Coroutine.exit = exit;
@@ -1017,8 +1022,8 @@ require = function () {
                 constructor(opts) {
                     this.opts = opts;
                     this.settings = assign_1.extend({
-                        autorun: true,
-                        debug: false,
+                        run: true,
+                        delay: true,
                         size: -1,
                         interval: 0,
                         resume: () => global_1.undefined,
@@ -1045,11 +1050,8 @@ require = function () {
                 }
             }
             class Port {
-                constructor(co, init) {
-                    this[internal] = {
-                        co,
-                        init
-                    };
+                constructor(co) {
+                    this[internal] = { co };
                 }
                 ask(msg) {
                     const core = this[internal].co[internal];
@@ -1058,7 +1060,6 @@ require = function () {
                     if (core.settings.size < 0)
                         return promise_1.AtomicPromise.reject(new global_1.Error(`Spica: Coroutine: Overflowed.`));
                     core.settings.size >= 0 && core.reception === 0 && ++core.reception && core.recvBuffer.take();
-                    this[internal].init();
                     const future = new future_1.Future();
                     core.sendBuffer.put([
                         msg,
@@ -1077,7 +1078,6 @@ require = function () {
                     const core = this[internal].co[internal];
                     if (!core.alive)
                         return promise_1.AtomicPromise.reject(new global_1.Error(`Spica: Coroutine: Canceled.`));
-                    this[internal].init();
                     ++core.reception;
                     return global_1.Promise.resolve(core.recvBuffer.take()).then(result => result.done ? core.result.then(({value}) => ({
                         ...result,
@@ -1091,7 +1091,6 @@ require = function () {
                     if (core.settings.size < 0)
                         return promise_1.AtomicPromise.reject(new global_1.Error(`Spica: Coroutine: Overflowed.`));
                     core.settings.size >= 0 && core.reception === 0 && ++core.reception && core.recvBuffer.take();
-                    this[internal].init();
                     const future = new future_1.Future();
                     return global_1.Promise.resolve(core.sendBuffer.put([
                         msg,
@@ -1104,7 +1103,6 @@ require = function () {
                         return promise_1.AtomicPromise.reject(new global_1.Error(`Spica: Coroutine: Canceled.`));
                     return (async () => {
                         core.settings.size >= 0 && core.reception === 0 && ++core.reception && core.recvBuffer.take();
-                        this[internal].init();
                         const iter = com.call(this[internal].co);
                         let reply;
                         while (true) {
@@ -3868,7 +3866,7 @@ require = function () {
                     constructor(opts = {}) {
                         super(async function* () {
                             return this.state;
-                        });
+                        }, { delay: false });
                         this.state = new future_1.AtomicFuture();
                         this.id = sqid_1.sqid();
                         this.settings = {
@@ -3904,7 +3902,6 @@ require = function () {
                         };
                         this.scheduled = false;
                         this.messages = [];
-                        void this[coroutine_1.Coroutine.init]();
                         void assign_1.extend(this.settings, opts);
                         this.name = this.settings.name;
                         if (this.constructor === Supervisor)
