@@ -6461,8 +6461,7 @@ require = function () {
                                 return;
                             void listener(ev);
                         }));
-                    });
-                    void this[coroutine_1.Coroutine.init]();
+                    }, { delay: false });
                 }
             }
             exports.ClickView = ClickView;
@@ -6489,8 +6488,7 @@ require = function () {
                                 return;
                             void listener(ev);
                         }));
-                    });
-                    void this[coroutine_1.Coroutine.init]();
+                    }, { delay: false });
                 }
             }
             exports.NavigationView = NavigationView;
@@ -6520,8 +6518,7 @@ require = function () {
                                 return;
                             void listener(ev);
                         }), { passive: true }));
-                    });
-                    void this[coroutine_1.Coroutine.init]();
+                    }, { delay: false });
                 }
             }
             exports.ScrollView = ScrollView;
@@ -6549,8 +6546,7 @@ require = function () {
                                 return;
                             void listener(ev);
                         }));
-                    });
-                    void this[coroutine_1.Coroutine.init]();
+                    }, { delay: false });
                 }
             }
             exports.SubmitView = SubmitView;
