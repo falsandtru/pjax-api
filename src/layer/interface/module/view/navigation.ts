@@ -13,7 +13,6 @@ export class NavigationView extends Coroutine<never> {
         if (standardize(window.location.href) === docurl.href) return;
         void listener(ev);
       }));
-    });
-    void this[Coroutine.init]();
+    }, { delay: false });
   }
 }

@@ -12,7 +12,6 @@ export class SubmitView extends Coroutine<never> {
         if (!(ev.currentTarget instanceof HTMLFormElement)) return;
         void listener(ev);
       }));
-    });
-    void this[Coroutine.init]();
+    }, { delay: false });
   }
 }

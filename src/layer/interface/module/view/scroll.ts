@@ -14,7 +14,6 @@ export class ScrollView extends Coroutine<never> {
         if (standardize(window.location.href) !== docurl.href) return;
         void listener(ev);
       }), { passive: true }));
-    });
-    void this[Coroutine.init]();
+    }, { delay: false });
   }
 }

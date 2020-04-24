@@ -13,7 +13,6 @@ export class ClickView extends Coroutine<never> {
         assert(typeof ev.currentTarget.href === 'string');
         void listener(ev);
       }));
-    });
-    void this[Coroutine.init]();
+    }, { delay: false });
   }
 }
