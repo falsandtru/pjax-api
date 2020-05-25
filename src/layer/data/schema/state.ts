@@ -1,13 +1,12 @@
+// history.state
 export interface State {
-  title: State.Title;
-  position: State.Position;
+  readonly title: string;
+  readonly position: {
+    readonly top: number;
+    readonly left: number;
+  };
 }
 export namespace State {
-  export type title = 'title';
-  export type Title = string;
-  export type position = 'position';
-  export type Position = {
-    top: number;
-    left: number;
-  };
+  export type Title = State['title'];
+  export type Position = State['position'];
 }
