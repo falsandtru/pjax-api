@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.31.1
+
+- Don't mutate a cross-origin object `history.state`.
+
 ## 3.31.0
 
 - Update compile target to ES2018.

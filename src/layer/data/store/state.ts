@@ -1,5 +1,4 @@
 import { State } from '../schema/state';
-import { extend } from 'spica/assign';
 
 void saveTitle();
 void savePosition();
@@ -11,11 +10,10 @@ export function loadTitle(): State.Title {
 
 export function saveTitle(): void {
   void window.history.replaceState(
-    extend<Pick<State, State.title>>(
-      window.history.state || {},
-      {
-        title: document.title
-      }),
+    {
+      ...window.history.state,
+      title: document.title,
+    },
     document.title);
 }
 
@@ -29,13 +27,12 @@ export function loadPosition(): State.Position {
 
 export function savePosition(): void {
   void window.history.replaceState(
-    extend<Pick<State, State.position>>(
-      window.history.state || {},
-      {
-        position: {
-          top: window.pageYOffset,
-          left: window.pageXOffset
-        }
-      }),
+    {
+      ...window.history.state,
+      position: {
+        top: window.pageYOffset,
+        left: window.pageXOffset,
+      },
+    },
     document.title);
 }
