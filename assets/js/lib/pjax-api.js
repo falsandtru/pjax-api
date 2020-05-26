@@ -4527,11 +4527,19 @@ require = function () {
             }
             class ReadonlyURL {
                 constructor(url, base) {
-                    return ReadonlyURL.new(url, base);
+                    return ReadonlyURL.freezable ? alias_1.ObjectFreeze(ReadonlyURL.new(url, base)) : ReadonlyURL.new(url, base);
                 }
             }
             exports.ReadonlyURL = ReadonlyURL;
-            ReadonlyURL.new = flip_1.flip(curry_1.uncurry(memoize_1.memoize(base => memoize_1.memoize(url => alias_1.ObjectFreeze(new global_1.global.URL(formatURLForEdge(url, base), base)), new cache_1.Cache(100)), new cache_1.Cache(100))));
+            ReadonlyURL.freezable = (() => {
+                try {
+                    alias_1.ObjectFreeze(new global_1.global.URL(global_1.location.href));
+                    return true;
+                } catch (_a) {
+                    return false;
+                }
+            })();
+            ReadonlyURL.new = flip_1.flip(curry_1.uncurry(memoize_1.memoize(base => memoize_1.memoize(url => new global_1.global.URL(formatURLForEdge(url, base), base), new cache_1.Cache(100)), new cache_1.Cache(100))));
             function formatURLForEdge(url, base) {
                 return url.trim() || base;
             }
